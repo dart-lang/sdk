@@ -4,30 +4,6 @@
 
 [ $compiler == dart2js || $compiler == dart2dart ]
 compile_time_constant_c_test/none: Fail # Map literal with int key.
-class_literal_test/01: Fail # Class literals are expression now; delete this test.
-class_literal_test/02: Fail # Class literals are expression now; delete this test.
-class_literal_test/05: Fail # Class literals are expression now; delete this test.
-class_literal_test/06: Fail # Class literals are expression now; delete this test.
-class_literal_test/07: Fail # Class literals are expression now; delete this test.
-class_literal_test/10: Fail # Class literals are expression now; delete this test.
-class_literal_test/11: Fail # Class literals are expression now; delete this test.
-class_literal_test/12: Fail # Class literals are expression now; delete this test.
-class_literal_test/13: Fail # Class literals are expression now; delete this test.
-class_literal_test/14: Fail # Class literals are expression now; delete this test.
-class_literal_test/17: Fail # Class literals are expression now; delete this test.
-class_literal_test/18: Fail # Class literals are expression now; delete this test.
-class_literal_test/19: Fail # Class literals are expression now; delete this test.
-class_literal_test/20: Fail # Class literals are expression now; delete this test.
-class_literal_test/21: Fail # Class literals are expression now; delete this test.
-class_literal_test/22: Fail # Class literals are expression now; delete this test.
-class_literal_test/23: Fail # Class literals are expression now; delete this test.
-class_literal_test/24: Fail # Class literals are expression now; delete this test.
-class_literal_test/25: Fail # Class literals are expression now; delete this test.
-class_literal_test/26: Fail # Class literals are expression now; delete this test.
-class_literal_test/27: Fail # Class literals are expression now; delete this test.
-class_literal_test/28: Fail # Class literals are expression now; delete this test.
-class_literal_test/29: Fail # Class literals are expression now; delete this test.
-
 constructor_initializer_test: Fail, OK # Depends on ?parameter check.
 
 black_listed_test/none: Fail # Issue 12446.
@@ -162,16 +138,12 @@ get_set_syntax_test/04: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/05: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/06: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/07: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/08: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 method_binding_test: Fail # internal error: super property read not implemented.
 method_override_test: Fail # cannot resolve type GetKeysFunctionType
 method_override5_test: Pass, Fail # Issue 11496 (passes if it's inlined)
-abstract_getter_test/01: Fail # instantiation of abstract class
-abstract_factory_constructor_test/01: Fail # instantiation of abstract class
 parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters_aggregated_test/01: Fail # Presence of default values for optional params is not properly validated in type definitions.
 named_parameters_aggregated_test/03: Fail # Presence of default values for optional params is not properly validated in closure types.
@@ -191,7 +163,6 @@ external_test/11: Fail
 external_test/12: Fail
 external_test/13: Skip  # Runtime error (missing patch).
 external_test/14: Fail
-external_test/15: Fail
 external_test/20: Skip  # Runtime error (missing patch).
 external_test/21: Fail
 external_test/22: Fail
@@ -216,7 +187,6 @@ syntax_test/47: Fail, OK # Bad test: assumes eager loading.
 # The following tests are all negative tests that should be fixed.
 #
 abstract_syntax_test/01: Fail # Negative language test.
-abstract_syntax_test/02: Fail # Negative language test.
 const_constructor_syntax_test/04: Fail # Negative language test.
 const_syntax_test/04: Fail # Negative language test.
 constructor2_negative_test: Fail # Negative language test.

@@ -60,28 +60,6 @@ pseudo_kw_test: fail
 block_scope_test: fail
 lazy_static3_test: fail
 
-# test issue 10890; on-catch UnknownType is a static warning, not error
-try_catch_on_syntax_test/01: fail
-
-# test issue 10899; it is static warning, not error, to call methods of class literal
-class_literal_test/02: fail
-class_literal_test/05: fail
-class_literal_test/07: fail
-class_literal_test/10: fail
-class_literal_test/11: fail
-class_literal_test/12: fail
-class_literal_test/14: fail
-class_literal_test/17: fail
-class_literal_test/18: fail
-class_literal_test/19: fail
-class_literal_test/22: fail
-class_literal_test/23: fail
-class_literal_test/24: fail
-class_literal_test/27: fail
-class_literal_test/28: fail
-class_literal_test/29: fail
-class_literal_test/none: fail
-
 # Test issue 11124, Uninitialized finals are warnings not errors
 field3a_negative_test: fail
 const_syntax_test/01: fail
@@ -127,14 +105,8 @@ factory_implementation_test/none: fail
 # test issue 11579, assignment, no setter
 getter_no_setter_test/none: fail
 
-# test issue 11580, Function is not a malformed type
-black_listed_test/11: fail
-
 # test issue 11581, it is not warning to call dynamic
 call_through_getter_test: fail
-
-# test issue 11583, int is valid key for constant map literal
-compile_time_constant_c_test/01: fail
 
 # test issue 11584, positional arguments cannot be used for named parameters
 compile_time_constant_e_test: fail
