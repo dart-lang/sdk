@@ -7183,6 +7183,12 @@ class Document extends Node  native "Document"
   @DocsEditable()
   Event $dom_createEvent(String eventType) native;
 
+  @JSName('createNodeIterator')
+  @DomName('Document.createNodeIterator')
+  @DocsEditable()
+  @Unstable()
+  NodeIterator $dom_createNodeIterator(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) native;
+
   @JSName('createRange')
   @DomName('Document.createRange')
   @DocsEditable()
@@ -7215,6 +7221,11 @@ class Document extends Node  native "Document"
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   TouchList $dom_createTouchList() native;
+
+  @JSName('createTreeWalker')
+  @DomName('Document.createTreeWalker')
+  @DocsEditable()
+  TreeWalker $dom_createTreeWalker(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) native;
 
   @JSName('elementFromPoint')
   @DomName('Document.elementFromPoint')
@@ -17904,6 +17915,47 @@ class NodeFilter extends Interceptor native "NodeFilter" {
   @DocsEditable()
   static const int SHOW_TEXT = 0x00000004;
 }
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DomName('NodeIterator')
+@Unstable()
+class NodeIterator extends Interceptor native "NodeIterator" {
+  factory NodeIterator(Node root, int whatToShow) {
+    return document.$dom_createNodeIterator(root, whatToShow, null, false);
+  }
+
+  @DomName('NodeIterator.pointerBeforeReferenceNode')
+  @DocsEditable()
+  final bool pointerBeforeReferenceNode;
+
+  @DomName('NodeIterator.referenceNode')
+  @DocsEditable()
+  final Node referenceNode;
+
+  @DomName('NodeIterator.root')
+  @DocsEditable()
+  final Node root;
+
+  @DomName('NodeIterator.whatToShow')
+  @DocsEditable()
+  final int whatToShow;
+
+  @DomName('NodeIterator.detach')
+  @DocsEditable()
+  void detach() native;
+
+  @DomName('NodeIterator.nextNode')
+  @DocsEditable()
+  Node nextNode() native;
+
+  @DomName('NodeIterator.previousNode')
+  @DocsEditable()
+  Node previousNode() native;
+
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23608,6 +23660,69 @@ class TransitionEvent extends Event native "TransitionEvent,WebKitTransitionEven
   @DomName('TransitionEvent.pseudoElement')
   @DocsEditable()
   final String pseudoElement;
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DomName('TreeWalker')
+@Unstable()
+class TreeWalker extends Interceptor native "TreeWalker" {
+  factory TreeWalker(Node root, int whatToShow) {
+    return document.$dom_createTreeWalker(root, whatToShow, null, false);
+  }
+
+  @DomName('TreeWalker.currentNode')
+  @DocsEditable()
+  Node currentNode;
+
+  @DomName('TreeWalker.expandEntityReferences')
+  @DocsEditable()
+  // http://dom.spec.whatwg.org/#dom-traversal
+  @deprecated // deprecated
+  final bool expandEntityReferences;
+
+  @DomName('TreeWalker.filter')
+  @DocsEditable()
+  final NodeFilter filter;
+
+  @DomName('TreeWalker.root')
+  @DocsEditable()
+  final Node root;
+
+  @DomName('TreeWalker.whatToShow')
+  @DocsEditable()
+  final int whatToShow;
+
+  @DomName('TreeWalker.firstChild')
+  @DocsEditable()
+  Node firstChild() native;
+
+  @DomName('TreeWalker.lastChild')
+  @DocsEditable()
+  Node lastChild() native;
+
+  @DomName('TreeWalker.nextNode')
+  @DocsEditable()
+  Node nextNode() native;
+
+  @DomName('TreeWalker.nextSibling')
+  @DocsEditable()
+  Node nextSibling() native;
+
+  @DomName('TreeWalker.parentNode')
+  @DocsEditable()
+  Node parentNode() native;
+
+  @DomName('TreeWalker.previousNode')
+  @DocsEditable()
+  Node previousNode() native;
+
+  @DomName('TreeWalker.previousSibling')
+  @DocsEditable()
+  Node previousSibling() native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
