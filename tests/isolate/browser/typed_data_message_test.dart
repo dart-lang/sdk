@@ -8,7 +8,7 @@
 library TypedDataMessageTest;
 import 'dart:isolate';
 import 'dart:typed_data';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 
 // ---------------------------------------------------------------------------
 // Message passing test.

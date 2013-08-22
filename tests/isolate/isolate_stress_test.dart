@@ -9,7 +9,7 @@
 import 'dart:async';
 import 'dart:isolate';
 
-// TODO(ahe): Remove this import when we have wrapper-less testing.
+// TODO(12588): Remove this import when we have wrapper-less testing.
 import 'dart:html';
 
 worker() {

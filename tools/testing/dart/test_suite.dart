@@ -355,7 +355,10 @@ class CCTestSuite extends TestSuite {
         SummaryReport.add(expectations);
       }
 
-      if (expectations.contains(SKIP)) return;
+      if (expectations.contains(SKIP) ||
+          expectations.contains(SKIP_BY_DESIGN)) {
+        return;
+      }
 
       var args = TestUtils.standardOptions(configuration);
       args.add(testName);
@@ -683,7 +686,10 @@ class StandardTestSuite extends TestSuite {
         SummaryReport.add(expectations);
       }
     }
-    if (expectations.contains(SKIP)) return;
+    if (expectations.contains(SKIP) ||
+        expectations.contains(SKIP_BY_DESIGN)) {
+      return;
+    }
 
     if (configuration['compiler'] != 'none' && info.hasCompileError) {
       // If a compile-time error is expected, and we're testing a
@@ -1907,6 +1913,7 @@ class TestUtils {
 class SummaryReport {
   static int total = 0;
   static int skipped = 0;
+  static int skippedByDesign = 0;
   static int noCrash = 0;
   static int pass = 0;
   static int failOk = 0;
@@ -1919,6 +1926,9 @@ class SummaryReport {
     ++total;
     if (expectations.contains(SKIP)) {
       ++skipped;
+    } else if (expectations.contains(SKIP_BY_DESIGN)) {
+      ++skipped;
+      ++skippedByDesign;
     } else {
       if (expectations.contains(PASS) && expectations.contains(FAIL) &&
           !expectations.contains(CRASH) && !expectations.contains(OK)) {
@@ -1950,7 +1960,7 @@ class SummaryReport {
   static void printReport() {
     if (total == 0) return;
     String report = """Total: $total tests
- * $skipped tests will be skipped
+ * $skipped tests will be skipped ($skippedByDesign skipped by design)
  * $noCrash tests are expected to be flaky but not crash
  * $pass tests are expected to pass
  * $failOk tests are expected to fail that we won't fix

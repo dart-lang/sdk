@@ -8,19 +8,19 @@
 library ports_compilation;
 import 'dart:html';
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 
 void foo() {
   // Create a "SendPortSync" object and access one of its members.
   SendPortSync s_port;
   s_port.callSync;
-  
+
   // Create a "ReceivePortSync" object (with the constructor) and
   // access one of its members.
   var r_port = new ReceivePortSync();
   r_port.receive;
-  
+
   // Call getComputedStyle() from the HTML library.
   query("").getComputedStyle("");
 }

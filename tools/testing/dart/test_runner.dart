@@ -540,7 +540,8 @@ class TestCase extends UniqueObject {
   bool get usesWebDriver => TestUtils.usesWebDriver(configuration['runtime']);
 
   bool get isFlaky {
-      if (expectedOutcomes.contains(SKIP)) {
+      if (expectedOutcomes.contains(SKIP) ||
+          expectedOutcomes.contains(SKIP_BY_DESIGN)) {
         return false;
       }
 
