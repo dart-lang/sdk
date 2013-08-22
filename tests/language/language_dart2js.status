@@ -147,7 +147,6 @@ method_override5_test: Pass, Fail # Issue 11496 (passes if it's inlined)
 parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters_aggregated_test/01: Fail # Presence of default values for optional params is not properly validated in type definitions.
 named_parameters_aggregated_test/03: Fail # Presence of default values for optional params is not properly validated in closure types.
-named_parameters_aggregated_test/05: Fail # Absence of positional parameters before named parameters does not trigger static type warning.
 pseudo_kw_test: Fail # Unexpected token '('
 super_implicit_closure_test: Fail # internal error: super property read not implemented
 

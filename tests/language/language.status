@@ -208,8 +208,6 @@ generic_test: Fail, Ok
 # TODO(antonm): proper support in test framework.
 no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("foo").
 
-named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
-
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
 
