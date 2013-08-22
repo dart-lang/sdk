@@ -350,9 +350,9 @@ class MainMessage extends ComplexMessage {
     var out = new StringBuffer()
       ..write('static $name(')
       ..write(arguments.join(", "))
-      ..write(') => Intl.$dartMessageName("')
+      ..write(') => "')
       ..write(translations[locale])
-      ..write('");');
+      ..write('";');
     return out.toString();
   }
 
