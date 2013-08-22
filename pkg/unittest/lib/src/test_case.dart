@@ -41,9 +41,9 @@ class TestCase {
    */
   String get result => _result;
 
-  Trace _stackTrace;
+  StackTrace _stackTrace;
   /** Stack trace associated with this test, or [null] if it succeeded. */
-  Trace get stackTrace => _stackTrace;
+  StackTrace get stackTrace => _stackTrace;
 
   /** The group (or groups) under which this test is running. */
   final String currentGroup;
@@ -130,9 +130,10 @@ class TestCase {
 
   // Set the results, notify the config, and return true if this
   // is the first time the result is being set.
-  void _setResult(String testResult, String messageText, stack) {
+  void _setResult(String testResult, String messageText, StackTrace stack) {
     _message = messageText;
     _stackTrace = _getTrace(stack);
+    if (_stackTrace == null) _stackTrace = stack;
     if (result == null) {
       _result = testResult;
       _config.onTestResult(this);
@@ -142,7 +143,8 @@ class TestCase {
     }
   }
 
-  void _complete(String testResult, [String messageText = '', stack]) {
+  void _complete(String testResult, [String messageText = '',
+      StackTrace stack]) {
     if (runningTime == null) {
       // The startTime can be `null` if an error happened during setup. In this
       // case we simply report a running time of 0.
@@ -164,7 +166,7 @@ class TestCase {
     _complete(PASS);
   }
 
-  void fail(String messageText, [stack]) {
+  void fail(String messageText, [StackTrace stack]) {
     if (result != null) {
       String newMessage = (result == PASS)
           ? 'Test failed after initially passing: $messageText'
@@ -176,7 +178,7 @@ class TestCase {
     }
   }
 
-  void error(String messageText, [stack]) {
+  void error(String messageText, [StackTrace stack]) {
     _complete(ERROR, messageText, stack);
   }
 
