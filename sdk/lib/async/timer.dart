@@ -25,7 +25,8 @@ part of dart.async;
  *       var duration = milliseconds == null ? TIMEOUT : ms * milliseconds;
  *       return new Timer(duration, handleTimeout);
  *     }
- *     void handleTimeout(Timer _) {  // callback function
+ *     ...
+ *     void handleTimeout() {  // callback function
  *       ...
  *     }
  *
