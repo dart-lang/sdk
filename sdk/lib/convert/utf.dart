@@ -455,7 +455,19 @@ class _Utf8Decoder {
 
       while (i < endIndex) {
         int unit = codeUnits[i++];
-        if (unit <= _ONE_BYTE_LIMIT) {
+        // TODO(floitsch): the way we test we could potentially allow
+        // units that are too large, if they happen to have the
+        // right bit-pattern. (Same is true for the multibyte loop above).
+        // TODO(floitsch): optimize this loop. See:
+        // https://codereview.chromium.org/22929022/diff/1/sdk/lib/convert/utf.dart?column_width=80
+        if (unit < 0) {
+          // TODO(floitsch): should this be unit <= 0 ?
+          if (!_allowMalformed) {
+            throw new FormatException(
+                "Negative UTF-8 code unit: -0x${(-unit).toRadixString(16)}");
+          }
+          _stringSink.writeCharCode(_REPLACEMENT_CHARACTER);
+        } else if (unit <= _ONE_BYTE_LIMIT) {
           _isFirstCharacter = false;
           _stringSink.writeCharCode(unit);
         } else {
