@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Skipped for in-progress Dartium rull on 8-16-2013
-node_test/iterating: Fail
-
 async_window_test: Skip #TODO(gram): investigating
 event_test: Skip  # Issue 1996
 interactive_test: Skip # Must be run manually.

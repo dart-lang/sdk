@@ -348,15 +348,6 @@ interface TextEncoder {};
 [Suppressed]
 interface TextDecoder {};
 
-// TODO(jacobr): renable these as part of fixing dartbug.com/12537
-// We need to apply changes analogous to https://chromiumcodereview.appspot.com/21274004
-// to the Dart bindings so that we can reenable NodeIterator and TreeWalker
-[Suppressed]
-interface NodeIterator {};
-
-[Suppressed]
-interface TreeWalker {};
-
 [Supplemental]
 interface Window : EventTarget {};
 
