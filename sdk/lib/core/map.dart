@@ -5,27 +5,32 @@
 part of dart.core;
 
 /**
- * A [Map] is an associative container, mapping a key to a value.
+ * An unordered collection of key-value pairs,
+ * from which you retrieve a value by using its associated key.
+ *
+ * Each key must be unique.
  * Null values are supported, but null keys are not.
  */
 abstract class Map<K, V> {
   /**
-   * Creates a map with the default implementation.
+   * Creates a Map instance with the default implementation.
    */
   factory Map() => new HashMap<K, V>();
 
   /**
-   * Creates a [Map] that contains all key value pairs of [other].
+   * Creates a Map instance that contains all key-value pairs of [other].
    */
   factory Map.from(Map<K, V> other) => new HashMap<K, V>.from(other);
 
   /**
-   * Creates a [Map] where the keys and values are computed from the [iterable].
+   * Creates a Map instance
+   * where the keys and values are computed from the [iterable].
    *
-   * For each element of the [iterable] this constructor computes a key/value
+   * For each element of the [iterable] this constructor computes a key-value
    * pair, by applying [key] and [value] respectively.
    *
-   * The keys of the key/value pairs do not need to be unique. The last
+   * The keys computed by the source [iterable] 
+   * do not need to be unique. The last
    * occurrence of a key will simply overwrite any previous value.
    *
    * If no values are specified for [key] and [value] the default is the
@@ -35,7 +40,7 @@ abstract class Map<K, V> {
       {K key(element), V value(element)}) = HashMap<K, V>.fromIterable;
 
   /**
-   * Creates a [Map] associating the given [keys] to [values].
+   * Creates a Map instance associating the given [keys] to [values].
    *
    * This constructor iterates over [keys] and [values] and maps each element of
    * [keys] to the corresponding element of [values].
@@ -49,19 +54,19 @@ abstract class Map<K, V> {
       = HashMap<K, V>.fromIterables;
 
   /**
-   * Returns whether this map contains the given [value].
+   * Returns true if this map contains the given value.
    */
   bool containsValue(Object value);
 
   /**
-   * Returns whether this map contains the given [key].
+   * Returns true if this map contains the given key.
    */
   bool containsKey(Object key);
 
   /**
    * Returns the value for the given [key] or null if [key] is not
    * in the map. Because null values are supported, one should either
-   * use containsKey to distinguish between an absent key and a null
+   * use [containsKey] to distinguish between an absent key and a null
    * value, or use the [putIfAbsent] method.
    */
   V operator [](Object key);
@@ -76,7 +81,7 @@ abstract class Map<K, V> {
    * updates the map by mapping [key] to the value returned by
    * [ifAbsent]. Returns the value in the map.
    *
-   * It is an error to add or remove keys from map during the call to
+   * It is an error to add or remove keys from the map during the call to
    * [ifAbsent].
    */
   V putIfAbsent(K key, V ifAbsent());
