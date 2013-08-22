@@ -2,6 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Concurrent programming using _isolates_:
+ * independent workers that are similar to threads
+ * but don't share memory,
+ * communicating only via messages.
+ *
+ * See also:
+ * [dart:isolate - Concurrency with Isolates](https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-dartisolate---concurrency-with-isolates)
+ * in the library tour.
+ */
 library dart.isolate;
 
 import "dart:async";
@@ -15,43 +25,53 @@ class IsolateSpawnException implements Exception {
 }
 
 /**
- * The initial [ReceivePort] available by default for this isolate. This
- * [ReceivePort] is created automatically and it is commonly used to establish
- * the first communication between isolates (see [spawnFunction] and
- * [spawnUri]).
+ * The initial ReceivePort available by default for this isolate.
+ *
+ * This ReceivePort is created automatically
+ * and is commonly used to establish
+ * the first communication between isolates.
+ * (See [spawnFunction] and [spawnUri].)
  */
 ReceivePort get port => _Isolate.port;
 
 /**
- * Creates and spawns an isolate that shares the same code as the current
- * isolate, but that starts from [topLevelFunction]. The [topLevelFunction]
- * argument must be a static top-level function or a static method that takes no
+ * Creates and spawns an isolate
+ * that shares the same code as the current isolate,
+ * but that starts from the specified function.
+ *
+ * The [topLevelFunction] argument must be
+ * a static top-level function or a static method that takes no
  * arguments. It is illegal to pass a function closure.
  *
  * When any isolate starts (even the main script of the application), a default
  * [ReceivePort] is created for it. This port is available from the top-level
  * getter [port] defined in this library.
  *
- * [spawnFunction] returns a [SendPort] derived from the child isolate's default
- * port.
+ * This function returns a [SendPort] derived from
+ * the child isolate's default port.
  *
  * The optional [unhandledExceptionCallback] argument is invoked whenever an
  * exception inside the isolate is unhandled. It can be seen as a big
  * `try/catch` around everything that is executed inside the isolate. The
- * callback should return `true` when it was able to handled the exception.
+ * callback should return `true` if it was able to handle the exception.
  */
 SendPort spawnFunction(void topLevelFunction(),
     [bool unhandledExceptionCallback(IsolateUnhandledException e)])
     => _Isolate.spawnFunction(topLevelFunction, unhandledExceptionCallback);
 
 /**
- * Creates and spawns an isolate whose code is available at [uri].  Like with
- * [spawnFunction], the child isolate will have a default [ReceivePort], and a
- * this function returns a [SendPort] derived from it.
+ * Creates and spawns an isolate that runs the code from the specified URI.
+ *
+ * As with [spawnFunction],
+ * the child isolate has a default [ReceivePort],
+ * and this function returns a [SendPort] derived from it.
  */
 SendPort spawnUri(String uri) => _Isolate.spawnUri(uri);
 
 /**
+ * Together with [ReceivePort],
+ * the only means of communication between isolates.
+ *
  * [SendPort]s are created from [ReceivePort]s. Any message sent through
  * a [SendPort] is delivered to its respective [ReceivePort]. There might be
  * many [SendPort]s for the same [ReceivePort].
@@ -105,8 +125,10 @@ abstract class SendPort {
 }
 
 /**
- * [ReceivePort]s, together with [SendPort]s, are the only means of
- * communication between isolates. [ReceivePort]s have a [:toSendPort:] method
+ * Together with [SendPort], the only means of
+ * communication between isolates.
+ *
+ * [ReceivePort]s have a [:toSendPort:] method
  * which returns a [SendPort]. Any message that is sent through this [SendPort]
  * is delivered to the [ReceivePort] it has been created from. There, they are
  * dispatched to the callback that has been registered on the receive port.
