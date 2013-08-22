@@ -66,6 +66,7 @@ Utils/tests/Expect/setEquals_A02_t01: FAIL, OK # co19 issue 499
 
 LibTest/isolate_api/streamSpawnFunction_A02_t02: PASS, FAIL, OK # co19 issue 540
 LibTest/isolate_api/streamSpawnFunction_A02_t03: PASS, FAIL, OK # co19 issue 540
+LibTest/isolate/IsolateStream/contains_A02_t01: PASS, FAIL, OK # co19 issue 540
 
 LibTest/async/EventTransformStream/listen_A04_t01: Pass, Timeout # co19 issue 542
 
