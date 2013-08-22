@@ -135,7 +135,8 @@ external InstanceMirror reflect(Object reflectee);
  * This function returns a [ClassMirror] reflecting *C*.
  *
  * If [key] is not an instance of [Type] then this function
- * throws an [ArgumentError].
+ * throws an [ArgumentError]. If [key] is the Type dynamic,
+ * throws an [ArgumentError] because dynamic is not a class.
  *
  * Note that since one cannot obtain a [Type] object from
  * another isolate, this function can only be used to
