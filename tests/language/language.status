@@ -6,55 +6,45 @@
 # current state of the language.
 
 [ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10) ]
-licm2_test: Skip # Issue: 12298
+licm2_test: Skip # Issue 12298
 
 [ $compiler == dart2dart ]
-mixin_super_constructor_named_test: Fail
-mixin_super_constructor_positionals_test: Fail
+mixin_super_constructor_named_test: Fail # Issue 12631
+mixin_super_constructor_positionals_test: Fail # Issue 12631
 function_type_alias6_test/00: Fail # Issue 11986
 function_type_alias9_test/00: Crash # Issue 11986
 
 [ $compiler == none ]
-mixin_super_constructor_named_test: Fail
-mixin_super_constructor_positionals_test: Fail
-built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
+mixin_super_constructor_named_test: Fail # Issue 12631
+mixin_super_constructor_positionals_test: Fail # Issue 12631
+built_in_identifier_prefix_test: Fail # Issue 6970
 library_juxtaposition_test: Fail # Issue 6877
 switch_int_double_test/01: Fail # Issue 7307
 switch_int_double_test/02: Fail # Issue 7307
 
 # These bugs refer currently ongoing language discussions.
-constructor5_test: Fail           # (Discussion ongoing)
-
-constructor_initializer_test: Fail # Side effects in constructor parameters
-
-constructor6_test: Fail           # Issue 6422
+constructor_initializer_test: Fail # Issue 12633
+constructor5_test: Fail # Issue 6422
+constructor6_test: Fail # Issue 6422
 closure_in_initializer_test: Fail # Issue 6422
 
 # Regular bugs which should be fixed.
 super_first_constructor_test: Fail # Issue 1372.
-
 parameter_initializer6_negative_test: Fail # Issue 3502
-
-named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
-
+named_parameters_aggregated_test/05: Fail # Issue 12634
 lazy_static3_test: Fail # Issue 12593
-
-export_cyclic_test: Fail, Crash # issue 6060
-duplicate_export_negative_test: Fail # issue 6134
-
+export_cyclic_test: Fail, Crash # Issue 6060
+duplicate_export_negative_test: Fail # Issue 6134
 on_catch_malformed_type_test: Fail # Issue 8601
-
-mixin_mixin_test: Fail
-mixin_issue10216_2_test: Fail
+mixin_mixin_test: Fail # Issue 12636
+mixin_issue10216_2_test: Fail # Issue 12636
 mixin_illegal_object_test/01: Crash # Issue 10952
 mixin_illegal_object_test/02: Crash # Issue 10952
-
 mixin_forwarding_constructor2_test: Fail # Issue 11888
 mixin_typedef_constructor_test: Fail # Issue 11888
 mixin_type_parameter2_test: Fail # Issue 11888
 
 [ $compiler == none && $unchecked ]
-
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
 compile_time_constant_checked_test/02: Fail, OK
@@ -71,17 +61,8 @@ compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
-
-[ $compiler == none && $runtime == drt ]
-final_variable_assignment_test/01: Fail
-final_variable_assignment_test/02: Fail
-final_variable_assignment_test/03: Fail
-final_variable_assignment_test/04: Fail
-
-
 [ $runtime == dartium ]
 import_combinators_test: Fail
-
 
 [ $runtime == vm || ($runtime == drt && $compiler == none) ]
 first_class_types_literals_test: Fail # issue 11761
