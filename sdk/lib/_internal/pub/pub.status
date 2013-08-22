@@ -11,6 +11,7 @@ test/install/hosted/do_not_update_on_removed_constraints_test: Pass, Fail # 1268
 test/install/hosted/install_test: Pass, Fail # 12682
 test/install/hosted/install_transitive_test: Pass, Fail # 12683
 test/install/hosted/repair_cache_test: Pass, Fail # 12684
+pub/test/serve/serve_from_dependency_asset_test: Pass, Fail # 12686
 
 # Pub only runs on the VM, so just rule out all compilers.
 [ $compiler == dart2js || $compiler == dart2dart ]
