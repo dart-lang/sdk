@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+This example is from
+https://github.com/dglazkov/Web-Components-Polyfill/blob/master/samples/news
+-->
+<html>
+<head>
+    <title>Simple Web Components Example</title>
+    <link rel="import" href="news-component.html">
+    <script src='packages/polymer/boot.js'></script>
+</head>
+<body>
+<h1>Simple Web Components Example</h1>
+<ul is="x-news">
+    <li><a href="//example.com/stories/1">A story</a></li>
+    <li><a href="//example.com/stories/2">Another story</a></li>
+    <li class="breaking"><a href="//example.com/stories/3">Also a story</a></li>
+    <li><a href="//example.com/stories/4">Yet another story</a></li>
+    <li><a href="//example.com/stories/4">Awesome story</a></li>
+    <li class="breaking"><a href="//example.com/stories/5">Horrible story</a></li>
+</ul>
+  <script type="application/dart">main() {}</script>
+</body>
+</html>

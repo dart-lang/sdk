@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "dart:async";
+import "dart:convert";
 import "dart:io";
 import "dart:isolate";
 import "dart:utf";
+
+import "package:expect/expect.dart";
 
 void main() {
   testUtf8();
@@ -101,7 +103,7 @@ void testReadLine1() {
   var controller = new StreamController(sync: true);
   var stream = controller.stream
       .transform(new StringDecoder())
-      .transform(new LineTransformer());
+      .transform(new LineSplitter());
 
   var stage = 0;
 
@@ -130,7 +132,7 @@ void testReadLine2() {
 
   var stream = controller.stream
     .transform(new StringDecoder())
-    .transform(new LineTransformer());
+    .transform(new LineSplitter());
 
   var expectedLines = ['Line1', 'Line2','Line3', 'Line4',
                        '', '', '', '', '', '',
@@ -161,7 +163,7 @@ void testErrorHandler() {
   var errors = 0;
   var stream = controller.stream
     .transform(new StringDecoder())
-    .transform(new LineTransformer());
+    .transform(new LineSplitter());
   stream.listen(
       (_) {},
       onDone: () {

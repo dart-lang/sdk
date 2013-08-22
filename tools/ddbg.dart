@@ -38,6 +38,7 @@ void printHelp() {
   sbp [<file>] <line> Set breakpoint
   rbp <id> Remove breakpoint with given id
   po <id> Print object info for given id
+  eval <id> <expr> Evaluate expr on object id
   pl <id> <idx> [<len>] Print list element/slice
   pc <id> Print class info for given id
   ll  List loaded libraries
@@ -126,6 +127,14 @@ void processCommand(String cmdLine) {
                 "params": { "isolateId" : isolate_id,
                             "libraryId": int.parse(args[1]) } };
     sendCmd(cmd).then((result) => handleGetScriptsResponse(result));
+  } else if (command == "eval" && args.length > 2) {
+    var expr = args.getRange(2, args.length).join(" ");
+    var cmd = { "id": seqNum,
+                "command": "evaluateExpr",
+                "params": { "isolateId": isolate_id,
+                            "objectId": int.parse(args[1]),
+                            "expression": expr } };
+    sendCmd(cmd).then((result) => handleEvalResponse(result));
   } else if (command == "po" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getObjectProperties",
@@ -365,6 +374,12 @@ void handleGetScriptsResponse(response) {
   for (int i = 0; i < urls.length; i++) {
     print("  $i ${urls[i]}");
   }
+}
+
+
+void handleEvalResponse(response) {
+  Map result = response["result"];
+  print(remoteObject(result));
 }
 
 

@@ -9,8 +9,8 @@ part of dart.convert;
  */
 // TODO(floitsch): dart:io already has an Encoding class. If we can't
 // consolitate them, we need to remove `Encoding` here.
-abstract class Encoding extends Codec<String, List<int>> {
-  const Encoding();
+abstract class _Encoding extends Codec<String, List<int>> {
+  const _Encoding();
 
   // TODO(floitsch): should we introduce a StringToByteEncoder and
   // a ByteToStringDecoder so that we have better typing?

@@ -328,7 +328,8 @@ class HtmlEventGenerator(object):
     for super_interface in all_interfaces:
       events = events.union(
         set([attr.id for attr in super_interface.attributes
-             if attr.type.id == 'EventListener']))
+             if (attr.type.id == 'EventHandler'
+              or attr.type.id == 'EventListener')]))
     return events
 
   def _GetEvents(self, interface, custom_events):

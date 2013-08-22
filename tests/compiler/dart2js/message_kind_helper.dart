@@ -14,8 +14,13 @@ import 'memory_compiler.dart';
 
 const String ESCAPE_REGEXP = r'[[\]{}()*+?.\\^$|]';
 
-Compiler check(MessageKind kind, Compiler cachedCompiler) {
-  Expect.isNotNull(kind.howToFix);
+Compiler check(MessageKind kind, Compiler cachedCompiler,
+               {bool expectNoHowToFix: false}) {
+  if (expectNoHowToFix) {
+    Expect.isNull(kind.howToFix);
+  } else {
+    Expect.isNotNull(kind.howToFix);
+  }
   Expect.isFalse(kind.examples.isEmpty);
 
   for (String example in kind.examples) {
@@ -37,7 +42,9 @@ Compiler check(MessageKind kind, Compiler cachedCompiler) {
 
     Expect.isFalse(messages.isEmpty, 'No messages in """$example"""');
 
-    String pattern = '${kind.template}\n${kind.howToFix}'.replaceAllMapped(
+    String expectedText = kind.howToFix == null
+        ? kind.template : '${kind.template}\n${kind.howToFix}';
+    String pattern = expectedText.replaceAllMapped(
         new RegExp(ESCAPE_REGEXP), (m) => '\\${m[0]}');
     pattern = pattern.replaceAll(new RegExp(r'#\\\{[^}]*\\\}'), '.*');
 

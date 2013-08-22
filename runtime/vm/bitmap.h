@@ -54,7 +54,7 @@ class BitmapBuilder : public ZoneAllocated {
   bool InRange(intptr_t offset) const {
     if (offset < 0) {
       FATAL1("Fatal error in BitmapBuilder::InRange :"
-             " invalid bit_offset, %"Pd"\n", offset);
+             " invalid bit_offset, %" Pd "\n", offset);
     }
     return (offset < length_);
   }

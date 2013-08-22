@@ -62,22 +62,7 @@ typed_data_message_test: Fail
 
 [ $runtime == safari ]
 cross_isolate_message_test: Skip      # Depends on 32/64 bit Safari. See Issue 1120
-mixed_test: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120
-mixed2_test: Pass,Fail              # Depends on 32/64 bit Safari. See Issue 1120
 message_test: Skip
-
-# TODO(ager): Update these.
-[ $runtime == ie9 && $system == windows ]
-v2*: Skip
-
-[ $runtime == safari && $system == macos ]
-v2*: Skip
-
-[ $runtime == ie9 && ($system == linux || $system == macos) ]
-*: Skip
-
-[ $runtime == safari && ($system == linux || $system == windows) ]
-*: Skip
 
 [ $runtime == opera ]
 isolate2_negative_test: Skip # Timeout.
@@ -125,3 +110,8 @@ isolate_stress_test: Pass, Slow # http://dartbug.com/10697
 
 [ $arch == simmips ]
 *: Skip
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+# Skipped for in-progress Dartium rull on 8-16-2013
+isolate_stress_test: Skip
+

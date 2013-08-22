@@ -286,24 +286,24 @@ void Symbols::DumpStats() {
     symbol_table = Dart::vm_isolate()->object_store()->symbol_table();
     table_size = symbol_table.Length() - 1;
     used ^= symbol_table.At(table_size);
-    OS::Print("VM Isolate: Number of symbols : %"Pd"\n", used.Value());
-    OS::Print("VM Isolate: Symbol table capacity : %"Pd"\n", table_size);
+    OS::Print("VM Isolate: Number of symbols : %" Pd "\n", used.Value());
+    OS::Print("VM Isolate: Symbol table capacity : %" Pd "\n", table_size);
 
     // Now dump regular isolate symbol table stats.
     symbol_table = Isolate::Current()->object_store()->symbol_table();
     table_size = symbol_table.Length() - 1;
     used ^= symbol_table.At(table_size);
-    OS::Print("Isolate: Number of symbols : %"Pd"\n", used.Value());
-    OS::Print("Isolate: Symbol table capacity : %"Pd"\n", table_size);
+    OS::Print("Isolate: Number of symbols : %" Pd "\n", used.Value());
+    OS::Print("Isolate: Symbol table capacity : %" Pd "\n", table_size);
 
     // Dump overall collision and growth counts.
-    OS::Print("Number of symbol table grows = %"Pd"\n", num_of_grows_);
+    OS::Print("Number of symbol table grows = %" Pd "\n", num_of_grows_);
     OS::Print("Collision counts on add and lookup :\n");
     intptr_t i = 0;
     for (i = 0; i < (kMaxCollisionBuckets - 1); i++) {
-      OS::Print("  %"Pd" collisions => %"Pd"\n", i, collision_count_[i]);
+      OS::Print("  %" Pd " collisions => %" Pd "\n", i, collision_count_[i]);
     }
-    OS::Print("  > %"Pd" collisions => %"Pd"\n", i, collision_count_[i]);
+    OS::Print("  > %" Pd " collisions => %" Pd "\n", i, collision_count_[i]);
   }
 }
 

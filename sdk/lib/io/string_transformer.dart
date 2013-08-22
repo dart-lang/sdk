@@ -259,22 +259,6 @@ List<int> _encodeString(String string, [Encoding encoding = Encoding.UTF_8]) {
   return bytes;
 }
 
-// TODO(floitsch) Remove usage of LineTransformer
-// TODO(kevmoo) Remove usage of LineTransformer
-/**
- * Use [LineSplitter] from `dart:convert` instead.
- *
- * [LineTransformer] will be removed the 28 August 2013.
- */
- @deprecated
- class LineTransformer implements StreamTransformer<String, String> {
-  final _decoder = new LineSplitter();
-
-  Stream<String> bind(Stream<String> stream) {
-    return _decoder.bind(stream);
-  }
-}
-
 
 abstract class _SingleByteDecoder
     extends StreamEventTransformer<List<int>, String> {

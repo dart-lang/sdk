@@ -8,6 +8,7 @@
 // a client certificate to be sent.
 
 import "dart:async";
+import "dart:convert";
 import "dart:io";
 
 const HOST_NAME = "localhost";
@@ -44,7 +45,7 @@ void runClient(int port) {
       expectEquals('CN=myauthority', certificate.issuer);
       StreamIterator<String> input = new StreamIterator(socket
           .transform(new StringDecoder())
-          .transform(new LineTransformer()));
+          .transform(new LineSplitter()));
       socket.writeln('first');
       input.moveNext()
         .then((success) {

@@ -25,6 +25,11 @@ test() {
   Expect.isTrue(Platform.executable.contains('dart'));
   Expect.isTrue(Platform.script.replaceAll('\\', '/').
                 endsWith('tests/standalone/io/platform_test.dart'));
+  Directory packageRoot = new Directory(Platform.packageRoot);
+  Expect.isTrue(packageRoot.existsSync());
+  Expect.isTrue(new Directory("${packageRoot.path}/expect").existsSync());
+  Expect.isTrue(Platform.executableArguments.any(
+      (arg) => arg.contains(Platform.packageRoot)));
 }
 
 void f() {
@@ -34,6 +39,12 @@ void f() {
     }
     if (msg == "Platform.script") {
       reply.send(Platform.script);
+    }
+    if (msg == "Platform.packageRoot") {
+      reply.send(Platform.packageRoot);
+    }
+    if (msg == "Platform.executableArguments") {
+      reply.send(Platform.executableArguments);
     }
     if (msg == "new Options().executable") {
       reply.send(new Options().executable);
@@ -53,15 +64,19 @@ testIsolate() {
   var sendPort = spawnFunction(f);
   Future.wait([sendPort.call("Platform.executable"),
                sendPort.call("Platform.script"),
+               sendPort.call("Platform.packageRoot"),
+               sendPort.call("Platform.executableArguments"),
                sendPort.call("new Options().executable"),
                sendPort.call("new Options().script")])
   .then((results) {
     Expect.equals(Platform.executable, results[0]);
-    Expect.equals(Platform.executable, results[2]);
+    Expect.equals(Platform.executable, results[4]);
     Uri uri = Uri.parse(results[1]);
-    Expect.equals(uri, Uri.parse(results[3]));
+    Expect.equals(uri, Uri.parse(results[5]));
     Expect.equals("file", uri.scheme);
     Expect.isTrue(uri.path.endsWith('tests/standalone/io/platform_test.dart'));
+    Expect.equals(Platform.packageRoot, results[2]);
+    Expect.listEquals(Platform.executableArguments, results[3]);
     sendPort.call("close").then((_) => port.close());
   });
 }

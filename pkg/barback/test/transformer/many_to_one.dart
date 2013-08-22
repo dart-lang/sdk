@@ -7,7 +7,6 @@ library barback.test.transformer.many_to_one;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
-import 'package:barback/src/utils.dart';
 
 import 'mock.dart';
 

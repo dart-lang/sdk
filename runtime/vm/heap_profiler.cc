@@ -784,7 +784,7 @@ void HeapProfilerRootVisitor::VisitPointers(RawObject** first,
       uword obj_addr = RawObject::ToAddr(raw_obj);
       if (!Isolate::Current()->heap()->Contains(obj_addr) &&
           !Dart::vm_isolate()->heap()->Contains(obj_addr)) {
-        FATAL1("Invalid object pointer encountered %#"Px"\n", obj_addr);
+        FATAL1("Invalid object pointer encountered %#" Px "\n", obj_addr);
       }
     }
     profiler_->WriteRoot(raw_obj);

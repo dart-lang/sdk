@@ -721,9 +721,14 @@ static void EmitRemainderOperation(Assembler* assembler) {
 //      res = res + right;
 //    }
 //  }
-bool Intrinsifier::Integer_modulo(Assembler* assembler) {
+bool Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
   Label fall_through, subtract;
-  TestBothArgumentsSmis(assembler, &fall_through);
+  // Test arguments for smi.
+  __ lw(T1, Address(SP, 0 * kWordSize));
+  __ lw(T0, Address(SP, 1 * kWordSize));
+  __ or_(CMPRES, T0, T1);
+  __ andi(CMPRES, CMPRES, Immediate(kSmiTagMask));
+  __ bne(CMPRES, ZR, &fall_through);
   // T1: Tagged left (dividend).
   // T0: Tagged right (divisor).
   // Check if modulo by zero -> exception thrown in main function.

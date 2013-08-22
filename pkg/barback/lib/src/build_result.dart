@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:stack_trace/stack_trace.dart';
 
+import 'errors.dart';
 import 'utils.dart';
 
 /// An event indicating that the cascade has finished building all assets.
@@ -23,7 +24,7 @@ class BuildResult {
   bool get succeeded => errors.isEmpty;
 
   BuildResult(Iterable<BarbackException> errors)
-      : errors = errors.toSet();
+      : errors = flattenAggregateExceptions(errors).toSet();
 
   /// Creates a build result indicating a successful build.
   ///

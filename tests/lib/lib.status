@@ -2,12 +2,14 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js && ($runtime == d8 || $runtime == drt) ]
+[ $compiler == dart2js && $runtime == drt ]
 convert/chunked_conversion_utf87_test: Pass, Fail # v8 bug: Issue 12293
 typed_data/byte_data_test: Pass, Fail # v8 bug: Issue 12293
 
 [ $compiler == dart2js ]
-math/*: Skip
+math/double_pow_test: Fail
+math/low_test: Fail
+math/random_test: Fail
 mirrors/invoke_test: Fail # Issue 11954
 mirrors/class_mirror_type_variables_test: Fail # Issue 12087
 mirrors/invoke_private_test: Fail # Issue 12164
@@ -21,6 +23,7 @@ mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
 mirrors/null_test : Fail # Issue 12129
 mirrors/library_metadata_test: Fail # Issue 10905
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
+mirrors/reflected_type_test: Fail # Issue 12607
 mirrors/unnamed_library_test: Fail # Issue 10580
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
@@ -28,11 +31,12 @@ async/run_async6_test: Fail # global error handling is not supported. http://dar
 async/stream_controller_async_test: Fail, Pass # http://dartbug.com/11953
 
 
-[ $compiler == dart2js && ($runtime == d8) ]
-typed_data/byte_data_test: Fail, OK # d8 doesn't support DataView
-
 [ $csp ]
 mirrors/*: Skip # Issue 6490
+
+[ $compiler == dart2js && $runtime != jsshell && $runtime != safari && $runtime != ff && $runtime != ie9 && $runtime != ie10]
+math/math_test: Fail
+math/math2_test: Fail
 
 [ $compiler == dart2js && $jscl ]
 async/future_test: Fail # Timer interface not supported; dartbug.com/7728.
@@ -82,7 +86,10 @@ convert/streamed_conversion_utf8_encode_test: Pass, Timeout  # Issue 12029
 [ $runtime == ie9 ]
 # IE9 doesn't support typed arrays.
 typed_data/*: Fail # Issue 11971
-convert/chunked_conversion_utf88_test: Pass, Slow  # Issue 12029
+convert/chunked_conversion_utf88_test: Pass, Slow, Timeout  # Issue 12029
+convert/streamed_conversion_utf8_encode_test: Pass, Timeout  # Issue 12029
+convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Issue 12029
+async/deferred/deferred_api_test: Pass, Timeout # Issue 12029
 
 [ $runtime == opera ]
 async/multiple_timer_test: Pass, Fail
@@ -99,7 +106,6 @@ mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 
 [ $runtime == vm || ($compiler == none && $runtime == drt) ]
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
-mirrors/operator_test: Fail # http://dartbug.com/11944
 mirrors/mixin_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
 mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
 
@@ -118,3 +124,7 @@ async/timer_test: Fail, Pass # See Issue 10982
 [ $arch == simmips || $arch == mips ]
 convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12025.
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
+
+[ $arch == simarm || $arch == arm ]
+typed_data/uint32x4_arithmetic_test: Crash # Unimplemented
+

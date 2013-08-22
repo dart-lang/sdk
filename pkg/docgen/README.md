@@ -32,19 +32,21 @@ Run  `dart docgen.dart [OPTIONS] <path to directory or file>`
 
 - `-h`, `--help` Prints help and usage information.
 - `-v`, `--verbose` Output more logging information.
-- `-j`, `--[no-]json` Outputs to JSON. Files are outputted to YAML by default.
+- `-j`, `--[no-]json` Outputs to JSON. Files are outputted to YAML by default. 
+If `--append` is used, it takes the file-format of the previous run stated in 
+library_list.json ignoring the flag.
 - `--include-private` Flag to include private declarations.
 - `--include-sdk` Flag to parse SDK Library files imported.
 - `--parse-sdk` Parses the SDK libraries only. (Ignores the path passed in.)
 - `--package-root` Sets the package root of the library being analyzed.
-- `--append` Appends to the docs folder, library_list.txt, and index.txt.
+- `--append` Appends to the docs folder, library_list.json, and index.txt.
 - `--introduction` Adds the provided markdown text file as the introduction
 for the outputted documentation.
 
 
 ###### Output Directory
 Documented libraries will be located at bin/docs in either YAML or JSON format 
-depending on options specified. There will also be a library_list.txt, 
+depending on options specified. There will also be a library_list.json, 
 containing a list of all the libraries inside the docs folder. 
 
 To get more information on how to use the outputted documentation with 

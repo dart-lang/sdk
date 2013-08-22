@@ -9,7 +9,6 @@ import 'dart:async';
 import 'asset.dart';
 import 'asset_id.dart';
 import 'errors.dart';
-import 'phase.dart';
 import 'transform_node.dart';
 
 /// Describes the current state of an asset as part of a transformation graph.

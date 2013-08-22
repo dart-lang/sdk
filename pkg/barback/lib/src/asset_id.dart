@@ -4,9 +4,6 @@
 
 library barback.asset_id;
 
-import 'dart:async';
-import 'dart:io';
-
 import 'package:path/path.dart' as pathos;
 
 /// AssetIDs always use POSIX style paths regardless of the host platform.

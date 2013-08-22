@@ -13,6 +13,9 @@ namespace dart {
 namespace bin {
 
 const char* Platform::executable_name_ = NULL;
+const char* Platform::package_root_ = NULL;
+int Platform::script_index_ = 1;
+char** Platform::argv_ = NULL;
 
 void FUNCTION_NAME(Platform_NumberOfProcessors)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewInteger(Platform::NumberOfProcessors()));
@@ -45,6 +48,31 @@ void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
   Dart_SetReturnValue(
       args, Dart_NewStringFromCString(Platform::GetExecutableName()));
 }
+
+
+void FUNCTION_NAME(Platform_ExecutableArguments)(Dart_NativeArguments args) {
+  int end = Platform::GetScriptIndex();
+  char** argv = Platform::GetArgv();
+  Dart_Handle result = Dart_NewList(end - 1);
+  for (intptr_t i = 1; i < end; i++) {
+    Dart_Handle str = DartUtils::NewString(argv[i]);
+    Dart_Handle error = Dart_ListSetAt(result, i - 1, str);
+    if (Dart_IsError(error)) {
+      Dart_PropagateError(error);
+    }
+  }
+  Dart_SetReturnValue(args, result);
+}
+
+
+void FUNCTION_NAME(Platform_PackageRoot)(Dart_NativeArguments args) {
+  const char* package_root = Platform::GetPackageRoot();
+  if (package_root == NULL) {
+    package_root = "";
+  }
+  Dart_SetReturnValue(args, Dart_NewStringFromCString(package_root));
+}
+
 
 void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   intptr_t count = 0;

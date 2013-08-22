@@ -5,7 +5,36 @@
 part of dart.core;
 
 /**
- * A [Duration] represents a time span. A duration can be negative.
+ * A span of time, such as 27 days, 4 hours, 12 minutes, and 3 seconds.
+ *
+ * To create a new Duration object, use this class's single constructor
+ * giving the appropriate arguments:
+ *
+ *     Duration fastestMarathon = new Duration(hours:2, minutes:3, seconds:2);
+ *
+ * The Duration is the sum of all individual parts.
+ * This means that individual parts can be larger than the next-bigger unit.
+ * For example, [minutes] can be greater than 59.
+ *
+ *     assert(fastestMarathon.inMinutes == 123);
+ *
+ * All individual parts are allowed to be negative.
+ *
+ * Use one of the properties, such as [inDays],
+ * to retrieve the integer value of the Duration in the specified time unit.
+ * Note that the returned value is rounded down.
+ * For example, 
+ *
+ *     Duration aLongWeekend = new Duration(hours:88);
+ *     assert(aLongWeekend.inDays == 3);
+ *
+ * This class provides a collection of arithmetic
+ * and comparison operators,
+ * plus a set of constants useful for converting time units.
+ *
+ * See [DateTime] to represent a point in time.
+ * See [Stopwatch] to measure time-spans.
+ *
  */
 class Duration implements Comparable<Duration> {
   static const int MICROSECONDS_PER_MILLISECOND = 1000;
@@ -38,18 +67,20 @@ class Duration implements Comparable<Duration> {
 
   static const Duration ZERO = const Duration(seconds: 0);
 
-  /**
-   * This [Duration] in microseconds.
+  /*
+   * The value of this Duration object in microseconds.
    */
   final int _duration;
 
   /**
-   * The duration is the sum of all individual parts. This means that individual
-   * parts don't need to be less than the next-bigger unit. For example [hours]
-   * is allowed to have a value greater than 23.
+   * Creates a new Duration object whose value
+   * is the sum of all individual parts.
+   *
+   * Individual parts can be larger than the next-bigger unit.
+   * For example, [hours] can be greater than 23.
    *
    * All individual parts are allowed to be negative.
-   * All arguments are by default 0.
+   * All arguments are 0 by default.
    */
   const Duration({int days: 0,
                   int hours: 0,
@@ -65,23 +96,24 @@ class Duration implements Comparable<Duration> {
                     microseconds;
 
   /**
-   * Returns the sum of this [Duration] and [other]  as a new [Duration].
+   * Adds this Duration and [other] and
+   * returns the sum as a new Duration object.
    */
   Duration operator +(Duration other) {
     return new Duration(microseconds: _duration + other._duration);
   }
 
   /**
-   * Returns the difference of this [Duration] and [other] as a new
-   * [Duration].
+   * Subtracts [other] from this Duration and
+   * returns the difference as a new Duration object.
    */
   Duration operator -(Duration other) {
     return new Duration(microseconds: _duration - other._duration);
   }
 
   /**
-   * Multiplies this [Duration] by the given [factor] and returns the result
-   * as a new [Duration].
+   * Multiplies this Duration by the given [factor] and returns the result
+   * as a new Duration object.
    *
    * Note that when [factor] is a double, and the duration is greater than
    * 53 bits, precision is lost because of double-precision arithmetic.
@@ -91,8 +123,8 @@ class Duration implements Comparable<Duration> {
   }
 
   /**
-   * Divides this [Duration] by the given [quotient] and returns the truncated
-   * result as a new [Duration].
+   * Divides this Duration by the given [quotient] and returns the truncated
+   * result as a new Duration object.
    *
    * Throws an [IntegerDivisionByZeroException] if [quotient] is `0`.
    */
@@ -103,52 +135,71 @@ class Duration implements Comparable<Duration> {
     return new Duration(microseconds: _duration ~/ quotient);
   }
 
+  /**
+   * Returns `true` if the value of this Duration
+   * is less than the value of [other].
+   */
   bool operator <(Duration other) => this._duration < other._duration;
 
+  /**
+   * Returns `true` if the value of this Duration
+   * is greater than the value of [other].
+   */
   bool operator >(Duration other) => this._duration > other._duration;
 
+  /**
+   * Returns `true` if the value of this Duration
+   * is less than or equal to the value of [other].
+   */
   bool operator <=(Duration other) => this._duration <= other._duration;
 
+  /**
+   * Returns `true` if the value of this Duration
+   * is greater than or equal to the value of [other].
+   */
   bool operator >=(Duration other) => this._duration >= other._duration;
 
   /**
-   * This [Duration] in days. Incomplete days are discarded
+   * Returns the number of whole days spanned by this Duration.
    */
   int get inDays => _duration ~/ Duration.MICROSECONDS_PER_DAY;
 
   /**
-   * This [Duration] in hours. Incomplete hours are discarded.
+   * Returns the number of whole hours spanned by this Duration.
    *
    * The returned value can be greater than 23.
    */
   int get inHours => _duration ~/ Duration.MICROSECONDS_PER_HOUR;
 
   /**
-   * This [Duration] in minutes. Incomplete minutes are discarded.
+   * Returns the number of whole minutes spanned by this Duration.
    *
    * The returned value can be greater than 59.
    */
   int get inMinutes => _duration ~/ Duration.MICROSECONDS_PER_MINUTE;
 
   /**
-   * This [Duration] in seconds. Incomplete seconds are discarded.
+   * Returns the number of whole seconds spanned by this Duration.
    *
    * The returned value can be greater than 59.
    */
   int get inSeconds => _duration ~/ Duration.MICROSECONDS_PER_SECOND;
 
   /**
-   * This [Duration] in milliseconds. Incomplete milliseconds are discarded.
+   * Returns number of whole milliseconds spanned by this Duration.
    *
    * The returned value can be greater than 999.
    */
   int get inMilliseconds => _duration ~/ Duration.MICROSECONDS_PER_MILLISECOND;
 
   /**
-   * This [Duration] in microseconds.
+   * Returns number of whole microseconds spanned by this Duration.
    */
   int get inMicroseconds => _duration;
 
+  /**
+   * Returns `true` if this Duration is the same object as [other].
+   */
   bool operator ==(other) {
     if (other is !Duration) return false;
     return _duration == other._duration;
@@ -156,6 +207,14 @@ class Duration implements Comparable<Duration> {
 
   int get hashCode => _duration.hashCode;
 
+  /**
+   * Compares this Duration to [other],
+   * returning zero if the values are equal.
+   *
+   * This function returns a negative integer
+   * if this Duration is smaller than [other],
+   * or a positive integer if it is greater.
+   */
   int compareTo(Duration other) => _duration.compareTo(other._duration);
 
   String toString() {

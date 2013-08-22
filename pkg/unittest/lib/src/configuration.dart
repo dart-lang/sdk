@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16,10 +16,17 @@ abstract class Configuration {
   factory Configuration() => new SimpleConfiguration();
 
   /**
+   * Creates an [Configuration] instances that does nothing.
+   *
+   * For use by subclasses which wish to implement only a subset of features.
+   */
+  Configuration.blank();
+
+  /**
    * If [true], tests are started automatically. Otherwise [runTests]
    * must be called explicitly after tests are set up.
    */
-  bool get autoStart;
+  bool get autoStart => true;
 
   /**
    * Called as soon as the unittest framework becomes initialized. This is done
@@ -28,7 +35,7 @@ abstract class Configuration {
    * It is also used to tell the vm or browser that tests are going to be run
    * asynchronously and that the process should wait until they are done.
    */
-  void onInit();
+  void onInit() {}
 
   /** Called as soon as the unittest framework starts running. */
   void onStart() {}
@@ -37,31 +44,31 @@ abstract class Configuration {
    * Called when each test starts. Useful to show intermediate progress on
    * a test suite.
    */
-  void onTestStart(TestCase testCase);
+  void onTestStart(TestCase testCase) {}
 
   /**
    * Called when each test is first completed. Useful to show intermediate
    * progress on a test suite.
    */
-  void onTestResult(TestCase testCase);
+  void onTestResult(TestCase testCase) {}
 
   /**
    * Called when an already completed test changes state. For example: a test
    * that was marked as passing may later be marked as being in error because
    * it still had callbacks being invoked.
    */
-  void onTestResultChanged(TestCase testCase);
+  void onTestResultChanged(TestCase testCase) {}
 
   /**
    * Handles the logging of messages by a test case.
    */
-  void onLogMessage(TestCase testCase, String message);
+  void onLogMessage(TestCase testCase, String message) {}
 
   /**
    * Called when the unittest framework is done running. [success] indicates
    * whether all tests passed successfully.
    */
-  void onDone(bool success);
+  void onDone(bool success) {}
 
   /**
    * Called with the result of all test cases. Browser tests commonly override
@@ -71,6 +78,6 @@ abstract class Configuration {
    * of tests (e.g. setting up the test).
    */
   void onSummary(int passed, int failed, int errors, List<TestCase> results,
-      String uncaughtError);
+      String uncaughtError) {}
 }
 

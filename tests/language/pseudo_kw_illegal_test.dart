@@ -16,7 +16,6 @@ class library { }     /// 10: compile-time error
 class operator { }    /// 12: compile-time error
 class part { }        /// 18: compile-time error
 class set { }         /// 13: compile-time error
-class source { }      /// 14: compile-time error
 class static { }      /// 15: compile-time error
 class typedef { }     /// 16: compile-time error
 

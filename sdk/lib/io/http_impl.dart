@@ -1824,14 +1824,17 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
   final _HttpServer _httpServer;
   final _HttpParser _httpParser;
   StreamSubscription _subscription;
+  Timer _idleTimer;
 
   Future _streamFuture;
 
   _HttpConnection(Socket this._socket, _HttpServer this._httpServer)
       : _httpParser = new _HttpParser.requestParser() {
+    _startTimeout();
     _socket.pipe(_httpParser);
     _subscription = _httpParser.listen(
         (incoming) {
+          _stopTimeout();
           // If the incoming was closed, close the connection.
           incoming.dataDone.then((closing) {
             if (closing) destroy();
@@ -1854,6 +1857,7 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
                     request.persistentConnection &&
                     incoming.fullBodyRead) {
                   _state = _IDLE;
+                  _startTimeout();
                   // Resume the subscription for incoming requests as the
                   // request is now processed.
                   _subscription.resume();
@@ -1879,7 +1883,21 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
         });
   }
 
+  void _startTimeout() {
+    assert(_state == _IDLE);
+    _stopTimeout();
+    if (_httpServer.idleTimeout == null) return;
+    _idleTimer = new Timer(_httpServer.idleTimeout, () {
+      destroy();
+    });
+  }
+
+  void _stopTimeout() {
+    if (_idleTimer != null) _idleTimer.cancel();
+  }
+
   void destroy() {
+    _stopTimeout();
     if (_state == _CLOSING || _state == _DETACHED) return;
     _state = _CLOSING;
     _socket.destroy();
@@ -1887,6 +1905,7 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
   }
 
   Future<Socket> detachSocket() {
+    _stopTimeout();
     _state = _DETACHED;
     // Remove connection from server.
     _httpServer._connectionClosed(this);
@@ -1910,6 +1929,8 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
 // HTTP server waiting for socket connections.
 class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   String serverHeader = _getHttpVersion();
+
+  Duration idleTimeout = const Duration(seconds: 120);
 
   static Future<HttpServer> bind(address, int port, int backlog) {
     return ServerSocket.bind(address, port, backlog: backlog).then((socket) {

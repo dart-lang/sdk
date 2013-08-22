@@ -2022,6 +2022,7 @@ class _Float32x4 implements Float32x4 {
   double get y native "Float32x4_getY";
   double get z native "Float32x4_getZ";
   double get w native "Float32x4_getW";
+  int get signMask native "Float32x4_getSignMask";
 
   Float32x4 shuffle(int mask) native "Float32x4_shuffle";
 
@@ -2081,10 +2082,19 @@ class _Uint32x4 implements Uint32x4 {
     return _xor(other);
   }
   Uint32x4 _xor(Uint32x4 other) native "Uint32x4_xor";
+  Uint32x4 operator +(Uint32x4 other) {
+    return _add(other);
+  }
+  Uint32x4 _add(Uint32x4 other) native "Uint32x4_add";
+  Uint32x4 operator -(Uint32x4 other) {
+    return _sub(other);
+  }
+  Uint32x4 _sub(Uint32x4 other) native "Uint32x4_sub";
   int get x native "Uint32x4_getX";
   int get y native "Uint32x4_getY";
   int get z native "Uint32x4_getZ";
   int get w native "Uint32x4_getW";
+  int get signMask native "Uint32x4_getSignMask";
   Uint32x4 withX(int x) native "Uint32x4_setX";
   Uint32x4 withY(int y) native "Uint32x4_setY";
   Uint32x4 withZ(int z) native "Uint32x4_setZ";

@@ -88,7 +88,7 @@ bool BitmapBuilder::GetBit(intptr_t bit_offset) const {
 void BitmapBuilder::SetBit(intptr_t bit_offset, bool value) {
   if (!InRange(bit_offset)) {
     FATAL1("Fatal error in BitmapBuilder::SetBit :"
-           " invalid bit_offset, %"Pd"\n", bit_offset);
+           " invalid bit_offset, %" Pd "\n", bit_offset);
   }
   int byte_offset = bit_offset >> kBitsPerByteLog2;
   ASSERT(byte_offset < data_size_in_bytes_);

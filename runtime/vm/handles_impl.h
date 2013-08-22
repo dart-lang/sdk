@@ -176,7 +176,7 @@ void Handles<kHandleSizeInWords,
              kOffsetOfRawPtr>::SetupNextScopeBlock() {
 #if defined(DEBUG)
   if (FLAG_trace_handles) {
-    OS::PrintErr("***   Handle Counts for (0x%"Px"):Zone = %d,Scoped = %d\n",
+    OS::PrintErr("***   Handle Counts for (0x%" Px "):Zone = %d,Scoped = %d\n",
                  reinterpret_cast<intptr_t>(this),
                  CountZoneHandles(), CountScopedHandles());
   }
@@ -231,7 +231,7 @@ void Handles<kHandleSizeInWords,
              kOffsetOfRawPtr>::SetupNextZoneBlock() {
 #if defined(DEBUG)
   if (FLAG_trace_handles) {
-    OS::PrintErr("***   Handle Counts for (0x%"Px"):Zone = %d,Scoped = %d\n",
+    OS::PrintErr("***   Handle Counts for (0x%" Px "):Zone = %d,Scoped = %d\n",
                  reinterpret_cast<intptr_t>(this),
                  CountZoneHandles(), CountScopedHandles());
   }

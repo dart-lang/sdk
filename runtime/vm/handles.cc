@@ -25,10 +25,11 @@ DEFINE_DEBUG_FLAG(bool, trace_handles,
 VMHandles::~VMHandles() {
 #ifdef DEBUG
     if (FLAG_trace_handles) {
-      OS::PrintErr("***   Handle Counts for 0x(%"Px"):Zone = %d,Scoped = %d\n",
+      OS::PrintErr("***   Handle Counts for 0x(%" Px
+                   "):Zone = %d,Scoped = %d\n",
                    reinterpret_cast<intptr_t>(this),
                    CountZoneHandles(), CountScopedHandles());
-      OS::PrintErr("*** Deleting VM handle block 0x%"Px"\n",
+      OS::PrintErr("*** Deleting VM handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
 #endif

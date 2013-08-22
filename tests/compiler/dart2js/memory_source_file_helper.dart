@@ -21,7 +21,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.
        show SourceFileProvider;
 
 export '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart'
-       show FormattingDiagnosticHandler;
+       show SourceFileProvider, FormattingDiagnosticHandler;
 
 class MemorySourceFileProvider extends SourceFileProvider {
   static Map MEMORY_SOURCE_FILES;

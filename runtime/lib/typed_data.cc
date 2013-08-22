@@ -30,7 +30,7 @@ static void SetRangeCheck(intptr_t offset_in_bytes,
                           intptr_t element_size_in_bytes) {
   if (!Utils::RangeCheck(offset_in_bytes, num_bytes, length_in_bytes)) {
     const String& error = String::Handle(String::NewFormatted(
-        "index (%"Pd") must be in the range [0..%"Pd")",
+        "index (%" Pd ") must be in the range [0..%" Pd ")",
         (offset_in_bytes / element_size_in_bytes),
         (length_in_bytes / element_size_in_bytes)));
     const Array& args = Array::Handle(Array::New(1));
@@ -44,7 +44,7 @@ static void SetRangeCheck(intptr_t offset_in_bytes,
 static void LengthCheck(intptr_t len, intptr_t max) {
   if (len < 0 || len > max) {
     const String& error = String::Handle(String::NewFormatted(
-        "Length (%"Pd") of object must be in range [0..%"Pd"]",
+        "Length (%" Pd ") of object must be in range [0..%" Pd "]",
         len, max));
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, error);
@@ -114,7 +114,7 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 5) {
 
   if (length.Value() < 0) {
     const String& error = String::Handle(String::NewFormatted(
-        "length (%"Pd") must be non-negative", length.Value()));
+        "length (%" Pd ") must be non-negative", length.Value()));
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, error);
     Exceptions::ThrowByType(Exceptions::kArgument, args);

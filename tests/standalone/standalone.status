@@ -7,9 +7,11 @@
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
 
-# The testing infrastructure is using the dart:io Path class.
+# The testing infrastructure is using the dart:io Path and LineTransformer
+# classes.
 io/skipping_dart2js_compilations_test: Skip # http/dartbug.com/12449
 io/dependency_graph_test: Skip # http/dartbug.com/12449
+io/status_file_parser_test: Skip # http/dartbug.com/12449
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
@@ -29,11 +31,6 @@ io/file_fuzz_test: Skip
 io/directory_fuzz_test: Skip
 
 [ $runtime == vm && $system == macos ]
-# These tests fail intermittently on MacOS due to an https request that
-# fails not completing the future it returns: Issue 12451
-io/https_unauthorized_test: Pass, Fail
-io/https_bad_certificate_test: Pass, Fail
-
 # This test fails with "Too many open files" on the Mac OS buildbot.
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
@@ -130,7 +127,6 @@ vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 
 [ $compiler == dart2js && $jscl ]
 assert_test: Fail, OK # Assumes unspecified fields on the AssertionError.
-byte_array_test: Fail, OK # ByteArray
 deoptimization_test: Fail, OK # Requires bigint.
 out_of_memory_test: Fail, OK # d8 handles much larger arrays than Dart VM.
 io/options_test: Fail, OK # Cannot pass options to d8.

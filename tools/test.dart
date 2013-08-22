@@ -9,7 +9,7 @@
  *
  *     1. the dart vm
  *     2. the dart2js compiler
- *     3. the dartc static analyzer
+ *     3. the static analyzer
  *     4. the dart core library
  *     5. other standard dart libraries (DOM bindings, ui libraries,
  *            io libraries etc.)
@@ -37,7 +37,6 @@ import "testing/dart/test_suite.dart";
 import "testing/dart/utils.dart";
 
 import "../runtime/tests/vm/test_config.dart";
-import "../samples/tests/dartc/test_config.dart";
 import "../tests/co19/test_config.dart";
 import "../tests/lib/analyzer/test_config.dart";
 

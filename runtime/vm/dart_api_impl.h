@@ -86,7 +86,7 @@ const char* CanonicalFunction(const char* func);
     intptr_t max = (max_elements);                                             \
     if (len < 0 || len > max) {                                                \
       return Api::NewError(                                                    \
-          "%s expects argument '%s' to be in the range [0..%"Pd"].",           \
+          "%s expects argument '%s' to be in the range [0..%" Pd "].",         \
           CURRENT_FUNC, #length, max);                                         \
     }                                                                          \
   } while (0)
@@ -203,7 +203,7 @@ class Api : AllStatic {
   static void SetSmiReturnValue(NativeArguments* args, intptr_t retval) {
     args->SetReturnUnsafe(Smi::New(retval));
   }
-  static void SetIntegerReturnValue(NativeArguments* args, intptr_t retval) {
+  static void SetIntegerReturnValue(NativeArguments* args, int64_t retval) {
     args->SetReturnUnsafe(Integer::New(retval));
   }
   static void SetDoubleReturnValue(NativeArguments* args, double retval) {

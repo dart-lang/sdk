@@ -87,7 +87,7 @@ class DeoptStackSlotInstr : public DeoptInstr {
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "s%"Pd"", stack_slot_index_);
+        "s%" Pd "", stack_slot_index_);
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
@@ -116,7 +116,7 @@ class DeoptDoubleStackSlotInstr : public DeoptInstr {
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "ds%"Pd"", stack_slot_index_);
+        "ds%" Pd "", stack_slot_index_);
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
@@ -148,7 +148,7 @@ class DeoptInt64StackSlotInstr : public DeoptInstr {
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "ms%"Pd"", stack_slot_index_);
+        "ms%" Pd "", stack_slot_index_);
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
@@ -185,7 +185,7 @@ class DeoptFloat32x4StackSlotInstr : public DeoptInstr {
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "f32x4s%"Pd"", stack_slot_index_);
+        "f32x4s%" Pd "", stack_slot_index_);
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
@@ -217,7 +217,7 @@ class DeoptUint32x4StackSlotInstr : public DeoptInstr {
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "ui32x4s%"Pd"", stack_slot_index_);
+        "ui32x4s%" Pd "", stack_slot_index_);
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
@@ -261,7 +261,7 @@ class DeoptRetAddressInstr : public DeoptInstr {
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "ret oti:%"Pd"(%"Pd")", object_table_index_, deopt_id_);
+        "ret oti:%" Pd "(%" Pd ")", object_table_index_, deopt_id_);
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
@@ -315,7 +315,7 @@ class DeoptConstantInstr : public DeoptInstr {
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "const oti:%"Pd"", object_table_index_);
+        "const oti:%" Pd "", object_table_index_);
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
@@ -484,7 +484,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "pcmark oti:%"Pd"", object_table_index_);
+        "pcmark oti:%" Pd "", object_table_index_);
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
@@ -536,7 +536,7 @@ class DeoptPpInstr : public DeoptInstr {
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "pp oti:%"Pd"", object_table_index_);
+        "pp oti:%" Pd "", object_table_index_);
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
@@ -647,7 +647,7 @@ class DeoptSuffixInstr : public DeoptInstr {
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "suffix %"Pd":%"Pd, info_number_, suffix_length_);
+        "suffix %" Pd ":%" Pd, info_number_, suffix_length_);
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
@@ -686,7 +686,7 @@ class DeoptMaterializedObjectRefInstr : public DeoptInstr {
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "mat ref #%"Pd"", index_);
+        "mat ref #%" Pd "", index_);
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
@@ -717,7 +717,7 @@ class DeoptMaterializeObjectInstr : public DeoptInstr {
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "mat obj len:%"Pd"", field_count_);
+        "mat obj len:%" Pd "", field_count_);
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {

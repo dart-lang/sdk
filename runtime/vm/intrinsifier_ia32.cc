@@ -715,12 +715,10 @@ static void EmitRemainderOperation(Assembler* assembler) {
 //      res = res + right;
 //    }
 //  }
-bool Intrinsifier::Integer_modulo(Assembler* assembler) {
+bool Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
   Label fall_through, subtract;
   TestBothArgumentsSmis(assembler, &fall_through);
-  // EAX: right argument (divisor)
-  __ movl(EBX, EAX);
-  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Left argument (dividend).
+  __ movl(EBX, Address(ESP, + 2 * kWordSize));
   // EAX: Tagged left (dividend).
   // EBX: Tagged right (divisor).
   // Check if modulo by zero -> exception thrown in main function.

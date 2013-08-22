@@ -43,6 +43,7 @@ class MessageParser {
   int MessageId() const;
 
   const char* Params() const;
+  bool HasParam(const char* name) const;
   intptr_t GetIntParam(const char* name) const;
   intptr_t GetOptIntParam(const char* name, intptr_t default_val) const;
 
@@ -103,6 +104,7 @@ class DbgMessage {
   static bool HandleGetLibPropsCmd(DbgMessage* msg);
   static bool HandleSetLibPropsCmd(DbgMessage* msg);
   static bool HandleGetGlobalsCmd(DbgMessage* msg);
+  static bool HandleEvaluateExprCmd(DbgMessage* msg);
   static bool HandleGetObjPropsCmd(DbgMessage* msg);
   static bool HandleGetListCmd(DbgMessage* msg);
   static bool HandleGetScriptURLsCmd(DbgMessage* msg);

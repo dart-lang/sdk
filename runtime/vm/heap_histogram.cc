@@ -124,7 +124,7 @@ void ObjectHistogram::Print() {
       cls = isolate_->class_table()->At(e->class_id_);
       str = cls.Name();
       lib = cls.library();
-      OS::Print("%9"Pd" %7"Pd" ",
+      OS::Print("%9" Pd " %7" Pd " ",
                 e->size_ / major_gc_count_,
                 e->count_ / major_gc_count_);
       if (e->class_id_ < kInstanceCid) {

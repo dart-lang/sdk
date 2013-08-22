@@ -79,13 +79,13 @@ class Range;
   V(_Double, roundToDouble, DoubleRound, 500368418)                            \
   V(_Double, floorToDouble, DoubleFloor, 763548522)                            \
   V(_Double, ceilToDouble, DoubleCeil, 976697019)                              \
-  V(_Double, pow, DoublePow, 1240251670)                                       \
   V(_Double, _modulo, DoubleMod, 1850917533)                                   \
   V(::, sqrt, MathSqrt, 465520247)                                             \
   V(::, sin, MathSin, 730107143)                                               \
   V(::, cos, MathCos, 1282146521)                                              \
   V(::, min, MathMin, 1584022354)                                              \
   V(::, max, MathMax, 328632232)                                               \
+  V(::, _doublePow, MathDoublePow, 2002448359)                                 \
   V(Float32x4, Float32x4., Float32x4Constructor, 1876089990)                   \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 1903586222)                      \
   V(Float32x4, Float32x4.splat, Float32x4Splat, 38462589)                      \
@@ -94,6 +94,7 @@ class Range;
   V(_Float32x4, get:y, Float32x4ShuffleY, 710282243)                           \
   V(_Float32x4, get:z, Float32x4ShuffleZ, 1612806041)                          \
   V(_Float32x4, get:w, Float32x4ShuffleW, 1113701403)                          \
+  V(_Float32x4, get:signMask, Float32x4GetSignMask, 465347632)                 \
   V(_Float32x4, _cmpequal, Float32x4Equal, 1559121703)                         \
   V(_Float32x4, _cmpgt, Float32x4GreaterThan, 1959692892)                      \
   V(_Float32x4, _cmpgte, Float32x4GreaterThanOrEqual, 2128251808)              \
@@ -124,6 +125,7 @@ class Range;
   V(_Uint32x4, get:flagY, Uint32x4GetFlagY, 1226233321)                        \
   V(_Uint32x4, get:flagZ, Uint32x4GetFlagZ, 1455452476)                        \
   V(_Uint32x4, get:flagW, Uint32x4GetFlagW, 1608549245)                        \
+  V(_Uint32x4, get:signMask, Uint32x4GetSignMask, 231202664)                   \
   V(_Uint32x4, select, Uint32x4Select, 881590808)                              \
   V(_Uint32x4, withFlagX, Uint32x4WithFlagX, 1987921054)                       \
   V(_Uint32x4, withFlagY, Uint32x4WithFlagY, 831632614)                        \
@@ -134,6 +136,11 @@ class Range;
 
 // A list of core function that should always be inlined.
 #define INLINE_WHITE_LIST(V)                                                   \
+  V(_ObjectArray, get:length, ObjectArrayLength, 1441000484)                   \
+  V(_ImmutableArray, get:length, ImmutableArrayLength, 1430953867)             \
+  V(_TypedList, get:length, TypedDataLength, 117589485)                        \
+  V(_GrowableObjectArray, get:length, GrowableArrayLength, 767561362)          \
+  V(_StringBase, get:length, StringBaseLength, 1158042795)                     \
   V(ListIterator, moveNext, ListIteratorMoveNext, 657540761)                   \
   V(_GrowableObjectArray, get:iterator, GrowableArrayIterator, 281980741)      \
   V(_GrowableObjectArray, forEach, GrowableArrayForEach, 334448248)
@@ -613,6 +620,7 @@ class EmbeddedArray<T, 0> {
   M(IfThenElse)                                                                \
   M(BinaryFloat32x4Op)                                                         \
   M(Float32x4Shuffle)                                                          \
+  M(Simd32x4GetSignMask)                                                       \
   M(Float32x4Constructor)                                                      \
   M(Float32x4Zero)                                                             \
   M(Float32x4Splat)                                                            \
@@ -902,6 +910,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class Float32x4ZeroInstr;
   friend class Float32x4SplatInstr;
   friend class Float32x4ShuffleInstr;
+  friend class Simd32x4GetSignMaskInstr;
   friend class Float32x4ConstructorInstr;
   friend class Float32x4ComparisonInstr;
   friend class Float32x4MinMaxInstr;
@@ -2699,6 +2708,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
     return instance_call()->PushArgumentAt(index);
   }
 
+  bool HasRecognizedTarget() const;
+
   DECLARE_INSTRUCTION(PolymorphicInstanceCall)
 
   const ICData& ic_data() const { return ic_data_; }
@@ -4398,6 +4409,8 @@ class BoxFloat32x4Instr : public TemplateDefinition<1> {
 
   virtual bool MayThrow() const { return false; }
 
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxFloat32x4Instr);
 };
@@ -4427,6 +4440,8 @@ class BoxUint32x4Instr : public TemplateDefinition<1> {
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual bool MayThrow() const { return false; }
+
+  Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxUint32x4Instr);
@@ -4525,6 +4540,8 @@ class UnboxFloat32x4Instr : public TemplateDefinition<1> {
 
   virtual bool MayThrow() const { return false; }
 
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxFloat32x4Instr);
 };
@@ -4556,6 +4573,8 @@ class UnboxUint32x4Instr : public TemplateDefinition<1> {
   virtual CompileType ComputeType() const;
 
   virtual bool MayThrow() const { return false; }
+
+  Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxUint32x4Instr);
@@ -5527,6 +5546,60 @@ class Uint32x4GetFlagInstr : public TemplateDefinition<1> {
 };
 
 
+class Simd32x4GetSignMaskInstr : public TemplateDefinition<1> {
+ public:
+  Simd32x4GetSignMaskInstr(MethodRecognizer::Kind op_kind, Value* value,
+                           intptr_t deopt_id) : op_kind_(op_kind) {
+    SetInputAt(0, value);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kTagged;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    if (op_kind_ == MethodRecognizer::kFloat32x4GetSignMask) {
+      return kUnboxedFloat32x4;
+    }
+    ASSERT(op_kind_ == MethodRecognizer::kUint32x4GetSignMask);
+    return kUnboxedUint32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Simd32x4GetSignMask)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsSimd32x4GetSignMask()->op_kind() == op_kind();
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Simd32x4GetSignMaskInstr);
+};
+
+
 class Float32x4TwoArgShuffleInstr : public TemplateDefinition<2> {
  public:
   Float32x4TwoArgShuffleInstr(MethodRecognizer::Kind op_kind, Value* left,
@@ -6279,7 +6352,7 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
 class InvokeMathCFunctionInstr : public Definition {
  public:
   InvokeMathCFunctionInstr(ZoneGrowableArray<Value*>* inputs,
-                           InstanceCallInstr* instance_call,
+                           intptr_t original_deopt_id,
                            MethodRecognizer::Kind recognized_kind);
 
   static intptr_t ArgumentCountFor(MethodRecognizer::Kind recognized_kind_);

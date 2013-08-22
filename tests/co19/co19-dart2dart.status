@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
+LibTest/async/Stream/Stream.periodic_A01_t01: Pass, Fail # Issue 12562.
 
 LibTest/math/max_A01_t03: Fail # co19 issue 467
 LibTest/math/min_A01_t03: Fail # co19 issue 467
@@ -132,6 +133,7 @@ LibTest/math/exp_A01_t01: Fail # Issue co19 - 44
 LibTest/math/pow_A01_t01: Fail # Inherited from VM.
 LibTest/math/pow_A11_t01: Fail # Inherited from VM.
 LibTest/math/pow_A13_t01: Fail # Inherited from VM.
+LibTest/math/pow_A18_t01: Fail # Inherited from VM.
 LibTest/math/sin_A01_t01: Fail # Inherited from VM.
 LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
 

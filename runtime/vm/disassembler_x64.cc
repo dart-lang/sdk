@@ -566,7 +566,7 @@ int DisassemblerX64::PrintImmediate(uint8_t* data, OperandSize size) {
       value = 0;  // Initialize variables on all paths to satisfy the compiler.
       count = 0;
   }
-  AppendToBuffer("%#"Px64"", value);
+  AppendToBuffer("%#" Px64 "", value);
   return count;
 }
 
@@ -804,7 +804,7 @@ static const char* ObjectToCStringNoGC(const Object& obj) {
 void DisassemblerX64::AppendAddressToBuffer(uint8_t* addr_byte_ptr) {
   NoGCScope no_gc;
   uword addr = reinterpret_cast<uword>(addr_byte_ptr);
-  AppendToBuffer("%#"Px"", addr);
+  AppendToBuffer("%#" Px "", addr);
   // Try to print as heap object or stub name
   if (((addr & kSmiTagMask) == kHeapObjectTag) &&
       !Isolate::Current()->heap()->CodeContains(addr) &&
@@ -1282,6 +1282,10 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
           mnemonic = "ucomisd";
         } else if (opcode == 0x2F) {
           mnemonic = "comisd";
+        } else if (opcode == 0xFE) {
+          mnemonic = "paddd";
+        } else if (opcode == 0xFA) {
+          mnemonic = "psubd";
         } else {
           UnimplementedInstruction();
         }
@@ -1417,6 +1421,11 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     int mod, regop, rm;
     get_modrm(*current, &mod, &regop, &rm);
     AppendToBuffer("movups %s, ", NameOfXMMRegister(regop));
+    current += PrintRightXMMOperand(current);
+  } else if (opcode == 0x50) {
+    int mod, regop, rm;
+    get_modrm(*current, &mod, &regop, &rm);
+    AppendToBuffer("movmskps %s,", NameOfCPURegister(regop));
     current += PrintRightXMMOperand(current);
   } else if (opcode == 0xA2 || opcode == 0x31) {
     // RDTSC or CPUID
@@ -1823,7 +1832,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
           default:
             UNREACHABLE();
         }
-        AppendToBuffer("test%c rax,%#"Px64"",
+        AppendToBuffer("test%c rax,%#" Px64 "",
                        operand_size_code(),
                        value);
         break;

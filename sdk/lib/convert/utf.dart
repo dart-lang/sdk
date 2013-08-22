@@ -22,7 +22,7 @@ const UTF8 = const Utf8Codec();
  * A [Utf8Codec] encodes strings to utf-8 code units (bytes) and decodes
  * UTF-8 code units to strings.
  */
-class Utf8Codec extends Encoding {
+class Utf8Codec extends _Encoding {
   final bool _allowMalformed;
 
   /**
@@ -177,7 +177,7 @@ class _Utf8Encoder {
     for (stringIndex = start; stringIndex < end; stringIndex++) {
       int codeUnit = str.codeUnitAt(stringIndex);
       // ASCII has the same representation in UTF-8 and UTF-16.
-      if (codeUnit < _ONE_BYTE_LIMIT) {
+      if (codeUnit <= _ONE_BYTE_LIMIT) {
         if (_bufferIndex >= _buffer.length) break;
         _buffer[_bufferIndex++] = codeUnit;
       } else if (_isLeadSurrogate(codeUnit)) {

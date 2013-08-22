@@ -114,7 +114,7 @@ uword Zone::AllocateExpand(intptr_t size) {
 #if defined(DEBUG)
   ASSERT(size >= 0);
   if (FLAG_trace_zones) {
-    OS::PrintErr("*** Expanding zone 0x%"Px"\n",
+    OS::PrintErr("*** Expanding zone 0x%" Px "\n",
                  reinterpret_cast<intptr_t>(this));
     DumpZoneSizes();
   }
@@ -179,8 +179,8 @@ void Zone::DumpZoneSizes() {
   for (Segment* s = large_segments_; s != NULL; s = s->next()) {
     size += s->size();
   }
-  OS::PrintErr("***   Zone(0x%"Px") size in bytes,"
-               " Total = %"Pd" Large Segments = %"Pd"\n",
+  OS::PrintErr("***   Zone(0x%" Px ") size in bytes,"
+               " Total = %" Pd " Large Segments = %" Pd "\n",
                reinterpret_cast<intptr_t>(this), SizeInBytes(), size);
 }
 #endif

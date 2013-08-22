@@ -21,7 +21,6 @@ cast_test/05: fail
 
 # TBF: It is a compile-time error if the superclass of a class C appears in the implements clause of C.
 const_constructor_super_test/01: fail
-compile_time_constant10_test/none: fail
 compile_time_constant_c_test/01: fail
 
 # TBF: m([int p = 'String']) and call 'const' instance creation
@@ -182,9 +181,6 @@ black_listed_test/11: fail
 # test issue 11581, it is not warning to call dynamic
 call_through_getter_test: fail
 
-# test issue 11582, non-final field with 'const' constructor
-compile_time_constant10_test/none: fail
-
 # test issue 11583, int is valid key for constant map literal
 compile_time_constant_c_test/01: fail
 
@@ -225,9 +221,6 @@ interface_static_non_final_fields_negative_test: fail
 # test issue 11595, It is static warning to create instance (new) of the malformed type
 instantiate_type_variable_negative_test: fail
 
-# test issue 11596. e is Unknown is not a compile time error
-is_not_class2_negative_test: fail
-
 # test issue 11598, Any use of a malbounded type gives rise to a static warning
 mixin_type_parameters_errors_test/01: fail
 mixin_type_parameters_errors_test/02: fail
@@ -255,11 +248,7 @@ prefix6_negative_test: fail
 
 # test issue 11964, Any use of a malformed type gives rise to a static warning.
 prefix8_negative_test: fail
-prefix9_negative_test: fail
 prefix11_negative_test: fail
-
-# test issue 11965, 'source' is not built-in identifier anymore
-pseudo_kw_illegal_test/14: fail
 
 # test issue 12156, fails only at runtime
 static_call_wrong_argument_count_negative_test: fail

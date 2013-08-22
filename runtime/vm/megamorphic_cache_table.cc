@@ -92,7 +92,8 @@ void MegamorphicCacheTable::PrintSizes() {
     size += MegamorphicCache::InstanceSize();
     size += Array::InstanceSize(buckets.Length());
   }
-  OS::Print("%"Pd" megamorphic caches using %"Pd"KB.\n", length_, size / 1024);
+  OS::Print("%" Pd " megamorphic caches using %" Pd "KB.\n",
+            length_, size / 1024);
 }
 
 }  // namespace dart

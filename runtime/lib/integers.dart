@@ -163,23 +163,6 @@ class _IntegerImplementation {
   int toInt() { return this; }
   double toDouble() { return new _Double.fromInteger(this); }
 
-  int pow(int exponent) {
-    // Exponentiation by squaring.
-    int base = this;
-    int result = 1;
-    while (exponent != 0) {
-      if ((exponent & 1) == 1) {
-        result *= base;
-      }
-      exponent >>= 1;
-      // Skip unnecessary operation (can overflow to Mint or Bigint).
-      if (exponent != 0) {
-        base *= base;
-      }
-    }
-    return result;
-  }
-
   String toStringAsFixed(int fractionDigits) {
     return this.toDouble().toStringAsFixed(fractionDigits);
   }

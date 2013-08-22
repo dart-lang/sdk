@@ -134,6 +134,12 @@ class Frame {
     }
   }
 
+  /// Parses a string representation of an IE stack frame.
+  ///
+  /// IE10+ frames look just like V8 frames. Prior to IE10, stack traces can't
+  /// be retrieved.
+  factory Frame.parseIE(String frame) => new Frame.parseV8(frame);
+
   /// Parses a string representation of a Firefox stack frame.
   factory Frame.parseFirefox(String frame) {
     var match = _firefoxFrame.firstMatch(frame);
@@ -154,6 +160,12 @@ class Frame {
     member = member.replaceFirst(_initialDot, '');
     return new Frame(uri, int.parse(match[4]), null, member);
   }
+
+  /// Parses a string representation of a Safari stack frame.
+  ///
+  /// Safari 6+ frames look just like Firefox frames. Prior to Safari 6, stack
+  /// traces can't be retrieved.
+  factory Frame.parseSafari(String frame) => new Frame.parseFirefox(frame);
 
   /// Parses this package's string representation of a stack frame.
   factory Frame.parseFriendly(String frame) {

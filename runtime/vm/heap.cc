@@ -84,7 +84,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
     CollectAllGarbage();
     addr = old_space_->TryAllocate(size, type, PageSpace::kForceGrowth);
     if (addr == 0) {
-      OS::PrintErr("Exhausted heap space, trying to allocate %"Pd" bytes.\n",
+      OS::PrintErr("Exhausted heap space, trying to allocate %" Pd " bytes.\n",
                    size);
       return 0;
     }
@@ -296,8 +296,8 @@ bool Heap::Verify() const {
 
 
 void Heap::PrintSizes() const {
-  OS::PrintErr("New space (%"Pd"k of %"Pd"k) "
-               "Old space (%"Pd"k of %"Pd"k)\n",
+  OS::PrintErr("New space (%" Pd "k of %" Pd "k) "
+               "Old space (%" Pd "k of %" Pd "k)\n",
                (Used(kNew) / KB), (Capacity(kNew) / KB),
                (Used(kOld) / KB), (Capacity(kOld) / KB));
 }
@@ -467,14 +467,16 @@ void Heap::PrintStats() {
 
   const char* space_str = stats_.space_ == kNew ? "Scavenge" : "Mark-Sweep";
   OS::PrintErr(
-    "[ GC(%"Pd64"): %s(%s), "  // GC(isolate), space(reason)
-    "%"Pd", "  // count
+    "[ GC(%" Pd64 "): %s(%s), "  // GC(isolate), space(reason)
+    "%" Pd ", "  // count
     "%.3f, "  // start time
     "%.3f, "  // total time
-    "%"Pd", %"Pd", %"Pd", %"Pd", "  // new gen: in use, capacity before/after
-    "%"Pd", %"Pd", %"Pd", %"Pd", "  // old gen: in use, capacity before/after
+    "%" Pd ", %" Pd ", "  // new gen: in use before/after
+    "%" Pd ", %" Pd ", "  // new gen: capacity before/after
+    "%" Pd ", %" Pd ", "  // old gen: in use before/after
+    "%" Pd ", %" Pd ", "  // old gen: capacity before/after
     "%.3f, %.3f, %.3f, %.3f, "  // times
-    "%"Pd", %"Pd", %"Pd", %"Pd", "  // data
+    "%" Pd ", %" Pd ", %" Pd ", %" Pd ", "  // data
     "]\n",  // End with a comma to make it easier to import in spreadsheets.
     isolate->main_port(), space_str, GCReasonToString(stats_.reason_),
     stats_.num_,

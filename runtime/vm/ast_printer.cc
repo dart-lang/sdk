@@ -171,7 +171,7 @@ void AstPrinter::VisitBinaryOpNode(BinaryOpNode* node) {
 void AstPrinter::VisitBinaryOpWithMask32Node(BinaryOpWithMask32Node* node) {
   OS::Print("(%s ", node->Name());
   node->VisitChildren(this);
-  OS::Print(" & 0x%"Px64"", node->mask32());
+  OS::Print(" & 0x%" Px64 "", node->mask32());
   OS::Print(")");
 }
 
@@ -419,7 +419,7 @@ void AstPrinter::PrintLocalScope(const LocalScope* scope,
     } else if (var->owner()->function_level() != 0) {
       OS::Print(" lev %d", var->owner()->function_level());
     }
-    OS::Print(" valid %"Pd"-%"Pd")",
+    OS::Print(" valid %" Pd "-%" Pd ")",
               var->token_pos(),
               scope->end_token_pos());
   }
@@ -480,7 +480,7 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
         OS::Print(" ctx %d", param->owner()->context_level());
       }
     }
-    OS::Print(" valid %"Pd"-%"Pd")",
+    OS::Print(" valid %" Pd "-%" Pd ")",
               param->token_pos(),
               scope->end_token_pos());
     pos++;

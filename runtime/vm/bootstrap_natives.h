@@ -73,7 +73,6 @@ namespace dart {
   V(Double_toStringAsFixed, 2)                                                 \
   V(Double_toStringAsExponential, 2)                                           \
   V(Double_toStringAsPrecision, 2)                                             \
-  V(Double_pow, 2)                                                             \
   V(JSSyntaxRegExp_factory, 4)                                                 \
   V(JSSyntaxRegExp_getPattern, 1)                                              \
   V(JSSyntaxRegExp_getIsMultiLine, 1)                                          \
@@ -110,6 +109,7 @@ namespace dart {
   V(Math_atan2, 2)                                                             \
   V(Math_exp, 1)                                                               \
   V(Math_log, 1)                                                               \
+  V(Math_doublePow, 2)                                                         \
   V(Random_nextState, 1)                                                       \
   V(Random_setupSeed, 2)                                                       \
   V(DateNatives_currentTimeMillis, 0)                                          \
@@ -202,6 +202,7 @@ namespace dart {
   V(Float32x4_getY, 1)                                                         \
   V(Float32x4_getZ, 1)                                                         \
   V(Float32x4_getW, 1)                                                         \
+  V(Float32x4_getSignMask, 1)                                                  \
   V(Float32x4_shuffle, 2)                                                      \
   V(Float32x4_withZWInXY, 2)                                                   \
   V(Float32x4_interleaveXY, 2)                                                 \
@@ -223,6 +224,8 @@ namespace dart {
   V(Uint32x4_or, 2)                                                            \
   V(Uint32x4_and, 2)                                                           \
   V(Uint32x4_xor, 2)                                                           \
+  V(Uint32x4_add, 2)                                                           \
+  V(Uint32x4_sub, 2)                                                           \
   V(Uint32x4_getX, 1)                                                          \
   V(Uint32x4_getY, 1)                                                          \
   V(Uint32x4_getZ, 1)                                                          \
@@ -231,6 +234,7 @@ namespace dart {
   V(Uint32x4_setY, 2)                                                          \
   V(Uint32x4_setZ, 2)                                                          \
   V(Uint32x4_setW, 2)                                                          \
+  V(Uint32x4_getSignMask, 1)                                                   \
   V(Uint32x4_getFlagX, 1)                                                      \
   V(Uint32x4_getFlagY, 1)                                                      \
   V(Uint32x4_getFlagZ, 1)                                                      \

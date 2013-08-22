@@ -36,11 +36,13 @@ class BuildInfo(object):
   - total_shards: The total number of shards, None when not specified.
   - is_buildbot: True if we are on a buildbot (or emulating it).
   - test_set: Specification of a non standard test set or None.
+  - csp: This is using csp when running
+  - arch: The architecture to build on.
   """
   def __init__(self, compiler, runtime, mode, system, checked=False,
                host_checked=False, minified=False, shard_index=None,
                total_shards=None, is_buildbot=False, test_set=None,
-               csp=None):
+               csp=None, arch=None):
     self.compiler = compiler
     self.runtime = runtime
     self.mode = mode
@@ -53,6 +55,10 @@ class BuildInfo(object):
     self.is_buildbot = is_buildbot
     self.test_set = test_set
     self.csp = csp
+    if (arch == None):
+      self.arch = 'ia32'
+    else:
+      self.arch = arch
 
   def PrintBuildInfo(self):
     shard_description = ""
@@ -60,10 +66,11 @@ class BuildInfo(object):
       shard_description = " shard %s of %s" % (self.shard_index,
                                                self.total_shards)
     print ("compiler: %s, runtime: %s mode: %s, system: %s,"
-           " checked: %s, host-checked: %s, minified: %s, test-set: %s%s"
+           " checked: %s, host-checked: %s, minified: %s, test-set: %s"
+           " arch: %s%s"
            ) % (self.compiler, self.runtime, self.mode, self.system,
                 self.checked, self.host_checked, self.minified, self.test_set,
-                shard_description)
+                self.arch, shard_description)
 
 
 class BuildStep(object):
@@ -102,7 +109,7 @@ def BuildSDK(build_info):
   """
   with BuildStep('Build SDK'):
     args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
-            'create_sdk']
+            '--arch=' + build_info.arch, 'create_sdk']
     print 'Building SDK: %s' % (' '.join(args))
     RunProcess(args)
 
@@ -205,6 +212,7 @@ def RunTest(name, build_info, targets, flags=None):
       '--mode=' + build_info.mode,
       '--compiler=' + build_info.compiler,
       '--runtime=' + build_info.runtime,
+      '--arch=' + build_info.arch,
       '--progress=buildbot',
       '-v', '--time', '--use-sdk', '--report'
     ]

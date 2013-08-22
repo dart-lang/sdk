@@ -5,6 +5,7 @@
 #include "include/dart_debugger_api.h"
 
 #include "vm/class_finalizer.h"
+#include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/debugger.h"
@@ -64,7 +65,7 @@ DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   if (!isolate->debugger()->IsValidObjectId(obj_id)) {
-    return Api::NewError("%s: object id %"Pd" is invalid",
+    return Api::NewError("%s: object id %" Pd " is invalid",
                          CURRENT_FUNC, obj_id);
   }
   return Api::NewHandle(isolate, isolate->debugger()->GetCachedObject(obj_id));
@@ -96,7 +97,7 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(
                          CURRENT_FUNC);
   }
   *frame = reinterpret_cast<Dart_ActivationFrame>(
-       stack_trace->ActivationFrameAt(frame_index));
+       stack_trace->FrameAt(frame_index));
   return Api::Success();
 }
 
@@ -289,12 +290,18 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
+
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
+
   Debugger* debugger = isolate->debugger();
   ASSERT(debugger != NULL);
   SourceBreakpoint* bpt =
       debugger->SetBreakpointAtLine(script_url, line_number);
   if (bpt == NULL) {
-    return Api::NewError("%s: could not set breakpoint at line %"Pd" in '%s'",
+    return Api::NewError("%s: could not set breakpoint at line %" Pd " in '%s'",
                          CURRENT_FUNC, line_number, script_url.ToCString());
   }
   return Dart_NewInteger(bpt->id());
@@ -309,7 +316,7 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointURL(intptr_t bp_id) {
 
   SourceBreakpoint* bpt = debugger->GetBreakpointById(bp_id);
   if (bpt == NULL) {
-    return Api::NewError("%s: breakpoint with id %"Pd" does not exist",
+    return Api::NewError("%s: breakpoint with id %" Pd " does not exist",
                            CURRENT_FUNC, bp_id);
   }
   return Api::NewHandle(isolate, bpt->SourceUrl());
@@ -324,7 +331,7 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id) {
 
   SourceBreakpoint* bpt = debugger->GetBreakpointById(bp_id);
   if (bpt == NULL) {
-    return Api::NewError("%s: breakpoint with id %"Pd" does not exist",
+    return Api::NewError("%s: breakpoint with id %" Pd " does not exist",
                          CURRENT_FUNC, bp_id);
   }
   return Dart_NewInteger(bpt->LineNumber());
@@ -471,7 +478,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryFields(intptr_t library_id) {
   const Library& lib =
       Library::Handle(isolate, Library::GetLibrary(library_id));
   if (lib.IsNull()) {
-    return Api::NewError("%s: %"Pd" is not a valid library id",
+    return Api::NewError("%s: %" Pd " is not a valid library id",
                          CURRENT_FUNC, library_id);
   }
   return Api::NewHandle(isolate, isolate->debugger()->GetLibraryFields(lib));
@@ -484,10 +491,20 @@ DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id) {
   DARTSCOPE(isolate);
   const Library& lib = Library::Handle(Library::GetLibrary(library_id));
   if (lib.IsNull()) {
-    return Api::NewError("%s: %"Pd" is not a valid library id",
+    return Api::NewError("%s: %" Pd " is not a valid library id",
                          CURRENT_FUNC, library_id);
   }
   return Api::NewHandle(isolate, isolate->debugger()->GetGlobalFields(lib));
+}
+
+
+DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target,
+                                          Dart_Handle expr_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  UNWRAP_AND_CHECK_PARAM(Instance, obj, target);
+  UNWRAP_AND_CHECK_PARAM(String, expr, expr_in);
+  return Api::NewHandle(isolate, obj.Evaluate(expr));
 }
 
 
@@ -574,7 +591,7 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   if (!isolate->class_table()->IsValidIndex(cls_id)) {
-    return Api::NewError("%s: %"Pd" is not a valid class id",
+    return Api::NewError("%s: %" Pd " is not a valid class id",
                          CURRENT_FUNC, cls_id);
   }
   Class& cls = Class::Handle(isolate, isolate->class_table()->At(cls_id));
@@ -607,7 +624,7 @@ DART_EXPORT Dart_Handle Dart_ScriptGetSource(
   DARTSCOPE(isolate);
   const Library& lib = Library::Handle(Library::GetLibrary(library_id));
   if (lib.IsNull()) {
-    return Api::NewError("%s: %"Pd" is not a valid library id",
+    return Api::NewError("%s: %" Pd " is not a valid library id",
                          CURRENT_FUNC, library_id);
   }
   UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
@@ -628,7 +645,7 @@ DART_EXPORT Dart_Handle Dart_ScriptGetTokenInfo(
   DARTSCOPE(isolate);
   const Library& lib = Library::Handle(Library::GetLibrary(library_id));
   if (lib.IsNull()) {
-    return Api::NewError("%s: %"Pd" is not a valid library id",
+    return Api::NewError("%s: %" Pd " is not a valid library id",
                          CURRENT_FUNC, library_id);
   }
   UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
@@ -749,7 +766,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id) {
   DARTSCOPE(isolate);
   const Library& lib = Library::Handle(Library::GetLibrary(library_id));
   if (lib.IsNull()) {
-    return Api::NewError("%s: %"Pd" is not a valid library id",
+    return Api::NewError("%s: %" Pd " is not a valid library id",
                          CURRENT_FUNC, library_id);
   }
   const GrowableObjectArray& import_list =
@@ -788,7 +805,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryURL(intptr_t library_id) {
   DARTSCOPE(isolate);
   const Library& lib = Library::Handle(Library::GetLibrary(library_id));
   if (lib.IsNull()) {
-    return Api::NewError("%s: %"Pd" is not a valid library id",
+    return Api::NewError("%s: %" Pd " is not a valid library id",
                          CURRENT_FUNC, library_id);
   }
   return Api::NewHandle(isolate, lib.url());
@@ -803,7 +820,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
   CHECK_NOT_NULL(is_debuggable);
   const Library& lib = Library::Handle(Library::GetLibrary(library_id));
   if (lib.IsNull()) {
-    return Api::NewError("%s: %"Pd" is not a valid library id",
+    return Api::NewError("%s: %" Pd " is not a valid library id",
                          CURRENT_FUNC, library_id);
   }
   *is_debuggable = lib.IsDebuggable();
@@ -818,7 +835,7 @@ DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
   DARTSCOPE(isolate);
   const Library& lib = Library::Handle(Library::GetLibrary(library_id));
   if (lib.IsNull()) {
-    return Api::NewError("%s: %"Pd" is not a valid library id",
+    return Api::NewError("%s: %" Pd " is not a valid library id",
                          CURRENT_FUNC, library_id);
   }
   lib.set_debuggable(is_debuggable);

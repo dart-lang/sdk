@@ -1427,6 +1427,52 @@ Definition* UnboxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+Definition* BoxFloat32x4Instr::Canonicalize(FlowGraph* flow_graph) {
+  if (input_use_list() == NULL) {
+    // Environments can accomodate any representation. No need to box.
+    return value()->definition();
+  }
+
+  // Fold away BoxFloat32x4(UnboxFloat32x4(v)).
+  UnboxFloat32x4Instr* defn = value()->definition()->AsUnboxFloat32x4();
+  if ((defn != NULL) && (defn->value()->Type()->ToCid() == kFloat32x4Cid)) {
+    return defn->value()->definition();
+  }
+
+  return this;
+}
+
+
+Definition* UnboxFloat32x4Instr::Canonicalize(FlowGraph* flow_graph) {
+  // Fold away UnboxFloat32x4(BoxFloat32x4(v)).
+  BoxFloat32x4Instr* defn = value()->definition()->AsBoxFloat32x4();
+  return (defn != NULL) ? defn->value()->definition() : this;
+}
+
+
+Definition* BoxUint32x4Instr::Canonicalize(FlowGraph* flow_graph) {
+  if (input_use_list() == NULL) {
+    // Environments can accomodate any representation. No need to box.
+    return value()->definition();
+  }
+
+  // Fold away BoxUint32x4(UnboxUint32x4(v)).
+  UnboxUint32x4Instr* defn = value()->definition()->AsUnboxUint32x4();
+  if ((defn != NULL) && (defn->value()->Type()->ToCid() == kUint32x4Cid)) {
+    return defn->value()->definition();
+  }
+
+  return this;
+}
+
+
+Definition* UnboxUint32x4Instr::Canonicalize(FlowGraph* flow_graph) {
+  // Fold away UnboxUint32x4(BoxUint32x4(v)).
+  BoxUint32x4Instr* defn = value()->definition()->AsBoxUint32x4();
+  return (defn != NULL) ? defn->value()->definition() : this;
+}
+
+
 Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
   // Only handle strict-compares.
   if (comparison()->IsStrictCompare()) {
@@ -1458,7 +1504,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       comp->RemoveFromGraph();
       SetComparison(comp);
       if (FLAG_trace_optimization) {
-        OS::Print("Merging comparison v%"Pd"\n", comp->ssa_temp_index());
+        OS::Print("Merging comparison v%" Pd "\n", comp->ssa_temp_index());
       }
       // Clear the comparison's temp index and ssa temp index since the
       // value of the comparison is not used outside the branch anymore.
@@ -1773,6 +1819,14 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    locs(),
                                    call_ic_data);
   }
+}
+
+
+bool PolymorphicInstanceCallInstr::HasRecognizedTarget() const {
+  return ic_data().HasOneTarget() &&
+      (MethodRecognizer::RecognizeKind(
+          Function::Handle(ic_data().GetTargetAt(0))) !=
+       MethodRecognizer::kUnknown);
 }
 
 
@@ -2174,7 +2228,7 @@ void ConstraintInstr::InferRange() {
     if (target() == branch->true_successor()) {
       // True unreachable.
       if (FLAG_trace_constant_propagation) {
-        OS::Print("Range analysis: True unreachable (B%"Pd")\n",
+        OS::Print("Range analysis: True unreachable (B%" Pd ")\n",
                   branch->true_successor()->block_id());
       }
       branch->set_constant_target(branch->false_successor());
@@ -2182,7 +2236,7 @@ void ConstraintInstr::InferRange() {
       ASSERT(target() == branch->false_successor());
       // False unreachable.
       if (FLAG_trace_constant_propagation) {
-        OS::Print("Range analysis: False unreachable (B%"Pd")\n",
+        OS::Print("Range analysis: False unreachable (B%" Pd ")\n",
                   branch->false_successor()->block_id());
       }
       branch->set_constant_target(branch->true_successor());
@@ -2520,7 +2574,7 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
 
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     ZoneGrowableArray<Value*>* inputs,
-    InstanceCallInstr* instance_call,
+    intptr_t original_deopt_id,
     MethodRecognizer::Kind recognized_kind)
     : inputs_(inputs),
       locs_(NULL),
@@ -2531,7 +2585,7 @@ InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     (*inputs)[i]->set_instruction(this);
     (*inputs)[i]->set_use_index(i);
   }
-  deopt_id_ = instance_call->deopt_id();
+  deopt_id_ = original_deopt_id;
 }
 
 
@@ -2547,7 +2601,7 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     case MethodRecognizer::kDoubleRound:
       return 1;
     case MethodRecognizer::kDoubleMod:
-    case MethodRecognizer::kDoublePow:
+    case MethodRecognizer::kMathDoublePow:
       return 2;
     default:
       UNREACHABLE();
@@ -2594,7 +2648,7 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
       return kFloorRuntimeEntry;
     case MethodRecognizer::kDoubleCeil:
       return kCeilRuntimeEntry;
-    case MethodRecognizer::kDoublePow:
+    case MethodRecognizer::kMathDoublePow:
       return kPowRuntimeEntry;
     case MethodRecognizer::kDoubleMod:
       return kModRuntimeEntry;

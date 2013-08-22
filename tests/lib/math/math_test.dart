@@ -146,12 +146,6 @@ class MathTest {
     checkVeryClose(LN2, log(2.0));
   }
 
-  static void testPow() {
-    checkVeryClose(16.0, pow(4.0, 2.0));
-    checkVeryClose(SQRT2, pow(2.0, 0.5));
-    checkVeryClose(SQRT1_2, pow(0.5, 0.5));
-  }
-
   static bool parseIntThrowsFormatException(str) {
     try {
       int.parse(str);
@@ -251,7 +245,6 @@ class MathTest {
     testSqrt();
     testLog();
     testExp();
-    testPow();
     testParseInt();
   }
 }

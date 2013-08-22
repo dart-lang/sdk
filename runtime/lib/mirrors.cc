@@ -305,9 +305,16 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(0));
   const Class& cls = Class::Handle(type.type_class());
   ASSERT(!cls.IsNull());
-  return CreateClassMirror(cls,
-                           AbstractType::Handle(),
-                           Instance::null_instance());
+  // Strip the type for generics only.
+  if (cls.NumTypeParameters() == 0) {
+    return CreateClassMirror(cls,
+                             type,
+                             Object::null_instance());
+  } else {
+    return CreateClassMirror(cls,
+                             AbstractType::Handle(),
+                             Object::null_instance());
+  }
 }
 
 

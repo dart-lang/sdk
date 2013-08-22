@@ -675,8 +675,14 @@
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects",
         "support_level": "experimental"
       },
+      "drawCustomFocusRing": {
+        "support_level": "untriaged"
+      },
       "drawImage": {},
       "drawImageFromRect": {},
+      "drawSystemFocusRing": {
+        "support_level": "untriaged"
+      },
       "fill": {},
       "fillRect": {},
       "fillStyle": {},
@@ -690,6 +696,9 @@
       "getLineDash": {},
       "globalAlpha": {},
       "globalCompositeOperation": {},
+      "imageSmoothingEnabled": {
+        "support_level": "untriaged"
+      },
       "isPointInPath": {},
       "isPointInStroke": {},
       "lineCap": {},
@@ -1897,6 +1906,9 @@
       },
       "getBoundingClientRect": {},
       "getClientRects": {},
+      "getDestinationInsertionPoints": {
+        "support_level": "untriaged"
+      },
       "getElementsByClassName": {},
       "getElementsByTagName": {},
       "getElementsByTagNameNS": {
@@ -1923,6 +1935,9 @@
         "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
         "dart_action": "stable",
         "support_level": "nonstandard"
+      },
+      "inputMethodContext": {
+        "support_level": "untriaged"
       },
       "isContentEditable": {
         "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
@@ -2252,6 +2267,12 @@
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#errorevent",
     "dart_action": "unstable",
     "members": {
+      "colno": {
+        "support_level": "untriaged"
+      },
+      "error": {
+        "support_level": "untriaged"
+      },
       "filename": {},
       "lineno": {},
       "message": {}
@@ -3141,6 +3162,9 @@
       "innerText": {
         "dart_action": "suppress",
         "support_level": "nonstandard"
+      },
+      "inputMethodContext": {
+        "support_level": "untriaged"
       },
       "insertAdjacentElement": {
         "support_level": "nonstandard"
@@ -4961,12 +4985,27 @@
   "KeyboardEvent": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-Events/#events-KeyboardEvent",
     "members": {
+      "DOM_KEY_LOCATION_LEFT": {
+        "support_level": "untriaged"
+      },
+      "DOM_KEY_LOCATION_NUMPAD": {
+        "support_level": "untriaged"
+      },
+      "DOM_KEY_LOCATION_RIGHT": {
+        "support_level": "untriaged"
+      },
+      "DOM_KEY_LOCATION_STANDARD": {
+        "support_level": "untriaged"
+      },
       "altGraphKey": {
         "dart_action": "experimental",
         "support_level": "nonstandard"
       },
       "altKey": {},
       "ctrlKey": {},
+      "getModifierState": {
+        "support_level": "untriaged"
+      },
       "initKeyboardEvent": {},
       "keyIdentifier": {
         "dart_action": "experimental",
@@ -4975,6 +5014,9 @@
       "keyLocation": {
         "dart_action": "experimental",
         "support_level": "nonstandard"
+      },
+      "location": {
+        "support_level": "untriaged"
       },
       "metaKey": {},
       "shiftKey": {}
@@ -6133,6 +6175,9 @@
   "Performance": {
     "comment": "http://www.w3.org/TR/navigation-timing/#performance",
     "members": {
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
       "clearMarks": {
         "comment": "https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface",
         "support_level": "experimental"
@@ -6140,6 +6185,9 @@
       "clearMeasures": {
         "comment": "https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface",
         "support_level": "experimental"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
       },
       "getEntries": {
         "comment": "http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute",
@@ -6172,6 +6220,9 @@
       "onwebkitresourcetimingbufferfull": {
         "comment": "http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods",
         "support_level": "experimental"
+      },
+      "removeEventListener": {
+        "support_level": "untriaged"
       },
       "timing": {},
       "webkitClearResourceTimings": {
@@ -6443,11 +6494,29 @@
       "bufferedAmount": {},
       "close": {},
       "dispatchEvent": {},
+      "id": {
+        "support_level": "untriaged"
+      },
       "label": {},
+      "maxRetransmitTime": {
+        "support_level": "untriaged"
+      },
+      "maxRetransmits": {
+        "support_level": "untriaged"
+      },
+      "negotiated": {
+        "support_level": "untriaged"
+      },
       "onclose": {},
       "onerror": {},
       "onmessage": {},
       "onopen": {},
+      "ordered": {
+        "support_level": "untriaged"
+      },
+      "protocol": {
+        "support_level": "untriaged"
+      },
       "readyState": {},
       "reliable": {},
       "removeEventListener": {},
@@ -6690,6 +6759,25 @@
       "url": {}
     },
     "support_level": "experimental"
+  },
+  "RsaKeyGenParams": {
+    "members": {
+      "modulusLength": {
+        "support_level": "untriaged"
+      },
+      "publicExponent": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "RsaSsaParams": {
+    "members": {
+      "hash": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "SQLError": {
     "comment": "http://www.w3.org/TR/webdatabase/#sqlerror",
@@ -7301,8 +7389,17 @@
     "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGElement",
     "dart_action": "unstable",
     "members": {
+      "className": {
+        "support_level": "untriaged"
+      },
+      "getPresentationAttribute": {
+        "support_level": "untriaged"
+      },
       "id": {},
       "ownerSVGElement": {},
+      "style": {
+        "support_level": "untriaged"
+      },
       "viewportElement": {},
       "xmlbase": {},
       "xmllang": {
@@ -10055,8 +10152,17 @@
       "appendBufferView": {
         "support_level": "untriaged"
       },
+      "appendWindowEnd": {
+        "support_level": "untriaged"
+      },
+      "appendWindowStart": {
+        "support_level": "untriaged"
+      },
       "buffered": {},
       "dispatchEvent": {
+        "support_level": "untriaged"
+      },
+      "remove": {
         "support_level": "untriaged"
       },
       "removeEventListener": {
@@ -10400,6 +10506,9 @@
       "encrypt": {
         "support_level": "untriaged"
       },
+      "generateKey": {
+        "support_level": "untriaged"
+      },
       "importKey": {
         "support_level": "untriaged"
       },
@@ -10416,6 +10525,9 @@
     "comment": "http://dom.spec.whatwg.org/#interface-text",
     "members": {
       "Text": {},
+      "getDestinationInsertionPoints": {
+        "support_level": "untriaged"
+      },
       "replaceWholeText": {
         "comment": "http://dom.spec.whatwg.org/#dom-text-replacewholetext",
         "dart_action": "suppress",

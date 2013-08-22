@@ -182,6 +182,7 @@ class Parser : public ValueObject {
 
   Parser(const Script& script, const Library& library, intptr_t token_pos);
   Parser(const Script& script, ParsedFunction* function, intptr_t token_pos);
+  ~Parser();
 
   // The function for which we will generate code.
   const Function& current_function() const;
@@ -319,6 +320,8 @@ class Parser : public ValueObject {
   void AppendErrorMsg(
       const Error& prev_error, intptr_t token_pos, const char* format, ...)
       PRINTF_ATTRIBUTE(4, 5);
+
+  void CheckRecursiveInvocation();
 
   const Instance& EvaluateConstExpr(AstNode* expr);
   AstNode* RunStaticFieldInitializer(const Field& field);
@@ -692,6 +695,8 @@ class Parser : public ValueObject {
   // Each try in this function gets its own try index.
   intptr_t AllocateTryIndex() { return ++last_used_try_index_; }
   intptr_t last_used_try_index_;
+
+  bool unregister_pending_function_;
 
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };

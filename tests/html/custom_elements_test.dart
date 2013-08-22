@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library custom_elements_test;
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_individual_config.dart';
+import 'dart:async';
 import 'dart:html';
+import 'package:unittest/html_individual_config.dart';
+import 'package:unittest/unittest.dart';
 
 class CustomMixin {
   var mixinMethodCalled;
@@ -35,8 +36,22 @@ String get nextTag => 'x-type${nextTagId++}';
 
 class NotAnElement {}
 
+loadPolyfills() {
+  if (!document.supportsRegister) {
+    // Cache blocker is a workaround for:
+    // https://code.google.com/p/dart/issues/detail?id=11834
+    var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
+    return HttpRequest.getString('/root_dart/pkg/custom_element/lib/'
+      'custom-elements.debug.js?cacheBlock=$cacheBlocker').then((code) {
+      document.head.children.add(new ScriptElement()..text = code);
+    });
+  }
+}
+
 main() {
   useHtmlIndividualConfiguration();
+
+  setUp(loadPolyfills);
 
   group('register', () {
     test('register', () {
@@ -83,11 +98,14 @@ main() {
     });
   });
 
+  // TODO(vsm): Modify this test once we agree on the proper semantics.
+  /*
   group('preregister', () {
-    // TODO(vsm): Modify this test once we agree on the proper semantics.
+
     test('pre-registration construction', () {
       var tag = nextTag;
       var dom = new Element.html('<div><$tag></$tag></div>');
+
       var preElement = dom.children[0];
       expect(preElement, isNotNull);
       expect(preElement is HtmlElement, isTrue);
@@ -98,6 +116,7 @@ main() {
       });
 
       document.register(tag, CustomType);
+      Platform.upgradeCustomElements(dom);
 
       var postElement = dom.children[0];
       expect(postElement, isNotNull);
@@ -118,7 +137,7 @@ main() {
       expect(firedOnPre, isTrue);
       expect(firedOnPost, isTrue);
     });
-  });
+  });*/
 
   group('innerHtml', () {
     test('query', () {

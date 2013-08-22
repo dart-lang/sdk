@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'asset.dart';
 import 'asset_id.dart';
-import 'transformer.dart';
 
 /// API for locating and accessing packages on disk.
 ///
@@ -20,12 +19,6 @@ abstract class PackageProvider {
   /// This is equal to the transitive closure of the entrypoint package
   /// dependencies.
   Iterable<String> get packages;
-
-  /// Returns the list of transformer phases that are applicable to [package].
-  ///
-  /// The phases will be run in sequence, with the outputs of one pipelined into
-  /// the next. All [Transformer]s in a single phase will be run in parallel.
-  Iterable<Iterable<Transformer>> getTransformers(String package);
 
   /// Loads an asset from disk.
   ///

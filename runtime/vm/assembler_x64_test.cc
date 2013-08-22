@@ -1449,6 +1449,30 @@ ASSEMBLER_TEST_RUN(PackedFPOperations, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(PackedIntOperations, assembler) {
+  __ movl(RAX, Immediate(0x2));
+  __ movd(XMM0, RAX);
+  __ shufps(XMM0, XMM0, Immediate(0x0));
+  __ movl(RAX, Immediate(0x1));
+  __ movd(XMM1, RAX);
+  __ shufps(XMM1, XMM1, Immediate(0x0));
+  __ addpl(XMM0, XMM1);  // 0x3
+  __ addpl(XMM0, XMM0);  // 0x6
+  __ subpl(XMM0, XMM1);  // 0x5
+  __ pushq(RAX);
+  __ movss(Address(RSP, 0), XMM0);
+  __ popq(RAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedIntOperations, test) {
+  typedef uint32_t (*PackedIntOperationsCode)();
+  uint32_t res = reinterpret_cast<PackedIntOperationsCode>(test->entry())();
+  EXPECT_EQ(static_cast<uword>(0x5), res);
+}
+
+
 ASSEMBLER_TEST_GENERATE(PackedFPOperations2, assembler) {
   __ movq(RAX, Immediate(bit_cast<int32_t, float>(4.0f)));
   __ movd(XMM0, RAX);

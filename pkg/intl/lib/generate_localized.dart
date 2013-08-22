@@ -215,7 +215,8 @@ const closing = """
 Future initializeMessages(String localeName) {
   initializeInternalMessageLookup(() => new CompositeMessageLookup());
   messageLookup.addLocale(localeName, _findGeneratedMessagesFor);
-  return deferredLibraries[localeName].load();
+  var lib = deferredLibraries[localeName];                                                           
+  return lib == null ? new Future.value(false) : lib.load();     
 }
 
 MessageLookupByLibrary _findGeneratedMessagesFor(locale) {

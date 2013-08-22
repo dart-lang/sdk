@@ -428,7 +428,7 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
         uword destination = reinterpret_cast<uword>(instr) + off;
         buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                    remaining_size_in_buffer(),
-                                   "%#"Px"",
+                                   "%#" Px "",
                                    destination);
         return 4;
       } else {

@@ -1556,11 +1556,13 @@ class NativeBodyNode : public AstNode {
                  const Function& function,
                  const String& native_c_function_name,
                  NativeFunction native_c_function,
+                 LocalScope* scope,
                  bool is_bootstrap_native)
       : AstNode(token_pos),
         function_(function),
         native_c_function_name_(native_c_function_name),
         native_c_function_(native_c_function),
+        scope_(scope),
         is_bootstrap_native_(is_bootstrap_native) {
     ASSERT(function_.IsZoneHandle());
     ASSERT(native_c_function_ != NULL);
@@ -1573,6 +1575,7 @@ class NativeBodyNode : public AstNode {
     return native_c_function_name_;
   }
   NativeFunction native_c_function() const { return native_c_function_; }
+  LocalScope* scope() const { return scope_; }
   bool is_bootstrap_native() const { return is_bootstrap_native_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
@@ -1583,6 +1586,7 @@ class NativeBodyNode : public AstNode {
   const Function& function_;  // Native Dart function.
   const String& native_c_function_name_;
   NativeFunction native_c_function_;  // Actual non-Dart implementation.
+  LocalScope* scope_;
   const bool is_bootstrap_native_;  // Is a bootstrap native method.
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(NativeBodyNode);

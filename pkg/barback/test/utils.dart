@@ -9,7 +9,6 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:barback/barback.dart';
-import 'package:barback/src/asset_set.dart';
 import 'package:barback/src/cancelable_future.dart';
 import 'package:barback/src/utils.dart';
 import 'package:path/path.dart' as pathos;
@@ -61,9 +60,38 @@ void initGraph([assets,
   if (assets == null) assets = [];
   if (transformers == null) transformers = {};
 
-  _provider = new MockProvider(assets, transformers);
+  var assetList;
+  if (assets is Map) {
+    assetList = assets.keys.map((asset) {
+      var id = new AssetId.parse(asset);
+      return new _MockAsset(id, assets[asset]);
+    });
+  } else if (assets is Iterable) {
+    assetList = assets.map((asset) {
+      var id = new AssetId.parse(asset);
+      var contents = pathos.basenameWithoutExtension(id.path);
+      return new _MockAsset(id, contents);
+    });
+  }
+
+  var assetMap = mapMapValues(groupBy(assetList, (asset) => asset.id.package),
+      (package, assets) => new AssetSet.from(assets));
+
+  // Make sure that packages that have transformers but no assets are considered
+  // by MockProvider to exist.
+  for (var package in transformers.keys) {
+    assetMap.putIfAbsent(package, () => new AssetSet());
+  }
+
+  _provider = new MockProvider(assetMap);
   _barback = new Barback(_provider);
   _nextBuildResult = 0;
+
+  transformers.forEach(_barback.updateTransformers);
+
+  // There should be one successful build after adding all the transformers but
+  // before adding any sources.
+  if (!transformers.isEmpty) buildShouldSucceed();
 }
 
 /// Updates [assets] in the current [PackageProvider].
@@ -101,6 +129,13 @@ void removeSources(Iterable assets) {
 /// and will be run synchronously when called.
 void removeSourcesSync(Iterable assets) =>
     _barback.removeSources(_parseAssets(assets));
+
+/// Sets the transformers for [package] to [transformers].
+void updateTransformers(String package,
+    Iterable<Iterable<Transformer>> transformers) {
+  schedule(() => _barback.updateTransformers(package, transformers),
+      "updating transformers for $package");
+}
 
 /// Parse a list of strings or [AssetId]s into a list of [AssetId]s.
 List<AssetId> _parseAssets(Iterable assets) {
@@ -223,6 +258,39 @@ void expectNoAsset(String name) {
   }, "get asset $name");
 }
 
+/// Schedules an expectation that the graph will output all of the given
+/// assets, and no others.
+///
+/// [assets] is a list of strings that can be parsed to [AssetID]s.
+void expectAllAssets(Iterable<String> assets) {
+  var expected = assets.map((asset) => new AssetId.parse(asset));
+
+  schedule(() {
+    return _barback.getAllAssets().then((actualAssets) {
+      var actualIds = actualAssets.map((asset) => asset.id).toSet();
+
+      for (var id in expected) {
+        expect(actualIds, contains(id));
+        actualIds.remove(id);
+      }
+
+      expect(actualIds, isEmpty);
+    });
+  }, "get all assets, expecting ${expected.join(', ')}");
+}
+
+/// Schedules an expectation that [Barback.getAllAssets] will return a [Future]
+/// that completes to a error that matches [matcher].
+///
+/// If [match] is a [List], then it expects the completed error to be an
+/// [AggregateException] whose errors match each matcher in the list. Otherwise,
+/// [match] should be a single matcher that the error should match.
+void expectAllAssetsShouldFail(Matcher matcher) {
+  schedule(() {
+    expect(_barback.getAllAssets(), throwsA(matcher));
+  }, "get all assets should fail");
+}
+
 /// Schedules an expectation that a [getAssetById] call for the given asset
 /// won't terminate at this point in the schedule.
 void expectAssetDoesNotComplete(String name) {
@@ -234,6 +302,25 @@ void expectAssetDoesNotComplete(String name) {
         pumpEventQueue(),
         "asset $id");
   }, "asset $id should not complete");
+}
+
+/// Returns a matcher for an [AggregateException] containing errors that match
+/// [matchers].
+Matcher isAggregateException(Iterable<Matcher> errors) {
+  // Match the aggregate error itself.
+  var matchers = [
+    new isInstanceOf<AggregateException>(),
+    transform((error) => error.errors, hasLength(errors.length),
+        'errors.length == ${errors.length}')
+  ];
+
+  // Make sure its contained errors match the matchers.
+  for (var error in errors) {
+    matchers.add(transform((error) => error.errors, contains(error),
+        error.toString()));
+  }
+
+  return allOf(matchers);
 }
 
 /// Returns a matcher for an [AssetNotFoundException] with the given [id].
@@ -340,9 +427,9 @@ Future _futureShouldNotCompleteUntil(Future future, Future delay,
 
 /// An [AssetProvider] that provides the given set of assets.
 class MockProvider implements PackageProvider {
-  Iterable<String> get packages => _packages.keys;
+  Iterable<String> get packages => _assets.keys;
 
-  Map<String, _MockPackage> _packages;
+  Map<String, AssetSet> _assets;
 
   /// The set of assets for which [MockLoadException]s should be emitted if
   /// they're loaded.
@@ -366,42 +453,19 @@ class MockProvider implements PackageProvider {
     _pauseCompleter = null;
   }
 
-  MockProvider(assets,
-      Map<String, Iterable<Iterable<Transformer>>> transformers) {
-    var assetList;
-    if (assets is Map) {
-      assetList = assets.keys.map((asset) {
-        var id = new AssetId.parse(asset);
-        return new _MockAsset(id, assets[asset]);
-      });
-    } else if (assets is Iterable) {
-      assetList = assets.map((asset) {
-        var id = new AssetId.parse(asset);
-        var contents = pathos.basenameWithoutExtension(id.path);
-        return new _MockAsset(id, contents);
-      });
-    }
-
-    _packages = mapMapValues(groupBy(assetList, (asset) => asset.id.package),
-        (package, assets) {
-      var packageTransformers = transformers[package];
-      if (packageTransformers == null) packageTransformers = [];
-      return new _MockPackage(
-          new AssetSet.from(assets), packageTransformers.toList());
-    });
-
+  MockProvider(this._assets) {
     // If there are no assets or transformers, add a dummy package. This better
     // simulates the real world, where there'll always be at least the
     // entrypoint package.
-    if (_packages.isEmpty) {
-      _packages = {"app": new _MockPackage(new AssetSet(), [])};
+    if (_assets.isEmpty) {
+      _assets = {"app": new AssetSet()};
     }
   }
 
   void _modifyAsset(String name, String contents) {
     var id = new AssetId.parse(name);
     _errors.remove(id);
-    _packages[id.package].assets[id].contents = contents;
+    _assets[id.package][id].contents = contents;
   }
 
   void _setAssetError(String name) => _errors.add(new AssetId.parse(name));
@@ -411,23 +475,15 @@ class MockProvider implements PackageProvider {
       throw new UnimplementedError("Doesn't handle 'within' yet.");
     }
 
-    return _packages[package].assets.map((asset) => asset.id);
-  }
-
-  Iterable<Iterable<Transformer>> getTransformers(String package) {
-    var mockPackage = _packages[package];
-    if (mockPackage == null) {
-      throw new ArgumentError("No package named $package.");
-    }
-    return mockPackage.transformers;
+    return _assets[package].map((asset) => asset.id);
   }
 
   Future<Asset> getAsset(AssetId id) {
     // Eagerly load the asset so we can test an asset's value changing between
     // when a load starts and when it finishes.
-    var package = _packages[id.package];
+    var assets = _assets[id.package];
     var asset;
-    if (package != null) asset = package.assets[id];
+    if (assets != null) asset = assets[id];
 
     var hasError = _errors.contains(id);
 
@@ -453,16 +509,6 @@ class MockLoadException implements Exception {
   MockLoadException(this.id);
 
   String toString() => "Error loading $id.";
-}
-
-/// Used by [MockProvider] to keep track of which assets and transformers exist
-/// for each package.
-class _MockPackage {
-  final AssetSet assets;
-  final List<List<Transformer>> transformers;
-
-  _MockPackage(this.assets, Iterable<Iterable<Transformer>> transformers)
-      : transformers = transformers.map((phase) => phase.toList()).toList();
 }
 
 /// An implementation of [Asset] that never hits the file system.

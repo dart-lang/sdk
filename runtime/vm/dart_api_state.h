@@ -40,7 +40,7 @@ class ApiZone {
     }
 #ifdef DEBUG
     if (FLAG_trace_zones) {
-      OS::PrintErr("*** Starting a new Api zone 0x%"Px"(0x%"Px")\n",
+      OS::PrintErr("*** Starting a new Api zone 0x%" Px "(0x%" Px ")\n",
                    reinterpret_cast<intptr_t>(this),
                    reinterpret_cast<intptr_t>(&zone_));
     }
@@ -55,7 +55,7 @@ class ApiZone {
     }
 #ifdef DEBUG
     if (FLAG_trace_zones) {
-      OS::PrintErr("*** Deleting Api zone 0x%"Px"(0x%"Px")\n",
+      OS::PrintErr("*** Deleting Api zone 0x%" Px "(0x%" Px ")\n",
                    reinterpret_cast<intptr_t>(this),
                    reinterpret_cast<intptr_t>(&zone_));
     }
@@ -256,7 +256,7 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
                            kOffsetOfRawPtrInLocalHandle>() {
 #ifdef DEBUG
     if (FLAG_trace_handles) {
-      OS::PrintErr("*** Starting a new Local handle block 0x%"Px"\n",
+      OS::PrintErr("*** Starting a new Local handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
 #endif
@@ -264,10 +264,10 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
   ~LocalHandles() {
 #ifdef DEBUG
     if (FLAG_trace_handles) {
-      OS::PrintErr("***   Handle Counts for 0x(%"Px"):Scoped = %d\n",
+      OS::PrintErr("***   Handle Counts for 0x(%" Px "):Scoped = %d\n",
                    reinterpret_cast<intptr_t>(this),
                    CountHandles());
-      OS::PrintErr("*** Deleting Local handle block 0x%"Px"\n",
+      OS::PrintErr("*** Deleting Local handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
 #endif
@@ -325,7 +325,7 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
         free_list_(NULL) {
 #ifdef DEBUG
     if (FLAG_trace_handles) {
-      OS::PrintErr("*** Starting a new Persistent handle block 0x%"Px"\n",
+      OS::PrintErr("*** Starting a new Persistent handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
 #endif
@@ -334,10 +334,10 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
     free_list_ = NULL;
 #ifdef DEBUG
     if (FLAG_trace_handles) {
-      OS::PrintErr("***   Handle Counts for 0x(%"Px"):Scoped = %d\n",
+      OS::PrintErr("***   Handle Counts for 0x(%" Px "):Scoped = %d\n",
                    reinterpret_cast<intptr_t>(this),
                    CountHandles());
-      OS::PrintErr("*** Deleting Persistent handle block 0x%"Px"\n",
+      OS::PrintErr("*** Deleting Persistent handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
 #endif

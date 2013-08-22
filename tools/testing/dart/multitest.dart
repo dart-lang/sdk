@@ -14,9 +14,9 @@ import "utils.dart";
 //
 // For each key in the file, a new test file is made containing all
 // the normal lines of the file, and all of the multitest lines containing
-// that key, in the same order as in the source file.  The new test
-// is expected to fail if there is a non-empty error type listed, of
-// type 'compile-time error', 'runtime error', 'static type warning', or
+// that key, in the same order as in the source file.  The new test is expected
+// to pass if the error type listed is 'ok', or to fail if there is an error
+// type of type 'compile-time error', 'runtime error', 'static type warning', or
 // 'dynamic type error'.  The type error tests fail only in checked mode.
 // There is also a test created from only the untagged lines of the file,
 // with key "none", which is expected to pass.  This library extracts these
@@ -29,29 +29,35 @@ import "utils.dart";
 //   bbb /// 02: runtime error
 //   ccc /// 02: continued
 //   ddd /// 07: static type warning
-//   eee
+//   eee /// 10: ok
+//   fff
 //
-// should create three tests:
+// should create four tests:
 // I_am_a_multitest_none.dart
 //   aaa
-//   eee
+//   fff
 //
 // I_am_a_multitest_02.dart
 //   aaa
 //   bbb /// 02: runtime error
 //   ccc /// 02: continued
-//   eee
+//   fff
 //
-// and I_am_a_multitest_07.dart
+// I_am_a_multitest_07.dart
 //   aaa
 //   ddd /// 07: static type warning
-//   eee
+//   fff
+//
+// and I_am_a_multitest_10.dart
+//   aaa
+//   eee /// 10: ok
+//   fff
 //
 // Note that it is possible to indicate more than one acceptable outcome
 // in the case of dynamic and static type warnings
 //   aaa
 //   ddd /// 07: static type warning, dynamic type error
-//   eee
+//   fff
 
 void ExtractTestsFromMultitest(Path filePath,
                                Map<String, String> tests,
@@ -71,7 +77,7 @@ void ExtractTestsFromMultitest(Path filePath,
   bytes = null;
   contents = null;
   Set<String> validMultitestOutcomes = new Set<String>.from(
-      ['compile-time error', 'runtime error',
+      ['ok', 'compile-time error', 'runtime error',
        'static type warning', 'dynamic type error']);
 
   List<String> testTemplate = new List<String>();

@@ -49,7 +49,9 @@ ArgParser _initArgParser() {
         if (verbose) Logger.root.level = Level.FINEST;
       });
   parser.addFlag('json', abbr: 'j', 
-      help: 'Outputs to JSON. Files are outputted to YAML by default.', 
+      help: 'Outputs to JSON. Files are outputted to YAML by default. ' 
+        'If --append is used, it takes the file-format of the previous '
+        'run stated in library_list.json ignoring the flag.', 
       negatable: true);
   parser.addFlag('include-private', 
       help: 'Flag to include private declarations.', negatable: false);
@@ -61,7 +63,7 @@ ArgParser _initArgParser() {
   parser.addOption('package-root', 
       help: 'Sets the package root of the library being analyzed.');
   parser.addFlag('append', 
-      help: 'Append to the docs folder, library_list.txt and index.txt', 
+      help: 'Append to the docs folder, library_list.json and index.txt', 
       defaultsTo: false, negatable: false);
   parser.addOption('introduction', 
       help: 'Adds the provided markdown text file as the introduction' 

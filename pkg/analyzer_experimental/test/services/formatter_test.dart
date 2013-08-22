@@ -21,9 +21,13 @@ main() {
 
     test('CU (1)', () {
       expectCUFormatsTo(
-          'class A  {\n'
-          '}',
           'class A {\n'
+          '  var z;\n'
+          '  inc(int x) => ++x;\n'
+          '}\n',
+          'class A {\n'
+          '  var z;\n'
+          '  inc(int x) => ++x;\n'
           '}\n'
         );
     });
@@ -31,7 +35,7 @@ main() {
     test('CU (2)', () {
       expectCUFormatsTo(
           'class      A  {  \n'
-          '}',
+          '}\n',
           'class A {\n'
           '}\n'
         );
@@ -42,17 +46,76 @@ main() {
           'class A {\n'
           '  }',
           'class A {\n'
-          '}\n'
+          '}'
         );
     });
 
     test('CU (4)', () {
       expectCUFormatsTo(
           ' class A {\n'
-          '}',
+          '}\n',
           'class A {\n'
           '}\n'
         );
+    });
+
+    test('CU (5)', () {
+      expectCUFormatsTo(
+          'class A  { int meaningOfLife() => 42; }',
+          'class A {\n'
+          '  int meaningOfLife() => 42;\n'
+          '}'
+      );
+    });
+    
+    
+//    test('CU - comments', () {
+//      expectCUFormatsTo(
+//          'library foo;\n'
+//          '\n'
+//          '//comment one\n\n'
+//          '//comment two\n\n'
+//          'class C {\n}\n',
+//          'library foo;\n'
+//          '\n'
+//          '//comment one\n\n'
+//          '//comment two\n\n'
+//          'class C {\n}\n'
+//      );
+//    });
+    
+    test('CU - top level', () {
+      expectCUFormatsTo(
+          '\n\n'
+          'foo() {\n'
+          '}\n'
+          'bar() {\n'
+          '}\n',
+          '\n\n'
+          'foo() {\n'
+          '}\n'
+          'bar() {\n'
+          '}\n'
+      );
+      expectCUFormatsTo(
+          'const A = 42;\n'
+          'final foo = 32;\n',
+          'const A = 42;\n'
+          'final foo = 32;\n'
+      );
+    });
+    
+    test('CU - imports', () {
+      expectCUFormatsTo(
+          'import "dart:io";\n\n'
+          'import "package:unittest/unittest.dart";\n'
+          'foo() {\n'
+          '}\n',
+          'import "dart:io";\n\n'
+          'import "package:unittest/unittest.dart";\n'
+          'foo() {\n'
+          '}\n'
+      );
     });
 
     test('CU w/class decl comment', () {
@@ -64,29 +127,64 @@ main() {
           'import "foo";\n\n'
           '//Killer class\n'
           'class A {\n'
-          '}\n'
+          '}'
         );
     });
 
-
+    test('CU (method body)', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  foo(path) {\n'
+          '    var buffer = new StringBuffer();\n'
+          '    var file = new File(path);\n'
+          '    return file;\n'
+          '  }\n'
+          '}\n',
+          'class A {\n'
+          '  foo(path) {\n'
+          '    var buffer = new StringBuffer();\n'
+          '    var file = new File(path);\n'
+          '    return file;\n'
+          '  }\n'
+          '}\n'
+      );
+      expectCUFormatsTo(
+          'class A {\n'
+          '  foo(files) {\n'
+          '    for (var  file in files) {\n'
+          '      print(file);\n'
+          '    }\n'
+          '  }\n'
+          '}\n',
+          'class A {\n'
+          '  foo(files) {\n'
+          '    for (var file in files) {\n'
+          '      print(file);\n'
+          '    }\n'
+          '  }\n'
+          '}\n'
+      );
+    });
+    
     test('CU (method indent)', () {
       expectCUFormatsTo(
           'class A {\n'
           'void x(){\n'
           '}\n'
-          '}',
+          '}\n',
           'class A {\n'
           '  void x() {\n'
           '  }\n'
           '}\n'
-        );
+      );
     });
 
     test('CU (method indent - 2)', () {
       expectCUFormatsTo(
           'class A {\n'
-          ' static  bool x(){ return true; }\n'
-          ' }',
+          ' static  bool x(){\n'
+          'return true; }\n'
+          ' }\n',
           'class A {\n'
           '  static bool x() {\n'
           '    return true;\n'
@@ -99,7 +197,7 @@ main() {
       expectCUFormatsTo(
           'class A {\n'
           ' int x() =>   42   + 3 ;  \n'
-          '   }',
+          '   }\n',
           'class A {\n'
           '  int x() => 42 + 3;\n'
           '}\n'
@@ -110,10 +208,12 @@ main() {
       expectCUFormatsTo(
           'class A {\n'
           ' int x() { \n'
-          'if (true) {return 42;\n'
-          '} else { return 13; }\n'
+          'if (true) {\n'
+          'return 42;\n'
+          '} else {\n'
+          'return 13;\n }\n'
           '   }'
-          '}',
+          '}\n',
           'class A {\n'
           '  int x() {\n'
           '    if (true) {\n'
@@ -192,7 +292,7 @@ main() {
         'case "fig":\n'
         'print("bleh");\n'
         'break;\n'
-        '}\n',
+        '}',
         'switch (fruit) {\n'
         '  case "apple":\n'
         '    print("delish");\n'
@@ -200,7 +300,7 @@ main() {
         '  case "fig":\n'
         '    print("bleh");\n'
         '    break;\n'
-        '}\n'
+        '}'
       );
     });
   
@@ -217,12 +317,12 @@ main() {
         'doSomething();\n'
         '} catch (e) {\n'
         'print(e);\n'
-        '}\n',
+        '}',
         'try {\n'
         '  doSomething();\n'
         '} catch (e) {\n'
         '  print(e);\n'
-        '}\n'
+        '}'
       );
     });
     

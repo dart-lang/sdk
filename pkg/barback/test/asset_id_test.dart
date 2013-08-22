@@ -4,8 +4,6 @@
 
 library barback.test.asset_id_test;
 
-import 'dart:async';
-
 import 'package:barback/barback.dart';
 import 'package:unittest/unittest.dart';
 

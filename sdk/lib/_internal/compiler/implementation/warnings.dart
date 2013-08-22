@@ -631,6 +631,16 @@ Error: "#{value}" is not a valid Symbol name because is not:
   static const MessageKind PACKAGE_ROOT_NOT_SET = const MessageKind(
       'Error: Cannot resolve "#{uri}". Package root has not been set.');
 
+  static const MessageKind INTERNAL_LIBRARY_FROM = const MessageKind(
+      'Error: Internal library "#{resolvedUri}" is not accessible from '
+      '"#{importingUri}".');
+
+  static const MessageKind INTERNAL_LIBRARY = const MessageKind(
+      'Error: Internal library "#{resolvedUri}" is not accessible.');
+
+  static const MessageKind LIBRARY_NOT_FOUND = const MessageKind(
+      'Error: Library not found "#{resolvedUri}".');
+
   static const MessageKind UNSUPPORTED_EQ_EQ_EQ = const MessageKind(
       'Error: "===" is not an operator. '
       'Did you mean "#{lhs} == #{rhs}" or "identical(#{lhs}, #{rhs})"?');
@@ -738,6 +748,16 @@ main() {}
 // 'addAll' is misspelled.
 @MirrorsUsed(targets: 'dart.core.List.addAl')
 import 'dart:mirrors';
+
+main() {}
+"""]);
+
+  static const MessageKind READ_SCRIPT_ERROR = const MessageKind(
+      "Error: Can't read '#{uri}' (#{exception}).",
+      examples: const [
+          """
+// 'foo.dart' does not exist.
+import 'foo.dart';
 
 main() {}
 """]);

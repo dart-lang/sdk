@@ -172,16 +172,6 @@ DEFINE_NATIVE_ENTRY(Double_truncate, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Double_pow, 2) {
-  const double operand =
-      Double::CheckedHandle(arguments->NativeArgAt(0)).value();
-  GET_NON_NULL_NATIVE_ARGUMENT(
-      Double, exponent_object, arguments->NativeArgAt(1));
-  const double exponent = exponent_object.value();
-  return Double::New(pow(operand, exponent));
-}
-
-
 #if defined(TARGET_OS_MACOS)
 // MAC OSX math library produces old style cast warning.
 #pragma GCC diagnostic ignored "-Wold-style-cast"

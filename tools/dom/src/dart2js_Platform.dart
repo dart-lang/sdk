@@ -18,4 +18,17 @@ class Platform {
    * error.
    */
   static final supportsSimd = false;
+
+  /**
+   * Upgrade all custom elements in the subtree which have not been upgraded.
+   *
+   * This is needed to cover timing scenarios which the custom element polyfill
+   * does not cover.
+   */
+  static void upgradeCustomElements(Node node) {
+    if (JS('bool', '(#.CustomElements && #.CustomElements.upgradeAll)',
+        window, window)) {
+      JS('', '#.CustomElements.upgradeAll(#)', window, node);
+    }
+  }
 }

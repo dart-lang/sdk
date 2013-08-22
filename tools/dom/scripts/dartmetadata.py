@@ -83,6 +83,10 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Creates('Null')",
     ],
 
+    "ErrorEvent.error": [
+      "@Creates('Null')", # Only returns values created elsewhere.
+    ],
+
     # To be in callback with the browser-created Event, we had to have called
     # addEventListener on the target, so we avoid
     'Event.currentTarget': [

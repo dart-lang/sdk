@@ -140,7 +140,7 @@ bool Mutex::TryLock() {
 void Mutex::Unlock() {
   BOOL result = ReleaseSemaphore(data_.semaphore_, 1, NULL);
   if (result == 0) {
-    FATAL1("Mutex unlock failed", GetLastError());
+    FATAL1("Mutex unlock failed %d", GetLastError());
   }
 }
 
@@ -244,7 +244,7 @@ void MonitorData::SignalAndRemoveFirstWaiter() {
     // Signal event.
     BOOL result = SetEvent(first->event_);
     if (result == 0) {
-      FATAL1("Monitor::Notify failed to signal event", GetLastError());
+      FATAL1("Monitor::Notify failed to signal event %d", GetLastError());
     }
   }
   LeaveCriticalSection(&waiters_cs_);
@@ -261,7 +261,7 @@ void MonitorData::SignalAndRemoveAllWaiters() {
   while (current != NULL) {
     BOOL result = SetEvent(current->event_);
     if (result == 0) {
-      FATAL1("Failed to set event for NotifyAll", GetLastError());
+      FATAL1("Failed to set event for NotifyAll %d", GetLastError());
     }
     current = current->next_;
   }
@@ -315,14 +315,14 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
     // Wait forever for a Notify or a NotifyAll event.
     result = WaitForSingleObject(wait_data->event_, INFINITE);
     if (result == WAIT_FAILED) {
-      FATAL1("Monitor::Wait failed", GetLastError());
+      FATAL1("Monitor::Wait failed %d", GetLastError());
     }
   } else {
     // Wait for the given period of time for a Notify or a NotifyAll
     // event.
     result = WaitForSingleObject(wait_data->event_, millis);
     if (result == WAIT_FAILED) {
-      FATAL1("Monitor::Wait with timeout failed", GetLastError());
+      FATAL1("Monitor::Wait with timeout failed %d", GetLastError());
     }
     if (result == WAIT_TIMEOUT) {
       // No longer waiting. Remove from the list of waiters.

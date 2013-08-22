@@ -7,8 +7,10 @@
 // This test is mainly here to ensure that the coverage tool compiles and
 // runs.
 
-import "dart:io";
 import "dart:async";
+import "dart:convert";
+import "dart:io";
+
 import "package:path/path.dart";
 
 // Coverage tool script relative to the path of this test.
@@ -64,11 +66,11 @@ void main() {
     coverageToolProcess.stdin.close();
     var stdoutStringStream = coverageToolProcess.stdout
         .transform(new StringDecoder())
-        .transform(new LineTransformer());
+        .transform(new LineSplitter());
 
     var stderrStringStream = coverageToolProcess.stderr
         .transform(new StringDecoder())
-        .transform(new LineTransformer());
+        .transform(new LineSplitter());
 
     // Wait for 3 future events: stdout and stderr streams of the coverage
     // tool process closed, and coverage tool process terminated.

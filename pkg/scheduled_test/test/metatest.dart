@@ -200,10 +200,9 @@ final _singleton = new _MetaConfiguration();
 
 /// Special test configuration for use within the child isolates. This hides all
 /// output and reports data back to the parent isolate.
-class _MetaConfiguration extends SimpleConfiguration {
-  final name = "MetaConfiguration";
+class _MetaConfiguration extends Configuration {
 
-  void logTestCaseMesssage(TestCase testCase, String message) {}
+  _MetaConfiguration() : super.blank();
 
   void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
@@ -220,7 +219,4 @@ class _MetaConfiguration extends SimpleConfiguration {
       }).toList()
     });
   }
-
-  void onInit() {}
-  void onDone(bool success) {}
 }

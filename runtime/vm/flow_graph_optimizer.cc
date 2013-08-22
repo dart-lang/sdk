@@ -303,7 +303,7 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
     EnsureSSATempIndex(graph, current_defn, replacement_defn);
 
     if (FLAG_trace_optimization) {
-      OS::Print("Replacing v%"Pd" with v%"Pd"\n",
+      OS::Print("Replacing v%" Pd " with v%" Pd "\n",
                 current_defn->ssa_temp_index(),
                 replacement_defn->ssa_temp_index());
     }
@@ -312,7 +312,7 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
       OS::Print("Removing %s\n", current->DebugName());
     } else {
       ASSERT(!current_defn->HasUses());
-      OS::Print("Removing v%"Pd".\n", current_defn->ssa_temp_index());
+      OS::Print("Removing v%" Pd ".\n", current_defn->ssa_temp_index());
     }
   }
   iterator->RemoveCurrentFromGraph();
@@ -1083,6 +1083,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kDoubleCid;
       } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
+      } else if (HasOnlyTwoOf(ic_data, kUint32x4Cid)) {
+        operands_type = kUint32x4Cid;
       } else {
         return false;
       }
@@ -1388,23 +1390,6 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
 }
 
 
-void FlowGraphOptimizer::InlineArrayLengthGetter(InstanceCallInstr* call,
-                                                 intptr_t length_offset,
-                                                 bool is_immutable,
-                                                 MethodRecognizer::Kind kind) {
-  AddReceiverCheck(call);
-
-  LoadFieldInstr* load = new LoadFieldInstr(
-      new Value(call->ArgumentAt(0)),
-      length_offset,
-      Type::ZoneHandle(Type::SmiType()),
-      is_immutable);
-  load->set_result_cid(kSmiCid);
-  load->set_recognized_kind(kind);
-  ReplaceCall(call, load);
-}
-
-
 void FlowGraphOptimizer::InlineGrowableArrayCapacityGetter(
     InstanceCallInstr* call) {
   AddReceiverCheck(call);
@@ -1444,13 +1429,6 @@ static LoadFieldInstr* BuildLoadStringLength(Definition* str) {
 }
 
 
-void FlowGraphOptimizer::InlineStringLengthGetter(InstanceCallInstr* call) {
-  AddReceiverCheck(call);
-  LoadFieldInstr* load = BuildLoadStringLength(call->ArgumentAt(0));
-  ReplaceCall(call, load);
-}
-
-
 void FlowGraphOptimizer::InlineStringIsEmptyGetter(InstanceCallInstr* call) {
   AddReceiverCheck(call);
 
@@ -1473,25 +1451,6 @@ void FlowGraphOptimizer::InlineObjectCid(InstanceCallInstr* call) {
 }
 
 
-static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
-  switch (kind) {
-    case MethodRecognizer::kObjectArrayLength:
-    case MethodRecognizer::kImmutableArrayLength:
-      return Array::length_offset();
-    case MethodRecognizer::kTypedDataLength:
-      // .length is defined in _TypedList which is the base class for internal
-      // and external typed data.
-      ASSERT(TypedData::length_offset() == ExternalTypedData::length_offset());
-      return TypedData::length_offset();
-    case MethodRecognizer::kGrowableArrayLength:
-      return GrowableObjectArray::length_offset();
-    default:
-      UNREACHABLE();
-      return 0;
-  }
-}
-
-
 bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
                                                MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
@@ -1505,8 +1464,8 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
                 call);
   intptr_t mask = 0;
   if (getter == MethodRecognizer::kFloat32x4Shuffle) {
-    ASSERT(call->ArgumentCount() == 2);
     // Extract shuffle mask.
+    ASSERT(call->ArgumentCount() == 2);
     Definition* mask_definition = call->ArgumentAt(1);
     if (!mask_definition->IsConstant()) {
       // Not a constant.
@@ -1526,13 +1485,29 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
       return false;
     }
   }
-  Float32x4ShuffleInstr* instr = new Float32x4ShuffleInstr(
-      getter,
-      new Value(call->ArgumentAt(0)),
-      mask,
-      call->deopt_id());
-  ReplaceCall(call, instr);
-  return true;
+  if (getter == MethodRecognizer::kFloat32x4GetSignMask) {
+    Simd32x4GetSignMaskInstr* instr = new Simd32x4GetSignMaskInstr(
+        getter,
+        new Value(call->ArgumentAt(0)),
+        call->deopt_id());
+    ReplaceCall(call, instr);
+    return true;
+  } else {
+    ASSERT((getter == MethodRecognizer::kFloat32x4Shuffle)  ||
+           (getter == MethodRecognizer::kFloat32x4ShuffleX) ||
+           (getter == MethodRecognizer::kFloat32x4ShuffleY) ||
+           (getter == MethodRecognizer::kFloat32x4ShuffleZ) ||
+           (getter == MethodRecognizer::kFloat32x4ShuffleW));
+    Float32x4ShuffleInstr* instr = new Float32x4ShuffleInstr(
+        getter,
+        new Value(call->ArgumentAt(0)),
+        mask,
+        call->deopt_id());
+    ReplaceCall(call, instr);
+    return true;
+  }
+  UNREACHABLE();
+  return false;
 }
 
 
@@ -1547,12 +1522,21 @@ bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
                 call->deopt_id(),
                 call->env(),
                 call);
-  Uint32x4GetFlagInstr* instr = new Uint32x4GetFlagInstr(
-      getter,
-      new Value(call->ArgumentAt(0)),
-      call->deopt_id());
-  ReplaceCall(call, instr);
-  return true;
+  if (getter == MethodRecognizer::kUint32x4GetSignMask) {
+    Simd32x4GetSignMaskInstr* instr = new Simd32x4GetSignMaskInstr(
+        getter,
+        new Value(call->ArgumentAt(0)),
+        call->deopt_id());
+    ReplaceCall(call, instr);
+    return true;
+  } else {
+    Uint32x4GetFlagInstr* instr = new Uint32x4GetFlagInstr(
+        getter,
+        new Value(call->ArgumentAt(0)),
+        call->deopt_id());
+    ReplaceCall(call, instr);
+    return true;
+  }
 }
 
 
@@ -1651,33 +1635,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       InlineObjectCid(call);
       return true;
     }
-    case MethodRecognizer::kObjectArrayLength:
-    case MethodRecognizer::kImmutableArrayLength:
-    case MethodRecognizer::kTypedDataLength:
-    case MethodRecognizer::kGrowableArrayLength: {
-      if (!ic_data.HasOneTarget()) {
-        // TODO(srdjan): Implement for mutiple targets.
-        return false;
-      }
-      const bool is_immutable =
-          (recognized_kind == MethodRecognizer::kObjectArrayLength) ||
-          (recognized_kind == MethodRecognizer::kImmutableArrayLength) ||
-          (recognized_kind == MethodRecognizer::kTypedDataLength);
-      InlineArrayLengthGetter(call,
-                              OffsetForLengthGetter(recognized_kind),
-                              is_immutable,
-                              recognized_kind);
-      return true;
-    }
     case MethodRecognizer::kGrowableArrayCapacity:
       InlineGrowableArrayCapacityGetter(call);
-      return true;
-    case MethodRecognizer::kStringBaseLength:
-      if (!ic_data.HasOneTarget()) {
-        // Target is not only StringBase_get_length.
-        return false;
-      }
-      InlineStringLengthGetter(call);
       return true;
     case MethodRecognizer::kStringBaseIsEmpty:
       if (!ic_data.HasOneTarget()) {
@@ -1690,6 +1649,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     case MethodRecognizer::kFloat32x4ShuffleY:
     case MethodRecognizer::kFloat32x4ShuffleZ:
     case MethodRecognizer::kFloat32x4ShuffleW:
+    case MethodRecognizer::kFloat32x4GetSignMask:
       if (!ic_data.HasReceiverClassId(kFloat32x4Cid) ||
           !ic_data.HasOneTarget()) {
         return false;
@@ -1698,7 +1658,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     case MethodRecognizer::kUint32x4GetFlagX:
     case MethodRecognizer::kUint32x4GetFlagY:
     case MethodRecognizer::kUint32x4GetFlagZ:
-    case MethodRecognizer::kUint32x4GetFlagW: {
+    case MethodRecognizer::kUint32x4GetFlagW:
+    case MethodRecognizer::kUint32x4GetSignMask: {
       if (!ic_data.HasReceiverClassId(kUint32x4Cid) ||
           !ic_data.HasOneTarget()) {
         return false;
@@ -1706,7 +1667,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       return InlineUint32x4Getter(call, recognized_kind);
     }
     default:
-      ASSERT(recognized_kind == MethodRecognizer::kUnknown);
+      break;
   }
   return false;
 }
@@ -1761,7 +1722,7 @@ void FlowGraphOptimizer::ReplaceWithMathCFunction(
     args->Add(new Value(call->ArgumentAt(i)));
   }
   InvokeMathCFunctionInstr* invoke =
-      new InvokeMathCFunctionInstr(args, call, recognized_kind);
+      new InvokeMathCFunctionInstr(args, call->deopt_id(), recognized_kind);
   ReplaceCall(call, invoke);
 }
 
@@ -1900,7 +1861,6 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         return true;
       }
       case MethodRecognizer::kDoubleMod:
-      case MethodRecognizer::kDoublePow:
       case MethodRecognizer::kDoubleRound:
         ReplaceWithMathCFunction(call, recognized_kind);
         return true;
@@ -2808,6 +2768,18 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
         ReplaceCall(call, min_max);
       }
     }
+  } else if (recognized_kind == MethodRecognizer::kMathDoublePow) {
+    // We know that first argument is double, the second is num.
+    // InvokeMathCFunctionInstr requires unboxed doubles. UnboxDouble
+    // instructions contain type checks and conversions to double.
+    ZoneGrowableArray<Value*>* args =
+        new ZoneGrowableArray<Value*>(call->ArgumentCount());
+    for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+      args->Add(new Value(call->ArgumentAt(i)));
+    }
+    InvokeMathCFunctionInstr* invoke =
+        new InvokeMathCFunctionInstr(args, call->deopt_id(), recognized_kind);
+    ReplaceCall(call, invoke);
   }
 }
 
@@ -3823,7 +3795,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   // TODO(fschneider): Avoid repeated deoptimization when
   // speculatively hoisting checks.
   if (FLAG_trace_optimization) {
-    OS::Print("Hoisting instruction %s:%"Pd" from B%"Pd" to B%"Pd"\n",
+    OS::Print("Hoisting instruction %s:%" Pd " from B%" Pd " to B%" Pd "\n",
               current->DebugName(),
               current->GetDeoptId(),
               current->GetBlock()->block_id(),
@@ -4172,17 +4144,18 @@ class Place : public ValueObject {
           return field_name;
         }
         return Isolate::Current()->current_zone()->PrintToString(
-            "<v%"Pd".%s>", instance()->ssa_temp_index(), field_name);
+            "<v%" Pd ".%s>", instance()->ssa_temp_index(), field_name);
       }
 
       case kVMField: {
         return Isolate::Current()->current_zone()->PrintToString(
-            "<v%"Pd"@%"Pd">", instance()->ssa_temp_index(), offset_in_bytes());
+            "<v%" Pd "@%" Pd ">",
+            instance()->ssa_temp_index(), offset_in_bytes());
       }
 
       case kIndexed: {
         return Isolate::Current()->current_zone()->PrintToString(
-            "<v%"Pd"[v%"Pd"]>",
+            "<v%" Pd "[v%" Pd "]>",
             instance()->ssa_temp_index(),
             index()->ssa_temp_index());
       }
@@ -4637,7 +4610,7 @@ static PhiPlaceMoves* ComputePhiMoves(
           map->Insert(result);
           places->Add(result);
           if (FLAG_trace_optimization) {
-            OS::Print("  adding place %s as %"Pd"\n",
+            OS::Print("  adding place %s as %" Pd "\n",
                       result->ToCString(),
                       result->id());
           }
@@ -4683,7 +4656,7 @@ static AliasedSet* NumberPlaces(
         places->Add(result);
 
         if (FLAG_trace_optimization) {
-          OS::Print("numbering %s as %"Pd"\n",
+          OS::Print("numbering %s as %" Pd "\n",
                     result->ToCString(),
                     result->id());
         }
@@ -4929,7 +4902,7 @@ class LoadOptimizer : public ValueObject {
           Definition* replacement = (*out_values)[place_id];
           EnsureSSATempIndex(graph_, defn, replacement);
           if (FLAG_trace_optimization) {
-            OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
+            OS::Print("Replacing load v%" Pd " with v%" Pd "\n",
                       defn->ssa_temp_index(),
                       replacement->ssa_temp_index());
           }
@@ -5139,7 +5112,7 @@ class LoadOptimizer : public ValueObject {
       }
 
       if (FLAG_trace_load_optimization) {
-        OS::Print("B%"Pd"\n", block->block_id());
+        OS::Print("B%" Pd "\n", block->block_id());
         OS::Print("  IN: ");
         aliased_set_->PrintSet(in_[preorder_number]);
         OS::Print("\n");
@@ -5203,7 +5176,7 @@ class LoadOptimizer : public ValueObject {
 
       if (FLAG_trace_optimization) {
         for (BitVector::Iterator it(loop_gen); !it.Done(); it.Advance()) {
-          OS::Print("place %s is loop invariant for B%"Pd"\n",
+          OS::Print("place %s is loop invariant for B%" Pd "\n",
                     aliased_set_->places()[it.Current()]->ToCString(),
                     header->block_id());
         }
@@ -5274,7 +5247,7 @@ class LoadOptimizer : public ValueObject {
     phis_.Add(phi);  // Postpone phi insertion until after load forwarding.
 
     if (FLAG_trace_load_optimization) {
-      OS::Print("created pending phi %s for %s at B%"Pd"\n",
+      OS::Print("created pending phi %s for %s at B%" Pd "\n",
                 phi->ToCString(),
                 aliased_set_->places()[place_id]->ToCString(),
                 block->block_id());
@@ -5313,7 +5286,7 @@ class LoadOptimizer : public ValueObject {
           EnsureSSATempIndex(graph_, load, replacement);
 
           if (FLAG_trace_optimization) {
-            OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
+            OS::Print("Replacing load v%" Pd " with v%" Pd "\n",
                       load->ssa_temp_index(),
                       replacement->ssa_temp_index());
           }
@@ -6510,6 +6483,12 @@ void ConstantPropagator::VisitFloat32x4Shuffle(Float32x4ShuffleInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitSimd32x4GetSignMask(
+    Simd32x4GetSignMaskInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
 void ConstantPropagator::VisitFloat32x4Zero(Float32x4ZeroInstr* instr) {
   SetValue(instr, non_constant_);
 }
@@ -6560,6 +6539,7 @@ void ConstantPropagator::VisitFloat32x4ToUint32x4(
     Float32x4ToUint32x4Instr* instr) {
   SetValue(instr, non_constant_);
 }
+
 
 void ConstantPropagator::VisitFloat32x4TwoArgShuffle(
     Float32x4TwoArgShuffleInstr* instr) {
@@ -6771,7 +6751,7 @@ void ConstantPropagator::Transform() {
     JoinEntryInstr* join = block->AsJoinEntry();
     if (!reachable_->Contains(block->preorder_number())) {
       if (FLAG_trace_constant_propagation) {
-        OS::Print("Unreachable B%"Pd"\n", block->block_id());
+        OS::Print("Unreachable B%" Pd "\n", block->block_id());
       }
       // Remove all uses in unreachable blocks.
       if (join != NULL) {
@@ -6851,7 +6831,7 @@ void ConstantPropagator::Transform() {
           !defn->IsStoreStaticField() &&
           !defn->IsStoreVMField()) {
         if (FLAG_trace_constant_propagation) {
-          OS::Print("Constant v%"Pd" = %s\n",
+          OS::Print("Constant v%" Pd " = %s\n",
                     defn->ssa_temp_index(),
                     defn->constant_value().ToCString());
         }
@@ -7321,7 +7301,7 @@ static void EliminateAllocation(AllocateObjectInstr* alloc) {
   ASSERT(IsAllocationSinkingCandidate(alloc));
 
   if (FLAG_trace_optimization) {
-    OS::Print("removing allocation from the graph: v%"Pd"\n",
+    OS::Print("removing allocation from the graph: v%" Pd "\n",
               alloc->ssa_temp_index());
   }
 
@@ -7360,7 +7340,7 @@ void AllocationSinking::Optimize() {
       AllocateObjectInstr* alloc = it.Current()->AsAllocateObject();
       if ((alloc != NULL) && IsAllocationSinkingCandidate(alloc)) {
         if (FLAG_trace_optimization) {
-          OS::Print("discovered allocation sinking candidate: v%"Pd"\n",
+          OS::Print("discovered allocation sinking candidate: v%" Pd "\n",
                     alloc->ssa_temp_index());
         }
 

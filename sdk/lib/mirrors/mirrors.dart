@@ -682,6 +682,18 @@ abstract class TypeMirror implements DeclarationMirror {
  */
 abstract class ClassMirror implements TypeMirror, ObjectMirror {
   /**
+   * Returns true if this mirror reflects a non-generic class or an instantiated
+   * generic class in the current isolate. Otherwise, returns false.
+   */
+  bool get hasReflectedType;
+
+  /**
+   * If [:hasReflectedType:] returns true, returns the corresponding [Type].
+   * Otherwise, an [UnsupportedError] is thrown.
+   */
+  Type get reflectedType;
+
+  /**
    * A mirror on the superclass on the reflectee.
    *
    * If this type is [:Object:] or a typedef, the superClass will be

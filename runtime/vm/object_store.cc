@@ -63,6 +63,7 @@ ObjectStore::ObjectStore()
     utf_library_(Library::null()),
     libraries_(GrowableObjectArray::null()),
     pending_classes_(GrowableObjectArray::null()),
+    pending_functions_(GrowableObjectArray::null()),
     sticky_error_(Error::null()),
     unhandled_exception_handler_(String::null()),
     empty_context_(Context::null()),
@@ -104,6 +105,9 @@ bool ObjectStore::PreallocateObjects() {
   ASSERT(this->stack_overflow() == Instance::null());
   ASSERT(this->out_of_memory() == Instance::null());
   ASSERT(this->preallocated_stack_trace() == Stacktrace::null());
+
+  ASSERT(this->pending_functions() == GrowableObjectArray::null());
+  this->pending_functions_ = GrowableObjectArray::New();
 
   Object& result = Object::Handle();
   const Library& library = Library::Handle(Library::CoreLibrary());

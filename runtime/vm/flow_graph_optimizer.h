@@ -156,12 +156,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool InlineUint32x4BinaryOp(InstanceCallInstr* call,
                               Token::Kind op_kind);
   void InlineImplicitInstanceGetter(InstanceCallInstr* call);
-  void InlineArrayLengthGetter(InstanceCallInstr* call,
-                               intptr_t length_offset,
-                               bool is_immutable,
-                               MethodRecognizer::Kind kind);
   void InlineGrowableArrayCapacityGetter(InstanceCallInstr* call);
-  void InlineStringLengthGetter(InstanceCallInstr* call);
   void InlineStringIsEmptyGetter(InstanceCallInstr* call);
   void InlineObjectCid(InstanceCallInstr* call);
 

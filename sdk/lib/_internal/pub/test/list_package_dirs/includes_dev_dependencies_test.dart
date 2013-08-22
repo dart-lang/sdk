@@ -4,6 +4,7 @@
 
 import 'package:path/path.dart' as path;
 
+import '../../lib/src/io.dart';
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
@@ -26,9 +27,19 @@ main() {
 
     pubInstall();
 
+    // Note: Using canonicalize here because pub gets the path to the
+    // entrypoint package from the working directory, which has had symlinks
+    // resolve. On Mac, "/tmp" is actually a symlink to "/private/tmp", so we
+    // need to accomodate that.
     schedulePub(args: ["list-package-dirs", "--format=json"],
         outputJson: {
-          "foo": path.join(sandboxDir, "foo")
+          "packages": {
+            "foo": path.join(sandboxDir, "foo", "lib"),
+            "myapp": canonicalize(path.join(sandboxDir, appPath, "lib"))
+          },
+          "input_files": [
+            canonicalize(path.join(sandboxDir, appPath, "pubspec.lock"))
+          ]
         });
   });
 }

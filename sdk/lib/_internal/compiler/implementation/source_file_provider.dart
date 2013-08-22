@@ -38,8 +38,8 @@ class SourceFileProvider {
     try {
       source = readAll(uriPathToNative(resourceUri.path));
     } on FileException catch (ex) {
-      throw 'Error: Cannot read "${relativize(cwd, resourceUri, isWindows)}" '
-            '(${ex.osError}).';
+      throw "Error reading '${relativize(cwd, resourceUri, isWindows)}' "
+            "(${ex.osError})";
     }
     dartCharactersRead += source.length;
     sourceFiles[resourceUri.toString()] = new SourceFile(

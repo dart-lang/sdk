@@ -59,6 +59,8 @@ DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, trace_deoptimization);
+DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, error_on_bad_override);
 
 static const char* kGetterPrefix = "get:";
@@ -1887,7 +1889,7 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
   for (; i < desc.PositionalCount(); i++) {
     invocation.SetParameterTypeAt(i, Type::Handle(Type::DynamicType()));
     char name[64];
-    OS::SNPrint(name, 64, ":p%"Pd, i);
+    OS::SNPrint(name, 64, ":p%" Pd, i);
     invocation.SetParameterNameAt(i, String::Handle(Symbols::New(name)));
   }
 
@@ -2511,6 +2513,11 @@ bool Class::TypeTest(
   Error& args_malformed_error = Error::Handle();
   for (intptr_t i = 0; i < interfaces.Length(); i++) {
     interface ^= interfaces.At(i);
+    if (!interface.IsFinalized()) {
+      // We may be checking bounds at finalization time. Skipping this
+      // unfinalized interface will postpone bound checking to run time.
+      continue;
+    }
     interface_class = interface.type_class();
     interface_args = interface.arguments();
     if (!interface_args.IsNull() && !interface_args.IsInstantiated()) {
@@ -2522,7 +2529,6 @@ bool Class::TypeTest(
       // parameters of the interface are at the end of the type vector,
       // after the type arguments of the super type of this type.
       // The index of the type parameters is adjusted upon finalization.
-      ASSERT(interface.IsFinalized());
       args_malformed_error = Error::null();
       interface_args = interface_args.InstantiateFrom(type_arguments,
                                                       &args_malformed_error);
@@ -3365,7 +3371,7 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
 RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in TypeArguments::New: invalid len %"Pd"\n", len);
+    FATAL1("Fatal error in TypeArguments::New: invalid len %" Pd "\n", len);
   }
   TypeArguments& result = TypeArguments::Handle();
   {
@@ -3693,7 +3699,7 @@ void Function::SwitchToUnoptimizedCode() const {
   }
 
   if (FLAG_trace_disabling_optimized_code) {
-    OS::Print("Disabling optimized code: '%s' entry: %#"Px"\n",
+    OS::Print("Disabling optimized code: '%s' entry: %#" Px "\n",
       ToFullyQualifiedCString(),
       current_code.EntryPoint());
   }
@@ -4076,7 +4082,6 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
 bool Function::is_optimizable() const {
   if (OptimizableBit::decode(raw_ptr()->kind_tag_) &&
       (script() != Script::null()) &&
-      !is_native() &&
       ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff_in_tokens)) {
     // Additional check needed for implicit getters.
     if (HasCode() &&
@@ -4169,7 +4174,7 @@ bool Function::AreValidArgumentCounts(intptr_t num_arguments,
       char message_buffer[kMessageBufferSize];
       OS::SNPrint(message_buffer,
                   kMessageBufferSize,
-                  "%"Pd" named passed, at most %"Pd" expected",
+                  "%" Pd " named passed, at most %" Pd " expected",
                   num_named_arguments,
                   NumOptionalNamedParameters());
       *error_message = String::New(message_buffer);
@@ -4187,7 +4192,7 @@ bool Function::AreValidArgumentCounts(intptr_t num_arguments,
       const intptr_t num_hidden_params = NumImplicitParameters();
       OS::SNPrint(message_buffer,
                   kMessageBufferSize,
-                  "%"Pd"%s passed, %s%"Pd" expected",
+                  "%" Pd "%s passed, %s%" Pd " expected",
                   num_pos_args - num_hidden_params,
                   num_opt_pos_params > 0 ? " positional" : "",
                   num_opt_pos_params > 0 ? "at most " : "",
@@ -4204,7 +4209,7 @@ bool Function::AreValidArgumentCounts(intptr_t num_arguments,
       const intptr_t num_hidden_params = NumImplicitParameters();
       OS::SNPrint(message_buffer,
                   kMessageBufferSize,
-                  "%"Pd"%s passed, %s%"Pd" expected",
+                  "%" Pd "%s passed, %s%" Pd " expected",
                   num_pos_args - num_hidden_params,
                   num_opt_pos_params > 0 ? " positional" : "",
                   num_opt_pos_params > 0 ? "at least " : "",
@@ -5301,6 +5306,7 @@ RawField* Field::New(const String& name,
   result.set_has_initializer(false);
   result.set_guarded_cid(kIllegalCid);
   result.set_is_nullable(false);
+  result.set_guarded_list_length(Field::kUnknownFixedLength);
   result.set_dependent_code(Object::null_array());
   return result.raw();
 }
@@ -5424,6 +5430,12 @@ void Field::DeoptimizeDependentCode() const {
     while (frame != NULL) {
       code = frame->LookupDartCode();
       if (IsDependentCode(code_objects, code)) {
+        if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+          Function& function = Function::Handle(code.function());
+          OS::PrintErr("Deoptimizing %s because guard on field %s failed.\n",
+              function.ToFullyQualifiedCString(),
+              ToCString());
+        }
         DeoptimizeAt(code, frame->pc());
       }
       frame = iterator.NextFrame();
@@ -5445,6 +5457,12 @@ void Field::DeoptimizeDependentCode() const {
     // If function uses dependent code switch it to unoptimized.
     if (function.CurrentCode() == code.raw()) {
       ASSERT(function.HasOptimizedCode());
+      if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+        OS::PrintErr("Switching %s to unoptimized code because guard"
+                     " on field %s was violated.\n",
+                     function.ToFullyQualifiedCString(),
+                     ToCString());
+      }
       function.SwitchToUnoptimizedCode();
     }
   }
@@ -5480,6 +5498,37 @@ void Field::UpdateCid(intptr_t cid) const {
   }
 
   // Expected class id or nullability of the field changed.
+  DeoptimizeDependentCode();
+}
+
+
+void Field::UpdateLength(intptr_t list_length) const {
+  ASSERT(is_final() || (!is_final() &&
+                        (list_length < Field::kUnknownFixedLength)));
+  ASSERT((list_length == Field::kNoFixedLength) ||
+         (list_length > Field::kUnknownFixedLength));
+  ASSERT(guarded_cid() != kIllegalCid);
+
+  const bool force_invalidate = (guarded_cid() == kDynamicCid) &&
+                                (list_length != Field::kNoFixedLength);
+
+  const bool list_length_unknown =
+      (guarded_list_length() == Field::kUnknownFixedLength);
+  const bool list_length_changed = (guarded_list_length() != list_length);
+
+  if (list_length_unknown && list_length_changed && !force_invalidate) {
+    // List length set for first time.
+    set_guarded_list_length(list_length);
+    return;
+  }
+
+  if (!list_length_changed && !force_invalidate) {
+    // List length unchanged.
+    return;
+  }
+
+  // Multiple list lengths assigned here, stop tracking length.
+  set_guarded_list_length(Field::kNoFixedLength);
   DeoptimizeDependentCode();
 }
 
@@ -5745,7 +5794,7 @@ RawTokenStream* TokenStream::New() {
 RawTokenStream* TokenStream::New(intptr_t len) {
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in TokenStream::New: invalid len %"Pd"\n", len);
+    FATAL1("Fatal error in TokenStream::New: invalid len %" Pd "\n", len);
   }
   uint8_t* data = reinterpret_cast<uint8_t*>(::malloc(len));
   ASSERT(data != NULL);
@@ -7641,57 +7690,85 @@ struct FpDiff {
 };
 
 
+
+// Return Function::null() if function does not exist in lib.
+static RawFunction* GetFunction(const GrowableArray<Library*>& libs,
+                                const char* class_name,
+                                const char* function_name) {
+  Function& func = Function::Handle();
+  String& class_str = String::Handle();
+  String& func_str = String::Handle();
+  Class& cls = Class::Handle();
+  for (intptr_t l = 0; l < libs.length(); l++) {
+    const Library& lib = *libs[l];
+    if (strcmp(class_name, "::") == 0) {
+      func_str = Symbols::New(function_name);
+      func = lib.LookupFunctionAllowPrivate(func_str, NULL);
+    } else {
+      class_str = String::New(class_name);
+      cls = lib.LookupClassAllowPrivate(class_str, NULL);
+      if (!cls.IsNull()) {
+        func_str = String::New(function_name);
+        if (function_name[0] == '.') {
+          func_str = String::Concat(class_str, func_str);
+        }
+        func = cls.LookupFunctionAllowPrivate(func_str);
+      }
+    }
+    if (!func.IsNull()) {
+      return func.raw();
+    }
+  }
+  return Function::null();
+}
+
+
 void Library::CheckFunctionFingerprints() {
   GrowableArray<FpDiff> collected_fp_diffs;
-  Library& lib = Library::Handle();
-  Class& cls = Class::Handle();
+  GrowableArray<Library*> all_libs;
   Function& func = Function::Handle();
-  String& str = String::Handle();
   bool has_errors = false;
 
 #define CHECK_FINGERPRINTS(class_name, function_name, dest, fp)                \
-  func = Function::null();                                                     \
-  if (strcmp(#class_name, "::") == 0) {                                        \
-    str = Symbols::New(#function_name);                                        \
-    func = lib.LookupFunctionAllowPrivate(str, NULL);                          \
-  } else {                                                                     \
-    str = String::New(#class_name);                                            \
-    cls = lib.LookupClassAllowPrivate(str, NULL);                              \
-    if (!cls.IsNull()) {                                                       \
-      if (#function_name[0] == '.') {                                          \
-        str = String::New(#class_name#function_name);                          \
-      } else {                                                                 \
-        str = String::New(#function_name);                                     \
-      }                                                                        \
-      func = cls.LookupFunctionAllowPrivate(str);                              \
-    }                                                                          \
-  }                                                                            \
-  if (!func.IsNull() && (func.SourceFingerprint() != fp)) {                    \
+  func = GetFunction(all_libs, #class_name, #function_name);                   \
+  if (func.IsNull()) {                                                         \
+    has_errors = true;                                                         \
+    OS::Print("Function not found %s.%s\n", #class_name, #function_name);      \
+  } else if (func.SourceFingerprint() != fp) {                                 \
     has_errors = true;                                                         \
     OS::Print("Wrong fingerprint for '%s': expecting %d found %d\n",           \
         func.ToFullyQualifiedCString(), fp, func.SourceFingerprint());         \
     collected_fp_diffs.Add(FpDiff(fp, func.SourceFingerprint()));              \
   }                                                                            \
 
-  lib = Library::CoreLibrary();
+  all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
   CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
   CORE_INTEGER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
+  all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   RECOGNIZED_LIST(CHECK_FINGERPRINTS);
 
-  lib = Library::MathLibrary();
+  all_libs.Clear();
+  all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
-  lib = Library::TypedDataLibrary();
+  all_libs.Clear();
+  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
 #undef CHECK_FINGERPRINTS
 
+Class& cls = Class::Handle();
+
 #define CHECK_FACTORY_FINGERPRINTS(factory_symbol, cid, fp)                    \
   cls = Isolate::Current()->class_table()->At(cid);                            \
   func = cls.LookupFunctionAllowPrivate(Symbols::factory_symbol());            \
-  ASSERT(!func.IsNull());                                                      \
-  if (func.SourceFingerprint() != fp) {                                        \
+  if (func.IsNull()) {                                                         \
+    has_errors = true;                                                         \
+    OS::Print("Function not found %s.%s\n", cls.ToCString(),                   \
+        Symbols::factory_symbol().ToCString());                                \
+  } else if (func.SourceFingerprint() != fp) {                                 \
     has_errors = true;                                                         \
     OS::Print("Wrong fingerprint for '%s': expecting %d found %d\n",           \
         func.ToFullyQualifiedCString(), fp, func.SourceFingerprint());         \
@@ -7701,6 +7778,7 @@ void Library::CheckFunctionFingerprints() {
   RECOGNIZED_LIST_FACTORY_LIST(CHECK_FACTORY_FINGERPRINTS);
 
 #undef CHECK_FACTORY_FINGERPRINTS
+
   if (has_errors) {
     for (intptr_t i = 0; i < collected_fp_diffs.length(); i++) {
       OS::Print("s/%d/%d/\n",
@@ -7716,7 +7794,7 @@ RawInstructions* Instructions::New(intptr_t size) {
   ASSERT(Object::instructions_class() != Class::null());
   if (size < 0 || size > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Instructions::New: invalid size %"Pd"\n", size);
+    FATAL1("Fatal error in Instructions::New: invalid size %" Pd "\n", size);
   }
   Instructions& result = Instructions::Handle();
   {
@@ -7810,7 +7888,7 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
   if (num_descriptors < 0 || num_descriptors > kMaxElements) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in PcDescriptors::New: "
-           "invalid num_descriptors %"Pd"\n", num_descriptors);
+           "invalid num_descriptors %" Pd "\n", num_descriptors);
   }
   PcDescriptors& result = PcDescriptors::Handle();
   {
@@ -7865,7 +7943,7 @@ const char* PcDescriptors::ToCString() const {
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
   const char* kFormat =
-      "%#-*"Px"\t%s\t%"Pd"\t\t%"Pd"\t%"Pd"\n";
+      "%#-*" Px "\t%s\t%" Pd "\t\t%" Pd "\t%" Pd "\n";
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < Length(); i++) {
@@ -7909,7 +7987,7 @@ void PcDescriptors::Verify(const Function& function) const {
   // the check for too large number of descriptors.
   if (Length() > 3000) {
     if (FLAG_trace_compiler) {
-      OS::Print("Not checking pc decriptors, length %"Pd"\n", Length());
+      OS::Print("Not checking pc decriptors, length %" Pd "\n", Length());
     }
     return;
   }
@@ -7997,7 +8075,7 @@ RawStackmap* Stackmap::New(intptr_t pc_offset,
       (payload_size >
            (kSmiMax - static_cast<intptr_t>(sizeof(RawStackmap))))) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Stackmap::New: invalid length %"Pd"\n",
+    FATAL1("Fatal error in Stackmap::New: invalid length %" Pd "\n",
            length);
   }
   {
@@ -8027,7 +8105,7 @@ const char* Stackmap::ToCString() const {
   if (IsNull()) {
     return "{null}";
   } else {
-    const char* kFormat = "%#"Px": ";
+    const char* kFormat = "%#" Px ": ";
     intptr_t fixed_length = OS::SNPrint(NULL, 0, kFormat, PC()) + 1;
     Isolate* isolate = Isolate::Current();
     // Guard against integer overflow in the computation of alloc_size.
@@ -8035,7 +8113,7 @@ const char* Stackmap::ToCString() const {
     // TODO(kmillikin): We could just truncate the string if someone
     // tries to print a 2 billion plus entry stackmap.
     if (Length() > (kIntptrMax - fixed_length)) {
-      FATAL1("Length() is unexpectedly large (%"Pd")", Length());
+      FATAL1("Length() is unexpectedly large (%" Pd ")", Length());
     }
     intptr_t alloc_size = fixed_length + Length();
     char* chars = isolate->current_zone()->Alloc<char>(alloc_size);
@@ -8086,7 +8164,7 @@ void LocalVarDescriptors::GetInfo(intptr_t var_index,
 const char* LocalVarDescriptors::ToCString() const {
   intptr_t len = 1;  // Trailing '\0'.
   const char* kFormat =
-      "%2"Pd" kind=%d scope=0x%04x begin=%"Pd" end=%"Pd" name=%s\n";
+      "%2" Pd " kind=%d scope=0x%04x begin=%" Pd " end=%" Pd " name=%s\n";
   for (intptr_t i = 0; i < Length(); i++) {
     String& var_name = String::Handle(GetName(i));
     RawLocalVarDescriptors::VarInfo info;
@@ -8131,7 +8209,7 @@ RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in LocalVarDescriptors::New: "
-           "invalid num_variables %"Pd"\n", num_variables);
+           "invalid num_variables %" Pd "\n", num_variables);
   }
   LocalVarDescriptors& result = LocalVarDescriptors::Handle();
   {
@@ -8217,7 +8295,7 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
   ASSERT(Object::exception_handlers_class() != Class::null());
   if (num_handlers < 0 || num_handlers >= kMaxHandlers) {
     FATAL1("Fatal error in ExceptionHandlers::New(): "
-           "invalid num_handlers %"Pd"\n",
+           "invalid num_handlers %" Pd "\n",
            num_handlers);
   }
   ExceptionHandlers& result = ExceptionHandlers::Handle();
@@ -8244,7 +8322,8 @@ const char* ExceptionHandlers::ToCString() const {
   Type& type = Type::Handle();
   RawExceptionHandlers::HandlerInfo info;
   // First compute the buffer size required.
-  const char* kFormat = "%"Pd" => %#"Px"  (%"Pd" types) (outer %"Pd")\n";
+  const char* kFormat = "%" Pd " => %#" Px "  (%" Pd
+                        " types) (outer %" Pd ")\n";
   const char* kFormat2 = "  %d. %s\n";
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < Length(); i++) {
@@ -8430,7 +8509,8 @@ Code::Comments& Code::Comments::New(intptr_t count) {
   Comments* comments;
   if (count < 0 || count > (kIntptrMax / kNumberOfEntries)) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Code::Comments::New: invalid count %"Pd"\n", count);
+    FATAL1("Fatal error in Code::Comments::New: invalid count %" Pd "\n",
+           count);
   }
   if (count == 0) {
     comments = new Comments(Object::empty_array());
@@ -8604,7 +8684,7 @@ void Code::set_comments(const Code::Comments& comments) const {
 RawCode* Code::New(intptr_t pointer_offsets_length) {
   if (pointer_offsets_length < 0 || pointer_offsets_length > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Code::New: invalid pointer_offsets_length %"Pd"\n",
+    FATAL1("Fatal error in Code::New: invalid pointer_offsets_length %" Pd "\n",
            pointer_offsets_length);
   }
   ASSERT(Object::code_class() != Class::null());
@@ -8894,7 +8974,7 @@ RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
 
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Context::New: invalid num_variables %"Pd"\n",
+    FATAL1("Fatal error in Context::New: invalid num_variables %" Pd "\n",
            num_variables);
   }
   Context& result = Context::Handle();
@@ -8926,7 +9006,7 @@ RawContextScope* ContextScope::New(intptr_t num_variables) {
   ASSERT(Object::context_scope_class() != Class::null());
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ContextScope::New: invalid num_variables %"Pd"\n",
+    FATAL1("Fatal error in ContextScope::New: invalid num_variables %" Pd "\n",
            num_variables);
   }
   intptr_t size = ContextScope::InstanceSize(num_variables);
@@ -9043,7 +9123,8 @@ void ContextScope::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 
 const char* ICData::ToCString() const {
-  const char* kFormat = "ICData target:'%s' num-args: %"Pd" num-checks: %"Pd"";
+  const char* kFormat = "ICData target:'%s' num-args: %" Pd
+                        " num-checks: %" Pd "";
   const String& name = String::Handle(target_name());
   const intptr_t num_args = num_args_tested();
   const intptr_t num_checks = NumberOfChecks();
@@ -9929,6 +10010,58 @@ void UnwindError::PrintToJSONStream(JSONStream* stream, bool ref) const {
   stream->OpenObject();
   stream->CloseObject();
 }
+
+
+static RawPatchClass* MakeTempPatchClass(const Class& cls,
+                                         const String& expr) {
+  String& src = String::Handle(String::New("() => "));
+  src = String::Concat(src, expr);
+  src = String::Concat(src, Symbols::Semicolon());
+  Script& script = Script::Handle();
+  script = Script::New(Symbols::Empty(), src, RawScript::kSourceTag);
+  // In order to tokenize the source, we need to get the key to mangle
+  // private names from the library from which the object's class
+  // originates.
+  const Library& lib = Library::Handle(cls.library());
+  ASSERT(!lib.IsNull());
+  const String& lib_key = String::Handle(lib.private_key());
+  script.Tokenize(lib_key);
+
+  const String& src_class_name = String::Handle(Symbols::New(":internal"));
+  const Class& src_class = Class::Handle(
+      Class::New(src_class_name, script, Scanner::kDummyTokenIndex));
+  src_class.set_is_finalized();
+  src_class.set_library(lib);
+  return PatchClass::New(cls, src_class);
+}
+
+
+RawObject* Instance::Evaluate(const String& expr) const {
+  const Class& cls = Class::Handle(clazz());
+  const PatchClass& temp_class =
+      PatchClass::Handle(MakeTempPatchClass(cls, expr));
+  const String& eval_func_name = String::Handle(Symbols::New(":eval"));
+  const Function& eval_func =
+      Function::Handle(Function::New(eval_func_name,
+                                     RawFunction::kRegularFunction,
+                                     false,  // Not static.
+                                     false,  // Not const.
+                                     false,  // Not abstract.
+                                     false,  // Not external.
+                                     temp_class,
+                                     0));
+  eval_func.set_result_type(Type::Handle(Type::DynamicType()));
+  eval_func.set_num_fixed_parameters(1);
+  eval_func.SetNumOptionalParameters(0, true);
+  eval_func.set_is_optimizable(false);
+
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, *this);
+  const Object& result =
+      Object::Handle(DartEntry::InvokeFunction(eval_func, args));
+  return result.raw();
+}
+
 
 
 bool Instance::Equals(const Instance& other) const {
@@ -12227,7 +12360,7 @@ int Bigint::CompareWith(const Integer& other) const {
 RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
   if (length < 0 || length > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Bigint::Allocate: invalid length %"Pd"\n", length);
+    FATAL1("Fatal error in Bigint::Allocate: invalid length %" Pd "\n", length);
   }
   ASSERT(Isolate::Current()->object_store()->bigint_class() != Class::null());
   Bigint& result = Bigint::Handle();
@@ -13150,7 +13283,7 @@ RawOneByteString* OneByteString::New(intptr_t len,
          Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in OneByteString::New: invalid len %"Pd"\n", len);
+    FATAL1("Fatal error in OneByteString::New: invalid len %" Pd "\n", len);
   }
   {
     RawObject* raw = Object::Allocate(OneByteString::kClassId,
@@ -13327,7 +13460,7 @@ RawTwoByteString* TwoByteString::New(intptr_t len,
   ASSERT(Isolate::Current()->object_store()->two_byte_string_class());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in TwoByteString::New: invalid len %"Pd"\n", len);
+    FATAL1("Fatal error in TwoByteString::New: invalid len %" Pd "\n", len);
   }
   String& result = String::Handle();
   {
@@ -13456,7 +13589,7 @@ RawExternalOneByteString* ExternalOneByteString::New(
          external_one_byte_string_class() != Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ExternalOneByteString::New: invalid len %"Pd"\n",
+    FATAL1("Fatal error in ExternalOneByteString::New: invalid len %" Pd "\n",
            len);
   }
   String& result = String::Handle();
@@ -13494,7 +13627,7 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
          Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in ExternalTwoByteString::New: invalid len %"Pd"\n",
+    FATAL1("Fatal error in ExternalTwoByteString::New: invalid len %" Pd "\n",
            len);
   }
   String& result = String::Handle();
@@ -13593,7 +13726,7 @@ RawArray* Array::New(intptr_t len, Heap::Space space) {
 RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
   if (len < 0 || len > Array::kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Array::New: invalid len %"Pd"\n", len);
+    FATAL1("Fatal error in Array::New: invalid len %" Pd "\n", len);
   }
   Array& result = Array::Handle();
   {
@@ -13620,8 +13753,8 @@ const char* Array::ToCString() const {
   if (IsNull()) {
     return IsImmutable() ? "ImmutableArray NULL" : "Array NULL";
   }
-  const char* format = !IsImmutable() ? "Array len:%"Pd"" :
-      "Immutable Array len:%"Pd"";
+  const char* format = !IsImmutable() ? "Array len:%" Pd "" :
+      "Immutable Array len:%" Pd "";
   intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, Length());
@@ -13700,7 +13833,7 @@ bool Array::CheckAndCanonicalizeFields(const char** error_str) const {
         this->SetAt(i, obj);
       } else {
         ASSERT(error_str != NULL);
-        const char* kFormat = "element at index %"Pd": %s\n";
+        const char* kFormat = "element at index %" Pd ": %s\n";
         const intptr_t len =
             OS::SNPrint(NULL, 0, kFormat, i, obj.ToCString()) + 1;
         char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
@@ -13832,7 +13965,7 @@ const char* GrowableObjectArray::ToCString() const {
   if (IsNull()) {
     return "GrowableObjectArray NULL";
   }
-  const char* format = "GrowableObjectArray len:%"Pd"";
+  const char* format = "GrowableObjectArray len:%" Pd "";
   intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, Length());
@@ -14438,7 +14571,7 @@ RawJSRegExp* JSRegExp::New(intptr_t len, Heap::Space space) {
          Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in JSRegexp::New: invalid len %"Pd"\n", len);
+    FATAL1("Fatal error in JSRegexp::New: invalid len %" Pd "\n", len);
   }
   JSRegExp& result = JSRegExp::Handle();
   {

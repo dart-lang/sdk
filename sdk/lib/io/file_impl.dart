@@ -521,7 +521,7 @@ class _File implements File {
     var controller = new StreamController(sync: true);
     controller.stream
         .transform(new StringDecoder(encoding))
-        .transform(new LineTransformer())
+        .transform(new LineSplitter())
         .listen((line) => list.add(line));
     controller.add(bytes);
     controller.close();

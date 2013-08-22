@@ -10,10 +10,10 @@ import 'dart:collection';
 import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
+import 'asset_set.dart';
 import 'build_result.dart';
 import 'cancelable_future.dart';
 import 'errors.dart';
-import 'change_batch.dart';
 import 'package_graph.dart';
 import 'phase.dart';
 import 'transformer.dart';
@@ -83,31 +83,14 @@ class AssetCascade {
   /// last began.
   var _newChanges = false;
 
+  /// Returns all currently-available output assets from this cascade.
+  AssetSet get availableOutputs => _phases.last.availableOutputs;
+
   /// Creates a new [AssetCascade].
   ///
-  /// It loads source assets within [package] using [provider] and then uses
-  /// [transformerPhases] to generate output files from them.
-  //TODO(rnystrom): Better way of specifying transformers and their ordering.
-  AssetCascade(this.graph, this.package,
-      Iterable<Iterable<Transformer>> transformerPhases) {
-    // Flatten the phases to a list so we can traverse backwards to wire up
-    // each phase to its next.
-    var phases = transformerPhases.toList();
-
-    // Each phase writes its outputs as inputs to the next phase after it.
-    // Add a phase at the end for the final outputs of the last phase.
-    phases.add([]);
-
-    Phase nextPhase = null;
-    for (var transformers in phases.reversed) {
-      nextPhase = new Phase(this, _phases.length, transformers.toList(),
-          nextPhase);
-      nextPhase.onDirty.listen((_) {
-        _newChanges = true;
-        _waitForProcess();
-      });
-      _phases.insert(0, nextPhase);
-    }
+  /// It loads source assets within [package] using [provider].
+  AssetCascade(this.graph, this.package) {
+    _addPhase(new Phase(this, []));
   }
 
   /// Gets the asset identified by [id].
@@ -128,7 +111,7 @@ class AssetCascade {
     // * If [id] has never been generated and all active transformers provide
     //   metadata about the file names of assets it can emit, we can prove that
     //   none of them can emit [id] and fail early.
-    return _phases.last.getInput(id).then((node) {
+    return _phases.last.getOutput(id).then((node) {
       // If the requested asset is available, we can just return it.
       if (node != null && node.state.isAvailable) return node;
 
@@ -190,9 +173,40 @@ class AssetCascade {
     });
   }
 
+  /// Sets this cascade's transformer phases to [transformers].
+  void updateTransformers(Iterable<Iterable<Transformer>> transformers) {
+    transformers = transformers.toList();
+
+    for (var i = 0; i < transformers.length; i++) {
+      if (_phases.length > i) {
+        _phases[i].updateTransformers(transformers[i]);
+        continue;
+      }
+
+      _addPhase(_phases.last.addPhase(transformers[i]));
+    }
+
+    if (transformers.length < _phases.length) {
+      for (var i = transformers.length; i < _phases.length; i++) {
+        // TODO(nweiz): actually remove phases rather than emptying them of
+        // transformers.
+        _phases[i].updateTransformers([]);
+      }
+    }
+  }
+
   void reportError(BarbackException error) {
     _accumulatedErrors.add(error);
     _errorsController.add(error);
+  }
+
+  /// Add [phase] to the end of [_phases] and watch its [onDirty] stream.
+  void _addPhase(Phase phase) {
+    phase.onDirty.listen((_) {
+      _newChanges = true;
+      _waitForProcess();
+    });
+    _phases.add(phase);
   }
 
   /// Starts the build process asynchronously if there is work to be done.

@@ -712,10 +712,14 @@ static void EmitRemainderOperation(Assembler* assembler) {
 //      res = res + right;
 //    }
 //  }
-bool Intrinsifier::Integer_modulo(Assembler* assembler) {
+bool Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
   // Check to see if we have integer division
   Label fall_through, subtract;
-  TestBothArgumentsSmis(assembler, &fall_through);
+  __ ldr(R1, Address(SP, + 0 * kWordSize));
+  __ ldr(R0, Address(SP, + 1 * kWordSize));
+  __ orr(TMP, R0, ShifterOperand(R1));
+  __ tst(TMP, ShifterOperand(kSmiTagMask));
+  __ b(&fall_through, NE);
   // R1: Tagged left (dividend).
   // R0: Tagged right (divisor).
   // Check if modulo by zero -> exception thrown in main function.

@@ -703,12 +703,10 @@ void EmitRemainderOperation(Assembler* assembler) {
 //      res = res + right;
 //    }
 //  }
-bool Intrinsifier::Integer_modulo(Assembler* assembler) {
+bool Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
   Label fall_through, negative_result;
   TestBothArgumentsSmis(assembler, &fall_through);
-  // RAX: right argument (divisor)
-  __ movq(RCX, RAX);
-  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left argument (dividend).
+  __ movq(RCX, Address(RSP, + 2 * kWordSize));
   // RAX: Tagged left (dividend).
   // RCX: Tagged right (divisor).
   __ cmpq(RCX, Immediate(0));

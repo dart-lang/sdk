@@ -3,23 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing file input stream, VM-only, standalone test.
 
-import "package:expect/expect.dart";
+import "dart:convert";
 import "dart:io";
 import "dart:isolate";
+
+import "package:expect/expect.dart";
 
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.
 String getFilename(String path) =>
     new File(path).existsSync() ? path : '../$path';
 
-void testStringLineTransformer() {
+void testStringLineSplitter() {
   String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   File file = new File(fileName);
   int linesRead = 0;
   var lineStream = file.openRead()
     .transform(new StringDecoder())
-    .transform(new LineTransformer());
+    .transform(new LineSplitter());
   lineStream.listen((line) {
     linesRead++;
     if (linesRead == 1) {
@@ -224,14 +226,14 @@ void testInputStreamBadOffset() {
 }
 
 
-void testStringLineTransformerEnding(String name, int length) {
+void testStringLineSplitterEnding(String name, int length) {
   String fileName = getFilename("tests/standalone/io/$name");
   // File contains 10 lines.
   File file = new File(fileName);
   Expect.equals(length, file.openSync().lengthSync());
   var lineStream = file.openRead()
     .transform(new StringDecoder())
-    .transform(new LineTransformer());
+    .transform(new LineSplitter());
   int lineCount = 0;
   lineStream.listen(
       (line) {
@@ -248,7 +250,7 @@ void testStringLineTransformerEnding(String name, int length) {
 
 
 main() {
-  testStringLineTransformer();
+  testStringLineSplitter();
   testOpenStreamAsync();
   testInputStreamTruncate();
   testInputStreamDelete();
@@ -258,6 +260,6 @@ main() {
   // Check the length of these files as both are text files where one
   // is without a terminating line separator which can easily be added
   // back if accidentally opened in a text editor.
-  testStringLineTransformerEnding("readline_test1.dat", 111);
-  testStringLineTransformerEnding("readline_test2.dat", 114);
+  testStringLineSplitterEnding("readline_test1.dat", 111);
+  testStringLineSplitterEnding("readline_test2.dat", 114);
 }

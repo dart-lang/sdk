@@ -58,7 +58,7 @@ class TraceParser : public ValueObject {
         intptr_t line, column;
         script.GetTokenLocation(token_pos, &line, &column);
         PrintIndent();
-        OS::Print("%s (line %"Pd", col %"Pd", token %"Pd")\n",
+        OS::Print("%s (line %" Pd ", col %" Pd ", token %" Pd ")\n",
                   msg, line, column, token_pos);
       }
       indent_++;
@@ -255,7 +255,8 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       current_class_(Class::Handle(isolate_)),
       library_(Library::Handle(isolate_, library.raw())),
       try_blocks_list_(NULL),
-      last_used_try_index_(CatchClauseNode::kInvalidTryIndex) {
+      last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
+      unregister_pending_function_(false) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
 }
@@ -284,11 +285,25 @@ Parser::Parser(const Script& script,
           isolate_,
           parsed_function->function().origin()).library())),
       try_blocks_list_(NULL),
-      last_used_try_index_(CatchClauseNode::kInvalidTryIndex) {
+      last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
+      unregister_pending_function_(false) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!current_function().IsNull());
   if (FLAG_enable_type_checks) {
     EnsureExpressionTemp();
+  }
+}
+
+
+Parser::~Parser() {
+  if (unregister_pending_function_) {
+    const GrowableObjectArray& pending_functions =
+        GrowableObjectArray::Handle(
+            isolate()->object_store()->pending_functions());
+    ASSERT(pending_functions.Length() > 0);
+    ASSERT(pending_functions.At(pending_functions.Length()-1) ==
+        current_function().raw());
+    pending_functions.RemoveLast();
   }
 }
 
@@ -1133,7 +1148,7 @@ void Parser::BuildDispatcherScope(const Function& func,
   for (; i < desc.PositionalCount(); ++i) {
     ParamDesc p;
     char name[64];
-    OS::SNPrint(name, 64, ":p%"Pd, i);
+    OS::SNPrint(name, 64, ":p%" Pd, i);
     p.name = &String::ZoneHandle(Symbols::New(name));
     p.type = &Type::ZoneHandle(Type::DynamicType());
     params.parameters->Add(p);
@@ -2087,6 +2102,7 @@ void Parser::CheckConstFieldsInitialized(const Class& cls) {
                String::Handle(field.name()).ToCString());
     } else {
       field.UpdateCid(kNullCid);
+      field.UpdateLength(Field::kNoFixedLength);
     }
   }
 }
@@ -2359,6 +2375,23 @@ static void SetInvisible(LocalScope* scope, int num_variables, bool invisible) {
 }
 
 
+void Parser::CheckRecursiveInvocation() {
+  const GrowableObjectArray& pending_functions =
+      GrowableObjectArray::Handle(
+          isolate()->object_store()->pending_functions());
+  for (int i = 0; i < pending_functions.Length(); i++) {
+    if (pending_functions.At(i) == current_function().raw()) {
+      const String& fname =
+          String::Handle(current_function().UserVisibleName());
+      ErrorMsg("circular dependency for function %s", fname.ToCString());
+    }
+  }
+  ASSERT(!unregister_pending_function_);
+  pending_functions.Add(current_function());
+  unregister_pending_function_ = true;
+}
+
+
 // Parser is at the opening parenthesis of the formal parameter declaration
 // of function. Parse the formal parameters, initializers and code.
 SequenceNode* Parser::ParseConstructor(const Function& func,
@@ -2370,6 +2403,8 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   ASSERT(!func.IsLocalFunction());
   const Class& cls = Class::Handle(func.Owner());
   ASSERT(!cls.IsNull());
+
+  CheckRecursiveInvocation();
 
   if (func.IsImplicitConstructor()) {
     // Special case: implicit constructor.
@@ -3122,7 +3157,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
   }
   if (members->FieldNameExists(*field->name, !field->has_final)) {
     ErrorMsg(field->name_pos,
-             "'%s' field/method already defined\n", field->name->ToCString());
+             "field or method '%s' already defined", field->name->ToCString());
   }
   Function& getter = Function::Handle();
   Function& setter = Function::Handle();
@@ -3260,7 +3295,7 @@ void Parser::CheckOperatorArity(const MemberDesc& member) {
       member.params.has_optional_named_parameters ||
       (member.params.num_fixed_parameters != expected_num_parameters)) {
     // Subtract receiver when reporting number of expected arguments.
-    ErrorMsg(member.name_pos, "operator %s expects %"Pd" argument(s)",
+    ErrorMsg(member.name_pos, "operator %s expects %" Pd " argument(s)",
         member.name->ToCString(), (expected_num_parameters - 1));
   }
 }
@@ -5018,6 +5053,7 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
                                         Function::ZoneHandle(func.raw()),
                                         native_name,
                                         native_function,
+                                        current_block_->scope,
                                         is_bootstrap_native)));
 }
 
@@ -6852,7 +6888,7 @@ RawString* Parser::FormatMessage(const Script& script,
     if (token_pos >= 0) {
       intptr_t line, column;
       script.GetTokenLocation(token_pos, &line, &column);
-      result = String::NewFormatted("'%s': %s: line %"Pd" pos %"Pd": ",
+      result = String::NewFormatted("'%s': %s: line %" Pd " pos %" Pd ": ",
                                     script_url.ToCString(),
                                     message_header,
                                     line,
@@ -7241,7 +7277,7 @@ void Parser::EnsureSavedCurrentContext() {
 LocalVariable* Parser::CreateTempConstVariable(intptr_t token_pos,
                                                const char* s) {
   char name[64];
-  OS::SNPrint(name, 64, ":%s%"Pd, s, token_pos);
+  OS::SNPrint(name, 64, ":%s%" Pd, s, token_pos);
   LocalVariable* temp =
       new LocalVariable(token_pos,
                         String::ZoneHandle(Symbols::New(name)),

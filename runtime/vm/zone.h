@@ -162,7 +162,7 @@ class StackZone : public StackResource {
       zone_() {
 #ifdef DEBUG
     if (FLAG_trace_zones) {
-      OS::PrintErr("*** Starting a new Stack zone 0x%"Px"(0x%"Px")\n",
+      OS::PrintErr("*** Starting a new Stack zone 0x%" Px "(0x%" Px ")\n",
                    reinterpret_cast<intptr_t>(this),
                    reinterpret_cast<intptr_t>(&zone_));
     }
@@ -177,7 +177,7 @@ class StackZone : public StackResource {
     isolate()->set_current_zone(zone_.previous_);
 #ifdef DEBUG
     if (FLAG_trace_zones) {
-      OS::PrintErr("*** Deleting Stack zone 0x%"Px"(0x%"Px")\n",
+      OS::PrintErr("*** Deleting Stack zone 0x%" Px "(0x%" Px ")\n",
                    reinterpret_cast<intptr_t>(this),
                    reinterpret_cast<intptr_t>(&zone_));
     }
@@ -204,7 +204,7 @@ inline uword Zone::AllocUnsafe(intptr_t size) {
 
   // Round up the requested size to fit the alignment.
   if (size > (kIntptrMax - kAlignment)) {
-    FATAL1("Zone::Alloc: 'size' is too large: size=%"Pd"", size);
+    FATAL1("Zone::Alloc: 'size' is too large: size=%" Pd "", size);
   }
   size = Utils::RoundUp(size, kAlignment);
 
@@ -227,7 +227,7 @@ template <class ElementType>
 inline ElementType* Zone::Alloc(intptr_t len) {
   const intptr_t element_size = sizeof(ElementType);
   if (len > (kIntptrMax / element_size)) {
-    FATAL2("Zone::Alloc: 'len' is too large: len=%"Pd", element_size=%"Pd,
+    FATAL2("Zone::Alloc: 'len' is too large: len=%" Pd ", element_size=%" Pd,
            len, element_size);
   }
   return reinterpret_cast<ElementType*>(AllocUnsafe(len * element_size));

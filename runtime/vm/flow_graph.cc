@@ -289,7 +289,7 @@ void LivenessAnalysis::Analyze() {
 static void PrintBitVector(const char* tag, BitVector* v) {
   OS::Print("%s:", tag);
   for (BitVector::Iterator it(v); !it.Done(); it.Advance()) {
-    OS::Print(" %"Pd"", it.Current());
+    OS::Print(" %" Pd "", it.Current());
   }
   OS::Print("\n");
 }
@@ -299,12 +299,12 @@ void LivenessAnalysis::Dump() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; i++) {
     BlockEntryInstr* block = postorder_[i];
-    OS::Print("block @%"Pd" -> ", block->block_id());
+    OS::Print("block @%" Pd " -> ", block->block_id());
 
     Instruction* last = block->last_instruction();
     for (intptr_t j = 0; j < last->SuccessorCount(); j++) {
       BlockEntryInstr* succ = last->SuccessorAt(j);
-      OS::Print(" @%"Pd"", succ->block_id());
+      OS::Print(" @%" Pd "", succ->block_id());
     }
     OS::Print("\n");
 
@@ -984,7 +984,7 @@ void FlowGraph::FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) {
   n->set_loop_info(loop);
   if (FLAG_trace_optimization) {
     for (BitVector::Iterator it(loop); !it.Done(); it.Advance()) {
-      OS::Print("  B%"Pd"\n", preorder_[it.Current()]->block_id());
+      OS::Print("  B%" Pd "\n", preorder_[it.Current()]->block_id());
     }
   }
 }
@@ -1002,7 +1002,7 @@ ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() {
       BlockEntryInstr* pred = block->PredecessorAt(i);
       if (block->Dominates(pred)) {
         if (FLAG_trace_optimization) {
-          OS::Print("Back edge B%"Pd" -> B%"Pd"\n", pred->block_id(),
+          OS::Print("Back edge B%" Pd " -> B%" Pd "\n", pred->block_id(),
                     block->block_id());
         }
         FindLoop(pred, block);

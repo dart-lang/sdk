@@ -46,3 +46,18 @@ const override = const _Override();
 class _Override {
   const _Override();
 }
+
+/**
+ * An annotation used to mark a class that should be considered to implement
+ * every possible getter, setter and method. Tools can use this annotation to
+ * suppress warnings when there is no explicit implementation of a referenced
+ * member. Tools should provide a hint if this annotation is applied to a class
+ * that does not implement or inherit an implementation of the method
+ * [:noSuchMethod:] (other than the implementation in [Object]). Note that
+ * classes are not affected by the use of this annotation on a supertype.
+ */
+const proxy = const _Proxy();
+
+class _Proxy {
+  const _Proxy();
+}

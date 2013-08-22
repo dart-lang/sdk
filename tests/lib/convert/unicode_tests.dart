@@ -45,6 +45,24 @@ const ASCII_BYTES = const [ 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68,
                             0x79, 0x7A ];
 const ASCII_STRING = "abcdefghijklmnopqrstuvwxyz";
 
+const BIGGEST_ASCII_BYTES = const [ 0x7F ];
+const BIGGEST_ASCII_STRING = "\x7F";
+
+const SMALLEST_2_UTF8_UNIT_BYTES = const [ 0xC2, 0x80 ];
+const SMALLEST_2_UTF8_UNIT_STRING = "\u{80}";
+
+const BIGGEST_2_UTF8_UNIT_BYTES = const [ 0xDF, 0xBF ];
+const BIGGEST_2_UTF8_UNIT_STRING = "\u{7FF}";
+
+const SMALLEST_3_UTF8_UNIT_BYTES = const [ 0xE0, 0xA0, 0x80 ];
+const SMALLEST_3_UTF8_UNIT_STRING = "\u{800}";
+
+const BIGGEST_3_UTF8_UNIT_BYTES = const [ 0xEF, 0xBF, 0xBF ];
+const BIGGEST_3_UTF8_UNIT_STRING = "\u{FFFF}";
+
+const SMALLEST_4_UTF8_UNIT_BYTES = const [ 0xF0, 0x90, 0x80, 0x80 ];
+const SMALLEST_4_UTF8_UNIT_STRING = "\u{10000}";
+
 const _TEST_PAIRS = const [
     const [ const [], "" ],
     const [ INTER_BYTES, INTER_STRING ],
@@ -53,7 +71,14 @@ const _TEST_PAIRS = const [
     const [ SIVA_BYTES2, SIVA_STRING2 ],
     const [ BEE_BYTES, BEE_STRING ],
     const [ DIGIT_BYTES, DIGIT_STRING ],
-    const [ ASCII_BYTES, ASCII_STRING ]];
+    const [ ASCII_BYTES, ASCII_STRING ],
+    const [ BIGGEST_ASCII_BYTES, BIGGEST_ASCII_STRING ],
+    const [ SMALLEST_2_UTF8_UNIT_BYTES, SMALLEST_2_UTF8_UNIT_STRING ],
+    const [ BIGGEST_2_UTF8_UNIT_BYTES, BIGGEST_2_UTF8_UNIT_STRING ],
+    const [ SMALLEST_3_UTF8_UNIT_BYTES, SMALLEST_3_UTF8_UNIT_STRING ],
+    const [ BIGGEST_3_UTF8_UNIT_BYTES, BIGGEST_3_UTF8_UNIT_STRING ],
+    const [ SMALLEST_4_UTF8_UNIT_BYTES, SMALLEST_4_UTF8_UNIT_STRING ],
+    ];
 
 List<List> _expandTestPairs() {
   assert(2 == BEE_STRING.length);

@@ -4,14 +4,13 @@
 
 reg_exp_unicode_2_test: Fail # Bug 6592
 
-[ $compiler == dart2js && ($runtime == d8 || $runtime == drt) ]
+[ $compiler == dart2js && $runtime == drt ]
 hash_set_test: Pass, Fail # v8 bug: Issue 12293
 list_test: Pass, Fail # v8 bug: Issue 12293
 
 
 [ $compiler == none ]
 unicode_test: Fail        # Bug 6706
-*dartc_test: Skip
 compare_to2_test: Fail    # Bug 4018
 
 symbol_test/01: Fail, Pass # bug 11669
@@ -41,12 +40,6 @@ core_runtime_types_test: Fail
 null_nosuchmethod_test: Fail # Issue: 7413
 date_time7_test: Fail
 unicode_test: Fail
-
-[ $runtime == ie9 && ($system == linux || $system == macos) ]
-*: Skip
-
-[ $runtime == safari && ($system == linux || $system == windows) ]
-*: Skip
 
 [ $runtime == vm ]
 string_trim_unicode_test: Fail  # Bug 6569

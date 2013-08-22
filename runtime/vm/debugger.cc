@@ -295,6 +295,11 @@ void ActivationFrame::GetVarDescriptors() {
 }
 
 
+bool ActivationFrame::IsDebuggable() const {
+  return Debugger::IsDebuggable(function());
+}
+
+
 // Calculate the context level at the current token index of the frame.
 intptr_t ActivationFrame::ContextLevel() {
   if (context_level_ < 0 && !ctx_.IsNull()) {
@@ -377,8 +382,8 @@ ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
   Array& handled_types = Array::Handle();
   AbstractType& type = Type::Handle();
   const TypeArguments& no_instantiator = TypeArguments::Handle();
-  for (int frame_index = 0; frame_index < Length(); frame_index++) {
-    ActivationFrame* frame = trace_[frame_index];
+  for (int frame_index = 0; frame_index < UnfilteredLength(); frame_index++) {
+    ActivationFrame* frame = UnfilteredFrameAt(frame_index);
     intptr_t try_index = frame->TryIndex();
     if (try_index < 0) continue;
     handlers = frame->code().exception_handlers();
@@ -580,6 +585,9 @@ const char* ActivationFrame::ToCString() {
 
 void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
   trace_.Add(frame);
+  if (frame->IsDebuggable()) {
+    user_trace_.Add(frame);
+  }
 }
 
 
@@ -963,7 +971,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
           script.GetTokenLocation(activation->TokenPos(), &line, &col);
           OS::Print("CollectStackTrace error: no saved context in function "
               "'%s' which calls closure '%s' "
-              " in line %"Pd" column %"Pd"\n",
+              " in line %" Pd " column %" Pd "\n",
               caller.ToFullyQualifiedCString(),
               callee.ToFullyQualifiedCString(),
               line, col);
@@ -977,10 +985,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
         ASSERT(!ctx.IsNull());
         activation->SetContext(ctx);
       }
-      // Check if frame is a debuggable function.
-      if (IsDebuggable(activation->function())) {
-        stack_trace->AddActivation(activation);
-      }
+      stack_trace->AddActivation(activation);
       callee_activation = activation;
       // Get caller's context if this function saved it on entry.
       ctx = activation->GetSavedEntryContext(ctx);
@@ -1191,7 +1196,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
       // already exists.
       if (FLAG_verbose_debug) {
         OS::Print("Pending breakpoint for uncompiled function"
-                  " '%s' at line %"Pd" already exists\n",
+                  " '%s' at line %" Pd " already exists\n",
                   target_function.ToFullyQualifiedCString(),
                   source_bpt->LineNumber());
       }
@@ -1202,7 +1207,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     RegisterSourceBreakpoint(source_bpt);
     if (FLAG_verbose_debug) {
       OS::Print("Registering pending breakpoint for "
-                "uncompiled function '%s' at line %"Pd"\n",
+                "uncompiled function '%s' at line %" Pd "\n",
                 target_function.ToFullyQualifiedCString(),
                 source_bpt->LineNumber());
     }
@@ -1286,7 +1291,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
   if (first_token_idx < 0) {
     // Script does not contain the given line number.
     if (FLAG_verbose_debug) {
-      OS::Print("Script '%s' does not contain line number %"Pd"\n",
+      OS::Print("Script '%s' does not contain line number %" Pd "\n",
                 script_url.ToCString(), line_number);
     }
     return NULL;
@@ -1307,7 +1312,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
   }
   if (func.IsNull()) {
     if (FLAG_verbose_debug) {
-      OS::Print("No executable code at line %"Pd" in '%s'\n",
+      OS::Print("No executable code at line %" Pd " in '%s'\n",
                 line_number, script_url.ToCString());
     }
     return NULL;
@@ -1588,7 +1593,7 @@ void Debugger::SingleStepCallback() {
   }
 
   if (FLAG_verbose_debug) {
-    OS::Print(">>> single step break at %s:%"Pd" (func %s token %"Pd")\n",
+    OS::Print(">>> single step break at %s:%" Pd " (func %s token %" Pd ")\n",
               String::Handle(frame->SourceUrl()).ToCString(),
               frame->LineNumber(),
               String::Handle(frame->QualifiedFunctionName()).ToCString(),
@@ -1603,7 +1608,7 @@ void Debugger::SingleStepCallback() {
     InstrumentForStepping(func);
   } else if (resume_action_ == kStepOut) {
     if (stack_trace_->Length() > 1) {
-      ActivationFrame* caller_frame = stack_trace_->ActivationFrameAt(1);
+      ActivationFrame* caller_frame = stack_trace_->FrameAt(1);
       InstrumentForStepping(caller_frame->function());
     }
   }
@@ -1619,8 +1624,8 @@ void Debugger::SignalBpReached() {
     return;
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
-  ASSERT(stack_trace->Length() > 0);
-  ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
+  ASSERT(stack_trace->UnfilteredLength() > 0);
+  ActivationFrame* top_frame = stack_trace->UnfilteredFrameAt(0);
   ASSERT(top_frame != NULL);
   CodeBreakpoint* bpt = GetCodeBreakpoint(top_frame->pc());
   ASSERT(bpt != NULL);
@@ -1630,8 +1635,8 @@ void Debugger::SignalBpReached() {
     report_bp = false;
   }
   if (FLAG_verbose_debug) {
-    OS::Print(">>> %s %s breakpoint at %s:%"Pd" "
-              "(token %"Pd") (address %#"Px")\n",
+    OS::Print(">>> %s %s breakpoint at %s:%" Pd " "
+              "(token %" Pd ") (address %#" Px ")\n",
               report_bp ? "hit" : "ignore",
               bpt->IsInternal() ? "internal" : "user",
               String::Handle(bpt->SourceUrl()).ToCString(),
@@ -1657,7 +1662,7 @@ void Debugger::SignalBpReached() {
     }
   } else if (resume_action_ == kStepOut) {
     if (stack_trace->Length() > 1) {
-      ActivationFrame* caller_frame = stack_trace->ActivationFrameAt(1);
+      ActivationFrame* caller_frame = stack_trace->FrameAt(1);
       func_to_instrument = caller_frame->function().raw();
     }
   } else {

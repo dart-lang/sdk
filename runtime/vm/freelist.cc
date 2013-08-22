@@ -163,7 +163,7 @@ void FreeList::PrintSmall() const {
     intptr_t list_bytes = list_length * i * kObjectAlignment;
     small_bytes += list_bytes;
     OS::Print("small %3d [%8d bytes] : "
-              "%8"Pd" objs; %8.1f KB; %8.1f cum KB\n",
+              "%8" Pd " objs; %8.1f KB; %8.1f cum KB\n",
               i,
               i * kObjectAlignment,
               list_length,
@@ -195,8 +195,8 @@ void FreeList::PrintLarge() const {
     intptr_t list_length = it->second;
     intptr_t list_bytes = list_length * size;
     large_bytes += list_bytes;
-    OS::Print("large %3"Pd" [%8"Pd" bytes] : "
-              "%8"Pd" objs; %8.1f KB; %8.1f cum KB\n",
+    OS::Print("large %3" Pd " [%8" Pd " bytes] : "
+              "%8" Pd " objs; %8.1f KB; %8.1f cum KB\n",
               size / kObjectAlignment,
               size,
               list_length,

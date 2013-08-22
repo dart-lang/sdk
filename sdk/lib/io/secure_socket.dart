@@ -441,7 +441,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   bool _closedWrite = false;  // The secure socket has been closed for writing.
   Completer _closeCompleter = new Completer();  // The network socket is gone.
   _FilterStatus _filterStatus = new _FilterStatus();
-  bool _connectPending = false;
+  bool _connectPending = true;
   bool _filterPending = false;
   bool _filterActive = false;
 
@@ -526,7 +526,6 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       futureSocket = new Future.value(socket);
     }
     futureSocket.then((rawSocket) {
-      _connectPending = true;
       _socket = rawSocket;
       _socket.readEventsEnabled = true;
       _socket.writeEventsEnabled = false;
@@ -775,8 +774,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (_status == CLOSED) {
       return;
     } else if (_connectPending) {
-      // _connectPending is true after the underlying connection has been
-      // made, but before the handshake has completed.
+      // _connectPending is true until the handshake has completed, and the
+      // _handshakeComplete future returned from SecureSocket.connect has
+      // completed.  Before this point, we must complete it with an error.
       _handshakeComplete.completeError(e);
     } else {
       _controller.addError(e);

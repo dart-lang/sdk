@@ -27,7 +27,7 @@ bool StackFrame::IsStubFrame() const {
 
 
 void StackFrame::Print() const {
-  OS::Print("[%-8s : sp(%#"Px") ]\n", GetName(), sp());
+  OS::Print("[%-8s : sp(%#" Px ") ]\n", GetName(), sp());
 }
 
 

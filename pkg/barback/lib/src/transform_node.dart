@@ -14,7 +14,6 @@ import 'errors.dart';
 import 'phase.dart';
 import 'transform.dart';
 import 'transformer.dart';
-import 'utils.dart';
 
 /// Describes a transform on a set of assets and its relationship to the build
 /// dependency graph.
@@ -133,7 +132,7 @@ class TransformNode {
       // Don't allow partial results from a failed transform.
       newOutputs.clear();
     }).then((_) {
-      if (_isDirty) return [];
+      if (_isDirty) return new Set();
 
       return _adjustOutputs(newOutputs);
     });

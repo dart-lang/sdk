@@ -264,7 +264,7 @@ class ClosureClassMap {
   bool isClosure() => closureElement != null;
 
   bool isVariableCaptured(Element element) {
-    freeVariableMapping.containsKey(element);
+    return freeVariableMapping.containsKey(element);
   }
 
   bool isVariableBoxed(Element element) {

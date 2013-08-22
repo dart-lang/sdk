@@ -215,7 +215,7 @@ int MIPSDecoder::FormatOption(Instr* instr, const char* format) {
           reinterpret_cast<uword>(instr) + off + Instr::kInstrSize;
       buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                  remaining_size_in_buffer(),
-                                 "%#"Px"",
+                                 "%#" Px "",
                                  destination);
       return 4;
     }

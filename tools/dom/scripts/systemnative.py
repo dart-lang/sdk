@@ -93,6 +93,12 @@ def _GetCPPPartialNames(interface):
   else:
     return set([])
 
+def array_type(data_type):
+    matched = re.match(r'([\w\d_\s]+)\[\]', data_type)
+    if not matched:
+        return None
+    return matched.group(1)
+
 def _GetCPPTypeName(interface_name, callback_name, cpp_name):
   # TODO(vsm): We need to track the original IDL file name in order to recover
   # the proper CPP name.
@@ -714,6 +720,9 @@ class DartiumBackend(HtmlDartGenerator):
 
     requires_script_execution_context = (ext_attrs.get('CallWith') == 'ScriptExecutionContext' or
                                          ext_attrs.get('ConstructorCallWith') == 'ScriptExecutionContext')
+
+    requires_document = ext_attrs.get('ConstructorCallWith') == 'Document'
+
     if requires_script_execution_context:
       raises_exceptions = True
       cpp_arguments = ['context']
@@ -725,7 +734,7 @@ class DartiumBackend(HtmlDartGenerator):
       cpp_arguments = ['&state']
 
     requires_dom_window = 'NamedConstructor' in ext_attrs
-    if requires_dom_window:
+    if requires_dom_window or requires_document:
       raises_exceptions = True
       cpp_arguments = ['document']
 
@@ -810,7 +819,7 @@ class DartiumBackend(HtmlDartGenerator):
           '        }\n'
           '        ScriptState& state = *currentState;\n\n')
 
-    if requires_dom_window:
+    if requires_dom_window or requires_document:
       self._cpp_impl_includes.add('"DOMWindow.h"')
       body_emitter.Emit(
           '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
@@ -967,7 +976,7 @@ class DartiumBackend(HtmlDartGenerator):
       # Generate to Dart conversion of C++ value.
       if return_type_info.dart_type() == 'bool':
         set_return_value = 'Dart_SetBooleanReturnValue(args, %s)' % (value_expression)
-      elif return_type_info.dart_type() == 'int':
+      elif return_type_info.dart_type() == 'int' and return_type_info.native_type() == 'int':
         set_return_value = 'Dart_SetIntegerReturnValue(args, %s)' % (value_expression)
       elif return_type_info.dart_type() == 'double':
         set_return_value = 'Dart_SetDoubleReturnValue(args, %s)' % (value_expression)

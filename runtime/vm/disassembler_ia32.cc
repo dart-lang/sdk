@@ -467,7 +467,7 @@ static const char* ObjectToCStringNoGC(const Object& obj) {
 void X86Decoder::PrintAddress(uword addr) {
   NoGCScope no_gc;
   char addr_buffer[32];
-  OS::SNPrint(addr_buffer, sizeof(addr_buffer), "%#"Px"", addr);
+  OS::SNPrint(addr_buffer, sizeof(addr_buffer), "%#" Px "", addr);
   Print(addr_buffer);
   // Try to print as heap object or stub name
   if (((addr & kSmiTagMask) == kHeapObjectTag) &&
@@ -1392,7 +1392,7 @@ int X86Decoder::InstructionDecode(uword pc) {
             Print(",");
             data += PrintRightXmmOperand(data);
           } else if (f0byte == 0x50) {
-            Print("movmskpd ");
+            Print("movmskps ");
             int mod, regop, rm;
             GetModRm(*data, &mod, &regop, &rm);
             PrintCPURegister(regop);
@@ -1505,16 +1505,7 @@ int X86Decoder::InstructionDecode(uword pc) {
           PrintCPURegister(regop);
         } else if (*data == 0x0F) {
           data++;
-          if (*data == 0x2F) {
-            data++;
-            int mod, regop, rm;
-            GetModRm(*data, &mod, &regop, &rm);
-            Print("comisd ");
-            PrintXmmRegister(regop);
-            Print(",");
-            PrintXmmRegister(rm);
-            data++;
-          } else if (*data == 0X6E) {
+          if (*data == 0X6E) {
             data++;
             int mod, regop, rm;
             GetModRm(*data, &mod, &regop, &rm);
@@ -1609,8 +1600,20 @@ int X86Decoder::InstructionDecode(uword pc) {
             Print(",");
             PrintXmmRegister(rm);
             data += 2;
+          } else if ((*data == 0xFE) || (*data == 0xFA) || (*data == 0x2F)) {
+            const char* mnemonic = NULL;
+            if (*data == 0xFE) mnemonic = "paddd ";
+            if (*data == 0xFA) mnemonic = "psubd ";
+            if (*data == 0x2F) mnemonic = "comisd ";
+            int mod, regop, rm;
+            GetModRm(*(data+1), &mod, &regop, &rm);
+            Print(mnemonic);
+            PrintXmmRegister(regop);
+            Print(",");
+            PrintXmmRegister(rm);
+            data += 2;
           } else {
-            UNIMPLEMENTED();
+              UNIMPLEMENTED();
           }
         } else if (*data == 0x90) {
           data++;

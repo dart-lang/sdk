@@ -66,8 +66,9 @@ namespace dart {
   V(_IntegerImplementation, _mulFromInteger, Integer_mulFromInteger,           \
     1145805333)                                                                \
   V(_IntegerImplementation, *, Integer_mul, 1935440252)                        \
-  V(_IntegerImplementation, %, Integer_modulo, 1121942909)                     \
   V(_IntegerImplementation, remainder, Integer_remainder, 2140653009)          \
+  V(_IntegerImplementation, _moduloFromInteger, Integer_moduloFromInteger,     \
+    713610917)                                                                 \
   V(_IntegerImplementation, ~/, Integer_truncDivide, 250357385)                \
   V(_IntegerImplementation, unary-, Integer_negate, 732448114)                 \
   V(_IntegerImplementation, _bitAndFromInteger,                                \

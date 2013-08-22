@@ -6,10 +6,12 @@
 // are in separate processes, and that connection renegotiation works, and
 // can request a client certificate to be sent.
 
+import "dart:async";
+import "dart:convert";
+import "dart:io";
+
 import "package:expect/expect.dart";
 import "package:path/path.dart";
-import "dart:async";
-import "dart:io";
 
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
@@ -29,7 +31,7 @@ Future<SecureServerSocket> runServer() {
 
         StreamIterator<String> input =
             new StreamIterator(socket.transform(new StringDecoder())
-                                     .transform(new LineTransformer()));
+                                     .transform(new LineSplitter()));
         input.moveNext().then((success) {
           Expect.isTrue(success);
           Expect.equals('first', input.current);

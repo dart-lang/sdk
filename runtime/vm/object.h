@@ -1715,6 +1715,11 @@ class Function : public Object {
     return kind() == RawFunction::kSetterFunction;
   }
 
+  // Returns true if this function represents an implicit setter function.
+  bool IsImplicitSetterFunction() const {
+    return kind() == RawFunction::kImplicitSetter;
+  }
+
   // Returns true if this function represents a (possibly implicit) closure
   // function.
   bool IsClosureFunction() const {
@@ -1982,11 +1987,33 @@ class Field : public Object {
   static intptr_t guarded_cid_offset() {
     return OFFSET_OF(RawField, guarded_cid_);
   }
+  // Return the list length that any list stored in this field is guaranteed
+  // to have. If length is kUnknownFixedLength the length has not
+  // been determined. If length is kNoFixedLength this field has multiple
+  // list lengths associated with it and cannot be predicted.
+  intptr_t guarded_list_length() const {
+    return raw_ptr()->guarded_list_length_;
+  }
+  void set_guarded_list_length(intptr_t list_length) const {
+    raw_ptr()->guarded_list_length_ = list_length;
+  }
+  static intptr_t guarded_list_length_offset() {
+    return OFFSET_OF(RawField, guarded_list_length_);
+  }
+  bool needs_length_check() const {
+    const bool r = guarded_list_length() >= Field::kUnknownFixedLength;
+    ASSERT(!r || is_final());
+    return r;
+  }
 
   static bool IsExternalizableCid(intptr_t cid) {
     return (cid == kOneByteStringCid) || (cid == kTwoByteStringCid);
   }
 
+  enum {
+    kUnknownFixedLength = -1,
+    kNoFixedLength = -2,
+  };
   // Returns false if any value read from this field is guaranteed to be
   // not null.
   // Internally we is_nullable_ field contains either kNullCid (nullable) or
@@ -2003,8 +2030,12 @@ class Field : public Object {
   }
 
   // Update guarded class id and nullability of the field to reflect assignment
-  // of the value with the given class id to this field.
+  // of the value with the given class id to this field. May trigger
+  // deoptimization of dependent code.
   void UpdateCid(intptr_t cid) const;
+  // Update guarded class length of the field to reflect assignment of the
+  // value with the given length. May trigger deoptimization of dependent code.
+  void UpdateLength(intptr_t length) const;
 
   // Return the list of optimized code objects that were optimized under
   // assumptions about guarded class id and nullability of this field.
@@ -3687,6 +3718,11 @@ class Instance : public Object {
   // (if not NULL) to call and the context (if not NULL) to pass to the
   // function.
   bool IsCallable(Function* function, Context* context) const;
+
+  // Evaluate the given expression as if it appeared in an instance
+  // method of this instance and return the resulting value, or an
+  // error object if evaluating the expression fails.
+  RawObject* Evaluate(const String& expr) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
