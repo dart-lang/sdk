@@ -949,6 +949,11 @@ class Class : public Object {
   // Return true on success, or false and error otherwise.
   bool ApplyPatch(const Class& patch, Error* error) const;
 
+  // Evaluate the given expression as if it appeared in a static
+  // method of this class and return the resulting value, or an
+  // error object if evaluating the expression fails.
+  RawObject* Evaluate(const String& expr) const;
+
   RawError* EnsureIsFinalized(Isolate* isolate) const;
 
   // Allocate a class used for VM internal objects.

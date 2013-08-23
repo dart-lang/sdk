@@ -5,6 +5,7 @@
 // Simple interactive debugger shell that connects to the Dart VM's debugger
 // connection port.
 
+import "dart:convert";
 import "dart:io";
 import "dart:json" as json;
 import "dart:utf";
@@ -38,7 +39,8 @@ void printHelp() {
   sbp [<file>] <line> Set breakpoint
   rbp <id> Remove breakpoint with given id
   po <id> Print object info for given id
-  eval <id> <expr> Evaluate expr on object id
+  eval obj <id> <expr> Evaluate expr on object id
+  eval cls <id> <expr> Evaluate expr on class id
   pl <id> <idx> [<len>] Print list element/slice
   pc <id> Print class info for given id
   ll  List loaded libraries
@@ -74,8 +76,12 @@ Future sendCmd(Map<String, dynamic> cmd) {
   return completer.future;
 }
 
-
 void processCommand(String cmdLine) {
+  
+  void huh() {
+    print("'$cmdLine' not understood, try h for help");
+  }
+
   seqNum++;
   var args = cmdLine.split(' ');
   if (args.length == 0) {
@@ -127,12 +133,21 @@ void processCommand(String cmdLine) {
                 "params": { "isolateId" : isolate_id,
                             "libraryId": int.parse(args[1]) } };
     sendCmd(cmd).then((result) => handleGetScriptsResponse(result));
-  } else if (command == "eval" && args.length > 2) {
-    var expr = args.getRange(2, args.length).join(" ");
+  } else if (command == "eval" && args.length > 3) {
+    var expr = args.getRange(3, args.length).join(" ");
+    var target = args[1];
+    if (target == "obj") {
+      target = "objectId";
+    } else if (target == "cls") {
+      target = "classId";
+    } else {
+      huh();
+      return;
+    }
     var cmd = { "id": seqNum,
                 "command": "evaluateExpr",
                 "params": { "isolateId": isolate_id,
-                            "objectId": int.parse(args[1]),
+                            target: int.parse(args[2]),
                             "expression": expr } };
     sendCmd(cmd).then((result) => handleEvalResponse(result));
   } else if (command == "po" && args.length == 2) {
@@ -216,7 +231,7 @@ void processCommand(String cmdLine) {
   } else if (command == "h") {
     printHelp();
   } else {
-    print("command '$command' not understood, try h for help");
+    huh();
   }
 }
 
@@ -605,7 +620,7 @@ void debuggerMain() {
           quitShell();
         });
     stdinSubscription = stdin.transform(new StringDecoder())
-                             .transform(new LineTransformer())
+                             .transform(new LineSplitter())
                              .listen((String line) => processCommand(line));
   });
 }

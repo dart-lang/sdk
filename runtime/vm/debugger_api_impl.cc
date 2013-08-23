@@ -465,7 +465,7 @@ DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle target) {
   } else if (obj.IsClass()) {
     cls = Class::Cast(obj).raw();
   } else {
-    return Api::NewError("%s expects argument 'target' to be a type.",
+    return Api::NewError("%s expects argument 'target' to be a type",
                          CURRENT_FUNC);
   }
   return Api::NewHandle(isolate, isolate->debugger()->GetStaticFields(cls));
@@ -498,13 +498,24 @@ DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target,
+DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target_in,
                                           Dart_Handle expr_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  UNWRAP_AND_CHECK_PARAM(Instance, obj, target);
+
+  const Object& target = Object::Handle(isolate, Api::UnwrapHandle(target_in));
+  if (target.IsError()) return target_in;
+  if (target.IsNull()) {
+    return Api::NewError("%s expects argument 'target' to be non-null",
+                         CURRENT_FUNC);
+  }
   UNWRAP_AND_CHECK_PARAM(String, expr, expr_in);
-  return Api::NewHandle(isolate, obj.Evaluate(expr));
+  if (target.IsInstance()) {
+    return Api::NewHandle(isolate, Instance::Cast(target).Evaluate(expr));
+  } else if (target.IsClass()) {
+    return Api::NewHandle(isolate, Class::Cast(target).Evaluate(expr));
+  }
+  return Api::NewError("%s: unsupported target type", CURRENT_FUNC);
 }
 
 
@@ -524,6 +535,17 @@ DART_EXPORT Dart_Handle Dart_GetObjClassId(Dart_Handle object_in,
   CHECK_NOT_NULL(class_id);
   *class_id = obj.GetClassId();
   return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetClassFromId(intptr_t class_id) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (!isolate->class_table()->IsValidIndex(class_id)) {
+    return Api::NewError("%s: %" Pd " is not a valid class id",
+                         CURRENT_FUNC, class_id);
+  }
+  return Api::NewHandle(isolate, isolate->class_table()->At(class_id));
 }
 
 

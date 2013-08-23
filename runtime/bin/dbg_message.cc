@@ -653,9 +653,8 @@ bool DbgMessage::HandleEvaluateExprCmd(DbgMessage* in_msg) {
                            "libararyId evaluation target not supported");
     return false;
   } else if (msg_parser.HasParam("classId")) {
-    in_msg->SendErrorReply(msg_id,
-                           "classId evaluation target not supported");
-    return false;
+    intptr_t cls_id = msg_parser.GetIntParam("classId");
+    target = Dart_GetClassFromId(cls_id);
   } else if (msg_parser.HasParam("objectId")) {
     intptr_t obj_id = msg_parser.GetIntParam("objectId");
     target = Dart_GetCachedObject(obj_id);
