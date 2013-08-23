@@ -152,25 +152,46 @@ convert_to_future_members = monitored.Set(
   'WorkerGlobalScope.webkitRequestFileSystem',
 ])
 
+# "Private" members in the form $dom_foo.
+# TODO(efortuna): Remove this set. This allows us to make the change of removing
+# $dom in installments instead of all at once, but the intent is to move all of
+# these either into private_html_members or remove them from this list entirely.
+dom_private_html_members = monitored.Set('htmlrenamer.private_html_members', [
+  'Document.createElement',
+  'Document.createElementNS',
+  'Document.createRange',
+  'Element.getAttribute',
+  'Element.getAttributeNS',
+  'Element.setAttribute',
+  'Element.setAttributeNS',
+  'EventTarget.addEventListener',
+  'EventTarget.removeEventListener',
+  'Node.childNodes',
+])
+
 # Members from the standard dom that should not be exposed publicly in dart:html
 # but need to be exposed internally to implement dart:html on top of a standard
-# browser.
+# browser. They are exposed simply by placing an underscore in front of the
+# name.
 private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'AudioNode.connect',
   'CanvasRenderingContext2D.arc',
+  'CanvasRenderingContext2D.drawImage',
   'CompositionEvent.initCompositionEvent',
   'CustomEvent.initCustomEvent',
+  'CSSStyleDeclaration.getPropertyValue',
+  'CSSStyleDeclaration.setProperty',
+  'CSSStyleDeclaration.var',
   'DeviceOrientationEvent.initDeviceOrientationEvent',
-  'Document.createElement',
-  'Document.createElementNS',
   'Document.createEvent',
   'Document.createNodeIterator',
-  'Document.createRange',
   'Document.createTextNode',
   'Document.createTouch',
   'Document.createTouchList',
   'Document.createTreeWalker',
   'Document.querySelectorAll',
+  'DocumentFragment.querySelector',
+  'DocumentFragment.querySelectorAll',
 
   # Moved to HTMLDocument.
   'Document.body',
@@ -194,40 +215,27 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Document.webkitPointerLockElement',
   'Document.webkitVisibilityState',
 
-  'DocumentFragment.querySelector',
-  'DocumentFragment.querySelectorAll',
-  'Element.childElementCount',
   'Element.children',
+  'Element.childElementCount',
   'Element.firstElementChild',
-  'ParentNode.childElementCount',
-  'ParentNode.children',
-  'ParentNode.firstElementChild',
-  'Element.getAttribute',
-  'Element.getAttributeNS',
   'Element.getElementsByTagName',
-  'Element.hasAttribute',
-  'Element.hasAttributeNS',
-  'ParentNode.lastElementChild',
-  'Element.querySelectorAll',
-  'Element.removeAttribute',
-  'Element.removeAttributeNS',
   'Element.scrollIntoView',
   'Element.scrollIntoViewIfNeeded',
-  'Element.setAttributeNS',
-  'Element.setAttribute',
-  'Element.setAttributeNS',
+  'Element.removeAttribute',
+  'Element.removeAttributeNS',
+  'Element.hasAttribute',
+  'Element.hasAttributeNS',
+  'Element.querySelectorAll',
   'Event.initEvent',
-  'EventTarget.addEventListener',
-  'EventTarget.removeEventListener',
   'Geolocation.clearWatch',
   'Geolocation.getCurrentPosition',
   'Geolocation.watchPosition',
   'HashChangeEvent.initHashChangeEvent',
   'HTMLCanvasElement.toDataURL',
   'HTMLTableElement.createCaption',
-  'HTMLTableElement.createTBody',
   'HTMLTableElement.createTFoot',
   'HTMLTableElement.createTHead',
+  'HTMLTableElement.createTBody',
   'HTMLTableElement.insertRow',
   'HTMLTableElement.rows',
   'HTMLTableElement.tBodies',
@@ -268,12 +276,18 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'MouseEvent.screenX',
   'MouseEvent.screenY',
   'MutationEvent.initMutationEvent',
+  'MutationObserver.observe',
   'Node.attributes',
-  'Node.childNodes',
   'Node.localName',
   'Node.namespaceURI',
   'Node.removeChild',
   'Node.replaceChild',
+  'ParentNode.childElementCount',
+  'ParentNode.children',
+  'ParentNode.firstElementChild',
+  'ParentNode.lastElementChild',
+  'RTCPeerConnection.createAnswer',
+  'RTCPeerConnection.createOffer',
   'Screen.availHeight',
   'Screen.availLeft',
   'Screen.availTop',
@@ -285,6 +299,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Storage.removeItem',
   'Storage.setItem',
   'StorageEvent.initStorageEvent',
+  'StorageInfo.queryUsageAndQuota',
   'TextEvent.initTextEvent',
   'Touch.clientX',
   'Touch.clientY',
@@ -300,29 +315,29 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'UIEvent.layerY',
   'UIEvent.pageX',
   'UIEvent.pageY',
+  'WebGLRenderingContext.texImage2D',
   'WheelEvent.initWebKitWheelEvent',
+  'WheelEvent.wheelDeltaX',
+  'WheelEvent.wheelDeltaY',
+  'Window.createImageBitmap',
   'Window.getComputedStyle',
   'Window.moveTo',
+  'Window.clearTimeout',
+  'Window.clearInterval',
+  'Window.setTimeout',
+  'Window.setInterval',
 ])
 
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
-    'CanvasRenderingContext2D.drawImage': '_drawImage',
     'WebKitCSSKeyframesRule.insertRule': 'appendRule',
-    'CSSStyleDeclaration.getPropertyValue': '_getPropertyValue',
-    'CSSStyleDeclaration.setProperty': '_setProperty',
-    'CSSStyleDeclaration.var': '_var',
     'DirectoryEntry.getDirectory': '_getDirectory',
     'DirectoryEntry.getFile': '_getFile',
     'Document.createCDATASection': 'createCDataSection',
     'Document.defaultView': 'window',
     'Document.querySelector': 'query',
     'Window.CSS': 'css',
-    'Window.clearTimeout': '_clearTimeout',
-    'Window.clearInterval': '_clearInterval',
-    'Window.setTimeout': '_setTimeout',
-    'Window.setInterval': '_setInterval',
     'Window.webkitConvertPointFromNodeToPage': '_convertPointFromNodeToPage',
     'Window.webkitConvertPointFromPageToNode': '_convertPointFromPageToNode',
     'Window.webkitNotifications': 'notifications',
@@ -330,7 +345,6 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'Window.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
     'Element.querySelector': 'query',
     'Element.webkitMatchesSelector' : 'matches',
-    'MutationObserver.observe': '_observe',
     'Navigator.webkitGetUserMedia': '_getUserMedia',
     'Node.appendChild': 'append',
     'Node.cloneNode': 'clone',
@@ -339,18 +353,11 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'Node.parentElement': 'parent',
     'Node.previousSibling': 'previousNode',
     'Node.textContent': 'text',
-    'RTCPeerConnection.createAnswer': '_createAnswer',
-    'RTCPeerConnection.createOffer': '_createOffer',
-    'StorageInfo.queryUsageAndQuota': '_queryUsageAndQuota',
-    'SVGElement.className': '$dom_svgClassName',
+    'SVGElement.className': '_svgClassName',
     'SVGStopElement.offset': 'gradientOffset',
     'URL.createObjectURL': 'createObjectUrl',
     'URL.revokeObjectURL': 'revokeObjectUrl',
-    'WebGLRenderingContext.texImage2D': '_texImage2D',
     'WebGLRenderingContext.texSubImage2D': '_texSubImageImage2D',
-    'WheelEvent.wheelDeltaX': '_wheelDeltaX',
-    'WheelEvent.wheelDeltaY': '_wheelDeltaY',
-    'Window.createImageBitmap': '_createImageBitmap',
     #'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
     #'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync',
 })
@@ -790,6 +797,10 @@ class HtmlRenamer(object):
 
     target_name = renamed_html_members[name] if name else member
     if self._FindMatch(interface, member, member_prefix, private_html_members):
+      if not target_name.startswith('_'):  # e.g. _svgClassName
+        target_name = '_' + target_name
+    elif self._FindMatch(interface, member, member_prefix,
+        dom_private_html_members):
       if not target_name.startswith('$dom_'):  # e.g. $dom_svgClassName
         target_name = '$dom_' + target_name
 

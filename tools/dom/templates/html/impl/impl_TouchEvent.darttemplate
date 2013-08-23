@@ -15,8 +15,8 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     if (view == null) {
       view = window;
     }
-    var e = document.$dom_createEvent("TouchEvent");
-    e.$dom_initTouchEvent(touches, targetTouches, changedTouches, type, view,
+    var e = document._createEvent("TouchEvent");
+    e._initTouchEvent(touches, targetTouches, changedTouches, type, view,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
     return e;
   }

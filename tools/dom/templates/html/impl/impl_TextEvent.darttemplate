@@ -12,8 +12,8 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     if (view == null) {
       view = window;
     }
-    var e = document.$dom_createEvent("TextEvent");
-    e.$dom_initTextEvent(type, canBubble, cancelable, view, data);
+    var e = document._createEvent("TextEvent");
+    e._initTextEvent(type, canBubble, cancelable, view, data);
     return e;
   }
 $!MEMBERS

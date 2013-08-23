@@ -46,10 +46,10 @@ $endif
     children.addAll(copy);
   }
 
-  Element query(String selectors) => $dom_querySelector(selectors);
+  Element query(String selectors) => _querySelector(selectors);
 
   List<Element> queryAll(String selectors) =>
-    new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
+    new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
   String get innerHtml {
     final e = new Element.tag("div");

@@ -5306,7 +5306,7 @@ class SvgDocument extends Document {
 
   @DomName('SVGDocument.createEvent')
   @DocsEditable()
-  Event $dom_createEvent(String eventType) native "SVGDocument_createEvent_Callback";
+  Event _createEvent(String eventType) native "SVGDocument_createEvent_Callback";
 
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -5403,8 +5403,8 @@ class SvgElement extends Element {
     throw new UnsupportedError("Cannot invoke insertAdjacentElement on SVG.");
   }
 
-  HtmlCollection get $dom_children {
-    throw new UnsupportedError("Cannot get dom_children on SVG.");
+  HtmlCollection get _children {
+    throw new UnsupportedError("Cannot get _children on SVG.");
   }
 
   bool get isContentEditable => false;
@@ -5427,7 +5427,7 @@ class SvgElement extends Element {
   @DomName('SVGElement.className')
   @DocsEditable()
   @Experimental() // untriaged
-  AnimatedString get $dom_svgClassName native "SVGElement_className_Getter";
+  AnimatedString get _svgClassName native "SVGElement_className_Getter";
 
   @DomName('SVGElement.ownerSVGElement')
   @DocsEditable()

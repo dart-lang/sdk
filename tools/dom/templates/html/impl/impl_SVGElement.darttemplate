@@ -91,8 +91,8 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     throw new UnsupportedError("Cannot invoke insertAdjacentElement on SVG.");
   }
 
-  HtmlCollection get $dom_children {
-    throw new UnsupportedError("Cannot get dom_children on SVG.");
+  HtmlCollection get _children {
+    throw new UnsupportedError("Cannot get _children on SVG.");
   }
 
   bool get isContentEditable => false;

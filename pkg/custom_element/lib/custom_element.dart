@@ -414,10 +414,6 @@ class CustomElement implements Element {
 
   ElementList queryAll(String selectors) => host.queryAll(selectors);
 
-  HtmlCollection get $dom_children => host.$dom_children;
-
-  int get $dom_childElementCount => host.$dom_childElementCount;
-
   String get className => host.className;
   set className(String value) { host.className = value; }
 
@@ -434,10 +430,6 @@ class CustomElement implements Element {
   int get clientWidth => client.width;
 
   Rect get client => host.client;
-
-  Element get $dom_firstElementChild => host.$dom_firstElementChild;
-
-  Element get $dom_lastElementChild => host.$dom_lastElementChild;
 
   @deprecated
   int get offsetHeight => offset.height;
@@ -476,12 +468,6 @@ class CustomElement implements Element {
     host.$dom_setAttributeNS(namespaceUri, localName, value);
   }
 
-  bool $dom_hasAttributeNS(String namespaceUri, String localName) =>
-      host.$dom_hasAttributeNS(namespaceUri, localName);
-
-  void $dom_removeAttributeNS(String namespaceUri, String localName) =>
-      host.$dom_removeAttributeNS(namespaceUri, localName);
-
   Rect getBoundingClientRect() => host.getBoundingClientRect();
 
   List<Rect> getClientRects() => host.getClientRects();
@@ -489,22 +475,11 @@ class CustomElement implements Element {
   List<Node> getElementsByClassName(String name) =>
       host.getElementsByClassName(name);
 
-  List<Node> $dom_getElementsByTagName(String name) =>
-      host.$dom_getElementsByTagName(name);
-
-  bool $dom_hasAttribute(String name) =>
-      host.$dom_hasAttribute(name);
-
   List<Node> $dom_querySelectorAll(String selectors) =>
       host.$dom_querySelectorAll(selectors);
 
-  void $dom_removeAttribute(String name) =>
-      host.$dom_removeAttribute(name);
-
   void $dom_setAttribute(String name, String value) =>
       host.$dom_setAttribute(name, value);
-
-  get $dom_attributes => host.$dom_attributes;
 
   List<Node> get $dom_childNodes => host.$dom_childNodes;
 
@@ -513,10 +488,8 @@ class CustomElement implements Element {
   Node get lastChild => host.lastChild;
 
   String get localName => host.localName;
-  String get $dom_localName => host.$dom_localName;
 
   String get namespaceUri => host.namespaceUri;
-  String get $dom_namespaceUri => host.$dom_namespaceUri;
 
   int get nodeType => host.nodeType;
 
@@ -527,15 +500,10 @@ class CustomElement implements Element {
 
   bool dispatchEvent(Event event) => host.dispatchEvent(event);
 
-  Node $dom_removeChild(Node oldChild) => host.$dom_removeChild(oldChild);
-
   void $dom_removeEventListener(String type, EventListener listener,
                                 [bool useCapture]) {
     host.$dom_removeEventListener(type, listener, useCapture);
   }
-
-  Node $dom_replaceChild(Node newChild, Node oldChild) =>
-      host.$dom_replaceChild(newChild, oldChild);
 
   get xtag => host.xtag;
 
@@ -546,22 +514,6 @@ class CustomElement implements Element {
   void appendText(String text) => host.appendText(text);
 
   void appendHtml(String html) => host.appendHtml(html);
-
-  void $dom_scrollIntoView([bool alignWithTop]) {
-    if (alignWithTop == null) {
-      host.$dom_scrollIntoView();
-    } else {
-      host.$dom_scrollIntoView(alignWithTop);
-    }
-  }
-
-  void $dom_scrollIntoViewIfNeeded([bool centerIfNeeded]) {
-    if (centerIfNeeded == null) {
-      host.$dom_scrollIntoViewIfNeeded();
-    } else {
-      host.$dom_scrollIntoViewIfNeeded(centerIfNeeded);
-    }
-  }
 
   String get regionOverset => host.regionOverset;
 

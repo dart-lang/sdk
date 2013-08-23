@@ -9,12 +9,12 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   @DomName('HTMLTableRowElement.cells')
   List<TableCellElement> get cells =>
-      new _WrappedList<TableCellElement>($dom_cells);
+      new _WrappedList<TableCellElement>(_cells);
 
   TableCellElement addCell() {
     return insertCell(-1);
   }
 
-  TableCellElement insertCell(int index) => $dom_insertCell(index);
+  TableCellElement insertCell(int index) => _insertCell(index);
 
 $!MEMBERS}

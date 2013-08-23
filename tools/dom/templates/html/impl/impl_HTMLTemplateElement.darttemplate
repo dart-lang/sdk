@@ -95,7 +95,7 @@ $!MEMBERS
   // For real TemplateElement use the actual DOM .content field instead of
   // our polyfilled expando.
   @Experimental()
-  DocumentFragment get content => $dom_content;
+  DocumentFragment get content => _content;
 
 
   /**

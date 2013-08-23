@@ -9,26 +9,26 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   @DomName('HTMLTableElement.tBodies')
   List<TableSectionElement> get tBodies =>
-  new _WrappedList<TableSectionElement>($dom_tBodies);
+  new _WrappedList<TableSectionElement>(_tBodies);
 
   @DomName('HTMLTableElement.rows')
   List<TableRowElement> get rows =>
-      new _WrappedList<TableRowElement>($dom_rows);
+      new _WrappedList<TableRowElement>(_rows);
 
   TableRowElement addRow() {
     return insertRow(-1);
   }
 
-  TableCaptionElement createCaption() => $dom_createCaption();
-  TableSectionElement createTBody() => $dom_createTBody();
-  TableSectionElement createTFoot() => $dom_createTFoot();
-  TableSectionElement createTHead() => $dom_createTHead();
-  TableRowElement insertRow(int index) => $dom_insertRow(index);
+  TableCaptionElement createCaption() => _createCaption();
+  TableSectionElement createTBody() => _createTBody();
+  TableSectionElement createTFoot() => _createTFoot();
+  TableSectionElement createTHead() => _createTHead();
+  TableRowElement insertRow(int index) => _insertRow(index);
 
 $if DART2JS
-  TableSectionElement $dom_createTBody() {
+  TableSectionElement _createTBody() {
     if (JS('bool', '!!#.createTBody', this)) {
-      return this._createTBody();
+      return this._nativeCreateTBody();
     }
     var tbody = new Element.tag('tbody');
     this.children.add(tbody);
@@ -36,7 +36,7 @@ $if DART2JS
   }
 
   @JSName('createTBody')
-  TableSectionElement _createTBody() native;
+  TableSectionElement _nativeCreateTBody() native;
 $endif
 
 $!MEMBERS}

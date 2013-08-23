@@ -22,14 +22,14 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     if (view == null) {
       view = window;
     }
-    final e = document.$dom_createEvent("KeyboardEvent");
-    e.$dom_initKeyboardEvent(type, canBubble, cancelable, view, keyIdentifier,
+    final e = document._createEvent("KeyboardEvent");
+    e._initKeyboardEvent(type, canBubble, cancelable, view, keyIdentifier,
         keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
     return e;
   }
 
   @DomName('KeyboardEvent.initKeyboardEvent')
-  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
+  void _initKeyboardEvent(String type, bool canBubble, bool cancelable,
       Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) {
     if (JS('bool', 'typeof(#.initKeyEvent) == "function"', this)) {
@@ -49,9 +49,9 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   @DomName('KeyboardEvent.keyCode')
-  int get keyCode => $dom_keyCode;
+  int get keyCode => _keyCode;
 
   @DomName('KeyboardEvent.charCode')
-  int get charCode => $dom_charCode;
+  int get charCode => _charCode;
 $!MEMBERS
 }

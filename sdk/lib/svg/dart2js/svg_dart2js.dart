@@ -4817,8 +4817,8 @@ class SvgElement extends Element native "SVGElement" {
     throw new UnsupportedError("Cannot invoke insertAdjacentElement on SVG.");
   }
 
-  HtmlCollection get $dom_children {
-    throw new UnsupportedError("Cannot get dom_children on SVG.");
+  HtmlCollection get _children {
+    throw new UnsupportedError("Cannot get _children on SVG.");
   }
 
   bool get isContentEditable => false;
@@ -4839,7 +4839,7 @@ class SvgElement extends Element native "SVGElement" {
   factory SvgElement._() { throw new UnsupportedError("Not supported"); }
 
   // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
+  AnimatedString get _svgClassName => JS("AnimatedString", "#.className", this);
 
   @JSName('ownerSVGElement')
   @DomName('SVGElement.ownerSVGElement')

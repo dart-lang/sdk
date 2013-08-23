@@ -478,7 +478,7 @@ class AudioNode extends EventTarget native "AudioNode" {
   @JSName('connect')
   @DomName('AudioNode.connect')
   @DocsEditable()
-  void $dom_connect(destination, int output, [int input]) native;
+  void _connect(destination, int output, [int input]) native;
 
   @DomName('AudioNode.disconnect')
   @DocsEditable()
@@ -486,11 +486,11 @@ class AudioNode extends EventTarget native "AudioNode" {
 
   @DomName('AudioNode.connect')
   void connectNode(AudioNode destination, [int output = 0, int input = 0]) =>
-      $dom_connect(destination, output, input);
+      _connect(destination, output, input);
 
   @DomName('AudioNode.connect')
   void connectParam(AudioParam destination, [int output = 0]) =>
-      $dom_connect(destination, output);
+      _connect(destination, output);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

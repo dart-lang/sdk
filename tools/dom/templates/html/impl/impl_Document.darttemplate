@@ -33,7 +33,7 @@ $!MEMBERS
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   ElementList queryAll(String selectors) {
-    return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
+    return new _FrozenElementList._wrap(_querySelectorAll(selectors));
   }
 
   /// Checks if [register] is supported on the current platform.

@@ -2452,9 +2452,13 @@
   },
   "EventTarget": {
     "members": {
-      "addEventListener": {},
+      "addEventListener": {
+        "support_level": "deprecated"
+      },
       "dispatchEvent": {},
-      "removeEventListener": {}
+      "removeEventListener": {
+        "support_level": "deprecated"
+      }
     },
     "support_level": "stable"
   },

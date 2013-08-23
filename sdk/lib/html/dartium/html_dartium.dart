@@ -1151,7 +1151,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
    */
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable()
-  String $dom_toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
+  String _toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
 
   @DomName('HTMLCanvasElement.onwebglcontextlost')
   @DocsEditable()
@@ -1189,7 +1189,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   }
 
   String toDataUrl([String type = 'image/png', num quality]) => 
-      $dom_toDataUrl(type, quality);
+      _toDataUrl(type, quality);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1476,7 +1476,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable()
-  void $dom_arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
+  void _arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
 
   @DomName('CanvasRenderingContext2D.arcTo')
   @DocsEditable()
@@ -1832,7 +1832,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DomName('CanvasRenderingContext2D.arc')
   void arc(num x,  num y,  num radius,  num startAngle, num endAngle,
       [bool anticlockwise = false]) {
-    $dom_arc(x, y, radius, startAngle, endAngle, anticlockwise);
+    _arc(x, y, radius, startAngle, endAngle, anticlockwise);
   }
 
   /**
@@ -2178,8 +2178,8 @@ class CompositionEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var e = document.$dom_createEvent("CompositionEvent");
-    e.$dom_initCompositionEvent(type, canBubble, cancelable, view, data);
+    var e = document._createEvent("CompositionEvent");
+    e._initCompositionEvent(type, canBubble, cancelable, view, data);
     return e;
   }
   // To suppress missing implicit constructor warnings.
@@ -2191,7 +2191,7 @@ class CompositionEvent extends UIEvent {
 
   @DomName('CompositionEvent.initCompositionEvent')
   @DocsEditable()
-  void $dom_initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
+  void _initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6828,9 +6828,9 @@ class CustomEvent extends Event {
   factory CustomEvent(String type,
       {bool canBubble: true, bool cancelable: true, Object detail}) {
 
-    final CustomEvent e = document.$dom_createEvent('CustomEvent');
+    final CustomEvent e = document._createEvent('CustomEvent');
 
-    e.$dom_initCustomEvent(type, canBubble, cancelable, detail);
+    e._initCustomEvent(type, canBubble, cancelable, detail);
 
     return e;
   }
@@ -6843,7 +6843,7 @@ class CustomEvent extends Event {
 
   @DomName('CustomEvent.initCustomEvent')
   @DocsEditable()
-  void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "CustomEvent_initCustomEvent_Callback";
+  void _initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "CustomEvent_initCustomEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7203,8 +7203,8 @@ class DeviceOrientationEvent extends Event {
   factory DeviceOrientationEvent(String type,
       {bool canBubble: true, bool cancelable: true, num alpha: 0, num beta: 0,
       num gamma: 0, bool absolute: false}) {
-    var e = document.$dom_createEvent("DeviceOrientationEvent");
-    e.$dom_initDeviceOrientationEvent(type, canBubble, cancelable, alpha, beta,
+    var e = document._createEvent("DeviceOrientationEvent");
+    e._initDeviceOrientationEvent(type, canBubble, cancelable, alpha, beta,
         gamma, absolute);
     return e;
   }
@@ -7229,7 +7229,7 @@ class DeviceOrientationEvent extends Event {
 
   @DomName('DeviceOrientationEvent.initDeviceOrientationEvent')
   @DocsEditable()
-  void $dom_initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback";
+  void _initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7513,12 +7513,12 @@ class Document extends Node
   /// Moved to [HtmlDocument].
   @DomName('Document.body')
   @DocsEditable()
-  HtmlElement get $dom_body native "Document_body_Getter";
+  HtmlElement get _body native "Document_body_Getter";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.body')
   @DocsEditable()
-  void set $dom_body(HtmlElement value) native "Document_body_Setter";
+  void set _body(HtmlElement value) native "Document_body_Setter";
 
   @DomName('Document.charset')
   @DocsEditable()
@@ -7564,7 +7564,7 @@ class Document extends Node
   /// Moved to [HtmlDocument].
   @DomName('Document.head')
   @DocsEditable()
-  HeadElement get $dom_head native "Document_head_Getter";
+  HeadElement get _head native "Document_head_Getter";
 
   @DomName('Document.implementation')
   @DocsEditable()
@@ -7573,11 +7573,11 @@ class Document extends Node
   /// Moved to [HtmlDocument].
   @DomName('Document.lastModified')
   @DocsEditable()
-  String get $dom_lastModified native "Document_lastModified_Getter";
+  String get _lastModified native "Document_lastModified_Getter";
 
   @DomName('Document.preferredStylesheetSet')
   @DocsEditable()
-  String get $dom_preferredStylesheetSet native "Document_preferredStylesheetSet_Getter";
+  String get _preferredStylesheetSet native "Document_preferredStylesheetSet_Getter";
 
   @DomName('Document.readyState')
   @DocsEditable()
@@ -7586,7 +7586,7 @@ class Document extends Node
   /// Moved to [HtmlDocument].
   @DomName('Document.referrer')
   @DocsEditable()
-  String get $dom_referrer native "Document_referrer_Getter";
+  String get _referrer native "Document_referrer_Getter";
 
   @DomName('Document.securityPolicy')
   @DocsEditable()
@@ -7596,26 +7596,26 @@ class Document extends Node
 
   @DomName('Document.selectedStylesheetSet')
   @DocsEditable()
-  String get $dom_selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
+  String get _selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
 
   @DomName('Document.selectedStylesheetSet')
   @DocsEditable()
-  void set $dom_selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
+  void set _selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
 
   /// Moved to [HtmlDocument]
   @DomName('Document.styleSheets')
   @DocsEditable()
-  List<StyleSheet> get $dom_styleSheets native "Document_styleSheets_Getter";
+  List<StyleSheet> get _styleSheets native "Document_styleSheets_Getter";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.title')
   @DocsEditable()
-  String get $dom_title native "Document_title_Getter";
+  String get _title native "Document_title_Getter";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.title')
   @DocsEditable()
-  void set $dom_title(String value) native "Document_title_Setter";
+  void set _title(String value) native "Document_title_Setter";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenElement')
@@ -7624,7 +7624,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-fullscreenelement
-  Element get $dom_webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
+  Element get _webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenEnabled')
@@ -7633,7 +7633,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-fullscreenenabled
-  bool get $dom_webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
+  bool get _webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitHidden')
@@ -7642,7 +7642,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/PageVisibility/Overview.html#document
-  bool get $dom_webkitHidden native "Document_webkitHidden_Getter";
+  bool get _webkitHidden native "Document_webkitHidden_Getter";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitIsFullScreen')
@@ -7652,7 +7652,7 @@ class Document extends Node
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @deprecated // deprecated
-  bool get $dom_webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
+  bool get _webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitPointerLockElement')
@@ -7661,7 +7661,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-pointerLockElement
-  Element get $dom_webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
+  Element get _webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
 
   @DomName('Document.webkitVisibilityState')
   @DocsEditable()
@@ -7669,7 +7669,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/PageVisibility/Overview.html#dom-document-visibilitystate
-  String get $dom_webkitVisibilityState native "Document_webkitVisibilityState_Getter";
+  String get _webkitVisibilityState native "Document_webkitVisibilityState_Getter";
 
   @DomName('Document.adoptNode')
   @DocsEditable()
@@ -7680,7 +7680,7 @@ class Document extends Node
   @DocsEditable()
   // http://www.w3.org/TR/2009/WD-cssom-view-20090804/#dom-documentview-caretrangefrompoint
   @Experimental()
-  Range $dom_caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
+  Range _caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
 
   @DomName('Document.createCDATASection')
   @DocsEditable()
@@ -7722,9 +7722,9 @@ class Document extends Node
 
   @DomName('Document.createEvent')
   @DocsEditable()
-  Event $dom_createEvent(String eventType) native "Document_createEvent_Callback";
+  Event _createEvent(String eventType) native "Document_createEvent_Callback";
 
-  NodeIterator $dom_createNodeIterator(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) {
+  NodeIterator _createNodeIterator(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) {
     if (expandEntityReferences != null) {
       return _createNodeIterator_1(root, whatToShow, filter, expandEntityReferences);
     }
@@ -7751,22 +7751,22 @@ class Document extends Node
 
   @DomName('Document.createTextNode')
   @DocsEditable()
-  Text $dom_createTextNode(String data) native "Document_createTextNode_Callback";
+  Text _createTextNode(String data) native "Document_createTextNode_Callback";
 
   @DomName('Document.createTouch')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
+  Touch _createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
 
   /// Use the [TouchList] constructor instead.
   @DomName('Document.createTouchList')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  TouchList $dom_createTouchList() native "Document_createTouchList_Callback";
+  TouchList _createTouchList() native "Document_createTouchList_Callback";
 
-  TreeWalker $dom_createTreeWalker(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) {
+  TreeWalker _createTreeWalker(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) {
     if (expandEntityReferences != null) {
       return _createTreeWalker_1(root, whatToShow, filter, expandEntityReferences);
     }
@@ -7789,7 +7789,7 @@ class Document extends Node
 
   @DomName('Document.elementFromPoint')
   @DocsEditable()
-  Element $dom_elementFromPoint(int x, int y) native "Document_elementFromPoint_Callback";
+  Element _elementFromPoint(int x, int y) native "Document_elementFromPoint_Callback";
 
   @DomName('Document.execCommand')
   @DocsEditable()
@@ -7800,7 +7800,7 @@ class Document extends Node
   @DocsEditable()
   // https://developer.apple.com/library/safari/#documentation/AppleApplications/Reference/SafariCSSRef/Articles/Functions.html
   @Experimental() // non-standard
-  CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
+  CanvasRenderingContext _getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
 
   @DomName('Document.getElementById')
   @DocsEditable()
@@ -7871,7 +7871,7 @@ class Document extends Node
   /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.querySelectorAll')
   @DocsEditable()
-  List<Node> $dom_querySelectorAll(String selectors) native "Document_querySelectorAll_Callback";
+  List<Node> _querySelectorAll(String selectors) native "Document_querySelectorAll_Callback";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitCancelFullScreen')
@@ -7881,7 +7881,7 @@ class Document extends Node
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @deprecated // deprecated
-  void $dom_webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
+  void _webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitFullscreen')
@@ -7890,7 +7890,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-exitfullscreen
-  void $dom_webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
+  void _webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitPointerLock')
@@ -7899,7 +7899,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-exitPointerLock-void
-  void $dom_webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
+  void _webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
 
   @DomName('Document.webkitGetNamedFlows')
   @DocsEditable()
@@ -7911,19 +7911,19 @@ class Document extends Node
 
   @DomName('Document.childElementCount')
   @DocsEditable()
-  int get $dom_childElementCount native "Document_childElementCount_Getter";
+  int get _childElementCount native "Document_childElementCount_Getter";
 
   @DomName('Document.children')
   @DocsEditable()
-  HtmlCollection get $dom_children native "Document_children_Getter";
+  HtmlCollection get _children native "Document_children_Getter";
 
   @DomName('Document.firstElementChild')
   @DocsEditable()
-  Element get $dom_firstElementChild native "Document_firstElementChild_Getter";
+  Element get _firstElementChild native "Document_firstElementChild_Getter";
 
   @DomName('Document.lastElementChild')
   @DocsEditable()
-  Element get $dom_lastElementChild native "Document_lastElementChild_Getter";
+  Element get _lastElementChild native "Document_lastElementChild_Getter";
 
   @DomName('Document.onabort')
   @DocsEditable()
@@ -8171,7 +8171,7 @@ class Document extends Node
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   ElementList queryAll(String selectors) {
-    return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
+    return new _FrozenElementList._wrap(_querySelectorAll(selectors));
   }
 
   /// Checks if [register] is supported on the current platform.
@@ -8222,10 +8222,10 @@ class DocumentFragment extends Node implements ParentNode {
     children.addAll(copy);
   }
 
-  Element query(String selectors) => $dom_querySelector(selectors);
+  Element query(String selectors) => _querySelector(selectors);
 
   List<Element> queryAll(String selectors) =>
-    new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
+    new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
   String get innerHtml {
     final e = new Element.tag("div");
@@ -8268,23 +8268,23 @@ class DocumentFragment extends Node implements ParentNode {
 
   @DomName('DocumentFragment.querySelector')
   @DocsEditable()
-  Element $dom_querySelector(String selectors) native "DocumentFragment_querySelector_Callback";
+  Element _querySelector(String selectors) native "DocumentFragment_querySelector_Callback";
 
   @DomName('DocumentFragment.querySelectorAll')
   @DocsEditable()
-  List<Node> $dom_querySelectorAll(String selectors) native "DocumentFragment_querySelectorAll_Callback";
+  List<Node> _querySelectorAll(String selectors) native "DocumentFragment_querySelectorAll_Callback";
 
   @DomName('DocumentFragment.childElementCount')
   @DocsEditable()
-  int get $dom_childElementCount native "DocumentFragment_childElementCount_Getter";
+  int get _childElementCount native "DocumentFragment_childElementCount_Getter";
 
   @DomName('DocumentFragment.firstElementChild')
   @DocsEditable()
-  Element get $dom_firstElementChild native "DocumentFragment_firstElementChild_Getter";
+  Element get _firstElementChild native "DocumentFragment_firstElementChild_Getter";
 
   @DomName('DocumentFragment.lastElementChild')
   @DocsEditable()
-  Element get $dom_lastElementChild native "DocumentFragment_lastElementChild_Getter";
+  Element get _lastElementChild native "DocumentFragment_lastElementChild_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8596,14 +8596,14 @@ class _ChildrenElementList extends ListBase<Element> {
   final HtmlCollection _childElements;
 
   _ChildrenElementList._wrap(Element element)
-    : _childElements = element.$dom_children,
+    : _childElements = element._children,
       _element = element;
 
   bool contains(Object element) => _childElements.contains(element);
 
 
   bool get isEmpty {
-    return _element.$dom_firstElementChild == null;
+    return _element._firstElementChild == null;
   }
 
   int get length {
@@ -8615,7 +8615,7 @@ class _ChildrenElementList extends ListBase<Element> {
   }
 
   void operator []=(int index, Element value) {
-    _element.$dom_replaceChild(value, _childElements[index]);
+    _element._replaceChild(value, _childElements[index]);
   }
 
   void set length(int newLength) {
@@ -8679,7 +8679,7 @@ class _ChildrenElementList extends ListBase<Element> {
     if (object is Element) {
       Element element = object;
       if (identical(element.parentNode, _element)) {
-        _element.$dom_removeChild(element);
+        _element._removeChild(element);
         return true;
       }
     }
@@ -8709,7 +8709,7 @@ class _ChildrenElementList extends ListBase<Element> {
   Element removeAt(int index) {
     final result = this[index];
     if (result != null) {
-      _element.$dom_removeChild(result);
+      _element._removeChild(result);
     }
     return result;
   }
@@ -8717,20 +8717,20 @@ class _ChildrenElementList extends ListBase<Element> {
   Element removeLast() {
     final result = this.last;
     if (result != null) {
-      _element.$dom_removeChild(result);
+      _element._removeChild(result);
     }
     return result;
   }
 
   Element get first {
-    Element result = _element.$dom_firstElementChild;
+    Element result = _element._firstElementChild;
     if (result == null) throw new StateError("No elements");
     return result;
   }
 
 
   Element get last {
-    Element result = _element.$dom_lastElementChild;
+    Element result = _element._lastElementChild;
     if (result == null) throw new StateError("No elements");
     return result;
   }
@@ -9583,7 +9583,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    *     var items = element.query('.itemClassName');
    */
   ElementList queryAll(String selectors) =>
-    new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
+    new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
   /**
    * The set of CSS classes applied to this element.
@@ -9668,7 +9668,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
       pseudoElement = '';
     }
     // TODO(jacobr): last param should be null, see b/5045788
-    return window.$dom_getComputedStyle(this, pseudoElement);
+    return window._getComputedStyle(this, pseudoElement);
   }
 
   /**
@@ -9738,11 +9738,11 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.localName')
   @DocsEditable()
-  String get localName => $dom_localName;
+  String get localName => _localName;
 
   @DomName('Element.namespaceUri')
   @DocsEditable()
-  String get namespaceUri => $dom_namespaceUri;
+  String get namespaceUri => _namespaceUri;
 
   String toString() => localName;
 
@@ -9766,17 +9766,17 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   void scrollIntoView([ScrollAlignment alignment]) {
     var hasScrollIntoViewIfNeeded = false;
     if (alignment == ScrollAlignment.TOP) {
-      this.$dom_scrollIntoView(true);
+      this._scrollIntoView(true);
     } else if (alignment == ScrollAlignment.BOTTOM) {
-      this.$dom_scrollIntoView(false);
+      this._scrollIntoView(false);
     } else if (hasScrollIntoViewIfNeeded) {
       if (alignment == ScrollAlignment.CENTER) {
-        this.$dom_scrollIntoViewIfNeeded(true);
+        this._scrollIntoViewIfNeeded(true);
       } else {
-        this.$dom_scrollIntoViewIfNeeded();
+        this._scrollIntoViewIfNeeded();
       }
     } else {
-      this.$dom_scrollIntoView();
+      this._scrollIntoView();
     }
   }
 
@@ -10316,7 +10316,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.attributes')
   @DocsEditable()
-  _NamedNodeMap get $dom_attributes native "Element_attributes_Getter";
+  _NamedNodeMap get _attributes native "Element_attributes_Getter";
 
   @DomName('Element.className')
   @DocsEditable()
@@ -10468,15 +10468,15 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.getElementsByTagName')
   @DocsEditable()
-  List<Node> $dom_getElementsByTagName(String name) native "Element_getElementsByTagName_Callback";
+  List<Node> _getElementsByTagName(String name) native "Element_getElementsByTagName_Callback";
 
   @DomName('Element.hasAttribute')
   @DocsEditable()
-  bool $dom_hasAttribute(String name) native "Element_hasAttribute_Callback";
+  bool _hasAttribute(String name) native "Element_hasAttribute_Callback";
 
   @DomName('Element.hasAttributeNS')
   @DocsEditable()
-  bool $dom_hasAttributeNS(String namespaceURI, String localName) native "Element_hasAttributeNS_Callback";
+  bool _hasAttributeNS(String namespaceURI, String localName) native "Element_hasAttributeNS_Callback";
 
   /**
  * Finds the first descendant element of this element that matches the
@@ -10501,15 +10501,15 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.querySelectorAll')
   @DocsEditable()
-  List<Node> $dom_querySelectorAll(String selectors) native "Element_querySelectorAll_Callback";
+  List<Node> _querySelectorAll(String selectors) native "Element_querySelectorAll_Callback";
 
   @DomName('Element.removeAttribute')
   @DocsEditable()
-  void $dom_removeAttribute(String name) native "Element_removeAttribute_Callback";
+  void _removeAttribute(String name) native "Element_removeAttribute_Callback";
 
   @DomName('Element.removeAttributeNS')
   @DocsEditable()
-  void $dom_removeAttributeNS(String namespaceURI, String localName) native "Element_removeAttributeNS_Callback";
+  void _removeAttributeNS(String namespaceURI, String localName) native "Element_removeAttributeNS_Callback";
 
   @DomName('Element.scrollByLines')
   @DocsEditable()
@@ -10519,7 +10519,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   void scrollByPages(int pages) native "Element_scrollByPages_Callback";
 
-  void $dom_scrollIntoView([bool alignWithTop]) {
+  void _scrollIntoView([bool alignWithTop]) {
     if (alignWithTop != null) {
       _scrollIntoView_1(alignWithTop);
       return;
@@ -10532,7 +10532,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   void _scrollIntoView_2() native "Element__scrollIntoView_2_Callback";
 
-  void $dom_scrollIntoViewIfNeeded([bool centerIfNeeded]) {
+  void _scrollIntoViewIfNeeded([bool centerIfNeeded]) {
     if (centerIfNeeded != null) {
       _scrollIntoViewIfNeeded_1(centerIfNeeded);
       return;
@@ -10606,19 +10606,19 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.childElementCount')
   @DocsEditable()
-  int get $dom_childElementCount native "Element_childElementCount_Getter";
+  int get _childElementCount native "Element_childElementCount_Getter";
 
   @DomName('Element.children')
   @DocsEditable()
-  HtmlCollection get $dom_children native "Element_children_Getter";
+  HtmlCollection get _children native "Element_children_Getter";
 
   @DomName('Element.firstElementChild')
   @DocsEditable()
-  Element get $dom_firstElementChild native "Element_firstElementChild_Getter";
+  Element get _firstElementChild native "Element_firstElementChild_Getter";
 
   @DomName('Element.lastElementChild')
   @DocsEditable()
-  Element get $dom_lastElementChild native "Element_lastElementChild_Getter";
+  Element get _lastElementChild native "Element_lastElementChild_Getter";
 
   @DomName('Element.onabort')
   @DocsEditable()
@@ -11286,8 +11286,8 @@ class Event extends NativeFieldWrapperClass1 {
    */
   factory Event.eventType(String type, String name, {bool canBubble: true,
       bool cancelable: true}) {
-    final Event e = document.$dom_createEvent(type);
-    e.$dom_initEvent(name, canBubble, cancelable);
+    final Event e = document._createEvent(type);
+    e._initEvent(name, canBubble, cancelable);
     return e;
   }
 
@@ -11466,7 +11466,7 @@ class Event extends NativeFieldWrapperClass1 {
 
   @DomName('Event.initEvent')
   @DocsEditable()
-  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "Event_initEvent_Callback";
+  void _initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "Event_initEvent_Callback";
 
   @DomName('Event.preventDefault')
   @DocsEditable()
@@ -11643,6 +11643,7 @@ class EventTarget extends NativeFieldWrapperClass1 {
 
   @DomName('EventTarget.addEventListener')
   @DocsEditable()
+  @deprecated
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_addEventListener_Callback";
 
   @DomName('EventTarget.dispatchEvent')
@@ -11651,6 +11652,7 @@ class EventTarget extends NativeFieldWrapperClass1 {
 
   @DomName('EventTarget.removeEventListener')
   @DocsEditable()
+  @deprecated
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_removeEventListener_Callback";
 
 }
@@ -12596,7 +12598,7 @@ class Geolocation extends NativeFieldWrapperClass1 {
     }
     var completer = new Completer<Geoposition>();
     try {
-      $dom_getCurrentPosition(
+      _getCurrentPosition(
           (position) {
             completer.complete(_ensurePosition(position));
           },
@@ -12630,7 +12632,7 @@ class Geolocation extends NativeFieldWrapperClass1 {
     controller = new StreamController<Geoposition>(sync: true,
       onListen: () {
         assert(watchId == null);
-        watchId = $dom_watchPosition(
+        watchId = _watchPosition(
             (position) {
               controller.add(_ensurePosition(position));
             },
@@ -12641,7 +12643,7 @@ class Geolocation extends NativeFieldWrapperClass1 {
       },
       onCancel: () {
         assert(watchId != null);
-        $dom_clearWatch(watchId);
+        _clearWatch(watchId);
       });
 
     return controller.stream;
@@ -12654,15 +12656,15 @@ class Geolocation extends NativeFieldWrapperClass1 {
 
   @DomName('Geolocation.clearWatch')
   @DocsEditable()
-  void $dom_clearWatch(int watchID) native "Geolocation_clearWatch_Callback";
+  void _clearWatch(int watchID) native "Geolocation_clearWatch_Callback";
 
   @DomName('Geolocation.getCurrentPosition')
   @DocsEditable()
-  void $dom_getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) native "Geolocation_getCurrentPosition_Callback";
+  void _getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) native "Geolocation_getCurrentPosition_Callback";
 
   @DomName('Geolocation.watchPosition')
   @DocsEditable()
-  int $dom_watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) native "Geolocation_watchPosition_Callback";
+  int _watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) native "Geolocation_watchPosition_Callback";
 }
 
 
@@ -12724,8 +12726,8 @@ class HashChangeEvent extends Event {
   factory HashChangeEvent(String type,
       {bool canBubble: true, bool cancelable: true, String oldUrl,
       String newUrl}) {
-    var event = document.$dom_createEvent("HashChangeEvent");
-    event.$dom_initHashChangeEvent(type, canBubble, cancelable, oldUrl, newUrl);
+    var event = document._createEvent("HashChangeEvent");
+    event._initHashChangeEvent(type, canBubble, cancelable, oldUrl, newUrl);
     return event;
   }
   // To suppress missing implicit constructor warnings.
@@ -12744,7 +12746,7 @@ class HashChangeEvent extends Event {
 
   @DomName('HashChangeEvent.initHashChangeEvent')
   @DocsEditable()
-  void $dom_initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native "HashChangeEvent_initHashChangeEvent_Callback";
+  void _initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native "HashChangeEvent_initHashChangeEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13060,21 +13062,21 @@ class HtmlDocument extends Document {
 
 
   @DomName('Document.body')
-  BodyElement get body => $dom_body;
+  BodyElement get body => _body;
 
   @DomName('Document.body')
   void set body(BodyElement value) {
-    $dom_body = value;
+    _body = value;
   }
 
   @DomName('Document.caretRangeFromPoint')
   Range caretRangeFromPoint(int x, int y) {
-    return $dom_caretRangeFromPoint(x, y);
+    return _caretRangeFromPoint(x, y);
   }
 
   @DomName('Document.elementFromPoint')
   Element elementFromPoint(int x, int y) {
-    return $dom_elementFromPoint(x, y);
+    return _elementFromPoint(x, y);
   }
 
   /**
@@ -13113,36 +13115,36 @@ class HtmlDocument extends Document {
   @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext getCssCanvasContext(String contextId, String name,
       int width, int height) {
-    return $dom_getCssCanvasContext(contextId, name, width, height);
+    return _getCssCanvasContext(contextId, name, width, height);
   }
 
   @DomName('Document.head')
-  HeadElement get head => $dom_head;
+  HeadElement get head => _head;
 
   @DomName('Document.lastModified')
-  String get lastModified => $dom_lastModified;
+  String get lastModified => _lastModified;
 
   @DomName('Document.preferredStylesheetSet')
-  String get preferredStylesheetSet => $dom_preferredStylesheetSet;
+  String get preferredStylesheetSet => _preferredStylesheetSet;
 
   @DomName('Document.referrer')
-  String get referrer => $dom_referrer;
+  String get referrer => _referrer;
 
   @DomName('Document.selectedStylesheetSet')
-  String get selectedStylesheetSet => $dom_selectedStylesheetSet;
+  String get selectedStylesheetSet => _selectedStylesheetSet;
   void set selectedStylesheetSet(String value) {
-    $dom_selectedStylesheetSet = value;
+    _selectedStylesheetSet = value;
   }
 
   @DomName('Document.styleSheets')
-  List<StyleSheet> get styleSheets => $dom_styleSheets;
+  List<StyleSheet> get styleSheets => _styleSheets;
 
   @DomName('Document.title')
-  String get title => $dom_title;
+  String get title => _title;
 
   @DomName('Document.title')
   void set title(String value) {
-    $dom_title = value;
+    _title = value;
   }
 
   @DomName('Document.webkitCancelFullScreen')
@@ -13150,7 +13152,7 @@ class HtmlDocument extends Document {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   void cancelFullScreen() {
-    $dom_webkitCancelFullScreen();
+    _webkitCancelFullScreen();
   }
 
   @DomName('Document.webkitExitFullscreen')
@@ -13158,7 +13160,7 @@ class HtmlDocument extends Document {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   void exitFullscreen() {
-    $dom_webkitExitFullscreen();
+    _webkitExitFullscreen();
   }
 
   @DomName('Document.webkitExitPointerLock')
@@ -13166,45 +13168,45 @@ class HtmlDocument extends Document {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   void exitPointerLock() {
-    $dom_webkitExitPointerLock();
+    _webkitExitPointerLock();
   }
 
   @DomName('Document.webkitFullscreenElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  Element get fullscreenElement => $dom_webkitFullscreenElement;
+  Element get fullscreenElement => _webkitFullscreenElement;
 
   @DomName('Document.webkitFullscreenEnabled')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  bool get fullscreenEnabled => $dom_webkitFullscreenEnabled;
+  bool get fullscreenEnabled => _webkitFullscreenEnabled;
 
   @DomName('Document.webkitHidden')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  bool get hidden => $dom_webkitHidden;
+  bool get hidden => _webkitHidden;
 
   @DomName('Document.webkitIsFullScreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  bool get isFullScreen => $dom_webkitIsFullScreen;
+  bool get isFullScreen => _webkitIsFullScreen;
 
   @DomName('Document.webkitPointerLockElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   Element get pointerLockElement =>
-      $dom_webkitPointerLockElement;
+      _webkitPointerLockElement;
 
   @DomName('Document.webkitVisibilityState')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  String get visibilityState => $dom_webkitVisibilityState;
+  String get visibilityState => _webkitVisibilityState;
 
   @Experimental
   void register(String tag, Type custom) {
@@ -15504,17 +15506,17 @@ class KeyboardEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    final e = document.$dom_createEvent("KeyboardEvent");
-    e.$dom_initKeyboardEvent(type, canBubble, cancelable, view, keyIdentifier,
+    final e = document._createEvent("KeyboardEvent");
+    e._initKeyboardEvent(type, canBubble, cancelable, view, keyIdentifier,
         keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
     return e;
   }
 
   @DomName('KeyboardEvent.keyCode')
-  int get keyCode => $dom_keyCode;
+  int get keyCode => _keyCode;
 
   @DomName('KeyboardEvent.charCode')
-  int get charCode => $dom_charCode;
+  int get charCode => _charCode;
   // To suppress missing implicit constructor warnings.
   factory KeyboardEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -15554,7 +15556,7 @@ class KeyboardEvent extends UIEvent {
   @DomName('KeyboardEvent.keyIdentifier')
   @DocsEditable()
   @Experimental() // nonstandard
-  String get $dom_keyIdentifier native "KeyboardEvent_keyIdentifier_Getter";
+  String get _keyIdentifier native "KeyboardEvent_keyIdentifier_Getter";
 
   @DomName('KeyboardEvent.keyLocation')
   @DocsEditable()
@@ -15581,7 +15583,7 @@ class KeyboardEvent extends UIEvent {
 
   @DomName('KeyboardEvent.initKeyboardEvent')
   @DocsEditable()
-  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int location, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
+  void _initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int location, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17504,8 +17506,8 @@ class MessageEvent extends Event {
     if (source == null) {
       source = window;
     }
-    var event = document.$dom_createEvent("MessageEvent");
-    event.$dom_initMessageEvent(type, canBubble, cancelable, data, origin,
+    var event = document._createEvent("MessageEvent");
+    event._initMessageEvent(type, canBubble, cancelable, data, origin,
         lastEventId, source, messagePorts);
     return event;
   }
@@ -17536,7 +17538,7 @@ class MessageEvent extends Event {
 
   @DomName('MessageEvent.initMessageEvent')
   @DocsEditable()
-  void $dom_initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
+  void _initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18114,8 +18116,8 @@ class MouseEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var event = document.$dom_createEvent('MouseEvent');
-    event.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
+    var event = document._createEvent('MouseEvent');
+    event._initMouseEvent(type, canBubble, cancelable, view, detail,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
         button, relatedTarget);
     return event;
@@ -18133,11 +18135,11 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.clientX')
   @DocsEditable()
-  int get $dom_clientX native "MouseEvent_clientX_Getter";
+  int get _clientX native "MouseEvent_clientX_Getter";
 
   @DomName('MouseEvent.clientY')
   @DocsEditable()
-  int get $dom_clientY native "MouseEvent_clientY_Getter";
+  int get _clientY native "MouseEvent_clientY_Getter";
 
   @DomName('MouseEvent.ctrlKey')
   @DocsEditable()
@@ -18160,12 +18162,12 @@ class MouseEvent extends UIEvent {
   @DomName('MouseEvent.offsetX')
   @DocsEditable()
   @Unstable()
-  int get $dom_offsetX native "MouseEvent_offsetX_Getter";
+  int get _offsetX native "MouseEvent_offsetX_Getter";
 
   @DomName('MouseEvent.offsetY')
   @DocsEditable()
   @Unstable()
-  int get $dom_offsetY native "MouseEvent_offsetY_Getter";
+  int get _offsetY native "MouseEvent_offsetY_Getter";
 
   @DomName('MouseEvent.relatedTarget')
   @DocsEditable()
@@ -18173,11 +18175,11 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.screenX')
   @DocsEditable()
-  int get $dom_screenX native "MouseEvent_screenX_Getter";
+  int get _screenX native "MouseEvent_screenX_Getter";
 
   @DomName('MouseEvent.screenY')
   @DocsEditable()
-  int get $dom_screenY native "MouseEvent_screenY_Getter";
+  int get _screenY native "MouseEvent_screenY_Getter";
 
   @DomName('MouseEvent.shiftKey')
   @DocsEditable()
@@ -18193,18 +18195,18 @@ class MouseEvent extends UIEvent {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get $dom_webkitMovementX native "MouseEvent_webkitMovementX_Getter";
+  int get _webkitMovementX native "MouseEvent_webkitMovementX_Getter";
 
   @DomName('MouseEvent.webkitMovementY')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get $dom_webkitMovementY native "MouseEvent_webkitMovementY_Getter";
+  int get _webkitMovementY native "MouseEvent_webkitMovementY_Getter";
 
   @DomName('MouseEvent.initMouseEvent')
   @DocsEditable()
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
+  void _initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
 
 
   @deprecated
@@ -18226,14 +18228,14 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.clientX')
   @DomName('MouseEvent.clientY')
-  Point get client => new Point($dom_clientX, $dom_clientY);
+  Point get client => new Point(_clientX, _clientY);
 
   @DomName('MouseEvent.movementX')
   @DomName('MouseEvent.movementY')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  Point get movement => new Point($dom_webkitMovementX, $dom_webkitMovementY);
+  Point get movement => new Point(_webkitMovementX, _webkitMovementY);
 
   /**
    * The coordinates of the mouse pointer in target node coordinates.
@@ -18242,11 +18244,11 @@ class MouseEvent extends UIEvent {
    * after the event has fired or if the element has CSS transforms affecting
    * it.
    */
-  Point get offset => new Point($dom_offsetX, $dom_offsetY);
+  Point get offset => new Point(_offsetX, _offsetY);
 
   @DomName('MouseEvent.screenX')
   @DomName('MouseEvent.screenY')
-  Point get screen => new Point($dom_screenX, $dom_screenY);
+  Point get screen => new Point(_screenX, _screenY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18270,8 +18272,8 @@ class MutationEvent extends Event {
       {bool canBubble: false, bool cancelable: false, Node relatedNode,
       String prevValue, String newValue, String attrName, int attrChange: 0}) {
 
-    var event = document.$dom_createEvent('MutationEvent');
-    event.$dom_initMutationEvent(type, canBubble, cancelable, relatedNode,
+    var event = document._createEvent('MutationEvent');
+    event._initMutationEvent(type, canBubble, cancelable, relatedNode,
         prevValue, newValue, attrName, attrChange);
     return event;
   }
@@ -18312,7 +18314,7 @@ class MutationEvent extends Event {
 
   @DomName('MutationEvent.initMutationEvent')
   @DocsEditable()
-  void $dom_initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native "MutationEvent_initMutationEvent_Callback";
+  void _initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native "MutationEvent_initMutationEvent_Callback";
 
 }
 
@@ -18856,7 +18858,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
   Node removeLast() {
     final result = last;
     if (result != null) {
-      _this.$dom_removeChild(result);
+      _this._removeChild(result);
     }
     return result;
   }
@@ -18864,7 +18866,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
   Node removeAt(int index) {
     var result = this[index];
     if (result != null) {
-      _this.$dom_removeChild(result);
+      _this._removeChild(result);
     }
     return result;
   }
@@ -18873,7 +18875,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
     if (object is! Node) return false;
     Node node = object;
     if (!identical(_this, node.parentNode)) return false;
-    _this.$dom_removeChild(node);
+    _this._removeChild(node);
     return true;
   }
 
@@ -18885,7 +18887,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
     while (child != null) {
       Node nextChild = child.nextNode;
       if (test(child) == removeMatching) {
-        _this.$dom_removeChild(child);
+        _this._removeChild(child);
       }
       child = nextChild;
     }
@@ -18904,7 +18906,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
   }
 
   void operator []=(int index, Node value) {
-    _this.$dom_replaceChild(value, this[index]);
+    _this._replaceChild(value, this[index]);
   }
 
   Iterator<Node> get iterator => _this.$dom_childNodes.iterator;
@@ -18987,7 +18989,7 @@ class Node extends EventTarget {
     // TODO(vsm): Use the native remove when available.
     if (this.parentNode != null) {
       final Node parent = this.parentNode;
-      parentNode.$dom_removeChild(this);
+      parentNode._removeChild(this);
     }
   }
 
@@ -18998,7 +19000,7 @@ class Node extends EventTarget {
   Node replaceWith(Node otherNode) {
     try {
       final Node parent = this.parentNode;
-      parent.$dom_replaceChild(otherNode, this);
+      parent._replaceChild(otherNode, this);
     } catch (e) {
 
     };
@@ -19147,13 +19149,13 @@ class Node extends EventTarget {
   @DocsEditable()
   // http://dom.spec.whatwg.org/#dom-node-localname
   @deprecated // deprecated
-  String get $dom_localName native "Node_localName_Getter";
+  String get _localName native "Node_localName_Getter";
 
   @DomName('Node.namespaceURI')
   @DocsEditable()
   // http://dom.spec.whatwg.org/#dom-node-namespaceuri
   @deprecated // deprecated
-  String get $dom_namespaceUri native "Node_namespaceURI_Getter";
+  String get _namespaceUri native "Node_namespaceURI_Getter";
 
   @DomName('Node.nextSibling')
   @DocsEditable()
@@ -19226,11 +19228,11 @@ class Node extends EventTarget {
 
   @DomName('Node.removeChild')
   @DocsEditable()
-  Node $dom_removeChild(Node oldChild) native "Node_removeChild_Callback";
+  Node _removeChild(Node oldChild) native "Node_removeChild_Callback";
 
   @DomName('Node.replaceChild')
   @DocsEditable()
-  Node $dom_replaceChild(Node newChild, Node oldChild) native "Node_replaceChild_Callback";
+  Node _replaceChild(Node newChild, Node oldChild) native "Node_replaceChild_Callback";
 
   @DomName('Node.addEventListener')
   @DocsEditable()
@@ -19336,7 +19338,7 @@ class NodeFilter extends NativeFieldWrapperClass1 {
 @Unstable()
 class NodeIterator extends NativeFieldWrapperClass1 {
   factory NodeIterator(Node root, int whatToShow) {
-    return document.$dom_createNodeIterator(root, whatToShow, null, false);
+    return document._createNodeIterator(root, whatToShow, null, false);
   }
 
   @DomName('NodeIterator.pointerBeforeReferenceNode')
@@ -20131,22 +20133,22 @@ abstract class ParentNode extends NativeFieldWrapperClass1 {
   @DomName('ParentNode.childElementCount')
   @DocsEditable()
   @Experimental() // untriaged
-  int get $dom_childElementCount native "ParentNode_childElementCount_Getter";
+  int get _childElementCount native "ParentNode_childElementCount_Getter";
 
   @DomName('ParentNode.children')
   @DocsEditable()
   @Experimental() // untriaged
-  HtmlCollection get $dom_children native "ParentNode_children_Getter";
+  HtmlCollection get _children native "ParentNode_children_Getter";
 
   @DomName('ParentNode.firstElementChild')
   @DocsEditable()
   @Experimental() // untriaged
-  Element get $dom_firstElementChild native "ParentNode_firstElementChild_Getter";
+  Element get _firstElementChild native "ParentNode_firstElementChild_Getter";
 
   @DomName('ParentNode.lastElementChild')
   @DocsEditable()
   @Experimental() // untriaged
-  Element get $dom_lastElementChild native "ParentNode_lastElementChild_Getter";
+  Element get _lastElementChild native "ParentNode_lastElementChild_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21067,7 +21069,7 @@ class Range extends NativeFieldWrapperClass1 {
   factory Range() => document.$dom_createRange();
 
   factory Range.fromPoint(Point point) =>
-      document.$dom_caretRangeFromPoint(point.x, point.y);
+      document._caretRangeFromPoint(point.x, point.y);
 
   @DomName('Range.END_TO_END')
   @DocsEditable()
@@ -21978,26 +21980,26 @@ class Screen extends NativeFieldWrapperClass1 {
   @DomName('Screen.availLeft')
   @DomName('Screen.availTop')
   @DomName('Screen.availWidth')
-  Rect get available => new Rect($dom_availLeft, $dom_availTop, $dom_availWidth,
-      $dom_availHeight);
+  Rect get available => new Rect(_availLeft, _availTop, _availWidth,
+      _availHeight);
 
   @DomName('Screen.availHeight')
   @DocsEditable()
-  int get $dom_availHeight native "Screen_availHeight_Getter";
+  int get _availHeight native "Screen_availHeight_Getter";
 
   @DomName('Screen.availLeft')
   @DocsEditable()
   @Experimental() // nonstandard
-  int get $dom_availLeft native "Screen_availLeft_Getter";
+  int get _availLeft native "Screen_availLeft_Getter";
 
   @DomName('Screen.availTop')
   @DocsEditable()
   @Experimental() // nonstandard
-  int get $dom_availTop native "Screen_availTop_Getter";
+  int get _availTop native "Screen_availTop_Getter";
 
   @DomName('Screen.availWidth')
   @DocsEditable()
-  int get $dom_availWidth native "Screen_availWidth_Getter";
+  int get _availWidth native "Screen_availWidth_Getter";
 
   @DomName('Screen.colorDepth')
   @DocsEditable()
@@ -23681,11 +23683,11 @@ class Storage extends NativeFieldWrapperClass1
   // TODO(nweiz): update this when maps support lazy iteration
   bool containsValue(String value) => values.any((e) => e == value);
 
-  bool containsKey(String key) => $dom_getItem(key) != null;
+  bool containsKey(String key) => _getItem(key) != null;
 
-  String operator [](String key) => $dom_getItem(key);
+  String operator [](String key) => _getItem(key);
 
-  void operator []=(String key, String value) { $dom_setItem(key, value); }
+  void operator []=(String key, String value) { _setItem(key, value); }
 
   String putIfAbsent(String key, String ifAbsent()) {
     if (!containsKey(key)) this[key] = ifAbsent();
@@ -23694,15 +23696,15 @@ class Storage extends NativeFieldWrapperClass1
 
   String remove(String key) {
     final value = this[key];
-    $dom_removeItem(key);
+    _removeItem(key);
     return value;
   }
 
-  void clear() => $dom_clear();
+  void clear() => _clear();
 
   void forEach(void f(String key, String value)) {
     for (var i = 0; true; i++) {
-      final key = $dom_key(i);
+      final key = _key(i);
       if (key == null) return;
 
       f(key, this[key]);
@@ -23721,15 +23723,15 @@ class Storage extends NativeFieldWrapperClass1
     return values;
   }
 
-  int get length => $dom_length;
+  int get length => _length;
 
-  bool get isEmpty => $dom_key(0) == null;
+  bool get isEmpty => _key(0) == null;
 
   bool get isNotEmpty => !isEmpty;
 
   @DomName('Storage.length')
   @DocsEditable()
-  int get $dom_length native "Storage_length_Getter";
+  int get _length native "Storage_length_Getter";
 
   bool __delete__(index_OR_name) {
     if ((index_OR_name is int || index_OR_name == null)) {
@@ -23777,23 +23779,23 @@ class Storage extends NativeFieldWrapperClass1
 
   @DomName('Storage.clear')
   @DocsEditable()
-  void $dom_clear() native "Storage_clear_Callback";
+  void _clear() native "Storage_clear_Callback";
 
   @DomName('Storage.getItem')
   @DocsEditable()
-  String $dom_getItem(String key) native "Storage_getItem_Callback";
+  String _getItem(String key) native "Storage_getItem_Callback";
 
   @DomName('Storage.key')
   @DocsEditable()
-  String $dom_key(int index) native "Storage_key_Callback";
+  String _key(int index) native "Storage_key_Callback";
 
   @DomName('Storage.removeItem')
   @DocsEditable()
-  void $dom_removeItem(String key) native "Storage_removeItem_Callback";
+  void _removeItem(String key) native "Storage_removeItem_Callback";
 
   @DomName('Storage.setItem')
   @DocsEditable()
-  void $dom_setItem(String key, String data) native "Storage_setItem_Callback";
+  void _setItem(String key, String data) native "Storage_setItem_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23821,8 +23823,8 @@ class StorageEvent extends Event {
     {bool canBubble: false, bool cancelable: false, String key, String oldValue,
     String newValue, String url, Storage storageArea}) {
 
-    var e = document.$dom_createEvent("StorageEvent");
-    e.$dom_initStorageEvent(type, canBubble, cancelable, key, oldValue,
+    var e = document._createEvent("StorageEvent");
+    e._initStorageEvent(type, canBubble, cancelable, key, oldValue,
         newValue, url, storageArea);
     return e;
   }
@@ -23851,7 +23853,7 @@ class StorageEvent extends Event {
 
   @DomName('StorageEvent.initStorageEvent')
   @DocsEditable()
-  void $dom_initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native "StorageEvent_initStorageEvent_Callback";
+  void _initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native "StorageEvent_initStorageEvent_Callback";
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -24233,21 +24235,21 @@ class TableElement extends HtmlElement {
 
   @DomName('HTMLTableElement.tBodies')
   List<TableSectionElement> get tBodies =>
-  new _WrappedList<TableSectionElement>($dom_tBodies);
+  new _WrappedList<TableSectionElement>(_tBodies);
 
   @DomName('HTMLTableElement.rows')
   List<TableRowElement> get rows =>
-      new _WrappedList<TableRowElement>($dom_rows);
+      new _WrappedList<TableRowElement>(_rows);
 
   TableRowElement addRow() {
     return insertRow(-1);
   }
 
-  TableCaptionElement createCaption() => $dom_createCaption();
-  TableSectionElement createTBody() => $dom_createTBody();
-  TableSectionElement createTFoot() => $dom_createTFoot();
-  TableSectionElement createTHead() => $dom_createTHead();
-  TableRowElement insertRow(int index) => $dom_insertRow(index);
+  TableCaptionElement createCaption() => _createCaption();
+  TableSectionElement createTBody() => _createTBody();
+  TableSectionElement createTFoot() => _createTFoot();
+  TableSectionElement createTHead() => _createTHead();
+  TableRowElement insertRow(int index) => _insertRow(index);
 
 
   // To suppress missing implicit constructor warnings.
@@ -24279,11 +24281,11 @@ class TableElement extends HtmlElement {
 
   @DomName('HTMLTableElement.rows')
   @DocsEditable()
-  HtmlCollection get $dom_rows native "HTMLTableElement_rows_Getter";
+  HtmlCollection get _rows native "HTMLTableElement_rows_Getter";
 
   @DomName('HTMLTableElement.tBodies')
   @DocsEditable()
-  HtmlCollection get $dom_tBodies native "HTMLTableElement_tBodies_Getter";
+  HtmlCollection get _tBodies native "HTMLTableElement_tBodies_Getter";
 
   @DomName('HTMLTableElement.tFoot')
   @DocsEditable()
@@ -24303,19 +24305,19 @@ class TableElement extends HtmlElement {
 
   @DomName('HTMLTableElement.createCaption')
   @DocsEditable()
-  HtmlElement $dom_createCaption() native "HTMLTableElement_createCaption_Callback";
+  HtmlElement _createCaption() native "HTMLTableElement_createCaption_Callback";
 
   @DomName('HTMLTableElement.createTBody')
   @DocsEditable()
-  HtmlElement $dom_createTBody() native "HTMLTableElement_createTBody_Callback";
+  HtmlElement _createTBody() native "HTMLTableElement_createTBody_Callback";
 
   @DomName('HTMLTableElement.createTFoot')
   @DocsEditable()
-  HtmlElement $dom_createTFoot() native "HTMLTableElement_createTFoot_Callback";
+  HtmlElement _createTFoot() native "HTMLTableElement_createTFoot_Callback";
 
   @DomName('HTMLTableElement.createTHead')
   @DocsEditable()
-  HtmlElement $dom_createTHead() native "HTMLTableElement_createTHead_Callback";
+  HtmlElement _createTHead() native "HTMLTableElement_createTHead_Callback";
 
   @DomName('HTMLTableElement.deleteCaption')
   @DocsEditable()
@@ -24335,7 +24337,7 @@ class TableElement extends HtmlElement {
 
   @DomName('HTMLTableElement.insertRow')
   @DocsEditable()
-  HtmlElement $dom_insertRow(int index) native "HTMLTableElement_insertRow_Callback";
+  HtmlElement _insertRow(int index) native "HTMLTableElement_insertRow_Callback";
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24348,13 +24350,13 @@ class TableRowElement extends HtmlElement {
 
   @DomName('HTMLTableRowElement.cells')
   List<TableCellElement> get cells =>
-      new _WrappedList<TableCellElement>($dom_cells);
+      new _WrappedList<TableCellElement>(_cells);
 
   TableCellElement addCell() {
     return insertCell(-1);
   }
 
-  TableCellElement insertCell(int index) => $dom_insertCell(index);
+  TableCellElement insertCell(int index) => _insertCell(index);
 
   // To suppress missing implicit constructor warnings.
   factory TableRowElement._() { throw new UnsupportedError("Not supported"); }
@@ -24365,7 +24367,7 @@ class TableRowElement extends HtmlElement {
 
   @DomName('HTMLTableRowElement.cells')
   @DocsEditable()
-  HtmlCollection get $dom_cells native "HTMLTableRowElement_cells_Getter";
+  HtmlCollection get _cells native "HTMLTableRowElement_cells_Getter";
 
   @DomName('HTMLTableRowElement.rowIndex')
   @DocsEditable()
@@ -24381,7 +24383,7 @@ class TableRowElement extends HtmlElement {
 
   @DomName('HTMLTableRowElement.insertCell')
   @DocsEditable()
-  HtmlElement $dom_insertCell(int index) native "HTMLTableRowElement_insertCell_Callback";
+  HtmlElement _insertCell(int index) native "HTMLTableRowElement_insertCell_Callback";
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24394,20 +24396,20 @@ class TableSectionElement extends HtmlElement {
 
   @DomName('HTMLTableSectionElement.rows')
   List<TableRowElement> get rows =>
-    new _WrappedList<TableRowElement>($dom_rows);
+    new _WrappedList<TableRowElement>(_rows);
 
   TableRowElement addRow() {
     return insertRow(-1);
   }
 
-  TableRowElement insertRow(int index) => $dom_insertRow(index);
+  TableRowElement insertRow(int index) => _insertRow(index);
 
   // To suppress missing implicit constructor warnings.
   factory TableSectionElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('HTMLTableSectionElement.rows')
   @DocsEditable()
-  HtmlCollection get $dom_rows native "HTMLTableSectionElement_rows_Getter";
+  HtmlCollection get _rows native "HTMLTableSectionElement_rows_Getter";
 
   @DomName('HTMLTableSectionElement.deleteRow')
   @DocsEditable()
@@ -24415,7 +24417,7 @@ class TableSectionElement extends HtmlElement {
 
   @DomName('HTMLTableSectionElement.insertRow')
   @DocsEditable()
-  HtmlElement $dom_insertRow(int index) native "HTMLTableSectionElement_insertRow_Callback";
+  HtmlElement _insertRow(int index) native "HTMLTableSectionElement_insertRow_Callback";
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24524,13 +24526,13 @@ class TemplateElement extends HtmlElement {
 
   @DomName('HTMLTemplateElement.content')
   @DocsEditable()
-  DocumentFragment get $dom_content native "HTMLTemplateElement_content_Getter";
+  DocumentFragment get _content native "HTMLTemplateElement_content_Getter";
 
 
   // For real TemplateElement use the actual DOM .content field instead of
   // our polyfilled expando.
   @Experimental()
-  DocumentFragment get content => $dom_content;
+  DocumentFragment get content => _content;
 
 
   /**
@@ -24734,7 +24736,7 @@ option[template] {
 
 @DomName('Text')
 class Text extends CharacterData {
-  factory Text(String data) => document.$dom_createTextNode(data);
+  factory Text(String data) => document._createTextNode(data);
   // To suppress missing implicit constructor warnings.
   factory Text._() { throw new UnsupportedError("Not supported"); }
 
@@ -25003,8 +25005,8 @@ class TextEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var e = document.$dom_createEvent("TextEvent");
-    e.$dom_initTextEvent(type, canBubble, cancelable, view, data);
+    var e = document._createEvent("TextEvent");
+    e._initTextEvent(type, canBubble, cancelable, view, data);
     return e;
   }
   // To suppress missing implicit constructor warnings.
@@ -25016,7 +25018,7 @@ class TextEvent extends UIEvent {
 
   @DomName('TextEvent.initTextEvent')
   @DocsEditable()
-  void $dom_initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
+  void _initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25496,11 +25498,11 @@ class Touch extends NativeFieldWrapperClass1 {
 
   @DomName('Touch.clientX')
   @DocsEditable()
-  int get $dom_clientX native "Touch_clientX_Getter";
+  int get _clientX native "Touch_clientX_Getter";
 
   @DomName('Touch.clientY')
   @DocsEditable()
-  int get $dom_clientY native "Touch_clientY_Getter";
+  int get _clientY native "Touch_clientY_Getter";
 
   @DomName('Touch.identifier')
   @DocsEditable()
@@ -25508,19 +25510,19 @@ class Touch extends NativeFieldWrapperClass1 {
 
   @DomName('Touch.pageX')
   @DocsEditable()
-  int get $dom_pageX native "Touch_pageX_Getter";
+  int get _pageX native "Touch_pageX_Getter";
 
   @DomName('Touch.pageY')
   @DocsEditable()
-  int get $dom_pageY native "Touch_pageY_Getter";
+  int get _pageY native "Touch_pageY_Getter";
 
   @DomName('Touch.screenX')
   @DocsEditable()
-  int get $dom_screenX native "Touch_screenX_Getter";
+  int get _screenX native "Touch_screenX_Getter";
 
   @DomName('Touch.screenY')
   @DocsEditable()
-  int get $dom_screenY native "Touch_screenY_Getter";
+  int get _screenY native "Touch_screenY_Getter";
 
   @DomName('Touch.target')
   @DocsEditable()
@@ -25557,15 +25559,15 @@ class Touch extends NativeFieldWrapperClass1 {
 
   @DomName('Touch.clientX')
   @DomName('Touch.clientY')
-  Point get client => new Point($dom_clientX, $dom_clientY);
+  Point get client => new Point(_clientX, _clientY);
 
   @DomName('Touch.pageX')
   @DomName('Touch.pageY')
-  Point get page => new Point($dom_pageX, $dom_pageY);
+  Point get page => new Point(_pageX, _pageY);
 
   @DomName('Touch.screenX')
   @DomName('Touch.screenY')
-  Point get screen => new Point($dom_screenX, $dom_screenY);
+  Point get screen => new Point(_screenX, _screenY);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25586,8 +25588,8 @@ class TouchEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var e = document.$dom_createEvent("TouchEvent");
-    e.$dom_initTouchEvent(touches, targetTouches, changedTouches, type, view,
+    var e = document._createEvent("TouchEvent");
+    e._initTouchEvent(touches, targetTouches, changedTouches, type, view,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
     return e;
   }
@@ -25624,7 +25626,7 @@ class TouchEvent extends UIEvent {
 
   @DomName('TouchEvent.initTouchEvent')
   @DocsEditable()
-  void $dom_initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
+  void _initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
 
 
   /**
@@ -25654,7 +25656,7 @@ class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, Immutabl
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
-  factory TouchList() => document.$dom_createTouchList();
+  factory TouchList() => document._createTouchList();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -25857,7 +25859,7 @@ class TransitionEvent extends Event {
 @Unstable()
 class TreeWalker extends NativeFieldWrapperClass1 {
   factory TreeWalker(Node root, int whatToShow) {
-    return document.$dom_createTreeWalker(root, whatToShow, null, false);
+    return document._createTreeWalker(root, whatToShow, null, false);
   }
 
   @DomName('TreeWalker.currentNode')
@@ -25936,8 +25938,8 @@ class UIEvent extends Event {
     if (view == null) {
       view = window;
     }
-    final e = document.$dom_createEvent("UIEvent");
-    e.$dom_initUIEvent(type, canBubble, cancelable, view, detail);
+    final e = document._createEvent("UIEvent");
+    e._initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
   }
   // To suppress missing implicit constructor warnings.
@@ -25946,7 +25948,7 @@ class UIEvent extends Event {
   @DomName('UIEvent.charCode')
   @DocsEditable()
   @Unstable()
-  int get $dom_charCode native "UIEvent_charCode_Getter";
+  int get _charCode native "UIEvent_charCode_Getter";
 
   @DomName('UIEvent.detail')
   @DocsEditable()
@@ -25955,31 +25957,31 @@ class UIEvent extends Event {
   @DomName('UIEvent.keyCode')
   @DocsEditable()
   @Unstable()
-  int get $dom_keyCode native "UIEvent_keyCode_Getter";
+  int get _keyCode native "UIEvent_keyCode_Getter";
 
   @DomName('UIEvent.layerX')
   @DocsEditable()
   // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
   @Experimental() // nonstandard
-  int get $dom_layerX native "UIEvent_layerX_Getter";
+  int get _layerX native "UIEvent_layerX_Getter";
 
   @DomName('UIEvent.layerY')
   @DocsEditable()
   // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
   @Experimental() // nonstandard
-  int get $dom_layerY native "UIEvent_layerY_Getter";
+  int get _layerY native "UIEvent_layerY_Getter";
 
   @DomName('UIEvent.pageX')
   @DocsEditable()
   // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
   @Experimental() // nonstandard
-  int get $dom_pageX native "UIEvent_pageX_Getter";
+  int get _pageX native "UIEvent_pageX_Getter";
 
   @DomName('UIEvent.pageY')
   @DocsEditable()
   // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
   @Experimental() // nonstandard
-  int get $dom_pageY native "UIEvent_pageY_Getter";
+  int get _pageY native "UIEvent_pageY_Getter";
 
   @DomName('UIEvent.view')
   @DocsEditable()
@@ -25992,7 +25994,7 @@ class UIEvent extends Event {
 
   @DomName('UIEvent.initUIEvent')
   @DocsEditable()
-  void $dom_initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native "UIEvent_initUIEvent_Callback";
+  void _initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native "UIEvent_initUIEvent_Callback";
 
 
   @deprecated
@@ -26007,11 +26009,11 @@ class UIEvent extends Event {
 
   @DomName('UIEvent.layerX')
   @DomName('UIEvent.layerY')
-  Point get layer => new Point($dom_layerX, $dom_layerY);
+  Point get layer => new Point(_layerX, _layerY);
 
   @DomName('UIEvent.pageX')
   @DomName('UIEvent.pageY')
-  Point get page => new Point($dom_pageX, $dom_pageY);
+  Point get page => new Point(_pageX, _pageY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26519,16 +26521,16 @@ class WheelEvent extends MouseEvent {
     if (Device.isFirefox) {
       eventType = 'MouseScrollEvents';
     }
-    final event = document.$dom_createEvent(eventType);
+    final event = document._createEvent(eventType);
     // Dartium always needs these flipped because we're essentially always
     // polyfilling (see similar dart2js code as well)
     deltaX = -deltaX;
     deltaY = -deltaY;
       // Fallthrough for Dartium.
-      event.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
+      event._initMouseEvent(type, canBubble, cancelable, view, detail,
           screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey, button, relatedTarget);
-      event.$dom_initWebKitWheelEvent(deltaX,
+      event._initWebKitWheelEvent(deltaX,
           deltaY ~/ 120, // Chrome does an auto-convert to pixels.
           view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey);
@@ -26575,7 +26577,7 @@ class WheelEvent extends MouseEvent {
   @DomName('WheelEvent.initWebKitWheelEvent')
   @DocsEditable()
   @Experimental()
-  void $dom_initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
+  void _initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
 
 
   /**
@@ -27087,7 +27089,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
 
   @DomName('Window.getComputedStyle')
   @DocsEditable()
-  CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "Window_getComputedStyle_Callback";
+  CssStyleDeclaration _getComputedStyle(Element element, String pseudoElement) native "Window_getComputedStyle_Callback";
 
   @DomName('Window.getMatchedCSSRules')
   @DocsEditable()
@@ -27108,7 +27110,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
 
   @DomName('Window.moveTo')
   @DocsEditable()
-  void $dom_moveTo(num x, num y) native "Window_moveTo_Callback";
+  void _moveTo(num x, num y) native "Window_moveTo_Callback";
 
   @DomName('Window.open')
   @DocsEditable()
@@ -27505,7 +27507,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
   void moveTo(Point p) {
-    $dom_moveTo(p.x, p.y);
+    moveTo(p.x, p.y);
   }
 
 }
@@ -29442,7 +29444,7 @@ abstract class _AttributeMap implements Map<String, String> {
 
   Iterable<String> get keys {
     // TODO: generate a lazy collection instead.
-    var attributes = _element.$dom_attributes;
+    var attributes = _element._attributes;
     var keys = new List<String>();
     for (int i = 0, len = attributes.length; i < len; i++) {
       if (_matches(attributes[i])) {
@@ -29454,7 +29456,7 @@ abstract class _AttributeMap implements Map<String, String> {
 
   Iterable<String> get values {
     // TODO: generate a lazy collection instead.
-    var attributes = _element.$dom_attributes;
+    var attributes = _element._attributes;
     var values = new List<String>();
     for (int i = 0, len = attributes.length; i < len; i++) {
       if (_matches(attributes[i])) {
@@ -29490,7 +29492,7 @@ class _ElementAttributeMap extends _AttributeMap {
   _ElementAttributeMap(Element element): super(element);
 
   bool containsKey(String key) {
-    return _element.$dom_hasAttribute(key);
+    return _element._hasAttribute(key);
   }
 
   String operator [](String key) {
@@ -29503,7 +29505,7 @@ class _ElementAttributeMap extends _AttributeMap {
 
   String remove(String key) {
     String value = _element.$dom_getAttribute(key);
-    _element.$dom_removeAttribute(key);
+    _element._removeAttribute(key);
     return value;
   }
 
@@ -29514,7 +29516,7 @@ class _ElementAttributeMap extends _AttributeMap {
     return keys.length;
   }
 
-  bool _matches(Node node) => node.$dom_namespaceUri == null;
+  bool _matches(Node node) => node._namespaceUri == null;
 }
 
 /**
@@ -29527,7 +29529,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
   _NamespacedAttributeMap(Element element, this._namespace): super(element);
 
   bool containsKey(String key) {
-    return _element.$dom_hasAttributeNS(_namespace, key);
+    return _element._hasAttributeNS(_namespace, key);
   }
 
   String operator [](String key) {
@@ -29540,7 +29542,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
 
   String remove(String key) {
     String value = this[key];
-    _element.$dom_removeAttributeNS(_namespace, key);
+    _element._removeAttributeNS(_namespace, key);
     return value;
   }
 
@@ -29551,7 +29553,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
     return keys.length;
   }
 
-  bool _matches(Node node) => node.$dom_namespaceUri == _namespace;
+  bool _matches(Node node) => node._namespaceUri == _namespace;
 }
 
 
@@ -29561,27 +29563,27 @@ class _NamespacedAttributeMap extends _AttributeMap {
  */
 class _DataAttributeMap implements Map<String, String> {
 
-  final Map<String, String> $dom_attributes;
+  final Map<String, String> _attributes;
 
-  _DataAttributeMap(this.$dom_attributes);
+  _DataAttributeMap(this._attributes);
 
   // interface Map
 
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(String value) => values.any((v) => v == value);
 
-  bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
+  bool containsKey(String key) => _attributes.containsKey(_attr(key));
 
-  String operator [](String key) => $dom_attributes[_attr(key)];
+  String operator [](String key) => _attributes[_attr(key)];
 
   void operator []=(String key, String value) {
-    $dom_attributes[_attr(key)] = value;
+    _attributes[_attr(key)] = value;
   }
 
   String putIfAbsent(String key, String ifAbsent()) =>
-    $dom_attributes.putIfAbsent(_attr(key), ifAbsent);
+    _attributes.putIfAbsent(_attr(key), ifAbsent);
 
-  String remove(String key) => $dom_attributes.remove(_attr(key));
+  String remove(String key) => _attributes.remove(_attr(key));
 
   void clear() {
     // Needs to operate on a snapshot since we are mutating the collection.
@@ -29591,7 +29593,7 @@ class _DataAttributeMap implements Map<String, String> {
   }
 
   void forEach(void f(String key, String value)) {
-    $dom_attributes.forEach((String key, String value) {
+    _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         f(_strip(key), value);
       }
@@ -29600,7 +29602,7 @@ class _DataAttributeMap implements Map<String, String> {
 
   Iterable<String> get keys {
     final keys = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
+    _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         keys.add(_strip(key));
       }
@@ -29610,7 +29612,7 @@ class _DataAttributeMap implements Map<String, String> {
 
   Iterable<String> get values {
     final values = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
+    _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         values.add(value);
       }
@@ -32163,7 +32165,7 @@ class _WrappedEvent implements Event {
 
   String get type => wrapped.type;
 
-  void $dom_initEvent(String eventTypeArg, bool canBubbleArg,
+  void _initEvent(String eventTypeArg, bool canBubbleArg,
       bool cancelableArg) {
     throw new UnsupportedError(
         'Cannot initialize this Event.');
@@ -32368,18 +32370,18 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
   Window get view => _parent.view;
-  void $dom_initUIEvent(String type, bool canBubble, bool cancelable,
+  void _initUIEvent(String type, bool canBubble, bool cancelable,
       Window view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
   }
-  String get _shadowKeyIdentifier => _parent.$dom_keyIdentifier;
+  String get _shadowKeyIdentifier => _parent._keyIdentifier;
 
-  int get $dom_charCode => charCode;
-  int get $dom_keyCode => keyCode;
-  String get $dom_keyIdentifier {
+  int get _charCode => charCode;
+  int get _keyCode => keyCode;
+  String get _keyIdentifier {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }
-  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
+  void _initKeyboardEvent(String type, bool canBubble, bool cancelable,
       Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey,
       bool altGraphKey) {

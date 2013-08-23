@@ -10,13 +10,13 @@ $!MEMBERS
 
   @DomName('Touch.clientX')
   @DomName('Touch.clientY')
-  Point get client => new Point($dom_clientX, $dom_clientY);
+  Point get client => new Point(_clientX, _clientY);
 
   @DomName('Touch.pageX')
   @DomName('Touch.pageY')
-  Point get page => new Point($dom_pageX, $dom_pageY);
+  Point get page => new Point(_pageX, _pageY);
 
   @DomName('Touch.screenX')
   @DomName('Touch.screenY')
-  Point get screen => new Point($dom_screenX, $dom_screenY);
+  Point get screen => new Point(_screenX, _screenY);
 }

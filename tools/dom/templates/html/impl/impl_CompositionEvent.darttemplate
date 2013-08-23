@@ -13,8 +13,8 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     if (view == null) {
       view = window;
     }
-    var e = document.$dom_createEvent("CompositionEvent");
-    e.$dom_initCompositionEvent(type, canBubble, cancelable, view, data);
+    var e = document._createEvent("CompositionEvent");
+    e._initCompositionEvent(type, canBubble, cancelable, view, data);
     return e;
   }
 $!MEMBERS

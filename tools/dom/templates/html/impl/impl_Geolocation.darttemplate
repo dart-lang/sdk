@@ -22,7 +22,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     }
     var completer = new Completer<Geoposition>();
     try {
-      $dom_getCurrentPosition(
+      _getCurrentPosition(
           (position) {
             completer.complete(_ensurePosition(position));
           },
@@ -56,7 +56,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     controller = new StreamController<Geoposition>(sync: true,
       onListen: () {
         assert(watchId == null);
-        watchId = $dom_watchPosition(
+        watchId = _watchPosition(
             (position) {
               controller.add(_ensurePosition(position));
             },
@@ -67,7 +67,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       },
       onCancel: () {
         assert(watchId != null);
-        $dom_clearWatch(watchId);
+        _clearWatch(watchId);
       });
 
     return controller.stream;

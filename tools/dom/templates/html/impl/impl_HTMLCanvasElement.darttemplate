@@ -39,5 +39,5 @@ $endif
   }
 
   String toDataUrl([String type = 'image/png', num quality]) => 
-      $dom_toDataUrl(type, quality);
+      _toDataUrl(type, quality);
 }

@@ -94,7 +94,7 @@ $endif
   Node removeLast() {
     final result = last;
     if (result != null) {
-      _this.$dom_removeChild(result);
+      _this._removeChild(result);
     }
     return result;
   }
@@ -102,7 +102,7 @@ $endif
   Node removeAt(int index) {
     var result = this[index];
     if (result != null) {
-      _this.$dom_removeChild(result);
+      _this._removeChild(result);
     }
     return result;
   }
@@ -111,7 +111,7 @@ $endif
     if (object is! Node) return false;
     Node node = object;
     if (!identical(_this, node.parentNode)) return false;
-    _this.$dom_removeChild(node);
+    _this._removeChild(node);
     return true;
   }
 
@@ -123,7 +123,7 @@ $endif
     while (child != null) {
       Node nextChild = child.nextNode;
       if (test(child) == removeMatching) {
-        _this.$dom_removeChild(child);
+        _this._removeChild(child);
       }
       child = nextChild;
     }
@@ -142,7 +142,7 @@ $endif
   }
 
   void operator []=(int index, Node value) {
-    _this.$dom_replaceChild(value, this[index]);
+    _this._replaceChild(value, this[index]);
   }
 
   Iterator<Node> get iterator => _this.$dom_childNodes.iterator;
@@ -224,7 +224,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     // TODO(vsm): Use the native remove when available.
     if (this.parentNode != null) {
       final Node parent = this.parentNode;
-      parentNode.$dom_removeChild(this);
+      parentNode._removeChild(this);
     }
   }
 
@@ -235,7 +235,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   Node replaceWith(Node otherNode) {
     try {
       final Node parent = this.parentNode;
-      parent.$dom_replaceChild(otherNode, this);
+      parent._replaceChild(otherNode, this);
     } catch (e) {
 
     };

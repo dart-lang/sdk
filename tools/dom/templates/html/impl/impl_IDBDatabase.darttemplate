@@ -18,7 +18,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       options['autoIncrement'] = autoIncrement;
     }
 
-    return $dom_createObjectStore(name, options);
+    return _createObjectStore(name, options);
   }
 
 $if DART2JS

@@ -44,7 +44,7 @@ class Cursor extends NativeFieldWrapperClass1 {
   @DomName('IDBCursor.delete')
   Future delete() {
    try {
-      return _completeRequest($dom_delete());
+      return _completeRequest(_delete());
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
     }
@@ -53,7 +53,7 @@ class Cursor extends NativeFieldWrapperClass1 {
   @DomName('IDBCursor.value')
   Future update(value) {
    try {
-      return _completeRequest($dom_update(value));
+      return _completeRequest(_update(value));
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
     }
@@ -82,7 +82,7 @@ class Cursor extends NativeFieldWrapperClass1 {
 
   @DomName('IDBCursor.delete')
   @DocsEditable()
-  Request $dom_delete() native "IDBCursor_delete_Callback";
+  Request _delete() native "IDBCursor_delete_Callback";
 
   @DomName('IDBCursor.next')
   @DocsEditable()
@@ -91,7 +91,7 @@ class Cursor extends NativeFieldWrapperClass1 {
 
   @DomName('IDBCursor.update')
   @DocsEditable()
-  Request $dom_update(Object value) native "IDBCursor_update_Callback";
+  Request _update(Object value) native "IDBCursor_update_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -138,7 +138,7 @@ class Database extends EventTarget {
       options['autoIncrement'] = autoIncrement;
     }
 
-    return $dom_createObjectStore(name, options);
+    return _createObjectStore(name, options);
   }
 
 
@@ -181,7 +181,7 @@ class Database extends EventTarget {
 
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable()
-  ObjectStore $dom_createObjectStore(String name, [Map options]) native "IDBDatabase_createObjectStore_Callback";
+  ObjectStore _createObjectStore(String name, [Map options]) native "IDBDatabase_createObjectStore_Callback";
 
   @DomName('IDBDatabase.deleteObjectStore')
   @DocsEditable()
@@ -278,9 +278,9 @@ class IdbFactory extends NativeFieldWrapperClass1 {
     try {
       var request;
       if (version != null) {
-        request = $dom_open(name, version);
+        request = _open(name, version);
       } else {
-        request = $dom_open(name);
+        request = _open(name);
       }
 
       if (onUpgradeNeeded != null) {
@@ -299,7 +299,7 @@ class IdbFactory extends NativeFieldWrapperClass1 {
   Future<IdbFactory> deleteDatabase(String name,
       {void onBlocked(Event)}) {
     try {
-      var request = $dom_deleteDatabase(name);
+      var request = _deleteDatabase(name);
 
       if (onBlocked != null) {
         request.onBlocked.listen(onBlocked);
@@ -322,7 +322,7 @@ class IdbFactory extends NativeFieldWrapperClass1 {
   @Experimental()
   Future<List<String>> getDatabaseNames() {
     try {
-      var request = $dom_webkitGetDatabaseNames();
+      var request = _webkitGetDatabaseNames();
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -344,9 +344,9 @@ class IdbFactory extends NativeFieldWrapperClass1 {
 
   @DomName('IDBFactory.deleteDatabase')
   @DocsEditable()
-  OpenDBRequest $dom_deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
+  OpenDBRequest _deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
 
-  OpenDBRequest $dom_open(String name, [int version]) {
+  OpenDBRequest _open(String name, [int version]) {
     if (version != null) {
       return _open_1(name, version);
     }
@@ -362,7 +362,7 @@ class IdbFactory extends NativeFieldWrapperClass1 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  Request $dom_webkitGetDatabaseNames() native "IDBFactory_webkitGetDatabaseNames_Callback";
+  Request _webkitGetDatabaseNames() native "IDBFactory_webkitGetDatabaseNames_Callback";
 
 }
 
@@ -396,9 +396,9 @@ class Index extends NativeFieldWrapperClass1 {
    try {
       var request;
       if (key_OR_range != null) {
-        request = $dom_count(key_OR_range);
+        request = _count(key_OR_range);
       } else {
-        request = $dom_count();
+        request = _count();
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -409,7 +409,7 @@ class Index extends NativeFieldWrapperClass1 {
   @DomName('IDBIndex.get')
   Future get(key) {
     try {
-      var request = $dom_get(key);
+      var request = _get(key);
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -420,7 +420,7 @@ class Index extends NativeFieldWrapperClass1 {
   @DomName('IDBIndex.getKey')
   Future getKey(key) {
     try {
-      var request = $dom_getKey(key);
+      var request = _getKey(key);
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -448,9 +448,9 @@ class Index extends NativeFieldWrapperClass1 {
     }
     var request;
     if (direction == null) {
-      request = $dom_openCursor(key_OR_range);
+      request = _openCursor(key_OR_range);
     } else {
-      request = $dom_openCursor(key_OR_range, direction);
+      request = _openCursor(key_OR_range, direction);
     }
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
@@ -475,9 +475,9 @@ class Index extends NativeFieldWrapperClass1 {
     }
     var request;
     if (direction == null) {
-      request = $dom_openKeyCursor(key_OR_range);
+      request = _openKeyCursor(key_OR_range);
     } else {
-      request = $dom_openKeyCursor(key_OR_range, direction);
+      request = _openKeyCursor(key_OR_range, direction);
     }
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
@@ -503,7 +503,7 @@ class Index extends NativeFieldWrapperClass1 {
   @DocsEditable()
   bool get unique native "IDBIndex_unique_Getter";
 
-  Request $dom_count([key_OR_range]) {
+  Request _count([key_OR_range]) {
     if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _count_1(key_OR_range);
     }
@@ -517,7 +517,7 @@ class Index extends NativeFieldWrapperClass1 {
 
   Request _count_2(key_OR_range) native "IDBIndex__count_2_Callback";
 
-  Request $dom_get(key) {
+  Request _get(key) {
     if ((key is KeyRange || key == null)) {
       return _get_1(key);
     }
@@ -531,7 +531,7 @@ class Index extends NativeFieldWrapperClass1 {
 
   Request _get_2(key) native "IDBIndex__get_2_Callback";
 
-  Request $dom_getKey(key) {
+  Request _getKey(key) {
     if ((key is KeyRange || key == null)) {
       return _getKey_1(key);
     }
@@ -545,7 +545,7 @@ class Index extends NativeFieldWrapperClass1 {
 
   Request _getKey_2(key) native "IDBIndex__getKey_2_Callback";
 
-  Request $dom_openCursor([key_OR_range, String direction]) {
+  Request _openCursor([key_OR_range, String direction]) {
     if ((direction is String || direction == null) && (key_OR_range is KeyRange || key_OR_range == null)) {
       return _openCursor_1(key_OR_range, direction);
     }
@@ -559,7 +559,7 @@ class Index extends NativeFieldWrapperClass1 {
 
   Request _openCursor_2(key_OR_range, direction) native "IDBIndex__openCursor_2_Callback";
 
-  Request $dom_openKeyCursor([key_OR_range, String direction]) {
+  Request _openKeyCursor([key_OR_range, String direction]) {
     if ((direction is String || direction == null) && (key_OR_range is KeyRange || key_OR_range == null)) {
       return _openKeyCursor_1(key_OR_range, direction);
     }
@@ -652,9 +652,9 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     try {
       var request;
       if (key != null) {
-        request = $dom_add(value, key);
+        request = _add(value, key);
       } else {
-        request = $dom_add(value);
+        request = _add(value);
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -665,7 +665,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DomName('IDBObjectStore.clear')
   Future clear() {
     try {
-      return _completeRequest($dom_clear());
+      return _completeRequest(_clear());
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
     }
@@ -674,7 +674,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DomName('IDBObjectStore.delete')
   Future delete(key_OR_keyRange){
     try {
-      return _completeRequest($dom_delete(key_OR_keyRange));
+      return _completeRequest(_delete(key_OR_keyRange));
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
     }
@@ -685,9 +685,9 @@ class ObjectStore extends NativeFieldWrapperClass1 {
    try {
       var request;
       if (key_OR_range != null) {
-        request = $dom_count(key_OR_range);
+        request = _count(key_OR_range);
       } else {
-        request = $dom_count();
+        request = _count();
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -700,9 +700,9 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     try {
       var request;
       if (key != null) {
-        request = $dom_put(value, key);
+        request = _put(value, key);
       } else {
-        request = $dom_put(value);
+        request = _put(value);
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -713,7 +713,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DomName('IDBObjectStore.get')
   Future getObject(key) {
     try {
-      var request = $dom_get(key);
+      var request = _get(key);
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -758,9 +758,9 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     // TODO: try/catch this and return a stream with an immediate error.
     var request;
     if (direction == null) {
-      request = $dom_openCursor(key_OR_range);
+      request = _openCursor(key_OR_range);
     } else {
-      request = $dom_openCursor(key_OR_range, direction);
+      request = _openCursor(key_OR_range, direction);
     }
     return _cursorStreamFromResult(request, autoAdvance);
   }
@@ -775,7 +775,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
       options['multiEntry'] = multiEntry;
     }
 
-    return $dom_createIndex(name, keyPath, options);
+    return _createIndex(name, keyPath, options);
   }
 
 
@@ -801,13 +801,13 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 
   @DomName('IDBObjectStore.add')
   @DocsEditable()
-  Request $dom_add(Object value, [Object key]) native "IDBObjectStore_add_Callback";
+  Request _add(Object value, [Object key]) native "IDBObjectStore_add_Callback";
 
   @DomName('IDBObjectStore.clear')
   @DocsEditable()
-  Request $dom_clear() native "IDBObjectStore_clear_Callback";
+  Request _clear() native "IDBObjectStore_clear_Callback";
 
-  Request $dom_count([key_OR_range]) {
+  Request _count([key_OR_range]) {
     if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _count_1(key_OR_range);
     }
@@ -821,7 +821,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 
   Request _count_2(key_OR_range) native "IDBObjectStore__count_2_Callback";
 
-  Index $dom_createIndex(String name, keyPath, [Map options]) {
+  Index _createIndex(String name, keyPath, [Map options]) {
     if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
       return _createIndex_1(name, keyPath, options);
     }
@@ -835,7 +835,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 
   Index _createIndex_2(name, keyPath, options) native "IDBObjectStore__createIndex_2_Callback";
 
-  Request $dom_delete(key_OR_keyRange) {
+  Request _delete(key_OR_keyRange) {
     if ((key_OR_keyRange is KeyRange || key_OR_keyRange == null)) {
       return _delete_1(key_OR_keyRange);
     }
@@ -853,7 +853,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DocsEditable()
   void deleteIndex(String name) native "IDBObjectStore_deleteIndex_Callback";
 
-  Request $dom_get(key) {
+  Request _get(key) {
     if ((key is KeyRange || key == null)) {
       return _get_1(key);
     }
@@ -871,7 +871,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DocsEditable()
   Index index(String name) native "IDBObjectStore_index_Callback";
 
-  Request $dom_openCursor([key_OR_range, String direction]) {
+  Request _openCursor([key_OR_range, String direction]) {
     if ((direction is String || direction == null) && (key_OR_range is KeyRange || key_OR_range == null)) {
       return _openCursor_1(key_OR_range, direction);
     }
@@ -887,7 +887,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 
   @DomName('IDBObjectStore.put')
   @DocsEditable()
-  Request $dom_put(Object value, [Object key]) native "IDBObjectStore_put_Callback";
+  Request _put(Object value, [Object key]) native "IDBObjectStore_put_Callback";
 
 
   /**

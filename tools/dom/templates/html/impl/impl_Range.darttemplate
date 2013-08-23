@@ -10,7 +10,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME() => document.$dom_createRange();
 
   factory $CLASSNAME.fromPoint(Point point) =>
-      document.$dom_caretRangeFromPoint(point.x, point.y);
+      document._caretRangeFromPoint(point.x, point.y);
 $!MEMBERS
 
   /**

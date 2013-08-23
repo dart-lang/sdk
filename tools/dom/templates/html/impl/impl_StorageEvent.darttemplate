@@ -11,8 +11,8 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     {bool canBubble: false, bool cancelable: false, String key, String oldValue,
     String newValue, String url, Storage storageArea}) {
 
-    var e = document.$dom_createEvent("StorageEvent");
-    e.$dom_initStorageEvent(type, canBubble, cancelable, key, oldValue,
+    var e = document._createEvent("StorageEvent");
+    e._initStorageEvent(type, canBubble, cancelable, key, oldValue,
         newValue, url, storageArea);
     return e;
   }

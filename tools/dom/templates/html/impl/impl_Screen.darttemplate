@@ -11,6 +11,6 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   @DomName('Screen.availLeft')
   @DomName('Screen.availTop')
   @DomName('Screen.availWidth')
-  Rect get available => new Rect($dom_availLeft, $dom_availTop, $dom_availWidth,
-      $dom_availHeight);
+  Rect get available => new Rect(_availLeft, _availTop, _availWidth,
+      _availHeight);
 $!MEMBERS}

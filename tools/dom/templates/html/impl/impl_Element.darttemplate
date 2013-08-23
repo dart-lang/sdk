@@ -10,14 +10,14 @@ class _ChildrenElementList extends ListBase<Element> {
   final HtmlCollection _childElements;
 
   _ChildrenElementList._wrap(Element element)
-    : _childElements = element.$dom_children,
+    : _childElements = element._children,
       _element = element;
 
   bool contains(Object element) => _childElements.contains(element);
 
 
   bool get isEmpty {
-    return _element.$dom_firstElementChild == null;
+    return _element._firstElementChild == null;
   }
 
   int get length {
@@ -29,7 +29,7 @@ class _ChildrenElementList extends ListBase<Element> {
   }
 
   void operator []=(int index, Element value) {
-    _element.$dom_replaceChild(value, _childElements[index]);
+    _element._replaceChild(value, _childElements[index]);
   }
 
   void set length(int newLength) {
@@ -93,7 +93,7 @@ class _ChildrenElementList extends ListBase<Element> {
     if (object is Element) {
       Element element = object;
       if (identical(element.parentNode, _element)) {
-        _element.$dom_removeChild(element);
+        _element._removeChild(element);
         return true;
       }
     }
@@ -123,7 +123,7 @@ class _ChildrenElementList extends ListBase<Element> {
   Element removeAt(int index) {
     final result = this[index];
     if (result != null) {
-      _element.$dom_removeChild(result);
+      _element._removeChild(result);
     }
     return result;
   }
@@ -131,20 +131,20 @@ class _ChildrenElementList extends ListBase<Element> {
   Element removeLast() {
     final result = this.last;
     if (result != null) {
-      _element.$dom_removeChild(result);
+      _element._removeChild(result);
     }
     return result;
   }
 
   Element get first {
-    Element result = _element.$dom_firstElementChild;
+    Element result = _element._firstElementChild;
     if (result == null) throw new StateError("No elements");
     return result;
   }
 
 
   Element get last {
-    Element result = _element.$dom_lastElementChild;
+    Element result = _element._lastElementChild;
     if (result == null) throw new StateError("No elements");
     return result;
   }
@@ -542,7 +542,7 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    *     var items = element.query('.itemClassName');
    */
   ElementList queryAll(String selectors) =>
-    new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
+    new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
   /**
    * The set of CSS classes applied to this element.
@@ -627,7 +627,7 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       pseudoElement = '';
     }
     // TODO(jacobr): last param should be null, see b/5045788
-    return window.$dom_getComputedStyle(this, pseudoElement);
+    return window._getComputedStyle(this, pseudoElement);
   }
 
   /**
@@ -700,11 +700,11 @@ $endif
 
   @DomName('Element.localName')
   @DocsEditable()
-  String get localName => $dom_localName;
+  String get localName => _localName;
 
   @DomName('Element.namespaceUri')
   @DocsEditable()
-  String get namespaceUri => $dom_namespaceUri;
+  String get namespaceUri => _namespaceUri;
 
   String toString() => localName;
 
@@ -732,17 +732,17 @@ $if DART2JS
         JS('bool', '!!(#.scrollIntoViewIfNeeded)', this);
 $endif
     if (alignment == ScrollAlignment.TOP) {
-      this.$dom_scrollIntoView(true);
+      this._scrollIntoView(true);
     } else if (alignment == ScrollAlignment.BOTTOM) {
-      this.$dom_scrollIntoView(false);
+      this._scrollIntoView(false);
     } else if (hasScrollIntoViewIfNeeded) {
       if (alignment == ScrollAlignment.CENTER) {
-        this.$dom_scrollIntoViewIfNeeded(true);
+        this._scrollIntoViewIfNeeded(true);
       } else {
-        this.$dom_scrollIntoViewIfNeeded();
+        this._scrollIntoViewIfNeeded();
       }
     } else {
-      this.$dom_scrollIntoView();
+      this._scrollIntoView();
     }
   }
 
