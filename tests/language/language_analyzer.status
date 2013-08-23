@@ -8,7 +8,7 @@
 closure_call_wrong_argument_count_negative_test: skip
 
 # TBD: using built-in identifers
-built_in_identifier_prefix_test: fail
+built_in_identifier_prefix_test: fail # Issue 12694
 
 # TBF: It is a static type warning if a type parameter is a supertype of its upper bound.
 cyclic_type_variable_test/01: fail
@@ -17,21 +17,21 @@ cyclic_type_variable_test/03: fail
 cyclic_type_variable_test/04: fail
 
 # TBF: It is a static type warning if any of the type arguments to k' are not subtypes of the bounds of the corresponding formal type parameters of type.
-default_factory2_test/01: fail
+default_factory2_test/01: fail # Issue 12701
 
 # TBF: It is a static warning if the function type of k' is not a subtype of the type of k.
 default_implementation2_test: fail
 
 # TBD: F-bounded quantification
-f_bounded_quantification_test/01: fail
-f_bounded_quantification_test/02: fail
+f_bounded_quantification_test/01: fail # Issue 12704
+f_bounded_quantification_test/02: fail # Issue 12704
 
 function_type_alias9_test/00: crash # Issue 11987
 
 list_literal_syntax_test/01: fail # Issue 12103
 list_literal_syntax_test/02: fail # Issue 12103
 list_literal_syntax_test/03: fail # Issue 12103
-malformed_test/none: fail
+malformed_test/none: fail # Issue 12696
 
 # TBF: 1is int; invalid character in number
 number_identifier_negative_test: fail
@@ -79,28 +79,28 @@ compile_time_constant_test/none: fail
 metadata_test: fail
 
 # Test issue 11564, named parameter starts with '_'
-named_parameters_with_object_property_names_test: fail
+named_parameters_with_object_property_names_test: fail # Issue 11564
 
 # test issue 11575, classes with abstrac members are not marked as abstract
-abstract_factory_constructor_test/none: fail
-abstract_syntax_test/none: fail
-get_set_syntax_test/none: fail
-implicit_this_test/none: fail
-interface_test/none: fail
-syntax_test/none: fail
+abstract_factory_constructor_test/none: fail # Issue 11575
+abstract_syntax_test/none: fail # Issue 11575
+get_set_syntax_test/none: fail # Issue 11575
+implicit_this_test/none: fail # Issue 11575
+interface_test/none: fail # Issue 11575
+syntax_test/none: fail # Issue 11575
 
 # test issue 11576
-bad_constructor_test/none: fail
+bad_constructor_test/none: fail # Issue 11576
 
 # test issue 11577, has return type for []=
-cascade_test/none: fail
+cascade_test/none: fail # Issue 11577
 
 # test issue 11578, redirecting factory with not subtype
-factory5_test/none: fail
-factory_redirection_test/none: fail
-type_variable_bounds_test/none: fail
-type_variable_scope_test/none: fail
-factory_implementation_test/none: fail
+factory5_test/none: fail # Issue 11578
+factory_redirection_test/none: fail # Issue 11578
+type_variable_bounds_test/none: fail # Issue 11578
+type_variable_scope_test/none: fail # Issue 11578
+factory_implementation_test/none: fail # Issue 11578
 
 # test issue 11579, assignment, no setter
 getter_no_setter_test/none: fail
@@ -183,45 +183,45 @@ type_parameter_test/none: fail
 type_variable_static_context_negative_test: fail
 
 # test issue 12162, 'a' has dynamic type, so it statically it is assignable to anything
-type_variable_bounds2_test/00: fail
-type_variable_bounds2_test/01: fail
-type_variable_bounds2_test/02: fail
-type_variable_bounds2_test/03: fail
-type_variable_bounds2_test/04: fail
-type_variable_bounds2_test/06: fail
+type_variable_bounds2_test/00: fail # Issue 12162
+type_variable_bounds2_test/01: fail # Issue 12162
+type_variable_bounds2_test/02: fail # Issue 12162
+type_variable_bounds2_test/03: fail # Issue 12162
+type_variable_bounds2_test/04: fail # Issue 12162
+type_variable_bounds2_test/06: fail # Issue 12162
 
 # test issue 12163, unresolved identifier is static warning in static context
-unresolved_in_factory_negative_test: fail
-unresolved_top_level_var_negative_test: fail
+unresolved_in_factory_negative_test: fail # Issue 12163
+unresolved_top_level_var_negative_test: fail # Issue 12163
 
 # test issue 12181, uses argument definition test
-constructor_initializer_test: fail
+constructor_initializer_test: fail # Issue 12181
 
 # test issue 12191, ambiguous import is always warning now
-prefix3_negative_test: fail
-library_ambiguous_test/00: fail
-library_ambiguous_test/01: fail
-library_ambiguous_test/02: fail
-library_ambiguous_test/03: fail
+prefix3_negative_test: fail # Issue 12191
+library_ambiguous_test/00: fail # Issue 12191
+library_ambiguous_test/01: fail # Issue 12191
+library_ambiguous_test/02: fail # Issue 12191
+library_ambiguous_test/03: fail # Issue 12191
 
 # test issue 12289, assignment in assert statement
-type_error_test: fail
+type_error_test: fail # Issue 12289
 
 # test issue 12381, It is compile-time error to invoke not existing function
-issue11724_test: fail
-call_nonexistent_static_test/08: fail
+issue11724_test: fail # Issue 12381
+call_nonexistent_static_test/08: fail # Issue 12381
 
 # test issue 12397; it is static warning, not error to use variable before declaration (or hidden)
-scope_negative_test: fail
+scope_negative_test: fail # Issue 12397
 
 # test issue 12539, rules for finals were loosened, contradiction in spec was fixed
-const_syntax_test/09: fail
+const_syntax_test/09: fail # Issue 12539
 
 # test issue 12541; there shouldn't be a static warning
-static_field_test/01: fail
-static_field_test/02: fail
-static_field_test/03: fail
-static_field_test/04: fail
+static_field_test/01: fail # Issue 12541
+static_field_test/02: fail # Issue 12541
+static_field_test/03: fail # Issue 12541
+static_field_test/04: fail # Issue 12541
 
 
 [ $compiler == dartanalyzer && $checked ]

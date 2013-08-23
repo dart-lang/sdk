@@ -9,34 +9,32 @@ constructor_initializer_test: Fail, OK # Depends on ?parameter check.
 black_listed_test/none: Fail # Issue 12446.
 
 # Issues related to undeclared prefix resolution.
-malformed_test/none: Fail
-malformed_test/05: Fail
-malformed_test/06: Fail
+malformed_test/none: Fail # Issue 12695
+malformed_test/05: Fail # Issue 12695
+malformed_test/06: Fail # Issue 12695
 
-# Fails due to inlining. Not all expected frames are in the trace.
-full_stacktrace1_test: Pass, Fail
-full_stacktrace2_test: Pass, Fail
-full_stacktrace3_test: Pass, Fail
-# Stack traces may or may not end in a newline depending on the JS enging.
-stacktrace_test: Pass, Fail # Assumes stack trace string ends in newline.
+full_stacktrace1_test: Pass, Fail # Issue 12698
+full_stacktrace2_test: Pass, Fail # Issue 12698
+full_stacktrace3_test: Pass, Fail # Issue 12698
+stacktrace_test: Pass, Fail # # Issue 12698
 
 # VM specific tests that should not be run by dart2js.
-*vm_test: Skip
+vm/*: Skip # Issue 12699
 
 [ $compiler == dart2js && $checked ]
-checked_setter2_test: Fail # dartbug.com/11273
-default_factory2_test/01: Fail
-type_variable_bounds_test/01: Fail
-type_variable_bounds_test/02: Fail
-type_variable_bounds_test/04: Fail
-type_variable_bounds_test/05: Fail
-type_variable_bounds2_test/00: Fail
-type_variable_bounds2_test/03: Fail
-type_variable_bounds2_test/05: Fail
-type_variable_bounds2_test/06: Pass # For the wrong reasons.
-type_variable_bounds3_test/00: Fail
-f_bounded_quantification_test/01: Fail
-f_bounded_quantification_test/02: Fail
+checked_setter2_test: Fail # Issue 11273
+default_factory2_test/01: Fail # Issue 12700
+type_variable_bounds_test/01: Fail # Issue 12702
+type_variable_bounds_test/02: Fail # Issue 12702
+type_variable_bounds_test/04: Fail # Issue 12702
+type_variable_bounds_test/05: Fail # Issue 12702
+type_variable_bounds2_test/00: Fail # Issue 12702
+type_variable_bounds2_test/03: Fail # Issue 12702
+type_variable_bounds2_test/05: Fail # Issue 12702
+type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
+type_variable_bounds3_test/00: Fail # Issue 12702
+f_bounded_quantification_test/01: Fail # Issue 12703
+f_bounded_quantification_test/02: Fail # Issue 12703
 closure_type_test: Fail # does not detect type error in checked mode.
 function_subtype_setter0_test: Fail # dartbug.com/11273
 
@@ -77,7 +75,7 @@ div_with_power_of_two_test: Fail # Issue 8301.
 class_literal_test: Fail # Issue 7626.
 identical_closure2_test: Fail # Issue 1533, Issue 12596
 invocation_mirror_test: Fail
-built_in_identifier_prefix_test: Fail # http://dartbug.com/6972
+built_in_identifier_prefix_test: Fail # Issue 6972
 number_identity2_test: Fail # Issue 12596: identity of NaN
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.

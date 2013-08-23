@@ -13,7 +13,7 @@ illegal_invocation_test/01: fail # Issue: 11892
 assign_static_type_test/06: fail
 
 # TBD: using built-in identifers
-built_in_identifier_prefix_test: fail
+built_in_identifier_prefix_test: fail # Issue 12694
 
 # TBF: (o as C) is not rolled back
 cast_test/04: fail
@@ -33,21 +33,21 @@ cyclic_type_variable_test/03: fail
 cyclic_type_variable_test/04: fail
 
 # TBF: It is a static type warning if any of the type arguments to k' are not subtypes of the bounds of the corresponding formal type parameters of type.
-default_factory2_test/01: fail
+default_factory2_test/01: fail # Issue 12701
 
 # TBF: It is a static warning if the function type of k' is not a subtype of the type of k.
 default_implementation2_test: fail
 
 # TBD: F-bounded quantification
-f_bounded_quantification_test/01: fail
-f_bounded_quantification_test/02: fail
+f_bounded_quantification_test/01: fail # Issue 12704
+f_bounded_quantification_test/02: fail # Issue 12704
 
 function_type_alias9_test/00: crash # Issue 11987
 
 list_literal_syntax_test/01: fail # Issue 12103
 list_literal_syntax_test/02: fail # Issue 12103
 list_literal_syntax_test/03: fail # Issue 12103
-malformed_test/none: fail
+malformed_test/none: fail # Issue 12696
 
 # TBF: disallowed in the most recent spec
 named_parameters_aggregated_test/03: fail
@@ -230,30 +230,30 @@ type_parameter_test/none: fail
 type_variable_static_context_negative_test: fail
 
 # test issue 12162, 'a' has dynamic type, so it statically it is assignable to anything
-type_variable_bounds2_test/00: fail
-type_variable_bounds2_test/01: fail
-type_variable_bounds2_test/02: fail
-type_variable_bounds2_test/03: fail
-type_variable_bounds2_test/04: fail
-type_variable_bounds2_test/06: fail
+type_variable_bounds2_test/00: fail # Issue 12162
+type_variable_bounds2_test/01: fail # Issue 12162
+type_variable_bounds2_test/02: fail # Issue 12162
+type_variable_bounds2_test/03: fail # Issue 12162
+type_variable_bounds2_test/04: fail # Issue 12162
+type_variable_bounds2_test/06: fail # Issue 12162
 
 # test issue 12163, unresolved identifier is static warning in static context
-unresolved_in_factory_negative_test: fail
-unresolved_top_level_method_negative_test: fail
-unresolved_top_level_var_negative_test: fail
+unresolved_in_factory_negative_test: fail # Issue 12163
+unresolved_top_level_method_negative_test: fail # Issue 12163
+unresolved_top_level_var_negative_test: fail # Issue 12163
 
 # test issue 12181, uses argument definition test
-constructor_initializer_test: fail
+constructor_initializer_test: fail # Issue 12181
 
 # test issue 12191, ambuguous import is always warning now
-prefix3_negative_test: fail
-library_ambiguous_test/00: fail
-library_ambiguous_test/01: fail
-library_ambiguous_test/02: fail
-library_ambiguous_test/03: fail
+prefix3_negative_test: fail # Issue 12191
+library_ambiguous_test/00: fail # Issue 12191
+library_ambiguous_test/01: fail # Issue 12191
+library_ambiguous_test/02: fail # Issue 12191
+library_ambiguous_test/03: fail # Issue 12191
 
 # test issue 12289, assignment in assert statement
-type_error_test: fail
+type_error_test: fail # Issue 12289
 
 [ $compiler == dart2analyzer && $checked ]
 factory1_test/00: fail

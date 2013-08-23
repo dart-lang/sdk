@@ -72,7 +72,7 @@ dynamic_prefix_core_test: Fail # Issue 12478
 
 
 [ $compiler == dart2dart ]
-built_in_identifier_prefix_test: Fail # Inherited from dart2js.
+built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test: Fail # VM issue
 factory3_test: Fail
 type_checks_in_factory_method_test: Fail
