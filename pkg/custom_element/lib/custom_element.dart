@@ -475,9 +475,6 @@ class CustomElement implements Element {
   List<Node> getElementsByClassName(String name) =>
       host.getElementsByClassName(name);
 
-  List<Node> $dom_querySelectorAll(String selectors) =>
-      host.$dom_querySelectorAll(selectors);
-
   void $dom_setAttribute(String name, String value) =>
       host.$dom_setAttribute(name, value);
 

@@ -1109,46 +1109,6 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @DocsEditable()
   CanvasRenderingContext getContext(String contextId, [Map attrs]) native "HTMLCanvasElement_getContext_Callback";
 
-  /**
-   * Returns a data URI containing a representation of the image in the
-   * format specified by type (defaults to 'image/png').
-   *
-   * Data Uri format is as follow `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
-   *
-   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when requesting [type]
-   * 'image/jpeg' or 'image/webp'. If [quality] is not passed the default
-   * value is used. Note: the default value varies by browser.
-   *
-   * If the height or width of this canvas element is 0, then 'data:' is returned,
-   * representing no data.
-   *
-   * If the type requested is not 'image/png', and the returned value is
-   * 'data:image/png', then the requested type is not supported.
-   *
-   * Example usage:
-   *
-   *     CanvasElement canvas = new CanvasElement();
-   *     var ctx = canvas.context2D
-   *     ..fillStyle = "rgb(200,0,0)"
-   *     ..fillRect(10, 10, 55, 50);
-   *     var dataUrl = canvas.toDataUrl("image/jpeg", 0.95);
-   *     // The Data Uri would look similar to
-   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
-   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
-   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='
-   *     //Create a new image element from the data URI.
-   *     var img = new ImageElement();
-   *     img.src = dataUrl;
-   *     document.body.children.add(img);
-   *
-   * See also:
-   *
-   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
-   *
-   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
-   *
-   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
-   */
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable()
   String _toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
@@ -7510,12 +7470,10 @@ class Document extends Node
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockerror
   static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.body')
   @DocsEditable()
   HtmlElement get _body native "Document_body_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.body')
   @DocsEditable()
   void set _body(HtmlElement value) native "Document_body_Setter";
@@ -7561,7 +7519,6 @@ class Document extends Node
   @Experimental()
   FontLoader get fontloader native "Document_fontloader_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.head')
   @DocsEditable()
   HeadElement get _head native "Document_head_Getter";
@@ -7570,7 +7527,6 @@ class Document extends Node
   @DocsEditable()
   DomImplementation get implementation native "Document_implementation_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.lastModified')
   @DocsEditable()
   String get _lastModified native "Document_lastModified_Getter";
@@ -7583,7 +7539,6 @@ class Document extends Node
   @DocsEditable()
   String get readyState native "Document_readyState_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.referrer')
   @DocsEditable()
   String get _referrer native "Document_referrer_Getter";
@@ -7602,22 +7557,18 @@ class Document extends Node
   @DocsEditable()
   void set _selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
 
-  /// Moved to [HtmlDocument]
   @DomName('Document.styleSheets')
   @DocsEditable()
   List<StyleSheet> get _styleSheets native "Document_styleSheets_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.title')
   @DocsEditable()
   String get _title native "Document_title_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.title')
   @DocsEditable()
   void set _title(String value) native "Document_title_Setter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenElement')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7626,7 +7577,6 @@ class Document extends Node
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-fullscreenelement
   Element get _webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenEnabled')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7635,7 +7585,6 @@ class Document extends Node
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-fullscreenenabled
   bool get _webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitHidden')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7644,7 +7593,6 @@ class Document extends Node
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/PageVisibility/Overview.html#document
   bool get _webkitHidden native "Document_webkitHidden_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitIsFullScreen')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7654,7 +7602,6 @@ class Document extends Node
   @deprecated // deprecated
   bool get _webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitPointerLockElement')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7675,7 +7622,6 @@ class Document extends Node
   @DocsEditable()
   Node adoptNode(Node source) native "Document_adoptNode_Callback";
 
-  /// Use the [Range] constructor instead.
   @DomName('Document.caretRangeFromPoint')
   @DocsEditable()
   // http://www.w3.org/TR/2009/WD-cssom-view-20090804/#dom-documentview-caretrangefrompoint
@@ -7759,7 +7705,6 @@ class Document extends Node
   @Experimental()
   Touch _createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
 
-  /// Use the [TouchList] constructor instead.
   @DomName('Document.createTouchList')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
@@ -7795,7 +7740,6 @@ class Document extends Node
   @DocsEditable()
   bool execCommand(String command, bool userInterface, String value) native "Document_execCommand_Callback";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.getCSSCanvasContext')
   @DocsEditable()
   // https://developer.apple.com/library/safari/#documentation/AppleApplications/Reference/SafariCSSRef/Articles/Functions.html
@@ -7868,12 +7812,10 @@ class Document extends Node
   @DocsEditable()
   Element query(String selectors) native "Document_querySelector_Callback";
 
-  /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.querySelectorAll')
   @DocsEditable()
   List<Node> _querySelectorAll(String selectors) native "Document_querySelectorAll_Callback";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitCancelFullScreen')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7883,7 +7825,6 @@ class Document extends Node
   @deprecated // deprecated
   void _webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitFullscreen')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7892,7 +7833,6 @@ class Document extends Node
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-exitfullscreen
   void _webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitPointerLock')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -27507,7 +27447,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
   void moveTo(Point p) {
-    moveTo(p.x, p.y);
+    _moveTo(p.x, p.y);
   }
 
 }
@@ -32414,9 +32354,16 @@ class Platform {
    *
    * This is needed to cover timing scenarios which the custom element polyfill
    * does not cover.
+   *
+   * This is also a workaround for dartbug.com/12642 in Dartium.
    */
-  void upgradeCustomElements(Node node) {
+  static void upgradeCustomElements(Node node) {
     // no-op, provided for dart2js polyfill.
+    if (node is Element) {
+      (node as Element).queryAll('*');
+    } else {
+      node.nodes.forEach(upgradeCustomElements);
+    }
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

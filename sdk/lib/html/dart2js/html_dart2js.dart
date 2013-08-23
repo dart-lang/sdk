@@ -898,46 +898,6 @@ class CanvasElement extends HtmlElement implements CanvasImageSource native "HTM
   CanvasRenderingContext _getContext_2(contextId) native;
 
   @JSName('toDataURL')
-  /**
-   * Returns a data URI containing a representation of the image in the
-   * format specified by type (defaults to 'image/png').
-   *
-   * Data Uri format is as follow `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
-   *
-   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when requesting [type]
-   * 'image/jpeg' or 'image/webp'. If [quality] is not passed the default
-   * value is used. Note: the default value varies by browser.
-   *
-   * If the height or width of this canvas element is 0, then 'data:' is returned,
-   * representing no data.
-   *
-   * If the type requested is not 'image/png', and the returned value is
-   * 'data:image/png', then the requested type is not supported.
-   *
-   * Example usage:
-   *
-   *     CanvasElement canvas = new CanvasElement();
-   *     var ctx = canvas.context2D
-   *     ..fillStyle = "rgb(200,0,0)"
-   *     ..fillRect(10, 10, 55, 50);
-   *     var dataUrl = canvas.toDataUrl("image/jpeg", 0.95);
-   *     // The Data Uri would look similar to
-   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
-   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
-   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='
-   *     //Create a new image element from the data URI.
-   *     var img = new ImageElement();
-   *     img.src = dataUrl;
-   *     document.body.children.add(img);
-   *
-   * See also:
-   *
-   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
-   *
-   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
-   *
-   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
-   */
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable()
   String _toDataUrl(String type, [num quality]) native;
@@ -6984,7 +6944,6 @@ class Document extends Node  native "Document"
   static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
 
   @JSName('body')
-  /// Moved to [HtmlDocument].
   @DomName('Document.body')
   @DocsEditable()
   HtmlElement _body;
@@ -7029,7 +6988,6 @@ class Document extends Node  native "Document"
   final FontLoader fontloader;
 
   @JSName('head')
-  /// Moved to [HtmlDocument].
   @DomName('Document.head')
   @DocsEditable()
   final HeadElement _head;
@@ -7039,7 +6997,6 @@ class Document extends Node  native "Document"
   final DomImplementation implementation;
 
   @JSName('lastModified')
-  /// Moved to [HtmlDocument].
   @DomName('Document.lastModified')
   @DocsEditable()
   final String _lastModified;
@@ -7054,7 +7011,6 @@ class Document extends Node  native "Document"
   final String readyState;
 
   @JSName('referrer')
-  /// Moved to [HtmlDocument].
   @DomName('Document.referrer')
   @DocsEditable()
   final String _referrer;
@@ -7071,7 +7027,6 @@ class Document extends Node  native "Document"
   String _selectedStylesheetSet;
 
   @JSName('styleSheets')
-  /// Moved to [HtmlDocument]
   @DomName('Document.styleSheets')
   @DocsEditable()
   @Returns('_StyleSheetList')
@@ -7079,13 +7034,11 @@ class Document extends Node  native "Document"
   final List<StyleSheet> _styleSheets;
 
   @JSName('title')
-  /// Moved to [HtmlDocument].
   @DomName('Document.title')
   @DocsEditable()
   String _title;
 
   @JSName('webkitFullscreenElement')
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenElement')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7095,7 +7048,6 @@ class Document extends Node  native "Document"
   final Element _webkitFullscreenElement;
 
   @JSName('webkitFullscreenEnabled')
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenEnabled')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7105,7 +7057,6 @@ class Document extends Node  native "Document"
   final bool _webkitFullscreenEnabled;
 
   @JSName('webkitHidden')
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitHidden')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7115,7 +7066,6 @@ class Document extends Node  native "Document"
   final bool _webkitHidden;
 
   @JSName('webkitIsFullScreen')
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitIsFullScreen')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7126,7 +7076,6 @@ class Document extends Node  native "Document"
   final bool _webkitIsFullScreen;
 
   @JSName('webkitPointerLockElement')
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitPointerLockElement')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7149,7 +7098,6 @@ class Document extends Node  native "Document"
   Node adoptNode(Node source) native;
 
   @JSName('caretRangeFromPoint')
-  /// Use the [Range] constructor instead.
   @DomName('Document.caretRangeFromPoint')
   @DocsEditable()
   // http://www.w3.org/TR/2009/WD-cssom-view-20090804/#dom-documentview-caretrangefrompoint
@@ -7215,7 +7163,6 @@ class Document extends Node  native "Document"
   Touch _createTouch_1(Window window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
 
   @JSName('createTouchList')
-  /// Use the [TouchList] constructor instead.
   @DomName('Document.createTouchList')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
@@ -7237,7 +7184,6 @@ class Document extends Node  native "Document"
   bool execCommand(String command, bool userInterface, String value) native;
 
   @JSName('getCSSCanvasContext')
-  /// Moved to [HtmlDocument].
   @DomName('Document.getCSSCanvasContext')
   @DocsEditable()
   // https://developer.apple.com/library/safari/#documentation/AppleApplications/Reference/SafariCSSRef/Articles/Functions.html
@@ -7311,7 +7257,6 @@ class Document extends Node  native "Document"
   Element query(String selectors) native;
 
   @JSName('querySelectorAll')
-  /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.querySelectorAll')
   @DocsEditable()
   @Returns('NodeList')
@@ -7319,7 +7264,6 @@ class Document extends Node  native "Document"
   List<Node> _querySelectorAll(String selectors) native;
 
   @JSName('webkitCancelFullScreen')
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitCancelFullScreen')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7330,7 +7274,6 @@ class Document extends Node  native "Document"
   void _webkitCancelFullScreen() native;
 
   @JSName('webkitExitFullscreen')
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitFullscreen')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7340,7 +7283,6 @@ class Document extends Node  native "Document"
   void _webkitExitFullscreen() native;
 
   @JSName('webkitExitPointerLock')
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitPointerLock')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -25576,7 +25518,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
   void moveTo(Point p) {
-    moveTo(p.x, p.y);
+    _moveTo(p.x, p.y);
   }
 
   int get scrollX => JS('bool', '("scrollX" in #)', this) ? JS('int', 
