@@ -21,22 +21,75 @@ part of dart.core;
  * It is a compile-time error for a class to attempt to extend or implement int.
  */
 abstract class int extends num {
-  /** The bit-wise and operator. */
+  /**
+   * Bit-wise and operator.
+   *
+   * Treating both `this` and [other] as sufficiently large two's component
+   * integers, the result is a number with only the bits set that are set in
+   * both `this` and [other]
+   *
+   * Of both operands are negative, the result is negative, otherwise
+   * the result is non-negative.
+   */
   int operator &(int other);
 
-  /** The bit-wise or operator. */
+  /**
+   * Bit-wise or operator.
+   *
+   * Treating both `this` and [other] as sufficiently large two's component
+   * integers, the result is a number with the bits set that are set in either
+   * of `this` and [other]
+   *
+   * If both operands are non-negative, the result is non-negative,
+   * otherwise the result us negative.
+   */
   int operator |(int other);
 
-  /** The bit-wise xor operator. */
+  /**
+   * Bit-wise exclusive-or operator.
+   *
+   * Treating both `this` and [other] as sufficiently large two's component
+   * integers, the result is a number with the bits set that are set in one,
+   * but not both, of `this` and [other]
+   *
+   * If the operands have the same sign, the result is non-negative,
+   * otherwise the result is negative.
+   */
   int operator ^(int other);
 
-  /** The bit-wise negate operator. */
+  /**
+   * The bit-wise negate operator.
+   *
+   * Treating `this` as a sufficiently large two's component integer,
+   * the result is a number with the opposite bits set.
+   *
+   * This maps any integer `x` to `-x - 1`.
+   */
   int operator ~();
 
-  /** The left shift operator. */
+  /**
+   * Shift the bits of this integer to the left by [shiftAmount].
+   *
+   * Shifting to the left makes the number larger, effectively multiplying
+   * the number by `pow(2, shiftIndex)`.
+   *
+   * There is no limit on the size of the result. It may be relevant to
+   * limit intermediate values by using the "and" operator with a suitable
+   * mask.
+   *
+   * It is an error of [shiftAmount] is negative.
+   */
   int operator <<(int shiftAmount);
 
-  /** The right shift operator. */
+  /**
+   * Shift the bits of this integer to the right by [shiftAmount].
+   *
+   * Shifting to the right makes the number smaller and drops the least
+   * significant bits, effectively doing an integer division by
+   *`pow(2, shiftIndex)`.
+   *
+   * It is an error of [shiftAmount] is negative.
+   */
   int operator >>(int shiftAmount);
 
   /** Returns true if and only if this integer is even. */
@@ -45,10 +98,19 @@ abstract class int extends num {
   /** Returns true if and only if this integer is odd. */
   bool get isOdd;
 
-  /** Negate operator. Negating an integer produces an integer. */
+  /**
+   * Return the negative value of this integer.
+   *
+   * The result of negating an integer always has the opposite sign, except
+   * for zero, which is its own negation.
+   */
   int operator -();
 
-  /** Returns the absolute value of this integer. */
+  /**
+   * Returns the absolute value of this integer.
+   *
+   * For any integer `x`, the result is the same as `x < 0 ? -x : x`.
+   */
   int abs();
 
   /** Returns `this`. */
@@ -57,10 +119,10 @@ abstract class int extends num {
   /** Returns `this`. */
   int floor();
 
-  /** Returns [this]. */
+  /** Returns `this`. */
   int ceil();
 
-  /** Returns [this]. */
+  /** Returns `this`. */
   int truncate();
 
   /** Returns `this.toDouble()`. */
@@ -76,10 +138,11 @@ abstract class int extends num {
   double truncateToDouble();
 
   /**
-   * Returns a representation of this [int] value.
+   * Returns a String-representation of this integer.
    *
-   * It should always be the case that if [:i:] is an [int] value,
-   * then [:i == int.parse(i.toString()):].
+   * The returned string is parsable by [parse].
+   * For any `int` [:i:], it is guaranteed that
+   * [:i == int.parse(i.toString()):].
    */
   String toString();
 

@@ -82,19 +82,22 @@ void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
   Dart_Handle filter_obj = Dart_GetNativeArgument(args, 0);
   Filter* filter = GetFilter(filter_obj);
   Dart_Handle data_obj = Dart_GetNativeArgument(args, 1);
+  intptr_t start = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
+  intptr_t end = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
+  intptr_t chunk_length = end - start;
   intptr_t length;
   Dart_TypedData_Type type;
   uint8_t* buffer = NULL;
   Dart_Handle result = Dart_TypedDataAcquireData(
       data_obj, &type, reinterpret_cast<void**>(&buffer), &length);
   if (!Dart_IsError(result)) {
-    uint8_t* zlib_buffer = new uint8_t[length];
+    uint8_t* zlib_buffer = new uint8_t[chunk_length];
     if (zlib_buffer == NULL) {
       Dart_TypedDataReleaseData(data_obj);
       Dart_ThrowException(DartUtils::NewInternalError(
           "Failed to allocate buffer for zlib"));
     }
-    memmove(zlib_buffer, buffer, length);
+    memmove(zlib_buffer, buffer + start, chunk_length);
     Dart_TypedDataReleaseData(data_obj);
     buffer = zlib_buffer;
   } else {
@@ -102,15 +105,16 @@ void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
       Dart_ThrowException(DartUtils::NewInternalError(
           "Failed to get list length"));
     }
-    buffer = new uint8_t[length];
-    if (Dart_IsError(Dart_ListGetAsBytes(data_obj, 0, buffer, length))) {
+    buffer = new uint8_t[chunk_length];
+    if (Dart_IsError(Dart_ListGetAsBytes(
+            data_obj, start, buffer, chunk_length))) {
       delete[] buffer;
       Dart_ThrowException(DartUtils::NewInternalError(
           "Failed to get list bytes"));
     }
   }
   // Process will take ownership of buffer, if successful.
-  if (!filter->Process(buffer, length)) {
+  if (!filter->Process(buffer, chunk_length)) {
     delete[] buffer;
     EndFilter(filter_obj, filter);
     Dart_ThrowException(DartUtils::NewInternalError(

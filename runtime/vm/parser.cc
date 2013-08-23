@@ -255,7 +255,7 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       current_class_(Class::Handle(isolate_)),
       library_(Library::Handle(isolate_, library.raw())),
       try_blocks_list_(NULL),
-      last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
+      last_used_try_index_(0),
       unregister_pending_function_(false) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
@@ -285,7 +285,7 @@ Parser::Parser(const Script& script,
           isolate_,
           parsed_function->function().origin()).library())),
       try_blocks_list_(NULL),
-      last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
+      last_used_try_index_(0),
       unregister_pending_function_(false) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!current_function().IsNull());
@@ -2646,11 +2646,16 @@ SequenceNode* Parser::ParseFunc(const Function& func,
       Function::Handle(innermost_function().raw());
   innermost_function_ = func.raw();
 
+  // Save current try index. Try index starts at zero for each function.
+  intptr_t saved_try_index = last_used_try_index_;
+  last_used_try_index_ = 0;
+
   // TODO(12455) : Need better validation mechanism.
 
   if (func.IsConstructor()) {
     SequenceNode* statements = ParseConstructor(func, default_parameter_values);
     innermost_function_ = saved_innermost_function.raw();
+    last_used_try_index_ = saved_try_index;
     return statements;
   }
 
@@ -2760,6 +2765,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   SequenceNode* body = CloseBlock();
   current_block_->statements->Add(body);
   innermost_function_ = saved_innermost_function.raw();
+  last_used_try_index_ = saved_try_index;
   return CloseBlock();
 }
 

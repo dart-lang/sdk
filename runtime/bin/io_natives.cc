@@ -25,7 +25,7 @@ namespace bin {
   V(Filter_CreateZLibDeflate, 3)                                               \
   V(Filter_CreateZLibInflate, 1)                                               \
   V(Filter_End, 1)                                                             \
-  V(Filter_Process, 2)                                                         \
+  V(Filter_Process, 4)                                                         \
   V(Filter_Processed, 3)                                                       \
   V(InternetAddress_Fixed, 1)                                                  \
   V(Platform_NumberOfProcessors, 0)                                            \
