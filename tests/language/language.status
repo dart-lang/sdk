@@ -60,9 +60,6 @@ compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
-[ $runtime == dartium ]
-import_combinators_test: Fail
-
 [ $runtime == vm || ($runtime == drt && $compiler == none) ]
 first_class_types_literals_test: Fail # issue 11761
 call_test: Fail # Issue 12602
@@ -238,6 +235,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 positional_parameters_type_test: Fail # Triage this.
+final_is_not_const_test/01: Fail # Issue 12692
 
 [ $compiler == dart2dart && $minified ]
 super_getter_setter_test: Fail # Issue 11065.
