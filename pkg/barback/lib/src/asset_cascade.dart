@@ -186,12 +186,11 @@ class AssetCascade {
       _addPhase(_phases.last.addPhase(transformers[i]));
     }
 
-    if (transformers.length < _phases.length) {
-      for (var i = transformers.length; i < _phases.length; i++) {
-        // TODO(nweiz): actually remove phases rather than emptying them of
-        // transformers.
-        _phases[i].updateTransformers([]);
-      }
+    if (transformers.length == 0) {
+      _phases.last.updateTransformers([]);
+    } else if (transformers.length < _phases.length) {
+      _phases[transformers.length - 1].removeFollowing();
+      _phases.removeRange(transformers.length, _phases.length);
     }
   }
 

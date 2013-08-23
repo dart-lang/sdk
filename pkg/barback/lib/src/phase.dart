@@ -153,6 +153,24 @@ class Phase {
     return _next;
   }
 
+  /// Mark this phase as removed.
+  ///
+  /// This will remove all the phase's outputs and all following phases.
+  void remove() {
+    removeFollowing();
+    for (var input in _inputs.values.toList()) {
+      input.remove();
+    }
+    _onDirtyPool.close();
+  }
+
+  /// Remove all phases after this one.
+  Phase removeFollowing() {
+    if (_next == null) return;
+    _next.remove();
+    _next = null;
+  }
+
   /// Processes this phase.
   ///
   /// Returns a future that completes when processing is done. If there is
