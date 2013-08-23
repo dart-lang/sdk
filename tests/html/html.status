@@ -19,11 +19,10 @@ audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
-custom_elements_test/lifecycle: Fail   # Issue 9326 - Implement "extends Element" in dartium
-# Issue 9326 failures
-custom/attribute_changed_callback_test: Fail
-custom/created_callback_test: Fail
 xhr_test: Pass, Fail # Issue 12648
+custom_elements_test/lifecycle: Fail # Issue 12642
+custom/attribute_changed_callback_test: Fail # 12643
+custom/created_callback_test: Fail # Issue 12642
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
