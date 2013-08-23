@@ -356,9 +356,6 @@ touchevent_test/supported: Fail
 websql_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
 
-[ $runtime == ff && $system == windows ]
-rtc_test/supported: Fail # Release build does not enable by default.
-element_types_test/supported_template: Fail
 
 [ $runtime == ff && $system == linux ]
 rtc_test/functionality: Fail # Issue: 12109.
