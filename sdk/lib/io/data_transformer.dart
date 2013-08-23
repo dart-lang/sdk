@@ -25,7 +25,7 @@ class ZLibCodec extends Codec<List<int>, List<int>> {
    * Get a [Converter] for encoding to `ZLib` compressed data.
    */
   Converter<List<int>, List<int>> get encoder =>
-      const ZLibEncoder(gzip: false, level: level);
+      new ZLibEncoder(gzip: false, level: level);
 
   /**
    * Get a [Converter] for decoding `ZLib` compressed data.
@@ -64,13 +64,13 @@ class GZipCodec extends Codec<List<int>, List<int>> {
   /**
    * Get a [Converter] for encoding to `GZip` compressed data.
    */
-  final Converter<List<int>, List<int>> encoder =
-      const ZLibEncoder(gzip: true, level: level);
+  Converter<List<int>, List<int>> get encoder =>
+      new ZLibEncoder(gzip: true, level: level);
 
   /**
    * Get a [Converter] for decoding `GZip` compressed data.
    */
-  final Converter<List<int>, List<int>> decoder = const ZLibDecoder();
+  Converter<List<int>, List<int>> get decoder => const ZLibDecoder();
 
   /**
    * The compression-[level] can be set in the range of `1..10`, with `6` being
@@ -179,9 +179,10 @@ class _BufferSink extends ByteConversionSink {
 
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
     if (chunk is Uint8List) {
-      builder.add(Uint8List.view(chunk, start, end - start));
+      var list = chunk as Uint8List;
+      builder.add(new Uint8List.view(list.buffer, start, end - start));
     } else {
-      buidler.add(chunk.sublist(start, end));
+      builder.add(chunk.sublist(start, end));
     }
   }
 
@@ -216,10 +217,10 @@ class _FilterSink extends ByteConversionSink {
   void addSlice(List<int> data, int start, int end, bool isLast) {
     if (_closed) return;
     if (start < 0 || start > data.length) {
-      throw ArgumentError("Invalid start position");
+      throw new ArgumentError("Invalid start position");
     }
     if (end < 0 || end > data.length || end < start) {
-      throw ArgumentError("Invalid end position");
+      throw new ArgumentError("Invalid end position");
     }
     try {
       _empty = false;
