@@ -89,8 +89,8 @@ on_catch_malformed_type_test: Fail # Issue 8601
 mixin_type_parameters_errors_test/*: Skip
 
 # Mixins fail on the VM.
-mixin_mixin_test: Fail                      # VM issue
-mixin_issue10216_2_test: Fail               # VM issue
+mixin_mixin_test: Fail # Issue 12636
+mixin_issue10216_2_test: Fail # Issue 12636
 mixin_forwarding_constructor2_test: Fail # Issue 11888
 mixin_typedef_constructor_test: Fail # Issue 11888
 mixin_type_parameter2_test: Fail # Issue 11888
@@ -142,8 +142,6 @@ const_syntax_test/07: Fail # http://dartbug.com/5519
 const_syntax_test/08: Fail # http://dartbug.com/5519
 const_syntax_test/10: Fail # http://dartbug.com/5519
 constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
-final_for_in_variable_test/01: Fail # http://dartbug.com/5519
-final_is_not_const_test/01: Fail # http://dartbug.com/5519
 final_syntax_test/01: Fail # http://dartbug.com/5519
 final_syntax_test/02: Fail # http://dartbug.com/5519
 final_syntax_test/03: Fail # http://dartbug.com/5519

@@ -4,6 +4,6 @@
 
 main() {
   for (final i in [1, 2, 3]) {
-    i = 4; /// 01: compile-time error
+    i = 4; /// 01: static type warning, runtime error
   }
 }

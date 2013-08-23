@@ -126,8 +126,6 @@ export_cyclic_test: fail
 field_method4_negative_test: fail
 
 # test issue 11591, assigning to the final variable is warning, not error
-final_for_in_variable_test/01: fail
-final_param_negative_test: fail
 getter_no_setter_test/01: fail
 
 # test issue 11592, Function type alias (typedef) is not a constant
@@ -198,9 +196,6 @@ unresolved_top_level_var_negative_test: fail
 
 # test issue 12181, uses argument definition test
 constructor_initializer_test: fail
-
-# test issue 12184, It is static warning, not error, to assign to a constant variable.
-static_final_field2_negative_test: fail
 
 # test issue 12191, ambiguous import is always warning now
 prefix3_negative_test: fail
