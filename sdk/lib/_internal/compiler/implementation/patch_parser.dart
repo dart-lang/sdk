@@ -160,7 +160,7 @@ class PatchParserTask extends leg.CompilerTask {
         CompilationUnitElement compilationUnit,
         LinkBuilder<tree.LibraryTag> imports) {
     measure(() {
-      // TODO(lrn): Possibly recursively handle #source directives in patch.
+      // TODO(lrn): Possibly recursively handle 'part' directives in patch.
       leg.Script script = compilationUnit.script;
       Token tokens = new StringScanner(script.text).tokenize();
       Function idGenerator = compiler.getNextFreeClassId;

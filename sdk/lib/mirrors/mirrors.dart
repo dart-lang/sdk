@@ -119,7 +119,7 @@ external Future<MirrorSystem> mirrorSystemOf(SendPort port);
 
 /**
  * Returns an [InstanceMirror] reflecting [reflectee].
- * If [reflectee] is function or an instance of a class 
+ * If [reflectee] is function or an instance of a class
  * that has a [:call:] method, the returned instance mirror
  * will be a [ClosureMirror].
  *
@@ -131,7 +131,7 @@ external InstanceMirror reflect(Object reflectee);
 
 /**
  * Let *C* be the original class declaration of the class
- * represented by [key]. 
+ * represented by [key].
  * This function returns a [ClassMirror] reflecting *C*.
  *
  * If [key] is not an instance of [Type] then this function
@@ -161,29 +161,29 @@ abstract class Mirror {
  */
 abstract class IsolateMirror implements Mirror {
   /**
-   * Returns a unique name used to refer to an isolate 
+   * Returns a unique name used to refer to an isolate
    * in debugging messages.
    */
   String get debugName;
 
   /**
-   * Returns [:true:] if and only if this mirror reflects 
+   * Returns [:true:] if and only if this mirror reflects
    * the currently running isolate. Otherwise returns
    * [:false:].
    */
   bool get isCurrent;
 
   /**
-   * Returns a [LibraryMirror] on the root library for this 
+   * Returns a [LibraryMirror] on the root library for this
    * isolate.
    */
   LibraryMirror get rootLibrary;
 
   /**
-   * Returns [:true:] if this mirror is equal to [other]. 
+   * Returns [:true:] if this mirror is equal to [other].
    * Otherwise returns [:false:].
-   * The equality holds if and only if 
-   * (1) [other] is a mirror of the same kind 
+   * The equality holds if and only if
+   * (1) [other] is a mirror of the same kind
    * and
    * (2) the isolate being reflected by this mirror is the same
    * isolate being reflected by [other].
@@ -200,7 +200,7 @@ abstract class DeclarationMirror implements Mirror {
    *
    * The simple name is in most cases the the identifier name of the
    * entity, such as 'method' for a method [:void method() {...}:] or
-   * 'mylibrary' for a [:#library('mylibrary');:] declaration.
+   * 'mylibrary' for a [:library 'mylibrary';:] declaration.
    */
   Symbol get simpleName;
 
@@ -227,15 +227,15 @@ abstract class DeclarationMirror implements Mirror {
    * immediately surrounding the reflectee.
    *
    * For a library, the owner is [:null:].
-   * For a class declaration, typedef or top level function 
-   * or variable, the owner is the enclosing library. 
+   * For a class declaration, typedef or top level function
+   * or variable, the owner is the enclosing library.
    * For a mixin application *S with M*, the owner is the owner
    * of *M*.
    * For class Null, the owner is the dart:core library.
    * For a constructor, the owner is the immediately enclosing class.
    * For a method, instance variable or
    * a static variable, the owner is the immediately enclosing class,
-   * unless the class is a mixin application *S with M*, in which case 
+   * unless the class is a mixin application *S with M*, in which case
    * the owner is *M*. Note that *M* may be an invocation of a generic.
    * For a parameter, local variable or local function the owner is the
    * immediately enclosing function.
@@ -270,11 +270,11 @@ abstract class DeclarationMirror implements Mirror {
    *
    * Let *D* be the declaration this mirror reflects.
    * If *D* is decorated with annotations *A1, ..., An*
-   * where *n > 0*, then for each annotation *Ai* associated 
-   * with *D, 1 <= i <= n*, let *ci* be the constant object 
-   * specified by *Ai*. Then this method returns a list whose 
+   * where *n > 0*, then for each annotation *Ai* associated
+   * with *D, 1 <= i <= n*, let *ci* be the constant object
+   * specified by *Ai*. Then this method returns a list whose
    * members are instance mirrors on *c1, ..., cn*.
-   * If no annotations are associated with *D*, then 
+   * If no annotations are associated with *D*, then
    * an empty list is returned.
    */
   List<InstanceMirror> get metadata;
@@ -496,12 +496,12 @@ abstract class InstanceMirror implements ObjectMirror {
 
   /**
    * Returns true if this mirror is equal to [other].
-   * The equality holds if and only if 
+   * The equality holds if and only if
    * (1) [other] is a mirror of the same kind
    * and
-   * (2) either 
+   * (2) either
    * (a) [hasReflectee] is true and so is
-   * [:identical(reflectee, other.reflectee):] 
+   * [:identical(reflectee, other.reflectee):]
    * or
    * (b) the remote objects reflected by this mirror and
    * by [other] are identical.
@@ -660,7 +660,7 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
    * Returns [:true:] if this mirror is equal to [other].
    * Otherwise returns [:false:].
    *
-   * The equality holds if and only if 
+   * The equality holds if and only if
    * (1) [other] is a mirror of the same kind
    * and
    * (2)  The library being reflected by this mirror
@@ -765,9 +765,9 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
 
   /**
    * An immutable map from names to mirrors for all type arguments for
-   * this type.  The keys of the map are the names of the 
+   * this type.  The keys of the map are the names of the
    * corresponding type variables.
-   * 
+   *
    * If the the reflectee is an invocation of a generic class,
    * the type arguments are the bindings of its type parameters.
    * If the reflectee is the original declaration of a generic,
@@ -823,7 +823,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * the result of calling [reflect](*r*).
    * If evaluating the expression causes a compilation error
    * this method throws a [MirroredCompilationError].
-   * If evaluating the expression throws an exception *e* 
+   * If evaluating the expression throws an exception *e*
    * (that it does not catch)
    * this method throws *e*.
    */
@@ -874,13 +874,13 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * Returns [:true:] if this mirror is equal to [other].
    * Otherwise returns [:false:].
    *
-   * The equality holds if and only if 
+   * The equality holds if and only if
    * (1) [other] is a mirror of the same kind
    * and
    * (2) This mirror and [other] reflect the same class.
-   * 
+   *
    * Note that if the reflected class is an invocation of
-   * a generic class,(2) implies that the reflected class 
+   * a generic class,(2) implies that the reflected class
    * and [other] have equal type arguments.
    */
    bool operator == (other);
@@ -921,7 +921,7 @@ abstract class TypeVariableMirror extends TypeMirror {
    * Returns [:true:] if this mirror is equal to [other].
    * Otherwise returns [:false:].
    *
-   * The equality holds if and only if 
+   * The equality holds if and only if
    * (1) [other] is a mirror of the same kind
    * and
    * (2)  [:simpleName == other.simpleName:] and
@@ -1033,7 +1033,7 @@ abstract class MethodMirror implements DeclarationMirror {
   /**
    * Returns true if this mirror is equal to [other].
    *
-   * The equality holds if and only if 
+   * The equality holds if and only if
    * (1) [other] is a mirror of the same kind
    * and
    * (2) [:simpleName == other.simpleName:] and
@@ -1069,7 +1069,7 @@ abstract class VariableMirror implements DeclarationMirror {
   /**
    * Returns true if this mirror is equal to [other].
    *
-   * The equality holds if and only if 
+   * The equality holds if and only if
    * (1) [other] is a mirror of the same kind
    * and
    * (2)  [:simpleName == other.simpleName:] and
