@@ -243,7 +243,7 @@ class _HttpClientResponse
                                         bool cancelOnError}) {
     var stream = _incoming;
     if (headers.value(HttpHeaders.CONTENT_ENCODING) == "gzip") {
-      stream = stream.transform(new ZLibInflater());
+      stream = stream.transform(GZIP.decoder);
     }
     return stream.listen(onData,
                          onError: onError,
@@ -516,7 +516,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
           stream = stream.transform(new _BufferTransformer());
           if (headers.chunkedTransferEncoding) {
             if (_asGZip) {
-              stream = stream.transform(new ZLibDeflater(gzip: true, level: 6));
+              stream = stream.transform(GZIP.encoder);
             }
             stream = stream.transform(new _ChunkedTransformer());
           } else if (contentLength >= 0) {

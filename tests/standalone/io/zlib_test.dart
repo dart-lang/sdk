@@ -12,7 +12,7 @@ void testZLibDeflate() {
     var port = new ReceivePort();
     var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     var controller = new StreamController(sync: true);
-    controller.stream.transform(new ZLibDeflater(gzip: false, level: level))
+    controller.stream.transform(new ZLibEncoder(gzip: false, level: level))
         .fold([], (buffer, data) {
           buffer.addAll(data);
           return buffer;
@@ -32,7 +32,7 @@ void testZLibDeflate() {
 void testZLibDeflateEmpty() {
   var port = new ReceivePort();
   var controller = new StreamController(sync: true);
-  controller.stream.transform(new ZLibDeflater(gzip: false, level: 6))
+  controller.stream.transform(new ZLibEncoder(gzip: false, level: 6))
       .fold([], (buffer, data) {
         buffer.addAll(data);
         return buffer;
@@ -49,7 +49,7 @@ void testZLibDeflateGZip() {
   var port = new ReceivePort();
   var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   var controller = new StreamController(sync: true);
-  controller.stream.transform(new ZLibDeflater())
+  controller.stream.transform(new ZLibEncoder(gzip: true))
       .fold([], (buffer, data) {
         buffer.addAll(data);
         return buffer;
@@ -70,7 +70,7 @@ void testZLibDeflateInvalidLevel() {
   test2(gzip, level) {
     var port = new ReceivePort();
     try {
-      new ZLibDeflater(gzip: gzip, level: level);
+      new ZLibEncoder(gzip: gzip, level: level).startChunkedConversion(null);
     } catch (e) {
       port.close();
     }
@@ -94,8 +94,8 @@ void testZLibInflate() {
     var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     var controller = new StreamController(sync: true);
     controller.stream
-      .transform(new ZLibDeflater(gzip: gzip, level: level))
-      .transform(new ZLibInflater())
+      .transform(new ZLibEncoder(gzip: gzip, level: level))
+      .transform(new ZLibDecoder())
         .fold([], (buffer, data) {
           buffer.addAll(data);
           return buffer;
@@ -116,10 +116,27 @@ void testZLibInflate() {
   }
 }
 
+void testZLibInflateSync() {
+  test2(bool gzip, int level) {
+    var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    var encoded = new ZLibEncoder(gzip: gzip, level: level).convert(data);
+    var decoded = new ZLibDecoder().convert(encoded);
+    Expect.listEquals(data, decoded);
+  }
+  void test(int level) {
+    test2(false, level);
+    test2(true, level);
+  }
+  for (int i = -1; i < 10; i++) {
+    test(i);
+  }
+}
+
 void main() {
   testZLibDeflate();
   testZLibDeflateEmpty();
   testZLibDeflateGZip();
   testZLibDeflateInvalidLevel();
   testZLibInflate();
+  testZLibInflateSync();
 }

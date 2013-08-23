@@ -12,7 +12,7 @@ void testZLibInflate_regress10026() {
     var port = new ReceivePort();
     var controller = new StreamController(sync: true);
     controller.stream
-        .transform(new ZLibInflater())
+        .transform(ZLIB.decoder)
         .transform(new StringDecoder())
         .fold(new StringBuffer(), (buffer, s) {
           buffer.write(s);
