@@ -191,9 +191,6 @@ main() {
   });
 
   test("a cross-package transform sees a new transformer in a new phase", () {
-    // TODO(nweiz): make this work.
-    return;
-
     var rewrite = new RewriteTransformer("inc", "inc");
     initGraph({
       "pkg1|foo.txt": "pkg2|foo.inc",
@@ -204,7 +201,7 @@ main() {
     });
 
     updateSources(["pkg1|foo.txt", "pkg2|foo.inc"]);
-    expectAsset("pkg1|foo.out", "foo");
+    expectAsset("pkg1|foo.out", "foo.inc");
     buildShouldSucceed();
 
     updateTransformers("pkg2", [

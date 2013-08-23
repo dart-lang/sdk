@@ -200,7 +200,6 @@ LibTest/core/String/contains_A01_t02: Fail, OK # co19 issue 105.
 
 [ $compiler == dart2js && $runtime == ie9 ]
 LibTest/math/cos_A01_t01: Fail # co19 issue 44
-LibTest/async/EventTransformStream/listen_A04_t01: Pass, Timeout # Issue 12595
 
 #
 # The following tests are failing. Please add the error message

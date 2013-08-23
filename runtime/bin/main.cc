@@ -744,6 +744,9 @@ int main(int argc, char** argv) {
     }
   }
 
+  // Start event handler.
+  EventHandler::Start();
+
   // Start the VM service isolate, if necessary.
   if (start_vm_service) {
     ASSERT(vm_service_server_port >= 0);
@@ -860,7 +863,6 @@ int main(int argc, char** argv) {
   Dart_ShutdownIsolate();
   // Terminate process exit-code handler.
   Process::TerminateExitCodeHandler();
-  EventHandler::Stop();
 
   // Free copied argument strings if converted.
   if (argv_converted) {

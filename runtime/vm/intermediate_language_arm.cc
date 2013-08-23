@@ -3818,10 +3818,10 @@ void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kADD:
-      UNIMPLEMENTED();
+      __ vaddqi(kWord, result, left, right);
       break;
     case Token::kSUB:
-      UNIMPLEMENTED();
+      __ vsubqi(kWord, result, left, right);
       break;
     default: UNREACHABLE();
   }

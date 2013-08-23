@@ -5,16 +5,17 @@
 part of dart.isolate;
 
 /**
- * The initial [IsolateStream] available by default for this isolate. This
- * [IsolateStream] is created automatically and it is commonly used to establish
- * the first communication between isolates (see [streamSpawnFunction] and
- * [streamSpawnUri]).
+ * The initial IsolateStream available by default for this isolate.
+ *
+ * This IsolateStream is created automatically and is commonly used
+ * to establish the first communication between isolates.
+ * (See [streamSpawnFunction].)
  */
 final IsolateStream stream = new IsolateStream._fromOriginalReceivePort(port);
 
 /**
- * A [MessageBox] creates an [IsolateStream], [stream], and an [IsolateSink],
- * [sink].
+ * The creator of the [IsolateStream] and [IsolateSink]
+ * that allow an isolate to exchange messages with other isolates.
  *
  * Any message that is written into the [sink] (independent of the isolate) is
  * sent to the [stream] where its subscribers can react to the messages.
@@ -30,8 +31,10 @@ class MessageBox {
 external bool _isCloseToken(var object);
 
 /**
- * [IsolateStream]s, together with [IsolateSink]s, are the only means of
- * communication between isolates. Each IsolateStream has a corresponding
+ * Together with [IsolateSink], the only means of
+ * communication between isolates.
+ *
+ * Each IsolateStream has a corresponding
  * [IsolateSink]. Any message written into that sink will be delivered to
  * the stream and then dispatched to the stream's subscribers.
  */
@@ -64,7 +67,7 @@ class IsolateStream extends Stream<dynamic> {
   }
 
   /**
-   * Close the stream from the receiving end.
+   * Closes the stream from the receiving end.
    *
    * Closing an already closed port has no effect.
    */
@@ -88,9 +91,11 @@ class IsolateStream extends Stream<dynamic> {
 }
 
 /**
- * [IsolateSink]s represent the feed for [IsolateStream]s. Any message written
- * to [this] is delivered to its respective [IsolateStream]. [IsolateSink]s are
- * created by [MessageBox]es.
+ * The feed for an [IsolateStream].
+ * 
+ * Any message written to [this] is delivered
+ * to its respective [IsolateStream].
+ * [IsolateSink]s are created by [MessageBox]es.
  *
  * [IsolateSink]s can be transmitted to other isolates.
  */
@@ -99,8 +104,8 @@ abstract class IsolateSink extends EventSink<dynamic> {
   // control).
 
   /**
-   * Sends an asynchronous [message] to the linked [IsolateStream]. The message
-   * is copied to the receiving isolate.
+   * Sends an asynchronous [message] to the linked [IsolateStream];
+   * the message is copied to the receiving isolate.
    *
    * The content of [message] can be: primitive values (null, num, bool, double,
    * String), instances of [IsolateSink]s, and lists and maps whose elements are
@@ -129,9 +134,10 @@ abstract class IsolateSink extends EventSink<dynamic> {
 
 /**
  * Creates and spawns an isolate that shares the same code as the current
- * isolate, but that starts from [topLevelFunction]. The [topLevelFunction]
- * argument must be a static top-level function or a static method that takes no
- * arguments.
+ * isolate, but that starts from the specified function.
+ * 
+ * The [topLevelFunction] argument must be
+ * a static top-level function or a static method that takes no arguments.
  *
  * When any isolate starts (even the main script of the application), a default
  * [IsolateStream] is created for it. This sink is available from the top-level
@@ -143,7 +149,7 @@ abstract class IsolateSink extends EventSink<dynamic> {
  * The optional [unhandledExceptionCallback] argument is invoked whenever an
  * exception inside the isolate is unhandled. It can be seen as a big
  * `try/catch` around everything that is executed inside the isolate. The
- * callback should return `true` when it was able to handled the exception.
+ * callback should return `true` if it was able to handle the exception.
  */
 external IsolateSink streamSpawnFunction(
     void topLevelFunction(),

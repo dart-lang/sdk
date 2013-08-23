@@ -121,7 +121,6 @@ void _validateFieldUrl(url, String field) {
 
 Pubspec _parseMap(String filePath, Map map, SourceRegistry sources) {
   var name = null;
-  var version = Version.none;
 
   if (map.containsKey('name')) {
     name = map['name'];
@@ -131,14 +130,14 @@ Pubspec _parseMap(String filePath, Map map, SourceRegistry sources) {
     }
   }
 
-  if (map.containsKey('version')) {
-    version = new Version.parse(map['version']);
-  }
+  var version = _parseVersion(map['version'], (v) =>
+      'The pubspec "version" field should be a semantic version number, '
+      'but was "$v".');
 
-  var dependencies = _parseDependencies(filePath, sources,
+  var dependencies = _parseDependencies(name, filePath, sources,
       map['dependencies']);
 
-  var devDependencies = _parseDependencies(filePath, sources,
+  var devDependencies = _parseDependencies(name, filePath, sources,
       map['dev_dependencies']);
 
   // Make sure the same package doesn't appear as both a regular and dev
@@ -183,14 +182,9 @@ Pubspec _parseMap(String filePath, Map map, SourceRegistry sources) {
           '"$environmentYaml".');
     }
 
-    var sdkYaml = environmentYaml['sdk'];
-    if (sdkYaml is! String) {
-      throw new FormatException(
-          'The "sdk" field of "environment" should be a string, but was '
-          '"$sdkYaml".');
-    }
-
-    sdkConstraint = new VersionConstraint.parse(sdkYaml);
+    sdkConstraint = _parseVersionConstraint(environmentYaml['sdk'], (v) =>
+        'The "sdk" field of "environment" should be a semantic version '
+        'constraint, but was "$v".');
   }
   var environment = new PubspecEnvironment(sdkConstraint);
 
@@ -241,8 +235,38 @@ Pubspec _parseMap(String filePath, Map map, SourceRegistry sources) {
       environment, map);
 }
 
-List<PackageDep> _parseDependencies(String pubspecPath, SourceRegistry sources,
-    yaml) {
+/// Parses [yaml] to a [Version] or throws a [FormatException] with the result
+/// of calling [message] if it isn't valid.
+///
+/// If [yaml] is `null`, returns [Version.none].
+Version _parseVersion(yaml, String message(yaml)) {
+  if (yaml == null) return Version.none;
+  if (yaml is! String) throw new FormatException(message(yaml));
+
+  try {
+    return new Version.parse(yaml);
+  } on FormatException catch(_) {
+    throw new FormatException(message(yaml));
+  }
+}
+
+/// Parses [yaml] to a [VersionConstraint] or throws a [FormatException] with
+/// the result of calling [message] if it isn't valid.
+///
+/// If [yaml] is `null`, returns [VersionConstraint.any].
+VersionConstraint _parseVersionConstraint(yaml, String getMessage(yaml)) {
+  if (yaml == null) return VersionConstraint.any;
+  if (yaml is! String) throw new FormatException(getMessage(yaml));
+
+  try {
+    return new VersionConstraint.parse(yaml);
+  } on FormatException catch(_) {
+    throw new FormatException(getMessage(yaml));
+  }
+}
+
+List<PackageDep> _parseDependencies(String packageName, String pubspecPath,
+    SourceRegistry sources, yaml) {
   var dependencies = <PackageDep>[];
 
   // Allow an empty dependencies key.
@@ -255,6 +279,10 @@ List<PackageDep> _parseDependencies(String pubspecPath, SourceRegistry sources,
   }
 
   yaml.forEach((name, spec) {
+    if (name == packageName) {
+      throw new FormatException("Package '$name' cannot depend on itself.");
+    }
+
     var description;
     var sourceName;
 
@@ -268,7 +296,9 @@ List<PackageDep> _parseDependencies(String pubspecPath, SourceRegistry sources,
       versionConstraint = new VersionConstraint.parse(spec);
     } else if (spec is Map) {
       if (spec.containsKey('version')) {
-        versionConstraint = new VersionConstraint.parse(spec.remove('version'));
+        versionConstraint = _parseVersionConstraint(spec.remove('version'),
+            (v) => 'The "version" field for $name should be a semantic '
+                   'version constraint, but was "$v".');
       }
 
       var sourceNames = spec.keys.toList();

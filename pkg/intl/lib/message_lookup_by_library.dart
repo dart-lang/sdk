@@ -97,23 +97,9 @@ abstract class MessageLookupByLibrary {
   String lookupMessage(String message_str, [final String desc='',
       final Map examples=const {}, String locale,
       String name, List<String> args]) {
-    // If we don't have a name, return the original, and if we have
-    // been recursively invoked, also just return message_str. This
-    // happens because the replacement functions also call Intl.message,
-    // so we assume that when _lookupInProgress is true that we're
-    // already translated.
-    if (name == null || _lookupInProgress) return message_str;
-    _lookupInProgress = true;
-    // Try to apply the function holding the translated version. If there
-    // is an exception, use the original [message_str] as the result.
-    var result = message_str;
-    try {
-      var function = this[name];
-      if (function != null) result = Function.apply(function, args);
-    } finally {
-      _lookupInProgress = false;
-    }
-    return result;
+    if (name == null) return message_str;
+    var function = this[name];
+    return function == null ? message_str :  Function.apply(function, args);
   }
 
   /** Return our message with the given name */

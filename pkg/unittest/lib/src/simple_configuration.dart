@@ -50,7 +50,7 @@ class SimpleConfiguration extends Configuration {
 
   // If stopTestOnExpectFailure is false, we need to capture failures, which
   // we do with this List.
-  final _testLogBuffer = <Pair<String, Trace>>[];
+  final _testLogBuffer = <Pair<String, StackTrace>>[];
 
   /**
    * The constructor sets up a failure handler for [expect] that redirects
@@ -61,6 +61,10 @@ class SimpleConfiguration extends Configuration {
   }
 
   void onInit() {
+    // For Dart internal tests, we don't want stack frame filtering.
+    // We turn it off here in the default config, but by default turn
+    // it back on in the vm and html configs.
+    filterStacks = false;
     _receivePort = new ReceivePort();
     _postMessage('unittest-suite-wait-for-done');
   }
@@ -135,8 +139,9 @@ class SimpleConfiguration extends Configuration {
       try {
         throw '';
       } catch (_, stack) {
-        _testLogBuffer.add(
-            new Pair<String, Trace>(reason, new Trace.from(stack)));
+        var trace = _getTrace(stack);
+        if (trace == null) trace = stack;
+        _testLogBuffer.add(new Pair<String, StackTrace>(reason, trace));
       }
     }
   }

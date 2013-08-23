@@ -299,7 +299,6 @@ class _Utf8StringSinkAdapter extends ByteConversionSink {
  */
 // TODO(floitsch): make this class public?
 class _Utf8ConversionSink extends ByteConversionSink {
-  static const _MIN_STRING_SIZE = 16;
 
   final _Utf8Decoder _decoder;
   final StringConversionSink _chunkedSink;
@@ -327,10 +326,9 @@ class _Utf8ConversionSink extends ByteConversionSink {
     addSlice(chunk, 0, chunk.length, false);
   }
 
-  void addSlice(List<int> chunk, int startIndex, int endIndex,
-                bool isLast) {
+  void addSlice(List<int> chunk, int startIndex, int endIndex, bool isLast) {
     _decoder.convert(chunk, startIndex, endIndex);
-    if (_buffer.length > _MIN_STRING_SIZE) {
+    if (_buffer.isNotEmpty) {
       String accumulated = _buffer.toString();
       _chunkedSink.addSlice(accumulated, 0, accumulated.length, isLast);
       _buffer.clear();

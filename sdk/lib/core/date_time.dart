@@ -506,7 +506,7 @@ class DateTime implements Comparable {
    *
    *     DateTime moonLanding = DateTime.parse("1969-07-20 20:18:00");
    *     assert(moonLanding.month == 7);
-   *     assert(moonLanding.month == JULY);
+   *     assert(moonLanding.month == DateTime.JULY);
    */
   external int get month;
 

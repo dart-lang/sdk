@@ -240,44 +240,33 @@ void Api::InitHandles() {
 }
 
 
-#define GET_PEER(type, ctype, raw_obj, peer)                                   \
-
-
-#define EXTERNAL_PEER_HELPER(cid, raw_obj, peer)                               \
-  switch (cid) {                                                               \
-    case kExternalOneByteStringCid: {                                          \
-      RawExternalOneByteString* raw_string =                                   \
-          reinterpret_cast<RawExternalOneByteString*>(raw_obj)->ptr();         \
-      ExternalStringData<uint8_t>* data = raw_string->external_data_;          \
-      *peer = data->peer();                                                    \
-      return true;                                                             \
-    }                                                                          \
-    case kExternalTwoByteStringCid: {                                          \
-      RawExternalTwoByteString* raw_string =                                   \
-          reinterpret_cast<RawExternalTwoByteString*>(raw_obj)->ptr();         \
-      ExternalStringData<uint16_t>* data = raw_string->external_data_;         \
-      *peer = data->peer();                                                    \
-      return true;                                                             \
-    }                                                                          \
-  }                                                                            \
-  return false;                                                                \
-
-
-bool Api::ExternalStringGetPeerHelper(Dart_NativeArguments args,
-                                      int arg_index,
-                                      void** peer) {
+bool Api::StringGetPeerHelper(Dart_NativeArguments args,
+                              int arg_index,
+                              void** peer) {
   NoGCScope no_gc_scope;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   RawObject* raw_obj = arguments->NativeArgAt(arg_index);
   intptr_t cid = raw_obj->GetClassId();
-  EXTERNAL_PEER_HELPER(cid, raw_obj, peer);
-}
-
-
-bool Api::ExternalStringGetPeerHelper(Dart_Handle object, void** peer) {
-  NoGCScope no_gc_scope;
-  RawObject* raw_obj = Api::UnwrapHandle(object);
-  EXTERNAL_PEER_HELPER(Api::ClassId(object), raw_obj, peer);
+  if (cid == kExternalOneByteStringCid) {
+    RawExternalOneByteString* raw_string =
+        reinterpret_cast<RawExternalOneByteString*>(raw_obj)->ptr();
+    ExternalStringData<uint8_t>* data = raw_string->external_data_;
+    *peer = data->peer();
+    return true;
+  }
+  if (cid == kOneByteStringCid || cid == kTwoByteStringCid) {
+    Isolate* isolate = arguments->isolate();
+    *peer = isolate->heap()->GetPeer(raw_obj);
+    return (*peer != 0);
+  }
+  if (cid == kExternalTwoByteStringCid) {
+    RawExternalTwoByteString* raw_string =
+        reinterpret_cast<RawExternalTwoByteString*>(raw_obj)->ptr();
+    ExternalStringData<uint16_t>* data = raw_string->external_data_;
+    *peer = data->peer();
+    return true;
+  }
+  return false;
 }
 
 
@@ -1647,28 +1636,6 @@ DART_EXPORT Dart_Handle Dart_NewStringFromUTF32(const int32_t* utf32_array,
 }
 
 
-DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
-                                                   void** peer) {
-  if (peer == NULL) {
-    RETURN_NULL_ERROR(peer);
-  }
-
-  if (Api::ExternalStringGetPeerHelper(object, peer)) {
-    return Api::Success();
-  }
-
-  // It's not an external string, return appropriate error.
-  if (!RawObject::IsStringClassId(Api::ClassId(object))) {
-    RETURN_TYPE_ERROR(Isolate::Current(), object, String);
-  } else {
-    return
-        Api::NewError(
-            "%s expects argument 'object' to be an external String.",
-            CURRENT_FUNC);
-  }
-}
-
-
 DART_EXPORT Dart_Handle Dart_NewExternalLatin1String(
     const uint8_t* latin1_array,
     intptr_t length,
@@ -1842,9 +1809,9 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
   if (str_obj.InVMHeap()) {
     // Since the string object is read only we do not externalize
     // the string but instead copy the contents of the string into the
-    // specified buffer and return a Null object.
-    // This ensures that the embedder does not have to call again
-    // to get at the contents.
+    // specified buffer add the specified peer/cback as a Peer object
+    // to this string. The Api::StringGetPeerHelper function picks up
+    // the peer from the Peer table.
     intptr_t copy_len = str_obj.Length();
     if (str_obj.IsOneByteString()) {
       ASSERT(length >= copy_len);
@@ -1852,6 +1819,7 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
       for (intptr_t i = 0; i < copy_len; i++) {
         latin1_array[i] = static_cast<uint8_t>(str_obj.CharAt(i));
       }
+      OneByteString::SetPeer(str_obj, peer, cback);
     } else {
       ASSERT(str_obj.IsTwoByteString());
       ASSERT(length >= (copy_len * str_obj.CharSize()));
@@ -1859,8 +1827,9 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
       for (intptr_t i = 0; i < copy_len; i++) {
         utf16_array[i] = static_cast<uint16_t>(str_obj.CharAt(i));
       }
+      TwoByteString::SetPeer(str_obj, peer, cback);
     }
-    return Api::Null();
+    return str;
   }
   return Api::NewHandle(isolate,
                         str_obj.MakeExternal(array, length, peer, cback));
@@ -1881,7 +1850,8 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
     *peer = str.GetPeer();
     ASSERT(*peer != NULL);
   } else {
-    *peer = NULL;
+    NoGCScope no_gc_scope;
+    *peer = isolate->heap()->GetPeer(str.raw());
   }
   *char_size = str.CharSize();
   *str_len = str.Length();
@@ -3704,7 +3674,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeStringArgument(Dart_NativeArguments args,
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   Isolate* isolate = arguments->isolate();
   CHECK_ISOLATE(isolate);
-  if (Api::ExternalStringGetPeerHelper(args, arg_index, peer)) {
+  if (Api::StringGetPeerHelper(args, arg_index, peer)) {
     return Api::Success();
   }
   *peer = NULL;

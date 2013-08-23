@@ -852,10 +852,19 @@ typedef dynamic TestFunction();
  */
 bool formatStacks = true;
 
-/** Returns a Trace object from a StackTrace object or a String. */
+/**
+ * A flag that controls whether we try to filter out irrelevant frames from 
+ * the stack trace. Requires formatStacks to be set.
+ */
+bool filterStacks = true;
+
+/**
+ * Returns a Trace object from a StackTrace object or a String, or the 
+ * unchanged input if formatStacks is false;
+ */
 Trace _getTrace(stack) {
   Trace trace;
-  if (stack == null) return null;
+  if (stack == null || !formatStacks) return null;
   if (stack is String) {
     trace = new Trace.parse(stack);
   } else if (stack is StackTrace) {
@@ -864,7 +873,7 @@ Trace _getTrace(stack) {
     throw new Exception('Invalid stack type ${stack.runtimeType} for $stack.');
   }
 
-  if (!formatStacks) return trace;
+  if (!filterStacks) return trace;
 
   // Format the stack trace by removing everything above TestCase._runTest,
   // which is usually going to be irrelevant. Also fold together unittest and

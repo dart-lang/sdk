@@ -201,7 +201,7 @@ main() {
         for (var i = 0; i < data.length; ++i) {
           data[i] = i & 0xFF;
         }
-        xhr.send(data);
+        xhr.send(new Uint8List.view(data.buffer));
 
         return xhr.onLoad.first.then((_) {
           expect(progressCalled, isTrue);

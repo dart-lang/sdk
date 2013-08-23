@@ -17,6 +17,7 @@ const PASS = "pass";
  * An indication to skip the test.  The caller is responsible for skipping it.
  */
 const SKIP = "skip";
+const SKIP_BY_DESIGN = "skipbydesign";
 const OK = "ok";
 /**
  * An indication that a test is slow and we should allow extra time for

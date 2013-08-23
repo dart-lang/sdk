@@ -187,6 +187,8 @@ static RawFunction* CallMethod(const Class& cls) {
 static RawInstance* CreateClassMirror(const Class& cls,
                                       const AbstractType& type,
                                       const Instance& owner_mirror) {
+  ASSERT(!cls.IsDynamicClass() && !cls.IsVoidClass());
+
   if (cls.IsSignatureClass()) {
     if (cls.IsCanonicalSignatureClass()) {
       // We represent function types as canonical signature classes.
@@ -305,6 +307,12 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(0));
   const Class& cls = Class::Handle(type.type_class());
   ASSERT(!cls.IsNull());
+  if (cls.IsDynamicClass() || cls.IsVoidClass()) {
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, type);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    UNREACHABLE();
+  }
   // Strip the type for generics only.
   if (cls.NumTypeParameters() == 0) {
     return CreateClassMirror(cls,
@@ -561,15 +569,15 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
     entry = entries.GetNext();
     if (entry.IsClass()) {
       const Class& klass = Class::Cast(entry);
-      if (!klass.IsCanonicalSignatureClass()) {
-        // The various implementations of public classes don't always have the
-        // expected superinterfaces or other properties, so we filter them out.
-        if (!RawObject::IsImplementationClassId(klass.id())) {
-          member_mirror = CreateClassMirror(klass,
-                                            AbstractType::Handle(),
-                                            owner_mirror);
-          member_mirrors.Add(member_mirror);
-        }
+      // We filter out implementation classes like Smi, Mint, Bignum,
+      // OneByteString; function signature classes; and dynamic.
+      if (!klass.IsCanonicalSignatureClass() &&
+          !klass.IsDynamicClass() &&
+          !RawObject::IsImplementationClassId(klass.id())) {
+        member_mirror = CreateClassMirror(klass,
+                                          AbstractType::Handle(),
+                                          owner_mirror);
+        member_mirrors.Add(member_mirror);
       }
     } else if (entry.IsField()) {
       const Field& field = Field::Cast(entry);

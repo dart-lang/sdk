@@ -227,6 +227,10 @@ Language/12_Expressions/32_Type_Test_A04_t02: fail, OK
 # co19 issue #531, void f(void f()) {f();} is error. Gilad: The formal parameter conflicts with the name of the function.
 Language/13_Statements/04_Local_Function_Declaration_A01_t01: fail, OK
 
+# co19 issue #541: tests contain unqualified reference to static members defined in superclass
+Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t07: fail, OK
+Language/12_Expressions/30_Identifier_Reference_A14_t03: fail, OK
+
 
 # co19-roll r546 (11.08.2013) caused these failures
 Language/13_Statements/11_Return_A07_t01: fail # co19-roll r546: Please triage this failure

@@ -17,6 +17,10 @@ import 'css_test.dart' as css_test;
 import 'compiler_test.dart' as compiler_test;
 import 'paths_test.dart' as paths_test;
 import 'utils_test.dart' as utils_test;
+import 'transform/code_extractor_test.dart' as code_extractor_test;
+import 'transform/import_inliner_test.dart' as import_inliner_test;
+import 'transform/script_compactor_test.dart' as script_compactor_test;
+import 'transform/all_phases_test.dart' as all_phases_test;
 
 main() {
   var args = new Options().arguments;
@@ -34,6 +38,10 @@ main() {
   addGroup('css_test.dart', css_test.main);
   addGroup('paths_test.dart', paths_test.main);
   addGroup('utils_test.dart', utils_test.main);
+  addGroup('transform/code_extractor_test.dart', code_extractor_test.main);
+  addGroup('transform/import_inliner_test.dart', import_inliner_test.main);
+  addGroup('transform/script_compactor_test.dart', script_compactor_test.main);
+  addGroup('transform/all_phases_test.dart', all_phases_test.main);
 
   endToEndTests('data/unit/', 'data/out');
 

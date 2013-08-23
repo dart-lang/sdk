@@ -159,7 +159,7 @@ String generateMainImportFile() {
   for (var locale in allLocales) {
     var baseFile = '${generatedFilePrefix}messages_$locale.dart';
     var file = importForGeneratedFile(baseFile);
-    output.write("@${_deferredName(locale)} ");
+    output.write("@${_deferredName(locale)}\n");
     output.write("import '$file' as ${_libraryName(locale)};\n");
   }
   output.write("\n");

@@ -12,6 +12,7 @@ String getHtmlContents(String title,
 <html>
 <head>
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="dart.unittest" content="full-stack-traces">
   <title> Test $title </title>
   <style>
      .unittest-table { font-family:monospace; border:1px; }
@@ -36,12 +37,14 @@ String getHtmlContents(String title,
 </html>
 """;
 
-String getHtmlLayoutContents(String scriptType, Path sourceScript) =>
+String getHtmlLayoutContents(String scriptType,
+                             Path sourceScript) =>
 """
 <!DOCTYPE html>
 <html>
 <head>
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="dart.unittest" content="full-stack-traces">
 </head>
 <body>
   <script type="text/javascript">

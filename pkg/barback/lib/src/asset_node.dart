@@ -23,8 +23,11 @@ class AssetNode {
 
   /// The transform that created this asset node.
   ///
-  /// This is `null` for source assets.
-  final TransformNode transform;
+  /// This is `null` for source assets. It can change if the upstream transform
+  /// that created this asset changes; this change will *not* cause an
+  /// [onStateChange] event.
+  TransformNode get transform => _transform;
+  TransformNode _transform;
 
   /// The current state of the asset node.
   AssetState get state => _state;
@@ -110,10 +113,10 @@ class AssetNode {
     return onStateChange.firstWhere(test);
   }
 
-  AssetNode._(this.id, this.transform)
+  AssetNode._(this.id, this._transform)
       : _state = AssetState.DIRTY;
 
-  AssetNode._available(Asset asset, this.transform)
+  AssetNode._available(Asset asset, this._transform)
       : id = asset.id,
         _asset = asset,
         _state = AssetState.AVAILABLE;
@@ -133,6 +136,17 @@ class AssetNodeController {
   /// [asset].
   AssetNodeController.available(Asset asset, [TransformNode transform])
       : node = new AssetNode._available(asset, transform);
+
+  /// Creates a controller for a node whose initial state matches the current
+  /// state of [node].
+  AssetNodeController.from(AssetNode node)
+      : node = new AssetNode._(node.id, node.transform) {
+    if (node.state.isAvailable) {
+      setAvailable(node.asset);
+    } else if (node.state.isRemoved) {
+      setRemoved();
+    }
+  }
 
   /// Marks the node as [AssetState.DIRTY].
   void setDirty() {
@@ -164,6 +178,14 @@ class AssetNodeController {
     node._state = AssetState.AVAILABLE;
     node._asset = asset;
     node._stateChangeController.add(AssetState.AVAILABLE);
+  }
+
+  /// Sets the node's [AssetNode.transform] property.
+  ///
+  /// This is used when resolving collisions, where a node will stick around but
+  /// a different transform will have created it.
+  void setTransform(TransformNode transform) {
+    node._transform = transform;
   }
 }
 

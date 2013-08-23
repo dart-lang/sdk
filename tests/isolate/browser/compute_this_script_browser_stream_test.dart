@@ -9,8 +9,8 @@ library compute_this_script;
 
 import 'dart:html';
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 
 child() {
   var sink;

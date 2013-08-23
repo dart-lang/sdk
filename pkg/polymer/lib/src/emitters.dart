@@ -79,11 +79,8 @@ NestedPrinter generateBootstrapCode(
   return printer
       ..indent -= 1
       ..addLine('],')
-      ..addLine(
-          "currentMirrorSystem().findLibrary(const Symbol('app_bootstrap'))")
-      ..indent += 2
-      ..addLine(".first.uri.toString());")
-      ..indent -= 4
+      ..addLine("currentMirrorSystem().isolate.rootLibrary.uri.toString());")
+      ..indent -= 2
       ..addLine('}');
 }
 

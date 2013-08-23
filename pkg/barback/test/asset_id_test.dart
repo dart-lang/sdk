@@ -11,6 +11,18 @@ import 'utils.dart';
 
 main() {
   initConfig();
+  group("constructor", () {
+    test("normalizes the path", () {
+      var id = new AssetId("app", r"path/././/to/drop/..//asset.txt");
+      expect(id.path, equals("path/to/asset.txt"));
+    });
+
+    test("normalizes backslashes to slashes in the path", () {
+      var id = new AssetId("app", r"path\to/asset.txt");
+      expect(id.path, equals("path/to/asset.txt"));
+    });
+  });
+
   group("parse", () {
     test("parses the package and path", () {
       var id = new AssetId.parse("package|path/to/asset.txt");
@@ -28,6 +40,16 @@ main() {
 
     test("throws if the path is empty '|'", () {
       expect(() => new AssetId.parse("app|"), throwsFormatException);
+    });
+
+    test("normalizes the path", () {
+      var id = new AssetId.parse(r"app|path/././/to/drop/..//asset.txt");
+      expect(id.path, equals("path/to/asset.txt"));
+    });
+
+    test("normalizes backslashes to slashes in the path", () {
+      var id = new AssetId.parse(r"app|path\to/asset.txt");
+      expect(id.path, equals("path/to/asset.txt"));
     });
   });
 

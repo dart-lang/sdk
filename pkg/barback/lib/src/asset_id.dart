@@ -6,9 +6,6 @@ library barback.asset_id;
 
 import 'package:path/path.dart' as pathos;
 
-/// AssetIDs always use POSIX style paths regardless of the host platform.
-final _posix = new pathos.Builder(style: pathos.Style.posix);
-
 /// Identifies an asset within a package.
 class AssetId implements Comparable<AssetId> {
   /// The name of the package containing this asset.
@@ -29,10 +26,18 @@ class AssetId implements Comparable<AssetId> {
   String get extension => pathos.extension(path);
 
   /// Creates a new AssetId at [path] within [package].
+  ///
+  /// The [path] will be normalized: any backslashes will be replaced with
+  /// forward slashes (regardless of host OS) and "." and ".." will be removed
+  /// where possible.
   AssetId(this.package, String path)
-      : path = _posix.normalize(path);
+      : path = _normalizePath(path);
 
   /// Parses an [AssetId] string of the form "package|path/to/asset.txt".
+  ///
+  /// The [path] will be normalized: any backslashes will be replaced with
+  /// forward slashes (regardless of host OS) and "." and ".." will be removed
+  /// where possible.
   factory AssetId.parse(String description) {
     var parts = description.split("|");
     if (parts.length != 2) {
@@ -91,4 +96,16 @@ class AssetId implements Comparable<AssetId> {
   /// Serializes this [AssetId] to an object that can be sent across isolates
   /// and passed to [deserialize].
   serialize() => [package, path];
+}
+
+String _normalizePath(String path) {
+  if (pathos.isAbsolute(path)) {
+    throw new ArgumentError('Asset paths must be relative, but got "$path".');
+  }
+
+  // Normalize path separators so that they are always "/" in the AssetID.
+  path = path.replaceAll(r"\", "/");
+
+  // Collapse "." and "..".
+  return pathos.posix.normalize(path);
 }

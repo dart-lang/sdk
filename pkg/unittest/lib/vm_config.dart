@@ -38,6 +38,11 @@ class VMConfiguration extends SimpleConfiguration {
     return result;
   }
 
+  void onInit() {
+    super.onInit();
+    filterStacks = formatStacks = true;
+  }
+
   void onDone(bool success) {
     int status;
     try {

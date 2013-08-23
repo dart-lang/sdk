@@ -1410,12 +1410,6 @@ DART_EXPORT Dart_Handle Dart_NewStringFromUTF32(const int32_t* utf32_array,
                                                 intptr_t length);
 
 /**
- * Retrieves the peer pointer associated with an external String.
- */
-DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
-                                                   void** peer);
-
-/**
  * Returns a String which references an external array of
  * Latin-1 (ISO-8859-1) encoded characters.
  *
@@ -1536,8 +1530,9 @@ DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str, intptr_t* size);
  * \return the converted ExternalString object if no error occurs.
  *   Otherwise returns an error handle.
  *   If the object is a valid string but if it cannot be externalized
- *   then Dart_Null() is returned and the string data is copied into
- *   the external space specified.
+ *   the string data is copied into the external space specified
+ *   and the passed in peer is setup as a peer for this string object.
+ *   In this case the function returns the original String object as is.
  *
  * For example:
  *  intptr_t size;
@@ -1562,7 +1557,8 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
  * \param str A String.
  * \param char_size Returns the character size of the String.
  * \param str_len Returns the length of the String.
- * \param peer Returns the peer pointer if the String is an external String.
+ * \param peer Returns the peer pointer associated with the String or 0 if
+ *   there is no peer pointer for it.
  * \return Success if no error occurs. Otherwise returns
  *   an error handle.
  */
@@ -2001,9 +1997,10 @@ DART_EXPORT Dart_Handle Dart_GetNativeReceiver(Dart_NativeArguments args,
  * Gets a string native argument at some index.
  * \param args Native arguments structure.
  * \param arg_index Index of the desired argument in the structure above.
- * \param peer Returns the peer pointer if the String is an external String.
- * \return the String object if no error occurs. Otherwise returns
- *   an error handle.
+ * \param peer Returns the peer pointer if the string argument has one.
+ * \return Success if the string argument has a peer, if it does not
+ *   have a peer then the String object is returned. Otherwise returns
+ *   an error handle (argument is not a String object).
  */
 DART_EXPORT Dart_Handle Dart_GetNativeStringArgument(Dart_NativeArguments args,
                                                      int arg_index,
