@@ -357,7 +357,7 @@ websql_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
 
 
-[ $runtime == ff && $system == linux ]
+[ $runtime == ff && ($system == linux || $system == windows) ]
 rtc_test/functionality: Fail # Issue: 12109.
 
 # 'html' tests import the HTML library, so they only make sense in
