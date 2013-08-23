@@ -231,6 +231,9 @@ Language/13_Statements/04_Local_Function_Declaration_A01_t01: fail, OK
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t07: fail, OK
 Language/12_Expressions/30_Identifier_Reference_A14_t03: fail, OK
 
+# co19 issue #543: invocation of a non-function
+Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t02: fail, OK
+
 
 # co19-roll r546 (11.08.2013) caused these failures
 Language/13_Statements/11_Return_A07_t01: fail # co19-roll r546: Please triage this failure
