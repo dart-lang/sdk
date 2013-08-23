@@ -1018,7 +1018,7 @@ abstract class StreamTransformer<S, T> {
    * Example use:
    *
    *     stringStream.transform(new StreamTransformer<String, String>(
-   *         handleData: (Strung value, EventSink<String> sink) {
+   *         handleData: (String value, EventSink<String> sink) {
    *           sink.add(value);
    *           sink.add(value);  // Duplicate the incoming events.
    *         }));
