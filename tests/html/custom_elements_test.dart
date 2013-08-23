@@ -174,6 +174,7 @@ main() {
       document.register(tag, CustomType);
       var element = new DivElement();
       element.innerHtml = '<$tag></$tag>';
+      Platform.upgradeCustomElements(element);
       document.body.nodes.add(element);
       expect(customCreatedCount, oldCount + 1);
     });

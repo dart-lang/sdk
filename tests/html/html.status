@@ -20,7 +20,6 @@ audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
 xhr_test: Pass, Fail # Issue 12648
-custom_elements_test/lifecycle: Fail # Issue 12642
 custom/attribute_changed_callback_test: Fail # 12643
 custom/created_callback_test: Fail # Issue 12642
 
