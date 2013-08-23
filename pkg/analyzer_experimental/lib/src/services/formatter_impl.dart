@@ -164,13 +164,14 @@ class SourceVisitor implements ASTVisitor {
                                 lineSeparator: options.lineSeparator);
 
   visitAdjacentStrings(AdjacentStrings node) {
-    visitList(node.strings, ' ');
+    visitNodes(node.strings, separatedBy: space);
   }
 
   visitAnnotation(Annotation node) {
     token(node.atSign);
     visit(node.name);
-    visitPrefixed('.', node.constructorName);
+    token(node.period);
+    visit(node.constructorName);
     visit(node.arguments);
   }
 
@@ -181,7 +182,7 @@ class SourceVisitor implements ASTVisitor {
 
   visitArgumentList(ArgumentList node) {
     token(node.leftParenthesis);
-    visitList(node.arguments, ', ');
+    visitNodes(node.arguments, separatedBy: commaSeperator);
     token(node.rightParenthesis);
   }
 
@@ -220,16 +221,12 @@ class SourceVisitor implements ASTVisitor {
 
   visitBlock(Block node) {
     token(node.leftBracket);
-    needsNewline = true;
     indent();
 
-    for (var stmt in node.statements) {
-      visit(stmt);
-    }
-
+    visitNodes(node.statements, precededBy: newlines, separatedBy: newlines);
+    
     unindent();
-    preservePrecedingNewlines = true;
-    needsNewline = true;
+    newlines();
     token(node.rightBracket);
   }
 
@@ -242,20 +239,21 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitBreakStatement(BreakStatement node) {
-    preservePrecedingNewlines = true;
     token(node.keyword);
-    visitPrefixed(' ', node.label);
+    visitNode(node.label, precededBy: space);
     token(node.semicolon);
-    needsNewline = true;
   }
 
   visitCascadeExpression(CascadeExpression node) {
     visit(node.target);
-    visitList(node.cascadeSections);
+    visitNodes(node.cascadeSections);
   }
 
   visitCatchClause(CatchClause node) {
-    visitPrefixed('on ', node.exceptionType);
+    
+    token(node.onKeyword, precededBy: space, followedBy: space);
+    visit(node.exceptionType);
+
     if (node.catchKeyword != null) {
       if (node.exceptionType != null) {
         space();
@@ -264,37 +262,33 @@ class SourceVisitor implements ASTVisitor {
       space();
       token(node.leftParenthesis);
       visit(node.exceptionParameter);
-      visitPrefixed(', ', node.stackTraceParameter);
+      token(node.comma, followedBy: space);
+      visit(node.stackTraceParameter);
       token(node.rightParenthesis);
       space();
     } else {
       space();
     }
     visit(node.body);
-    needsNewline = true;
   }
 
   visitClassDeclaration(ClassDeclaration node) {
-    preservePrecedingNewlines = true;
     modifier(node.abstractKeyword);
     token(node.classKeyword);
     space();
     visit(node.name);
     visit(node.typeParameters);
-    visitPrefixed(' ', node.extendsClause);
-    visitPrefixed(' ', node.withClause);
-    visitPrefixed(' ', node.implementsClause);
+    visitNode(node.extendsClause, precededBy: space);
+    visitNode(node.withClause, precededBy: space);
+    visitNode(node.implementsClause, precededBy: space);
     space();
     token(node.leftBracket);
+    
     indent();
-
-    for (var i = 0; i < node.members.length; i++) {
-      visit(node.members[i]);
-    }
-
+    visitNodes(node.members, precededBy: newlines, separatedBy: newlines);
     unindent();
-
-    emitPrecedingNewlines(node.rightBracket, min: 1);
+    newlines();
+    
     token(node.rightBracket);
   }
 
@@ -311,8 +305,8 @@ class SourceVisitor implements ASTVisitor {
       space();
     }
     visit(node.superclass);
-    visitPrefixed(' ', node.withClause);
-    visitPrefixed(' ', node.implementsClause);
+    visitNode(node.withClause, precededBy: space);
+    visitNode(node.implementsClause, precededBy: space);
     token(node.semicolon);
   }
 
@@ -331,8 +325,12 @@ class SourceVisitor implements ASTVisitor {
     var scriptTag = node.scriptTag;
     var directives = node.directives;
     visit(scriptTag);
-    visitList(directives);
-    visitList(node.declarations);
+    
+    preservePrecedingNewlines = true;
+    visitNodes(directives, separatedBy: newlines);
+    
+    preservePrecedingNewlines = true;
+    visitNodes(node.declarations, separatedBy: newlines);
 
     // Handle trailing whitespace
     preservePrecedingNewlines = true;
@@ -356,11 +354,14 @@ class SourceVisitor implements ASTVisitor {
     modifier(node.constKeyword);
     modifier(node.factoryKeyword);
     visit(node.returnType);
-    visitPrefixed('.', node.name);
+    token(node.period);
+    visit(node.name);
     visit(node.parameters);
-    visitPrefixedList(' : ', node.initializers, ', ');
-    visitPrefixed(' = ', node.redirectedConstructor);
-    visitPrefixedBody(' ', node.body);
+    token(node.separator /* = or : */, precededBy: space, followedBy: space);
+    visitNodes(node.initializers, separatedBy: commaSeperator);
+    visit(node.redirectedConstructor);
+    
+    visitPrefixedBody(space, node.body);
   }
 
   visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
@@ -375,12 +376,13 @@ class SourceVisitor implements ASTVisitor {
 
   visitConstructorName(ConstructorName node) {
     visit(node.type);
-    visitPrefixed('.', node.name);
+    token(node.period);
+    visit(node.name);
   }
 
   visitContinueStatement(ContinueStatement node) {
     token(node.keyword);
-    visitPrefixed(' ', node.label);
+    visitNode(node.label, precededBy: space);
     token(node.semicolon);
   }
 
@@ -398,9 +400,12 @@ class SourceVisitor implements ASTVisitor {
   visitDefaultFormalParameter(DefaultFormalParameter node) {
     visit(node.parameter);
     if (node.separator != null) {
-      space();
+      // The '=' separator is preceded by a space
+      if (node.separator.type == TokenType.EQ) {
+        space();
+      }
       token(node.separator);
-      visitPrefixed(' ', node.defaultValue);
+      visitNode(node.defaultValue, precededBy: space);
     }
   }
 
@@ -433,7 +438,7 @@ class SourceVisitor implements ASTVisitor {
     token(node.keyword);
     space();
     visit(node.uri);
-    visitPrefixedList(' ', node.combinators, ' ');
+    visitNodes(node.combinators, precededBy: space, separatedBy: space);
     token(node.semicolon);
   }
 
@@ -456,8 +461,6 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitFieldDeclaration(FieldDeclaration node) {
-    needsNewline = true;
-    preservePrecedingNewlines = true;
     modifier(node.keyword);
     visit(node.fields);
     token(node.semicolon);
@@ -519,25 +522,23 @@ class SourceVisitor implements ASTVisitor {
     token(node.forKeyword);
     space();
     token(node.leftParenthesis);
-    var initialization = node.initialization;
-    if (initialization != null) {
-      visit(initialization);
+    if (node.initialization != null) {
+      visit(node.initialization);
     } else {
       visit(node.variables);
     }
     token(node.leftSeparator);
-    visitPrefixed(' ', node.condition);
+    space();
+    visit(node.condition);
     token(node.rightSeparator);
-    visitPrefixedList(' ', node.updaters, ', ');
-    token(node.leftParenthesis);
+    visitNodes(node.updaters, precededBy: space, separatedBy: space);
+    token(node.rightParenthesis);
     space();
     visit(node.body);
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
-    needsNewline = true;
-    preservePrecedingNewlines = true;
-    visitSuffixed(node.returnType, ' ');
+    visitNode(node.returnType, followedBy: space);
     token(node.propertyKeyword, followedBy: space);
     visit(node.name);
     visit(node.functionExpression);
@@ -563,7 +564,7 @@ class SourceVisitor implements ASTVisitor {
   visitFunctionTypeAlias(FunctionTypeAlias node) {
     token(node.keyword);
     space();
-    visitSuffixed(node.returnType, ' ');
+    visitNode(node.returnType, followedBy: space);
     visit(node.name);
     visit(node.typeParameters);
     visit(node.parameters);
@@ -571,7 +572,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    visitSuffixed(node.returnType, ' ');
+    visitNode(node.returnType, followedBy: space);
     visit(node.identifier);
     visit(node.parameters);
   }
@@ -579,11 +580,10 @@ class SourceVisitor implements ASTVisitor {
   visitHideCombinator(HideCombinator node) {
     token(node.keyword);
     space();
-    visitList(node.hiddenNames, ', ');
+    visitNodes(node.hiddenNames, separatedBy: commaSeperator);
   }
 
   visitIfStatement(IfStatement node) {
-    preservePrecedingNewlines = true;
     token(node.ifKeyword);
     space();
     token(node.leftParenthesis);
@@ -598,24 +598,22 @@ class SourceVisitor implements ASTVisitor {
       space();
       visit(node.elseStatement);
     }
-    needsNewline = true;
   }
   
   visitImplementsClause(ImplementsClause node) {
     token(node.keyword);
     space();
-    visitList(node.interfaces, ', ');
+    visitNodes(node.interfaces, separatedBy: commaSeperator);
   }
 
   visitImportDirective(ImportDirective node) {
-    preservePrecedingNewlines = true;
     token(node.keyword);
     space();
     visit(node.uri);
-    visitPrefixed(' as ', node.prefix);
-    visitPrefixedList(' ', node.combinators, ' ');
+    token(node.asToken, precededBy: space, followedBy: space);
+    visit(node.prefix);
+    visitNodes(node.combinators, precededBy: space, separatedBy: space);
     token(node.semicolon);
-    needsNewline = true;
   }
 
   visitIndexExpression(IndexExpression node) {
@@ -670,7 +668,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitLabeledStatement(LabeledStatement node) {
-    visitSuffixedList(node.labels, ' ', ' ');
+    visitNodes(node.labels, separatedBy: space, followedBy: space);
     visit(node.statement);
   }
 
@@ -686,21 +684,18 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitListLiteral(ListLiteral node) {
-    if (node.modifier != null) {
-      token(node.modifier);
-      space();
-    }
+    modifier(node.modifier);
     visit(node.typeArguments);
     token(node.leftBracket);
-    visitList(node.elements, ', ');
+    visitNodes(node.elements, separatedBy: commaSeperator);
     token(node.rightBracket);
   }
 
   visitMapLiteral(MapLiteral node) {
     modifier(node.modifier);
-    visitSuffixed(node.typeArguments, ' ');
+    visitNode(node.typeArguments, followedBy: space);
     token(node.leftBracket);
-    visitList(node.entries, ', ');
+    visitNodes(node.entries, separatedBy: commaSeperator);
     token(node.rightBracket);
   }
 
@@ -713,33 +708,28 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitMethodDeclaration(MethodDeclaration node) {
-    needsNewline = true;
-    preservePrecedingNewlines = true;
     modifier(node.externalKeyword);
     modifier(node.modifierKeyword);
-    visitSuffixed(node.returnType, ' ');
+    visitNode(node.returnType, followedBy: space);
     modifier(node.propertyKeyword);
     modifier(node.operatorKeyword);
     visit(node.name);
     if (!node.isGetter) {
       visit(node.parameters);
     }
-    visitPrefixedBody(' ', node.body);
+    visitPrefixedBody(space, node.body);
   }
 
   visitMethodInvocation(MethodInvocation node) {
-    if (node.isCascaded) {
-      token(node.period);
-    } else {
-      visitSuffixed(node.target, '.');
-    }
+    visit(node.target);
+    token(node.period);
     visit(node.methodName);
     visit(node.argumentList);
   }
 
   visitNamedExpression(NamedExpression node) {
     visit(node.name);
-    visitPrefixed(' ', node.expression);
+    visitNode(node.expression, precededBy: space);
   }
 
   visitNativeClause(NativeClause node) {
@@ -807,7 +797,8 @@ class SourceVisitor implements ASTVisitor {
 
   visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     token(node.keyword);
-    visitPrefixed('.', node.constructorName);
+    token(node.period);
+    visit(node.constructorName);
     visit(node.argumentList);
   }
 
@@ -816,7 +807,6 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitReturnStatement(ReturnStatement node) {
-    preservePrecedingNewlines = true;
     var expression = node.expression;
     if (expression == null) {
       token(node.keyword);
@@ -836,12 +826,12 @@ class SourceVisitor implements ASTVisitor {
   visitShowCombinator(ShowCombinator node) {
     token(node.keyword);
     space();
-    visitList(node.shownNames, ', ');
+    visitNodes(node.shownNames, separatedBy: commaSeperator);
   }
 
   visitSimpleFormalParameter(SimpleFormalParameter node) {
     modifier(node.keyword);
-    visitSuffixed(node.type, ' ');
+    visitNode(node.type, followedBy: space);
     visit(node.identifier);
   }
 
@@ -854,12 +844,13 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitStringInterpolation(StringInterpolation node) {
-    visitList(node.elements);
+    visitNodes(node.elements);
   }
 
   visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     token(node.keyword);
-    visitPrefixed('.', node.constructorName);
+    token(node.period);
+    visit(node.constructorName);
     visit(node.argumentList);
   }
 
@@ -868,25 +859,23 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitSwitchCase(SwitchCase node) {
-    preservePrecedingNewlines = true;
-    visitSuffixedList(node.labels, ' ', ' ');
+    visitNodes(node.labels, separatedBy: space, followedBy: space);
     token(node.keyword);
     space();
     visit(node.expression);
     token(node.colon);
+    newlines();
     indent();
-    needsNewline = true;
-    visitList(node.statements);
+    visitNodes(node.statements, separatedBy: newlines);
     unindent();
   }
 
   visitSwitchDefault(SwitchDefault node) {
-    preservePrecedingNewlines = true;
-    visitSuffixedList(node.labels, ' ', ' ');
+    visitNodes(node.labels, separatedBy: space, followedBy: space);
     token(node.keyword);
     token(node.colon);
     space();
-    visitList(node.statements, ' ');
+    visitNodes(node.statements, separatedBy: space);
   }
 
   visitSwitchStatement(SwitchStatement node) {
@@ -898,10 +887,10 @@ class SourceVisitor implements ASTVisitor {
     space();
     token(node.leftBracket);
     indent();
-    visitList(node.members);
+    newlines();
+    visitNodes(node.members, separatedBy: newlines, followedBy: newlines);
     unindent();
     token(node.rightBracket);
-    needsNewline = true;
   }
 
   visitSymbolLiteral(SymbolLiteral node) {
@@ -919,23 +908,22 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    preservePrecedingNewlines = true;
     visit(node.variables);
     token(node.semicolon);
   }
 
   visitTryStatement(TryStatement node) {
-    preservePrecedingNewlines = true;
     token(node.tryKeyword);
     space();
     visit(node.body);
-    visitPrefixedList(' ', node.catchClauses, ' ');
-    visitPrefixed(' finally ', node.finallyClause);
+    visitNodes(node.catchClauses, precededBy: space, separatedBy: space);
+    token(node.finallyKeyword, precededBy: space, followedBy: space);
+    visit(node.finallyClause);
   }
 
   visitTypeArgumentList(TypeArgumentList node) {
     token(node.leftBracket);
-    visitList(node.arguments, ', ');
+    visitNodes(node.arguments, separatedBy: commaSeperator);
     token(node.rightBracket);
   }
 
@@ -946,12 +934,13 @@ class SourceVisitor implements ASTVisitor {
 
   visitTypeParameter(TypeParameter node) {
     visit(node.name);
-    visitPrefixed(' extends ', node.bound);
+    token(node.keyword /* extends */, precededBy: space, followedBy: space);
+    visit(node.bound);
   }
 
   visitTypeParameterList(TypeParameterList node) {
     token(node.leftBracket);
-    visitList(node.typeParameters, ', ');
+    visitNodes(node.typeParameters, separatedBy: commaSeperator);
     token(node.rightBracket);
   }
 
@@ -966,16 +955,14 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitVariableDeclarationList(VariableDeclarationList node) {
-    token(node.keyword);
-    space();
-    visitSuffixed(node.type, ' ');
-    visitList(node.variables, ', ');
+    modifier(node.keyword);
+    visitNode(node.type, followedBy: space);
+    visitNodes(node.variables, separatedBy: commaSeperator);
   }
 
   visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     visit(node.variables);
     token(node.semicolon);
-    needsNewline = true;
   }
 
   visitWhileStatement(WhileStatement node) {
@@ -991,7 +978,7 @@ class SourceVisitor implements ASTVisitor {
   visitWithClause(WithClause node) {
     token(node.withKeyword);
     space();
-    visitList(node.mixinTypes, ', ');
+    visitNodes(node.mixinTypes, separatedBy: commaSeperator);
   }
 
   /// Safely visit the given [node].
@@ -1001,78 +988,52 @@ class SourceVisitor implements ASTVisitor {
     }
   }
 
-  /// Safely visit the given [node], printing the [suffix] after the node if it
-  /// is non-null.
-  visitSuffixed(ASTNode node, String suffix) {
-    if (node != null) {
-      node.accept(this);
-      append(suffix);
-    }
-  }
-
-  /// Safely visit the given [node], printing the [prefix] before the node if
-  /// it is non-null.
-  visitPrefixed(String prefix, ASTNode node) {
-    if (node != null) {
-      append(prefix);
-      node.accept(this);
-    }
-  }
-
   /// Visit the given function [body], printing the [prefix] before if given
   /// body is not empty.
-  visitPrefixedBody(String prefix, FunctionBody body) {
+  visitPrefixedBody(prefix(), FunctionBody body) {
     if (body is! EmptyFunctionBody) {
-      append(prefix);
+      prefix();
     }
     visit(body);
   }
 
-  /// Print a list of [nodes], optionally separated by the given [separator].
-  visitList(NodeList<ASTNode> nodes, [String separator = '']) {
+  /// Visit a list of [nodes] if not null, optionally separated and/or preceded 
+  /// and followed by the given functions.
+  visitNodes(NodeList<ASTNode> nodes, {precededBy(): null,
+      separatedBy() : null, followedBy(): null}) {
     if (nodes != null) {
       var size = nodes.length;
-      for (var i = 0; i < size; i++) {
-        if (i > 0) {
-          append(separator);
+      if (size > 0) {
+        if (precededBy != null) {
+          precededBy();
         }
-        nodes[i].accept(this);
+        for (var i = 0; i < size; i++) {
+          if (i > 0 && separatedBy != null) {
+            separatedBy();
+          }
+          nodes[i].accept(this);
+        }
+        if (followedBy != null) {
+          followedBy();
+        }
+      }
+    }
+  }
+  
+  /// Visit a [node], and if not null, optionally preceded or followed by the 
+  /// specified functions.
+  visitNode(ASTNode node, {precededBy(): null, followedBy(): null}) {
+    if (node != null) {
+      if (precededBy != null) {
+        precededBy();
+      }
+      node.accept(this);
+      if (followedBy != null) {
+        followedBy();
       }
     }
   }
 
-  /// Print a list of [nodes], separated by the given [separator].
-  visitSuffixedList(NodeList<ASTNode> nodes, String separator, String suffix) {
-    if (nodes != null) {
-      var size = nodes.length;
-      if (size > 0) {
-        for (var i = 0; i < size; i++) {
-          if (i > 0) {
-            append(separator);
-          }
-          nodes[i].accept(this);
-        }
-        append(suffix);
-      }
-    }
-  }
-
-  /// Print a list of [nodes], separated by the given [separator].
-  visitPrefixedList(String prefix, NodeList<ASTNode> nodes,
-      [String separator = null]) {
-    if (nodes != null) {
-      var size = nodes.length;
-      if (size > 0) {
-        append(prefix);
-        for (var i = 0; i < size; i++) {
-          if (i > 0 && separator != null) {
-            append(separator);
-          }
-          nodes[i].accept(this);
-        }
-      }
-    }
-  }
 
   /// Emit the given [modifier] if it's non null, followed by non-breaking 
   /// whitespace.
@@ -1080,7 +1041,15 @@ class SourceVisitor implements ASTVisitor {
     token(modifier, followedBy: space);
   }
     
-  token(Token token, {followedBy(), int minNewlines: 0}) {
+  
+  /// Indicate that at least one newline should be emitted and possibly more
+  /// if the source has them.
+  newlines() {
+    preservePrecedingNewlines = true;
+    needsNewline = true;
+  }
+  
+  token(Token token, {precededBy(), followedBy(), int minNewlines: 0}) {
     if (token != null) {
       if (needsNewline) {
         minNewlines = max(1, minNewlines);
@@ -1092,6 +1061,9 @@ class SourceVisitor implements ASTVisitor {
           needsNewline = false;
         }
       }
+      if (precededBy !=null) {
+        precededBy();
+      }
       append(token.lexeme);
       if (followedBy != null) { 
         followedBy();
@@ -1099,7 +1071,16 @@ class SourceVisitor implements ASTVisitor {
       previousToken = token;
     }    
   }
-    
+   
+  commaSeperator() {
+    comma();
+    space();
+  }
+  
+  comma() {
+    append(',');
+  }
+  
   /// Emit a non-breakable space.
   space() {
     //TODO(pquitslund): replace with a proper space token

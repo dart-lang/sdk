@@ -117,6 +117,27 @@ main() {
           '}\n'
       );
     });
+    
+    test('CU - method invocations', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  foo() {\n'
+          '    bar();\n'
+          '    for (int i = 0; i < 42; i++) {\n'
+          '      baz();\n'
+          '    }\n'
+          '  }\n'
+          '}\n',
+          'class A {\n'
+          '  foo() {\n'
+          '    bar();\n'
+          '    for (int i = 0; i < 42; i++) {\n'
+          '      baz();\n'
+          '    }\n'
+          '  }\n'
+          '}\n'
+        );
+    });
 
     test('CU w/class decl comment', () {
       expectCUFormatsTo(
@@ -255,7 +276,68 @@ main() {
           '}\n'
       );
     });
+    
+    test('CU - constructor', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  const _a;\n'
+          '  A();\n'
+          '  int a() => _a;\n'
+          '}\n',
+          'class A {\n'
+          '  const _a;\n'
+          '  A();\n'
+          '  int a() => _a;\n'
+          '}\n'
+        );
+    });
 
+    test('CU - method decl w/ named params', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  int a(var x, {optional: null}) => null;\n'
+          '}\n',
+          'class A {\n'
+          '  int a(var x, {optional: null}) => null;\n'
+          '}\n'
+        );
+    });
+    
+    test('CU - method decl w/ optional params', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  int a(var x, [optional = null]) => null;\n'
+          '}\n',
+          'class A {\n'
+          '  int a(var x, [optional = null]) => null;\n'
+          '}\n'
+        );
+    });
+    
+    test('CU - factory constructor redirects', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  const factory A() = B;\n'
+          '}\n',
+          'class A {\n'
+          '  const factory A() = B;\n'
+          '}\n'
+        );
+    });
+    
+    test('CU - constructor initializers', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  int _a;\n'
+          '  A(a) : _a = a;\n'
+          '}\n',
+          'class A {\n'
+          '  int _a;\n'
+          '  A(a) : _a = a;\n'
+          '}\n'
+        );
+    });
+    
     test('stmt', () {
       expectStmtFormatsTo(
          'if (true){\n'
