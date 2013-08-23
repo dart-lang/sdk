@@ -38,11 +38,22 @@ class ScriptCompactor extends Transformer {
       var document = parseHtml(content, id.path, logger);
       var libraries = [];
       bool changed = false;
+      var dartLoaderTag = null;
       for (var tag in document.queryAll('script')) {
+        var src = tag.attributes['src'];
+        if (src != null) {
+          if (src == 'packages/polymer/boot.js') {
+            tag.remove();
+            continue;
+          }
+          var last = src.split('/').last;
+          if (last == 'dart.js' || last == 'testing.js') {
+            dartLoaderTag = tag;
+          }
+        }
         if (tag.attributes['type'] != 'application/dart') continue;
         tag.remove();
         changed = true;
-        var src = tag.attributes['src'];
         if (src == null) {
           logger.warning('unexpected script without a src url. The '
             'ScriptCompactor transformer should run after running the '
@@ -63,8 +74,18 @@ class ScriptCompactor extends Transformer {
 
       var bootstrapId = id.addExtension('_bootstrap.dart');
       var filename = path.url.basename(bootstrapId.path);
-      document.body.nodes.add(parseFragment(
-            '<script type="application/dart" src="$filename"></script>'));
+
+      var bootstrapScript = parseFragment(
+            '<script type="application/dart" src="$filename"></script>');
+      if (dartLoaderTag == null) {
+        document.body.nodes.add(bootstrapScript);
+        document.body.nodes.add(parseFragment('<script type="text/javascript" '
+            'src="packages/browser/dart.js"></script>'));
+      } else if (dartLoaderTag.parent != document.body) {
+        document.body.nodes.add(bootstrapScript);
+      } else {
+        document.body.insertBefore(bootstrapScript, dartLoaderTag);
+      }
 
       var urls = libraries.map((id) => importUrlFor(id, bootstrapId, logger))
           .where((url) => url != null).toList();
@@ -97,11 +118,9 @@ class ScriptCompactor extends Transformer {
       return null;
     }
 
-    var urlBuilder = path.url;
-    var upPath = urlBuilder.joinAll(
-        urlBuilder.split(sourceId.path).map((_) => '..'));
-    return urlBuilder.normalize(
-        urlBuilder.join(sourceId.path, upPath, id.path));
+    var builder = path.url;
+    return builder.relative(builder.join('/', id.path),
+        from: builder.join('/', builder.dirname(sourceId.path)));
   }
 }
 

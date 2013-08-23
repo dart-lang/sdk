@@ -3,8 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** Transfomers used for pub-serve and pub-deploy. */
+// TODO(sigmund): move into a plugin directory when pub supports it.
 library polymer.src.transform;
+
+import 'package:observe/transform.dart';
+import 'transform/code_extractor.dart';
+import 'transform/import_inliner.dart';
+import 'transform/script_compactor.dart';
 
 export 'transform/code_extractor.dart';
 export 'transform/import_inliner.dart';
 export 'transform/script_compactor.dart';
+
+/** Phases to deploy a polymer application. */
+var phases = [
+  [new InlineCodeExtractor()],
+  [new ObservableTransformer()],
+  [new ImportedElementInliner()],
+  [new ScriptCompactor()]
+];

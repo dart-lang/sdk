@@ -25,22 +25,34 @@ class InlineCodeExtractor extends Transformer {
     return getPrimaryContent(transform).then((content) {
       var document = parseHtml(content, inputId.path, transform.logger);
       int count = 0;
+      bool htmlChanged = false;
       for (var tag in document.queryAll('script')) {
-        if (tag.attributes['type'] == 'application/dart' &&
-            !tag.attributes.containsKey('src')) {
-          // TODO(sigmund): should we automatically include a library directive
-          // if it doesn't have one?
-          var filename = path.url.basename(inputId.path);
-          tag.attributes['src'] = '$filename.$count.dart';
-          var textContent = tag.nodes.first;
-          var id = inputId.addExtension('.$count.dart');
-          transform.addOutput(new Asset.fromString(id, textContent.value));
-          textContent.remove();
-          count++;
+        // Only process tags that have inline Dart code
+        if (tag.attributes['type'] != 'application/dart' ||
+          tag.attributes.containsKey('src')) {
+          continue;
         }
+        htmlChanged = true;
+
+        // Remove empty tags
+        if (tag.nodes.length == 0) {
+          tag.remove();
+          continue;
+        }
+
+        // TODO(sigmund): should we automatically include a library directive
+        // if it doesn't have one?
+        var filename = path.url.basename(inputId.path);
+        // TODO(sigmund): ensure this filename is unique (dartbug.com/12618).
+        tag.attributes['src'] = '$filename.$count.dart';
+        var textContent = tag.nodes.first;
+        var id = inputId.addExtension('.$count.dart');
+        transform.addOutput(new Asset.fromString(id, textContent.value));
+        textContent.remove();
+        count++;
       }
       transform.addOutput(new Asset.fromString(inputId,
-          count == 0 ? content : document.outerHtml));
+          htmlChanged ? document.outerHtml : content));
     });
   }
 }
