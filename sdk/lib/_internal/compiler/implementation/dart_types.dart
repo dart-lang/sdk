@@ -83,7 +83,7 @@ abstract class DartType {
   /**
    * If this type is malformed or a generic type created with the wrong number
    * of type arguments then [userProvidedBadType] holds the bad type provided
-   * by the user. 
+   * by the user.
    */
   DartType get userProvidedBadType => null;
 
@@ -105,7 +105,7 @@ abstract class DartType {
   /// Returns an occurrence of a type variable within this type, if any.
   TypeVariableType get typeVariableOccurrence => null;
 
-  /// Applies [f] to each occurence of a [TypeVariableType] within this type. 
+  /// Applies [f] to each occurence of a [TypeVariableType] within this type.
   void forEachTypeVariable(f(TypeVariableType variable)) {}
 
   TypeVariableType _findTypeVariableOccurrence(Link<DartType> types) {
@@ -487,10 +487,10 @@ class InterfaceType extends GenericType {
       Element member = classElement.implementation.lookupLocalMember(name);
       if (member == null) return null;
       if (member.isConstructor() || member.isPrefix()) return null;
-      assert(member.isFunction() || 
-             member.isAbstractField() || 
+      assert(member.isFunction() ||
+             member.isAbstractField() ||
              member.isField());
-    
+
       if (member.isAbstractField()) {
         AbstractFieldElement abstractFieldElement = member;
         if (fallbackAbstractField == null) {
@@ -505,7 +505,7 @@ class InterfaceType extends GenericType {
           member = null;
         }
       }
-      return member != null 
+      return member != null
           ? new Member(receiver, declarer, member, isSetter: isSetter) : null;
     }
 
@@ -544,7 +544,7 @@ class InterfaceType extends GenericType {
 /**
  * Special subclass of [InterfaceType] used for generic interface types created
  * with the wrong number of type arguments.
- * 
+ *
  * The type uses [:dynamic:] for all it s type arguments.
  */
 class BadInterfaceType extends InterfaceType {
@@ -563,7 +563,7 @@ class BadInterfaceType extends InterfaceType {
 /**
  * Special subclass of [TypedefType] used for generic typedef types created
  * with the wrong number of type arguments.
- * 
+ *
  * The type uses [:dynamic:] for all it s type arguments.
  */
 class BadTypedefType extends TypedefType {
@@ -851,7 +851,7 @@ class Member {
       if (element.isAbstractField()) {
         AbstractFieldElement abstractFieldElement = element;
         // Use setter if present and required or if no getter is available.
-        if ((isSetter && abstractFieldElement.setter != null) || 
+        if ((isSetter && abstractFieldElement.setter != null) ||
             abstractFieldElement.getter == null) {
           // TODO(johnniwinther): Add check of read of field with no getter.
           FunctionType functionType =
@@ -934,8 +934,8 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
 
   bool isSubtype(DartType t, DartType s) {
     if (identical(t, s) ||
-        t.treatAsDynamic || 
-        s.treatAsDynamic || 
+        t.treatAsDynamic ||
+        s.treatAsDynamic ||
         identical(s.element, compiler.objectClass) ||
         identical(t.element, compiler.nullClass)) {
       return true;

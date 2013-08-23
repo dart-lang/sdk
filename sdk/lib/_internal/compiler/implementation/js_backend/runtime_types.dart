@@ -545,6 +545,18 @@ class RuntimeTypes {
     return representationGenerator.getTypeRepresentation(type, onVariable);
   }
 
+  bool isSimpleFunctionType(FunctionType type) {
+    if (!type.returnType.isDynamic) return false;
+    if (!type.optionalParameterTypes.isEmpty) return false;
+    if (!type.namedParameterTypes.isEmpty) return false;
+    for (Link<DartType> link = type.parameterTypes;
+        !link.isEmpty;
+        link = link.tail) {
+      if (!link.head.isDynamic) return false;
+    }
+    return true;
+  }
+
   static bool hasTypeArguments(DartType type) {
     if (type is InterfaceType) {
       InterfaceType interfaceType = type;

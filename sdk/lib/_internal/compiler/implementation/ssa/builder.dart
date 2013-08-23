@@ -1776,6 +1776,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
           original, typeVariable);
     } else if (type.kind == TypeKind.FUNCTION) {
+      if (backend.rti.isSimpleFunctionType(type)) {
+        return original.convertType(compiler, type, kind);
+      }
       HType subtype = original.instructionType;
       if (type.containsTypeVariables) {
         bool contextIsTypeArguments = false;
@@ -2794,6 +2797,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HInstruction buildIsNode(Node node, DartType type, HInstruction expression) {
     type = type.unalias(compiler);
     if (type.kind == TypeKind.FUNCTION) {
+      if (backend.rti.isSimpleFunctionType(type)) {
+        return new HIs(type, <HInstruction>[expression], HIs.RAW_CHECK);
+      }
       Element checkFunctionSubtype = backend.getCheckFunctionSubtype();
 
       HInstruction signatureName = graph.addConstantString(

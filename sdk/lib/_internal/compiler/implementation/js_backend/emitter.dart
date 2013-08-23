@@ -2176,7 +2176,9 @@ class CodeEmitterTask extends CompilerTask {
       if (!knownSubtype) {
         registerDynamicFunctionTypeCheck(functionType);
         hasDynamicFunctionTypeCheck = true;
-      } else {
+      } else if (!backend.rti.isSimpleFunctionType(functionType)) {
+        // Simple function types are always checked using predicates and should
+        // not provoke generation of signatures.
         neededPredicates++;
       }
     });
@@ -2188,7 +2190,10 @@ class CodeEmitterTask extends CompilerTask {
     }
     functionTypeChecks.forEach((FunctionType functionType, bool knownSubtype) {
       if (knownSubtype) {
-        if (alwaysUseSignature) {
+        if (backend.rti.isSimpleFunctionType(functionType)) {
+          // Simple function types are always checked using predicates.
+          emitIsFunctionTypeTest(functionType);
+        } else if (alwaysUseSignature) {
           registerDynamicFunctionTypeCheck(functionType);
         } else {
           emitIsFunctionTypeTest(functionType);

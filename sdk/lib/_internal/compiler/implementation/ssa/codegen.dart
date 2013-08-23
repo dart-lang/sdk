@@ -2260,7 +2260,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     world.registerIsCheck(type, work.resolutionTree);
 
     js.PropertyAccess field =
-        new js.PropertyAccess.field(pop(), backend.namer.operatorIs(element));
+        new js.PropertyAccess.field(pop(), backend.namer.operatorIsType(type));
     // We always negate at least once so that the result is boolified.
     push(new js.Prefix('!', field));
     // If the result is not negated, put another '!' in front.
