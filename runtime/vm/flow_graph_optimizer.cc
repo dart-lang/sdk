@@ -770,24 +770,52 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
                call->env(),
                Definition::kEffect);
 
-  // Insert array length load and bounds check.
-  const bool is_immutable =
-      CheckArrayBoundInstr::IsFixedLengthArrayType(class_id);
-  LoadFieldInstr* length =
-      new LoadFieldInstr(new Value(*array),
-                         CheckArrayBoundInstr::LengthOffsetFor(class_id),
-                         Type::ZoneHandle(Type::SmiType()),
-                         is_immutable);
-  length->set_result_cid(kSmiCid);
-  length->set_recognized_kind(
-      LoadFieldInstr::RecognizedKindFromArrayCid(class_id));
-  InsertBefore(call, length, NULL, Definition::kValue);
-  InsertBefore(call,
-               new CheckArrayBoundInstr(new Value(length),
-                                        new Value(*index),
-                                        call->deopt_id()),
-               call->env(),
-               Definition::kEffect);
+  bool emit_bounds_check = true;
+  // Get the field for the array.
+  const Field* field = NULL;
+  if ((*array)->IsLoadField()) {
+    LoadFieldInstr* load_field_instr = (*array)->AsLoadField();
+    field = load_field_instr->field();
+  }
+  // Extract the guarded array length.
+  intptr_t guarded_array_length = -1;
+  if (field != NULL) {
+    if (field->guarded_list_length() >= 0) {
+      guarded_array_length = field->guarded_list_length();
+    }
+  }
+  Definition* i = *index;
+  // Check if we can skip emitting the bounds check.
+  if (i->IsConstant() && guarded_array_length >= 0) {
+    ConstantInstr* constant = i->AsConstant();
+    ASSERT(constant != NULL);
+    intptr_t ci = Smi::Cast(constant->value()).Value();
+    if (ci < guarded_array_length) {
+      emit_bounds_check = false;
+    }
+  }
+
+  if (emit_bounds_check) {
+    // Insert array length load and bounds check.
+    const bool is_immutable =
+        CheckArrayBoundInstr::IsFixedLengthArrayType(class_id);
+    LoadFieldInstr* length =
+        new LoadFieldInstr(new Value(*array),
+                           CheckArrayBoundInstr::LengthOffsetFor(class_id),
+                           Type::ZoneHandle(Type::SmiType()),
+                           is_immutable);
+    length->set_result_cid(kSmiCid);
+    length->set_recognized_kind(
+        LoadFieldInstr::RecognizedKindFromArrayCid(class_id));
+    InsertBefore(call, length, NULL, Definition::kValue);
+    InsertBefore(call,
+                 new CheckArrayBoundInstr(new Value(length),
+                                          new Value(*index),
+                                          call->deopt_id()),
+                 call->env(),
+                 Definition::kEffect);
+  }
+
 
   if (class_id == kGrowableObjectArrayCid) {
     // Insert data elements load.
