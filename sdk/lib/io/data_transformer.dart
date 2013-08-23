@@ -179,7 +179,7 @@ class _BufferSink extends ByteConversionSink {
 
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
     if (chunk is Uint8List) {
-      var list = chunk as Uint8List;
+      Uint8List list = chunk;
       builder.add(new Uint8List.view(list.buffer, start, end - start));
     } else {
       builder.add(chunk.sublist(start, end));
