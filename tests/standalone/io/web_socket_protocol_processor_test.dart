@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import "dart:utf";
+import "dart:convert";
 import "dart:math";
 import "dart:async";
 import "dart:collection";

@@ -6,6 +6,8 @@ import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 
+const UNICODE_REPLACEMENT_CHARACTER_RUNE = 0xFFFD;
+
 void testTransform() {
   // Code point U+10FFFF is the largest code point supported by Dart.
   var controller = new StreamController(sync: true);
@@ -16,7 +18,7 @@ void testTransform() {
   controller.add([0xfd, 0x80, 0x80, 0x80, 0x80, 0x80]);  // U+40000000
   controller.close();
 
-  var decoder = new StringDecoder(Encoding.UTF_8, '?'.codeUnitAt(0));
+  var decoder = new StringDecoder(Encoding.UTF_8);
   var stream = controller.stream.transform(decoder);
   stream.fold(
       new StringBuffer(),
@@ -26,17 +28,16 @@ void testTransform() {
       })
       .then((b) => b.toString())
       .then((decoded) {
-        Expect.equals(8, decoded.length);
+        Expect.equals(16, decoded.length);
 
-        var replacementChar = '?'.codeUnitAt(0);
+        var replacementChar = UNICODE_REPLACEMENT_CHARACTER_RUNE;
         Expect.equals(0xd800, decoded.codeUnitAt(0));
         Expect.equals(0xdc00, decoded.codeUnitAt(1));
         Expect.equals(0xdbff, decoded.codeUnitAt(2));
         Expect.equals(0xdfff, decoded.codeUnitAt(3));
-        Expect.equals(replacementChar, decoded.codeUnitAt(4));
-        Expect.equals(replacementChar, decoded.codeUnitAt(5));
-        Expect.equals(replacementChar, decoded.codeUnitAt(6));
-        Expect.equals(replacementChar, decoded.codeUnitAt(7));
+        for (int i = 4; i < 16; i++) {
+          Expect.equals(replacementChar, decoded.codeUnitAt(i));
+        }
       });
 }
 
@@ -50,20 +51,18 @@ void testDecode() {
   controller.add([0xfd, 0x80, 0x80, 0x80, 0x80, 0x80]);  // U+40000000
   controller.close();
 
-  StringDecoder.decode(controller.stream,
-                       Encoding.UTF_8,
-                       '?'.codeUnitAt(0)).then((decoded) {
-    Expect.equals(8, decoded.length);
+  StringDecoder.decode(controller.stream, Encoding.UTF_8)
+               .then((decoded) {
+    Expect.equals(16, decoded.length);
 
-    var replacementChar = '?'.codeUnitAt(0);
+    var replacementChar = UNICODE_REPLACEMENT_CHARACTER_RUNE;
     Expect.equals(0xd800, decoded.codeUnitAt(0));
     Expect.equals(0xdc00, decoded.codeUnitAt(1));
     Expect.equals(0xdbff, decoded.codeUnitAt(2));
     Expect.equals(0xdfff, decoded.codeUnitAt(3));
-    Expect.equals(replacementChar, decoded.codeUnitAt(4));
-    Expect.equals(replacementChar, decoded.codeUnitAt(5));
-    Expect.equals(replacementChar, decoded.codeUnitAt(6));
-    Expect.equals(replacementChar, decoded.codeUnitAt(7));
+    for (int i = 4; i < 16; i++) {
+      Expect.equals(replacementChar, decoded.codeUnitAt(i));
+     }
   });
 }
 
@@ -75,7 +74,8 @@ void testInvalid() {
     controller.stream.transform(new StringDecoder()).listen((string) {
       Expect.equals(outputLength, string.length);
       for (var i = 0; i < outputLength; i++) {
-        Expect.equals(0xFFFD, string.codeUnitAt(i));
+        Expect.equals(UNICODE_REPLACEMENT_CHARACTER_RUNE,
+                      string.codeUnitAt(i));
       }
     });
   }

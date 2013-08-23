@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:utf';
+import 'dart:convert';
 
 class Server {
   HttpServer server;
@@ -42,7 +42,7 @@ class Server {
           List<String> tokens = authorization.split(" ");
           Expect.equals("Basic", tokens[0]);
           String auth =
-              CryptoUtils.bytesToBase64(encodeUtf8("$username:$password"));
+              CryptoUtils.bytesToBase64(UTF8.encode("$username:$password"));
           if (passwordChanged && auth != tokens[1]) {
             response.statusCode = HttpStatus.UNAUTHORIZED;
             response.headers.set(HttpHeaders.WWW_AUTHENTICATE,

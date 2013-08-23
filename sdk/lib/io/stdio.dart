@@ -30,10 +30,14 @@ class _StdStream extends Stream<List<int>> {
 
 
 class _StdinEventSink implements EventSink<String> {
-  Function add;
-  Function addError;
-  Function close;
-  _StdinEventSink(this.add, this.addError, this.close);
+  Function _add;
+  Function _addError;
+  Function _close;
+  _StdinEventSink(this._add, this._addError, this._close);
+
+  void add(String string) => _add(string);
+  void addError(errorEvent) => _addError(errorEvent);
+  void close() => _close();
 }
 
 /**
@@ -56,40 +60,70 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    */
   String readLineSync({Encoding encoding: Encoding.SYSTEM,
                        bool retainNewlines: false}) {
-    var decoder = new StringDecoder(encoding)._decoder;
+    const CR = 13;
+    const LF = 10;
     var line = new StringBuffer();
     bool end = false;
     bool lastCharWasCR = false;
-    var sink = new _StdinEventSink(
-        (char) {
-          if (!retainNewlines && char == '\r') {
-            if (lastCharWasCR) line.write('\r');
-            lastCharWasCR = true;
-            return;
-          } else if (char == '\n') {
-            end = true;
-            if (!retainNewlines) return;
-          } else if (lastCharWasCR) {
-            lastCharWasCR = false;
-            line.write('\r');
-          }
-          line.write(char);
-        },
-        (error) {
-          throw error;
-        }, () {
-          if (lastCharWasCR) line.write('\r');
-        });
+    var error;
+
+    StreamController<List<int>> controller =
+        new StreamController<List<int>>(sync: true);
+    Stream stream = controller.stream.transform(new StringDecoder(encoding));
+    stream.listen((String str) {
+      line.write(str);
+    }, onError: (e) {
+      error = e;
+    }, onDone: () {
+      end = true;
+    });
 
     bool empty = true;
     while (!end) {
       int b = readByteSync();
-      if (b >= 0) {
-        empty = false;
-        decoder.handleData([b], sink);
+
+      if (b < 0) {
+        // We didn't write the carriage return in case a line feed would be
+        // the next character. Add it now.
+        if (lastCharWasCR && !retainNewlines) controller.add([CR]);
+        controller.close();
       } else {
-        decoder.handleDone(sink);
-        break;
+        empty = false;
+        // We consider \r\n and \n as new lines.
+        // A \r on its own is treated like a normal character.
+
+        if (b == CR) {
+          if (lastCharWasCR && !retainNewlines) {
+            // We didn't write the carriage return in case a line feed would be
+            // the next character.
+            // Add it now (since we treat it like a normal character now).
+            controller.add([CR]);
+          }
+          // We add the carriage return only if we keep new lines.
+          // Otherwise we need to wait for the next character (in case it is
+          // a line feed).
+          if (retainNewlines) controller.add([b]);
+          lastCharWasCR = true;
+        } else if (b == LF) {
+          end = true;
+          // We don't care if there was a carriage return before. If we keep
+          // the line separators it has already been added to the controller.
+          // Otherwise we don't want it anyway.
+          if (retainNewlines) controller.add([b]);
+          controller.close();
+        } else {
+          // Since the current character is not a line feed we flush the
+          // carriage return we didn't write last iteration.
+          if (lastCharWasCR) {
+            controller.add([CR]);
+            lastCharWasCR = false;
+          }
+          controller.add([b]);
+        }
+      }
+      if (error != null) {
+        // Error during decoding.
+        throw error;
       }
     }
 

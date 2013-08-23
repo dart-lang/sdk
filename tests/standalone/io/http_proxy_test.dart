@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
-import 'dart:utf';
+import 'dart:convert';
 
 class Server {
   HttpServer server;
@@ -163,7 +163,7 @@ class ProxyServer {
               List<String> tokens = authorization.split(" ");
               Expect.equals("Basic", tokens[0]);
               String auth =
-                  CryptoUtils.bytesToBase64(encodeUtf8("$username:$password"));
+                  CryptoUtils.bytesToBase64(UTF8.encode("$username:$password"));
               if (auth != tokens[1]) {
                 basicAuthenticationRequired(request);
                 return;

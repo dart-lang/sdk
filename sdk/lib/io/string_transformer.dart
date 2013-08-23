@@ -90,6 +90,8 @@ const ASCII = Encoding.ASCII;
 class StringDecoder implements StreamTransformer<List<int>, String> {
   var _decoder;
 
+  static const _UNICODE_REPLACEMENT_CHARACTER_CODEPOINT = 0xFFFD;
+
   /**
    * Decodes a stream of bytes into a `String` with an optional
    * [encoding] and [replacementChar].
@@ -103,7 +105,12 @@ class StringDecoder implements StreamTransformer<List<int>, String> {
   static Future<String> decode(
       Stream<List<int>> stream,
       [Encoding encoding = Encoding.UTF_8,
-       int replacementChar = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
+       int replacementChar = _UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
+    if (replacementChar != null &&
+        replacementChar != _UNICODE_REPLACEMENT_CHARACTER_CODEPOINT) {
+      throw new UnsupportedError("replacement character must be null or "
+      "the Unicode replacement character");
+    }
     return stream
         .transform(new StringDecoder(encoding, replacementChar))
         .fold(
@@ -123,10 +130,12 @@ class StringDecoder implements StreamTransformer<List<int>, String> {
   StringDecoder([Encoding encoding = Encoding.UTF_8, int replacementChar]) {
     switch (encoding) {
       case Encoding.UTF_8:
-        if (replacementChar == null) {
-          replacementChar = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT;
+        if (replacementChar != null &&
+            replacementChar != _UNICODE_REPLACEMENT_CHARACTER_CODEPOINT) {
+          throw new UnsupportedError("replacement character must be null or "
+              "the Unicode replacement character");
         }
-        _decoder = new Utf8DecoderTransformer(replacementChar);
+        _decoder = new Utf8Decoder(allowMalformed: true);
         break;
       case Encoding.ASCII:
         if (replacementChar == null) {
@@ -154,7 +163,7 @@ class StringDecoder implements StreamTransformer<List<int>, String> {
             throw new UnsupportedError(
                 "Replacement character is not supported for SYSTEM encoding");
           }
-          _decoder = new Utf8DecoderTransformer();
+          _decoder = new Utf8Decoder(allowMalformed: true);
         }
         break;
       default:
@@ -183,7 +192,7 @@ class StringEncoder implements StreamTransformer<String, List<int>> {
   StringEncoder([Encoding encoding = Encoding.UTF_8]) {
     switch (encoding) {
       case Encoding.UTF_8:
-        _encoder = new Utf8EncoderTransformer();
+        _encoder = new Utf8Encoder();
         break;
       case Encoding.ASCII:
         _encoder = new _AsciiEncoder();
@@ -195,7 +204,7 @@ class StringEncoder implements StreamTransformer<String, List<int>> {
         if (Platform.operatingSystem == "windows") {
           _encoder = new _WindowsCodePageEncoder();
         } else {
-          _encoder = new Utf8EncoderTransformer();
+          _encoder = new Utf8Encoder();
         }
         break;
       default:
@@ -210,32 +219,19 @@ class StringEncoder implements StreamTransformer<String, List<int>> {
 // Utility function to synchronously decode a list of bytes.
 String _decodeString(List<int> bytes, [Encoding encoding = Encoding.UTF_8]) {
   if (bytes.length == 0) return "";
+  if (encoding == Encoding.UTF_8) {
+    return UTF8.decode(bytes, allowMalformed: true);
+  }
   var string;
   var error;
   var controller = new StreamController(sync: true);
   controller.stream
     .transform(new StringDecoder(encoding))
-    .listen((data) => string = data,
-            onError: (e) => error = e);
-  controller.add(bytes);
-  controller.close();
-  if (error != null) throw error;
-  assert(string != null);
-  return string;
-}
-
-
-// Utility function to synchronously decode a utf8-encoded list of bytes,
-// throwing on error.
-String _decodeUtf8Strict(List<int> bytes) {
-  if (bytes.length == 0) return "";
-  var string;
-  var error;
-  var controller = new StreamController(sync: true);
-  controller.stream
-    .transform(new Utf8DecoderTransformer(null))
-    .listen((data) => string = data,
-            onError: (e) => error = e);
+    .listen((data) {
+      // The StringEncoder decodes every encoding (except UTF-8) in one go.
+      assert(string == null);
+      string = data;
+    }, onError: (e) => error = e);
   controller.add(bytes);
   controller.close();
   if (error != null) throw error;
@@ -248,11 +244,16 @@ String _decodeUtf8Strict(List<int> bytes) {
 // Will throw an exception if the encoding is invalid.
 List<int> _encodeString(String string, [Encoding encoding = Encoding.UTF_8]) {
   if (string.length == 0) return [];
+  if (encoding == Encoding.UTF_8) return UTF8.encode(string);
   var bytes;
   var controller = new StreamController(sync: true);
   controller.stream
     .transform(new StringEncoder(encoding))
-    .listen((data) => bytes = data);
+    .listen((data) {
+      // The StringEncoder encodes every encoding (except UTF-8) in one go.
+      assert(bytes == null);
+      bytes = data;
+    });
   controller.add(string);
   controller.close();
   assert(bytes != null);

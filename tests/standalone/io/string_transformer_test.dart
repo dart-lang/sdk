@@ -6,9 +6,10 @@ import "dart:async";
 import "dart:convert";
 import "dart:io";
 import "dart:isolate";
-import "dart:utf";
 
 import "package:expect/expect.dart";
+
+const UNICODE_REPLACEMENT_CHARACTER_CODEPOINT = 0xFFFD;
 
 void main() {
   testUtf8();

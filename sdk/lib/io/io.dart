@@ -4,7 +4,7 @@
 
 /**
  * File, socket, HTTP, and other I/O support for server applications.
- * 
+ *
  * The IO library is used for Dart server applications,
  * which run on a stand-alone Dart VM from the command line.
  * *This library does not work in browser based applications.*
@@ -23,7 +23,6 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:json' as JSON;
 import 'dart:math';
-import 'dart:utf';
 import 'dart:typed_data';
 
 part 'bytes_builder.dart';
