@@ -13,6 +13,7 @@ import 'date_symbols.dart';
 import 'src/lazy_locale_data.dart';
 import 'src/date_format_internal.dart';
 import 'src/http_request_data_reader.dart';
+import 'intl.dart';
 
 part "src/data/dates/localeList.dart";
 
@@ -29,11 +30,13 @@ Future initializeDateFormatting(String locale, String url) {
   var reader2 = new HTTPRequestDataReader('${url}patterns/');
   initializeDatePatterns(() => new LazyLocaleData(
       reader2, (x) => x, availableLocalesForDateFormatting));
+  var actualLocale = Intl.verifiedLocale(locale,
+      (l) => availableLocalesForDateFormatting.contains(l));
   return initializeIndividualLocaleDateFormatting(
       (symbols, patterns) {
         return Future.wait([
-            symbols.initLocale(locale),
-            patterns.initLocale(locale)]);
+            symbols.initLocale(actualLocale),
+            patterns.initLocale(actualLocale)]);
       });
 }
 

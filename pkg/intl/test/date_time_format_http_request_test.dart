@@ -11,6 +11,7 @@ library date_time_format_http_request_test;
 
 import 'dart:html';
 import 'package:unittest/html_config.dart';
+import 'package:unittest/unittest.dart';
 import 'package:intl/date_symbol_data_http_request.dart';
 import 'date_time_format_test_stub.dart';
 
@@ -18,6 +19,10 @@ main() {
   useHtmlConfiguration();
   var url = "http://localhost:${window.location.port}"
     "/root_dart/pkg/intl/lib/src/data/dates/";
+
+   test("Initializing a locale that needs fallback", () {
+     initializeDateFormatting("de_DE", url).then(expectAsync1((_) => true));
+   });
 
   runWith(smallSetOfLocales, url, initializeDateFormatting);
 }
