@@ -223,9 +223,7 @@ svgelement_test/supported_feImage: Fail
 svgelement_test/supported_feMerge: Fail
 svgelement_test/supported_feMergeNode: Fail
 svgelement_test/supported_feOffset: Fail
-svgelement_test/supported_fePointLight: Fail
 svgelement_test/supported_feSpecularLighting: Fail
-svgelement_test/supported_feSpotLight: Fail
 svgelement_test/supported_feTile: Fail
 svgelement_test/supported_feTurbulence: Fail
 svgelement_test/supported_filter: Fail
