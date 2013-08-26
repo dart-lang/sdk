@@ -254,3 +254,6 @@ null_test/03: Fail    # Issue 12445.
 
 [ $compiler == dart2js ]
 null_test/none: Fail  # Issue 12482
+
+[ $compiler == none && $runtime == drt ]
+vm/reflect_core_vm_test: Fail  # Temporarily marked as fail.
