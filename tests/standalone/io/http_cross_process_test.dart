@@ -53,7 +53,7 @@ Future runClientProcess(int port) {
 
 runClient(int port) {
   var client = new HttpClient();
-  client.get(InternetAddress.LOOPBACK_IP_V4, port, "/")
+  client.get('127.0.0.1', port, "/")
       .then((request) => request.close())
       .then((response) => response.listen((data) {},
                                           onDone: () => print('SUCCESS')));
