@@ -31,54 +31,52 @@ class SsaBuilderTask extends CompilerTask {
   HGraph build(CodegenWorkItem work) {
     return measure(() {
       Element element = work.element.implementation;
-      return compiler.withCurrentElement(element, () {
-        HInstruction.idCounter = 0;
-        ConstantSystem constantSystem = compiler.backend.constantSystem;
-        SsaBuilder builder = new SsaBuilder(constantSystem, this, work);
-        HGraph graph;
-        ElementKind kind = element.kind;
-        if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-          graph = compileConstructor(builder, work);
-        } else if (kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
-                   kind == ElementKind.FUNCTION ||
-                   kind == ElementKind.GETTER ||
-                   kind == ElementKind.SETTER) {
-          graph = builder.buildMethod(element);
-        } else if (kind == ElementKind.FIELD) {
-          assert(!element.isInstanceMember());
-          graph = builder.buildLazyInitializer(element);
-        } else {
-          compiler.internalErrorOnElement(element,
-                                          'unexpected element kind $kind');
-        }
-        assert(graph.isValid());
-        if (!identical(kind, ElementKind.FIELD)) {
-          FunctionElement function = element;
-          FunctionSignature signature = function.computeSignature(compiler);
-          signature.forEachOptionalParameter((Element parameter) {
-            // This ensures the default value will be computed.
-            builder.compileVariable(parameter);
-          });
-        }
+      HInstruction.idCounter = 0;
+      ConstantSystem constantSystem = compiler.backend.constantSystem;
+      SsaBuilder builder = new SsaBuilder(constantSystem, this, work);
+      HGraph graph;
+      ElementKind kind = element.kind;
+      if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+        graph = compileConstructor(builder, work);
+      } else if (kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
+                 kind == ElementKind.FUNCTION ||
+                 kind == ElementKind.GETTER ||
+                 kind == ElementKind.SETTER) {
+        graph = builder.buildMethod(element);
+      } else if (kind == ElementKind.FIELD) {
+        assert(!element.isInstanceMember());
+        graph = builder.buildLazyInitializer(element);
+      } else {
+        compiler.internalErrorOnElement(element,
+                                        'unexpected element kind $kind');
+      }
+      assert(graph.isValid());
+      if (!identical(kind, ElementKind.FIELD)) {
+        FunctionElement function = element;
+        FunctionSignature signature = function.computeSignature(compiler);
+        signature.forEachOptionalParameter((Element parameter) {
+          // This ensures the default value will be computed.
+          builder.compileVariable(parameter);
+        });
+      }
 
-        if (compiler.tracer.enabled) {
-          String name;
-          if (element.isMember()) {
-            String className = element.getEnclosingClass().name.slowToString();
-            String memberName = element.name.slowToString();
-            name = "$className.$memberName";
-            if (element.isGenerativeConstructorBody()) {
-              name = "$name (body)";
-            }
-          } else {
-            name = "${element.name.slowToString()}";
+      if (compiler.tracer.enabled) {
+        String name;
+        if (element.isMember()) {
+          String className = element.getEnclosingClass().name.slowToString();
+          String memberName = element.name.slowToString();
+          name = "$className.$memberName";
+          if (element.isGenerativeConstructorBody()) {
+            name = "$name (body)";
           }
-          compiler.tracer.traceCompilation(
-              name, work.compilationContext, compiler);
-          compiler.tracer.traceGraph('builder', graph);
+        } else {
+          name = "${element.name.slowToString()}";
         }
-        return graph;
-      });
+        compiler.tracer.traceCompilation(
+            name, work.compilationContext, compiler);
+        compiler.tracer.traceGraph('builder', graph);
+      }
+      return graph;
     });
   }
 
@@ -2800,8 +2798,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     type = type.unalias(compiler);
     if (type.kind == TypeKind.FUNCTION) {
       if (backend.rti.isSimpleFunctionType(type)) {
-        // TODO(johnniwinther): Avoid interceptor if unneeded.
-        return new HIs.raw(type, expression, invokeInterceptor(expression));
+        return new HIs(type, <HInstruction>[expression], HIs.RAW_CHECK);
       }
       Element checkFunctionSubtype = backend.getCheckFunctionSubtype();
 
@@ -2838,14 +2835,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                  typeArguments];
       pushInvokeStatic(node, checkFunctionSubtype, inputs, HType.BOOLEAN);
       HInstruction call = pop();
-      return new HIs.compound(type, expression, call);
+      return new HIs(type, <HInstruction>[expression, call],
+          HIs.COMPOUND_CHECK);
     } else if (type.kind == TypeKind.TYPE_VARIABLE) {
       HInstruction runtimeType = addTypeVariableReference(type);
       Element helper = backend.getCheckSubtypeOfRuntimeType();
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
       pushInvokeStatic(null, helper, inputs, HType.BOOLEAN);
       HInstruction call = pop();
-      return new HIs.variable(type, expression, call);
+      return new HIs(type, <HInstruction>[expression, call],
+                     HIs.VARIABLE_CHECK);
     } else if (RuntimeTypes.hasTypeArguments(type)) {
       ClassElement element = type.element;
       Element helper = backend.getCheckSubtype();
@@ -2864,13 +2863,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                  asFieldName];
       pushInvokeStatic(node, helper, inputs, HType.BOOLEAN);
       HInstruction call = pop();
-      return new HIs.compound(type, expression, call);
+      return
+          new HIs(type, <HInstruction>[expression, call], HIs.COMPOUND_CHECK);
     } else {
-      if (backend.hasDirectCheckFor(type)) {
-        return new HIs.direct(type, expression);
-      }
-      // TODO(johnniwinther): Avoid interceptor if unneeded.
-      return new HIs.raw(type, expression, invokeInterceptor(expression));
+      return new HIs(type, <HInstruction>[expression], HIs.RAW_CHECK);
     }
   }
 
@@ -4906,8 +4902,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           if (type == null) {
             compiler.internalError('On with no type', node: catchBlock.type);
           }
-          HInstruction condition =
-              buildIsNode(catchBlock.type, type, unwrappedException);
+          // TODO(karlkose): support type arguments here.
+          HInstruction condition = new HIs(type,
+                                           <HInstruction>[unwrappedException],
+                                           HIs.RAW_CHECK);
           push(condition);
         } else {
           VariableDefinitions declaration = catchBlock.formals.nodes.head;
@@ -4924,7 +4922,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             if (type == null) {
               compiler.cancel('Catch with unresolved type', node: catchBlock);
             }
-            condition = buildIsNode(declaration.type, type, unwrappedException);
+            // TODO(karlkose): support type arguments here.
+            condition = new HIs(type, <HInstruction>[unwrappedException],
+                                HIs.RAW_CHECK);
             push(condition);
           }
         }

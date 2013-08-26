@@ -191,11 +191,6 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     } else {
       interceptedClasses = new Set<ClassElement>();
       for (var user in node.usedBy) {
-        if (user is HIs) {
-          // Is-checks can be performed on any intercepted class.
-          interceptedClasses.addAll(backend.interceptedClasses);
-          break;
-        }
         if (user is! HInvoke) continue;
         // We don't handle escaping interceptors yet.
         interceptedClasses.addAll(
@@ -253,6 +248,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     return true;
   }
 
+  
   bool visitOneShotInterceptor(HOneShotInterceptor node) {
     HInstruction constant = tryComputeConstantInterceptor(
         node.inputs[1], node.interceptedClasses);
