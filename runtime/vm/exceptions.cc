@@ -412,21 +412,13 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
     // TODO(5411263): At some point we can optimize by figuring out if a
     // stack trace is needed based on whether the catch code specifies a
     // stack trace object or there is a rethrow in the catch clause.
-    if (pc_offset_array.Length() != 0) {
-      if (existing_stacktrace.IsNull()) {
+    if (existing_stacktrace.IsNull()) {
         stacktrace = Stacktrace::New(func_array, code_array, pc_offset_array);
-      } else {
-        stacktrace ^= existing_stacktrace.raw();
-        stacktrace.Append(func_array, code_array, pc_offset_array);
-        // Since we are re throwing and appending to the existing stack trace
-        // we clear out the catch trace collected in the existing stack trace
-        // as that trace will not be valid anymore.
-        stacktrace.SetCatchStacktrace(Object::empty_array(),
-                                      Object::empty_array(),
-                                      Object::empty_array());
-      }
     } else {
       stacktrace ^= existing_stacktrace.raw();
+      if (pc_offset_array.Length() != 0) {
+        stacktrace.Append(func_array, code_array, pc_offset_array);
+      }
       // Since we are re throwing and appending to the existing stack trace
       // we clear out the catch trace collected in the existing stack trace
       // as that trace will not be valid anymore.
