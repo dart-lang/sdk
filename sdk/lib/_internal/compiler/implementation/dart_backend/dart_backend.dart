@@ -10,7 +10,7 @@ import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
-import '../mirror_renamer/mirror_renamer.dart' show MirrorRenamer;
+import '../mirror_renamer/mirror_renamer.dart';
 
 import '../scanner/scannerlib.dart' show StringToken,
                                          Keyword,

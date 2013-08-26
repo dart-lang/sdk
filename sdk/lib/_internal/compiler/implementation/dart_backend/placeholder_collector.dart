@@ -45,7 +45,6 @@ class SendVisitor extends ResolvedVisitor {
   final PlaceholderCollector collector;
 
   get compiler => collector.compiler;
-  DartBackend get backend => compiler.backend;
 
   SendVisitor(this.collector, TreeElements elements) : super(elements);
 
@@ -107,7 +106,7 @@ class SendVisitor extends ResolvedVisitor {
 
   visitStaticSend(Send node) {
     final element = elements[node];
-    backend.registerStaticSend(element, node);
+    collector.backend.registerStaticSend(element, node);
 
     if (Elements.isUnresolved(element)
         || identical(element, compiler.assertMethod)) {
@@ -161,6 +160,7 @@ class PlaceholderCollector extends Visitor {
 
   LibraryElement get coreLibrary => compiler.coreLibrary;
   FunctionElement get entryFunction => compiler.mainApp.find(Compiler.MAIN);
+  DartBackend get backend => compiler.backend;
 
   get currentFunctionScope => functionScopes.putIfAbsent(
       topmostEnclosingFunction, () => new FunctionScope());
@@ -505,6 +505,9 @@ class PlaceholderCollector extends Visitor {
       // TODO(smok): Fix this when resolver correctly deals with
       // such cases.
       if (definitionElement == null) continue;
+      if (definitionElement == backend.mirrorHelperSymbolsMap) {
+        backend.registerMirrorHelperElement(definitionElement, node);
+      }
       Send send = definition.asSend();
       if (send != null) {
         // May get FunctionExpression here in definition.selector
@@ -538,6 +541,9 @@ class PlaceholderCollector extends Visitor {
         id != null && Keyword.keywords[id.source.slowToString()] != null;
 
     Element element = treeElements[node];
+    if (element == backend.mirrorHelperGetNameFunction) {
+      backend.registerMirrorHelperElement(element, node);
+    }
     // May get null here in case of A(int this.f());
     if (element != null) {
       // Rename only local functions.

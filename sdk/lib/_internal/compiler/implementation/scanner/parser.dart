@@ -1264,6 +1264,7 @@ class Parser {
       }
       // Fall-through to expression statement.
     }
+
     return parseExpressionStatement(token);
   }
 

@@ -120,8 +120,11 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
   /// the resolver to suppress hints about using new Symbol or
   /// MirrorSystem.getName.
   bool hasMirrorUsage(Element element) {
-    return librariesWithUsage != null
-        && librariesWithUsage.contains(element.getLibrary());
+    LibraryElement library = element.getLibrary();
+    // Internal libraries always have implicit mirror usage.
+    return library.isInternalLibrary
+        || (librariesWithUsage != null
+            && librariesWithUsage.contains(library));
   }
 
   /// Call-back from the resolver to analyze MirorsUsed annotations. The result

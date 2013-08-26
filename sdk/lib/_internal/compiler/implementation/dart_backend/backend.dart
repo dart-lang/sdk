@@ -129,6 +129,19 @@ class DartBackend extends Backend {
   // Right now, it is set by the tests.
   bool useMirrorHelperLibrary = false;
 
+  /// Initialized if the useMirrorHelperLibrary field is set.
+  MirrorRenamer mirrorRenamer;
+
+  /// Initialized when dart:mirrors is loaded if the useMirrorHelperLibrary
+  /// field is set.
+  LibraryElement mirrorHelperLibrary;
+  /// Initialized when dart:mirrors is loaded if the useMirrorHelperLibrary
+  /// field is set.
+  FunctionElement mirrorHelperGetNameFunction;
+  /// Initialized when dart:mirrors is loaded if the useMirrorHelperLibrary
+  /// field is set.
+  Element mirrorHelperSymbolsMap;
+
   Map<Element, TreeElements> get resolvedElements =>
       compiler.enqueuer.resolution.resolvedElements;
 
@@ -264,15 +277,22 @@ class DartBackend extends Backend {
     fixedMemberNames.add('srcType');
     fixedMemberNames.add('dstType');
 
+    if (useMirrorHelperLibrary && compiler.mirrorsLibrary != null) {
+        mirrorRenamer = new MirrorRenamer(compiler, this);
+    } else {
+      useMirrorHelperLibrary = false;
+    }
+
     /**
      * Tells whether we should output given element. Corelib classes like
      * Object should not be in the resulting code.
      */
     bool shouldOutput(Element element) {
-      return !identical(element.kind, ElementKind.VOID)
+      return (element.kind != ElementKind.VOID
           && isUserLibrary(element.getLibrary())
           && !element.isSynthesized
-          && element is !AbstractFieldElement;
+          && element is !AbstractFieldElement)
+          || element.getLibrary() == mirrorHelperLibrary;
     }
 
     final elementAsts = new Map<Element, ElementAst>();
@@ -397,7 +417,12 @@ class DartBackend extends Backend {
     // some unused identifier.
     collector.unresolvedNodes.add(synthesizedIdentifier);
     makePlaceholders(element) {
+      bool oldUseHelper = useMirrorHelperLibrary;
+      useMirrorHelperLibrary = (useMirrorHelperLibrary
+                               && element.getLibrary() != mirrorHelperLibrary);
       collector.collect(element);
+      useMirrorHelperLibrary = oldUseHelper;
+
       if (element.isClass()) {
         classMembers[element].forEach(makePlaceholders);
       }
@@ -450,8 +475,8 @@ class DartBackend extends Backend {
       }
     }
 
-    if (useMirrorHelperLibrary && compiler.mirrorsLibrary != null) {
-      MirrorRenamer.addMirrorHelperImport(imports);
+    if (useMirrorHelperLibrary) {
+      mirrorRenamer.addRenames(renames, topLevelNodes);
     }
 
     final unparser = new EmitterUnparser(renames);
@@ -480,9 +505,33 @@ class DartBackend extends Backend {
 
   log(String message) => compiler.log('[DartBackend] $message');
 
+  void onLibraryLoaded(LibraryElement library, Uri uri) {
+    if (useMirrorHelperLibrary && library == compiler.mirrorsLibrary) {
+      mirrorHelperLibrary = compiler.scanBuiltinLibrary(
+          MirrorRenamer.MIRROR_HELPER_LIBRARY_NAME);
+      mirrorHelperGetNameFunction = mirrorHelperLibrary.find(
+          const SourceString(MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION));
+      mirrorHelperSymbolsMap = mirrorHelperLibrary.find(
+          const SourceString(MirrorRenamer.MIRROR_HELPER_SYMBOLS_MAP_NAME));
+    }
+  }
+
   void registerStaticSend(Element element, Node node) {
-    if (useMirrorHelperLibrary && compiler.mirrorsLibrary != null) {
-      MirrorRenamer.handleStaticSend(renames, element, node, compiler);
+    if (useMirrorHelperLibrary) {
+      mirrorRenamer.registerStaticSend(element, node);
+    }
+  }
+
+  void registerMirrorHelperElement(Element element, Node node) {
+    if (element.getLibrary() == mirrorHelperLibrary) {
+      mirrorRenamer.registerHelperElement(element, node);
+    }
+  }
+
+  void registerStaticUse(Element element, Enqueuer enqueuer) {
+    if (useMirrorHelperLibrary &&
+        element == compiler.mirrorSystemGetNameFunction) {
+      enqueuer.addToWorkList(mirrorHelperGetNameFunction);
     }
   }
 }

@@ -35,6 +35,12 @@ class ScannerTask extends CompilerTask {
     }
     compiler.dietParser.dietParse(compilationUnit, tokens);
   }
+
+  Token tokenize(String source) {
+    return measure(() {
+      return new StringScanner(source, includeComments: false).tokenize();
+    });
+  }
 }
 
 class DietParserTask extends CompilerTask {

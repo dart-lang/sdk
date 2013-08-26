@@ -4,11 +4,10 @@
 
 library mirror_renamer;
 
-// TODO(zarah): Remove this hack! LibraryElementX should not be created outside
-// the library loader!
-import '../elements/modelx.dart' show LibraryElementX;
 import '../dart2jslib.dart' show Script, Compiler;
 import '../tree/tree.dart';
+import '../scanner/scannerlib.dart' show SourceString, Token;
 import '../elements/elements.dart';
+import '../dart_backend/dart_backend.dart' show DartBackend;
 
 part 'renamer.dart';

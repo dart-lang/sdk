@@ -29,10 +29,10 @@ show
 
 
 main() {
-  testWithMirrorRenaming();
-  testWithoutMirrorRenaming();
-  testWithMirrorRenamingMinify();
-  testWithoutMirrorRenamingMinify();
+  testWithMirrorRenaming(minify: true);
+  testWithMirrorRenaming(minify: false);
+  testWithoutMirrorRenaming(minify: true);
+  testWithoutMirrorRenaming(minify: false);
 }
 
 Compiler runCompiler({useMirrorHelperLibrary: false, minify: false}) {
@@ -47,63 +47,28 @@ Compiler runCompiler({useMirrorHelperLibrary: false, minify: false}) {
   return compiler;
 }
 
-void testWithMirrorRenaming() {
-  Compiler compiler = runCompiler(useMirrorHelperLibrary: true, minify: false);
+void testWithMirrorRenaming({bool minify}) {
+  Compiler compiler = runCompiler(useMirrorHelperLibrary: true, minify: minify);
 
   DartBackend backend = compiler.backend;
+  MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
   Map<Node, String> renames = backend.renames;
   Map<LibraryElement, String> imports = backend.imports;
 
   Node getNameFunctionNode =
       backend.memberNodes.values.first.first.body.statements.nodes.head;
 
-  Expect.equals(MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION,
-                renames[getNameFunctionNode.expression.selector]);
-  Expect.equals(MirrorRenamer.MIRROR_HELPER_CLASS_FULLY_QUALIFIED_NAME,
+  Expect.equals(
+      const SourceString(MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION),
+      mirrorRenamer.symbols[renames[getNameFunctionNode.expression.selector]]);
+  Expect.equals("",
                 renames[getNameFunctionNode.expression.receiver]);
-  Expect.equals(2, imports.keys.length);
-  Expect.isTrue(imports.keys.any((library) =>
-      library.canonicalUri ==
-          new Uri(path: MirrorRenamer.MIRROR_HELPER_LIBRARY_NAME)));
-}
-
-void testWithMirrorRenamingMinify() {
-  Compiler compiler = runCompiler(useMirrorHelperLibrary: true, minify: true);
-
-  DartBackend backend = compiler.backend;
-  Map<Node, String> renames = backend.renames;
-  Map<LibraryElement, String> imports = backend.imports;
-
-  Node getNameFunctionNode =
-      backend.memberNodes.values.first.first.body.statements.nodes.head;
-
-  Expect.equals(MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION,
-      renames[getNameFunctionNode.expression.selector]);
-  Expect.equals(MirrorRenamer.MIRROR_HELPER_CLASS_FULLY_QUALIFIED_NAME,
-                renames[getNameFunctionNode.expression.receiver]);
-  Expect.equals(2, imports.keys.length);
-  Expect.isTrue(imports.keys.any((library) =>
-      library.canonicalUri ==
-          new Uri(path: MirrorRenamer.MIRROR_HELPER_LIBRARY_NAME)));
-}
-
-void testWithoutMirrorRenaming() {
-  Compiler compiler = runCompiler(useMirrorHelperLibrary: false, minify: false);
-
-  DartBackend backend = compiler.backend;
-  Map<Node, String> renames = backend.renames;
-  Map<LibraryElement, String> imports = backend.imports;
-
-  Node getNameFunctionNode =
-      backend.memberNodes.values.first.first.body.statements.nodes.head;
-
-  Expect.isFalse(renames.containsKey(getNameFunctionNode.expression.selector));
-  Expect.isFalse(renames.containsKey(getNameFunctionNode.expression.receiver));
   Expect.equals(1, imports.keys.length);
 }
 
-void testWithoutMirrorRenamingMinify() {
-  Compiler compiler = runCompiler(useMirrorHelperLibrary: false, minify: true);
+void testWithoutMirrorRenaming({bool minify}) {
+  Compiler compiler =
+      runCompiler(useMirrorHelperLibrary: false, minify: minify);
 
   DartBackend backend = compiler.backend;
   Map<Node, String> renames = backend.renames;
@@ -120,7 +85,6 @@ void testWithoutMirrorRenamingMinify() {
 const MEMORY_SOURCE_FILES = const <String, String> {
   'main.dart': """
 import 'dart:mirrors';
-
 
 class Foo {
   noSuchMethod(Invocation invocation) {
