@@ -4,12 +4,13 @@
 
 import "package:expect/expect.dart";
 import "dart:async";
+import "dart:convert";
 import "dart:io";
 
 callIOSink(IOSink sink) {
   // Call all methods on IOSink.
-  sink.encoding = Encoding.ASCII;
-  Expect.equals(Encoding.ASCII, sink.encoding);
+  sink.encoding = ASCII;
+  Expect.equals(ASCII, sink.encoding);
   sink.write("Hello\n");
   sink.writeln("Hello");
   sink.writeAll(["H", "e", "l", "lo\n"]);

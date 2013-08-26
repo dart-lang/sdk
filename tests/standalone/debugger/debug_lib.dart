@@ -393,7 +393,7 @@ class Debugger {
 
   Debugger(this.targetProcess, this.script) {
     var stdoutStringStream = targetProcess.stdout
-        .transform(new StringDecoder())
+        .transform(UTF8.decoder)
         .transform(new LineSplitter());
     stdoutStringStream.listen((line) {
       print("TARG: $line");
@@ -406,7 +406,7 @@ class Debugger {
     });
 
     var stderrStringStream = targetProcess.stderr
-        .transform(new StringDecoder())
+        .transform(UTF8.decoder)
         .transform(new LineSplitter());
     stderrStringStream.listen((line) {
       print("TARG: $line");
@@ -542,7 +542,7 @@ class Debugger {
     Socket.connect("127.0.0.1", portNumber).then((s) {
         s.setOption(SocketOption.TCP_NODELAY, true);
         this.socket = s;
-        var stringStream = socket.transform(new StringDecoder());
+        var stringStream = socket.transform(UTF8.decoder);
         stringStream.listen((str) {
             try {
               responses.append(str);

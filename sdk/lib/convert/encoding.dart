@@ -7,13 +7,70 @@ part of dart.convert;
 /**
  * Open-ended Encoding enum.
  */
-// TODO(floitsch): dart:io already has an Encoding class. If we can't
-// consolitate them, we need to remove `Encoding` here.
-abstract class _Encoding extends Codec<String, List<int>> {
-  const _Encoding();
+abstract class Encoding extends Codec<String, List<int>> {
+  const Encoding();
 
-  // TODO(floitsch): should we introduce a StringToByteEncoder and
-  // a ByteToStringDecoder so that we have better typing?
+  Future<String> decodeStream(Stream<List<int>> byteStream) {
+    return byteStream
+      .transform(decoder)
+      .fold(new StringBuffer(), (buffer, string) => buffer..write(string))
+      .then((buffer) => buffer.toString());
+  }
+
+  /**
+   * Name of the encoding.
+   *
+   * If the encoding is standardized, this is the lower-case version of one of
+   * the IANA official names for the character set (see
+   * http://www.iana.org/assignments/character-sets/character-sets.xml)
+   */
+  String get name;
+
+  // All aliases (in lowercase) of supported encoding from
+  // http://www.iana.org/assignments/character-sets/character-sets.xml.
+  static Map<String, Encoding> _nameToEncoding = <String, Encoding> {
+    // ISO_8859-1:1987.
+    "iso_8859-1:1987": LATIN1,
+    "iso-ir-100": LATIN1,
+    "iso_8859-1": LATIN1,
+    "iso-8859-1": LATIN1,
+    "latin1": LATIN1,
+    "l1": LATIN1,
+    "ibm819": LATIN1,
+    "cp819": LATIN1,
+    "csisolatin1": LATIN1,
+
+    // US-ASCII.
+    "iso-ir-6": ASCII,
+    "ansi_x3.4-1968": ASCII,
+    "ansi_x3.4-1986": ASCII,
+    "iso_646.irv:1991": ASCII,
+    "iso646-us": ASCII,
+    "us-ascii": ASCII,
+    "us": ASCII,
+    "ibm367": ASCII,
+    "cp367": ASCII,
+    "csascii": ASCII,
+    "ascii": ASCII,  // This is not in the IANA official names.
+
+    // UTF-8.
+    "csutf8": UTF8,
+    "utf-8": UTF8
+  };
+
+  /**
+  * Gets an [Encoding] object from the name of the character set
+  * name. The names used are the IANA official names for the
+  * character set (see
+  * http://www.iana.org/assignments/character-sets/character-sets.xml).
+  *
+  * The [name] passed is case insensitive.
+  *
+  * If character set is not supported [:null:] is returned.
+  */
+  static Encoding getByName(String name) {
+      if (name == null) return null;
+      name = name.toLowerCase();
+      return _nameToEncoding[name];
+  }
 }
-
-// TODO(floitsch): add other encodings, like ASCII and ISO_8859_1.

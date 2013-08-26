@@ -4,6 +4,7 @@
 
 library request;
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -36,7 +37,7 @@ class Request extends BaseRequest {
   /// If the request has a `Content-Type` header and that header has a `charset`
   /// parameter, that parameter's value is used as the encoding. Otherwise, if
   /// [encoding] has been set manually, that encoding is used. If that hasn't
-  /// been set either, this defaults to [Encoding.UTF_8].
+  /// been set either, this defaults to [UTF8].
   ///
   /// If the `charset` parameter's value is not a known [Encoding], reading this
   /// will throw a [FormatException].
@@ -83,10 +84,10 @@ class Request extends BaseRequest {
   /// header, one will be added with the type `text/plain`. Then the `charset`
   /// parameter of the `Content-Type` header (whether new or pre-existing) will
   /// be set to [encoding] if it wasn't already set.
-  String get body => decodeString(bodyBytes, encoding);
+  String get body => encoding.decode(bodyBytes);
 
   set body(String value) {
-    bodyBytes = encodeString(value, encoding);
+    bodyBytes = encoding.encode(value);
     var contentType = _contentType;
     if (contentType == null) {
       contentType = new ContentType("text", "plain", charset: encoding.name);
@@ -137,7 +138,7 @@ class Request extends BaseRequest {
   /// Creates a new HTTP request.
   Request(String method, Uri url)
     : super(method, url),
-      _defaultEncoding = Encoding.UTF_8,
+      _defaultEncoding = UTF8,
       _bodyBytes = new Uint8List(0);
 
   /// Freezes all mutable fields and returns a single-subscription [ByteStream]

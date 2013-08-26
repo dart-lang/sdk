@@ -129,7 +129,7 @@ abstract class Process {
    *
    * The encoding used for decoding `stdout` and `stderr` into text is
    * controlled through [stdoutEncoding] and [stderrEncoding]. The
-   * default encoding is `Encoding.SYSTEM`. If `null` is used no
+   * default encoding is [SYSTEM_ENCODING]. If `null` is used no
    * decoding will happen and the [ProcessResult] will hold binary
    * data.
    *
@@ -144,8 +144,8 @@ abstract class Process {
        Map<String, String> environment,
        bool includeParentEnvironment: true,
        bool runInShell: false,
-       Encoding stdoutEncoding: Encoding.SYSTEM,
-       Encoding stderrEncoding: Encoding.SYSTEM});
+       Encoding stdoutEncoding: SYSTEM_ENCODING,
+       Encoding stderrEncoding: SYSTEM_ENCODING});
 
 
   /**
@@ -164,8 +164,8 @@ abstract class Process {
        Map<String, String> environment,
        bool includeParentEnvironment: true,
        bool runInShell: false,
-       Encoding stdoutEncoding: Encoding.SYSTEM,
-       Encoding stderrEncoding: Encoding.SYSTEM});
+       Encoding stdoutEncoding: SYSTEM_ENCODING,
+       Encoding stderrEncoding: SYSTEM_ENCODING});
 
   /**
    * Returns the standard output stream of the process as a [:Stream:].

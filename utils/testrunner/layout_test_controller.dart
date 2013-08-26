@@ -168,7 +168,7 @@ Future _processHelper(String command, List<String> args,
 void _pipeStream(Stream stream, List<String> destination,
                  Function outputMonitor) {
   stream
-      .transform(new StringDecoder())
+      .transform(UTF8.decoder)
       .transform(new LineTransformer())
       .listen((String line) {
         if (outputMonitor != null) {

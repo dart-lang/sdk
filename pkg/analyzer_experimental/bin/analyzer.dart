@@ -80,7 +80,7 @@ class BatchRunner {
     ErrorSeverity batchResult = ErrorSeverity.NONE;
     // read line from stdin
     Stream cmdLine = stdin
-        .transform(new StringDecoder())
+        .transform(UTF8.decoder)
         .transform(new LineSplitter());
     var subscription = cmdLine.listen((String line) {
       // may be finish

@@ -463,7 +463,7 @@ class _WebSocketOutgoingTransformer extends StreamEventTransformer {
     if (message != null) {
       if (message is String) {
         opcode = _WebSocketOpcode.TEXT;
-        data = _encodeString(message);
+        data = UTF8.encode(message);
       } else {
         if (message is !List<int>) {
           throw new ArgumentError(message);
@@ -486,7 +486,7 @@ class _WebSocketOutgoingTransformer extends StreamEventTransformer {
       data.add((code >> 8) & 0xFF);
       data.add(code & 0xFF);
       if (reason != null) {
-        data.addAll(_encodeString(reason));
+        data.addAll(UTF8.encode(reason));
       }
     }
     addFrame(_WebSocketOpcode.CLOSE, data, sink);

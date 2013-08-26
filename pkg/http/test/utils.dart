@@ -5,6 +5,7 @@
 library test_utils;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:json' as json;
 
@@ -62,7 +63,7 @@ Future startServer() {
         if (encodingName != null) {
           outputEncoding = requiredEncodingForCharset(encodingName);
         } else {
-          outputEncoding = Encoding.ASCII;
+          outputEncoding = ASCII;
         }
 
         response.headers.contentType =
@@ -76,7 +77,7 @@ Future startServer() {
         } else if (request.headers.contentType.charset != null) {
           var encoding = requiredEncodingForCharset(
               request.headers.contentType.charset);
-          requestBody = decodeString(requestBodyBytes, encoding);
+          requestBody = encoding.decode(requestBodyBytes);
         } else {
           requestBody = requestBodyBytes;
         }

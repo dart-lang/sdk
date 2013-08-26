@@ -4,6 +4,7 @@
 
 library request_test;
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
@@ -62,32 +63,32 @@ void main() {
   group('#encoding', () {
     test('defaults to utf-8', () {
       var request = new http.Request('POST', dummyUrl);
-      expect(request.encoding.name, equals(Encoding.UTF_8.name));
+      expect(request.encoding.name, equals(UTF8.name));
     });
 
     test('can be set', () {
       var request = new http.Request('POST', dummyUrl);
-      request.encoding = Encoding.ISO_8859_1;
-      expect(request.encoding.name, equals(Encoding.ISO_8859_1.name));
+      request.encoding = LATIN1;
+      expect(request.encoding.name, equals(LATIN1.name));
     });
 
     test('is based on the content-type charset if it exists', () {
       var request = new http.Request('POST', dummyUrl);
       request.headers[HttpHeaders.CONTENT_TYPE] =
           'text/plain; charset=iso-8859-1';
-      expect(request.encoding.name, equals(Encoding.ISO_8859_1.name));
+      expect(request.encoding.name, equals(LATIN1.name));
     });
 
     test('remains the default if the content-type charset is set and unset',
         () {
       var request = new http.Request('POST', dummyUrl);
-      request.encoding = Encoding.ISO_8859_1;
+      request.encoding = LATIN1;
       request.headers[HttpHeaders.CONTENT_TYPE] =
           'text/plain; charset=utf-8';
-      expect(request.encoding.name, equals(Encoding.UTF_8.name));
+      expect(request.encoding.name, equals(UTF8.name));
 
       request.headers.remove(HttpHeaders.CONTENT_TYPE);
-      expect(request.encoding.name, equals(Encoding.ISO_8859_1.name));
+      expect(request.encoding.name, equals(LATIN1.name));
     });
 
     test('throws an error if the content-type charset is unknown', () {
@@ -240,7 +241,7 @@ void main() {
 
     test('defaults to empty if only encoding is set', () {
       var request = new http.Request('POST', dummyUrl);
-      request.encoding = Encoding.ISO_8859_1;
+      request.encoding = LATIN1;
       expect(request.headers[HttpHeaders.CONTENT_TYPE], isNull);
     });
 
@@ -255,7 +256,7 @@ void main() {
     test('is set to application/x-www-form-urlencoded with the given charset '
         'if bodyFields and encoding are set', () {
       var request = new http.Request('POST', dummyUrl);
-      request.encoding = Encoding.ISO_8859_1;
+      request.encoding = LATIN1;
       request.bodyFields = {'hello': 'world'};
       expect(request.headers[HttpHeaders.CONTENT_TYPE],
           equals('application/x-www-form-urlencoded; charset=iso-8859-1'));
@@ -264,7 +265,7 @@ void main() {
     test('is set to text/plain and the given encoding if body and encoding are '
         'both set', () {
       var request = new http.Request('POST', dummyUrl);
-      request.encoding = Encoding.ISO_8859_1;
+      request.encoding = LATIN1;
       request.body = 'hello, world';
       expect(request.headers[HttpHeaders.CONTENT_TYPE],
           equals('text/plain; charset=iso-8859-1'));
@@ -281,7 +282,7 @@ void main() {
     test('is modified to include the given encoding if encoding is set', () {
       var request = new http.Request('POST', dummyUrl);
       request.headers[HttpHeaders.CONTENT_TYPE] = 'application/json';
-      request.encoding = Encoding.ISO_8859_1;
+      request.encoding = LATIN1;
       expect(request.headers[HttpHeaders.CONTENT_TYPE],
           equals('application/json; charset=iso-8859-1'));
     });
@@ -290,7 +291,7 @@ void main() {
       var request = new http.Request('POST', dummyUrl);
       request.headers[HttpHeaders.CONTENT_TYPE] =
           'application/json; charset=utf-8';
-      request.encoding = Encoding.ISO_8859_1;
+      request.encoding = LATIN1;
       expect(request.headers[HttpHeaders.CONTENT_TYPE],
           equals('application/json; charset=iso-8859-1'));
     });
@@ -350,8 +351,8 @@ void main() {
       var request = new http.Request('POST', dummyUrl);
       request.finalize();
 
-      expect(request.encoding.name, equals(Encoding.UTF_8.name));
-      expect(() => request.encoding = Encoding.ASCII, throwsStateError);
+      expect(request.encoding.name, equals(UTF8.name));
+      expect(() => request.encoding = ASCII, throwsStateError);
     });
 
     test('freezes #bodyBytes', () {

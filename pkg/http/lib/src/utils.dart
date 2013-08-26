@@ -5,9 +5,9 @@
 library utils;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:utf';
 
 import 'byte_stream.dart';
 
@@ -66,9 +66,9 @@ List<String> split1(String toSplit, String pattern) {
 /// [charset] is null or if no [Encoding] was found that corresponds to
 /// [charset].
 Encoding encodingForCharset(
-    String charset, [Encoding fallback = Encoding.ISO_8859_1]) {
+    String charset, [Encoding fallback = LATIN1]) {
   if (charset == null) return fallback;
-  var encoding = Encoding.fromName(charset);
+  var encoding = Encoding.getByName(charset);
   return encoding == null ? fallback : encoding;
 }
 
@@ -77,21 +77,9 @@ Encoding encodingForCharset(
 /// [FormatException] if no [Encoding] was found that corresponds to [charset].
 /// [charset] may not be null.
 Encoding requiredEncodingForCharset(String charset) {
-  var encoding = Encoding.fromName(charset);
+  var encoding = Encoding.getByName(charset);
   if (encoding != null) return encoding;
   throw new FormatException('Unsupported encoding "$charset".');
-}
-
-/// Converts [bytes] into a [String] according to [encoding].
-String decodeString(List<int> bytes, Encoding encoding) {
-  // TODO(nweiz): implement this once issue 6284 is fixed.
-  return decodeUtf8(bytes);
-}
-
-/// Converts [string] into a byte array according to [encoding].
-List<int> encodeString(String string, Encoding encoding) {
-  // TODO(nweiz): implement this once issue 6284 is fixed.
-  return encodeUtf8(string);
 }
 
 /// A regular expression that matches strings that are composed entirely of

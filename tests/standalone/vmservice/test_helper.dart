@@ -97,7 +97,7 @@ class TestLauncher {
       var portNumber;
       var blank;
       var first = true;
-      process.stdout.transform(new StringDecoder())
+      process.stdout.transform(UTF8.decoder)
                     .transform(new LineSplitter()).listen((line) {
         if (line.startsWith('VmService listening on port ')) {
           RegExp portExp = new RegExp(r"\d+");
@@ -116,7 +116,7 @@ class TestLauncher {
         }
         print(line);
       });
-      process.stderr.transform(new StringDecoder())
+      process.stderr.transform(UTF8.decoder)
                     .transform(new LineSplitter()).listen((line) {
         print(line);
       });

@@ -24,7 +24,7 @@ const int _ASCII_MASK = 0x7F;
  * An [AsciiCodec] allows encoding strings as ASCII bytes
  * and decoding ASCII bytes to strings.
  */
-class AsciiCodec extends _Encoding {
+class AsciiCodec extends Encoding {
   final bool _allowInvalid;
   /**
    * Instantiates a new [AsciiCodec].
@@ -38,6 +38,8 @@ class AsciiCodec extends _Encoding {
    * Encoders will not accept invalid (non Latin-1) characters.
    */
   const AsciiCodec({bool allowInvalid: false}) : _allowInvalid = allowInvalid;
+
+  String get name => "us-ascii";
 
   /**
    * Decodes the ASCII [bytes] (a list of unsigned 7-bit integers) to the

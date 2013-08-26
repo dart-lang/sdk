@@ -204,7 +204,7 @@ abstract class File implements FileSystemEntity {
    *  [IOSink] has been created.
    */
   IOSink openWrite({FileMode mode: FileMode.WRITE,
-                    Encoding encoding: Encoding.UTF_8});
+                    Encoding encoding: UTF8});
 
   /**
    * Read the entire file contents as a list of bytes. Returns a
@@ -227,7 +227,7 @@ abstract class File implements FileSystemEntity {
    * Returns a [:Future<String>:] that completes with the string once
    * the file contents has been read.
    */
-  Future<String> readAsString({Encoding encoding: Encoding.UTF_8});
+  Future<String> readAsString({Encoding encoding: UTF8});
 
   /**
    * Synchronously read the entire file contents as a string using the
@@ -235,7 +235,7 @@ abstract class File implements FileSystemEntity {
    *
    * Throws a [FileException] if the operation fails.
    */
-  String readAsStringSync({Encoding encoding: Encoding.UTF_8});
+  String readAsStringSync({Encoding encoding: UTF8});
 
   /**
    * Read the entire file contents as lines of text using the given
@@ -244,7 +244,7 @@ abstract class File implements FileSystemEntity {
    * Returns a [:Future<List<String>>:] that completes with the lines
    * once the file contents has been read.
    */
-  Future<List<String>> readAsLines({Encoding encoding: Encoding.UTF_8});
+  Future<List<String>> readAsLines({Encoding encoding: UTF8});
 
   /**
    * Synchronously read the entire file contents as lines of text
@@ -252,7 +252,7 @@ abstract class File implements FileSystemEntity {
    *
    * Throws a [FileException] if the operation fails.
    */
-  List<String> readAsLinesSync({Encoding encoding: Encoding.UTF_8});
+  List<String> readAsLinesSync({Encoding encoding: UTF8});
 
   /**
    * Write a list of bytes to a file.
@@ -293,7 +293,7 @@ abstract class File implements FileSystemEntity {
    */
   Future<File> writeAsString(String contents,
                              {FileMode mode: FileMode.WRITE,
-                              Encoding encoding: Encoding.UTF_8});
+                              Encoding encoding: UTF8});
 
   /**
    * Synchronously write a string to a file.
@@ -310,7 +310,7 @@ abstract class File implements FileSystemEntity {
    */
   void writeAsStringSync(String contents,
                          {FileMode mode: FileMode.WRITE,
-                          Encoding encoding: Encoding.UTF_8});
+                          Encoding encoding: UTF8});
 
   /**
    * Get the path of the file.
@@ -428,7 +428,7 @@ abstract class RandomAccessFile {
    * RandomAccessFile when the write completes.
    */
   Future<RandomAccessFile> writeString(String string,
-                                       {Encoding encoding: Encoding.UTF_8});
+                                       {Encoding encoding: UTF8});
 
   /**
    * Synchronously writes a single string to the file using the given
@@ -437,7 +437,7 @@ abstract class RandomAccessFile {
    * Throws a [FileException] if the operation fails.
    */
   void writeStringSync(String string,
-                       {Encoding encoding: Encoding.UTF_8});
+                       {Encoding encoding: UTF8});
 
   /**
    * Gets the current byte position in the file. Returns a

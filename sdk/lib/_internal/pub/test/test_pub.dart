@@ -9,6 +9,7 @@
 library test_pub;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:json' as json;
 import 'dart:math';
@@ -501,7 +502,7 @@ class PubProcess extends ScheduledProcess {
 
   PubProcess.start(executable, arguments,
       {workingDirectory, environment, String description,
-       Encoding encoding: Encoding.UTF_8})
+       Encoding encoding: UTF8})
     : super.start(executable, arguments,
         workingDirectory: workingDirectory,
         environment: environment,

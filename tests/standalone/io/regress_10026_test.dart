@@ -4,6 +4,7 @@
 
 import "package:expect/expect.dart";
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -13,7 +14,7 @@ void testZLibInflate_regress10026() {
     var controller = new StreamController(sync: true);
     controller.stream
         .transform(ZLIB.decoder)
-        .transform(new StringDecoder())
+        .transform(UTF8.decoder)
         .fold(new StringBuffer(), (buffer, s) {
           buffer.write(s);
           return buffer;

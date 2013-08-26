@@ -103,7 +103,7 @@ class HttpBodyHandler
    * `multipart/form-data` content correctly. See the class comment
    * for more information on `multipart/form-data`.
    */
-  HttpBodyHandler({Encoding defaultEncoding: Encoding.UTF_8})
+  HttpBodyHandler({Encoding defaultEncoding: UTF8})
       : _transformer = new _HttpBodyHandlerTransformer(defaultEncoding);
 
   /**
@@ -114,7 +114,7 @@ class HttpBodyHandler
    */
   static Future<HttpRequestBody> processRequest(
       HttpRequest request,
-      {Encoding defaultEncoding: Encoding.UTF_8}) {
+      {Encoding defaultEncoding: UTF8}) {
     return _HttpBodyHandler.processRequest(request, defaultEncoding);
   }
 
@@ -125,7 +125,7 @@ class HttpBodyHandler
    */
   static Future<HttpClientResponseBody> processResponse(
       HttpClientResponse response,
-      {Encoding defaultEncoding: Encoding.UTF_8}) {
+      {Encoding defaultEncoding: UTF8}) {
     return _HttpBodyHandler.processResponse(response, defaultEncoding);
   }
 

@@ -5,6 +5,7 @@
 library http_server;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:json' as JSON;
 

@@ -58,7 +58,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    * If end-of-file is reached after some data has already been read, that data
    * is returned.
    */
-  String readLineSync({Encoding encoding: Encoding.SYSTEM,
+  String readLineSync({Encoding encoding: SYSTEM_ENCODING,
                        bool retainNewlines: false}) {
     const CR = 13;
     const LF = 10;
@@ -69,7 +69,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
 
     StreamController<List<int>> controller =
         new StreamController<List<int>>(sync: true);
-    Stream stream = controller.stream.transform(new StringDecoder(encoding));
+    Stream stream = controller.stream.transform(encoding.decoder);
     stream.listen((String str) {
       line.write(str);
     }, onError: (e) {

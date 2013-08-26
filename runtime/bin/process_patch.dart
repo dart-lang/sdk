@@ -38,8 +38,8 @@ patch class Process {
        Map<String, String> environment,
        bool includeParentEnvironment: true,
        bool runInShell: false,
-       Encoding stdoutEncoding: Encoding.SYSTEM,
-       Encoding stderrEncoding: Encoding.SYSTEM}) {
+       Encoding stdoutEncoding: SYSTEM_ENCODING,
+       Encoding stderrEncoding: SYSTEM_ENCODING}) {
     return _runNonInteractiveProcess(executable,
                                      arguments,
                                      workingDirectory,
@@ -57,8 +57,8 @@ patch class Process {
        Map<String, String> environment,
        bool includeParentEnvironment: true,
        bool runInShell: false,
-       Encoding stdoutEncoding: Encoding.SYSTEM,
-       Encoding stderrEncoding: Encoding.SYSTEM}) {
+       Encoding stdoutEncoding: SYSTEM_ENCODING,
+       Encoding stderrEncoding: SYSTEM_ENCODING}) {
     return _runNonInteractiveProcessSync(executable,
                                          arguments,
                                          workingDirectory,
@@ -324,7 +324,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
 
     getOutput(output, encoding) {
       if (stderrEncoding == null) return output;
-      return _decodeString(output, encoding);
+      return encoding.decode(output);
     }
 
     return new _ProcessResult(
@@ -424,7 +424,7 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
             .then((builder) => builder.takeBytes());
       } else {
         return stream
-            .transform(new StringDecoder(encoding))
+            .transform(encoding.decoder)
             .fold(
                 new StringBuffer(),
                 (buf, data) {

@@ -17,14 +17,14 @@ void testReadByte() {
       process.stdin.write(line);
       process.stdin.close();
       process.stderr
-          .transform(new StringDecoder())
+          .transform(UTF8.decoder)
           .transform(new LineSplitter())
           .fold(new StringBuffer(), (b, d) => b..write(d))
           .then((data) {
             if (data.toString() != '') throw "Bad output: '$data'";
           });
       process.stdout
-          .transform(new StringDecoder())
+          .transform(UTF8.decoder)
           .transform(new LineSplitter())
           .fold(new StringBuffer(), (b, d) => b..write(d))
           .then((data) {

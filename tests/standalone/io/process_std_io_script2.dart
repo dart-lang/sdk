@@ -5,6 +5,7 @@
 // Utility script to echo strings in various formats to stdout or
 // stderr.
 
+import "dart:convert";
 import "dart:io";
 
 writeData(data, encoding, stream) {
@@ -34,11 +35,11 @@ main() {
   if (options.arguments.length > 1) {
     var stream = options.arguments[1];
     if (options.arguments[0] == "ascii") {
-      writeData(asciiString, Encoding.ASCII, stream);
+      writeData(asciiString, ASCII, stream);
     } else if (options.arguments[0] == "latin1") {
-      writeData(latin1String, Encoding.ISO_8859_1, stream);
+      writeData(latin1String, LATIN1, stream);
     } else if (options.arguments[0] == "utf8") {
-      writeData(utf8String, Encoding.UTF_8, stream);
+      writeData(utf8String, UTF8, stream);
     } else if (options.arguments[0] == "binary") {
       writeData(binary, null, stream);
     }
