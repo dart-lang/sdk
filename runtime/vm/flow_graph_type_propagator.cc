@@ -491,8 +491,7 @@ static bool IsKnownPrivateClass(const Class& type_class) {
 intptr_t CompileType::ToNullableCid() {
   if (cid_ == kIllegalCid) {
     if (type_ == NULL) {
-      // Type propagation is turned off.
-      ASSERT(!FLAG_propagate_types);
+      // Type propagation is turned off or has not yet run.
       return kDynamicCid;
     } else if (type_->IsMalformed()) {
       cid_ = kDynamicCid;
