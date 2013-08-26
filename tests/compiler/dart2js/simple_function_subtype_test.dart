@@ -50,7 +50,6 @@ foo() {
 
 main() {
   String generated = compile(TEST, entry: 'foo');
-  print(generated);
   for (int i = 0 ; i <= 15  ; i++) {
     String predicateCheck = '.\$is_args$i';
     Expect.isTrue(generated.contains(predicateCheck),
