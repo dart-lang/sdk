@@ -152,11 +152,11 @@ class SourceVisitor implements ASTVisitor {
 
   /// A flag to indicate that a newline should be emitted before the next token.
   bool needsNewline = false;
-  
+
   /// A flag to indicate that user introduced newlines should be emitted before
   /// the next token.
   bool preservePrecedingNewlines = false;
-  
+
   /// Initialize a newly created visitor to write source code representing
   /// the visited nodes to the given [writer].
   SourceVisitor(FormatterOptions options, this.lineInfo) :
@@ -222,9 +222,7 @@ class SourceVisitor implements ASTVisitor {
   visitBlock(Block node) {
     token(node.leftBracket);
     indent();
-
     visitNodes(node.statements, precededBy: newlines, separatedBy: newlines);
-    
     unindent();
     newlines();
     token(node.rightBracket);
@@ -250,7 +248,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitCatchClause(CatchClause node) {
-    
+
     token(node.onKeyword, precededBy: space, followedBy: space);
     visit(node.exceptionType);
 
@@ -283,12 +281,10 @@ class SourceVisitor implements ASTVisitor {
     visitNode(node.implementsClause, precededBy: space);
     space();
     token(node.leftBracket);
-    
     indent();
     visitNodes(node.members, precededBy: newlines, separatedBy: newlines);
     unindent();
     newlines();
-    
     token(node.rightBracket);
   }
 
@@ -315,20 +311,20 @@ class SourceVisitor implements ASTVisitor {
   visitCommentReference(CommentReference node) => null;
 
   visitCompilationUnit(CompilationUnit node) {
-    
+
     // Cache EOF for leading whitespace calculation
     var start = node.beginToken.previous;
     if (start != null && start.type is TokenType_EOF) {
       previousToken = start;
     }
-    
+
     var scriptTag = node.scriptTag;
     var directives = node.directives;
     visit(scriptTag);
-    
+
     preservePrecedingNewlines = true;
     visitNodes(directives, separatedBy: newlines);
-    
+
     preservePrecedingNewlines = true;
     visitNodes(node.declarations, separatedBy: newlines);
 
@@ -360,7 +356,7 @@ class SourceVisitor implements ASTVisitor {
     token(node.separator /* = or : */, precededBy: space, followedBy: space);
     visitNodes(node.initializers, separatedBy: commaSeperator);
     visit(node.redirectedConstructor);
-    
+
     visitPrefixedBody(space, node.body);
   }
 
@@ -387,13 +383,8 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitDeclaredIdentifier(DeclaredIdentifier node) {
-    token(node.keyword);
-    space();
-    visit(node.type);
-    //TODO(pquitslund): avoiding visitSuffixed(..) but we can do better
-    if (node.type != null) {
-      space();
-    }
+    modifier(node.keyword);
+    visitNode(node.type, followedBy: space);
     visit(node.identifier);
   }
 
@@ -467,10 +458,8 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitFieldFormalParameter(FieldFormalParameter node) {
-    token(node.keyword);
-    space();
-    visit(node.type);
-    space();
+    token(node.keyword, followedBy: space);
+    visitNode(node.type, followedBy: space);
     token(node.thisToken);
     token(node.period);
     visit(node.identifier);
@@ -599,7 +588,7 @@ class SourceVisitor implements ASTVisitor {
       visit(node.elseStatement);
     }
   }
-  
+
   visitImplementsClause(ImplementsClause node) {
     token(node.keyword);
     space();
@@ -764,6 +753,8 @@ class SourceVisitor implements ASTVisitor {
 
   visitPartOfDirective(PartOfDirective node) {
     token(node.keyword);
+    space();
+    token(node.ofToken);
     space();
     visit(node.libraryName);
     token(node.semicolon);
@@ -997,7 +988,7 @@ class SourceVisitor implements ASTVisitor {
     visit(body);
   }
 
-  /// Visit a list of [nodes] if not null, optionally separated and/or preceded 
+  /// Visit a list of [nodes] if not null, optionally separated and/or preceded
   /// and followed by the given functions.
   visitNodes(NodeList<ASTNode> nodes, {precededBy(): null,
       separatedBy() : null, followedBy(): null}) {
@@ -1019,8 +1010,8 @@ class SourceVisitor implements ASTVisitor {
       }
     }
   }
-  
-  /// Visit a [node], and if not null, optionally preceded or followed by the 
+
+  /// Visit a [node], and if not null, optionally preceded or followed by the
   /// specified functions.
   visitNode(ASTNode node, {precededBy(): null, followedBy(): null}) {
     if (node != null) {
@@ -1035,20 +1026,20 @@ class SourceVisitor implements ASTVisitor {
   }
 
 
-  /// Emit the given [modifier] if it's non null, followed by non-breaking 
+  /// Emit the given [modifier] if it's non null, followed by non-breaking
   /// whitespace.
   modifier(Token modifier) {
     token(modifier, followedBy: space);
   }
-    
-  
+
+
   /// Indicate that at least one newline should be emitted and possibly more
   /// if the source has them.
   newlines() {
     preservePrecedingNewlines = true;
     needsNewline = true;
   }
-  
+
   token(Token token, {precededBy(), followedBy(), int minNewlines: 0}) {
     if (token != null) {
       if (needsNewline) {
@@ -1065,50 +1056,50 @@ class SourceVisitor implements ASTVisitor {
         precededBy();
       }
       append(token.lexeme);
-      if (followedBy != null) { 
+      if (followedBy != null) {
         followedBy();
       }
       previousToken = token;
-    }    
+    }
   }
-   
+
   commaSeperator() {
     comma();
     space();
   }
-  
+
   comma() {
     append(',');
   }
-  
+
   /// Emit a non-breakable space.
   space() {
     //TODO(pquitslund): replace with a proper space token
     append(' ');
   }
-  
+
   /// Emit a breakable space
   breakableSpace() {
     //Implement
   }
-  
+
   /// Append the given [string] to the source writer if it's non-null.
   append(String string) {
     if (string != null) {
       writer.print(string);
     }
   }
-    
+
   /// Indent.
   indent() {
     writer.indent();
   }
-  
+
   /// Unindent
   unindent() {
     writer.unindent();
   }
-  
+
   /// Emit any detected newlines or a minimum as specified by [minNewlines].
   int emitPrecedingNewlines(Token token, {min: 0}) {
     var comment = token.precedingComments;
@@ -1150,5 +1141,5 @@ class SourceVisitor implements ASTVisitor {
   }
 
   String toString() => writer.toString();
-  
+
 }

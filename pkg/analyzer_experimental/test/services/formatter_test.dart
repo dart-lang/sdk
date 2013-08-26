@@ -67,8 +67,8 @@ main() {
           '}'
       );
     });
-    
-    
+
+
 //    test('CU - comments', () {
 //      expectCUFormatsTo(
 //          'library foo;\n'
@@ -83,7 +83,7 @@ main() {
 //          'class C {\n}\n'
 //      );
 //    });
-    
+
     test('CU - top level', () {
       expectCUFormatsTo(
           '\n\n'
@@ -104,7 +104,7 @@ main() {
           'final foo = 32;\n'
       );
     });
-    
+
     test('CU - imports', () {
       expectCUFormatsTo(
           'import "dart:io";\n\n'
@@ -117,7 +117,7 @@ main() {
           '}\n'
       );
     });
-    
+
     test('CU - method invocations', () {
       expectCUFormatsTo(
           'class A {\n'
@@ -186,7 +186,7 @@ main() {
           '}\n'
       );
     });
-    
+
     test('CU (method indent)', () {
       expectCUFormatsTo(
           'class A {\n'
@@ -276,7 +276,7 @@ main() {
           '}\n'
       );
     });
-    
+
     test('CU - constructor', () {
       expectCUFormatsTo(
           'class A {\n'
@@ -302,7 +302,7 @@ main() {
           '}\n'
         );
     });
-    
+
     test('CU - method decl w/ optional params', () {
       expectCUFormatsTo(
           'class A {\n'
@@ -313,7 +313,7 @@ main() {
           '}\n'
         );
     });
-    
+
     test('CU - factory constructor redirects', () {
       expectCUFormatsTo(
           'class A {\n'
@@ -324,7 +324,7 @@ main() {
           '}\n'
         );
     });
-    
+
     test('CU - constructor initializers', () {
       expectCUFormatsTo(
           'class A {\n'
@@ -337,7 +337,27 @@ main() {
           '}\n'
         );
     });
-    
+
+    test('CU - constructor auto field inits', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  int _a;\n'
+          '  A(this._a);\n'
+          '}\n',
+          'class A {\n'
+          '  int _a;\n'
+          '  A(this._a);\n'
+          '}\n'
+        );
+    });
+
+    test('CU - parts', () {
+      expectCUFormatsTo(
+        'part of foo;',
+        'part of foo;'
+      );
+    });
+
     test('stmt', () {
       expectStmtFormatsTo(
          'if (true){\n'
@@ -385,14 +405,14 @@ main() {
         '}'
       );
     });
-  
+
     test('stmt (generics)', () {
       expectStmtFormatsTo(
         'var numbers = <int>[1, 2, (3 + 4)];',
         'var numbers = <int>[1, 2, (3 + 4)];'
       );
     });
-    
+
     test('stmt (try/catch)', () {
       expectStmtFormatsTo(
         'try {\n'
@@ -407,7 +427,7 @@ main() {
         '}'
       );
     });
-    
+
     test('stmt (binary/ternary ops)', () {
       expectStmtFormatsTo(
         'var a = 1 + 2 / (3 * -b);',
@@ -426,7 +446,34 @@ main() {
         'var d = obj is! SomeType;'
       );
     });
-    
+
+    test('stmt (for in)', () {
+      expectStmtFormatsTo(
+        'for (Foo foo in bar.foos) {\n'
+        '  print(foo);\n'
+        '}',
+        'for (Foo foo in bar.foos) {\n'
+        '  print(foo);\n'
+        '}'
+      );
+      expectStmtFormatsTo(
+        'for (final Foo foo in bar.foos) {\n'
+        '  print(foo);\n'
+        '}',
+        'for (final Foo foo in bar.foos) {\n'
+        '  print(foo);\n'
+        '}'
+      );
+      expectStmtFormatsTo(
+        'for (final foo in bar.foos) {\n'
+        '  print(foo);\n'
+        '}',
+        'for (final foo in bar.foos) {\n'
+        '  print(foo);\n'
+        '}'
+      );
+    });
+
     test('initialIndent', () {
       var formatter = new CodeFormatter(
           new FormatterOptions(initialIndentationLevel: 2));
