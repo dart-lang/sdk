@@ -1284,6 +1284,23 @@ class JavaScriptBackend extends Backend {
     }
   }
 
+  /**
+   * Returns [:true:] if the checking of [type] is performed directly on the
+   * object and not on an interceptor.
+   */
+  bool hasDirectCheckFor(DartType type) {
+    Element element = type.element;
+    return element == compiler.stringClass ||
+        element == compiler.boolClass ||
+        element == compiler.numClass ||
+        element == compiler.intClass ||
+        element == compiler.doubleClass ||
+        element == jsArrayClass ||
+        element == jsMutableArrayClass ||
+        element == jsExtendableArrayClass ||
+        element == jsFixedArrayClass;
+  }
+
   Element getExceptionUnwrapper() {
     return compiler.findHelper(const SourceString('unwrapException'));
   }
