@@ -523,7 +523,8 @@ class DartBackend extends Backend {
   }
 
   void registerMirrorHelperElement(Element element, Node node) {
-    if (element.getLibrary() == mirrorHelperLibrary) {
+    if (mirrorHelperLibrary != null
+        && element.getLibrary() == mirrorHelperLibrary) {
       mirrorRenamer.registerHelperElement(element, node);
     }
   }

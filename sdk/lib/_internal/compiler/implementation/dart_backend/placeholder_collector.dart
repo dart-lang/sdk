@@ -541,11 +541,11 @@ class PlaceholderCollector extends Visitor {
         id != null && Keyword.keywords[id.source.slowToString()] != null;
 
     Element element = treeElements[node];
-    if (element == backend.mirrorHelperGetNameFunction) {
-      backend.registerMirrorHelperElement(element, node);
-    }
     // May get null here in case of A(int this.f());
     if (element != null) {
+      if (element == backend.mirrorHelperGetNameFunction) {
+        backend.registerMirrorHelperElement(element, node);
+      }
       // Rename only local functions.
       if (topmostEnclosingFunction == null) {
         topmostEnclosingFunction = element;
