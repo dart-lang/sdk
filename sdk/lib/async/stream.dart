@@ -233,7 +233,7 @@ abstract class Stream<T> {
    * or simply return to make the stream forget the error.
    *
    * If you need to transform an error into a data event, use the more generic
-   * [Stream.transformEvent] to handle the event by writing a data event to
+   * [Stream.transform] to handle the event by writing a data event to
    * the output sink
    */
   Stream<T> handleError(void handle( error), { bool test(error) }) {
@@ -592,7 +592,7 @@ abstract class Stream<T> {
    *
    * Error and done events are provided by the returned stream unmodified.
    *
-   * Starting with the first data event where [test] returns true for the
+   * Starting with the first data event where [test] returns false for the
    * event data, the returned stream will have the same events as this stream.
    */
   Stream<T> skipWhile(bool test(T element)) {
@@ -613,10 +613,18 @@ abstract class Stream<T> {
   }
 
   /**
-   * Returns the first element.
+   * Returns the first element of the stream.
    *
-   * If [this] is empty throws a [StateError]. Otherwise this method is
-   * equivalent to [:this.elementAt(0):]
+   * Stops listening to the stream after the first element has been received.
+   *
+   * If an error event occurs before the first data event, the resulting future
+   * is completed with that error.
+   *
+   * If this stream is empty (a done event occurs before the first data event),
+   * the resulting future completes with a [StateError].
+   *
+   * Except for the type of the error, this method is equivalent to
+   * [:this.elementAt(0):].
    */
   Future<T> get first {
     _FutureImpl<T> future = new _FutureImpl<T>();
@@ -636,9 +644,13 @@ abstract class Stream<T> {
   }
 
   /**
-   * Returns the last element.
+   * Returns the last element of the stream.
    *
-   * If [this] is empty throws a [StateError].
+   * If an error event occurs before the first data event, the resulting future
+   * is completed with that error.
+   *
+   * If this stream is empty (a done event occurs before the first data event),
+   * the resulting future completes with a [StateError].
    */
   Future<T> get last {
     _FutureImpl<T> future = new _FutureImpl<T>();
@@ -824,10 +836,13 @@ abstract class Stream<T> {
   /**
    * Returns the value of the [index]th data event of this stream.
    *
-   * If an error event occurs, the future will end with this error.
+   * Stops listening to the stream after a value has been found.
    *
-   * If this stream provides fewer than [index] elements before closing,
-   * an error is reported.
+   * If an error event occurs before the value is found, the future completes
+   * with this error.
+   *
+   * If a done event occurs before the value is found, the future completes
+   * with a [RangeError].
    */
   Future<T> elementAt(int index) {
     if (index is! int || index < 0) throw new ArgumentError(index);
@@ -844,7 +859,7 @@ abstract class Stream<T> {
       },
       onError: future._setError,
       onDone: () {
-        future._setError(new StateError("Not enough elements for elementAt"));
+        future._setError(new RangeError.value(index));
       },
       cancelOnError: true);
     return future;
