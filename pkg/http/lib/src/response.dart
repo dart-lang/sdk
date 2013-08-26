@@ -5,6 +5,7 @@
 library response;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -21,10 +22,10 @@ class Response extends BaseResponse {
   /// The body of the response as a string. This is converted from [bodyBytes]
   /// using the `charset` parameter of the `Content-Type` header field, if
   /// available. If it's unavailable or if the encoding name is unknown,
-  /// [Encoding.ISO_8859_1] is used by default, as per [RFC 2616][].
+  /// [LATIN1] is used by default, as per [RFC 2616][].
   ///
   /// [RFC 2616]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html
-  String get body => decodeString(bodyBytes, _encodingForHeaders(headers));
+  String get body => _encodingForHeaders(headers).decode(bodyBytes);
 
   /// Creates a new HTTP response with a string body.
   Response(
@@ -36,7 +37,7 @@ class Response extends BaseResponse {
        bool persistentConnection: true,
        String reasonPhrase})
     : this.bytes(
-        encodeString(body, _encodingForHeaders(headers)),
+        _encodingForHeaders(headers).encode(body),
         statusCode,
         request: request,
         headers: headers,
@@ -80,7 +81,7 @@ class Response extends BaseResponse {
 }
 
 /// Returns the encoding to use for a response with the given headers. This
-/// defaults to [Encoding.ISO_8859_1] if the headers don't specify a charset or
+/// defaults to [LATIN1] if the headers don't specify a charset or
 /// if that charset is unknown.
 Encoding _encodingForHeaders(Map<String, String> headers) =>
   encodingForCharset(_contentTypeForHeaders(headers).charset);

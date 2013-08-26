@@ -5,6 +5,7 @@
 library byte_stream;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -30,10 +31,10 @@ class ByteStream extends StreamView<List<int>> {
   }
 
   /// Collect the data of this stream in a [String], decoded according to
-  /// [encoding], which defaults to `Encoding.UTF_8`.
-  Future<String> bytesToString([Encoding encoding=Encoding.UTF_8]) =>
-      toBytes().then((bytes) => decodeString(bytes, encoding));
+  /// [encoding], which defaults to `UTF8`.
+  Future<String> bytesToString([Encoding encoding=UTF8]) =>
+      toBytes().then((bytes) => encoding.decode(bytes));
 
-  Stream<String> toStringStream([Encoding encoding=Encoding.UTF_8]) =>
-    transform(new StringDecoder(encoding));
+  Stream<String> toStringStream([Encoding encoding=UTF8]) =>
+    transform(encoding.decoder);
 }

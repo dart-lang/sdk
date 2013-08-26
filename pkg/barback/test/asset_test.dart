@@ -5,6 +5,7 @@
 library barback.test.asset_test;
 
 import 'dart:async';
+import 'dart:convert' show Encoding, UTF8, LATIN1;
 import 'dart:io';
 import 'dart:utf';
 
@@ -108,7 +109,7 @@ main() {
 
       test("supports UTF-8", () {
         var asset = new Asset.fromBytes(id, encodeUtf8("çøñ†éℵ™"));
-        expect(asset.readAsString(encoding: Encoding.UTF_8),
+        expect(asset.readAsString(encoding: UTF8),
             completion(equals("çøñ†éℵ™")));
       });
 
@@ -124,7 +125,7 @@ main() {
 
       test("ignores the encoding", () {
         var asset = new Asset.fromString(id, "contents");
-        expect(asset.readAsString(encoding: Encoding.ISO_8859_1),
+        expect(asset.readAsString(encoding: LATIN1),
             completion(equals("contents")));
       });
     });

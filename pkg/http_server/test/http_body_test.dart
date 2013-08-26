@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:utf';
+import 'dart:convert';
 
 import 'package:http_server/http_server.dart';
 import 'package:unittest/unittest.dart';
@@ -66,11 +66,8 @@ void testHttpClientResponseBody() {
        "body",
        "text");
   test("text/plain; charset=utf-8", [42], "*", "text");
-  test("text/plain; charset=us-ascii", [142], "?", "text");
-  test("text/plain; charset=utf-8",
-       [142],
-       new String.fromCharCodes([UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]),
-       "text");
+  test("text/plain; charset=us-ascii", [142], null, "text", true);
+  test("text/plain; charset=utf-8", [142], null, "text", true);
 
   test("application/json",
        '{"val": 5}'.codeUnits,
@@ -89,7 +86,7 @@ void testHttpServerRequestBody() {
             dynamic expectedBody,
             String type,
             {bool shouldFail: false,
-             Encoding defaultEncoding: Encoding.UTF_8}) {
+             Encoding defaultEncoding: UTF8}) {
     HttpServer.bind("127.0.0.1", 0).then((server) {
       server.transform(new HttpBodyHandler(defaultEncoding: defaultEncoding))
           .listen((body) {
@@ -169,11 +166,8 @@ void testHttpServerRequestBody() {
        "body",
        "text");
   test("text/plain; charset=utf-8", [42], "*", "text");
-  test("text/plain; charset=us-ascii", [142], "?", "text");
-  test("text/plain; charset=utf-8",
-       [142],
-       new String.fromCharCodes([UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]),
-       "text");
+  test("text/plain; charset=us-ascii", [142], null, "text", shouldFail: true);
+  test("text/plain; charset=utf-8", [142], null, "text", shouldFail: true);
 
   test("application/json",
        '{"val": 5}'.codeUnits,
@@ -250,23 +244,27 @@ File content\r
 
   test('application/x-www-form-urlencoded',
        'a=%F8+%26%23548%3B'.codeUnits,
-       { 'a' : '\u{FFFD} &#548;' },
-       "form");
+       null,
+       "form",
+       shouldFail: true);
 
   test('application/x-www-form-urlencoded',
        'a=%C0%A0'.codeUnits,
-       { 'a' : '\u{FFFD}' },
-       "form");
+       null,
+       "form",
+       shouldFail: true);
 
   test('application/x-www-form-urlencoded',
        'a=x%A0x'.codeUnits,
-       { 'a' : 'x\u{FFFD}x' },
-       "form");
+       null,
+       "form",
+       shouldFail: true);
 
   test('application/x-www-form-urlencoded',
        'a=x%C0x'.codeUnits,
-       { 'a' : 'x\u{FFFD}x' },
-       "form");
+       null,
+       "form",
+       shouldFail: true);
 
   test('application/x-www-form-urlencoded',
        'a=%C3%B8+%C8%A4'.codeUnits,
@@ -277,31 +275,31 @@ File content\r
        'a=%F8+%26%23548%3B'.codeUnits,
        { 'a' : 'ø &#548;' },
        "form",
-       defaultEncoding: Encoding.ISO_8859_1);
+       defaultEncoding: LATIN1);
 
   test('application/x-www-form-urlencoded',
        'name=%26'.codeUnits,
        { 'name' : '&' },
        "form",
-       defaultEncoding: Encoding.ISO_8859_1);
+       defaultEncoding: LATIN1);
 
   test('application/x-www-form-urlencoded',
        'name=%F8%26'.codeUnits,
        { 'name' : 'ø&' },
        "form",
-       defaultEncoding: Encoding.ISO_8859_1);
+       defaultEncoding: LATIN1);
 
   test('application/x-www-form-urlencoded',
        'name=%26%3B'.codeUnits,
        { 'name' : '&;' },
        "form",
-       defaultEncoding: Encoding.ISO_8859_1);
+       defaultEncoding: LATIN1);
 
   test('application/x-www-form-urlencoded',
        'name=%26%23548%3B%26%23548%3B'.codeUnits,
        { 'name' : '&#548;&#548;' },
        "form",
-       defaultEncoding: Encoding.ISO_8859_1);
+       defaultEncoding: LATIN1);
 
   test('application/x-www-form-urlencoded',
        'name=%26'.codeUnits,

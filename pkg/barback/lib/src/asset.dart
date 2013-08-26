@@ -5,6 +5,7 @@
 library barback.asset;
 
 import 'dart:async';
+import 'dart:convert' show Encoding, UTF8;
 import 'dart:io';
 import 'dart:utf';
 
@@ -37,7 +38,7 @@ abstract class Asset {
   ///
   /// If the asset was created from a [String] the original string is always
   /// returned and [encoding] is ignored. Otherwise, the binary data of the
-  /// asset is decoded using [encoding], which defaults to [Encoding.UTF_8].
+  /// asset is decoded using [encoding], which defaults to [UTF8].
   Future<String> readAsString({Encoding encoding});
 
   /// Streams the binary contents of the asset.
@@ -54,16 +55,9 @@ class _BinaryAsset extends Asset {
       : super(id);
 
   Future<String> readAsString({Encoding encoding}) {
-    if (encoding == null) encoding = Encoding.UTF_8;
+    if (encoding == null) encoding = UTF8;
 
-    // TODO(rnystrom): When #6284 is fixed, just use that. Until then, only
-    // UTF-8 is supported. :(
-    if (encoding != Encoding.UTF_8) {
-      throw new UnsupportedError(
-          "${encoding.name} is not a supported encoding.");
-    }
-
-    return new Future.value(decodeUtf8(_contents));
+    return new Future.value(encoding.decode(_contents));
   }
 
   Stream<List<int>> read() => new Future<List<int>>.value(_contents).asStream();
@@ -104,7 +98,7 @@ class _FileAsset extends Asset {
       : super(id);
 
   Future<String> readAsString({Encoding encoding}) {
-    if (encoding == null) encoding = Encoding.UTF_8;
+    if (encoding == null) encoding = UTF8;
     return _file.readAsString(encoding: encoding);
   }
 

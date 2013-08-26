@@ -1558,7 +1558,7 @@ bool Intrinsifier::String_getIsEmpty(Assembler* assembler) {
   __ Bind(&is_true);
   __ LoadObject(V0, Bool::True());
   __ Ret();
-  return true;
+  return false;
 }
 
 

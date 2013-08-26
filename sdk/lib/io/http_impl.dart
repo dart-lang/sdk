@@ -410,7 +410,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
                        String protocolVersion,
                        _HttpOutgoing outgoing)
       : _outgoing = outgoing,
-        _headersSink = new IOSink(outgoing, encoding: Encoding.ASCII),
+        _headersSink = new IOSink(outgoing, encoding: ASCII),
         headers = new _HttpHeaders(protocolVersion) {
     _dataSink = new IOSink(new _HttpOutboundConsumer(this));
   }
@@ -432,7 +432,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     } else {
       charset = "iso-8859-1";
     }
-    return Encoding.fromName(charset);
+    return Encoding.getByName(charset);
   }
 
   void set encoding(Encoding value) {
@@ -1222,7 +1222,7 @@ class _HttpClientConnection {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
       String auth = _CryptoUtils.bytesToBase64(
-          _encodeString("${proxy.username}:${proxy.password}"));
+          UTF8.encode("${proxy.username}:${proxy.password}"));
       request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, "Basic $auth");
     } else if (!proxy.isDirect && _httpClient._proxyCredentials.length > 0) {
       proxyCreds = _httpClient._findProxyCredentials(proxy);
@@ -1234,7 +1234,7 @@ class _HttpClientConnection {
       // If the URL contains user information use that for basic
       // authorization.
       String auth =
-          _CryptoUtils.bytesToBase64(_encodeString(uri.userInfo));
+          _CryptoUtils.bytesToBase64(UTF8.encode(uri.userInfo));
       request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
     } else {
       // Look for credentials.
@@ -1345,7 +1345,7 @@ class _HttpClientConnection {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
       String auth = _CryptoUtils.bytesToBase64(
-          _encodeString("${proxy.username}:${proxy.password}"));
+          UTF8.encode("${proxy.username}:${proxy.password}"));
       request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, "Basic $auth");
     }
     return request.close()
@@ -2270,11 +2270,11 @@ abstract class _Credentials {
       // now always use UTF-8 encoding.
       _HttpClientDigestCredentials creds = credentials;
       var hasher = new _MD5();
-      hasher.add(_encodeString(creds.username));
+      hasher.add(UTF8.encode(creds.username));
       hasher.add([_CharCode.COLON]);
       hasher.add(realm.codeUnits);
       hasher.add([_CharCode.COLON]);
-      hasher.add(_encodeString(creds.password));
+      hasher.add(UTF8.encode(creds.password));
       ha1 = _CryptoUtils.bytesToHex(hasher.close());
     }
   }
@@ -2363,7 +2363,7 @@ class _HttpClientBasicCredentials
     // http://tools.ietf.org/html/draft-reschke-basicauth-enc-06. For
     // now always use UTF-8 encoding.
     String auth =
-        _CryptoUtils.bytesToBase64(_encodeString("$username:$password"));
+        _CryptoUtils.bytesToBase64(UTF8.encode("$username:$password"));
     return "Basic $auth";
   }
 

@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:utf';
 
 class Server {
   HttpServer server;

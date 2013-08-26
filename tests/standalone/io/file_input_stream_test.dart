@@ -20,7 +20,7 @@ void testStringLineSplitter() {
   File file = new File(fileName);
   int linesRead = 0;
   var lineStream = file.openRead()
-    .transform(new StringDecoder())
+    .transform(UTF8.decoder)
     .transform(new LineSplitter());
   lineStream.listen((line) {
     linesRead++;
@@ -232,7 +232,7 @@ void testStringLineSplitterEnding(String name, int length) {
   File file = new File(fileName);
   Expect.equals(length, file.openSync().lengthSync());
   var lineStream = file.openRead()
-    .transform(new StringDecoder())
+    .transform(UTF8.decoder)
     .transform(new LineSplitter());
   int lineCount = 0;
   lineStream.listen(

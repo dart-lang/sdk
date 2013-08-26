@@ -4,6 +4,9 @@
 
 part of dart.convert;
 
+/** The Unicode Replacement character `U+FFFD` (�). */
+const UNICODE_REPLACEMENT_CHARACTER_RUNE = 0xFFFD;
+
 /**
  * An instance of the default implementation of the [Utf8Codec].
  *
@@ -22,7 +25,7 @@ const UTF8 = const Utf8Codec();
  * A [Utf8Codec] encodes strings to utf-8 code units (bytes) and decodes
  * UTF-8 code units to strings.
  */
-class Utf8Codec extends _Encoding {
+class Utf8Codec extends Encoding {
   final bool _allowMalformed;
 
   /**
@@ -38,6 +41,8 @@ class Utf8Codec extends _Encoding {
    */
   const Utf8Codec({ bool allowMalformed: false })
       : _allowMalformed = allowMalformed;
+
+  String get name => "utf-8";
 
   /**
    * Decodes the UTF-8 [codeUnits] (a list of unsigned 8-bit integers) to the
@@ -66,6 +71,9 @@ class Utf8Codec extends _Encoding {
  * unsigned 8-bit integers).
  */
 class Utf8Encoder extends Converter<String, List<int>> {
+
+  const Utf8Encoder();
+
   /**
    * Converts [string] to its UTF-8 code units (a list of
    * unsigned 8-bit integers).
@@ -289,7 +297,7 @@ class Utf8Decoder extends Converter<List<int>, String> {
    * sequences with the Unicode Replacement character `U+FFFD` (�). Otherwise
    * it throws a [FormatException].
    */
-  Utf8Decoder({ bool allowMalformed: false })
+  const Utf8Decoder({ bool allowMalformed: false })
       : this._allowMalformed = allowMalformed;
 
   /**

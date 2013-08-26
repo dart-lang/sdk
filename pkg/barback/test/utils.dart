@@ -6,6 +6,7 @@ library barback.test.utils;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert' show Encoding;
 import 'dart:io';
 
 import 'package:barback/barback.dart';

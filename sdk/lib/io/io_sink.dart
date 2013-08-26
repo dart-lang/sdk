@@ -19,7 +19,7 @@ part of dart.io;
  */
 abstract class IOSink implements StreamSink<List<int>>, StringSink {
   factory IOSink(StreamConsumer<List<int>> target,
-                 {Encoding encoding: Encoding.UTF_8})
+                 {Encoding encoding: UTF8})
       => new _IOSinkImpl(target, encoding);
 
   /**
@@ -204,7 +204,7 @@ class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
       }
     }
     if (string.isEmpty) return;
-    add(_encodeString(string, _encoding));
+    add(_encoding.encode(string));
   }
 
   void writeAll(Iterable objects, [String separator = ""]) {

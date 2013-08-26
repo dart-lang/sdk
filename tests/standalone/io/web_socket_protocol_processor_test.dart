@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import "dart:utf";
+import "dart:convert";
 import "dart:math";
 import "dart:async";
 import "dart:collection";
@@ -41,7 +41,7 @@ class WebSocketMessageCollector {
 
   void onMessageData(buffer) {
     if (buffer is String) {
-      buffer = _encodeString(buffer);
+      buffer = UTF8.encode(buffer);
     }
     Expect.listEquals(expectedMessage, buffer);
     messageCount++;

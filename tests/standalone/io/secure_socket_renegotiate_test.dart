@@ -30,7 +30,7 @@ Future<SecureServerSocket> runServer() {
         Expect.isNull(socket.peerCertificate);
 
         StreamIterator<String> input =
-            new StreamIterator(socket.transform(new StringDecoder())
+            new StreamIterator(socket.transform(UTF8.decoder)
                                      .transform(new LineSplitter()));
         input.moveNext().then((success) {
           Expect.isTrue(success);

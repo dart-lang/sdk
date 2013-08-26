@@ -208,8 +208,8 @@ patch class Process {
        Map<String, String> environment,
        bool includeParentEnvironment: true,
        bool runInShell: false,
-       Encoding stdoutEncoding: Encoding.SYSTEM,
-       Encoding stderrEncoding: Encoding.SYSTEM}) {
+       Encoding stdoutEncoding: SYSTEM_ENCODING,
+       Encoding stderrEncoding: SYSTEM_ENCODING}) {
     throw new UnsupportedError("Process.run");
   }
 
@@ -220,8 +220,8 @@ patch class Process {
        Map<String, String> environment,
        bool includeParentEnvironment: true,
        bool runInShell: false,
-       Encoding stdoutEncoding: Encoding.SYSTEM,
-       Encoding stderrEncoding: Encoding.SYSTEM}) {
+       Encoding stdoutEncoding: SYSTEM_ENCODING,
+       Encoding stderrEncoding: SYSTEM_ENCODING}) {
     throw new UnsupportedError("Process.runSync");
   }
 }

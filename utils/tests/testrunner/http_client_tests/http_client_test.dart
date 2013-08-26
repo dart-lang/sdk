@@ -21,7 +21,7 @@ main() {
       // Process the response.
       expect(response.statusCode, code);
       var sb = new StringBuffer();
-      response.transform(new StringDecoder())
+      response.transform(UTF8.decoder)
        .listen((data) {
          sb.write(data);
       }, onDone: () {

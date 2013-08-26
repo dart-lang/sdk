@@ -7,6 +7,7 @@ library pub.io;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -136,7 +137,7 @@ String resolveLink(String link) {
 
 /// Reads the contents of the text file [file].
 String readTextFile(String file) =>
-    new File(file).readAsStringSync(encoding: Encoding.UTF_8);
+    new File(file).readAsStringSync(encoding: UTF8);
 
 /// Reads the contents of the binary file [file].
 List<int> readBinaryFile(String file) {

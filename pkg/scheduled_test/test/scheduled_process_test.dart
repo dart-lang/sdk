@@ -372,7 +372,7 @@ ScheduledProcess startDartProcess(String script) {
           import 'dart:io';
 
           var stdinLines = stdin
-              .transform(new StringDecoder())
+              .transform(UTF8.decoder)
               .transform(new LineSplitter());
 
           void main() {

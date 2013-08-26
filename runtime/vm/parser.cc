@@ -762,12 +762,27 @@ void Parser::ParseClass(const Class& cls) {
 }
 
 
+static bool IsInvisible(const Function& func) {
+  if (!Library::IsPrivate(String::Handle(func.name()))) return false;
+  // Check for private function in the core libraries.
+  const Class& cls = Class::Handle(func.Owner());
+  const Library& library = Library::Handle(cls.library());
+  if (library.raw() == Library::CoreLibrary()) return true;
+  if (library.raw() == Library::CollectionLibrary()) return true;
+  if (library.raw() == Library::TypedDataLibrary()) return true;
+  if (library.raw() == Library::MathLibrary()) return true;
+  return false;
+}
+
+
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
+  // Mark private core library functions as invisible by default.
+  if (IsInvisible(func)) func.set_is_visible(false);
   const Script& script = Script::Handle(isolate, func.script());
   Parser parser(script, parsed_function, func.token_pos());
   SequenceNode* node_sequence = NULL;

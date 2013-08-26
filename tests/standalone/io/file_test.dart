@@ -7,6 +7,7 @@
 import "package:expect/expect.dart";
 import "package:path/path.dart";
 import 'dart:async';
+import 'dart:convert';
 import 'dart:collection';
 import 'dart:io';
 import 'dart:isolate';
@@ -393,13 +394,13 @@ class FileTest {
     List<int> buffer = content.codeUnits;
     var output = file.openWrite();
     output.write("abcdABCD");
-    output.encoding = UTF_8;
+    output.encoding = UTF8;
     output.write("abcdABCD");
-    output.encoding = ISO_8859_1;
+    output.encoding = LATIN1;
     output.write("abcdABCD");
     output.encoding = ASCII;
     output.write("abcdABCD");
-    output.encoding = UTF_8;
+    output.encoding = UTF8;
     output.write("æøå");
     output.close();
     output.done.then((_) {
@@ -985,16 +986,16 @@ class FileTest {
     });
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
-    f.readAsString(encoding: UTF_8).then((text) {
+    f.readAsString(encoding: UTF8).then((text) {
       Expect.isTrue(text.endsWith("42 bytes."));
       Expect.equals(42, text.length);
       var name = getDataFilename("tests/standalone/io/read_as_text.dat");
       var f = new File(name);
-      f.readAsString(encoding: UTF_8).then((text) {
+      f.readAsString(encoding: UTF8).then((text) {
         Expect.equals(6, text.length);
         var expected = [955, 120, 46, 32, 120, 10];
         Expect.listEquals(expected, text.codeUnits);
-        f.readAsString(encoding: ISO_8859_1).then((text) {
+        f.readAsString(encoding: LATIN1).then((text) {
           Expect.equals(7, text.length);
           var expected = [206, 187, 120, 46, 32, 120, 10];
           Expect.listEquals(expected, text.codeUnits);
@@ -1017,7 +1018,7 @@ class FileTest {
     });
     var name = getFilename("tests/vm/data/empty_file");
     var f = new File(name);
-    f.readAsString(encoding: UTF_8).then((text) {
+    f.readAsString(encoding: UTF8).then((text) {
       port.toSendPort().send(text.length);
       return true;
     });
@@ -1033,11 +1034,18 @@ class FileTest {
     Expect.equals(6, text.length);
     var expected = [955, 120, 46, 32, 120, 10];
     Expect.listEquals(expected, text.codeUnits);
-    text = new File(name).readAsStringSync(encoding: ASCII);
-    // Default replacement character is '?', char code 63.
-    expected = [63, 63, 120, 46, 32, 120, 10];
+    // First character is not ASCII. The default ASCII decoder will throw.
+    Expect.throws(() => new File(name).readAsStringSync(encoding: ASCII),
+                  (e) => e is FormatException);
+    // We can use an ASCII decoder that inserts the replacement character.
+    var lenientAscii = const AsciiCodec(allowInvalid: true);
+    text = new File(name).readAsStringSync(encoding: lenientAscii);
+    // Default replacement character is the Unicode replacement character.
+    expected = [UNICODE_REPLACEMENT_CHARACTER_RUNE,
+                UNICODE_REPLACEMENT_CHARACTER_RUNE,
+                120, 46, 32, 120, 10];
     Expect.listEquals(expected, text.codeUnits);
-    text = new File(name).readAsStringSync(encoding: ISO_8859_1);
+    text = new File(name).readAsStringSync(encoding: LATIN1);
     expected = [206, 187, 120, 46, 32, 120, 10];
     Expect.equals(7, text.length);
     Expect.listEquals(expected, text.codeUnits);
@@ -1057,7 +1065,7 @@ class FileTest {
     });
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
-    f.readAsLines(encoding: UTF_8).then((lines) {
+    f.readAsLines(encoding: UTF8).then((lines) {
       Expect.equals(1, lines.length);
       var line = lines[0];
       Expect.isTrue(line.endsWith("42 bytes."));
@@ -1091,10 +1099,10 @@ class FileTest {
     var readAsBytesFuture = f.readAsBytes();
     readAsBytesFuture.then((bytes) => Expect.fail("no bytes expected"))
     .catchError((e) {
-      var readAsStringFuture = f.readAsString(encoding: UTF_8);
+      var readAsStringFuture = f.readAsString(encoding: UTF8);
       readAsStringFuture.then((text) => Expect.fail("no text expected"))
       .catchError((e) {
-        var readAsLinesFuture = f.readAsLines(encoding: UTF_8);
+        var readAsLinesFuture = f.readAsLines(encoding: UTF8);
         readAsLinesFuture.then((lines) => Expect.fail("no lines expected"))
         .catchError((e) {
           port.toSendPort().send(1);

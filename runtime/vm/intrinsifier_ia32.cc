@@ -1550,7 +1550,7 @@ bool Intrinsifier::String_getIsEmpty(Assembler* assembler) {
   __ Bind(&is_true);
   __ LoadObject(EAX, Bool::True());
   __ ret();
-  return true;
+  return false;
 }
 
 

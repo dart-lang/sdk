@@ -101,7 +101,7 @@ Future _processHelper(String command, List<String> args,
 Future _pipeStream(Stream stream, List<String> destination,
                  Function outputMonitor) {
   return stream
-    .transform(new StringDecoder())
+    .transform(UTF8.decoder)
     .transform(new LineTransformer())
     .listen((String line) {
       if (config["immediate"] && line.startsWith('###')) {

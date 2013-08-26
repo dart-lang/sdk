@@ -5,6 +5,7 @@
 // Dart test program for testing error handling in file I/O.
 
 import "package:expect/expect.dart";
+import "dart:convert";
 import "dart:io";
 import "dart:isolate";
 
@@ -205,7 +206,7 @@ void testReadAsTextNonExistent() {
   Expect.throws(() => file.readAsStringSync(),
                 (e) => checkOpenNonExistentFileException(e));
 
-  var readAsStringFuture = file.readAsString(encoding: Encoding.ASCII);
+  var readAsStringFuture = file.readAsString(encoding: ASCII);
   readAsStringFuture.then((data) => Expect.fail("Unreachable code"))
   .catchError((error) {
     checkOpenNonExistentFileException(error);
@@ -226,7 +227,7 @@ testReadAsLinesNonExistent() {
   Expect.throws(() => file.readAsLinesSync(),
                 (e) => checkOpenNonExistentFileException(e));
 
-  var readAsLinesFuture = file.readAsLines(encoding: Encoding.ASCII);
+  var readAsLinesFuture = file.readAsLines(encoding: ASCII);
   readAsLinesFuture.then((data) => Expect.fail("Unreachable code"))
   .catchError((error) {
     checkOpenNonExistentFileException(error);

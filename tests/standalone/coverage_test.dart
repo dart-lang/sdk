@@ -65,11 +65,11 @@ void main() {
     coverageToolProcess = process;
     coverageToolProcess.stdin.close();
     var stdoutStringStream = coverageToolProcess.stdout
-        .transform(new StringDecoder())
+        .transform(UTF8.decoder)
         .transform(new LineSplitter());
 
     var stderrStringStream = coverageToolProcess.stderr
-        .transform(new StringDecoder())
+        .transform(UTF8.decoder)
         .transform(new LineSplitter());
 
     // Wait for 3 future events: stdout and stderr streams of the coverage

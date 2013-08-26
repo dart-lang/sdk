@@ -82,7 +82,7 @@ class ScheduledProcess {
   /// may be a [List] containing a mix of strings and [Future]s.
   ScheduledProcess.start(executable, arguments,
       {workingDirectory, environment, String description,
-       Encoding encoding: Encoding.UTF_8})
+       Encoding encoding: UTF8})
       : _encoding = encoding,
         _explicitDescription = description != null,
         _description = description {
@@ -152,7 +152,7 @@ class ScheduledProcess {
                              arguments,
                              workingDirectory: workingDirectory,
                              environment: environment).then((process) {
-          process.stdin.encoding = Encoding.UTF_8;
+          process.stdin.encoding = UTF8;
           return process;
         });
       });
@@ -203,7 +203,7 @@ class ScheduledProcess {
       currentSchedule.heartbeat();
       return chunk;
     })
-        .transform(new StringDecoder(_encoding))
+        .transform(_encoding.decoder)
         .transform(new LineSplitter()));
   }
 

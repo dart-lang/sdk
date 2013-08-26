@@ -6,10 +6,11 @@
 // non-interactive processes started with Process.run.
 
 import "package:expect/expect.dart";
+import "dart:convert";
 import "dart:io";
 import "process_test_util.dart";
 
-checkOutput(encoding, output) {
+checkOutput(String encoding, output) {
   if (encoding == 'ascii') {
     Expect.equals(output, 'abc');
   } else if (encoding == 'latin1') {
@@ -22,14 +23,14 @@ checkOutput(encoding, output) {
   }
 }
 
-test(scriptFile, encoding, stream) {
+test(scriptFile, String encoding, stream) {
   var enc;
   if (encoding == 'ascii') {
-    enc = Encoding.ASCII;
+    enc = ASCII;
   } else if (encoding == 'latin1') {
-    enc = Encoding.ISO_8859_1;
+    enc = LATIN1;
   } else if (encoding == 'utf8') {
-    enc = Encoding.UTF_8;
+    enc = UTF8;
   } else if (encoding == 'binary') {
     enc = null;
   }

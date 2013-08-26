@@ -466,7 +466,7 @@ class _File implements File {
   }
 
   IOSink openWrite({FileMode mode: FileMode.WRITE,
-                    Encoding encoding: Encoding.UTF_8}) {
+                    Encoding encoding: UTF8}) {
     if (mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
       throw new ArgumentError(
@@ -503,16 +503,16 @@ class _File implements File {
     return builder.takeBytes();
   }
 
-  Future<String> readAsString({Encoding encoding: Encoding.UTF_8}) {
+  Future<String> readAsString({Encoding encoding: UTF8}) {
     _ensureFileService();
     return readAsBytes().then((bytes) {
-      return _decodeString(bytes, encoding);
+      return encoding.decode(bytes);
     });
   }
 
-  String readAsStringSync({Encoding encoding: Encoding.UTF_8}) {
+  String readAsStringSync({Encoding encoding: UTF8}) {
     List<int> bytes = readAsBytesSync();
-    return _decodeString(bytes, encoding);
+    return encoding.decode(bytes);
   }
 
   static List<String> _decodeLines(List<int> bytes, Encoding encoding) {
@@ -520,7 +520,7 @@ class _File implements File {
     var list = [];
     var controller = new StreamController(sync: true);
     controller.stream
-        .transform(new StringDecoder(encoding))
+        .transform(encoding.decoder)
         .transform(new LineSplitter())
         .listen((line) => list.add(line));
     controller.add(bytes);
@@ -528,14 +528,14 @@ class _File implements File {
     return list;
   }
 
-  Future<List<String>> readAsLines({Encoding encoding: Encoding.UTF_8}) {
+  Future<List<String>> readAsLines({Encoding encoding: UTF8}) {
     _ensureFileService();
     return readAsBytes().then((bytes) {
       return _decodeLines(bytes, encoding);
     });
   }
 
-  List<String> readAsLinesSync({Encoding encoding: Encoding.UTF_8}) {
+  List<String> readAsLinesSync({Encoding encoding: UTF8}) {
     return _decodeLines(readAsBytesSync(), encoding);
   }
 
@@ -559,9 +559,9 @@ class _File implements File {
 
   Future<File> writeAsString(String contents,
                              {FileMode mode: FileMode.WRITE,
-                              Encoding encoding: Encoding.UTF_8}) {
+                              Encoding encoding: UTF8}) {
     try {
-      return writeAsBytes(_encodeString(contents, encoding), mode: mode);
+      return writeAsBytes(encoding.encode(contents), mode: mode);
     } catch (e) {
       return new Future.error(e);
     }
@@ -569,8 +569,8 @@ class _File implements File {
 
   void writeAsStringSync(String contents,
                          {FileMode mode: FileMode.WRITE,
-                          Encoding encoding: Encoding.UTF_8}) {
-    writeAsBytesSync(_encodeString(contents, encoding), mode: mode);
+                          Encoding encoding: UTF8}) {
+    writeAsBytesSync(encoding.encode(contents), mode: mode);
   }
 
   String toString() => "File: '$path'";
@@ -824,19 +824,19 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> writeString(String string,
-                                       {Encoding encoding: Encoding.UTF_8}) {
+                                       {Encoding encoding: UTF8}) {
     if (encoding is! Encoding) {
       throw new ArgumentError(encoding);
     }
-    var data = _encodeString(string, encoding);
+    var data = encoding.encode(string);
     return writeFrom(data, 0, data.length);
   }
 
-  void writeStringSync(String string, {Encoding encoding: Encoding.UTF_8}) {
+  void writeStringSync(String string, {Encoding encoding: UTF8}) {
     if (encoding is! Encoding) {
       throw new ArgumentError(encoding);
     }
-    var data = _encodeString(string, encoding);
+    var data = encoding.encode(string);
     writeFromSync(data, 0, data.length);
   }
 

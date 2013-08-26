@@ -34,11 +34,11 @@ class _HttpMultipartFormData extends Stream implements HttpMultipartFormData {
       StringBuffer buffer = new StringBuffer();
       Encoding encoding;
       if (contentType != null) {
-        encoding = Encoding.fromName(contentType.charset);
+        encoding = Encoding.getByName(contentType.charset);
       }
-      if (encoding == null) encoding = Encoding.ISO_8859_1;
+      if (encoding == null) encoding = LATIN1;
       _stream = _stream
-          .transform(new StringDecoder(encoding))
+          .transform(encoding.decoder)
           .expand((data) {
             buffer.write(data);
             var out = _decodeHttpEntityString(buffer.toString());

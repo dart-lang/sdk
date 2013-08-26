@@ -95,7 +95,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
               _currentMessageType = _WebSocketMessageType.TEXT;
               _controller = new StreamController(sync: true);
               _controller.stream
-                  .transform(new Utf8DecoderTransformer(null))
+                  .transform(UTF8.decoder)
                   .fold(new StringBuffer(), (buffer, str) => buffer..write(str))
                   .then((buffer) {
                     sink.add(buffer.toString());
@@ -304,7 +304,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
             throw new WebSocketException("Protocol error");
           }
           if (_controlPayload.length > 2) {
-            closeReason = _decodeUtf8Strict(_controlPayload.sublist(2));
+            closeReason = UTF8.decode(_controlPayload.sublist(2));
           }
         }
         _state = CLOSED;
@@ -463,7 +463,7 @@ class _WebSocketOutgoingTransformer extends StreamEventTransformer {
     if (message != null) {
       if (message is String) {
         opcode = _WebSocketOpcode.TEXT;
-        data = _encodeString(message);
+        data = UTF8.encode(message);
       } else {
         if (message is !List<int>) {
           throw new ArgumentError(message);
@@ -486,7 +486,7 @@ class _WebSocketOutgoingTransformer extends StreamEventTransformer {
       data.add((code >> 8) & 0xFF);
       data.add(code & 0xFF);
       if (reason != null) {
-        data.addAll(_encodeString(reason));
+        data.addAll(UTF8.encode(reason));
       }
     }
     addFrame(_WebSocketOpcode.CLOSE, data, sink);

@@ -37,7 +37,7 @@ _formatFile(path) {
   var buffer = new StringBuffer();
   var file = new File(path);
   file.openRead()
-      .transform(new StringDecoder())
+      .transform(UTF8.decoder)
       .listen((data) =>  buffer.write(data),
         onError: (error) => print('Error, could not open "$path"'),
         onDone: () => print(_formatCU(buffer.toString())));

@@ -590,7 +590,7 @@ void debuggerMain() {
   Socket.connect("127.0.0.1", 5858).then((s) {
     vmSock = s;
     vmSock.setOption(SocketOption.TCP_NODELAY, true);
-    var stringStream = vmSock.transform(new StringDecoder());
+    var stringStream = vmSock.transform(UTF8.decoder);
     vmSubscription = stringStream.listen(
         (String data) {
           processVmData(data);
@@ -604,7 +604,7 @@ void debuggerMain() {
           // TODO(floitsch): do we want to print the stack trace?
           quitShell();
         });
-    stdinSubscription = stdin.transform(new StringDecoder())
+    stdinSubscription = stdin.transform(UTF8.decoder)
                              .transform(new LineTransformer())
                              .listen((String line) => processCommand(line));
   });

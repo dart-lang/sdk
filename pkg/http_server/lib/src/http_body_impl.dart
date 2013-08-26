@@ -53,10 +53,10 @@ class _HttpBodyHandler {
     Future<HttpBody> asText(Encoding defaultEncoding) {
       var encoding;
       var charset = contentType.charset;
-      if (charset != null) encoding = Encoding.fromName(charset);
+      if (charset != null) encoding = Encoding.getByName(charset);
       if (encoding == null) encoding = defaultEncoding;
       return stream
-          .transform(new StringDecoder(encoding))
+          .transform(encoding.decoder)
           .fold(new StringBuffer(), (buffer, data) => buffer..write(data))
           .then((buffer) => new _HttpBody(contentType,
                                           "text",
@@ -107,21 +107,21 @@ class _HttpBodyHandler {
 
     switch (contentType.primaryType) {
       case "text":
-        return asText(Encoding.ASCII);
+        return asText(ASCII);
 
       case "application":
         switch (contentType.subType) {
           case "json":
-            return asText(Encoding.UTF_8)
+            return asText(UTF8)
                 .then((body) => new _HttpBody(contentType,
                                               "json",
                                               JSON.parse(body.body)));
 
           case "x-www-form-urlencoded":
-            return asText(Encoding.ASCII)
+            return asText(ASCII)
                 .then((body) {
                   var map = Uri.splitQueryString(body.body,
-                      decode: (s) => _decodeString(s, defaultEncoding));
+                      decode: (s) => defaultEncoding.decode(s));
                   var result = {};
                   for (var key in map.keys) {
                     result[key] = map[key];
@@ -149,24 +149,6 @@ class _HttpBodyHandler {
     }
 
     return asBinary();
-  }
-
-  // Utility function to synchronously decode a list of bytes.
-  static String _decodeString(List<int> bytes,
-                              [Encoding encoding = Encoding.UTF_8]) {
-    if (bytes.length == 0) return "";
-    var string;
-    var error;
-    var controller = new StreamController(sync: true);
-    controller.stream
-      .transform(new StringDecoder(encoding))
-      .listen((data) => string = data,
-              onError: (e) => error = e);
-    controller.add(bytes);
-    controller.close();
-    if (error != null) throw error;
-    assert(string != null);
-    return string;
   }
 }
 

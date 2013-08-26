@@ -24,7 +24,7 @@ const int _LATIN1_MASK = 0xFF;
  * A [LatinCodec] encodes strings to ISO Latin-1 (aka ISO-8859-1) bytes
  * and decodes Latin-1 bytes to strings.
  */
-class Latin1Codec extends _Encoding {
+class Latin1Codec extends Encoding {
   final bool _allowInvalid;
   /**
    * Instantiates a new [Latin1Codec].
@@ -37,6 +37,8 @@ class Latin1Codec extends _Encoding {
    * Encoders will not accept invalid (non Latin-1) characters.
    */
   const Latin1Codec({bool allowInvalid: false}) : _allowInvalid = allowInvalid;
+
+  String get name => "iso-8859-1";
 
   /**
    * Decodes the Latin-1 [bytes] (a list of unsigned 8-bit integers) to the

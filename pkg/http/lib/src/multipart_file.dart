@@ -5,6 +5,7 @@
 library multipart_file;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -70,14 +71,14 @@ class MultipartFile {
     contentType = contentType == null ? new ContentType("text", "plain")
                                       : contentType;
     var charset = contentType.charset;
-    var encoding = encodingForCharset(contentType.charset, Encoding.UTF_8);
+    var encoding = encodingForCharset(contentType.charset, UTF8);
     // Make a new contentType with ensured charset.
     contentType = new ContentType(contentType.primaryType,
                                   contentType.subType,
                                   charset: encoding.name,
                                   parameters: contentType.parameters);
 
-    return new MultipartFile.fromBytes(field, encodeString(value, encoding),
+    return new MultipartFile.fromBytes(field, encoding.encode(value),
         filename: filename,
         contentType: contentType);
   }
