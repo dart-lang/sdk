@@ -359,6 +359,7 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
   if ((assert == NULL) || (assert == kStrengthenedAssertMarker)) {
     return;
   }
+  ASSERT(assert->env() != NULL);
 
   Instruction* check_clone = NULL;
   if (check->IsCheckSmi()) {

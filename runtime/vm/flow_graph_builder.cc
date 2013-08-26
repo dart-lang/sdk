@@ -81,6 +81,7 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
       callee_graph->max_virtual_register_number());
 
   // Attach the outer environment on each instruction in the callee graph.
+  ASSERT(call_->env() != NULL);
   for (BlockIterator block_it = callee_graph->postorder_iterator();
        !block_it.Done();
        block_it.Advance()) {

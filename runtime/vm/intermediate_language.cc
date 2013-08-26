@@ -674,6 +674,7 @@ void Instruction::InheritDeoptTarget(Instruction* other) {
 
 
 void BranchInstr::InheritDeoptTarget(Instruction* other) {
+  ASSERT(env() == NULL);
   Instruction::InheritDeoptTarget(other);
   comparison()->SetDeoptId(GetDeoptId());
 }
@@ -1883,20 +1884,14 @@ Environment* Environment::From(const GrowableArray<Definition*>& definitions,
 }
 
 
-Environment* Environment::DeepCopy() const {
-  return (this == NULL) ? NULL : DeepCopy(Length());
-}
-
-
 Environment* Environment::DeepCopy(intptr_t length) const {
   ASSERT(length <= values_.length());
-  if (this == NULL) return NULL;
   Environment* copy =
       new Environment(length,
                       fixed_parameter_count_,
                       deopt_id_,
                       function_,
-                      outer_->DeepCopy());
+                      (outer_ == NULL) ? NULL : outer_->DeepCopy());
   for (intptr_t i = 0; i < length; ++i) {
     copy->values_.Add(values_[i]->Copy());
   }

@@ -6701,10 +6701,10 @@ class Environment : public ZoneAllocated {
         function_(function),
         outer_(outer) { }
 
-  // Deep copy the environment.  A 'length' parameter can be given, which
-  // may be less than the environment's length in order to drop values
-  // (e.g., passed arguments) from the copy.
-  Environment* DeepCopy() const;
+  // Deep copy an environment.  A 'length' parameter can be given, which may
+  // be less than the environment's length in order to drop values (e.g.,
+  // passed arguments) from the copy.
+  Environment* DeepCopy() const { return DeepCopy(Length()); }
   Environment* DeepCopy(intptr_t length) const;
 
   GrowableArray<Value*> values_;
