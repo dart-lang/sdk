@@ -15,6 +15,7 @@ expectSource(Mirror mirror, String source) {
 }
 
 foo1() {}
+doSomething(e) => e;
 
 int get x => 42;
 set x(value) { }
@@ -26,7 +27,7 @@ class C extends S {
   var _x;
   var _y;
 
-  C(this.x, y)
+  C(this._x, y)
     : _y = y,
       super();
 
@@ -77,7 +78,7 @@ main() {
       "    // Discard this one.\n"
       "  }");
   expectSource(cm.constructors[const Symbol("C")],
-      "C(this.x, y)\n"
+      "C(this._x, y)\n"
       "    : _y = y,\n"
       "      super();");
   expectSource(cm.constructors[const Symbol("C.other")],
