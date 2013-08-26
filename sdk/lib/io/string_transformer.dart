@@ -63,7 +63,7 @@ class _WindowsCodePageEncoderSink extends StringConversionSinkBase {
   // TODO(floitsch): provide more efficient conversions when the input is
   // not a String.
 
-  final ByteConversionSink _sink;
+  final ChunkedConversionSink<List<int>> _sink;
 
   _WindowsCodePageEncoderSink(this._sink);
 
@@ -115,7 +115,7 @@ class _WindowsCodePageDecoderSink extends ByteConversionSinkBase {
   // TODO(floitsch): provide more efficient conversions when the input is
   // a slice.
 
-  final StringConversionSink _sink;
+  final ChunkedConversionSink<String> _sink;
 
   _WindowsCodePageDecoderSink(this._sink);
 
