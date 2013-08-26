@@ -129,3 +129,8 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
 
 [ $arch == simarm ]
 convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12644.
+
+[ $compiler == none && $runtime == drt ]
+run_zoned6_test/01: fail # Issue 12756.
+run_zoned9_test/01: fail # Issue 12756.
+

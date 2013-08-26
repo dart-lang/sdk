@@ -646,8 +646,6 @@ class StandardTestSuite extends TestSuite {
     String testName;
 
     if (optionsFromFile['isMultitest']) {
-      // Multitests do not run on browsers.
-      if (TestUtils.isBrowserRuntime(configuration['runtime'])) return;
       // Multitests are in [build directory]/generated_tests/... .
       // The test name will be '[test filename (no extension)]/[multitest key].
       String name = filePath.filenameWithoutExtension;
@@ -1895,7 +1893,7 @@ class TestUtils {
     return new Path(path);
   }
 
-  /** 
+  /**
    * Gets extra vm options passed to the testing script.
    */
   static List<String> getExtraVmOptions(Map configuration) {
