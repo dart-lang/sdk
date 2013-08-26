@@ -71,6 +71,9 @@ LibTest/isolate/IsolateStream/contains_A02_t01: PASS, FAIL, OK # co19 issue 540
 
 LibTest/async/EventTransformStream/listen_A04_t01: Pass, Timeout # co19 issue 542
 
+LibTest/async/EventTransformStream/elementAt_A03_t01: FAIL # co19 issue 545
+LibTest/async/Stream/elementAt_A03_t01: FAIL # co19 issue 545
+
 ### CHECKED MODE FAILURES ###
 
 [ ($runtime == vm || $compiler == dart2js) && $checked]
