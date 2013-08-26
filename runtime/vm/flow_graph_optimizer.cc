@@ -6051,8 +6051,8 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
         RawObject::IsIntegerClassId(instr->operation_cid())) {
       return SetValue(instr,
                       (instr->kind() == Token::kEQ)
-                        ? Bool::True()
-                        : Bool::False());
+                          ? Bool::True()
+                          : Bool::False());
     }
   }
 
@@ -6064,6 +6064,12 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
                                           Integer::Cast(left),
                                           Integer::Cast(right));
       SetValue(instr, result ? Bool::True() : Bool::False());
+    } else if (left.IsString() && right.IsString()) {
+      const bool result = String::Cast(left).Equals(String::Cast(right));
+      SetValue(instr,
+               ((instr->kind() == Token::kEQ) == result)
+                   ? Bool::True()
+                   : Bool::False());
     } else {
       SetValue(instr, non_constant_);
     }
