@@ -3766,6 +3766,8 @@ class AbstractType : public Instance {
   virtual bool IsFinalized() const;
   virtual bool IsBeingFinalized() const;
   virtual bool IsMalformed() const;
+  virtual bool IsMalbounded() const { return IsMalboundedWithError(NULL); }
+  virtual bool IsMalboundedWithError(Error* bound_error) const;
   virtual RawError* malformed_error() const;
   virtual void set_malformed_error(const Error& value) const;
   virtual bool IsResolved() const;
@@ -3903,6 +3905,8 @@ class Type : public AbstractType {
   }
   void set_is_being_finalized() const;
   virtual bool IsMalformed() const;
+  virtual bool IsMalbounded() const { return IsMalboundedWithError(NULL); }
+  virtual bool IsMalboundedWithError(Error* bound_error) const;
   virtual RawError* malformed_error() const;
   virtual void set_malformed_error(const Error& value) const;
   virtual bool IsResolved() const;  // Class and all arguments classes resolved.
@@ -4010,6 +4014,8 @@ class TypeParameter : public AbstractType {
   void set_is_finalized() const;
   virtual bool IsBeingFinalized() const { return false; }
   virtual bool IsMalformed() const { return false; }
+  virtual bool IsMalbounded() const { return false; }
+  virtual bool IsMalboundedWithError(Error* bound_error) const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return false; }
   RawClass* parameterized_class() const {
@@ -4072,6 +4078,8 @@ class BoundedType : public AbstractType {
     return AbstractType::Handle(type()).IsBeingFinalized();
   }
   virtual bool IsMalformed() const;
+  virtual bool IsMalbounded() const { return IsMalboundedWithError(NULL); }
+  virtual bool IsMalboundedWithError(Error* bound_error) const;
   virtual RawError* malformed_error() const;
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const {
@@ -4139,7 +4147,9 @@ class MixinAppType : public AbstractType {
  public:
   // MixinAppType objects are replaced with their actual finalized type.
   virtual bool IsFinalized() const { return false; }
+  // TODO(regis): Handle malformed and malbounded MixinAppType.
   virtual bool IsMalformed() const { return false; }
+  virtual bool IsMalbounded() const { return false; }
   virtual bool IsResolved() const { return false; }
   virtual bool HasResolvedTypeClass() const { return false; }
   virtual RawString* Name() const;

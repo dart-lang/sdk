@@ -853,7 +853,7 @@ void EffectGraphVisitor::VisitTypeNode(TypeNode* node) {
 
 void ValueGraphVisitor::VisitTypeNode(TypeNode* node) {
   const AbstractType& type = node->type();
-  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
   if (type.IsInstantiated()) {
     ReturnDefinition(new ConstantInstr(type));
   } else {
@@ -877,9 +877,9 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
 
-  // If the destination type is malformed, a dynamic type error must be thrown
-  // at run time.
-  if (dst_type.IsMalformed()) {
+  // If the destination type is malformed or malbounded, a dynamic type error
+  // must be thrown at run time.
+  if (dst_type.IsMalformed() || dst_type.IsMalbounded()) {
     return false;
   }
 
@@ -1204,7 +1204,7 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
 void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ASSERT(Token::IsTypeTestOperator(node->kind()));
   const AbstractType& type = node->right()->AsTypeNode()->type();
-  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
   const bool negate_result = (node->kind() == Token::kISNOT);
   // All objects are instances of type T if Object type is a subtype of type T.
   const Type& object_type = Type::Handle(Type::ObjectType());
@@ -1307,7 +1307,7 @@ void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   Append(for_value);
   const String& dst_name = String::ZoneHandle(
       Symbols::New(Exceptions::kCastErrorDstName));
-  if (type.IsMalformed()) {
+  if (type.IsMalformed() || type.IsMalbounded()) {
     ReturnValue(BuildAssignableValue(node->token_pos(),
                                      for_value.value(),
                                      type,
@@ -2468,7 +2468,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
         Type::New(instantiator_class, type_arguments, token_pos, Heap::kNew));
     type ^= ClassFinalizer::FinalizeType(
         instantiator_class, type, ClassFinalizer::kFinalize);
-    ASSERT(!type.IsMalformed());
+    ASSERT(!type.IsMalformed() && !type.IsMalbounded());
     type_arguments = type.arguments();
     type_arguments = type_arguments.Canonicalize();
     return Bind(new ConstantInstr(type_arguments));

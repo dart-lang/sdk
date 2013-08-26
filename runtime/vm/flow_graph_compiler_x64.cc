@@ -573,7 +573,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
                                            const AbstractType& type,
                                            bool negate_result,
                                            LocationSummary* locs) {
-  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
 
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -663,7 +663,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
-  ASSERT(dst_type.IsMalformed() ||
+  ASSERT(dst_type.IsMalformed() || dst_type.IsMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
   __ pushq(RCX);  // Store instantiator.
   __ pushq(RDX);  // Store instantiator type arguments.
@@ -681,9 +681,15 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
     __ j(EQUAL, &is_assignable);
   }
 
-  // Generate throw new TypeError() if the type is malformed.
-  if (dst_type.IsMalformed()) {
-    const Error& error = Error::Handle(dst_type.malformed_error());
+  // Generate throw new TypeError() if the type is malformed or malbounded.
+  if (dst_type.IsMalformed() || dst_type.IsMalbounded()) {
+    Error& error = Error::Handle();
+    if (dst_type.IsMalformed()) {
+      error = dst_type.malformed_error();
+    } else {
+      const bool is_malbounded = dst_type.IsMalboundedWithError(&error);
+      ASSERT(is_malbounded);
+    }
     const String& error_message = String::ZoneHandle(
         Symbols::New(error.ToErrorCString()));
     __ PushObject(Object::ZoneHandle());  // Make room for the result.

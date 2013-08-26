@@ -611,6 +611,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
       SubtypeTestCache::CheckedHandle(arguments.ArgAt(5));
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!dst_type.IsMalformed());  // Already checked in code generator.
+  ASSERT(!dst_type.IsMalbounded());  // Already checked in code generator.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
 
   Error& malformed_error = Error::Handle();

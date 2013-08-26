@@ -98,8 +98,7 @@ static void CollectFinalizedSuperClasses(
     ASSERT(!cls.is_finalized());
     super_type = cls.super_type();
     if (!super_type.IsNull()) {
-      if (!super_type.IsMalformed() &&
-          super_type.HasResolvedTypeClass()) {
+      if (!super_type.IsMalformed() && super_type.HasResolvedTypeClass()) {
         cls ^= super_type.type_class();
         if (cls.is_finalized()) {
           AddSuperType(super_type, finalized_super_classes);

@@ -61,6 +61,7 @@ DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
+DECLARE_FLAG(bool, error_on_malformed_type);
 DECLARE_FLAG(bool, error_on_bad_override);
 
 static const char* kGetterPrefix = "get:";
@@ -1751,7 +1752,7 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
   TypeParameter& type_param = reused_handles.TypeParameterHandle();
   String& type_param_name = reused_handles.StringHandle();
   if (!type_params.IsNull()) {
-    intptr_t num_type_params = type_params.Length();
+    const intptr_t num_type_params = type_params.Length();
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
       type_param_name = type_param.name();
@@ -3083,7 +3084,7 @@ static intptr_t FinalizeHash(uword hash) {
 intptr_t AbstractTypeArguments::Hash() const {
   if (IsNull()) return 0;
   uword result = 0;
-  intptr_t num_types = Length();
+  const intptr_t num_types = Length();
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
@@ -3129,7 +3130,7 @@ bool AbstractTypeArguments::Equals(const AbstractTypeArguments& other) const {
   if (other.IsNull()) {
     return false;
   }
-  intptr_t num_types = Length();
+  const intptr_t num_types = Length();
   if (num_types != other.Length()) {
     return false;
   }
@@ -3258,7 +3259,7 @@ void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
 
 bool TypeArguments::IsResolved() const {
   AbstractType& type = AbstractType::Handle();
-  intptr_t num_types = Length();
+  const intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (!type.IsResolved()) {
@@ -3271,7 +3272,7 @@ bool TypeArguments::IsResolved() const {
 
 bool TypeArguments::IsInstantiated() const {
   AbstractType& type = AbstractType::Handle();
-  intptr_t num_types = Length();
+  const intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     ASSERT(!type.IsNull());
@@ -3369,7 +3370,7 @@ bool TypeArguments::CanShareInstantiatorTypeArguments(
 
 bool TypeArguments::IsBounded() const {
   AbstractType& type = AbstractType::Handle();
-  intptr_t num_types = Length();
+  const intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (type.IsBoundedType()) {
@@ -4815,7 +4816,7 @@ RawString* Function::BuildSignature(
     if (!type_parameters.IsNull()) {
       const String& function_class_name = String::Handle(function_class.Name());
       pieces.Add(function_class_name);
-      intptr_t num_type_parameters = type_parameters.Length();
+      const intptr_t num_type_parameters = type_parameters.Length();
       pieces.Add(Symbols::LAngleBracket());
       TypeParameter& type_parameter = TypeParameter::Handle();
       AbstractType& bound = AbstractType::Handle();
@@ -8379,7 +8380,7 @@ const char* ExceptionHandlers::ToCString() const {
     GetHandlerInfo(i, &info);
     handled_types = GetHandledTypes(i);
     ASSERT(!handled_types.IsNull());
-    intptr_t num_types = handled_types.Length();
+    const intptr_t num_types = handled_types.Length();
     len += OS::SNPrint(NULL, 0, kFormat,
                        i,
                        info.handler_pc,
@@ -8398,7 +8399,7 @@ const char* ExceptionHandlers::ToCString() const {
   for (intptr_t i = 0; i < Length(); i++) {
     GetHandlerInfo(i, &info);
     handled_types = GetHandledTypes(i);
-    intptr_t num_types = handled_types.Length();
+    const intptr_t num_types = handled_types.Length();
     num_chars += OS::SNPrint((buffer + num_chars),
                              (len - num_chars),
                              kFormat,
@@ -10253,12 +10254,14 @@ void Instance::SetTypeArguments(const AbstractTypeArguments& value) const {
 }
 
 
+// TODO(regis): Rename malformed_error to bound_error.
 bool Instance::IsInstanceOf(const AbstractType& other,
                             const AbstractTypeArguments& other_instantiator,
                             Error* malformed_error) const {
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsMalformed());
+  ASSERT(!other.IsMalbounded());
   if (other.IsVoidType()) {
     return false;
   }
@@ -10479,6 +10482,13 @@ bool AbstractType::IsBeingFinalized() const {
 
 
 bool AbstractType::IsMalformed() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
+bool AbstractType::IsMalboundedWithError(Error* bound_error) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -10882,6 +10892,30 @@ bool Type::IsMalformed() const {
 }
 
 
+bool Type::IsMalboundedWithError(Error* bound_error) const {
+  if (!FLAG_enable_type_checks && !FLAG_error_on_malformed_type) {
+    return false;
+  }
+  ASSERT(IsFinalized());
+  ASSERT(!IsMalformed());  // Must be checked first.
+  if (arguments() == AbstractTypeArguments::null()) {
+    return false;
+  }
+  const AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::Handle(arguments());
+  const intptr_t num_type_args = type_arguments.Length();
+  AbstractType& type_arg = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_type_args; i++) {
+    type_arg = type_arguments.TypeAt(i);
+    ASSERT(!type_arg.IsNull());
+    if (type_arg.IsMalboundedWithError(bound_error)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 void Type::set_malformed_error(const Error& value) const {
   StorePointer(&raw_ptr()->malformed_error_, value.raw());
 }
@@ -11255,10 +11289,14 @@ RawAbstractType* TypeParameter::InstantiateFrom(
       instantiator_type_arguments.TypeAt(index()));
   if (type_arg.IsBoundedType()) {
     const BoundedType& bounded_type = BoundedType::Cast(type_arg);
-    ASSERT(!bounded_type.IsInstantiated());
-    ASSERT(AbstractType::Handle(bounded_type.bound()).IsInstantiated());
-    type_arg = bounded_type.InstantiateFrom(AbstractTypeArguments::Handle(),
-                                            malformed_error);
+    // Bounds checking of a type is postponed to run time if the type is still
+    // uninstantiated at compile time, or if the bound and the type are mutually
+    // recursive. In the latter case, the type may already be instantiated.
+    if (!bounded_type.IsInstantiated()) {
+      ASSERT(AbstractType::Handle(bounded_type.bound()).IsInstantiated());
+      type_arg = bounded_type.InstantiateFrom(AbstractTypeArguments::Handle(),
+                                              malformed_error);
+    }
   }
   return type_arg.raw();
 }
@@ -11375,13 +11413,28 @@ void TypeParameter::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 
 bool BoundedType::IsMalformed() const {
-  return FLAG_enable_type_checks && AbstractType::Handle(bound()).IsMalformed();
+  return AbstractType::Handle(type()).IsMalformed();
+}
+
+
+bool BoundedType::IsMalboundedWithError(Error* bound_error) const {
+  if (!FLAG_enable_type_checks && !FLAG_error_on_malformed_type) {
+    return false;
+  }
+  const AbstractType& upper_bound = AbstractType::Handle(bound());
+  if (upper_bound.IsMalformed()) {
+    if (bound_error != NULL) {
+      *bound_error = upper_bound.malformed_error();
+      ASSERT(!bound_error->IsNull());
+    }
+    return true;
+  }
+  return false;
 }
 
 
 RawError* BoundedType::malformed_error() const {
-  ASSERT(FLAG_enable_type_checks);
-  return AbstractType::Handle(bound()).malformed_error();
+  return AbstractType::Handle(type()).malformed_error();
 }
 
 

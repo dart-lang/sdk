@@ -2996,6 +2996,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
           method->name->ToCString(),
           String::Handle(type.UserVisibleName()).ToCString());
     } else {
+      // TODO(regis): What if the redirection type is malbounded?
       redirection_type ^= type.raw();
     }
     if (CurrentToken() == Token::kPERIOD) {
@@ -5452,6 +5453,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
       const Error& error = Error::Handle(signature_type.malformed_error());
       function_type.set_malformed_error(error);
     }
+    // TODO(regis): What if the signature is malbounded?
 
     // The function type was initially marked as instantiated, but it may
     // actually be uninstantiated.
@@ -7126,7 +7128,6 @@ SequenceNode* Parser::NodeAsSequenceNode(intptr_t sequence_pos,
 
 
 AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
-  ASSERT(type.IsMalformed());
   ArgumentListNode* arguments = new ArgumentListNode(type_pos);
   // Location argument.
   arguments->Add(new LiteralNode(
@@ -7137,8 +7138,14 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
   arguments->Add(new LiteralNode(type_pos, Symbols::Malformed()));
   // Dst name argument.
   arguments->Add(new LiteralNode(type_pos, Symbols::Empty()));
-  // Malformed type error.
-  const Error& error = Error::Handle(type.malformed_error());
+  // Malformed type error or malbounded type error.
+  Error& error = Error::Handle();
+  if (type.IsMalformed()) {
+    error = type.malformed_error();
+  } else {
+    const bool is_malbounded = type.IsMalboundedWithError(&error);
+    ASSERT(is_malbounded);
+  }
   arguments->Add(new LiteralNode(type_pos, String::ZoneHandle(
       Symbols::New(error.ToErrorCString()))));
   return MakeStaticCall(Symbols::TypeError(),
@@ -7238,10 +7245,11 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
           CaptureInstantiator();
         }
         right_operand = new TypeNode(type_pos, type);
-        // If the type is malformed, it is actually malbounded in checked mode.
-        ASSERT(!type.IsMalformed() || FLAG_enable_type_checks);
+        // The type is never malformed (mapped to dynamic), but it can be
+        // malbounded in checked mode.
+        ASSERT(!type.IsMalformed());
         if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT)) &&
-            type.IsMalformed()) {
+            type.IsMalbounded()) {
           // Note that a type error is thrown even if the tested value is null
           // in a type test. However, no cast exception is thrown if the value
           // is null in a type cast.
@@ -9606,16 +9614,29 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       ParseType(ClassFinalizer::kCanonicalizeWellFormed));
   // In case the type is malformed, throw a dynamic type error after finishing
   // parsing the instance creation expression.
-  if (!type.IsMalformed() && (type.IsTypeParameter() || type.IsDynamicType())) {
-    // Replace the type with a malformed type.
-    type = ClassFinalizer::NewFinalizedMalformedType(
-        Error::Handle(),  // No previous error.
-        current_class(),
-        type_pos,
-        "%s'%s' cannot be instantiated",
-        type.IsTypeParameter() ? "type parameter " : "",
-        type.IsTypeParameter() ?
-            String::Handle(type.UserVisibleName()).ToCString() : "dynamic");
+  if (!type.IsMalformed()) {
+    if (type.IsTypeParameter() || type.IsDynamicType()) {
+      // Replace the type with a malformed type.
+      type = ClassFinalizer::NewFinalizedMalformedType(
+          Error::Handle(),  // No previous error.
+          current_class(),
+          type_pos,
+          "%s'%s' cannot be instantiated",
+          type.IsTypeParameter() ? "type parameter " : "",
+          type.IsTypeParameter() ?
+              String::Handle(type.UserVisibleName()).ToCString() : "dynamic");
+    } else if (FLAG_enable_type_checks || FLAG_error_on_malformed_type) {
+      Error& bound_error = Error::Handle();
+      if (type.IsMalboundedWithError(&bound_error)) {
+        // Replace the type with a malformed type.
+        type = ClassFinalizer::NewFinalizedMalformedType(
+            bound_error,
+            current_class(),
+            type_pos,
+            "malbounded type '%s' cannot be instantiated",
+            String::Handle(type.UserVisibleName()).ToCString());
+      }
+    }
   }
 
   // The grammar allows for an optional ('.' identifier)? after the type, which

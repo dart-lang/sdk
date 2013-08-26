@@ -36,6 +36,7 @@ type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
 type_variable_bounds3_test/00: Fail # Issue 12702
 f_bounded_quantification_test/01: Fail # Issue 12703
 f_bounded_quantification_test/02: Fail # Issue 12703
+f_bounded_quantification5_test: Fail # Issue 12703
 closure_type_test: Fail # Issue 12745
 function_subtype_setter0_test: Fail # Issue 11273
 
@@ -67,6 +68,7 @@ compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js && $minified ]
 f_bounded_quantification4_test: Fail # Issue 12605.
+f_bounded_quantification5_test: Fail # Issue 12605.
 
 [ $compiler == dart2js ]
 function_type_alias6_test/00: Crash # Issue 9792
@@ -455,6 +457,7 @@ final_is_not_const_test/01: Fail # Issue 12692
 [ $compiler == dart2dart && $minified ]
 super_getter_setter_test: Fail # Issue 11065.
 f_bounded_quantification4_test: Fail # Issue 12605.
+f_bounded_quantification5_test: Fail # Issue 12605.
 
 # TODO(tball): Assign proper bug numbers.
 class_literal_test: Fail

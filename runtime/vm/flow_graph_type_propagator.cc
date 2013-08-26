@@ -553,8 +553,8 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
                                          bool is_nullable,
                                          bool* is_instance) {
   ASSERT(is_instance != NULL);
-  // We cannot give an answer if the given type is malformed.
-  if (type.IsMalformed()) {
+  // We cannot give an answer if the given type is malformed or malbounded.
+  if (type.IsMalformed() || type.IsMalbounded()) {
     return false;
   }
 
@@ -569,7 +569,7 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
 
   // Consider the compile type of the value.
   const AbstractType& compile_type = *ToAbstractType();
-  if (compile_type.IsMalformed()) {
+  if (compile_type.IsMalformed() || compile_type.IsMalbounded()) {
     return false;
   }
 

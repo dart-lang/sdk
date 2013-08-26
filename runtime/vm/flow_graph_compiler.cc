@@ -1098,7 +1098,7 @@ intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
 
 // Returns true if checking against this type is a direct class id comparison.
 bool FlowGraphCompiler::TypeCheckAsClassEquality(const AbstractType& type) {
-  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
   // Requires CHA, which can be applied in optimized code only,
   if (!FLAG_use_cha || !is_optimizing()) return false;
   if (!type.IsInstantiated()) return false;
