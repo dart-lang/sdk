@@ -15,12 +15,12 @@ abstract class Map<K, V> {
   /**
    * Creates a Map instance with the default implementation.
    */
-  factory Map() = LinkedHashMap<K, V>;
+  factory Map() => new HashMap<K, V>();
 
   /**
    * Creates a Map instance that contains all key-value pairs of [other].
    */
-  factory Map.from(Map<K, V> other) = LinkedHashMap<K, V>.from;
+  factory Map.from(Map<K, V> other) => new HashMap<K, V>.from(other);
 
   /**
    * Creates a Map instance
@@ -29,7 +29,7 @@ abstract class Map<K, V> {
    * For each element of the [iterable] this constructor computes a key-value
    * pair, by applying [key] and [value] respectively.
    *
-   * The keys computed by the source [iterable]
+   * The keys computed by the source [iterable] 
    * do not need to be unique. The last
    * occurrence of a key will simply overwrite any previous value.
    *
@@ -37,7 +37,7 @@ abstract class Map<K, V> {
    * identity function.
    */
   factory Map.fromIterable(Iterable<K> iterable,
-      {K key(element), V value(element)}) = LinkedHashMap<K, V>.fromIterable;
+      {K key(element), V value(element)}) = HashMap<K, V>.fromIterable;
 
   /**
    * Creates a Map instance associating the given [keys] to [values].
@@ -51,7 +51,7 @@ abstract class Map<K, V> {
    * It is an error if the two [Iterable]s don't have the same length.
    */
   factory Map.fromIterables(Iterable<K> keys, Iterable<V> values)
-      = LinkedHashMap<K, V>.fromIterables;
+      = HashMap<K, V>.fromIterables;
 
   /**
    * Returns true if this map contains the given value.

@@ -17,7 +17,7 @@ main() {
 void positiveTest() {
   var map = new Map.fromIterables([1, 2, 3], ["one", "two", "three"]);
   Expect.isTrue(map is Map);
-  Expect.isTrue(map is LinkedHashMap);
+  Expect.isTrue(map is HashMap);
 
   Expect.equals(3, map.length);
   Expect.equals(3, map.keys.length);
@@ -31,7 +31,7 @@ void positiveTest() {
 void emptyMapTest() {
   var map = new Map.fromIterables([], []);
   Expect.isTrue(map is Map);
-  Expect.isTrue(map is LinkedHashMap);
+  Expect.isTrue(map is HashMap);
 
   Expect.equals(0, map.length);
   Expect.equals(0, map.keys.length);
@@ -49,7 +49,7 @@ void fewerKeysIterableTest() {
 void equalElementsTest() {
   var map = new Map.fromIterables([1, 2, 2], ["one", "two", "three"]);
   Expect.isTrue(map is Map);
-  Expect.isTrue(map is LinkedHashMap);
+  Expect.isTrue(map is HashMap);
 
   Expect.equals(2, map.length);
   Expect.equals(2, map.keys.length);
