@@ -145,11 +145,22 @@ void main() {
         '''));
   });
 
-  // TODO(nweiz): test creating a multipart file with a charset other than UTF-8
-  // once issue 6284 is fixed.
+  test('with a file with a iso-8859-1 body', () {
+    var request = new http.MultipartRequest('POST', dummyUrl);
+    // "Ã¥" encoded as ISO-8859-1 and then read as UTF-8 results in "å".
+    var file = new http.MultipartFile.fromString('file', 'non-ascii: "Ã¥"',
+        contentType: new ContentType('text', 'plain', charset: 'iso-8859-1'));
+    request.files.add(file);
 
-  // TODO(nweiz): test creating a string with a unicode body once issue 6284 is
-  // fixed.
+    expect(request, bodyMatches('''
+        --{{boundary}}
+        content-type: text/plain; charset=iso-8859-1
+        content-disposition: form-data; name="file"
+
+        non-ascii: "å"
+        --{{boundary}}--
+        '''));
+  });
 
   test('with a stream file', () {
     var request = new http.MultipartRequest('POST', dummyUrl);
