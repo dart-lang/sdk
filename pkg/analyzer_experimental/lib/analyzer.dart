@@ -14,6 +14,7 @@ import 'src/generated/error.dart';
 import 'src/generated/parser.dart';
 import 'src/generated/scanner.dart';
 import 'src/generated/source_io.dart';
+import 'src/string_source.dart';
 
 export 'src/error.dart';
 export 'src/generated/ast.dart';
@@ -35,6 +36,25 @@ CompilationUnit parseDartFile(String path) {
     throw new ArgumentError("Source $source doesn't exist");
   }
 
+  var scanner = new StringScanner(source, contents, errorCollector);
+  var token = scanner.tokenize();
+  var parser = new Parser(source, errorCollector);
+  var unit = parser.parseCompilationUnit(token);
+  unit.lineInfo = new LineInfo(scanner.lineStarts);
+
+  if (errorCollector.hasErrors) throw errorCollector.group;
+
+  return unit;
+}
+
+/// Parses a string of Dart code into an AST.
+///
+/// If [name] is passed, it's used in error messages as the name of the code
+/// being parsed.
+CompilationUnit parseCompilationUnit(String contents, {String name}) {
+  if (name == null) name = '<unknown source>';
+  var source = new StringSource(contents, name);
+  var errorCollector = new _ErrorCollector();
   var scanner = new StringScanner(source, contents, errorCollector);
   var token = scanner.tokenize();
   var parser = new Parser(source, errorCollector);
