@@ -124,21 +124,23 @@ class JSInvocationMirror implements Invocation {
   bool get isAccessor => _kind != METHOD;
 
   List get positionalArguments {
-    if (isGetter) return null;
-    var list = [];
+    if (isGetter) return const [];
     var argumentCount =
         _arguments.length - _namedArgumentNames.length;
+    if (argumentCount == 0) return const [];
+    var list = [];
     for (var index = 0 ; index < argumentCount ; index++) {
       list.add(_arguments[index]);
     }
-    return list;
+    return makeLiteralListConst(list);
   }
 
   Map<Symbol,dynamic> get namedArguments {
-    if (isAccessor) return null;
-    var map = new Map<Symbol, dynamic>();
+    if (isAccessor) return const <Symbol,dynamic>{};
     int namedArgumentCount = _namedArgumentNames.length;
     int namedArgumentsStartIndex = _arguments.length - namedArgumentCount;
+    if (namedArgumentCount == 0) return const <Symbol,dynamic>{};
+    var map = new Map<Symbol, dynamic>();
     for (int i = 0; i < namedArgumentCount; i++) {
       map[new _symbol_dev.Symbol.unvalidated(_namedArgumentNames[i])] =
           _arguments[namedArgumentsStartIndex + i];

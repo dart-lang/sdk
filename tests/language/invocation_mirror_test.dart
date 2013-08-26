@@ -73,11 +73,8 @@ testInvocationMirror(Invocation im, Symbol name,
   Expect.isFalse(im.isSetter, "$name:isSetter");
   Expect.isFalse(im.isGetter, "$name:isGetter");
 
-  Expect.equals(positional.length, im.positionalArguments.length);
-  for (int i = 0; i < positional.length; i++) {
-    Expect.equals(positional[i], im.positionalArguments[i],
-                  "$name:positional[$i]");
-  }
+  Expect.listEquals(positional, im.positionalArguments);
+
   Expect.equals(namedArguments.length, im.namedArguments.length,
                 "$name:#named");
   namedArguments.forEach((k, v) {

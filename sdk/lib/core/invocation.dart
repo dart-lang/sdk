@@ -15,10 +15,19 @@ abstract class Invocation {
   /** The name of the invoked member. */
   Symbol get memberName;
 
-  /** An unmodifiable view of the positional arguments of the call. */
+  /**
+   * An unmodifiable view of the positional arguments of the call.
+   *
+   * If the member is a getter, the positional arguments is empty.
+   */
   List get positionalArguments;
 
-  /** An unmodifiable view of the named arguments of the call. */
+  /**
+   * An unmodifiable view of the named arguments of the call.
+   *
+   * If the member is a getter, setter or operator, the named arguments
+   * is empty.
+   */
   Map<Symbol, dynamic> get namedArguments;
 
   /** Whether the invocation was a method call. */
@@ -26,15 +35,15 @@ abstract class Invocation {
 
   /**
    * Whether the invocation was a getter call.
-   * If so, both types of arguments will be null.
+   * If so, both types of arguments is empty.
    */
   bool get isGetter;
 
   /**
    * Whether the invocation was a setter call.
    *
-   * If so, [arguments] will have exactly one positonal argument,
-   * and namedArguments will be null.
+   * If so, [arguments] has exactly one positonal argument,
+   * and [namedArguments] is empty.
    */
   bool get isSetter;
 
