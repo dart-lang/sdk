@@ -136,10 +136,11 @@ class JSInvocationMirror implements Invocation {
   }
 
   Map<Symbol,dynamic> get namedArguments {
-    if (isAccessor) return const <Symbol,dynamic>{};
+    // TODO: Make maps const (issue 10471)
+    if (isAccessor) return <Symbol, dynamic>{};
     int namedArgumentCount = _namedArgumentNames.length;
     int namedArgumentsStartIndex = _arguments.length - namedArgumentCount;
-    if (namedArgumentCount == 0) return const <Symbol,dynamic>{};
+    if (namedArgumentCount == 0) return <Symbol, dynamic>{};
     var map = new Map<Symbol, dynamic>();
     for (int i = 0; i < namedArgumentCount; i++) {
       map[new _symbol_dev.Symbol.unvalidated(_namedArgumentNames[i])] =
