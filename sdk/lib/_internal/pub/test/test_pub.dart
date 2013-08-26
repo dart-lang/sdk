@@ -573,13 +573,8 @@ class PubProcess extends ScheduledProcess {
   }
 }
 
-// TODO(nweiz): use the built-in mechanism for accessing this once it exists
-// (issue 9119).
 /// The path to the `packages` directory from which pub loads its dependencies.
-String get _packageRoot {
-  return path.absolute(path.join(
-      path.dirname(Platform.executable), '..', '..', 'packages'));
-}
+String get _packageRoot => path.absolute(Platform.packageRoot);
 
 /// Skips the current test if Git is not installed. This validates that the
 /// current test is running on a buildbot in which case we expect git to be
