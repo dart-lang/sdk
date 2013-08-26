@@ -532,13 +532,6 @@ abstract class ClosureMirror implements InstanceMirror {
   MethodMirror get function;
 
   /**
-   * The source code for this closure, if available.  Otherwise null.
-   *
-   * TODO(turnidge): Would this just be available in function?
-   */
-  String get source;
-
-  /**
    * Executes the closure and returns a mirror on the result.
    * Let *f* be the closure reflected by this mirror,
    * let *a1, ..., an* be the elements of [positionalArguments]
@@ -951,6 +944,11 @@ abstract class MethodMirror implements DeclarationMirror {
    * A mirror on the return type for the reflectee.
    */
   TypeMirror get returnType;
+
+  /**
+   * The source code for the reflectee, if available. Otherwise null.
+   */
+  String get source;
 
   /**
    * A list of mirrors on the parameters for the reflectee.

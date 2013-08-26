@@ -1591,7 +1591,6 @@ String& Parser::ParseNativeDeclaration() {
   }
   String& native_name = *CurrentLiteral();
   ConsumeToken();
-  ExpectSemicolon();
   return native_name;
 }
 
@@ -2749,9 +2748,11 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   }
 
   OpenBlock();  // Open a nested scope for the outermost function block.
+  intptr_t end_token_pos = 0;
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
     ParseStatementSequence();
+    end_token_pos = TokenPos();
     ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
@@ -2759,8 +2760,11 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
     ASSERT(expr != NULL);
     current_block_->statements->Add(new ReturnNode(expr_pos, expr));
+    end_token_pos = TokenPos();
   } else if (IsLiteral("native")) {
     ParseNativeFunctionBlock(&params, func);
+    end_token_pos = TokenPos();
+    ExpectSemicolon();
   } else if (func.is_external()) {
     // Body of an external method contains a single throw.
     const String& function_name = String::ZoneHandle(func.name());
@@ -2774,9 +2778,13 @@ SequenceNode* Parser::ParseFunc(const Function& func,
                                    InvocationMirror::kStatic :
                                    InvocationMirror::kDynamic,
                                InvocationMirror::kMethod));
+    end_token_pos = TokenPos();
   } else {
     UnexpectedToken();
   }
+  ASSERT(func.end_token_pos() == func.token_pos() ||
+         func.end_token_pos() == end_token_pos);
+  func.set_end_token_pos(end_token_pos);
   SequenceNode* body = CloseBlock();
   current_block_->statements->Add(body);
   innermost_function_ = saved_innermost_function.raw();
@@ -3075,6 +3083,8 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                "Constructor with redirection may not have a function body");
     }
     ParseNativeDeclaration();
+    method_end_pos = TokenPos();
+    ExpectSemicolon();
   } else {
     // We haven't found a method body. Issue error if one is required.
     const bool must_have_body =
@@ -4424,6 +4434,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
 
   intptr_t function_end_pos = function_pos;
   if (is_external) {
+    function_end_pos = TokenPos();
     ExpectSemicolon();
   } else if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
@@ -4431,10 +4442,12 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     SkipExpr();
+    function_end_pos = TokenPos();
     ExpectSemicolon();
-    function_end_pos = TokenPos() - 1;
   } else if (IsLiteral("native")) {
     ParseNativeDeclaration();
+    function_end_pos = TokenPos();
+    ExpectSemicolon();
   } else {
     ErrorMsg("function block expected");
   }
@@ -4549,6 +4562,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
 
   intptr_t accessor_end_pos = accessor_pos;
   if (is_external) {
+    accessor_end_pos = TokenPos();
     ExpectSemicolon();
   } else if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
@@ -4556,10 +4570,12 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     SkipExpr();
+    accessor_end_pos = TokenPos();
     ExpectSemicolon();
-    accessor_end_pos = TokenPos() - 1;
   } else if (IsLiteral("native")) {
     ParseNativeDeclaration();
+    accessor_end_pos = TokenPos();
+    ExpectSemicolon();
   } else {
     ErrorMsg("function block expected");
   }
@@ -5365,8 +5381,6 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   Array& default_parameter_values = Array::Handle();
   SequenceNode* statements = Parser::ParseFunc(function,
                                                default_parameter_values);
-  ASSERT(is_new_closure || (function.end_token_pos() == (TokenPos() - 1)));
-  function.set_end_token_pos(TokenPos() - 1);
 
   // Now that the local function has formal parameters, lookup the signature
   // class in the current library (but not in its imports) and only create a new

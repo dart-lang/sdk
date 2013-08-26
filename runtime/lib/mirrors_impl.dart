@@ -1016,6 +1016,15 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
     return _constructorName;
   }
 
+  String _source = null;
+  String get source {
+    if (_source == null) {
+      _source = _MethodMirror_source(_reflectee);
+      assert(_source != null);
+    }
+    return _source;
+  }
+
   String toString() => "MethodMirror on '${_n(simpleName)}'";
 
   static dynamic _MethodMirror_owner(reflectee)
@@ -1026,6 +1035,9 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
 
   List<ParameterMirror> _MethodMirror_parameters(reflectee)
       native "MethodMirror_parameters";
+
+  static String _MethodMirror_source(reflectee)
+      native "MethodMirror_source";
 }
 
 class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
