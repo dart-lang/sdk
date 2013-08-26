@@ -39,6 +39,7 @@ worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
 
 [ $compiler == dart2js && $runtime == safari ]
 url_test: Fail # Issue 10096
+audiobuffersourcenode_test/supported: Pass, Timeout # Issue 12772
 
 [ $compiler == dart2js && $browser && $checked ]
 postmessage_structured_test/typed_arrays: Fail # Issue 10097
