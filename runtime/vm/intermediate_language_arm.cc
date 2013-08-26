@@ -4132,6 +4132,10 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
   if (InputCount() == 2) {
     result->set_in(1, Location::FpuRegisterLocation(Q1));
   }
+  if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
+    result->AddTemp(Location::RegisterLocation(R2));
+    result->AddTemp(Location::FpuRegisterLocation(Q2));
+  }
   result->set_out(Location::FpuRegisterLocation(Q0));
   return result;
 }
@@ -4141,14 +4145,37 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For pow-function return NaN if exponent is NaN.
   Label do_call, skip_call;
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
+    // Pseudo code:
+    // if (exponent == 0.0) return 0.0;
+    // if (base == 1.0) return 1.0;
+    // if (base.isNaN || exponent.isNaN) {
+    //    return double.NAN;
+    // }
+    DRegister base = EvenDRegisterOf(locs()->in(0).fpu_reg());
     DRegister exp = EvenDRegisterOf(locs()->in(1).fpu_reg());
     DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
-    __ vcmpd(exp, exp);
+    Register temp = locs()->temp(0).reg();
+    DRegister saved_base = EvenDRegisterOf(locs()->temp(1).fpu_reg());
+    ASSERT((base == result) && (result != saved_base));
+    Label check_base_is_one;
+    // Check if exponent is 0.0 -> return 1.0;
+    __ vmovd(saved_base, base);
+    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0)));
+    __ LoadDFromOffset(DTMP, temp, Double::value_offset() - kHeapObjectTag);
+    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(1)));
+    __ LoadDFromOffset(result, temp, Double::value_offset() - kHeapObjectTag);
+    __ vcmpd(exp, DTMP);
     __ vmstat();
-    __ b(&do_call, VC);  // NaN -> false;
-    // Exponent is NaN, return NaN.
-    __ vmovd(result, exp);
-    __ b(&skip_call);
+    __ b(&check_base_is_one, VS);  // NaN -> not zero.
+    __ b(&skip_call, EQ);  // exp is 0.0, result is 1.0.
+
+    __ Bind(&check_base_is_one);
+    __ vcmpd(saved_base, result);
+    __ vmstat();
+    __ vmovd(result, saved_base, VS);  // base is NaN, return NaN.
+    __ b(&skip_call, VS);
+    __ b(&skip_call, EQ);  // base and result are 1.0.
+    __ vmovd(base, saved_base);  // Restore base.
   }
   __ Bind(&do_call);
   // We currently use 'hardfp' ('gnueabihf') rather than 'softfp'
