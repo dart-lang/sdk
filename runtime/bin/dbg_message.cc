@@ -111,8 +111,7 @@ char* MessageParser::GetStringParam(const char* name) const {
   }
   intptr_t buflen = pr.ValueLen() + 1;
   char* param_chars = reinterpret_cast<char*>(malloc(buflen));
-  pr.GetValueChars(param_chars, buflen);
-  // TODO(hausner): Decode escape sequences.
+  pr.GetDecodedValueChars(param_chars, buflen);
   return param_chars;
 }
 

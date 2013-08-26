@@ -398,7 +398,7 @@ JSONReader::JSONType JSONReader::Type() const {
 }
 
 
-void JSONReader::GetValueChars(char* buf, intptr_t buflen) const {
+void JSONReader::GetRawValueChars(char* buf, intptr_t buflen) const {
   if (Type() == kNone) {
     return;
   }
@@ -412,6 +412,72 @@ void JSONReader::GetValueChars(char* buf, intptr_t buflen) const {
     buf[i] = val[i];
   }
   buf[i] = '\0';
+}
+
+
+void JSONReader::GetDecodedValueChars(char* buf, intptr_t buflen) const {
+  if (Type() == kNone) {
+    return;
+  }
+  const intptr_t last_idx = buflen - 1;
+  const intptr_t value_len = ValueLen();
+  const char* val = ValueChars();
+  intptr_t buf_idx = 0;
+  intptr_t val_idx = 0;
+  while ((buf_idx < last_idx) && (val_idx < value_len)) {
+    char ch = val[val_idx];
+    val_idx++;
+    buf[buf_idx] = ch;
+    if ((ch == '\\') && (val_idx < value_len)) {
+      switch (val[val_idx]) {
+        case '"':
+        case '\\':
+        case '/':
+          buf[buf_idx] = val[val_idx];
+          val_idx++;
+          break;
+        case 'b':
+          buf[buf_idx] = '\b';
+          val_idx++;
+          break;
+        case 'f':
+          buf[buf_idx] = '\f';
+          val_idx++;
+          break;
+        case 'n':
+          buf[buf_idx] = '\n';
+          val_idx++;
+          break;
+        case 'r':
+          buf[buf_idx] = '\r';
+          val_idx++;
+          break;
+        case 't':
+          buf[buf_idx] = '\t';
+          val_idx++;
+          break;
+        case 'u':
+          // \u00XX
+          // If the value is malformed or > 255, ignore and copy the
+          // encoded characters.
+          if ((val_idx < value_len - 4) &&
+              (val[val_idx + 1] == '0') && (val[val_idx + 2] == '0') &&
+              Utils::IsHexDigit(val[val_idx + 3]) &&
+              Utils::IsHexDigit(val[val_idx + 4])) {
+            buf[buf_idx] = 16 * Utils::HexDigitToInt(val[val_idx + 3]) +
+                Utils::HexDigitToInt(val[val_idx + 4]);
+            val_idx += 5;
+          }
+          break;
+        default:
+          // Nothing. Copy the character after the backslash
+          // in the next loop iteration.
+          break;
+      }
+    }
+    buf_idx++;
+  }
+  buf[buf_idx] = '\0';
 }
 
 

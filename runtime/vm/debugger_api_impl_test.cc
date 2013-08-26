@@ -1526,10 +1526,13 @@ TEST_CASE(Debug_EvaluateExpr) {
       "main() {                          \n"
       "  var p = new Point(3, 4);        \n"
       "  l = [1, 2, 3];        /*BP*/    \n"
+      "  m = {'\"': 'quote' ,            \n"
+      "       \"\t\": 'tab' };           \n"
       "  return p;                       \n"
       "}                                 \n"
       "var _factor = 2;                  \n"
       "var l;                            \n"
+      "var m;                            \n"
       "class Point {                     \n"
       "  var x, y;                       \n"
       "  Point(this.x, this.y);          \n"
@@ -1559,6 +1562,18 @@ TEST_CASE(Debug_EvaluateExpr) {
   EXPECT_VALID(len);
   EXPECT(Dart_IsNumber(len));
   EXPECT_EQ(3, ToInt64(len));
+
+  Dart_Handle point_class = Dart_GetClass(script_lib, NewString("Point"));
+  EXPECT_VALID(point_class);
+  Dart_Handle elem = Dart_EvaluateExpr(point_class, NewString("m['\"']"));
+  EXPECT_VALID(elem);
+  EXPECT(Dart_IsString(elem));
+  EXPECT_STREQ("quote", ToCString(elem));
+
+  elem = Dart_EvaluateExpr(point_class, NewString("m[\"\\t\"]"));
+  EXPECT_VALID(elem);
+  EXPECT(Dart_IsString(elem));
+  EXPECT_STREQ("tab", ToCString(elem));
 }
 
 
