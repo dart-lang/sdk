@@ -1148,7 +1148,48 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
     return context;
   }
 
-  String toDataUrl([String type = 'image/png', num quality]) => 
+  /**
+   * Returns a data URI containing a representation of the image in the
+   * format specified by type (defaults to 'image/png').
+   *
+   * Data Uri format is as follow
+   * `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
+   *
+   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when
+   * requesting [type] 'image/jpeg' or 'image/webp'. If [quality] is not passed
+   * the default value is used. Note: the default value varies by browser.
+   *
+   * If the height or width of this canvas element is 0, then 'data:' is
+   * returned, representing no data.
+   *
+   * If the type requested is not 'image/png', and the returned value is
+   * 'data:image/png', then the requested type is not supported.
+   *
+   * Example usage:
+   *
+   *     CanvasElement canvas = new CanvasElement();
+   *     var ctx = canvas.context2D
+   *     ..fillStyle = "rgb(200,0,0)"
+   *     ..fillRect(10, 10, 55, 50);
+   *     var dataUrl = canvas.toDataUrl("image/jpeg", 0.95);
+   *     // The Data Uri would look similar to
+   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
+   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
+   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='
+   *     //Create a new image element from the data URI.
+   *     var img = new ImageElement();
+   *     img.src = dataUrl;
+   *     document.body.children.add(img);
+   *
+   * See also:
+   *
+   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
+   *
+   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
+   *
+   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
+   */
+  String toDataUrl([String type = 'image/png', num quality]) =>
       _toDataUrl(type, quality);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26007,13 +26048,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
