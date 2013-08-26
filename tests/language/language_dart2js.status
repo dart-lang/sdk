@@ -36,18 +36,18 @@ type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
 type_variable_bounds3_test/00: Fail # Issue 12702
 f_bounded_quantification_test/01: Fail # Issue 12703
 f_bounded_quantification_test/02: Fail # Issue 12703
-closure_type_test: Fail # does not detect type error in checked mode.
+closure_type_test: Fail # Issue 12745
 function_subtype_setter0_test: Fail # Issue 11273
 
 [ $compiler == dart2js && $unchecked ]
-factory_redirection_test/14: Fail # redirecting to redirecting factory
-type_checks_in_factory_method_test: Fail # Expect.equals(expected: <true>, actual: <false>) fails. -- checked mode test.
+factory_redirection_test/14: Fail # Issue 10959
+type_checks_in_factory_method_test: Fail # Issue 12746
 
-assertion_test: Fail
+assertion_test: Fail # Issue 12748
 
-double_to_string_as_exponential2_test: Fail # toStringAsExponential doesn't check if argument is an integer.
-double_to_string_as_fixed2_test: Fail # toStringAsFixed doesn't check if argument is an integer.
-double_to_string_as_precision2_test: Fail # toStringAsPrecision doesn't check if argument is an integer.
+double_to_string_as_exponential2_test: Fail # Issue 12749
+double_to_string_as_fixed2_test: Fail # Issue 12749
+double_to_string_as_precision2_test: Fail # Issue 12749
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
@@ -77,14 +77,14 @@ class_literal_test: Fail # Issue 7626.
 identical_closure2_test: Fail # Issue 1533, Issue 12596
 invocation_mirror_test: Fail # Issue 12705
 built_in_identifier_prefix_test: Fail # Issue 6972
-number_identity2_test: Fail # Issue 12596: identity of NaN
-new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
-new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
-double_int_to_string_test: Fail # Issue 1533 (double/integer distinction)
-mint_arithmetic_test: Fail # Issue 1533 (big integer arithmetic).
+number_identity2_test: Fail # Issue 12596
+new_expression_type_args_test/00: Fail # Issue 5519
+new_expression_type_args_test/01: Fail # Issue 5519
+double_int_to_string_test: Fail # Issue 1533
+mint_arithmetic_test: Fail # Issue 1533
 left_shift_test: Fail # Issue 1533
-factory_redirection_test/01: Fail
-factory_redirection_test/07: Fail
+factory_redirection_test/01: Fail # Issue 12752
+factory_redirection_test/07: Fail # Issue 12752
 bad_override_test/01: Fail # Issue 11496
 bad_override_test/02: Fail # Issue 11496
 bad_override_test/06: Fail # Issue 11496
@@ -103,12 +103,12 @@ method_override8_test/03: Fail # Issue 11496
 setter_override_test/00: Fail # Issue 11496
 setter_override_test/03: Fail # Issue 11496
 setter_override2_test/02: Fail # Issue 11496
-call_nonexistent_constructor_test: Fail
-constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
-getter_no_setter_test/01: Fail # http://dartbug.com/5519
-not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
-dynamic_test: Fail # http://dartbug.com/12398
-dynamic_prefix_core_test: Fail # http://dartbug.com/12398
+call_nonexistent_constructor_test: Fail # Issue 12758
+constructor_named_arguments_test/01: Fail # Issue 5519
+getter_no_setter_test/01: Fail # Issue 5519
+not_enough_positional_arguments_test/01: Fail # Issue 5519
+dynamic_test: Fail # Issue 12398
+dynamic_prefix_core_test: Fail # Issue 12398
 
 constructor_negative_test: Pass # Wrong reason: the expression 'C()' is valid with class literals.
 
@@ -124,9 +124,9 @@ positional_parameters_type_test: Fail
 # Compilation errors.
 const_var_test: Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
-function_type_alias5_test/00: Fail # visitIs for typedefs not implemented
-function_type_alias5_test/01: Fail # visitIs for typedefs not implemented
-function_type_alias5_test/02: Fail # visitIs for typedefs not implemented
+function_type_alias5_test/00: Fail # Issue 12754
+function_type_alias5_test/01: Fail # Issue 12754
+function_type_alias5_test/02: Fail # Issue 12754
 function_type_alias7_test/00: Fail # wrongly accepts default values in typedef
 generic_test: Fail # cannot resolve type T
 get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
@@ -251,9 +251,9 @@ arithmetic_test: Fail # Issue 7881
 
 
 [ $compiler == dart2js && $runtime == ie9 ]
-double_to_string_as_exponential3_test: Fail
-double_to_string_as_fixed_test: Fail
-double_to_string_as_precision3_test: Fail
+double_to_string_as_exponential3_test: Fail # Issue 12750
+double_to_string_as_fixed_test: Fail # Issue 12750
+double_to_string_as_precision3_test: Fail # Issue 12750
 expect_test: Fail
 stack_overflow_test: Fail
 stack_overflow_stacktrace_test: Fail
@@ -286,7 +286,7 @@ function_type_alias9_test/00: Crash # Issue 11986
 built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test: Fail # VM issue
 factory3_test: Fail
-type_checks_in_factory_method_test: Fail
+type_checks_in_factory_method_test: Fail # Issue 12747
 
 many_overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
 overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
@@ -332,32 +332,32 @@ setter_override_test/00: Fail # Issue 11496
 setter_override_test/03: Fail # Issue 11496
 setter_override2_test/02: Fail # Issue 11496
 
-compile_time_constant10_test/01: Fail # http://dartbug.com/5519
-compile_time_constant10_test/02: Fail # http://dartbug.com/5519
-compile_time_constant_arguments_test/01: Fail # http://dartbug.com/5519
-compile_time_constant_arguments_test/02: Fail # http://dartbug.com/5519
-compile_time_constant_arguments_test/03: Fail # http://dartbug.com/5519
-compile_time_constant_arguments_test/05: Fail # http://dartbug.com/5519
-compile_time_constant_arguments_test/06: Fail # http://dartbug.com/5519
-const_constructor_syntax_test/04: Fail # http://dartbug.com/5519
-const_syntax_test/01: Fail # http://dartbug.com/5519
-const_syntax_test/02: Fail # http://dartbug.com/5519
-const_syntax_test/03: Fail # http://dartbug.com/5519
-const_syntax_test/04: Fail # http://dartbug.com/5519
-const_syntax_test/05: Fail # http://dartbug.com/5519
-const_syntax_test/06: Fail # http://dartbug.com/5519
-const_syntax_test/07: Fail # http://dartbug.com/5519
-const_syntax_test/08: Fail # http://dartbug.com/5519
-const_syntax_test/10: Fail # http://dartbug.com/5519
-constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
-final_syntax_test/01: Fail # http://dartbug.com/5519
-final_syntax_test/02: Fail # http://dartbug.com/5519
-final_syntax_test/03: Fail # http://dartbug.com/5519
-final_syntax_test/04: Fail # http://dartbug.com/5519
-getter_no_setter_test/01: Fail # http://dartbug.com/5519
-named_parameters_aggregated_test/01: Fail # http://dartbug.com/5519
-named_parameters_aggregated_test/03: Fail # http://dartbug.com/5519
-not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
+compile_time_constant10_test/01: Fail # Issue 5519
+compile_time_constant10_test/02: Fail # Issue 5519
+compile_time_constant_arguments_test/01: Fail # Issue 5519
+compile_time_constant_arguments_test/02: Fail # Issue 5519
+compile_time_constant_arguments_test/03: Fail # Issue 5519
+compile_time_constant_arguments_test/05: Fail # Issue 5519
+compile_time_constant_arguments_test/06: Fail # Issue 5519
+const_constructor_syntax_test/04: Fail # Issue 5519
+const_syntax_test/01: Fail # Issue 5519
+const_syntax_test/02: Fail # Issue 5519
+const_syntax_test/03: Fail # Issue 5519
+const_syntax_test/04: Fail # Issue 5519
+const_syntax_test/05: Fail # Issue 5519
+const_syntax_test/06: Fail # Issue 5519
+const_syntax_test/07: Fail # Issue 5519
+const_syntax_test/08: Fail # Issue 5519
+const_syntax_test/10: Fail # Issue 5519
+constructor_named_arguments_test/01: Fail # Issue 5519
+final_syntax_test/01: Fail # Issue 5519
+final_syntax_test/02: Fail # Issue 5519
+final_syntax_test/03: Fail # Issue 5519
+final_syntax_test/04: Fail # Issue 5519
+getter_no_setter_test/01: Fail # Issue 5519
+named_parameters_aggregated_test/01: Fail # Issue 5519
+named_parameters_aggregated_test/03: Fail # Issue 5519
+not_enough_positional_arguments_test/01: Fail # Issue 5519
 
 metadata_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
@@ -394,11 +394,15 @@ static_top_level_test/07: Fail
 # Bug in dart2js parser: it happily parses 1is int; variable declaration.
 number_identifier_negative_test: Fail
 # Common with language_dart2js.
-factory_redirection_test/0*: Skip # Flaky negative tests, crash, fail, or pass. Not implemented.
-factory_redirection_test/1*: Skip # Flaky negative tests, crash, fail, or pass. Not implemented.
-function_type_alias5_test/00: Fail
-function_type_alias5_test/01: Fail
-function_type_alias5_test/02: Fail
+factory_redirection_test/01: Fail # Issue 12753
+factory_redirection_test/02: Crash # Issue 12753
+factory_redirection_test/03: Crash # Issue 12753
+factory_redirection_test/07: Fail # Issue 12753
+factory_redirection_test/09: Fail # Issue 12753
+factory_redirection_test/14: Fail # Issue 10959
+function_type_alias5_test/00: Fail # Issue 12755
+function_type_alias5_test/01: Fail # Issue 12755
+function_type_alias5_test/02: Fail # Issue 12755
 function_type_alias7_test/00: Fail
 parameter_initializer6_negative_test: Fail # Issue 3502
 syntax_test/47: Fail
