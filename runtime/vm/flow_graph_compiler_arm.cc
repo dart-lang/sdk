@@ -158,7 +158,6 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 
   __ BranchLink(&StubCode::DeoptimizeLabel());
   set_pc_offset(assem->CodeSize());
-  __ bkpt(0);  // TODO(regis): Remove breakpoint to save space.
 #undef __
 }
 

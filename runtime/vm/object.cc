@@ -61,7 +61,7 @@ DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
-DECLARE_FLAG(bool, error_on_malformed_type);
+DECLARE_FLAG(bool, error_on_bad_type);
 DECLARE_FLAG(bool, error_on_bad_override);
 
 static const char* kGetterPrefix = "get:";
@@ -2468,7 +2468,7 @@ bool Class::TypeTest(
     const AbstractTypeArguments& type_arguments,
     const Class& other,
     const AbstractTypeArguments& other_type_arguments,
-    Error* malformed_error) const {
+    Error* bound_error) const {
   ASSERT(!IsVoidClass());
   // Check for DynamicType.
   // Each occurrence of DynamicType in type T is interpreted as the dynamic
@@ -2515,7 +2515,7 @@ bool Class::TypeTest(
     return type_arguments.TypeTest(test_kind,
                                    other_type_arguments,
                                    len,
-                                   malformed_error);
+                                   bound_error);
   }
   const bool other_is_function_class = other.IsFunctionClass();
   if (other.IsSignatureClass() || other_is_function_class) {
@@ -2530,7 +2530,7 @@ bool Class::TypeTest(
                           type_arguments,
                           other_fun,
                           other_type_arguments,
-                          malformed_error);
+                          bound_error);
     }
     // Check if type S has a call() method of function type T.
     Function& function =
@@ -2549,7 +2549,7 @@ bool Class::TypeTest(
                             type_arguments,
                             other_fun,
                             other_type_arguments,
-                            malformed_error)) {
+                            bound_error)) {
         return true;
       }
     }
@@ -2560,7 +2560,7 @@ bool Class::TypeTest(
   AbstractType& interface = AbstractType::Handle();
   Class& interface_class = Class::Handle();
   AbstractTypeArguments& interface_args = AbstractTypeArguments::Handle();
-  Error& args_malformed_error = Error::Handle();
+  Error& args_bound_error = Error::Handle();
   for (intptr_t i = 0; i < interfaces.Length(); i++) {
     interface ^= interfaces.At(i);
     if (!interface.IsFinalized()) {
@@ -2579,13 +2579,13 @@ bool Class::TypeTest(
       // parameters of the interface are at the end of the type vector,
       // after the type arguments of the super type of this type.
       // The index of the type parameters is adjusted upon finalization.
-      args_malformed_error = Error::null();
+      args_bound_error = Error::null();
       interface_args = interface_args.InstantiateFrom(type_arguments,
-                                                      &args_malformed_error);
-      if (!args_malformed_error.IsNull()) {
-        // Return the first malformed error to the caller if it requests it.
-        if ((malformed_error != NULL) && malformed_error->IsNull()) {
-          *malformed_error = args_malformed_error.raw();
+                                                      &args_bound_error);
+      if (!args_bound_error.IsNull()) {
+        // Return the first bound error to the caller if it requests it.
+        if ((bound_error != NULL) && bound_error->IsNull()) {
+          *bound_error = args_bound_error.raw();
         }
         continue;  // Another interface may work better.
       }
@@ -2594,7 +2594,7 @@ bool Class::TypeTest(
                                  interface_args,
                                  other,
                                  other_type_arguments,
-                                 malformed_error)) {
+                                 bound_error)) {
       return true;
     }
   }
@@ -2609,7 +2609,7 @@ bool Class::TypeTest(
                               type_arguments,
                               other,
                               other_type_arguments,
-                              malformed_error);
+                              bound_error);
 }
 
 
@@ -3165,7 +3165,7 @@ bool AbstractTypeArguments::AreEqual(
 
 RawAbstractTypeArguments* AbstractTypeArguments::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
-    Error* malformed_error) const {
+    Error* bound_error) const {
   // AbstractTypeArguments is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -3203,7 +3203,7 @@ bool AbstractTypeArguments::IsDynamicTypes(bool raw_instantiated,
 bool AbstractTypeArguments::TypeTest(TypeTestKind test_kind,
                                      const AbstractTypeArguments& other,
                                      intptr_t len,
-                                     Error* malformed_error) const {
+                                     Error* bound_error) const {
   ASSERT(Length() >= len);
   ASSERT(!other.IsNull());
   ASSERT(other.Length() >= len);
@@ -3214,7 +3214,7 @@ bool AbstractTypeArguments::TypeTest(TypeTestKind test_kind,
     ASSERT(!type.IsNull());
     other_type = other.TypeAt(i);
     ASSERT(!other_type.IsNull());
-    if (!type.TypeTest(test_kind, other_type, malformed_error)) {
+    if (!type.TypeTest(test_kind, other_type, bound_error)) {
       return false;
     }
   }
@@ -3396,7 +3396,7 @@ bool TypeArguments::IsBounded() const {
 
 RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
-    Error* malformed_error) const {
+    Error* bound_error) const {
   ASSERT(!IsInstantiated());
   if (!instantiator_type_arguments.IsNull() &&
       IsUninstantiatedIdentity() &&
@@ -3410,7 +3410,7 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (!type.IsInstantiated()) {
-      type = type.InstantiateFrom(instantiator_type_arguments, malformed_error);
+      type = type.InstantiateFrom(instantiator_type_arguments, bound_error);
     }
     instantiated_array.SetTypeAt(i, type);
   }
@@ -3593,13 +3593,13 @@ RawAbstractType* InstantiatedTypeArguments::TypeAt(intptr_t index) const {
   if (!type.IsInstantiated()) {
     const AbstractTypeArguments& instantiator_type_args =
         AbstractTypeArguments::Handle(instantiator_type_arguments());
-    Error& malformed_error = Error::Handle();
-    type = type.InstantiateFrom(instantiator_type_args, &malformed_error);
+    Error& bound_error = Error::Handle();
+    type = type.InstantiateFrom(instantiator_type_args, &bound_error);
     // InstantiatedTypeArguments cannot include unchecked bounds.
     // In the presence of unchecked bounds, no InstantiatedTypeArguments are
     // allocated, but the type arguments are instantiated individually and their
     // bounds are checked.
-    ASSERT(malformed_error.IsNull());
+    ASSERT(bound_error.IsNull());
   }
   return type.raw();
 }
@@ -4419,16 +4419,16 @@ const char* Function::ToFullyQualifiedCString() const {
 
 
 bool Function::HasCompatibleParametersWith(const Function& other,
-                                           Error* error) const {
+                                           Error* bound_error) const {
   ASSERT(FLAG_error_on_bad_override);
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
   if (!TypeTest(kIsSubtypeOf, Object::null_abstract_type_arguments(),
-                other, Object::null_abstract_type_arguments(), error)) {
+                other, Object::null_abstract_type_arguments(), bound_error)) {
     // For more informative error reporting, use the location of the other
     // function here, since the caller will use the location of this function.
-    *error = FormatError(
-        *error,  // A malformed error if non null.
+    *bound_error = FormatError(
+        *bound_error,  // A bound error if non null.
         Script::Handle(other.script()),
         other.token_pos(),
         "signature type '%s' of function '%s' is not a subtype of signature "
@@ -4464,13 +4464,13 @@ bool Function::TestParameterType(
     const AbstractTypeArguments& type_arguments,
     const Function& other,
     const AbstractTypeArguments& other_type_arguments,
-    Error* malformed_error) const {
+    Error* bound_error) const {
   AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
   if (!other_param_type.IsInstantiated()) {
     other_param_type = other_param_type.InstantiateFrom(other_type_arguments,
-                                                        malformed_error);
-    ASSERT((malformed_error == NULL) || malformed_error->IsNull());
+                                                        bound_error);
+    ASSERT((bound_error == NULL) || bound_error->IsNull());
   }
   if (other_param_type.IsDynamicType()) {
     return true;
@@ -4478,20 +4478,20 @@ bool Function::TestParameterType(
   AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
   if (!param_type.IsInstantiated()) {
-    param_type = param_type.InstantiateFrom(type_arguments, malformed_error);
-    ASSERT((malformed_error == NULL) || malformed_error->IsNull());
+    param_type = param_type.InstantiateFrom(type_arguments, bound_error);
+    ASSERT((bound_error == NULL) || bound_error->IsNull());
   }
   if (param_type.IsDynamicType()) {
     return test_kind == kIsSubtypeOf;
   }
   if (test_kind == kIsSubtypeOf) {
-    if (!param_type.IsSubtypeOf(other_param_type, malformed_error) &&
-        !other_param_type.IsSubtypeOf(param_type, malformed_error)) {
+    if (!param_type.IsSubtypeOf(other_param_type, bound_error) &&
+        !other_param_type.IsSubtypeOf(param_type, bound_error)) {
       return false;
     }
   } else {
     ASSERT(test_kind == kIsMoreSpecificThan);
-    if (!param_type.IsMoreSpecificThan(other_param_type, malformed_error)) {
+    if (!param_type.IsMoreSpecificThan(other_param_type, bound_error)) {
       return false;
     }
   }
@@ -4503,7 +4503,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
                         const AbstractTypeArguments& type_arguments,
                         const Function& other,
                         const AbstractTypeArguments& other_type_arguments,
-                        Error* malformed_error) const {
+                        Error* bound_error) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
   const intptr_t num_opt_named_params = NumOptionalNamedParameters();
@@ -4531,26 +4531,26 @@ bool Function::TypeTest(TypeTestKind test_kind,
   AbstractType& other_res_type = AbstractType::Handle(other.result_type());
   if (!other_res_type.IsInstantiated()) {
     other_res_type = other_res_type.InstantiateFrom(other_type_arguments,
-                                                    malformed_error);
-    ASSERT((malformed_error == NULL) || malformed_error->IsNull());
+                                                    bound_error);
+    ASSERT((bound_error == NULL) || bound_error->IsNull());
   }
   if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
     AbstractType& res_type = AbstractType::Handle(result_type());
     if (!res_type.IsInstantiated()) {
-      res_type = res_type.InstantiateFrom(type_arguments, malformed_error);
-      ASSERT((malformed_error == NULL) || malformed_error->IsNull());
+      res_type = res_type.InstantiateFrom(type_arguments, bound_error);
+      ASSERT((bound_error == NULL) || bound_error->IsNull());
     }
     if (res_type.IsVoidType()) {
       return false;
     }
     if (test_kind == kIsSubtypeOf) {
-      if (!res_type.IsSubtypeOf(other_res_type, malformed_error) &&
-          !other_res_type.IsSubtypeOf(res_type, malformed_error)) {
+      if (!res_type.IsSubtypeOf(other_res_type, bound_error) &&
+          !other_res_type.IsSubtypeOf(res_type, bound_error)) {
         return false;
       }
     } else {
       ASSERT(test_kind == kIsMoreSpecificThan);
-      if (!res_type.IsMoreSpecificThan(other_res_type, malformed_error)) {
+      if (!res_type.IsMoreSpecificThan(other_res_type, bound_error)) {
         return false;
       }
     }
@@ -4561,7 +4561,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
     if (!TestParameterType(test_kind,
                            i + num_ignored_params, i + other_num_ignored_params,
                            type_arguments, other, other_type_arguments,
-                           malformed_error)) {
+                           bound_error)) {
       return false;
     }
   }
@@ -4592,7 +4592,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
         if (!TestParameterType(test_kind,
                                j, i,
                                type_arguments, other, other_type_arguments,
-                               malformed_error)) {
+                               bound_error)) {
           return false;
         }
         break;
@@ -10254,10 +10254,9 @@ void Instance::SetTypeArguments(const AbstractTypeArguments& value) const {
 }
 
 
-// TODO(regis): Rename malformed_error to bound_error.
 bool Instance::IsInstanceOf(const AbstractType& other,
                             const AbstractTypeArguments& other_instantiator,
-                            Error* malformed_error) const {
+                            Error* bound_error) const {
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsMalformed());
@@ -10290,8 +10289,8 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   // Note that we may encounter a bound error in checked mode.
   if (!other.IsInstantiated()) {
     const AbstractType& instantiated_other = AbstractType::Handle(
-        other.InstantiateFrom(other_instantiator, malformed_error));
-    if ((malformed_error != NULL) && !malformed_error->IsNull()) {
+        other.InstantiateFrom(other_instantiator, bound_error));
+    if ((bound_error != NULL) && !bound_error->IsNull()) {
       ASSERT(FLAG_enable_type_checks);
       return false;
     }
@@ -10302,7 +10301,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     other_type_arguments = other.arguments();
   }
   return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
-                         malformed_error);
+                         bound_error);
 }
 
 
@@ -10517,7 +10516,7 @@ bool AbstractType::Equals(const Instance& other) const {
 
 RawAbstractType* AbstractType::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
-    Error* malformed_error) const {
+    Error* bound_error) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -10687,28 +10686,29 @@ bool AbstractType::IsFunctionType() const {
 
 bool AbstractType::TypeTest(TypeTestKind test_kind,
                             const AbstractType& other,
-                            Error* malformed_error) const {
+                            Error* bound_error) const {
   ASSERT(IsResolved());
   ASSERT(other.IsResolved());
-  // In case the type checked in a type test is malformed, the code generator
+  ASSERT(!IsMalformed());
+  ASSERT(!other.IsMalformed());
+  // In case the type checked in a type test is malbounded, the code generator
   // may compile a throw instead of a run time call performing the type check.
-  // However, in checked mode, a function type may include malformed result type
-  // and/or malformed parameter types, which will then be encountered here at
-  // run time.
-  if (IsMalformed()) {
+  // However, in checked mode, a function type may include malbounded result
+  // type and/or malbounded parameter types, which will then be encountered here
+  // at run time.
+  if (IsMalbounded()) {
     ASSERT(FLAG_enable_type_checks);
-    if ((malformed_error != NULL) && malformed_error->IsNull()) {
-      *malformed_error = this->malformed_error();
+    if ((bound_error != NULL) && bound_error->IsNull()) {
+      const bool is_malbounded = IsMalboundedWithError(bound_error);
+      ASSERT(is_malbounded);
     }
     return false;
   }
-  if (other.IsMalformed()) {
-    // Note that 'other' may represent an unresolved bound that is checked at
-    // compile time, even in production mode, in which case the resulting
-    // BoundedType is ignored at run time if in production mode.
-    // Therefore, we cannot assert that we are in checked mode here.
-    if ((malformed_error != NULL) && malformed_error->IsNull()) {
-      *malformed_error = other.malformed_error();
+  if (other.IsMalbounded()) {
+    ASSERT(FLAG_enable_type_checks);
+    if ((bound_error != NULL) && bound_error->IsNull()) {
+      const bool other_is_malbounded = other.IsMalboundedWithError(bound_error);
+      ASSERT(other_is_malbounded);
     }
     return false;
   }
@@ -10739,7 +10739,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       }
     }
     const AbstractType& bound = AbstractType::Handle(type_param.bound());
-    if (bound.IsMoreSpecificThan(other, malformed_error)) {
+    if (bound.IsMoreSpecificThan(other, bound_error)) {
       return true;
     }
     return false;  // TODO(regis): We should return "maybe after instantiation".
@@ -10752,7 +10752,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                       AbstractTypeArguments::Handle(arguments()),
                       Class::Handle(other.type_class()),
                       AbstractTypeArguments::Handle(other.arguments()),
-                      malformed_error);
+                      bound_error);
 }
 
 
@@ -10893,10 +10893,10 @@ bool Type::IsMalformed() const {
 
 
 bool Type::IsMalboundedWithError(Error* bound_error) const {
-  if (!FLAG_enable_type_checks && !FLAG_error_on_malformed_type) {
+  if (!FLAG_enable_type_checks && !FLAG_error_on_bad_type) {
     return false;
   }
-  ASSERT(IsFinalized());
+  ASSERT(IsResolved());
   ASSERT(!IsMalformed());  // Must be checked first.
   if (arguments() == AbstractTypeArguments::null()) {
     return false;
@@ -11004,7 +11004,7 @@ bool Type::IsInstantiated() const {
 
 RawAbstractType* Type::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
-    Error* malformed_error) const {
+    Error* bound_error) const {
   ASSERT(IsResolved());
   ASSERT(!IsInstantiated());
   // Return the uninstantiated type unchanged if malformed. No copy needed.
@@ -11014,7 +11014,7 @@ RawAbstractType* Type::InstantiateFrom(
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::Handle(arguments());
   type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
-                                                  malformed_error);
+                                                  bound_error);
   // Note that the type class has to be resolved at this time, but not
   // necessarily finalized yet. We may be checking bounds at compile time.
   const Class& cls = Class::Handle(type_class());
@@ -11277,7 +11277,7 @@ void TypeParameter::set_bound(const AbstractType& value) const {
 
 RawAbstractType* TypeParameter::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
-    Error* malformed_error) const {
+    Error* bound_error) const {
   ASSERT(IsFinalized());
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
@@ -11295,7 +11295,7 @@ RawAbstractType* TypeParameter::InstantiateFrom(
     if (!bounded_type.IsInstantiated()) {
       ASSERT(AbstractType::Handle(bounded_type.bound()).IsInstantiated());
       type_arg = bounded_type.InstantiateFrom(AbstractTypeArguments::Handle(),
-                                              malformed_error);
+                                              bound_error);
     }
   }
   return type_arg.raw();
@@ -11304,15 +11304,15 @@ RawAbstractType* TypeParameter::InstantiateFrom(
 
 bool TypeParameter::CheckBound(const AbstractType& bounded_type,
                                const AbstractType& upper_bound,
-                               Error* malformed_error) const {
-  ASSERT((malformed_error == NULL) || malformed_error->IsNull());
+                               Error* bound_error) const {
+  ASSERT((bound_error == NULL) || bound_error->IsNull());
   ASSERT(bounded_type.IsFinalized());
   ASSERT(upper_bound.IsFinalized());
   ASSERT(!bounded_type.IsMalformed());
-  if (bounded_type.IsSubtypeOf(upper_bound, malformed_error)) {
+  if (bounded_type.IsSubtypeOf(upper_bound, bound_error)) {
     return true;
   }
-  if ((malformed_error != NULL) && malformed_error->IsNull()) {
+  if ((bound_error != NULL) && bound_error->IsNull()) {
     // Report the bound error.
     const String& bounded_type_name = String::Handle(
         bounded_type.UserVisibleName());
@@ -11327,8 +11327,8 @@ bool TypeParameter::CheckBound(const AbstractType& bounded_type,
     const Script& script = Script::Handle(cls.script());
     // Since the bound may have been canonicalized, its token index is
     // meaningless, therefore use the token index of this type parameter.
-    *malformed_error = FormatError(
-        *malformed_error,
+    *bound_error = FormatError(
+        *bound_error,
         script,
         token_pos(),
         "type parameter '%s' of class '%s' must extend bound '%s', "
@@ -11418,7 +11418,7 @@ bool BoundedType::IsMalformed() const {
 
 
 bool BoundedType::IsMalboundedWithError(Error* bound_error) const {
-  if (!FLAG_enable_type_checks && !FLAG_error_on_malformed_type) {
+  if (!FLAG_enable_type_checks && !FLAG_error_on_bad_type) {
     return false;
   }
   const AbstractType& upper_bound = AbstractType::Handle(bound());
@@ -11495,15 +11495,15 @@ void BoundedType::set_is_being_checked(bool value) const {
 
 RawAbstractType* BoundedType::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
-    Error* malformed_error) const {
+    Error* bound_error) const {
   ASSERT(IsFinalized());
   AbstractType& bounded_type = AbstractType::Handle(type());
   if (!bounded_type.IsInstantiated()) {
     bounded_type = bounded_type.InstantiateFrom(instantiator_type_arguments,
-                                                malformed_error);
+                                                bound_error);
   }
   if (FLAG_enable_type_checks &&
-      malformed_error->IsNull() &&
+      bound_error->IsNull() &&
       !is_being_checked()) {
     // Avoid endless recursion while checking and instantiating bound.
     set_is_being_checked(true);
@@ -11512,10 +11512,10 @@ RawAbstractType* BoundedType::InstantiateFrom(
     const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
     if (!upper_bound.IsInstantiated()) {
       upper_bound = upper_bound.InstantiateFrom(instantiator_type_arguments,
-                                                malformed_error);
+                                                bound_error);
     }
-    if (malformed_error->IsNull()) {
-      type_param.CheckBound(bounded_type, upper_bound, malformed_error);
+    if (bound_error->IsNull()) {
+      type_param.CheckBound(bounded_type, upper_bound, bound_error);
     }
     set_is_being_checked(false);
   }

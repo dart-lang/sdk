@@ -30,7 +30,7 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
-DECLARE_FLAG(bool, error_on_malformed_type);
+DECLARE_FLAG(bool, error_on_bad_type);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 static void CheckedModeHandler(bool value) {
@@ -8283,7 +8283,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           if (ParsingStaticMember()) {
             ASSERT(scope_class.raw() == current_class().raw());
             if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-                FLAG_error_on_malformed_type) {
+                FLAG_error_on_bad_type) {
               *type = ClassFinalizer::NewFinalizedMalformedType(
                   Error::Handle(),  // No previous error.
                   scope_class,
@@ -8301,7 +8301,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           // malformed if type arguments have previously been parsed.
           if (!AbstractTypeArguments::Handle(type->arguments()).IsNull()) {
             if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-                FLAG_error_on_malformed_type) {
+                FLAG_error_on_bad_type) {
               *type = ClassFinalizer::NewFinalizedMalformedType(
                   Error::Handle(),  // No previous error.
                   scope_class,
@@ -8329,7 +8329,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
             &error);
         if (!error.IsNull()) {
           if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-              FLAG_error_on_malformed_type) {
+              FLAG_error_on_bad_type) {
             *type = ClassFinalizer::NewFinalizedMalformedType(
                 error,
                 scope_class,
@@ -8355,7 +8355,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           &error);
       if (!error.IsNull()) {
         if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-            FLAG_error_on_malformed_type) {
+            FLAG_error_on_bad_type) {
           *type = ClassFinalizer::NewFinalizedMalformedType(
               error,
               scope_class,
@@ -8376,7 +8376,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
       parameterized_type.set_type_class(resolved_type_class);
     } else if (finalization >= ClassFinalizer::kCanonicalize) {
       if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-          FLAG_error_on_malformed_type) {
+          FLAG_error_on_bad_type) {
         ClassFinalizer::FinalizeMalformedType(
             Error::Handle(),  // No previous error.
             scope_class,
@@ -9177,7 +9177,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     if (list_type_arguments.Length() == 1) {
       element_type = list_type_arguments.TypeAt(0);
     } else {
-      if (FLAG_error_on_malformed_type) {
+      if (FLAG_error_on_bad_type) {
         ErrorMsg(type_pos,
                  "a list literal takes one type argument specifying "
                  "the element type");
@@ -9375,7 +9375,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                  "a type variable");
       }
       if (key_type.IsMalformed()) {
-        if (FLAG_error_on_malformed_type) {
+        if (FLAG_error_on_bad_type) {
           ErrorMsg(Error::Handle(key_type.malformed_error()));
         }
         // Map malformed key type to dynamic.
@@ -9383,7 +9383,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
         map_type_arguments.SetTypeAt(0, key_type);
       }
       if (value_type.IsMalformed()) {
-        if (FLAG_error_on_malformed_type) {
+        if (FLAG_error_on_bad_type) {
           ErrorMsg(Error::Handle(value_type.malformed_error()));
         }
         // Map malformed value type to dynamic.
@@ -9391,7 +9391,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
         map_type_arguments.SetTypeAt(1, value_type);
       }
     } else {
-      if (FLAG_error_on_malformed_type) {
+      if (FLAG_error_on_bad_type) {
         ErrorMsg(type_pos,
                  "a map literal takes two type arguments specifying "
                  "the key type and the value type");
@@ -9625,7 +9625,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
           type.IsTypeParameter() ? "type parameter " : "",
           type.IsTypeParameter() ?
               String::Handle(type.UserVisibleName()).ToCString() : "dynamic");
-    } else if (FLAG_enable_type_checks || FLAG_error_on_malformed_type) {
+    } else if (FLAG_enable_type_checks || FLAG_error_on_bad_type) {
       Error& bound_error = Error::Handle();
       if (type.IsMalboundedWithError(&bound_error)) {
         // Replace the type with a malformed type.

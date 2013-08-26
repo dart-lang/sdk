@@ -16,7 +16,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, error_on_bad_override, false,
             "Report error for bad overrides.");
-DEFINE_FLAG(bool, error_on_malformed_type, false,
+DEFINE_FLAG(bool, error_on_bad_type, false,
             "Report error for malformed types.");
 DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
@@ -475,7 +475,7 @@ void ClassFinalizer::ResolveType(const Class& cls,
     const Type& parameterized_type = Type::Cast(type);
     if (type_class.IsNull()) {
       if ((finalization == kCanonicalizeWellFormed) ||
-          FLAG_error_on_malformed_type) {
+          FLAG_error_on_bad_type) {
         // The type class could not be resolved. The type is malformed.
         FinalizeMalformedType(
             ambiguous_error,  // May be null.
@@ -797,7 +797,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // However, type parameter bounds are checked below, even for a raw type.
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
     // Wrong number of type arguments. The type is malformed.
-    if (FLAG_error_on_malformed_type) {
+    if (FLAG_error_on_bad_type) {
       const Script& script = Script::Handle(cls.script());
       const String& type_class_name = String::Handle(type_class.Name());
       ReportError(Error::Handle(),  // No previous error.
@@ -1141,7 +1141,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
            !const_value.IsInstanceOf(type,
                                      AbstractTypeArguments::Handle(),
                                      &malformed_error))) {
-        if (FLAG_error_on_malformed_type) {
+        if (FLAG_error_on_bad_type) {
           const AbstractType& const_value_type = AbstractType::Handle(
               const_value.GetType());
           const String& const_value_type_name = String::Handle(
@@ -2185,7 +2185,7 @@ void ClassFinalizer::ReportMalformedType(const Error& prev_error,
     error ^= Parser::FormatErrorWithAppend(
         prev_error, script, type.token_pos(), "Error", format, args);
   }
-  if (FLAG_error_on_malformed_type) {
+  if (FLAG_error_on_bad_type) {
     ReportError(error);
   }
   type.set_malformed_error(error);

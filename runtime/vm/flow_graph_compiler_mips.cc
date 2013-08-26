@@ -158,7 +158,6 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 
   __ BranchLink(&StubCode::DeoptimizeLabel());
   set_pc_offset(assem->CodeSize());
-  __ break_(0);  // TODO(regis): Remove breakpoint to save space.
 #undef __
 }
 
@@ -770,9 +769,6 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 }
 
 
-// TODO(regis): Pass an offset instead of an Address to avoid addressing
-// mode restrictions and remove Operand::Equals() on IA32/X64 and
-// Address::Equals() on ARM/MIPS.
 void FlowGraphCompiler::EmitTrySyncMove(intptr_t dest_offset,
                                         Location loc,
                                         bool* push_emitted) {
