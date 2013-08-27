@@ -44,12 +44,6 @@ dart/optimized_stacktrace_test: Fail
 # minifying they can be renamed, which is issue 7953.
 dart/inline_stack_frame_test: Fail
 
-[ $runtime == ff || $runtime == ie9 ]
-dart/inline_stack_frame_test: Skip
-
-[ $runtime == safari ]
-dart/inline_stack_frame_test: Fail # Issue: 7414
-
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
