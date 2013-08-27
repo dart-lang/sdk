@@ -4012,11 +4012,17 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
                                              Node expression) {
     // Find the unnamed constructor if the reference resolved to a
     // class.
-    if (!Elements.isUnresolved(e) && e.isClass()) {
-      ClassElement cls = e;
-      cls.ensureResolved(compiler);
-      // The unnamed constructor may not exist, so [e] may become unresolved.
-      e = lookupConstructor(cls, diagnosticNode, const SourceString(''));
+    if (!Elements.isUnresolved(e) && !e.isConstructor()) {
+      if (e.isClass()) {
+        ClassElement cls = e;
+        cls.ensureResolved(compiler);
+        // The unnamed constructor may not exist, so [e] may become unresolved.
+        e = lookupConstructor(cls, diagnosticNode, const SourceString(''));
+      } else {
+        error(diagnosticNode,
+              MessageKind.NOT_A_TYPE.error,
+              {'node': diagnosticNode});
+      }
     }
     if (type == null) {
       if (Elements.isUnresolved(e)) {
