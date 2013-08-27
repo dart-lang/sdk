@@ -244,7 +244,6 @@ xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
 
 [ $runtime == safari ]
-datalistelement_test: Fail # http://dartbug.com/12797
 element_types_test/supported_track: Pass, Fail
 input_element_test/supported_month: Fail, Crash
 input_element_test/supported_time: Fail, Crash
