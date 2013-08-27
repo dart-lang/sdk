@@ -2184,11 +2184,6 @@ RawClass* Class::NewSignatureClass(const String& name,
       Isolate::Current()->object_store()->function_impl_type()));
   result.set_is_synthesized_class();
   result.set_type_arguments_field_offset(Closure::type_arguments_offset());
-  // Implements interface "Function".
-  const Type& function_type = Type::Handle(Type::Function());
-  const Array& interfaces = Array::Handle(Array::New(1, Heap::kOld));
-  interfaces.SetAt(0, function_type);
-  result.set_interfaces(interfaces);
   if (!signature_function.IsNull()) {
     result.PatchSignatureFunction(signature_function);
   }
