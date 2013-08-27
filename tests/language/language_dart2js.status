@@ -130,12 +130,6 @@ get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/02: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/03: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/04: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/05: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/06: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/07: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 method_binding_test: Fail # internal error: super property read not implemented.
 method_override_test: Fail # cannot resolve type GetKeysFunctionType
 method_override5_test: Pass, Fail # Issue 11496 (passes if it's inlined)
@@ -171,9 +165,7 @@ list_literal4_test: Fail # Illegal argument(s): 0 -- checked mode test.
 map_literal4_test: Fail # Attempt to modify an immutable object -- checked mode test.
 
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
-external_test/16: Fail, OK # Bad test: assumes eager loading.
 interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
-syntax_test/47: Fail, OK # Bad test: assumes eager loading.
 
 
 #
@@ -394,7 +386,6 @@ function_type_alias5_test/01: Fail # Issue 12755
 function_type_alias5_test/02: Fail # Issue 12755
 function_type_alias7_test/00: Fail
 parameter_initializer6_negative_test: Fail # Issue 3502
-syntax_test/47: Fail
 # DartVM problem.
 constructor5_test: Fail
 constructor6_test: Fail
@@ -415,12 +406,6 @@ get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/02: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/03: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/04: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/05: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/06: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/07: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
