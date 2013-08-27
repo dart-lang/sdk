@@ -78,9 +78,6 @@ compile_time_constant_test/none: fail
 # Test issue 11545, using not existing constructor name in annotation
 metadata_test: fail
 
-# Test issue 11564, named parameter starts with '_'
-named_parameters_with_object_property_names_test: fail # Issue 11564
-
 # test issue 11575, classes with abstrac members are not marked as abstract
 abstract_factory_constructor_test/none: fail # Issue 11575
 abstract_syntax_test/none: fail # Issue 11575
