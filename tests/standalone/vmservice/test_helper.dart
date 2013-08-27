@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:json' as JSON;
-import 'dart:utf' as UTF;
 import 'package:expect/expect.dart';
 
 abstract class VmServiceRequestHelper {
@@ -38,7 +37,7 @@ abstract class VmServiceRequestHelper {
     Expect.equals(200, response.statusCode, 'Invalid HTTP Status Code');
     var replyAsString;
     try {
-      replyAsString = UTF.decodeUtf8(data, 0, null, null);
+      replyAsString = UTF8.decode(data);
     } catch (e) {
       onRequestFailed(e);
       return;

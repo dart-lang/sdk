@@ -5,8 +5,8 @@
 library multipart_test;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'dart:utf';
 
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
@@ -29,7 +29,7 @@ class _BodyMatches extends Matcher {
     if (item is! http.MultipartRequest) return false;
 
     var future = item.finalize().toBytes().then((bodyBytes) {
-      var body = decodeUtf8(bodyBytes);
+      var body = UTF8.decode(bodyBytes);
       var contentType = ContentType.parse(item.headers['content-type']);
       var boundary = contentType.parameters['boundary'];
       var expected = cleanUpLiteral(_pattern)

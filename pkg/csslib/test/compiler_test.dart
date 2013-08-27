@@ -4,7 +4,7 @@
 
 library compiler_test;
 
-import 'dart:utf';
+import 'dart:convert';
 import 'package:unittest/unittest.dart';
 import 'package:csslib/parser.dart';
 import 'package:csslib/visitor.dart';
@@ -521,7 +521,7 @@ void testArrayOfChars() {
       'color : #00F578; border-color: #878787;'
     '}]]>';
 
-  var stylesheet = parse(encodeUtf8(input), errors: errors);
+  var stylesheet = parse(UTF8.encode(input), errors: errors);
 
   expect(stylesheet != null, true);
   expect(errors.isEmpty, true, reason: errors.toString());

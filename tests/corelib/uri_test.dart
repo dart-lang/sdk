@@ -5,7 +5,7 @@
 library uriTest;
 
 import "package:expect/expect.dart";
-import 'dart:utf';
+import 'dart:convert';
 
 testUri(String uri, bool isAbsolute) {
   Expect.equals(isAbsolute, Uri.parse(uri).isAbsolute);
@@ -205,7 +205,7 @@ main() {
 
   // URI encode tests
   // Create a string with code point 0x10000 encoded as a surrogate pair.
-  var s = decodeUtf8([0xf0, 0x90, 0x80, 0x80]);
+  var s = UTF8.decode([0xf0, 0x90, 0x80, 0x80]);
 
   Expect.stringEquals("\u{10000}", s);
 

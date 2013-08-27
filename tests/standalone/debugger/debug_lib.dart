@@ -10,7 +10,6 @@ import "dart:async";
 import "dart:convert";
 import "dart:io";
 import "dart:math";
-import "dart:utf";
 import "dart:json" as JSON;
 
 // Whether or not to print the debugger wire messages on the console.

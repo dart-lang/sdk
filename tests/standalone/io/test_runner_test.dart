@@ -5,7 +5,6 @@
 import "dart:io";
 import "dart:isolate";
 import "dart:async";
-import "dart:utf";
 import "../../../tools/testing/dart/test_runner.dart";
 import "../../../tools/testing/dart/test_suite.dart";
 import "../../../tools/testing/dart/test_progress.dart" as progress;

@@ -5,9 +5,8 @@
 library barback.test.asset_test;
 
 import 'dart:async';
-import 'dart:convert' show Encoding, UTF8, LATIN1;
+import 'dart:convert';
 import 'dart:io';
-import 'dart:utf';
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as pathos;
@@ -24,7 +23,7 @@ main() {
   Directory tempDir;
   String binaryFilePath;
   String textFilePath;
-  String utf32FilePath;
+  String latin1FilePath;
 
   setUp(() {
     // Create a temp file we can use for assets.
@@ -35,8 +34,8 @@ main() {
     textFilePath = pathos.join(tempDir.path, "file.txt");
     new File(textFilePath).writeAsStringSync("çøñ†éℵ™");
 
-    utf32FilePath = pathos.join(tempDir.path, "file.utf32");
-    new File(utf32FilePath).writeAsBytesSync(encodeUtf32("çøñ†éℵ™"));
+    latin1FilePath = pathos.join(tempDir.path, "file.latin1");
+    new File(latin1FilePath).writeAsBytesSync(LATIN1.encode("blåbærgrød"));
   });
 
   tearDown(() {
@@ -77,7 +76,7 @@ main() {
     test("gets the UTF-8-encoded string for a string asset", () {
       var asset = new Asset.fromString(id, "çøñ†éℵ™");
       expect(asset.read().toList(),
-          completion(equals([encodeUtf8("çøñ†éℵ™")])));
+          completion(equals([UTF8.encode("çøñ†éℵ™")])));
     });
 
     test("gets the raw bytes for a byte asset", () {
@@ -95,20 +94,20 @@ main() {
     test("gets the raw bytes for a text file", () {
       var asset = new Asset.fromPath(id, textFilePath);
       expect(asset.read().toList(),
-          completion(equals([encodeUtf8("çøñ†éℵ™")])));
+          completion(equals([UTF8.encode("çøñ†éℵ™")])));
     });
   });
 
   group("readAsString()", () {
     group("byte asset", () {
       test("defaults to UTF-8 if encoding is omitted", () {
-        var asset = new Asset.fromBytes(id, encodeUtf8("çøñ†éℵ™"));
+        var asset = new Asset.fromBytes(id, UTF8.encode("çøñ†éℵ™"));
         expect(asset.readAsString(),
             completion(equals("çøñ†éℵ™")));
       });
 
       test("supports UTF-8", () {
-        var asset = new Asset.fromBytes(id, encodeUtf8("çøñ†éℵ™"));
+        var asset = new Asset.fromBytes(id, UTF8.encode("çøñ†éℵ™"));
         expect(asset.readAsString(encoding: UTF8),
             completion(equals("çøñ†éℵ™")));
       });

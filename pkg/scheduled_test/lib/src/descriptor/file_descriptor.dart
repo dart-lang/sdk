@@ -5,9 +5,9 @@
 library descriptor.file;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
-import 'dart:utf';
 
 import 'package:path/path.dart' as path;
 
@@ -90,7 +90,7 @@ class _BinaryFileDescriptor extends FileDescriptor {
 
 class _StringFileDescriptor extends FileDescriptor {
   _StringFileDescriptor(String name, String contents)
-      : super._(name, encodeUtf8(contents));
+      : super._(name, UTF8.encode(contents));
 
   Future _validateNow(List<int> actualContents) {
     if (orderedIterableEquals(contents, actualContents)) return null;

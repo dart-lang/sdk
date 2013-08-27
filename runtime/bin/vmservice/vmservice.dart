@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:json' as JSON;
 import 'dart:isolate';
 import 'dart:typed_data';
-import 'dart:utf' as UTF;
 
 part 'constants.dart';
 part 'resources.dart';

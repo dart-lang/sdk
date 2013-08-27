@@ -5,7 +5,7 @@
 library pub.validator.utf8_readme;
 
 import 'dart:async';
-import 'dart:utf';
+import 'dart:convert';
 
 import '../entrypoint.dart';
 import '../io.dart';
@@ -22,11 +22,9 @@ class Utf8ReadmeValidator extends Validator {
       if (readme == null) return;
       var bytes = readBinaryFile(readme);
       try {
-        // The second and third arguments here are the default values. The
-        // fourth tells [decodeUtf8] to throw an ArgumentError if `bytes` isn't
-        // valid utf-8.
-        decodeUtf8(bytes, 0, null, null);
-      } on ArgumentError catch (_) {
+        // UTF8.decode doesn't allow invalid UTF-8.
+        UTF8.decode(bytes);
+      } on FormatException catch (_) {
         warnings.add("$readme contains invalid UTF-8.\n"
             "This will cause it to be displayed incorrectly on "
                 "pub.dartlang.org.");

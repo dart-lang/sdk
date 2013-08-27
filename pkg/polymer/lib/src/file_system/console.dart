@@ -4,9 +4,8 @@
 
 library console;
 
-import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'dart:utf';
 import 'package:polymer/src/file_system.dart';
 
 /** File system implementation for console VM (i.e. no browser). */
@@ -42,6 +41,6 @@ class ConsoleFileSystem implements FileSystem {
 
   // TODO(jmesserly): do we support any encoding other than UTF-8 for Dart?
   Future<String> readText(String path) {
-    return readTextOrBytes(path).then(decodeUtf8);
+    return readTextOrBytes(path).then(UTF8.decode);
   }
 }

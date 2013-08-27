@@ -8,7 +8,6 @@ import "dart:async";
 import "dart:convert" show LineSplitter, UTF8;
 import "dart:core";
 import "dart:io";
-import "dart:utf";
 
 import "utils.dart";
 

@@ -5,9 +5,8 @@
 library barback.asset;
 
 import 'dart:async';
-import 'dart:convert' show Encoding, UTF8;
+import 'dart:convert';
 import 'dart:io';
-import 'dart:utf';
 
 import 'asset_id.dart';
 import 'utils.dart';
@@ -118,7 +117,7 @@ class _StringAsset extends Asset {
       new Future.value(_contents);
 
   Stream<List<int>> read() =>
-      new Future<List<int>>.value(encodeUtf8(_contents)).asStream();
+      new Future<List<int>>.value(UTF8.encode(_contents)).asStream();
 
   String toString() {
     // Don't show the whole string if it's long.
