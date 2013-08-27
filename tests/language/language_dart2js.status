@@ -36,6 +36,7 @@ type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
 type_variable_bounds3_test/00: Fail # Issue 12702
 f_bounded_quantification_test/01: Fail # Issue 12703
 f_bounded_quantification_test/02: Fail # Issue 12703
+f_bounded_quantification5_test: Fail # Issue 12703
 closure_type_test: Fail # Issue 12745
 function_subtype_setter0_test: Fail # Issue 11273
 
