@@ -19,15 +19,3 @@ txt_layout_test: Skip # Might just go away.
 
 [ $system == macos || $system == windows ]
 *_layout_test: Skip
-
-[ $arch == arm ]
-*: Skip
-
-[ $arch == simarm ]
-*: Skip
-
-[ $arch == mips ]
-*: Skip
-
-[ $arch == simmips ]
-*: Skip
