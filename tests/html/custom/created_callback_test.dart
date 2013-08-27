@@ -13,7 +13,7 @@ class A extends HtmlElement {
 
   static int createdInvocations = 0;
 
-  void onCreated() {
+  void created() {
     createdInvocations++;
   }
 }
@@ -30,7 +30,7 @@ class C extends HtmlElement {
   static int createdInvocations = 0;
   static var div;
 
-  void onCreated() {
+  void created() {
     createdInvocations++;
 
     if (this.id != 'u') {

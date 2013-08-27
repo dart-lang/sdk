@@ -13,7 +13,7 @@ class A extends HtmlElement {
 
   static var attributeChangedInvocations = 0;
 
-  void onAttributeChanged(name, oldValue, newValue) {
+  void attributeChanged(name, oldValue, newValue) {
     attributeChangedInvocations++;
   }
 }
@@ -24,11 +24,11 @@ class B extends HtmlElement {
 
   static var invocations = [];
 
-  void onCreated() {
+  void created() {
     invocations.add('created');
   }
 
-  void onAttributeChanged(name, oldValue, newValue) {
+  void attributeChanged(name, oldValue, newValue) {
     invocations.add('$name: $oldValue => $newValue');
   }
 }

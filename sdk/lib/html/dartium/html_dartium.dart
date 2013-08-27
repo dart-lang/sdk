@@ -9691,7 +9691,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    * Called by the DOM when this element has been instantiated.
    */
   @Experimental()
-  void onCreated() {}
+  void created() {}
 
   // Hooks to support custom WebComponents.
 

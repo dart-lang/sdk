@@ -13,7 +13,7 @@ class A extends HtmlElement {
 
   static int ncallbacks = 0;
 
-  void onCreated() {
+  void created() {
     ncallbacks++;
   }
 }

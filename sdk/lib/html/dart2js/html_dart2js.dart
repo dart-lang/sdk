@@ -9126,7 +9126,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    * Called by the DOM when this element has been instantiated.
    */
   @Experimental()
-  void onCreated() {}
+  void created() {}
 
   // Hooks to support custom WebComponents.
 
@@ -30796,8 +30796,8 @@ EventTarget _convertDartToNative_EventTarget(e) {
 // BSD-style license that can be found in the LICENSE file.
 
 
-_callOnCreated(receiver) {
-  return receiver.onCreated();
+_callCreated(receiver) {
+  return receiver.created();
 }
 
 _makeCreatedCallbackMethod() {
@@ -30807,7 +30807,7 @@ _makeCreatedCallbackMethod() {
                return invokeCallback(this);
              };
           })(#))''',
-      convertDartClosureToJS(_callOnCreated, 1));
+      convertDartClosureToJS(_callCreated, 1));
 }
 
 void _registerCustomElement(context, document, String tag, Type type) {

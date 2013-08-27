@@ -18,9 +18,9 @@ class CustomMixin {
 
 class CustomType extends HtmlElement with CustomMixin{
   factory CustomType() => null;
-  bool onCreatedCalled; // = false;
-  void onCreated() {
-    onCreatedCalled = true;
+  bool createdCalled; // = false;
+  void created() {
+    createdCalled = true;
     customCreatedCount++;
   }
 
@@ -61,7 +61,7 @@ main() {
       var element = new Element.tag(tag);
       expect(element, isNotNull);
       expect(element is CustomType, isTrue);
-      expect(element.onCreatedCalled, isTrue);
+      expect(element.createdCalled, isTrue);
     });
 
     test('register twice', () {
@@ -121,7 +121,7 @@ main() {
       var postElement = dom.children[0];
       expect(postElement, isNotNull);
       expect(postElement is CustomType, isTrue);
-      expect(postElement.onCreatedCalled, isTrue);
+      expect(postElement.createdCalled, isTrue);
 
       // Element from first query remains an UnknownElement.
       expect(preElement is HtmlElement, isTrue);
@@ -150,7 +150,7 @@ main() {
 
       expect(queried, isNotNull);
       expect(queried is CustomType, isTrue);
-      expect(queried.onCreatedCalled, isTrue);
+      expect(queried.createdCalled, isTrue);
     });
 
     test('query id', () {
@@ -168,7 +168,7 @@ main() {
   });
 
   group('lifecycle', () {
-    test('onCreated', () {
+    test('created', () {
       int oldCount = customCreatedCount;
       var tag = nextTag;
       document.register(tag, CustomType);
