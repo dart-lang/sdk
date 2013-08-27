@@ -82,8 +82,11 @@ Iterable<MethodMirror> publicGettersWithMatchingSetters(ClassMirror mirror) {
 }
 
 /**
- * A particularly bad case of polyfill, because we cannot yet use type names
- * as literals, so we have to be passed an instance and then extract a
- * ClassMirror from that. Given a horrible name as an extra reminder to fix it.
+ * Given either an instance or a type, returns the type. Instances of Type
+ * will be treated as types. Passing in an instance is really just backward
+ * compatibility.
  */
-ClassMirror turnInstanceIntoSomethingWeCanUse(x) => reflect(x).type;
+ClassMirror turnInstanceIntoSomethingWeCanUse(x) {
+  if (x is Type) return reflectClass(x);
+  return reflect(x).type;
+}

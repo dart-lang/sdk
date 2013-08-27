@@ -286,8 +286,10 @@ class Serialization {
     this.rules = new UnmodifiableListView(rules);
 
   /**
-   * Create a [BasicRule] rule for the type of
-   * [instanceOfType]. Optionally
+   * Create a [BasicRule] rule for [instanceOrType]. Normally this will be
+   * a type, but for backward compatibilty we also allow you to pass an
+   * instance (except an instance of Type), and the rule will be created
+   * for its runtimeType. Optionally
    * allows specifying a [constructor] name, the list of [constructorFields],
    * and the list of [fields] not used in the constructor. Returns the new
    * rule. Note that [BasicRule] uses reflection, and so will not work with the
@@ -310,9 +312,8 @@ class Serialization {
    * are not inherited, and so may need to be specified separately for each
    * subclass.
    */
-  // TODO(alanknight): Take a type rather than an instance. Issue 6282 and 6433.
   BasicRule addRuleFor(
-      instanceOfType,
+      instanceOrType,
       {String constructor,
         List constructorFields,
         List<String> fields,
@@ -320,7 +321,7 @@ class Serialization {
 
     var rule = new BasicRule(
         turnInstanceIntoSomethingWeCanUse(
-            instanceOfType),
+            instanceOrType),
         constructor, constructorFields, fields, excludeFields);
     addRule(rule);
     return rule;

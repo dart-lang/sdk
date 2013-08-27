@@ -26,7 +26,7 @@ void main() {
   test('Basic extraction of a simple object', () {
     // TODO(alanknight): Switch these to use literal types. Issue
     var s = new Serialization()
-        ..addRuleFor(a1).configureForMaps();
+        ..addRuleFor(Address).configureForMaps();
     Map extracted = states(a1, s).first;
     expect(extracted.length, 4);
     expect(extracted['street'], 'N 34th');
@@ -44,8 +44,8 @@ void main() {
   test('Slightly further with a simple object', () {
     var p1 = new Person()..name = 'Alice'..address = a1;
     var s = new Serialization()
-        ..addRuleFor(p1).configureForMaps()
-        ..addRuleFor(a1).configureForMaps();
+        ..addRuleFor(Person).configureForMaps()
+        ..addRuleFor(Address).configureForMaps();
     // TODO(alanknight): Need a better API for getting to flat state without
     // actually writing.
     var w = new Writer(s, const InternalMapFormat());
@@ -67,7 +67,7 @@ void main() {
 
   test('exclude fields', () {
     var s = new Serialization()
-        ..addRuleFor(a1,
+        ..addRuleFor(Address,
             excludeFields: ['state', 'zip']).configureForMaps();
     var extracted = states(a1, s).first;
     expect(extracted.length, 2);
@@ -98,7 +98,7 @@ void main() {
     x.b = "b";
     x._c = "c";
     var s = new Serialization()
-      ..addRuleFor(x,
+      ..addRuleFor(Various,
           constructor: "Foo",
           constructorFields: ["d", "e"]);
     var state = states(x, s).first;
@@ -133,7 +133,7 @@ void main() {
     var _collectionSym = reflect(stream).type.variables.keys.firstWhere(
         (x) => MirrorSystem.getName(x) == "_collection");
     var s = new Serialization()
-      ..addRuleFor(stream,
+      ..addRuleFor(Stream,
           constructorFields: [_collectionSym]);
     var state = states(stream, s).first;
     // Define names for the variable offsets to make this more readable.
@@ -289,7 +289,7 @@ void main() {
     // the result.
     var s = new Serialization.blank()
       // Add the rules in a deliberately unusual order.
-      ..addRuleFor(new Node(''), constructorFields: ['name'])
+      ..addRuleFor(Node, constructorFields: ['name'])
       ..addRule(new ListRule())
       ..addRule(new PrimitiveRule())
       ..selfDescribing = false;
@@ -312,7 +312,7 @@ void main() {
     n2.parent = n1;
     n3.parent = n1;
     var s = new Serialization()
-      ..addRuleFor(n1, constructorFields: ["name"]).
+      ..addRuleFor(Node, constructorFields: ["name"]).
           setFieldWith("children", (parent, child) =>
               parent.reflectee.children = child);
     var w = new Writer(s);
@@ -322,7 +322,7 @@ void main() {
     expect(w.states[1].length, 0);
     expect(w.states[2].length, 1);
     s = new Serialization()
-      ..addRuleFor(n1, constructorFields: ["name"]);
+      ..addRuleFor(Node, constructorFields: ["name"]);
     w = new Writer(s);
     w.write(n1);
     expect(w.states[1].length, 1);
@@ -338,7 +338,7 @@ void main() {
     n3.parent = n1;
     var s = new Serialization()
       ..selfDescribing = false
-      ..addRuleFor(n1, constructorFields: ["name"]);
+      ..addRuleFor(NodeEqualByName, constructorFields: ["name"]);
     var m1 = writeAndReadBack(s, null, n1);
     var m2 = m1.children.first;
     var m3 = m1.children.last;
@@ -351,7 +351,7 @@ void main() {
   test("Constant values as fields", () {
     var s = new Serialization()
       ..selfDescribing = false
-      ..addRuleFor(a1,
+      ..addRuleFor(Address,
           constructor: 'withData',
           constructorFields: ["street", "Kirkland", "WA", "98103"],
           fields: []);
@@ -375,8 +375,8 @@ void main() {
   test("Straight JSON format, nested objects", () {
     var p1 = new Person()..name = 'Alice'..address = a1;
     var s = new Serialization()..selfDescribing = false;
-    var addressRule = s.addRuleFor(a1)..configureForMaps();
-    var personRule = s.addRuleFor(p1)..configureForMaps();
+    var addressRule = s.addRuleFor(Address)..configureForMaps();
+    var personRule = s.addRuleFor(Person)..configureForMaps();
     var writer = s.newWriter(const SimpleJsonFormat(storeRoundTripInfo: true));
     var out = json.stringify(writer.write(p1));
     var reconstituted = json.parse(out);
@@ -401,8 +401,8 @@ void main() {
     var p1 = new Person()..name = 'Alice'..address = a1;
     // Use maps for one rule, lists for the other.
     var s = new Serialization()
-      ..addRuleFor(a1)
-      ..addRuleFor(p1).configureForMaps();
+      ..addRuleFor(Address)
+      ..addRuleFor(Person).configureForMaps();
     var p2 = writeAndReadBack(s,
         const SimpleJsonFormat(storeRoundTripInfo: true), p1);
     expect(p2.name, "Alice");
@@ -430,6 +430,7 @@ void main() {
     var p1 = new Person()..name = 'Alice'..address = a1;
     // Use maps for one rule, lists for the other.
     var s = new Serialization()
+      // Deliberately left as passing instances to test backward-compatibility.
       ..addRuleFor(a1)
       ..addRuleFor(p1).configureForMaps();
     for (var eachFormat in formats) {
@@ -476,8 +477,8 @@ void main() {
     var s = new Serialization()
       ..selfDescribing = false
       ..addRule(new NamedObjectRule())
-      ..addRuleFor(a1)
-      ..addRuleFor(p1).configureForMaps()
+      ..addRuleFor(Address)
+      ..addRuleFor(Person).configureForMaps()
       ..namedObjects["foo"] = a1;
     var format = const SimpleJsonFormat(storeRoundTripInfo: true);
     var out = s.write(p1, format: format);
@@ -520,7 +521,7 @@ void main() {
   });
 
   test("Map with string keys stays that way", () {
-    var s = new Serialization()..addRuleFor(new Person());
+    var s = new Serialization()..addRuleFor(Person);
     var data = {"abc" : 1, "def" : "ghi"};
     data["person"] = new Person()..name = "Foo";
     var output = s.write(data, format: const InternalMapFormat());
@@ -589,16 +590,16 @@ Serialization metaSerialization() {
 
   var meta = new Serialization()
     ..selfDescribing = false
-    ..addRuleFor(new ListRule())
-    ..addRuleFor(new PrimitiveRule())
+    ..addRuleFor(ListRule)
+    ..addRuleFor(PrimitiveRule)
     // TODO(alanknight): Handle CustomRule as well.
     // Note that we're passing in a constant for one of the fields.
-    ..addRuleFor(basicRule,
+    ..addRuleFor(BasicRule,
         constructorFields: ['type',
           'constructorName',
           'constructorFields', 'regularFields', []],
         fields: [])
-     ..addRuleFor(new Serialization(), constructor: "blank")
+     ..addRuleFor(Serialization, constructor: "blank")
          .setFieldWith('rules',
            (InstanceMirror s, List rules) {
              rules.forEach((x) => s.reflectee.addRule(x));
@@ -648,7 +649,7 @@ Reader setUpReader(aSerialization, sampleData) {
 /** Return a serialization for Node objects, using a reflective rule. */
 Serialization nodeSerializerReflective(Node n) {
   return new Serialization()
-    ..addRuleFor(n, constructorFields: ["name"])
+    ..addRuleFor(Node, constructorFields: ["name"])
     ..namedObjects['Node'] = reflect(new Node('')).type;
 }
 
@@ -658,7 +659,8 @@ Serialization nodeSerializerReflective(Node n) {
  */
 Serialization nodeSerializerUsingMaps(Node n) {
   return new Serialization()
-    ..addRuleFor(n, constructorFields: ["name"]).configureForMaps()
+    // Get the type using runtimeType to verify that works.
+    ..addRuleFor(n.runtimeType, constructorFields: ["name"]).configureForMaps()
     ..namedObjects['Node'] = reflect(new Node('')).type;
 }
 
@@ -681,7 +683,7 @@ Serialization nodeSerializerWithEssentialParent(Node n) {
   // considers all of its state non-essential, thus breaking the cycle.
   var s = new Serialization.blank()
     ..addRuleFor(
-        n,
+        Node,
         constructor: "parentEssential",
         constructorFields: ["parent"])
     ..addDefaultRules()
