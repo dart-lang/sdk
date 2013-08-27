@@ -1207,11 +1207,14 @@ class InternalSimpleTypesInferrer
       if (!visitingOptionalParameter) {
         type = arguments.positional[parameterIndex];
       } else {
-        type = signature.optionalParametersAreNamed
-            ? arguments.named[parameter.name]
-            : parameterIndex < arguments.positional.length
-                ? arguments.positional[parameterIndex]
-                : info.defaultType;
+        if (signature.optionalParametersAreNamed) {
+          type = arguments.named[parameter.name];
+          if (type == null) type = info.defaultType;
+        } else if (parameterIndex < arguments.positional.length) {
+          type = arguments.positional[parameterIndex];
+        } else {
+          type = info.defaultType;
+        }
       }
       TypeMask oldType = info.assignments[node];
       info.addAssignment(node, type);
