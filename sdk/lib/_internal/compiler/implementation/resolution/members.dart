@@ -4019,8 +4019,8 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
         // The unnamed constructor may not exist, so [e] may become unresolved.
         e = lookupConstructor(cls, diagnosticNode, const SourceString(''));
       } else {
-        error(diagnosticNode,
-              MessageKind.NOT_A_TYPE.error,
+        e = failOrReturnErroneousElement(
+              e, diagnosticNode, e.name, MessageKind.NOT_A_TYPE,
               {'node': diagnosticNode});
       }
     }

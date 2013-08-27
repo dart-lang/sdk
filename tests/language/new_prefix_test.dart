@@ -5,5 +5,5 @@
 import 'dart:core' as prefix;
 
 main() {
-  return new prefix(); /// 01: compile-time error
+  return new prefix(); /// 01: static type warning, runtime error
 }
