@@ -1098,16 +1098,18 @@ abstract class ParameterMirror implements VariableMirror {
   bool get isNamed;
 
   /**
-   * Returns [:true:] if the reflectee has a default value.
+   * Returns [:true:] if the reflectee has explicitly declared a default value.
    * Otherwise returns [:false:].
    */
   bool get hasDefaultValue;
 
   /**
-   * A mirror on the default value for this parameter, if it exists.
+   * If this is a required parameter, returns [:null:]. Otherwise returns a
+   * mirror on the default value for this parameter. If no default is declared
+   * for an optional parameter, the default is [:null:] and a mirror on [:null:]
+   * is returned.
    */
-  // TODO(ahe): This should return an InstanceMirror.
-  String get defaultValue;
+  InstanceMirror get defaultValue;
 }
 
 /**

@@ -1089,27 +1089,33 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
                             DeclarationMirror owner,
                             this._position,
                             this.isOptional,
-                            this.isNamed)
+                            this.isNamed,
+                            bool isFinal,
+                            this._defaultValueReflectee)
       : super(reflectee,
               simpleName,
               owner,
               null,  // We override the type.
               false, // isStatic does not apply.
-              false);  // TODO(12196): Not yet implemented.
+              isFinal);
 
   final int _position;
   final bool isOptional;
   final bool isNamed;
 
-  String get defaultValue {
-    throw new UnimplementedError(
-        'ParameterMirror.defaultValue is not implemented');
+  Object _defaultValueReflectee;
+  InstanceMirror _defaultValue;
+  InstanceMirror get defaultValue {
+    if (!isOptional) {
+      return null;
+    }
+    if (_defaultValue == null) {
+      _defaultValue = reflect(_defaultValueReflectee);
+    }
+    return _defaultValue;
   }
 
-  bool get hasDefaultValue {
-    throw new UnimplementedError(
-        'ParameterMirror.hasDefaultValue is not implemented');
-  }
+  bool get hasDefaultValue => _defaultValueReflectee != null;
 
   // TODO(11418): Implement.
   List<InstanceMirror> get metadata {

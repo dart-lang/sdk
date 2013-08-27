@@ -37,6 +37,14 @@ stringifyIterable(Iterable list) {
   return '[$buffer]';
 }
 
+stringifyInstance(InstanceMirror instance) {
+  var buffer = new StringBuffer();
+  if (instance.hasReflectee) {
+    buffer.write('value = ${stringify(instance.reflectee)}');
+  }
+  return 'Instance(${buffer})';
+}
+
 stringifySymbol(Symbol symbol) => 's(${MirrorSystem.getName(symbol)})';
 
 writeDeclarationOn(DeclarationMirror mirror, StringBuffer buffer) {
@@ -66,11 +74,10 @@ stringifyParameter(ParameterMirror parameter) {
   writeVariableOn(parameter, buffer);
   if (parameter.isOptional) buffer.write(', optional');
   if (parameter.isNamed) buffer.write(', named');
-  // TODO(6490,12430): Add this check as soon as it's properly implemented in
-  // the VM and dart2js.
-  // if (parameter.hasDefaultValue) {
-  //  buffer.write(', value = ${stringify(parameter.defaultValue)}');
-  // }
+  // TODO(6490): dart2js always returns false for hasDefaultValue.
+  if (parameter.hasDefaultValue) {
+    buffer.write(', value = ${stringify(parameter.defaultValue)}');
+  }
   // TODO(ahe): Move to writeVariableOn.
   buffer.write(', type = ${stringify(parameter.type)}');
   return 'Parameter($buffer)';
@@ -101,9 +108,12 @@ stringifyMethod(MethodMirror method) {
 stringify(value) {
   if (value is Map) return stringifyMap(value);
   if (value is Iterable) return stringifyIterable(value);
+  if (value is InstanceMirror) return stringifyInstance(value);
   if (value is ParameterMirror) return stringifyParameter(value);
   if (value is VariableMirror) return stringifyVariable(value);
   if (value is MethodMirror) return stringifyMethod(value);
+  if (value is num) return value.toString();
+  if (value is String) return value;
   if (value is Symbol) return stringifySymbol(value);
   if (value is ClassMirror) return stringifyClass(value);
   if (value is TypeMirror) return stringifyType(value);

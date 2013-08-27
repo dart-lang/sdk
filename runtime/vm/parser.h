@@ -144,6 +144,15 @@ class Parser : public ValueObject {
   // class if the metadata is at the top-level).
   static RawObject* ParseMetadata(const Class& cls, intptr_t token_pos);
 
+  // Parse a function func and retrieve parameter information that can not be
+  // found in its function object. Returns either an error if the parser fails
+  // (which could be the case for local functions), or a flat array of the size
+  // (2*number_of_parameters). For each parameter i in this array, (2*i)
+  // contains a bool indicating whether the parameter has been final, and
+  // (2*i+1) contains an array of its default values (or null if it has no
+  // default values).
+  static RawObject* ParseFunctionParameters(const Function& func);
+
   // Format and print a message with source location.
   // A null script means no source and a negative token_pos means no position.
   static void PrintMessage(const Script& script,

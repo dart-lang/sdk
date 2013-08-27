@@ -775,6 +775,48 @@ static bool IsInvisible(const Function& func) {
 }
 
 
+RawObject* Parser::ParseFunctionParameters(const Function& func) {
+  ASSERT(!func.IsNull());
+  Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    const Script& script = Script::Handle(isolate, func.script());
+    const Class& owner = Class::Handle(isolate, func.Owner());
+    ASSERT(!owner.IsNull());
+    const Library& lib = Library::Handle(isolate, owner.library());
+    Parser parser(script, lib, func.token_pos());
+    parser.set_current_class(owner);
+    parser.SkipFunctionPreamble();
+    ParamList params;
+    parser.ParseFormalParameterList(true, &params);
+    ParamDesc* param = params.parameters->data();
+    const int param_cnt = params.num_fixed_parameters +
+                          params.num_optional_parameters;
+    Array& param_descriptor = Array::Handle(isolate, Array::New(param_cnt * 2));
+    for (int i = 0, j = 0; i < param_cnt; i++, j += 2) {
+      param_descriptor.SetAt(j, param[i].is_final ? Bool::True() :
+                                                    Bool::False());
+      param_descriptor.SetAt(j + 1,
+          (param[i].default_value == NULL) ? Object::null_instance() :
+                                             *(param[i].default_value));
+    }
+    isolate->set_long_jump_base(base);
+    return param_descriptor.raw();
+  } else {
+    Error& error = Error::Handle();
+    error = isolate->object_store()->sticky_error();
+    isolate->object_store()->clear_sticky_error();
+    isolate->set_long_jump_base(base);
+    return error.raw();
+  }
+  UNREACHABLE();
+  return Object::null();
+}
+
+
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   Isolate* isolate = Isolate::Current();
