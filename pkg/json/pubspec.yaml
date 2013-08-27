@@ -1,0 +1,9 @@
+name: json
+author: Dart Team <misc@dartlang.org>
+description: >
+ A JSON library. Intended for advanced use where the built-in facilities are
+ too limiting.
+homepage: http://www.dartlang.org
+documentation: http://api.dartlang.org/docs/pkg/json
+dev_dependencies:
+  unittest: any
