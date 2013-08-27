@@ -102,15 +102,11 @@ mutation_observer: Skip
 # printed. Minified versions of these tests exist that test the behavior when
 # minified.
 unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
-csslib: Pass, Crash # crashing randomly, see issue 12468
 
 [ $compiler == dart2js && $browser ]
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
-
-[ $compiler == dart2js && $runtime == drt ]
-csslib: Pass, Fail # issue 12466
 
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
