@@ -1410,6 +1410,11 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     params->has_field_initializer = true;
   }
 
+  if (params->has_optional_named_parameters &&
+      (parameter.name->CharAt(0) == '_')) {
+    ErrorMsg(parameter.name_pos, "named parameter must not be private");
+  }
+
   // Check for duplicate formal parameters.
   const intptr_t num_existing_parameters =
       params->num_fixed_parameters + params->num_optional_parameters;

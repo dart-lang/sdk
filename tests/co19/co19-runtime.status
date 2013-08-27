@@ -11,8 +11,6 @@ LibTest/core/Stopwatch/elapsed_A01_t03: Pass, Fail # Issue 12383.
 LibTest/core/double/floor_A01_t05: Fail # co19 issue 428
 LibTest/core/double/ceil_A01_t05: Fail # co19 issue 428
 
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # Issue 5743
-
 Language/07_Classes/4_Abstract_Instance_Members_A03_t02: Fail # Dart issue 978
 Language/07_Classes/4_Abstract_Instance_Members_A03_t03: Fail # Dart issue 978
 Language/07_Classes/4_Abstract_Instance_Members_A03_t04: Fail # Dart issue 978
@@ -24,9 +22,6 @@ LibTest/math/pow_A18_t01: Fail # co19 issue 507
 
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Dart issue 5802
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Dart issue 5894
-
-
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # Issue 6085
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # Issue 12508
