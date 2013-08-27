@@ -1354,6 +1354,7 @@ Definition* ConstantInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
   if (!IsImmutableLengthLoad()) return this;
 
   // For fixed length arrays if the array is the result of a known constructor
