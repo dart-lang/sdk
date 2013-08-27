@@ -18,6 +18,7 @@ constructor_initializer_test: Fail # Issue 12633
 constructor5_test: Fail # Issue 6422
 constructor6_test: Fail # Issue 6422
 closure_in_initializer_test: Fail # Issue 6422
+call_nonexistent_constructor_test: Fail # Issue 12820
 
 # Regular bugs which should be fixed.
 super_first_constructor_test: Fail # Issue 1372.

@@ -105,7 +105,6 @@ method_override8_test/03: Fail # Issue 11496
 setter_override_test/00: Fail # Issue 11496
 setter_override_test/03: Fail # Issue 11496
 setter_override2_test/02: Fail # Issue 11496
-call_nonexistent_constructor_test: Fail # Issue 12758
 constructor_named_arguments_test/01: Fail # Issue 5519
 getter_no_setter_test/01: Fail # Issue 5519
 not_enough_positional_arguments_test/01: Fail # Issue 5519
