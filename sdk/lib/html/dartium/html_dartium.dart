@@ -26629,6 +26629,15 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   }
 
   /**
+   * Deregister a [port] on this window under the given [name].  This
+   * port may be retrieved by any isolate (or JavaScript script)
+   * running in this window.
+   */
+  void deregisterPort(String name) {
+    document.documentElement.attributes.remove('dart-port:$name');
+  }
+
+  /**
    * Returns a Future that completes just before the window is about to
    * repaint so the user can draw an animation frame.
    *
