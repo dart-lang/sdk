@@ -95,6 +95,8 @@ convert/chunked_conversion_utf88_test: Pass, Slow, Timeout  # Issue 12029
 convert/streamed_conversion_utf8_encode_test: Pass, Timeout  # Issue 12029
 convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Issue 12029
 async/deferred/deferred_api_test: Pass, Timeout # Issue 12029
+async/run_zoned6_test/01: fail # http://dartbug.com/12817
+
 
 [ $runtime == opera ]
 async/multiple_timer_test: Pass, Fail
