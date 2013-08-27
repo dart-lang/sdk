@@ -118,8 +118,8 @@ Future _emitAllFiles(Barback barback, String outDir) {
       }
 
       _ensureDir(path.dirname(filepath));
-      futures.add(asset.readAsString()
-        .then((content) => new File(filepath).writeAsStringSync(content)));
+      var writer = new File(filepath).openWrite();
+      futures.add(writer.addStream(asset.read()).then((_) => writer.close()));
     }
     return Future.wait(futures);
   }).then((_) {
