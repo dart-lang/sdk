@@ -82,8 +82,8 @@ void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
   Dart_Handle filter_obj = Dart_GetNativeArgument(args, 0);
   Filter* filter = GetFilter(filter_obj);
   Dart_Handle data_obj = Dart_GetNativeArgument(args, 1);
-  intptr_t start = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
-  intptr_t end = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
+  intptr_t start = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
+  intptr_t end = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
   intptr_t chunk_length = end - start;
   intptr_t length;
   Dart_TypedData_Type type;

@@ -186,9 +186,9 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
   ASSERT(Dart_IsList(buffer_obj));
   intptr_t offset =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
+      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
   intptr_t length =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
+      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
   if (short_socket_writes) {
     length = (length + 1) / 2;
   }
@@ -276,7 +276,7 @@ void FUNCTION_NAME(Socket_GetType)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Socket_GetStdioHandle)(Dart_NativeArguments args) {
   Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
   intptr_t num =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
+      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
   ASSERT(num == 0 || num == 1 || num == 2);
   intptr_t socket = Socket::GetStdioHandle(num);
   Dart_Handle err = Socket::SetSocketIdNativeField(socket_obj, socket);
