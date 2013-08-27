@@ -3027,7 +3027,7 @@ class CodeEmitterTask extends CompilerTask {
 
   void emitGetInterceptorMethod(CodeBuffer buffer,
                                 String key,
-                                Iterable<ClassElement> classes) {
+                                Set<ClassElement> classes) {
     jsAst.Statement buildReturnInterceptor(ClassElement cls) {
       return js.return_(js(namer.isolateAccess(cls))['prototype']);
     }
@@ -3102,7 +3102,7 @@ class CodeEmitterTask extends CompilerTask {
     }
     if (hasInt) hasNumber = true;
 
-    if (classes == backend.interceptedClasses) {
+    if (classes.containsAll(backend.interceptedClasses)) {
       // I.e. this is the general interceptor.
       hasNative = anyNativeClasses;
     }
@@ -3192,9 +3192,10 @@ class CodeEmitterTask extends CompilerTask {
    * Emit all versions of the [:getInterceptor:] method.
    */
   void emitGetInterceptorMethods(CodeBuffer buffer) {
-    var specializedGetInterceptors = backend.specializedGetInterceptors;
+    Map<String, Set<ClassElement>> specializedGetInterceptors =
+        backend.specializedGetInterceptors;
     for (String name in specializedGetInterceptors.keys.toList()..sort()) {
-      Iterable<ClassElement> classes = specializedGetInterceptors[name];
+      Set<ClassElement> classes = specializedGetInterceptors[name];
       emitGetInterceptorMethod(buffer, name, classes);
     }
   }

@@ -268,7 +268,7 @@ class JavaScriptBackend extends Backend {
   /**
    * Set of classes whose methods are intercepted.
    */
-  final Set<ClassElement> interceptedClasses = new Set<ClassElement>();
+  final Set<ClassElement> _interceptedClasses = new Set<ClassElement>();
 
   /**
    * Set of classes used as mixins on native classes.  Methods on these classes
@@ -557,10 +557,6 @@ class JavaScriptBackend extends Backend {
     jsStringToString = compiler.lookupElementIn(
         jsStringClass, const SourceString('toString'));
 
-    for (ClassElement cls in classes) {
-      if (cls != null) interceptedClasses.add(cls);
-    }
-
     typeLiteralClass = compiler.findHelper(const SourceString('TypeImpl'));
     mapLiteralClass =
         compiler.coreLibrary.find(const SourceString('LinkedHashMap'));
@@ -630,6 +626,8 @@ class JavaScriptBackend extends Backend {
                        Enqueuer enqueuer,
                        TreeElements elements) {
     if (enqueuer.isResolutionQueue) {
+      _interceptedClasses.add(jsInterceptorClass);
+      _interceptedClasses.add(cls);
       cls.ensureResolved(compiler);
       cls.forEachMember((ClassElement classElement, Element member) {
           // All methods on [Object] are shadowed by [Interceptor].
@@ -641,6 +639,11 @@ class JavaScriptBackend extends Backend {
         includeSuperAndInjectedMembers: true);
     }
     enqueueClass(enqueuer, cls, elements);
+  }
+
+  Set<ClassElement> get interceptedClasses {
+    assert(compiler.enqueuer.resolution.queueIsClosed);
+    return _interceptedClasses;
   }
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
@@ -711,8 +714,9 @@ class JavaScriptBackend extends Backend {
                || cls == jsFixedArrayClass
                || cls == jsExtendableArrayClass) {
       addInterceptors(jsArrayClass, enqueuer, elements);
-      enqueueClass(enqueuer, jsFixedArrayClass, elements);
-      enqueueClass(enqueuer, jsExtendableArrayClass, elements);
+      addInterceptors(jsMutableArrayClass, enqueuer, elements);
+      addInterceptors(jsFixedArrayClass, enqueuer, elements);
+      addInterceptors(jsExtendableArrayClass, enqueuer, elements);
     } else if (cls == compiler.intClass || cls == jsIntClass) {
       addInterceptors(jsIntClass, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
@@ -1282,6 +1286,23 @@ class JavaScriptBackend extends Backend {
         }
       }
     }
+  }
+
+  /**
+   * Returns [:true:] if the checking of [type] is performed directly on the
+   * object and not on an interceptor.
+   */
+  bool hasDirectCheckFor(DartType type) {
+    Element element = type.element;
+    return element == compiler.stringClass ||
+        element == compiler.boolClass ||
+        element == compiler.numClass ||
+        element == compiler.intClass ||
+        element == compiler.doubleClass ||
+        element == jsArrayClass ||
+        element == jsMutableArrayClass ||
+        element == jsExtendableArrayClass ||
+        element == jsFixedArrayClass;
   }
 
   Element getExceptionUnwrapper() {

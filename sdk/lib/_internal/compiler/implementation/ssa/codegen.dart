@@ -2216,7 +2216,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (negative) push(new js.Prefix('!', pop()));
   }
 
-  void checkType(HInstruction input, DartType type, {bool negative: false}) {
+  void checkType(HInstruction input, HInstruction interceptor,
+                 DartType type, {bool negative: false}) {
     Element element = type.element;
     if (element == backend.jsArrayClass) {
       checkArray(input, negative ? '!==': '===');
@@ -2243,20 +2244,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       return;
     }
-    use(input);
+    if (interceptor != null) {
+      use(interceptor);
+    } else {
+      use(input);
+    }
 
-    // Hack in interceptor.  Ideally the interceptor would occur at the
-    // instruction level to allow optimizations, and checks would be broken into
-    // several smaller tests.
-    // This code is a slice of visitInterceptor for the univeral interceptor.
-    String interceptorName = backend.namer.getInterceptorName(
-        backend.getInterceptorMethod, backend.interceptedClasses);
-    backend.registerSpecializedGetInterceptor(backend.interceptedClasses);
-    backend.registerUseInterceptor(world);
-
-    var isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
-    List<js.Expression> arguments = <js.Expression>[pop()];
-    push(jsPropertyCall(isolate, interceptorName, arguments));
     world.registerIsCheck(type, work.resolutionTree);
 
     js.PropertyAccess field =
@@ -2268,6 +2261,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void handleNumberOrStringSupertypeCheck(HInstruction input,
+                                          HInstruction interceptor,
                                           DartType type,
                                           { bool negative: false }) {
     assert(!identical(type.element, compiler.listClass)
@@ -2280,7 +2274,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Expression stringTest = pop();
     checkObject(input, relation);
     js.Expression objectTest = pop();
-    checkType(input, type, negative: negative);
+    checkType(input, interceptor, type, negative: negative);
     String combiner = negative ? '&&' : '||';
     String combiner2 = negative ? '||' : '&&';
     push(new js.Binary(combiner,
@@ -2289,6 +2283,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void handleStringSupertypeCheck(HInstruction input,
+                                  HInstruction interceptor,
                                   DartType type,
                                   { bool negative: false }) {
     assert(!identical(type.element, compiler.listClass)
@@ -2299,7 +2294,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Expression stringTest = pop();
     checkObject(input, relation);
     js.Expression objectTest = pop();
-    checkType(input, type, negative: negative);
+    checkType(input, interceptor, type, negative: negative);
     String combiner = negative ? '||' : '&&';
     push(new js.Binary(negative ? '&&' : '||',
                        stringTest,
@@ -2307,6 +2302,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void handleListOrSupertypeCheck(HInstruction input,
+                                  HInstruction interceptor,
                                   DartType type,
                                   { bool negative: false }) {
     assert(!identical(type.element, compiler.stringClass)
@@ -2317,7 +2313,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Expression objectTest = pop();
     checkArray(input, relation);
     js.Expression arrayTest = pop();
-    checkType(input, type, negative: negative);
+    checkType(input, interceptor, type, negative: negative);
     String combiner = negative ? '&&' : '||';
     push(new js.Binary(negative ? '||' : '&&',
                        objectTest,
@@ -2343,6 +2339,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (negative) push(new js.Prefix('!', pop()));
     } else {
       assert(node.isRawCheck);
+      HInstruction interceptor = node.interceptor;
       LibraryElement coreLibrary = compiler.coreLibrary;
       ClassElement objectClass = compiler.objectClass;
       Element element = type.element;
@@ -2377,44 +2374,31 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         checkBigInt(input, relation);
         push(new js.Binary(negative ? '||' : '&&', numTest, pop()), node);
       } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
-        handleNumberOrStringSupertypeCheck(input, type, negative: negative);
+        handleNumberOrStringSupertypeCheck(
+            input, interceptor, type, negative: negative);
         attachLocationToLast(node);
       } else if (Elements.isStringOnlySupertype(element, compiler)) {
-        handleStringSupertypeCheck(input, type, negative: negative);
+        handleStringSupertypeCheck(
+            input, interceptor, type, negative: negative);
         attachLocationToLast(node);
       } else if (identical(element, compiler.listClass)
                  || Elements.isListSupertype(element, compiler)) {
-        handleListOrSupertypeCheck(input, type, negative: negative);
+        handleListOrSupertypeCheck(
+            input, interceptor, type, negative: negative);
         attachLocationToLast(node);
-      } else if (element.isTypedef()) {
-        if (negative) {
-          checkNull(input);
-        } else {
-          checkNonNull(input);
-        }
-        js.Expression nullTest = pop();
-        checkType(input, type, negative: negative);
-        push(new js.Binary(negative ? '||' : '&&', nullTest, pop()));
+      } else if (type.kind == TypeKind.FUNCTION) {
+        checkType(input, interceptor, type, negative: negative);
         attachLocationToLast(node);
       } else if ((input.canBePrimitive(compiler)
                   && !input.canBePrimitiveArray(compiler))
                  || input.canBeNull()) {
         checkObject(input, relation);
         js.Expression objectTest = pop();
-        checkType(input, type, negative: negative);
+        checkType(input, interceptor, type, negative: negative);
         push(new js.Binary(negative ? '||' : '&&', objectTest, pop()), node);
       } else {
-        checkType(input, type, negative: negative);
+        checkType(input, interceptor, type, negative: negative);
         attachLocationToLast(node);
-      }
-    }
-    if (node.nullOk) {
-      if (negative) {
-        checkNonNull(input);
-        push(new js.Binary('&&', pop(), pop()), node);
-      } else {
-        checkNull(input);
-        push(new js.Binary('||', pop(), pop()), node);
       }
     }
   }
