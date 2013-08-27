@@ -2940,9 +2940,9 @@ class CodeEmitterTask extends CompilerTask {
     // onload event of all script tags and getting the first script which
     // finishes. Since onload is called immediately after execution this should
     // not substantially change execution order.
-    buffer.write("""
+    buffer.write('''
 ;(function (callback) {
-  if (typeof document === 'undefined') {
+  if (typeof document === "undefined") {
     callback(null);
     return;
   }
@@ -2954,18 +2954,18 @@ class CodeEmitterTask extends CompilerTask {
   var scripts = document.scripts;
   function onLoad(event) {
     for (var i = 0; i < scripts.length; ++i) {
-      scripts[i].removeEventListener('load', onLoad, false);
+      scripts[i].removeEventListener("load", onLoad, false);
     }
     callback(event.target);
   }
   for (var i = 0; i < scripts.length; ++i) {
-    scripts[i].addEventListener('load', onLoad, false);
+    scripts[i].addEventListener("load", onLoad, false);
   }
 })(function(currentScript) {
   ${namer.isolateName}.${namer.isolatePropertiesName}.\$currentScript =
       currentScript;
 
-  if (typeof console !== 'undefined' && typeof document !== 'undefined' &&
+  if (typeof console !== "undefined" && typeof document !== "undefined" &&
       document.readyState == "loading") {
     console.warn("Dart script executed synchronously, use <script src='" +
         currentScript.src + "' defer></scr" + "ipt> to execute after parsing " +
@@ -2976,7 +2976,7 @@ class CodeEmitterTask extends CompilerTask {
   } else {
     ${mainCall};
   }
-})$N""");
+})$N''');
     addComment('END invoke [main].', buffer);
   }
 
