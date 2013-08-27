@@ -7,6 +7,7 @@ library message_extraction_test;
 import 'package:unittest/unittest.dart';
 import 'dart:io';
 import 'dart:async';
+import 'dart:convert';
 import 'package:path/path.dart' as path;
 import '../data_directory.dart';
 
@@ -74,7 +75,8 @@ Future<ProcessResult> run(ProcessResult previousResult, List<String> filenames)
       ..add(filesInTheRightDirectory.first)
       ..addAll(["--output-dir=${dir()}"])
       ..addAll(filesInTheRightDirectory.skip(1));
-  var result = Process.run(dart, args);
+  var result = Process.run(dart, args, stdoutEncoding: UTF8,
+      stderrEncoding: UTF8);
   return result;
 }
 
