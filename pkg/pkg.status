@@ -109,9 +109,6 @@ stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 
-[ $compiler == dart2js ]
-csslib/test/var_test: Fail # looking for VM-specific stack traces, issue 12469
-
 [ $compiler == dart2js && $runtime == drt ]
 csslib: Pass, Fail # issue 12466
 
