@@ -1,7 +1,6 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile_all
 
 class SyntaxTest {
   // "this" cannot be used as a field name.
@@ -230,6 +229,7 @@ main() {
     void v; /// 60: compile-time error
     void v = null; /// 61: compile-time error
     print(null is void); /// 62: compile-time error
+    new A();
     new B();
 
     new Bad();
