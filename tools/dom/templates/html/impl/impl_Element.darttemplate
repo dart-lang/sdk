@@ -309,31 +309,20 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   /**
    * Creates an HTML element from a valid fragment of HTML.
    *
+   * The [html] fragment must represent valid HTML with a single element root,
+   * which will be parsed and returned.
+   *
+   * Important: the contents of [html] should not contain any user-supplied
+   * data. Without strict data validation it is impossible to prevent script
+   * injection exploits.
+   *
+   * It is instead recommended that elements be constructed via [Element.tag]
+   * and text be added via [text].
+   *
    *     var element = new Element.html('<div class="foo">content</div>');
-   *
-   * The HTML fragment should contain only one single root element, any
-   * leading or trailing text nodes will be removed.
-   *
-   * The HTML fragment is parsed as if it occurred within the context of a
-   * `<body>` tag, this means that special elements such as `<caption>` which
-   * must be parsed within the scope of a `<table>` element will be dropped. Use
-   * [createFragment] to parse contextual HTML fragments.
-   *
-   * Unless a validator is provided this will perform the default validation
-   * and remove all scriptable elements and attributes.
-   *
-   * See also:
-   *
-   * * [NodeValidator]
-   *
    */
-  factory Element.html(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
-    var fragment = document.body.createFragment(html, validator: validator,
-        treeSanitizer: treeSanitizer);
-
-    return fragment.nodes.where((e) => e is Element).single;
-  }
+  factory $CLASSNAME.html(String html) =>
+      _$(CLASSNAME)FactoryProvider.createElement_html(html);
 
   /**
    * Creates the HTML element specified by the tag name.
@@ -1182,134 +1171,135 @@ $endif
     return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
 
-  static HtmlDocument _parseDocument;
-  static NodeValidatorBuilder _defaultValidator;
-  static _ValidatingTreeSanitizer _defaultSanitizer;
+$if DART2JS
+  @JSName('innerHTML')
+  @DomName('HTMLElement.innerHTML')
+  String get innerHtml => JS('String', '#.innerHTML', this);
 
-  /**
-   * Create a DocumentFragment from the HTML fragment and ensure that it follows
-   * the sanitization rules specified by the validator or treeSanitizer.
-   *
-   * If the default validation behavior is too restrictive then a new
-   * NodeValidator should be created, either extending or wrapping a default
-   * validator and overriding the validation APIs.
-   *
-   * The treeSanitizer is used to walk the generated node tree and sanitize it.
-   * A custom treeSanitizer can also be provided to perform special validation
-   * rules but since the API is more complex to implement this is discouraged.
-   *
-   * The returned tree is guaranteed to only contain nodes and attributes which
-   * are allowed by the provided validator.
-   *
-   * See also:
-   *
-   * * [NodeValidator]
-   * * [NodeTreeSanitizer]
-   */
-  DocumentFragment createFragment(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
-    if (treeSanitizer == null) {
-      if (validator == null) {
-        if (_defaultValidator == null) {
-          _defaultValidator = new NodeValidatorBuilder.common();
-        }
-        validator = _defaultValidator;
-      }
-      if (_defaultSanitizer == null) {
-        _defaultSanitizer = new _ValidatingTreeSanitizer(validator);
-      } else {
-        _defaultSanitizer.validator = validator;
-      }
-      treeSanitizer = _defaultSanitizer;
-    } else if (validator != null) {
-      throw new ArgumentError(
-          'validator can only be passed if treeSanitizer is null');
-    }
-
-    if (_parseDocument == null) {
-      _parseDocument = document.implementation.createHtmlDocument('');
-    }
-    var contextElement;
-    if (this is BodyElement) {
-      contextElement = _parseDocument.body;
-    } else {
-      contextElement = _parseDocument.$dom_createElement(tagName);
-      _parseDocument.body.append(contextElement);
-    }
-    var fragment;
-    if (Range.supportsCreateContextualFragment) {
-      var range = _parseDocument.$dom_createRange();
-      range.selectNodeContents(contextElement);
-      fragment = range.createContextualFragment(html);
-    } else {
-      contextElement._innerHtml = html;
-
-      fragment = _parseDocument.createDocumentFragment();
-      while (contextElement.firstChild != null) {
-        fragment.append(contextElement.firstChild);
-      }
-    }
-    if (contextElement != _parseDocument.body) {
-      contextElement.remove();
-    }
-
-    treeSanitizer.sanitizeTree(fragment);
-    return fragment;
+  void set innerHtml(String value) {
+    JS('', '#.innerHTML = #', this, value);
+    // Polyfill relies on mutation observers for upgrading, but we want it
+    // immediate.
+    Platform.upgradeCustomElements(this);
   }
-
-  /**
-   * Parses the HTML fragment and sets it as the contents of this element.
-   *
-   * This uses the default sanitization behavior to sanitize the HTML fragment,
-   * use [setInnerHtml] to override the default behavior.
-   */
-  void set innerHtml(String html) {
-    this.setInnerHtml(html);
-  }
-
-  /**
-   * Parses the HTML fragment and sets it as the contents of this element.
-   * This ensures that the generated content follows the sanitization rules
-   * specified by the validator or treeSanitizer.
-   *
-   * If the default validation behavior is too restrictive then a new
-   * NodeValidator should be created, either extending or wrapping a default
-   * validator and overriding the validation APIs.
-   *
-   * The treeSanitizer is used to walk the generated node tree and sanitize it.
-   * A custom treeSanitizer can also be provided to perform special validation
-   * rules but since the API is more complex to implement this is discouraged.
-   *
-   * The resulting tree is guaranteed to only contain nodes and attributes which
-   * are allowed by the provided validator.
-   *
-   * See also:
-   *
-   * * [NodeValidator]
-   * * [NodeTreeSanitizer]
-   */
-  void setInnerHtml(String html,
-    {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
-    text = null;
-    append(createFragment(
-        html, validator: validator, treeSanitizer: treeSanitizer));
-  }
-  String get innerHtml => _innerHtml;
-
-  /**
-   * For use while transitioning to the safe [innerHtml] or [setInnerHtml].
-   * Unsafe because it opens the app to cross-site scripting vulnerabilities.
-   */
-  @deprecated
-  void set unsafeInnerHtml(String html) {
-    _innerHtml = html;
-  }
+$endif
 
 $!MEMBERS
 }
 
-
+final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
+  static const _CUSTOM_PARENT_TAG_MAP = const {
+    'body' : 'html',
+    'head' : 'html',
+    'caption' : 'table',
+    'td': 'tr',
+    'th': 'tr',
+    'colgroup': 'table',
+    'col' : 'colgroup',
+    'tr' : 'tbody',
+    'tbody' : 'table',
+    'tfoot' : 'table',
+    'thead' : 'table',
+    'track' : 'audio',
+  };
+
+  @DomName('Document.createElement')
+  static Element createElement_html(String html) {
+    // TODO(jacobr): this method can be made more robust and performant.
+    // 1) Cache the dummy parent elements required to use innerHTML rather than
+    //    creating them every call.
+    // 2) Verify that the html does not contain leading or trailing text nodes.
+    // 3) Verify that the html does not contain both <head> and <body> tags.
+    // 4) Detatch the created element from its dummy parent.
+    String parentTag = 'div';
+    String tag;
+    final match = _START_TAG_REGEXP.firstMatch(html);
+    if (match != null) {
+      tag = match.group(1).toLowerCase();
+      if (Device.isIE && Element._TABLE_TAGS.containsKey(tag)) {
+        return _createTableForIE(html, tag);
+      }
+      parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
+      if (parentTag == null) parentTag = 'div';
+    }
+
+    final temp = new Element.tag(parentTag);
+    temp.innerHtml = html;
+
+    Element element;
+    if (temp.children.length == 1) {
+      element = temp.children[0];
+    } else if (parentTag == 'html' && temp.children.length == 2) {
+      // In html5 the root <html> tag will always have a <body> and a <head>,
+      // even though the inner html only contains one of them.
+      element = temp.children[tag == 'head' ? 0 : 1];
+    } else {
+      _singleNode(temp.children);
+    }
+    element.remove();
+    return element;
+  }
+
+  /**
+   * IE table elements don't support innerHTML (even in standards mode).
+   * Instead we use a div and inject the table element in the innerHtml string.
+   * This technique works on other browsers too, but it's probably slower,
+   * so we only use it when running on IE.
+   *
+   * See also innerHTML:
+   * <http://msdn.microsoft.com/en-us/library/ie/ms533897(v=vs.85).aspx>
+   * and Building Tables Dynamically:
+   * <http://msdn.microsoft.com/en-us/library/ie/ms532998(v=vs.85).aspx>.
+   */
+  static Element _createTableForIE(String html, String tag) {
+    var div = new Element.tag('div');
+    div.innerHtml = '<table>$html</table>';
+    var table = _singleNode(div.children);
+    Element element;
+    switch (tag) {
+      case 'td':
+      case 'th':
+        TableRowElement row = _singleNode(table.rows);
+        element = _singleNode(row.cells);
+        break;
+      case 'tr':
+        element = _singleNode(table.rows);
+        break;
+      case 'tbody':
+        element = _singleNode(table.tBodies);
+        break;
+      case 'thead':
+        element = table.tHead;
+        break;
+      case 'tfoot':
+        element = table.tFoot;
+        break;
+      case 'caption':
+        element = table.caption;
+        break;
+      case 'colgroup':
+        element = _getColgroup(table);
+        break;
+      case 'col':
+        element = _singleNode(_getColgroup(table).children);
+        break;
+    }
+    element.remove();
+    return element;
+  }
+
+  static TableColElement _getColgroup(TableElement table) {
+    // TODO(jmesserly): is there a better way to do this?
+    return _singleNode(table.children.where((n) => n.tagName == 'COLGROUP')
+        .toList());
+  }
+
+  static Node _singleNode(List<Node> list) {
+    if (list.length == 1) return list[0];
+    throw new ArgumentError('HTML had ${list.length} '
+        'top level elements but 1 expected');
+  }
 
   @DomName('Document.createElement')
 $if DART2JS

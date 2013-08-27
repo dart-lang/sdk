@@ -225,7 +225,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Element.removeAttributeNS',
   'Element.hasAttribute',
   'Element.hasAttributeNS',
-  'Element.innerHTML',
   'Element.querySelectorAll',
   'Event.initEvent',
   'Geolocation.clearWatch',

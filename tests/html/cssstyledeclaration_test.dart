@@ -7,7 +7,6 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
 import 'dart:async';
-import 'utils.dart';
 
 main() {
   useHtmlConfiguration();
@@ -104,7 +103,7 @@ main() {
         '<li class="bar" style="background-color: red; border-left: 10px;">'
         '<li class="baz" style="background-color: black;>'
         '<li class="baz classy" style="background-color: blue; ">'
-        '</ul>', treeSanitizer: new NullTreeSanitizer());
+        '</ul>');
     document.documentElement.children.add(listElement);
 
     var elements = document.queryAll('li');
@@ -122,7 +121,7 @@ main() {
         '<li class="bar" style="background-color: red; border-left: 10px;">'
         '<li class="baz" style="background-color: black;>'
         '<li class="baz" id="wat" style="background-color: blue; ">'
-        '</ul>', treeSanitizer: new NullTreeSanitizer());
+        '</ul>');
     document.documentElement.children.add(listElement);
 
     var elements = document.queryAll('li');

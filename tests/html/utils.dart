@@ -3,7 +3,7 @@ library TestUtils;
 import 'dart:async';
 import 'dart:html';
 import 'dart:typed_data';
-import 'package:unittest/unittest.dart';
+import '../../pkg/unittest/lib/unittest.dart';
 
 /**
  * Verifies that [actual] has the same graph structure as [expected].
@@ -122,40 +122,4 @@ verifyGraph(expected, actual) {
   }
 
   walk('', expected, actual);
-}
-
-
-/**
- * Sanitizer which does nothing.
- */
-class NullTreeSanitizer implements NodeTreeSanitizer {
-  void sanitizeTree(Node node) {}
-}
-
-
-/**
- * Validate that two DOM trees are equivalent.
- */
-void validateNodeTree(Node a, Node b, [String path = '']) {
-  path = '${path}${a.runtimeType}';
-  expect(a.nodeType, b.nodeType, reason: '$path nodeTypes differ');
-  expect(a.nodeValue, b.nodeValue, reason: '$path nodeValues differ');
-  expect(a.text, b.text, reason: '$path texts differ');
-  expect(a.nodes.length, b.nodes.length, reason: '$path nodes.lengths differ');
-
-  if (a is Element) {
-    Element bE = b;
-    Element aE = a;
-
-    expect(aE.tagName, bE.tagName, reason: '$path tagNames differ');
-    expect(aE.attributes.length, bE.attributes.length,
-        reason: '$path attributes.lengths differ');
-    for (var key in aE.attributes.keys) {
-      expect(aE.attributes[key], bE.attributes[key],
-          reason: '$path attribute [$key] values differ');
-    }
-  }
-  for (var i = 0; i < a.nodes.length; ++i) {
-    validateNodeTree(a.nodes[i], b.nodes[i], '$path[$i].');
-  }
 }

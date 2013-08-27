@@ -6,7 +6,6 @@ library document_register_basic_test;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
-import '../utils.dart';
 
 class Foo extends HtmlElement {
   static final tag = 'x-foo';
@@ -84,8 +83,7 @@ main() {
     // Parser initiated instantiation
     var container = new DivElement()..id = "container";
     document.body.append(container);
-    container.setInnerHtml("<x-foo></x-foo>",
-        treeSanitizer: new NullTreeSanitizer());
+    container.innerHtml = "<x-foo></x-foo>";
     var parsedFoo = container.firstChild;
 
     expect(parsedFoo is Foo, isTrue);
@@ -119,8 +117,7 @@ main() {
     expect(createdMixedBar is Bar, isTrue);
     expect(createdMixedBar.tagName, "X-BAR");
 
-    container.setInnerHtml("<X-BAR></X-BAR><X-Bar></X-Bar>",
-        treeSanitizer: new NullTreeSanitizer());
+    container.innerHtml = "<X-BAR></X-BAR><X-Bar></X-Bar>";
     expect(container.firstChild is Bar, isTrue);
     expect(container.firstChild.tagName, "X-BAR");
     expect(container.lastChild is Bar, isTrue);
