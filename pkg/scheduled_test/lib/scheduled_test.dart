@@ -196,9 +196,9 @@ import 'package:unittest/unittest.dart' as unittest;
 import 'src/schedule.dart';
 import 'src/schedule_error.dart';
 
-export 'package:unittest/matcher.dart' hide completes, completion;
-export 'package:unittest/unittest.dart' show
-    Configuration, logMessage, expectThrow;
+export 'package:unittest/unittest.dart' hide
+    test, solo_test, group, setUp, tearDown, unittestConfiguration,
+    currentTestCase, completes, completion;
 
 export 'src/schedule.dart';
 export 'src/schedule_error.dart';
@@ -383,3 +383,6 @@ unittest.Configuration get unittestConfiguration =>
 void set unittestConfiguration(unittest.Configuration value) {
   unittest.unittestConfiguration = value;
 }
+
+// TODO(nweiz): re-export these once issue 9535 is fixed.
+unittest.TestCase get currentTestCase => unittest.currentTestCase;

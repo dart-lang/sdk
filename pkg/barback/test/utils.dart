@@ -39,6 +39,7 @@ void initConfig() {
   if (_configured) return;
   _configured = true;
   useCompactVMConfiguration();
+  filterStacks = true;
 }
 
 /// Creates a new [PackageProvider] and [PackageGraph] with the given [assets]
