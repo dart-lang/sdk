@@ -4,9 +4,10 @@
 
 library android;
 
-import "dart:io";
 import "dart:async";
+import "dart:convert" show LineSplitter, UTF8;
 import "dart:core";
+import "dart:io";
 import "dart:utf";
 
 import "utils.dart";
@@ -35,7 +36,7 @@ Future _executeCommandRaw(String executable,
                           List<String> args,
                           [String stdin = ""]) {
   Future<String> getOutput(Stream<List<int>> stream) {
-    return stream.transform(new StringDecoder()).toList()
+    return stream.transform(UTF8.decoder).toList()
         .then((data) => data.join(""));
   }
 
@@ -112,7 +113,7 @@ class AndroidEmulator {
 
   AndroidEmulator._private(this._port, this._adbDevice, this._emulatorProcess) {
     Stream<String> getLines(Stream s) {
-      return s.transform(new StringDecoder()).transform(new LineTransformer());
+      return s.transform(UTF8.decoder).transform(new LineSplitter());
     }
 
     getLines(_emulatorProcess.stdout).listen((line) {

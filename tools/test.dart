@@ -267,7 +267,7 @@ Future deleteTemporaryDartDirectories() {
       var dir = new Directory('').createTempSync();
       var path = new Path(dir.path).directoryPath;
       dir.deleteSync();
-      return new Directory.fromPath(path);
+      return new Directory(path.toNativePath());
     }
 
     // These are the patterns of temporary directory names created by

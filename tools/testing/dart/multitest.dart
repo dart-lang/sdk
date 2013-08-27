@@ -65,7 +65,7 @@ void ExtractTestsFromMultitest(Path filePath,
   // Read the entire file into a byte buffer and transform it to a
   // String. This will treat the file as ascii but the only parts
   // we are interested in will be ascii in any case.
-  List bytes = new File.fromPath(filePath).readAsBytesSync();
+  List bytes = new File(filePath.toNativePath()).readAsBytesSync();
   String contents = decodeUtf8(bytes);
   int first_newline = contents.indexOf('\n');
   final String line_separator =
@@ -166,7 +166,7 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
     var thisPass = toSearch;
     toSearch = new Set<Path>();
     for (Path filename in thisPass) {
-      File f = new File.fromPath(filename);
+      File f = new File(filename.toNativePath());
       for (String line in f.readAsLinesSync()) {
         Match match = relativeImportRegExp.firstMatch(line);
         if (match != null) {
@@ -222,7 +222,7 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
     for (String key in tests.keys) {
       final Path multitestFilename =
           targetDir.append('${baseFilename}_$key.dart');
-      final File file = new File.fromPath(multitestFilename);
+      final File file = new File(multitestFilename.toNativePath());
 
       file.createSync();
       RandomAccessFile openedFile = file.openSync(mode: FileMode.WRITE);

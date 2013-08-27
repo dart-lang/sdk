@@ -4,6 +4,7 @@
 library browser;
 
 import "dart:async";
+import "dart:convert" show LineSplitter, UTF8;
 import "dart:core";
 import "dart:io";
 
@@ -119,7 +120,7 @@ abstract class Browser {
       Completer stdoutDone = new Completer();
       Completer stderrDone = new Completer();
 
-      process.stdout.transform(new StringDecoder()).listen((data) {
+      process.stdout.transform(UTF8.decoder).listen((data) {
         _addStdout(data);
       }, onError: (error) {
         // This should _never_ happen, but we really want this in the log
@@ -129,7 +130,7 @@ abstract class Browser {
         stdoutDone.complete(true);
       });
 
-      process.stderr.transform(new StringDecoder()).listen((data) {
+      process.stderr.transform(UTF8.decoder).listen((data) {
         _addStderr(data);
       }, onError: (error) {
         // This should _never_ happen, but we really want this in the log
@@ -410,7 +411,7 @@ class AndroidChrome extends Browser {
 
     var testing_resources_dir =
         new Path('third_party/android_testing_resources');
-    if (!new Directory.fromPath(testing_resources_dir).existsSync()) {
+    if (!new Directory(testing_resources_dir.toNativePath()).existsSync()) {
       DebugLogger.error("$testing_resources_dir doesn't exist. Exiting now.");
       exit(1);
     }
@@ -881,7 +882,7 @@ class BrowserTestingServer {
         errorReportingServer = createdReportServer;
         void errorReportingHandler(HttpRequest request) {
           StringBuffer buffer = new StringBuffer();
-          request.transform(new StringDecoder()).listen((data) {
+          request.transform(UTF8.decoder).listen((data) {
             buffer.write(data);
           }, onDone: () {
               String back = buffer.toString();
@@ -904,7 +905,7 @@ class BrowserTestingServer {
 
   void handleReport(HttpRequest request, String browserId, var testId) {
     StringBuffer buffer = new StringBuffer();
-    request.transform(new StringDecoder()).listen((data) {
+    request.transform(UTF8.decoder).listen((data) {
       buffer.write(data);
       }, onDone: () {
         String back = buffer.toString();

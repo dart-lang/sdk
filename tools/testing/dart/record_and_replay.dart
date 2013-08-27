@@ -9,6 +9,7 @@ import 'dart:json' as json;
 import 'dart:utf';
 
 import 'test_runner.dart';
+import 'utils.dart' show Path;
 
 /*
  * Json files look like this:
@@ -74,7 +75,7 @@ class TestCaseRecorder {
   }
 
   void finish() {
-    var file = new File.fromPath(_outputPath);
+    var file = new File(_outputPath.toNativePath());
     var jsonString = json.stringify(_recordedCommandInvocations);
     file.writeAsStringSync(jsonString);
     print("TestCaseRecorder: written all TestCases to ${_outputPath}");
@@ -90,7 +91,7 @@ class TestCaseOutputArchive {
   }
 
   void loadFromPath(Path recordingPath) {
-    var file = new File.fromPath(recordingPath);
+    var file = new File(recordingPath.toNativePath());
     var commandRecordings = json.parse(file.readAsStringSync());
     _commandOutputRecordings = {};
     for (var commandRecording in commandRecordings) {

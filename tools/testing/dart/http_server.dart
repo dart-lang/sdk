@@ -172,12 +172,12 @@ class TestingServers {
                          "max-age=$_CACHE_EXPIRATION_IN_SECONDS");
     var path = _getFilePathFromRequestPath(request.uri.path);
     if (path != null) {
-      var file = new File.fromPath(path);
+      var file = new File(path.toNativePath());
       file.exists().then((exists) {
         if (exists) {
           _sendFileContent(request, response, allowedPort, path, file);
         } else {
-          var directory = new Directory.fromPath(path);
+          var directory = new Directory(path.toNativePath());
           directory.exists().then((exists) {
             if (exists) {
               _listDirectory(directory).then((entries) {

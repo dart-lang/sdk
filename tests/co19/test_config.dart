@@ -6,6 +6,7 @@ library co19_test_config;
 
 import 'dart:io';
 import '../../tools/testing/dart/test_suite.dart';
+import '../../tools/testing/dart/utils.dart' show Path;
 
 class Co19TestSuite extends StandardTestSuite {
   RegExp _testRegExp = new RegExp(r"t[0-9]{2}.dart$");

@@ -338,7 +338,7 @@ class LeftOverTempDirPrinter extends EventListener {
   void allDone() {
     var count = 0;
     var systemTempDir = _tempDir();
-    var lister = new Directory.fromPath(systemTempDir).list().listen(
+    var lister = new Directory(systemTempDir.toNativePath()).list().listen(
         (FileSystemEntity fse) {
           if (fse is Directory) count++;
         },
