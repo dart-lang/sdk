@@ -68,12 +68,12 @@ class HtmlEnhancedConfiguration extends SimpleConfiguration {
 
     var cssElement = document.head.query('#${_CSSID}');
     if (cssElement == null){
-      document.head.children.add(new Element.html(
-          '<style id="${_CSSID}"></style>'));
-      cssElement = document.head.query('#${_CSSID}');
+      cssElement = new StyleElement();
+      cssElement.id = _CSSID;
+      document.head.append(cssElement);
     }
 
-    cssElement.innerHtml = _htmlTestCSS;
+    cssElement.text = _htmlTestCSS;
     window.postMessage('unittest-suite-wait-for-done', '*');
   }
 

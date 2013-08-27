@@ -8,6 +8,7 @@ import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:async';
 import 'dart:html';
 import 'dart:svg' as svg;
+import 'utils.dart';
 
 expectLargeRect(Rect rect) {
   expect(rect.top, 0);
@@ -83,7 +84,7 @@ main() {
 
   group('constructors', () {
     test('error', () {
-      expect(() => new Element.html('<br/><br/>'), throwsArgumentError);
+      expect(() => new Element.html('<br/><br/>'), throwsStateError);
     });
 
     test('.html has no parent', () =>
@@ -123,7 +124,8 @@ main() {
     });
 
     test('.html caption', () {
-      var node = new Element.html('<caption><p>Table 1.');
+      var table = new TableElement();
+      var node = table.createFragment('<caption><p>Table 1.').nodes.single;
       expect(node, predicate((x) => x is TableCaptionElement,
           'is a TableCaptionElement'));
       expect(node.tagName, 'CAPTION');
@@ -132,7 +134,9 @@ main() {
     });
 
     test('.html colgroup', () {
-      var node = new Element.html('<colgroup> <col> <col> <col>');
+      var table = new TableElement();
+      var node =
+          table.createFragment('<colgroup> <col> <col> <col>').nodes.single;
       expect(node, predicate((x) => x is TableColElement,
           'is a TableColElement'));
       expect(node.tagName, 'COLGROUP');
@@ -140,18 +144,10 @@ main() {
       expect(node.innerHtml, ' <col> <col> <col>');
     });
 
-    test('.html col', () {
-      var node = new Element.html('<col span="2">');
-      expect(node, predicate((x) => x is TableColElement,
-          'is a TableColElement'));
-      expect(node.tagName, 'COL');
-      expect(node.parent, isNull);
-      expect(node.outerHtml, '<col span="2">');
-    });
-
     test('.html tbody', () {
       var innerHtml = '<tr><td headers="n r1">Sad</td><td>Happy</td></tr>';
-      var node = new Element.html('<tbody>$innerHtml');
+      var table = new TableElement();
+      var node = table.createFragment('<tbody>$innerHtml').nodes.single;
       expect(node, predicate((x) => x is TableSectionElement,
           'is a TableSectionElement'));
       expect(node.tagName, 'TBODY');
@@ -163,7 +159,8 @@ main() {
 
     test('.html thead', () {
       var innerHtml = '<tr><th id="n">Negative</th><th>Positive</th></tr>';
-      var node = new Element.html('<thead>$innerHtml');
+      var table = new TableElement();
+      var node = table.createFragment('<thead>$innerHtml').nodes.single;
       expect(node, predicate((x) => x is TableSectionElement,
           'is a TableSectionElement'));
       expect(node.tagName, 'THEAD');
@@ -175,7 +172,8 @@ main() {
 
     test('.html tfoot', () {
       var innerHtml = '<tr><th>percentage</th><td>34.3%</td></tr>';
-      var node = new Element.html('<tfoot>$innerHtml');
+      var table = new TableElement();
+      var node = table.createFragment('<tfoot>$innerHtml').nodes.single;
       expect(node, predicate((x) => x is TableSectionElement,
           'is a TableSectionElement'));
       expect(node.tagName, 'TFOOT');
@@ -186,7 +184,9 @@ main() {
     });
 
     test('.html tr', () {
-      var node = new Element.html('<tr><td>foo<td>bar');
+      var table = new TableElement();
+      var tBody = table.createTBody();
+      var node = tBody.createFragment('<tr><td>foo<td>bar').nodes.single;
       expect(node, predicate((x) => x is TableRowElement,
           'is a TableRowElement'));
       expect(node.tagName, 'TR');
@@ -195,7 +195,10 @@ main() {
     });
 
     test('.html td', () {
-      var node = new Element.html('<td>foobar');
+      var table = new TableElement();
+      var tBody = table.createTBody();
+      var tRow = tBody.addRow();
+      var node = tRow.createFragment('<td>foobar').nodes.single;
       expect(node, predicate((x) => x is TableCellElement,
           'is a TableCellElement'));
       expect(node.tagName, 'TD');
@@ -204,7 +207,10 @@ main() {
     });
 
     test('.html th', () {
-      var node = new Element.html('<th>foobar');
+      var table = new TableElement();
+      var tBody = table.createTBody();
+      var tRow = tBody.addRow();
+      var node = tRow.createFragment('<th>foobar').nodes.single;
       expect(node, predicate((x) => x is TableCellElement,
           'is a TableCellElement'));
       expect(node.tagName, 'TH');
@@ -304,7 +310,7 @@ main() {
         final element = new Element.html(
             '''<div class="foo" style="overflow: hidden" data-foo="bar"
                    data-foo2="bar2" dir="rtl">
-               </div>''');
+               </div>''', treeSanitizer: new NullTreeSanitizer());
         final attributes = element.attributes;
         expect(attributes['class'], 'foo');
         expect(attributes['style'], startsWith('overflow: hidden'));
