@@ -68,21 +68,59 @@ main() {
       );
     });
 
+    test('CU - EOL comments', () {
+      expectCUFormatsTo(
+          '//comment one\n\n'
+          '//comment two\n\n',
+          '//comment one\n\n'
+          '//comment two\n\n'
+      );
+      expectCUFormatsTo(
+          'library foo;\n'
+          '\n'
+          '//comment one\n'
+          '\n'
+          'class C {\n'
+          '}\n',
+          'library foo;\n'
+          '\n'
+          '//comment one\n'
+          '\n'
+          'class C {\n'
+          '}\n'
+      );
+      expectCUFormatsTo(
+          'library foo;\n'
+          '\n'
+          '//comment one\n'
+          '\n'
+          '//comment two\n'
+          '\n'
+          'class C {\n'
+          '}\n',
+          'library foo;\n'
+          '\n'
+          '//comment one\n'
+          '\n'
+          '//comment two\n'
+          '\n'
+          'class C {\n'
+          '}\n'
+      );
+    });
 
-//    test('CU - comments', () {
-//      expectCUFormatsTo(
-//          'library foo;\n'
-//          '\n'
-//          '//comment one\n\n'
-//          '//comment two\n\n'
-//          'class C {\n}\n',
-//          'library foo;\n'
-//          '\n'
-//          '//comment one\n\n'
-//          '//comment two\n\n'
-//          'class C {\n}\n'
-//      );
-//    });
+    test('CU - nested functions', () {
+      expectCUFormatsTo(
+          'x() {\n'
+          '  y() {\n'
+          '  }\n'
+          '}\n',
+          'x() {\n'
+          '  y() {\n'
+          '  }\n'
+          '}\n'
+        );
+    });
 
     test('CU - top level', () {
       expectCUFormatsTo(
@@ -115,6 +153,12 @@ main() {
           'import "package:unittest/unittest.dart";\n'
           'foo() {\n'
           '}\n'
+      );
+      expectCUFormatsTo(
+          'library a; class B { }',
+          'library a;\n'
+          'class B {\n'
+          '}'
       );
     });
 
@@ -277,6 +321,92 @@ main() {
       );
     });
 
+    test('CU - Block comments', () {
+      expectCUFormatsTo(
+          '/** Old school class comment */\n'
+          'class C {\n'
+          '  /** Foo! */ int foo() => 42;\n'
+          '}\n',
+          '/** Old school class comment */\n'
+          'class C {\n'
+          '  /** Foo! */ int foo() => 42;\n'
+          '}\n'
+      );
+      expectCUFormatsTo(
+          'library foo;\n'
+          'class C /* is cool */ {\n'
+          '  /* int */ foo() => 42;\n'
+          '}\n',
+          'library foo;\n'
+          'class C /* is cool */ {\n'
+          '  /* int */ foo() => 42;\n'
+          '}\n'
+      );
+      expectCUFormatsTo(
+          'library foo;\n'
+          '/* A long\n'
+          ' * Comment\n'
+          '*/\n'
+          'class C /* is cool */ {\n'
+          '  /* int */ foo() => 42;\n'
+          '}\n',
+          'library foo;\n'
+          '/* A long\n'
+          ' * Comment\n'
+          '*/\n'
+          'class C /* is cool */ {\n'
+          '  /* int */ foo() => 42;\n'
+          '}\n'
+      );
+      expectCUFormatsTo(
+          'library foo;\n'
+          '/* A long\n'
+          ' * Comment\n'
+          '*/\n'
+          '\n'
+          '/* And\n'
+          ' * another...\n'
+          '*/\n'
+          '\n'
+          '// Mixing it up\n'
+          '\n'
+          'class C /* is cool */ {\n'
+          '  /* int */ foo() => 42;\n'
+          '}\n',
+          'library foo;\n'
+          '/* A long\n'
+          ' * Comment\n'
+          '*/\n'
+          '\n'
+          '/* And\n'
+          ' * another...\n'
+          '*/\n'
+          '\n'
+          '// Mixing it up\n'
+          '\n'
+          'class C /* is cool */ {\n'
+          '  /* int */ foo() => 42;\n'
+          '}\n'
+      );
+      expectCUFormatsTo(
+          '/// Copyright info\n'
+          '\n'
+          'library foo;\n'
+          '/// Class comment\n'
+          '//TODO: implement\n'
+          'class C {\n'
+          '}\n',
+          '/// Copyright info\n'
+          '\n'
+          'library foo;\n'
+          '/// Class comment\n'
+          '//TODO: implement\n'
+          'class C {\n'
+          '}\n'
+      );
+    });
+    
+    
     test('CU - constructor', () {
       expectCUFormatsTo(
           'class A {\n'
@@ -354,7 +484,7 @@ main() {
     test('CU - parts', () {
       expectCUFormatsTo(
         'part of foo;',
-        'part of foo;'
+        'part of foo;\n'
       );
     });
 
@@ -410,6 +540,13 @@ main() {
       expectStmtFormatsTo(
         'var numbers = <int>[1, 2, (3 + 4)];',
         'var numbers = <int>[1, 2, (3 + 4)];'
+      );
+    });
+
+    test('stmt (maps)', () {
+      expectStmtFormatsTo(
+        'var map = const {"foo": "bar", "fuz": null};',
+        'var map = const {"foo": "bar", "fuz": null};'
       );
     });
 

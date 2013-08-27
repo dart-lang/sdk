@@ -323,7 +323,7 @@ class SourceVisitor implements ASTVisitor {
     visit(scriptTag);
 
     preservePrecedingNewlines = true;
-    visitNodes(directives, separatedBy: newlines);
+    visitNodes(directives, separatedBy: newlines, followedBy: newlines);
 
     preservePrecedingNewlines = true;
     visitNodes(node.declarations, separatedBy: newlines);
@@ -535,8 +535,6 @@ class SourceVisitor implements ASTVisitor {
 
   visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     visit(node.functionDeclaration);
-    // TODO(pquitslund): fix and handle in function body
-    append(';');
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -690,7 +688,6 @@ class SourceVisitor implements ASTVisitor {
 
   visitMapLiteralEntry(MapLiteralEntry node) {
     visit(node.key);
-    space();
     token(node.separator);
     space();
     visit(node.value);
@@ -1055,6 +1052,7 @@ class SourceVisitor implements ASTVisitor {
       if (precededBy !=null) {
         precededBy();
       }
+      emitBlockComments(token);
       append(token.lexeme);
       if (followedBy != null) {
         followedBy();
@@ -1100,15 +1098,37 @@ class SourceVisitor implements ASTVisitor {
     writer.unindent();
   }
 
-  /// Emit any detected newlines or a minimum as specified by [minNewlines].
+  emitBlockComments(Token token) {
+    var comment = token.precedingComments;
+    while (comment != null) {
+      if (isBlock(comment)) {
+        append(comment.toString().trim());
+        if (linesBetween(comment.end, token.offset) >= 1) {
+          writer.newline();
+        } else {
+          space();
+        }
+      }
+      comment = comment.next;
+    }
+  }
+
+  /// Emit any detected newlines or a minimum as specified by [min].
   int emitPrecedingNewlines(Token token, {min: 0}) {
     var comment = token.precedingComments;
     var currentToken = comment != null ? comment : token;
     var lines = max(min, countNewlinesBetween(previousToken, currentToken));
     writer.newlines(lines);
+
     while (comment != null) {
-      append(comment.toString().trim());
-      writer.newline();
+      if (!isBlock(comment)) {
+        append(comment.toString().trim());
+        var nextToken = comment.next != null ? comment.next : token;
+        var postCommentNewlines =
+            max(1, countNewlinesBetween(comment, nextToken));
+        writer.newlines(postCommentNewlines);
+        lines += postCommentNewlines;
+      }
       comment = comment.next;
     }
 
@@ -1133,11 +1153,22 @@ class SourceVisitor implements ASTVisitor {
     if (last == null || current == null) {
       return 0;
     }
+
+    return linesBetween(last.end - 1, current.offset);
+  }
+
+  /// Test if this [comment] is a block comment.
+  bool isBlock(Token comment) =>
+      comment.type != TokenType.SINGLE_LINE_COMMENT &&
+        linesBetween(comment.offset, comment.end) < 1;
+
+  /// Count the lines between two offsets.
+  int linesBetween(int lastOffset, int currentOffset) {
     var lastLine =
-        lineInfo.getLocation(last.offset).lineNumber;
+        lineInfo.getLocation(lastOffset).lineNumber;
     var currentLine =
-        lineInfo.getLocation(current.offset).lineNumber;
-    return  currentLine - lastLine;
+        lineInfo.getLocation(currentOffset).lineNumber;
+    return currentLine - lastLine;
   }
 
   String toString() => writer.toString();
