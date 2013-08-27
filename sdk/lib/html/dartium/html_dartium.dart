@@ -13599,6 +13599,22 @@ class HttpRequest extends EventTarget {
     return true;
   }
 
+  /**
+   * Makes a cross-origin request to the specified URL.
+   *
+   * This API provides a subset of [request] which works on IE9. If IE9
+   * cross-origin support is not required then [request] should be used instead.
+   */
+  @Experimental()
+  static Future<String> requestCrossOrigin(String url,
+      {String method, String sendData}) {
+    if (supportsCrossOrigin) {
+      return request(url, method: method, sendData: sendData).then((xhr) {
+        return xhr.responseText;
+      });
+    }
+  }
+
   // To suppress missing implicit constructor warnings.
   factory HttpRequest._() { throw new UnsupportedError("Not supported"); }
 

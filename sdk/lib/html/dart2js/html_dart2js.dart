@@ -12919,6 +12919,43 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
     return JS('bool', '("overrideMimeType" in #)', xhr);
   }
 
+  /**
+   * Makes a cross-origin request to the specified URL.
+   *
+   * This API provides a subset of [request] which works on IE9. If IE9
+   * cross-origin support is not required then [request] should be used instead.
+   */
+  @Experimental()
+  static Future<String> requestCrossOrigin(String url,
+      {String method, String sendData}) {
+    if (supportsCrossOrigin) {
+      return request(url, method: method, sendData: sendData).then((xhr) {
+        return xhr.responseText;
+      });
+    }
+    var completer = new Completer<String>();
+    if (method == null) {
+      method = 'GET';
+    }
+    var xhr = JS('var', 'new XDomainRequest()');
+    JS('', '#.open(#, #)', xhr, method, url);
+    JS('', '#.onload = #', xhr, convertDartClosureToJS((e) {
+      var response = JS('String', '#.responseText', xhr);
+      completer.complete(response);
+    }, 1));
+    JS('', '#.onerror = #', xhr, convertDartClosureToJS((e) {
+      completer.completeError(e);
+    }, 1));
+
+    if (sendData != null) {
+      JS('', '#.send(#)', xhr, sendData);
+    } else {
+      JS('', '#.send()', xhr);
+    }
+
+    return completer.future;
+  }
+
   // To suppress missing implicit constructor warnings.
   factory HttpRequest._() { throw new UnsupportedError("Not supported"); }
 
