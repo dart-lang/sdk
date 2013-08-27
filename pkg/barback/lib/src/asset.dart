@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'asset_id.dart';
+import 'stream_replayer.dart';
 import 'utils.dart';
 
 /// A blob of content.
@@ -32,6 +33,12 @@ abstract class Asset {
 
   factory Asset.fromPath(AssetId id, String path) =>
       new _FileAsset(id, new File(path));
+
+  /// Creates an asset from a stream.
+  ///
+  /// This immediately starts draining [stream].
+  factory Asset.fromStream(AssetId id, Stream<List<int>> stream) =>
+      new _StreamAsset(id, stream);
 
   /// Returns the contents of the asset as a string.
   ///
@@ -138,4 +145,25 @@ class _StringAsset extends Asset {
         .replaceAll("\r", r"\r")
         .replaceAll("\t", r"\t");
   }
+}
+
+/// An asset whose data is available from a stream.
+class _StreamAsset extends Asset {
+  /// A stream replayer that records and replays the contents of the input
+  /// stream.
+  final StreamReplayer<List<int>> _replayer;
+
+  _StreamAsset(AssetId id, Stream<List<int>> stream)
+      : _replayer = new StreamReplayer(stream),
+        super(id);
+
+  Future<String> readAsString({Encoding encoding}) {
+    if (encoding == null) encoding = UTF8;
+    return _replayer.getReplay().toList()
+        .then((chunks) => encoding.decode(flatten(chunks)));
+  }
+
+  Stream<List<int>> read() => _replayer.getReplay();
+
+  String toString() => "Stream";
 }

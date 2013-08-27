@@ -72,6 +72,14 @@ main() {
     });
   });
 
+  group("Asset.fromStream", () {
+    test("returns an asset with the given ID", () {
+      var asset = new Asset.fromStream(id,
+          new Stream.fromFuture(new Future.value([104, 101, 108, 108, 111])));
+      expect(asset.id, equals(id));
+    });
+  });
+
   group("read()", () {
     test("gets the UTF-8-encoded string for a string asset", () {
       var asset = new Asset.fromString(id, "çøñ†éℵ™");
@@ -93,6 +101,13 @@ main() {
 
     test("gets the raw bytes for a text file", () {
       var asset = new Asset.fromPath(id, textFilePath);
+      expect(asset.read().toList(),
+          completion(equals([UTF8.encode("çøñ†éℵ™")])));
+    });
+
+    test("gets the raw bytes for a stream", () {
+      var asset = new Asset.fromStream(id,
+          new Stream.fromFuture(new Future.value(UTF8.encode("çøñ†éℵ™"))));
       expect(asset.read().toList(),
           completion(equals([UTF8.encode("çøñ†éℵ™")])));
     });
@@ -134,6 +149,29 @@ main() {
         var asset = new Asset.fromPath(id, textFilePath);
         expect(asset.readAsString(),
             completion(equals("çøñ†éℵ™")));
+      });
+    });
+
+    group("stream asset", () {
+      test("defaults to UTF-8 if encoding is omitted", () {
+        var asset = new Asset.fromStream(id,
+            new Stream.fromFuture(new Future.value(UTF8.encode("çøñ†éℵ™"))));
+        expect(asset.readAsString(),
+            completion(equals("çøñ†éℵ™")));
+      });
+
+      test("supports UTF-8", () {
+        var asset = new Asset.fromStream(id,
+            new Stream.fromFuture(new Future.value(UTF8.encode("çøñ†éℵ™"))));
+        expect(asset.readAsString(encoding: UTF8),
+            completion(equals("çøñ†éℵ™")));
+      });
+
+      test("supports ISO-8859-1", () {
+        var future = new Future.value(LATIN1.encode("blåbærgrød"));
+        var asset = new Asset.fromStream(id, new Stream.fromFuture(future));
+        expect(asset.readAsString(encoding: LATIN1),
+            completion(equals("blåbærgrød")));
       });
     });
   });
