@@ -54,7 +54,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     return true;
   }
 
-  String join([String separator]) {
+  String join([String separator = ""]) {
     Iterator<E> iterator = this.iterator;
     if (!iterator.moveNext()) return "";
     StringBuffer buffer = new StringBuffer();
@@ -245,7 +245,7 @@ abstract class IterableBase<E> implements Iterable<E> {
     return true;
   }
 
-  String join([String separator]) {
+  String join([String separator = ""]) {
     Iterator<E> iterator = this.iterator;
     if (!iterator.moveNext()) return "";
     StringBuffer buffer = new StringBuffer();

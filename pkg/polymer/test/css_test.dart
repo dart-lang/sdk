@@ -412,64 +412,62 @@ test_component_var() {
         }
       }
 
-      // Check for warning messages about var- cycles.
+      // Check for warning messages about var- cycles in no expected order.
       expect(messages.messages.length, 8);
-
-      var errorMessage = messages.messages[0];
-      expect(errorMessage.message, contains('var cycle detected var-def-1'));
-      expect(errorMessage.span, isNotNull);
-      expect(errorMessage.span.start.line, 11);
-      expect(errorMessage.span.start.column, 22);
-      expect(errorMessage.span.text, '@def-1: var(def-2)');
-
-      errorMessage = messages.messages[1];
-      expect(errorMessage.message, contains('var cycle detected var-five'));
-      expect(errorMessage.span, isNotNull);
-      expect(errorMessage.span.start.line, 8);
-      expect(errorMessage.span.start.column, 22);
-      expect(errorMessage.span.text, '@five: var(six)');
-
-      errorMessage = messages.messages[2];
-      expect(errorMessage.message, contains('var cycle detected var-six'));
-      expect(errorMessage.span, isNotNull);
-      expect(errorMessage.span.start.line, 9);
-      expect(errorMessage.span.start.column, 22);
-      expect(errorMessage.span.text, '@six: var(four)');
-
-      errorMessage = messages.messages[3];
-      expect(errorMessage.message, contains('var cycle detected var-def-3'));
-      expect(errorMessage.span, isNotNull);
-      expect(errorMessage.span.start.line, 13);
-      expect(errorMessage.span.start.column, 22);
-      expect(errorMessage.span.text, '@def-3: var(def-2)');
-
-      errorMessage = messages.messages[4];
-      expect(errorMessage.message, contains('var cycle detected var-two'));
-      expect(errorMessage.span, isNotNull);
-      expect(errorMessage.span.start.line, 5);
-      expect(errorMessage.span.start.column, 22);
-      expect(errorMessage.span.text, '@two: var(one)');
-
-      errorMessage = messages.messages[5];
-      expect(errorMessage.message, contains('var cycle detected var-def-2'));
-      expect(errorMessage.span, isNotNull);
-      expect(errorMessage.span.start.line, 12);
-      expect(errorMessage.span.start.column, 22);
-      expect(errorMessage.span.text, '@def-2: var(def-3)');
-
-      errorMessage = messages.messages[6];
-      expect(errorMessage.message, contains('var cycle detected var-one'));
-      expect(errorMessage.span, isNotNull);
-      expect(errorMessage.span.start.line, 4);
-      expect(errorMessage.span.start.column, 22);
-      expect(errorMessage.span.text, '@one: var(two)');
-
-      errorMessage = messages.messages[7];
-      expect(errorMessage.message, contains('var cycle detected var-four'));
-      expect(errorMessage.span, isNotNull);
-      expect(errorMessage.span.start.line, 7);
-      expect(errorMessage.span.start.column, 22);
-      expect(errorMessage.span.text, '@four: var(five)');
+      int testBitMap = 0;
+      for (var errorMessage in messages.messages) {
+        var message = errorMessage.message;
+        if (message.contains('var cycle detected var-def-1')) {
+          expect(errorMessage.span, isNotNull);
+          expect(errorMessage.span.start.line, 11);
+          expect(errorMessage.span.start.column, 22);
+          expect(errorMessage.span.text, '@def-1: var(def-2)');
+          testBitMap |= 1 << 0;
+        } else if (message.contains('var cycle detected var-five')) {
+          expect(errorMessage.span, isNotNull);
+          expect(errorMessage.span.start.line, 8);
+          expect(errorMessage.span.start.column, 22);
+          expect(errorMessage.span.text, '@five: var(six)');
+          testBitMap |= 1 << 1;
+        } else if (message.contains('var cycle detected var-six')) {
+          expect(errorMessage.span, isNotNull);
+          expect(errorMessage.span.start.line, 9);
+          expect(errorMessage.span.start.column, 22);
+          expect(errorMessage.span.text, '@six: var(four)');
+          testBitMap |= 1 << 2;
+        } else if (message.contains('var cycle detected var-def-3')) {
+          expect(errorMessage.span, isNotNull);
+          expect(errorMessage.span.start.line, 13);
+          expect(errorMessage.span.start.column, 22);
+          expect(errorMessage.span.text, '@def-3: var(def-2)');
+          testBitMap |= 1 << 3;
+        } else if (message.contains('var cycle detected var-two')) {
+          expect(errorMessage.span, isNotNull);
+          expect(errorMessage.span.start.line, 5);
+          expect(errorMessage.span.start.column, 22);
+          expect(errorMessage.span.text, '@two: var(one)');
+          testBitMap |= 1 << 4;
+        } else if (message.contains('var cycle detected var-def-2')) {
+          expect(errorMessage.span, isNotNull);
+          expect(errorMessage.span.start.line, 12);
+          expect(errorMessage.span.start.column, 22);
+          expect(errorMessage.span.text, '@def-2: var(def-3)');
+          testBitMap |= 1 << 5;
+        } else if (message.contains('var cycle detected var-one')) {
+          expect(errorMessage.span, isNotNull);
+          expect(errorMessage.span.start.line, 4);
+          expect(errorMessage.span.start.column, 22);
+          expect(errorMessage.span.text, '@one: var(two)');
+          testBitMap |= 1 << 6;
+        } else if (message.contains('var cycle detected var-four')) {
+          expect(errorMessage.span, isNotNull);
+          expect(errorMessage.span.start.line, 7);
+          expect(errorMessage.span.start.column, 22);
+          expect(errorMessage.span.text, '@four: var(five)');
+          testBitMap |= 1 << 7;
+        }
+      }
+      expect(testBitMap, equals((1 << 8) - 1));
     }));
   });
 }

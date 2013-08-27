@@ -78,12 +78,15 @@ void testClientDetachSocket() {
       socket.listen(
         (data) => body.write(new String.fromCharCodes(data)),
         onDone: () {
-          Expect.equals("GET / HTTP/1.1\r\n"
-                        "accept-encoding: gzip\r\n"
-                        "content-length: 0\r\n"
-                        "host: 127.0.0.1:${server.port}\r\n\r\n"
-                        "Some data",
-                        body.toString());
+          List<String> lines = body.toString().split("\r\n");
+          Expect.equals(6, lines.length);
+          Expect.equals("GET / HTTP/1.1", lines[0]);
+          Expect.equals("", lines[4]);
+          Expect.equals("Some data", lines[5]);
+          lines.sort();  // Lines 1-3 becomes 3-5 in a fixed order.
+          Expect.equals("accept-encoding: gzip", lines[3]);
+          Expect.equals("content-length: 0", lines[4]);
+          Expect.equals("host: 127.0.0.1:${server.port}", lines[5]);
           socket.close();
         });
       server.close();

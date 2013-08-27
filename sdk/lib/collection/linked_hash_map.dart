@@ -10,7 +10,7 @@ part of dart.collection;
  * Keys insertion order is remembered, and keys are iterated in insertion order.
  * Values are iterated in their corresponding key's order.
  *
- * The keys of a `HashMap` must have consistent [Object.operator==]
+ * The keys of a `LinkedHashMap` must have consistent [Object.operator==]
  * and [Object.hashCode] implementations. This means that the `==` operator
  * must define a stable equivalence relation on the keys (reflexive,
  * anti-symmetric, transitive, and consistent over time), and that `hashCode`
@@ -18,7 +18,7 @@ part of dart.collection;
  *
  * The map allows `null` as a key.
  */
-class LinkedHashMap<K, V> implements Map<K, V> {
+class LinkedHashMap<K, V> implements HashMap<K, V> {
   external LinkedHashMap();
 
   /**

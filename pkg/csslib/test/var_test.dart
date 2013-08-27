@@ -207,7 +207,7 @@ div {
 }
 
 .test-2 {
-  background: var(color-background) var(image-2, url('img_1.png')) 
+  background: var(color-background) var(image-2, url('img_1.png'))
               no-repeat right top;
 }
 
@@ -322,38 +322,44 @@ void cyclesVar() {
 
   expect(stylesheet != null, true);
   expect(errors.length, 8, reason: errors.toString());
-  expect(errors[0].toString(),
+  int testBitMap = 0;
+  var errorStrings = [
       'error :14:3: var cycle detected var-six\n'
       '  var-six: var(four);\n'
-      '  ^^^^^^^^^^^^^^^^^^');
-  expect(errors[1].toString(),
+      '  ^^^^^^^^^^^^^^^^^^',
       'error :18:3: var cycle detected var-def-3\n'
       '  var-def-3: var(def-2);\n'
-      '  ^^^^^^^^^^^^^^^^^^^^^');
-  expect(errors[2].toString(),
+      '  ^^^^^^^^^^^^^^^^^^^^^',
       'error :10:3: var cycle detected var-two\n'
       '  var-two: var(one);\n'
-      '  ^^^^^^^^^^^^^^^^^');
-  expect(errors[3].toString(),
+      '  ^^^^^^^^^^^^^^^^^',
       'error :17:3: var cycle detected var-def-2\n'
       '  var-def-2: var(def-3);\n'
-      '  ^^^^^^^^^^^^^^^^^^^^^');
-  expect(errors[4].toString(),
+      '  ^^^^^^^^^^^^^^^^^^^^^',
       'error :16:3: var cycle detected var-def-1\n'
       '  var-def-1: var(def-2);\n'
-      '  ^^^^^^^^^^^^^^^^^^^^^');
-  expect(errors[5].toString(),
+      '  ^^^^^^^^^^^^^^^^^^^^^',
       'error :13:3: var cycle detected var-five\n'
       '  var-five: var(six);\n'
-      '  ^^^^^^^^^^^^^^^^^^');
-  expect(errors[6].toString(),
+      '  ^^^^^^^^^^^^^^^^^^',
       'error :9:3: var cycle detected var-one\n'
       '  var-one: var(two);\n'
-      '  ^^^^^^^^^^^^^^^^^');
-  expect(errors[7].toString(),
+      '  ^^^^^^^^^^^^^^^^^',
       'error :12:3: var cycle detected var-four\n'
       '  var-four: var(five);\n'
-      '  ^^^^^^^^^^^^^^^^^^^');
+      '  ^^^^^^^^^^^^^^^^^^^'
+  ];
+  outer: for (var error in errors) {
+    var errorString = error.toString();
+    for (int i = 0; i < 8; i++) {
+      if (errorString == errorStrings[i]) {
+        testBitMap |= 1 << i;
+        continue outer;
+      }
+    }
+    fail("Unexpected error string: $errorString");
+  }
+  expect(testBitMap, equals((1 << 8) - 1));
   expect(prettyPrint(stylesheet), generated);
 }
 
