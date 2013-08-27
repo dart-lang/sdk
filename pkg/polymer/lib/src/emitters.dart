@@ -179,7 +179,7 @@ void transformMainHtml(Document document, FileInfo fileInfo,
   // TODO(jmesserly): put this in the global CSS file?
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#css-additions
   document.head.nodes.insert(0, parseFragment(
-      '<style>template { display: none; }</style>'));
+      '<style shadowcssshim="">template { display: none; }</style>'));
 
   // Move all <element> declarations to the main HTML file
   // TODO(sigmund): remove this once we have HTMLImports implemented.
