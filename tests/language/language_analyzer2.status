@@ -163,9 +163,6 @@ constructor3_negative_test: fail
 constructor_call_wrong_argument_count_negative_test: fail
 instance_call_wrong_argument_count_negative_test: fail
 
-# test issue 11586, Class(args) is compile-time warning, not error
-constructor_negative_test: fail
-
 # test issue 11589, export D from 2 export directives
 export_cyclic_test: fail
 

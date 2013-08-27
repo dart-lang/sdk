@@ -11,13 +11,6 @@ class Point {
   final int y;
 }
 
-
-class ConstructorNegativeTest {
-  static testMain() {
-    Point p = Point(1, 2);   // should be const or new before Point(1,2).
-  }
-}
-
 main() {
-  ConstructorNegativeTest.testMain();
+  Point p = Point(1, 2);  /// 01: static type warning, runtime error
 }

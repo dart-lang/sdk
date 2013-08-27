@@ -36,7 +36,6 @@ type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
 type_variable_bounds3_test/00: Fail # Issue 12702
 f_bounded_quantification_test/01: Fail # Issue 12703
 f_bounded_quantification_test/02: Fail # Issue 12703
-f_bounded_quantification5_test: Fail # Issue 12703
 closure_type_test: Fail # Issue 12745
 function_subtype_setter0_test: Fail # Issue 11273
 
@@ -111,8 +110,6 @@ getter_no_setter_test/01: Fail # Issue 5519
 not_enough_positional_arguments_test/01: Fail # Issue 5519
 dynamic_test: Fail # Issue 12398
 dynamic_prefix_core_test: Fail # Issue 12398
-
-constructor_negative_test: Pass # Wrong reason: the expression 'C()' is valid with class literals.
 
 metadata_test: Fail # Metadata on type parameters not supported.
 infinity_test: Fail # Issue 4984
