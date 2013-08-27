@@ -111,19 +111,15 @@ getter_no_setter_test/01: Fail # Issue 5519
 not_enough_positional_arguments_test/01: Fail # Issue 5519
 dynamic_test: Fail # Issue 12398
 dynamic_prefix_core_test: Fail # Issue 12398
-
-metadata_test: Fail # Metadata on type parameters not supported.
+metadata_test: Fail # Issue 5841
 infinity_test: Fail # Issue 4984
-positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js uses unsigned input for >>.
-
-
-# Support for optional parameters not conform to latest spec.
+positive_bit_operations_test: Fail # Issue 12795
 named_parameters_type_test: Fail
 positional_parameters_type_test: Fail
 
 # Compilation errors.
-const_var_test: Fail # Map literals take 2 type arguments.
-map_literal3_test: Fail # Map literals take 2 type arguments.
+const_var_test: Fail # Issue 12793
+map_literal3_test: Fail # Issue 12793
 function_type_alias5_test/00: Fail # Issue 12754
 function_type_alias5_test/01: Fail # Issue 12754
 function_type_alias5_test/02: Fail # Issue 12754
@@ -173,7 +169,6 @@ external_test/31: Fail
 instanceof4_test: Fail # Expect.isTrue(false) fails.
 list_literal4_test: Fail # Illegal argument(s): 0 -- checked mode test.
 map_literal4_test: Fail # Attempt to modify an immutable object -- checked mode test.
-named_parameters_type_test: Fail # Expect.equals(expected: <111>, actual: <0>) fails. -- checked mode test.
 
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 external_test/16: Fail, OK # Bad test: assumes eager loading.
@@ -359,11 +354,9 @@ named_parameters_aggregated_test/01: Fail # Issue 5519
 named_parameters_aggregated_test/03: Fail # Issue 5519
 not_enough_positional_arguments_test/01: Fail # Issue 5519
 
-metadata_test: Fail
-# Fails in conservative mode, issue 4935, passes in minifinying mode.
-argument_definition_test/*: Skip # Not implemented.
-const_var_test: Pass, Fail # Map literals take 2 type arguments.
-map_literal3_test: Fail # Map literals take 2 type arguments.
+metadata_test: Fail # Issue 12762
+const_var_test: Pass, Fail # Issue 12794
+map_literal3_test: Fail # Issue 12794
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # Common problems with dart2js.  In illegal family, invalid
