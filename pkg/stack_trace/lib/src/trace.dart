@@ -19,8 +19,14 @@ final _terseRegExp = new RegExp(r"(-patch)?(/.*)?$");
 /// V8's traces start with a line that's either just "Error" or else is a
 /// description of the exception that occurred. That description can be multiple
 /// lines, so we just look for any line other than the first that begins with
-/// four spaces and "at".
-final _v8Trace = new RegExp(r"\n    at ");
+/// three or four spaces and "at".
+final _v8Trace = new RegExp(r"\n    ?at ");
+
+/// A RegExp to match indidual lines of V8's stack traces.
+///
+/// This is intended to filter out the leading exception details of the trace
+/// though it is possible for the message to match this as well.
+final _v8TraceLine = new RegExp(r"    ?at ");
 
 /// A RegExp to match Firefox's stack traces.
 ///
@@ -106,7 +112,7 @@ class Trace implements StackTrace {
           // It's possible that an Exception's description contains a line that
           // looks like a V8 trace line, which will screw this up.
           // Unfortunately, that's impossible to detect.
-          .skipWhile((line) => !line.startsWith("    at "))
+          .skipWhile((line) => !line.startsWith(_v8TraceLine))
           .map((line) => new Frame.parseV8(line)));
 
   /// Parses a string representation of an Internet Explorer stack trace.
