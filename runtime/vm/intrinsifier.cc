@@ -141,8 +141,8 @@ void Intrinsifier::InitializeState() {
 }
 
 
-bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
-  if (!CanIntrinsify(function)) return false;
+void Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
+  if (!CanIntrinsify(function)) return;
 
   const char* function_name = String::Handle(function.name()).ToCString();
   const Class& function_class = Class::Handle(function.Owner());
@@ -167,8 +167,6 @@ bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
   } else if (lib.raw() == Library::MathLibrary()) {
     MATH_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
   }
-  return false;
-
 #undef FIND_INTRINSICS
 }
 

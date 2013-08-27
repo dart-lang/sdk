@@ -141,13 +141,13 @@ class Intrinsifier : public AllStatic {
   // Try to intrinsify 'function'. Returns true if the function intrinsified
   // completely and the code does not need to be generated (i.e., no slow
   // path possible).
-  static bool Intrinsify(const Function& function, Assembler* assembler);
+  static void Intrinsify(const Function& function, Assembler* assembler);
   static bool CanIntrinsify(const Function& function);
   static void InitializeState();
 
  private:
 #define DECLARE_FUNCTION(test_class_name, test_function_name, destination, fp) \
-  static bool destination(Assembler* assembler);
+  static void destination(Assembler* assembler);
 
   CORE_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
   CORE_INTEGER_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)

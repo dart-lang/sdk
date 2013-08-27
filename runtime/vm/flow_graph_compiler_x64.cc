@@ -1121,15 +1121,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
 
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
-  if (TryIntrinsify()) {
-    // Although this intrinsified code will never be patched, it must satisfy
-    // CodePatcher::CodeIsPatchable, which verifies that this code has a minimum
-    // code size, and nop(2) increases the minimum code size appropriately.
-    __ nop(2);
-    __ int3();
-    __ jmp(&StubCode::FixCallersTargetLabel());
-    return;
-  }
+
+  TryIntrinsify();
 
   EmitFrameEntry();
 

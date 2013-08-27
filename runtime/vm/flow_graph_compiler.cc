@@ -502,8 +502,8 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 
 // Returns 'true' if code generation for this function is complete, i.e.,
 // no fall-through to regular code is needed.
-bool FlowGraphCompiler::TryIntrinsify() {
-  if (!CanOptimizeFunction()) return false;
+void FlowGraphCompiler::TryIntrinsify() {
+  if (!CanOptimizeFunction()) return;
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
   if (FLAG_intrinsify && !FLAG_enable_type_checks) {
@@ -517,7 +517,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
       const LoadInstanceFieldNode& load_node =
           *return_node.value()->AsLoadInstanceFieldNode();
       GenerateInlinedGetter(load_node.field().Offset());
-      return true;
+      return;
     }
     if (parsed_function().function().kind() == RawFunction::kImplicitSetter) {
       // An implicit setter must have a specific AST structure.
@@ -530,7 +530,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
           *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
       if (store_node.field().guarded_cid() == kDynamicCid) {
         GenerateInlinedSetter(store_node.field().Offset());
-        return true;
+        return;
       }
     }
   }

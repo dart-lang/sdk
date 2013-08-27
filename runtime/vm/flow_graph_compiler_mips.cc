@@ -1163,14 +1163,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
 //   S4: arguments descriptor array.
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
-  if (TryIntrinsify()) {
-    // Although this intrinsified code will never be patched, it must satisfy
-    // CodePatcher::CodeIsPatchable, which verifies that this code has a minimum
-    // code size.
-    __ break_(0);
-    __ Branch(&StubCode::FixCallersTargetLabel());
-    return;
-  }
+
+  TryIntrinsify();
 
   EmitFrameEntry();
 
