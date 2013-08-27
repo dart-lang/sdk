@@ -636,18 +636,12 @@ class StandardTestSuite extends TestSuite {
   void enqueueTestCaseFromTestInformation(TestInformation info) {
     var filePath = info.filePath;
     var optionsFromFile = info.optionsFromFile;
-    var isNegative = info.hasCompileError;
-    if (info.hasRuntimeError && hasRuntime) {
-      isNegative = true;
-    }
 
     // Look up expectations in status files using a test name generated
     // from the test file's path.
     String testName;
 
     if (optionsFromFile['isMultitest']) {
-      // Multitests do not run on browsers.
-      if (TestUtils.isBrowserRuntime(configuration['runtime'])) return;
       // Multitests are in [build directory]/generated_tests/... .
       // The test name will be '[test filename (no extension)]/[multitest key].
       String name = filePath.filenameWithoutExtension;
@@ -676,7 +670,8 @@ class StandardTestSuite extends TestSuite {
     Set<String> expectations = testExpectations.expectations(testName);
     if (info.hasCompileError &&
         TestUtils.isBrowserRuntime(configuration['runtime']) &&
-        configuration['report']) {
+        configuration['report'] &&
+        configuration['compiler'] != 'none') {
       SummaryReport.addCompileErrorSkipTest();
       return;
     }
@@ -721,20 +716,6 @@ class StandardTestSuite extends TestSuite {
   void enqueueStandardTest(TestInformation info,
                            String testName,
                            Set<String> expectations) {
-    bool isNegative = info.hasCompileError ||
-        (configuration['checked'] && info.isNegativeIfChecked);
-    if (info.hasRuntimeError && hasRuntime) {
-      isNegative = true;
-    }
-
-    if (configuration['analyzer']) {
-      // An analyzer can detect static type warnings by the
-      // format of the error line
-      if (info.hasFatalTypeErrors) {
-        isNegative = true;
-      }
-    }
-
     var commonArguments = commonArgumentsFromFile(info.filePath,
                                                   info.optionsFromFile);
 
@@ -751,9 +732,25 @@ class StandardTestSuite extends TestSuite {
                           makeCommands(info, allVmOptions, commonArguments),
                           configuration,
                           expectations,
-                          isNegative: isNegative,
+                          isNegative: isNegative(info),
                           info: info));
     }
+  }
+
+  bool isNegative(TestInformation info) {
+    bool negative = info.hasCompileError ||
+        (configuration['checked'] && info.isNegativeIfChecked);
+    if (info.hasRuntimeError && hasRuntime) {
+      negative = true;
+    }
+    if (configuration['analyzer']) {
+      // An analyzer can detect static type warnings by the
+      // format of the error line
+      if (info.hasFatalTypeErrors) {
+        negative = true;
+      }
+    }
+    return negative;
   }
 
   List<Command> makeCommands(TestInformation info, var vmOptions, var args) {
@@ -1089,11 +1086,11 @@ class StandardTestSuite extends TestSuite {
           testCase = new BrowserTestCase(testDisplayName,
               commandSet, configuration,
               expectations['$testName/${subtestNames[subtestIndex]}'],
-              info, info.hasCompileError || info.hasRuntimeError, fullHtmlPath);
+              info, isNegative(info), fullHtmlPath);
         } else {
           testCase = new BrowserTestCase(testDisplayName,
               commandSet, configuration, expectations,
-              info, info.hasCompileError || info.hasRuntimeError, fullHtmlPath);
+              info, isNegative(info), fullHtmlPath);
         }
 
         doTest(testCase);
@@ -1895,7 +1892,7 @@ class TestUtils {
     return new Path(path);
   }
 
-  /** 
+  /**
    * Gets extra vm options passed to the testing script.
    */
   static List<String> getExtraVmOptions(Map configuration) {
