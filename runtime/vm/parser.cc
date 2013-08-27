@@ -2747,50 +2747,47 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   }
   ASSERT((CurrentToken() == Token::kLPAREN) || func.IsGetterFunction());
   const bool allow_explicit_default_values = true;
-  if (!func.IsGetterFunction()) {
-    ParseFormalParameterList(allow_explicit_default_values, &params);
+  if (func.IsGetterFunction()) {
+    // Populate function scope with the formal parameters. Since in this case
+    // we are compiling a getter this will at most populate the receiver.
+    AddFormalParamsToScope(&params, current_block_->scope);
   } else {
-    // TODO(hausner): Remove this once we no longer support the old
-    // getter syntax with explicit empty parameter list.
-    if (CurrentToken() == Token::kLPAREN) {
-      ConsumeToken();
-      ExpectToken(Token::kRPAREN);
+    ParseFormalParameterList(allow_explicit_default_values, &params);
+
+    // The number of parameters and their type are not yet set in local
+    // functions, since they are not 'top-level' parsed.
+    if (func.IsLocalFunction()) {
+      AddFormalParamsToFunction(&params, func);
     }
-  }
+    SetupDefaultsForOptionalParams(&params, default_parameter_values);
+    ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+    ASSERT(func.NumParameters() == params.parameters->length());
 
-  // The number of parameters and their type are not yet set in local functions,
-  // since they are not 'top-level' parsed.
-  if (func.IsLocalFunction()) {
-    AddFormalParamsToFunction(&params, func);
-  }
-  SetupDefaultsForOptionalParams(&params, default_parameter_values);
-  ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-  ASSERT(func.NumParameters() == params.parameters->length());
-
-  // Check whether the function has any field initializer formal parameters,
-  // which are not allowed in non-constructor functions.
-  if (params.has_field_initializer) {
-    for (int i = 0; i < params.parameters->length(); i++) {
-      ParamDesc& param = (*params.parameters)[i];
-      if (param.is_field_initializer) {
-        ErrorMsg(param.name_pos,
-                 "field initializer only allowed in constructors");
+    // Check whether the function has any field initializer formal parameters,
+    // which are not allowed in non-constructor functions.
+    if (params.has_field_initializer) {
+      for (int i = 0; i < params.parameters->length(); i++) {
+        ParamDesc& param = (*params.parameters)[i];
+        if (param.is_field_initializer) {
+          ErrorMsg(param.name_pos,
+                   "field initializer only allowed in constructors");
+        }
       }
     }
-  }
-  // Populate function scope with the formal parameters.
-  AddFormalParamsToScope(&params, current_block_->scope);
+    // Populate function scope with the formal parameters.
+    AddFormalParamsToScope(&params, current_block_->scope);
 
-  if (FLAG_enable_type_checks &&
-      (current_block_->scope->function_level() > 0)) {
-    // We are parsing, but not compiling, a local function.
-    // The instantiator may be required at run time for generic type checks.
-    if (IsInstantiatorRequired()) {
-      // Make sure that the receiver of the enclosing instance function
-      // (or implicit first parameter of an enclosing factory) is marked as
-      // captured if type checks are enabled, because they may access it to
-      // instantiate types.
-      CaptureInstantiator();
+    if (FLAG_enable_type_checks &&
+        (current_block_->scope->function_level() > 0)) {
+      // We are parsing, but not compiling, a local function.
+      // The instantiator may be required at run time for generic type checks.
+      if (IsInstantiatorRequired()) {
+        // Make sure that the receiver of the enclosing instance function
+        // (or implicit first parameter of an enclosing factory) is marked as
+        // captured if type checks are enabled, because they may access it to
+        // instantiate types.
+        CaptureInstantiator();
+      }
     }
   }
 
