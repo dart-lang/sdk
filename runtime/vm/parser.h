@@ -337,8 +337,10 @@ class Parser : public ValueObject {
   void ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                              intptr_t metadata_pos);
   void ParseClassDefinition(const Class& cls);
-  void ParseMixinTypedef(const GrowableObjectArray& pending_classes);
-  void ParseTypedef(const GrowableObjectArray& pending_classes);
+  void ParseMixinTypedef(const GrowableObjectArray& pending_classes,
+                         intptr_t metadata_pos);
+  void ParseTypedef(const GrowableObjectArray& pending_classes,
+                    intptr_t metadata_pos);
   void ParseTopLevelVariable(TopLevel* top_level, intptr_t metadata_pos);
   void ParseTopLevelFunction(TopLevel* top_level, intptr_t metadata_pos);
   void ParseTopLevelAccessor(TopLevel* top_level, intptr_t metadata_pos);

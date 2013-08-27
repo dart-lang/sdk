@@ -3824,7 +3824,8 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
 }
 
 
-void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
+void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
+                               intptr_t metadata_pos) {
   TRACE_PARSER("ParseMixinTypedef");
   const intptr_t classname_pos = TokenPos();
   String& class_name = *ExpectUserDefinedTypeIdentifier("class name expected");
@@ -3877,6 +3878,9 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
   }
   ExpectSemicolon();
   pending_classes.Add(mixin_application, Heap::kOld);
+  if (metadata_pos >= 0) {
+    library_.AddClassMetadata(mixin_application, metadata_pos);
+  }
 }
 
 
@@ -3920,12 +3924,13 @@ bool Parser::IsMixinTypedef() {
 }
 
 
-void Parser::ParseTypedef(const GrowableObjectArray& pending_classes) {
+void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
+                          intptr_t metadata_pos) {
   TRACE_PARSER("ParseTypedef");
   ExpectToken(Token::kTYPEDEF);
 
   if (IsMixinTypedef()) {
-    ParseMixinTypedef(pending_classes);
+    ParseMixinTypedef(pending_classes, metadata_pos);
     return;
   }
 
@@ -4032,6 +4037,9 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes) {
   ASSERT(!function_type_alias.IsCanonicalSignatureClass());
   ASSERT(!function_type_alias.is_finalized());
   pending_classes.Add(function_type_alias, Heap::kOld);
+  if (metadata_pos >= 0) {
+    library_.AddClassMetadata(function_type_alias, metadata_pos);
+  }
 }
 
 
@@ -4886,7 +4894,7 @@ void Parser::ParseTopLevel() {
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
                (LookaheadToken(1) != Token::kLPAREN)) {
       set_current_class(toplevel_class);
-      ParseTypedef(pending_classes);
+      ParseTypedef(pending_classes, metadata_pos);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
       ParseClassDeclaration(pending_classes, metadata_pos);

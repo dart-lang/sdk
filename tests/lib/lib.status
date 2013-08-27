@@ -26,6 +26,7 @@ mirrors/null_test : Fail # Issue 12129
 mirrors/library_metadata_test: Fail # Issue 10905
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
 mirrors/reflected_type_test: Fail # Issue 12607
+mirrors/typedef_metadata_test: Fail # Issue 12785
 mirrors/unnamed_library_test: Fail # Issue 10580
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
