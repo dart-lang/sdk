@@ -4,6 +4,7 @@
 
 library console;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:polymer/src/file_system.dart';
