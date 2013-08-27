@@ -239,6 +239,11 @@ class UnionTypeMask implements TypeMask {
     return disjointMasks.every((e) => e.willHit(selector, compiler));
   }
 
+  bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {
+    return disjointMasks.any(
+        (e) => e.needsNoSuchMethodHandling(selector, compiler));
+  }
+
   bool canHit(Element element, Selector selector, Compiler compiler) {
     return disjointMasks.any((e) => e.canHit(element, selector, compiler));
   }

@@ -572,6 +572,10 @@ class DynamicTypeMask implements TypeMask {
   Element locateSingleElement(Selector selector, Compiler compiler) {
     throw new UnsupportedError("");
   }
+
+  bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {
+    throw new UnsupportedError("");
+  }
 }
 
 /**

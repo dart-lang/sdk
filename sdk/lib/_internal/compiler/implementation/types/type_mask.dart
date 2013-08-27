@@ -103,6 +103,12 @@ abstract class TypeMask {
   bool willHit(Selector selector, Compiler compiler);
 
   /**
+   * Returns whether this [TypeMask] applied to [selector] can hit a
+   * [noSuchMethod].
+   */
+  bool needsNoSuchMethodHandling(Selector selector, Compiler compiler);
+
+  /**
    * Returns whether [element] is a potential target when being
    * invoked on this type mask. [selector] is used to ensure library
    * privacy is taken into account.

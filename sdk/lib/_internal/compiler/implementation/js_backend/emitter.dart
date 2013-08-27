@@ -2816,57 +2816,12 @@ class CodeEmitterTask extends CompilerTask {
       DartType objectType = objectClass.computeType(compiler);
 
       for (Selector selector in selectors) {
-        // If the selector is typed, we check to see if that type may
-        // have a user-defined noSuchMethod implementation. If not, we
-        // skip the selector altogether.
-
         TypeMask mask = selector.mask;
         if (mask == null) {
           mask = new TypeMask.subclass(compiler.objectClass.rawType);
         }
 
-        // If the receiver is guaranteed to have a member that
-        // matches what we're looking for, there's no need to
-        // introduce a noSuchMethod handler. It will never be called.
-        //
-        // As an example, consider this class hierarchy:
-        //
-        //                   A    <-- noSuchMethod
-        //                  / \
-        //                 C   B  <-- foo
-        //
-        // If we know we're calling foo on an object of type B we
-        // don't have to worry about the noSuchMethod method in A
-        // because objects of type B implement foo. On the other hand,
-        // if we end up calling foo on something of type C we have to
-        // add a handler for it.
-
-        // If the holders of all user-defined noSuchMethod
-        // implementations that might be applicable to the receiver
-        // type have a matching member for the current name and
-        // selector, we avoid introducing a noSuchMethod handler.
-        //
-        // As an example, consider this class hierarchy:
-        //
-        //                       A    <-- foo
-        //                      / \
-        //   noSuchMethod -->  B   C  <-- bar
-        //                     |   |
-        //                     C   D  <-- noSuchMethod
-        //
-        // When calling foo on an object of type A, we know that the
-        // implementations of noSuchMethod are in the classes B and D
-        // that also (indirectly) implement foo, so we do not need a
-        // handler for it.
-        //
-        // If we're calling bar on an object of type D, we don't need
-        // the handler either because all objects of type D implement
-        // bar through inheritance.
-        //
-        // If we're calling bar on an object of type A we do need the
-        // handler because we may have to call B.noSuchMethod since B
-        // does not implement bar.
-        if (mask.willHit(selector, compiler)) continue;
+        if (!mask.needsNoSuchMethodHandling(selector, compiler)) continue;
         String jsName = namer.invocationMirrorInternalName(selector);
         addedJsNames[jsName] = selector;
         String reflectionName = getReflectionName(selector, jsName);
