@@ -5942,7 +5942,7 @@ AstNode* Parser::ParseIfStatement(String* label_name) {
 
 CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
                                   SourceLabel* case_label) {
-  TRACE_PARSER("ParseCaseStatement");
+  TRACE_PARSER("ParseCaseClause");
   bool default_seen = false;
   const intptr_t case_pos = TokenPos();
   // The case expressions node sequence does not own the enclosing scope.
@@ -5954,7 +5954,7 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
       }
       ConsumeToken();  // Keyword case.
       const intptr_t expr_pos = TokenPos();
-      AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
+      AstNode* expr = ParseExpr(kRequireConst, kConsumeCascades);
       AstNode* switch_expr_load = new LoadLocalNode(case_pos,
                                                     switch_expr_value);
       AstNode* case_comparison = new ComparisonNode(expr_pos,
@@ -6023,19 +6023,10 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
   SourceLabel* label =
       SourceLabel::New(switch_pos, label_name, SourceLabel::kSwitch);
   ConsumeToken();
-  const bool parens_are_mandatory = false;
-  bool paren_found = false;
-  if (CurrentToken() == Token::kLPAREN) {
-    paren_found = true;
-    ConsumeToken();
-  } else if (parens_are_mandatory) {
-    ErrorMsg("'(' expected");
-  }
+  ExpectToken(Token::kLPAREN);
   const intptr_t expr_pos = TokenPos();
   AstNode* switch_expr = ParseExpr(kAllowConst, kConsumeCascades);
-  if (paren_found) {
-    ExpectToken(Token::kRPAREN);
-  }
+  ExpectToken(Token::kRPAREN);
   ExpectToken(Token::kLBRACE);
   OpenBlock();
   current_block_->scope->AddLabel(label);
@@ -6072,7 +6063,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
         // the forward reference.
         case_label->ResolveForwardReference();
       } else {
-        ErrorMsg(label_pos, "name '%s' already exists in scope",
+        ErrorMsg(label_pos, "label '%s' already exists in scope",
                  label_name->ToCString());
       }
       ASSERT(case_label->kind() == SourceLabel::kCase);
@@ -6093,6 +6084,9 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
       break;
     }
   }
+
+  // TODO(hausner): Check that all expressions in case clauses are
+  // of the same class, or implement int or String (issue 7307).
 
   // Check for unresolved label references.
   SourceLabel* unresolved_label =

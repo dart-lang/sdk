@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that double literals with no fractional part is not treated as having
-// static type int.
+// Test reporting a compile-time error if case expressions do not all have
+// the same type.
 
 import "package:expect/expect.dart";
 
