@@ -21,7 +21,6 @@ part of dart._collection.dev;
 //    tools/dom/templates/html/dartium/web_sql_dartium.darttemplate
 //    sdk/lib/core/regexp.dart
 
-@deprecated
 const deprecated = 0;
 
 /**
