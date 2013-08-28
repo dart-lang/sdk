@@ -8,12 +8,9 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'asset_cascade.dart';
-import 'asset_id.dart';
 import 'asset_node.dart';
 import 'errors.dart';
-import 'phase_input.dart';
-import 'stream_pool.dart';
-import 'transformer.dart';
+import 'phase.dart';
 import 'utils.dart';
 
 /// A class that handles a single output of a phase.
@@ -113,7 +110,7 @@ class PhaseOutput {
         _outputController.setAvailable(newOutput.asset);
       } else {
         assert(newOutput.isDirty);
-        if (!output.isDirty) _outputController.setDirty();
+        if (!output.state.isDirty) _outputController.setDirty();
       }
     }
 
