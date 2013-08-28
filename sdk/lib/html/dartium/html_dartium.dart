@@ -351,7 +351,7 @@ class AnimationEvent extends Event {
 
   @DomName('WebKitAnimationEvent.elapsedTime')
   @DocsEditable()
-  num get elapsedTime native "WebKitAnimationEvent_elapsedTime_Getter";
+  double get elapsedTime native "WebKitAnimationEvent_elapsedTime_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1473,7 +1473,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  num get backingStorePixelRatio native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
+  double get backingStorePixelRatio native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
 
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable()
@@ -2363,31 +2363,31 @@ class Coordinates extends NativeFieldWrapperClass1 {
 
   @DomName('Coordinates.accuracy')
   @DocsEditable()
-  num get accuracy native "Coordinates_accuracy_Getter";
+  double get accuracy native "Coordinates_accuracy_Getter";
 
   @DomName('Coordinates.altitude')
   @DocsEditable()
-  num get altitude native "Coordinates_altitude_Getter";
+  double get altitude native "Coordinates_altitude_Getter";
 
   @DomName('Coordinates.altitudeAccuracy')
   @DocsEditable()
-  num get altitudeAccuracy native "Coordinates_altitudeAccuracy_Getter";
+  double get altitudeAccuracy native "Coordinates_altitudeAccuracy_Getter";
 
   @DomName('Coordinates.heading')
   @DocsEditable()
-  num get heading native "Coordinates_heading_Getter";
+  double get heading native "Coordinates_heading_Getter";
 
   @DomName('Coordinates.latitude')
   @DocsEditable()
-  num get latitude native "Coordinates_latitude_Getter";
+  double get latitude native "Coordinates_latitude_Getter";
 
   @DomName('Coordinates.longitude')
   @DocsEditable()
-  num get longitude native "Coordinates_longitude_Getter";
+  double get longitude native "Coordinates_longitude_Getter";
 
   @DomName('Coordinates.speed')
   @DocsEditable()
-  num get speed native "Coordinates_speed_Getter";
+  double get speed native "Coordinates_speed_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7148,15 +7148,15 @@ class DeviceAcceleration extends NativeFieldWrapperClass1 {
 
   @DomName('DeviceAcceleration.x')
   @DocsEditable()
-  num get x native "DeviceAcceleration_x_Getter";
+  double get x native "DeviceAcceleration_x_Getter";
 
   @DomName('DeviceAcceleration.y')
   @DocsEditable()
-  num get y native "DeviceAcceleration_y_Getter";
+  double get y native "DeviceAcceleration_y_Getter";
 
   @DomName('DeviceAcceleration.z')
   @DocsEditable()
-  num get z native "DeviceAcceleration_z_Getter";
+  double get z native "DeviceAcceleration_z_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7184,7 +7184,7 @@ class DeviceMotionEvent extends Event {
 
   @DomName('DeviceMotionEvent.interval')
   @DocsEditable()
-  num get interval native "DeviceMotionEvent_interval_Getter";
+  double get interval native "DeviceMotionEvent_interval_Getter";
 
   @DomName('DeviceMotionEvent.rotationRate')
   @DocsEditable()
@@ -7218,15 +7218,15 @@ class DeviceOrientationEvent extends Event {
 
   @DomName('DeviceOrientationEvent.alpha')
   @DocsEditable()
-  num get alpha native "DeviceOrientationEvent_alpha_Getter";
+  double get alpha native "DeviceOrientationEvent_alpha_Getter";
 
   @DomName('DeviceOrientationEvent.beta')
   @DocsEditable()
-  num get beta native "DeviceOrientationEvent_beta_Getter";
+  double get beta native "DeviceOrientationEvent_beta_Getter";
 
   @DomName('DeviceOrientationEvent.gamma')
   @DocsEditable()
-  num get gamma native "DeviceOrientationEvent_gamma_Getter";
+  double get gamma native "DeviceOrientationEvent_gamma_Getter";
 
   @DomName('DeviceOrientationEvent.initDeviceOrientationEvent')
   @DocsEditable()
@@ -7248,15 +7248,15 @@ class DeviceRotationRate extends NativeFieldWrapperClass1 {
 
   @DomName('DeviceRotationRate.alpha')
   @DocsEditable()
-  num get alpha native "DeviceRotationRate_alpha_Getter";
+  double get alpha native "DeviceRotationRate_alpha_Getter";
 
   @DomName('DeviceRotationRate.beta')
   @DocsEditable()
-  num get beta native "DeviceRotationRate_beta_Getter";
+  double get beta native "DeviceRotationRate_beta_Getter";
 
   @DomName('DeviceRotationRate.gamma')
   @DocsEditable()
-  num get gamma native "DeviceRotationRate_gamma_Getter";
+  double get gamma native "DeviceRotationRate_gamma_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16076,7 +16076,7 @@ class MediaController extends EventTarget {
 
   @DomName('MediaController.duration')
   @DocsEditable()
-  num get duration native "MediaController_duration_Getter";
+  double get duration native "MediaController_duration_Getter";
 
   @DomName('MediaController.muted')
   @DocsEditable()
@@ -16369,7 +16369,7 @@ class MediaElement extends HtmlElement {
 
   @DomName('HTMLMediaElement.duration')
   @DocsEditable()
-  num get duration native "HTMLMediaElement_duration_Getter";
+  double get duration native "HTMLMediaElement_duration_Getter";
 
   @DomName('HTMLMediaElement.ended')
   @DocsEditable()
@@ -16383,7 +16383,7 @@ class MediaElement extends HtmlElement {
   @DocsEditable()
   // http://www.w3.org/TR/2011/WD-html5-20110113/video.html#dom-media-initialtime
   @Experimental()
-  num get initialTime native "HTMLMediaElement_initialTime_Getter";
+  double get initialTime native "HTMLMediaElement_initialTime_Getter";
 
   @DomName('HTMLMediaElement.loop')
   @DocsEditable()
@@ -16472,7 +16472,7 @@ class MediaElement extends HtmlElement {
   @DomName('HTMLMediaElement.startTime')
   @DocsEditable()
   @Experimental() // non-standard
-  num get startTime native "HTMLMediaElement_startTime_Getter";
+  double get startTime native "HTMLMediaElement_startTime_Getter";
 
   @DomName('HTMLMediaElement.textTracks')
   @DocsEditable()
@@ -17891,7 +17891,7 @@ class MidiMessageEvent extends Event {
 
   @DomName('MIDIMessageEvent.receivedTime')
   @DocsEditable()
-  num get receivedTime native "MIDIMessageEvent_receivedTime_Getter";
+  double get receivedTime native "MIDIMessageEvent_receivedTime_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20312,7 +20312,7 @@ class Performance extends EventTarget {
 
   @DomName('Performance.now')
   @DocsEditable()
-  num now() native "Performance_now_Callback";
+  double now() native "Performance_now_Callback";
 
   @DomName('Performance.webkitClearResourceTimings')
   @DocsEditable()
@@ -20361,7 +20361,7 @@ class PerformanceEntry extends NativeFieldWrapperClass1 {
 
   @DomName('PerformanceEntry.duration')
   @DocsEditable()
-  num get duration native "PerformanceEntry_duration_Getter";
+  double get duration native "PerformanceEntry_duration_Getter";
 
   @DomName('PerformanceEntry.entryType')
   @DocsEditable()
@@ -20373,7 +20373,7 @@ class PerformanceEntry extends NativeFieldWrapperClass1 {
 
   @DomName('PerformanceEntry.startTime')
   @DocsEditable()
-  num get startTime native "PerformanceEntry_startTime_Getter";
+  double get startTime native "PerformanceEntry_startTime_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20462,23 +20462,23 @@ class PerformanceResourceTiming extends PerformanceEntry {
 
   @DomName('PerformanceResourceTiming.connectEnd')
   @DocsEditable()
-  num get connectEnd native "PerformanceResourceTiming_connectEnd_Getter";
+  double get connectEnd native "PerformanceResourceTiming_connectEnd_Getter";
 
   @DomName('PerformanceResourceTiming.connectStart')
   @DocsEditable()
-  num get connectStart native "PerformanceResourceTiming_connectStart_Getter";
+  double get connectStart native "PerformanceResourceTiming_connectStart_Getter";
 
   @DomName('PerformanceResourceTiming.domainLookupEnd')
   @DocsEditable()
-  num get domainLookupEnd native "PerformanceResourceTiming_domainLookupEnd_Getter";
+  double get domainLookupEnd native "PerformanceResourceTiming_domainLookupEnd_Getter";
 
   @DomName('PerformanceResourceTiming.domainLookupStart')
   @DocsEditable()
-  num get domainLookupStart native "PerformanceResourceTiming_domainLookupStart_Getter";
+  double get domainLookupStart native "PerformanceResourceTiming_domainLookupStart_Getter";
 
   @DomName('PerformanceResourceTiming.fetchStart')
   @DocsEditable()
-  num get fetchStart native "PerformanceResourceTiming_fetchStart_Getter";
+  double get fetchStart native "PerformanceResourceTiming_fetchStart_Getter";
 
   @DomName('PerformanceResourceTiming.initiatorType')
   @DocsEditable()
@@ -20486,30 +20486,30 @@ class PerformanceResourceTiming extends PerformanceEntry {
 
   @DomName('PerformanceResourceTiming.redirectEnd')
   @DocsEditable()
-  num get redirectEnd native "PerformanceResourceTiming_redirectEnd_Getter";
+  double get redirectEnd native "PerformanceResourceTiming_redirectEnd_Getter";
 
   @DomName('PerformanceResourceTiming.redirectStart')
   @DocsEditable()
-  num get redirectStart native "PerformanceResourceTiming_redirectStart_Getter";
+  double get redirectStart native "PerformanceResourceTiming_redirectStart_Getter";
 
   @DomName('PerformanceResourceTiming.requestStart')
   @DocsEditable()
   @Experimental() // nonstandard
-  num get requestStart native "PerformanceResourceTiming_requestStart_Getter";
+  double get requestStart native "PerformanceResourceTiming_requestStart_Getter";
 
   @DomName('PerformanceResourceTiming.responseEnd')
   @DocsEditable()
   @Experimental() // nonstandard
-  num get responseEnd native "PerformanceResourceTiming_responseEnd_Getter";
+  double get responseEnd native "PerformanceResourceTiming_responseEnd_Getter";
 
   @DomName('PerformanceResourceTiming.responseStart')
   @DocsEditable()
   @Experimental() // nonstandard
-  num get responseStart native "PerformanceResourceTiming_responseStart_Getter";
+  double get responseStart native "PerformanceResourceTiming_responseStart_Getter";
 
   @DomName('PerformanceResourceTiming.secureConnectionStart')
   @DocsEditable()
-  num get secureConnectionStart native "PerformanceResourceTiming_secureConnectionStart_Getter";
+  double get secureConnectionStart native "PerformanceResourceTiming_secureConnectionStart_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20904,7 +20904,7 @@ class ProgressElement extends HtmlElement {
 
   @DomName('HTMLProgressElement.position')
   @DocsEditable()
-  num get position native "HTMLProgressElement_position_Getter";
+  double get position native "HTMLProgressElement_position_Getter";
 
   @DomName('HTMLProgressElement.value')
   @DocsEditable()
@@ -23112,7 +23112,7 @@ class SpeechInputResult extends NativeFieldWrapperClass1 {
 
   @DomName('SpeechInputResult.confidence')
   @DocsEditable()
-  num get confidence native "SpeechInputResult_confidence_Getter";
+  double get confidence native "SpeechInputResult_confidence_Getter";
 
   @DomName('SpeechInputResult.utterance')
   @DocsEditable()
@@ -23316,7 +23316,7 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
 
   @DomName('SpeechRecognitionAlternative.confidence')
   @DocsEditable()
-  num get confidence native "SpeechRecognitionAlternative_confidence_Getter";
+  double get confidence native "SpeechRecognitionAlternative_confidence_Getter";
 
   @DomName('SpeechRecognitionAlternative.transcript')
   @DocsEditable()
@@ -23475,7 +23475,7 @@ class SpeechSynthesisEvent extends Event {
 
   @DomName('SpeechSynthesisEvent.elapsedTime')
   @DocsEditable()
-  num get elapsedTime native "SpeechSynthesisEvent_elapsedTime_Getter";
+  double get elapsedTime native "SpeechSynthesisEvent_elapsedTime_Getter";
 
   @DomName('SpeechSynthesisEvent.name')
   @DocsEditable()
@@ -25067,7 +25067,7 @@ class TextMetrics extends NativeFieldWrapperClass1 {
 
   @DomName('TextMetrics.width')
   @DocsEditable()
-  num get width native "TextMetrics_width_Getter";
+  double get width native "TextMetrics_width_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25484,11 +25484,11 @@ class TimeRanges extends NativeFieldWrapperClass1 {
 
   @DomName('TimeRanges.end')
   @DocsEditable()
-  num end(int index) native "TimeRanges_end_Callback";
+  double end(int index) native "TimeRanges_end_Callback";
 
   @DomName('TimeRanges.start')
   @DocsEditable()
-  num start(int index) native "TimeRanges_start_Callback";
+  double start(int index) native "TimeRanges_start_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25566,7 +25566,7 @@ class Touch extends NativeFieldWrapperClass1 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  num get force native "Touch_webkitForce_Getter";
+  double get force native "Touch_webkitForce_Getter";
 
   @DomName('Touch.webkitRadiusX')
   @DocsEditable()
@@ -25587,7 +25587,7 @@ class Touch extends NativeFieldWrapperClass1 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  num get rotationAngle native "Touch_webkitRotationAngle_Getter";
+  double get rotationAngle native "Touch_webkitRotationAngle_Getter";
 
 
   @DomName('Touch.clientX')
@@ -25872,7 +25872,7 @@ class TransitionEvent extends Event {
 
   @DomName('TransitionEvent.elapsedTime')
   @DocsEditable()
-  num get elapsedTime native "TransitionEvent_elapsedTime_Getter";
+  double get elapsedTime native "TransitionEvent_elapsedTime_Getter";
 
   @DomName('TransitionEvent.propertyName')
   @DocsEditable()
@@ -26893,7 +26893,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DocsEditable()
   // http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html
   @Experimental() // non-standard
-  num get devicePixelRatio native "Window_devicePixelRatio_Getter";
+  double get devicePixelRatio native "Window_devicePixelRatio_Getter";
 
   @DomName('Window.document')
   @DocsEditable()
@@ -27945,7 +27945,7 @@ class WorkerPerformance extends NativeFieldWrapperClass1 {
   @DomName('WorkerPerformance.now')
   @DocsEditable()
   @Experimental() // untriaged
-  num now() native "WorkerPerformance_now_Callback";
+  double now() native "WorkerPerformance_now_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28082,7 +28082,7 @@ class XPathResult extends NativeFieldWrapperClass1 {
 
   @DomName('XPathResult.numberValue')
   @DocsEditable()
-  num get numberValue native "XPathResult_numberValue_Getter";
+  double get numberValue native "XPathResult_numberValue_Getter";
 
   @DomName('XPathResult.resultType')
   @DocsEditable()
@@ -28372,27 +28372,27 @@ class _ClientRect extends NativeFieldWrapperClass1 implements Rect {
 
   @DomName('ClientRect.bottom')
   @DocsEditable()
-  num get bottom native "ClientRect_bottom_Getter";
+  double get bottom native "ClientRect_bottom_Getter";
 
   @DomName('ClientRect.height')
   @DocsEditable()
-  num get height native "ClientRect_height_Getter";
+  double get height native "ClientRect_height_Getter";
 
   @DomName('ClientRect.left')
   @DocsEditable()
-  num get left native "ClientRect_left_Getter";
+  double get left native "ClientRect_left_Getter";
 
   @DomName('ClientRect.right')
   @DocsEditable()
-  num get right native "ClientRect_right_Getter";
+  double get right native "ClientRect_right_Getter";
 
   @DomName('ClientRect.top')
   @DocsEditable()
-  num get top native "ClientRect_top_Getter";
+  double get top native "ClientRect_top_Getter";
 
   @DomName('ClientRect.width')
   @DocsEditable()
-  num get width native "ClientRect_width_Getter";
+  double get width native "ClientRect_width_Getter";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

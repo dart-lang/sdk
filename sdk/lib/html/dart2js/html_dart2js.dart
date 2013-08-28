@@ -264,7 +264,7 @@ class AnimationEvent extends Event native "WebKitAnimationEvent" {
 
   @DomName('WebKitAnimationEvent.elapsedTime')
   @DocsEditable()
-  final num elapsedTime;
+  final double elapsedTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1180,7 +1180,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  final num backingStorePixelRatio;
+  final double backingStorePixelRatio;
 
   @JSName('arc')
   @DomName('CanvasRenderingContext2D.arc')
@@ -1974,31 +1974,31 @@ class Coordinates extends Interceptor native "Coordinates" {
 
   @DomName('Coordinates.accuracy')
   @DocsEditable()
-  final num accuracy;
+  final double accuracy;
 
   @DomName('Coordinates.altitude')
   @DocsEditable()
-  final num altitude;
+  final double altitude;
 
   @DomName('Coordinates.altitudeAccuracy')
   @DocsEditable()
-  final num altitudeAccuracy;
+  final double altitudeAccuracy;
 
   @DomName('Coordinates.heading')
   @DocsEditable()
-  final num heading;
+  final double heading;
 
   @DomName('Coordinates.latitude')
   @DocsEditable()
-  final num latitude;
+  final double latitude;
 
   @DomName('Coordinates.longitude')
   @DocsEditable()
-  final num longitude;
+  final double longitude;
 
   @DomName('Coordinates.speed')
   @DocsEditable()
-  final num speed;
+  final double speed;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6563,15 +6563,15 @@ class DeviceAcceleration extends Interceptor native "DeviceAcceleration" {
 
   @DomName('DeviceAcceleration.x')
   @DocsEditable()
-  final num x;
+  final double x;
 
   @DomName('DeviceAcceleration.y')
   @DocsEditable()
-  final num y;
+  final double y;
 
   @DomName('DeviceAcceleration.z')
   @DocsEditable()
-  final num z;
+  final double z;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6596,7 +6596,7 @@ class DeviceMotionEvent extends Event native "DeviceMotionEvent" {
 
   @DomName('DeviceMotionEvent.interval')
   @DocsEditable()
-  final num interval;
+  final double interval;
 
   @DomName('DeviceMotionEvent.rotationRate')
   @DocsEditable()
@@ -6629,15 +6629,15 @@ class DeviceOrientationEvent extends Event native "DeviceOrientationEvent" {
 
   @DomName('DeviceOrientationEvent.alpha')
   @DocsEditable()
-  final num alpha;
+  final double alpha;
 
   @DomName('DeviceOrientationEvent.beta')
   @DocsEditable()
-  final num beta;
+  final double beta;
 
   @DomName('DeviceOrientationEvent.gamma')
   @DocsEditable()
-  final num gamma;
+  final double gamma;
 
   @JSName('initDeviceOrientationEvent')
   @DomName('DeviceOrientationEvent.initDeviceOrientationEvent')
@@ -6658,15 +6658,15 @@ class DeviceRotationRate extends Interceptor native "DeviceRotationRate" {
 
   @DomName('DeviceRotationRate.alpha')
   @DocsEditable()
-  final num alpha;
+  final double alpha;
 
   @DomName('DeviceRotationRate.beta')
   @DocsEditable()
-  final num beta;
+  final double beta;
 
   @DomName('DeviceRotationRate.gamma')
   @DocsEditable()
-  final num gamma;
+  final double gamma;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14981,7 +14981,7 @@ class MediaController extends EventTarget native "MediaController" {
 
   @DomName('MediaController.duration')
   @DocsEditable()
-  final num duration;
+  final double duration;
 
   @DomName('MediaController.muted')
   @DocsEditable()
@@ -15223,7 +15223,7 @@ class MediaElement extends HtmlElement native "HTMLMediaElement" {
 
   @DomName('HTMLMediaElement.duration')
   @DocsEditable()
-  final num duration;
+  final double duration;
 
   @DomName('HTMLMediaElement.ended')
   @DocsEditable()
@@ -15237,7 +15237,7 @@ class MediaElement extends HtmlElement native "HTMLMediaElement" {
   @DocsEditable()
   // http://www.w3.org/TR/2011/WD-html5-20110113/video.html#dom-media-initialtime
   @Experimental()
-  final num initialTime;
+  final double initialTime;
 
   @DomName('HTMLMediaElement.loop')
   @DocsEditable()
@@ -15296,7 +15296,7 @@ class MediaElement extends HtmlElement native "HTMLMediaElement" {
   @DomName('HTMLMediaElement.startTime')
   @DocsEditable()
   @Experimental() // non-standard
-  final num startTime;
+  final double startTime;
 
   @DomName('HTMLMediaElement.textTracks')
   @DocsEditable()
@@ -16513,7 +16513,7 @@ class MidiMessageEvent extends Event native "MIDIMessageEvent" {
 
   @DomName('MIDIMessageEvent.receivedTime')
   @DocsEditable()
-  final num receivedTime;
+  final double receivedTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18775,7 +18775,7 @@ class Performance extends EventTarget native "Performance" {
 
   @DomName('Performance.now')
   @DocsEditable()
-  num now() native;
+  double now() native;
 
   @JSName('webkitClearResourceTimings')
   @DomName('Performance.webkitClearResourceTimings')
@@ -18808,7 +18808,7 @@ class PerformanceEntry extends Interceptor native "PerformanceEntry" {
 
   @DomName('PerformanceEntry.duration')
   @DocsEditable()
-  final num duration;
+  final double duration;
 
   @DomName('PerformanceEntry.entryType')
   @DocsEditable()
@@ -18820,7 +18820,7 @@ class PerformanceEntry extends Interceptor native "PerformanceEntry" {
 
   @DomName('PerformanceEntry.startTime')
   @DocsEditable()
-  final num startTime;
+  final double startTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18897,23 +18897,23 @@ class PerformanceResourceTiming extends PerformanceEntry native "PerformanceReso
 
   @DomName('PerformanceResourceTiming.connectEnd')
   @DocsEditable()
-  final num connectEnd;
+  final double connectEnd;
 
   @DomName('PerformanceResourceTiming.connectStart')
   @DocsEditable()
-  final num connectStart;
+  final double connectStart;
 
   @DomName('PerformanceResourceTiming.domainLookupEnd')
   @DocsEditable()
-  final num domainLookupEnd;
+  final double domainLookupEnd;
 
   @DomName('PerformanceResourceTiming.domainLookupStart')
   @DocsEditable()
-  final num domainLookupStart;
+  final double domainLookupStart;
 
   @DomName('PerformanceResourceTiming.fetchStart')
   @DocsEditable()
-  final num fetchStart;
+  final double fetchStart;
 
   @DomName('PerformanceResourceTiming.initiatorType')
   @DocsEditable()
@@ -18921,30 +18921,30 @@ class PerformanceResourceTiming extends PerformanceEntry native "PerformanceReso
 
   @DomName('PerformanceResourceTiming.redirectEnd')
   @DocsEditable()
-  final num redirectEnd;
+  final double redirectEnd;
 
   @DomName('PerformanceResourceTiming.redirectStart')
   @DocsEditable()
-  final num redirectStart;
+  final double redirectStart;
 
   @DomName('PerformanceResourceTiming.requestStart')
   @DocsEditable()
   @Experimental() // nonstandard
-  final num requestStart;
+  final double requestStart;
 
   @DomName('PerformanceResourceTiming.responseEnd')
   @DocsEditable()
   @Experimental() // nonstandard
-  final num responseEnd;
+  final double responseEnd;
 
   @DomName('PerformanceResourceTiming.responseStart')
   @DocsEditable()
   @Experimental() // nonstandard
-  final num responseStart;
+  final double responseStart;
 
   @DomName('PerformanceResourceTiming.secureConnectionStart')
   @DocsEditable()
-  final num secureConnectionStart;
+  final double secureConnectionStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19306,7 +19306,7 @@ class ProgressElement extends HtmlElement native "HTMLProgressElement" {
 
   @DomName('HTMLProgressElement.position')
   @DocsEditable()
-  final num position;
+  final double position;
 
   @DomName('HTMLProgressElement.value')
   @DocsEditable()
@@ -21291,7 +21291,7 @@ class SpeechInputResult extends Interceptor native "SpeechInputResult" {
 
   @DomName('SpeechInputResult.confidence')
   @DocsEditable()
-  final num confidence;
+  final double confidence;
 
   @DomName('SpeechInputResult.utterance')
   @DocsEditable()
@@ -21452,7 +21452,7 @@ class SpeechRecognitionAlternative extends Interceptor native "SpeechRecognition
 
   @DomName('SpeechRecognitionAlternative.confidence')
   @DocsEditable()
-  final num confidence;
+  final double confidence;
 
   @DomName('SpeechRecognitionAlternative.transcript')
   @DocsEditable()
@@ -21598,7 +21598,7 @@ class SpeechSynthesisEvent extends Event native "SpeechSynthesisEvent" {
 
   @DomName('SpeechSynthesisEvent.elapsedTime')
   @DocsEditable()
-  final num elapsedTime;
+  final double elapsedTime;
 
   @DomName('SpeechSynthesisEvent.name')
   @DocsEditable()
@@ -23077,7 +23077,7 @@ class TextMetrics extends Interceptor native "TextMetrics" {
 
   @DomName('TextMetrics.width')
   @DocsEditable()
-  final num width;
+  final double width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23385,11 +23385,11 @@ class TimeRanges extends Interceptor native "TimeRanges" {
 
   @DomName('TimeRanges.end')
   @DocsEditable()
-  num end(int index) native;
+  double end(int index) native;
 
   @DomName('TimeRanges.start')
   @DocsEditable()
-  num start(int index) native;
+  double start(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23474,7 +23474,7 @@ class Touch extends Interceptor native "Touch" {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  final num force;
+  final double force;
 
   @JSName('webkitRadiusX')
   @DomName('Touch.webkitRadiusX')
@@ -23498,7 +23498,7 @@ class Touch extends Interceptor native "Touch" {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  final num rotationAngle;
+  final double rotationAngle;
 
 
   @DomName('Touch.clientX')
@@ -23757,7 +23757,7 @@ class TransitionEvent extends Event native "TransitionEvent,WebKitTransitionEven
 
   @DomName('TransitionEvent.elapsedTime')
   @DocsEditable()
-  final num elapsedTime;
+  final double elapsedTime;
 
   @DomName('TransitionEvent.propertyName')
   @DocsEditable()
@@ -25007,7 +25007,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DocsEditable()
   // http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html
   @Experimental() // non-standard
-  final num devicePixelRatio;
+  final double devicePixelRatio;
 
   @DomName('Window.event')
   @DocsEditable()
@@ -26046,7 +26046,7 @@ class WorkerPerformance extends Interceptor native "WorkerPerformance" {
   @DomName('WorkerPerformance.now')
   @DocsEditable()
   @Experimental() // untriaged
-  num now() native;
+  double now() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26170,7 +26170,7 @@ class XPathResult extends Interceptor native "XPathResult" {
 
   @DomName('XPathResult.numberValue')
   @DocsEditable()
-  final num numberValue;
+  final double numberValue;
 
   @DomName('XPathResult.resultType')
   @DocsEditable()
@@ -26436,27 +26436,27 @@ class _ClientRect extends Interceptor implements Rect native "ClientRect" {
 
   @DomName('ClientRect.bottom')
   @DocsEditable()
-  final num bottom;
+  final double bottom;
 
   @DomName('ClientRect.height')
   @DocsEditable()
-  final num height;
+  final double height;
 
   @DomName('ClientRect.left')
   @DocsEditable()
-  final num left;
+  final double left;
 
   @DomName('ClientRect.right')
   @DocsEditable()
-  final num right;
+  final double right;
 
   @DomName('ClientRect.top')
   @DocsEditable()
-  final num top;
+  final double top;
 
   @DomName('ClientRect.width')
   @DocsEditable()
-  final num width;
+  final double width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

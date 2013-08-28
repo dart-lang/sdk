@@ -435,18 +435,18 @@ class DartiumBackend(HtmlDartGenerator):
         TO_DART=to_dart_emitter.Fragments())
 
   def EmitAttribute(self, attribute, html_name, read_only):
-    self._AddGetter(attribute, html_name)
+    self._AddGetter(attribute, html_name, read_only)
     if not read_only:
       self._AddSetter(attribute, html_name)
 
-  def _AddGetter(self, attr, html_name):
+  def _AddGetter(self, attr, html_name, read_only):
     # Temporary hack to force dart:scalarlist clamped array for ImageData.data.
     # TODO(antonm): solve in principled way.
     if self._interface.id == 'ImageData' and html_name == 'data':
       html_name = '_data'
     type_info = self._TypeInfo(attr.type.id)
     dart_declaration = '%s get %s' % (
-        self.SecureOutputType(attr.type.id), html_name)
+        self.SecureOutputType(attr.type.id, False, read_only), html_name)
     is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, 'Getter', is_custom)
@@ -616,7 +616,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     dart_declaration = '%s%s %s(%s)' % (
         'static ' if info.IsStatic() else '',
-        self.SecureOutputType(info.type_name),
+        self.SecureOutputType(info.type_name, False, True),
         html_name,
         info.ParametersDeclaration(self._DartType))
 
@@ -1080,13 +1080,6 @@ class DartiumBackend(HtmlDartGenerator):
     return re.sub(r'^(create|exclusive)',
                   lambda s: 'is' + s.group(1).capitalize(),
                   name)
-
-  def _TypeInfo(self, type_name):
-    return self._type_registry.TypeInfo(type_name)
-
-  def _DartType(self, type_name):
-    return self._type_registry.DartType(type_name)
-
 
 class CPPLibraryEmitter():
   def __init__(self, emitters, cpp_sources_dir):

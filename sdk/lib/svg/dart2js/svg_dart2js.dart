@@ -336,7 +336,7 @@ class AnimatedNumber extends Interceptor native "SVGAnimatedNumber" {
 
   @DomName('SVGAnimatedNumber.animVal')
   @DocsEditable()
-  final num animVal;
+  final double animVal;
 
   @DomName('SVGAnimatedNumber.baseVal')
   @DocsEditable()
@@ -470,15 +470,15 @@ class AnimationElement extends SvgElement implements ExternalResourcesRequired, 
 
   @DomName('SVGAnimationElement.getCurrentTime')
   @DocsEditable()
-  num getCurrentTime() native;
+  double getCurrentTime() native;
 
   @DomName('SVGAnimationElement.getSimpleDuration')
   @DocsEditable()
-  num getSimpleDuration() native;
+  double getSimpleDuration() native;
 
   @DomName('SVGAnimationElement.getStartTime')
   @DocsEditable()
-  num getStartTime() native;
+  double getStartTime() native;
 
   // From SVGExternalResourcesRequired
 
@@ -3398,7 +3398,7 @@ class PathElement extends GraphicsElement implements ExternalResourcesRequired n
 
   @DomName('SVGPathElement.getTotalLength')
   @DocsEditable()
-  num getTotalLength() native;
+  double getTotalLength() native;
 
   // From SVGExternalResourcesRequired
 
@@ -4923,19 +4923,19 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ExternalRes
 
   @DomName('SVGSVGElement.pixelUnitToMillimeterX')
   @DocsEditable()
-  final num pixelUnitToMillimeterX;
+  final double pixelUnitToMillimeterX;
 
   @DomName('SVGSVGElement.pixelUnitToMillimeterY')
   @DocsEditable()
-  final num pixelUnitToMillimeterY;
+  final double pixelUnitToMillimeterY;
 
   @DomName('SVGSVGElement.screenPixelToMillimeterX')
   @DocsEditable()
-  final num screenPixelToMillimeterX;
+  final double screenPixelToMillimeterX;
 
   @DomName('SVGSVGElement.screenPixelToMillimeterY')
   @DocsEditable()
-  final num screenPixelToMillimeterY;
+  final double screenPixelToMillimeterY;
 
   @DomName('SVGSVGElement.useCurrentView')
   @DocsEditable()
@@ -5019,7 +5019,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ExternalRes
 
   @DomName('SVGSVGElement.getCurrentTime')
   @DocsEditable()
-  num getCurrentTime() native;
+  double getCurrentTime() native;
 
   @DomName('SVGSVGElement.getElementById')
   @DocsEditable()
@@ -5210,7 +5210,7 @@ class TextContentElement extends GraphicsElement implements ExternalResourcesReq
 
   @DomName('SVGTextContentElement.getComputedTextLength')
   @DocsEditable()
-  num getComputedTextLength() native;
+  double getComputedTextLength() native;
 
   @DomName('SVGTextContentElement.getEndPositionOfChar')
   @DocsEditable()
@@ -5226,7 +5226,7 @@ class TextContentElement extends GraphicsElement implements ExternalResourcesReq
 
   @DomName('SVGTextContentElement.getRotationOfChar')
   @DocsEditable()
-  num getRotationOfChar(int offset) native;
+  double getRotationOfChar(int offset) native;
 
   @DomName('SVGTextContentElement.getStartPositionOfChar')
   @DocsEditable()
@@ -5234,7 +5234,7 @@ class TextContentElement extends GraphicsElement implements ExternalResourcesReq
 
   @DomName('SVGTextContentElement.getSubStringLength')
   @DocsEditable()
-  num getSubStringLength(int offset, int length) native;
+  double getSubStringLength(int offset, int length) native;
 
   @DomName('SVGTextContentElement.selectSubString')
   @DocsEditable()
@@ -5404,7 +5404,7 @@ class Transform extends Interceptor native "SVGTransform" {
 
   @DomName('SVGTransform.angle')
   @DocsEditable()
-  final num angle;
+  final double angle;
 
   @DomName('SVGTransform.matrix')
   @DocsEditable()
@@ -5770,7 +5770,7 @@ class ZoomEvent extends UIEvent native "SVGZoomEvent" {
 
   @DomName('SVGZoomEvent.newScale')
   @DocsEditable()
-  final num newScale;
+  final double newScale;
 
   @DomName('SVGZoomEvent.newTranslate')
   @DocsEditable()
@@ -5778,7 +5778,7 @@ class ZoomEvent extends UIEvent native "SVGZoomEvent" {
 
   @DomName('SVGZoomEvent.previousScale')
   @DocsEditable()
-  final num previousScale;
+  final double previousScale;
 
   @DomName('SVGZoomEvent.previousTranslate')
   @DocsEditable()

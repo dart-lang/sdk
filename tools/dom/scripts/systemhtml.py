@@ -763,7 +763,7 @@ class Dart2JSBackend(HtmlDartGenerator):
           '    return $INDEXED_GETTER;\n'
           '  }',
           INDEXED_GETTER=indexed_getter,
-          TYPE=self.SecureOutputType(element_type))
+          TYPE=self.SecureOutputType(element_type, False, True))
 
     if 'CustomIndexedSetter' in self._interface.ext_attrs:
       self._members_emitter.Emit(
@@ -808,7 +808,7 @@ class Dart2JSBackend(HtmlDartGenerator):
               '  // final $TYPE $NAME;\n',
               SUPER=super_attribute_interface,
               NAME=html_name,
-              TYPE=self.SecureOutputType(attribute.type.id))
+              TYPE=self.SecureOutputType(attribute.type.id, False, read_only))
           return
       self._members_emitter.Emit('\n  // Shadowing definition.')
       self._AddAttributeUsingProperties(attribute, html_name, read_only)
@@ -821,7 +821,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       self._AddAttributeUsingProperties(attribute, html_name, read_only)
       return
 
-    output_type = self.SecureOutputType(attribute.type.id)
+    output_type = self.SecureOutputType(attribute.type.id, False, read_only)
     input_type = self._NarrowInputType(attribute.type.id)
     metadata = self._Metadata(attribute.type.id, attribute.id, output_type)
     rename = self._RenamingAnnotation(attribute.id, html_name)
@@ -954,7 +954,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         METADATA=self._Metadata(info.type_name, info.declared_name,
             self.SecureOutputType(info.type_name)),
         MODIFIERS='static ' if info.IsStatic() else '',
-        TYPE=self.SecureOutputType(info.type_name),
+        TYPE=self.SecureOutputType(info.type_name, False, True),
         NAME=html_name,
         PARAMS=info.ParametersDeclaration(self._NarrowInputType))
 
@@ -1059,7 +1059,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._members_emitter.Emit(
         '\n'
         '  $TYPE $NAME($PARAMS);\n',
-        TYPE=self.SecureOutputType(info.type_name),
+        TYPE=self.SecureOutputType(info.type_name, False, True),
         NAME=info.name,
         PARAMS=info.ParametersDeclaration(self._NarrowInputType))
 
@@ -1156,9 +1156,6 @@ class Dart2JSBackend(HtmlDartGenerator):
       return (None, None)
 
     return FindInParent(self._interface) if attr else (None, None)
-
-  def _DartType(self, type_name):
-    return self._type_registry.DartType(type_name)
 
 # ------------------------------------------------------------------------------
 
