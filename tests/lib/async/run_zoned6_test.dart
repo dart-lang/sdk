@@ -14,12 +14,13 @@ main() {
     runZonedExperimental(() { throw 0; },
                         onError: (e) {
                           Expect.equals(0, e);
-                          asyncEnd();
+                          if (false) /// 01: runtime error
+                            asyncEnd();
                           throw e;  /// 01: runtime error
                         });
   } catch (e) {
     // We should never see an error here.
-    if (true)  /// 01: continued
+    if (false)  /// 01: continued
       rethrow;
   }
 }
