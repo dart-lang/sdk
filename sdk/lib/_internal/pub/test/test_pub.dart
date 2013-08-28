@@ -424,7 +424,8 @@ ScheduledProcess startPublish(ScheduledServer server, {List args}) {
 void confirmPublish(ScheduledProcess pub) {
   // TODO(rnystrom): This is overly specific and inflexible regarding different
   // test packages. Should validate this a little more loosely.
-  expect(pub.nextLine(), completion(equals('Publishing "test_pkg" 1.0.0:')));
+  expect(pub.nextLine(), completion(startsWith(
+      'Publishing "test_pkg" 1.0.0 to ')));
   expect(pub.nextLine(), completion(equals("|-- LICENSE")));
   expect(pub.nextLine(), completion(equals("|-- lib")));
   expect(pub.nextLine(), completion(equals("|   '-- test_pkg.dart")));

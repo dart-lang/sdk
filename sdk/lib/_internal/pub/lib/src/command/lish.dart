@@ -106,7 +106,7 @@ class LishCommand extends PubCommand {
       // Show the package contents so the user can verify they look OK.
       var package = entrypoint.root;
       log.message(
-          'Publishing "${package.name}" ${package.version}:\n'
+          'Publishing "${package.name}" ${package.version} to $server:\n'
           '${generateTree(files, baseDir: entrypoint.root.dir)}');
 
       return createTarGz(files, baseDir: entrypoint.root.dir);
