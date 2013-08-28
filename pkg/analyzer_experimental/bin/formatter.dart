@@ -16,12 +16,16 @@ const BINARY_NAME = 'dartfmt';
 final dartFileRegExp = new RegExp(r'^[^.].*\.dart$', caseSensitive: false);
 final argParser = _initArgParser();
 
+bool overwriteFileContents;
+
 void main() {
   var options = argParser.parse(new Options().arguments);
   if (options['help']) {
     _printUsage();
     return;
   }
+  overwriteFileContents = options['write'];
+  
   if (options.rest.isEmpty) {
     _formatStdin(options);
   } else {
@@ -50,15 +54,17 @@ _formatResource(resource) {
 _formatDirectory(dir) => 
     dir.listSync().forEach((resource) => _formatResource(resource));
 
-
 void _formatFile(file) {
   if (_isDartFile(file)) {
     try {
       var buffer = new StringBuffer();
       var rawSource = file.readAsStringSync();
       var formatted = _formatCU(rawSource);
-      print(formatted);
-      file.writeAsStringSync(formatted);
+      if (overwriteFileContents) {
+        file.writeAsStringSync(formatted);
+      } else {
+        print(formatted);
+      }
     } catch (e) {
       _log('Error formatting "${file.path}": $e');
     }
