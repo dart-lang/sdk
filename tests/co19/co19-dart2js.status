@@ -255,13 +255,38 @@ Language/07_Classes/3_Setters_A04_t07: Fail # http://dartbug.com/5023
 
 Language/07_Classes/07_Classes_A03_t10: Fail # http://dartbug.com/6687
 
-
 #
 # Unexpected runtime errors.
 #
 [ $compiler == dart2js ]
 Language/03_Overview/1_Scoping_A01_t39: Fail # dartbug.com/7202
 
+[ $compiler == dart2js && $runtime == ie9 ]
+# These are most likey due to the fact that IE9 doesn't support typed data
+LibTest/typed_data/Float32List/*: fail, crash # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float32x4/*: fail, crash # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float32x4List/*: fail, crash # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float64List/*: fail, crash # co19-roll r559: Please triage this failure
+LibTest/typed_data/Int8List/*: fail, crash # co19-roll r559: Please triage this failure
+LibTest/typed_data/Int16List/*: fail, crash # co19-roll r559: Please triage this failure
+LibTest/typed_data/Int32List/*: fail, crash # co19-roll r559: Please triage this failure
+LibTest/typed_data/Int64List/*: fail, crash # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint8ClampedList/*: fail, crash # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint8List/*: fail, crash # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint16List/*: fail, crash # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint32List/*: fail, crash # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint32x4/*: fail, crash # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint64List/*: fail, crash # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float32List/Float32List_A02_t01: pass # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float32x4List/Float32x4List_A02_t01: pass # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float64List/Float64List_A02_t01: pass # co19-roll r559: Please triage this failure
+LibTest/typed_data/Int16List/Int16List_A02_t01: pass # co19-roll r559: Please triage this failure
+LibTest/typed_data/Int32List/Int32List_A02_t01: pass # co19-roll r559: Please triage this failure
+LibTest/typed_data/Int8List/Int8List_A02_t01: pass # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint16List/Uint16List_A02_t01: pass # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint32List/Uint32List_A02_t01: pass # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint8ClampedList/Uint8ClampedList_A02_t01: pass # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint8List/Uint8List_A02_t01: pass # co19-roll r559: Please triage this failure
 
 [ $compiler == dart2js ]
 Language/03_Overview/1_Scoping_A02_t28: fail # co19-roll r559: Please triage this failure
