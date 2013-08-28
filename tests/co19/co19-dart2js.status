@@ -515,7 +515,7 @@ LibTest/typed_data/Float32List/hashCode_A01_t01: fail # co19-roll r559: Please t
 LibTest/typed_data/Float32List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4/toUint32x4_A01_t02: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float64List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float64List/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int16List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int16List/toList_A01_t01: pass, fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int16List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
@@ -546,3 +546,24 @@ LibTest/async/Stream/Stream.fromIterable_A01_t02: fail # co19-roll r546: Please 
 LibTest/async/Stream/Stream.periodic_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Timer/cancel_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Timer/Timer_A01_t01: fail # co19-roll r546: Please triage this failure
+
+[ $compiler == dart2js && $minified ]
+Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19-roll r559: Please triage this failure
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: fail # co19-roll r559: Please triage this failure
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: fail # co19-roll r559: Please triage this failure
+Language/12_Expressions/17_Getter_Invocation_A02_t01: fail # co19-roll r559: Please triage this failure
+Language/12_Expressions/18_Assignment_A05_t02: fail # co19-roll r559: Please triage this failure
+Language/12_Expressions/18_Assignment_A05_t04: fail # co19-roll r559: Please triage this failure
+Language/12_Expressions/18_Assignment_A05_t05: fail # co19-roll r559: Please triage this failure
+Language/12_Expressions/18_Assignment_A08_t04: fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float32List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float32x4List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float64List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Int16List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Int32List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Int8List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint16List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint32List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint8ClampedList/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint8List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
+

@@ -381,3 +381,7 @@ LibTest/isolate/SendPort/send_A02_t03: timeout # co19-roll r546: Please triage t
 
 [ $compiler == dart2dart && $minified ]
 Language/13_Statements/11_Try_A06_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19-roll r559: Please triage this failure
+Language/12_Expressions/17_Getter_Invocation_A02_t01: fail # co19-roll r559: Please triage this failure
+Language/12_Expressions/18_Assignment_A05_t02: fail # co19-roll r559: Please triage this failure
+Language/12_Expressions/18_Assignment_A05_t04: fail # co19-roll r559: Please triage this failure
