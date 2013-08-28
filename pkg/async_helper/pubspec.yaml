@@ -1,0 +1,9 @@
+name: async_helper
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
+description: >
+ Async_helper is used for asynchronous tests that do not want to
+ make use of the Dart unittest library - for example, the core
+ language tests.
+ Third parties are discouraged from using this, and should use
+ the facilities provided in the unittest library.
