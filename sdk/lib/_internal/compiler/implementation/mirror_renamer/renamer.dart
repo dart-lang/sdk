@@ -47,7 +47,8 @@ class MirrorRenamer {
    * code to mangled names appearing in output code, and [topLevelNodes] should
    * contain all the toplevel ast nodes that will be emitted in the output.
    */
-  void addRenames(Map<Node, String> renames, List<Node> topLevelNodes) {
+  void addRenames(Map<Node, String> renames, List<Node> topLevelNodes,
+                  PlaceholderCollector placeholderCollector) {
     // Right now we only support instances of MirrorSystem.getName,
     // hence if there are no occurence of these we don't do anything.
     if (mirrorSystemGetNameNodes.isEmpty) {
@@ -59,13 +60,12 @@ class MirrorRenamer {
       return compiler.parser.parseCompilationUnit(tokens);
     }
 
-    // Add toplevel map containing all renames.
+    // Add toplevel map containing all renames of members.
     symbols = new Map<String, SourceString>();
-    for (Node node in renames.keys) {
-      Identifier identifier = node.asIdentifier();
-      if (identifier != null) {
-        symbols.putIfAbsent(renames[node], () => identifier.source);
-      }
+    for (Set<Identifier> s in placeholderCollector.memberPlaceholders.values) {
+      // All members in a set have the same name so we only need to look at one.
+      Identifier sampleNode = s.first;
+      symbols.putIfAbsent(renames[sampleNode], () => sampleNode.source);
     }
 
     Identifier symbolsMapIdentifier =

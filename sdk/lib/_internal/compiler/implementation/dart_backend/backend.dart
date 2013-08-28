@@ -476,7 +476,7 @@ class DartBackend extends Backend {
     }
 
     if (useMirrorHelperLibrary) {
-      mirrorRenamer.addRenames(renames, topLevelNodes);
+      mirrorRenamer.addRenames(renames, topLevelNodes, collector);
     }
 
     final unparser = new EmitterUnparser(renames);

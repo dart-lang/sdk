@@ -58,9 +58,8 @@ void testWithMirrorRenaming({bool minify}) {
   Node getNameFunctionNode =
       backend.memberNodes.values.first.first.body.statements.nodes.head;
 
-  Expect.equals(
-      const SourceString(MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION),
-      mirrorRenamer.symbols[renames[getNameFunctionNode.expression.selector]]);
+  Expect.equals(renames[mirrorRenamer.mirrorHelperGetNameFunctionNode.name],
+                renames[getNameFunctionNode.expression.selector]);
   Expect.equals("",
                 renames[getNameFunctionNode.expression.receiver]);
   Expect.equals(1, imports.keys.length);

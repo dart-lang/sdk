@@ -48,8 +48,6 @@ void testWithMirrorHelperLibrary({bool minify}) {
 
   Expect.isFalse(null == backend.mirrorHelperLibrary);
   Expect.isFalse(null == backend.mirrorHelperGetNameFunction);
-  Expect.isTrue(symbols.containsValue(
-      const SourceString(MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION)));
 
   for (Node n in renames.keys) {
     if (symbols.containsKey(renames[n])) {
@@ -69,10 +67,10 @@ void testWithMirrorHelperLibrary({bool minify}) {
 
 
   if (minify) {
-    Expect.equals(1, i.length);
+    Expect.equals(0, i.length);
   } else {
-    // Appears twice in code (defined & called) and twice in renames map.
-    Expect.equals(4, i.length);
+    // Appears twice in code (defined & called).
+    Expect.equals(2, i.length);
   }
 
   String mapMatch = 'const<String,SourceString>';

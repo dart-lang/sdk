@@ -11,7 +11,7 @@ import 'dart:mirrors';
 
 /// The compiler will replace this variable with a map containing all the
 /// renames made in dart2dart.
-const Map _SYMBOLS = null;
+const Map<String, String> _SYMBOLS = null;
 
 /// This method is a wrapper for MirrorSystem.getName() and will be inlined and
 /// called in the generated output Dart code.
