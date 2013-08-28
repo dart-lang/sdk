@@ -29,6 +29,10 @@ export "dart:convert" show JsonUnsupportedObjectError, JsonCyclicError;
  * Throws [FormatException] if the input is not valid JSON text.
  */
 parse(String json, [reviver(var key, var value)]) {
+  if (reviver != null) {
+    var original = reviver;
+    reviver = (key, value) => original(key == null ? "" : key, value);
+  }
   return JSON.decode(json, reviver: reviver);
 }
 

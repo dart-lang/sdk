@@ -90,5 +90,5 @@ _convertJsonToDart(json, reviver(key, value)) {
     return map;
   }
 
-  return revive("", walk(json));
+  return revive(null, walk(json));
 }

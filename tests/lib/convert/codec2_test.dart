@@ -22,12 +22,12 @@ main() {
 
   // Test that the reviver is passed to the decoder.
   var decoded = JSON.decode('{"p": 5}', reviver: (k, v) {
-    if (k == "") return v;
+    if (k == null) return v;
     return v * 2;
   });
   Expect.equals(10, decoded["p"]);
   var jsonWithReviver = new JsonCodec.withReviver((k, v) {
-    if (k == "") return v;
+    if (k == null) return v;
     return v * 2;
   });
   decoded = jsonWithReviver.decode('{"p": 5}');

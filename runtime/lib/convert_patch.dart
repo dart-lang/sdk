@@ -133,7 +133,7 @@ class _ReviverJsonListener extends _BuildJsonListener {
   }
 
   get result {
-    return reviver("", value);
+    return reviver(null, value);
   }
 }
 
