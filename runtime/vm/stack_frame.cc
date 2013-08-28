@@ -154,7 +154,9 @@ RawCode* StackFrame::GetCodeObject() const {
 }
 
 
-bool StackFrame::FindExceptionHandler(uword* handler_pc) const {
+bool StackFrame::FindExceptionHandler(uword* handler_pc,
+                                      bool* needs_stacktrace,
+                                      bool* is_catch_all) const {
   const Code& code = Code::Handle(LookupDartCode());
   if (code.IsNull()) {
     return false;  // Stub frames do not have exception handlers.
@@ -163,13 +165,15 @@ bool StackFrame::FindExceptionHandler(uword* handler_pc) const {
   // Find pc descriptor for the current pc.
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
+  ExceptionHandlers& handlers = ExceptionHandlers::Handle();
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if ((static_cast<uword>(descriptors.PC(i)) == pc()) &&
         (descriptors.TryIndex(i) != -1)) {
       const intptr_t try_index = descriptors.TryIndex(i);
-      const ExceptionHandlers& handlers =
-          ExceptionHandlers::Handle(code.exception_handlers());
+      handlers = code.exception_handlers();
       *handler_pc = handlers.HandlerPC(try_index);
+      *needs_stacktrace = handlers.NeedsStacktrace(try_index);
+      *is_catch_all = handlers.HasCatchAll(try_index);
       return true;
     }
   }

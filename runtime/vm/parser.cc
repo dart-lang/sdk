@@ -6554,6 +6554,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   current_block_->scope->AddLabel(end_catch_label);
   const GrowableObjectArray& handler_types =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
+  bool needs_stacktrace = false;
   while ((CurrentToken() == Token::kCATCH) || IsLiteral("on")) {
     const intptr_t catch_pos = TokenPos();
     CatchParamDesc exception_param;
@@ -6614,6 +6615,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       // A stack trace variable is specified in this block, so generate code
       // to load the stack trace object (:stacktrace_var) into the stack trace
       // variable specified in this block.
+      needs_stacktrace = true;
       ArgumentListNode* no_args = new ArgumentListNode(catch_pos);
       LocalVariable* trace = LookupLocalScope(*stack_trace_param.var);
       ASSERT(catch_trace_var != NULL);
@@ -6730,7 +6732,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
                           catch_trace_var,
                           (finally_block != NULL)
                               ? AllocateTryIndex()
-                              : CatchClauseNode::kInvalidTryIndex);
+                              : CatchClauseNode::kInvalidTryIndex,
+                          needs_stacktrace);
 
   // Now create the try/catch ast node and return it. If there is a label
   // on the try/catch, close the block that's embedding the try statement

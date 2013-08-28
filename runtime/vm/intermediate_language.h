@@ -1516,13 +1516,15 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
                        const Array& handler_types,
                        intptr_t catch_try_index,
                        const LocalVariable& exception_var,
-                       const LocalVariable& stacktrace_var)
+                       const LocalVariable& stacktrace_var,
+                       bool needs_stacktrace)
       : BlockEntryInstr(block_id, try_index),
         predecessor_(NULL),
         catch_handler_types_(Array::ZoneHandle(handler_types.raw())),
         catch_try_index_(catch_try_index),
         exception_var_(exception_var),
-        stacktrace_var_(stacktrace_var) { }
+        stacktrace_var_(stacktrace_var),
+        needs_stacktrace_(needs_stacktrace) { }
 
   DECLARE_INSTRUCTION(CatchBlockEntry)
 
@@ -1536,6 +1538,8 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
 
   const LocalVariable& exception_var() const { return exception_var_; }
   const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
+
+  bool needs_stacktrace() const { return needs_stacktrace_; }
 
   // Returns try index for the try block to which this catch handler
   // corresponds.
@@ -1563,6 +1567,7 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   GrowableArray<Definition*> initial_definitions_;
   const LocalVariable& exception_var_;
   const LocalVariable& stacktrace_var_;
+  const bool needs_stacktrace_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchBlockEntryInstr);
 };

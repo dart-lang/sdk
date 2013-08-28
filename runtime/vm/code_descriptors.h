@@ -101,6 +101,7 @@ class ExceptionHandlerList : public ZoneAllocated {
     intptr_t outer_try_index;  // Try block in which this try block is nested.
     intptr_t pc_offset;        // Handler PC offset value.
     const Array* handler_types;   // Catch clause guards.
+    bool needs_stacktrace;
   };
 
   ExceptionHandlerList() : list_() {}
@@ -114,13 +115,15 @@ class ExceptionHandlerList : public ZoneAllocated {
     data.outer_try_index = -1;
     data.pc_offset = -1;
     data.handler_types = NULL;
+    data.needs_stacktrace = false;
     list_.Add(data);
   }
 
   void AddHandler(intptr_t try_index,
                   intptr_t outer_try_index,
                   intptr_t pc_offset,
-                  const Array& handler_types) {
+                  const Array& handler_types,
+                  bool needs_stacktrace) {
     ASSERT(try_index >= 0);
     while (Length() <= try_index) {
       AddPlaceHolder();
@@ -129,6 +132,7 @@ class ExceptionHandlerList : public ZoneAllocated {
     list_[try_index].pc_offset = pc_offset;
     ASSERT(handler_types.IsZoneHandle());
     list_[try_index].handler_types = &handler_types;
+    list_[try_index].needs_stacktrace = needs_stacktrace;
   }
 
   RawExceptionHandlers* FinalizeExceptionHandlers(uword entry_point) {
@@ -140,7 +144,8 @@ class ExceptionHandlerList : public ZoneAllocated {
       ASSERT(list_[i].handler_types != NULL);
       handlers.SetHandlerInfo(i,
                               list_[i].outer_try_index,
-                              (entry_point + list_[i].pc_offset));
+                              (entry_point + list_[i].pc_offset),
+                              list_[i].needs_stacktrace);
       handlers.SetHandledTypes(i, *list_[i].handler_types);
     }
     return handlers.raw();

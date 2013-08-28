@@ -8284,11 +8284,13 @@ intptr_t ExceptionHandlers::Length() const {
 
 void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        intptr_t outer_try_index,
-                                       intptr_t handler_pc) const {
+                                       intptr_t handler_pc,
+                                       bool needs_stacktrace) const {
   ASSERT((try_index >= 0) && (try_index < Length()));
   RawExceptionHandlers::HandlerInfo* info = &raw_ptr()->data_[try_index];
   info->outer_try_index = outer_try_index;
   info->handler_pc = handler_pc;
+  info->needs_stacktrace = needs_stacktrace;
 }
 
 void ExceptionHandlers::GetHandlerInfo(
@@ -8314,6 +8316,12 @@ intptr_t ExceptionHandlers::OuterTryIndex(intptr_t try_index) const {
 }
 
 
+bool ExceptionHandlers::NeedsStacktrace(intptr_t try_index) const {
+  ASSERT((try_index >= 0) && (try_index < Length()));
+  return raw_ptr()->data_[try_index].needs_stacktrace;
+}
+
+
 void ExceptionHandlers::SetHandledTypes(intptr_t try_index,
                                         const Array& handled_types) const {
   ASSERT((try_index >= 0) && (try_index < Length()));
@@ -8331,6 +8339,19 @@ RawArray* ExceptionHandlers::GetHandledTypes(intptr_t try_index) const {
 }
 
 
+bool ExceptionHandlers::HasCatchAll(intptr_t try_index) const {
+  ASSERT((try_index >= 0) && (try_index < Length()));
+  Array& array = Array::Handle(raw_ptr()->handled_types_data_);
+  array ^= array.At(try_index);
+  for (intptr_t i = 0; i < array.Length(); i++) {
+    if (array.At(i) == Type::DynamicType()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 void ExceptionHandlers::set_handled_types_data(const Array& value) const {
   StorePointer(&raw_ptr()->handled_types_data_, value.raw());
 }
@@ -8338,7 +8359,7 @@ void ExceptionHandlers::set_handled_types_data(const Array& value) const {
 
 RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
   ASSERT(Object::exception_handlers_class() != Class::null());
-  if (num_handlers < 0 || num_handlers >= kMaxHandlers) {
+  if ((num_handlers < 0) || (num_handlers >= kMaxHandlers)) {
     FATAL1("Fatal error in ExceptionHandlers::New(): "
            "invalid num_handlers %" Pd "\n",
            num_handlers);

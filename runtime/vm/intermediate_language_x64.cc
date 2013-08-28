@@ -2229,7 +2229,8 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddExceptionHandler(catch_try_index(),
                                 try_index(),
                                 compiler->assembler()->CodeSize(),
-                                catch_handler_types_);
+                                catch_handler_types_,
+                                needs_stacktrace());
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }

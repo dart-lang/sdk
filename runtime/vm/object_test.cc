@@ -2385,10 +2385,12 @@ TEST_CASE(ExceptionHandlers) {
   // Add an exception handler table to the code.
   ExceptionHandlers& exception_handlers = ExceptionHandlers::Handle();
   exception_handlers ^= ExceptionHandlers::New(kNumEntries);
-  exception_handlers.SetHandlerInfo(0, -1, 20);
-  exception_handlers.SetHandlerInfo(1, 0, 30);
-  exception_handlers.SetHandlerInfo(2, -1, 40);
-  exception_handlers.SetHandlerInfo(3, 1, 150);
+  const bool kNeedsStacktrace = true;
+  const bool kNoStacktrace = false;
+  exception_handlers.SetHandlerInfo(0, -1, 20, kNeedsStacktrace);
+  exception_handlers.SetHandlerInfo(1, 0, 30, kNeedsStacktrace);
+  exception_handlers.SetHandlerInfo(2, -1, 40, kNoStacktrace);
+  exception_handlers.SetHandlerInfo(3, 1, 150, kNoStacktrace);
 
   extern void GenerateIncrement(Assembler* assembler);
   Assembler _assembler_;
@@ -2406,9 +2408,11 @@ TEST_CASE(ExceptionHandlers) {
   EXPECT_EQ(-1, handlers.OuterTryIndex(0));
   EXPECT_EQ(-1, info.outer_try_index);
   EXPECT_EQ(20, handlers.HandlerPC(0));
+  EXPECT(handlers.NeedsStacktrace(0));
   EXPECT_EQ(20, info.handler_pc);
   EXPECT_EQ(1, handlers.OuterTryIndex(3));
   EXPECT_EQ(150, handlers.HandlerPC(3));
+  EXPECT(!handlers.NeedsStacktrace(3));
 }
 
 

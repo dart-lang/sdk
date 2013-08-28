@@ -188,13 +188,7 @@ static bool ShouldShowFunction(const Function& function) {
 }
 
 
-// Iterate through the stack frames and try to find a frame with an
-// exception handler. Once found, set the pc, sp and fp so that execution
-// can continue in that frame.
-static bool FindExceptionHandler(uword* handler_pc,
-                                 uword* handler_sp,
-                                 uword* handler_fp,
-                                 StacktraceBuilder* builder) {
+static void BuildStackTrace(StacktraceBuilder* builder) {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
@@ -229,13 +223,17 @@ static bool FindExceptionHandler(uword* handler_pc,
             builder->AddFrame(func, code, offset, dart_handler_found);
           }
         }
-        if (!handler_pc_set && frame->FindExceptionHandler(handler_pc)) {
+        bool needs_stacktrace = false;
+        bool is_catch_all = false;
+        uword handler_pc = kUwordMax;
+        if (!handler_pc_set &&
+            frame->FindExceptionHandler(&handler_pc,
+                                        &needs_stacktrace,
+                                        &is_catch_all)) {
           handler_pc_set = true;
-          *handler_sp = frame->sp();
-          *handler_fp = frame->fp();
           dart_handler_found = true;
           if (!builder->FullStacktrace()) {
-            return dart_handler_found;
+            return;
           }
         }
       }
@@ -245,16 +243,58 @@ static bool FindExceptionHandler(uword* handler_pc,
     ASSERT(frame->IsEntryFrame());
     if (!handler_pc_set) {
       handler_pc_set = true;
-      *handler_pc = frame->pc();
-      *handler_sp = frame->sp();
-      *handler_fp = frame->fp();
       if (!builder->FullStacktrace()) {
-        return dart_handler_found;
+        return;
       }
     }
     frame = frames.NextFrame();
   }
-  return dart_handler_found;
+}
+
+
+// Iterate through the stack frames and try to find a frame with an
+// exception handler. Once found, set the pc, sp and fp so that execution
+// can continue in that frame. Sets 'needs_stacktrace' if there is no
+// cath-all handler or if a stack-trace is specified in the catch.
+static bool FindExceptionHandler(uword* handler_pc,
+                                 uword* handler_sp,
+                                 uword* handler_fp,
+                                 bool* needs_stacktrace) {
+  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
+  StackFrame* frame = frames.NextFrame();
+  ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
+  bool handler_pc_set = false;
+  *needs_stacktrace = false;
+  bool is_catch_all = false;
+  uword temp_handler_pc = kUwordMax;
+  while (!frame->IsEntryFrame()) {
+    if (frame->IsDartFrame()) {
+      if (frame->FindExceptionHandler(&temp_handler_pc,
+                                      needs_stacktrace,
+                                      &is_catch_all)) {
+        if (!handler_pc_set) {
+          handler_pc_set = true;
+          *handler_pc = temp_handler_pc;
+          *handler_sp = frame->sp();
+          *handler_fp = frame->fp();
+        }
+        if (*needs_stacktrace || is_catch_all) {
+          return true;
+        }
+      }
+    }  // if frame->IsDartFrame
+    frame = frames.NextFrame();
+    ASSERT(frame != NULL);
+  }  // while !frame->IsEntryFrame
+  ASSERT(frame->IsEntryFrame());
+  if (!handler_pc_set) {
+    *handler_pc = frame->pc();
+    *handler_sp = frame->sp();
+    *handler_fp = frame->fp();
+  }
+  // No catch-all encountered, needs stacktrace.
+  *needs_stacktrace = true;
+  return handler_pc_set;
 }
 
 
@@ -364,56 +404,59 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
   uword handler_fp = 0;
   Stacktrace& stacktrace = Stacktrace::Handle(isolate);
   bool handler_exists = false;
+  bool handler_needs_stacktrace = false;
   if (use_preallocated_stacktrace) {
     stacktrace ^= isolate->object_store()->preallocated_stack_trace();
     PreallocatedStacktraceBuilder frame_builder(stacktrace);
     handler_exists = FindExceptionHandler(&handler_pc,
                                           &handler_sp,
                                           &handler_fp,
-                                          &frame_builder);
+                                          &handler_needs_stacktrace);
+    if (handler_needs_stacktrace) {
+      BuildStackTrace(&frame_builder);
+    }
   } else {
+    // Get stacktrace field of class Error.
     const Field& stacktrace_field =
-        Field::Handle(LookupStacktraceField(exception));
+        Field::Handle(isolate, LookupStacktraceField(exception));
     bool full_stacktrace = !stacktrace_field.IsNull();
-    RegularStacktraceBuilder frame_builder(full_stacktrace);
     handler_exists = FindExceptionHandler(&handler_pc,
                                           &handler_sp,
                                           &handler_fp,
-                                          &frame_builder);
-    // Create arrays for function, code and pc_offset triplet of each frame.
-    const Array& func_array =
-        Array::Handle(isolate, Array::MakeArray(frame_builder.func_list()));
-    const Array& code_array =
-        Array::Handle(isolate, Array::MakeArray(frame_builder.code_list()));
-    const Array& pc_offset_array =
-        Array::Handle(isolate,
-                      Array::MakeArray(frame_builder.pc_offset_list()));
-    if (!stacktrace_field.IsNull()) {
-      // This is an error object and we need to capture the full stack trace
-      // here implicitly, so we set up the stack trace. The stack trace field
-      // is set only once, it is not overriden.
-      const Array& catch_func_array =
-          Array::Handle(isolate,
-                        Array::MakeArray(frame_builder.catch_func_list()));
-      const Array& catch_code_array =
-          Array::Handle(isolate,
-                        Array::MakeArray(frame_builder.catch_code_list()));
-      const Array& catch_pc_offset_array =
-          Array::Handle(isolate,
-                        Array::MakeArray(frame_builder.catch_pc_offset_list()));
-      stacktrace = Stacktrace::New(func_array, code_array, pc_offset_array);
-      stacktrace.SetCatchStacktrace(catch_func_array,
-                                    catch_code_array,
-                                    catch_pc_offset_array);
-      if (exception.GetField(stacktrace_field) == Object::null()) {
-        exception.SetField(stacktrace_field, stacktrace);
-      }
-    }
-    // TODO(5411263): At some point we can optimize by figuring out if a
-    // stack trace is needed based on whether the catch code specifies a
-    // stack trace object or there is a rethrow in the catch clause.
-    if (existing_stacktrace.IsNull()) {
+                                          &handler_needs_stacktrace);
+    Array& func_array = Array::Handle(isolate, Object::empty_array().raw());
+    Array& code_array = Array::Handle(isolate, Object::empty_array().raw());
+    Array& pc_offset_array =
+        Array::Handle(isolate, Object::empty_array().raw());
+    if (handler_needs_stacktrace || full_stacktrace) {
+      RegularStacktraceBuilder frame_builder(full_stacktrace);
+      BuildStackTrace(&frame_builder);
+
+      // Create arrays for function, code and pc_offset triplet of each frame.
+      func_array = Array::MakeArray(frame_builder.func_list());
+      code_array = Array::MakeArray(frame_builder.code_list());
+      pc_offset_array = Array::MakeArray(frame_builder.pc_offset_list());
+      if (!stacktrace_field.IsNull()) {
+        // This is an error object and we need to capture the full stack trace
+        // here implicitly, so we set up the stack trace. The stack trace field
+        // is set only once, it is not overriden.
+        const Array& catch_func_array = Array::Handle(isolate,
+            Array::MakeArray(frame_builder.catch_func_list()));
+        const Array& catch_code_array = Array::Handle(isolate,
+            Array::MakeArray(frame_builder.catch_code_list()));
+        const Array& catch_pc_offset_array = Array::Handle(isolate,
+            Array::MakeArray(frame_builder.catch_pc_offset_list()));
         stacktrace = Stacktrace::New(func_array, code_array, pc_offset_array);
+        stacktrace.SetCatchStacktrace(catch_func_array,
+                                      catch_code_array,
+                                      catch_pc_offset_array);
+        if (exception.GetField(stacktrace_field) == Object::null()) {
+          exception.SetField(stacktrace_field, stacktrace);
+        }
+      }  // if stacktrace needed.
+    }
+    if (existing_stacktrace.IsNull()) {
+      stacktrace = Stacktrace::New(func_array, code_array, pc_offset_array);
     } else {
       stacktrace ^= existing_stacktrace.raw();
       if (pc_offset_array.Length() != 0) {

@@ -2816,13 +2816,16 @@ class ExceptionHandlers : public Object {
 
   intptr_t HandlerPC(intptr_t try_index) const;
   intptr_t OuterTryIndex(intptr_t try_index) const;
+  bool NeedsStacktrace(intptr_t try_index) const;
 
   void SetHandlerInfo(intptr_t try_index,
                       intptr_t outer_try_index,
-                      intptr_t handler_pc) const;
+                      intptr_t handler_pc,
+                      bool needs_stacktrace) const;
 
   RawArray* GetHandledTypes(intptr_t try_index) const;
   void SetHandledTypes(intptr_t try_index, const Array& handled_types) const;
+  bool HasCatchAll(intptr_t try_index) const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawExceptionHandlers) == OFFSET_OF(RawExceptionHandlers,
