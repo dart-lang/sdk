@@ -122,6 +122,11 @@ def main():
               '-mrelease', '--arch=%s' % arch, 'editor', 'create_sdk']
       RunProcess(args)
 
+  # before we run the editor, suppress any 'restore windows' dialogs
+  if sys.platform == 'darwin':
+    bot.RunProcess(['defaults', 'write', 'org.eclipse.eclipse.savedState',
+                    'NSQuitAlwaysKeepsWindows', '-bool', 'false'])
+
   for arch in test_architectures:
     editor_executable = GetEditorExecutable('Release', arch)
     with bot.BuildStep('Test Editor %s' % arch):
