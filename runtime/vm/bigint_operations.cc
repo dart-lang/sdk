@@ -329,10 +329,10 @@ const char* BigintOperations::ToDecimalCString(
       (kIntptrMax - 10) / kLog2Dividend / kDigitBitSize * kLog2Divisor;
 
   intptr_t length = bigint.Length();
+  Isolate* isolate = Isolate::Current();
   if (length >= kMaxAllowedDigitLength) {
     // Use the preallocated out of memory exception to avoid calling
     // into dart code or allocating any code.
-    Isolate* isolate = Isolate::Current();
     const Instance& exception =
         Instance::Handle(isolate->object_store()->out_of_memory());
     Exceptions::Throw(exception);
@@ -370,6 +370,7 @@ const char* BigintOperations::ToDecimalCString(
   Bigint& quotient = Bigint::Handle();
   Bigint& remainder = Bigint::Handle();
   while (!rest.IsZero()) {
+    HANDLESCOPE(isolate);
     DivideRemainder(rest, divisor, &quotient, &remainder);
     ASSERT(remainder.Length() <= 1);
     intptr_t part = (remainder.Length() == 1)
@@ -1537,7 +1538,9 @@ void BigintOperations::DivideRemainder(
   Bigint& shifted_divisor =
       Bigint::Handle(DigitsShiftLeft(divisor, divisor_shift_amount));
   Chunk first_quotient_digit = 0;
+  Isolate* isolate = Isolate::Current();
   while (UnsignedCompare(dividend, shifted_divisor) >= 0) {
+    HANDLESCOPE(isolate);
     first_quotient_digit++;
     dividend = Subtract(dividend, shifted_divisor);
   }
