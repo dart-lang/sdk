@@ -39,6 +39,7 @@ f_bounded_quantification_test/02: Fail # Issue 12703
 f_bounded_quantification5_test: Fail # Issue 12703
 closure_type_test: Fail # Issue 12745
 function_subtype_setter0_test: Fail # Issue 11273
+redirecting_factory_malbounded_test/01: Fail # Issue 12825
 
 [ $compiler == dart2js && $unchecked ]
 factory_redirection_test/14: Fail # Issue 10959

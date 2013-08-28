@@ -99,6 +99,8 @@ type_variable_bounds_test/none: fail # Issue 11578
 type_variable_scope_test/none: fail # Issue 11578
 factory_implementation_test/none: fail # Issue 11578
 
+redirecting_factory_malbounded_test/none: Fail # Issue 12827
+
 # test issue 11579, assignment, no setter
 getter_no_setter_test/none: fail
 
