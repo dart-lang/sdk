@@ -91,7 +91,7 @@ abstract class Match {
    * Will be removed soon.
    */
   @deprecated
-  String get src;
+  String get str;
 
   /**
    * The pattern used to search in [input].

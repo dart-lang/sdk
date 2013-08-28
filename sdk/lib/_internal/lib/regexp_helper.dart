@@ -150,7 +150,9 @@ class _MatchImplementation implements Match {
     assert(JS("var", "#.index", _match) is int);
   }
 
-  String get str => JS("String", "#.input", _match);
+  // TODO(12843): Remove when grace period is over.
+  String get str => input;
+  String get input => JS("String", "#.input", _match);
   int get start => JS("int", "#.index", _match);
   int get end => start + _match[0].length;
 

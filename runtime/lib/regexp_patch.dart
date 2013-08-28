@@ -13,7 +13,7 @@ patch class RegExp {
 }
 
 class _JSRegExpMatch implements Match {
-  _JSRegExpMatch(this._regexp, this.str, this._match);
+  _JSRegExpMatch(this._regexp, this.input, this._match);
 
   int get start => _start(0);
   int get end => _end(0);
@@ -36,7 +36,7 @@ class _JSRegExpMatch implements Match {
       assert(endIndex == -1);
       return null;
     }
-    return str._substringUnchecked(startIndex, endIndex);
+    return input._substringUnchecked(startIndex, endIndex);
   }
 
   String operator [](int groupIdx) {
@@ -55,8 +55,11 @@ class _JSRegExpMatch implements Match {
 
   Pattern get pattern => _regexp;
 
+  // TODO(12843): Remove when grace period is over.
+  String get str => input;
+
   final RegExp _regexp;
-  final String str;
+  final String input;
   final List<int> _match;
   static const int _MATCH_PAIR = 2;
 }
