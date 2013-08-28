@@ -31,6 +31,8 @@ double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1
 [ $runtime == ie9 ]
 double_round4_test: Fail, OK # IE bug: Math.round(4503599627370497) != 4503599627370497.
 double_round_to_double3_test: Fail, OK # IE bug: Math.round(4503599627370497) != 4503599627370497.
+collection_length_test: Pass, Timeout # Issue 12844
+
 
 [ $compiler == dart2js && ($runtime == chrome || $runtime == drt || $runtime == d8 || $runtime == safari) ]
 string_trim_unicode_test: Fail  # V8 bug 2408
