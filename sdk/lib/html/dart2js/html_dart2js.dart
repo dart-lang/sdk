@@ -32350,7 +32350,8 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
         var keys = attrs.keys.toList();
         for (var i = attrs.length - 1; i >= 0; --i) {
           var name = keys[i];
-          if (!validator.allowsAttribute(element, name, attrs[name])) {
+          if (!validator.allowsAttribute(element, name.toLowerCase(),
+              attrs[name])) {
             attrs.remove(name);
           }
         }
