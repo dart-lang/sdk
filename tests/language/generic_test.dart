@@ -56,11 +56,6 @@ class GenericTest {
       E e = new E();  // Throws a type error, if type checks are enabled.
     } on TypeError catch (error) {
       result = 1;
-      // Location of malformed error: T extends A, but AX does not extend A.
-      Expect.isTrue(error.toString().contains("line 20 pos 9"));
-      // Location of failed type check: new B<T>(t)/
-      Expect.isTrue(error.stackTrace.toString().contains(
-          "generic_test.dart:31:21"));
     }
     return result;
   }

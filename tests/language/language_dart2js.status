@@ -66,6 +66,7 @@ compile_time_constant_checked3_test/03: Fail, OK
 compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
+generic_test: Fail, OK
 
 [ $compiler == dart2js && $minified ]
 f_bounded_quantification4_test: Fail # Issue 12605.
@@ -123,16 +124,21 @@ map_literal3_test: Fail # Issue 12793
 function_type_alias5_test/00: Fail # Issue 12754
 function_type_alias5_test/01: Fail # Issue 12754
 function_type_alias5_test/02: Fail # Issue 12754
-function_type_alias7_test/00: Fail # wrongly accepts default values in typedef
-generic_test: Fail # cannot resolve type T
-get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/02: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/03: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/04: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-method_binding_test: Fail # internal error: super property read not implemented.
-method_override_test: Fail # cannot resolve type GetKeysFunctionType
-method_override5_test: Pass, Fail # Issue 11496 (passes if it's inlined)
+function_type_alias7_test/00: Fail # Issue 12801
+get_set_syntax_test/00: Fail # Issue 12805
+get_set_syntax_test/01: Fail # Issue 12805
+get_set_syntax_test/02: Fail # Issue 12805
+get_set_syntax_test/03: Fail # Issue 12805
+get_set_syntax_test/04: Fail # Issue 12805
+get_set_syntax_test/05: Fail # Issue 12805
+get_set_syntax_test/06: Fail # Issue 12805
+get_set_syntax_test/07: Fail # Issue 12805
+get_set_syntax_test/13: Fail # Issue 12805
+get_set_syntax_test/14: Fail # Issue 12805
+get_set_syntax_test/15: Fail # Issue 12805
+method_binding_test: Fail # Issue 12807
+method_override_test: Fail # Issue 12808
+method_override5_test: Fail # Issue 12809
 parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters_aggregated_test/01: Fail # Presence of default values for optional params is not properly validated in type definitions.
 named_parameters_aggregated_test/03: Fail # Presence of default values for optional params is not properly validated in closure types.
@@ -280,8 +286,8 @@ on_catch_malformed_type_test: Fail # Issue 8601
 mixin_type_parameters_errors_test/*: Skip
 
 # Mixins fail on the VM.
-mixin_mixin_test: Fail # Issue 12636
-mixin_issue10216_2_test: Fail # Issue 12636
+mixin_mixin_test: Fail # Issue 9683
+mixin_issue10216_2_test: Fail # Issue 9683
 mixin_forwarding_constructor2_test: Fail # Issue 11888
 mixin_typedef_constructor_test: Fail # Issue 11888
 mixin_type_parameter2_test: Fail # Issue 11888
@@ -360,8 +366,8 @@ duplicate_implements_test/01: Fail
 duplicate_implements_test/02: Fail
 duplicate_implements_test/03: Fail
 duplicate_implements_test/04: Fail
-method_override4_test: Fail
-method_override5_test: Fail
+method_override4_test: Fail # Issue 12810
+method_override5_test: Fail # Issue 12810
 operator1_negative_test: Fail
 static_final_field_negative_test: Fail
 static_top_level_test/00: Fail
@@ -384,16 +390,13 @@ factory_redirection_test/14: Fail # Issue 10959
 function_type_alias5_test/00: Fail # Issue 12755
 function_type_alias5_test/01: Fail # Issue 12755
 function_type_alias5_test/02: Fail # Issue 12755
-function_type_alias7_test/00: Fail
+function_type_alias7_test/00: Fail # Issue 12802
 parameter_initializer6_negative_test: Fail # Issue 3502
 # DartVM problem.
 constructor5_test: Fail
 constructor6_test: Fail
 closure_in_initializer_test: Fail
 super_first_constructor_test: Fail
-# VM specific tests.
-# This test hard codes name of file being run and precise position.
-generic_test: Fail, Ok
 # Minified mode failures.
 # TODO(antonm): proper support in test framework.
 no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("foo").
@@ -401,11 +404,17 @@ no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("fo
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
 
-get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/02: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/03: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/04: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
+get_set_syntax_test/00: Fail # Issue 12806
+get_set_syntax_test/01: Fail # Issue 12806
+get_set_syntax_test/02: Fail # Issue 12806
+get_set_syntax_test/03: Fail # Issue 12806
+get_set_syntax_test/04: Fail # Issue 12806
+get_set_syntax_test/05: Fail # Issue 12806
+get_set_syntax_test/06: Fail # Issue 12806
+get_set_syntax_test/07: Fail # Issue 12806
+get_set_syntax_test/13: Fail # Issue 12806
+get_set_syntax_test/14: Fail # Issue 12806
+get_set_syntax_test/15: Fail # Issue 12806
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
