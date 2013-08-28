@@ -38,7 +38,7 @@ LibTest/core/double/truncate_A01_t04: FAIL, OK # co19 issue 389
 
 LibTest/core/int/toStringAsExponential_A02_t01: FAIL, OK # co19 issue 477
 
-LibTest/async/Stream/Stream.periodic_A01_t01: PASS, FAIL, OK # co19 issue 538
+LibTest/async/Stream/Stream.periodic_A01_t01: TIMEOUT, PASS, FAIL, OK # co19 issue 538
 LibTest/async/Stream/Stream.periodic_A03_t01: PASS, FAIL, OK # co19 issue 538
 LibTest/async/Timer/run_A01_t01: PASS, FAIL, OK # co19 issue 538
 LibTest/async/Timer/Timer_A01_t01: PASS, FAIL, OK # co19 issue 538
