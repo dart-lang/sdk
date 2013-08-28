@@ -5,7 +5,7 @@
 library dom_parsing;
 
 import 'dart:math';
-import 'dart:utf' show codepointsToString;
+import 'package:utf/utf.dart' show codepointsToString;
 import 'dom.dart';
 
 /** A simple tree visitor for the DOM nodes. */

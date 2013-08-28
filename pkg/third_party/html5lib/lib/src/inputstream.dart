@@ -1,7 +1,7 @@
 library inputstream;
 
 import 'dart:collection';
-import 'dart:utf';
+import 'package:utf/utf.dart';
 import 'package:source_maps/span.dart' show SourceFile;
 import 'char_encodings.dart';
 import 'constants.dart';

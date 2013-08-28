@@ -2,7 +2,7 @@
 library char_encodings;
 
 import 'dart:collection';
-import 'dart:utf';
+import 'package:utf/utf.dart';
 
 // TODO(jmesserly): this function is conspicuously absent from dart:utf.
 /**
