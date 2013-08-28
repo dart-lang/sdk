@@ -12,7 +12,6 @@ LibTest/math/min_A01_t03: Fail # co19 issue 467
 LibTest/core/double/floor_A01_t05: Fail # issue 428
 LibTest/core/double/ceil_A01_t05: Fail # issue 428
 
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t03: Fail # TODO(dart2dart-team): Please triage this failure.
 LibTest/collection/Queue/iterator_current_A01_t02: Fail # co19 issue 475
 LibTest/core/int/toStringAsExponential_A02_t01: Fail # co19 issue 477

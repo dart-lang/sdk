@@ -11,6 +11,7 @@
 [ $runtime == vm || $compiler == dart2js ]
 Language/07_Classes/6_Constructors_A02_t01: SKIP # co19 issue 415.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: FAIL, OK # co19 issue 426
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: FAIL, OK # co19 issue 547
 
 LibTest/math/acos_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/asin_A01_t01: PASS, FAIL, OK # co19 issue 44

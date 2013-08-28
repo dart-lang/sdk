@@ -27,7 +27,6 @@ Language/05_Variables/05_Variables_A07_t07: Fail # TODO(ahe): Please triage this
 Language/05_Variables/05_Variables_A07_t08: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A08_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A03_t07: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/List/List_A03_t01: Fail # TODO(kasperl): Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.

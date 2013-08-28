@@ -11,7 +11,6 @@ LibTest/core/Stopwatch/elapsed_A01_t03: Pass, Fail # Issue 12383.
 LibTest/core/double/floor_A01_t05: Fail # co19 issue 428
 LibTest/core/double/ceil_A01_t05: Fail # co19 issue 428
 
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # Dart issue 6954
 LibTest/math/pow_A18_t01: Fail # co19 issue 507
 
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Dart issue 5802
