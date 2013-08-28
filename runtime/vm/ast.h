@@ -214,12 +214,11 @@ class ArgumentListNode : public AstNode {
   intptr_t length() const { return nodes_.length(); }
   AstNode* NodeAt(intptr_t index) const { return nodes_[index]; }
   void SetNodeAt(intptr_t index, AstNode* node) { nodes_[index] = node; }
-  const Array& names() const {
-    return names_;
-  }
+  const Array& names() const { return names_; }
   void set_names(const Array& names) {
     names_ = names.raw();
   }
+  const GrowableArray<AstNode*>& nodes() const { return nodes_; }
 
   DECLARE_COMMON_NODE_FUNCTIONS(ArgumentListNode);
 

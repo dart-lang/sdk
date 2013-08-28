@@ -2753,6 +2753,7 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
           node->token_pos(),
           node->cls(),
           getter_name,
+          NULL,  // No Arguments to getter.
           InvocationMirror::EncodeType(
               node->cls().IsTopLevel() ?
                   InvocationMirror::kTopLevel :
@@ -2802,10 +2803,13 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
           result_is_needed);  // Save last arg if result is needed.
     } else {
       // Throw a NoSuchMethodError.
+      ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
+      arguments->Add(node->value());
       call = BuildThrowNoSuchMethodError(
           node->token_pos(),
           node->cls(),
           setter_name,
+          arguments,  // Argument is the value passed to the setter.
           InvocationMirror::EncodeType(
             node->cls().IsTopLevel() ?
                 InvocationMirror::kTopLevel :
@@ -3573,6 +3577,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
     intptr_t token_pos,
     const Class& function_class,
     const String& function_name,
+    ArgumentListNode* function_arguments,
     int invocation_type) {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>();
@@ -3597,13 +3602,25 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
       Smi::ZoneHandle(Smi::New(invocation_type))));
   arguments->Add(PushArgument(invocation_type_value));
   // List arguments.
-  // TODO(regis): Pass arguments.
-  Value* arguments_value = Bind(new ConstantInstr(Array::ZoneHandle()));
-  arguments->Add(PushArgument(arguments_value));
+  if (function_arguments == NULL) {
+    Value* arguments_value = Bind(new ConstantInstr(Array::ZoneHandle()));
+    arguments->Add(PushArgument(arguments_value));
+  } else {
+    ValueGraphVisitor array_val(owner(), temp_index());
+    ArrayNode* array =
+        new ArrayNode(token_pos, Type::ZoneHandle(Type::ArrayType()),
+                      function_arguments->nodes());
+    array->Visit(&array_val);
+    Append(array_val);
+    arguments->Add(PushArgument(array_val.value()));
+  }
   // List argumentNames.
-  Value* argument_names_value =
-      Bind(new ConstantInstr(Array::ZoneHandle()));
+  ConstantInstr* cinstr = new ConstantInstr(
+      (function_arguments == NULL) ? Array::ZoneHandle()
+                                   : function_arguments->names());
+  Value* argument_names_value = Bind(cinstr);
   arguments->Add(PushArgument(argument_names_value));
+
   // List existingArgumentNames.
   Value* existing_argument_names_value =
       Bind(new ConstantInstr(Array::ZoneHandle()));

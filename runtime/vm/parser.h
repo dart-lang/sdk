@@ -636,6 +636,7 @@ class Parser : public ValueObject {
   AstNode* ThrowNoSuchMethodError(intptr_t call_pos,
                                   const Class& cls,
                                   const String& function_name,
+                                  ArgumentListNode* function_arguments,
                                   InvocationMirror::Call call,
                                   InvocationMirror::Type type);
 
