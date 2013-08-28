@@ -6,6 +6,7 @@ library created_callback_test;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
+import '../utils.dart';
 
 class A extends HtmlElement {
   static final tag = 'x-a';
@@ -71,12 +72,12 @@ main() {
 
     var div = new DivElement();
     C.div = div;
-    div.innerHtml = """
+    div.setInnerHtml("""
 <x-c id="t"></x-c>
 <x-b id="u"></x-b>
 <x-c id="v"></x-c>
 <x-b id="w"></x-b>
-""";
+""", treeSanitizer: new NullTreeSanitizer());
 
     expect(C.createdInvocations, 2);
     expect(div.query('#w') is B, isTrue);
