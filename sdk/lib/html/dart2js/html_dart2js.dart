@@ -22335,6 +22335,22 @@ class TableElement extends HtmlElement native "HTMLTableElement" {
   @JSName('createTBody')
   TableSectionElement _nativeCreateTBody() native;
 
+  DocumentFragment createFragment(String html,
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    if (Range.supportsCreateContextualFragment) {
+      return super.createFragment(
+          html, validator: validator, treeSanitizer: treeSanitizer);
+    }
+    // IE9 workaround which does not support innerHTML on Table elements.
+    var contextualHtml = '<table>$html</table>';
+    var table = new Element.html(contextualHtml, validator: validator,
+        treeSanitizer: treeSanitizer);
+    var fragment = new DocumentFragment();
+    fragment.nodes.addAll(table.nodes);
+
+    return fragment;
+  }
+
   // To suppress missing implicit constructor warnings.
   factory TableElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -22425,6 +22441,21 @@ class TableRowElement extends HtmlElement native "HTMLTableRowElement" {
 
   TableCellElement insertCell(int index) => _insertCell(index);
 
+  DocumentFragment createFragment(String html,
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    if (Range.supportsCreateContextualFragment) {
+      return super.createFragment(
+          html, validator: validator, treeSanitizer: treeSanitizer);
+    }
+    // IE9 workaround which does not support innerHTML on Table elements.
+    var fragment = new DocumentFragment();
+    var section = new TableElement().createFragment(
+        html, validator: validator, treeSanitizer: treeSanitizer).nodes.single;
+    var row = section.nodes.single;
+    fragment.nodes.addAll(row.nodes);
+    return fragment;
+  }
+
   // To suppress missing implicit constructor warnings.
   factory TableRowElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -22472,6 +22503,20 @@ class TableSectionElement extends HtmlElement native "HTMLTableSectionElement" {
   }
 
   TableRowElement insertRow(int index) => _insertRow(index);
+
+  DocumentFragment createFragment(String html,
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    if (Range.supportsCreateContextualFragment) {
+      return super.createFragment(
+          html, validator: validator, treeSanitizer: treeSanitizer);
+    }
+    // IE9 workaround which does not support innerHTML on Table elements.
+    var fragment = new DocumentFragment();
+    var section = new TableElement().createFragment(
+        html, validator: validator, treeSanitizer: treeSanitizer).nodes.single;
+    fragment.nodes.addAll(section.nodes);
+    return fragment;
+  }
 
   // To suppress missing implicit constructor warnings.
   factory TableSectionElement._() { throw new UnsupportedError("Not supported"); }

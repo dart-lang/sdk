@@ -17,4 +17,21 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   TableCellElement insertCell(int index) => _insertCell(index);
 
+$if DART2JS
+  DocumentFragment createFragment(String html,
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    if (Range.supportsCreateContextualFragment) {
+      return super.createFragment(
+          html, validator: validator, treeSanitizer: treeSanitizer);
+    }
+    // IE9 workaround which does not support innerHTML on Table elements.
+    var fragment = new DocumentFragment();
+    var section = new TableElement().createFragment(
+        html, validator: validator, treeSanitizer: treeSanitizer).nodes.single;
+    var row = section.nodes.single;
+    fragment.nodes.addAll(row.nodes);
+    return fragment;
+  }
+$endif
+
 $!MEMBERS}

@@ -185,6 +185,7 @@ main() {
 
     test('.html tr', () {
       var table = new TableElement();
+      document.body.append(table);
       var tBody = table.createTBody();
       var node = tBody.createFragment('<tr><td>foo<td>bar').nodes.single;
       expect(node, predicate((x) => x is TableRowElement,
@@ -196,6 +197,7 @@ main() {
 
     test('.html td', () {
       var table = new TableElement();
+      document.body.append(table);
       var tBody = table.createTBody();
       var tRow = tBody.addRow();
       var node = tRow.createFragment('<td>foobar').nodes.single;
@@ -208,6 +210,7 @@ main() {
 
     test('.html th', () {
       var table = new TableElement();
+      document.body.append(table);
       var tBody = table.createTBody();
       var tRow = tBody.addRow();
       var node = tRow.createFragment('<th>foobar').nodes.single;
@@ -593,6 +596,7 @@ main() {
   group('matches', () {
     test('matches', () {
       var element = new DivElement();
+      document.body.append(element);
       element.classes.add('test');
 
       expect(element.matches('div'), true);
