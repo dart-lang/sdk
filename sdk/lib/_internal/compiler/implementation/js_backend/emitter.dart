@@ -1822,12 +1822,16 @@ class CodeEmitterTask extends CompilerTask {
                 // 01:  function() { return this.field; }
                 // 10:  function(receiver) { return receiver.field; }
                 // 11:  function(receiver) { return this.field; }
-                getterCode += backend.fieldHasInterceptedGetter(field) ? 2 : 0;
+                bool isIntercepted = backend.fieldHasInterceptedGetter(field);
+                getterCode += isIntercepted ? 2 : 0;
                 getterCode += backend.isInterceptorClass(element) ? 0 : 1;
                 // TODO(sra): 'isInterceptorClass' might not be the correct test
                 // for methods forced to use the interceptor convention because
                 // the method's class was elsewhere mixed-in to an interceptor.
                 assert(!field.isInstanceMember() || getterCode != 0);
+                if (isIntercepted) {
+                  interceptorInvocationNames.add(namer.getterName(field));
+                }
               } else {
                 getterCode = 1;
               }
@@ -1838,9 +1842,13 @@ class CodeEmitterTask extends CompilerTask {
                 // 01:  function(value) { this.field = value; }
                 // 10:  function(receiver, value) { receiver.field = value; }
                 // 11:  function(receiver, value) { this.field = value; }
-                setterCode += backend.fieldHasInterceptedSetter(field) ? 2 : 0;
+                bool isIntercepted = backend.fieldHasInterceptedSetter(field);
+                setterCode += isIntercepted ? 2 : 0;
                 setterCode += backend.isInterceptorClass(element) ? 0 : 1;
                 assert(!field.isInstanceMember() || setterCode != 0);
+                if (isIntercepted) {
+                  interceptorInvocationNames.add(namer.setterName(field));
+                }
               } else {
                 setterCode = 1;
               }
