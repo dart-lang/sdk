@@ -48,6 +48,11 @@ class MirrorRenamer {
    * contain all the toplevel ast nodes that will be emitted in the output.
    */
   void addRenames(Map<Node, String> renames, List<Node> topLevelNodes) {
+    // Right now we only support instances of MirrorSystem.getName,
+    // hence if there are no occurence of these we don't do anything.
+    if (mirrorSystemGetNameNodes.isEmpty) {
+      return;
+    }
 
     Node parse(String text) {
       Token tokens = compiler.scanner.tokenize(text);
@@ -77,7 +82,9 @@ class MirrorRenamer {
       } else {
         first = false;
       }
-      sb.write("'$mangledName' : '${symbols[mangledName]}'");
+      sb.write("'$mangledName' : '");
+      symbols[mangledName].printOn(sb);
+      sb.write("'");
     }
     sb.write('};');
     topLevelNodes.add(parse(sb.toString()));

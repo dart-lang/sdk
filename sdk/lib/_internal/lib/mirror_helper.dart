@@ -18,7 +18,7 @@ const Map _SYMBOLS = null;
 String helperGetName(Symbol sym) {
   var name = MirrorSystem.getName(sym);
   if (_SYMBOLS.containsKey(name)) {
-    return _SYMBOLS[name].stringValue;
+    return _SYMBOLS[name];
   } else {
     return name;
   }
