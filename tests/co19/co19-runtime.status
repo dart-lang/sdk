@@ -82,6 +82,11 @@ LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 LibTest/math/log_A01_t01: Fail
 LibTest/core/double/toInt_A01_t01: Fail
 
+[ $compiler == none && $runtime == vm && $arch == arm ]
+LibTest/typed_data/Float32List/Float32List.view_A01_t02: Crash  # Issue 12868
+LibTest/typed_data/Float32x4/toUint32x4_A01_t02: Fail  # Issue 12868
+LibTest/typed_data/Float64List/Float64List.view_A01_t02: Crash  # Issue 12868
+
 [ $compiler == none && $runtime == vm ]
 Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
