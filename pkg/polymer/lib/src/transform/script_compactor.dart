@@ -32,9 +32,9 @@ class ScriptCompactor extends Transformer {
       new Future.value(input.id.extension == ".html");
 
   Future apply(Transform transform) {
-    var id = transform.primaryId;
+    var id = transform.primaryInput.id;
     var logger = transform.logger;
-    return getPrimaryContent(transform).then((content) {
+    return transform.primaryInput.readAsString().then((content) {
       var document = parseHtml(content, id.path, logger);
       var libraries = [];
       bool changed = false;
@@ -111,7 +111,7 @@ class ScriptCompactor extends Transformer {
     if (id.path.startsWith('lib/')) {
       return 'package:${id.package}/${id.path.substring(4)}';
     }
-    
+
     // Use relative urls only if it's possible.
     if (id.package != sourceId.package) {
       logger.error("don't know how to import $id from $sourceId");

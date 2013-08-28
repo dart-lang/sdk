@@ -1095,5 +1095,38 @@ main() {
       expectAsset("pkg1|a.out", "b");
       buildShouldSucceed();
     });
+
+    test("re-runs if the primary input is invalidated before accessing", () {
+      var transformer1 = new RewriteTransformer("txt", "mid");
+      var transformer2 = new RewriteTransformer("mid", "out");
+
+      initGraph([
+        "app|foo.txt"
+      ], {"app": [
+        [transformer1],
+        [transformer2]
+      ]});
+
+      transformer2.pausePrimaryInput();
+      updateSources(["app|foo.txt"]);
+
+      // Wait long enough to ensure that transformer1 has completed and
+      // transformer2 has started.
+      schedule(pumpEventQueue);
+
+      // Update the source again so that transformer1 invalidates the primary
+      // input of transformer2.
+      transformer1.pauseApply();
+      updateSources(["app|foo.txt"]);
+
+      transformer2.resumePrimaryInput();
+      transformer1.resumeApply();
+
+      expectAsset("app|foo.out", "foo.mid.out");
+      buildShouldSucceed();
+
+      expect(transformer1.numRuns, completion(equals(2)));
+      expect(transformer2.numRuns, completion(equals(2)));
+    });
   });
 }

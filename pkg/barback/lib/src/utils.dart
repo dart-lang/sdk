@@ -179,3 +179,20 @@ Future pumpEventQueue([int times=20]) {
 /// Like [new Future], but avoids issue 11911 by using [new Future.value] under
 /// the covers.
 Future newFuture(callback()) => new Future.value().then((_) => callback());
+
+/// Returns a buffered stream that will emit the same values as the stream
+/// returned by [future] once [future] completes. If [future] completes to an
+/// error, the return value will emit that error and then close.
+Stream futureStream(Future<Stream> future) {
+  var controller = new StreamController(sync: true);
+  future.then((stream) {
+    stream.listen(
+        controller.add,
+        onError: (error) => controller.addError(error),
+        onDone: controller.close);
+  }).catchError((e) {
+    controller.addError(e);
+    controller.close();
+  });
+  return controller.stream;
+}

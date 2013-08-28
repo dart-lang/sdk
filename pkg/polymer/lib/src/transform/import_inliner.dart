@@ -21,9 +21,9 @@ class ImportedElementInliner extends Transformer {
   Future apply(Transform transform) {
     var seen = new Set<AssetId>();
     var elements = [];
-    var id = transform.primaryId;
+    var id = transform.primaryInput.id;
     seen.add(id);
-    return getPrimaryContent(transform).then((content) {
+    return transform.primaryInput.readAsString().then((content) {
       var document = parseHtml(content, id.path, transform.logger);
       var future = _visitImports(document, id, transform, seen, elements);
       return future.then((importsFound) {
@@ -80,7 +80,7 @@ class ImportedElementInliner extends Transformer {
    */
   Future _collectPolymerElements(
       AssetId id, Transform transform, Set<AssetId> seen, List elements) {
-    return getContent(transform, id)
+    return transform.readInputAsString(id)
         .then((content) => parseHtml(
               content, id.path, transform.logger, checkDocType: false))
         .then((document) {

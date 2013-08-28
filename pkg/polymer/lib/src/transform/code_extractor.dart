@@ -21,8 +21,8 @@ class InlineCodeExtractor extends Transformer {
       new Future.value(input.id.extension == ".html");
 
   Future apply(Transform transform) {
-    var inputId = transform.primaryId;
-    return getPrimaryContent(transform).then((content) {
+    var inputId = transform.primaryInput.id;
+    return transform.primaryInput.readAsString().then((content) {
       var document = parseHtml(content, inputId.path, transform.logger);
       int count = 0;
       bool htmlChanged = false;

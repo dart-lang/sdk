@@ -105,13 +105,12 @@ Future<String> _transform(String code) {
 class _MockTransform implements Transform {
   List<Asset> outs = [];
   Asset _asset;
-  AssetId get primaryId => _asset.id;
   TransformLogger logger = new TransformLogger(false);
-  Future<Asset> get primaryInput => new Future.value(_asset);
+  Asset get primaryInput => _asset;
 
   _MockTransform(this._asset);
   Future<Asset> getInput(Asset id) {
-    if (id == primaryId) return primaryInput;
+    if (id == primaryInput.id) return new Future.value(primaryInput);
     fail();
   }
 

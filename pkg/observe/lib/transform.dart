@@ -20,7 +20,7 @@ import 'package:source_maps/span.dart' show SourceFile;
 
 /**
  * A [Transformer] that replaces observables based on dirty-checking with an
- * implementation based on change notifications. 
+ * implementation based on change notifications.
  *
  * The transformation adds hooks for field setters and notifies the observation
  * system of the change.
@@ -38,9 +38,8 @@ class ObservableTransformer extends Transformer {
   }
 
   Future apply(Transform transform) {
-    return transform.primaryInput
-        .then((input) => input.readAsString().then((content) {
-      var id = transform.primaryId;
+    return transform.primaryInput.readAsString().then((content) {
+      var id = transform.primaryInput.id;
       // TODO(sigmund): improve how we compute this url
       var url = id.path.startsWith('lib/')
             ? 'package:${id.package}/${id.path.substring(4)}' : id.path;
@@ -56,7 +55,7 @@ class ObservableTransformer extends Transformer {
       // dartbug.com/12340)
       printer.build(url);
       transform.addOutput(new Asset.fromString(id, printer.text));
-    }));
+    });
   }
 }
 

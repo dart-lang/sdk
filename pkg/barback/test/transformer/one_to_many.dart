@@ -29,7 +29,7 @@ class OneToManyTransformer extends MockTransformer {
         .then((input) => input.readAsString())
         .then((lines) {
       for (var line in lines.split(",")) {
-        var id = new AssetId(transform.primaryId.package, line);
+        var id = new AssetId(transform.primaryInput.id.package, line);
         transform.addOutput(new Asset.fromString(id, "spread $extension"));
       }
     });
