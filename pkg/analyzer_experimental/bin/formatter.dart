@@ -7,12 +7,13 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:path/path.dart' as path;
 
 import 'package:analyzer_experimental/src/services/formatter_impl.dart';
 
 
 const BINARY_NAME = 'dartfmt';
-const DART_EXT = '.dart';
+final dartFileRegExp = new RegExp(r'^[^.].*\.dart$', caseSensitive: false);
 final argParser = _initArgParser();
 
 void main() {
@@ -51,8 +52,6 @@ _formatDirectory(dir) =>
 
 
 void _formatFile(file) {
-  Uri.parse(file).pathSegments.last;
-  print(file.path);
   if (_isDartFile(file)) {
     try {
       var buffer = new StringBuffer();
@@ -66,8 +65,7 @@ void _formatFile(file) {
   }
 }
 
-//TODO(pquitslund): fix this using 'path'
-_isDartFile(file) => !file.path.startsWith('.') && file.path.endsWith(DART_EXT);
+_isDartFile(file) => dartFileRegExp.hasMatch(path.basename(file.path));
 
 _formatStdin(options) {
   _log('not supported yet!');
