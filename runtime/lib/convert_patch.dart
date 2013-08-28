@@ -1,86 +1,25 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Utilities for encoding and decoding JSON (JavaScript Object Notation) data.
- */
+// JSON conversion.
 
-library dart.json;
-
-import "dart:convert";
-export "dart:convert" show JsonUnsupportedObjectError, JsonCyclicError;
-
-// JSON parsing and serialization.
-
-/**
- * Parses [json] and build the corresponding parsed JSON value.
- *
- * Parsed JSON values are of the types [num], [String], [bool], [Null],
- * [List]s of parsed JSON values or [Map]s from [String] to parsed
- * JSON values.
- *
- * The optional [reviver] function, if provided, is called once for each
- * object or list property parsed. The arguments are the property name
- * ([String]) or list index ([int]), and the value is the parsed value.
- * The return value of the reviver will be used as the value of that property
- * instead the parsed value.
- *
- * Throws [FormatException] if the input is not valid JSON text.
- */
-parse(String json, [reviver(var key, var value)]) {
-  return JSON.decode(json, reviver: reviver);
-}
-
-/**
- * Serializes [object] into a JSON string.
- *
- * Directly serializable values are [num], [String], [bool], and [Null], as well
- * as some [List] and [Map] values.
- * For [List], the elements must all be serializable.
- * For [Map], the keys must be [String] and the values must be serializable.
- *
- * If a value is any other type is attempted serialized, a "toJson()" method
- * is invoked on the object and the result, which must be a directly
- * serializable value, is serialized instead of the original value.
- *
- * If the object does not support this method, throws, or returns a
- * value that is not directly serializable, a [JsonUnsupportedObjectError]
- * exception is thrown. If the call throws (including the case where there
- * is no nullary "toJson" method, the error is caught and stored in the
- * [JsonUnsupportedObjectError]'s [:cause:] field.
- *
- * If a [List] or [Map] contains a reference to itself, directly or through
- * other lists or maps, it cannot be serialized and a [JsonCyclicError] is
- * thrown.
- *
- * Json Objects should not change during serialization.
- * If an object is serialized more than once, [stringify] is allowed to cache
- * the JSON text for it. I.e., if an object changes after it is first
- * serialized, the new values may or may not be reflected in the result.
- */
-String stringify(Object object) {
-  return _JsonStringifier.stringify(object);
-}
-
-/**
- * Serializes [object] into [output] stream.
- *
- * Performs the same operations as [stringify] but outputs the resulting
- * string to an existing [StringSink] instead of creating a new [String].
- *
- * If serialization fails by throwing, some data might have been added to
- * [output], but it won't contain valid JSON text.
- */
-void printOn(Object object, StringSink output) {
-  return _JsonStringifier.printOn(object, output);
+patch _parseJson(String json, reviver(var key, var value)) {
+  _BuildJsonListener listener;
+  if (reviver == null) {
+    listener = new _BuildJsonListener();
+  } else {
+    listener = new _ReviverJsonListener(reviver);
+  }
+  new _JsonParser(json, listener).parse();
+  return listener.result;
 }
 
 //// Implementation ///////////////////////////////////////////////////////////
 
 // Simple API for JSON parsing.
 
-abstract class JsonListener {
+abstract class _JsonListener {
   void handleString(String value) {}
   void handleNumber(num value) {}
   void handleBool(bool value) {}
@@ -102,7 +41,7 @@ abstract class JsonListener {
  * This is a simple stack-based object builder. It keeps the most recently
  * seen value in a variable, and uses it depending on the following event.
  */
-class BuildJsonListener extends JsonListener {
+class _BuildJsonListener extends _JsonListener {
   /**
    * Stack used to handle nested containers.
    *
@@ -178,11 +117,9 @@ class BuildJsonListener extends JsonListener {
   }
 }
 
-typedef _Reviver(var key, var value);
-
-class ReviverJsonListener extends BuildJsonListener {
+class _ReviverJsonListener extends _BuildJsonListener {
   final _Reviver reviver;
-  ReviverJsonListener(reviver(key, value)) : this.reviver = reviver;
+  _ReviverJsonListener(reviver(key, value)) : this.reviver = reviver;
 
   void arrayElement() {
     List list = currentContainer;
@@ -200,7 +137,7 @@ class ReviverJsonListener extends BuildJsonListener {
   }
 }
 
-class JsonParser {
+class _JsonParser {
   // A simple non-recursive state-based parser for JSON.
   //
   // Literal values accepted in states ARRAY_EMPTY, ARRAY_COMMA, OBJECT_COLON
@@ -292,8 +229,8 @@ class JsonParser {
   static const int RBRACE          = 0x7d;
 
   final String source;
-  final JsonListener listener;
-  JsonParser(this.source, this.listener);
+  final _JsonListener listener;
+  _JsonParser(this.source, this.listener);
 
   /** Parses [source], or throws if it fails. */
   void parse() {
@@ -615,169 +552,5 @@ class JsonParser {
       slice = "'${source.substring(position, sliceEnd)}...'";
     }
     throw new FormatException("Unexpected character at $position: $slice");
-  }
-}
-
-
-class _JsonStringifier {
-  StringSink sink;
-  List<Object> seen;  // TODO: that should be identity set.
-
-  _JsonStringifier(this.sink) : seen = [];
-
-  static String stringify(final object) {
-    StringBuffer output = new StringBuffer();
-    _JsonStringifier stringifier = new _JsonStringifier(output);
-    stringifier.stringifyValue(object);
-    return output.toString();
-  }
-
-  static void printOn(final object, StringSink output) {
-    _JsonStringifier stringifier = new _JsonStringifier(output);
-    stringifier.stringifyValue(object);
-  }
-
-  static String numberToString(num x) {
-    return x.toString();
-  }
-
-  // ('0' + x) or ('a' + x - 10)
-  static int hexDigit(int x) => x < 10 ? 48 + x : 87 + x;
-
-  static void escape(StringSink sb, String s) {
-    final int length = s.length;
-    bool needsEscape = false;
-    final charCodes = new List<int>();
-    for (int i = 0; i < length; i++) {
-      int charCode = s.codeUnitAt(i);
-      if (charCode < 32) {
-        needsEscape = true;
-        charCodes.add(JsonParser.BACKSLASH);
-        switch (charCode) {
-        case JsonParser.BACKSPACE:
-          charCodes.add(JsonParser.CHAR_b);
-          break;
-        case JsonParser.TAB:
-          charCodes.add(JsonParser.CHAR_t);
-          break;
-        case JsonParser.NEWLINE:
-          charCodes.add(JsonParser.CHAR_n);
-          break;
-        case JsonParser.FORM_FEED:
-          charCodes.add(JsonParser.CHAR_f);
-          break;
-        case JsonParser.CARRIAGE_RETURN:
-          charCodes.add(JsonParser.CHAR_r);
-          break;
-        default:
-          charCodes.add(JsonParser.CHAR_u);
-          charCodes.add(hexDigit((charCode >> 12) & 0xf));
-          charCodes.add(hexDigit((charCode >> 8) & 0xf));
-          charCodes.add(hexDigit((charCode >> 4) & 0xf));
-          charCodes.add(hexDigit(charCode & 0xf));
-          break;
-        }
-      } else if (charCode == JsonParser.QUOTE ||
-          charCode == JsonParser.BACKSLASH) {
-        needsEscape = true;
-        charCodes.add(JsonParser.BACKSLASH);
-        charCodes.add(charCode);
-      } else {
-        charCodes.add(charCode);
-      }
-    }
-    sb.write(needsEscape ? new String.fromCharCodes(charCodes) : s);
-  }
-
-  void checkCycle(final object) {
-    // TODO: use Iterables.
-    for (int i = 0; i < seen.length; i++) {
-      if (identical(seen[i], object)) {
-        throw new JsonCyclicError(object);
-      }
-    }
-    seen.add(object);
-  }
-
-  void stringifyValue(final object) {
-    // Tries stringifying object directly. If it's not a simple value, List or
-    // Map, call toJson() to get a custom representation and try serializing
-    // that.
-    if (!stringifyJsonValue(object)) {
-      checkCycle(object);
-      try {
-        var customJson = object.toJson();
-        if (!stringifyJsonValue(customJson)) {
-          throw new JsonUnsupportedObjectError(object);
-        }
-        seen.removeLast();
-      } catch (e) {
-        throw new JsonUnsupportedObjectError(object, cause: e);
-      }
-    }
-  }
-
-  /**
-   * Serializes a [num], [String], [bool], [Null], [List] or [Map] value.
-   *
-   * Returns true if the value is one of these types, and false if not.
-   * If a value is both a [List] and a [Map], it's serialized as a [List].
-   */
-  bool stringifyJsonValue(final object) {
-    if (object is num) {
-      // TODO: use writeOn.
-      sink.write(numberToString(object));
-      return true;
-    } else if (identical(object, true)) {
-      sink.write('true');
-      return true;
-    } else if (identical(object, false)) {
-      sink.write('false');
-       return true;
-    } else if (object == null) {
-      sink.write('null');
-      return true;
-    } else if (object is String) {
-      sink.write('"');
-      escape(sink, object);
-      sink.write('"');
-      return true;
-    } else if (object is List) {
-      checkCycle(object);
-      List a = object;
-      sink.write('[');
-      if (a.length > 0) {
-        stringifyValue(a[0]);
-        // TODO: switch to Iterables.
-        for (int i = 1; i < a.length; i++) {
-          sink.write(',');
-          stringifyValue(a[i]);
-        }
-      }
-      sink.write(']');
-      seen.removeLast();
-      return true;
-    } else if (object is Map) {
-      checkCycle(object);
-      Map<String, Object> m = object;
-      sink.write('{');
-      bool first = true;
-      m.forEach((String key, Object value) {
-        if (!first) {
-          sink.write(',"');
-        } else {
-          sink.write('"');
-        }
-        escape(sink, key);
-        sink.write('":');
-        stringifyValue(value);
-        first = false;
-      });
-      sink.write('}');
-      seen.removeLast();
-      return true;
-    } else {
-      return false;
-    }
   }
 }

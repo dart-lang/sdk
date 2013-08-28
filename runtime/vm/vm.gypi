@@ -16,6 +16,7 @@
     'collection_dev_cc_file': '<(gen_source_dir)/collection_dev_gen.cc',
     'collection_dev_patch_cc_file': '<(gen_source_dir)/collection_dev_patch_gen.cc',
     'convert_cc_file': '<(gen_source_dir)/convert_gen.cc',
+    'convert_patch_cc_file': '<(gen_source_dir)/convert_patch_gen.cc',
     'math_cc_file': '<(gen_source_dir)/math_gen.cc',
     'math_patch_cc_file': '<(gen_source_dir)/math_patch_gen.cc',
     'mirrors_cc_file': '<(gen_source_dir)/mirrors_gen.cc',
@@ -23,7 +24,6 @@
     'isolate_cc_file': '<(gen_source_dir)/isolate_gen.cc',
     'isolate_patch_cc_file': '<(gen_source_dir)/isolate_patch_gen.cc',
     'json_cc_file': '<(gen_source_dir)/json_gen.cc',
-    'json_patch_cc_file': '<(gen_source_dir)/json_patch_gen.cc',
     'typed_data_cc_file': '<(gen_source_dir)/typed_data_gen.cc',
     'typed_data_patch_cc_file': '<(gen_source_dir)/typed_data_patch_gen.cc',
     'utf_cc_file': '<(gen_source_dir)/utf_gen.cc',
@@ -103,12 +103,12 @@
         'generate_collection_dev_cc_file#host',
         'generate_collection_dev_patch_cc_file#host',
         'generate_convert_cc_file#host',
+        'generate_convert_patch_cc_file#host',
         'generate_math_cc_file#host',
         'generate_math_patch_cc_file#host',
         'generate_isolate_cc_file#host',
         'generate_isolate_patch_cc_file#host',
         'generate_json_cc_file#host',
-        'generate_json_patch_cc_file#host',
         'generate_mirrors_cc_file#host',
         'generate_mirrors_patch_cc_file#host',
         'generate_typed_data_cc_file#host',
@@ -136,12 +136,12 @@
         '<(collection_dev_cc_file)',
         '<(collection_dev_patch_cc_file)',
         '<(convert_cc_file)',
+        '<(convert_patch_cc_file)',
         '<(math_cc_file)',
         '<(math_patch_cc_file)',
         '<(isolate_cc_file)',
         '<(isolate_patch_cc_file)',
         '<(json_cc_file)',
-        '<(json_patch_cc_file)',
         '<(mirrors_cc_file)',
         '<(mirrors_patch_cc_file)',
         '<(typed_data_cc_file)',
@@ -448,6 +448,46 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(convert_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_convert_patch_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'includes': [
+        # Load the shared convert library sources.
+        '../lib/convert_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_convert_patch_cc',
+          'inputs': [
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(convert_patch_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/gen_library_src_paths.py',
+            '--output', '<(convert_patch_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::convert_patch_paths_',
+            '--library_name', 'dart:convert',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(convert_patch_cc_file)'' file.'
         },
       ]
     },
@@ -801,46 +841,6 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(json_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_json_patch_cc_file',
-      'type': 'none',
-      'toolsets':['host'],
-      'includes': [
-        # Load the shared json library sources.
-        '../lib/json_sources.gypi',
-      ],
-      'sources/': [
-        # Exclude all .[cc|h] files.
-        # This is only here for reference. Excludes happen after
-        # variable expansion, so the script has to do its own
-        # exclude processing of the sources being passed.
-        ['exclude', '\\.cc|h$'],
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_json_patch_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(json_patch_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(json_patch_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::json_patch_paths_',
-            '--library_name', 'dart:json',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(json_patch_cc_file)'' file.'
         },
       ]
     },

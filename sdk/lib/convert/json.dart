@@ -5,6 +5,47 @@
 part of dart.convert;
 
 /**
+ * Error thrown by JSON serialization if an object cannot be serialized.
+ *
+ * The [unsupportedObject] field holds that object that failed to be serialized.
+ *
+ * If an object isn't directly serializable, the serializer calls the 'toJson'
+ * method on the object. If that call fails, the error will be stored in the
+ * [cause] field. If the call returns an object that isn't directly
+ * serializable, the [cause] is be null.
+ */
+class JsonUnsupportedObjectError extends Error {
+  /** The object that could not be serialized. */
+  final unsupportedObject;
+  /** The exception thrown by object's [:toJson:] method, if any. */
+  final cause;
+
+  JsonUnsupportedObjectError(this.unsupportedObject, { this.cause });
+
+  String toString() {
+    if (cause != null) {
+      return "Calling toJson method on object failed.";
+    } else {
+      return "Object toJson method returns non-serializable value.";
+    }
+  }
+}
+
+
+/**
+ * Reports that an object could not be stringified due to cyclic references.
+ *
+ * An object that references itself cannot be serialized by [stringify].
+ * When the cycle is detected, a [JsonCyclicError] is thrown.
+ */
+class JsonCyclicError extends JsonUnsupportedObjectError {
+  /** The first object that was detected as part of a cycle. */
+  JsonCyclicError(Object object): super(object);
+  String toString() => "Cyclic error in JSON stringify";
+}
+
+
+/**
  * An instance of the default implementation of the [JsonCodec].
  *
  * This instance provides a convenient access to the most common JSON
@@ -181,7 +222,7 @@ class JsonDecoder extends Converter<String, Object> {
    *
    * Throws [FormatException] if the input is not valid JSON text.
    */
-  Object convert(String input) => OLD_JSON_LIB.parse(input, _reviver);
+  Object convert(String input) => _parseJson(input, _reviver);
 
   /**
    * Starts a conversion from a chunked JSON string to its corresponding
@@ -217,8 +258,11 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
     StringBuffer buffer = _stringSink;
     String accumulated = buffer.toString();
     buffer.clear();
-    Object decoded = OLD_JSON_LIB.parse(accumulated, _reviver);
+    Object decoded = _parseJson(accumulated, _reviver);
     _chunkedSink.add(decoded);
     _chunkedSink.close();
   }
 }
+
+// Internal optimized JSON parsing implementation.
+external _parseJson(String source, reviver(key, value));

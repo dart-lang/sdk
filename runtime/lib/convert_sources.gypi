@@ -4,6 +4,6 @@
 
 {
   'sources': [
-    'json_patch.dart',
+    'convert_patch.dart',
   ],
 }

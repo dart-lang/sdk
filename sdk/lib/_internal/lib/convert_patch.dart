@@ -10,7 +10,7 @@ import 'dart:_interceptors' show JSExtendableArray;
 /**
  * Parses [json] and builds the corresponding parsed JSON value.
  *
- * Parsed JSON values are of the types [num], [String], [bool], [Null],
+ * Parsed JSON values Nare of the types [num], [String], [bool], [Null],
  * [List]s of parsed JSON values or [Map]s from [String] to parsed
  * JSON values.
  *
@@ -23,14 +23,14 @@ import 'dart:_interceptors' show JSExtendableArray;
  *
  * Throws [FormatException] if the input is not valid JSON text.
  */
-patch parse(String json, [reviver(var key, var value)]) {
-  if (json is! String) throw new ArgumentError(json);
+patch _parseJson(String source, reviver(var key, var value)) {
+  if (source is! String) throw new ArgumentError(source);
 
   var parsed;
   try {
     parsed = JS('=Object|JSExtendableArray|Null|bool|num|String',
                 'JSON.parse(#)',
-                json);
+                source);
   } catch (e) {
     throw new FormatException(JS('String', 'String(#)', e));
   }
@@ -90,5 +90,5 @@ _convertJsonToDart(json, reviver(key, value)) {
     return map;
   }
 
-  return revive('', walk(json));
+  return revive("", walk(json));
 }
