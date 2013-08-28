@@ -4452,6 +4452,28 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetJumpLabel(this));
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   deopt_id_,
+                                   Scanner::kDummyTokenIndex);
+    // Add an edge counter.
+    const Array& counter = Array::ZoneHandle(Array::New(1, Heap::kOld));
+    counter.SetAt(0, Smi::Handle(Smi::New(0)));
+    __ Comment("Edge counter");
+    __ LoadObject(R0, counter);
+    __ ldr(IP, FieldAddress(R0, Array::element_offset(0)));
+    __ adds(IP, IP, ShifterOperand(Smi::RawValue(1)));
+    __ LoadImmediate(IP, Smi::RawValue(Smi::kMaxValue), VS);  // If overflow.
+    __ str(IP, FieldAddress(R0, Array::element_offset(0)));
+  }
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
+}
+
+
 LocationSummary* GotoInstr::MakeLocationSummary() const {
   return new LocationSummary(0, 0, LocationSummary::kNoCall);
 }

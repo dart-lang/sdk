@@ -82,17 +82,26 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
 
   // Attach the outer environment on each instruction in the callee graph.
   ASSERT(call_->env() != NULL);
+  // Scale the edge weights by the call count for the inlined function.
+  double scale_factor = static_cast<double>(call_->CallCount())
+      / static_cast<double>(caller_graph_->graph_entry()->entry_count());
   for (BlockIterator block_it = callee_graph->postorder_iterator();
        !block_it.Done();
        block_it.Advance()) {
-    for (ForwardInstructionIterator it(block_it.Current());
-         !it.Done();
-         it.Advance()) {
-      Instruction* instr = it.Current();
+    BlockEntryInstr* block = block_it.Current();
+    if (block->IsTargetEntry()) {
+      block->AsTargetEntry()->adjust_edge_weight(scale_factor);
+    }
+    Instruction* instr = block;
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      instr = it.Current();
       // TODO(zerny): Avoid creating unnecessary environments. Note that some
       // optimizations need deoptimization info for non-deoptable instructions,
       // eg, LICM on GOTOs.
       if (instr->env() != NULL) call_->env()->DeepCopyToOuter(instr);
+    }
+    if (instr->IsGoto()) {
+      instr->AsGoto()->adjust_edge_weight(scale_factor);
     }
   }
 }
@@ -3728,7 +3737,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 void FlowGraphBuilder::PruneUnreachable() {
   ASSERT(osr_id_ != Isolate::kNoDeoptId);
   BitVector* block_marks = new BitVector(last_used_block_id_ + 1);
-  bool found = graph_entry_->PruneUnreachable(this, graph_entry_, osr_id_,
+  bool found = graph_entry_->PruneUnreachable(this, graph_entry_, NULL, osr_id_,
                                               block_marks);
   ASSERT(found);
 }

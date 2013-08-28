@@ -4,6 +4,7 @@
 
 #include "vm/flow_graph_inliner.h"
 
+#include "vm/block_scheduler.h"
 #include "vm/compiler.h"
 #include "vm/flags.h"
 #include "vm/flow_graph.h"
@@ -591,6 +592,9 @@ class CallSiteInliner : public ValueObject {
       // After treating optional parameters the actual/formal count must match.
       ASSERT(arguments->length() == function.NumParameters());
       ASSERT(param_stubs->length() == callee_graph->parameter_count());
+
+      BlockScheduler block_scheduler(callee_graph);
+      block_scheduler.AssignEdgeWeights();
 
       {
         TimerScope timer(FLAG_compiler_stats,

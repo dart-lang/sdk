@@ -64,12 +64,12 @@ void CompilerDeoptInfo::EmitMaterializations(Environment* env,
 
 
 FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
-                                     const FlowGraph& flow_graph,
+                                     FlowGraph* flow_graph,
                                      bool is_optimizing)
     : assembler_(assembler),
-      parsed_function_(flow_graph.parsed_function()),
-      flow_graph_(flow_graph),
-      block_order_(flow_graph.reverse_postorder()),
+      parsed_function_(flow_graph->parsed_function()),
+      flow_graph_(*flow_graph),
+      block_order_(*flow_graph->codegen_block_order(is_optimizing)),
       current_block_(NULL),
       exception_handlers_list_(NULL),
       pc_descriptors_list_(NULL),

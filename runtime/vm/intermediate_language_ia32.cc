@@ -4798,12 +4798,56 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetJumpLabel(this));
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   deopt_id_,
+                                   Scanner::kDummyTokenIndex);
+    // Add an edge counter.
+    const Array& counter = Array::ZoneHandle(Array::New(1, Heap::kOld));
+    counter.SetAt(0, Smi::Handle(Smi::New(0)));
+    Label done;
+    __ Comment("Edge counter");
+    __ LoadObject(EAX, counter);
+    __ addl(FieldAddress(EAX, Array::element_offset(0)),
+            Immediate(Smi::RawValue(1)));
+    __ j(NO_OVERFLOW, &done);
+    __ movl(FieldAddress(EAX, Array::element_offset(0)),
+            Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ Bind(&done);
+  }
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
+}
+
+
 LocationSummary* GotoInstr::MakeLocationSummary() const {
   return new LocationSummary(0, 0, LocationSummary::kNoCall);
 }
 
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (!compiler->is_optimizing()) {
+    // Add deoptimization descriptor for deoptimizing instructions that may
+    // be inserted before this instruction.
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   GetDeoptId(),
+                                   0);  // No token position.
+    // Add an edge counter.
+    const Array& counter = Array::ZoneHandle(Array::New(1, Heap::kOld));
+    counter.SetAt(0, Smi::Handle(Smi::New(0)));
+    Label done;
+    __ Comment("Edge counter");
+    __ LoadObject(EAX, counter);
+    __ addl(FieldAddress(EAX, Array::element_offset(0)),
+            Immediate(Smi::RawValue(1)));
+    __ j(NO_OVERFLOW, &done);
+    __ movl(FieldAddress(EAX, Array::element_offset(0)),
+            Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ Bind(&done);
+  }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }

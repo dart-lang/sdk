@@ -7,6 +7,7 @@
 #include "vm/assembler.h"
 
 #include "vm/ast_printer.h"
+#include "vm/block_scheduler.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_entry.h"
@@ -52,6 +53,7 @@ DEFINE_FLAG(int, deoptimization_counter_licm_threshold, 8,
     "How many times we allow deoptimization before we disable LICM.");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
+DEFINE_FLAG(bool, reorder_basic_blocks, true, "Enable basic-block reordering.");
 DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
 DECLARE_FLAG(bool, print_flow_graph);
@@ -305,6 +307,11 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         }
       }
 
+      BlockScheduler block_scheduler(flow_graph);
+      if (optimized && FLAG_reorder_basic_blocks) {
+        block_scheduler.AssignEdgeWeights();
+      }
+
       if (optimized) {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::ssa_timer,
@@ -316,7 +323,6 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           FlowGraphPrinter::PrintGraph("After SSA", flow_graph);
         }
       }
-
 
       // Collect all instance fields that are loaded in the graph and
       // have non-generic type feedback attached to them that can
@@ -504,6 +510,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         // Perform register allocation on the SSA graph.
         FlowGraphAllocator allocator(*flow_graph);
         allocator.AllocateRegisters();
+        if (FLAG_reorder_basic_blocks) block_scheduler.ReorderBlocks();
 
         if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
           FlowGraphPrinter::PrintGraph("After Optimizations", flow_graph);
@@ -511,9 +518,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
       }
 
       Assembler assembler(use_far_branches);
-      FlowGraphCompiler graph_compiler(&assembler,
-                                       *flow_graph,
-                                       optimized);
+      FlowGraphCompiler graph_compiler(&assembler, flow_graph, optimized);
       {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphcompiler_timer,

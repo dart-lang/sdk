@@ -1184,6 +1184,7 @@ class BlockEntryInstr : public Instruction {
   // entry point.
   bool PruneUnreachable(FlowGraphBuilder* builder,
                         GraphEntryInstr* graph_entry,
+                        Instruction* parent,
                         intptr_t osr_id,
                         BitVector* block_marks);
 
@@ -1349,6 +1350,9 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   bool IsCompiledForOsr() const { return osr_id_ != Isolate::kNoDeoptId; }
 
+  intptr_t entry_count() const { return entry_count_; }
+  void set_entry_count(intptr_t count) { entry_count_ = count; }
+
   intptr_t spill_slot_count() const { return spill_slot_count_; }
   void set_spill_slot_count(intptr_t count) {
     ASSERT(count >= 0);
@@ -1384,6 +1388,7 @@ class GraphEntryInstr : public BlockEntryInstr {
   GrowableArray<CatchBlockEntryInstr*> catch_entries_;
   GrowableArray<Definition*> initial_definitions_;
   const intptr_t osr_id_;
+  intptr_t entry_count_;
   intptr_t spill_slot_count_;
   intptr_t fixed_slot_count_;  // For try-catch in optimized code.
 
@@ -1467,9 +1472,16 @@ class PhiIterator : public ValueObject {
 class TargetEntryInstr : public BlockEntryInstr {
  public:
   TargetEntryInstr(intptr_t block_id, intptr_t try_index)
-      : BlockEntryInstr(block_id, try_index), predecessor_(NULL) { }
+      : BlockEntryInstr(block_id, try_index),
+        predecessor_(NULL),
+        edge_weight_(0.0) {
+  }
 
   DECLARE_INSTRUCTION(TargetEntry)
+
+  double edge_weight() const { return edge_weight_; }
+  void set_edge_weight(double weight) { edge_weight_ = weight; }
+  void adjust_edge_weight(double scale_factor) { edge_weight_ *= scale_factor; }
 
   virtual intptr_t PredecessorCount() const {
     return (predecessor_ == NULL) ? 0 : 1;
@@ -1491,6 +1503,7 @@ class TargetEntryInstr : public BlockEntryInstr {
   }
 
   BlockEntryInstr* predecessor_;
+  double edge_weight_;
 
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
 };
@@ -1569,6 +1582,12 @@ class Definition : public Instruction {
 
   // Overridden by definitions that push arguments.
   virtual intptr_t ArgumentCount() const { return 0; }
+
+  // Overridden by definitions that have call counts.
+  virtual intptr_t CallCount() const {
+    UNREACHABLE();
+    return -1;
+  }
 
   intptr_t temp_index() const { return temp_index_; }
   void set_temp_index(intptr_t index) { temp_index_ = index; }
@@ -1987,7 +2006,9 @@ class GotoInstr : public TemplateInstruction<0> {
  public:
   explicit GotoInstr(JoinEntryInstr* entry)
     : successor_(entry),
-      parallel_move_(NULL) { }
+      edge_weight_(0.0),
+      parallel_move_(NULL) {
+  }
 
   DECLARE_INSTRUCTION(Goto)
 
@@ -1997,6 +2018,10 @@ class GotoInstr : public TemplateInstruction<0> {
   void set_successor(JoinEntryInstr* successor) { successor_ = successor; }
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
+
+  double edge_weight() const { return edge_weight_; }
+  void set_edge_weight(double weight) { edge_weight_ = weight; }
+  void adjust_edge_weight(double scale_factor) { edge_weight_ *= scale_factor; }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     // Goto instruction can be used as a deoptimization target when LICM
@@ -2029,6 +2054,7 @@ class GotoInstr : public TemplateInstruction<0> {
 
  private:
   JoinEntryInstr* successor_;
+  double edge_weight_;
 
   // Parallel move that will be used by linear scan register allocator to
   // connect live ranges at the end of the block and resolve phis.
@@ -2596,6 +2622,9 @@ class ClosureCallInstr : public TemplateDefinition<0> {
     return (*arguments_)[index];
   }
 
+  // TODO(kmillikin): implement exact call counts for closure calls.
+  virtual intptr_t CallCount() const { return 1; }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
@@ -2709,6 +2738,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
   }
 
   bool HasRecognizedTarget() const;
+
+  virtual intptr_t CallCount() const { return ic_data().AggregateCount(); }
 
   DECLARE_INSTRUCTION(PolymorphicInstanceCall)
 
@@ -3113,6 +3144,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
   virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
+
+  virtual intptr_t CallCount() const { return ic_data()->AggregateCount(); }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 

@@ -235,7 +235,7 @@ class FlowGraphCompiler : public ValueObject {
 
  public:
   FlowGraphCompiler(Assembler* assembler,
-                    const FlowGraph& flow_graph,
+                    FlowGraph* flow_graph,
                     bool is_optimizing);
 
   ~FlowGraphCompiler();
