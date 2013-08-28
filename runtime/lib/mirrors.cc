@@ -110,7 +110,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_isLocalPort, 1) {
   Integer& id = Integer::Handle();
   id ^= id_obj.raw();
   Dart_Port port_id = static_cast<Dart_Port>(id.AsInt64Value());
-  return Bool::Get(PortMap::IsLocalPort(port_id));
+  return Bool::Get(PortMap::IsLocalPort(port_id)).raw();
 }
 
 
@@ -166,10 +166,8 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     // above.
     args.SetAt(1, name);
     args.SetAt(3, pos);
-    args.SetAt(4, (i >= index_of_first_optional_param) ?
-        Bool::True() : Bool::False());
-    args.SetAt(5, (i >= index_of_first_named_param) ?
-        Bool::True() : Bool::False());
+    args.SetAt(4, Bool::Get(i >= index_of_first_optional_param));
+    args.SetAt(5, Bool::Get(i >= index_of_first_named_param));
     args.SetAt(6, is_final);
     args.SetAt(7, default_value);
     param ^= CreateMirror(Symbols::_LocalParameterMirrorImpl(), args);
@@ -236,11 +234,11 @@ static RawInstance* CreateMethodMirror(const Function& func,
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
   args.SetAt(1, String::Handle(func.UserVisibleName()));
   args.SetAt(2, owner_mirror);
-  args.SetAt(3, func.is_static() ? Bool::True() : Bool::False());
-  args.SetAt(4, func.is_abstract() ? Bool::True() : Bool::False());
-  args.SetAt(5, func.IsGetterFunction() ? Bool::True() : Bool::False());
-  args.SetAt(6, func.IsSetterFunction() ? Bool::True() : Bool::False());
-  args.SetAt(7, func.IsConstructor() ? Bool::True() : Bool::False());
+  args.SetAt(3, Bool::Get(func.is_static()));
+  args.SetAt(4, Bool::Get(func.is_abstract()));
+  args.SetAt(5, Bool::Get(func.IsGetterFunction()));
+  args.SetAt(6, Bool::Get(func.IsSetterFunction()));
+  args.SetAt(7, Bool::Get(func.IsConstructor()));
   // TODO(mlippautz): Implement different constructor kinds.
   args.SetAt(8, Bool::False());
   args.SetAt(9, Bool::False());
@@ -262,8 +260,8 @@ static RawInstance* CreateVariableMirror(const Field& field,
   args.SetAt(1, name);
   args.SetAt(2, owner_mirror);
   args.SetAt(3, Instance::Handle());  // Null for type.
-  args.SetAt(4, field.is_static() ? Bool::True() : Bool::False());
-  args.SetAt(5, field.is_final()  ? Bool::True() : Bool::False());
+  args.SetAt(4, Bool::Get(field.is_static()));
+  args.SetAt(5, Bool::Get(field.is_final()));
 
   return CreateMirror(Symbols::_LocalVariableMirrorImpl(), args);
 }
@@ -300,8 +298,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
     }
   }
 
-  const Bool& is_generic =
-      (cls.NumTypeParameters() == 0) ? Bool::False() : Bool::True();
+  const Bool& is_generic = Bool::Get(cls.NumTypeParameters() != 0);
 
   const Array& args = Array::Handle(Array::New(4));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
@@ -427,7 +424,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirror, 1) {
 DEFINE_NATIVE_ENTRY(MirrorReference_equals, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, a, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, b, arguments->NativeArgAt(1));
-  return Bool::Get(a.referent() == b.referent());
+  return Bool::Get(a.referent() == b.referent()).raw();
 }
 
 

@@ -139,7 +139,7 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
         Symbols::Empty(), malformed_error_message);
     UNREACHABLE();
   }
-  return Bool::Get(negate.value() ? !is_instance_of : is_instance_of);
+  return Bool::Get(negate.value() ? !is_instance_of : is_instance_of).raw();
 }
 
 

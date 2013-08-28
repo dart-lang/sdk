@@ -3821,7 +3821,7 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
 DART_EXPORT void Dart_SetBooleanReturnValue(Dart_NativeArguments args,
                                             bool retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  arguments->SetReturn(retval ? Bool::True() : Bool::False());
+  arguments->SetReturn(Bool::Get(retval));
 }
 
 

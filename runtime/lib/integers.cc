@@ -165,7 +165,7 @@ DEFINE_NATIVE_ENTRY(Integer_greaterThanFromInteger, 2) {
     OS::Print("Integer_greaterThanFromInteger %s > %s\n",
         left.ToCString(), right.ToCString());
   }
-  return Bool::Get(left.CompareWith(right) == 1);
+  return Bool::Get(left.CompareWith(right) == 1).raw();
 }
 
 
@@ -178,7 +178,7 @@ DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 2) {
     OS::Print("Integer_equalToInteger %s == %s\n",
         left.ToCString(), right.ToCString());
   }
-  return Bool::Get(left.CompareWith(right) == 0);
+  return Bool::Get(left.CompareWith(right) == 0).raw();
 }
 
 

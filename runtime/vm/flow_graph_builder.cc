@@ -1213,8 +1213,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     EffectGraphVisitor for_left_value(owner(), temp_index());
     node->left()->Visit(&for_left_value);
     Append(for_left_value);
-    ReturnDefinition(new ConstantInstr(negate_result ?
-                                       Bool::False() : Bool::True()));
+    ReturnDefinition(new ConstantInstr(Bool::Get(!negate_result)));
     return;
   }
 
@@ -1229,11 +1228,9 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     if (literal_value.IsInstanceOf(type,
                                    TypeArguments::Handle(),
                                    &malformed_error)) {
-      result = new ConstantInstr(negate_result ?
-                                 Bool::False() : Bool::True());
+      result = new ConstantInstr(Bool::Get(!negate_result));
     } else {
-      result = new ConstantInstr(negate_result ?
-                                 Bool::True() : Bool::False());
+      result = new ConstantInstr(Bool::Get(negate_result));
     }
     ASSERT(malformed_error.IsNull());
 
@@ -1264,8 +1261,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   Value* type_arg = Bind(
       new ConstantInstr(node->right()->AsTypeNode()->type()));
   arguments->Add(PushArgument(type_arg));
-  const Bool& negate = (node->kind() == Token::kISNOT) ? Bool::True() :
-                                                         Bool::False();
+  const Bool& negate = Bool::Get(node->kind() == Token::kISNOT);
   Value* negate_arg = Bind(new ConstantInstr(negate));
   arguments->Add(PushArgument(negate_arg));
   const intptr_t kNumArgsChecked = 1;

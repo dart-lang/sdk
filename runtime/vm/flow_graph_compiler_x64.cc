@@ -631,11 +631,11 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     __ jmp(&done, Assembler::kNearJump);
   }
   __ Bind(&is_not_instance);
-  __ LoadObject(RAX, negate_result ? Bool::True() : Bool::False());
+  __ LoadObject(RAX, Bool::Get(negate_result));
   __ jmp(&done, Assembler::kNearJump);
 
   __ Bind(&is_instance);
-  __ LoadObject(RAX, negate_result ? Bool::False() : Bool::True());
+  __ LoadObject(RAX, Bool::Get(!negate_result));
   __ Bind(&done);
   __ popq(RDX);  // Remove pushed instantiator type arguments.
   __ popq(RCX);  // Remove pushed instantiator.

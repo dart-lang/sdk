@@ -619,11 +619,11 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     __ b(&done);
   }
   __ Bind(&is_not_instance);
-  __ LoadObject(R0, negate_result ? Bool::True() : Bool::False());
+  __ LoadObject(R0, Bool::Get(negate_result));
   __ b(&done);
 
   __ Bind(&is_instance);
-  __ LoadObject(R0, negate_result ? Bool::False() : Bool::True());
+  __ LoadObject(R0, Bool::Get(!negate_result));
   __ Bind(&done);
   // Remove instantiator (R2) and its type arguments (R1).
   __ Drop(2);

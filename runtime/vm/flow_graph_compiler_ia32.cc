@@ -634,11 +634,11 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     __ jmp(&done, Assembler::kNearJump);
   }
   __ Bind(&is_not_instance);
-  __ LoadObject(EAX, negate_result ? Bool::True() : Bool::False());
+  __ LoadObject(EAX, Bool::Get(negate_result));
   __ jmp(&done, Assembler::kNearJump);
 
   __ Bind(&is_instance);
-  __ LoadObject(EAX, negate_result ? Bool::False() : Bool::True());
+  __ LoadObject(EAX, Bool::Get(!negate_result));
   __ Bind(&done);
   __ popl(EDX);  // Remove pushed instantiator type arguments.
   __ popl(ECX);  // Remove pushed instantiator.

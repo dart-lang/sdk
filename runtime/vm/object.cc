@@ -9095,7 +9095,7 @@ bool ContextScope::IsFinalAt(intptr_t scope_index) const {
 
 
 void ContextScope::SetIsFinalAt(intptr_t scope_index, bool is_final) const {
-  VariableDescAddr(scope_index)->is_final = Bool::Get(is_final);
+  VariableDescAddr(scope_index)->is_final = Bool::Get(is_final).raw();
 }
 
 
@@ -9105,7 +9105,7 @@ bool ContextScope::IsConstAt(intptr_t scope_index) const {
 
 
 void ContextScope::SetIsConstAt(intptr_t scope_index, bool is_const) const {
-  VariableDescAddr(scope_index)->is_const = Bool::Get(is_const);
+  VariableDescAddr(scope_index)->is_const = Bool::Get(is_const).raw();
 }
 
 

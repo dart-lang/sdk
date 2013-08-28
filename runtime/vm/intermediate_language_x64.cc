@@ -510,10 +510,10 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     __ popq(RDX);
     __ cmpq(RAX, RDX);
     __ j(EQUAL, &is_true);
-    __ LoadObject(RAX, (kind == Token::kEQ) ? Bool::False() : Bool::True());
+    __ LoadObject(RAX, Bool::Get(kind != Token::kEQ));
     __ jmp(&equality_done);
     __ Bind(&is_true);
-    __ LoadObject(RAX, (kind == Token::kEQ) ? Bool::True() : Bool::False());
+    __ LoadObject(RAX, Bool::Get(kind == Token::kEQ));
     if (kind == Token::kNE) {
       // Skip not-equal result conversion.
       __ jmp(&equality_done);
@@ -691,10 +691,10 @@ static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
     Register result = locs.out().reg();
     __ j(EQUAL, &is_equal, Assembler::kNearJump);
     // Not equal.
-    __ LoadObject(result, (kind == Token::kEQ) ? Bool::False() : Bool::True());
+    __ LoadObject(result, Bool::Get(kind != Token::kEQ));
     __ jmp(&done, Assembler::kNearJump);
     __ Bind(&is_equal);
-    __ LoadObject(result, (kind == Token::kEQ) ? Bool::True() : Bool::False());
+    __ LoadObject(result, Bool::Get(kind == Token::kEQ));
     __ Bind(&done);
   } else {
     Condition cond = TokenKindToSmiCondition(kind);
@@ -4652,7 +4652,7 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const bool result = (kind() == Token::kEQ_STRICT) ?
         left.constant().raw() == right.constant().raw() :
         left.constant().raw() != right.constant().raw();
-    __ LoadObject(locs()->out().reg(), result ? Bool::True() : Bool::False());
+    __ LoadObject(locs()->out().reg(), Bool::Get(result));
     return;
   }
   if (left.IsConstant()) {

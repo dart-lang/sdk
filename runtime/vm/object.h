@@ -5101,8 +5101,8 @@ class Bool : public Instance {
     return Object::bool_false();
   }
 
-  static RawBool* Get(bool value) {
-    return value ? Bool::True().raw() : Bool::False().raw();
+  static const Bool& Get(bool value) {
+    return value ? Bool::True() : Bool::False();
   }
 
  private:

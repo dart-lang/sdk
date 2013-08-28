@@ -120,14 +120,14 @@ DEFINE_NATIVE_ENTRY(Double_greaterThan, 2) {
     OS::Print("Double_greaterThan %s > %s\n",
         left.ToCString(), right.ToCString());
   }
-  return Bool::Get(result);
+  return Bool::Get(result).raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(Double_greaterThanFromInteger, 2) {
   const Double& right = Double::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
-  return Bool::Get(left.AsDoubleValue() > right.value());
+  return Bool::Get(left.AsDoubleValue() > right.value()).raw();
 }
 
 
@@ -139,14 +139,14 @@ DEFINE_NATIVE_ENTRY(Double_equal, 2) {
     OS::Print("Double_equal %s == %s\n",
         left.ToCString(), right.ToCString());
   }
-  return Bool::Get(result);
+  return Bool::Get(result).raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(Double_equalToInteger, 2) {
   const Double& left = Double::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, right, arguments->NativeArgAt(1));
-  return Bool::Get(left.value() == right.AsDoubleValue());
+  return Bool::Get(left.value() == right.AsDoubleValue()).raw();
 }
 
 
@@ -265,20 +265,20 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsPrecision, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_getIsInfinite, 1) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
-  return Bool::Get(isinf(arg.value()));
+  return Bool::Get(isinf(arg.value())).raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(Double_getIsNaN, 1) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
-  return Bool::Get(isnan(arg.value()));
+  return Bool::Get(isnan(arg.value())).raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(Double_getIsNegative, 1) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
   // Include negative zero, infinity.
-  return Bool::Get(signbit(arg.value()) && !isnan(arg.value()));
+  return Bool::Get(signbit(arg.value()) && !isnan(arg.value())).raw();
 }
 
 // Add here only functions using/referring to old-style casts.
