@@ -221,10 +221,10 @@ patch class String {
 }
 
 patch class RegExp {
-  patch factory RegExp(String pattern,
+  patch factory RegExp(String source,
                        {bool multiLine: false,
                         bool caseSensitive: true})
-    => new JSSyntaxRegExp(pattern,
+    => new JSSyntaxRegExp(source,
                           multiLine: multiLine,
                           caseSensitive: caseSensitive);
 }

@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class RegExp {
-  /* patch */ factory RegExp(String pattern,
+  /* patch */ factory RegExp(String source,
                              {bool multiLine: false,
                               bool caseSensitive: true}) {
-    return new _JSSyntaxRegExp(pattern,
+    return new _JSSyntaxRegExp(source,
                                multiLine: multiLine,
                                caseSensitive: caseSensitive);
   }

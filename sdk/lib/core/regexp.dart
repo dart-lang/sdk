@@ -5,9 +5,10 @@
 part of dart.core;
 
 /**
- * [Match] contains methods to manipulate a regular expression match.
+ * [Match] contains methods to manipulate a pattern match.
  *
- * Iterables of [Match] objects are returned from [RegExp] matching methods.
+ * A [Match] or and iterable of [Match] objects are returned from [Pattern]
+ * matching methods.
  *
  * The following example finds all matches of a [RegExp] in a [String]
  * and iterates through the returned iterable of [Match] objects.
@@ -25,6 +26,11 @@ part of dart.core;
  *     Parse
  *     my
  *     string
+ *
+ * Some patterns, regular expressions in particular, may record subtrings
+ * that were part of the matching. These are called "groups" in the `Match`
+ * object. Some patterns may never have any groups, and their matches always
+ * have zero [groupCount].
  */
 abstract class Match {
   /**
@@ -39,37 +45,66 @@ abstract class Match {
   int get end;
 
   /**
-   * Returns the string matched by the given [group]. If [group] is 0,
-   * returns the match of the regular expression.
+   * Returns the string matched by the given [group].
+   *
+   * If [group] is 0, returns the match of the pattern.
+   *
+   * The result may be `null` if the pattern didn't assign a value to it
+   * as part of this match.
    */
   String group(int group);
+
+  /**
+   * Returns the string matched by the given [group].
+   *
+   * If [group] is 0, returns the match of the pattern.
+   *
+   * Short alias for [Match.group].
+   */
   String operator [](int group);
 
   /**
-   * Returns the strings matched by [groups]. The order in the
-   * returned string follows the order in [groups].
+   * Returns a list of the groups with the given indices.
+   *
+   * The list contains the strings returned by [group] for each index in
+   * [groupIndices].
    */
-  List<String> groups(List<int> groups);
+  List<String> groups(List<int> groupIndices);
 
   /**
-   * Returns the number of groups in the regular expression.
+   * Returns the number of captured groups in the match.
+   *
+   * Some patterns may capture parts of the input that was used to
+   * compute the full match. This is the number of captured groups,
+   * which is also the maximal allowed argument to the [group] method.
    */
   int get groupCount;
 
   /**
-   * The string on which this matcher was computed.
+   * The string on which this match was computed.
    */
-  String get str;
+  String get input;
 
   /**
-   * The pattern used to search in [str].
+   * Deprecated alias for [input].
+   *
+   * Will be removed soon.
+   */
+  @deprecated
+  String get src;
+
+  /**
+   * The pattern used to search in [input].
    */
   Pattern get pattern;
 }
 
 
 /**
- * A class for working with regular expressions.
+ * A regular expression pattern.
+ *
+ * Regular expressions are [Pattern]s, and can as such be used to match strings
+ * or parts of strings.
  *
  * Dart regular expressions have the same syntax and semantics as
  * JavaScript regular expressions. See
@@ -92,36 +127,34 @@ abstract class Match {
  */
 abstract class RegExp implements Pattern {
   /**
-   * Constructs a regular expression. The default implementation of a
-   * [RegExp] sets [multiLine] to false and [caseSensitive] to true.
-   * Throws a [FormatException] if [pattern] is not a valid regular
-   * exression pattern.
+   * Constructs a regular expression.
+   *
+   * Throws a [FormatException] if [source] is not valid regular
+   * expression syntax.
    */
-  external factory RegExp(String pattern, {bool multiLine: false,
-                                           bool caseSensitive: true});
+  external factory RegExp(String source, {bool multiLine: false,
+                                          bool caseSensitive: true});
 
   /**
    * Searches for the first match of the regular expression
-   * in the string [str]. Returns `null` if there is no match.
+   * in the string [input]. Returns `null` if there is no match.
    */
-  Match firstMatch(String str);
+  Match firstMatch(String input);
 
   /**
-   * Returns an iterable on the  matches of the regular
-   * expression in [str].
+   * Returns an iterable of the matches of the regular expression on [input].
    */
-  Iterable<Match> allMatches(String str);
+  Iterable<Match> allMatches(String input);
 
   /**
-   * Returns whether the regular expression has a match in the string [str].
+   * Returns whether the regular expression has a match in the string [input].
    */
-  bool hasMatch(String str);
+  bool hasMatch(String input);
 
   /**
-   * Searches for the first match of the regular expression
-   * in the string [str] and returns the matched string.
+   * Returns the first substring match of this regular expression in [input].
    */
-  String stringMatch(String str);
+  String stringMatch(String input);
 
   /**
    * The pattern of this regular expression.
@@ -130,11 +163,19 @@ abstract class RegExp implements Pattern {
 
   /**
    * Whether this regular expression matches multiple lines.
+   *
+   * If the regexp does match multiple lines, the "^" and "$" characters
+   * match the beginning and end of lines. If not, the character match the
+   * beginning and end of the input.
    */
   bool get isMultiLine;
 
   /**
-   * Whether this regular expression is case insensitive.
+   * Whether this regular expression is case sensitive.
+   *
+   * If the regular expression is not case sensitive, it will match an input
+   * letter with a pattern letter even if the two letters are different case
+   * versions of the same letter.
    */
   bool get isCaseSensitive;
 }

@@ -7,7 +7,7 @@ part of dart._collection.dev;
 
 // This is a hack to make @deprecated work in dart:io. Don't remove or use this,
 // unless coordinated with either me or the core library team. Thanks!
-// TODO(ajohnsen): Remove at the 11th of Auguest 2013.
+// TODO(ajohnsen): Remove at the 11th of August 2013.
 // TODO(ajohnsen): Remove hide in:
 //    tools/dom/templates/html/dart2js/html_dart2js.darttemplate
 //    tools/dom/templates/html/dart2js/svg_dart2js.darttemplate
@@ -19,7 +19,9 @@ part of dart._collection.dev;
 //    tools/dom/templates/html/dartium/web_audio_dartium.darttemplate
 //    tools/dom/templates/html/dartium/web_gl_dartium.darttemplate
 //    tools/dom/templates/html/dartium/web_sql_dartium.darttemplate
+//    sdk/lib/core/regexp.dart
 
+@deprecated
 const deprecated = 0;
 
 /**
