@@ -130,12 +130,6 @@ get_set_syntax_test/01: Fail # Issue 12805
 get_set_syntax_test/02: Fail # Issue 12805
 get_set_syntax_test/03: Fail # Issue 12805
 get_set_syntax_test/04: Fail # Issue 12805
-get_set_syntax_test/05: Fail # Issue 12805
-get_set_syntax_test/06: Fail # Issue 12805
-get_set_syntax_test/07: Fail # Issue 12805
-get_set_syntax_test/13: Fail # Issue 12805
-get_set_syntax_test/14: Fail # Issue 12805
-get_set_syntax_test/15: Fail # Issue 12805
 method_binding_test: Fail # Issue 12807
 method_override_test: Fail # Issue 12808
 method_override5_test: Fail # Issue 12809
@@ -409,12 +403,6 @@ get_set_syntax_test/01: Fail # Issue 12806
 get_set_syntax_test/02: Fail # Issue 12806
 get_set_syntax_test/03: Fail # Issue 12806
 get_set_syntax_test/04: Fail # Issue 12806
-get_set_syntax_test/05: Fail # Issue 12806
-get_set_syntax_test/06: Fail # Issue 12806
-get_set_syntax_test/07: Fail # Issue 12806
-get_set_syntax_test/13: Fail # Issue 12806
-get_set_syntax_test/14: Fail # Issue 12806
-get_set_syntax_test/15: Fail # Issue 12806
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
