@@ -15,7 +15,6 @@ LibTest/core/double/ceil_A01_t05: Fail # issue 428
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t03: Fail # TODO(dart2dart-team): Please triage this failure.
 LibTest/collection/Queue/iterator_current_A01_t02: Fail # co19 issue 475
-LibTest/collection/Queue/iterator_moveNext_A01_t02: Fail # co19 issue 475
 LibTest/core/int/toStringAsExponential_A02_t01: Fail # co19 issue 477
 
 Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/7202
@@ -29,7 +28,6 @@ Language/03_Overview/1_Scoping_A01_t40: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t41: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A02_t05: Fail # Inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t06: Fail # inherited from dart2js
-Language/03_Overview/1_Scoping_A02_t07: Fail # inherited from dart2js
 Language/05_Variables/05_Variables_A01_t04: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A01_t05: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A01_t08: Fail # http://dartbug.com/5519
@@ -75,10 +73,6 @@ Language/07_Classes/07_Classes_A04_t21: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A04_t22: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A04_t24: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A04_t25: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods_A02_t02: Fail # http://dartbug.com/5519
-Language/07_Classes/1_Instance_Methods_A02_t05: Fail # http://dartbug.com/5519
-Language/07_Classes/1_Instance_Methods_A06_t01: Fail # Inherited from dart2js
-Language/07_Classes/1_Instance_Methods_A06_t02: Fail # Inherited from dart2js
 Language/07_Classes/3_Setters_A04_t01: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t02: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t03: Fail # inherited from VM
@@ -86,9 +80,6 @@ Language/07_Classes/3_Setters_A04_t04: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t05: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t06: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t07: Fail # inherited from VM
-Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # http://dartbug.com/5519
-Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # inherited from VM
-Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # inherited from VM
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Fail # http://dartbug.com/5519
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail # inherited from VM
 Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail # Inherited from dartjs
@@ -103,7 +94,6 @@ Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail # inher
 Language/07_Classes/6_Constructors_A02_t01: Fail # http://dartbug.com/5519
 LibTest/core/Match/operator_subscript_A01_t01: Fail # inherited from VM
 LibTest/core/Match/operator_subscript_A01_t01: Fail, OK # co19 issue 294
-LibTest/core/Match/pattern_A01_t01: Fail, OK # Issue 400
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail, OK # co19 issue 294
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # inherited from VM
@@ -115,10 +105,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fa
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail, OK # co19 issue 294
-LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # co19 issue 400
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # co19 issue 294
-LibTest/core/String/contains_A01_t02: Fail # inherited from VM
-LibTest/core/double/parse_A02_t01: Fail # Inherited from VM.
 LibTest/core/double/toRadixString_A01_t01: Fail # inherited from VM
 LibTest/core/int/operator_left_shift_A01_t02: Fail, OK # co19 issue 129
 LibTest/core/int/toRadixString_A01_t01: Fail # inherited from VM
@@ -166,23 +153,16 @@ LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints
 LibTest/core/double/truncate_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/truncate_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
 
-LibTest/core/Iterable/any_A01_t04: Fail # setRange now takes end-argument. Issue 402
-
-LibTest/core/Iterable/where_A01_t07: Fail # Issue 397
-
 LibTest/core/Set/isSubsetOf_A01_t01: Fail # Issue 400
 LibTest/core/Set/isSubsetOf_A01_t02: Fail # Issue 400
 
 LibTest/core/FallThroughError/toString_A01_t01: Fail # FallThroughError is no longer const. Issue 459
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # FallThroughError is no longer const. Issue 459
 
-Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # Override rules have been relaxed. Issue
-Language/07_Classes/1_Instance_Methods_A02_t02: Fail # Override rules have been relaxed. Issue
-Language/07_Classes/1_Instance_Methods_A02_t05: Fail # Override rules have been relaxed. Issue
-
 
 # co19-roll r546 (11.08.2013) caused these failures
 [ $compiler == dart2dart ]
+Language/03_Overview/1_Scoping_A02_t28: Fail # co19-roll r559: Please triage this failure
 Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A05_t03: fail # co19-roll r546: Please triage this failure
@@ -194,10 +174,21 @@ Language/05_Variables/05_Variables_A06_t05: fail # co19-roll r546: Please triage
 Language/05_Variables/05_Variables_A06_t06: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/07_Classes_A11_t01: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/07_Classes_A11_t03: fail # co19-roll r546: Please triage this failure
+Language/07_Classes/1_Instance_Methods_A01_t01: Fail # co19-roll r559: Please triage this failure
+Language/07_Classes/1_Instance_Methods_A01_t02: Fail # co19-roll r559: Please triage this failure
+Language/07_Classes/1_Instance_Methods_A01_t03: Fail # co19-roll r559: Please triage this failure
+Language/07_Classes/1_Instance_Methods_A01_t04: Fail # co19-roll r559: Please triage this failure
+Language/07_Classes/1_Instance_Methods_A01_t05: Fail # co19-roll r559: Please triage this failure
+Language/07_Classes/1_Instance_Methods_A01_t06: Fail # co19-roll r559: Please triage this failure
 Language/07_Classes/3_Setters_A08_t01: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/3_Setters_A08_t02: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/3_Setters_A08_t03: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/3_Setters_A08_t04: fail # co19-roll r546: Please triage this failure
+Language/07_Classes/4_Abstract_Instance_Members_A03_t01: Fail # co19-roll r559: Please triage this failure
+Language/07_Classes/4_Abstract_Instance_Members_A03_t02: Fail # co19-roll r559: Please triage this failure
+Language/07_Classes/4_Abstract_Instance_Members_A03_t03: Fail # co19-roll r559: Please triage this failure
+Language/07_Classes/4_Abstract_Instance_Members_A03_t04: Fail # co19-roll r559: Please triage this failure
+Language/07_Classes/4_Abstract_Instance_Members_A03_t05: Fail # co19-roll r559: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/01_Constants_A01_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/01_Constants_A03_t02: fail # co19-roll r546: Please triage this failure
@@ -255,8 +246,6 @@ Language/12_Expressions/03_Numbers_A01_t04: fail # co19-roll r546: Please triage
 Language/12_Expressions/03_Numbers_A01_t08: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t10: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t09: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/05_Strings/1_String_Interpolation_A03_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/05_Strings/1_String_Interpolation_A04_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/05_Strings_A02_t46: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/05_Strings_A02_t48: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/05_Strings_A20_t01: fail # co19-roll r546: Please triage this failure
@@ -286,26 +275,14 @@ Language/12_Expressions/12_Instance_Creation/1_New_A06_t04: fail # co19-roll r54
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t06: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A08_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A08_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A08_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/2_Const_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/2_Const_A06_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/17_Getter_Invocation_A02_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/18_Assignment_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/18_Assignment_A05_t04: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/18_Assignment_A05_t05: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/18_Assignment_A08_t04: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/22_Equality_A01_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/22_Equality_A01_t15: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/22_Equality_A01_t16: fail # co19-roll r546: Please triage this failure
@@ -337,11 +314,9 @@ Language/13_Statements/03_Variable_Declaration_A04_t05: fail # co19-roll r546: P
 Language/13_Statements/03_Variable_Declaration_A04_t06: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/03_Variable_Declaration_A04_t07: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/03_Variable_Declaration_A04_t08: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/04_Local_Function_Declaration_A01_t01: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/06_For_A01_t11: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/09_Switch_A01_t02: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/09_Switch_A04_t01: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/09_Switch_A06_t02: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/11_Return_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/11_Return_A05_t02: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/11_Return_A05_t03: fail # co19-roll r546: Please triage this failure
@@ -376,7 +351,6 @@ Language/14_Libraries_and_Scripts/5_URIs_A01_t11: fail # co19-roll r546: Please 
 Language/14_Libraries_and_Scripts/5_URIs_A01_t21: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail # co19-roll r546: Please triage this failure
-Language/15_Types/1_Static_Types_A03_t01: fail # co19-roll r546: Please triage this failure
 Language/15_Types/3_Type_Declarations/1_Typedef_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/15_Types/3_Type_Declarations/1_Typedef_A06_t02: fail # co19-roll r546: Please triage this failure
 Language/15_Types/3_Type_Declarations/1_Typedef_A06_t03: fail # co19-roll r546: Please triage this failure
@@ -390,16 +364,10 @@ Language/15_Types/4_Interface_Types_A11_t01: crash # co19-roll r546: Please tria
 Language/15_Types/4_Interface_Types_A11_t02: crash # co19-roll r546: Please triage this failure
 Language/15_Types/5_Function_Types_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: fail # co19-roll r546: Please triage this failure
-Language/16_Reference/1_Lexical_Rules/2_Comments_A04_t03: fail # co19-roll r546: Please triage this failure
 Language/16_Reference/1_Lexical_Rules_A02_t06: fail # co19-roll r546: Please triage this failure
 LibTest/async/Stream/Stream.periodic_A03_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/async/Timer/Timer.periodic_A02_t01: fail, pass # co19-roll r546: Please triage this failure
-LibTest/core/DateTime/isAtSameMomentAs_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/DateTime/year_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/double/parse_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/skip_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/take_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/spawnUri_A02_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/spawnUri_A02_t03: fail # co19-roll r546: Please triage this failure
@@ -410,10 +378,6 @@ LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage 
 LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A02_t02: timeout # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A02_t03: timeout # co19-roll r546: Please triage this failure
-LibTest/isolate/SendPort/send_A02_t04: fail # co19-roll r546: Please triage this failure
-Utils/tests/Expect/listEquals_A02_t01: fail # co19-roll r546: Please triage this failure
-Utils/tests/Expect/listEquals_A03_t01: fail # co19-roll r546: Please triage this failure
-Utils/tests/Expect/setEquals_A02_t01: fail # co19-roll r546: Please triage this failure
 
 [ $compiler == dart2dart && $minified ]
 Language/13_Statements/11_Try_A06_t01: fail # co19-roll r546: Please triage this failure
