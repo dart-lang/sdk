@@ -350,6 +350,7 @@ LibTest/async/EventTransformStream/singleWhere_A01_t01: FAIL, OK  # co19 issue 4
 LibTest/async/EventTransformStream/skip_A01_t01: FAIL, OK  # co19 issue 498
 LibTest/async/EventTransformStream/take_A01_t01: FAIL, OK  # co19 issue 498
 LibTest/async/EventTransformStream/take_A01_t02: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/toList_A01_t01: FAIL, OK  # co19 issue 498
 LibTest/async/EventTransformStream/toSet_A01_t01: FAIL, OK  # co19 issue 498
 LibTest/async/EventTransformStream/transform_A01_t01: FAIL, OK  # co19 issue 498
 LibTest/async/EventTransformStream/where_A01_t01: FAIL, OK  # co19 issue 498
