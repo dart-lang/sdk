@@ -1,6 +1,6 @@
 library parser_test;
 
-import 'dart:convert;
+import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart' as pathos;
 import 'package:unittest/unittest.dart';
