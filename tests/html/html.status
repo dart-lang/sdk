@@ -145,6 +145,7 @@ document_test/document: Pass, Fail # BUG(9654) need per-instance patching
 dom_constructors_test: Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
+element_test/constructors: Fail         # IE9 does not support innerHTML on table elements
 element_test/matches: Fail # IE9 does not support matches
 form_element_test: Fail # Issue 4793.
 isolates_test: Skip         # BUG(4016)
