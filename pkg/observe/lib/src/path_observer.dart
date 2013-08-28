@@ -171,6 +171,10 @@ class PathObserver extends ChangeNotifierBase {
 }
 
 _getObjectProperty(object, property) {
+  if (object == null) {
+    return null;
+  }
+
   if (object is List && property is int) {
     if (property >= 0 && property < object.length) {
       return object[property];
