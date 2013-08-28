@@ -238,7 +238,7 @@ static RawInstance* CreateMethodMirror(const Function& func,
   args.SetAt(4, Bool::Get(func.is_abstract()));
   args.SetAt(5, Bool::Get(func.IsGetterFunction()));
   args.SetAt(6, Bool::Get(func.IsSetterFunction()));
-  args.SetAt(7, Bool::Get(func.IsConstructor()));
+  args.SetAt(7, Bool::Get(func.kind() == RawFunction::kConstructor));
   // TODO(mlippautz): Implement different constructor kinds.
   args.SetAt(8, Bool::False());
   args.SetAt(9, Bool::False());
@@ -299,12 +299,19 @@ static RawInstance* CreateClassMirror(const Class& cls,
   }
 
   const Bool& is_generic = Bool::Get(cls.NumTypeParameters() != 0);
+  const Bool& is_mixin_typedef = Bool::Get(cls.is_mixin_typedef());
 
-  const Array& args = Array::Handle(Array::New(4));
+  const Array& args = Array::Handle(Array::New(5));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
   args.SetAt(1, type);
-  args.SetAt(2, String::Handle(cls.UserVisibleName()));
+  // We do not set the names of anonymous mixin applications because the mirrors
+  // use a different naming convention than the VM (lib.S with lib.M and S&M
+  // respectively).
+  if ((cls.mixin() == Type::null()) || cls.is_mixin_typedef()) {
+    args.SetAt(2, String::Handle(cls.UserVisibleName()));
+  }
   args.SetAt(3, is_generic);
+  args.SetAt(4, is_mixin_typedef);
   return CreateMirror(Symbols::_LocalClassMirrorImpl(), args);
 }
 
@@ -538,6 +545,13 @@ DEFINE_NATIVE_ENTRY(ClassMirror_interfaces, 1) {
   }
 
   return klass.interfaces();
+}
+
+
+DEFINE_NATIVE_ENTRY(ClassMirror_mixin, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Class& klass = Class::Handle(ref.GetClassReferent());
+  return klass.mixin();
 }
 
 

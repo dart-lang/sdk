@@ -362,12 +362,14 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   _LocalClassMirrorImpl(reflectee,
                         this._reflectedType,
                         String simpleName,
-                        this._isGeneric)
+                        this._isGeneric,
+                        this._isMixinTypedef)
       : this._simpleName = _s(simpleName),
         super(reflectee);
 
   final Type _reflectedType;
   final bool _isGeneric;
+  final bool _isMixinTypedef;
 
   bool get hasReflectedType => _reflectedType != null;
   Type get reflectedType {
@@ -383,7 +385,12 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     // dynamic, void and the function types have their names set eagerly in the
     // constructor.
     if(_simpleName == null) {
-      _simpleName = _s(_name(_reflectee));
+      var simpleString = _name(_reflectee);
+      if (simpleString.contains('&')) {
+        _simpleName = this._mixinApplicationName;
+      } else {
+        _simpleName = _s(simpleString);
+      }
     }
     return _simpleName;
   }
@@ -418,33 +425,68 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   bool get isClass => true;
   ClassMirror get defaultFactory => null;
 
-  ClassMirror _superclass;
-  ClassMirror get superclass {
-    if (_superclass == null) {
+  ClassMirror _trueSuperclassField;
+  ClassMirror get _trueSuperclass {
+    if (_trueSuperclassField == null) {
       Type supertype = _supertype(_reflectee);
       if (supertype == null) {
         // Object has no superclass.
         return null;
       }
-      _superclass = _Mirrors._reflectType(supertype);
+      _trueSuperclassField = _Mirrors._reflectType(supertype);
     }
-    return _superclass;
+    return _trueSuperclassField;
+  }
+  ClassMirror get superclass {
+    return _isMixinTypedef ? _trueSuperclass._trueSuperclass : _trueSuperclass;
   }
 
   var _superinterfaces;
   List<ClassMirror> get superinterfaces {
     if (_superinterfaces == null) {
       _superinterfaces = _interfaces(_reflectee)
-          .map((i) => reflectClass(i)).toList(growable:false);
+          .map((i) => _Mirrors._reflectType(i)).toList(growable:false);
     }
     return _superinterfaces;
+  }
+
+  get _mixinApplicationName {
+    var mixins = new List<ClassMirror>();
+    var klass = this;
+    while (_computeMixin(klass._reflectee) != null) {
+      mixins.add(klass.mixin);
+      klass = klass.superclass;
+    }
+    return _s(
+      _n(klass.qualifiedName) 
+      + ' with '
+      + mixins.reversed.map((m)=>_n(m.qualifiedName)).join(', '));
+  }
+ 
+  var _mixin;
+  ClassMirror get mixin {
+    if (_mixin == null) {
+      if (_isMixinTypedef) {
+        _mixin = _trueSuperclass.mixin;
+      } else {
+        var mixinType = _computeMixin(_reflectee);
+        if (mixinType == null) {
+          // The reflectee is not a mixin application.
+          _mixin = this;
+        } else {
+          _mixin = _Mirrors._reflectType(mixinType);
+        }
+      }
+    }
+    return _mixin;
   }
 
   Map<Symbol, Mirror> _members;
 
   Map<Symbol, Mirror> get members {
     if (_members == null) {
-      _members = _makeMemberMap(_computeMembers(_reflectee));
+      var whoseMembers = _isMixinTypedef ? _trueSuperclass : this;
+      _members = _makeMemberMap(mixin._computeMembers(whoseMembers._reflectee));
     }
     return _members;
   }
@@ -494,9 +536,12 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   Map<Symbol, MethodMirror> get constructors {
     if (_constructors == null) {
-      _constructors = _makeMemberMap(_computeConstructors(_reflectee));
-    }
-    return _constructors;
+      var constructorsList = _computeConstructors(_reflectee);
+      var stringName = _n(simpleName);
+      constructorsList.forEach((c) => c._patchConstructorName(stringName));
+      _constructors = _makeMemberMap(constructorsList);
+    } 
+    return _constructors;  
   }
 
   Map<Symbol, TypeVariableMirror> _typeVariables = null;
@@ -602,6 +647,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   static _interfaces(reflectee)
       native "ClassMirror_interfaces";
 
+  static _computeMixin(reflectee)
+      native "ClassMirror_mixin";
+
   _computeMembers(reflectee)
       native "ClassMirror_members";
   
@@ -630,7 +678,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
     implements FunctionTypeMirror {
   _LocalFunctionTypeMirrorImpl(reflectee, reflectedType)
-      : super(reflectee, reflectedType, null, false);
+      : super(reflectee, reflectedType, null, false, false);
 
   // FunctionTypeMirrors have a simpleName generated from their signature.
   Symbol _simpleName = null;
@@ -684,11 +732,12 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
 
 abstract class _LocalDeclarationMirrorImpl extends _LocalMirrorImpl
     implements DeclarationMirror {
-  _LocalDeclarationMirrorImpl(this._reflectee, this.simpleName);
+  _LocalDeclarationMirrorImpl(this._reflectee, this._simpleName);
 
   final _reflectee;
 
-  final Symbol simpleName;
+  Symbol _simpleName;
+  Symbol get simpleName => _simpleName;
 
   Symbol _qualifiedName = null;
   Symbol get qualifiedName {
@@ -1023,6 +1072,15 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
       assert(_source != null);
     }
     return _source;
+  }
+
+  void _patchConstructorName(ownerName) {
+    var cn = _n(constructorName);
+    if(cn == ''){
+      _simpleName = _s(ownerName);
+    } else {
+      _simpleName = _s(ownerName + "." + cn);
+    }
   }
 
   String toString() => "MethodMirror on '${_n(simpleName)}'";

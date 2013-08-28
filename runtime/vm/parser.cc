@@ -3883,6 +3883,7 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   }
   const Class& mixin_application =
       Class::Handle(Class::New(class_name, script_, classname_pos));
+  mixin_application.set_is_mixin_typedef();
   library_.AddClass(mixin_application);
   set_current_class(mixin_application);
   ParseTypeParameters(mixin_application);
@@ -3909,8 +3910,9 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   }
   type = ParseMixins(type);
 
-  // TODO(hausner): treat the mixin application as an alias, not as a base
-  // class whose super class is the mixin application!
+  // TODO(12773): Treat the mixin application as an alias, not as a base
+  // class whose super class is the mixin application! This is difficult because
+  // of issues involving subsitution of type parameters
   mixin_application.set_super_type(type);
   mixin_application.set_is_synthesized_class();
 
@@ -3918,6 +3920,9 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   // too early to call 'AddImplicitConstructor(mixin_application)' here,
   // because this class should be lazily compiled.
   if (CurrentToken() == Token::kIMPLEMENTS) {
+    // At this point, the mixin_application alias already has an interface, but
+    // ParseInterfaceList will add to the list and not lose the one already
+    // there.
     ParseInterfaceList(mixin_application);
   }
   ExpectSemicolon();

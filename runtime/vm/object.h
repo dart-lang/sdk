@@ -922,6 +922,11 @@ class Class : public Object {
   bool is_const() const { return ConstBit::decode(raw_ptr()->state_bits_); }
   void set_is_const() const;
 
+  bool is_mixin_typedef() const {
+    return MixinTypedefBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_mixin_typedef() const;
+
   int num_native_fields() const {
     return raw_ptr()->num_native_fields_;
   }
@@ -1017,6 +1022,7 @@ class Class : public Object {
     kStateTagBit = 6,
     kStateTagSize = 2,
     kMarkedForParsingBit = 8,
+    kMixinTypedefBit = 9,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
@@ -1027,6 +1033,7 @@ class Class : public Object {
   class StateBits : public BitField<RawClass::ClassState,
                                     kStateTagBit, kStateTagSize> {};  // NOLINT
   class MarkedForParsingBit : public BitField<bool, kMarkedForParsingBit, 1> {};
+  class MixinTypedefBit : public BitField<bool, kMixinTypedefBit, 1> {};
 
   void set_name(const String& value) const;
   void set_signature_function(const Function& value) const;

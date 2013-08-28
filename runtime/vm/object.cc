@@ -2349,6 +2349,11 @@ void Class::set_is_const() const {
 }
 
 
+void Class::set_is_mixin_typedef() const {
+  set_state_bits(MixinTypedefBit::update(true, raw_ptr()->state_bits_));
+}
+
+
 void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
   set_state_bits(StateBits::update(RawClass::kFinalized,
