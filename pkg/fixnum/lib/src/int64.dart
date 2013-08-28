@@ -794,7 +794,7 @@ class Int64 implements IntX {
       r = d0 - q * fatRadix;
       d0 = q;
 
-      assert(chunk2 == "");
+      assert(chunk3 == "");
       chunk3 = chunk2;
       chunk2 = chunk1;
       // Adding [fatRadix] Forces an extra digit which we discard to get a fixed
