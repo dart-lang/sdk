@@ -4,12 +4,10 @@
 
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'dart:isolate';
+import 'package:async_helper/async_helper.dart';
 
 main() {
-  // We keep a ReceivePort open until all tests are done. This way the VM will
-  // hang if the callbacks are not invoked and the test will time out.
-  var port = new ReceivePort();
+  asyncStart();
   // Ensure that `runZoned`'s onError handles synchronous errors but delegates
   // to the next runZonedExperimental when the handler returns false.
   bool sawInnerHandler = false;
@@ -24,7 +22,7 @@ main() {
     }, onError: (e) {
       Expect.equals(0, e);
       Expect.isTrue(sawInnerHandler);
-      port.close();
+      asyncEnd();
       throw e;  /// 01: runtime error
     });
   } catch (e) {

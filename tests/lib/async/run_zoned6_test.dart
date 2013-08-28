@@ -4,19 +4,17 @@
 
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'dart:isolate';
+import 'package:async_helper/async_helper.dart';
 
 main() {
-  // We keep a ReceivePort open until all tests are done. This way the VM will
-  // hang if the callbacks are not invoked and the test will time out.
-  var port = new ReceivePort();
+  asyncStart();
   // Ensure that `runZoned`'s onError handles synchronous errors but delegates
   // to the top-level when the handler returns false.
   try {
     runZonedExperimental(() { throw 0; },
                         onError: (e) {
                           Expect.equals(0, e);
-                          port.close();
+                          asyncEnd();
                           throw e;  /// 01: runtime error
                         });
   } catch (e) {
