@@ -287,7 +287,7 @@ class TemplateCall extends ASTNode {
   String toString() => "\$\{#${toCall}${params}}";
 }
 
-interface TreeVisitor {
+abstract class TreeVisitor {
   void visitIdentifier(Identifier node);
   void visitStringValue(StringValue node);
   void visitCommentDefinition(CommentDefinition node);

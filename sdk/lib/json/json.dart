@@ -8,48 +8,10 @@
 
 library dart.json;
 
+import "dart:convert";
+export "dart:convert" show JsonUnsupportedObjectError, JsonCyclicError;
+
 // JSON parsing and serialization.
-
-/**
- * Error thrown by JSON serialization if an object cannot be serialized.
- *
- * The [unsupportedObject] field holds that object that failed to be serialized.
- *
- * If an object isn't directly serializable, the serializer calls the 'toJson'
- * method on the object. If that call fails, the error will be stored in the
- * [cause] field. If the call returns an object that isn't directly
- * serializable, the [cause] will be null.
- */
-class JsonUnsupportedObjectError extends Error {
-  /** The object that could not be serialized. */
-  final unsupportedObject;
-  /** The exception thrown by object's [:toJson:] method, if any. */
-  final cause;
-
-  JsonUnsupportedObjectError(this.unsupportedObject, { this.cause });
-
-  String toString() {
-    if (cause != null) {
-      return "Calling toJson method on object failed.";
-    } else {
-      return "Object toJson method returns non-serializable value.";
-    }
-  }
-}
-
-
-/**
- * Reports that an object could not be stringified due to cyclic references.
- *
- * An object that references itself cannot be serialized by [stringify].
- * When the cycle is detected, a [JsonCyclicError] is thrown.
- */
-class JsonCyclicError extends JsonUnsupportedObjectError {
-  /** The first object that was detected as part of a cycle. */
-  JsonCyclicError(Object object): super(object);
-  String toString() => "Cyclic error in JSON stringify";
-}
-
 
 /**
  * Parses [json] and build the corresponding parsed JSON value.
@@ -66,17 +28,12 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
  *
  * Throws [FormatException] if the input is not valid JSON text.
  */
-external parse(String json, [reviver(var key, var value)]);
-
-_parse(String json, reviver(var key, var value)) {
-  BuildJsonListener listener;
-  if (reviver == null) {
-    listener = new BuildJsonListener();
-  } else {
-    listener = new ReviverJsonListener(reviver);
+parse(String json, [reviver(var key, var value)]) {
+  if (reviver != null) {
+    var original = reviver;
+    reviver = (key, value) => original(key == null ? "" : key, value);
   }
-  new JsonParser(json, listener).parse();
-  return listener.result;
+  return JSON.decode(json, reviver: reviver);
 }
 
 /**

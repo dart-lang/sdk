@@ -1184,14 +1184,16 @@ class NodeListener extends ElementListener {
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     NodeList variables = makeNodeList(count, null, endToken, ",");
+    TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
-    pushNode(new VariableDefinitions(null, modifiers, variables));
+    pushNode(new VariableDefinitions(type, modifiers, variables));
   }
 
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     Statement body = popNode();
     NodeList formalParameters = popNode();
     Identifier name = popNode();
+    TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
     ElementKind kind;
     if (getOrSet == null) {

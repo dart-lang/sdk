@@ -4,9 +4,12 @@
 
 library utils;
 
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
+import 'dart:math' show min;
 import 'dart:utf' as utf;
+
+part 'legacy_path.dart';
 
 class DebugLogger {
   static IOSink _sink;
@@ -17,7 +20,7 @@ class DebugLogger {
   static init(Path path, {append: false}) {
     if (path != null) {
       var mode = append ? FileMode.APPEND : FileMode.WRITE;
-      _sink = new File.fromPath(path).openWrite(mode: mode);
+      _sink = new File(path.toNativePath()).openWrite(mode: mode);
     }
   }
 

@@ -17,11 +17,13 @@ import os.path
 import subprocess
 import sys
 
+BLACK_LISTED_DIRECTORIES = ['.svn', 'async_helper', 'expect', 'third_party'];
+
 def Main(argv):
   for pkgdir in ['pkg', 'pkg/third_party']:
     for name in os.listdir(pkgdir):
       if os.path.isdir(os.path.join(pkgdir, name)):
-        if (name != '.svn' and name != 'expect' and name != 'third_party'):
+        if name not in BLACK_LISTED_DIRECTORIES:
           pkgs_to_publish.append(os.path.join(pkgdir, name))
 
   for pkg in pkgs_to_publish:

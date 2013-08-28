@@ -42,9 +42,9 @@ main() {
   Expect.isFalse(map5.values is Iterable<bool>);
   Expect.isFalse(map5.values is List);
   Expect.equals(2, map5.values.length);
-  Expect.isTrue(map5.values.first == 43 || map5.values.first == 500);
-  Expect.isTrue(map5.values.last == 43 || map5.values.first == 500);
-  Expect.notEquals(map5.values.first, map5.values.last);
+  // new Map gives a LinkedHashMap, so we know the order.
+  Expect.isTrue(map5.values.first == 43);
+  Expect.isTrue(map5.values.last == 500);
 
   Expect.isTrue(map6.values is Iterable<int>);
   Expect.isFalse(map6.values is Iterable<bool>);

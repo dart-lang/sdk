@@ -587,7 +587,7 @@ class AudioNode extends EventTarget {
   @DocsEditable()
   int get numberOfOutputs native "AudioNode_numberOfOutputs_Getter";
 
-  void $dom_connect(destination, int output, [int input]) {
+  void _connect(destination, int output, [int input]) {
     if ((input is int || input == null) && (output is int || output == null) && (destination is AudioNode || destination == null)) {
       _connect_1(destination, output, input);
       return;
@@ -621,11 +621,11 @@ class AudioNode extends EventTarget {
 
   @DomName('AudioNode.connect')
   void connectNode(AudioNode destination, [int output = 0, int input = 0]) =>
-      $dom_connect(destination, output, input);
+      _connect(destination, output, input);
 
   @DomName('AudioNode.connect')
   void connectParam(AudioParam destination, [int output = 0]) =>
-      $dom_connect(destination, output);
+      _connect(destination, output);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

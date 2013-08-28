@@ -535,17 +535,28 @@ void ActivationFrame::VariableAt(intptr_t i,
     intptr_t level_diff = frame_ctx_level - var_ctx_level;
     intptr_t ctx_slot = var_info.index;
     if (level_diff == 0) {
-      *value = ctx_.At(ctx_slot);
+      // TODO(12767) : Need to ensure that we end up with the correct context
+      // here so that this check can be an assert.
+      if ((ctx_slot < ctx_.num_variables()) && (ctx_slot >= 0)) {
+        *value = ctx_.At(ctx_slot);
+      } else {
+        *value = Symbols::New("<unknown>");
+      }
     } else {
       ASSERT(level_diff > 0);
       Context& ctx = Context::Handle(ctx_.raw());
-      while (level_diff > 0) {
-        ASSERT(!ctx.IsNull());
+      while (level_diff > 0 && !ctx.IsNull()) {
         level_diff--;
         ctx = ctx.parent();
       }
-      ASSERT(!ctx.IsNull());
-      *value = ctx.At(ctx_slot);
+      // TODO(12767) : Need to ensure that we end up with the correct context
+      // here so that this check can be assert.
+      if (!ctx.IsNull() &&
+          ((ctx_slot < ctx_.num_variables()) && (ctx_slot >= 0))) {
+        *value = ctx.At(ctx_slot);
+      } else {
+        *value = Symbols::New("<unknown>");
+      }
     }
   }
 }

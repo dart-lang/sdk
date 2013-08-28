@@ -2209,17 +2209,40 @@ class HIs extends HInstruction {
   static const int VARIABLE_CHECK = 2;
 
   final DartType typeExpression;
-  final bool nullOk;
   final int kind;
 
-  HIs(this.typeExpression, List<HInstruction> inputs, this.kind,
-      {this.nullOk: false}) : super(inputs) {
+  HIs.direct(DartType typeExpression,
+             HInstruction expression)
+      : this.internal(typeExpression, [expression], RAW_CHECK);
+
+  HIs.raw(DartType typeExpression,
+          HInstruction expression,
+          HInterceptor interceptor)
+      : this.internal(typeExpression, [expression, interceptor], RAW_CHECK);
+
+  HIs.compound(DartType typeExpression,
+               HInstruction expression,
+               HInstruction call)
+      : this.internal(typeExpression, [expression, call], COMPOUND_CHECK);
+
+  HIs.variable(DartType typeExpression,
+               HInstruction expression,
+               HInstruction call)
+      : this.internal(typeExpression, [expression, call], VARIABLE_CHECK);
+
+  HIs.internal(this.typeExpression, List<HInstruction> inputs, this.kind)
+      : super(inputs) {
     assert(kind >= RAW_CHECK && kind <= VARIABLE_CHECK);
     setUseGvn();
     instructionType = HType.BOOLEAN;
   }
 
   HInstruction get expression => inputs[0];
+
+  HInstruction get interceptor {
+    assert(kind == RAW_CHECK);
+    return inputs.length > 1 ? inputs[1] : null;
+  }
 
   HInstruction get checkCall {
     assert(kind == VARIABLE_CHECK || kind == COMPOUND_CHECK);
@@ -2240,7 +2263,6 @@ class HIs extends HInstruction {
 
   bool dataEquals(HIs other) {
     return typeExpression == other.typeExpression
-        && nullOk == other.nullOk
         && kind == other.kind;
   }
 }

@@ -81,8 +81,7 @@ class Credentials {
     var parsed;
     try {
       parsed = JSON.parse(json);
-    } catch (e) {
-      // TODO(nweiz): narrow this catch clause once issue 6775 is fixed.
+    } on FormatException catch (e) {
       validate(false, 'invalid JSON');
     }
 

@@ -136,8 +136,19 @@ void main() {
       expect(request.body, equals("hello"));
     });
 
-    // TODO(nweiz): test that both the getter and the setter respect #encoding
-    // when issue 6284 is fixed.
+    test('is encoded according to the given encoding', () {
+      var request = new http.Request('POST', dummyUrl);
+      request.encoding = LATIN1;
+      request.body = "föøbãr";
+      expect(request.bodyBytes, equals([102, 246, 248, 98, 227, 114]));
+    });
+
+    test('is decoded according to the given encoding', () {
+      var request = new http.Request('POST', dummyUrl);
+      request.encoding = LATIN1;
+      request.bodyBytes = [102, 246, 248, 98, 227, 114];
+      expect(request.body, equals("föøbãr"));
+    });
   });
 
   group('#bodyFields', () {
@@ -180,8 +191,23 @@ void main() {
           equals({'key 1': 'value', 'key 2': 'other+value'}));
     });
 
-    // TODO(nweiz): test that both the getter and the setter respect #encoding
-    // when issue 6284 is fixed.
+    test('is encoded according to the given encoding', () {
+      var request = new http.Request('POST', dummyUrl);
+      request.headers[HttpHeaders.CONTENT_TYPE] =
+          'application/x-www-form-urlencoded';
+      request.encoding = LATIN1;
+      request.bodyFields = {"föø": "bãr"};
+      expect(request.body, equals('f%F6%F8=b%E3r'));
+    });
+
+    test('is decoded according to the given encoding', () {
+      var request = new http.Request('POST', dummyUrl);
+      request.headers[HttpHeaders.CONTENT_TYPE] =
+          'application/x-www-form-urlencoded';
+      request.encoding = LATIN1;
+      request.body = 'f%F6%F8=b%E3r';
+      expect(request.bodyFields, equals({"föø": "bãr"}));
+    });
   });
 
   test('#followRedirects', () {

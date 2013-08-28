@@ -86,7 +86,8 @@ class PackageGraph {
       });
     }
 
-    _errors = mergeStreams(_cascades.values.map((cascade) => cascade.errors));
+    _errors = mergeStreams(_cascades.values.map((cascade) => cascade.errors),
+        broadcast: true);
   }
 
   /// Gets the asset node identified by [id].

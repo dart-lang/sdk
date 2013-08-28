@@ -454,7 +454,8 @@ main() {
   localfoo();
 }
 ''';
-  MockCompiler compiler = new MockCompiler();
+  MockCompiler compiler = new MockCompiler(emitJavaScript: false);
+  assert(compiler.backend is DartBackend);
   compiler.parseScript(src);
   FunctionElement mainElement = compiler.mainApp.find(leg.Compiler.MAIN);
   compiler.processQueue(compiler.enqueuer.resolution, mainElement);

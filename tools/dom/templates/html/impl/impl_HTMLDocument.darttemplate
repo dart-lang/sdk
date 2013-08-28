@@ -14,22 +14,22 @@ $if DART2JS
   BodyElement body;
 $else
   @DomName('Document.body')
-  BodyElement get body => $dom_body;
+  BodyElement get body => _body;
 
   @DomName('Document.body')
   void set body(BodyElement value) {
-    $dom_body = value;
+    _body = value;
   }
 $endif
 
   @DomName('Document.caretRangeFromPoint')
   Range caretRangeFromPoint(int x, int y) {
-    return $dom_caretRangeFromPoint(x, y);
+    return _caretRangeFromPoint(x, y);
   }
 
   @DomName('Document.elementFromPoint')
   Element elementFromPoint(int x, int y) {
-    return $dom_elementFromPoint(x, y);
+    return _elementFromPoint(x, y);
   }
 
   /**
@@ -73,36 +73,36 @@ $endif
   @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext getCssCanvasContext(String contextId, String name,
       int width, int height) {
-    return $dom_getCssCanvasContext(contextId, name, width, height);
+    return _getCssCanvasContext(contextId, name, width, height);
   }
 
   @DomName('Document.head')
-  HeadElement get head => $dom_head;
+  HeadElement get head => _head;
 
   @DomName('Document.lastModified')
-  String get lastModified => $dom_lastModified;
+  String get lastModified => _lastModified;
 
   @DomName('Document.preferredStylesheetSet')
-  String get preferredStylesheetSet => $dom_preferredStylesheetSet;
+  String get preferredStylesheetSet => _preferredStylesheetSet;
 
   @DomName('Document.referrer')
-  String get referrer => $dom_referrer;
+  String get referrer => _referrer;
 
   @DomName('Document.selectedStylesheetSet')
-  String get selectedStylesheetSet => $dom_selectedStylesheetSet;
+  String get selectedStylesheetSet => _selectedStylesheetSet;
   void set selectedStylesheetSet(String value) {
-    $dom_selectedStylesheetSet = value;
+    _selectedStylesheetSet = value;
   }
 
   @DomName('Document.styleSheets')
-  List<StyleSheet> get styleSheets => $dom_styleSheets;
+  List<StyleSheet> get styleSheets => _styleSheets;
 
   @DomName('Document.title')
-  String get title => $dom_title;
+  String get title => _title;
 
   @DomName('Document.title')
   void set title(String value) {
-    $dom_title = value;
+    _title = value;
   }
 
   @DomName('Document.webkitCancelFullScreen')
@@ -110,7 +110,7 @@ $endif
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   void cancelFullScreen() {
-    $dom_webkitCancelFullScreen();
+    _webkitCancelFullScreen();
   }
 
   @DomName('Document.webkitExitFullscreen')
@@ -118,7 +118,7 @@ $endif
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   void exitFullscreen() {
-    $dom_webkitExitFullscreen();
+    _webkitExitFullscreen();
   }
 
   @DomName('Document.webkitExitPointerLock')
@@ -126,45 +126,45 @@ $endif
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   void exitPointerLock() {
-    $dom_webkitExitPointerLock();
+    _webkitExitPointerLock();
   }
 
   @DomName('Document.webkitFullscreenElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  Element get fullscreenElement => $dom_webkitFullscreenElement;
+  Element get fullscreenElement => _webkitFullscreenElement;
 
   @DomName('Document.webkitFullscreenEnabled')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  bool get fullscreenEnabled => $dom_webkitFullscreenEnabled;
+  bool get fullscreenEnabled => _webkitFullscreenEnabled;
 
   @DomName('Document.webkitHidden')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  bool get hidden => $dom_webkitHidden;
+  bool get hidden => _webkitHidden;
 
   @DomName('Document.webkitIsFullScreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  bool get isFullScreen => $dom_webkitIsFullScreen;
+  bool get isFullScreen => _webkitIsFullScreen;
 
   @DomName('Document.webkitPointerLockElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   Element get pointerLockElement =>
-      $dom_webkitPointerLockElement;
+      _webkitPointerLockElement;
 
   @DomName('Document.webkitVisibilityState')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  String get visibilityState => $dom_webkitVisibilityState;
+  String get visibilityState => _webkitVisibilityState;
 
   @Experimental
 $if DART2JS

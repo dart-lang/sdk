@@ -84,18 +84,18 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
   Window get view => _parent.view;
-  void $dom_initUIEvent(String type, bool canBubble, bool cancelable,
+  void _initUIEvent(String type, bool canBubble, bool cancelable,
       Window view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
   }
-  String get _shadowKeyIdentifier => _parent.$dom_keyIdentifier;
+  String get _shadowKeyIdentifier => _parent._keyIdentifier;
 
-  int get $dom_charCode => charCode;
-  int get $dom_keyCode => keyCode;
-  String get $dom_keyIdentifier {
+  int get _charCode => charCode;
+  int get _keyCode => keyCode;
+  String get _keyIdentifier {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }
-  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
+  void _initKeyboardEvent(String type, bool canBubble, bool cancelable,
       Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey,
       bool altGraphKey) {

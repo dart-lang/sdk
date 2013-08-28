@@ -36,14 +36,14 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getPattern, 1) {
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getIsMultiLine, 1) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  return Bool::Get(regexp.is_multi_line());
+  return Bool::Get(regexp.is_multi_line()).raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getIsCaseSensitive, 1) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  return Bool::Get(!regexp.is_ignore_case());
+  return Bool::Get(!regexp.is_ignore_case()).raw();
 }
 
 

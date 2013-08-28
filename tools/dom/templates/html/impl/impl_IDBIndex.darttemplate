@@ -10,9 +10,9 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    try {
       var request;
       if (key_OR_range != null) {
-        request = $dom_count(key_OR_range);
+        request = _count(key_OR_range);
       } else {
-        request = $dom_count();
+        request = _count();
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -23,7 +23,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   @DomName('IDBIndex.get')
   Future get(key) {
     try {
-      var request = $dom_get(key);
+      var request = _get(key);
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -34,7 +34,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   @DomName('IDBIndex.getKey')
   Future getKey(key) {
     try {
-      var request = $dom_getKey(key);
+      var request = _getKey(key);
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -62,9 +62,9 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     }
     var request;
     if (direction == null) {
-      request = $dom_openCursor(key_OR_range);
+      request = _openCursor(key_OR_range);
     } else {
-      request = $dom_openCursor(key_OR_range, direction);
+      request = _openCursor(key_OR_range, direction);
     }
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
@@ -89,9 +89,9 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     }
     var request;
     if (direction == null) {
-      request = $dom_openKeyCursor(key_OR_range);
+      request = _openKeyCursor(key_OR_range);
     } else {
-      request = $dom_openKeyCursor(key_OR_range, direction);
+      request = _openKeyCursor(key_OR_range, direction);
     }
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }

@@ -55,18 +55,35 @@
         cleanTree(n);
       }
 
-      // Remove dart-port attributes
-      if (node.attributes) {
-        for (var i = 0; i < node.attributes.length; i++) {
-          if (node.attributes[i].value.indexOf('dart-port') == 0) {
-            node.removeAttribute(i);
+      // TODO(terry): Need to remove attributes in the dart-port: namespace
+      //              these are added for JS interop. See bug
+      //              https://code.google.com/p/dart/issues/detail?id=12645
+      //              The new dart:js shouldn't need these attrs for dart2js or
+      //              Dartium (won't need with native support) then remove the
+      //              below code.
+      // Remove JS interop dart-port attributes,
+      if (node.tagName == 'HTML' && node.attributes) {
+        for (var i = node.attributes.length; i--; i >= 0) {
+          var attrNode = node.attributes[i];
+          if (attrNode && attrNode.name.indexOf('dart-port:') == 0) {
+            node.removeAttributeNode(attrNode);
           }
         }
       }
 
-      if (node.tagName == 'script' &&
-          node.textContent.indexOf('_DART_TEMPORARY_ATTACHED') >= 0)  {
-        node.parentNode.removeChild(node);
+      if (node.tagName == 'SCRIPT') {
+        if (node.textContent.indexOf('_DART_TEMPORARY_ATTACHED') >= 0)  {
+          node.parentNode.removeChild(node);
+        } else {
+          // Remove the JS Interop script.
+          var typeAttr = node.getAttributeNode("type");
+          if (typeAttr && typeAttr.value == "text/javascript") {
+            if (node.textContent.indexOf(
+                "(function() {\n  // Proxy support for js.dart.\n\n") == 0) {
+              node.parentNode.removeChild(node);
+            }
+          }
+        }
       }
     }
 

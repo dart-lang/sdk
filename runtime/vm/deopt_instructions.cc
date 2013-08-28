@@ -744,7 +744,7 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   ASSERT(instr->kind() == kRetAddress);
   DeoptRetAddressInstr* ret_address_instr =
       static_cast<DeoptRetAddressInstr*>(instr);
-  // TODO(regis): The following assert may trigger when displaying a backtrace
+  // The following assert may trigger when displaying a backtrace
   // from the simulator.
   ASSERT(Isolate::IsDeoptAfter(ret_address_instr->deopt_id()));
   ASSERT(!object_table.IsNull());

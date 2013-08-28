@@ -1109,49 +1109,9 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @DocsEditable()
   CanvasRenderingContext getContext(String contextId, [Map attrs]) native "HTMLCanvasElement_getContext_Callback";
 
-  /**
-   * Returns a data URI containing a representation of the image in the
-   * format specified by type (defaults to 'image/png').
-   *
-   * Data Uri format is as follow `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
-   *
-   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when requesting [type]
-   * 'image/jpeg' or 'image/webp'. If [quality] is not passed the default
-   * value is used. Note: the default value varies by browser.
-   *
-   * If the height or width of this canvas element is 0, then 'data:' is returned,
-   * representing no data.
-   *
-   * If the type requested is not 'image/png', and the returned value is
-   * 'data:image/png', then the requested type is not supported.
-   *
-   * Example usage:
-   *
-   *     CanvasElement canvas = new CanvasElement();
-   *     var ctx = canvas.context2D
-   *     ..fillStyle = "rgb(200,0,0)"
-   *     ..fillRect(10, 10, 55, 50);
-   *     var dataUrl = canvas.toDataUrl("image/jpeg", 0.95);
-   *     // The Data Uri would look similar to
-   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
-   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
-   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='
-   *     //Create a new image element from the data URI.
-   *     var img = new ImageElement();
-   *     img.src = dataUrl;
-   *     document.body.children.add(img);
-   *
-   * See also:
-   *
-   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
-   *
-   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
-   *
-   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
-   */
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable()
-  String $dom_toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
+  String _toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
 
   @DomName('HTMLCanvasElement.onwebglcontextlost')
   @DocsEditable()
@@ -1188,8 +1148,49 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
     return context;
   }
 
-  String toDataUrl([String type = 'image/png', num quality]) => 
-      $dom_toDataUrl(type, quality);
+  /**
+   * Returns a data URI containing a representation of the image in the
+   * format specified by type (defaults to 'image/png').
+   *
+   * Data Uri format is as follow
+   * `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
+   *
+   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when
+   * requesting [type] 'image/jpeg' or 'image/webp'. If [quality] is not passed
+   * the default value is used. Note: the default value varies by browser.
+   *
+   * If the height or width of this canvas element is 0, then 'data:' is
+   * returned, representing no data.
+   *
+   * If the type requested is not 'image/png', and the returned value is
+   * 'data:image/png', then the requested type is not supported.
+   *
+   * Example usage:
+   *
+   *     CanvasElement canvas = new CanvasElement();
+   *     var ctx = canvas.context2D
+   *     ..fillStyle = "rgb(200,0,0)"
+   *     ..fillRect(10, 10, 55, 50);
+   *     var dataUrl = canvas.toDataUrl("image/jpeg", 0.95);
+   *     // The Data Uri would look similar to
+   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
+   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
+   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='
+   *     //Create a new image element from the data URI.
+   *     var img = new ImageElement();
+   *     img.src = dataUrl;
+   *     document.body.children.add(img);
+   *
+   * See also:
+   *
+   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
+   *
+   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
+   *
+   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
+   */
+  String toDataUrl([String type = 'image/png', num quality]) =>
+      _toDataUrl(type, quality);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1476,7 +1477,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable()
-  void $dom_arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
+  void _arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
 
   @DomName('CanvasRenderingContext2D.arcTo')
   @DocsEditable()
@@ -1832,7 +1833,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DomName('CanvasRenderingContext2D.arc')
   void arc(num x,  num y,  num radius,  num startAngle, num endAngle,
       [bool anticlockwise = false]) {
-    $dom_arc(x, y, radius, startAngle, endAngle, anticlockwise);
+    _arc(x, y, radius, startAngle, endAngle, anticlockwise);
   }
 
   /**
@@ -2178,8 +2179,8 @@ class CompositionEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var e = document.$dom_createEvent("CompositionEvent");
-    e.$dom_initCompositionEvent(type, canBubble, cancelable, view, data);
+    var e = document._createEvent("CompositionEvent");
+    e._initCompositionEvent(type, canBubble, cancelable, view, data);
     return e;
   }
   // To suppress missing implicit constructor warnings.
@@ -2191,7 +2192,7 @@ class CompositionEvent extends UIEvent {
 
   @DomName('CompositionEvent.initCompositionEvent')
   @DocsEditable()
-  void $dom_initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
+  void _initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6828,9 +6829,9 @@ class CustomEvent extends Event {
   factory CustomEvent(String type,
       {bool canBubble: true, bool cancelable: true, Object detail}) {
 
-    final CustomEvent e = document.$dom_createEvent('CustomEvent');
+    final CustomEvent e = document._createEvent('CustomEvent');
 
-    e.$dom_initCustomEvent(type, canBubble, cancelable, detail);
+    e._initCustomEvent(type, canBubble, cancelable, detail);
 
     return e;
   }
@@ -6843,7 +6844,7 @@ class CustomEvent extends Event {
 
   @DomName('CustomEvent.initCustomEvent')
   @DocsEditable()
-  void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "CustomEvent_initCustomEvent_Callback";
+  void _initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "CustomEvent_initCustomEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7203,8 +7204,8 @@ class DeviceOrientationEvent extends Event {
   factory DeviceOrientationEvent(String type,
       {bool canBubble: true, bool cancelable: true, num alpha: 0, num beta: 0,
       num gamma: 0, bool absolute: false}) {
-    var e = document.$dom_createEvent("DeviceOrientationEvent");
-    e.$dom_initDeviceOrientationEvent(type, canBubble, cancelable, alpha, beta,
+    var e = document._createEvent("DeviceOrientationEvent");
+    e._initDeviceOrientationEvent(type, canBubble, cancelable, alpha, beta,
         gamma, absolute);
     return e;
   }
@@ -7229,7 +7230,7 @@ class DeviceOrientationEvent extends Event {
 
   @DomName('DeviceOrientationEvent.initDeviceOrientationEvent')
   @DocsEditable()
-  void $dom_initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback";
+  void _initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7510,15 +7511,13 @@ class Document extends Node
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockerror
   static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.body')
   @DocsEditable()
-  HtmlElement get $dom_body native "Document_body_Getter";
+  HtmlElement get _body native "Document_body_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.body')
   @DocsEditable()
-  void set $dom_body(HtmlElement value) native "Document_body_Setter";
+  void set _body(HtmlElement value) native "Document_body_Setter";
 
   @DomName('Document.charset')
   @DocsEditable()
@@ -7561,32 +7560,29 @@ class Document extends Node
   @Experimental()
   FontLoader get fontloader native "Document_fontloader_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.head')
   @DocsEditable()
-  HeadElement get $dom_head native "Document_head_Getter";
+  HeadElement get _head native "Document_head_Getter";
 
   @DomName('Document.implementation')
   @DocsEditable()
   DomImplementation get implementation native "Document_implementation_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.lastModified')
   @DocsEditable()
-  String get $dom_lastModified native "Document_lastModified_Getter";
+  String get _lastModified native "Document_lastModified_Getter";
 
   @DomName('Document.preferredStylesheetSet')
   @DocsEditable()
-  String get $dom_preferredStylesheetSet native "Document_preferredStylesheetSet_Getter";
+  String get _preferredStylesheetSet native "Document_preferredStylesheetSet_Getter";
 
   @DomName('Document.readyState')
   @DocsEditable()
   String get readyState native "Document_readyState_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.referrer')
   @DocsEditable()
-  String get $dom_referrer native "Document_referrer_Getter";
+  String get _referrer native "Document_referrer_Getter";
 
   @DomName('Document.securityPolicy')
   @DocsEditable()
@@ -7596,55 +7592,48 @@ class Document extends Node
 
   @DomName('Document.selectedStylesheetSet')
   @DocsEditable()
-  String get $dom_selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
+  String get _selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
 
   @DomName('Document.selectedStylesheetSet')
   @DocsEditable()
-  void set $dom_selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
+  void set _selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
 
-  /// Moved to [HtmlDocument]
   @DomName('Document.styleSheets')
   @DocsEditable()
-  List<StyleSheet> get $dom_styleSheets native "Document_styleSheets_Getter";
+  List<StyleSheet> get _styleSheets native "Document_styleSheets_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.title')
   @DocsEditable()
-  String get $dom_title native "Document_title_Getter";
+  String get _title native "Document_title_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.title')
   @DocsEditable()
-  void set $dom_title(String value) native "Document_title_Setter";
+  void set _title(String value) native "Document_title_Setter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenElement')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-fullscreenelement
-  Element get $dom_webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
+  Element get _webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenEnabled')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-fullscreenenabled
-  bool get $dom_webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
+  bool get _webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitHidden')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/PageVisibility/Overview.html#document
-  bool get $dom_webkitHidden native "Document_webkitHidden_Getter";
+  bool get _webkitHidden native "Document_webkitHidden_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitIsFullScreen')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7652,16 +7641,15 @@ class Document extends Node
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @deprecated // deprecated
-  bool get $dom_webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
+  bool get _webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitPointerLockElement')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-pointerLockElement
-  Element get $dom_webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
+  Element get _webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
 
   @DomName('Document.webkitVisibilityState')
   @DocsEditable()
@@ -7669,18 +7657,17 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/PageVisibility/Overview.html#dom-document-visibilitystate
-  String get $dom_webkitVisibilityState native "Document_webkitVisibilityState_Getter";
+  String get _webkitVisibilityState native "Document_webkitVisibilityState_Getter";
 
   @DomName('Document.adoptNode')
   @DocsEditable()
   Node adoptNode(Node source) native "Document_adoptNode_Callback";
 
-  /// Use the [Range] constructor instead.
   @DomName('Document.caretRangeFromPoint')
   @DocsEditable()
   // http://www.w3.org/TR/2009/WD-cssom-view-20090804/#dom-documentview-caretrangefrompoint
   @Experimental()
-  Range $dom_caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
+  Range _caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
 
   @DomName('Document.createCDATASection')
   @DocsEditable()
@@ -7722,9 +7709,9 @@ class Document extends Node
 
   @DomName('Document.createEvent')
   @DocsEditable()
-  Event $dom_createEvent(String eventType) native "Document_createEvent_Callback";
+  Event _createEvent(String eventType) native "Document_createEvent_Callback";
 
-  NodeIterator $dom_createNodeIterator(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) {
+  NodeIterator _createNodeIterator(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) {
     if (expandEntityReferences != null) {
       return _createNodeIterator_1(root, whatToShow, filter, expandEntityReferences);
     }
@@ -7751,22 +7738,21 @@ class Document extends Node
 
   @DomName('Document.createTextNode')
   @DocsEditable()
-  Text $dom_createTextNode(String data) native "Document_createTextNode_Callback";
+  Text _createTextNode(String data) native "Document_createTextNode_Callback";
 
   @DomName('Document.createTouch')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
+  Touch _createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
 
-  /// Use the [TouchList] constructor instead.
   @DomName('Document.createTouchList')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  TouchList $dom_createTouchList() native "Document_createTouchList_Callback";
+  TouchList _createTouchList() native "Document_createTouchList_Callback";
 
-  TreeWalker $dom_createTreeWalker(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) {
+  TreeWalker _createTreeWalker(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) {
     if (expandEntityReferences != null) {
       return _createTreeWalker_1(root, whatToShow, filter, expandEntityReferences);
     }
@@ -7789,18 +7775,17 @@ class Document extends Node
 
   @DomName('Document.elementFromPoint')
   @DocsEditable()
-  Element $dom_elementFromPoint(int x, int y) native "Document_elementFromPoint_Callback";
+  Element _elementFromPoint(int x, int y) native "Document_elementFromPoint_Callback";
 
   @DomName('Document.execCommand')
   @DocsEditable()
   bool execCommand(String command, bool userInterface, String value) native "Document_execCommand_Callback";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.getCSSCanvasContext')
   @DocsEditable()
   // https://developer.apple.com/library/safari/#documentation/AppleApplications/Reference/SafariCSSRef/Articles/Functions.html
   @Experimental() // non-standard
-  CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
+  CanvasRenderingContext _getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
 
   @DomName('Document.getElementById')
   @DocsEditable()
@@ -7868,12 +7853,10 @@ class Document extends Node
   @DocsEditable()
   Element query(String selectors) native "Document_querySelector_Callback";
 
-  /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.querySelectorAll')
   @DocsEditable()
-  List<Node> $dom_querySelectorAll(String selectors) native "Document_querySelectorAll_Callback";
+  List<Node> _querySelectorAll(String selectors) native "Document_querySelectorAll_Callback";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitCancelFullScreen')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7881,25 +7864,23 @@ class Document extends Node
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @deprecated // deprecated
-  void $dom_webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
+  void _webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitFullscreen')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-exitfullscreen
-  void $dom_webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
+  void _webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
 
-  /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitPointerLock')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-exitPointerLock-void
-  void $dom_webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
+  void _webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
 
   @DomName('Document.webkitGetNamedFlows')
   @DocsEditable()
@@ -7911,19 +7892,19 @@ class Document extends Node
 
   @DomName('Document.childElementCount')
   @DocsEditable()
-  int get $dom_childElementCount native "Document_childElementCount_Getter";
+  int get _childElementCount native "Document_childElementCount_Getter";
 
   @DomName('Document.children')
   @DocsEditable()
-  HtmlCollection get $dom_children native "Document_children_Getter";
+  HtmlCollection get _children native "Document_children_Getter";
 
   @DomName('Document.firstElementChild')
   @DocsEditable()
-  Element get $dom_firstElementChild native "Document_firstElementChild_Getter";
+  Element get _firstElementChild native "Document_firstElementChild_Getter";
 
   @DomName('Document.lastElementChild')
   @DocsEditable()
-  Element get $dom_lastElementChild native "Document_lastElementChild_Getter";
+  Element get _lastElementChild native "Document_lastElementChild_Getter";
 
   @DomName('Document.onabort')
   @DocsEditable()
@@ -8171,7 +8152,7 @@ class Document extends Node
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   ElementList queryAll(String selectors) {
-    return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
+    return new _FrozenElementList._wrap(_querySelectorAll(selectors));
   }
 
   /// Checks if [register] is supported on the current platform.
@@ -8188,21 +8169,18 @@ class Document extends Node
 class DocumentFragment extends Node implements ParentNode {
   factory DocumentFragment() => document.createDocumentFragment();
 
-  factory DocumentFragment.html(String html) {
-    final fragment = new DocumentFragment();
-    fragment.innerHtml = html;
-    return fragment;
+  factory DocumentFragment.html(String html,
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+
+    return document.body.createFragment(html,
+      validator: validator, treeSanitizer: treeSanitizer);
   }
 
-  factory DocumentFragment.svg(String svgContent) {
-    final fragment = new DocumentFragment();
-    final e = new svg.SvgSvgElement();
-    e.innerHtml = svgContent;
+  factory DocumentFragment.svg(String svgContent,
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
 
-    // Copy list first since we don't want liveness during iteration.
-    final List nodes = new List.from(e.nodes);
-    fragment.nodes.addAll(nodes);
-    return fragment;
+    return new svg.SvgSvgElement().createFragment(svgContent,
+        validator: validator, treeSanitizer: treeSanitizer);
   }
 
   List<Element> _children;
@@ -8222,10 +8200,10 @@ class DocumentFragment extends Node implements ParentNode {
     children.addAll(copy);
   }
 
-  Element query(String selectors) => $dom_querySelector(selectors);
+  Element query(String selectors) => _querySelector(selectors);
 
   List<Element> queryAll(String selectors) =>
-    new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
+    new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
   String get innerHtml {
     final e = new Element.tag("div");
@@ -8233,17 +8211,16 @@ class DocumentFragment extends Node implements ParentNode {
     return e.innerHtml;
   }
 
-  // TODO(nweiz): Do we want to support some variant of innerHtml for XML and/or
-  // SVG strings?
   void set innerHtml(String value) {
+    this.setInnerHtml(value);
+  }
+
+  void setInnerHtml(String html,
+    {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+
     this.nodes.clear();
-
-    final e = new Element.tag("div");
-    e.innerHtml = value;
-
-    // Copy list first since we don't want liveness during iteration.
-    List nodes = new List.from(e.nodes, growable: false);
-    this.nodes.addAll(nodes);
+    append(document.body.createFragment(
+        html, validator: validator, treeSanitizer: treeSanitizer));
   }
 
   /**
@@ -8268,23 +8245,23 @@ class DocumentFragment extends Node implements ParentNode {
 
   @DomName('DocumentFragment.querySelector')
   @DocsEditable()
-  Element $dom_querySelector(String selectors) native "DocumentFragment_querySelector_Callback";
+  Element _querySelector(String selectors) native "DocumentFragment_querySelector_Callback";
 
   @DomName('DocumentFragment.querySelectorAll')
   @DocsEditable()
-  List<Node> $dom_querySelectorAll(String selectors) native "DocumentFragment_querySelectorAll_Callback";
+  List<Node> _querySelectorAll(String selectors) native "DocumentFragment_querySelectorAll_Callback";
 
   @DomName('DocumentFragment.childElementCount')
   @DocsEditable()
-  int get $dom_childElementCount native "DocumentFragment_childElementCount_Getter";
+  int get _childElementCount native "DocumentFragment_childElementCount_Getter";
 
   @DomName('DocumentFragment.firstElementChild')
   @DocsEditable()
-  Element get $dom_firstElementChild native "DocumentFragment_firstElementChild_Getter";
+  Element get _firstElementChild native "DocumentFragment_firstElementChild_Getter";
 
   @DomName('DocumentFragment.lastElementChild')
   @DocsEditable()
-  Element get $dom_lastElementChild native "DocumentFragment_lastElementChild_Getter";
+  Element get _lastElementChild native "DocumentFragment_lastElementChild_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8596,14 +8573,14 @@ class _ChildrenElementList extends ListBase<Element> {
   final HtmlCollection _childElements;
 
   _ChildrenElementList._wrap(Element element)
-    : _childElements = element.$dom_children,
+    : _childElements = element._children,
       _element = element;
 
   bool contains(Object element) => _childElements.contains(element);
 
 
   bool get isEmpty {
-    return _element.$dom_firstElementChild == null;
+    return _element._firstElementChild == null;
   }
 
   int get length {
@@ -8615,7 +8592,7 @@ class _ChildrenElementList extends ListBase<Element> {
   }
 
   void operator []=(int index, Element value) {
-    _element.$dom_replaceChild(value, _childElements[index]);
+    _element._replaceChild(value, _childElements[index]);
   }
 
   void set length(int newLength) {
@@ -8679,7 +8656,7 @@ class _ChildrenElementList extends ListBase<Element> {
     if (object is Element) {
       Element element = object;
       if (identical(element.parentNode, _element)) {
-        _element.$dom_removeChild(element);
+        _element._removeChild(element);
         return true;
       }
     }
@@ -8709,7 +8686,7 @@ class _ChildrenElementList extends ListBase<Element> {
   Element removeAt(int index) {
     final result = this[index];
     if (result != null) {
-      _element.$dom_removeChild(result);
+      _element._removeChild(result);
     }
     return result;
   }
@@ -8717,20 +8694,20 @@ class _ChildrenElementList extends ListBase<Element> {
   Element removeLast() {
     final result = this.last;
     if (result != null) {
-      _element.$dom_removeChild(result);
+      _element._removeChild(result);
     }
     return result;
   }
 
   Element get first {
-    Element result = _element.$dom_firstElementChild;
+    Element result = _element._firstElementChild;
     if (result == null) throw new StateError("No elements");
     return result;
   }
 
 
   Element get last {
-    Element result = _element.$dom_lastElementChild;
+    Element result = _element._lastElementChild;
     if (result == null) throw new StateError("No elements");
     return result;
   }
@@ -9350,20 +9327,31 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   /**
    * Creates an HTML element from a valid fragment of HTML.
    *
-   * The [html] fragment must represent valid HTML with a single element root,
-   * which will be parsed and returned.
-   *
-   * Important: the contents of [html] should not contain any user-supplied
-   * data. Without strict data validation it is impossible to prevent script
-   * injection exploits.
-   *
-   * It is instead recommended that elements be constructed via [Element.tag]
-   * and text be added via [text].
-   *
    *     var element = new Element.html('<div class="foo">content</div>');
+   *
+   * The HTML fragment should contain only one single root element, any
+   * leading or trailing text nodes will be removed.
+   *
+   * The HTML fragment is parsed as if it occurred within the context of a
+   * `<body>` tag, this means that special elements such as `<caption>` which
+   * must be parsed within the scope of a `<table>` element will be dropped. Use
+   * [createFragment] to parse contextual HTML fragments.
+   *
+   * Unless a validator is provided this will perform the default validation
+   * and remove all scriptable elements and attributes.
+   *
+   * See also:
+   *
+   * * [NodeValidator]
+   *
    */
-  factory Element.html(String html) =>
-      _ElementFactoryProvider.createElement_html(html);
+  factory Element.html(String html,
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    var fragment = document.body.createFragment(html, validator: validator,
+        treeSanitizer: treeSanitizer);
+
+    return fragment.nodes.where((e) => e is Element).single;
+  }
 
   /**
    * Creates the HTML element specified by the tag name.
@@ -9583,7 +9571,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    *     var items = element.query('.itemClassName');
    */
   ElementList queryAll(String selectors) =>
-    new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
+    new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
   /**
    * The set of CSS classes applied to this element.
@@ -9668,7 +9656,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
       pseudoElement = '';
     }
     // TODO(jacobr): last param should be null, see b/5045788
-    return window.$dom_getComputedStyle(this, pseudoElement);
+    return window._getComputedStyle(this, pseudoElement);
   }
 
   /**
@@ -9710,7 +9698,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    * Called by the DOM when this element has been instantiated.
    */
   @Experimental()
-  void onCreated() {}
+  void created() {}
 
   // Hooks to support custom WebComponents.
 
@@ -9738,11 +9726,11 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.localName')
   @DocsEditable()
-  String get localName => $dom_localName;
+  String get localName => _localName;
 
   @DomName('Element.namespaceUri')
   @DocsEditable()
-  String get namespaceUri => $dom_namespaceUri;
+  String get namespaceUri => _namespaceUri;
 
   String toString() => localName;
 
@@ -9766,17 +9754,17 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   void scrollIntoView([ScrollAlignment alignment]) {
     var hasScrollIntoViewIfNeeded = false;
     if (alignment == ScrollAlignment.TOP) {
-      this.$dom_scrollIntoView(true);
+      this._scrollIntoView(true);
     } else if (alignment == ScrollAlignment.BOTTOM) {
-      this.$dom_scrollIntoView(false);
+      this._scrollIntoView(false);
     } else if (hasScrollIntoViewIfNeeded) {
       if (alignment == ScrollAlignment.CENTER) {
-        this.$dom_scrollIntoViewIfNeeded(true);
+        this._scrollIntoViewIfNeeded(true);
       } else {
-        this.$dom_scrollIntoViewIfNeeded();
+        this._scrollIntoViewIfNeeded();
       }
     } else {
-      this.$dom_scrollIntoView();
+      this._scrollIntoView();
     }
   }
 
@@ -10041,6 +10029,128 @@ abstract class Element extends Node implements ParentNode, ChildNode {
     return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
 
+  static HtmlDocument _parseDocument;
+  static NodeValidatorBuilder _defaultValidator;
+  static _ValidatingTreeSanitizer _defaultSanitizer;
+
+  /**
+   * Create a DocumentFragment from the HTML fragment and ensure that it follows
+   * the sanitization rules specified by the validator or treeSanitizer.
+   *
+   * If the default validation behavior is too restrictive then a new
+   * NodeValidator should be created, either extending or wrapping a default
+   * validator and overriding the validation APIs.
+   *
+   * The treeSanitizer is used to walk the generated node tree and sanitize it.
+   * A custom treeSanitizer can also be provided to perform special validation
+   * rules but since the API is more complex to implement this is discouraged.
+   *
+   * The returned tree is guaranteed to only contain nodes and attributes which
+   * are allowed by the provided validator.
+   *
+   * See also:
+   *
+   * * [NodeValidator]
+   * * [NodeTreeSanitizer]
+   */
+  DocumentFragment createFragment(String html,
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    if (treeSanitizer == null) {
+      if (validator == null) {
+        if (_defaultValidator == null) {
+          _defaultValidator = new NodeValidatorBuilder.common();
+        }
+        validator = _defaultValidator;
+      }
+      if (_defaultSanitizer == null) {
+        _defaultSanitizer = new _ValidatingTreeSanitizer(validator);
+      } else {
+        _defaultSanitizer.validator = validator;
+      }
+      treeSanitizer = _defaultSanitizer;
+    } else if (validator != null) {
+      throw new ArgumentError(
+          'validator can only be passed if treeSanitizer is null');
+    }
+
+    if (_parseDocument == null) {
+      _parseDocument = document.implementation.createHtmlDocument('');
+    }
+    var contextElement;
+    if (this is BodyElement) {
+      contextElement = _parseDocument.body;
+    } else {
+      contextElement = _parseDocument.$dom_createElement(tagName);
+      _parseDocument.body.append(contextElement);
+    }
+    var fragment;
+    if (Range.supportsCreateContextualFragment) {
+      var range = _parseDocument.$dom_createRange();
+      range.selectNodeContents(contextElement);
+      fragment = range.createContextualFragment(html);
+    } else {
+      contextElement._innerHtml = html;
+
+      fragment = _parseDocument.createDocumentFragment();
+      while (contextElement.firstChild != null) {
+        fragment.append(contextElement.firstChild);
+      }
+    }
+    if (contextElement != _parseDocument.body) {
+      contextElement.remove();
+    }
+
+    treeSanitizer.sanitizeTree(fragment);
+    return fragment;
+  }
+
+  /**
+   * Parses the HTML fragment and sets it as the contents of this element.
+   *
+   * This uses the default sanitization behavior to sanitize the HTML fragment,
+   * use [setInnerHtml] to override the default behavior.
+   */
+  void set innerHtml(String html) {
+    this.setInnerHtml(html);
+  }
+
+  /**
+   * Parses the HTML fragment and sets it as the contents of this element.
+   * This ensures that the generated content follows the sanitization rules
+   * specified by the validator or treeSanitizer.
+   *
+   * If the default validation behavior is too restrictive then a new
+   * NodeValidator should be created, either extending or wrapping a default
+   * validator and overriding the validation APIs.
+   *
+   * The treeSanitizer is used to walk the generated node tree and sanitize it.
+   * A custom treeSanitizer can also be provided to perform special validation
+   * rules but since the API is more complex to implement this is discouraged.
+   *
+   * The resulting tree is guaranteed to only contain nodes and attributes which
+   * are allowed by the provided validator.
+   *
+   * See also:
+   *
+   * * [NodeValidator]
+   * * [NodeTreeSanitizer]
+   */
+  void setInnerHtml(String html,
+    {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    text = null;
+    append(createFragment(
+        html, validator: validator, treeSanitizer: treeSanitizer));
+  }
+  String get innerHtml => _innerHtml;
+
+  /**
+   * For use while transitioning to the safe [innerHtml] or [setInnerHtml].
+   * Unsafe because it opens the app to cross-site scripting vulnerabilities.
+   */
+  @deprecated
+  void set unsafeInnerHtml(String html) {
+    _innerHtml = html;
+  }
 
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
@@ -10280,7 +10390,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   bool hidden;
 
-  String innerHtml;
+  String _innerHtml;
 
   InputMethodContext get inputMethodContext;
 
@@ -10316,7 +10426,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.attributes')
   @DocsEditable()
-  _NamedNodeMap get $dom_attributes native "Element_attributes_Getter";
+  _NamedNodeMap get _attributes native "Element_attributes_Getter";
 
   @DomName('Element.className')
   @DocsEditable()
@@ -10468,15 +10578,15 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.getElementsByTagName')
   @DocsEditable()
-  List<Node> $dom_getElementsByTagName(String name) native "Element_getElementsByTagName_Callback";
+  List<Node> _getElementsByTagName(String name) native "Element_getElementsByTagName_Callback";
 
   @DomName('Element.hasAttribute')
   @DocsEditable()
-  bool $dom_hasAttribute(String name) native "Element_hasAttribute_Callback";
+  bool _hasAttribute(String name) native "Element_hasAttribute_Callback";
 
   @DomName('Element.hasAttributeNS')
   @DocsEditable()
-  bool $dom_hasAttributeNS(String namespaceURI, String localName) native "Element_hasAttributeNS_Callback";
+  bool _hasAttributeNS(String namespaceURI, String localName) native "Element_hasAttributeNS_Callback";
 
   /**
  * Finds the first descendant element of this element that matches the
@@ -10501,15 +10611,15 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.querySelectorAll')
   @DocsEditable()
-  List<Node> $dom_querySelectorAll(String selectors) native "Element_querySelectorAll_Callback";
+  List<Node> _querySelectorAll(String selectors) native "Element_querySelectorAll_Callback";
 
   @DomName('Element.removeAttribute')
   @DocsEditable()
-  void $dom_removeAttribute(String name) native "Element_removeAttribute_Callback";
+  void _removeAttribute(String name) native "Element_removeAttribute_Callback";
 
   @DomName('Element.removeAttributeNS')
   @DocsEditable()
-  void $dom_removeAttributeNS(String namespaceURI, String localName) native "Element_removeAttributeNS_Callback";
+  void _removeAttributeNS(String namespaceURI, String localName) native "Element_removeAttributeNS_Callback";
 
   @DomName('Element.scrollByLines')
   @DocsEditable()
@@ -10519,7 +10629,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   void scrollByPages(int pages) native "Element_scrollByPages_Callback";
 
-  void $dom_scrollIntoView([bool alignWithTop]) {
+  void _scrollIntoView([bool alignWithTop]) {
     if (alignWithTop != null) {
       _scrollIntoView_1(alignWithTop);
       return;
@@ -10532,7 +10642,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   void _scrollIntoView_2() native "Element__scrollIntoView_2_Callback";
 
-  void $dom_scrollIntoViewIfNeeded([bool centerIfNeeded]) {
+  void _scrollIntoViewIfNeeded([bool centerIfNeeded]) {
     if (centerIfNeeded != null) {
       _scrollIntoViewIfNeeded_1(centerIfNeeded);
       return;
@@ -10606,19 +10716,19 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.childElementCount')
   @DocsEditable()
-  int get $dom_childElementCount native "Element_childElementCount_Getter";
+  int get _childElementCount native "Element_childElementCount_Getter";
 
   @DomName('Element.children')
   @DocsEditable()
-  HtmlCollection get $dom_children native "Element_children_Getter";
+  HtmlCollection get _children native "Element_children_Getter";
 
   @DomName('Element.firstElementChild')
   @DocsEditable()
-  Element get $dom_firstElementChild native "Element_firstElementChild_Getter";
+  Element get _firstElementChild native "Element_firstElementChild_Getter";
 
   @DomName('Element.lastElementChild')
   @DocsEditable()
-  Element get $dom_lastElementChild native "Element_lastElementChild_Getter";
+  Element get _lastElementChild native "Element_lastElementChild_Getter";
 
   @DomName('Element.onabort')
   @DocsEditable()
@@ -10849,119 +10959,8 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
 }
 
-final _START_TAG_REGEXP = new RegExp('<(\\w+)');
+
 class _ElementFactoryProvider {
-  static const _CUSTOM_PARENT_TAG_MAP = const {
-    'body' : 'html',
-    'head' : 'html',
-    'caption' : 'table',
-    'td': 'tr',
-    'th': 'tr',
-    'colgroup': 'table',
-    'col' : 'colgroup',
-    'tr' : 'tbody',
-    'tbody' : 'table',
-    'tfoot' : 'table',
-    'thead' : 'table',
-    'track' : 'audio',
-  };
-
-  @DomName('Document.createElement')
-  static Element createElement_html(String html) {
-    // TODO(jacobr): this method can be made more robust and performant.
-    // 1) Cache the dummy parent elements required to use innerHTML rather than
-    //    creating them every call.
-    // 2) Verify that the html does not contain leading or trailing text nodes.
-    // 3) Verify that the html does not contain both <head> and <body> tags.
-    // 4) Detatch the created element from its dummy parent.
-    String parentTag = 'div';
-    String tag;
-    final match = _START_TAG_REGEXP.firstMatch(html);
-    if (match != null) {
-      tag = match.group(1).toLowerCase();
-      if (Device.isIE && Element._TABLE_TAGS.containsKey(tag)) {
-        return _createTableForIE(html, tag);
-      }
-      parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
-      if (parentTag == null) parentTag = 'div';
-    }
-
-    final temp = new Element.tag(parentTag);
-    temp.innerHtml = html;
-
-    Element element;
-    if (temp.children.length == 1) {
-      element = temp.children[0];
-    } else if (parentTag == 'html' && temp.children.length == 2) {
-      // In html5 the root <html> tag will always have a <body> and a <head>,
-      // even though the inner html only contains one of them.
-      element = temp.children[tag == 'head' ? 0 : 1];
-    } else {
-      _singleNode(temp.children);
-    }
-    element.remove();
-    return element;
-  }
-
-  /**
-   * IE table elements don't support innerHTML (even in standards mode).
-   * Instead we use a div and inject the table element in the innerHtml string.
-   * This technique works on other browsers too, but it's probably slower,
-   * so we only use it when running on IE.
-   *
-   * See also innerHTML:
-   * <http://msdn.microsoft.com/en-us/library/ie/ms533897(v=vs.85).aspx>
-   * and Building Tables Dynamically:
-   * <http://msdn.microsoft.com/en-us/library/ie/ms532998(v=vs.85).aspx>.
-   */
-  static Element _createTableForIE(String html, String tag) {
-    var div = new Element.tag('div');
-    div.innerHtml = '<table>$html</table>';
-    var table = _singleNode(div.children);
-    Element element;
-    switch (tag) {
-      case 'td':
-      case 'th':
-        TableRowElement row = _singleNode(table.rows);
-        element = _singleNode(row.cells);
-        break;
-      case 'tr':
-        element = _singleNode(table.rows);
-        break;
-      case 'tbody':
-        element = _singleNode(table.tBodies);
-        break;
-      case 'thead':
-        element = table.tHead;
-        break;
-      case 'tfoot':
-        element = table.tFoot;
-        break;
-      case 'caption':
-        element = table.caption;
-        break;
-      case 'colgroup':
-        element = _getColgroup(table);
-        break;
-      case 'col':
-        element = _singleNode(_getColgroup(table).children);
-        break;
-    }
-    element.remove();
-    return element;
-  }
-
-  static TableColElement _getColgroup(TableElement table) {
-    // TODO(jmesserly): is there a better way to do this?
-    return _singleNode(table.children.where((n) => n.tagName == 'COLGROUP')
-        .toList());
-  }
-
-  static Node _singleNode(List<Node> list) {
-    if (list.length == 1) return list[0];
-    throw new ArgumentError('HTML had ${list.length} '
-        'top level elements but 1 expected');
-  }
 
   @DomName('Document.createElement')
   static Element createElement_tag(String tag) =>
@@ -11286,8 +11285,8 @@ class Event extends NativeFieldWrapperClass1 {
    */
   factory Event.eventType(String type, String name, {bool canBubble: true,
       bool cancelable: true}) {
-    final Event e = document.$dom_createEvent(type);
-    e.$dom_initEvent(name, canBubble, cancelable);
+    final Event e = document._createEvent(type);
+    e._initEvent(name, canBubble, cancelable);
     return e;
   }
 
@@ -11466,7 +11465,7 @@ class Event extends NativeFieldWrapperClass1 {
 
   @DomName('Event.initEvent')
   @DocsEditable()
-  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "Event_initEvent_Callback";
+  void _initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "Event_initEvent_Callback";
 
   @DomName('Event.preventDefault')
   @DocsEditable()
@@ -11643,6 +11642,7 @@ class EventTarget extends NativeFieldWrapperClass1 {
 
   @DomName('EventTarget.addEventListener')
   @DocsEditable()
+  @deprecated
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_addEventListener_Callback";
 
   @DomName('EventTarget.dispatchEvent')
@@ -11651,6 +11651,7 @@ class EventTarget extends NativeFieldWrapperClass1 {
 
   @DomName('EventTarget.removeEventListener')
   @DocsEditable()
+  @deprecated
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_removeEventListener_Callback";
 
 }
@@ -12596,7 +12597,7 @@ class Geolocation extends NativeFieldWrapperClass1 {
     }
     var completer = new Completer<Geoposition>();
     try {
-      $dom_getCurrentPosition(
+      _getCurrentPosition(
           (position) {
             completer.complete(_ensurePosition(position));
           },
@@ -12630,7 +12631,7 @@ class Geolocation extends NativeFieldWrapperClass1 {
     controller = new StreamController<Geoposition>(sync: true,
       onListen: () {
         assert(watchId == null);
-        watchId = $dom_watchPosition(
+        watchId = _watchPosition(
             (position) {
               controller.add(_ensurePosition(position));
             },
@@ -12641,7 +12642,7 @@ class Geolocation extends NativeFieldWrapperClass1 {
       },
       onCancel: () {
         assert(watchId != null);
-        $dom_clearWatch(watchId);
+        _clearWatch(watchId);
       });
 
     return controller.stream;
@@ -12654,15 +12655,15 @@ class Geolocation extends NativeFieldWrapperClass1 {
 
   @DomName('Geolocation.clearWatch')
   @DocsEditable()
-  void $dom_clearWatch(int watchID) native "Geolocation_clearWatch_Callback";
+  void _clearWatch(int watchID) native "Geolocation_clearWatch_Callback";
 
   @DomName('Geolocation.getCurrentPosition')
   @DocsEditable()
-  void $dom_getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) native "Geolocation_getCurrentPosition_Callback";
+  void _getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) native "Geolocation_getCurrentPosition_Callback";
 
   @DomName('Geolocation.watchPosition')
   @DocsEditable()
-  int $dom_watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) native "Geolocation_watchPosition_Callback";
+  int _watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) native "Geolocation_watchPosition_Callback";
 }
 
 
@@ -12724,8 +12725,8 @@ class HashChangeEvent extends Event {
   factory HashChangeEvent(String type,
       {bool canBubble: true, bool cancelable: true, String oldUrl,
       String newUrl}) {
-    var event = document.$dom_createEvent("HashChangeEvent");
-    event.$dom_initHashChangeEvent(type, canBubble, cancelable, oldUrl, newUrl);
+    var event = document._createEvent("HashChangeEvent");
+    event._initHashChangeEvent(type, canBubble, cancelable, oldUrl, newUrl);
     return event;
   }
   // To suppress missing implicit constructor warnings.
@@ -12744,7 +12745,7 @@ class HashChangeEvent extends Event {
 
   @DomName('HashChangeEvent.initHashChangeEvent')
   @DocsEditable()
-  void $dom_initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native "HashChangeEvent_initHashChangeEvent_Callback";
+  void _initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native "HashChangeEvent_initHashChangeEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13060,21 +13061,21 @@ class HtmlDocument extends Document {
 
 
   @DomName('Document.body')
-  BodyElement get body => $dom_body;
+  BodyElement get body => _body;
 
   @DomName('Document.body')
   void set body(BodyElement value) {
-    $dom_body = value;
+    _body = value;
   }
 
   @DomName('Document.caretRangeFromPoint')
   Range caretRangeFromPoint(int x, int y) {
-    return $dom_caretRangeFromPoint(x, y);
+    return _caretRangeFromPoint(x, y);
   }
 
   @DomName('Document.elementFromPoint')
   Element elementFromPoint(int x, int y) {
-    return $dom_elementFromPoint(x, y);
+    return _elementFromPoint(x, y);
   }
 
   /**
@@ -13113,36 +13114,36 @@ class HtmlDocument extends Document {
   @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext getCssCanvasContext(String contextId, String name,
       int width, int height) {
-    return $dom_getCssCanvasContext(contextId, name, width, height);
+    return _getCssCanvasContext(contextId, name, width, height);
   }
 
   @DomName('Document.head')
-  HeadElement get head => $dom_head;
+  HeadElement get head => _head;
 
   @DomName('Document.lastModified')
-  String get lastModified => $dom_lastModified;
+  String get lastModified => _lastModified;
 
   @DomName('Document.preferredStylesheetSet')
-  String get preferredStylesheetSet => $dom_preferredStylesheetSet;
+  String get preferredStylesheetSet => _preferredStylesheetSet;
 
   @DomName('Document.referrer')
-  String get referrer => $dom_referrer;
+  String get referrer => _referrer;
 
   @DomName('Document.selectedStylesheetSet')
-  String get selectedStylesheetSet => $dom_selectedStylesheetSet;
+  String get selectedStylesheetSet => _selectedStylesheetSet;
   void set selectedStylesheetSet(String value) {
-    $dom_selectedStylesheetSet = value;
+    _selectedStylesheetSet = value;
   }
 
   @DomName('Document.styleSheets')
-  List<StyleSheet> get styleSheets => $dom_styleSheets;
+  List<StyleSheet> get styleSheets => _styleSheets;
 
   @DomName('Document.title')
-  String get title => $dom_title;
+  String get title => _title;
 
   @DomName('Document.title')
   void set title(String value) {
-    $dom_title = value;
+    _title = value;
   }
 
   @DomName('Document.webkitCancelFullScreen')
@@ -13150,7 +13151,7 @@ class HtmlDocument extends Document {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   void cancelFullScreen() {
-    $dom_webkitCancelFullScreen();
+    _webkitCancelFullScreen();
   }
 
   @DomName('Document.webkitExitFullscreen')
@@ -13158,7 +13159,7 @@ class HtmlDocument extends Document {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   void exitFullscreen() {
-    $dom_webkitExitFullscreen();
+    _webkitExitFullscreen();
   }
 
   @DomName('Document.webkitExitPointerLock')
@@ -13166,45 +13167,45 @@ class HtmlDocument extends Document {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   void exitPointerLock() {
-    $dom_webkitExitPointerLock();
+    _webkitExitPointerLock();
   }
 
   @DomName('Document.webkitFullscreenElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  Element get fullscreenElement => $dom_webkitFullscreenElement;
+  Element get fullscreenElement => _webkitFullscreenElement;
 
   @DomName('Document.webkitFullscreenEnabled')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  bool get fullscreenEnabled => $dom_webkitFullscreenEnabled;
+  bool get fullscreenEnabled => _webkitFullscreenEnabled;
 
   @DomName('Document.webkitHidden')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  bool get hidden => $dom_webkitHidden;
+  bool get hidden => _webkitHidden;
 
   @DomName('Document.webkitIsFullScreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  bool get isFullScreen => $dom_webkitIsFullScreen;
+  bool get isFullScreen => _webkitIsFullScreen;
 
   @DomName('Document.webkitPointerLockElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   Element get pointerLockElement =>
-      $dom_webkitPointerLockElement;
+      _webkitPointerLockElement;
 
   @DomName('Document.webkitVisibilityState')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  String get visibilityState => $dom_webkitVisibilityState;
+  String get visibilityState => _webkitVisibilityState;
 
   @Experimental
   void register(String tag, Type custom) {
@@ -13261,11 +13262,11 @@ class HtmlElement extends Element {
 
   @DomName('HTMLElement.innerHTML')
   @DocsEditable()
-  String get innerHtml native "HTMLElement_innerHTML_Getter";
+  String get _innerHtml native "HTMLElement_innerHTML_Getter";
 
   @DomName('HTMLElement.innerHTML')
   @DocsEditable()
-  void set innerHtml(String value) native "HTMLElement_innerHTML_Setter";
+  void set _innerHtml(String value) native "HTMLElement_innerHTML_Setter";
 
   @DomName('HTMLElement.inputMethodContext')
   @DocsEditable()
@@ -13614,6 +13615,22 @@ class HttpRequest extends EventTarget {
    */
   static bool get supportsOverrideMimeType {
     return true;
+  }
+
+  /**
+   * Makes a cross-origin request to the specified URL.
+   *
+   * This API provides a subset of [request] which works on IE9. If IE9
+   * cross-origin support is not required then [request] should be used instead.
+   */
+  @Experimental()
+  static Future<String> requestCrossOrigin(String url,
+      {String method, String sendData}) {
+    if (supportsCrossOrigin) {
+      return request(url, method: method, sendData: sendData).then((xhr) {
+        return xhr.responseText;
+      });
+    }
   }
 
   // To suppress missing implicit constructor warnings.
@@ -15498,23 +15515,23 @@ class KeyboardEvent extends UIEvent {
 
   factory KeyboardEvent(String type,
       {Window view, bool canBubble: true, bool cancelable: true,
-      String keyIdentifier: "", int keyLocation: 1, bool ctrlKey: false,
+      int keyLocation: 1, bool ctrlKey: false,
       bool altKey: false, bool shiftKey: false, bool metaKey: false,
       bool altGraphKey: false}) {
     if (view == null) {
       view = window;
     }
-    final e = document.$dom_createEvent("KeyboardEvent");
-    e.$dom_initKeyboardEvent(type, canBubble, cancelable, view, keyIdentifier,
+    final e = document._createEvent("KeyboardEvent");
+    e._initKeyboardEvent(type, canBubble, cancelable, view, "",
         keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
     return e;
   }
 
   @DomName('KeyboardEvent.keyCode')
-  int get keyCode => $dom_keyCode;
+  int get keyCode => _keyCode;
 
   @DomName('KeyboardEvent.charCode')
-  int get charCode => $dom_charCode;
+  int get charCode => _charCode;
   // To suppress missing implicit constructor warnings.
   factory KeyboardEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -15554,7 +15571,7 @@ class KeyboardEvent extends UIEvent {
   @DomName('KeyboardEvent.keyIdentifier')
   @DocsEditable()
   @Experimental() // nonstandard
-  String get $dom_keyIdentifier native "KeyboardEvent_keyIdentifier_Getter";
+  String get _keyIdentifier native "KeyboardEvent_keyIdentifier_Getter";
 
   @DomName('KeyboardEvent.keyLocation')
   @DocsEditable()
@@ -15581,7 +15598,7 @@ class KeyboardEvent extends UIEvent {
 
   @DomName('KeyboardEvent.initKeyboardEvent')
   @DocsEditable()
-  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int location, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
+  void _initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int location, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17504,8 +17521,8 @@ class MessageEvent extends Event {
     if (source == null) {
       source = window;
     }
-    var event = document.$dom_createEvent("MessageEvent");
-    event.$dom_initMessageEvent(type, canBubble, cancelable, data, origin,
+    var event = document._createEvent("MessageEvent");
+    event._initMessageEvent(type, canBubble, cancelable, data, origin,
         lastEventId, source, messagePorts);
     return event;
   }
@@ -17536,7 +17553,7 @@ class MessageEvent extends Event {
 
   @DomName('MessageEvent.initMessageEvent')
   @DocsEditable()
-  void $dom_initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
+  void _initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18114,8 +18131,8 @@ class MouseEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var event = document.$dom_createEvent('MouseEvent');
-    event.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
+    var event = document._createEvent('MouseEvent');
+    event._initMouseEvent(type, canBubble, cancelable, view, detail,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
         button, relatedTarget);
     return event;
@@ -18133,11 +18150,11 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.clientX')
   @DocsEditable()
-  int get $dom_clientX native "MouseEvent_clientX_Getter";
+  int get _clientX native "MouseEvent_clientX_Getter";
 
   @DomName('MouseEvent.clientY')
   @DocsEditable()
-  int get $dom_clientY native "MouseEvent_clientY_Getter";
+  int get _clientY native "MouseEvent_clientY_Getter";
 
   @DomName('MouseEvent.ctrlKey')
   @DocsEditable()
@@ -18160,12 +18177,12 @@ class MouseEvent extends UIEvent {
   @DomName('MouseEvent.offsetX')
   @DocsEditable()
   @Unstable()
-  int get $dom_offsetX native "MouseEvent_offsetX_Getter";
+  int get _offsetX native "MouseEvent_offsetX_Getter";
 
   @DomName('MouseEvent.offsetY')
   @DocsEditable()
   @Unstable()
-  int get $dom_offsetY native "MouseEvent_offsetY_Getter";
+  int get _offsetY native "MouseEvent_offsetY_Getter";
 
   @DomName('MouseEvent.relatedTarget')
   @DocsEditable()
@@ -18173,11 +18190,11 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.screenX')
   @DocsEditable()
-  int get $dom_screenX native "MouseEvent_screenX_Getter";
+  int get _screenX native "MouseEvent_screenX_Getter";
 
   @DomName('MouseEvent.screenY')
   @DocsEditable()
-  int get $dom_screenY native "MouseEvent_screenY_Getter";
+  int get _screenY native "MouseEvent_screenY_Getter";
 
   @DomName('MouseEvent.shiftKey')
   @DocsEditable()
@@ -18193,18 +18210,18 @@ class MouseEvent extends UIEvent {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get $dom_webkitMovementX native "MouseEvent_webkitMovementX_Getter";
+  int get _webkitMovementX native "MouseEvent_webkitMovementX_Getter";
 
   @DomName('MouseEvent.webkitMovementY')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get $dom_webkitMovementY native "MouseEvent_webkitMovementY_Getter";
+  int get _webkitMovementY native "MouseEvent_webkitMovementY_Getter";
 
   @DomName('MouseEvent.initMouseEvent')
   @DocsEditable()
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
+  void _initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
 
 
   @deprecated
@@ -18226,14 +18243,14 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.clientX')
   @DomName('MouseEvent.clientY')
-  Point get client => new Point($dom_clientX, $dom_clientY);
+  Point get client => new Point(_clientX, _clientY);
 
   @DomName('MouseEvent.movementX')
   @DomName('MouseEvent.movementY')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  Point get movement => new Point($dom_webkitMovementX, $dom_webkitMovementY);
+  Point get movement => new Point(_webkitMovementX, _webkitMovementY);
 
   /**
    * The coordinates of the mouse pointer in target node coordinates.
@@ -18242,11 +18259,11 @@ class MouseEvent extends UIEvent {
    * after the event has fired or if the element has CSS transforms affecting
    * it.
    */
-  Point get offset => new Point($dom_offsetX, $dom_offsetY);
+  Point get offset => new Point(_offsetX, _offsetY);
 
   @DomName('MouseEvent.screenX')
   @DomName('MouseEvent.screenY')
-  Point get screen => new Point($dom_screenX, $dom_screenY);
+  Point get screen => new Point(_screenX, _screenY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18270,8 +18287,8 @@ class MutationEvent extends Event {
       {bool canBubble: false, bool cancelable: false, Node relatedNode,
       String prevValue, String newValue, String attrName, int attrChange: 0}) {
 
-    var event = document.$dom_createEvent('MutationEvent');
-    event.$dom_initMutationEvent(type, canBubble, cancelable, relatedNode,
+    var event = document._createEvent('MutationEvent');
+    event._initMutationEvent(type, canBubble, cancelable, relatedNode,
         prevValue, newValue, attrName, attrChange);
     return event;
   }
@@ -18312,7 +18329,7 @@ class MutationEvent extends Event {
 
   @DomName('MutationEvent.initMutationEvent')
   @DocsEditable()
-  void $dom_initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native "MutationEvent_initMutationEvent_Callback";
+  void _initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native "MutationEvent_initMutationEvent_Callback";
 
 }
 
@@ -18856,7 +18873,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
   Node removeLast() {
     final result = last;
     if (result != null) {
-      _this.$dom_removeChild(result);
+      _this._removeChild(result);
     }
     return result;
   }
@@ -18864,7 +18881,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
   Node removeAt(int index) {
     var result = this[index];
     if (result != null) {
-      _this.$dom_removeChild(result);
+      _this._removeChild(result);
     }
     return result;
   }
@@ -18873,7 +18890,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
     if (object is! Node) return false;
     Node node = object;
     if (!identical(_this, node.parentNode)) return false;
-    _this.$dom_removeChild(node);
+    _this._removeChild(node);
     return true;
   }
 
@@ -18885,7 +18902,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
     while (child != null) {
       Node nextChild = child.nextNode;
       if (test(child) == removeMatching) {
-        _this.$dom_removeChild(child);
+        _this._removeChild(child);
       }
       child = nextChild;
     }
@@ -18904,7 +18921,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
   }
 
   void operator []=(int index, Node value) {
-    _this.$dom_replaceChild(value, this[index]);
+    _this._replaceChild(value, this[index]);
   }
 
   Iterator<Node> get iterator => _this.$dom_childNodes.iterator;
@@ -18987,7 +19004,7 @@ class Node extends EventTarget {
     // TODO(vsm): Use the native remove when available.
     if (this.parentNode != null) {
       final Node parent = this.parentNode;
-      parentNode.$dom_removeChild(this);
+      parentNode._removeChild(this);
     }
   }
 
@@ -18998,7 +19015,7 @@ class Node extends EventTarget {
   Node replaceWith(Node otherNode) {
     try {
       final Node parent = this.parentNode;
-      parent.$dom_replaceChild(otherNode, this);
+      parent._replaceChild(otherNode, this);
     } catch (e) {
 
     };
@@ -19147,13 +19164,13 @@ class Node extends EventTarget {
   @DocsEditable()
   // http://dom.spec.whatwg.org/#dom-node-localname
   @deprecated // deprecated
-  String get $dom_localName native "Node_localName_Getter";
+  String get _localName native "Node_localName_Getter";
 
   @DomName('Node.namespaceURI')
   @DocsEditable()
   // http://dom.spec.whatwg.org/#dom-node-namespaceuri
   @deprecated // deprecated
-  String get $dom_namespaceUri native "Node_namespaceURI_Getter";
+  String get _namespaceUri native "Node_namespaceURI_Getter";
 
   @DomName('Node.nextSibling')
   @DocsEditable()
@@ -19226,11 +19243,11 @@ class Node extends EventTarget {
 
   @DomName('Node.removeChild')
   @DocsEditable()
-  Node $dom_removeChild(Node oldChild) native "Node_removeChild_Callback";
+  Node _removeChild(Node oldChild) native "Node_removeChild_Callback";
 
   @DomName('Node.replaceChild')
   @DocsEditable()
-  Node $dom_replaceChild(Node newChild, Node oldChild) native "Node_replaceChild_Callback";
+  Node _replaceChild(Node newChild, Node oldChild) native "Node_replaceChild_Callback";
 
   @DomName('Node.addEventListener')
   @DocsEditable()
@@ -19336,7 +19353,7 @@ class NodeFilter extends NativeFieldWrapperClass1 {
 @Unstable()
 class NodeIterator extends NativeFieldWrapperClass1 {
   factory NodeIterator(Node root, int whatToShow) {
-    return document.$dom_createNodeIterator(root, whatToShow, null, false);
+    return document._createNodeIterator(root, whatToShow, null, false);
   }
 
   @DomName('NodeIterator.pointerBeforeReferenceNode')
@@ -20131,22 +20148,22 @@ abstract class ParentNode extends NativeFieldWrapperClass1 {
   @DomName('ParentNode.childElementCount')
   @DocsEditable()
   @Experimental() // untriaged
-  int get $dom_childElementCount native "ParentNode_childElementCount_Getter";
+  int get _childElementCount native "ParentNode_childElementCount_Getter";
 
   @DomName('ParentNode.children')
   @DocsEditable()
   @Experimental() // untriaged
-  HtmlCollection get $dom_children native "ParentNode_children_Getter";
+  HtmlCollection get _children native "ParentNode_children_Getter";
 
   @DomName('ParentNode.firstElementChild')
   @DocsEditable()
   @Experimental() // untriaged
-  Element get $dom_firstElementChild native "ParentNode_firstElementChild_Getter";
+  Element get _firstElementChild native "ParentNode_firstElementChild_Getter";
 
   @DomName('ParentNode.lastElementChild')
   @DocsEditable()
   @Experimental() // untriaged
-  Element get $dom_lastElementChild native "ParentNode_lastElementChild_Getter";
+  Element get _lastElementChild native "ParentNode_lastElementChild_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21067,7 +21084,7 @@ class Range extends NativeFieldWrapperClass1 {
   factory Range() => document.$dom_createRange();
 
   factory Range.fromPoint(Point point) =>
-      document.$dom_caretRangeFromPoint(point.x, point.y);
+      document._caretRangeFromPoint(point.x, point.y);
 
   @DomName('Range.END_TO_END')
   @DocsEditable()
@@ -21978,26 +21995,26 @@ class Screen extends NativeFieldWrapperClass1 {
   @DomName('Screen.availLeft')
   @DomName('Screen.availTop')
   @DomName('Screen.availWidth')
-  Rect get available => new Rect($dom_availLeft, $dom_availTop, $dom_availWidth,
-      $dom_availHeight);
+  Rect get available => new Rect(_availLeft, _availTop, _availWidth,
+      _availHeight);
 
   @DomName('Screen.availHeight')
   @DocsEditable()
-  int get $dom_availHeight native "Screen_availHeight_Getter";
+  int get _availHeight native "Screen_availHeight_Getter";
 
   @DomName('Screen.availLeft')
   @DocsEditable()
   @Experimental() // nonstandard
-  int get $dom_availLeft native "Screen_availLeft_Getter";
+  int get _availLeft native "Screen_availLeft_Getter";
 
   @DomName('Screen.availTop')
   @DocsEditable()
   @Experimental() // nonstandard
-  int get $dom_availTop native "Screen_availTop_Getter";
+  int get _availTop native "Screen_availTop_Getter";
 
   @DomName('Screen.availWidth')
   @DocsEditable()
-  int get $dom_availWidth native "Screen_availWidth_Getter";
+  int get _availWidth native "Screen_availWidth_Getter";
 
   @DomName('Screen.colorDepth')
   @DocsEditable()
@@ -23681,11 +23698,11 @@ class Storage extends NativeFieldWrapperClass1
   // TODO(nweiz): update this when maps support lazy iteration
   bool containsValue(String value) => values.any((e) => e == value);
 
-  bool containsKey(String key) => $dom_getItem(key) != null;
+  bool containsKey(String key) => _getItem(key) != null;
 
-  String operator [](String key) => $dom_getItem(key);
+  String operator [](String key) => _getItem(key);
 
-  void operator []=(String key, String value) { $dom_setItem(key, value); }
+  void operator []=(String key, String value) { _setItem(key, value); }
 
   String putIfAbsent(String key, String ifAbsent()) {
     if (!containsKey(key)) this[key] = ifAbsent();
@@ -23694,15 +23711,15 @@ class Storage extends NativeFieldWrapperClass1
 
   String remove(String key) {
     final value = this[key];
-    $dom_removeItem(key);
+    _removeItem(key);
     return value;
   }
 
-  void clear() => $dom_clear();
+  void clear() => _clear();
 
   void forEach(void f(String key, String value)) {
     for (var i = 0; true; i++) {
-      final key = $dom_key(i);
+      final key = _key(i);
       if (key == null) return;
 
       f(key, this[key]);
@@ -23721,15 +23738,15 @@ class Storage extends NativeFieldWrapperClass1
     return values;
   }
 
-  int get length => $dom_length;
+  int get length => _length;
 
-  bool get isEmpty => $dom_key(0) == null;
+  bool get isEmpty => _key(0) == null;
 
   bool get isNotEmpty => !isEmpty;
 
   @DomName('Storage.length')
   @DocsEditable()
-  int get $dom_length native "Storage_length_Getter";
+  int get _length native "Storage_length_Getter";
 
   bool __delete__(index_OR_name) {
     if ((index_OR_name is int || index_OR_name == null)) {
@@ -23777,23 +23794,23 @@ class Storage extends NativeFieldWrapperClass1
 
   @DomName('Storage.clear')
   @DocsEditable()
-  void $dom_clear() native "Storage_clear_Callback";
+  void _clear() native "Storage_clear_Callback";
 
   @DomName('Storage.getItem')
   @DocsEditable()
-  String $dom_getItem(String key) native "Storage_getItem_Callback";
+  String _getItem(String key) native "Storage_getItem_Callback";
 
   @DomName('Storage.key')
   @DocsEditable()
-  String $dom_key(int index) native "Storage_key_Callback";
+  String _key(int index) native "Storage_key_Callback";
 
   @DomName('Storage.removeItem')
   @DocsEditable()
-  void $dom_removeItem(String key) native "Storage_removeItem_Callback";
+  void _removeItem(String key) native "Storage_removeItem_Callback";
 
   @DomName('Storage.setItem')
   @DocsEditable()
-  void $dom_setItem(String key, String data) native "Storage_setItem_Callback";
+  void _setItem(String key, String data) native "Storage_setItem_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23821,8 +23838,8 @@ class StorageEvent extends Event {
     {bool canBubble: false, bool cancelable: false, String key, String oldValue,
     String newValue, String url, Storage storageArea}) {
 
-    var e = document.$dom_createEvent("StorageEvent");
-    e.$dom_initStorageEvent(type, canBubble, cancelable, key, oldValue,
+    var e = document._createEvent("StorageEvent");
+    e._initStorageEvent(type, canBubble, cancelable, key, oldValue,
         newValue, url, storageArea);
     return e;
   }
@@ -23851,7 +23868,7 @@ class StorageEvent extends Event {
 
   @DomName('StorageEvent.initStorageEvent')
   @DocsEditable()
-  void $dom_initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native "StorageEvent_initStorageEvent_Callback";
+  void _initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native "StorageEvent_initStorageEvent_Callback";
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -24233,21 +24250,21 @@ class TableElement extends HtmlElement {
 
   @DomName('HTMLTableElement.tBodies')
   List<TableSectionElement> get tBodies =>
-  new _WrappedList<TableSectionElement>($dom_tBodies);
+  new _WrappedList<TableSectionElement>(_tBodies);
 
   @DomName('HTMLTableElement.rows')
   List<TableRowElement> get rows =>
-      new _WrappedList<TableRowElement>($dom_rows);
+      new _WrappedList<TableRowElement>(_rows);
 
   TableRowElement addRow() {
     return insertRow(-1);
   }
 
-  TableCaptionElement createCaption() => $dom_createCaption();
-  TableSectionElement createTBody() => $dom_createTBody();
-  TableSectionElement createTFoot() => $dom_createTFoot();
-  TableSectionElement createTHead() => $dom_createTHead();
-  TableRowElement insertRow(int index) => $dom_insertRow(index);
+  TableCaptionElement createCaption() => _createCaption();
+  TableSectionElement createTBody() => _createTBody();
+  TableSectionElement createTFoot() => _createTFoot();
+  TableSectionElement createTHead() => _createTHead();
+  TableRowElement insertRow(int index) => _insertRow(index);
 
 
   // To suppress missing implicit constructor warnings.
@@ -24279,11 +24296,11 @@ class TableElement extends HtmlElement {
 
   @DomName('HTMLTableElement.rows')
   @DocsEditable()
-  HtmlCollection get $dom_rows native "HTMLTableElement_rows_Getter";
+  HtmlCollection get _rows native "HTMLTableElement_rows_Getter";
 
   @DomName('HTMLTableElement.tBodies')
   @DocsEditable()
-  HtmlCollection get $dom_tBodies native "HTMLTableElement_tBodies_Getter";
+  HtmlCollection get _tBodies native "HTMLTableElement_tBodies_Getter";
 
   @DomName('HTMLTableElement.tFoot')
   @DocsEditable()
@@ -24303,19 +24320,19 @@ class TableElement extends HtmlElement {
 
   @DomName('HTMLTableElement.createCaption')
   @DocsEditable()
-  HtmlElement $dom_createCaption() native "HTMLTableElement_createCaption_Callback";
+  HtmlElement _createCaption() native "HTMLTableElement_createCaption_Callback";
 
   @DomName('HTMLTableElement.createTBody')
   @DocsEditable()
-  HtmlElement $dom_createTBody() native "HTMLTableElement_createTBody_Callback";
+  HtmlElement _createTBody() native "HTMLTableElement_createTBody_Callback";
 
   @DomName('HTMLTableElement.createTFoot')
   @DocsEditable()
-  HtmlElement $dom_createTFoot() native "HTMLTableElement_createTFoot_Callback";
+  HtmlElement _createTFoot() native "HTMLTableElement_createTFoot_Callback";
 
   @DomName('HTMLTableElement.createTHead')
   @DocsEditable()
-  HtmlElement $dom_createTHead() native "HTMLTableElement_createTHead_Callback";
+  HtmlElement _createTHead() native "HTMLTableElement_createTHead_Callback";
 
   @DomName('HTMLTableElement.deleteCaption')
   @DocsEditable()
@@ -24335,7 +24352,7 @@ class TableElement extends HtmlElement {
 
   @DomName('HTMLTableElement.insertRow')
   @DocsEditable()
-  HtmlElement $dom_insertRow(int index) native "HTMLTableElement_insertRow_Callback";
+  HtmlElement _insertRow(int index) native "HTMLTableElement_insertRow_Callback";
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24348,13 +24365,13 @@ class TableRowElement extends HtmlElement {
 
   @DomName('HTMLTableRowElement.cells')
   List<TableCellElement> get cells =>
-      new _WrappedList<TableCellElement>($dom_cells);
+      new _WrappedList<TableCellElement>(_cells);
 
   TableCellElement addCell() {
     return insertCell(-1);
   }
 
-  TableCellElement insertCell(int index) => $dom_insertCell(index);
+  TableCellElement insertCell(int index) => _insertCell(index);
 
   // To suppress missing implicit constructor warnings.
   factory TableRowElement._() { throw new UnsupportedError("Not supported"); }
@@ -24365,7 +24382,7 @@ class TableRowElement extends HtmlElement {
 
   @DomName('HTMLTableRowElement.cells')
   @DocsEditable()
-  HtmlCollection get $dom_cells native "HTMLTableRowElement_cells_Getter";
+  HtmlCollection get _cells native "HTMLTableRowElement_cells_Getter";
 
   @DomName('HTMLTableRowElement.rowIndex')
   @DocsEditable()
@@ -24381,7 +24398,7 @@ class TableRowElement extends HtmlElement {
 
   @DomName('HTMLTableRowElement.insertCell')
   @DocsEditable()
-  HtmlElement $dom_insertCell(int index) native "HTMLTableRowElement_insertCell_Callback";
+  HtmlElement _insertCell(int index) native "HTMLTableRowElement_insertCell_Callback";
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24394,20 +24411,20 @@ class TableSectionElement extends HtmlElement {
 
   @DomName('HTMLTableSectionElement.rows')
   List<TableRowElement> get rows =>
-    new _WrappedList<TableRowElement>($dom_rows);
+    new _WrappedList<TableRowElement>(_rows);
 
   TableRowElement addRow() {
     return insertRow(-1);
   }
 
-  TableRowElement insertRow(int index) => $dom_insertRow(index);
+  TableRowElement insertRow(int index) => _insertRow(index);
 
   // To suppress missing implicit constructor warnings.
   factory TableSectionElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('HTMLTableSectionElement.rows')
   @DocsEditable()
-  HtmlCollection get $dom_rows native "HTMLTableSectionElement_rows_Getter";
+  HtmlCollection get _rows native "HTMLTableSectionElement_rows_Getter";
 
   @DomName('HTMLTableSectionElement.deleteRow')
   @DocsEditable()
@@ -24415,7 +24432,7 @@ class TableSectionElement extends HtmlElement {
 
   @DomName('HTMLTableSectionElement.insertRow')
   @DocsEditable()
-  HtmlElement $dom_insertRow(int index) native "HTMLTableSectionElement_insertRow_Callback";
+  HtmlElement _insertRow(int index) native "HTMLTableSectionElement_insertRow_Callback";
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24524,13 +24541,13 @@ class TemplateElement extends HtmlElement {
 
   @DomName('HTMLTemplateElement.content')
   @DocsEditable()
-  DocumentFragment get $dom_content native "HTMLTemplateElement_content_Getter";
+  DocumentFragment get _content native "HTMLTemplateElement_content_Getter";
 
 
   // For real TemplateElement use the actual DOM .content field instead of
   // our polyfilled expando.
   @Experimental()
-  DocumentFragment get content => $dom_content;
+  DocumentFragment get content => _content;
 
 
   /**
@@ -24724,6 +24741,22 @@ option[template] {
 }''';
     document.head.append(style);
   }
+
+  /**
+   * An override to place the contents into content rather than as child nodes.
+   *
+   * See also:
+   *
+   * * <https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#innerhtml-on-templates>
+   */
+  void setInnerHtml(String html,
+    {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    text = null;
+    var fragment = createFragment(
+        html, validator: validator, treeSanitizer: treeSanitizer);
+
+    content.append(fragment);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24734,7 +24767,7 @@ option[template] {
 
 @DomName('Text')
 class Text extends CharacterData {
-  factory Text(String data) => document.$dom_createTextNode(data);
+  factory Text(String data) => document._createTextNode(data);
   // To suppress missing implicit constructor warnings.
   factory Text._() { throw new UnsupportedError("Not supported"); }
 
@@ -25003,8 +25036,8 @@ class TextEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var e = document.$dom_createEvent("TextEvent");
-    e.$dom_initTextEvent(type, canBubble, cancelable, view, data);
+    var e = document._createEvent("TextEvent");
+    e._initTextEvent(type, canBubble, cancelable, view, data);
     return e;
   }
   // To suppress missing implicit constructor warnings.
@@ -25016,7 +25049,7 @@ class TextEvent extends UIEvent {
 
   @DomName('TextEvent.initTextEvent')
   @DocsEditable()
-  void $dom_initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
+  void _initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25496,11 +25529,11 @@ class Touch extends NativeFieldWrapperClass1 {
 
   @DomName('Touch.clientX')
   @DocsEditable()
-  int get $dom_clientX native "Touch_clientX_Getter";
+  int get _clientX native "Touch_clientX_Getter";
 
   @DomName('Touch.clientY')
   @DocsEditable()
-  int get $dom_clientY native "Touch_clientY_Getter";
+  int get _clientY native "Touch_clientY_Getter";
 
   @DomName('Touch.identifier')
   @DocsEditable()
@@ -25508,19 +25541,19 @@ class Touch extends NativeFieldWrapperClass1 {
 
   @DomName('Touch.pageX')
   @DocsEditable()
-  int get $dom_pageX native "Touch_pageX_Getter";
+  int get _pageX native "Touch_pageX_Getter";
 
   @DomName('Touch.pageY')
   @DocsEditable()
-  int get $dom_pageY native "Touch_pageY_Getter";
+  int get _pageY native "Touch_pageY_Getter";
 
   @DomName('Touch.screenX')
   @DocsEditable()
-  int get $dom_screenX native "Touch_screenX_Getter";
+  int get _screenX native "Touch_screenX_Getter";
 
   @DomName('Touch.screenY')
   @DocsEditable()
-  int get $dom_screenY native "Touch_screenY_Getter";
+  int get _screenY native "Touch_screenY_Getter";
 
   @DomName('Touch.target')
   @DocsEditable()
@@ -25557,15 +25590,15 @@ class Touch extends NativeFieldWrapperClass1 {
 
   @DomName('Touch.clientX')
   @DomName('Touch.clientY')
-  Point get client => new Point($dom_clientX, $dom_clientY);
+  Point get client => new Point(_clientX, _clientY);
 
   @DomName('Touch.pageX')
   @DomName('Touch.pageY')
-  Point get page => new Point($dom_pageX, $dom_pageY);
+  Point get page => new Point(_pageX, _pageY);
 
   @DomName('Touch.screenX')
   @DomName('Touch.screenY')
-  Point get screen => new Point($dom_screenX, $dom_screenY);
+  Point get screen => new Point(_screenX, _screenY);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25586,8 +25619,8 @@ class TouchEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var e = document.$dom_createEvent("TouchEvent");
-    e.$dom_initTouchEvent(touches, targetTouches, changedTouches, type, view,
+    var e = document._createEvent("TouchEvent");
+    e._initTouchEvent(touches, targetTouches, changedTouches, type, view,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
     return e;
   }
@@ -25624,7 +25657,7 @@ class TouchEvent extends UIEvent {
 
   @DomName('TouchEvent.initTouchEvent')
   @DocsEditable()
-  void $dom_initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
+  void _initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
 
 
   /**
@@ -25654,7 +25687,7 @@ class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, Immutabl
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
-  factory TouchList() => document.$dom_createTouchList();
+  factory TouchList() => document._createTouchList();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -25857,7 +25890,7 @@ class TransitionEvent extends Event {
 @Unstable()
 class TreeWalker extends NativeFieldWrapperClass1 {
   factory TreeWalker(Node root, int whatToShow) {
-    return document.$dom_createTreeWalker(root, whatToShow, null, false);
+    return document._createTreeWalker(root, whatToShow, null, false);
   }
 
   @DomName('TreeWalker.currentNode')
@@ -25936,8 +25969,8 @@ class UIEvent extends Event {
     if (view == null) {
       view = window;
     }
-    final e = document.$dom_createEvent("UIEvent");
-    e.$dom_initUIEvent(type, canBubble, cancelable, view, detail);
+    final e = document._createEvent("UIEvent");
+    e._initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
   }
   // To suppress missing implicit constructor warnings.
@@ -25946,7 +25979,7 @@ class UIEvent extends Event {
   @DomName('UIEvent.charCode')
   @DocsEditable()
   @Unstable()
-  int get $dom_charCode native "UIEvent_charCode_Getter";
+  int get _charCode native "UIEvent_charCode_Getter";
 
   @DomName('UIEvent.detail')
   @DocsEditable()
@@ -25955,31 +25988,31 @@ class UIEvent extends Event {
   @DomName('UIEvent.keyCode')
   @DocsEditable()
   @Unstable()
-  int get $dom_keyCode native "UIEvent_keyCode_Getter";
+  int get _keyCode native "UIEvent_keyCode_Getter";
 
   @DomName('UIEvent.layerX')
   @DocsEditable()
   // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
   @Experimental() // nonstandard
-  int get $dom_layerX native "UIEvent_layerX_Getter";
+  int get _layerX native "UIEvent_layerX_Getter";
 
   @DomName('UIEvent.layerY')
   @DocsEditable()
   // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
   @Experimental() // nonstandard
-  int get $dom_layerY native "UIEvent_layerY_Getter";
+  int get _layerY native "UIEvent_layerY_Getter";
 
   @DomName('UIEvent.pageX')
   @DocsEditable()
   // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
   @Experimental() // nonstandard
-  int get $dom_pageX native "UIEvent_pageX_Getter";
+  int get _pageX native "UIEvent_pageX_Getter";
 
   @DomName('UIEvent.pageY')
   @DocsEditable()
   // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
   @Experimental() // nonstandard
-  int get $dom_pageY native "UIEvent_pageY_Getter";
+  int get _pageY native "UIEvent_pageY_Getter";
 
   @DomName('UIEvent.view')
   @DocsEditable()
@@ -25992,7 +26025,7 @@ class UIEvent extends Event {
 
   @DomName('UIEvent.initUIEvent')
   @DocsEditable()
-  void $dom_initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native "UIEvent_initUIEvent_Callback";
+  void _initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native "UIEvent_initUIEvent_Callback";
 
 
   @deprecated
@@ -26007,11 +26040,11 @@ class UIEvent extends Event {
 
   @DomName('UIEvent.layerX')
   @DomName('UIEvent.layerY')
-  Point get layer => new Point($dom_layerX, $dom_layerY);
+  Point get layer => new Point(_layerX, _layerY);
 
   @DomName('UIEvent.pageX')
   @DomName('UIEvent.pageY')
-  Point get page => new Point($dom_pageX, $dom_pageY);
+  Point get page => new Point(_pageX, _pageY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26065,13 +26098,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -26519,16 +26552,16 @@ class WheelEvent extends MouseEvent {
     if (Device.isFirefox) {
       eventType = 'MouseScrollEvents';
     }
-    final event = document.$dom_createEvent(eventType);
+    final event = document._createEvent(eventType);
     // Dartium always needs these flipped because we're essentially always
     // polyfilling (see similar dart2js code as well)
     deltaX = -deltaX;
     deltaY = -deltaY;
       // Fallthrough for Dartium.
-      event.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
+      event._initMouseEvent(type, canBubble, cancelable, view, detail,
           screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey, button, relatedTarget);
-      event.$dom_initWebKitWheelEvent(deltaX,
+      event._initWebKitWheelEvent(deltaX,
           deltaY ~/ 120, // Chrome does an auto-convert to pixels.
           view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey);
@@ -26575,7 +26608,7 @@ class WheelEvent extends MouseEvent {
   @DomName('WheelEvent.initWebKitWheelEvent')
   @DocsEditable()
   @Experimental()
-  void $dom_initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
+  void _initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
 
 
   /**
@@ -26643,6 +26676,15 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
     var serialized = _serialize(port);
     document.documentElement.attributes['dart-port:$name'] =
         json.stringify(serialized);
+  }
+
+  /**
+   * Deregister a [port] on this window under the given [name].  This
+   * port may be retrieved by any isolate (or JavaScript script)
+   * running in this window.
+   */
+  void deregisterPort(String name) {
+    document.documentElement.attributes.remove('dart-port:$name');
   }
 
   /**
@@ -27087,7 +27129,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
 
   @DomName('Window.getComputedStyle')
   @DocsEditable()
-  CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "Window_getComputedStyle_Callback";
+  CssStyleDeclaration _getComputedStyle(Element element, String pseudoElement) native "Window_getComputedStyle_Callback";
 
   @DomName('Window.getMatchedCSSRules')
   @DocsEditable()
@@ -27108,7 +27150,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
 
   @DomName('Window.moveTo')
   @DocsEditable()
-  void $dom_moveTo(num x, num y) native "Window_moveTo_Callback";
+  void _moveTo(num x, num y) native "Window_moveTo_Callback";
 
   @DomName('Window.open')
   @DocsEditable()
@@ -27505,7 +27547,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
   void moveTo(Point p) {
-    $dom_moveTo(p.x, p.y);
+    _moveTo(p.x, p.y);
   }
 
 }
@@ -29442,7 +29484,7 @@ abstract class _AttributeMap implements Map<String, String> {
 
   Iterable<String> get keys {
     // TODO: generate a lazy collection instead.
-    var attributes = _element.$dom_attributes;
+    var attributes = _element._attributes;
     var keys = new List<String>();
     for (int i = 0, len = attributes.length; i < len; i++) {
       if (_matches(attributes[i])) {
@@ -29454,7 +29496,7 @@ abstract class _AttributeMap implements Map<String, String> {
 
   Iterable<String> get values {
     // TODO: generate a lazy collection instead.
-    var attributes = _element.$dom_attributes;
+    var attributes = _element._attributes;
     var values = new List<String>();
     for (int i = 0, len = attributes.length; i < len; i++) {
       if (_matches(attributes[i])) {
@@ -29490,7 +29532,7 @@ class _ElementAttributeMap extends _AttributeMap {
   _ElementAttributeMap(Element element): super(element);
 
   bool containsKey(String key) {
-    return _element.$dom_hasAttribute(key);
+    return _element._hasAttribute(key);
   }
 
   String operator [](String key) {
@@ -29503,7 +29545,7 @@ class _ElementAttributeMap extends _AttributeMap {
 
   String remove(String key) {
     String value = _element.$dom_getAttribute(key);
-    _element.$dom_removeAttribute(key);
+    _element._removeAttribute(key);
     return value;
   }
 
@@ -29514,7 +29556,7 @@ class _ElementAttributeMap extends _AttributeMap {
     return keys.length;
   }
 
-  bool _matches(Node node) => node.$dom_namespaceUri == null;
+  bool _matches(Node node) => node._namespaceUri == null;
 }
 
 /**
@@ -29527,7 +29569,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
   _NamespacedAttributeMap(Element element, this._namespace): super(element);
 
   bool containsKey(String key) {
-    return _element.$dom_hasAttributeNS(_namespace, key);
+    return _element._hasAttributeNS(_namespace, key);
   }
 
   String operator [](String key) {
@@ -29540,7 +29582,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
 
   String remove(String key) {
     String value = this[key];
-    _element.$dom_removeAttributeNS(_namespace, key);
+    _element._removeAttributeNS(_namespace, key);
     return value;
   }
 
@@ -29551,7 +29593,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
     return keys.length;
   }
 
-  bool _matches(Node node) => node.$dom_namespaceUri == _namespace;
+  bool _matches(Node node) => node._namespaceUri == _namespace;
 }
 
 
@@ -29561,27 +29603,27 @@ class _NamespacedAttributeMap extends _AttributeMap {
  */
 class _DataAttributeMap implements Map<String, String> {
 
-  final Map<String, String> $dom_attributes;
+  final Map<String, String> _attributes;
 
-  _DataAttributeMap(this.$dom_attributes);
+  _DataAttributeMap(this._attributes);
 
   // interface Map
 
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(String value) => values.any((v) => v == value);
 
-  bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
+  bool containsKey(String key) => _attributes.containsKey(_attr(key));
 
-  String operator [](String key) => $dom_attributes[_attr(key)];
+  String operator [](String key) => _attributes[_attr(key)];
 
   void operator []=(String key, String value) {
-    $dom_attributes[_attr(key)] = value;
+    _attributes[_attr(key)] = value;
   }
 
   String putIfAbsent(String key, String ifAbsent()) =>
-    $dom_attributes.putIfAbsent(_attr(key), ifAbsent);
+    _attributes.putIfAbsent(_attr(key), ifAbsent);
 
-  String remove(String key) => $dom_attributes.remove(_attr(key));
+  String remove(String key) => _attributes.remove(_attr(key));
 
   void clear() {
     // Needs to operate on a snapshot since we are mutating the collection.
@@ -29591,7 +29633,7 @@ class _DataAttributeMap implements Map<String, String> {
   }
 
   void forEach(void f(String key, String value)) {
-    $dom_attributes.forEach((String key, String value) {
+    _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         f(_strip(key), value);
       }
@@ -29600,7 +29642,7 @@ class _DataAttributeMap implements Map<String, String> {
 
   Iterable<String> get keys {
     final keys = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
+    _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         keys.add(_strip(key));
       }
@@ -29610,7 +29652,7 @@ class _DataAttributeMap implements Map<String, String> {
 
   Iterable<String> get values {
     final values = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
+    _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         values.add(value);
       }
@@ -30629,6 +30671,455 @@ class _CustomEventStreamProvider<T extends Event>
     return _eventTypeGetter(target);
   }
 }
+// DO NOT EDIT- this file is generated from running tool/generator.sh.
+
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * A Dart DOM validator generated from Caja whitelists.
+ *
+ * This contains a whitelist of known HTML tagNames and attributes and will only
+ * accept known good values.
+ *
+ * See also:
+ *
+ * * <https://code.google.com/p/google-caja/wiki/CajaWhitelists>
+ */
+class _Html5NodeValidator implements NodeValidator {
+
+  static final Set<String> _allowedElements = new Set.from([
+    'A',
+    'ABBR',
+    'ACRONYM',
+    'ADDRESS',
+    'AREA',
+    'ARTICLE',
+    'ASIDE',
+    'AUDIO',
+    'B',
+    'BDI',
+    'BDO',
+    'BIG',
+    'BLOCKQUOTE',
+    'BR',
+    'BUTTON',
+    'CANVAS',
+    'CAPTION',
+    'CENTER',
+    'CITE',
+    'CODE',
+    'COL',
+    'COLGROUP',
+    'COMMAND',
+    'DATA',
+    'DATALIST',
+    'DD',
+    'DEL',
+    'DETAILS',
+    'DFN',
+    'DIR',
+    'DIV',
+    'DL',
+    'DT',
+    'EM',
+    'FIELDSET',
+    'FIGCAPTION',
+    'FIGURE',
+    'FONT',
+    'FOOTER',
+    'FORM',
+    'H1',
+    'H2',
+    'H3',
+    'H4',
+    'H5',
+    'H6',
+    'HEADER',
+    'HGROUP',
+    'HR',
+    'I',
+    'IFRAME',
+    'IMG',
+    'INPUT',
+    'INS',
+    'KBD',
+    'LABEL',
+    'LEGEND',
+    'LI',
+    'MAP',
+    'MARK',
+    'MENU',
+    'METER',
+    'NAV',
+    'NOBR',
+    'OL',
+    'OPTGROUP',
+    'OPTION',
+    'OUTPUT',
+    'P',
+    'PRE',
+    'PROGRESS',
+    'Q',
+    'S',
+    'SAMP',
+    'SECTION',
+    'SELECT',
+    'SMALL',
+    'SOURCE',
+    'SPAN',
+    'STRIKE',
+    'STRONG',
+    'SUB',
+    'SUMMARY',
+    'SUP',
+    'TABLE',
+    'TBODY',
+    'TD',
+    'TEXTAREA',
+    'TFOOT',
+    'TH',
+    'THEAD',
+    'TIME',
+    'TR',
+    'TRACK',
+    'TT',
+    'U',
+    'UL',
+    'VAR',
+    'VIDEO',
+    'WBR',
+  ]);
+
+  static const _standardAttributes = const <String>[
+    '*::class',
+    '*::dir',
+    '*::draggable',
+    '*::hidden',
+    '*::id',
+    '*::inert',
+    '*::itemprop',
+    '*::itemref',
+    '*::itemscope',
+    '*::lang',
+    '*::spellcheck',
+    '*::title',
+    '*::translate',
+    'A::accesskey',
+    'A::coords',
+    'A::hreflang',
+    'A::name',
+    'A::shape',
+    'A::tabindex',
+    'A::target',
+    'A::type',
+    'AREA::accesskey',
+    'AREA::alt',
+    'AREA::coords',
+    'AREA::nohref',
+    'AREA::shape',
+    'AREA::tabindex',
+    'AREA::target',
+    'AUDIO::controls',
+    'AUDIO::loop',
+    'AUDIO::mediagroup',
+    'AUDIO::muted',
+    'AUDIO::preload',
+    'BDO::dir',
+    'BODY::alink',
+    'BODY::bgcolor',
+    'BODY::link',
+    'BODY::text',
+    'BODY::vlink',
+    'BR::clear',
+    'BUTTON::accesskey',
+    'BUTTON::disabled',
+    'BUTTON::name',
+    'BUTTON::tabindex',
+    'BUTTON::type',
+    'BUTTON::value',
+    'CANVAS::height',
+    'CANVAS::width',
+    'CAPTION::align',
+    'COL::align',
+    'COL::char',
+    'COL::charoff',
+    'COL::span',
+    'COL::valign',
+    'COL::width',
+    'COLGROUP::align',
+    'COLGROUP::char',
+    'COLGROUP::charoff',
+    'COLGROUP::span',
+    'COLGROUP::valign',
+    'COLGROUP::width',
+    'COMMAND::checked',
+    'COMMAND::command',
+    'COMMAND::disabled',
+    'COMMAND::label',
+    'COMMAND::radiogroup',
+    'COMMAND::type',
+    'DATA::value',
+    'DEL::datetime',
+    'DETAILS::open',
+    'DIR::compact',
+    'DIV::align',
+    'DL::compact',
+    'FIELDSET::disabled',
+    'FONT::color',
+    'FONT::face',
+    'FONT::size',
+    'FORM::accept',
+    'FORM::autocomplete',
+    'FORM::enctype',
+    'FORM::method',
+    'FORM::name',
+    'FORM::novalidate',
+    'FORM::target',
+    'FRAME::name',
+    'H1::align',
+    'H2::align',
+    'H3::align',
+    'H4::align',
+    'H5::align',
+    'H6::align',
+    'HR::align',
+    'HR::noshade',
+    'HR::size',
+    'HR::width',
+    'HTML::version',
+    'IFRAME::align',
+    'IFRAME::frameborder',
+    'IFRAME::height',
+    'IFRAME::marginheight',
+    'IFRAME::marginwidth',
+    'IFRAME::width',
+    'IMG::align',
+    'IMG::alt',
+    'IMG::border',
+    'IMG::height',
+    'IMG::hspace',
+    'IMG::ismap',
+    'IMG::name',
+    'IMG::usemap',
+    'IMG::vspace',
+    'IMG::width',
+    'INPUT::accept',
+    'INPUT::accesskey',
+    'INPUT::align',
+    'INPUT::alt',
+    'INPUT::autocomplete',
+    'INPUT::checked',
+    'INPUT::disabled',
+    'INPUT::inputmode',
+    'INPUT::ismap',
+    'INPUT::list',
+    'INPUT::max',
+    'INPUT::maxlength',
+    'INPUT::min',
+    'INPUT::multiple',
+    'INPUT::name',
+    'INPUT::placeholder',
+    'INPUT::readonly',
+    'INPUT::required',
+    'INPUT::size',
+    'INPUT::step',
+    'INPUT::tabindex',
+    'INPUT::type',
+    'INPUT::usemap',
+    'INPUT::value',
+    'INS::datetime',
+    'KEYGEN::disabled',
+    'KEYGEN::keytype',
+    'KEYGEN::name',
+    'LABEL::accesskey',
+    'LABEL::for',
+    'LEGEND::accesskey',
+    'LEGEND::align',
+    'LI::type',
+    'LI::value',
+    'LINK::sizes',
+    'MAP::name',
+    'MENU::compact',
+    'MENU::label',
+    'MENU::type',
+    'METER::high',
+    'METER::low',
+    'METER::max',
+    'METER::min',
+    'METER::value',
+    'OBJECT::typemustmatch',
+    'OL::compact',
+    'OL::reversed',
+    'OL::start',
+    'OL::type',
+    'OPTGROUP::disabled',
+    'OPTGROUP::label',
+    'OPTION::disabled',
+    'OPTION::label',
+    'OPTION::selected',
+    'OPTION::value',
+    'OUTPUT::for',
+    'OUTPUT::name',
+    'P::align',
+    'PRE::width',
+    'PROGRESS::max',
+    'PROGRESS::min',
+    'PROGRESS::value',
+    'SELECT::autocomplete',
+    'SELECT::disabled',
+    'SELECT::multiple',
+    'SELECT::name',
+    'SELECT::required',
+    'SELECT::size',
+    'SELECT::tabindex',
+    'SOURCE::type',
+    'TABLE::align',
+    'TABLE::bgcolor',
+    'TABLE::border',
+    'TABLE::cellpadding',
+    'TABLE::cellspacing',
+    'TABLE::frame',
+    'TABLE::rules',
+    'TABLE::summary',
+    'TABLE::width',
+    'TBODY::align',
+    'TBODY::char',
+    'TBODY::charoff',
+    'TBODY::valign',
+    'TD::abbr',
+    'TD::align',
+    'TD::axis',
+    'TD::bgcolor',
+    'TD::char',
+    'TD::charoff',
+    'TD::colspan',
+    'TD::headers',
+    'TD::height',
+    'TD::nowrap',
+    'TD::rowspan',
+    'TD::scope',
+    'TD::valign',
+    'TD::width',
+    'TEXTAREA::accesskey',
+    'TEXTAREA::autocomplete',
+    'TEXTAREA::cols',
+    'TEXTAREA::disabled',
+    'TEXTAREA::inputmode',
+    'TEXTAREA::name',
+    'TEXTAREA::placeholder',
+    'TEXTAREA::readonly',
+    'TEXTAREA::required',
+    'TEXTAREA::rows',
+    'TEXTAREA::tabindex',
+    'TEXTAREA::wrap',
+    'TFOOT::align',
+    'TFOOT::char',
+    'TFOOT::charoff',
+    'TFOOT::valign',
+    'TH::abbr',
+    'TH::align',
+    'TH::axis',
+    'TH::bgcolor',
+    'TH::char',
+    'TH::charoff',
+    'TH::colspan',
+    'TH::headers',
+    'TH::height',
+    'TH::nowrap',
+    'TH::rowspan',
+    'TH::scope',
+    'TH::valign',
+    'TH::width',
+    'THEAD::align',
+    'THEAD::char',
+    'THEAD::charoff',
+    'THEAD::valign',
+    'TR::align',
+    'TR::bgcolor',
+    'TR::char',
+    'TR::charoff',
+    'TR::valign',
+    'TRACK::default',
+    'TRACK::kind',
+    'TRACK::label',
+    'TRACK::srclang',
+    'UL::compact',
+    'UL::type',
+    'VIDEO::controls',
+    'VIDEO::height',
+    'VIDEO::loop',
+    'VIDEO::mediagroup',
+    'VIDEO::muted',
+    'VIDEO::preload',
+    'VIDEO::width',
+  ];
+
+  static const _uriAttributes = const <String>[
+    'A::href',
+    'AREA::href',
+    'BLOCKQUOTE::cite',
+    'BODY::background',
+    'COMMAND::icon',
+    'DEL::cite',
+    'FORM::action',
+    'IMG::src',
+    'INPUT::src',
+    'INS::cite',
+    'Q::cite',
+    'VIDEO::poster',
+  ];
+
+  final UriPolicy uriPolicy;
+
+  static final Map<String, Function> _attributeValidators = {};
+
+  /**
+   * All known URI attributes will be validated against the UriPolicy, if
+   * [uriPolicy] is null then a default UriPolicy will be used.
+   */
+  _Html5NodeValidator({UriPolicy uriPolicy})
+      :uriPolicy = uriPolicy != null ? uriPolicy : new UriPolicy() {
+
+    if (_attributeValidators.isEmpty) {
+      for (var attr in _standardAttributes) {
+        _attributeValidators[attr] = _standardAttributeValidator;
+      }
+
+      for (var attr in _uriAttributes) {
+        _attributeValidators[attr] = _uriAttributeValidator;
+      }
+    }
+  }
+
+  bool allowsElement(Element element) {
+    return _allowedElements.contains(element.tagName);
+  }
+
+  bool allowsAttribute(Element element, String attributeName, String value) {
+    var tagName = element.tagName;
+    var validator = _attributeValidators['$tagName::$attributeName'];
+    if (validator == null) {
+      validator = _attributeValidators['*::$attributeName'];
+    }
+    if (validator == null) {
+      return false;
+    }
+    return validator(element, attributeName, value, this);
+  }
+
+  static bool _standardAttributeValidator(Element element, String attributeName,
+      String value, _Html5NodeValidator context) {
+    return true;
+  }
+
+  static bool _uriAttributeValidator(Element element, String attributeName,
+      String value, _Html5NodeValidator context) {
+    return context.uriPolicy.allowsUri(value);
+  }
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -30710,404 +31201,222 @@ abstract class ImmutableListMixin<E> implements List<E> {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * Internal class that does the actual calculations to determine keyCode and
- * charCode for keydown, keypress, and keyup events for all browsers.
- */
-class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
-  // This code inspired by Closure's KeyHandling library.
-  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keyhandler.js.source.html
+_serialize(var message) {
+  return new _JsSerializer().traverse(message);
+}
 
-  /**
-   * The set of keys that have been pressed down without seeing their
-   * corresponding keyup event.
-   */
-  final List<KeyboardEvent> _keyDownList = <KeyboardEvent>[];
+class _JsSerializer extends _Serializer {
 
-  /** The type of KeyEvent we are tracking (keyup, keydown, keypress). */
-  final String _type;
-
-  /** The element we are watching for events to happen on. */
-  final EventTarget _target;
-
-  // The distance to shift from upper case alphabet Roman letters to lower case.
-  static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
-
-  /** Controller to produce KeyEvents for the stream. */
-  final StreamController _controller = new StreamController(sync: true);
-
-  static const _EVENT_TYPE = 'KeyEvent';
-
-  /**
-   * An enumeration of key identifiers currently part of the W3C draft for DOM3
-   * and their mappings to keyCodes.
-   * http://www.w3.org/TR/DOM-Level-3-Events/keyset.html#KeySet-Set
-   */
-  static const Map<String, int> _keyIdentifier = const {
-    'Up': KeyCode.UP,
-    'Down': KeyCode.DOWN,
-    'Left': KeyCode.LEFT,
-    'Right': KeyCode.RIGHT,
-    'Enter': KeyCode.ENTER,
-    'F1': KeyCode.F1,
-    'F2': KeyCode.F2,
-    'F3': KeyCode.F3,
-    'F4': KeyCode.F4,
-    'F5': KeyCode.F5,
-    'F6': KeyCode.F6,
-    'F7': KeyCode.F7,
-    'F8': KeyCode.F8,
-    'F9': KeyCode.F9,
-    'F10': KeyCode.F10,
-    'F11': KeyCode.F11,
-    'F12': KeyCode.F12,
-    'U+007F': KeyCode.DELETE,
-    'Home': KeyCode.HOME,
-    'End': KeyCode.END,
-    'PageUp': KeyCode.PAGE_UP,
-    'PageDown': KeyCode.PAGE_DOWN,
-    'Insert': KeyCode.INSERT
-  };
-
-  /** Return a stream for KeyEvents for the specified target. */
-  Stream<KeyEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    return new _KeyboardEventHandler.initializeAllEventListeners(
-        _type, e).stream;
+  visitSendPortSync(SendPortSync x) {
+    if (x is _JsSendPortSync) return visitJsSendPortSync(x);
+    if (x is _LocalSendPortSync) return visitLocalSendPortSync(x);
+    if (x is _RemoteSendPortSync) return visitRemoteSendPortSync(x);
+    throw "Unknown port type $x";
   }
 
-  /**
-   * Accessor to the stream associated with a particular KeyboardEvent
-   * EventTarget.
-   *
-   * [forTarget] must be called to initialize this stream to listen to a
-   * particular EventTarget.
-   */
-  Stream<KeyEvent> get stream {
-    if(_target != null) {
-      return _controller.stream;
+  visitJsSendPortSync(_JsSendPortSync x) {
+    return [ 'sendport', 'nativejs', x._id ];
+  }
+
+  visitLocalSendPortSync(_LocalSendPortSync x) {
+    return [ 'sendport', 'dart',
+             ReceivePortSync._isolateId, x._receivePort._portId ];
+  }
+
+  visitSendPort(SendPort x) {
+    throw new UnimplementedError('Asynchronous send port not yet implemented.');
+  }
+
+  visitRemoteSendPortSync(_RemoteSendPortSync x) {
+    return [ 'sendport', 'dart', x._isolateId, x._portId ];
+  }
+}
+
+_deserialize(var message) {
+  return new _JsDeserializer().deserialize(message);
+}
+
+
+class _JsDeserializer extends _Deserializer {
+
+  static const _UNSPECIFIED = const Object();
+
+  deserializeSendPort(List x) {
+    String tag = x[1];
+    switch (tag) {
+      case 'nativejs':
+        num id = x[2];
+        return new _JsSendPortSync(id);
+      case 'dart':
+        num isolateId = x[2];
+        num portId = x[3];
+        return ReceivePortSync._lookup(isolateId, portId);
+      default:
+        throw 'Illegal SendPortSync type: $tag';
+    }
+  }
+}
+
+// The receiver is JS.
+class _JsSendPortSync implements SendPortSync {
+
+  final num _id;
+  _JsSendPortSync(this._id);
+
+  callSync(var message) {
+    var serialized = _serialize(message);
+    var result = _callPortSync(_id, serialized);
+    return _deserialize(result);
+  }
+
+  bool operator==(var other) {
+    return (other is _JsSendPortSync) && (_id == other._id);
+  }
+
+  int get hashCode => _id;
+}
+
+// TODO(vsm): Differentiate between Dart2Js and Dartium isolates.
+// The receiver is a different Dart isolate, compiled to JS.
+class _RemoteSendPortSync implements SendPortSync {
+
+  int _isolateId;
+  int _portId;
+  _RemoteSendPortSync(this._isolateId, this._portId);
+
+  callSync(var message) {
+    var serialized = _serialize(message);
+    var result = _call(_isolateId, _portId, serialized);
+    return _deserialize(result);
+  }
+
+  static _call(int isolateId, int portId, var message) {
+    var target = 'dart-port-$isolateId-$portId';
+    // TODO(vsm): Make this re-entrant.
+    // TODO(vsm): Set this up set once, on the first call.
+    var source = '$target-result';
+    var result = null;
+    window.on[source].first.then((Event e) {
+      result = json.parse(_getPortSyncEventData(e));
+    });
+    _dispatchEvent(target, [source, message]);
+    return result;
+  }
+
+  bool operator==(var other) {
+    return (other is _RemoteSendPortSync) && (_isolateId == other._isolateId)
+      && (_portId == other._portId);
+  }
+
+  int get hashCode => _isolateId >> 16 + _portId;
+}
+
+// The receiver is in the same Dart isolate, compiled to JS.
+class _LocalSendPortSync implements SendPortSync {
+
+  ReceivePortSync _receivePort;
+
+  _LocalSendPortSync._internal(this._receivePort);
+
+  callSync(var message) {
+    // TODO(vsm): Do a more efficient deep copy.
+    var copy = _deserialize(_serialize(message));
+    var result = _receivePort._callback(copy);
+    return _deserialize(_serialize(result));
+  }
+
+  bool operator==(var other) {
+    return (other is _LocalSendPortSync)
+      && (_receivePort == other._receivePort);
+  }
+
+  int get hashCode => _receivePort.hashCode;
+}
+
+// TODO(vsm): Move this to dart:isolate.  This will take some
+// refactoring as there are dependences here on the DOM.  Users
+// interact with this class (or interface if we change it) directly -
+// new ReceivePortSync.  I think most of the DOM logic could be
+// delayed until the corresponding SendPort is registered on the
+// window.
+
+// A Dart ReceivePortSync (tagged 'dart' when serialized) is
+// identifiable / resolvable by the combination of its isolateid and
+// portid.  When a corresponding SendPort is used within the same
+// isolate, the _portMap below can be used to obtain the
+// ReceivePortSync directly.  Across isolates (or from JS), an
+// EventListener can be used to communicate with the port indirectly.
+class ReceivePortSync {
+
+  static Map<int, ReceivePortSync> _portMap;
+  static int _portIdCount;
+  static int _cachedIsolateId;
+
+  num _portId;
+  Function _callback;
+  StreamSubscription _portSubscription;
+
+  ReceivePortSync() {
+    if (_portIdCount == null) {
+      _portIdCount = 0;
+      _portMap = new Map<int, ReceivePortSync>();
+    }
+    _portId = _portIdCount++;
+    _portMap[_portId] = this;
+  }
+
+  static int get _isolateId {
+    // TODO(vsm): Make this coherent with existing isolate code.
+    if (_cachedIsolateId == null) {
+      _cachedIsolateId = _getNewIsolateId();
+    }
+    return _cachedIsolateId;
+  }
+
+  static String _getListenerName(isolateId, portId) =>
+      'dart-port-$isolateId-$portId';
+  String get _listenerName => _getListenerName(_isolateId, _portId);
+
+  void receive(callback(var message)) {
+    _callback = callback;
+    if (_portSubscription == null) {
+      _portSubscription = window.on[_listenerName].listen((Event e) {
+        var data = json.parse(_getPortSyncEventData(e));
+        var replyTo = data[0];
+        var message = _deserialize(data[1]);
+        var result = _callback(message);
+        _dispatchEvent(replyTo, _serialize(result));
+      });
+    }
+  }
+
+  void close() {
+    _portMap.remove(_portId);
+    if (_portSubscription != null) _portSubscription.cancel();
+  }
+
+  SendPortSync toSendPort() {
+    return new _LocalSendPortSync._internal(this);
+  }
+
+  static SendPortSync _lookup(int isolateId, int portId) {
+    if (isolateId == _isolateId) {
+      return _portMap[portId].toSendPort();
     } else {
-      throw new StateError("Not initialized. Call forTarget to access a stream "
-          "initialized with a particular EventTarget.");
+      return new _RemoteSendPortSync(isolateId, portId);
     }
-  }
-
-  /**
-   * General constructor, performs basic initialization for our improved
-   * KeyboardEvent controller.
-   */
-  _KeyboardEventHandler(this._type) :
-    _target = null, super(_EVENT_TYPE) {
-  }
-
-  /**
-   * Hook up all event listeners under the covers so we can estimate keycodes
-   * and charcodes when they are not provided.
-   */
-  _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target) :
-    super(_EVENT_TYPE) {
-    Element.keyDownEvent.forTarget(_target, useCapture: true).listen(
-        processKeyDown);
-    Element.keyPressEvent.forTarget(_target, useCapture: true).listen(
-        processKeyPress);
-    Element.keyUpEvent.forTarget(_target, useCapture: true).listen(
-        processKeyUp);
-  }
-
-  /**
-   * Notify all callback listeners that a KeyEvent of the relevant type has
-   * occurred.
-   */
-  bool _dispatch(KeyEvent event) {
-    if (event.type == _type)
-      _controller.add(event);
-  }
-
-  /** Determine if caps lock is one of the currently depressed keys. */
-  bool get _capsLockOn =>
-      _keyDownList.any((var element) => element.keyCode == KeyCode.CAPS_LOCK);
-
-  /**
-   * Given the previously recorded keydown key codes, see if we can determine
-   * the keycode of this keypress [event]. (Generally browsers only provide
-   * charCode information for keypress events, but with a little
-   * reverse-engineering, we can also determine the keyCode.) Returns
-   * KeyCode.UNKNOWN if the keycode could not be determined.
-   */
-  int _determineKeyCodeForKeypress(KeyboardEvent event) {
-    // Note: This function is a work in progress. We'll expand this function
-    // once we get more information about other keyboards.
-    for (var prevEvent in _keyDownList) {
-      if (prevEvent._shadowCharCode == event.charCode) {
-        return prevEvent.keyCode;
-      }
-      if ((event.shiftKey || _capsLockOn) && event.charCode >= "A".codeUnits[0]
-          && event.charCode <= "Z".codeUnits[0] && event.charCode +
-          _ROMAN_ALPHABET_OFFSET == prevEvent._shadowCharCode) {
-        return prevEvent.keyCode;
-      }
-    }
-    return KeyCode.UNKNOWN;
-  }
-
-  /**
-   * Given the charater code returned from a keyDown [event], try to ascertain
-   * and return the corresponding charCode for the character that was pressed.
-   * This information is not shown to the user, but used to help polyfill
-   * keypress events.
-   */
-  int _findCharCodeKeyDown(KeyboardEvent event) {
-    if (event.keyLocation == 3) { // Numpad keys.
-      switch (event.keyCode) {
-        case KeyCode.NUM_ZERO:
-          // Even though this function returns _charCodes_, for some cases the
-          // KeyCode == the charCode we want, in which case we use the keycode
-          // constant for readability.
-          return KeyCode.ZERO;
-        case KeyCode.NUM_ONE:
-          return KeyCode.ONE;
-        case KeyCode.NUM_TWO:
-          return KeyCode.TWO;
-        case KeyCode.NUM_THREE:
-          return KeyCode.THREE;
-        case KeyCode.NUM_FOUR:
-          return KeyCode.FOUR;
-        case KeyCode.NUM_FIVE:
-          return KeyCode.FIVE;
-        case KeyCode.NUM_SIX:
-          return KeyCode.SIX;
-        case KeyCode.NUM_SEVEN:
-          return KeyCode.SEVEN;
-        case KeyCode.NUM_EIGHT:
-          return KeyCode.EIGHT;
-        case KeyCode.NUM_NINE:
-          return KeyCode.NINE;
-        case KeyCode.NUM_MULTIPLY:
-          return 42; // Char code for *
-        case KeyCode.NUM_PLUS:
-          return 43; // +
-        case KeyCode.NUM_MINUS:
-          return 45; // -
-        case KeyCode.NUM_PERIOD:
-          return 46; // .
-        case KeyCode.NUM_DIVISION:
-          return 47; // /
-      }
-    } else if (event.keyCode >= 65 && event.keyCode <= 90) {
-      // Set the "char code" for key down as the lower case letter. Again, this
-      // will not show up for the user, but will be helpful in estimating
-      // keyCode locations and other information during the keyPress event.
-      return event.keyCode + _ROMAN_ALPHABET_OFFSET;
-    }
-    switch(event.keyCode) {
-      case KeyCode.SEMICOLON:
-        return KeyCode.FF_SEMICOLON;
-      case KeyCode.EQUALS:
-        return KeyCode.FF_EQUALS;
-      case KeyCode.COMMA:
-        return 44; // Ascii value for ,
-      case KeyCode.DASH:
-        return 45; // -
-      case KeyCode.PERIOD:
-        return 46; // .
-      case KeyCode.SLASH:
-        return 47; // /
-      case KeyCode.APOSTROPHE:
-        return 96; // `
-      case KeyCode.OPEN_SQUARE_BRACKET:
-        return 91; // [
-      case KeyCode.BACKSLASH:
-        return 92; // \
-      case KeyCode.CLOSE_SQUARE_BRACKET:
-        return 93; // ]
-      case KeyCode.SINGLE_QUOTE:
-        return 39; // '
-    }
-    return event.keyCode;
-  }
-
-  /**
-   * Returns true if the key fires a keypress event in the current browser.
-   */
-  bool _firesKeyPressEvent(KeyEvent event) {
-    if (!Device.isIE && !Device.isWebKit) {
-      return true;
-    }
-
-    if (Device.userAgent.contains('Mac') && event.altKey) {
-      return KeyCode.isCharacterKey(event.keyCode);
-    }
-
-    // Alt but not AltGr which is represented as Alt+Ctrl.
-    if (event.altKey && !event.ctrlKey) {
-      return false;
-    }
-
-    // Saves Ctrl or Alt + key for IE and WebKit, which won't fire keypress.
-    if (!event.shiftKey &&
-        (_keyDownList.last.keyCode == KeyCode.CTRL ||
-         _keyDownList.last.keyCode == KeyCode.ALT ||
-         Device.userAgent.contains('Mac') &&
-         _keyDownList.last.keyCode == KeyCode.META)) {
-      return false;
-    }
-
-    // Some keys with Ctrl/Shift do not issue keypress in WebKit.
-    if (Device.isWebKit && event.ctrlKey && event.shiftKey && (
-        event.keyCode == KeyCode.BACKSLASH ||
-        event.keyCode == KeyCode.OPEN_SQUARE_BRACKET ||
-        event.keyCode == KeyCode.CLOSE_SQUARE_BRACKET ||
-        event.keyCode == KeyCode.TILDE ||
-        event.keyCode == KeyCode.SEMICOLON || event.keyCode == KeyCode.DASH ||
-        event.keyCode == KeyCode.EQUALS || event.keyCode == KeyCode.COMMA ||
-        event.keyCode == KeyCode.PERIOD || event.keyCode == KeyCode.SLASH ||
-        event.keyCode == KeyCode.APOSTROPHE ||
-        event.keyCode == KeyCode.SINGLE_QUOTE)) {
-      return false;
-    }
-
-    switch (event.keyCode) {
-      case KeyCode.ENTER:
-        // IE9 does not fire keypress on ENTER.
-        return !Device.isIE;
-      case KeyCode.ESC:
-        return !Device.isWebKit;
-    }
-
-    return KeyCode.isCharacterKey(event.keyCode);
-  }
-
-  /**
-   * Normalize the keycodes to the IE KeyCodes (this is what Chrome, IE, and
-   * Opera all use).
-   */
-  int _normalizeKeyCodes(KeyboardEvent event) {
-    // Note: This may change once we get input about non-US keyboards.
-    if (Device.isFirefox) {
-      switch(event.keyCode) {
-        case KeyCode.FF_EQUALS:
-          return KeyCode.EQUALS;
-        case KeyCode.FF_SEMICOLON:
-          return KeyCode.SEMICOLON;
-        case KeyCode.MAC_FF_META:
-          return KeyCode.META;
-        case KeyCode.WIN_KEY_FF_LINUX:
-          return KeyCode.WIN_KEY;
-      }
-    }
-    return event.keyCode;
-  }
-
-  /** Handle keydown events. */
-  void processKeyDown(KeyboardEvent e) {
-    // Ctrl-Tab and Alt-Tab can cause the focus to be moved to another window
-    // before we've caught a key-up event.  If the last-key was one of these
-    // we reset the state.
-    if (_keyDownList.length > 0 &&
-        (_keyDownList.last.keyCode == KeyCode.CTRL && !e.ctrlKey ||
-         _keyDownList.last.keyCode == KeyCode.ALT && !e.altKey ||
-         Device.userAgent.contains('Mac') &&
-         _keyDownList.last.keyCode == KeyCode.META && !e.metaKey)) {
-      _keyDownList.clear();
-    }
-
-    var event = new KeyEvent(e);
-    event._shadowKeyCode = _normalizeKeyCodes(event);
-    // Technically a "keydown" event doesn't have a charCode. This is
-    // calculated nonetheless to provide us with more information in giving
-    // as much information as possible on keypress about keycode and also
-    // charCode.
-    event._shadowCharCode = _findCharCodeKeyDown(event);
-    if (_keyDownList.length > 0 && event.keyCode != _keyDownList.last.keyCode &&
-        !_firesKeyPressEvent(event)) {
-      // Some browsers have quirks not firing keypress events where all other
-      // browsers do. This makes them more consistent.
-      processKeyPress(e);
-    }
-    _keyDownList.add(event);
-    _dispatch(event);
-  }
-
-  /** Handle keypress events. */
-  void processKeyPress(KeyboardEvent event) {
-    var e = new KeyEvent(event);
-    // IE reports the character code in the keyCode field for keypress events.
-    // There are two exceptions however, Enter and Escape.
-    if (Device.isIE) {
-      if (e.keyCode == KeyCode.ENTER || e.keyCode == KeyCode.ESC) {
-        e._shadowCharCode = 0;
-      } else {
-        e._shadowCharCode = e.keyCode;
-      }
-    } else if (Device.isOpera) {
-      // Opera reports the character code in the keyCode field.
-      e._shadowCharCode = KeyCode.isCharacterKey(e.keyCode) ? e.keyCode : 0;
-    }
-    // Now we guestimate about what the keycode is that was actually
-    // pressed, given previous keydown information.
-    e._shadowKeyCode = _determineKeyCodeForKeypress(e);
-
-    // Correct the key value for certain browser-specific quirks.
-    if (e._shadowKeyIdentifier != null &&
-        _keyIdentifier.containsKey(e._shadowKeyIdentifier)) {
-      // This is needed for Safari Windows because it currently doesn't give a
-      // keyCode/which for non printable keys.
-      e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier];
-    }
-    e._shadowAltKey = _keyDownList.any((var element) => element.altKey);
-    _dispatch(e);
-  }
-
-  /** Handle keyup events. */
-  void processKeyUp(KeyboardEvent event) {
-    var e = new KeyEvent(event);
-    KeyboardEvent toRemove = null;
-    for (var key in _keyDownList) {
-      if (key.keyCode == e.keyCode) {
-        toRemove = key;
-      }
-    }
-    if (toRemove != null) {
-      _keyDownList.removeWhere((element) => element == toRemove);
-    } else if (_keyDownList.length > 0) {
-      // This happens when we've reached some international keyboard case we
-      // haven't accounted for or we haven't correctly eliminated all browser
-      // inconsistencies. Filing bugs on when this is reached is welcome!
-      _keyDownList.removeLast();
-    }
-    _dispatch(e);
   }
 }
 
+get _isolateId => ReceivePortSync._isolateId;
 
-/**
- * Records KeyboardEvents that occur on a particular element, and provides a
- * stream of outgoing KeyEvents with cross-browser consistent keyCode and
- * charCode values despite the fact that a multitude of browsers that have
- * varying keyboard default behavior.
- *
- * Example usage:
- *
- *     KeyboardEventStream.onKeyDown(document.body).listen(
- *         keydownHandlerTest);
- *
- * This class is very much a work in progress, and we'd love to get information
- * on how we can make this class work with as many international keyboards as
- * possible. Bugs welcome!
- */
-class KeyboardEventStream {
-
-  /** Named constructor to produce a stream for onKeyPress events. */
-  static Stream<KeyEvent> onKeyPress(EventTarget target) =>
-      new _KeyboardEventHandler('keypress').forTarget(target);
-
-  /** Named constructor to produce a stream for onKeyUp events. */
-  static Stream<KeyEvent> onKeyUp(EventTarget target) =>
-      new _KeyboardEventHandler('keyup').forTarget(target);
-
-  /** Named constructor to produce a stream for onKeyDown events. */
-  static Stream<KeyEvent> onKeyDown(EventTarget target) =>
-    new _KeyboardEventHandler('keydown').forTarget(target);
+void _dispatchEvent(String receiver, var message) {
+  var event = new CustomEvent(receiver, canBubble: false, cancelable:false,
+    detail: json.stringify(message));
+  window.dispatchEvent(event);
 }
+
+String _getPortSyncEventData(CustomEvent event) => event.detail;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -31875,6 +32184,1016 @@ abstract class KeyName {
    */
   static const String UNIDENTIFIED = "Unidentified";
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * Internal class that does the actual calculations to determine keyCode and
+ * charCode for keydown, keypress, and keyup events for all browsers.
+ */
+class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
+  // This code inspired by Closure's KeyHandling library.
+  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keyhandler.js.source.html
+
+  /**
+   * The set of keys that have been pressed down without seeing their
+   * corresponding keyup event.
+   */
+  final List<KeyboardEvent> _keyDownList = <KeyboardEvent>[];
+
+  /** The type of KeyEvent we are tracking (keyup, keydown, keypress). */
+  final String _type;
+
+  /** The element we are watching for events to happen on. */
+  final EventTarget _target;
+
+  // The distance to shift from upper case alphabet Roman letters to lower case.
+  static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
+
+  /** Controller to produce KeyEvents for the stream. */
+  final StreamController _controller = new StreamController(sync: true);
+
+  static const _EVENT_TYPE = 'KeyEvent';
+
+  /**
+   * An enumeration of key identifiers currently part of the W3C draft for DOM3
+   * and their mappings to keyCodes.
+   * http://www.w3.org/TR/DOM-Level-3-Events/keyset.html#KeySet-Set
+   */
+  static const Map<String, int> _keyIdentifier = const {
+    'Up': KeyCode.UP,
+    'Down': KeyCode.DOWN,
+    'Left': KeyCode.LEFT,
+    'Right': KeyCode.RIGHT,
+    'Enter': KeyCode.ENTER,
+    'F1': KeyCode.F1,
+    'F2': KeyCode.F2,
+    'F3': KeyCode.F3,
+    'F4': KeyCode.F4,
+    'F5': KeyCode.F5,
+    'F6': KeyCode.F6,
+    'F7': KeyCode.F7,
+    'F8': KeyCode.F8,
+    'F9': KeyCode.F9,
+    'F10': KeyCode.F10,
+    'F11': KeyCode.F11,
+    'F12': KeyCode.F12,
+    'U+007F': KeyCode.DELETE,
+    'Home': KeyCode.HOME,
+    'End': KeyCode.END,
+    'PageUp': KeyCode.PAGE_UP,
+    'PageDown': KeyCode.PAGE_DOWN,
+    'Insert': KeyCode.INSERT
+  };
+
+  /** Return a stream for KeyEvents for the specified target. */
+  Stream<KeyEvent> forTarget(EventTarget e, {bool useCapture: false}) {
+    return new _KeyboardEventHandler.initializeAllEventListeners(
+        _type, e).stream;
+  }
+
+  /**
+   * Accessor to the stream associated with a particular KeyboardEvent
+   * EventTarget.
+   *
+   * [forTarget] must be called to initialize this stream to listen to a
+   * particular EventTarget.
+   */
+  Stream<KeyEvent> get stream {
+    if(_target != null) {
+      return _controller.stream;
+    } else {
+      throw new StateError("Not initialized. Call forTarget to access a stream "
+          "initialized with a particular EventTarget.");
+    }
+  }
+
+  /**
+   * General constructor, performs basic initialization for our improved
+   * KeyboardEvent controller.
+   */
+  _KeyboardEventHandler(this._type) :
+    _target = null, super(_EVENT_TYPE) {
+  }
+
+  /**
+   * Hook up all event listeners under the covers so we can estimate keycodes
+   * and charcodes when they are not provided.
+   */
+  _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target) :
+    super(_EVENT_TYPE) {
+    Element.keyDownEvent.forTarget(_target, useCapture: true).listen(
+        processKeyDown);
+    Element.keyPressEvent.forTarget(_target, useCapture: true).listen(
+        processKeyPress);
+    Element.keyUpEvent.forTarget(_target, useCapture: true).listen(
+        processKeyUp);
+  }
+
+  /**
+   * Notify all callback listeners that a KeyEvent of the relevant type has
+   * occurred.
+   */
+  bool _dispatch(KeyEvent event) {
+    if (event.type == _type)
+      _controller.add(event);
+  }
+
+  /** Determine if caps lock is one of the currently depressed keys. */
+  bool get _capsLockOn =>
+      _keyDownList.any((var element) => element.keyCode == KeyCode.CAPS_LOCK);
+
+  /**
+   * Given the previously recorded keydown key codes, see if we can determine
+   * the keycode of this keypress [event]. (Generally browsers only provide
+   * charCode information for keypress events, but with a little
+   * reverse-engineering, we can also determine the keyCode.) Returns
+   * KeyCode.UNKNOWN if the keycode could not be determined.
+   */
+  int _determineKeyCodeForKeypress(KeyboardEvent event) {
+    // Note: This function is a work in progress. We'll expand this function
+    // once we get more information about other keyboards.
+    for (var prevEvent in _keyDownList) {
+      if (prevEvent._shadowCharCode == event.charCode) {
+        return prevEvent.keyCode;
+      }
+      if ((event.shiftKey || _capsLockOn) && event.charCode >= "A".codeUnits[0]
+          && event.charCode <= "Z".codeUnits[0] && event.charCode +
+          _ROMAN_ALPHABET_OFFSET == prevEvent._shadowCharCode) {
+        return prevEvent.keyCode;
+      }
+    }
+    return KeyCode.UNKNOWN;
+  }
+
+  /**
+   * Given the charater code returned from a keyDown [event], try to ascertain
+   * and return the corresponding charCode for the character that was pressed.
+   * This information is not shown to the user, but used to help polyfill
+   * keypress events.
+   */
+  int _findCharCodeKeyDown(KeyboardEvent event) {
+    if (event.keyLocation == 3) { // Numpad keys.
+      switch (event.keyCode) {
+        case KeyCode.NUM_ZERO:
+          // Even though this function returns _charCodes_, for some cases the
+          // KeyCode == the charCode we want, in which case we use the keycode
+          // constant for readability.
+          return KeyCode.ZERO;
+        case KeyCode.NUM_ONE:
+          return KeyCode.ONE;
+        case KeyCode.NUM_TWO:
+          return KeyCode.TWO;
+        case KeyCode.NUM_THREE:
+          return KeyCode.THREE;
+        case KeyCode.NUM_FOUR:
+          return KeyCode.FOUR;
+        case KeyCode.NUM_FIVE:
+          return KeyCode.FIVE;
+        case KeyCode.NUM_SIX:
+          return KeyCode.SIX;
+        case KeyCode.NUM_SEVEN:
+          return KeyCode.SEVEN;
+        case KeyCode.NUM_EIGHT:
+          return KeyCode.EIGHT;
+        case KeyCode.NUM_NINE:
+          return KeyCode.NINE;
+        case KeyCode.NUM_MULTIPLY:
+          return 42; // Char code for *
+        case KeyCode.NUM_PLUS:
+          return 43; // +
+        case KeyCode.NUM_MINUS:
+          return 45; // -
+        case KeyCode.NUM_PERIOD:
+          return 46; // .
+        case KeyCode.NUM_DIVISION:
+          return 47; // /
+      }
+    } else if (event.keyCode >= 65 && event.keyCode <= 90) {
+      // Set the "char code" for key down as the lower case letter. Again, this
+      // will not show up for the user, but will be helpful in estimating
+      // keyCode locations and other information during the keyPress event.
+      return event.keyCode + _ROMAN_ALPHABET_OFFSET;
+    }
+    switch(event.keyCode) {
+      case KeyCode.SEMICOLON:
+        return KeyCode.FF_SEMICOLON;
+      case KeyCode.EQUALS:
+        return KeyCode.FF_EQUALS;
+      case KeyCode.COMMA:
+        return 44; // Ascii value for ,
+      case KeyCode.DASH:
+        return 45; // -
+      case KeyCode.PERIOD:
+        return 46; // .
+      case KeyCode.SLASH:
+        return 47; // /
+      case KeyCode.APOSTROPHE:
+        return 96; // `
+      case KeyCode.OPEN_SQUARE_BRACKET:
+        return 91; // [
+      case KeyCode.BACKSLASH:
+        return 92; // \
+      case KeyCode.CLOSE_SQUARE_BRACKET:
+        return 93; // ]
+      case KeyCode.SINGLE_QUOTE:
+        return 39; // '
+    }
+    return event.keyCode;
+  }
+
+  /**
+   * Returns true if the key fires a keypress event in the current browser.
+   */
+  bool _firesKeyPressEvent(KeyEvent event) {
+    if (!Device.isIE && !Device.isWebKit) {
+      return true;
+    }
+
+    if (Device.userAgent.contains('Mac') && event.altKey) {
+      return KeyCode.isCharacterKey(event.keyCode);
+    }
+
+    // Alt but not AltGr which is represented as Alt+Ctrl.
+    if (event.altKey && !event.ctrlKey) {
+      return false;
+    }
+
+    // Saves Ctrl or Alt + key for IE and WebKit, which won't fire keypress.
+    if (!event.shiftKey &&
+        (_keyDownList.last.keyCode == KeyCode.CTRL ||
+         _keyDownList.last.keyCode == KeyCode.ALT ||
+         Device.userAgent.contains('Mac') &&
+         _keyDownList.last.keyCode == KeyCode.META)) {
+      return false;
+    }
+
+    // Some keys with Ctrl/Shift do not issue keypress in WebKit.
+    if (Device.isWebKit && event.ctrlKey && event.shiftKey && (
+        event.keyCode == KeyCode.BACKSLASH ||
+        event.keyCode == KeyCode.OPEN_SQUARE_BRACKET ||
+        event.keyCode == KeyCode.CLOSE_SQUARE_BRACKET ||
+        event.keyCode == KeyCode.TILDE ||
+        event.keyCode == KeyCode.SEMICOLON || event.keyCode == KeyCode.DASH ||
+        event.keyCode == KeyCode.EQUALS || event.keyCode == KeyCode.COMMA ||
+        event.keyCode == KeyCode.PERIOD || event.keyCode == KeyCode.SLASH ||
+        event.keyCode == KeyCode.APOSTROPHE ||
+        event.keyCode == KeyCode.SINGLE_QUOTE)) {
+      return false;
+    }
+
+    switch (event.keyCode) {
+      case KeyCode.ENTER:
+        // IE9 does not fire keypress on ENTER.
+        return !Device.isIE;
+      case KeyCode.ESC:
+        return !Device.isWebKit;
+    }
+
+    return KeyCode.isCharacterKey(event.keyCode);
+  }
+
+  /**
+   * Normalize the keycodes to the IE KeyCodes (this is what Chrome, IE, and
+   * Opera all use).
+   */
+  int _normalizeKeyCodes(KeyboardEvent event) {
+    // Note: This may change once we get input about non-US keyboards.
+    if (Device.isFirefox) {
+      switch(event.keyCode) {
+        case KeyCode.FF_EQUALS:
+          return KeyCode.EQUALS;
+        case KeyCode.FF_SEMICOLON:
+          return KeyCode.SEMICOLON;
+        case KeyCode.MAC_FF_META:
+          return KeyCode.META;
+        case KeyCode.WIN_KEY_FF_LINUX:
+          return KeyCode.WIN_KEY;
+      }
+    }
+    return event.keyCode;
+  }
+
+  /** Handle keydown events. */
+  void processKeyDown(KeyboardEvent e) {
+    // Ctrl-Tab and Alt-Tab can cause the focus to be moved to another window
+    // before we've caught a key-up event.  If the last-key was one of these
+    // we reset the state.
+    if (_keyDownList.length > 0 &&
+        (_keyDownList.last.keyCode == KeyCode.CTRL && !e.ctrlKey ||
+         _keyDownList.last.keyCode == KeyCode.ALT && !e.altKey ||
+         Device.userAgent.contains('Mac') &&
+         _keyDownList.last.keyCode == KeyCode.META && !e.metaKey)) {
+      _keyDownList.clear();
+    }
+
+    var event = new KeyEvent(e);
+    event._shadowKeyCode = _normalizeKeyCodes(event);
+    // Technically a "keydown" event doesn't have a charCode. This is
+    // calculated nonetheless to provide us with more information in giving
+    // as much information as possible on keypress about keycode and also
+    // charCode.
+    event._shadowCharCode = _findCharCodeKeyDown(event);
+    if (_keyDownList.length > 0 && event.keyCode != _keyDownList.last.keyCode &&
+        !_firesKeyPressEvent(event)) {
+      // Some browsers have quirks not firing keypress events where all other
+      // browsers do. This makes them more consistent.
+      processKeyPress(e);
+    }
+    _keyDownList.add(event);
+    _dispatch(event);
+  }
+
+  /** Handle keypress events. */
+  void processKeyPress(KeyboardEvent event) {
+    var e = new KeyEvent(event);
+    // IE reports the character code in the keyCode field for keypress events.
+    // There are two exceptions however, Enter and Escape.
+    if (Device.isIE) {
+      if (e.keyCode == KeyCode.ENTER || e.keyCode == KeyCode.ESC) {
+        e._shadowCharCode = 0;
+      } else {
+        e._shadowCharCode = e.keyCode;
+      }
+    } else if (Device.isOpera) {
+      // Opera reports the character code in the keyCode field.
+      e._shadowCharCode = KeyCode.isCharacterKey(e.keyCode) ? e.keyCode : 0;
+    }
+    // Now we guestimate about what the keycode is that was actually
+    // pressed, given previous keydown information.
+    e._shadowKeyCode = _determineKeyCodeForKeypress(e);
+
+    // Correct the key value for certain browser-specific quirks.
+    if (e._shadowKeyIdentifier != null &&
+        _keyIdentifier.containsKey(e._shadowKeyIdentifier)) {
+      // This is needed for Safari Windows because it currently doesn't give a
+      // keyCode/which for non printable keys.
+      e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier];
+    }
+    e._shadowAltKey = _keyDownList.any((var element) => element.altKey);
+    _dispatch(e);
+  }
+
+  /** Handle keyup events. */
+  void processKeyUp(KeyboardEvent event) {
+    var e = new KeyEvent(event);
+    KeyboardEvent toRemove = null;
+    for (var key in _keyDownList) {
+      if (key.keyCode == e.keyCode) {
+        toRemove = key;
+      }
+    }
+    if (toRemove != null) {
+      _keyDownList.removeWhere((element) => element == toRemove);
+    } else if (_keyDownList.length > 0) {
+      // This happens when we've reached some international keyboard case we
+      // haven't accounted for or we haven't correctly eliminated all browser
+      // inconsistencies. Filing bugs on when this is reached is welcome!
+      _keyDownList.removeLast();
+    }
+    _dispatch(e);
+  }
+}
+
+
+/**
+ * Records KeyboardEvents that occur on a particular element, and provides a
+ * stream of outgoing KeyEvents with cross-browser consistent keyCode and
+ * charCode values despite the fact that a multitude of browsers that have
+ * varying keyboard default behavior.
+ *
+ * Example usage:
+ *
+ *     KeyboardEventStream.onKeyDown(document.body).listen(
+ *         keydownHandlerTest);
+ *
+ * This class is very much a work in progress, and we'd love to get information
+ * on how we can make this class work with as many international keyboards as
+ * possible. Bugs welcome!
+ */
+class KeyboardEventStream {
+
+  /** Named constructor to produce a stream for onKeyPress events. */
+  static Stream<KeyEvent> onKeyPress(EventTarget target) =>
+      new _KeyboardEventHandler('keypress').forTarget(target);
+
+  /** Named constructor to produce a stream for onKeyUp events. */
+  static Stream<KeyEvent> onKeyUp(EventTarget target) =>
+      new _KeyboardEventHandler('keyup').forTarget(target);
+
+  /** Named constructor to produce a stream for onKeyDown events. */
+  static Stream<KeyEvent> onKeyDown(EventTarget target) =>
+    new _KeyboardEventHandler('keydown').forTarget(target);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+typedef void _MicrotaskCallback();
+
+/**
+ * This class attempts to invoke a callback as soon as the current event stack
+ * unwinds, but before the browser repaints.
+ */
+abstract class _MicrotaskScheduler {
+  bool _nextMicrotaskFrameScheduled = false;
+  final _MicrotaskCallback _callback;
+
+  _MicrotaskScheduler(this._callback);
+
+  /**
+   * Creates the best possible microtask scheduler for the current platform.
+   */
+  factory _MicrotaskScheduler.best(_MicrotaskCallback callback) {
+    if (Window._supportsSetImmediate) {
+      return new _SetImmediateScheduler(callback);
+    } else if (MutationObserver.supported) {
+      return new _MutationObserverScheduler(callback);
+    }
+    return new _PostMessageScheduler(callback);
+  }
+
+  /**
+   * Schedules a microtask callback if one has not been scheduled already.
+   */
+  void maybeSchedule() {
+    if (this._nextMicrotaskFrameScheduled) {
+      return;
+    }
+    this._nextMicrotaskFrameScheduled = true;
+    this._schedule();
+  }
+
+  /**
+   * Does the actual scheduling of the callback.
+   */
+  void _schedule();
+
+  /**
+   * Handles the microtask callback and forwards it if necessary.
+   */
+  void _onCallback() {
+    // Ignore spurious messages.
+    if (!_nextMicrotaskFrameScheduled) {
+      return;
+    }
+    _nextMicrotaskFrameScheduled = false;
+    this._callback();
+  }
+}
+
+/**
+ * Scheduler which uses window.postMessage to schedule events.
+ */
+class _PostMessageScheduler extends _MicrotaskScheduler {
+  const _MICROTASK_MESSAGE = "DART-MICROTASK";
+
+  _PostMessageScheduler(_MicrotaskCallback callback): super(callback) {
+      // Messages from other windows do not cause a security risk as
+      // all we care about is that _handleMessage is called
+      // after the current event loop is unwound and calling the function is
+      // a noop when zero requests are pending.
+      window.onMessage.listen(this._handleMessage);
+  }
+
+  void _schedule() {
+    window.postMessage(_MICROTASK_MESSAGE, "*");
+  }
+
+  void _handleMessage(e) {
+    this._onCallback();
+  }
+}
+
+/**
+ * Scheduler which uses a MutationObserver to schedule events.
+ */
+class _MutationObserverScheduler extends _MicrotaskScheduler {
+  MutationObserver _observer;
+  Element _dummy;
+
+  _MutationObserverScheduler(_MicrotaskCallback callback): super(callback) {
+    // Mutation events get fired as soon as the current event stack is unwound
+    // so we just make a dummy event and listen for that.
+    _observer = new MutationObserver(this._handleMutation);
+    _dummy = new DivElement();
+    _observer.observe(_dummy, attributes: true);
+  }
+
+  void _schedule() {
+    // Toggle it to trigger the mutation event.
+    _dummy.hidden = !_dummy.hidden;
+  }
+
+  _handleMutation(List<MutationRecord> mutations, MutationObserver observer) {
+    this._onCallback();
+  }
+}
+
+/**
+ * Scheduler which uses window.setImmediate to schedule events.
+ */
+class _SetImmediateScheduler extends _MicrotaskScheduler {
+  _SetImmediateScheduler(_MicrotaskCallback callback): super(callback);
+
+  void _schedule() {
+    window._setImmediate(_handleImmediate);
+  }
+
+  void _handleImmediate() {
+    this._onCallback();
+  }
+}
+
+List<TimeoutHandler> _pendingMicrotasks;
+_MicrotaskScheduler _microtaskScheduler = null;
+
+void _maybeScheduleMicrotaskFrame() {
+  if (_microtaskScheduler == null) {
+    _microtaskScheduler =
+      new _MicrotaskScheduler.best(_completeMicrotasks);
+  }
+  _microtaskScheduler.maybeSchedule();
+}
+
+/**
+ * Registers a [callback] which is called after the current execution stack
+ * unwinds.
+ */
+void _addMicrotaskCallback(TimeoutHandler callback) {
+  if (_pendingMicrotasks == null) {
+    _pendingMicrotasks = <TimeoutHandler>[];
+    _maybeScheduleMicrotaskFrame();
+  }
+  _pendingMicrotasks.add(callback);
+}
+
+
+/**
+ * Complete all pending microtasks.
+ */
+void _completeMicrotasks() {
+  var callbacks = _pendingMicrotasks;
+  _pendingMicrotasks = null;
+  for (var callback in callbacks) {
+    callback();
+  }
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+/**
+ * Class which helps construct standard node validation policies.
+ *
+ * By default this will not accept anything, but the 'allow*' functions can be
+ * used to expand what types of elements or attributes are allowed.
+ *
+ * All allow functions are additive- elements will be accepted if they are
+ * accepted by any specific rule.
+ *
+ * It is important to remember that sanitization is not just intended to prevent
+ * cross-site scripting attacks, but also to prevent information from being
+ * displayed in unexpected ways. For example something displaying basic
+ * formatted text may not expect `<video>` tags to appear. In this case an
+ * empty NodeValidatorBuilder with just [allowTextElements] might be
+ * appropriate.
+ */
+class NodeValidatorBuilder implements NodeValidator {
+
+  final List<NodeValidator> _validators = <NodeValidator>[];
+
+  NodeValidatorBuilder() {
+  }
+
+  /**
+   * Creates a new NodeValidatorBuilder which accepts common constructs.
+   *
+   * By default this will accept HTML5 elements and attributes with the default
+   * [UriPolicy] and templating elements.
+   *
+   * Notable syntax which is filtered:
+   *
+   * * Only known-good HTML5 elements and attributes are allowed.
+   * * All URLs must be same-origin, use [allowNavigation] and [allowImages] to
+   * specify additional URI policies.
+   * * Inline-styles are not allowed.
+   * * Custom element tags are disallowed, use [allowCustomElement].
+   * * Custom tags extensions are disallowed, use [allowTagExtension].
+   * * SVG Elements are not allowed, use [allowSvg].
+   *
+   * For scenarios where the HTML should only contain formatted text
+   * [allowTextElements] is more appropriate.
+   *
+   * Use [allowSvg] to allow SVG elements.
+   */
+  NodeValidatorBuilder.common() {
+    allowHtml5();
+    allowTemplating();
+  }
+
+  /**
+   * Allows navigation elements- Form and Anchor tags, along with common
+   * attributes.
+   *
+   * The UriPolicy can be used to restrict the locations the navigation elements
+   * are allowed to direct to. By default this will use the default [UriPolicy].
+   */
+  void allowNavigation([UriPolicy uriPolicy]) {
+    if (uriPolicy == null) {
+      uriPolicy = new UriPolicy();
+    }
+    add(new _SimpleNodeValidator.allowNavigation(uriPolicy));
+  }
+
+  /**
+   * Allows image elements.
+   *
+   * The UriPolicy can be used to restrict the locations the images may be
+   * loaded from. By default this will use the default [UriPolicy].
+   */
+  void allowImages([UriPolicy uriPolicy]) {
+    if (uriPolicy == null) {
+      uriPolicy = new UriPolicy();
+    }
+    add(new _SimpleNodeValidator.allowImages(uriPolicy));
+  }
+
+  /**
+   * Allow basic text elements.
+   *
+   * This allows a subset of HTML5 elements, specifically just these tags and
+   * no attributes.
+   *
+   * * B
+   * * BLOCKQUOTE
+   * * BR
+   * * EM
+   * * H1
+   * * H2
+   * * H3
+   * * H4
+   * * H5
+   * * H6
+   * * HR
+   * * I
+   * * LI
+   * * OL
+   * * P
+   * * SPAN
+   * * UL
+   */
+  void allowTextElements() {
+    add(new _SimpleNodeValidator.allowTextElements());
+  }
+
+  /**
+   * Allow common safe HTML5 elements and attributes.
+   *
+   * This list is based off of the Caja whitelists at:
+   * https://code.google.com/p/google-caja/wiki/CajaWhitelists.
+   *
+   * Common things which are not allowed are script elements, style attributes
+   * and any script handlers.
+   */
+  void allowHtml5({UriPolicy uriPolicy}) {
+    add(new _Html5NodeValidator(uriPolicy: uriPolicy));
+  }
+
+  /**
+   * Allow SVG elements and attributes except for known bad ones.
+   */
+  void allowSvg() {
+    add(new _SvgNodeValidator());
+  }
+
+  /**
+   * Allow custom elements with the specified tag name and specified attributes.
+   *
+   * This will allow the elements as custom tags (such as <x-foo></x-foo>),
+   * but will not allow tag extensions. Use [allowTagExtension] to allow
+   * tag extensions.
+   */
+  void allowCustomElement(String tagName,
+      {UriPolicy uriPolicy,
+      Iterable<String> attributes,
+      Iterable<String> uriAttributes}) {
+
+    var tagNameUpper = tagName.toUpperCase();
+    var attrs;
+    if (attributes != null) {
+      attrs =
+          attributes.map((name) => '$tagNameUpper::${name.toLowerCase()}');
+    }
+    var uriAttrs;
+    if (uriAttributes != null) {
+      uriAttrs =
+          uriAttributes.map((name) => '$tagNameUpper::${name.toLowerCase()}');
+    }
+    if (uriPolicy == null) {
+      uriPolicy = new UriPolicy();
+    }
+
+    add(new _CustomElementNodeValidator(
+        uriPolicy,
+        [tagNameUpper],
+        attrs,
+        uriAttrs,
+        false,
+        true));
+  }
+
+  /**
+   * Allow custom tag extensions with the specified type name and specified
+   * attributes.
+   *
+   * This will allow tag extensions (such as <div is="x-foo"></div>),
+   * but will not allow custom tags. Use [allowCustomElement] to allow
+   * custom tags.
+   */
+  void allowTagExtension(String tagName, String baseName,
+      {UriPolicy uriPolicy,
+      Iterable<String> attributes,
+      Iterable<String> uriAttributes}) {
+
+    var baseNameUpper = baseName.toUpperCase();
+    var tagNameUpper = tagName.toUpperCase();
+    var attrs;
+    if (attributes != null) {
+      attrs =
+          attributes.map((name) => '$baseNameUpper::${name.toLowerCase()}');
+    }
+    var uriAttrs;
+    if (uriAttributes != null) {
+      uriAttrs =
+          uriAttributes.map((name) => '$baseNameUpper::${name.toLowerCase()}');
+    }
+    if (uriPolicy == null) {
+      uriPolicy = new UriPolicy();
+    }
+
+    add(new _CustomElementNodeValidator(
+        uriPolicy,
+        [tagNameUpper, baseNameUpper],
+        attrs,
+        uriAttrs,
+        true,
+        false));
+  }
+
+  void allowElement(String tagName, {UriPolicy uriPolicy,
+    Iterable<String> attributes,
+    Iterable<String> uriAttributes}) {
+
+    allowCustomElement(tagName, uriPolicy: uriPolicy,
+        attributes: attributes,
+        uriAttributes: uriAttributes);
+  }
+
+  /**
+   * Allow templating elements (such as <template> and template-related
+   * attributes.
+   *
+   * This still requires other validators to allow regular attributes to be
+   * bound (such as [allowHtml5]).
+   */
+  void allowTemplating() {
+    add(new _TemplatingNodeValidator());
+  }
+
+  /**
+   * Add an additional validator to the current list of validators.
+   *
+   * Elements and attributes will be accepted if they are accepted by any
+   * validators.
+   */
+  void add(NodeValidator validator) {
+    _validators.add(validator);
+  }
+
+  bool allowsElement(Element element) {
+    return _validators.any((v) => v.allowsElement(element));
+  }
+
+  bool allowsAttribute(Element element, String attributeName, String value) {
+    return _validators.any(
+        (v) => v.allowsAttribute(element, attributeName, value));
+  }
+}
+
+class _SimpleNodeValidator implements NodeValidator {
+  final Set<String> allowedElements;
+  final Set<String> allowedAttributes;
+  final Set<String> allowedUriAttributes;
+  final UriPolicy uriPolicy;
+
+  factory _SimpleNodeValidator.allowNavigation(UriPolicy uriPolicy) {
+    return new _SimpleNodeValidator(uriPolicy,
+      allowedElements: [
+        'A',
+        'FORM'],
+      allowedAttributes: [
+        'A::accesskey',
+        'A::coords',
+        'A::hreflang',
+        'A::name',
+        'A::shape',
+        'A::tabindex',
+        'A::target',
+        'A::type',
+        'FORM::accept',
+        'FORM::autocomplete',
+        'FORM::enctype',
+        'FORM::method',
+        'FORM::name',
+        'FORM::novalidate',
+        'FORM::target',
+      ],
+      allowedUriAttributes: [
+        'A::href',
+        'FORM::action',
+      ]);
+  }
+
+  factory _SimpleNodeValidator.allowImages(UriPolicy uriPolicy) {
+    return new _SimpleNodeValidator(uriPolicy,
+      allowedElements: [
+        'IMG'
+      ],
+      allowedAttributes: [
+        'IMG::align',
+        'IMG::alt',
+        'IMG::border',
+        'IMG::height',
+        'IMG::hspace',
+        'IMG::ismap',
+        'IMG::name',
+        'IMG::usemap',
+        'IMG::vspace',
+        'IMG::width',
+      ],
+      allowedUriAttributes: [
+        'IMG::src',
+      ]);
+  }
+
+  factory _SimpleNodeValidator.allowTextElements() {
+    return new _SimpleNodeValidator(null,
+      allowedElements: [
+        'B',
+        'BLOCKQUOTE',
+        'BR',
+        'EM',
+        'H1',
+        'H2',
+        'H3',
+        'H4',
+        'H5',
+        'H6',
+        'HR',
+        'I',
+        'LI',
+        'OL',
+        'P',
+        'SPAN',
+        'UL',
+      ]);
+  }
+
+  /**
+   * Elements must be uppercased tag names. For example `'IMG'`.
+   * Attributes must be uppercased tag name followed by :: followed by
+   * lowercase attribute name. For example `'IMG:src'`.
+   */
+  _SimpleNodeValidator(this.uriPolicy,
+      {Iterable<String> allowedElements, Iterable<String> allowedAttributes,
+      Iterable<String> allowedUriAttributes}):
+      this.allowedElements = allowedElements != null ?
+          new Set.from(allowedElements) : new Set(),
+      this.allowedAttributes = allowedAttributes != null ?
+          new Set.from(allowedAttributes) : new Set(),
+      this.allowedUriAttributes = allowedUriAttributes != null ?
+          new Set.from(allowedUriAttributes) : new Set();
+
+  bool allowsElement(Element element) {
+    return allowedElements.contains(element.tagName);
+  }
+
+  bool allowsAttribute(Element element, String attributeName, String value) {
+    var tagName = element.tagName;
+    if (allowedUriAttributes.contains('$tagName::$attributeName')) {
+      return uriPolicy.allowsUri(value);
+    } else if (allowedUriAttributes.contains('*::$attributeName')) {
+      return uriPolicy.allowsUri(value);
+    } else if (allowedAttributes.contains('$tagName::$attributeName')) {
+      return true;
+    } else if (allowedAttributes.contains('*::$attributeName')) {
+      return true;
+    } else if (allowedAttributes.contains('$tagName::*')) {
+      return true;
+    } else if (allowedAttributes.contains('*::*')) {
+      return true;
+    }
+    return false;
+  }
+}
+
+class _CustomElementNodeValidator extends _SimpleNodeValidator {
+  final bool allowTypeExtension;
+  final bool allowCustomTag;
+
+  _CustomElementNodeValidator(UriPolicy uriPolicy,
+      Iterable<String> allowedElements,
+      Iterable<String> allowedAttributes,
+      Iterable<String> allowedUriAttributes,
+      bool allowTypeExtension,
+      bool allowCustomTag):
+
+      super(uriPolicy,
+          allowedElements: allowedElements,
+          allowedAttributes: allowedAttributes,
+          allowedUriAttributes: allowedUriAttributes),
+      this.allowTypeExtension = allowTypeExtension == true,
+      this.allowCustomTag = allowCustomTag == true;
+
+  bool allowsElement(Element element) {
+    if (allowTypeExtension) {
+      var isAttr = element.attributes['is'];
+      if (isAttr != null) {
+        return allowedElements.contains(isAttr.toUpperCase()) &&
+          allowedElements.contains(element.tagName);
+      }
+    }
+    return allowCustomTag && allowedElements.contains(element.tagName);
+  }
+
+  bool allowsAttribute(Element element, String attributeName, String value) {
+   if (allowsElement(element)) {
+      if (allowTypeExtension && attributeName == 'is' &&
+          allowedElements.contains(value.toUpperCase())) {
+        return true;
+      }
+      return super.allowsAttribute(element, attributeName, value);
+    }
+    return false;
+  }
+}
+
+class _TemplatingNodeValidator extends _SimpleNodeValidator {
+  static const _TEMPLATE_ATTRS =
+      const <String>['bind', 'if', 'ref', 'repeat', 'syntax'];
+
+  final Set<String> _templateAttrs;
+
+  _TemplatingNodeValidator():
+      super(null,
+          allowedElements: [
+            'TEMPLATE'
+          ],
+          allowedAttributes: _TEMPLATE_ATTRS.map((attr) => 'TEMPLATE::$attr')),
+      _templateAttrs = new Set<String>.from(_TEMPLATE_ATTRS) {
+  }
+
+  bool allowsAttribute(Element element, String attributeName, String value) {
+    if (super.allowsAttribute(element, attributeName, value)) {
+      return true;
+    }
+
+    if (attributeName == 'template' && value == "") {
+      return true;
+    }
+
+    if (element.attributes['template'] == "" ) {
+      return _templateAttrs.contains(attributeName);
+    }
+    return false;
+  }
+}
+
+
+class _SvgNodeValidator implements NodeValidator {
+  bool allowsElement(Element element) {
+    if (element is svg.ScriptElement) {
+      return false;
+    }
+    if (element is svg.SvgElement) {
+      return true;
+    }
+    return false;
+  }
+
+  bool allowsAttribute(Element element, String attributeName, String value) {
+    if (attributeName == 'is' || attributeName.startsWith('on')) {
+      return false;
+    }
+    return allowsElement(element);
+  }
+}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -32128,671 +33447,6 @@ class Rect extends RectBase {
     return new Rect(left, top, width, height);
   }
 }
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * Helper class to implement custom events which wrap DOM events.
- */
-class _WrappedEvent implements Event {
-  final Event wrapped;
-  _WrappedEvent(this.wrapped);
-
-  bool get bubbles => wrapped.bubbles;
-
-  bool get cancelBubble => wrapped.bubbles;
-  void set cancelBubble(bool value) {
-    wrapped.cancelBubble = value;
-  }
-
-  bool get cancelable => wrapped.cancelable;
-
-  DataTransfer get clipboardData => wrapped.clipboardData;
-
-  EventTarget get currentTarget => wrapped.currentTarget;
-
-  bool get defaultPrevented => wrapped.defaultPrevented;
-
-  int get eventPhase => wrapped.eventPhase;
-
-  EventTarget get target => wrapped.target;
-
-  int get timeStamp => wrapped.timeStamp;
-
-  String get type => wrapped.type;
-
-  void $dom_initEvent(String eventTypeArg, bool canBubbleArg,
-      bool cancelableArg) {
-    throw new UnsupportedError(
-        'Cannot initialize this Event.');
-  }
-
-  void preventDefault() {
-    wrapped.preventDefault();
-  }
-
-  void stopImmediatePropagation() {
-    wrapped.stopImmediatePropagation();
-  }
-
-  void stopPropagation() {
-    wrapped.stopPropagation();
-  }
-}
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * A list which just wraps another list, for either intercepting list calls or
- * retyping the list (for example, from List<A> to List<B> where B extends A).
- */
-class _WrappedList<E> extends ListBase<E> {
-  final List _list;
-
-  _WrappedList(this._list);
-
-  // Iterable APIs
-
-  Iterator<E> get iterator => new _WrappedIterator(_list.iterator);
-
-  int get length => _list.length;
-
-  // Collection APIs
-
-  void add(E element) { _list.add(element); }
-
-  bool remove(Object element) => _list.remove(element);
-
-  void clear() { _list.clear(); }
-
-  // List APIs
-
-  E operator [](int index) => _list[index];
-
-  void operator []=(int index, E value) { _list[index] = value; }
-
-  void set length(int newLength) { _list.length = newLength; }
-
-  void sort([int compare(E a, E b)]) { _list.sort(compare); }
-
-  int indexOf(Object element, [int start = 0]) => _list.indexOf(element, start);
-
-  int lastIndexOf(Object element, [int start]) => _list.lastIndexOf(element, start);
-
-  void insert(int index, E element) => _list.insert(index, element);
-
-  E removeAt(int index) => _list.removeAt(index);
-
-  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    _list.setRange(start, end, iterable, skipCount);
-  }
-
-  void removeRange(int start, int end) { _list.removeRange(start, end); }
-
-  void replaceRange(int start, int end, Iterable<E> iterable) {
-    _list.replaceRange(start, end, iterable);
-  }
-
-  void fillRange(int start, int end, [E fillValue]) {
-    _list.fillRange(start, end, fillValue);
-  }
-}
-
-/**
- * Iterator wrapper for _WrappedList.
- */
-class _WrappedIterator<E> implements Iterator<E> {
-  Iterator _iterator;
-
-  _WrappedIterator(this._iterator);
-
-  bool moveNext() {
-    return _iterator.moveNext();
-  }
-
-  E get current => _iterator.current;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _HttpRequestUtils {
-
-  // Helper for factory HttpRequest.get
-  static HttpRequest get(String url,
-                            onComplete(HttpRequest request),
-                            bool withCredentials) {
-    final request = new HttpRequest();
-    request.open('GET', url, async: true);
-
-    request.withCredentials = withCredentials;
-
-    request.onReadyStateChange.listen((e) {
-      if (request.readyState == HttpRequest.DONE) {
-        onComplete(request);
-      }
-    });
-
-    request.send();
-
-    return request;
-  }
-}
-/**
- * A custom KeyboardEvent that attempts to eliminate cross-browser
- * inconsistencies, and also provide both keyCode and charCode information
- * for all key events (when such information can be determined).
- *
- * KeyEvent tries to provide a higher level, more polished keyboard event
- * information on top of the "raw" [KeyboardEvent].
- *
- * This class is very much a work in progress, and we'd love to get information
- * on how we can make this class work with as many international keyboards as
- * possible. Bugs welcome!
- */
-
-class KeyEvent extends _WrappedEvent implements KeyboardEvent {
-  /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
-  KeyboardEvent _parent;
-
-  /** The "fixed" value of whether the alt key is being pressed. */
-  bool _shadowAltKey;
-
-  /** Caculated value of what the estimated charCode is for this event. */
-  int _shadowCharCode;
-
-  /** Caculated value of what the estimated keyCode is for this event. */
-  int _shadowKeyCode;
-
-  /** Caculated value of what the estimated keyCode is for this event. */
-  int get keyCode => _shadowKeyCode;
-
-  /** Caculated value of what the estimated charCode is for this event. */
-  int get charCode => this.type == 'keypress' ? _shadowCharCode : 0;
-
-  /** Caculated value of whether the alt key is pressed is for this event. */
-  bool get altKey => _shadowAltKey;
-
-  /** Caculated value of what the estimated keyCode is for this event. */
-  int get which => keyCode;
-
-  /** Accessor to the underlying keyCode value is the parent event. */
-  int get _realKeyCode => _parent.keyCode;
-
-  /** Accessor to the underlying charCode value is the parent event. */
-  int get _realCharCode => _parent.charCode;
-
-  /** Accessor to the underlying altKey value is the parent event. */
-  bool get _realAltKey => _parent.altKey;
-
-  /** Construct a KeyEvent with [parent] as the event we're emulating. */
-  KeyEvent(KeyboardEvent parent): super(parent) {
-    _parent = parent;
-    _shadowAltKey = _realAltKey;
-    _shadowCharCode = _realCharCode;
-    _shadowKeyCode = _realKeyCode;
-  }
-
-  /** Accessor to provide a stream of KeyEvents on the desired target. */
-  static EventStreamProvider<KeyEvent> keyDownEvent =
-    new _KeyboardEventHandler('keydown');
-  /** Accessor to provide a stream of KeyEvents on the desired target. */
-  static EventStreamProvider<KeyEvent> keyUpEvent =
-    new _KeyboardEventHandler('keyup');
-  /** Accessor to provide a stream of KeyEvents on the desired target. */
-  static EventStreamProvider<KeyEvent> keyPressEvent =
-    new _KeyboardEventHandler('keypress');
-
-  /** True if the altGraphKey is pressed during this event. */
-  bool get altGraphKey => _parent.altGraphKey;
-  /** Accessor to the clipboardData available for this event. */
-  DataTransfer get clipboardData => _parent.clipboardData;
-  /** True if the ctrl key is pressed during this event. */
-  bool get ctrlKey => _parent.ctrlKey;
-  int get detail => _parent.detail;
-  /**
-   * Accessor to the part of the keyboard that the key was pressed from (one of
-   * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,
-   * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
-   */
-  int get keyLocation => _parent.keyLocation;
-  Point get layer => _parent.layer;
-  /** True if the Meta (or Mac command) key is pressed during this event. */
-  bool get metaKey => _parent.metaKey;
-  Point get page => _parent.page;
-  /** True if the shift key was pressed during this event. */
-  bool get shiftKey => _parent.shiftKey;
-  Window get view => _parent.view;
-  void $dom_initUIEvent(String type, bool canBubble, bool cancelable,
-      Window view, int detail) {
-    throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
-  }
-  String get _shadowKeyIdentifier => _parent.$dom_keyIdentifier;
-
-  int get $dom_charCode => charCode;
-  int get $dom_keyCode => keyCode;
-  String get $dom_keyIdentifier {
-    throw new UnsupportedError("keyIdentifier is unsupported.");
-  }
-  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
-      Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
-      bool altKey, bool shiftKey, bool metaKey,
-      bool altGraphKey) {
-    throw new UnsupportedError(
-        "Cannot initialize a KeyboardEvent from a KeyEvent.");
-  }
-}
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class Platform {
-  /**
-   * Returns true if dart:typed_data types are supported on this
-   * browser.  If false, using these types will generate a runtime
-   * error.
-   */
-  static final supportsTypedData = true;
-
-  /**
-   * Returns true if SIMD types in dart:typed_data types are supported
-   * on this browser.  If false, using these types will generate a runtime
-   * error.
-   */
-  static final supportsSimd = true;
-
-  /**
-   * Upgrade all custom elements in the subtree which have not been upgraded.
-   *
-   * This is needed to cover timing scenarios which the custom element polyfill
-   * does not cover.
-   */
-  void upgradeCustomElements(Node node) {
-    // no-op, provided for dart2js polyfill.
-  }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-_serialize(var message) {
-  return new _JsSerializer().traverse(message);
-}
-
-class _JsSerializer extends _Serializer {
-
-  visitSendPortSync(SendPortSync x) {
-    if (x is _JsSendPortSync) return visitJsSendPortSync(x);
-    if (x is _LocalSendPortSync) return visitLocalSendPortSync(x);
-    if (x is _RemoteSendPortSync) return visitRemoteSendPortSync(x);
-    throw "Unknown port type $x";
-  }
-
-  visitJsSendPortSync(_JsSendPortSync x) {
-    return [ 'sendport', 'nativejs', x._id ];
-  }
-
-  visitLocalSendPortSync(_LocalSendPortSync x) {
-    return [ 'sendport', 'dart',
-             ReceivePortSync._isolateId, x._receivePort._portId ];
-  }
-
-  visitSendPort(SendPort x) {
-    throw new UnimplementedError('Asynchronous send port not yet implemented.');
-  }
-
-  visitRemoteSendPortSync(_RemoteSendPortSync x) {
-    return [ 'sendport', 'dart', x._isolateId, x._portId ];
-  }
-}
-
-_deserialize(var message) {
-  return new _JsDeserializer().deserialize(message);
-}
-
-
-class _JsDeserializer extends _Deserializer {
-
-  static const _UNSPECIFIED = const Object();
-
-  deserializeSendPort(List x) {
-    String tag = x[1];
-    switch (tag) {
-      case 'nativejs':
-        num id = x[2];
-        return new _JsSendPortSync(id);
-      case 'dart':
-        num isolateId = x[2];
-        num portId = x[3];
-        return ReceivePortSync._lookup(isolateId, portId);
-      default:
-        throw 'Illegal SendPortSync type: $tag';
-    }
-  }
-}
-
-// The receiver is JS.
-class _JsSendPortSync implements SendPortSync {
-
-  final num _id;
-  _JsSendPortSync(this._id);
-
-  callSync(var message) {
-    var serialized = _serialize(message);
-    var result = _callPortSync(_id, serialized);
-    return _deserialize(result);
-  }
-
-  bool operator==(var other) {
-    return (other is _JsSendPortSync) && (_id == other._id);
-  }
-
-  int get hashCode => _id;
-}
-
-// TODO(vsm): Differentiate between Dart2Js and Dartium isolates.
-// The receiver is a different Dart isolate, compiled to JS.
-class _RemoteSendPortSync implements SendPortSync {
-
-  int _isolateId;
-  int _portId;
-  _RemoteSendPortSync(this._isolateId, this._portId);
-
-  callSync(var message) {
-    var serialized = _serialize(message);
-    var result = _call(_isolateId, _portId, serialized);
-    return _deserialize(result);
-  }
-
-  static _call(int isolateId, int portId, var message) {
-    var target = 'dart-port-$isolateId-$portId';
-    // TODO(vsm): Make this re-entrant.
-    // TODO(vsm): Set this up set once, on the first call.
-    var source = '$target-result';
-    var result = null;
-    window.on[source].first.then((Event e) {
-      result = json.parse(_getPortSyncEventData(e));
-    });
-    _dispatchEvent(target, [source, message]);
-    return result;
-  }
-
-  bool operator==(var other) {
-    return (other is _RemoteSendPortSync) && (_isolateId == other._isolateId)
-      && (_portId == other._portId);
-  }
-
-  int get hashCode => _isolateId >> 16 + _portId;
-}
-
-// The receiver is in the same Dart isolate, compiled to JS.
-class _LocalSendPortSync implements SendPortSync {
-
-  ReceivePortSync _receivePort;
-
-  _LocalSendPortSync._internal(this._receivePort);
-
-  callSync(var message) {
-    // TODO(vsm): Do a more efficient deep copy.
-    var copy = _deserialize(_serialize(message));
-    var result = _receivePort._callback(copy);
-    return _deserialize(_serialize(result));
-  }
-
-  bool operator==(var other) {
-    return (other is _LocalSendPortSync)
-      && (_receivePort == other._receivePort);
-  }
-
-  int get hashCode => _receivePort.hashCode;
-}
-
-// TODO(vsm): Move this to dart:isolate.  This will take some
-// refactoring as there are dependences here on the DOM.  Users
-// interact with this class (or interface if we change it) directly -
-// new ReceivePortSync.  I think most of the DOM logic could be
-// delayed until the corresponding SendPort is registered on the
-// window.
-
-// A Dart ReceivePortSync (tagged 'dart' when serialized) is
-// identifiable / resolvable by the combination of its isolateid and
-// portid.  When a corresponding SendPort is used within the same
-// isolate, the _portMap below can be used to obtain the
-// ReceivePortSync directly.  Across isolates (or from JS), an
-// EventListener can be used to communicate with the port indirectly.
-class ReceivePortSync {
-
-  static Map<int, ReceivePortSync> _portMap;
-  static int _portIdCount;
-  static int _cachedIsolateId;
-
-  num _portId;
-  Function _callback;
-  StreamSubscription _portSubscription;
-
-  ReceivePortSync() {
-    if (_portIdCount == null) {
-      _portIdCount = 0;
-      _portMap = new Map<int, ReceivePortSync>();
-    }
-    _portId = _portIdCount++;
-    _portMap[_portId] = this;
-  }
-
-  static int get _isolateId {
-    // TODO(vsm): Make this coherent with existing isolate code.
-    if (_cachedIsolateId == null) {
-      _cachedIsolateId = _getNewIsolateId();
-    }
-    return _cachedIsolateId;
-  }
-
-  static String _getListenerName(isolateId, portId) =>
-      'dart-port-$isolateId-$portId';
-  String get _listenerName => _getListenerName(_isolateId, _portId);
-
-  void receive(callback(var message)) {
-    _callback = callback;
-    if (_portSubscription == null) {
-      _portSubscription = window.on[_listenerName].listen((Event e) {
-        var data = json.parse(_getPortSyncEventData(e));
-        var replyTo = data[0];
-        var message = _deserialize(data[1]);
-        var result = _callback(message);
-        _dispatchEvent(replyTo, _serialize(result));
-      });
-    }
-  }
-
-  void close() {
-    _portMap.remove(_portId);
-    if (_portSubscription != null) _portSubscription.cancel();
-  }
-
-  SendPortSync toSendPort() {
-    return new _LocalSendPortSync._internal(this);
-  }
-
-  static SendPortSync _lookup(int isolateId, int portId) {
-    if (isolateId == _isolateId) {
-      return _portMap[portId].toSendPort();
-    } else {
-      return new _RemoteSendPortSync(isolateId, portId);
-    }
-  }
-}
-
-get _isolateId => ReceivePortSync._isolateId;
-
-void _dispatchEvent(String receiver, var message) {
-  var event = new CustomEvent(receiver, canBubble: false, cancelable:false,
-    detail: json.stringify(message));
-  window.dispatchEvent(event);
-}
-
-String _getPortSyncEventData(CustomEvent event) => event.detail;
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-typedef void _MicrotaskCallback();
-
-/**
- * This class attempts to invoke a callback as soon as the current event stack
- * unwinds, but before the browser repaints.
- */
-abstract class _MicrotaskScheduler {
-  bool _nextMicrotaskFrameScheduled = false;
-  final _MicrotaskCallback _callback;
-
-  _MicrotaskScheduler(this._callback);
-
-  /**
-   * Creates the best possible microtask scheduler for the current platform.
-   */
-  factory _MicrotaskScheduler.best(_MicrotaskCallback callback) {
-    if (Window._supportsSetImmediate) {
-      return new _SetImmediateScheduler(callback);
-    } else if (MutationObserver.supported) {
-      return new _MutationObserverScheduler(callback);
-    }
-    return new _PostMessageScheduler(callback);
-  }
-
-  /**
-   * Schedules a microtask callback if one has not been scheduled already.
-   */
-  void maybeSchedule() {
-    if (this._nextMicrotaskFrameScheduled) {
-      return;
-    }
-    this._nextMicrotaskFrameScheduled = true;
-    this._schedule();
-  }
-
-  /**
-   * Does the actual scheduling of the callback.
-   */
-  void _schedule();
-
-  /**
-   * Handles the microtask callback and forwards it if necessary.
-   */
-  void _onCallback() {
-    // Ignore spurious messages.
-    if (!_nextMicrotaskFrameScheduled) {
-      return;
-    }
-    _nextMicrotaskFrameScheduled = false;
-    this._callback();
-  }
-}
-
-/**
- * Scheduler which uses window.postMessage to schedule events.
- */
-class _PostMessageScheduler extends _MicrotaskScheduler {
-  const _MICROTASK_MESSAGE = "DART-MICROTASK";
-
-  _PostMessageScheduler(_MicrotaskCallback callback): super(callback) {
-      // Messages from other windows do not cause a security risk as
-      // all we care about is that _handleMessage is called
-      // after the current event loop is unwound and calling the function is
-      // a noop when zero requests are pending.
-      window.onMessage.listen(this._handleMessage);
-  }
-
-  void _schedule() {
-    window.postMessage(_MICROTASK_MESSAGE, "*");
-  }
-
-  void _handleMessage(e) {
-    this._onCallback();
-  }
-}
-
-/**
- * Scheduler which uses a MutationObserver to schedule events.
- */
-class _MutationObserverScheduler extends _MicrotaskScheduler {
-  MutationObserver _observer;
-  Element _dummy;
-
-  _MutationObserverScheduler(_MicrotaskCallback callback): super(callback) {
-    // Mutation events get fired as soon as the current event stack is unwound
-    // so we just make a dummy event and listen for that.
-    _observer = new MutationObserver(this._handleMutation);
-    _dummy = new DivElement();
-    _observer.observe(_dummy, attributes: true);
-  }
-
-  void _schedule() {
-    // Toggle it to trigger the mutation event.
-    _dummy.hidden = !_dummy.hidden;
-  }
-
-  _handleMutation(List<MutationRecord> mutations, MutationObserver observer) {
-    this._onCallback();
-  }
-}
-
-/**
- * Scheduler which uses window.setImmediate to schedule events.
- */
-class _SetImmediateScheduler extends _MicrotaskScheduler {
-  _SetImmediateScheduler(_MicrotaskCallback callback): super(callback);
-
-  void _schedule() {
-    window._setImmediate(_handleImmediate);
-  }
-
-  void _handleImmediate() {
-    this._onCallback();
-  }
-}
-
-List<TimeoutHandler> _pendingMicrotasks;
-_MicrotaskScheduler _microtaskScheduler = null;
-
-void _maybeScheduleMicrotaskFrame() {
-  if (_microtaskScheduler == null) {
-    _microtaskScheduler =
-      new _MicrotaskScheduler.best(_completeMicrotasks);
-  }
-  _microtaskScheduler.maybeSchedule();
-}
-
-/**
- * Registers a [callback] which is called after the current execution stack
- * unwinds.
- */
-void _addMicrotaskCallback(TimeoutHandler callback) {
-  if (_pendingMicrotasks == null) {
-    _pendingMicrotasks = <TimeoutHandler>[];
-    _maybeScheduleMicrotaskFrame();
-  }
-  _pendingMicrotasks.add(callback);
-}
-
-
-/**
- * Complete all pending microtasks.
- */
-void _completeMicrotasks() {
-  var callbacks = _pendingMicrotasks;
-  _pendingMicrotasks = null;
-  for (var callback in callbacks) {
-    callback();
-  }
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -32972,6 +33626,365 @@ abstract class _Deserializer {
   }
 }
 
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+/**
+ * Interface used to validate that only accepted elements and attributes are
+ * allowed while parsing HTML strings into DOM nodes.
+ *
+ * In general, customization of validation behavior should be done via the
+ * [NodeValidatorBuilder] class to mitigate the chances of incorrectly
+ * implementing validation rules.
+ */
+abstract class NodeValidator {
+
+  /**
+   * Construct a default NodeValidator which only accepts whitelisted HTML5
+   * elements and attributes.
+   *
+   * If a uriPolicy is not specified then the default uriPolicy will be used.
+   */
+  factory NodeValidator({UriPolicy uriPolicy}) =>
+      new _Html5NodeValidator(uriPolicy: uriPolicy);
+
+  factory NodeValidator.throws(NodeValidator base) =>
+      new _ThrowsNodeValidator(base);
+
+  /**
+   * Returns true if the tagName is an accepted type.
+   */
+  bool allowsElement(Element element);
+
+  /**
+   * Returns true if the attribute is allowed.
+   *
+   * The attributeName parameter will always be in lowercase.
+   *
+   * See [allowsElement] for format of tagName.
+   */
+  bool allowsAttribute(Element element, String attributeName, String value);
+}
+
+/**
+ * Performs sanitization of a node tree after construction to ensure that it
+ * does not contain any disallowed elements or attributes.
+ *
+ * In general custom implementations of this class should not be necessary and
+ * all validation customization should be done in custom NodeValidators, but
+ * custom implementations of this class can be created to perform more complex
+ * tree sanitization.
+ */
+abstract class NodeTreeSanitizer {
+
+  /**
+   * Constructs a default tree sanitizer which will remove all elements and
+   * attributes which are not allowed by the provided validator.
+   */
+  factory NodeTreeSanitizer(NodeValidator validator) =>
+      new _ValidatingTreeSanitizer(validator);
+
+  /**
+   * Called with the root of the tree which is to be sanitized.
+   *
+   * This method needs to walk the entire tree and either remove elements and
+   * attributes which are not recognized as safe or throw an exception which
+   * will mark the entire tree as unsafe.
+   */
+  void sanitizeTree(Node node);
+}
+
+/**
+ * Defines the policy for what types of uris are allowed for particular
+ * attribute values.
+ *
+ * This can be used to provide custom rules such as allowing all http:// URIs
+ * for image attributes but only same-origin URIs for anchor tags.
+ */
+abstract class UriPolicy {
+  /**
+   * Constructs the default UriPolicy which is to only allow Uris to the same
+   * origin as the application was launched from.
+   *
+   * This will block all ftp: mailto: URIs. It will also block accessing
+   * https://example.com if the app is running from http://example.com.
+   */
+  factory UriPolicy() => new _SameOriginUriPolicy();
+
+  /**
+   * Checks if the uri is allowed on the specified attribute.
+   *
+   * The uri provided may or may not be a relative path.
+   */
+  bool allowsUri(String uri);
+}
+
+/**
+ * Allows URIs to the same origin as the current application was loaded from
+ * (such as https://example.com:80).
+ */
+class _SameOriginUriPolicy implements UriPolicy {
+  final AnchorElement _hiddenAnchor = new AnchorElement();
+  final Location _loc = window.location;
+
+  bool allowsUri(String uri) {
+    _hiddenAnchor.href = uri;
+    // IE leaves an empty hostname for same-origin URIs.
+    return (_hiddenAnchor.hostname == _loc.hostname &&
+        _hiddenAnchor.port == _loc.port &&
+        _hiddenAnchor.protocol == _loc.protocol) ||
+        (_hiddenAnchor.hostname == '' &&
+        _hiddenAnchor.port == '' &&
+        _hiddenAnchor.protocol == ':');
+  }
+}
+
+
+class _ThrowsNodeValidator implements NodeValidator {
+  final NodeValidator validator;
+
+  _ThrowsNodeValidator(this.validator) {}
+
+  bool allowsElement(Element element) {
+    if (!validator.allowsElement(element)) {
+      throw new ArgumentError(element.tagName);
+    }
+    return true;
+  }
+
+  bool allowsAttribute(Element element, String attributeName, String value) {
+    if (!validator.allowsAttribute(element, attributeName, value)) {
+      throw new ArgumentError('${element.tagName}[$attributeName="$value"]');
+    }
+  }
+}
+
+
+/**
+ * Standard tree sanitizer which validates a node tree against the provided
+ * validator and removes any nodes or attributes which are not allowed.
+ */
+class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
+  NodeValidator validator;
+  _ValidatingTreeSanitizer(this.validator) {}
+
+  void sanitizeTree(Node node) {
+    void walk(Node node) {
+      sanitizeNode(node);
+
+      var child = node.lastChild;
+      while (child != null) {
+        // Child may be removed during the walk.
+        var nextChild = child.previousNode;
+        walk(child);
+        child = nextChild;
+      }
+    }
+    walk(node);
+  }
+
+  void sanitizeNode(Node node) {
+    switch (node.nodeType) {
+      case Node.ELEMENT_NODE:
+        Element element = node;
+        var attrs = element.attributes;
+        if (!validator.allowsElement(element)) {
+          element.remove();
+          break;
+        }
+
+        var isAttr = attrs['is'];
+        if (isAttr != null) {
+          if (!validator.allowsAttribute(element, 'is', isAttr)) {
+            element.remove();
+            break;
+          }
+        }
+
+        // TODO(blois): Need to be able to get all attributes, irrespective of
+        // XMLNS.
+        var keys = attrs.keys.toList();
+        for (var i = attrs.length - 1; i >= 0; --i) {
+          var name = keys[i];
+          if (!validator.allowsAttribute(element, name.toLowerCase(),
+              attrs[name])) {
+            attrs.remove(name);
+          }
+        }
+
+        if (element is TemplateElement) {
+          TemplateElement template = element;
+          sanitizeTree(template.content);
+        }
+        break;
+      case Node.COMMENT_NODE:
+      case Node.DOCUMENT_FRAGMENT_NODE:
+      case Node.TEXT_NODE:
+      case Node.CDATA_SECTION_NODE:
+        break;
+      default:
+        node.remove();
+    }
+  }
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * Helper class to implement custom events which wrap DOM events.
+ */
+class _WrappedEvent implements Event {
+  final Event wrapped;
+  _WrappedEvent(this.wrapped);
+
+  bool get bubbles => wrapped.bubbles;
+
+  bool get cancelBubble => wrapped.bubbles;
+  void set cancelBubble(bool value) {
+    wrapped.cancelBubble = value;
+  }
+
+  bool get cancelable => wrapped.cancelable;
+
+  DataTransfer get clipboardData => wrapped.clipboardData;
+
+  EventTarget get currentTarget => wrapped.currentTarget;
+
+  bool get defaultPrevented => wrapped.defaultPrevented;
+
+  int get eventPhase => wrapped.eventPhase;
+
+  EventTarget get target => wrapped.target;
+
+  int get timeStamp => wrapped.timeStamp;
+
+  String get type => wrapped.type;
+
+  void _initEvent(String eventTypeArg, bool canBubbleArg,
+      bool cancelableArg) {
+    throw new UnsupportedError(
+        'Cannot initialize this Event.');
+  }
+
+  void preventDefault() {
+    wrapped.preventDefault();
+  }
+
+  void stopImmediatePropagation() {
+    wrapped.stopImmediatePropagation();
+  }
+
+  void stopPropagation() {
+    wrapped.stopPropagation();
+  }
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * A list which just wraps another list, for either intercepting list calls or
+ * retyping the list (for example, from List<A> to List<B> where B extends A).
+ */
+class _WrappedList<E> extends ListBase<E> {
+  final List _list;
+
+  _WrappedList(this._list);
+
+  // Iterable APIs
+
+  Iterator<E> get iterator => new _WrappedIterator(_list.iterator);
+
+  int get length => _list.length;
+
+  // Collection APIs
+
+  void add(E element) { _list.add(element); }
+
+  bool remove(Object element) => _list.remove(element);
+
+  void clear() { _list.clear(); }
+
+  // List APIs
+
+  E operator [](int index) => _list[index];
+
+  void operator []=(int index, E value) { _list[index] = value; }
+
+  void set length(int newLength) { _list.length = newLength; }
+
+  void sort([int compare(E a, E b)]) { _list.sort(compare); }
+
+  int indexOf(Object element, [int start = 0]) => _list.indexOf(element, start);
+
+  int lastIndexOf(Object element, [int start]) => _list.lastIndexOf(element, start);
+
+  void insert(int index, E element) => _list.insert(index, element);
+
+  E removeAt(int index) => _list.removeAt(index);
+
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
+    _list.setRange(start, end, iterable, skipCount);
+  }
+
+  void removeRange(int start, int end) { _list.removeRange(start, end); }
+
+  void replaceRange(int start, int end, Iterable<E> iterable) {
+    _list.replaceRange(start, end, iterable);
+  }
+
+  void fillRange(int start, int end, [E fillValue]) {
+    _list.fillRange(start, end, fillValue);
+  }
+}
+
+/**
+ * Iterator wrapper for _WrappedList.
+ */
+class _WrappedIterator<E> implements Iterator<E> {
+  Iterator _iterator;
+
+  _WrappedIterator(this._iterator);
+
+  bool moveNext() {
+    return _iterator.moveNext();
+  }
+
+  E get current => _iterator.current;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class _HttpRequestUtils {
+
+  // Helper for factory HttpRequest.get
+  static HttpRequest get(String url,
+                            onComplete(HttpRequest request),
+                            bool withCredentials) {
+    final request = new HttpRequest();
+    request.open('GET', url, async: true);
+
+    request.withCredentials = withCredentials;
+
+    request.onReadyStateChange.listen((e) {
+      if (request.readyState == HttpRequest.DONE) {
+        onComplete(request);
+      }
+    });
+
+    request.send();
+
+    return request;
+  }
+}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -33027,6 +34040,147 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
   }
 
   T get current => _current;
+}
+/**
+ * A custom KeyboardEvent that attempts to eliminate cross-browser
+ * inconsistencies, and also provide both keyCode and charCode information
+ * for all key events (when such information can be determined).
+ *
+ * KeyEvent tries to provide a higher level, more polished keyboard event
+ * information on top of the "raw" [KeyboardEvent].
+ *
+ * This class is very much a work in progress, and we'd love to get information
+ * on how we can make this class work with as many international keyboards as
+ * possible. Bugs welcome!
+ */
+
+class KeyEvent extends _WrappedEvent implements KeyboardEvent {
+  /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
+  KeyboardEvent _parent;
+
+  /** The "fixed" value of whether the alt key is being pressed. */
+  bool _shadowAltKey;
+
+  /** Caculated value of what the estimated charCode is for this event. */
+  int _shadowCharCode;
+
+  /** Caculated value of what the estimated keyCode is for this event. */
+  int _shadowKeyCode;
+
+  /** Caculated value of what the estimated keyCode is for this event. */
+  int get keyCode => _shadowKeyCode;
+
+  /** Caculated value of what the estimated charCode is for this event. */
+  int get charCode => this.type == 'keypress' ? _shadowCharCode : 0;
+
+  /** Caculated value of whether the alt key is pressed is for this event. */
+  bool get altKey => _shadowAltKey;
+
+  /** Caculated value of what the estimated keyCode is for this event. */
+  int get which => keyCode;
+
+  /** Accessor to the underlying keyCode value is the parent event. */
+  int get _realKeyCode => _parent.keyCode;
+
+  /** Accessor to the underlying charCode value is the parent event. */
+  int get _realCharCode => _parent.charCode;
+
+  /** Accessor to the underlying altKey value is the parent event. */
+  bool get _realAltKey => _parent.altKey;
+
+  /** Construct a KeyEvent with [parent] as the event we're emulating. */
+  KeyEvent(KeyboardEvent parent): super(parent) {
+    _parent = parent;
+    _shadowAltKey = _realAltKey;
+    _shadowCharCode = _realCharCode;
+    _shadowKeyCode = _realKeyCode;
+  }
+
+  /** Accessor to provide a stream of KeyEvents on the desired target. */
+  static EventStreamProvider<KeyEvent> keyDownEvent =
+    new _KeyboardEventHandler('keydown');
+  /** Accessor to provide a stream of KeyEvents on the desired target. */
+  static EventStreamProvider<KeyEvent> keyUpEvent =
+    new _KeyboardEventHandler('keyup');
+  /** Accessor to provide a stream of KeyEvents on the desired target. */
+  static EventStreamProvider<KeyEvent> keyPressEvent =
+    new _KeyboardEventHandler('keypress');
+
+  /** True if the altGraphKey is pressed during this event. */
+  bool get altGraphKey => _parent.altGraphKey;
+  /** Accessor to the clipboardData available for this event. */
+  DataTransfer get clipboardData => _parent.clipboardData;
+  /** True if the ctrl key is pressed during this event. */
+  bool get ctrlKey => _parent.ctrlKey;
+  int get detail => _parent.detail;
+  /**
+   * Accessor to the part of the keyboard that the key was pressed from (one of
+   * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,
+   * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
+   */
+  int get keyLocation => _parent.keyLocation;
+  Point get layer => _parent.layer;
+  /** True if the Meta (or Mac command) key is pressed during this event. */
+  bool get metaKey => _parent.metaKey;
+  Point get page => _parent.page;
+  /** True if the shift key was pressed during this event. */
+  bool get shiftKey => _parent.shiftKey;
+  Window get view => _parent.view;
+  void _initUIEvent(String type, bool canBubble, bool cancelable,
+      Window view, int detail) {
+    throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
+  }
+  String get _shadowKeyIdentifier => _parent._keyIdentifier;
+
+  int get _charCode => charCode;
+  int get _keyCode => keyCode;
+  String get _keyIdentifier {
+    throw new UnsupportedError("keyIdentifier is unsupported.");
+  }
+  void _initKeyboardEvent(String type, bool canBubble, bool cancelable,
+      Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      bool altKey, bool shiftKey, bool metaKey,
+      bool altGraphKey) {
+    throw new UnsupportedError(
+        "Cannot initialize a KeyboardEvent from a KeyEvent.");
+  }
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class Platform {
+  /**
+   * Returns true if dart:typed_data types are supported on this
+   * browser.  If false, using these types will generate a runtime
+   * error.
+   */
+  static final supportsTypedData = true;
+
+  /**
+   * Returns true if SIMD types in dart:typed_data types are supported
+   * on this browser.  If false, using these types will generate a runtime
+   * error.
+   */
+  static final supportsSimd = true;
+
+  /**
+   * Upgrade all custom elements in the subtree which have not been upgraded.
+   *
+   * This is needed to cover timing scenarios which the custom element polyfill
+   * does not cover.
+   *
+   * This is also a workaround for dartbug.com/12642 in Dartium.
+   */
+  static void upgradeCustomElements(Node node) {
+    // no-op, provided for dart2js polyfill.
+    if (node is Element) {
+      (node as Element).queryAll('*');
+    } else {
+      node.nodes.forEach(upgradeCustomElements);
+    }
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

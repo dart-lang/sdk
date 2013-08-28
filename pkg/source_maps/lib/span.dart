@@ -5,7 +5,6 @@
 /// Dart classes representing the souce spans and source files.
 library source_maps.span;
 
-import 'dart:utf' show stringToCodepoints;
 import 'dart:math' show min, max;
 
 import 'src/utils.dart';
@@ -201,7 +200,7 @@ class SourceFile {
 
   SourceFile.text(this.url, String text)
       : _lineStarts = <int>[0],
-        _decodedChars = stringToCodepoints(text) {
+        _decodedChars = text.runes.toList() {
     for (int i = 0; i < _decodedChars.length; i++) {
       var c = _decodedChars[i];
       if (c == _CR) {

@@ -45,6 +45,8 @@
     'bitmap.cc',
     'bitmap.h',
     'bitmap_test.cc',
+    'block_scheduler.cc',
+    'block_scheduler.h',
     'boolfield.h',
     'boolfield_test.cc',
     'bootstrap.h',

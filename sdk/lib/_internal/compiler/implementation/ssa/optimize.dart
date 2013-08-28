@@ -293,10 +293,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
             target = backend.jsStringSplit;
           }
         } else if (selector.applies(backend.jsStringConcat, compiler)) {
-          if (node.inputs[2].isString(compiler)) {
+          // `concat` is turned into a JavaScript '+' so we need to
+          // make sure the receiver is not null.
+          if (node.inputs[2].isString(compiler) && !input.canBeNull()) {
             target = backend.jsStringConcat;
           }
-        } else if (selector.applies(backend.jsStringToString, compiler)) {
+        } else if (selector.applies(backend.jsStringToString, compiler)
+                   && !input.canBeNull()) {
           return input;
         }
       }

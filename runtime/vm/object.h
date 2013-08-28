@@ -817,24 +817,24 @@ class Class : public Object {
   bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
                    const Class& other,
                    const AbstractTypeArguments& other_type_arguments,
-                   Error* malformed_error) const {
+                   Error* bound_error) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
                     other,
                     other_type_arguments,
-                    malformed_error);
+                    bound_error);
   }
 
   // Check the 'more specific' relationship.
   bool IsMoreSpecificThan(const AbstractTypeArguments& type_arguments,
                           const Class& other,
                           const AbstractTypeArguments& other_type_arguments,
-                          Error* malformed_error) const {
+                          Error* bound_error) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
                     other,
                     other_type_arguments,
-                    malformed_error);
+                    bound_error);
   }
 
   // Check if this is the top level class.
@@ -949,6 +949,11 @@ class Class : public Object {
   // Return true on success, or false and error otherwise.
   bool ApplyPatch(const Class& patch, Error* error) const;
 
+  // Evaluate the given expression as if it appeared in a static
+  // method of this class and return the resulting value, or an
+  // error object if evaluating the expression fails.
+  RawObject* Evaluate(const String& expr) const;
+
   RawError* EnsureIsFinalized(Isolate* isolate) const;
 
   // Allocate a class used for VM internal objects.
@@ -1062,7 +1067,7 @@ class Class : public Object {
                 const AbstractTypeArguments& type_arguments,
                 const Class& other,
                 const AbstractTypeArguments& other_type_arguments,
-                Error* malformed_error) const;
+                Error* bound_error) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class AbstractType;
@@ -1116,10 +1121,10 @@ class AbstractTypeArguments : public Object {
   // not refer to type parameters. Otherwise, return a new type argument vector
   // where each reference to a type parameter is replaced with the corresponding
   // type of the instantiator type argument vector.
-  // If malformed_error is not NULL, it may be set to reflect a bound error.
+  // If bound_error is not NULL, it may be set to reflect a bound error.
   virtual RawAbstractTypeArguments* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
-      Error* malformed_error) const;
+      Error* bound_error) const;
 
   // Do not canonicalize InstantiatedTypeArguments or NULL objects
   virtual RawAbstractTypeArguments* Canonicalize() const { return this->raw(); }
@@ -1152,16 +1157,16 @@ class AbstractTypeArguments : public Object {
   // Check the subtype relationship, considering only a prefix of length 'len'.
   bool IsSubtypeOf(const AbstractTypeArguments& other,
                    intptr_t len,
-                   Error* malformed_error) const {
-    return TypeTest(kIsSubtypeOf, other, len, malformed_error);
+                   Error* bound_error) const {
+    return TypeTest(kIsSubtypeOf, other, len, bound_error);
   }
 
   // Check the 'more specific' relationship, considering only a prefix of
   // length 'len'.
   bool IsMoreSpecificThan(const AbstractTypeArguments& other,
                           intptr_t len,
-                          Error* malformed_error) const {
-    return TypeTest(kIsMoreSpecificThan, other, len, malformed_error);
+                          Error* bound_error) const {
+    return TypeTest(kIsMoreSpecificThan, other, len, bound_error);
   }
 
   bool Equals(const AbstractTypeArguments& other) const;
@@ -1191,7 +1196,7 @@ class AbstractTypeArguments : public Object {
   bool TypeTest(TypeTestKind test_kind,
                 const AbstractTypeArguments& other,
                 intptr_t len,
-                Error* malformed_error) const;
+                Error* bound_error) const;
 
   // Return the internal or public name of a subvector of this type argument
   // vector, e.g. "<T, dynamic, List<T>, int>".
@@ -1226,7 +1231,7 @@ class TypeArguments : public AbstractTypeArguments {
 
   virtual RawAbstractTypeArguments* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
-      Error* malformed_error) const;
+      Error* bound_error) const;
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
@@ -1672,19 +1677,19 @@ class Function : public Object {
   // parameters of the other function in order for this function to override the
   // other function.
   bool HasCompatibleParametersWith(const Function& other,
-                                   Error* malformed_error) const;
+                                   Error* bound_error) const;
 
   // Returns true if the type of this function is a subtype of the type of
   // the other function.
   bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
                    const Function& other,
                    const AbstractTypeArguments& other_type_arguments,
-                   Error* malformed_error) const {
+                   Error* bound_error) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
                     other,
                     other_type_arguments,
-                    malformed_error);
+                    bound_error);
   }
 
   // Returns true if the type of this function is more specific than the type of
@@ -1692,12 +1697,12 @@ class Function : public Object {
   bool IsMoreSpecificThan(const AbstractTypeArguments& type_arguments,
                           const Function& other,
                           const AbstractTypeArguments& other_type_arguments,
-                          Error* malformed_error) const {
+                          Error* bound_error) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
                     other,
                     other_type_arguments,
-                    malformed_error);
+                    bound_error);
   }
 
   // Returns true if this function represents an explicit getter function.
@@ -1844,7 +1849,7 @@ class Function : public Object {
                 const AbstractTypeArguments& type_arguments,
                 const Function& other,
                 const AbstractTypeArguments& other_type_arguments,
-                Error* malformed_error) const;
+                Error* bound_error) const;
 
   // Checks the type of the formal parameter at the given position for
   // subtyping or 'more specific' relationship between the type of this function
@@ -1855,7 +1860,7 @@ class Function : public Object {
                          const AbstractTypeArguments& type_arguments,
                          const Function& other,
                          const AbstractTypeArguments& other_type_arguments,
-                         Error* malformed_error) const;
+                         Error* bound_error) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
@@ -3701,7 +3706,7 @@ class Instance : public Object {
   // Check if the type of this instance is a subtype of the given type.
   bool IsInstanceOf(const AbstractType& type,
                     const AbstractTypeArguments& type_instantiator,
-                    Error* malformed_error) const;
+                    Error* bound_error) const;
 
   bool IsValidNativeIndex(int index) const {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
@@ -3761,6 +3766,8 @@ class AbstractType : public Instance {
   virtual bool IsFinalized() const;
   virtual bool IsBeingFinalized() const;
   virtual bool IsMalformed() const;
+  virtual bool IsMalbounded() const { return IsMalboundedWithError(NULL); }
+  virtual bool IsMalboundedWithError(Error* bound_error) const;
   virtual RawError* malformed_error() const;
   virtual void set_malformed_error(const Error& value) const;
   virtual bool IsResolved() const;
@@ -3774,10 +3781,10 @@ class AbstractType : public Instance {
 
   // Instantiate this type using the given type argument vector.
   // Return a new type, or return 'this' if it is already instantiated.
-  // If malformed_error is not NULL, it may be set to reflect a bound error.
+  // If bound_error is not NULL, it may be set to reflect a bound error.
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
-      Error* malformed_error) const;
+      Error* bound_error) const;
 
   virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
     return Canonicalize();
@@ -3846,21 +3853,21 @@ class AbstractType : public Instance {
   bool IsFunctionType() const;
 
   // Check the subtype relationship.
-  bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const {
-    return TypeTest(kIsSubtypeOf, other, malformed_error);
+  bool IsSubtypeOf(const AbstractType& other, Error* bound_error) const {
+    return TypeTest(kIsSubtypeOf, other, bound_error);
   }
 
   // Check the 'more specific' relationship.
   bool IsMoreSpecificThan(const AbstractType& other,
-                          Error* malformed_error) const {
-    return TypeTest(kIsMoreSpecificThan, other, malformed_error);
+                          Error* bound_error) const {
+    return TypeTest(kIsMoreSpecificThan, other, bound_error);
   }
 
  private:
   // Check the subtype or 'more specific' relationship.
   bool TypeTest(TypeTestKind test_kind,
                 const AbstractType& other,
-                Error* malformed_error) const;
+                Error* bound_error) const;
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.
@@ -3898,6 +3905,8 @@ class Type : public AbstractType {
   }
   void set_is_being_finalized() const;
   virtual bool IsMalformed() const;
+  virtual bool IsMalbounded() const { return IsMalboundedWithError(NULL); }
+  virtual bool IsMalboundedWithError(Error* bound_error) const;
   virtual RawError* malformed_error() const;
   virtual void set_malformed_error(const Error& value) const;
   virtual bool IsResolved() const;  // Class and all arguments classes resolved.
@@ -4005,6 +4014,8 @@ class TypeParameter : public AbstractType {
   void set_is_finalized() const;
   virtual bool IsBeingFinalized() const { return false; }
   virtual bool IsMalformed() const { return false; }
+  virtual bool IsMalbounded() const { return false; }
+  virtual bool IsMalboundedWithError(Error* bound_error) const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return false; }
   RawClass* parameterized_class() const {
@@ -4016,16 +4027,16 @@ class TypeParameter : public AbstractType {
   RawAbstractType* bound() const { return raw_ptr()->bound_; }
   void set_bound(const AbstractType& value) const;
   // Returns true if bounded_type is below upper_bound, otherwise return false
-  // and set malformed_error if not NULL.
+  // and set bound_error if not NULL.
   bool CheckBound(const AbstractType& bounded_type,
                   const AbstractType& upper_bound,
-                  Error* malformed_error) const;
+                  Error* bound_error) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated() const { return false; }
   virtual bool Equals(const Instance& other) const;
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
-      Error* malformed_error) const;
+      Error* bound_error) const;
   virtual RawAbstractType* Canonicalize() const { return raw(); }
 
   virtual intptr_t Hash() const;
@@ -4067,6 +4078,8 @@ class BoundedType : public AbstractType {
     return AbstractType::Handle(type()).IsBeingFinalized();
   }
   virtual bool IsMalformed() const;
+  virtual bool IsMalbounded() const { return IsMalboundedWithError(NULL); }
+  virtual bool IsMalboundedWithError(Error* bound_error) const;
   virtual RawError* malformed_error() const;
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const {
@@ -4095,7 +4108,7 @@ class BoundedType : public AbstractType {
   virtual bool Equals(const Instance& other) const;
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
-      Error* malformed_error) const;
+      Error* bound_error) const;
   virtual RawAbstractType* Canonicalize() const { return raw(); }
 
   virtual intptr_t Hash() const;
@@ -4134,7 +4147,9 @@ class MixinAppType : public AbstractType {
  public:
   // MixinAppType objects are replaced with their actual finalized type.
   virtual bool IsFinalized() const { return false; }
+  // TODO(regis): Handle malformed and malbounded MixinAppType.
   virtual bool IsMalformed() const { return false; }
+  virtual bool IsMalbounded() const { return false; }
   virtual bool IsResolved() const { return false; }
   virtual bool HasResolvedTypeClass() const { return false; }
   virtual RawString* Name() const;
@@ -5086,8 +5101,8 @@ class Bool : public Instance {
     return Object::bool_false();
   }
 
-  static RawBool* Get(bool value) {
-    return value ? Bool::True().raw() : Bool::False().raw();
+  static const Bool& Get(bool value) {
+    return value ? Bool::True() : Bool::False();
   }
 
  private:

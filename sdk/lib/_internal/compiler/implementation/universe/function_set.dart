@@ -172,7 +172,8 @@ class FunctionSetNode {
     // If we cannot ensure a method will be found at runtime, we also
     // add [noSuchMethod] implementations that apply to [mask] as
     // potential targets.
-    if (noSuchMethods != null && !mask.willHit(selector, compiler)) {
+    if (noSuchMethods != null
+        && mask.needsNoSuchMethodHandling(selector, compiler)) {
       FunctionSetQuery noSuchMethodQuery = noSuchMethods.query(
           new TypedSelector(mask, compiler.noSuchMethodSelector),
           compiler,

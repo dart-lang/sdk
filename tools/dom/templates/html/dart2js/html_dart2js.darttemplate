@@ -46,27 +46,30 @@ part '$AUXILIARY_DIR/CssRectangle.dart';
 part '$AUXILIARY_DIR/Dimension.dart';
 part '$AUXILIARY_DIR/EventListener.dart';
 part '$AUXILIARY_DIR/EventStreamProvider.dart';
+part '$AUXILIARY_DIR/Html5NodeValidator.dart';
 part '$AUXILIARY_DIR/ImmutableListMixin.dart';
-part '$AUXILIARY_DIR/KeyboardEventStream.dart';
+part '$AUXILIARY_DIR/Isolates.dart';
 part '$AUXILIARY_DIR/KeyCode.dart';
 part '$AUXILIARY_DIR/KeyLocation.dart';
 part '$AUXILIARY_DIR/KeyName.dart';
+part '$AUXILIARY_DIR/KeyboardEventStream.dart';
+part '$AUXILIARY_DIR/Microtask.dart';
+part '$AUXILIARY_DIR/NodeValidatorBuilder.dart';
 part '$AUXILIARY_DIR/Point.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
 part '$AUXILIARY_DIR/Rectangle.dart';
-part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
-part '$AUXILIARY_DIR/Isolates.dart';
-part '$AUXILIARY_DIR/Microtask.dart';
 part '$AUXILIARY_DIR/Serialization.dart';
 part '$AUXILIARY_DIR/WrappedEvent.dart';
 part '$AUXILIARY_DIR/WrappedList.dart';
+part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
+part '$AUXILIARY_DIR/_ListIterators.dart';
 part '$AUXILIARY_DIR/dart2js_Conversions.dart';
 part '$AUXILIARY_DIR/dart2js_CustomElementSupport.dart';
 part '$AUXILIARY_DIR/dart2js_DOMImplementation.dart';
 part '$AUXILIARY_DIR/dart2js_KeyEvent.dart';
 part '$AUXILIARY_DIR/dart2js_LocationWrapper.dart';
 part '$AUXILIARY_DIR/dart2js_Platform.dart';
-part '$AUXILIARY_DIR/_ListIterators.dart';
+part '$AUXILIARY_DIR/Validators.dart';
 
 
 /**

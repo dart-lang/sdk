@@ -8,6 +8,7 @@
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/object_store.h"
+#include "vm/parser.h"
 #include "vm/port.h"
 #include "vm/symbols.h"
 
@@ -28,6 +29,74 @@ static RawInstance* CreateMirror(const String& mirror_class_name,
 }
 
 
+// Note a "raw type" is not the same as a RawType.
+static RawAbstractType* RawTypeOfClass(const Class& cls) {
+  Type& type = Type::Handle(Type::New(cls,
+                                      Object::null_abstract_type_arguments(),
+                                      Scanner::kDummyTokenIndex));
+  return ClassFinalizer::FinalizeType(cls, type, ClassFinalizer::kCanonicalize);
+}
+
+
+static void ThrowMirroredCompilationError(const String& message) {
+  Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, message);
+
+  Exceptions::ThrowByType(Exceptions::kMirroredCompilationError, args);
+  UNREACHABLE();
+}
+
+
+static void ThrowInvokeError(const Error& error) {
+  if (error.IsLanguageError()) {
+    // A compilation error that was delayed by lazy compilation.
+    const LanguageError& compilation_error = LanguageError::Cast(error);
+    String& message = String::Handle(compilation_error.message());
+    ThrowMirroredCompilationError(message);
+    UNREACHABLE();
+  }
+  Exceptions::PropagateError(error);
+  UNREACHABLE();
+}
+
+
+// Conventions:
+// * For throwing a NSM in a class klass we use its runtime type as receiver,
+//   i.e., RawTypeOfClass(klass).
+// * For throwing a NSM in a library, we just pass the null instance as
+//   receiver.
+static void ThrowNoSuchMethod(const Instance& receiver,
+                              const String& function_name,
+                              const Function& function,
+                              const InvocationMirror::Call call,
+                              const InvocationMirror::Type type) {
+  const Smi& invocation_type = Smi::Handle(Smi::New(
+      InvocationMirror::EncodeType(call, type)));
+
+  const Array& args = Array::Handle(Array::New(6));
+  args.SetAt(0, receiver);
+  args.SetAt(1, function_name);
+  args.SetAt(2, invocation_type);
+  // Parameter 3 (actual arguments): We omit this parameter to get the same
+  // error message as one would get by invoking the function non-reflectively.
+  // Parameter 4 (named arguments): We omit this parameters since we cannot
+  // invoke functions with named parameters reflectively (using mirrors).
+  if (!function.IsNull()) {
+    const int total_num_parameters = function.NumParameters();
+    const Array& array = Array::Handle(Array::New(total_num_parameters));
+    String& param_name = String::Handle();
+    for (int i = 0; i < total_num_parameters; i++) {
+      param_name = function.ParameterNameAt(i);
+      array.SetAt(i, param_name);
+    }
+    args.SetAt(5, array);
+  }
+
+  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
+  UNREACHABLE();
+}
+
+
 DEFINE_NATIVE_ENTRY(Mirrors_isLocalPort, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, port, arguments->NativeArgAt(0));
 
@@ -41,7 +110,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_isLocalPort, 1) {
   Integer& id = Integer::Handle();
   id ^= id_obj.raw();
   Dart_Port port_id = static_cast<Dart_Port>(id.AsInt64Value());
-  return Bool::Get(PortMap::IsLocalPort(port_id));
+  return Bool::Get(PortMap::IsLocalPort(port_id)).raw();
 }
 
 
@@ -56,21 +125,51 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
   const intptr_t index_of_first_named_param =
       non_implicit_param_count - func.NumOptionalNamedParameters();
   const Array& results = Array::Handle(Array::New(non_implicit_param_count));
-  const Array& args = Array::Handle(Array::New(6));
-  args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
-  args.SetAt(2, owner_mirror);
+  const Array& args = Array::Handle(Array::New(8));
+
+  // Return for synthetic functions and getters.
+  if (func.IsGetterFunction() ||
+      func.IsImplicitConstructor() ||
+      func.IsImplicitGetterFunction() ||
+      func.IsImplicitSetterFunction()) {
+    return results.raw();
+  }
+
   Smi& pos = Smi::Handle();
   String& name = String::Handle();
   Instance& param = Instance::Handle();
+  Bool& is_final = Bool::Handle();
+  Object& default_value = Object::Handle();
+
+  // Reparse the function for the following information:
+  // * The default value of a parameter.
+  // * Whether a parameters has been deflared as final.
+  const Object& result = Object::Handle(Parser::ParseFunctionParameters(func));
+  if (result.IsError()) {
+    ThrowInvokeError(Error::Cast(result));
+    UNREACHABLE();
+  }
+
+  args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
+  args.SetAt(2, owner_mirror);
+
+  const Array& param_descriptor = Array::Cast(result);
+  ASSERT(param_descriptor.Length() == (2 * non_implicit_param_count));
   for (intptr_t i = 0; i < non_implicit_param_count; i++) {
     pos ^= Smi::New(i);
     name ^= func.ParameterNameAt(implicit_param_count + i);
+    is_final ^= param_descriptor.At(i * 2);
+    default_value = param_descriptor.At(i * 2 + 1);
+    ASSERT(default_value.IsNull() || default_value.IsInstance());
+
+    // Arguments 0 (referent) and 2 (owner) are the same for all parameters. See
+    // above.
     args.SetAt(1, name);
     args.SetAt(3, pos);
-    args.SetAt(4, (i >= index_of_first_optional_param) ?
-        Bool::True() : Bool::False());
-    args.SetAt(5, (i >= index_of_first_named_param) ?
-        Bool::True() : Bool::False());
+    args.SetAt(4, Bool::Get(i >= index_of_first_optional_param));
+    args.SetAt(5, Bool::Get(i >= index_of_first_named_param));
+    args.SetAt(6, is_final);
+    args.SetAt(7, default_value);
     param ^= CreateMirror(Symbols::_LocalParameterMirrorImpl(), args);
     results.SetAt(i, param);
   }
@@ -135,11 +234,11 @@ static RawInstance* CreateMethodMirror(const Function& func,
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
   args.SetAt(1, String::Handle(func.UserVisibleName()));
   args.SetAt(2, owner_mirror);
-  args.SetAt(3, func.is_static() ? Bool::True() : Bool::False());
-  args.SetAt(4, func.is_abstract() ? Bool::True() : Bool::False());
-  args.SetAt(5, func.IsGetterFunction() ? Bool::True() : Bool::False());
-  args.SetAt(6, func.IsSetterFunction() ? Bool::True() : Bool::False());
-  args.SetAt(7, func.IsConstructor() ? Bool::True() : Bool::False());
+  args.SetAt(3, Bool::Get(func.is_static()));
+  args.SetAt(4, Bool::Get(func.is_abstract()));
+  args.SetAt(5, Bool::Get(func.IsGetterFunction()));
+  args.SetAt(6, Bool::Get(func.IsSetterFunction()));
+  args.SetAt(7, Bool::Get(func.IsConstructor()));
   // TODO(mlippautz): Implement different constructor kinds.
   args.SetAt(8, Bool::False());
   args.SetAt(9, Bool::False());
@@ -161,8 +260,8 @@ static RawInstance* CreateVariableMirror(const Field& field,
   args.SetAt(1, name);
   args.SetAt(2, owner_mirror);
   args.SetAt(3, Instance::Handle());  // Null for type.
-  args.SetAt(4, field.is_static() ? Bool::True() : Bool::False());
-  args.SetAt(5, field.is_final()  ? Bool::True() : Bool::False());
+  args.SetAt(4, Bool::Get(field.is_static()));
+  args.SetAt(5, Bool::Get(field.is_final()));
 
   return CreateMirror(Symbols::_LocalVariableMirrorImpl(), args);
 }
@@ -199,8 +298,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
     }
   }
 
-  const Bool& is_generic =
-      (cls.NumTypeParameters() == 0) ? Bool::False() : Bool::True();
+  const Bool& is_generic = Bool::Get(cls.NumTypeParameters() != 0);
 
   const Array& args = Array::Handle(Array::New(4));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
@@ -208,15 +306,6 @@ static RawInstance* CreateClassMirror(const Class& cls,
   args.SetAt(2, String::Handle(cls.UserVisibleName()));
   args.SetAt(3, is_generic);
   return CreateMirror(Symbols::_LocalClassMirrorImpl(), args);
-}
-
-
-// Note a "raw type" is not the same as a RawType.
-static RawAbstractType* RawTypeOfClass(const Class& cls) {
-  Type& type = Type::Handle(Type::New(cls,
-                                      Object::null_abstract_type_arguments(),
-                                      Scanner::kDummyTokenIndex));
-  return ClassFinalizer::FinalizeType(cls, type, ClassFinalizer::kCanonicalize);
 }
 
 
@@ -332,32 +421,10 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirror, 1) {
 }
 
 
-static void ThrowMirroredCompilationError(const String& message) {
-  Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, message);
-
-  Exceptions::ThrowByType(Exceptions::kMirroredCompilationError, args);
-  UNREACHABLE();
-}
-
-
-static void ThrowInvokeError(const Error& error) {
-  if (error.IsLanguageError()) {
-    // A compilation error that was delayed by lazy compilation.
-    const LanguageError& compilation_error = LanguageError::Cast(error);
-    String& message = String::Handle(compilation_error.message());
-    ThrowMirroredCompilationError(message);
-    UNREACHABLE();
-  }
-  Exceptions::PropagateError(error);
-  UNREACHABLE();
-}
-
-
 DEFINE_NATIVE_ENTRY(MirrorReference_equals, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, a, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, b, arguments->NativeArgAt(1));
-  return Bool::Get(a.referent() == b.referent());
+  return Bool::Get(a.referent() == b.referent()).raw();
 }
 
 
@@ -849,64 +916,6 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
 }
 
 
-static void ThrowNoSuchMethod(const Instance& receiver,
-                              const String& function_name,
-                              const Function& function,
-                              const InvocationMirror::Call call,
-                              const InvocationMirror::Type type) {
-  const Smi& invocation_type = Smi::Handle(Smi::New(
-      InvocationMirror::EncodeType(call, type)));
-
-  const Array& args = Array::Handle(Array::New(6));
-  args.SetAt(0, receiver);
-  args.SetAt(1, function_name);
-  args.SetAt(2, invocation_type);
-  if (!function.IsNull()) {
-    const int total_num_parameters = function.NumParameters();
-    const Array& array = Array::Handle(Array::New(total_num_parameters));
-    String& param_name = String::Handle();
-    for (int i = 0; i < total_num_parameters; i++) {
-      param_name = function.ParameterNameAt(i);
-      array.SetAt(i, param_name);
-    }
-    args.SetAt(5, array);
-  }
-
-  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
-  UNREACHABLE();
-}
-
-
-static void ThrowNoSuchMethod(const Class& klass,
-                              const String& function_name,
-                              const Function& function,
-                              const InvocationMirror::Call call,
-                              const InvocationMirror::Type type) {
-  AbstractType& runtime_type = AbstractType::Handle(RawTypeOfClass(klass));
-
-  ThrowNoSuchMethod(runtime_type,
-                    function_name,
-                    function,
-                    call,
-                    type);
-  UNREACHABLE();
-}
-
-
-static void ThrowNoSuchMethod(const Library& library,
-                              const String& function_name,
-                              const Function& function,
-                              const InvocationMirror::Call call,
-                              const InvocationMirror::Type type) {
-  ThrowNoSuchMethod(Instance::null_instance(),
-                    function_name,
-                    function,
-                    call,
-                    type);
-  UNREACHABLE();
-}
-
-
 DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 4) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
@@ -928,7 +937,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 4) {
                                        /* named_args */ 0,
                                        NULL) ||
       !function.is_visible()) {
-    ThrowNoSuchMethod(klass,
+    ThrowNoSuchMethod(AbstractType::Handle(RawTypeOfClass(klass)),
                       function_name,
                       function,
                       InvocationMirror::kStatic,
@@ -963,7 +972,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 3) {
         klass.LookupStaticFunctionAllowPrivate(internal_getter_name));
 
     if (getter.IsNull() || !getter.is_visible()) {
-      ThrowNoSuchMethod(klass,
+      ThrowNoSuchMethod(AbstractType::Handle(RawTypeOfClass(klass)),
                         getter_name,
                         getter,
                         InvocationMirror::kStatic,
@@ -1002,7 +1011,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
       klass.LookupStaticFunctionAllowPrivate(internal_setter_name));
 
     if (setter.IsNull() || !setter.is_visible()) {
-      ThrowNoSuchMethod(klass,
+      ThrowNoSuchMethod(AbstractType::Handle(RawTypeOfClass(klass)),
                         setter_name,
                         setter,
                         InvocationMirror::kStatic,
@@ -1073,7 +1082,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 3) {
     // Pretend we didn't find the constructor at all when the arity is wrong
     // so as to produce the same NoSuchMethodError as the non-reflective case.
     constructor = Function::null();
-    ThrowNoSuchMethod(klass,
+    ThrowNoSuchMethod(AbstractType::Handle(RawTypeOfClass(klass)),
                       internal_constructor_name,
                       constructor,
                       InvocationMirror::kConstructor,
@@ -1122,7 +1131,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 4) {
                                       0,
                                       NULL) ||
      !function.is_visible()) {
-    ThrowNoSuchMethod(library,
+    ThrowNoSuchMethod(Instance::null_instance(),
                       function_name,
                       function,
                       InvocationMirror::kTopLevel,
@@ -1183,7 +1192,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
     return field.value();
   }
   if (ambiguity_error_msg.IsNull()) {
-    ThrowNoSuchMethod(library,
+    ThrowNoSuchMethod(Instance::null_instance(),
                       getter_name,
                       getter,
                       InvocationMirror::kTopLevel,
@@ -1220,7 +1229,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
                                            &ambiguity_error_msg));
     if (setter.IsNull() || !setter.is_visible()) {
       if (ambiguity_error_msg.IsNull()) {
-        ThrowNoSuchMethod(library,
+        ThrowNoSuchMethod(Instance::null_instance(),
                           setter_name,
                           setter,
                           InvocationMirror::kTopLevel,
@@ -1289,6 +1298,35 @@ DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 1) {
   // We handle constructors in Dart code.
   ASSERT(!func.IsConstructor());
   return func.result_type();
+}
+
+
+DEFINE_NATIVE_ENTRY(MethodMirror_source, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Function& func = Function::Handle(ref.GetFunctionReferent());
+  const Script& script = Script::Handle(func.script());
+  const TokenStream& stream = TokenStream::Handle(script.tokens());
+  const TokenStream::Iterator tkit(stream, func.end_token_pos());
+  intptr_t from_line;
+  intptr_t from_col;
+  intptr_t to_line;
+  intptr_t to_col;
+  script.GetTokenLocation(func.token_pos(), &from_line, &from_col);
+  script.GetTokenLocation(func.end_token_pos(), &to_line, &to_col);
+  intptr_t last_tok_len = String::Handle(tkit.CurrentLiteral()).Length();
+  // Handle special cases for end tokens of closures (where we exclude the last
+  // token):
+  // (1) "foo(() => null, bar);": End token is `,', but we don't print it.
+  // (2) "foo(() => null);": End token is ')`, but we don't print it.
+  // (3) "var foo = () => null;": End token is `;', but in this case the token
+  // semicolon belongs to the assignment so we skip it.
+  if ((tkit.CurrentTokenKind() == Token::kCOMMA) ||                   // Case 1.
+      (tkit.CurrentTokenKind() == Token::kRPAREN) ||                  // Case 2.
+      (tkit.CurrentTokenKind() == Token::kSEMICOLON &&
+       String::Handle(func.name()).Equals("<anonymous closure>"))) {  // Case 3.
+    last_tok_len = 0;
+  }
+  return script.GetSnippet(from_line, from_col, to_line, to_col + last_tok_len);
 }
 
 

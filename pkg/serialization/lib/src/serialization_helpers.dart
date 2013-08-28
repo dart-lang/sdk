@@ -9,6 +9,8 @@
  */
 library serialization_helpers;
 
+import 'dart:collection';
+
 /**
  * A named function of one argument that just returns it. Useful for using
  * as a default value for a function parameter or other places where you want
@@ -180,82 +182,60 @@ class _Sentinel {
 }
 
 /**
- * This provides an identity map which also allows true, false, and null
- * as valid keys. In the interests of avoiding duplicating map code, and
- * because hashCode for arbitrary objects is currently very slow on the VM,
- * just do a linear lookup.
+ * This is used in the implementation of [IdentityMap]. We wrap all the keys
+ * in an [_IdentityMapKey] that compares using the identity of the wrapped
+ * objects. It also treats equal primitive values as identical
+ * to conserve space.
  */
-class IdentityMap<K, V> implements Map<K, V> {
+class _IdentityMapKey {
+  _IdentityMapKey(this._value);
+  var _value;
 
-  final List<K> keys = <K>[];
-  final List<V> values = <V>[];
+  /**
+   * Check if an object is primitive to know if we should compare it using
+   * equality or identity. We don't test null/true/false where it's the same.
+   */
+  _isPrimitive(x) => x is String || x is num;
 
-  V operator [](Object key) {
-    var index =  _indexOf(key);
-    return (index == -1) ? null : values[index];
+  operator ==(_IdentityMapKey w) =>
+      _isPrimitive(_value) ? _value == w._value : identical(_value, w._value);
+  get hashCode => _value.hashCode;
+  get object => _value;
+}
+
+/**
+ * This provides an identity map. We wrap all the objects in
+ * an [_IdentityMapKey] that compares using the identity of the
+ * wrapped objects. It also treats equal primitive values as identical
+ * to conserve space.
+ */
+class IdentityMap<K, V> extends HashMap<K, V> {
+// TODO(alanknight): Replace with a system identity-based map once
+// one is available. Issue 4161.
+
+  // Check before wrapping because some methods may call others, e.g. on
+  // dart2js putIfAbsent calls containsKey, so without this we wrap forever.
+  _wrap(Object key) =>
+      (key is _IdentityMapKey) ? key : new _IdentityMapKey(key);
+  _unwrap(_IdentityMapKey wrapper) => wrapper.object;
+
+  Iterable<K> get keys => super.keys.map((x) => _unwrap(x));
+  Iterable<V> get values => super.values;
+
+  void forEach(void f(K key, V value)) {
+    super.forEach((k, v) => f(_unwrap(k), v));
   }
+
+  V operator [](K key) => super[_wrap(key)];
 
   void operator []=(K key, V value) {
-    var index = _indexOf(key);
-    if (index == -1) {
-      keys.add(key);
-      values.add(value);
-    } else {
-      values[index] = value;
-    }
+      super[_wrap(key)] = value;
   }
 
-  V putIfAbsent(K key, Function ifAbsent) {
-    var index = _indexOf(key);
-    if (index == -1) {
-      keys.add(key);
-      values.add(ifAbsent());
-      return values.last;
-    } else {
-      return values[index];
-    }
-  }
+  V putIfAbsent(K key, Function ifAbsent) =>
+      super.putIfAbsent(_wrap(key), ifAbsent);
 
-  int _indexOf(Object key) {
-    // Go backwards on the guess that we are most likely to access the most
-    // recently added.
-    // Make strings and primitives unique
-    var compareEquality = isPrimitive(key);
-    for (var i = keys.length - 1; i >= 0; i--) {
-      var equal = compareEquality ? key == keys[i] : identical(key, keys[i]);
-      if (equal) return i;
-    }
-    return -1;
-  }
+  bool containsKey(Object key) => super.containsKey(_wrap(key));
 
-  bool containsKey(Object key) => _indexOf(key) != -1;
-  void forEach(f(K key, V value)) {
-    for (var i = 0; i < keys.length; i++) {
-      f(keys[i], values[i]);
-    }
-  }
-
-  V remove(Object key) {
-    var index = _indexOf(key);
-    if (index == -1) return null;
-    keys.removeAt(index);
-    return values.removeAt(index);
-  }
-
-  int get length => keys.length;
-  void clear() {
-    keys.clear();
-    values.clear();
-  }
-  bool get isEmpty => keys.isEmpty;
-  bool get isNotEmpty => !isEmpty;
-
-  // Note that this is doing an equality comparison.
-  bool containsValue(Object x) => values.contains(x);
-
-  void addAll(Map<K, V> other) {
-    other.forEach((K key, V value) {
-      this[key] = value;
-    });
-  }
+  V remove(Object key) => super.remove(_wrap(key));
 }

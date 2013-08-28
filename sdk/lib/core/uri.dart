@@ -158,7 +158,7 @@ class Uri {
        this.host: "",
        port: 0,
        String path,
-       List<String> pathSegments,
+       Iterable<String> pathSegments,
        String query,
        Map<String, String> queryParameters,
        fragment: ""}) :
@@ -501,7 +501,7 @@ class Uri {
     return allLowercase ? scheme : scheme.toLowerCase();
   }
 
-  String _makePath(String path, List<String> pathSegments) {
+  String _makePath(String path, Iterable<String> pathSegments) {
     if (path == null && pathSegments == null) return "";
     if (path != null && pathSegments != null) {
       throw new ArgumentError('Both path and pathSegments specified');

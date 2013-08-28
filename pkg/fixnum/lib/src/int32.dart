@@ -45,7 +45,7 @@ class Int32 implements IntX {
   static const int _CC_A = 65; // 'A'.codeUnitAt(0)
   static const int _CC_Z = 90; // 'Z'.codeUnitAt(0)
 
-  static int _decodeHex(int c) {
+  static int _decodeDigit(int c) {
     if (c >= _CC_0 && c <= _CC_9) {
       return c - _CC_0;
     } else if (c >= _CC_a && c <= _CC_z) {
@@ -69,7 +69,7 @@ class Int32 implements IntX {
     Int32 x = ZERO;
     for (int i = 0; i < s.length; i++) {
       int c = s.codeUnitAt(i);
-      int digit = _decodeHex(c);
+      int digit = _decodeDigit(c);
       if (digit < 0 || digit >= radix) {
         throw new Exception("Non-radix code unit: $c");
       }

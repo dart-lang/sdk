@@ -26,9 +26,9 @@ class Int64 implements IntX {
   static const int _BITS01 = 44; // 2 * _BITS
   static const int _BITS2 = 20; // 64 - _BITS01
   static const int _MASK = 4194303; // (1 << _BITS) - 1
-  static const int _MASK_2 = 1048575; // (1 << _BITS2) - 1
+  static const int _MASK2 = 1048575; // (1 << _BITS2) - 1
   static const int _SIGN_BIT = 19; // _BITS2 - 1
-  static const int _SIGN_BIT_VALUE = 524288; // 1 << _SIGN_BIT
+  static const int _SIGN_BIT_MASK = 524288; // 1 << _SIGN_BIT
 
   // Cached constants
   static Int64 _MAX_VALUE;
@@ -36,27 +36,6 @@ class Int64 implements IntX {
   static Int64 _ZERO;
   static Int64 _ONE;
   static Int64 _TWO;
-
-  // Precompute the radix strings for MIN_VALUE to avoid the problem
-  // of overflow of -MIN_VALUE.
-  static List<String> _minValues = const <String>[
-      null, null,
-      "-1000000000000000000000000000000000000000000000000000000000000000", // 2
-      "-2021110011022210012102010021220101220222", // base 3
-      "-20000000000000000000000000000000", // base 4
-      "-1104332401304422434310311213", // base 5
-      "-1540241003031030222122212", // base 6
-      "-22341010611245052052301", // base 7
-      "-1000000000000000000000", // base 8
-      "-67404283172107811828", // base 9
-      "-9223372036854775808", // base 10
-      "-1728002635214590698", // base 11
-      "-41A792678515120368", // base 12
-      "-10B269549075433C38", // base 13
-      "-4340724C6C71DC7A8", // base 14
-      "-160E2AD3246366808", // base 15
-      "-8000000000000000" // base 16
-  ];
 
   // The remainder of the last divide operation.
   static Int64 _remainder;
@@ -67,7 +46,7 @@ class Int64 implements IntX {
    */
   static Int64 get MAX_VALUE {
     if (_MAX_VALUE == null) {
-      _MAX_VALUE = new Int64._bits(_MASK, _MASK, _MASK_2 >> 1);
+      _MAX_VALUE = new Int64._bits(_MASK, _MASK, _MASK2 >> 1);
     }
     return _MAX_VALUE;
   }
@@ -78,7 +57,7 @@ class Int64 implements IntX {
    */
   static Int64 get MIN_VALUE {
     if (_MIN_VALUE == null) {
-      _MIN_VALUE = new Int64._bits(0, 0, _SIGN_BIT_VALUE);
+      _MIN_VALUE = new Int64._bits(0, 0, _SIGN_BIT_MASK);
     }
     return _MIN_VALUE;
   }
@@ -114,41 +93,67 @@ class Int64 implements IntX {
   }
 
   /**
-   * Parses a [String] in a given [radix] between 2 and 16 and returns an
+   * Parses a [String] in a given [radix] between 2 and 36 and returns an
    * [Int64].
    */
-  // TODO(rice) - make this faster by converting several digits at once.
   static Int64 parseRadix(String s, int radix) {
-    if ((radix <= 1) || (radix > 16)) {
+    if ((radix <= 1) || (radix > 36)) {
       throw new ArgumentError("Bad radix: $radix");
     }
-    Int64 x = ZERO;
+    return _parseRadix(s, radix);
+  }
+
+  static Int64 _parseRadix(String s, int radix) {
     int i = 0;
     bool negative = false;
     if (s[0] == '-') {
       negative = true;
       i++;
     }
+    int d0 = 0, d1 = 0, d2 = 0;  //  low, middle, high components.
     for (; i < s.length; i++) {
       int c = s.codeUnitAt(i);
-      int digit = Int32._decodeHex(c);
+      int digit = Int32._decodeDigit(c);
       if (digit < 0 || digit >= radix) {
         throw new Exception("Non-radix char code: $c");
       }
-      x = (x * radix) + digit;
+
+      // [radix] and [digit] are at most 6 bits, component is 22, so we can
+      // multiply and add within 30 bit temporary values.
+      d0 = d0 * radix + digit;
+      int carry = d0 >> _BITS;
+      d0 &= _MASK;
+
+      d1 = d1 * radix + carry;
+      carry = d1 >> _BITS;
+      d1 &= _MASK;
+
+      d2 = d2 * radix + carry;
+      d2 &= _MASK2;
     }
-    return negative ? -x : x;
+
+    if (negative) {
+      d0 = 0 - d0;
+      int borrow = (d0 >> _BITS) & 1;
+      d0 &= _MASK;
+      d1 = 0 - d1 - borrow;
+      borrow = (d1 >> _BITS) & 1;
+      d1 &= _MASK;
+      d2 = 0 - d2 - borrow;
+      d2 &= _MASK2;
+    }
+    return new Int64._bits(d0, d1, d2);
   }
 
   /**
    * Parses a decimal [String] and returns an [Int64].
    */
-  static Int64 parseInt(String s) => parseRadix(s, 10);
+  static Int64 parseInt(String s) => _parseRadix(s, 10);
 
   /**
    * Parses a hexadecimal [String] and returns an [Int64].
    */
-  static Int64 parseHex(String s) => parseRadix(s, 16);
+  static Int64 parseHex(String s) => _parseRadix(s, 16);
 
   //
   // Public constructors
@@ -171,7 +176,7 @@ class Int64 implements IntX {
     if (_haveBigInts) {
       _l = value & _MASK;
       _m = (value >> _BITS) & _MASK;
-      _h = (value >> _BITS01) & _MASK_2;
+      _h = (value >> _BITS01) & _MASK2;
     } else {
       // Avoid using bitwise operations that coerce their input to 32 bits.
       _h = value ~/ 17592186044416; // 2^44
@@ -184,7 +189,7 @@ class Int64 implements IntX {
     if (negative) {
       _l = ~_l & _MASK;
       _m = ~_m & _MASK;
-      _h = ~_h & _MASK_2;
+      _h = ~_h & _MASK2;
     }
   }
 
@@ -232,12 +237,13 @@ class Int64 implements IntX {
    * Constructs an [Int64] from a pair of 32-bit integers having the value
    * [:((top & 0xffffffff) << 32) | (bottom & 0xffffffff):].
    */
-  Int64.fromInts(int top, int bottom) {
+  factory Int64.fromInts(int top, int bottom) {
     top &= 0xffffffff;
     bottom &= 0xffffffff;
-    _l = bottom & _MASK;
-    _m = ((top & 0xfff) << 10) | ((bottom >> _BITS) & 0x3ff);
-    _h = (top >> 12) & _MASK_2;
+    int d0 = bottom & _MASK;
+    int d1 = ((top & 0xfff) << 10) | ((bottom >> _BITS) & 0x3ff);
+    int d2 = (top >> 12) & _MASK2;
+    return new Int64._bits(d0, d1, d2);
   }
 
   // Returns the [Int64] representation of the specified value. Throws
@@ -259,7 +265,7 @@ class Int64 implements IntX {
     int sum1 = _m + o._m + _shiftRight(sum0, _BITS);
     int sum2 = _h + o._h + _shiftRight(sum1, _BITS);
 
-    Int64 result = new Int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK_2);
+    Int64 result = new Int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK2);
     return result;
   }
 
@@ -269,7 +275,7 @@ class Int64 implements IntX {
     int sum1 = _m - o._m + _shiftRight(sum0, _BITS);
     int sum2 = _h - o._h + _shiftRight(sum1, _BITS);
 
-    Int64 result = new Int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK_2);
+    Int64 result = new Int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK2);
     return result;
   }
 
@@ -279,7 +285,7 @@ class Int64 implements IntX {
     int sum1 = -_m + _shiftRight(sum0, _BITS);
     int sum2 = -_h + _shiftRight(sum1, _BITS);
 
-    return new Int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK_2);
+    return new Int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK2);
   }
 
   Int64 operator *(other) {
@@ -361,7 +367,7 @@ class Int64 implements IntX {
     c0 &= _MASK;
     c2 += c1 >> _BITS;
     c1 &= _MASK;
-    c2 &= _MASK_2;
+    c2 &= _MASK2;
 
     return new Int64._bits(c0, c1, c2);
   }
@@ -415,7 +421,7 @@ class Int64 implements IntX {
   }
 
   Int64 operator ~() {
-    var result = new Int64._bits((~_l) & _MASK, (~_m) & _MASK, (~_h) & _MASK_2);
+    var result = new Int64._bits((~_l) & _MASK, (~_m) & _MASK, (~_h) & _MASK2);
     return result;
   }
 
@@ -440,7 +446,7 @@ class Int64 implements IntX {
       res2 = _l << (n - _BITS01);
     }
 
-    return new Int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK_2);
+    return new Int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK2);
   }
 
   Int64 operator >>(int n) {
@@ -453,7 +459,7 @@ class Int64 implements IntX {
 
     // Sign extend h(a).
     int a2 = _h;
-    bool negative = (a2 & _SIGN_BIT_VALUE) != 0;
+    bool negative = (a2 & _SIGN_BIT_MASK) != 0;
     if (negative) {
       a2 += 0x3 << _BITS2; // add extra one bits on the left
     }
@@ -461,19 +467,19 @@ class Int64 implements IntX {
     if (n < _BITS) {
       res2 = _shiftRight(a2, n);
       if (negative) {
-        res2 |= _MASK_2 & ~(_MASK_2 >> n);
+        res2 |= _MASK2 & ~(_MASK2 >> n);
       }
       res1 = _shiftRight(_m, n) | (a2 << (_BITS - n));
       res0 = _shiftRight(_l, n) | (_m << (_BITS - n));
     } else if (n < _BITS01) {
-      res2 = negative ? _MASK_2 : 0;
+      res2 = negative ? _MASK2 : 0;
       res1 = _shiftRight(a2, n - _BITS);
       if (negative) {
         res1 |= _MASK & ~(_MASK >> (n - _BITS));
       }
       res0 = _shiftRight(_m, n - _BITS) | (a2 << (_BITS01 - n));
     } else {
-      res2 = negative ? _MASK_2 : 0;
+      res2 = negative ? _MASK2 : 0;
       res1 = negative ? _MASK : 0;
       res0 = _shiftRight(a2, n - _BITS01);
       if (negative) {
@@ -481,7 +487,7 @@ class Int64 implements IntX {
       }
     }
 
-    return new Int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK_2);
+    return new Int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK2);
   }
 
   Int64 shiftRightUnsigned(int n) {
@@ -491,7 +497,7 @@ class Int64 implements IntX {
     n &= 63;
 
     int res0, res1, res2;
-    int a2 = _h & _MASK_2; // Ensure a2 is positive.
+    int a2 = _h & _MASK2; // Ensure a2 is positive.
     if (n < _BITS) {
       res2 = a2 >> n;
       res1 = (_m >> n) | (a2 << (_BITS - n));
@@ -506,7 +512,7 @@ class Int64 implements IntX {
       res0 = a2 >> (n - _BITS01);
     }
 
-    return new Int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK_2);
+    return new Int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK2);
   }
 
   /**
@@ -570,8 +576,8 @@ class Int64 implements IntX {
   }
 
   bool get isEven => (_l & 0x1) == 0;
-  bool get isMaxValue => (_h == _MASK_2 >> 1) && _m == _MASK && _l == _MASK;
-  bool get isMinValue => _h == _SIGN_BIT_VALUE && _m == 0 && _l == 0;
+  bool get isMaxValue => (_h == _MASK2 >> 1) && _m == _MASK && _l == _MASK;
+  bool get isMinValue => _h == _SIGN_BIT_MASK && _m == 0 && _l == 0;
   bool get isNegative => (_h >> (_BITS2 - 1)) != 0;
   bool get isOdd => (_l & 0x1) == 1;
   bool get isZero => _h == 0 && _m == 0 && _l == 0;
@@ -648,10 +654,10 @@ class Int64 implements IntX {
     int m = _m;
     int h = _h;
     bool negative = false;
-    if ((_h & _SIGN_BIT_VALUE) != 0) {
+    if ((_h & _SIGN_BIT_MASK) != 0) {
       l = ~_l & _MASK;
       m = ~_m & _MASK;
-      h = ~_h & _MASK_2;
+      h = ~_h & _MASK2;
       negative = true;
     }
 
@@ -679,33 +685,7 @@ class Int64 implements IntX {
   /**
    * Returns the value of this [Int64] as a decimal [String].
    */
-  // TODO(rice) - Make this faster by converting several digits at once.
-  String toString() {
-    Int64 a = this;
-    if (a.isZero) {
-      return "0";
-    }
-    if (a.isMinValue) {
-      return "-9223372036854775808";
-    }
-
-    String result = "";
-    bool negative = false;
-    if (a.isNegative) {
-      negative = true;
-      a = -a;
-    }
-
-    Int64 ten = new Int64._bits(10, 0, 0);
-    while (!a.isZero) {
-      a = _divMod(a, ten, true);
-      result = "${_remainder._l}$result";
-    }
-    if (negative) {
-      result = "-$result";
-    }
-    return result;
-  }
+  String toString() => _toRadixString(10);
 
   // TODO(rice) - Make this faster by avoiding arithmetic.
   String toHexString() {
@@ -724,31 +704,151 @@ class Int64 implements IntX {
   }
 
   String toRadixString(int radix) {
-    if ((radix <= 1) || (radix > 16)) {
+    if ((radix <= 1) || (radix > 36)) {
       throw new ArgumentError("Bad radix: $radix");
     }
-    Int64 a = this;
-    if (a.isZero) {
-      return "0";
-    }
-    if (a.isMinValue) {
-      return _minValues[radix];
-    }
-
-    String result = "";
-    bool negative = false;
-    if (a.isNegative) {
-      negative = true;
-      a = -a;
-    }
-
-    Int64 r = new Int64._bits(radix, 0, 0);
-    while (!a.isZero) {
-      a = _divMod(a, r, true);
-      result = "${_hexDigit(_remainder._l)}$result";
-    }
-    return negative ? "-$result" : result;
+    return _toRadixString(radix);
   }
+
+  String _toRadixString(int radix) {
+    int d0 = _l;
+    int d1 = _m;
+    int d2 = _h;
+
+    if (d0 == 0 && d1 == 0 && d2 == 0) return '0';
+
+    String sign = '';
+    if ((d2 & _SIGN_BIT_MASK) != 0) {
+      sign = '-';
+
+      // Negate in-place.
+      d0 = 0 - d0;
+      int borrow = (d0 >> _BITS) & 1;
+      d0 &= _MASK;
+      d1 = 0 - d1 - borrow;
+      borrow = (d1 >> _BITS) & 1;
+      d1 &= _MASK;
+      d2 = 0 - d2 - borrow;
+      d2 &= _MASK2;
+      // d2, d1, d0 now are an unsigned 64 bit integer for MIN_VALUE and an
+      // unsigned 63 bit integer for other values.
+    }
+
+    // Rearrange components into five components where all but the most
+    // significant are 10 bits wide.
+    //
+    //     d4, d3, d4, d1, d0:  24 + 10 + 10 + 10 + 10 bits
+    //
+    // The choice of 10 bits allows a remainder of 20 bits to be scaled by 10
+    // bits and added during division while keeping all intermediate values
+    // within 30 bits (unsigned small integer range for 32 bit implementations
+    // of Dart VM and V8).
+    //
+    //     6  6         5         4         3         2         1
+    //     3210987654321098765432109876543210987654321098765432109876543210
+    //     [--------d2--------][---------d1---------][---------d0---------]
+    //  -->
+    //     [----------d4----------][---d3---][---d2---][---d1---][---d0---]
+
+
+    int d4 = (d2 << 4) | (d1 >> 18);
+    int d3 = (d1 >> 8) & 0x3ff;
+    d2 = ((d1 << 2) | (d0 >> 20)) & 0x3ff;
+    d1 = (d0 >> 10) & 0x3ff;
+    d0 = d0 & 0x3ff;
+
+    int fatRadix = _fatRadixTable[radix];
+
+    // Generate chunks of digits.  In radix 10, generate 6 digits per chunk.
+    //
+    // This loop generates at most 3 chunks, so we store the chunks in locals
+    // rather than a list.  We are trying to generate digits 20 bits at a time
+    // until we have only 30 bits left.  20 + 20 + 30 > 64 would imply that we
+    // need only two chunks, but radix values 17-19 and 33-36 generate only 15
+    // or 16 bits per iteration, so sometimes the third chunk is needed.
+
+    String chunk1 = "", chunk2 = "", chunk3 = "";
+
+    while (!(d4 == 0 && d3 == 0)) {
+      int q = d4 ~/ fatRadix;
+      int r = d4 - q * fatRadix;
+      d4 = q;
+      d3 += r << 10;
+
+      q = d3 ~/ fatRadix;
+      r = d3 - q * fatRadix;
+      d3 = q;
+      d2 += r << 10;
+
+      q = d2 ~/ fatRadix;
+      r = d2 - q * fatRadix;
+      d2 = q;
+      d1 += r << 10;
+
+      q = d1 ~/ fatRadix;
+      r = d1 - q * fatRadix;
+      d1 = q;
+      d0 += r << 10;
+
+      q = d0 ~/ fatRadix;
+      r = d0 - q * fatRadix;
+      d0 = q;
+
+      assert(chunk2 == "");
+      chunk3 = chunk2;
+      chunk2 = chunk1;
+      // Adding [fatRadix] Forces an extra digit which we discard to get a fixed
+      // width.  E.g.  (1000000 + 123) -> "1000123" -> "000123".  An alternative
+      // would be to pad to the left with zeroes.
+      chunk1 = (fatRadix + r).toRadixString(radix).substring(1);
+    }
+    int residue = (d2 << 20) + (d1 << 10) + d0;
+    String leadingDigits = residue == 0 ? '' : residue.toRadixString(radix);
+    return '$sign$leadingDigits$chunk1$chunk2$chunk3';
+  }
+
+  // Table of 'fat' radix values.  Each entry for index `i` is the largest power
+  // of `i` whose remainder fits in 20 bits.
+  static const _fatRadixTable = const <int>[
+      0,
+      0,
+      2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2
+        * 2,
+      3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3,
+      4 * 4 * 4 * 4 * 4 * 4 * 4 * 4 * 4 * 4,
+      5 * 5 * 5 * 5 * 5 * 5 * 5 * 5,
+      6 * 6 * 6 * 6 * 6 * 6 * 6,
+      7 * 7 * 7 * 7 * 7 * 7 * 7,
+      8 * 8 * 8 * 8 * 8 * 8,
+      9 * 9 * 9 * 9 * 9 * 9,
+      10 * 10 * 10 * 10 * 10 * 10,
+      11 * 11 * 11 * 11 * 11,
+      12 * 12 * 12 * 12 * 12,
+      13 * 13 * 13 * 13 * 13,
+      14 * 14 * 14 * 14 * 14,
+      15 * 15 * 15 * 15 * 15,
+      16 * 16 * 16 * 16 * 16,
+      17 * 17 * 17 * 17,
+      18 * 18 * 18 * 18,
+      19 * 19 * 19 * 19,
+      20 * 20 * 20 * 20,
+      21 * 21 * 21 * 21,
+      22 * 22 * 22 * 22,
+      23 * 23 * 23 * 23,
+      24 * 24 * 24 * 24,
+      25 * 25 * 25 * 25,
+      26 * 26 * 26 * 26,
+      27 * 27 * 27 * 27,
+      28 * 28 * 28 * 28,
+      29 * 29 * 29 * 29,
+      30 * 30 * 30 * 30,
+      31 * 31 * 31 * 31,
+      32 * 32 * 32 * 32,
+      33 * 33 * 33,
+      34 * 34 * 34,
+      35 * 35 * 35,
+      36 * 36 * 36
+  ];
 
   String toDebugString() {
     return "Int64[_l=$_l, _m=$_m, _h=$_h]";
@@ -763,11 +863,10 @@ class Int64 implements IntX {
   /**
    * Constructs an [Int64] with the same value as an existing [Int64].
    */
-  Int64._copy(Int64 other) {
-    _l = other._l;
-    _m = other._m;
-    _h = other._h;
-  }
+  Int64._copy(Int64 other)
+      : _l = other._l,
+        _m = other._m,
+        _h = other._h;
 
   // Determine whether the platform supports ints greater than 2^53
   // without loss of precision.
@@ -795,7 +894,7 @@ class Int64 implements IntX {
   void _negate() {
     int neg0 = (~_l + 1) & _MASK;
     int neg1 = (~_m + (neg0 == 0 ? 1 : 0)) & _MASK;
-    int neg2 = (~_h + ((neg0 == 0 && neg1 == 0) ? 1 : 0)) & _MASK_2;
+    int neg2 = (~_h + ((neg0 == 0 && neg1 == 0) ? 1 : 0)) & _MASK2;
 
     _l = neg0;
     _m = neg1;
@@ -865,7 +964,7 @@ class Int64 implements IntX {
 
     a._l = sum0 & _MASK;
     a._m = sum1 & _MASK;
-    a._h = sum2 & _MASK_2;
+    a._h = sum2 & _MASK2;
 
     return true;
   }

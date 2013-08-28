@@ -5,6 +5,7 @@
 library status_file_parser;
 
 import "dart:async";
+import "dart:convert" show LineSplitter, UTF8;
 import "dart:io";
 import "status_expression.dart";
 
@@ -75,8 +76,8 @@ void ReadConfigurationInto(path, sections, onDone) {
   }
   Stream<String> lines =
       file.openRead()
-          .transform(new StringDecoder())
-          .transform(new LineTransformer());
+          .transform(UTF8.decoder)
+          .transform(new LineSplitter());
 
   Section current = new Section.always();
   sections.add(current);

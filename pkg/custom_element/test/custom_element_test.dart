@@ -25,7 +25,8 @@ main() {
 customElementTests() {
   test('register creates the element and calls lifecycle methods', () {
     // Add element to the page.
-    var element = new Element.html('<fancy-button>foo bar</fancy-button>');
+    var element = new Element.html('<fancy-button>foo bar</fancy-button>',
+        treeSanitizer: new NullTreeSanitizer());
     document.body.nodes.add(element);
 
     var xtag = null;
@@ -90,4 +91,11 @@ class FancyButton extends CustomElement {
     super.removed();
     lifecycle.add('removed');
   }
+}
+
+/**
+ * Sanitizer which does nothing.
+ */
+class NullTreeSanitizer implements NodeTreeSanitizer {
+  void sanitizeTree(Node node) {}
 }

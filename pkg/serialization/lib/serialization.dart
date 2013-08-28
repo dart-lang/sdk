@@ -3,25 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * This provides a general-purpose serialization facility for Dart objects. A
- * [Serialization] is defined in terms of [SerializationRule]s and supports
+ * A general-purpose serialization facility for Dart objects.
+ *
+ * A [Serialization] is defined in terms of [SerializationRule]s and supports
  * reading and writing to different formats.
  *
- * ## Installing ##
+ * For information on installing and importing this library, see the
+ * [serialization package on pub.dartlang.org]
+ * (http://pub.dartlang.org/packages/serialization).
  *
- * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
- * file.
+ * ## Setup
  *
- *     dependencies:
- *       serialization: any
- *
- * Then run `pub install`.
- *
- * For more information, see the
- * [serialization package on pub.dartlang.org][pkg].
- *
- * Setup
- * =====
  * A simple example of usage is
  *
  *      var address = new Address();
@@ -59,8 +51,8 @@
  *            constructor: "",
  *            excludeFields: ["other", "stuff"]);
  *
- * Writing Rules
- * =============
+ * ## Writing rules
+ *
  * We can also use a completely non-reflective rule to serialize and
  * de-serialize objects. This can be more work, but it does work in
  * dart2js, where mirrors are not yet implemented. We can specify this in two
@@ -117,8 +109,8 @@
  * consistent with the representation it uses. We pass it the runtimeType
  * of the object, and functions equivalent to the methods on [CustomRule]
  *
- * Constant Values
- * ===============
+ * ## Constant values
+ * 
  * There are cases where the constructor needs values that we can't easily get
  * from the serialized object. For example, we may just want to pass null, or a
  * constant value. To support this, we can specify as constructor fields
@@ -135,8 +127,8 @@
  *       s..addRuleFor(fooHolderInstance).setFieldWith("foo",
  *           (parent, value) => for (var each in value) parent.addFoo(value));
  *
- * Writing
- * =======
+ * ## Writing
+ *
  * To write objects, we use the write() method.
  *
  *       var output = serialization.write(someObject);
@@ -163,8 +155,8 @@
  *
  * These representations are not yet considered stable.
  *
- * Reading
- * =======
+ * ## Reading
+ *
  * To read objects, the corresponding [Serialization.read] method can be used.
  *
  *       Address input = serialization.read(input);
@@ -184,8 +176,8 @@
  * other services might expect. Using CustomRule or ClosureRule also does not
  * yet work with the [Serialization.selfDescribing] variable.
  *
- * Named Objects
- * =============
+ * ## Named objects
+ *
  * When reading, some object references should not be serialized, but should be
  * connected up to other instances on the receiving side. A notable example of
  * this is when serialization rules have been stored. Instances of BasicRule
@@ -199,9 +191,6 @@
  *     new Serialization()
  *       ..addRuleFor(new Person(), constructorFields: ["name"])
  *       ..namedObjects['Person'] = reflect(new Person()).type;
- *
- * [pub]: http://pub.dartlang.org
- * [pkg]: http://pub.dartlang.org/packages/serialization
  */
 library serialization;
 
@@ -297,8 +286,10 @@ class Serialization {
     this.rules = new UnmodifiableListView(rules);
 
   /**
-   * Create a [BasicRule] rule for the type of
-   * [instanceOfType]. Optionally
+   * Create a [BasicRule] rule for [instanceOrType]. Normally this will be
+   * a type, but for backward compatibilty we also allow you to pass an
+   * instance (except an instance of Type), and the rule will be created
+   * for its runtimeType. Optionally
    * allows specifying a [constructor] name, the list of [constructorFields],
    * and the list of [fields] not used in the constructor. Returns the new
    * rule. Note that [BasicRule] uses reflection, and so will not work with the
@@ -321,9 +312,8 @@ class Serialization {
    * are not inherited, and so may need to be specified separately for each
    * subclass.
    */
-  // TODO(alanknight): Take a type rather than an instance. Issue 6282 and 6433.
   BasicRule addRuleFor(
-      instanceOfType,
+      instanceOrType,
       {String constructor,
         List constructorFields,
         List<String> fields,
@@ -331,7 +321,7 @@ class Serialization {
 
     var rule = new BasicRule(
         turnInstanceIntoSomethingWeCanUse(
-            instanceOfType),
+            instanceOrType),
         constructor, constructorFields, fields, excludeFields);
     addRule(rule);
     return rule;

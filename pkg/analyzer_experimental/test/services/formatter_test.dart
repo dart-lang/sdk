@@ -67,23 +67,61 @@ main() {
           '}'
       );
     });
-    
-    
-//    test('CU - comments', () {
-//      expectCUFormatsTo(
-//          'library foo;\n'
-//          '\n'
-//          '//comment one\n\n'
-//          '//comment two\n\n'
-//          'class C {\n}\n',
-//          'library foo;\n'
-//          '\n'
-//          '//comment one\n\n'
-//          '//comment two\n\n'
-//          'class C {\n}\n'
-//      );
-//    });
-    
+
+    test('CU - EOL comments', () {
+      expectCUFormatsTo(
+          '//comment one\n\n'
+          '//comment two\n\n',
+          '//comment one\n\n'
+          '//comment two\n\n'
+      );
+      expectCUFormatsTo(
+          'library foo;\n'
+          '\n'
+          '//comment one\n'
+          '\n'
+          'class C {\n'
+          '}\n',
+          'library foo;\n'
+          '\n'
+          '//comment one\n'
+          '\n'
+          'class C {\n'
+          '}\n'
+      );
+      expectCUFormatsTo(
+          'library foo;\n'
+          '\n'
+          '//comment one\n'
+          '\n'
+          '//comment two\n'
+          '\n'
+          'class C {\n'
+          '}\n',
+          'library foo;\n'
+          '\n'
+          '//comment one\n'
+          '\n'
+          '//comment two\n'
+          '\n'
+          'class C {\n'
+          '}\n'
+      );
+    });
+
+    test('CU - nested functions', () {
+      expectCUFormatsTo(
+          'x() {\n'
+          '  y() {\n'
+          '  }\n'
+          '}\n',
+          'x() {\n'
+          '  y() {\n'
+          '  }\n'
+          '}\n'
+        );
+    });
+
     test('CU - top level', () {
       expectCUFormatsTo(
           '\n\n'
@@ -104,7 +142,7 @@ main() {
           'final foo = 32;\n'
       );
     });
-    
+
     test('CU - imports', () {
       expectCUFormatsTo(
           'import "dart:io";\n\n'
@@ -116,6 +154,33 @@ main() {
           'foo() {\n'
           '}\n'
       );
+      expectCUFormatsTo(
+          'library a; class B { }',
+          'library a;\n'
+          'class B {\n'
+          '}'
+      );
+    });
+
+    test('CU - method invocations', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  foo() {\n'
+          '    bar();\n'
+          '    for (int i = 0; i < 42; i++) {\n'
+          '      baz();\n'
+          '    }\n'
+          '  }\n'
+          '}\n',
+          'class A {\n'
+          '  foo() {\n'
+          '    bar();\n'
+          '    for (int i = 0; i < 42; i++) {\n'
+          '      baz();\n'
+          '    }\n'
+          '  }\n'
+          '}\n'
+        );
     });
 
     test('CU w/class decl comment', () {
@@ -165,7 +230,7 @@ main() {
           '}\n'
       );
     });
-    
+
     test('CU (method indent)', () {
       expectCUFormatsTo(
           'class A {\n'
@@ -256,6 +321,173 @@ main() {
       );
     });
 
+    test('CU - Block comments', () {
+      expectCUFormatsTo(
+          '/** Old school class comment */\n'
+          'class C {\n'
+          '  /** Foo! */ int foo() => 42;\n'
+          '}\n',
+          '/** Old school class comment */\n'
+          'class C {\n'
+          '  /** Foo! */ int foo() => 42;\n'
+          '}\n'
+      );
+      expectCUFormatsTo(
+          'library foo;\n'
+          'class C /* is cool */ {\n'
+          '  /* int */ foo() => 42;\n'
+          '}\n',
+          'library foo;\n'
+          'class C /* is cool */ {\n'
+          '  /* int */ foo() => 42;\n'
+          '}\n'
+      );
+      expectCUFormatsTo(
+          'library foo;\n'
+          '/* A long\n'
+          ' * Comment\n'
+          '*/\n'
+          'class C /* is cool */ {\n'
+          '  /* int */ foo() => 42;\n'
+          '}\n',
+          'library foo;\n'
+          '/* A long\n'
+          ' * Comment\n'
+          '*/\n'
+          'class C /* is cool */ {\n'
+          '  /* int */ foo() => 42;\n'
+          '}\n'
+      );
+      expectCUFormatsTo(
+          'library foo;\n'
+          '/* A long\n'
+          ' * Comment\n'
+          '*/\n'
+          '\n'
+          '/* And\n'
+          ' * another...\n'
+          '*/\n'
+          '\n'
+          '// Mixing it up\n'
+          '\n'
+          'class C /* is cool */ {\n'
+          '  /* int */ foo() => 42;\n'
+          '}\n',
+          'library foo;\n'
+          '/* A long\n'
+          ' * Comment\n'
+          '*/\n'
+          '\n'
+          '/* And\n'
+          ' * another...\n'
+          '*/\n'
+          '\n'
+          '// Mixing it up\n'
+          '\n'
+          'class C /* is cool */ {\n'
+          '  /* int */ foo() => 42;\n'
+          '}\n'
+      );
+      expectCUFormatsTo(
+          '/// Copyright info\n'
+          '\n'
+          'library foo;\n'
+          '/// Class comment\n'
+          '//TODO: implement\n'
+          'class C {\n'
+          '}\n',
+          '/// Copyright info\n'
+          '\n'
+          'library foo;\n'
+          '/// Class comment\n'
+          '//TODO: implement\n'
+          'class C {\n'
+          '}\n'
+      );
+    });
+    
+    
+    test('CU - constructor', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  const _a;\n'
+          '  A();\n'
+          '  int a() => _a;\n'
+          '}\n',
+          'class A {\n'
+          '  const _a;\n'
+          '  A();\n'
+          '  int a() => _a;\n'
+          '}\n'
+        );
+    });
+
+    test('CU - method decl w/ named params', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  int a(var x, {optional: null}) => null;\n'
+          '}\n',
+          'class A {\n'
+          '  int a(var x, {optional: null}) => null;\n'
+          '}\n'
+        );
+    });
+
+    test('CU - method decl w/ optional params', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  int a(var x, [optional = null]) => null;\n'
+          '}\n',
+          'class A {\n'
+          '  int a(var x, [optional = null]) => null;\n'
+          '}\n'
+        );
+    });
+
+    test('CU - factory constructor redirects', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  const factory A() = B;\n'
+          '}\n',
+          'class A {\n'
+          '  const factory A() = B;\n'
+          '}\n'
+        );
+    });
+
+    test('CU - constructor initializers', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  int _a;\n'
+          '  A(a) : _a = a;\n'
+          '}\n',
+          'class A {\n'
+          '  int _a;\n'
+          '  A(a) : _a = a;\n'
+          '}\n'
+        );
+    });
+
+    test('CU - constructor auto field inits', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  int _a;\n'
+          '  A(this._a);\n'
+          '}\n',
+          'class A {\n'
+          '  int _a;\n'
+          '  A(this._a);\n'
+          '}\n'
+        );
+    });
+
+    test('CU - parts', () {
+      expectCUFormatsTo(
+        'part of foo;',
+        'part of foo;\n'
+      );
+    });
+
     test('stmt', () {
       expectStmtFormatsTo(
          'if (true){\n'
@@ -303,14 +535,21 @@ main() {
         '}'
       );
     });
-  
+
     test('stmt (generics)', () {
       expectStmtFormatsTo(
         'var numbers = <int>[1, 2, (3 + 4)];',
         'var numbers = <int>[1, 2, (3 + 4)];'
       );
     });
-    
+
+    test('stmt (maps)', () {
+      expectStmtFormatsTo(
+        'var map = const {"foo": "bar", "fuz": null};',
+        'var map = const {"foo": "bar", "fuz": null};'
+      );
+    });
+
     test('stmt (try/catch)', () {
       expectStmtFormatsTo(
         'try {\n'
@@ -325,7 +564,7 @@ main() {
         '}'
       );
     });
-    
+
     test('stmt (binary/ternary ops)', () {
       expectStmtFormatsTo(
         'var a = 1 + 2 / (3 * -b);',
@@ -344,7 +583,34 @@ main() {
         'var d = obj is! SomeType;'
       );
     });
-    
+
+    test('stmt (for in)', () {
+      expectStmtFormatsTo(
+        'for (Foo foo in bar.foos) {\n'
+        '  print(foo);\n'
+        '}',
+        'for (Foo foo in bar.foos) {\n'
+        '  print(foo);\n'
+        '}'
+      );
+      expectStmtFormatsTo(
+        'for (final Foo foo in bar.foos) {\n'
+        '  print(foo);\n'
+        '}',
+        'for (final Foo foo in bar.foos) {\n'
+        '  print(foo);\n'
+        '}'
+      );
+      expectStmtFormatsTo(
+        'for (final foo in bar.foos) {\n'
+        '  print(foo);\n'
+        '}',
+        'for (final foo in bar.foos) {\n'
+        '  print(foo);\n'
+        '}'
+      );
+    });
+
     test('initialIndent', () {
       var formatter = new CodeFormatter(
           new FormatterOptions(initialIndentationLevel: 2));

@@ -5,17 +5,43 @@
 foo(a, [b]) {
 }
 
+bar(a, {b}) {
+}
+
 class A {
-  A(a, [b]);
+  A();
+  A.test(a, [b]);
 }
 
 class B {
   B()
-    : super(b: 1) /// 01: runtime error
+    : super.test(b: 1)  /// 01: runtime error
+  ;
+}
+
+class C extends A {
+  C()
+    : super.test(b: 1)  /// 02: runtime error
+  ;
+}
+
+class D {
+  D();
+  D.test(a, {b});
+}
+
+class E extends D {
+  E()
+    : super.test(b: 1)  /// 05: runtime error
   ;
 }
 
 main() {
-  new B(); /// 01: continued
-  foo(b: 1); /// 02: runtime error
+  new A.test(b: 1);  /// 00: runtime error
+  new B();
+  new C();
+  new D.test(b: 1);  /// 03: runtime error
+  new E();
+  foo(b: 1);  /// 06: runtime error
+  bar(b: 1);  /// 07: runtime error
 }

@@ -225,6 +225,7 @@ class MockCompiler extends Compiler {
                 bool disableTypeInference: false,
                 bool analyzeAll: false,
                 bool analyzeOnly: false,
+                bool emitJavaScript: true,
                 bool preserveComments: false})
       : warnings = [], errors = [],
         sourceFiles = new Map<String, SourceFile>(),
@@ -235,6 +236,7 @@ class MockCompiler extends Compiler {
               disableTypeInferenceFlag: disableTypeInference,
               analyzeAllFlag: analyzeAll,
               analyzeOnly: analyzeOnly,
+              emitJavaScript: emitJavaScript,
               preserveComments: preserveComments) {
     coreLibrary = createLibrary("core", coreSource);
     // We need to set the assert method to avoid calls with a 'null'

@@ -11,4 +11,15 @@ class ParserTask extends CompilerTask {
   Node parse(Element element) {
     return measure(() => element.parseNode(compiler));
   }
+
+  Node parseCompilationUnit(Token token) {
+    return measure(() {
+      NodeListener listener = new NodeListener(compiler, null);
+      Parser parser = new Parser(listener);
+      parser.parseUnit(token);
+      Node result = listener.popNode();
+      assert(listener.nodes.isEmpty);
+      return result;
+    });
+  }
 }

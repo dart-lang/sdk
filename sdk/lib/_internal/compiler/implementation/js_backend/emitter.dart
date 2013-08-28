@@ -1822,12 +1822,16 @@ class CodeEmitterTask extends CompilerTask {
                 // 01:  function() { return this.field; }
                 // 10:  function(receiver) { return receiver.field; }
                 // 11:  function(receiver) { return this.field; }
-                getterCode += backend.fieldHasInterceptedGetter(field) ? 2 : 0;
+                bool isIntercepted = backend.fieldHasInterceptedGetter(field);
+                getterCode += isIntercepted ? 2 : 0;
                 getterCode += backend.isInterceptorClass(element) ? 0 : 1;
                 // TODO(sra): 'isInterceptorClass' might not be the correct test
                 // for methods forced to use the interceptor convention because
                 // the method's class was elsewhere mixed-in to an interceptor.
                 assert(!field.isInstanceMember() || getterCode != 0);
+                if (isIntercepted) {
+                  interceptorInvocationNames.add(namer.getterName(field));
+                }
               } else {
                 getterCode = 1;
               }
@@ -1838,9 +1842,13 @@ class CodeEmitterTask extends CompilerTask {
                 // 01:  function(value) { this.field = value; }
                 // 10:  function(receiver, value) { receiver.field = value; }
                 // 11:  function(receiver, value) { this.field = value; }
-                setterCode += backend.fieldHasInterceptedSetter(field) ? 2 : 0;
+                bool isIntercepted = backend.fieldHasInterceptedSetter(field);
+                setterCode += isIntercepted ? 2 : 0;
                 setterCode += backend.isInterceptorClass(element) ? 0 : 1;
                 assert(!field.isInstanceMember() || setterCode != 0);
+                if (isIntercepted) {
+                  interceptorInvocationNames.add(namer.setterName(field));
+                }
               } else {
                 setterCode = 1;
               }
@@ -2176,7 +2184,9 @@ class CodeEmitterTask extends CompilerTask {
       if (!knownSubtype) {
         registerDynamicFunctionTypeCheck(functionType);
         hasDynamicFunctionTypeCheck = true;
-      } else {
+      } else if (!backend.rti.isSimpleFunctionType(functionType)) {
+        // Simple function types are always checked using predicates and should
+        // not provoke generation of signatures.
         neededPredicates++;
       }
     });
@@ -2188,7 +2198,10 @@ class CodeEmitterTask extends CompilerTask {
     }
     functionTypeChecks.forEach((FunctionType functionType, bool knownSubtype) {
       if (knownSubtype) {
-        if (alwaysUseSignature) {
+        if (backend.rti.isSimpleFunctionType(functionType)) {
+          // Simple function types are always checked using predicates.
+          emitIsFunctionTypeTest(functionType);
+        } else if (alwaysUseSignature) {
           registerDynamicFunctionTypeCheck(functionType);
         } else {
           emitIsFunctionTypeTest(functionType);
@@ -2811,57 +2824,12 @@ class CodeEmitterTask extends CompilerTask {
       DartType objectType = objectClass.computeType(compiler);
 
       for (Selector selector in selectors) {
-        // If the selector is typed, we check to see if that type may
-        // have a user-defined noSuchMethod implementation. If not, we
-        // skip the selector altogether.
-
         TypeMask mask = selector.mask;
         if (mask == null) {
           mask = new TypeMask.subclass(compiler.objectClass.rawType);
         }
 
-        // If the receiver is guaranteed to have a member that
-        // matches what we're looking for, there's no need to
-        // introduce a noSuchMethod handler. It will never be called.
-        //
-        // As an example, consider this class hierarchy:
-        //
-        //                   A    <-- noSuchMethod
-        //                  / \
-        //                 C   B  <-- foo
-        //
-        // If we know we're calling foo on an object of type B we
-        // don't have to worry about the noSuchMethod method in A
-        // because objects of type B implement foo. On the other hand,
-        // if we end up calling foo on something of type C we have to
-        // add a handler for it.
-
-        // If the holders of all user-defined noSuchMethod
-        // implementations that might be applicable to the receiver
-        // type have a matching member for the current name and
-        // selector, we avoid introducing a noSuchMethod handler.
-        //
-        // As an example, consider this class hierarchy:
-        //
-        //                       A    <-- foo
-        //                      / \
-        //   noSuchMethod -->  B   C  <-- bar
-        //                     |   |
-        //                     C   D  <-- noSuchMethod
-        //
-        // When calling foo on an object of type A, we know that the
-        // implementations of noSuchMethod are in the classes B and D
-        // that also (indirectly) implement foo, so we do not need a
-        // handler for it.
-        //
-        // If we're calling bar on an object of type D, we don't need
-        // the handler either because all objects of type D implement
-        // bar through inheritance.
-        //
-        // If we're calling bar on an object of type A we do need the
-        // handler because we may have to call B.noSuchMethod since B
-        // does not implement bar.
-        if (mask.willHit(selector, compiler)) continue;
+        if (!mask.needsNoSuchMethodHandling(selector, compiler)) continue;
         String jsName = namer.invocationMirrorInternalName(selector);
         addedJsNames[jsName] = selector;
         String reflectionName = getReflectionName(selector, jsName);
@@ -2980,9 +2948,9 @@ class CodeEmitterTask extends CompilerTask {
     // onload event of all script tags and getting the first script which
     // finishes. Since onload is called immediately after execution this should
     // not substantially change execution order.
-    buffer.write("""
+    buffer.write('''
 ;(function (callback) {
-  if (typeof document === 'undefined') {
+  if (typeof document === "undefined") {
     callback(null);
     return;
   }
@@ -2994,18 +2962,18 @@ class CodeEmitterTask extends CompilerTask {
   var scripts = document.scripts;
   function onLoad(event) {
     for (var i = 0; i < scripts.length; ++i) {
-      scripts[i].removeEventListener('load', onLoad, false);
+      scripts[i].removeEventListener("load", onLoad, false);
     }
     callback(event.target);
   }
   for (var i = 0; i < scripts.length; ++i) {
-    scripts[i].addEventListener('load', onLoad, false);
+    scripts[i].addEventListener("load", onLoad, false);
   }
 })(function(currentScript) {
   ${namer.isolateName}.${namer.isolatePropertiesName}.\$currentScript =
       currentScript;
 
-  if (typeof console !== 'undefined' && typeof document !== 'undefined' &&
+  if (typeof console !== "undefined" && typeof document !== "undefined" &&
       document.readyState == "loading") {
     console.warn("Dart script executed synchronously, use <script src='" +
         currentScript.src + "' defer></scr" + "ipt> to execute after parsing " +
@@ -3016,13 +2984,13 @@ class CodeEmitterTask extends CompilerTask {
   } else {
     ${mainCall};
   }
-})$N""");
+})$N''');
     addComment('END invoke [main].', buffer);
   }
 
   void emitGetInterceptorMethod(CodeBuffer buffer,
                                 String key,
-                                Iterable<ClassElement> classes) {
+                                Set<ClassElement> classes) {
     jsAst.Statement buildReturnInterceptor(ClassElement cls) {
       return js.return_(js(namer.isolateAccess(cls))['prototype']);
     }
@@ -3097,7 +3065,7 @@ class CodeEmitterTask extends CompilerTask {
     }
     if (hasInt) hasNumber = true;
 
-    if (classes == backend.interceptedClasses) {
+    if (classes.containsAll(backend.interceptedClasses)) {
       // I.e. this is the general interceptor.
       hasNative = anyNativeClasses;
     }
@@ -3187,9 +3155,10 @@ class CodeEmitterTask extends CompilerTask {
    * Emit all versions of the [:getInterceptor:] method.
    */
   void emitGetInterceptorMethods(CodeBuffer buffer) {
-    var specializedGetInterceptors = backend.specializedGetInterceptors;
+    Map<String, Set<ClassElement>> specializedGetInterceptors =
+        backend.specializedGetInterceptors;
     for (String name in specializedGetInterceptors.keys.toList()..sort()) {
-      Iterable<ClassElement> classes = specializedGetInterceptors[name];
+      Set<ClassElement> classes = specializedGetInterceptors[name];
       emitGetInterceptorMethod(buffer, name, classes);
     }
   }

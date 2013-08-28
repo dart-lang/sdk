@@ -29,8 +29,8 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    */
   factory Event.eventType(String type, String name, {bool canBubble: true,
       bool cancelable: true}) {
-    final Event e = document.$dom_createEvent(type);
-    e.$dom_initEvent(name, canBubble, cancelable);
+    final Event e = document._createEvent(type);
+    e._initEvent(name, canBubble, cancelable);
     return e;
   }
 $!MEMBERS

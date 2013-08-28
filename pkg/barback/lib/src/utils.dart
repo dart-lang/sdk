@@ -23,6 +23,52 @@ class Pair<E, F> {
   int get hashCode => first.hashCode ^ last.hashCode;
 }
 
+/// A class that represents one and only one of two types of values.
+class Either<E, F> {
+  /// Whether this is a value of type `E`.
+  final bool isFirst;
+
+  /// Whether this is a value of type `F`.
+  bool get isSecond => !isFirst;
+
+  /// The value, either of type `E` or `F`.
+  final _value;
+
+  /// The value of type `E`.
+  ///
+  /// It's an error to access this is this is of type `F`.
+  E get first {
+    assert(isFirst);
+    return _value;
+  }
+
+  /// The value of type `F`.
+  ///
+  /// It's an error to access this is this is of type `E`.
+  F get second {
+    assert(isSecond);
+    return _value;
+  }
+
+  /// Creates an [Either] with type `E`.
+  Either.withFirst(this._value)
+      : isFirst = true;
+
+  /// Creates an [Either] with type `F`.
+  Either.withSecond(this._value)
+      : isFirst = false;
+
+  /// Runs [whenFirst] or [whenSecond] depending on the type of [this].
+  ///
+  /// Returns the result of whichvever function was run.
+  match(whenFirst(E value), whenSecond(F value)) {
+    if (isFirst) return whenFirst(first);
+    return whenSecond(second);
+  }
+
+  String toString() => "$_value (${isFirst? 'first' : 'second'})";
+}
+
 /// Converts a number in the range [0-255] to a two digit hex string.
 ///
 /// For example, given `255`, returns `ff`.
@@ -77,14 +123,18 @@ bool setEquals(Set set1, Set set2) =>
   set1.length == set2.length && set1.containsAll(set2);
 
 /// Merges [streams] into a single stream that emits events from all sources.
-Stream mergeStreams(Iterable<Stream> streams) {
+///
+/// If [broadcast] is true, this will return a broadcast stream; otherwise, it
+/// will return a buffered stream.
+Stream mergeStreams(Iterable<Stream> streams, {bool broadcast: false}) {
   streams = streams.toList();
   var doneCount = 0;
   // Use a sync stream to preserve the synchrony behavior of the input streams.
   // If the inputs are sync, then this will be sync as well; if the inputs are
   // async, then the events we receive will also be async, and forwarding them
   // sync won't change that.
-  var controller = new StreamController(sync: true);
+  var controller = broadcast ? new StreamController.broadcast(sync: true)
+      : new StreamController(sync: true);
 
   for (var stream in streams) {
     stream.listen((value) {

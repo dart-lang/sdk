@@ -14,7 +14,7 @@ void main() {
   test("Serializing something without a library directive", () {
     var thing = new Thing()..name = 'testThing';
     var s = new Serialization()
-      ..addRuleFor(thing);
+      ..addRuleFor(Thing);
     var serialized = s.write(thing);
     var newThing = s.read(serialized);
     expect(thing.name, newThing.name);

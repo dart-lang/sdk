@@ -85,7 +85,7 @@ var mapTypeToInterceptor;""";
     } else if (uri.path.endsWith('isolate_helper.dart')) {
       source = 'library isolatehelper; class _WorkerStub {}';
     } else {
-      source = "library lib;";
+      source = "library lib${uri.path.replaceAll('/', '.')};";
     }
   } else {
    throw "unexpected URI $uri";

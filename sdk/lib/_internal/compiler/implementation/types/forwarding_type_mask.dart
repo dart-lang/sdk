@@ -90,6 +90,10 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.willHit(selector, compiler);
   }
 
+  bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {
+    return forwardTo.needsNoSuchMethodHandling(selector, compiler);
+  }
+
   bool canHit(Element element, Selector selector, Compiler compiler) {
     return forwardTo.canHit(element, selector, compiler);
   }

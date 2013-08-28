@@ -23,7 +23,6 @@ standalone/io/secure_socket_argument_test: fail
 standalone/io/stdout_bad_argument_test: fail
 standalone/io/skipping_dart2js_compilations_test: fail
 standalone/io/dependency_graph_test: fail # http/dartbug.com/12449
-standalone/io/url_encoding_test: fail
 standalone/io/web_socket_protocol_processor_test: fail
 standalone/io/test_runner_test: fail
 standalone/package/invalid_uri_test: fail
@@ -52,7 +51,6 @@ standalone/io/secure_socket_argument_test: fail
 standalone/io/stdout_bad_argument_test: fail
 standalone/io/skipping_dart2js_compilations_test: fail
 standalone/io/dependency_graph_test: fail # http/dartbug.com/12449
-standalone/io/url_encoding_test: fail
 standalone/io/web_socket_protocol_processor_test: fail
 standalone/io/test_runner_test: fail
 standalone/package/invalid_uri_test: fail

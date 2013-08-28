@@ -50,6 +50,8 @@ LibTest/core/RegExp/allMatches_A01_t01: FAIL, OK # co19 Issue 400, 422
 LibTest/async/Stream/Stream.periodic_A01_t01: PASS, FAIL, OK # co19 issue 538
 LibTest/async/Stream/Stream.periodic_A03_t01: PASS, FAIL, OK # co19 issue 538
 LibTest/async/Timer/run_A01_t01: PASS, FAIL, OK # co19 issue 538
+LibTest/async/Timer/Timer_A01_t01: PASS, FAIL, OK # co19 issue 538
+LibTest/async/Timer/Timer_A02_t01: PASS, FAIL, OK # co19 issue 538
 LibTest/async/Timer/Timer.periodic_A01_t01: PASS, FAIL, OK # co19 issue 537
 LibTest/async/Timer/Timer.periodic_A02_t01: PASS, FAIL, OK # co19 issue 538
 LibTest/async/Future/Future.delayed_A01_t02: PASS, FAIL, OK # co19 issue 536
@@ -64,11 +66,14 @@ Utils/tests/Expect/listEquals_A02_t01: FAIL, OK # co19 issue 499
 Utils/tests/Expect/listEquals_A03_t01: FAIL, OK # co19 issue 500
 Utils/tests/Expect/setEquals_A02_t01: FAIL, OK # co19 issue 499
 
-LibTest/isolate_api/streamSpawnFunction_A02_t02: PASS, FAIL, OK # co19 issue 540
-LibTest/isolate_api/streamSpawnFunction_A02_t03: PASS, FAIL, OK # co19 issue 540
+LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: PASS, FAIL, OK # co19 issue 540
+LibTest/isolate/isolate_api/streamSpawnFunction_A02_t03: PASS, FAIL, OK # co19 issue 540
 LibTest/isolate/IsolateStream/contains_A02_t01: PASS, FAIL, OK # co19 issue 540
 
 LibTest/async/EventTransformStream/listen_A04_t01: Pass, Timeout # co19 issue 542
+
+LibTest/async/EventTransformStream/elementAt_A03_t01: FAIL # co19 issue 545
+LibTest/async/Stream/elementAt_A03_t01: FAIL # co19 issue 545
 
 ### CHECKED MODE FAILURES ###
 

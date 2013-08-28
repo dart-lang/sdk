@@ -13,6 +13,7 @@ library test_runner;
 
 import "dart:async";
 import "dart:collection" show Queue;
+import "dart:convert" show LineSplitter, UTF8;
 // We need to use the 'io' prefix here, otherwise io.exitCode will shadow
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import "dart:io" as io;
@@ -156,7 +157,7 @@ class Command {
   String toString() => commandLine;
 
   Future<bool> get outputIsUpToDate => new Future.value(false);
-  io.Path get expectedOutputFile => null;
+  Path get expectedOutputFile => null;
   bool get isPixelTest => false;
 }
 
@@ -182,7 +183,7 @@ class CompilationCommand extends Command {
     if (_neverSkipCompilation) return new Future.value(false);
 
     Future<List<Uri>> readDepsFile(String path) {
-      var file = new io.File(new io.Path(path).toNativePath());
+      var file = new io.File(new Path(path).toNativePath());
       if (!file.existsSync()) {
         return new Future.value(null);
       }
@@ -250,13 +251,13 @@ class ContentShellCommand extends Command {
    * This is used for example for pixel tests, where [expectedOutputPath] points
    * to a *png file.
    */
-  io.Path expectedOutputPath;
+  Path expectedOutputPath;
 
   ContentShellCommand._(String executable,
                         String htmlFile,
                         List<String> options,
                         List<String> dartFlags,
-                        io.Path this.expectedOutputPath,
+                        Path this.expectedOutputPath,
                         String configurationDir)
       : super._("content_shell",
                executable,
@@ -282,7 +283,7 @@ class ContentShellCommand extends Command {
     return arguments;
   }
 
-  io.Path get expectedOutputFile => expectedOutputPath;
+  Path get expectedOutputFile => expectedOutputPath;
   bool get isPixelTest => (expectedOutputFile != null &&
                            expectedOutputFile.filename.endsWith(".png"));
 
@@ -389,7 +390,7 @@ class CommandBuilder {
                                              String htmlFile,
                                              List<String> options,
                                              List<String> dartFlags,
-                                             io.Path expectedOutputPath,
+                                             Path expectedOutputPath,
                                              String configurationDir) {
     ContentShellCommand command = new ContentShellCommand._(
         executable, htmlFile, options, dartFlags, expectedOutputPath,
@@ -778,7 +779,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
      * On a layout tests, the DRT output is directly compared with the
      * content of the expected output.
      */
-    var file = new io.File.fromPath(command.expectedOutputFile);
+    var file = new io.File(command.expectedOutputFile.toNativePath());
     if (file.existsSync()) {
       var bytesContentLength = "Content-Length:".codeUnits;
       var bytesNewLine = "\n".codeUnits;
@@ -1380,8 +1381,8 @@ class BatchRunnerProcess {
 
       var _stdoutStream =
           _process.stdout
-              .transform(new io.StringDecoder())
-              .transform(new io.LineTransformer());
+              .transform(UTF8.decoder)
+              .transform(new LineSplitter());
       _stdoutSubscription = _stdoutStream.listen((String line) {
         if (line.startsWith('>>> TEST')) {
           _status = line;
@@ -1403,8 +1404,8 @@ class BatchRunnerProcess {
 
       var _stderrStream =
           _process.stderr
-              .transform(new io.StringDecoder())
-              .transform(new io.LineTransformer());
+              .transform(UTF8.decoder)
+              .transform(new LineSplitter());
       _stderrSubscription = _stderrStream.listen((String line) {
         if (line.startsWith('>>> EOF STDERR')) {
           _stderrSubscription.pause();
@@ -1867,7 +1868,7 @@ class CommandExecutorImpl implements CommandExecutor {
 class RecordingCommandExecutor implements CommandExecutor {
   TestCaseRecorder _recorder;
 
-  RecordingCommandExecutor(io.Path path)
+  RecordingCommandExecutor(Path path)
       : _recorder = new TestCaseRecorder(path);
 
   Future<CommandOutput> runCommand(node, Command command, int timeout) {
@@ -1898,7 +1899,7 @@ class RecordingCommandExecutor implements CommandExecutor {
 class ReplayingCommandExecutor implements CommandExecutor {
   TestCaseOutputArchive _archive = new TestCaseOutputArchive();
 
-  ReplayingCommandExecutor(io.Path path) {
+  ReplayingCommandExecutor(Path path) {
     _archive.loadFromPath(path);
   }
 
@@ -2091,9 +2092,9 @@ class ProcessQueue {
     // CommandExecutor will execute commands
     var executor;
     if (recording) {
-      executor = new RecordingCommandExecutor(new io.Path(recordingOutputFile));
+      executor = new RecordingCommandExecutor(new Path(recordingOutputFile));
     } else if (replaying) {
-      executor = new ReplayingCommandExecutor(new io.Path(recordedInputFile));
+      executor = new ReplayingCommandExecutor(new Path(recordedInputFile));
     } else {
       executor = new CommandExecutorImpl(
           _globalConfiguration, maxProcesses, maxBrowserProcesses);

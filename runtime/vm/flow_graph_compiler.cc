@@ -64,12 +64,12 @@ void CompilerDeoptInfo::EmitMaterializations(Environment* env,
 
 
 FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
-                                     const FlowGraph& flow_graph,
+                                     FlowGraph* flow_graph,
                                      bool is_optimizing)
     : assembler_(assembler),
-      parsed_function_(flow_graph.parsed_function()),
-      flow_graph_(flow_graph),
-      block_order_(flow_graph.reverse_postorder()),
+      parsed_function_(flow_graph->parsed_function()),
+      flow_graph_(*flow_graph),
+      block_order_(*flow_graph->codegen_block_order(is_optimizing)),
       current_block_(NULL),
       exception_handlers_list_(NULL),
       pc_descriptors_list_(NULL),
@@ -502,8 +502,8 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 
 // Returns 'true' if code generation for this function is complete, i.e.,
 // no fall-through to regular code is needed.
-bool FlowGraphCompiler::TryIntrinsify() {
-  if (!CanOptimizeFunction()) return false;
+void FlowGraphCompiler::TryIntrinsify() {
+  if (!CanOptimizeFunction()) return;
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
   if (FLAG_intrinsify && !FLAG_enable_type_checks) {
@@ -517,7 +517,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
       const LoadInstanceFieldNode& load_node =
           *return_node.value()->AsLoadInstanceFieldNode();
       GenerateInlinedGetter(load_node.field().Offset());
-      return true;
+      return;
     }
     if (parsed_function().function().kind() == RawFunction::kImplicitSetter) {
       // An implicit setter must have a specific AST structure.
@@ -530,7 +530,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
           *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
       if (store_node.field().guarded_cid() == kDynamicCid) {
         GenerateInlinedSetter(store_node.field().Offset());
-        return true;
+        return;
       }
     }
   }
@@ -1098,7 +1098,7 @@ intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
 
 // Returns true if checking against this type is a direct class id comparison.
 bool FlowGraphCompiler::TypeCheckAsClassEquality(const AbstractType& type) {
-  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
   // Requires CHA, which can be applied in optimized code only,
   if (!FLAG_use_cha || !is_optimizing()) return false;
   if (!type.IsInstantiated()) return false;

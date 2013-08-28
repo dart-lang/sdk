@@ -144,7 +144,7 @@ class Cursor extends Interceptor native "IDBCursor" {
   @DomName('IDBCursor.delete')
   Future delete() {
    try {
-      return _completeRequest($dom_delete());
+      return _completeRequest(_delete());
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
     }
@@ -153,7 +153,7 @@ class Cursor extends Interceptor native "IDBCursor" {
   @DomName('IDBCursor.value')
   Future update(value) {
    try {
-      return _completeRequest($dom_update(value));
+      return _completeRequest(_update(value));
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
     }
@@ -189,7 +189,7 @@ class Cursor extends Interceptor native "IDBCursor" {
   @JSName('delete')
   @DomName('IDBCursor.delete')
   @DocsEditable()
-  Request $dom_delete() native;
+  Request _delete() native;
 
   @JSName('continue')
   @DomName('IDBCursor.continue')
@@ -198,14 +198,14 @@ class Cursor extends Interceptor native "IDBCursor" {
 
   @DomName('IDBCursor.update')
   @DocsEditable()
-  Request $dom_update(/*any*/ value) {
+  Request _update(/*any*/ value) {
     var value_1 = convertDartToNative_SerializedScriptValue(value);
-    return _$dom_update_1(value_1);
+    return _update_1(value_1);
   }
   @JSName('update')
   @DomName('IDBCursor.update')
   @DocsEditable()
-  Request _$dom_update_1(value) native;
+  Request _update_1(value) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -253,7 +253,7 @@ class Database extends EventTarget native "IDBDatabase" {
       options['autoIncrement'] = autoIncrement;
     }
 
-    return $dom_createObjectStore(name, options);
+    return _createObjectStore(name, options);
   }
 
   Transaction transaction(storeName_OR_storeNames, String mode) {
@@ -341,21 +341,21 @@ class Database extends EventTarget native "IDBDatabase" {
 
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable()
-  ObjectStore $dom_createObjectStore(String name, [Map options]) {
+  ObjectStore _createObjectStore(String name, [Map options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
-      return _$dom_createObjectStore_1(name, options_1);
+      return _createObjectStore_1(name, options_1);
     }
-    return _$dom_createObjectStore_2(name);
+    return _createObjectStore_2(name);
   }
   @JSName('createObjectStore')
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable()
-  ObjectStore _$dom_createObjectStore_1(name, options) native;
+  ObjectStore _createObjectStore_1(name, options) native;
   @JSName('createObjectStore')
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable()
-  ObjectStore _$dom_createObjectStore_2(name) native;
+  ObjectStore _createObjectStore_2(name) native;
 
   @DomName('IDBDatabase.deleteObjectStore')
   @DocsEditable()
@@ -412,9 +412,9 @@ class IdbFactory extends Interceptor native "IDBFactory" {
     try {
       var request;
       if (version != null) {
-        request = $dom_open(name, version);
+        request = _open(name, version);
       } else {
-        request = $dom_open(name);
+        request = _open(name);
       }
 
       if (onUpgradeNeeded != null) {
@@ -433,7 +433,7 @@ class IdbFactory extends Interceptor native "IDBFactory" {
   Future<IdbFactory> deleteDatabase(String name,
       {void onBlocked(Event)}) {
     try {
-      var request = $dom_deleteDatabase(name);
+      var request = _deleteDatabase(name);
 
       if (onBlocked != null) {
         request.onBlocked.listen(onBlocked);
@@ -456,7 +456,7 @@ class IdbFactory extends Interceptor native "IDBFactory" {
   @Experimental()
   Future<List<String>> getDatabaseNames() {
     try {
-      var request = $dom_webkitGetDatabaseNames();
+      var request = _webkitGetDatabaseNames();
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -480,7 +480,7 @@ class IdbFactory extends Interceptor native "IDBFactory" {
   @JSName('deleteDatabase')
   @DomName('IDBFactory.deleteDatabase')
   @DocsEditable()
-  OpenDBRequest $dom_deleteDatabase(String name) native;
+  OpenDBRequest _deleteDatabase(String name) native;
 
   @JSName('open')
   @DomName('IDBFactory.open')
@@ -488,7 +488,7 @@ class IdbFactory extends Interceptor native "IDBFactory" {
   @Returns('Request')
   @Creates('Request')
   @Creates('Database')
-  OpenDBRequest $dom_open(String name, [int version]) native;
+  OpenDBRequest _open(String name, [int version]) native;
 
   @JSName('webkitGetDatabaseNames')
   @DomName('IDBFactory.webkitGetDatabaseNames')
@@ -499,7 +499,7 @@ class IdbFactory extends Interceptor native "IDBFactory" {
   @Returns('Request')
   @Creates('Request')
   @Creates('DomStringList')
-  Request $dom_webkitGetDatabaseNames() native;
+  Request _webkitGetDatabaseNames() native;
 
 }
 
@@ -533,9 +533,9 @@ class Index extends Interceptor native "IDBIndex" {
    try {
       var request;
       if (key_OR_range != null) {
-        request = $dom_count(key_OR_range);
+        request = _count(key_OR_range);
       } else {
-        request = $dom_count();
+        request = _count();
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -546,7 +546,7 @@ class Index extends Interceptor native "IDBIndex" {
   @DomName('IDBIndex.get')
   Future get(key) {
     try {
-      var request = $dom_get(key);
+      var request = _get(key);
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -557,7 +557,7 @@ class Index extends Interceptor native "IDBIndex" {
   @DomName('IDBIndex.getKey')
   Future getKey(key) {
     try {
-      var request = $dom_getKey(key);
+      var request = _getKey(key);
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -585,9 +585,9 @@ class Index extends Interceptor native "IDBIndex" {
     }
     var request;
     if (direction == null) {
-      request = $dom_openCursor(key_OR_range);
+      request = _openCursor(key_OR_range);
     } else {
-      request = $dom_openCursor(key_OR_range, direction);
+      request = _openCursor(key_OR_range, direction);
     }
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
@@ -612,9 +612,9 @@ class Index extends Interceptor native "IDBIndex" {
     }
     var request;
     if (direction == null) {
-      request = $dom_openKeyCursor(key_OR_range);
+      request = _openKeyCursor(key_OR_range);
     } else {
-      request = $dom_openKeyCursor(key_OR_range, direction);
+      request = _openKeyCursor(key_OR_range, direction);
     }
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
@@ -644,7 +644,7 @@ class Index extends Interceptor native "IDBIndex" {
   @JSName('count')
   @DomName('IDBIndex.count')
   @DocsEditable()
-  Request $dom_count([key_OR_range]) native;
+  Request _count([key_OR_range]) native;
 
   @JSName('get')
   @DomName('IDBIndex.get')
@@ -652,7 +652,7 @@ class Index extends Interceptor native "IDBIndex" {
   @Returns('Request')
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
-  Request $dom_get(key) native;
+  Request _get(key) native;
 
   @JSName('getKey')
   @DomName('IDBIndex.getKey')
@@ -661,7 +661,7 @@ class Index extends Interceptor native "IDBIndex" {
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
   @Creates('ObjectStore')
-  Request $dom_getKey(key) native;
+  Request _getKey(key) native;
 
   @JSName('openCursor')
   @DomName('IDBIndex.openCursor')
@@ -669,7 +669,7 @@ class Index extends Interceptor native "IDBIndex" {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request $dom_openCursor([key_OR_range, String direction]) native;
+  Request _openCursor([key_OR_range, String direction]) native;
 
   @JSName('openKeyCursor')
   @DomName('IDBIndex.openKeyCursor')
@@ -677,7 +677,7 @@ class Index extends Interceptor native "IDBIndex" {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request $dom_openKeyCursor([key_OR_range, String direction]) native;
+  Request _openKeyCursor([key_OR_range, String direction]) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -760,9 +760,9 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
     try {
       var request;
       if (key != null) {
-        request = $dom_add(value, key);
+        request = _add(value, key);
       } else {
-        request = $dom_add(value);
+        request = _add(value);
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -773,7 +773,7 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @DomName('IDBObjectStore.clear')
   Future clear() {
     try {
-      return _completeRequest($dom_clear());
+      return _completeRequest(_clear());
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
     }
@@ -782,7 +782,7 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @DomName('IDBObjectStore.delete')
   Future delete(key_OR_keyRange){
     try {
-      return _completeRequest($dom_delete(key_OR_keyRange));
+      return _completeRequest(_delete(key_OR_keyRange));
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
     }
@@ -793,9 +793,9 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
    try {
       var request;
       if (key_OR_range != null) {
-        request = $dom_count(key_OR_range);
+        request = _count(key_OR_range);
       } else {
-        request = $dom_count();
+        request = _count();
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -808,9 +808,9 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
     try {
       var request;
       if (key != null) {
-        request = $dom_put(value, key);
+        request = _put(value, key);
       } else {
-        request = $dom_put(value);
+        request = _put(value);
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -821,7 +821,7 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @DomName('IDBObjectStore.get')
   Future getObject(key) {
     try {
-      var request = $dom_get(key);
+      var request = _get(key);
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -866,9 +866,9 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
     // TODO: try/catch this and return a stream with an immediate error.
     var request;
     if (direction == null) {
-      request = $dom_openCursor(key_OR_range);
+      request = _openCursor(key_OR_range);
     } else {
-      request = $dom_openCursor(key_OR_range, direction);
+      request = _openCursor(key_OR_range, direction);
     }
     return _cursorStreamFromResult(request, autoAdvance);
   }
@@ -883,7 +883,7 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
       options['multiEntry'] = multiEntry;
     }
 
-    return $dom_createIndex(name, keyPath, options);
+    return _createIndex(name, keyPath, options);
   }
 
 
@@ -915,14 +915,14 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request $dom_add(/*any*/ value, [/*any*/ key]) {
+  Request _add(/*any*/ value, [/*any*/ key]) {
     if (key != null) {
       var value_1 = convertDartToNative_SerializedScriptValue(value);
       var key_2 = convertDartToNative_SerializedScriptValue(key);
-      return _$dom_add_1(value_1, key_2);
+      return _add_1(value_1, key_2);
     }
     var value_3 = convertDartToNative_SerializedScriptValue(value);
-    return _$dom_add_2(value_3);
+    return _add_2(value_3);
   }
   @JSName('add')
   @DomName('IDBObjectStore.add')
@@ -930,67 +930,67 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request _$dom_add_1(value, key) native;
+  Request _add_1(value, key) native;
   @JSName('add')
   @DomName('IDBObjectStore.add')
   @DocsEditable()
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request _$dom_add_2(value) native;
+  Request _add_2(value) native;
 
   @JSName('clear')
   @DomName('IDBObjectStore.clear')
   @DocsEditable()
-  Request $dom_clear() native;
+  Request _clear() native;
 
   @JSName('count')
   @DomName('IDBObjectStore.count')
   @DocsEditable()
-  Request $dom_count([key_OR_range]) native;
+  Request _count([key_OR_range]) native;
 
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index $dom_createIndex(String name, keyPath, [Map options]) {
+  Index _createIndex(String name, keyPath, [Map options]) {
     if ((keyPath is List<String> || keyPath == null) && options == null) {
       List keyPath_1 = convertDartToNative_StringArray(keyPath);
-      return _$dom_createIndex_1(name, keyPath_1);
+      return _createIndex_1(name, keyPath_1);
     }
     if (options != null && (keyPath is List<String> || keyPath == null)) {
       List keyPath_2 = convertDartToNative_StringArray(keyPath);
       var options_3 = convertDartToNative_Dictionary(options);
-      return _$dom_createIndex_2(name, keyPath_2, options_3);
+      return _createIndex_2(name, keyPath_2, options_3);
     }
     if ((keyPath is String || keyPath == null) && options == null) {
-      return _$dom_createIndex_3(name, keyPath);
+      return _createIndex_3(name, keyPath);
     }
     if (options != null && (keyPath is String || keyPath == null)) {
       var options_4 = convertDartToNative_Dictionary(options);
-      return _$dom_createIndex_4(name, keyPath, options_4);
+      return _createIndex_4(name, keyPath, options_4);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _$dom_createIndex_1(name, List keyPath) native;
+  Index _createIndex_1(name, List keyPath) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _$dom_createIndex_2(name, List keyPath, options) native;
+  Index _createIndex_2(name, List keyPath, options) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _$dom_createIndex_3(name, String keyPath) native;
+  Index _createIndex_3(name, String keyPath) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _$dom_createIndex_4(name, String keyPath, options) native;
+  Index _createIndex_4(name, String keyPath, options) native;
 
   @JSName('delete')
   @DomName('IDBObjectStore.delete')
   @DocsEditable()
-  Request $dom_delete(key_OR_keyRange) native;
+  Request _delete(key_OR_keyRange) native;
 
   @DomName('IDBObjectStore.deleteIndex')
   @DocsEditable()
@@ -1002,7 +1002,7 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @Returns('Request')
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
-  Request $dom_get(key) native;
+  Request _get(key) native;
 
   @DomName('IDBObjectStore.index')
   @DocsEditable()
@@ -1014,21 +1014,21 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request $dom_openCursor([key_OR_range, String direction]) native;
+  Request _openCursor([key_OR_range, String direction]) native;
 
   @DomName('IDBObjectStore.put')
   @DocsEditable()
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request $dom_put(/*any*/ value, [/*any*/ key]) {
+  Request _put(/*any*/ value, [/*any*/ key]) {
     if (key != null) {
       var value_1 = convertDartToNative_SerializedScriptValue(value);
       var key_2 = convertDartToNative_SerializedScriptValue(key);
-      return _$dom_put_1(value_1, key_2);
+      return _put_1(value_1, key_2);
     }
     var value_3 = convertDartToNative_SerializedScriptValue(value);
-    return _$dom_put_2(value_3);
+    return _put_2(value_3);
   }
   @JSName('put')
   @DomName('IDBObjectStore.put')
@@ -1036,14 +1036,14 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request _$dom_put_1(value, key) native;
+  Request _put_1(value, key) native;
   @JSName('put')
   @DomName('IDBObjectStore.put')
   @DocsEditable()
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request _$dom_put_2(value) native;
+  Request _put_2(value) native;
 
 
   /**

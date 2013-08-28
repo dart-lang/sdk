@@ -565,9 +565,9 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
   ASSERT(type.IsFinalized());
   Error& malformed_error = Error::Handle();
   const Bool& result =
-      instance.IsInstanceOf(type,
-                            instantiator_type_arguments,
-                            &malformed_error) ? Bool::True() : Bool::False();
+      Bool::Get(instance.IsInstanceOf(type,
+                                      instantiator_type_arguments,
+                                      &malformed_error));
   if (FLAG_trace_type_checks) {
     PrintTypeCheck("InstanceOf",
         instance, type, instantiator_type_arguments, result);
@@ -611,6 +611,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
       SubtypeTestCache::CheckedHandle(arguments.ArgAt(5));
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!dst_type.IsMalformed());  // Already checked in code generator.
+  ASSERT(!dst_type.IsMalbounded());  // Already checked in code generator.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
 
   Error& malformed_error = Error::Handle();
@@ -620,7 +621,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
   if (FLAG_trace_type_checks) {
     PrintTypeCheck("TypeCheck",
                    src_instance, dst_type, instantiator_type_arguments,
-                   is_instance_of ? Bool::True() : Bool::False());
+                   Bool::Get(is_instance_of));
   }
   if (!is_instance_of) {
     // Throw a dynamic type error.

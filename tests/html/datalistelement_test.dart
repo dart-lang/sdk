@@ -54,8 +54,7 @@ main() {
 
   test('options', () {
     expect(() {
-      var options = document.query('#browsers')
-          .queryAll('option');  // Uses DataListElement.
+      var options = document.query('#browsers').options;
       expect(options.length, 5);
     }, expectation);
   });

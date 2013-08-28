@@ -591,28 +591,28 @@ DEFINE_NATIVE_ENTRY(Uint32x4_setW, 2) {
 DEFINE_NATIVE_ENTRY(Uint32x4_getFlagX, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, self, arguments->NativeArgAt(0));
   uint32_t value = self.x();
-  return value != 0 ? Bool::True().raw() : Bool::False().raw();
+  return Bool::Get(value != 0).raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(Uint32x4_getFlagY, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, self, arguments->NativeArgAt(0));
   uint32_t value = self.y();
-  return value != 0 ? Bool::True().raw() : Bool::False().raw();
+  return Bool::Get(value != 0).raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(Uint32x4_getFlagZ, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, self, arguments->NativeArgAt(0));
   uint32_t value = self.z();
-  return value != 0 ? Bool::True().raw() : Bool::False().raw();
+  return Bool::Get(value != 0).raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(Uint32x4_getFlagW, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, self, arguments->NativeArgAt(0));
   uint32_t value = self.w();
-  return value != 0 ? Bool::True().raw() : Bool::False().raw();
+  return Bool::Get(value != 0).raw();
 }
 
 

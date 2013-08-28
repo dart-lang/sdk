@@ -529,6 +529,41 @@ void main() {
     expect(-(Int64.MIN_VALUE + new Int64.fromInt(1)), Int64.MAX_VALUE);
   });
 
+  group("parse", () {
+    test("parseRadix10", () {
+      checkInt(int x) {
+        expect(Int64.parseRadix('$x', 10), new Int64.fromInt(x));
+      }
+      checkInt(0);
+      checkInt(1);
+      checkInt(-1);
+      checkInt(1000);
+      checkInt(12345678);
+      checkInt(-12345678);
+      checkInt(2147483647);
+      checkInt(2147483648);
+      checkInt(-2147483647);
+      checkInt(-2147483648);
+      checkInt(4294967295);
+      checkInt(4294967296);
+      checkInt(-4294967295);
+      checkInt(-4294967296);
+    });
+
+    test("parseRadix", () {
+      check(String s, int r, String x) {
+        expect(Int64.parseRadix(s, r).toString(), x);
+      }
+      check('ghoul', 36, '27699213');
+      check('ghoul', 35, '24769346');
+      // Min and max value.
+      check("-9223372036854775808", 10, "-9223372036854775808");
+      check("9223372036854775807", 10, "9223372036854775807");
+      // Overflow during parsing.
+      check("9223372036854775808", 10, "-9223372036854775808");
+    });
+  });
+
   group("string representation", () {
     test("toString", () {
       expect(new Int64.fromInt(0).toString(), "0");
@@ -571,10 +606,10 @@ void main() {
       expect(Int64.MIN_VALUE.toRadixString(9), "-67404283172107811828");
       expect(Int64.MIN_VALUE.toRadixString(10), "-9223372036854775808");
       expect(Int64.MIN_VALUE.toRadixString(11), "-1728002635214590698");
-      expect(Int64.MIN_VALUE.toRadixString(12), "-41A792678515120368");
-      expect(Int64.MIN_VALUE.toRadixString(13), "-10B269549075433C38");
-      expect(Int64.MIN_VALUE.toRadixString(14), "-4340724C6C71DC7A8");
-      expect(Int64.MIN_VALUE.toRadixString(15), "-160E2AD3246366808");
+      expect(Int64.MIN_VALUE.toRadixString(12), "-41a792678515120368");
+      expect(Int64.MIN_VALUE.toRadixString(13), "-10b269549075433c38");
+      expect(Int64.MIN_VALUE.toRadixString(14), "-4340724c6c71dc7a8");
+      expect(Int64.MIN_VALUE.toRadixString(15), "-160e2ad3246366808");
       expect(Int64.MIN_VALUE.toRadixString(16), "-8000000000000000");
       expect(Int64.MAX_VALUE.toRadixString(2),
           "111111111111111111111111111111111111111111111111111111111111111");
@@ -589,11 +624,11 @@ void main() {
       expect(Int64.MAX_VALUE.toRadixString(9), "67404283172107811827");
       expect(Int64.MAX_VALUE.toRadixString(10), "9223372036854775807");
       expect(Int64.MAX_VALUE.toRadixString(11), "1728002635214590697");
-      expect(Int64.MAX_VALUE.toRadixString(12), "41A792678515120367");
-      expect(Int64.MAX_VALUE.toRadixString(13), "10B269549075433C37");
-      expect(Int64.MAX_VALUE.toRadixString(14), "4340724C6C71DC7A7");
-      expect(Int64.MAX_VALUE.toRadixString(15), "160E2AD3246366807");
-      expect(Int64.MAX_VALUE.toRadixString(16), "7FFFFFFFFFFFFFFF");
+      expect(Int64.MAX_VALUE.toRadixString(12), "41a792678515120367");
+      expect(Int64.MAX_VALUE.toRadixString(13), "10b269549075433c37");
+      expect(Int64.MAX_VALUE.toRadixString(14), "4340724c6c71dc7a7");
+      expect(Int64.MAX_VALUE.toRadixString(15), "160e2ad3246366807");
+      expect(Int64.MAX_VALUE.toRadixString(16), "7fffffffffffffff");
     });
   });
 }

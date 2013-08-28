@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library SVGTest;
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 import 'dart:svg' as svg;
+import 'package:unittest/html_individual_config.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   useHtmlIndividualConfiguration();
@@ -17,12 +17,11 @@ main() {
     test('simpleRect', () {
       var div = new Element.tag('div');
       document.body.append(div);
-      div.innerHtml = r'''
+      div.setInnerHtml(r'''
 <svg id='svg1' width='200' height='100'>
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
 </svg>
-
-''';
+''', validator: new NodeValidatorBuilder()..allowSvg());
 
       var e = document.query('#svg1');
       expect(e, isNotNull);
@@ -53,11 +52,11 @@ main() {
     // only, see SVGTest3 for behavioural tests).
     insertTestDiv() {
       var element = new Element.tag('div');
-      element.innerHtml = r'''
+      element.setInnerHtml(r'''
 <svg id='svg1' width='200' height='100'>
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
 </svg>
-''';
+''', validator: new NodeValidatorBuilder()..allowSvg());
       document.body.append(element);
       return element;
     }

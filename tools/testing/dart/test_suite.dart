@@ -15,6 +15,7 @@
 library test_suite;
 
 import "dart:async";
+import "dart:convert" show LineSplitter, UTF8;
 import "dart:io";
 import "dart:isolate";
 import "drt_updater.dart";
@@ -260,8 +261,8 @@ void ccTestLister() {
       // Drain stderr to not leak resources.
       p.stderr.listen((_) { });
       Stream<String> stdoutStream =
-          p.stdout.transform(new StringDecoder())
-                  .transform(new LineTransformer());
+          p.stdout.transform(UTF8.decoder)
+                  .transform(new LineSplitter());
       var streamDone = false;
       var processExited = false;
       checkDone() {
@@ -573,7 +574,7 @@ class StandardTestSuite extends TestSuite {
       if (statusFilePath.endsWith('_dart2js.status') ||
           statusFilePath.endsWith('_analyzer.status') ||
           statusFilePath.endsWith('_analyzer2.status')) {
-        var file = new File.fromPath(dartDir.append(statusFilePath));
+        var file = new File(dartDir.append(statusFilePath).toNativePath());
         if (!file.existsSync()) {
           filesRead++;
           continue;
@@ -589,7 +590,7 @@ class StandardTestSuite extends TestSuite {
   }
 
   Future enqueueTests() {
-    Directory dir = new Directory.fromPath(suiteDir);
+    Directory dir = new Directory(suiteDir.toNativePath());
     return dir.exists().then((exists) {
       if (!exists) {
         print('Directory containing tests missing: ${suiteDir.toNativePath()}');
@@ -636,18 +637,12 @@ class StandardTestSuite extends TestSuite {
   void enqueueTestCaseFromTestInformation(TestInformation info) {
     var filePath = info.filePath;
     var optionsFromFile = info.optionsFromFile;
-    var isNegative = info.hasCompileError;
-    if (info.hasRuntimeError && hasRuntime) {
-      isNegative = true;
-    }
 
     // Look up expectations in status files using a test name generated
     // from the test file's path.
     String testName;
 
     if (optionsFromFile['isMultitest']) {
-      // Multitests do not run on browsers.
-      if (TestUtils.isBrowserRuntime(configuration['runtime'])) return;
       // Multitests are in [build directory]/generated_tests/... .
       // The test name will be '[test filename (no extension)]/[multitest key].
       String name = filePath.filenameWithoutExtension;
@@ -676,7 +671,8 @@ class StandardTestSuite extends TestSuite {
     Set<String> expectations = testExpectations.expectations(testName);
     if (info.hasCompileError &&
         TestUtils.isBrowserRuntime(configuration['runtime']) &&
-        configuration['report']) {
+        configuration['report'] &&
+        configuration['compiler'] != 'none') {
       SummaryReport.addCompileErrorSkipTest();
       return;
     }
@@ -721,20 +717,6 @@ class StandardTestSuite extends TestSuite {
   void enqueueStandardTest(TestInformation info,
                            String testName,
                            Set<String> expectations) {
-    bool isNegative = info.hasCompileError ||
-        (configuration['checked'] && info.isNegativeIfChecked);
-    if (info.hasRuntimeError && hasRuntime) {
-      isNegative = true;
-    }
-
-    if (configuration['analyzer']) {
-      // An analyzer can detect static type warnings by the
-      // format of the error line
-      if (info.hasFatalTypeErrors) {
-        isNegative = true;
-      }
-    }
-
     var commonArguments = commonArgumentsFromFile(info.filePath,
                                                   info.optionsFromFile);
 
@@ -751,9 +733,25 @@ class StandardTestSuite extends TestSuite {
                           makeCommands(info, allVmOptions, commonArguments),
                           configuration,
                           expectations,
-                          isNegative: isNegative,
+                          isNegative: isNegative(info),
                           info: info));
     }
+  }
+
+  bool isNegative(TestInformation info) {
+    bool negative = info.hasCompileError ||
+        (configuration['checked'] && info.isNegativeIfChecked);
+    if (info.hasRuntimeError && hasRuntime) {
+      negative = true;
+    }
+    if (configuration['analyzer']) {
+      // An analyzer can detect static type warnings by the
+      // format of the error line
+      if (info.hasFatalTypeErrors) {
+        negative = true;
+      }
+    }
+    return negative;
   }
 
   List<Command> makeCommands(TestInformation info, var vmOptions, var args) {
@@ -970,10 +968,10 @@ class StandardTestSuite extends TestSuite {
       Path pngPath = dir.append('$nameNoExt.png');
       Path txtPath = dir.append('$nameNoExt.txt');
       Path expectedOutput = null;
-      if (new File.fromPath(pngPath).existsSync()) {
+      if (new File(pngPath.toNativePath()).existsSync()) {
         expectedOutput = pngPath;
         content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
-      } else if (new File.fromPath(txtPath).existsSync()) {
+      } else if (new File(txtPath.toNativePath()).existsSync()) {
         expectedOutput = txtPath;
         content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
       } else {
@@ -1008,7 +1006,7 @@ class StandardTestSuite extends TestSuite {
           // For the tests that require multiple input scripts but are not
           // compiled, move the input scripts over with the script so they can
           // be accessed.
-          String result = new File.fromPath(fromPath).readAsStringSync();
+          String result = new File(fromPath.toNativePath()).readAsStringSync();
           new File('$tempDir/$baseName.dart').writeAsStringSync(result);
         }
       }
@@ -1089,11 +1087,11 @@ class StandardTestSuite extends TestSuite {
           testCase = new BrowserTestCase(testDisplayName,
               commandSet, configuration,
               expectations['$testName/${subtestNames[subtestIndex]}'],
-              info, info.hasCompileError || info.hasRuntimeError, fullHtmlPath);
+              info, isNegative(info), fullHtmlPath);
         } else {
           testCase = new BrowserTestCase(testDisplayName,
               commandSet, configuration, expectations,
-              info, info.hasCompileError || info.hasRuntimeError, fullHtmlPath);
+              info, isNegative(info), fullHtmlPath);
         }
 
         doTest(testCase);
@@ -1161,7 +1159,7 @@ class StandardTestSuite extends TestSuite {
         .append(testUniqueName);
 
     TestUtils.mkdirRecursive(new Path('.'), generatedTestPath);
-    return new File.fromPath(generatedTestPath).fullPathSync()
+    return new File(generatedTestPath.toNativePath()).fullPathSync()
         .replaceAll('\\', '/');
   }
 
@@ -1347,7 +1345,7 @@ class StandardTestSuite extends TestSuite {
         new RegExp(r"^[#]?import.*dart:(html|web_audio|indexed_db|svg|web_sql)",
         multiLine: true);
 
-    var bytes = new File.fromPath(filePath).readAsBytesSync();
+    var bytes = new File(filePath.toNativePath()).readAsBytesSync();
     String contents = decodeUtf8(bytes);
     bytes = null;
 
@@ -1473,7 +1471,8 @@ class StandardTestSuite extends TestSuite {
    * environment variables, configuration files, etc.
    */
   Map readOptionsFromCo19File(Path filePath) {
-    String contents = decodeUtf8(new File.fromPath(filePath).readAsBytesSync());
+    String contents = decodeUtf8(new File(filePath.toNativePath())
+        .readAsBytesSync());
 
     bool hasCompileError = contents.contains("@compile-error");
     bool hasRuntimeError = contents.contains("@runtime-error");
@@ -1546,7 +1545,7 @@ class DartcCompilationTestSuite extends StandardTestSuite {
     var group = new FutureGroup();
 
     for (String testDir in _testDirs) {
-      Directory dir = new Directory.fromPath(suiteDir.append(testDir));
+      Directory dir = new Directory(suiteDir.append(testDir).toNativePath());
       if (dir.existsSync()) {
         enqueueDirectory(dir, group);
       }
@@ -1720,7 +1719,7 @@ class TestUtils {
     if (relativePath.isAbsolute) {
       base = new Path('/');
     }
-    Directory dir = new Directory.fromPath(base);
+    Directory dir = new Directory(base.toNativePath());
     assert(dir.existsSync());
     var segments = relativePath.segments();
     for (String segment in segments) {
@@ -1731,7 +1730,7 @@ class TestUtils {
         // Skip the directory creation for a path like "/E:".
         continue;
       }
-      dir = new Directory.fromPath(base);
+      dir = new Directory(base.toNativePath());
       if (!dir.existsSync()) {
         dir.createSync();
       }
@@ -1745,8 +1744,8 @@ class TestUtils {
    * Assumes that the directory for [dest] already exists.
    */
   static Future copyFile(Path source, Path dest) {
-    return new File.fromPath(source).openRead()
-        .pipe(new File.fromPath(dest).openWrite());
+    return new File(source.toNativePath()).openRead()
+        .pipe(new File(dest.toNativePath()).openWrite());
   }
 
   static Path debugLogfile() {
@@ -1895,7 +1894,7 @@ class TestUtils {
     return new Path(path);
   }
 
-  /** 
+  /**
    * Gets extra vm options passed to the testing script.
    */
   static List<String> getExtraVmOptions(Map configuration) {

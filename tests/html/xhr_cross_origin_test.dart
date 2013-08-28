@@ -56,6 +56,25 @@ main() {
       });
     });
 
+    test('XHR.requestCrossOrigin', () {
+      var url = '$host/root_dart/tests/html/xhr_cross_origin_data.txt';
+      return HttpRequest.requestCrossOrigin(url).then((response) {
+        expect(response, contains('feed'));
+      });
+    });
+
+    test('XHR.requestCrossOrigin errors', () {
+      var gotError = false;
+      return HttpRequest.requestCrossOrigin('does_not_exist').then((response) {
+        expect(true, isFalse, reason: '404s should fail request.');
+      }).catchError((error) {}, test: (error) {
+        gotError = true;
+        return true;
+      }).whenComplete(() {
+        expect(gotError, isTrue);
+      });
+    });
+
     // Skip the rest if not supported.
     if (!HttpRequest.supportsCrossOrigin) {
       return;

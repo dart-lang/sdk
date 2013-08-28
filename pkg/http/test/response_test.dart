@@ -22,8 +22,12 @@ void main() {
           [72, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100, 33]));
     });
 
-    // TODO(nweiz): test that this respects the inferred encoding when issue
-    // 6284 is fixed.
+    test('respects the inferred encoding', () {
+      var response = new http.Response("föøbãr", 200,
+          headers: {'content-type': 'text/plain; charset=iso-8859-1'});
+      expect(response.bodyBytes, equals(
+          [102, 246, 248, 98, 227, 114]));
+    });
   });
 
   group('.bytes()', () {
@@ -37,8 +41,11 @@ void main() {
       expect(response.bodyBytes, equals([104, 101, 108, 108, 111]));
     });
 
-    // TODO(nweiz): test that this respects the inferred encoding when issue
-    // 6284 is fixed.
+    test('respects the inferred encoding', () {
+      var response = new http.Response.bytes([102, 246, 248, 98, 227, 114], 200,
+          headers: {'content-type': 'text/plain; charset=iso-8859-1'});
+      expect(response.body, equals("föøbãr"));
+    });
   });
 
   group('.fromStream()', () {

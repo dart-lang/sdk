@@ -5,8 +5,8 @@
 library source_file_provider;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'dart:utf';
 
 import '../compiler.dart' as api show Diagnostic;
 import 'dart2js.dart' show AbortLeg;
@@ -21,7 +21,7 @@ String readAll(String filename) {
   var buffer = new List<int>(length);
   var bytes = file.readIntoSync(buffer, 0, length);
   file.closeSync();
-  return new String.fromCharCodes(new Utf8Decoder(buffer).decodeRest());
+  return UTF8.decode(buffer);
 }
 
 class SourceFileProvider {

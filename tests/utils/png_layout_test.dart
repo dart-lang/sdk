@@ -13,10 +13,10 @@ library layouttest;
 import 'dart:html';
 
 main() {
-  var div1Style = _style('blue', 20, 10, 40, 10);
-  var div2Style = _style('red', 25, 30, 40, 10);
-  var div1 = new Element.html('<div style="$div1Style"></div>');
-  var div2 = new Element.html('<div style="$div2Style"></div>');
+  var div1 = new DivElement();
+  div1.attributes['style'] = _style('blue', 20, 10, 40, 10);
+  var div2 = new DivElement();
+  div2.attributes['style'] = _style('red', 25, 30, 40, 10);
   document.body.children.add(div1);
   document.body.children.add(div2);
 }

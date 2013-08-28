@@ -10,6 +10,10 @@ import
     '../../../sdk/lib/_internal/compiler/implementation/dart_backend/dart_backend.dart'
 show
     DartBackend;
+import
+    '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart'
+show
+    Node;
 
 main() {
   testUniqueMinification();
@@ -31,10 +35,25 @@ Compiler runCompiler({useMirrorHelperLibrary: false, minify: false}) {
 void testUniqueMinification() {
   Compiler compiler = runCompiler(useMirrorHelperLibrary: true, minify: true);
   DartBackend backend = compiler.backend;
+  MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
   Map<Node, String> renames = backend.renames;
+  Map<String, SourceString> symbols = mirrorRenamer.symbols;
 
-  //'Foo' appears twice, so toSet() reduces the length by 1.
-  Expect.equals(renames.values.toSet().length, renames.values.length - 1);
+  // Check that no two different source code names get the same mangled name,
+  // with the exception of MirrorSystem.getName that gets renamed to the same
+  // mangled name as the getNameHelper from _mirror_helper.dart.
+  for (Node node in renames.keys) {
+    Identifier identifier = node.asIdentifier();
+    if (identifier != null) {
+      SourceString source = identifier.source;
+      if (mirrorRenamer.mirrorSystemGetNameNodes.first.selector == node)
+        continue;
+      if (symbols.containsKey(renames[node])) {
+        print(node);
+        Expect.equals(source, symbols[renames[node]]);
+      }
+    }
+  }
 }
 
 void testNoUniqueMinification() {
@@ -42,7 +61,7 @@ void testNoUniqueMinification() {
   DartBackend backend = compiler.backend;
   Map<Node, String> renames = backend.renames;
 
-  //'Foo' appears twice and now 'invocation' and 'hest' can get the same name.
+  // 'Foo' appears twice and 'invocation' and 'hest' get the same mangled name.
   Expect.equals(renames.values.toSet().length, renames.values.length - 2);
 }
 
@@ -52,7 +71,7 @@ import 'dart:mirrors';
 
 class Foo {
   noSuchMethod(invocation) {
-    MirrorSystem.getName(const Symbol('hest'));
+    MirrorSystem.getName(null);
   }
 }
 

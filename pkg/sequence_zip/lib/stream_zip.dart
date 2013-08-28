@@ -2,6 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Help for combining multiple streams into a single stream.
+ *
+ * This API is also available as part of the
+ * [sequence_zip](#sequence_zip) library.
+ */
 library stream_zip;
 
 import "dart:async";

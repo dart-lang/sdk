@@ -10,6 +10,7 @@ import "dart:async";
 import "dart:io";
 
 import "test_suite.dart";
+import "utils.dart" show Path;
 
 class _DartiumUpdater {
   String name;

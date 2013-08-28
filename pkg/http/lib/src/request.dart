@@ -121,7 +121,7 @@ class Request extends BaseRequest {
           'content-type "application/x-www-form-urlencoded".');
     }
 
-    return queryToMap(body);
+    return queryToMap(body, encoding: encoding);
   }
 
   set bodyFields(Map<String, String> fields) {
@@ -132,7 +132,7 @@ class Request extends BaseRequest {
           'content-type "${_contentType.value}".');
     }
 
-    this.body = mapToQuery(fields);
+    this.body = mapToQuery(fields, encoding: encoding);
   }
 
   /// Creates a new HTTP request.

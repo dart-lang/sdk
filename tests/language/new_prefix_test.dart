@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// JSON parsing and serialization.
+import 'dart:core' as prefix;
 
-patch parse(String json, [reviver(var key, var value)]) {
-  return _parse(json, reviver);
+main() {
+  return new prefix(); /// 01: static type warning, runtime error
 }

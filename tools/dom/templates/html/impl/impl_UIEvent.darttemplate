@@ -19,8 +19,8 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     if (view == null) {
       view = window;
     }
-    final e = document.$dom_createEvent("UIEvent");
-    e.$dom_initUIEvent(type, canBubble, cancelable, view, detail);
+    final e = document._createEvent("UIEvent");
+    e._initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
   }
 $!MEMBERS
@@ -37,9 +37,9 @@ $!MEMBERS
 
   @DomName('UIEvent.layerX')
   @DomName('UIEvent.layerY')
-  Point get layer => new Point($dom_layerX, $dom_layerY);
+  Point get layer => new Point(_layerX, _layerY);
 
   @DomName('UIEvent.pageX')
   @DomName('UIEvent.pageY')
-  Point get page => new Point($dom_pageX, $dom_pageY);
+  Point get page => new Point(_pageX, _pageY);
 }

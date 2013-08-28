@@ -5,28 +5,38 @@
 part of dart.core;
 
 /**
- * The [Iterable] interface allows to get an [Iterator] out of an
- * [Iterable] object.
+ * An object that uses an [Iterator] to serve objects one at a time.
  *
- * This interface is used by the for-in construct to iterate over an
- * [Iterable] object.
- * The for-in construct takes an [Iterable] object at the right-hand
- * side, and calls its [iterator] method to get an [Iterator] on it.
+ * You can iterate over all objects served by an Iterable object
+ * using the for-in loop construct.
+ * For example, you can iterate over all of the keys in a [Map],
+ * because Map keys are iterable.
  *
- * A user-defined class that implements the [Iterable] interface can
- * be used as the right-hand side of a for-in construct.
+ *     Map kidsBooks = {'Matilda': 'Roald Dahl',
+ *                      'Green Eggs and Ham': 'Dr Seuss',
+ *                      'Where the Wild Things Are': 'Maurice Sendak'};
+ *     for (var book in kidsBooks.keys) {
+ *       print('$book was written by ${kidsBooks[book]}');
+ *     }
+ *
+ * The [List] class and the [Set] class implement this interface,
+ * as do classes in the [dart:collection](#dart-collection) library.
+ *
+ * You can implement Iterable in your own class.
+ * If you do, then an instance of your Iterable class
+ * can be the right-hand side of a for-in construct.
  */
 abstract class Iterable<E> {
   const Iterable();
 
   /**
-   * Create an [Iterable] that generates its elements dynamically.
+   * Creates an Iterable that generates its elements dynamically.
    *
-   * The [Iterators] created by the [Iterable] will count from
+   * The Iterators created by the Iterable count from
    * zero to [:count - 1:] while iterating, and call [generator]
    * with that index to create the next value.
    *
-   * As an [Iterable], [:new Iterable.generate(n, generator)):] is equivalent to
+   * As an Iterable, [:new Iterable.generate(n, generator)):] is equivalent to
    * [:const [0, ..., n - 1].map(generator):]
    */
   factory Iterable.generate(int count, E generator(int index)) {
@@ -34,7 +44,7 @@ abstract class Iterable<E> {
   }
 
   /**
-   * Returns an [Iterator] that iterates over this [Iterable] object.
+   * Returns an Iterator that iterates over this Iterable object.
    */
   Iterator<E> get iterator;
 
@@ -57,24 +67,24 @@ abstract class Iterable<E> {
    * This method returns a view of the mapped elements. As long as the
    * returned [Iterable] is not iterated over, the supplied function [test] will
    * not be invoked. Iterating will not cache results, and thus iterating
-   * multiple times over the the returned [Iterable] will invoke the supplied
+   * multiple times over the returned [Iterable] will invoke the supplied
    * function [test] multiple times on the same element.
    */
   Iterable<E> where(bool test(E element));
 
   /**
-   * Expand each element of this [Iterable] into zero or more elements.
+   * Expands each element of this [Iterable] into zero or more elements.
    *
-   * The resulting Iterable will run through the elements returned
+   * The resulting Iterable runs through the elements returned
    * by [f] for each element of this, in order.
    *
-   * The returned [Iterable] is lazy, and will call [f] for each element
+   * The returned [Iterable] is lazy, and calls [f] for each element
    * of this every time it's iterated.
    */
   Iterable expand(Iterable f(E element));
 
   /**
-   * Check whether the collection contains an element equal to [element].
+   * Returns true if the collection contains an element equal to [element].
    */
   bool contains(Object element);
 
@@ -138,7 +148,7 @@ abstract class Iterable<E> {
   /**
    * Creates a [List] containing the elements of this [Iterable].
    *
-   * The elements will be in iteration order. The list is fixed-length
+   * The elements are in iteration order. The list is fixed-length
    * if [growable] is false.
    */
   List<E> toList({ bool growable: true });
@@ -177,37 +187,37 @@ abstract class Iterable<E> {
   Iterable<E> take(int n);
 
   /**
-   * Returns an [Iterable] that stops once [test] is not satisfied anymore.
+   * Returns an Iterable that stops once [test] is not satisfied anymore.
    *
-   * The filtering happens lazily. Every new [Iterator] of the returned
-   * [Iterable] will start iterating over the elements of `this`.
+   * The filtering happens lazily. Every new Iterator of the returned
+   * Iterable starts iterating over the elements of `this`.
    *
    * When the iterator encounters an element `e` that does not satisfy [test],
-   * it discards `e` and moves into the finished state. That is, it will not
-   * ask or provide any more elements.
+   * it discards `e` and moves into the finished state. That is, it does not
+   * get or provide any more elements.
    */
   Iterable<E> takeWhile(bool test(E value));
 
   /**
-   * Returns an [Iterable] that skips the first [n] elements.
+   * Returns an Iterable that skips the first [n] elements.
    *
-   * If `this` has fewer than [n] elements, then the resulting [Iterable] will
-   * be empty.
+   * If `this` has fewer than [n] elements, then the resulting Iterable is 
+   * empty.
    *
    * It is an error if [n] is negative.
    */
   Iterable<E> skip(int n);
 
   /**
-   * Returns an [Iterable] that skips elements while [test] is satisfied.
+   * Returns an Iterable that skips elements while [test] is satisfied.
    *
-   * The filtering happens lazily. Every new [Iterator] of the returned
-   * [Iterable] iterates over all elements of `this`.
+   * The filtering happens lazily. Every new Iterator of the returned
+   * Iterable iterates over all elements of `this`.
    *
    * As long as the iterator's elements satisfy [test] they are
    * discarded. Once an element does not satisfy the [test] the iterator stops
    * testing and uses every later element unconditionally. That is, the elements
-   * of the returned [Iterable] are the elements of `this` starting from the
+   * of the returned Iterable are the elements of `this` starting from the
    * first element that does not satisfy [test].
    */
   Iterable<E> skipWhile(bool test(E value));
@@ -303,7 +313,7 @@ class _GeneratorIterator<E> implements Iterator<E> {
 }
 
 /**
- * An [Iterator] that allows moving backwards as well as forwards.
+ * An Iterator that allows moving backwards as well as forwards.
  */
 abstract class BidirectionalIterator<E> implements Iterator<E> {
   /**

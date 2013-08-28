@@ -8,7 +8,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   @DomName('IDBCursor.delete')
   Future delete() {
    try {
-      return _completeRequest($dom_delete());
+      return _completeRequest(_delete());
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
     }
@@ -17,7 +17,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   @DomName('IDBCursor.value')
   Future update(value) {
    try {
-      return _completeRequest($dom_update(value));
+      return _completeRequest(_update(value));
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
     }

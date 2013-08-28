@@ -95,7 +95,7 @@ $!MEMBERS
   // For real TemplateElement use the actual DOM .content field instead of
   // our polyfilled expando.
   @Experimental()
-  DocumentFragment get content => $dom_content;
+  DocumentFragment get content => _content;
 
 
   /**
@@ -288,5 +288,21 @@ option[template] {
   display: none;
 }''';
     document.head.append(style);
+  }
+
+  /**
+   * An override to place the contents into content rather than as child nodes.
+   *
+   * See also:
+   *
+   * * <https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#innerhtml-on-templates>
+   */
+  void setInnerHtml(String html,
+    {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    text = null;
+    var fragment = createFragment(
+        html, validator: validator, treeSanitizer: treeSanitizer);
+
+    content.append(fragment);
   }
 }

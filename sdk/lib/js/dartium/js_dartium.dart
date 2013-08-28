@@ -79,7 +79,13 @@ SendPortSync _jsPortConvert = window.lookupPort('dart-js-convert');
 /**
  * Returns a proxy to the global JavaScript context for this page.
  */
-JsObject get context => _deserialize(_jsPortSync.callSync([]));
+JsObject get context {
+  var port = _jsPortSync;
+  if (port == null) {
+    return null;
+  }
+  return _deserialize(_jsPortSync.callSync([]));
+}
 
 /**
  * Converts a json-like [data] to a JavaScript map or array and return a

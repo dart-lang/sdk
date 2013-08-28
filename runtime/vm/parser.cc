@@ -30,7 +30,7 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
-DECLARE_FLAG(bool, error_on_malformed_type);
+DECLARE_FLAG(bool, error_on_bad_type);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 static void CheckedModeHandler(bool value) {
@@ -775,6 +775,48 @@ static bool IsInvisible(const Function& func) {
 }
 
 
+RawObject* Parser::ParseFunctionParameters(const Function& func) {
+  ASSERT(!func.IsNull());
+  Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    const Script& script = Script::Handle(isolate, func.script());
+    const Class& owner = Class::Handle(isolate, func.Owner());
+    ASSERT(!owner.IsNull());
+    const Library& lib = Library::Handle(isolate, owner.library());
+    Parser parser(script, lib, func.token_pos());
+    parser.set_current_class(owner);
+    parser.SkipFunctionPreamble();
+    ParamList params;
+    parser.ParseFormalParameterList(true, &params);
+    ParamDesc* param = params.parameters->data();
+    const int param_cnt = params.num_fixed_parameters +
+                          params.num_optional_parameters;
+    Array& param_descriptor = Array::Handle(isolate, Array::New(param_cnt * 2));
+    for (int i = 0, j = 0; i < param_cnt; i++, j += 2) {
+      param_descriptor.SetAt(j, param[i].is_final ? Bool::True() :
+                                                    Bool::False());
+      param_descriptor.SetAt(j + 1,
+          (param[i].default_value == NULL) ? Object::null_instance() :
+                                             *(param[i].default_value));
+    }
+    isolate->set_long_jump_base(base);
+    return param_descriptor.raw();
+  } else {
+    Error& error = Error::Handle();
+    error = isolate->object_store()->sticky_error();
+    isolate->object_store()->clear_sticky_error();
+    isolate->set_long_jump_base(base);
+    return error.raw();
+  }
+  UNREACHABLE();
+  return Object::null();
+}
+
+
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   Isolate* isolate = Isolate::Current();
@@ -1410,6 +1452,11 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     params->has_field_initializer = true;
   }
 
+  if (params->has_optional_named_parameters &&
+      (parameter.name->CharAt(0) == '_')) {
+    ErrorMsg(parameter.name_pos, "named parameter must not be private");
+  }
+
   // Check for duplicate formal parameters.
   const intptr_t num_existing_parameters =
       params->num_fixed_parameters + params->num_optional_parameters;
@@ -1591,7 +1638,6 @@ String& Parser::ParseNativeDeclaration() {
   }
   String& native_name = *CurrentLiteral();
   ConsumeToken();
-  ExpectSemicolon();
   return native_name;
 }
 
@@ -2701,57 +2747,56 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   }
   ASSERT((CurrentToken() == Token::kLPAREN) || func.IsGetterFunction());
   const bool allow_explicit_default_values = true;
-  if (!func.IsGetterFunction()) {
-    ParseFormalParameterList(allow_explicit_default_values, &params);
+  if (func.IsGetterFunction()) {
+    // Populate function scope with the formal parameters. Since in this case
+    // we are compiling a getter this will at most populate the receiver.
+    AddFormalParamsToScope(&params, current_block_->scope);
   } else {
-    // TODO(hausner): Remove this once we no longer support the old
-    // getter syntax with explicit empty parameter list.
-    if (CurrentToken() == Token::kLPAREN) {
-      ConsumeToken();
-      ExpectToken(Token::kRPAREN);
+    ParseFormalParameterList(allow_explicit_default_values, &params);
+
+    // The number of parameters and their type are not yet set in local
+    // functions, since they are not 'top-level' parsed.
+    if (func.IsLocalFunction()) {
+      AddFormalParamsToFunction(&params, func);
     }
-  }
+    SetupDefaultsForOptionalParams(&params, default_parameter_values);
+    ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+    ASSERT(func.NumParameters() == params.parameters->length());
 
-  // The number of parameters and their type are not yet set in local functions,
-  // since they are not 'top-level' parsed.
-  if (func.IsLocalFunction()) {
-    AddFormalParamsToFunction(&params, func);
-  }
-  SetupDefaultsForOptionalParams(&params, default_parameter_values);
-  ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-  ASSERT(func.NumParameters() == params.parameters->length());
-
-  // Check whether the function has any field initializer formal parameters,
-  // which are not allowed in non-constructor functions.
-  if (params.has_field_initializer) {
-    for (int i = 0; i < params.parameters->length(); i++) {
-      ParamDesc& param = (*params.parameters)[i];
-      if (param.is_field_initializer) {
-        ErrorMsg(param.name_pos,
-                 "field initializer only allowed in constructors");
+    // Check whether the function has any field initializer formal parameters,
+    // which are not allowed in non-constructor functions.
+    if (params.has_field_initializer) {
+      for (int i = 0; i < params.parameters->length(); i++) {
+        ParamDesc& param = (*params.parameters)[i];
+        if (param.is_field_initializer) {
+          ErrorMsg(param.name_pos,
+                   "field initializer only allowed in constructors");
+        }
       }
     }
-  }
-  // Populate function scope with the formal parameters.
-  AddFormalParamsToScope(&params, current_block_->scope);
+    // Populate function scope with the formal parameters.
+    AddFormalParamsToScope(&params, current_block_->scope);
 
-  if (FLAG_enable_type_checks &&
-      (current_block_->scope->function_level() > 0)) {
-    // We are parsing, but not compiling, a local function.
-    // The instantiator may be required at run time for generic type checks.
-    if (IsInstantiatorRequired()) {
-      // Make sure that the receiver of the enclosing instance function
-      // (or implicit first parameter of an enclosing factory) is marked as
-      // captured if type checks are enabled, because they may access it to
-      // instantiate types.
-      CaptureInstantiator();
+    if (FLAG_enable_type_checks &&
+        (current_block_->scope->function_level() > 0)) {
+      // We are parsing, but not compiling, a local function.
+      // The instantiator may be required at run time for generic type checks.
+      if (IsInstantiatorRequired()) {
+        // Make sure that the receiver of the enclosing instance function
+        // (or implicit first parameter of an enclosing factory) is marked as
+        // captured if type checks are enabled, because they may access it to
+        // instantiate types.
+        CaptureInstantiator();
+      }
     }
   }
 
   OpenBlock();  // Open a nested scope for the outermost function block.
+  intptr_t end_token_pos = 0;
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
     ParseStatementSequence();
+    end_token_pos = TokenPos();
     ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
@@ -2759,8 +2804,11 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
     ASSERT(expr != NULL);
     current_block_->statements->Add(new ReturnNode(expr_pos, expr));
+    end_token_pos = TokenPos();
   } else if (IsLiteral("native")) {
     ParseNativeFunctionBlock(&params, func);
+    end_token_pos = TokenPos();
+    ExpectSemicolon();
   } else if (func.is_external()) {
     // Body of an external method contains a single throw.
     const String& function_name = String::ZoneHandle(func.name());
@@ -2774,9 +2822,13 @@ SequenceNode* Parser::ParseFunc(const Function& func,
                                    InvocationMirror::kStatic :
                                    InvocationMirror::kDynamic,
                                InvocationMirror::kMethod));
+    end_token_pos = TokenPos();
   } else {
     UnexpectedToken();
   }
+  ASSERT(func.end_token_pos() == func.token_pos() ||
+         func.end_token_pos() == end_token_pos);
+  func.set_end_token_pos(end_token_pos);
   SequenceNode* body = CloseBlock();
   current_block_->statements->Add(body);
   innermost_function_ = saved_innermost_function.raw();
@@ -2988,6 +3040,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
           method->name->ToCString(),
           String::Handle(type.UserVisibleName()).ToCString());
     } else {
+      // TODO(regis): What if the redirection type is malbounded?
       redirection_type ^= type.raw();
     }
     if (CurrentToken() == Token::kPERIOD) {
@@ -3075,6 +3128,8 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                "Constructor with redirection may not have a function body");
     }
     ParseNativeDeclaration();
+    method_end_pos = TokenPos();
+    ExpectSemicolon();
   } else {
     // We haven't found a method body. Issue error if one is required.
     const bool must_have_body =
@@ -3813,7 +3868,8 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
 }
 
 
-void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
+void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
+                               intptr_t metadata_pos) {
   TRACE_PARSER("ParseMixinTypedef");
   const intptr_t classname_pos = TokenPos();
   String& class_name = *ExpectUserDefinedTypeIdentifier("class name expected");
@@ -3866,6 +3922,9 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
   }
   ExpectSemicolon();
   pending_classes.Add(mixin_application, Heap::kOld);
+  if (metadata_pos >= 0) {
+    library_.AddClassMetadata(mixin_application, metadata_pos);
+  }
 }
 
 
@@ -3909,12 +3968,13 @@ bool Parser::IsMixinTypedef() {
 }
 
 
-void Parser::ParseTypedef(const GrowableObjectArray& pending_classes) {
+void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
+                          intptr_t metadata_pos) {
   TRACE_PARSER("ParseTypedef");
   ExpectToken(Token::kTYPEDEF);
 
   if (IsMixinTypedef()) {
-    ParseMixinTypedef(pending_classes);
+    ParseMixinTypedef(pending_classes, metadata_pos);
     return;
   }
 
@@ -4021,6 +4081,9 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes) {
   ASSERT(!function_type_alias.IsCanonicalSignatureClass());
   ASSERT(!function_type_alias.is_finalized());
   pending_classes.Add(function_type_alias, Heap::kOld);
+  if (metadata_pos >= 0) {
+    library_.AddClassMetadata(function_type_alias, metadata_pos);
+  }
 }
 
 
@@ -4424,6 +4487,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
 
   intptr_t function_end_pos = function_pos;
   if (is_external) {
+    function_end_pos = TokenPos();
     ExpectSemicolon();
   } else if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
@@ -4431,10 +4495,12 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     SkipExpr();
+    function_end_pos = TokenPos();
     ExpectSemicolon();
-    function_end_pos = TokenPos() - 1;
   } else if (IsLiteral("native")) {
     ParseNativeDeclaration();
+    function_end_pos = TokenPos();
+    ExpectSemicolon();
   } else {
     ErrorMsg("function block expected");
   }
@@ -4549,6 +4615,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
 
   intptr_t accessor_end_pos = accessor_pos;
   if (is_external) {
+    accessor_end_pos = TokenPos();
     ExpectSemicolon();
   } else if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
@@ -4556,10 +4623,12 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     SkipExpr();
+    accessor_end_pos = TokenPos();
     ExpectSemicolon();
-    accessor_end_pos = TokenPos() - 1;
   } else if (IsLiteral("native")) {
     ParseNativeDeclaration();
+    accessor_end_pos = TokenPos();
+    ExpectSemicolon();
   } else {
     ErrorMsg("function block expected");
   }
@@ -4869,7 +4938,7 @@ void Parser::ParseTopLevel() {
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
                (LookaheadToken(1) != Token::kLPAREN)) {
       set_current_class(toplevel_class);
-      ParseTypedef(pending_classes);
+      ParseTypedef(pending_classes, metadata_pos);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
       ParseClassDeclaration(pending_classes, metadata_pos);
@@ -5365,8 +5434,6 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   Array& default_parameter_values = Array::Handle();
   SequenceNode* statements = Parser::ParseFunc(function,
                                                default_parameter_values);
-  ASSERT(is_new_closure || (function.end_token_pos() == (TokenPos() - 1)));
-  function.set_end_token_pos(TokenPos() - 1);
 
   // Now that the local function has formal parameters, lookup the signature
   // class in the current library (but not in its imports) and only create a new
@@ -5438,6 +5505,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
       const Error& error = Error::Handle(signature_type.malformed_error());
       function_type.set_malformed_error(error);
     }
+    // TODO(regis): What if the signature is malbounded?
 
     // The function type was initially marked as instantiated, but it may
     // actually be uninstantiated.
@@ -5874,7 +5942,7 @@ AstNode* Parser::ParseIfStatement(String* label_name) {
 
 CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
                                   SourceLabel* case_label) {
-  TRACE_PARSER("ParseCaseStatement");
+  TRACE_PARSER("ParseCaseClause");
   bool default_seen = false;
   const intptr_t case_pos = TokenPos();
   // The case expressions node sequence does not own the enclosing scope.
@@ -5886,7 +5954,7 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
       }
       ConsumeToken();  // Keyword case.
       const intptr_t expr_pos = TokenPos();
-      AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
+      AstNode* expr = ParseExpr(kRequireConst, kConsumeCascades);
       AstNode* switch_expr_load = new LoadLocalNode(case_pos,
                                                     switch_expr_value);
       AstNode* case_comparison = new ComparisonNode(expr_pos,
@@ -5955,19 +6023,10 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
   SourceLabel* label =
       SourceLabel::New(switch_pos, label_name, SourceLabel::kSwitch);
   ConsumeToken();
-  const bool parens_are_mandatory = false;
-  bool paren_found = false;
-  if (CurrentToken() == Token::kLPAREN) {
-    paren_found = true;
-    ConsumeToken();
-  } else if (parens_are_mandatory) {
-    ErrorMsg("'(' expected");
-  }
+  ExpectToken(Token::kLPAREN);
   const intptr_t expr_pos = TokenPos();
   AstNode* switch_expr = ParseExpr(kAllowConst, kConsumeCascades);
-  if (paren_found) {
-    ExpectToken(Token::kRPAREN);
-  }
+  ExpectToken(Token::kRPAREN);
   ExpectToken(Token::kLBRACE);
   OpenBlock();
   current_block_->scope->AddLabel(label);
@@ -6004,7 +6063,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
         // the forward reference.
         case_label->ResolveForwardReference();
       } else {
-        ErrorMsg(label_pos, "name '%s' already exists in scope",
+        ErrorMsg(label_pos, "label '%s' already exists in scope",
                  label_name->ToCString());
       }
       ASSERT(case_label->kind() == SourceLabel::kCase);
@@ -6025,6 +6084,9 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
       break;
     }
   }
+
+  // TODO(hausner): Check that all expressions in case clauses are
+  // of the same class, or implement int or String (issue 7307).
 
   // Check for unresolved label references.
   SourceLabel* unresolved_label =
@@ -7112,7 +7174,6 @@ SequenceNode* Parser::NodeAsSequenceNode(intptr_t sequence_pos,
 
 
 AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
-  ASSERT(type.IsMalformed());
   ArgumentListNode* arguments = new ArgumentListNode(type_pos);
   // Location argument.
   arguments->Add(new LiteralNode(
@@ -7123,8 +7184,14 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
   arguments->Add(new LiteralNode(type_pos, Symbols::Malformed()));
   // Dst name argument.
   arguments->Add(new LiteralNode(type_pos, Symbols::Empty()));
-  // Malformed type error.
-  const Error& error = Error::Handle(type.malformed_error());
+  // Malformed type error or malbounded type error.
+  Error& error = Error::Handle();
+  if (type.IsMalformed()) {
+    error = type.malformed_error();
+  } else {
+    const bool is_malbounded = type.IsMalboundedWithError(&error);
+    ASSERT(is_malbounded);
+  }
   arguments->Add(new LiteralNode(type_pos, String::ZoneHandle(
       Symbols::New(error.ToErrorCString()))));
   return MakeStaticCall(Symbols::TypeError(),
@@ -7224,10 +7291,11 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
           CaptureInstantiator();
         }
         right_operand = new TypeNode(type_pos, type);
-        // If the type is malformed, it is actually malbounded in checked mode.
-        ASSERT(!type.IsMalformed() || FLAG_enable_type_checks);
+        // The type is never malformed (mapped to dynamic), but it can be
+        // malbounded in checked mode.
+        ASSERT(!type.IsMalformed());
         if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT)) &&
-            type.IsMalformed()) {
+            type.IsMalbounded()) {
           // Note that a type error is thrown even if the tested value is null
           // in a type test. However, no cast exception is thrown if the value
           // is null in a type cast.
@@ -8261,7 +8329,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           if (ParsingStaticMember()) {
             ASSERT(scope_class.raw() == current_class().raw());
             if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-                FLAG_error_on_malformed_type) {
+                FLAG_error_on_bad_type) {
               *type = ClassFinalizer::NewFinalizedMalformedType(
                   Error::Handle(),  // No previous error.
                   scope_class,
@@ -8279,7 +8347,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           // malformed if type arguments have previously been parsed.
           if (!AbstractTypeArguments::Handle(type->arguments()).IsNull()) {
             if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-                FLAG_error_on_malformed_type) {
+                FLAG_error_on_bad_type) {
               *type = ClassFinalizer::NewFinalizedMalformedType(
                   Error::Handle(),  // No previous error.
                   scope_class,
@@ -8307,7 +8375,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
             &error);
         if (!error.IsNull()) {
           if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-              FLAG_error_on_malformed_type) {
+              FLAG_error_on_bad_type) {
             *type = ClassFinalizer::NewFinalizedMalformedType(
                 error,
                 scope_class,
@@ -8333,7 +8401,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           &error);
       if (!error.IsNull()) {
         if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-            FLAG_error_on_malformed_type) {
+            FLAG_error_on_bad_type) {
           *type = ClassFinalizer::NewFinalizedMalformedType(
               error,
               scope_class,
@@ -8354,7 +8422,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
       parameterized_type.set_type_class(resolved_type_class);
     } else if (finalization >= ClassFinalizer::kCanonicalize) {
       if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-          FLAG_error_on_malformed_type) {
+          FLAG_error_on_bad_type) {
         ClassFinalizer::FinalizeMalformedType(
             Error::Handle(),  // No previous error.
             scope_class,
@@ -9155,7 +9223,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     if (list_type_arguments.Length() == 1) {
       element_type = list_type_arguments.TypeAt(0);
     } else {
-      if (FLAG_error_on_malformed_type) {
+      if (FLAG_error_on_bad_type) {
         ErrorMsg(type_pos,
                  "a list literal takes one type argument specifying "
                  "the element type");
@@ -9353,7 +9421,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                  "a type variable");
       }
       if (key_type.IsMalformed()) {
-        if (FLAG_error_on_malformed_type) {
+        if (FLAG_error_on_bad_type) {
           ErrorMsg(Error::Handle(key_type.malformed_error()));
         }
         // Map malformed key type to dynamic.
@@ -9361,7 +9429,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
         map_type_arguments.SetTypeAt(0, key_type);
       }
       if (value_type.IsMalformed()) {
-        if (FLAG_error_on_malformed_type) {
+        if (FLAG_error_on_bad_type) {
           ErrorMsg(Error::Handle(value_type.malformed_error()));
         }
         // Map malformed value type to dynamic.
@@ -9369,7 +9437,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
         map_type_arguments.SetTypeAt(1, value_type);
       }
     } else {
-      if (FLAG_error_on_malformed_type) {
+      if (FLAG_error_on_bad_type) {
         ErrorMsg(type_pos,
                  "a map literal takes two type arguments specifying "
                  "the key type and the value type");
@@ -9592,16 +9660,29 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       ParseType(ClassFinalizer::kCanonicalizeWellFormed));
   // In case the type is malformed, throw a dynamic type error after finishing
   // parsing the instance creation expression.
-  if (!type.IsMalformed() && (type.IsTypeParameter() || type.IsDynamicType())) {
-    // Replace the type with a malformed type.
-    type = ClassFinalizer::NewFinalizedMalformedType(
-        Error::Handle(),  // No previous error.
-        current_class(),
-        type_pos,
-        "%s'%s' cannot be instantiated",
-        type.IsTypeParameter() ? "type parameter " : "",
-        type.IsTypeParameter() ?
-            String::Handle(type.UserVisibleName()).ToCString() : "dynamic");
+  if (!type.IsMalformed()) {
+    if (type.IsTypeParameter() || type.IsDynamicType()) {
+      // Replace the type with a malformed type.
+      type = ClassFinalizer::NewFinalizedMalformedType(
+          Error::Handle(),  // No previous error.
+          current_class(),
+          type_pos,
+          "%s'%s' cannot be instantiated",
+          type.IsTypeParameter() ? "type parameter " : "",
+          type.IsTypeParameter() ?
+              String::Handle(type.UserVisibleName()).ToCString() : "dynamic");
+    } else if (FLAG_enable_type_checks || FLAG_error_on_bad_type) {
+      Error& bound_error = Error::Handle();
+      if (type.IsMalboundedWithError(&bound_error)) {
+        // Replace the type with a malformed type.
+        type = ClassFinalizer::NewFinalizedMalformedType(
+            bound_error,
+            current_class(),
+            type_pos,
+            "malbounded type '%s' cannot be instantiated",
+            String::Handle(type.UserVisibleName()).ToCString());
+      }
+    }
   }
 
   // The grammar allows for an optional ('.' identifier)? after the type, which

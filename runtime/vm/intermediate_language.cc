@@ -274,6 +274,7 @@ GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
       catch_entries_(),
       initial_definitions_(),
       osr_id_(osr_id),
+      entry_count_(0),
       spill_slot_count_(0),
       fixed_slot_count_(0) {
 }
@@ -674,6 +675,7 @@ void Instruction::InheritDeoptTarget(Instruction* other) {
 
 
 void BranchInstr::InheritDeoptTarget(Instruction* other) {
+  ASSERT(env() == NULL);
   Instruction::InheritDeoptTarget(other);
   comparison()->SetDeoptId(GetDeoptId());
 }
@@ -835,6 +837,7 @@ void BlockEntryInstr::DiscoverBlocks(
 
 bool BlockEntryInstr::PruneUnreachable(FlowGraphBuilder* builder,
                                        GraphEntryInstr* graph_entry,
+                                       Instruction* parent,
                                        intptr_t osr_id,
                                        BitVector* block_marks) {
   // Search for the instruction with the OSR id.  Use a depth first search
@@ -861,7 +864,7 @@ bool BlockEntryInstr::PruneUnreachable(FlowGraphBuilder* builder,
       ASSERT(instr->previous() == this);
 
       GotoInstr* goto_join = new GotoInstr(AsJoinEntry());
-      goto_join->deopt_id_ = deopt_id_;
+      goto_join->deopt_id_ = parent->deopt_id_;
       graph_entry->normal_entry()->LinkTo(goto_join);
       return true;
     }
@@ -871,6 +874,7 @@ bool BlockEntryInstr::PruneUnreachable(FlowGraphBuilder* builder,
   for (intptr_t i = instr->SuccessorCount() - 1; i >= 0; --i) {
     if (instr->SuccessorAt(i)->PruneUnreachable(builder,
                                                 graph_entry,
+                                                instr,
                                                 osr_id,
                                                 block_marks)) {
       return true;
@@ -1353,6 +1357,7 @@ Definition* ConstantInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
   if (!IsImmutableLengthLoad()) return this;
 
   // For fixed length arrays if the array is the result of a known constructor
@@ -1636,19 +1641,6 @@ LocationSummary* TargetEntryInstr::MakeLocationSummary() const {
 }
 
 
-void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ Bind(compiler->GetJumpLabel(this));
-  if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                   deopt_id_,
-                                   Scanner::kDummyTokenIndex);
-  }
-  if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
-  }
-}
-
-
 LocationSummary* PhiInstr::MakeLocationSummary() const {
   UNREACHABLE();
   return NULL;
@@ -1883,20 +1875,14 @@ Environment* Environment::From(const GrowableArray<Definition*>& definitions,
 }
 
 
-Environment* Environment::DeepCopy() const {
-  return (this == NULL) ? NULL : DeepCopy(Length());
-}
-
-
 Environment* Environment::DeepCopy(intptr_t length) const {
   ASSERT(length <= values_.length());
-  if (this == NULL) return NULL;
   Environment* copy =
       new Environment(length,
                       fixed_parameter_count_,
                       deopt_id_,
                       function_,
-                      outer_->DeepCopy());
+                      (outer_ == NULL) ? NULL : outer_->DeepCopy());
   for (intptr_t i = 0; i < length; ++i) {
     copy->values_.Add(values_[i]->Copy());
   }

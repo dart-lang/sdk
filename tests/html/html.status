@@ -20,7 +20,6 @@ audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
 xhr_test: Pass, Fail # Issue 12648
-custom_elements_test/lifecycle: Fail # Issue 12642
 custom/attribute_changed_callback_test: Fail # 12643
 custom/created_callback_test: Fail # Issue 12642
 
@@ -40,6 +39,7 @@ worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
 
 [ $compiler == dart2js && $runtime == safari ]
 url_test: Fail # Issue 10096
+audiobuffersourcenode_test/supported: Pass, Timeout # Issue 12772
 
 [ $compiler == dart2js && $browser && $checked ]
 postmessage_structured_test/typed_arrays: Fail # Issue 10097
@@ -145,6 +145,7 @@ document_test/document: Pass, Fail # BUG(9654) need per-instance patching
 dom_constructors_test: Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
+element_test/constructors: Fail         # IE9 does not support innerHTML on table elements
 element_test/matches: Fail # IE9 does not support matches
 form_element_test: Fail # Issue 4793.
 isolates_test: Skip         # BUG(4016)
@@ -223,9 +224,7 @@ svgelement_test/supported_feImage: Fail
 svgelement_test/supported_feMerge: Fail
 svgelement_test/supported_feMergeNode: Fail
 svgelement_test/supported_feOffset: Fail
-svgelement_test/supported_fePointLight: Fail
 svgelement_test/supported_feSpecularLighting: Fail
-svgelement_test/supported_feSpotLight: Fail
 svgelement_test/supported_feTile: Fail
 svgelement_test/supported_feTurbulence: Fail
 svgelement_test/supported_filter: Fail
@@ -246,14 +245,12 @@ xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
 
 [ $runtime == safari ]
-datalistelement_test: Fail # Issue: 7414
-element_test/elements: Crash, Fail # Issue: 7414
 element_types_test/supported_track: Pass, Fail
 input_element_test/supported_month: Fail, Crash
 input_element_test/supported_time: Fail, Crash
 input_element_test/supported_week: Fail, Crash
 webgl_1_test: Pass, Fail # Issue 8219
-wheelevent_test: Fail # Issue: 7414
+wheelevent_test: Fail # Issue: 12798
 xhr_test/xhr_requestBlob: Fail # Issue: 9178 Safari doesn't support Blob responses.
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
@@ -358,11 +355,8 @@ touchevent_test/supported: Fail
 websql_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
 
-[ $runtime == ff && $system == windows ]
-rtc_test/supported: Fail # Release build does not enable by default.
-element_types_test/supported_template: Fail
 
-[ $runtime == ff && $system == linux ]
+[ $runtime == ff && ($system == linux || $system == windows) ]
 rtc_test/functionality: Fail # Issue: 12109.
 
 # 'html' tests import the HTML library, so they only make sense in

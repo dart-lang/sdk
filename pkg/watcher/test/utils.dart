@@ -38,6 +38,7 @@ Map<String, int> _mockFileModificationTimes;
 
 void initConfig() {
   useCompactVMConfiguration();
+  filterStacks = true;
 }
 
 /// Creates the sandbox directory the other functions in this library use and

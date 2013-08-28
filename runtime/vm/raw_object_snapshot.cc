@@ -11,7 +11,7 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, error_on_malformed_type);
+DECLARE_FLAG(bool, error_on_bad_type);
 
 
 #define NEW_OBJECT(type)                                                       \
@@ -247,7 +247,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
 
   // Only resolved and finalized types should be written to a snapshot.
   // TODO(regis): Replace the test below by an ASSERT() or remove the flag test.
-  if (FLAG_error_on_malformed_type &&
+  if (FLAG_error_on_bad_type &&
       (ptr()->type_state_ != RawType::kFinalizedInstantiated) &&
       (ptr()->type_state_ != RawType::kFinalizedUninstantiated)) {
     // Print the name of the class of the unfinalized type, as well as the
@@ -335,7 +335,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
 
   // Only finalized type parameters should be written to a snapshot.
   // TODO(regis): Replace the test below by an ASSERT() or remove the flag test.
-  if (FLAG_error_on_malformed_type &&
+  if (FLAG_error_on_bad_type &&
       (ptr()->type_state_ != RawTypeParameter::kFinalizedUninstantiated)) {
     // Print the name of the unfinalized type parameter, the name of the class
     // it parameterizes, as well as the token location from where it is referred

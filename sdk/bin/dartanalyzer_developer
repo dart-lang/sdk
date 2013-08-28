@@ -54,7 +54,7 @@ EXTRA_JVMARGS="-Xss2M "
 OS=`uname | tr "[A-Z]" "[a-z]"`
 if [ "$OS" == "darwin" ] ; then
   # Bump up the heap on Mac VMs, some of which default to 128M or less.
-  EXTRA_JVMARGS+=" -Xmx256M -client "
+  EXTRA_JVMARGS+=" -Xmx512M -client "
 else
   # On other architectures
   # -batch invocations will do better with a server vm

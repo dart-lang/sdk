@@ -124,15 +124,15 @@ class GoogleCodeInstaller(object):
         name = name[:name.rfind('.')]
         version_str = line[line.find(name) + len(name) : suffix_index]
         orig_version_str = version_str
-	if version_str.count('.') == 0:
+        if version_str.count('.') == 0:
           version_str = version_str.replace('_', '.')
-	  version_str = re.compile(r'[^\d.]+').sub('', version_str)
+          version_str = re.compile(r'[^\d.]+').sub('', version_str)
         if latest == '':
           latest = '0.' * version_str.count('.')
           latest += '0'
-	  orig_latest_str = latest
-	else:
-	  orig_latest_str = latest
+          orig_latest_str = latest
+        else:
+          orig_latest_str = latest
           latest = latest.replace('_', '.')
 	  latest = re.compile(r'[^\d.]+').sub('', latest)
         nums = version_str.split('.')
@@ -191,6 +191,9 @@ class GoogleCodeInstaller(object):
       os_str = 'linux32'
       if '64bit' in platform.architecture()[0]:
         os_str = 'linux64'
+    if self.project_name == 'chromedriver' and (
+        os_str == 'mac' or os_str == 'win'):
+      os_str = os_str + '32'
     return os_str
 
 
@@ -250,7 +253,7 @@ class SeleniumBindingsInstaller(object):
   def __init__(self, is_buildbot):
     self.is_buildbot = is_buildbot
 
-  def run(self): 
+  def run(self):
     print 'Installing Selenium Python Bindings'
     admin_keyword = ''
     python_cmd = 'python'
@@ -286,7 +289,7 @@ class OperaHtmlParser(HTMLParser.HTMLParser):
     Arguments:
     rejection_func: A function that accepts the value of the URL and determines
       if it is of the type we are looking for.
-    accept_func: A function that takes the URL and the "current best" URL and 
+    accept_func: A function that takes the URL and the "current best" URL and
       determines if it is better than our current download url."""
     self.latest = 0
     self.rejection_func = rejection_func
@@ -307,7 +310,7 @@ class OperaInstaller(object):
     download_page: The initial page that lists all the download options.
     rejection_func: A function that accepts the value of the URL and determines
       if it is of the type we are looking for.
-    accept_func: A function that takes the URL and the "current best" URL and 
+    accept_func: A function that takes the URL and the "current best" URL and
       determines if it is better than our current download url."""
     f = urllib2.urlopen(download_page)
     parser = OperaHtmlParser()
@@ -332,7 +335,7 @@ class OperaInstaller(object):
         lambda x: x[0] in string.digits and 'b' not in x and 'rc' not in x,
         higher_revision)
     download_name += version
-    if ('linux' in sys.platform and 
+    if ('linux' in sys.platform and
         platform.linux_distribution()[0] == 'Ubuntu'):
       # Last time I tried, the .deb file you download directly from opera was
       # not installing correctly on Ubuntu. This installs Opera more nicely.

@@ -34,7 +34,7 @@ class _WrappedEvent implements Event {
 
   String get type => wrapped.type;
 
-  void $dom_initEvent(String eventTypeArg, bool canBubbleArg,
+  void _initEvent(String eventTypeArg, bool canBubbleArg,
       bool cancelableArg) {
     throw new UnsupportedError(
         'Cannot initialize this Event.');

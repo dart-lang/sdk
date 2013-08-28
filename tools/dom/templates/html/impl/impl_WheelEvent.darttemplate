@@ -20,7 +20,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     if (Device.isFirefox) {
       eventType = 'MouseScrollEvents';
     }
-    final event = document.$dom_createEvent(eventType);
+    final event = document._createEvent(eventType);
 $if DART2JS
     // If polyfilling, then flip these because we'll flip them back to match
     // the W3C standard:
@@ -71,10 +71,10 @@ $else
     deltaY = -deltaY;
 $endif
       // Fallthrough for Dartium.
-      event.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
+      event._initMouseEvent(type, canBubble, cancelable, view, detail,
           screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey, button, relatedTarget);
-      event.$dom_initWebKitWheelEvent(deltaX,
+      event._initWebKitWheelEvent(deltaX,
           deltaY ~/ 120, // Chrome does an auto-convert to pixels.
           view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey);

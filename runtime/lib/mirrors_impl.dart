@@ -1016,6 +1016,15 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
     return _constructorName;
   }
 
+  String _source = null;
+  String get source {
+    if (_source == null) {
+      _source = _MethodMirror_source(_reflectee);
+      assert(_source != null);
+    }
+    return _source;
+  }
+
   String toString() => "MethodMirror on '${_n(simpleName)}'";
 
   static dynamic _MethodMirror_owner(reflectee)
@@ -1026,6 +1035,9 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
 
   List<ParameterMirror> _MethodMirror_parameters(reflectee)
       native "MethodMirror_parameters";
+
+  static String _MethodMirror_source(reflectee)
+      native "MethodMirror_source";
 }
 
 class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
@@ -1077,27 +1089,33 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
                             DeclarationMirror owner,
                             this._position,
                             this.isOptional,
-                            this.isNamed)
+                            this.isNamed,
+                            bool isFinal,
+                            this._defaultValueReflectee)
       : super(reflectee,
               simpleName,
               owner,
               null,  // We override the type.
               false, // isStatic does not apply.
-              false);  // TODO(12196): Not yet implemented.
+              isFinal);
 
   final int _position;
   final bool isOptional;
   final bool isNamed;
 
-  String get defaultValue {
-    throw new UnimplementedError(
-        'ParameterMirror.defaultValue is not implemented');
+  Object _defaultValueReflectee;
+  InstanceMirror _defaultValue;
+  InstanceMirror get defaultValue {
+    if (!isOptional) {
+      return null;
+    }
+    if (_defaultValue == null) {
+      _defaultValue = reflect(_defaultValueReflectee);
+    }
+    return _defaultValue;
   }
 
-  bool get hasDefaultValue {
-    throw new UnimplementedError(
-        'ParameterMirror.hasDefaultValue is not implemented');
-  }
+  bool get hasDefaultValue => _defaultValueReflectee != null;
 
   // TODO(11418): Implement.
   List<InstanceMirror> get metadata {

@@ -4,7 +4,6 @@
 
 library nested_test;
 
-import 'dart:utf';
 import 'package:unittest/unittest.dart';
 import 'package:csslib/parser.dart';
 import 'package:csslib/visitor.dart';

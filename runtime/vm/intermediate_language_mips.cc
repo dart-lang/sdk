@@ -400,10 +400,10 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     __ lw(A0, Address(SP, 0 * kWordSize));
     __ addiu(SP, SP, Immediate(2 * kWordSize));
     __ beq(A1, A0, &is_true);
-    __ LoadObject(V0, (kind == Token::kEQ) ? Bool::False() : Bool::True());
+    __ LoadObject(V0, Bool::Get(kind != Token::kEQ));
     __ b(&equality_done);
     __ Bind(&is_true);
-    __ LoadObject(V0, (kind == Token::kEQ) ? Bool::True() : Bool::False());
+    __ LoadObject(V0, Bool::Get(kind == Token::kEQ));
     if (kind == Token::kNE) {
       // Skip not-equal result conversion.
       __ b(&equality_done);
@@ -620,12 +620,10 @@ static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
     Register result = locs.out().reg();
     __ beq(CMPRES, ZR, &is_equal);
     // Not equal.
-    __ LoadObject(result,
-                  (kind == Token::kEQ) ? Bool::False() : Bool::True());
+    __ LoadObject(result, Bool::Get(kind != Token::kEQ));
     __ b(&done);
     __ Bind(&is_equal);
-    __ LoadObject(result,
-                  (kind == Token::kEQ) ? Bool::True() : Bool::False());
+    __ LoadObject(result, Bool::Get(kind == Token::kEQ));
     __ Bind(&done);
 
   } else {
@@ -3524,6 +3522,8 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
+  // Calling convetion on MIPS uses D6 and D7 to pass the first two
+  // double arguments.
   ASSERT((InputCount() == 1) || (InputCount() == 2));
   const intptr_t kNumTemps = 0;
   LocationSummary* result =
@@ -3541,11 +3541,39 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For pow-function return NaN if exponent is NaN.
   Label do_call, skip_call;
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
+    // Pseudo code:
+    // if (exponent == 0.0) return 0.0;
+    // if (base == 1.0) return 1.0;
+    // if (base.isNaN || exponent.isNaN) {
+    //    return double.NAN;
+    // }
+    DRegister base = locs()->in(0).fpu_reg();
     DRegister exp = locs()->in(1).fpu_reg();
+    DRegister result = locs()->out().fpu_reg();
+
+    Label check_base_is_one;
+
+    // Check if exponent is 0.0 -> return 1.0;
+    __ LoadObject(TMP, Double::ZoneHandle(Double::NewCanonical(0)));
+    __ LoadDFromOffset(DTMP, TMP, Double::value_offset() - kHeapObjectTag);
+    __ LoadObject(TMP, Double::ZoneHandle(Double::NewCanonical(1)));
+    __ LoadDFromOffset(result, TMP, Double::value_offset() - kHeapObjectTag);
+    // 'result' contains 1.0.
     __ cund(exp, exp);
-    __ bc1f(&do_call);
-    // Exponent is NaN, return NaN.
-    __ movd(locs()->out().fpu_reg(), exp);
+    __ bc1t(&check_base_is_one);  // NaN -> not zero.
+    __ ceqd(exp, DTMP);
+    __ bc1t(&skip_call);  // exp is 0.0, result is 1.0.
+
+    Label base_is_nan;
+    __ Bind(&check_base_is_one);
+    __ cund(base, base);
+    __ bc1t(&base_is_nan);
+    __ ceqd(base, result);
+    __ bc1t(&skip_call);  // base and result are 1.0.
+    __ b(&do_call);
+
+    __ Bind(&base_is_nan);
+    __ movd(result, base);  // base is NaN, return NaN.
     __ b(&skip_call);
   }
   __ Bind(&do_call);
@@ -3820,6 +3848,32 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetJumpLabel(this));
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   deopt_id_,
+                                   Scanner::kDummyTokenIndex);
+    // Add an edge counter.
+    const Array& counter = Array::ZoneHandle(Array::New(1, Heap::kOld));
+    counter.SetAt(0, Smi::Handle(Smi::New(0)));
+    Label done;
+    __ Comment("Edge counter");
+    __ LoadObject(T0, counter);
+    __ lw(T1, FieldAddress(T0, Array::element_offset(0)));
+    __ AddImmediateDetectOverflow(T1, T1, Smi::RawValue(1), CMPRES, T2);
+    __ bgez(CMPRES, &done);
+    __ delay_slot()->sw(T1, FieldAddress(T0, Array::element_offset(0)));
+    __ LoadImmediate(TMP1, Smi::RawValue(Smi::kMaxValue));
+    __ sw(TMP1, FieldAddress(T0, Array::element_offset(0)));  // If overflow.
+    __ Bind(&done);
+  }
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
+}
+
+
 LocationSummary* GotoInstr::MakeLocationSummary() const {
   return new LocationSummary(0, 0, LocationSummary::kNoCall);
 }
@@ -3924,7 +3978,7 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const bool result = (kind() == Token::kEQ_STRICT) ?
         left.constant().raw() == right.constant().raw() :
         left.constant().raw() != right.constant().raw();
-    __ LoadObject(locs()->out().reg(), result ? Bool::True() : Bool::False());
+    __ LoadObject(locs()->out().reg(), Bool::Get(result));
     return;
   }
   if (left.IsConstant()) {

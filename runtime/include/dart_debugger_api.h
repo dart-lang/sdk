@@ -480,7 +480,9 @@ DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id);
  * The expression is evaluated in the context of \target.
  * If \target is a Dart object, the expression is evaluated as if
  * it were an instance method of the class of the object.
- * TODO(hausner): add other execution contexts, e.g. library and class.
+ * If \target is a Class, the expression is evaluated as if it
+ * were a static method of that class.
+ * TODO(hausner): add 'library' execution context.
  * 
  * \return A handle to the computed value, or an error object if
  * the compilation of the expression fails, or if the evaluation throws
@@ -530,6 +532,16 @@ DART_EXPORT Dart_Handle Dart_GetSuperclass(Dart_Handle cls);
  * \return A handle to the type object.
  */
 DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type);
+
+
+/**
+ * Returns handle to class with class id \class_id.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the class if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_GetClassFromId(intptr_t class_id);
 
 
 /**

@@ -406,7 +406,7 @@ abstract class Completer<T> {
   /**
    * Completes [future] with the supplied values.
    *
-   * All listeners on the future will be immediately informed about the value.
+   * All listeners on the future are informed about the value.
    */
   void complete([T value]);
 
@@ -416,7 +416,7 @@ abstract class Completer<T> {
    * Completing a future with an error indicates that an exception was thrown
    * while trying to produce a value.
    *
-   * The argument [exception] should not be `null`.
+   * The argument [exception] must not be `null`.
    */
   void completeError(Object exception, [Object stackTrace]);
 

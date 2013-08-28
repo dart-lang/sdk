@@ -73,11 +73,14 @@ TEST_CASE(JSON_JSONReader) {
                      "    \"foo\" : [null, 1, { }, \"bar\", true, false],"
                      "    \"line\": 111, "
                      "  },"
-                     "  \"foo\": \"outer foo\", "
+                     "  \"foo\": \"outer foo\",     "
+                     "  \"quote\": \"\\\"\",        "
+                     "  \"white\": \"\\t \\n\",     "
                      "}";
 
   JSONReader reader(jobj);
   bool found;
+  char s[128];
 
   found = reader.Seek("id");
   EXPECT(found);
@@ -86,6 +89,23 @@ TEST_CASE(JSON_JSONReader) {
   EXPECT(found);
   EXPECT_EQ(reader.Type(), JSONReader::kString);
   EXPECT(reader.IsStringLiteral("outer foo"));
+
+  found = reader.Seek("quote");
+  EXPECT(found);
+  EXPECT_EQ(reader.Type(), JSONReader::kString);
+  reader.GetRawValueChars(s, sizeof s);
+  EXPECT_STREQ("\\\"", s);
+  reader.GetDecodedValueChars(s, sizeof s);
+  EXPECT_STREQ("\"", s);
+
+  found = reader.Seek("white");
+  EXPECT(found);
+  EXPECT_EQ(reader.Type(), JSONReader::kString);
+  reader.GetRawValueChars(s, sizeof s);
+  EXPECT_STREQ("\\t \\n", s);
+  reader.GetDecodedValueChars(s, sizeof s);
+  EXPECT_STREQ("\t \n", s);
+
   found = reader.Seek("line");
   EXPECT(!found);
   found = reader.Seek("params");

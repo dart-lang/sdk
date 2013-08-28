@@ -60,6 +60,10 @@ class _InvocationMirror implements Invocation {
   List get positionalArguments {
     if (_positionalArguments == null) {
       int numPositionalArguments = _argumentsDescriptor[1];
+      // Don't count receiver.
+      if (numPositionalArguments == 1) {
+        return _positionalArguments = const [];
+      }
       // Exclude receiver.
       _positionalArguments = _arguments.sublist(1, numPositionalArguments);
     }
@@ -68,10 +72,13 @@ class _InvocationMirror implements Invocation {
 
   Map<Symbol, dynamic> get namedArguments {
     if (_namedArguments == null) {
-      _namedArguments = new Map<Symbol, dynamic>();
       int numArguments = _argumentsDescriptor[0] - 1;  // Exclude receiver.
       int numPositionalArguments = _argumentsDescriptor[1] - 1;
       int numNamedArguments = numArguments - numPositionalArguments;
+      if (numNamedArguments == 0) {
+        return _namedArguments = const <Symbol, dynamic>{};
+      }
+      _namedArguments = new Map<Symbol, dynamic>();
       for (int i = 0; i < numNamedArguments; i++) {
         String arg_name = _argumentsDescriptor[2 + 2*i];
         var arg_value = _arguments[_argumentsDescriptor[3 + 2*i]];

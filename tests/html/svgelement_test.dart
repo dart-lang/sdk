@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library SvgElementTest;
-import "package:expect/expect.dart";
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 import 'dart:svg' as svg;
+import 'package:expect/expect.dart';
+import 'package:unittest/html_individual_config.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   useHtmlIndividualConfiguration();
@@ -58,12 +58,12 @@ main() {
     );
 
     test('empty', () {
-      expect(() => new svg.SvgElement.svg(""), throwsArgumentError);
+      expect(() => new svg.SvgElement.svg(""), throwsStateError);
     });
 
     test('too many elements', () {
       expect(() => new svg.SvgElement.svg("<circle></circle><path></path>"),
-          throwsArgumentError);
+          throwsStateError);
     });
   });
 
@@ -262,7 +262,9 @@ main() {
       testConstructor('polyline', (e) => e is svg.PolylineElement);
       testConstructor('radialGradient', (e) => e is svg.RadialGradientElement);
       testConstructor('rect', (e) => e is svg.RectElement);
-      testConstructor('script', (e) => e is svg.ScriptElement);
+      test('script', () {
+        expect(new svg.SvgElement.tag('script') is svg.ScriptElement, isTrue);
+      });
       testConstructor('stop', (e) => e is svg.StopElement);
       testConstructor('style', (e) => e is svg.StyleElement);
       testConstructor('switch', (e) => e is svg.SwitchElement);

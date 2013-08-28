@@ -45,7 +45,7 @@ class PathObserver extends ChangeNotifierBase {
     if (_isValid) {
       for (var segment in path.trim().split('.')) {
         if (segment == '') continue;
-        var index = int.parse(segment, onError: (_) => null);
+        var index = int.parse(segment, radix: 10, onError: (_) => null);
         _segments.add(index != null ? index : new Symbol(segment));
       }
     }

@@ -39,7 +39,7 @@ main() {
   // Make sure that scripts did get executed, so we know our detection works.
   test('Unsafe Execution', () {
     var div = new DivElement();
-    div.innerHtml = unsafeString;
+    div.unsafeInnerHtml = unsafeString;
     // Crashing DRT ??
     // var fragment = createContextualFragment(unsafeString);
     // div.append(fragment);
@@ -74,7 +74,7 @@ DocumentFragment createContextualFragment(String html, [String contextTag]) {
     range.selectNode(contextElement);
     return range.createContextualFragment(html);
   } else {
-    contextElement.innerHtml = html;
+    contextElement.unsafeInnerHtml = html;
     var fragment = new DocumentFragment();;
     while (contextElement.firstChild != null) {
       fragment.append(contextElement.firstChild);

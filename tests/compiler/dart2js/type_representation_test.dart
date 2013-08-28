@@ -124,7 +124,7 @@ void testTypeRepresentations() {
       env.getElement('m3').computeType(env.compiler));
 
   // m4() {}
-  expect('{$func: "dynamic_"}',
+  expect('{$func: "args0"}',
       env.getElement('m4').computeType(env.compiler));
 
   // m5(int a, String b) {}

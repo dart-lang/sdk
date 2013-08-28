@@ -84,9 +84,6 @@ illegal_msg_test: Pass # Issue 12628
 [ $compiler == dart2dart ]
 *: Skip # Issue 12629
 
-[ $compiler == none ]
-isolate_negative_test: Skip # Bug 6890
-
 [ $compiler == dart2js && $runtime == ff && ($system == windows || $system == linux) ]
 mandel_isolate_test: Pass, Fail, Timeout # Issue 7952
 mandel_isolate_stream_test: Pass, Fail, Timeout # Issue 7952
@@ -94,11 +91,9 @@ mandel_isolate_stream_test: Pass, Fail, Timeout # Issue 7952
 [ $compiler == dart2js && ( $runtime == ff || $runtime == safari || $runtime == drt || $runtime == chrome ) ]
 isolate_stress_test: Pass, Slow # Issue 10697
 
-[ $arch == arm || $arch == simarm ]
-*: Skip # Issue 12589
-
-[ $arch == mips || $arch == simmips ]
-*: Skip # Issue 12590
+[ ($arch == mips || $arch == simmips) && $mode == debug ]
+mandel_isolate_test: Crash  # Issue 12823
+mandel_isolate_stream_test: Crash  # Issue 12823
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 isolate_stress_test: Skip # Issue 12537

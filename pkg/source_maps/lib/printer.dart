@@ -5,7 +5,6 @@
 /// Contains a code printer that generates code by recording the source maps.
 library source_maps.printer;
 
-import 'dart:utf' show stringToCodepoints;
 import 'builder.dart';
 import 'span.dart';
 
@@ -38,7 +37,7 @@ class Printer {
   /// line in the target file (printed here) corresponds to a new line in the
   /// source file.
   void add(String str, {projectMarks: false}) {
-    var chars = stringToCodepoints(str);
+    var chars = str.runes.toList();
     var length = chars.length;
     for (int i = 0; i < length; i++) {
       var c = chars[i];

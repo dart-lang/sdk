@@ -246,7 +246,7 @@ testExtraMethods() {
   test("elementAt 2", () {
     StreamController c = new StreamController();
     Future f = c.stream.elementAt(20);
-    f.catchError(expectAsync1((error) { Expect.isTrue(error is StateError); }));
+    f.catchError(expectAsync1((error) { Expect.isTrue(error is RangeError); }));
     sentEvents.replay(c);
   });
 

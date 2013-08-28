@@ -283,6 +283,7 @@ namespace dart {
   V(MethodMirror_owner, 1)                                                     \
   V(MethodMirror_parameters, 2)                                                \
   V(MethodMirror_return_type, 1)                                               \
+  V(MethodMirror_source, 1)                                                    \
   V(ParameterMirror_type, 2)                                                   \
   V(TypedefMirror_referent, 1)                                                 \
   V(VariableMirror_type, 1)                                                    \

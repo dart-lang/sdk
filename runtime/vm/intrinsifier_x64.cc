@@ -27,7 +27,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 #define __ assembler->
 
 
-bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
+void Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // This snippet of inlined code uses the following registers:
   // RAX, RCX, RDI, R13
   // and the newly allocated object is returned in RAX.
@@ -132,24 +132,22 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   __ ret();  // returns the newly allocated object in RAX.
 
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Array_getLength(Assembler* assembler) {
+void Intrinsifier::Array_getLength(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RAX, FieldAddress(RAX, Array::length_offset()));
   __ ret();
-  return true;
 }
 
 
-bool Intrinsifier::ImmutableArray_getLength(Assembler* assembler) {
+void Intrinsifier::ImmutableArray_getLength(Assembler* assembler) {
   return Array_getLength(assembler);
 }
 
 
-bool Intrinsifier::Array_getIndexed(Assembler* assembler) {
+void Intrinsifier::Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
@@ -164,18 +162,17 @@ bool Intrinsifier::Array_getIndexed(Assembler* assembler) {
   __ movq(RAX, FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()));
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::ImmutableArray_getIndexed(Assembler* assembler) {
+void Intrinsifier::ImmutableArray_getIndexed(Assembler* assembler) {
   return Array_getIndexed(assembler);
 }
 
 
-bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
+void Intrinsifier::Array_setIndexed(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
-    return false;
+    return;
   }
   __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
   __ movq(RCX, Address(RSP, + 2 * kWordSize));  // Index.
@@ -196,13 +193,12 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
   // Caller is responsible of preserving the value if necessary.
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+2), data (+1), return-address (+0).
-bool Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
+void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // This snippet of inlined code uses the following registers:
   // RAX, RCX, R13
   // and the newly allocated object is returned in RAX.
@@ -267,32 +263,29 @@ bool Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   __ ret();  // returns the newly allocated object in RAX.
 
   __ Bind(&fall_through);
-  return false;
 }
 
 
 // Get length of growable object array.
 // On stack: growable array (+1), return-address (+0).
-bool Intrinsifier::GrowableArray_getLength(Assembler* assembler) {
+void Intrinsifier::GrowableArray_getLength(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RAX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
   __ ret();
-  return true;
 }
 
 
-bool Intrinsifier::GrowableArray_getCapacity(Assembler* assembler) {
+void Intrinsifier::GrowableArray_getCapacity(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RAX, FieldAddress(RAX, GrowableObjectArray::data_offset()));
   __ movq(RAX, FieldAddress(RAX, Array::length_offset()));
   __ ret();
-  return true;
 }
 
 
 // Access growable object array at specified index.
 // On stack: growable array (+2), index (+1), return-address (+0).
-bool Intrinsifier::GrowableArray_getIndexed(Assembler* assembler) {
+void Intrinsifier::GrowableArray_getIndexed(Assembler* assembler) {
   Label fall_through;
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // GrowableArray.
@@ -309,15 +302,14 @@ bool Intrinsifier::GrowableArray_getIndexed(Assembler* assembler) {
   __ movq(RAX, FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()));
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
 // Set value into growable object array at specified index.
 // On stack: growable array (+3), index (+2), value (+1), return-address (+0).
-bool Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
+void Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
-    return false;
+    return;
   }
   __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
   __ movq(RCX, Address(RSP, + 2 * kWordSize));  // Index.
@@ -337,14 +329,13 @@ bool Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
                      RDX);
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
 // Set length of growable object array. The length cannot
 // be greater than the length of the data container.
 // On stack: growable array (+2), length (+1), return-address (+0).
-bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
+void Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Growable array.
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Length value.
@@ -353,15 +344,14 @@ bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
   __ movq(FieldAddress(RAX, GrowableObjectArray::length_offset()), RCX);
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
 // Set data of growable object array.
 // On stack: growable array (+2), data (+1), return-address (+0).
-bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
+void Intrinsifier::GrowableArray_setData(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
-    return false;
+    return;
   }
   Label fall_through;
   __ movq(RBX, Address(RSP, + 1 * kWordSize));  /// Data.
@@ -375,16 +365,15 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
                      RBX);
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
 // Add an element to growable array if it doesn't need to grow, otherwise
 // call into regular code.
 // On stack: growable array (+2), value (+1), return-address (+0).
-bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
+void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to check the incoming argument.
-  if (FLAG_enable_type_checks) return false;
+  if (FLAG_enable_type_checks) return;
   Label fall_through;
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
   __ movq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
@@ -408,7 +397,6 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ movq(RAX, raw_null);
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
@@ -511,14 +499,10 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
 
 
 // Gets the length of a TypedData.
-bool Intrinsifier::TypedData_getLength(Assembler* assembler) {
+void Intrinsifier::TypedData_getLength(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RAX, FieldAddress(RAX, TypedData::length_offset()));
   __ ret();
-  // Generate enough code to satisfy patchability constraint.
-  intptr_t offset = __ CodeSize();
-  __ nop(JumpPattern::InstructionLength() - offset);
-  return true;
 }
 
 
@@ -536,19 +520,17 @@ static ScaleFactor GetScaleFactor(intptr_t size) {
 
 
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
-bool Intrinsifier::TypedData_##clazz##_new(Assembler* assembler) {             \
+void Intrinsifier::TypedData_##clazz##_new(Assembler* assembler) {             \
   intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
   intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
   ScaleFactor scale = GetScaleFactor(size);                                    \
   TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, scale);   \
-  return false;                                                                \
 }                                                                              \
-bool Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
+void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
   intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
   intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
   ScaleFactor scale = GetScaleFactor(size);                                    \
   TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, scale);   \
-  return false;                                                                \
 }
 CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATOR)
 #undef TYPED_DATA_ALLOCATOR
@@ -565,7 +547,7 @@ static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
 }
 
 
-bool Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
+void Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX contains right argument.
@@ -574,16 +556,15 @@ bool Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Integer_add(Assembler* assembler) {
+void Intrinsifier::Integer_add(Assembler* assembler) {
   return Integer_addFromInteger(assembler);
 }
 
 
-bool Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
+void Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX contains right argument, which is the actual minuend of subtraction.
@@ -592,11 +573,10 @@ bool Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Integer_sub(Assembler* assembler) {
+void Intrinsifier::Integer_sub(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX contains right argument, which is the actual subtrahend of subtraction.
@@ -607,12 +587,11 @@ bool Intrinsifier::Integer_sub(Assembler* assembler) {
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
 
-bool Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
+void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX is the right argument.
@@ -623,11 +602,10 @@ bool Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Integer_mul(Assembler* assembler) {
+void Intrinsifier::Integer_mul(Assembler* assembler) {
   return Integer_mulFromInteger(assembler);
 }
 
@@ -703,7 +681,7 @@ void EmitRemainderOperation(Assembler* assembler) {
 //      res = res + right;
 //    }
 //  }
-bool Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
+void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
   Label fall_through, negative_result;
   TestBothArgumentsSmis(assembler, &fall_through);
   __ movq(RCX, Address(RSP, + 2 * kWordSize));
@@ -734,11 +712,10 @@ bool Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
   __ ret();
 
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Integer_remainder(Assembler* assembler) {
+void Intrinsifier::Integer_remainder(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX: right argument (divisor)
@@ -753,11 +730,10 @@ bool Intrinsifier::Integer_remainder(Assembler* assembler) {
   __ SmiTag(RAX);
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
+void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   Label fall_through, not_32bit;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX: right argument (divisor)
@@ -801,11 +777,10 @@ bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   __ SmiTag(RAX);
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Integer_negate(Assembler* assembler) {
+void Intrinsifier::Integer_negate(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
@@ -815,11 +790,10 @@ bool Intrinsifier::Integer_negate(Assembler* assembler) {
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
+void Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX is the right argument.
@@ -827,16 +801,15 @@ bool Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Integer_bitAnd(Assembler* assembler) {
+void Intrinsifier::Integer_bitAnd(Assembler* assembler) {
   return Integer_bitAndFromInteger(assembler);
 }
 
 
-bool Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler) {
+void Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX is the right argument.
@@ -844,16 +817,15 @@ bool Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler) {
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Integer_bitOr(Assembler* assembler) {
+void Intrinsifier::Integer_bitOr(Assembler* assembler) {
   return Integer_bitOrFromInteger(assembler);
 }
 
 
-bool Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
+void Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX is the right argument.
@@ -861,16 +833,15 @@ bool Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Integer_bitXor(Assembler* assembler) {
+void Intrinsifier::Integer_bitXor(Assembler* assembler) {
   return Integer_bitXorFromInteger(assembler);
 }
 
 
-bool Intrinsifier::Integer_shl(Assembler* assembler) {
+void Intrinsifier::Integer_shl(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   ASSERT(kSmiTag == 0);
   Label fall_through, overflow;
@@ -899,11 +870,10 @@ bool Intrinsifier::Integer_shl(Assembler* assembler) {
   // Mint is rarely used on x64 (only for integers requiring 64 bit instead of
   // 63 bits as represented by Smi).
   __ Bind(&fall_through);
-  return false;
 }
 
 
-static bool CompareIntegers(Assembler* assembler, Condition true_condition) {
+static void CompareIntegers(Assembler* assembler, Condition true_condition) {
   Label fall_through, true_label;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX contains the right argument.
@@ -915,39 +885,38 @@ static bool CompareIntegers(Assembler* assembler, Condition true_condition) {
   __ LoadObject(RAX, Bool::True());
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
 
-bool Intrinsifier::Integer_lessThan(Assembler* assembler) {
+void Intrinsifier::Integer_lessThan(Assembler* assembler) {
   return CompareIntegers(assembler, LESS);
 }
 
 
-bool Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
+void Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
   return CompareIntegers(assembler, LESS);
 }
 
 
-bool Intrinsifier::Integer_greaterThan(Assembler* assembler) {
+void Intrinsifier::Integer_greaterThan(Assembler* assembler) {
   return CompareIntegers(assembler, GREATER);
 }
 
 
-bool Intrinsifier::Integer_lessEqualThan(Assembler* assembler) {
+void Intrinsifier::Integer_lessEqualThan(Assembler* assembler) {
   return CompareIntegers(assembler, LESS_EQUAL);
 }
 
 
-bool Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
+void Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
   return CompareIntegers(assembler, GREATER_EQUAL);
 }
 
 
 // This is called for Smi, Mint and Bigint receivers. The right argument
 // can be Smi, Mint, Bigint or double.
-bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
+void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   Label fall_through, true_label, check_for_mint;
   // For integer receiver '===' check first.
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
@@ -993,16 +962,15 @@ bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   // TODO(srdjan): Implement Mint == Mint comparison.
 
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Integer_equal(Assembler* assembler) {
+void Intrinsifier::Integer_equal(Assembler* assembler) {
   return Integer_equalToInteger(assembler);
 }
 
 
-bool Intrinsifier::Integer_sar(Assembler* assembler) {
+void Intrinsifier::Integer_sar(Assembler* assembler) {
   Label fall_through, shift_count_ok;
   TestBothArgumentsSmis(assembler, &fall_through);
   const Immediate& count_limit = Immediate(0x3F);
@@ -1024,17 +992,15 @@ bool Intrinsifier::Integer_sar(Assembler* assembler) {
   __ SmiTag(RAX);
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
 // Argument is Smi (receiver).
-bool Intrinsifier::Smi_bitNegate(Assembler* assembler) {
+void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Index.
   __ notq(RAX);
   __ andq(RAX, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
   __ ret();
-  return true;
 }
 
 
@@ -1057,7 +1023,7 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
 // unknown type. Return true or false object in RAX. Any NaN argument
 // returns false. Any non-double argument causes control flow to fall through
 // to the slow case (compiled method body).
-static bool CompareDoubles(Assembler* assembler, Condition true_condition) {
+static void CompareDoubles(Assembler* assembler, Condition true_condition) {
   Label fall_through, is_false, is_true, is_smi, double_op;
   TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Both arguments are double, right operand is in RAX.
@@ -1080,38 +1046,37 @@ static bool CompareDoubles(Assembler* assembler, Condition true_condition) {
   __ cvtsi2sd(XMM1, RAX);
   __ jmp(&double_op);
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Double_greaterThan(Assembler* assembler) {
+void Intrinsifier::Double_greaterThan(Assembler* assembler) {
   return CompareDoubles(assembler, ABOVE);
 }
 
 
-bool Intrinsifier::Double_greaterEqualThan(Assembler* assembler) {
+void Intrinsifier::Double_greaterEqualThan(Assembler* assembler) {
   return CompareDoubles(assembler, ABOVE_EQUAL);
 }
 
 
-bool Intrinsifier::Double_lessThan(Assembler* assembler) {
+void Intrinsifier::Double_lessThan(Assembler* assembler) {
   return CompareDoubles(assembler, BELOW);
 }
 
 
-bool Intrinsifier::Double_equal(Assembler* assembler) {
+void Intrinsifier::Double_equal(Assembler* assembler) {
   return CompareDoubles(assembler, EQUAL);
 }
 
 
-bool Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
+void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
   return CompareDoubles(assembler, BELOW_EQUAL);
 }
 
 
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
-static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
+static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   Label fall_through;
   TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
   // Both arguments are double, right operand is in RAX.
@@ -1134,31 +1099,30 @@ static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Double_add(Assembler* assembler) {
+void Intrinsifier::Double_add(Assembler* assembler) {
   return DoubleArithmeticOperations(assembler, Token::kADD);
 }
 
 
-bool Intrinsifier::Double_mul(Assembler* assembler) {
+void Intrinsifier::Double_mul(Assembler* assembler) {
   return DoubleArithmeticOperations(assembler, Token::kMUL);
 }
 
 
-bool Intrinsifier::Double_sub(Assembler* assembler) {
+void Intrinsifier::Double_sub(Assembler* assembler) {
   return DoubleArithmeticOperations(assembler, Token::kSUB);
 }
 
 
-bool Intrinsifier::Double_div(Assembler* assembler) {
+void Intrinsifier::Double_div(Assembler* assembler) {
   return DoubleArithmeticOperations(assembler, Token::kDIV);
 }
 
 
-bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
+void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   Label fall_through;
   // Only Smi-s allowed.
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
@@ -1179,12 +1143,11 @@ bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
 // Left is double right is integer (Bigint, Mint or Smi)
-bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
+void Intrinsifier::Double_fromInteger(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
@@ -1201,11 +1164,10 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
+void Intrinsifier::Double_getIsNaN(Assembler* assembler) {
   Label is_true;
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
@@ -1216,11 +1178,10 @@ bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
   __ Bind(&is_true);
   __ LoadObject(RAX, Bool::True());
   __ ret();
-  return true;  // Method is complete, no slow case.
 }
 
 
-bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
+void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   Label is_false, is_true, is_zero;
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
@@ -1241,7 +1202,6 @@ bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   __ testq(RAX, Immediate(1));
   __ j(NOT_ZERO, &is_true, Assembler::kNearJump);
   __ jmp(&is_false, Assembler::kNearJump);
-  return true;  // Method is complete, no slow case.
 }
 
 
@@ -1289,7 +1249,7 @@ static void EmitTrigonometric(Assembler* assembler,
 }
 
 
-bool Intrinsifier::Double_toInt(Assembler* assembler) {
+void Intrinsifier::Double_toInt(Assembler* assembler) {
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
   __ cvttsd2siq(RAX, XMM0);
@@ -1302,11 +1262,10 @@ bool Intrinsifier::Double_toInt(Assembler* assembler) {
   __ SmiTag(RAX);
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Math_sqrt(Assembler* assembler) {
+void Intrinsifier::Math_sqrt(Assembler* assembler) {
   Label fall_through, is_smi, double_op;
   TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Argument is double and is in RAX.
@@ -1326,26 +1285,23 @@ bool Intrinsifier::Math_sqrt(Assembler* assembler) {
   __ cvtsi2sd(XMM1, RAX);
   __ jmp(&double_op);
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::Math_sin(Assembler* assembler) {
+void Intrinsifier::Math_sin(Assembler* assembler) {
   EmitTrigonometric(assembler, kSine);
-  return false;  // Compile method for slow case.
 }
 
 
-bool Intrinsifier::Math_cos(Assembler* assembler) {
+void Intrinsifier::Math_cos(Assembler* assembler) {
   EmitTrigonometric(assembler, kCosine);
-  return false;  // Compile method for slow case.
 }
 
 
 //    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
 //    _state[kSTATE_LO] = state & _MASK_32;
 //    _state[kSTATE_HI] = state >> 32;
-bool Intrinsifier::Random_nextState(Assembler* assembler) {
+void Intrinsifier::Random_nextState(Assembler* assembler) {
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   ASSERT(!math_lib.IsNull());
   const Class& random_class = Class::Handle(
@@ -1383,13 +1339,12 @@ bool Intrinsifier::Random_nextState(Assembler* assembler) {
   __ shrq(RDX, Immediate(32));
   __ movl(addr_1, RDX);
   __ ret();
-  return true;
 }
 
 
 
 // Identity comparison.
-bool Intrinsifier::Object_equal(Assembler* assembler) {
+void Intrinsifier::Object_equal(Assembler* assembler) {
   Label is_true;
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ cmpq(RAX, Address(RSP, + 2 * kWordSize));
@@ -1399,11 +1354,10 @@ bool Intrinsifier::Object_equal(Assembler* assembler) {
   __ Bind(&is_true);
   __ LoadObject(RAX, Bool::True());
   __ ret();
-  return true;
 }
 
 
-bool Intrinsifier::String_getHashCode(Assembler* assembler) {
+void Intrinsifier::String_getHashCode(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // String object.
   __ movq(RAX, FieldAddress(RAX, String::hash_offset()));
@@ -1412,19 +1366,17 @@ bool Intrinsifier::String_getHashCode(Assembler* assembler) {
   __ ret();
   __ Bind(&fall_through);
   // Hash not yet computed.
-  return false;
 }
 
 
-bool Intrinsifier::String_getLength(Assembler* assembler) {
+void Intrinsifier::String_getLength(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // String object.
   __ movq(RAX, FieldAddress(RAX, String::length_offset()));
   __ ret();
-  return true;
 }
 
 
-bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
+void Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   Label fall_through, try_two_byte_string;
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // String.
@@ -1450,11 +1402,10 @@ bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   __ ret();
 
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::String_getIsEmpty(Assembler* assembler) {
+void Intrinsifier::String_getIsEmpty(Assembler* assembler) {
   Label is_true;
   // Get length.
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // String object.
@@ -1466,11 +1417,10 @@ bool Intrinsifier::String_getIsEmpty(Assembler* assembler) {
   __ Bind(&is_true);
   __ LoadObject(RAX, Bool::True());
   __ ret();
-  return false;
 }
 
 
-bool Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
+void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   Label compute_hash;
   __ movq(RBX, Address(RSP, + 1 * kWordSize));  // OneByteString object.
   __ movq(RAX, FieldAddress(RBX, String::hash_offset()));
@@ -1536,7 +1486,6 @@ bool Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   __ SmiTag(RAX);
   __ movq(FieldAddress(RBX, String::hash_offset()), RAX);
   __ ret();
-  return true;
 }
 
 
@@ -1622,7 +1571,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 // Arg1: Start index as Smi.
 // Arg2: End index as Smi.
 // The indexes must be valid.
-bool Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
+void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   const intptr_t kStringOffset = 3 * kWordSize;
   const intptr_t kStartIndexOffset = 2 * kWordSize;
   const intptr_t kEndIndexOffset = 1 * kWordSize;
@@ -1659,11 +1608,10 @@ bool Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   __ j(LESS, &loop, Assembler::kNearJump);
   __ ret();
   __ Bind(&fall_through);
-  return false;
 }
 
 
-bool Intrinsifier::OneByteString_setAt(Assembler* assembler) {
+void Intrinsifier::OneByteString_setAt(Assembler* assembler) {
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Value.
   __ movq(RBX, Address(RSP, + 2 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 3 * kWordSize));  // OneByteString.
@@ -1671,11 +1619,10 @@ bool Intrinsifier::OneByteString_setAt(Assembler* assembler) {
   __ SmiUntag(RCX);
   __ movb(FieldAddress(RAX, RBX, TIMES_1, OneByteString::data_offset()), RCX);
   __ ret();
-  return true;
 }
 
 
-bool Intrinsifier::OneByteString_allocate(Assembler* assembler) {
+void Intrinsifier::OneByteString_allocate(Assembler* assembler) {
   __ movq(RDI, Address(RSP, + 1 * kWordSize));  // Length.v=
   Label fall_through, ok;
   TryAllocateOnebyteString(assembler, &ok, &fall_through, RDI);
@@ -1685,7 +1632,6 @@ bool Intrinsifier::OneByteString_allocate(Assembler* assembler) {
   __ ret();
 
   __ Bind(&fall_through);
-  return false;
 }
 
 

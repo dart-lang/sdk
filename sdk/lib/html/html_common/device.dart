@@ -104,7 +104,7 @@ class Device {
   static bool isEventTypeSupported(String eventType) {
     // Browsers throw for unsupported event names.
     try {
-      var e = document.$dom_createEvent(eventType);
+      var e = new Event.eventType(eventType, '');
       return e is Event;
     } catch (_) { }
     return false;

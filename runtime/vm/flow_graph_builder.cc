@@ -81,17 +81,27 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
       callee_graph->max_virtual_register_number());
 
   // Attach the outer environment on each instruction in the callee graph.
+  ASSERT(call_->env() != NULL);
+  // Scale the edge weights by the call count for the inlined function.
+  double scale_factor = static_cast<double>(call_->CallCount())
+      / static_cast<double>(caller_graph_->graph_entry()->entry_count());
   for (BlockIterator block_it = callee_graph->postorder_iterator();
        !block_it.Done();
        block_it.Advance()) {
-    for (ForwardInstructionIterator it(block_it.Current());
-         !it.Done();
-         it.Advance()) {
-      Instruction* instr = it.Current();
+    BlockEntryInstr* block = block_it.Current();
+    if (block->IsTargetEntry()) {
+      block->AsTargetEntry()->adjust_edge_weight(scale_factor);
+    }
+    Instruction* instr = block;
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      instr = it.Current();
       // TODO(zerny): Avoid creating unnecessary environments. Note that some
       // optimizations need deoptimization info for non-deoptable instructions,
       // eg, LICM on GOTOs.
       if (instr->env() != NULL) call_->env()->DeepCopyToOuter(instr);
+    }
+    if (instr->IsGoto()) {
+      instr->AsGoto()->adjust_edge_weight(scale_factor);
     }
   }
 }
@@ -852,7 +862,7 @@ void EffectGraphVisitor::VisitTypeNode(TypeNode* node) {
 
 void ValueGraphVisitor::VisitTypeNode(TypeNode* node) {
   const AbstractType& type = node->type();
-  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
   if (type.IsInstantiated()) {
     ReturnDefinition(new ConstantInstr(type));
   } else {
@@ -876,9 +886,9 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
 
-  // If the destination type is malformed, a dynamic type error must be thrown
-  // at run time.
-  if (dst_type.IsMalformed()) {
+  // If the destination type is malformed or malbounded, a dynamic type error
+  // must be thrown at run time.
+  if (dst_type.IsMalformed() || dst_type.IsMalbounded()) {
     return false;
   }
 
@@ -1203,7 +1213,7 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
 void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ASSERT(Token::IsTypeTestOperator(node->kind()));
   const AbstractType& type = node->right()->AsTypeNode()->type();
-  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
   const bool negate_result = (node->kind() == Token::kISNOT);
   // All objects are instances of type T if Object type is a subtype of type T.
   const Type& object_type = Type::Handle(Type::ObjectType());
@@ -1212,8 +1222,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     EffectGraphVisitor for_left_value(owner(), temp_index());
     node->left()->Visit(&for_left_value);
     Append(for_left_value);
-    ReturnDefinition(new ConstantInstr(negate_result ?
-                                       Bool::False() : Bool::True()));
+    ReturnDefinition(new ConstantInstr(Bool::Get(!negate_result)));
     return;
   }
 
@@ -1228,11 +1237,9 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     if (literal_value.IsInstanceOf(type,
                                    TypeArguments::Handle(),
                                    &malformed_error)) {
-      result = new ConstantInstr(negate_result ?
-                                 Bool::False() : Bool::True());
+      result = new ConstantInstr(Bool::Get(!negate_result));
     } else {
-      result = new ConstantInstr(negate_result ?
-                                 Bool::True() : Bool::False());
+      result = new ConstantInstr(Bool::Get(negate_result));
     }
     ASSERT(malformed_error.IsNull());
 
@@ -1263,8 +1270,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   Value* type_arg = Bind(
       new ConstantInstr(node->right()->AsTypeNode()->type()));
   arguments->Add(PushArgument(type_arg));
-  const Bool& negate = (node->kind() == Token::kISNOT) ? Bool::True() :
-                                                         Bool::False();
+  const Bool& negate = Bool::Get(node->kind() == Token::kISNOT);
   Value* negate_arg = Bind(new ConstantInstr(negate));
   arguments->Add(PushArgument(negate_arg));
   const intptr_t kNumArgsChecked = 1;
@@ -1306,7 +1312,7 @@ void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   Append(for_value);
   const String& dst_name = String::ZoneHandle(
       Symbols::New(Exceptions::kCastErrorDstName));
-  if (type.IsMalformed()) {
+  if (type.IsMalformed() || type.IsMalbounded()) {
     ReturnValue(BuildAssignableValue(node->token_pos(),
                                      for_value.value(),
                                      type,
@@ -2467,7 +2473,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
         Type::New(instantiator_class, type_arguments, token_pos, Heap::kNew));
     type ^= ClassFinalizer::FinalizeType(
         instantiator_class, type, ClassFinalizer::kFinalize);
-    ASSERT(!type.IsMalformed());
+    ASSERT(!type.IsMalformed() && !type.IsMalbounded());
     type_arguments = type.arguments();
     type_arguments = type_arguments.Canonicalize();
     return Bind(new ConstantInstr(type_arguments));
@@ -3731,7 +3737,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 void FlowGraphBuilder::PruneUnreachable() {
   ASSERT(osr_id_ != Isolate::kNoDeoptId);
   BitVector* block_marks = new BitVector(last_used_block_id_ + 1);
-  bool found = graph_entry_->PruneUnreachable(this, graph_entry_, osr_id_,
+  bool found = graph_entry_->PruneUnreachable(this, graph_entry_, NULL, osr_id_,
                                               block_marks);
   ASSERT(found);
 }

@@ -770,24 +770,52 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
                call->env(),
                Definition::kEffect);
 
-  // Insert array length load and bounds check.
-  const bool is_immutable =
-      CheckArrayBoundInstr::IsFixedLengthArrayType(class_id);
-  LoadFieldInstr* length =
-      new LoadFieldInstr(new Value(*array),
-                         CheckArrayBoundInstr::LengthOffsetFor(class_id),
-                         Type::ZoneHandle(Type::SmiType()),
-                         is_immutable);
-  length->set_result_cid(kSmiCid);
-  length->set_recognized_kind(
-      LoadFieldInstr::RecognizedKindFromArrayCid(class_id));
-  InsertBefore(call, length, NULL, Definition::kValue);
-  InsertBefore(call,
-               new CheckArrayBoundInstr(new Value(length),
-                                        new Value(*index),
-                                        call->deopt_id()),
-               call->env(),
-               Definition::kEffect);
+  bool emit_bounds_check = true;
+  // Get the field for the array.
+  const Field* field = NULL;
+  if ((*array)->IsLoadField()) {
+    LoadFieldInstr* load_field_instr = (*array)->AsLoadField();
+    field = load_field_instr->field();
+  }
+  // Extract the guarded array length.
+  intptr_t guarded_array_length = -1;
+  if (field != NULL) {
+    if (field->guarded_list_length() >= 0) {
+      guarded_array_length = field->guarded_list_length();
+    }
+  }
+  Definition* i = *index;
+  // Check if we can skip emitting the bounds check.
+  if (i->IsConstant() && guarded_array_length >= 0) {
+    ConstantInstr* constant = i->AsConstant();
+    ASSERT(constant != NULL);
+    intptr_t ci = Smi::Cast(constant->value()).Value();
+    if (ci < guarded_array_length) {
+      emit_bounds_check = false;
+    }
+  }
+
+  if (emit_bounds_check) {
+    // Insert array length load and bounds check.
+    const bool is_immutable =
+        CheckArrayBoundInstr::IsFixedLengthArrayType(class_id);
+    LoadFieldInstr* length =
+        new LoadFieldInstr(new Value(*array),
+                           CheckArrayBoundInstr::LengthOffsetFor(class_id),
+                           Type::ZoneHandle(Type::SmiType()),
+                           is_immutable);
+    length->set_result_cid(kSmiCid);
+    length->set_recognized_kind(
+        LoadFieldInstr::RecognizedKindFromArrayCid(class_id));
+    InsertBefore(call, length, NULL, Definition::kValue);
+    InsertBefore(call,
+                 new CheckArrayBoundInstr(new Value(length),
+                                          new Value(*index),
+                                          call->deopt_id()),
+                 call->env(),
+                 Definition::kEffect);
+  }
+
 
   if (class_id == kGrowableObjectArrayCid) {
     // Insert data elements load.
@@ -2484,7 +2512,9 @@ void FlowGraphOptimizer::PrepareByteArrayViewOp(
 RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
                                               const AbstractType& type) const {
   ASSERT(ic_data.num_args_tested() == 1);  // Unary checks only.
-  if (!type.IsInstantiated() || type.IsMalformed()) return Bool::null();
+  if (!type.IsInstantiated() || type.IsMalformed() || type.IsMalbounded()) {
+    return Bool::null();
+  }
   const Class& type_class = Class::Handle(type.type_class());
   if (type_class.HasTypeArguments()) {
     // Only raw types can be directly compared, thus disregarding type
@@ -2509,7 +2539,7 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
                                             TypeArguments::Handle(),
                                             NULL);
     if (prev.IsNull()) {
-      prev = is_subtype ? Bool::True().raw() : Bool::False().raw();
+      prev = Bool::Get(is_subtype).raw();
     } else {
       if (is_subtype != prev.value()) return Bool::null();
     }
@@ -2535,7 +2565,7 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     if (!as_bool.IsNull()) {
       AddReceiverCheck(call);
       if (negate) {
-        as_bool = Bool::Get(!as_bool.value());
+        as_bool = Bool::Get(!as_bool.value()).raw();
       }
       ConstantInstr* bool_const = flow_graph()->GetConstant(as_bool);
       for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
@@ -2568,7 +2598,7 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   Definition* type_args = call->ArgumentAt(2);
   const AbstractType& type =
       AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value());
-  ASSERT(!type.IsMalformed());
+  ASSERT(!type.IsMalformed() && !type.IsMalbounded());
   const ICData& unary_checks =
       ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
   if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
@@ -5968,10 +5998,7 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
 
   if (instr->left()->definition() == instr->right()->definition()) {
     // Fold x === x, and x !== x to true/false.
-    SetValue(instr,
-             (instr->kind() == Token::kEQ_STRICT)
-               ? Bool::True()
-               : Bool::False());
+    SetValue(instr, Bool::Get(instr->kind() == Token::kEQ_STRICT));
     return;
   }
 
@@ -5982,14 +6009,14 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
       bool result = left.IsNull() ? instr->right()->Type()->IsNull()
                                   : instr->left()->Type()->IsNull();
       if (instr->kind() == Token::kNE_STRICT) result = !result;
-      SetValue(instr, result ? Bool::True() : Bool::False());
+      SetValue(instr, Bool::Get(result));
     } else {
       SetValue(instr, non_constant_);
     }
   } else if (IsConstant(left) && IsConstant(right)) {
     bool result = (left.raw() == right.raw());
     if (instr->kind() == Token::kNE_STRICT) result = !result;
-    SetValue(instr, result ? Bool::True() : Bool::False());
+    SetValue(instr, Bool::Get(result));
   }
 }
 
@@ -6021,10 +6048,7 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
     // comparisons.
     if (instr->IsCheckedStrictEqual() ||
         RawObject::IsIntegerClassId(instr->operation_cid())) {
-      return SetValue(instr,
-                      (instr->kind() == Token::kEQ)
-                        ? Bool::True()
-                        : Bool::False());
+      return SetValue(instr, Bool::Get(instr->kind() == Token::kEQ));
     }
   }
 
@@ -6035,7 +6059,10 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
       const bool result = CompareIntegers(instr->kind(),
                                           Integer::Cast(left),
                                           Integer::Cast(right));
-      SetValue(instr, result ? Bool::True() : Bool::False());
+      SetValue(instr, Bool::Get(result));
+    } else if (left.IsString() && right.IsString()) {
+      const bool result = String::Cast(left).Equals(String::Cast(right));
+      SetValue(instr, Bool::Get((instr->kind() == Token::kEQ) == result));
     } else {
       SetValue(instr, non_constant_);
     }
@@ -6053,7 +6080,7 @@ void ConstantPropagator::VisitRelationalOp(RelationalOpInstr* instr) {
       const bool result = CompareIntegers(instr->kind(),
                                           Integer::Cast(left),
                                           Integer::Cast(right));
-      SetValue(instr, result ? Bool::True() : Bool::False());
+      SetValue(instr, Bool::Get(result));
     } else {
       SetValue(instr, non_constant_);
     }
@@ -6113,7 +6140,7 @@ void ConstantPropagator::VisitBooleanNegate(BooleanNegateInstr* instr) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(value)) {
     bool val = value.raw() != Bool::True().raw();
-    SetValue(instr, val ? Bool::True() : Bool::False());
+    SetValue(instr, Bool::Get(val));
   }
 }
 

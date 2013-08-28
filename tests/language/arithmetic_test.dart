@@ -291,8 +291,6 @@ class ArithmeticTest {
     Expect.equals(2, (2.1).round());
     Expect.equals(-2, (-2.1).round());
     Expect.equals(1, (0.5).round());
-    Expect.equals(0, (0.49999999999999994).round());
-    Expect.equals(0, (-0.49999999999999994).round());
     Expect.equals(-1, (-0.5).round());
     Expect.isTrue((-0.0).round() is int);
     Expect.isTrue((-0.3).round() is int);
@@ -300,8 +298,6 @@ class ArithmeticTest {
     Expect.equals(2, (1.5).round());
     Expect.equals(-2, (-1.5).round());
     Expect.equals(1, (0.99).round());
-    Expect.equals(9007199254740991, (9007199254740991.0).round());
-    Expect.equals(-9007199254740991, (-9007199254740991.0).round());
 
     // -- toInt --.
     // Smi.

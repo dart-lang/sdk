@@ -20,7 +20,6 @@ void defaultFunctionValuesTest() {
 
   Expect.isTrue(map is Map);
   Expect.isTrue(map is LinkedHashMap);
-  Expect.isFalse(map is HashMap);
 
   Expect.equals(3, map.length);
   Expect.equals(3, map.keys.length);
@@ -36,7 +35,6 @@ void defaultKeyFunctionTest() {
 
   Expect.isTrue(map is Map);
   Expect.isTrue(map is LinkedHashMap);
-  Expect.isFalse(map is HashMap);
 
   Expect.equals(3, map.length);
   Expect.equals(3, map.keys.length);
@@ -52,7 +50,6 @@ void defaultValueFunctionTest() {
 
   Expect.isTrue(map is Map);
   Expect.isTrue(map is LinkedHashMap);
-  Expect.isFalse(map is HashMap);
 
   Expect.equals(3, map.length);
   Expect.equals(3, map.keys.length);
@@ -69,7 +66,6 @@ void noDefaultValuesTest() {
 
   Expect.isTrue(map is Map);
   Expect.isTrue(map is LinkedHashMap);
-  Expect.isFalse(map is HashMap);
 
   Expect.equals(3, map.length);
   Expect.equals(3, map.keys.length);
@@ -84,7 +80,6 @@ void emptyIterableTest() {
   var map = new LinkedHashMap.fromIterable([]);
   Expect.isTrue(map is Map);
   Expect.isTrue(map is LinkedHashMap);
-  Expect.isFalse(map is HashMap);
 
   Expect.equals(0, map.length);
   Expect.equals(0, map.keys.length);
@@ -96,7 +91,6 @@ void equalElementsTest() {
 
   Expect.isTrue(map is Map);
   Expect.isTrue(map is LinkedHashMap);
-  Expect.isFalse(map is HashMap);
 
   Expect.equals(2, map.length);
   Expect.equals(2, map.keys.length);

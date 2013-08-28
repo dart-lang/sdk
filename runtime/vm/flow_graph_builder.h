@@ -20,8 +20,8 @@ class ParsedFunction;
 // (factory-name-symbol, result-cid, fingerprint).
 // TODO(srdjan): Store the values in the snapshot instead.
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
-  V(ObjectArrayFactory, kArrayCid, 712468799)                                  \
-  V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 917195627)           \
+  V(ObjectArrayFactory, kArrayCid, 1930677134)                                 \
+  V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 1012992871)          \
   V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 1707369421)           \
   V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 1340298556)                     \
   V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 1775618642)                   \

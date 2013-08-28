@@ -35,7 +35,8 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       dart2jsPatchPath: "_internal/lib/collection_patch.dart"),
 
   "convert": const LibraryInfo(
-      "convert/convert.dart"),
+      "convert/convert.dart",
+      dart2jsPatchPath: "_internal/lib/convert_patch.dart"),
 
   "core": const LibraryInfo(
       "core/core.dart",
@@ -73,8 +74,7 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       dart2jsPath: "js/dart2js/js_dart2js.dart"),
 
   "json": const LibraryInfo(
-      "json/json.dart",
-      dart2jsPatchPath: "_internal/lib/json_patch.dart"),
+      "json/json.dart"),
 
   "math": const LibraryInfo(
       "math/math.dart",
@@ -160,6 +160,12 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       category: "Internal",
       documented: false,
       platforms: DART2JS_PLATFORM),
+
+   "_mirror_helper": const LibraryInfo(
+      "_internal/lib/mirror_helper.dart",
+      category: "Internal",
+      documented: false,
+      platforms: DART2JS_PLATFORM)
 };
 
 /**

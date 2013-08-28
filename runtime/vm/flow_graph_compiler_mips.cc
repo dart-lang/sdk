@@ -158,7 +158,6 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 
   __ BranchLink(&StubCode::DeoptimizeLabel());
   set_pc_offset(assem->CodeSize());
-  __ break_(0);  // TODO(regis): Remove breakpoint to save space.
 #undef __
 }
 
@@ -563,7 +562,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
                                            const AbstractType& type,
                                            bool negate_result,
                                            LocationSummary* locs) {
-  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
 
   // Preserve instantiator (A2) and its type arguments (A1).
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
@@ -623,11 +622,11 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     __ b(&done);
   }
   __ Bind(&is_not_instance);
-  __ LoadObject(V0, negate_result ? Bool::True() : Bool::False());
+  __ LoadObject(V0, Bool::Get(negate_result));
   __ b(&done);
 
   __ Bind(&is_instance);
-  __ LoadObject(V0, negate_result ? Bool::False() : Bool::True());
+  __ LoadObject(V0, Bool::Get(!negate_result));
   __ Bind(&done);
   // Remove instantiator (A2) and its type arguments (A1).
   __ Drop(2);
@@ -657,7 +656,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
-  ASSERT(dst_type.IsMalformed() ||
+  ASSERT(dst_type.IsMalformed() || dst_type.IsMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
   // Preserve instantiator and its type arguments.
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
@@ -675,9 +674,15 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
     __ BranchEqual(A0, Object::transition_sentinel(), &is_assignable);
   }
 
-  // Generate throw new TypeError() if the type is malformed.
-  if (dst_type.IsMalformed()) {
-    const Error& error = Error::Handle(dst_type.malformed_error());
+  // Generate throw new TypeError() if the type is malformed or malbounded.
+  if (dst_type.IsMalformed() || dst_type.IsMalbounded()) {
+    Error& error = Error::Handle();
+    if (dst_type.IsMalformed()) {
+      error = dst_type.malformed_error();
+    } else {
+      const bool is_malbounded = dst_type.IsMalboundedWithError(&error);
+      ASSERT(is_malbounded);
+    }
     const String& error_message = String::ZoneHandle(
         Symbols::New(error.ToErrorCString()));
 
@@ -764,9 +769,6 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 }
 
 
-// TODO(regis): Pass an offset instead of an Address to avoid addressing
-// mode restrictions and remove Operand::Equals() on IA32/X64 and
-// Address::Equals() on ARM/MIPS.
 void FlowGraphCompiler::EmitTrySyncMove(intptr_t dest_offset,
                                         Location loc,
                                         bool* push_emitted) {
@@ -1161,14 +1163,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
 //   S4: arguments descriptor array.
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
-  if (TryIntrinsify()) {
-    // Although this intrinsified code will never be patched, it must satisfy
-    // CodePatcher::CodeIsPatchable, which verifies that this code has a minimum
-    // code size.
-    __ break_(0);
-    __ Branch(&StubCode::FixCallersTargetLabel());
-    return;
-  }
+
+  TryIntrinsify();
 
   EmitFrameEntry();
 

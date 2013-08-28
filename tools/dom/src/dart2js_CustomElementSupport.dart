@@ -4,8 +4,8 @@
 
 part of dart.dom.html;
 
-_callOnCreated(receiver) {
-  return receiver.onCreated();
+_callCreated(receiver) {
+  return receiver.created();
 }
 
 _makeCreatedCallbackMethod() {
@@ -15,7 +15,7 @@ _makeCreatedCallbackMethod() {
                return invokeCallback(this);
              };
           })(#))''',
-      convertDartClosureToJS(_callOnCreated, 1));
+      convertDartClosureToJS(_callCreated, 1));
 }
 
 void _registerCustomElement(context, document, String tag, Type type) {

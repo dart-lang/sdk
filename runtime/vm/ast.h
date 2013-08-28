@@ -362,6 +362,7 @@ class TypeNode : public AstNode {
   virtual const char* Name() const;
 
   virtual const Instance* EvalConstExpr() const {
+    // TODO(regis): What if the type is malbounded?
     if (!type_.IsInstantiated() || type_.IsMalformed()) {
       return NULL;
     }

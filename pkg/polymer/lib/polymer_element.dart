@@ -178,15 +178,13 @@ class PolymerElement extends CustomElement with _EventsMixin {
     // TODO(terry): Need to detect if ShadowCSS.js has been loaded.  Under
     //              Dartium this wouldn't exist.  However, dart:js isn't robust
     //              to use to detect in both Dartium and dart2js if Platform is
-    //              defined. Instead in Dartium it throws an exception but in
-    //              dart2js it works enough to know if Platform is defined (just
-    //              can't be used for further derefs).  This bug is described
+    //              defined.  This bug is described in
     //              https://code.google.com/p/dart/issues/detail?id=12548
     //              When fixed only use dart:js.  This is necessary under
     //              Dartium (no compile) we want to run w/o the JS polyfill.
-    try {
-      if (dartJs.context["Platform"] == null) { return; }
-    } on NoSuchMethodError catch (e) { return; }
+    if (dartJs.context == null || !dartJs.context.hasProperty('Platform')) {
+      return;
+    }
 
     var platform = js.context["Platform"];
     if (platform == null) return;

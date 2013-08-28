@@ -16,13 +16,14 @@ import 'byte_stream.dart';
 ///
 ///     queryToMap("foo=bar&baz=bang&qux");
 ///     //=> {"foo": "bar", "baz": "bang", "qux": ""}
-Map<String, String> queryToMap(String queryList) {
+Map<String, String> queryToMap(String queryList, {Encoding encoding}) {
   var map = {};
   for (var pair in queryList.split("&")) {
     var split = split1(pair, "=");
     if (split.isEmpty) continue;
-    var key = urlDecode(split[0]);
-    var value = urlDecode(split.length > 1 ? split[1] : "");
+    var key = Uri.decodeQueryComponent(split[0], decode: encoding.decode);
+    var value = Uri.decodeQueryComponent(split.length > 1 ? split[1] : "",
+        decode: encoding.decode);
     map[key] = value;
   }
   return map;
@@ -32,18 +33,34 @@ Map<String, String> queryToMap(String queryList) {
 ///
 ///     mapToQuery({"foo": "bar", "baz": "bang"});
 ///     //=> "foo=bar&baz=bang"
-String mapToQuery(Map<String, String> map) {
+String mapToQuery(Map<String, String> map, {Encoding encoding}) {
   var pairs = <List<String>>[];
   map.forEach((key, value) =>
-      pairs.add([Uri.encodeQueryComponent(key),
-                 Uri.encodeQueryComponent(value)]));
+      pairs.add([urlEncode(key, encoding: encoding),
+                 urlEncode(value, encoding: encoding)]));
   return pairs.map((pair) => "${pair[0]}=${pair[1]}").join("&");
 }
 
-/// Decodes a URL-encoded string. Unlike [Uri.decodeComponent], this includes
-/// replacing `+` with ` `.
-String urlDecode(String encoded) =>
-  Uri.decodeComponent(encoded.replaceAll("+", " "));
+// TODO(nweiz): get rid of this when issue 12780 is fixed.
+/// URL-encodes [source] using [encoding].
+String urlEncode(String source, {Encoding encoding}) {
+  if (encoding == null) encoding = UTF8;
+  return encoding.encode(source).map((byte) {
+    // Convert spaces to +, like encodeQueryComponent.
+    if (byte == 0x20) return '+';
+    // Pass through digits.
+    if ((byte >= 0x30 && byte < 0x3A) ||
+        // Pass through uppercase letters.
+        (byte >= 0x41 && byte < 0x5B) ||
+        // Pass through lowercase letters.
+        (byte >= 0x61 && byte < 0x7B) ||
+        // Pass through `-._~`.
+        (byte == 0x2D || byte == 0x2E || byte == 0x5F || byte == 0x7E)) {
+      return new String.fromCharCode(byte);
+    }
+    return '%' + byte.toRadixString(16).toUpperCase();
+  }).join();
+}
 
 /// Like [String.split], but only splits on the first occurrence of the pattern.
 /// This will always return an array of two elements or fewer.

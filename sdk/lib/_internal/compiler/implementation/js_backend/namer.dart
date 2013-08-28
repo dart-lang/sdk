@@ -225,7 +225,8 @@ class Namer implements ClosureNamer {
         popularNameCounters = new Map<String, int>(),
         constantNames = new Map<Constant, String>(),
         constantLongNames = new Map<Constant, String>(),
-        constantHasher = new ConstantCanonicalHasher(compiler);
+        constantHasher = new ConstantCanonicalHasher(compiler),
+        functionTypeNamer = new FunctionTypeNamer(compiler);
 
   String get isolateName => 'Isolate';
   String get isolatePropertiesName => r'$isolateProperties';
@@ -800,7 +801,7 @@ class Namer implements ClosureNamer {
 
   Map<FunctionType,String> functionTypeNameMap =
       new Map<FunctionType,String>();
-  FunctionTypeNamer functionTypeNamer = new FunctionTypeNamer();
+  final FunctionTypeNamer functionTypeNamer;
 
   String getFunctionTypeName(FunctionType functionType) {
     return functionTypeNameMap.putIfAbsent(functionType, () {
@@ -1223,7 +1224,12 @@ class ConstantCanonicalHasher implements ConstantVisitor<int> {
 }
 
 class FunctionTypeNamer extends DartTypeVisitor {
+  final Compiler compiler;
   StringBuffer sb;
+
+  FunctionTypeNamer(this.compiler);
+
+  JavaScriptBackend get backend => compiler.backend;
 
   String computeName(DartType type) {
     sb = new StringBuffer();
@@ -1240,6 +1246,10 @@ class FunctionTypeNamer extends DartTypeVisitor {
   }
 
   visitFunctionType(FunctionType type, _) {
+    if (backend.rti.isSimpleFunctionType(type)) {
+      sb.write('args${type.parameterTypes.slowLength()}');
+      return;
+    }
     visit(type.returnType);
     sb.write('_');
     for (Link<DartType> link = type.parameterTypes;

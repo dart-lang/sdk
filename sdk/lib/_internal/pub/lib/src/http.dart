@@ -204,8 +204,7 @@ Map parseJsonResponse(http.Response response) {
   var value;
   try {
     value = json.parse(response.body);
-  } catch (e) {
-    // TODO(nweiz): narrow this catch clause once issue 6775 is fixed.
+  } on FormatException catch (e) {
     invalidServerResponse(response);
   }
   if (value is! Map) invalidServerResponse(response);

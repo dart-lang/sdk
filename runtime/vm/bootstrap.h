@@ -37,8 +37,8 @@ class Bootstrap : public AllStatic {
   static const char* corelib_patch_paths_[];
   static const char* collection_patch_paths_[];
   static const char* collection_dev_patch_paths_[];
+  static const char* convert_patch_paths_[];
   static const char* isolate_patch_paths_[];
-  static const char* json_patch_paths_[];
   static const char* math_patch_paths_[];
   static const char* mirrors_patch_paths_[];
   static const char* typed_data_patch_paths_[];

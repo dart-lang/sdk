@@ -40,7 +40,7 @@ abstract class _AttributeMap implements Map<String, String> {
 
   Iterable<String> get keys {
     // TODO: generate a lazy collection instead.
-    var attributes = _element.$dom_attributes;
+    var attributes = _element._attributes;
     var keys = new List<String>();
     for (int i = 0, len = attributes.length; i < len; i++) {
       if (_matches(attributes[i])) {
@@ -52,7 +52,7 @@ abstract class _AttributeMap implements Map<String, String> {
 
   Iterable<String> get values {
     // TODO: generate a lazy collection instead.
-    var attributes = _element.$dom_attributes;
+    var attributes = _element._attributes;
     var values = new List<String>();
     for (int i = 0, len = attributes.length; i < len; i++) {
       if (_matches(attributes[i])) {
@@ -88,7 +88,7 @@ class _ElementAttributeMap extends _AttributeMap {
   _ElementAttributeMap(Element element): super(element);
 
   bool containsKey(String key) {
-    return _element.$dom_hasAttribute(key);
+    return _element._hasAttribute(key);
   }
 
   String operator [](String key) {
@@ -101,7 +101,7 @@ class _ElementAttributeMap extends _AttributeMap {
 
   String remove(String key) {
     String value = _element.$dom_getAttribute(key);
-    _element.$dom_removeAttribute(key);
+    _element._removeAttribute(key);
     return value;
   }
 
@@ -112,7 +112,7 @@ class _ElementAttributeMap extends _AttributeMap {
     return keys.length;
   }
 
-  bool _matches(Node node) => node.$dom_namespaceUri == null;
+  bool _matches(Node node) => node._namespaceUri == null;
 }
 
 /**
@@ -125,7 +125,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
   _NamespacedAttributeMap(Element element, this._namespace): super(element);
 
   bool containsKey(String key) {
-    return _element.$dom_hasAttributeNS(_namespace, key);
+    return _element._hasAttributeNS(_namespace, key);
   }
 
   String operator [](String key) {
@@ -138,7 +138,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
 
   String remove(String key) {
     String value = this[key];
-    _element.$dom_removeAttributeNS(_namespace, key);
+    _element._removeAttributeNS(_namespace, key);
     return value;
   }
 
@@ -149,7 +149,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
     return keys.length;
   }
 
-  bool _matches(Node node) => node.$dom_namespaceUri == _namespace;
+  bool _matches(Node node) => node._namespaceUri == _namespace;
 }
 
 
@@ -159,27 +159,27 @@ class _NamespacedAttributeMap extends _AttributeMap {
  */
 class _DataAttributeMap implements Map<String, String> {
 
-  final Map<String, String> $dom_attributes;
+  final Map<String, String> _attributes;
 
-  _DataAttributeMap(this.$dom_attributes);
+  _DataAttributeMap(this._attributes);
 
   // interface Map
 
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(String value) => values.any((v) => v == value);
 
-  bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
+  bool containsKey(String key) => _attributes.containsKey(_attr(key));
 
-  String operator [](String key) => $dom_attributes[_attr(key)];
+  String operator [](String key) => _attributes[_attr(key)];
 
   void operator []=(String key, String value) {
-    $dom_attributes[_attr(key)] = value;
+    _attributes[_attr(key)] = value;
   }
 
   String putIfAbsent(String key, String ifAbsent()) =>
-    $dom_attributes.putIfAbsent(_attr(key), ifAbsent);
+    _attributes.putIfAbsent(_attr(key), ifAbsent);
 
-  String remove(String key) => $dom_attributes.remove(_attr(key));
+  String remove(String key) => _attributes.remove(_attr(key));
 
   void clear() {
     // Needs to operate on a snapshot since we are mutating the collection.
@@ -189,7 +189,7 @@ class _DataAttributeMap implements Map<String, String> {
   }
 
   void forEach(void f(String key, String value)) {
-    $dom_attributes.forEach((String key, String value) {
+    _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         f(_strip(key), value);
       }
@@ -198,7 +198,7 @@ class _DataAttributeMap implements Map<String, String> {
 
   Iterable<String> get keys {
     final keys = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
+    _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         keys.add(_strip(key));
       }
@@ -208,7 +208,7 @@ class _DataAttributeMap implements Map<String, String> {
 
   Iterable<String> get values {
     final values = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
+    _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         values.add(value);
       }

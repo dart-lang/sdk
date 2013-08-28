@@ -5,50 +5,51 @@
 [ $compiler == dart2js || $compiler == dart2dart ]
 compile_time_constant_c_test/none: Fail # Map literal with int key.
 constructor_initializer_test: Fail, OK # Depends on ?parameter check.
+null_test/03: Fail # Issue 12445.
 
 black_listed_test/none: Fail # Issue 12446.
 
 # Issues related to undeclared prefix resolution.
-malformed_test/none: Fail
-malformed_test/05: Fail
-malformed_test/06: Fail
+malformed_test/none: Fail # Issue 12695
+malformed_test/05: Fail # Issue 12695
+malformed_test/06: Fail # Issue 12695
 
-# Fails due to inlining. Not all expected frames are in the trace.
-full_stacktrace1_test: Pass, Fail
-full_stacktrace2_test: Pass, Fail
-full_stacktrace3_test: Pass, Fail
-# Stack traces may or may not end in a newline depending on the JS enging.
-stacktrace_test: Pass, Fail # Assumes stack trace string ends in newline.
+full_stacktrace1_test: Pass, Fail # Issue 12698
+full_stacktrace2_test: Pass, Fail # Issue 12698
+full_stacktrace3_test: Pass, Fail # Issue 12698
+stacktrace_test: Pass, Fail # # Issue 12698
 
 # VM specific tests that should not be run by dart2js.
-*vm_test: Skip
+vm/*: Skip # Issue 12699
 
 [ $compiler == dart2js && $checked ]
-checked_setter2_test: Fail # dartbug.com/11273
-default_factory2_test/01: Fail
-type_variable_bounds_test/01: Fail
-type_variable_bounds_test/02: Fail
-type_variable_bounds_test/04: Fail
-type_variable_bounds_test/05: Fail
-type_variable_bounds2_test/00: Fail
-type_variable_bounds2_test/03: Fail
-type_variable_bounds2_test/05: Fail
-type_variable_bounds2_test/06: Pass # For the wrong reasons.
-type_variable_bounds3_test/00: Fail
-f_bounded_quantification_test/01: Fail
-f_bounded_quantification_test/02: Fail
-closure_type_test: Fail # does not detect type error in checked mode.
-function_subtype_setter0_test: Fail # dartbug.com/11273
+checked_setter2_test: Fail # Issue 11273
+default_factory2_test/01: Fail # Issue 12700
+type_variable_bounds_test/01: Fail # Issue 12702
+type_variable_bounds_test/02: Fail # Issue 12702
+type_variable_bounds_test/04: Fail # Issue 12702
+type_variable_bounds_test/05: Fail # Issue 12702
+type_variable_bounds2_test/00: Fail # Issue 12702
+type_variable_bounds2_test/03: Fail # Issue 12702
+type_variable_bounds2_test/05: Fail # Issue 12702
+type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
+type_variable_bounds3_test/00: Fail # Issue 12702
+f_bounded_quantification_test/01: Fail # Issue 12703
+f_bounded_quantification_test/02: Fail # Issue 12703
+f_bounded_quantification5_test: Fail # Issue 12703
+closure_type_test: Fail # Issue 12745
+function_subtype_setter0_test: Fail # Issue 11273
+redirecting_factory_malbounded_test/01: Fail # Issue 12825
 
 [ $compiler == dart2js && $unchecked ]
-factory_redirection_test/14: Fail # redirecting to redirecting factory
-type_checks_in_factory_method_test: Fail # Expect.equals(expected: <true>, actual: <false>) fails. -- checked mode test.
+factory_redirection_test/14: Fail # Issue 10959
+type_checks_in_factory_method_test: Fail # Issue 12746
 
-assertion_test: Fail
+assertion_test: Fail # Issue 12748
 
-double_to_string_as_exponential2_test: Fail # toStringAsExponential doesn't check if argument is an integer.
-double_to_string_as_fixed2_test: Fail # toStringAsFixed doesn't check if argument is an integer.
-double_to_string_as_precision2_test: Fail # toStringAsPrecision doesn't check if argument is an integer.
+double_to_string_as_exponential2_test: Fail # Issue 12749
+double_to_string_as_fixed2_test: Fail # Issue 12749
+double_to_string_as_precision2_test: Fail # Issue 12749
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
@@ -65,27 +66,29 @@ compile_time_constant_checked3_test/03: Fail, OK
 compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
+generic_test: Fail, OK
 
 [ $compiler == dart2js && $minified ]
 f_bounded_quantification4_test: Fail # Issue 12605.
+f_bounded_quantification5_test: Fail # Issue 12605.
 
 [ $compiler == dart2js ]
-function_type_alias6_test/00: Crash # dartbug.com/9792
-function_type_alias9_test/00: Crash # dartbug.com/9792
+function_type_alias6_test/00: Crash # Issue 9792
+function_type_alias9_test/00: Crash # Issue 9792
 branch_canonicalization_test: Fail # Issue 638.
 div_with_power_of_two_test: Fail # Issue 8301.
 class_literal_test: Fail # Issue 7626.
 identical_closure2_test: Fail # Issue 1533, Issue 12596
-invocation_mirror_test: Fail
-built_in_identifier_prefix_test: Fail # http://dartbug.com/6972
-number_identity2_test: Fail # Issue 12596: identity of NaN
-new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
-new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
-double_int_to_string_test: Fail # Issue 1533 (double/integer distinction)
-mint_arithmetic_test: Fail # Issue 1533 (big integer arithmetic).
+invocation_mirror_test: Fail # Issue 12705
+built_in_identifier_prefix_test: Fail # Issue 6972
+number_identity2_test: Fail # Issue 12596
+new_expression_type_args_test/00: Fail # Issue 5519
+new_expression_type_args_test/01: Fail # Issue 5519
+double_int_to_string_test: Fail # Issue 1533
+mint_arithmetic_test: Fail # Issue 1533
 left_shift_test: Fail # Issue 1533
-factory_redirection_test/01: Fail
-factory_redirection_test/07: Fail
+factory_redirection_test/01: Fail # Issue 12752
+factory_redirection_test/07: Fail # Issue 12752
 bad_override_test/01: Fail # Issue 11496
 bad_override_test/02: Fail # Issue 11496
 bad_override_test/06: Fail # Issue 11496
@@ -104,49 +107,38 @@ method_override8_test/03: Fail # Issue 11496
 setter_override_test/00: Fail # Issue 11496
 setter_override_test/03: Fail # Issue 11496
 setter_override2_test/02: Fail # Issue 11496
-call_nonexistent_constructor_test: Fail
-constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
-getter_no_setter_test/01: Fail # http://dartbug.com/5519
-not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
-dynamic_test: Fail # http://dartbug.com/12398
-dynamic_prefix_core_test: Fail # http://dartbug.com/12398
-
-constructor_negative_test: Pass # Wrong reason: the expression 'C()' is valid with class literals.
-
-metadata_test: Fail # Metadata on type parameters not supported.
+constructor_named_arguments_test/01: Fail # Issue 5519
+getter_no_setter_test/01: Fail # Issue 5519
+not_enough_positional_arguments_test/01: Fail # Issue 12838
+not_enough_positional_arguments_test/02: Fail # Issue 12838
+not_enough_positional_arguments_test/04: Fail # Issue 12838
+not_enough_positional_arguments_test/05: Fail # Issue 12838
+dynamic_test: Fail # Issue 12398
+dynamic_prefix_core_test: Fail # Issue 12398
+metadata_test: Fail # Issue 5841
 infinity_test: Fail # Issue 4984
-positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js uses unsigned input for >>.
-
-
-# Support for optional parameters not conform to latest spec.
+positive_bit_operations_test: Fail # Issue 12795
 named_parameters_type_test: Fail
 positional_parameters_type_test: Fail
 
 # Compilation errors.
-const_var_test: Fail # Map literals take 2 type arguments.
-map_literal3_test: Fail # Map literals take 2 type arguments.
-function_type_alias5_test/00: Fail # visitIs for typedefs not implemented
-function_type_alias5_test/01: Fail # visitIs for typedefs not implemented
-function_type_alias5_test/02: Fail # visitIs for typedefs not implemented
-function_type_alias7_test/00: Fail # wrongly accepts default values in typedef
-generic_test: Fail # cannot resolve type T
-get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/02: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/03: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/04: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/05: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/06: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/07: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-method_binding_test: Fail # internal error: super property read not implemented.
-method_override_test: Fail # cannot resolve type GetKeysFunctionType
-method_override5_test: Pass, Fail # Issue 11496 (passes if it's inlined)
+const_var_test: Fail # Issue 12793
+map_literal3_test: Fail # Issue 12793
+function_type_alias5_test/00: Fail # Issue 12754
+function_type_alias5_test/01: Fail # Issue 12754
+function_type_alias5_test/02: Fail # Issue 12754
+function_type_alias7_test/00: Fail # Issue 12801
+get_set_syntax_test/00: Fail # Issue 12805
+get_set_syntax_test/01: Fail # Issue 12805
+get_set_syntax_test/02: Fail # Issue 12805
+get_set_syntax_test/03: Fail # Issue 12805
+get_set_syntax_test/04: Fail # Issue 12805
+method_binding_test: Fail # Issue 12807
+method_override_test: Fail # Issue 12808
+method_override5_test: Fail # Issue 12809
 parameter_initializer6_negative_test: Fail # Issue 3502
-named_parameters_aggregated_test/01: Fail # Presence of default values for optional params is not properly validated in type definitions.
-named_parameters_aggregated_test/03: Fail # Presence of default values for optional params is not properly validated in closure types.
+named_parameters_aggregated_test/01: Fail # Issue 12801
+named_parameters_aggregated_test/03: Fail # Issue 12812
 pseudo_kw_test: Fail # Unexpected token '('
 super_implicit_closure_test: Fail # internal error: super property read not implemented
 
@@ -174,12 +166,9 @@ external_test/31: Fail
 instanceof4_test: Fail # Expect.isTrue(false) fails.
 list_literal4_test: Fail # Illegal argument(s): 0 -- checked mode test.
 map_literal4_test: Fail # Attempt to modify an immutable object -- checked mode test.
-named_parameters_type_test: Fail # Expect.equals(expected: <111>, actual: <0>) fails. -- checked mode test.
 
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
-external_test/16: Fail, OK # Bad test: assumes eager loading.
 interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
-syntax_test/47: Fail, OK # Bad test: assumes eager loading.
 
 
 #
@@ -198,7 +187,6 @@ duplicate_implements_test/02: Fail # Negative language test.
 duplicate_implements_test/03: Fail # Negative language test.
 duplicate_implements_test/04: Fail # Negative language test.
 field3_negative_test: Fail # Negative language test.
-final_for_in_variable_test/01: Fail # Negative language test
 instantiate_type_variable_negative_test: Pass  # For the wrong reason.
 list_literal1_negative_test: Fail # Negative language test.
 map_literal1_negative_test: Fail # Negative language test.
@@ -241,28 +229,25 @@ expect_test: Fail, OK # JavaScript canonicalizes all strings. This test assumes 
 const_factory_negative_test: Crash, Fail
 
 assign_top_method_test: Fail
+null_test/none: Fail  # Issue 12482
 
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == ie9)]
-arithmetic_test: Fail # Issue 7881
+[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == ie9 || $runtime == safari)]
+round_test: Fail, OK # Common JavaScript engine Math.round bug.
 
 
 [ $compiler == dart2js && $runtime == ie9 ]
-double_to_string_as_exponential3_test: Fail
-double_to_string_as_fixed_test: Fail
-double_to_string_as_precision3_test: Fail
+double_to_string_as_exponential3_test: Fail # Issue 12750
+double_to_string_as_fixed_test: Fail # Issue 12750
+double_to_string_as_precision3_test: Fail # Issue 12750
 expect_test: Fail
 stack_overflow_test: Fail
 stack_overflow_stacktrace_test: Fail
-licm2_test: Timeout # Issue: 11848
-
-
-[ $compiler == dart2js && $runtime == safari ]
-arithmetic_test: Fail # Issue: 7414
+licm2_test: Pass, Timeout # Issue: 11848
 
 
 [ $runtime == opera ]
@@ -276,3 +261,183 @@ stack_overflow_test: Fail
 stack_overflow_stacktrace_test: Fail
 closure_call_wrong_argument_count_negative_test: Skip
 label_test: Skip
+
+
+[ $compiler == dart2dart ]
+mixin_super_constructor_named_test: Fail # Issue 12631
+mixin_super_constructor_positionals_test: Fail # Issue 12631
+function_type_alias6_test/00: Fail # Issue 11986
+function_type_alias9_test/00: Crash # Issue 11986
+
+built_in_identifier_prefix_test: Fail # Issue 6972
+constructor_initializer_test: Fail # VM issue
+factory3_test: Fail
+type_checks_in_factory_method_test: Fail # Issue 12747
+
+many_overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
+overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
+
+on_catch_malformed_type_test: Fail # Issue 8601
+
+# False positive compile-time error is masking expected compile-time error
+mixin_type_parameters_errors_test/*: Skip
+
+# Mixins fail on the VM.
+mixin_mixin_test: Fail # Issue 9683
+mixin_issue10216_2_test: Fail # Issue 9683
+mixin_forwarding_constructor2_test: Fail # Issue 11888
+mixin_typedef_constructor_test: Fail # Issue 11888
+mixin_type_parameter2_test: Fail # Issue 11888
+
+mixin_with_two_implicit_constructors_test: Fail # Issue 11889
+
+# Malformed types not handled as unresolved:
+import_core_prefix_test: Fail
+prefix16_test: Fail
+prefix22_test: Fail
+
+# Calling unresolved class constructor:
+call_nonexistent_constructor_test: Fail
+
+bad_override_test/01: Fail # Issue 11496
+bad_override_test/02: Fail # Issue 11496
+bad_override_test/06: Fail # Issue 11496
+class_override_test/00: Fail # Issue 11496
+field_override3_test/00: Fail # Issue 11496
+field_override3_test/01: Fail # Issue 11496
+field_override3_test/02: Fail # Issue 11496
+field_override3_test/03: Fail # Issue 11496
+getter_override_test/00: Fail # Issue 11496
+getter_override_test/01: Fail # Issue 11496
+getter_override_test/02: Fail # Issue 11496
+method_override7_test/00: Fail # Issue 11496
+method_override7_test/01: Fail # Issue 11496
+method_override7_test/02: Fail # Issue 11496
+method_override8_test/03: Fail # Issue 11496
+setter_override_test/00: Fail # Issue 11496
+setter_override_test/03: Fail # Issue 11496
+setter_override2_test/02: Fail # Issue 11496
+
+compile_time_constant10_test/01: Fail # Issue 5519
+compile_time_constant10_test/02: Fail # Issue 5519
+compile_time_constant_arguments_test/01: Fail # Issue 5519
+compile_time_constant_arguments_test/02: Fail # Issue 5519
+compile_time_constant_arguments_test/03: Fail # Issue 5519
+compile_time_constant_arguments_test/05: Fail # Issue 5519
+compile_time_constant_arguments_test/06: Fail # Issue 5519
+const_constructor_syntax_test/04: Fail # Issue 5519
+const_syntax_test/01: Fail # Issue 5519
+const_syntax_test/02: Fail # Issue 5519
+const_syntax_test/03: Fail # Issue 5519
+const_syntax_test/04: Fail # Issue 5519
+const_syntax_test/05: Fail # Issue 5519
+const_syntax_test/06: Fail # Issue 5519
+const_syntax_test/07: Fail # Issue 5519
+const_syntax_test/08: Fail # Issue 5519
+const_syntax_test/10: Fail # Issue 5519
+constructor_named_arguments_test/01: Fail # Issue 5519
+final_syntax_test/01: Fail # Issue 5519
+final_syntax_test/02: Fail # Issue 5519
+final_syntax_test/03: Fail # Issue 5519
+final_syntax_test/04: Fail # Issue 5519
+getter_no_setter_test/01: Fail # Issue 5519
+named_parameters_aggregated_test/01: Fail # Issue 12802
+named_parameters_aggregated_test/03: Fail # Issue 12813
+not_enough_positional_arguments_test/01: Fail # Issue 12839
+not_enough_positional_arguments_test/02: Fail # Issue 12839
+not_enough_positional_arguments_test/04: Fail # Issue 12839
+not_enough_positional_arguments_test/05: Fail # Issue 12839
+
+metadata_test: Fail # Issue 12762
+const_var_test: Pass, Fail # Issue 12794
+map_literal3_test: Fail # Issue 12794
+class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
+interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
+# Common problems with dart2js.  In illegal family, invalid
+# declarations are simply not parsed.  In pseudo kw dart2js
+# chokes on things like typedef(x) => "typedef $x" and alike.
+abstract_syntax_test/01: Fail
+pseudo_kw_test: Fail
+# external keyword is not yet supported by dart2js/dart2dart.
+external_test/*: Skip
+lazy_static3_test: Fail # Issue 12593
+# dart2js frontend doesn't even analyse problematic classes.
+duplicate_implements_test/01: Fail
+duplicate_implements_test/02: Fail
+duplicate_implements_test/03: Fail
+duplicate_implements_test/04: Fail
+method_override4_test: Fail # Issue 12810
+method_override5_test: Fail # Issue 12810
+operator1_negative_test: Fail
+static_final_field_negative_test: Fail
+static_top_level_test/00: Fail
+static_top_level_test/01: Fail
+static_top_level_test/02: Fail
+static_top_level_test/03: Fail
+static_top_level_test/04: Fail
+static_top_level_test/05: Fail
+static_top_level_test/06: Fail
+static_top_level_test/07: Fail
+# Bug in dart2js parser: it happily parses 1is int; variable declaration.
+number_identifier_negative_test: Fail
+# Common with language_dart2js.
+factory_redirection_test/01: Fail # Issue 12753
+factory_redirection_test/02: Crash # Issue 12753
+factory_redirection_test/03: Crash # Issue 12753
+factory_redirection_test/07: Fail # Issue 12753
+factory_redirection_test/09: Fail # Issue 12753
+factory_redirection_test/14: Fail # Issue 10959
+function_type_alias5_test/00: Fail # Issue 12755
+function_type_alias5_test/01: Fail # Issue 12755
+function_type_alias5_test/02: Fail # Issue 12755
+function_type_alias7_test/00: Fail # Issue 12802
+parameter_initializer6_negative_test: Fail # Issue 3502
+# DartVM problem.
+constructor5_test: Fail
+constructor6_test: Fail
+closure_in_initializer_test: Fail
+super_first_constructor_test: Fail
+# Minified mode failures.
+# TODO(antonm): proper support in test framework.
+no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("foo").
+
+new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
+new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
+
+get_set_syntax_test/00: Fail # Issue 12806
+get_set_syntax_test/01: Fail # Issue 12806
+get_set_syntax_test/02: Fail # Issue 12806
+get_set_syntax_test/03: Fail # Issue 12806
+get_set_syntax_test/04: Fail # Issue 12806
+
+# Only checked mode reports an error on type assignment
+# problems in compile time constants.
+compile_time_constant_checked_test/02: Fail, OK
+compile_time_constant_checked2_test/01: Fail, OK
+compile_time_constant_checked2_test/02: Fail, OK
+compile_time_constant_checked2_test/03: Fail, OK
+compile_time_constant_checked2_test/04: Fail, OK
+compile_time_constant_checked2_test/05: Fail, OK
+compile_time_constant_checked2_test/06: Fail, OK
+compile_time_constant_checked3_test/01: Fail, OK
+compile_time_constant_checked3_test/02: Fail, OK
+compile_time_constant_checked3_test/03: Fail, OK
+compile_time_constant_checked3_test/04: Fail, OK
+compile_time_constant_checked3_test/05: Fail, OK
+compile_time_constant_checked3_test/06: Fail, OK
+
+positional_parameters_type_test: Fail # Triage this.
+final_is_not_const_test/01: Fail # Issue 12692
+
+[ $compiler == dart2dart && $minified ]
+super_getter_setter_test: Fail # Issue 11065.
+f_bounded_quantification4_test: Fail # Issue 12605.
+f_bounded_quantification5_test: Fail # Issue 12605.
+
+# TODO(tball): Assign proper bug numbers.
+class_literal_test: Fail
+
+import_core_prefix_test: Pass
+prefix22_test: Pass
+invocation_mirror_test: Fail, OK # Issue 12706 (hardcoded names).
+super_call4_test: Fail, OK # hardcoded names.

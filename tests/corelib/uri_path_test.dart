@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:collection";
+
 import "package:expect/expect.dart";
 
 void testInvalidArguments() {
@@ -91,14 +93,36 @@ void testPathSegments() {
   test(encoded + "/" + encoded, [unencoded, unencoded]);
 
   Uri uri;
-  uri = new Uri(pathSegments: ["xxx", "yyy", "zzz"]);
+  List pathSegments = ["xxx", "yyy", "zzz"];
+
+  uri = new Uri(pathSegments: pathSegments);
+  Expect.equals(3, uri.pathSegments.length);
+  uri = new Uri(pathSegments: pathSegments.where((_) => true));
+  Expect.equals(3, uri.pathSegments.length);
+  uri = new Uri(pathSegments: new DoubleLinkedQueue.from(pathSegments));
+  Expect.equals(3, uri.pathSegments.length);
+
+  uri = new Uri(scheme: "http",
+                host: "host",
+                pathSegments: pathSegments);
   Expect.equals(3, uri.pathSegments.length);
   uri = new Uri(scheme: "http",
                 host: "host",
-                pathSegments: ["xxx", "yyy", "zzz"]);
+                pathSegments: pathSegments.where((_) => true));
+  Expect.equals(3, uri.pathSegments.length);
+  uri = new Uri(scheme: "http",
+                host: "host",
+                pathSegments: new DoubleLinkedQueue.from(pathSegments));
+  Expect.equals(3, uri.pathSegments.length);
+
+  uri = new Uri(scheme: "file",
+                pathSegments: pathSegments);
   Expect.equals(3, uri.pathSegments.length);
   uri = new Uri(scheme: "file",
-                pathSegments: ["xxx", "yyy", "zzz"]);
+                pathSegments: pathSegments.where((_) => true));
+  Expect.equals(3, uri.pathSegments.length);
+  uri = new Uri(scheme: "file",
+                pathSegments: new DoubleLinkedQueue.from(pathSegments));
   Expect.equals(3, uri.pathSegments.length);
 }
 

@@ -9,6 +9,7 @@ import 'dart:collection';
 main() {
   testWithConstMap();
   testWithNonConstMap();
+  testWithHashMap();
   testWithLinkedMap();
 }
 
@@ -17,7 +18,7 @@ testWithConstMap() {
   var otherMap = new Map.from(map);
   Expect.isTrue(otherMap is Map);
   Expect.isTrue(otherMap is HashMap);
-  Expect.isTrue(otherMap is !LinkedHashMap);
+  Expect.isTrue(otherMap is LinkedHashMap);
 
   Expect.equals(2, otherMap.length);
   Expect.equals(2, otherMap.keys.length);
@@ -38,7 +39,7 @@ testWithNonConstMap() {
   var otherMap = new Map.from(map);
   Expect.isTrue(otherMap is Map);
   Expect.isTrue(otherMap is HashMap);
-  Expect.isTrue(otherMap is !LinkedHashMap);
+  Expect.isTrue(otherMap is LinkedHashMap);
 
   Expect.equals(2, otherMap.length);
   Expect.equals(2, otherMap.keys.length);
@@ -68,11 +69,23 @@ testWithNonConstMap() {
   Expect.equals(3, otherMap.values.length);
 }
 
+testWithHashMap() {
+  var map = const { 'b': 1, 'a': 2, 'c': 3 };
+  var otherMap = new HashMap.from(map);
+  Expect.isTrue(otherMap is Map);
+  Expect.isTrue(otherMap is HashMap);
+  Expect.isTrue(otherMap is !LinkedHashMap);
+  var i = 1;
+  for (var val in map.values) {
+    Expect.equals(i++, val);
+  }
+}
+
 testWithLinkedMap() {
   var map = const { 'b': 1, 'a': 2, 'c': 3 };
   var otherMap = new LinkedHashMap.from(map);
   Expect.isTrue(otherMap is Map);
-  Expect.isTrue(otherMap is! HashMap);
+  Expect.isTrue(otherMap is HashMap);
   Expect.isTrue(otherMap is LinkedHashMap);
   var i = 1;
   for (var val in map.values) {

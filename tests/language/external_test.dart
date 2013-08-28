@@ -1,7 +1,6 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile_all
 
 class Foo {
   var x;
@@ -29,7 +28,7 @@ external int t07(int i) => i + 1;  /// 31: compile-time error
 main() {
 
   // Try calling an unpatched external function.
-  var foo = new Foo();                                /// 10: continued
+  var foo = new Foo();
   try {                                               /// 10: continued
     foo.f05();                                        /// 10: continued
   } on String catch (exc) {                           /// 10: continued

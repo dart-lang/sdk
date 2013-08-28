@@ -73,7 +73,6 @@ intl/test/date_time_format_http_request_test: Skip
 [ $runtime == vm && $system == windows ]
 docgen/test/single_library_test: Fail # Issue 11985
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
-intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 
 [ $compiler == dart2js ]
 stack_trace/test/trace_test: Pass, Timeout # Issue 11645
@@ -102,18 +101,11 @@ mutation_observer: Skip
 # printed. Minified versions of these tests exist that test the behavior when
 # minified.
 unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
-csslib: Pass, Crash # crashing randomly, see issue 12468
 
 [ $compiler == dart2js && $browser ]
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
-
-[ $compiler == dart2js ]
-csslib/test/var_test: Fail # looking for VM-specific stack traces, issue 12469
-
-[ $compiler == dart2js && $runtime == drt ]
-csslib: Pass, Fail # issue 12466
 
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
@@ -121,6 +113,7 @@ analyzer_experimental/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/generated/resolver_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/options_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/services/formatter_test: Fail, OK # Uses dart:io.
+analyzer_experimental/test/parse_compilation_unit_test: Fail, OK # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
 http/test/client_test: Fail, OK # Uses dart:io.
 http/test/http_test: Fail, OK # Uses dart:io.

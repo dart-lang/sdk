@@ -333,9 +333,8 @@ int Process::Start(const char* path,
   bool initialized = ExitCodeHandler::EnsureInitialized();
   if (!initialized) {
     SetChildOsErrorMessage(os_error_message);
-    Log::PrintErr(
-            "Error initializing exit code handler: %s\n",
-            *os_error_message);
+    Log::PrintErr("Error initializing exit code handler: %s\n",
+                  *os_error_message);
     return errno;
   }
 

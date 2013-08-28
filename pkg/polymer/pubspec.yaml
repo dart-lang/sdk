@@ -12,8 +12,8 @@ dependencies:
   browser: any
   csslib: any
   custom_element: any
-  html_import: any
   html5lib: any
+  html_import: any
   js: any
   logging: any
   mdv: any
@@ -24,3 +24,4 @@ dependencies:
   source_maps: any
   # TODO(jmesserly): make this a dev_dependency
   unittest: any
+  yaml: any

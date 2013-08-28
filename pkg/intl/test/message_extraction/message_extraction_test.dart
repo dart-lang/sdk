@@ -7,42 +7,14 @@ library message_extraction_test;
 import 'package:unittest/unittest.dart';
 import 'dart:io';
 import 'dart:async';
+import 'dart:convert';
 import 'package:path/path.dart' as path;
 import '../data_directory.dart';
 
 final dart = Platform.executable;
 
-// TODO(alanknight): We have no way of knowing what the package-root is,
-// so when we're running under the test framework, which sets the
-// package-root, we use a horrible hack and infer it from the executable.
-final packageDir = _findPackageDir(dart);
-
-/**
- * Find our package directory from the executable. If we seem to be running
- * from out/Release<arch>/dart or the equivalent Debug, then use the packages
- * directory under Release<arch>. Otherwise return null, indicating to use
- * the normal pub packages directory.
- */
-String _findPackageDir(executable) {
-  var oneUp = path.dirname(executable);
-  var tail = path.basename(oneUp);
-  // If we're running from test.dart, we want e.g. out/ReleaseIA32/packages
-  if (tail.contains('Release') || tail.contains('Debug')) {
-      return path.join(oneUp, 'packages/');
-  }
-  // Check for the case where we're running Release<arch>/dart-sdk/bin/dart
-  // (pub bots)
-  var threeUp = path.dirname(path.dirname(oneUp));
-  tail = path.basename(threeUp);
-  if (tail.contains('Release') || tail.contains('Debug')) {
-      return path.join(threeUp, 'packages/');
-  }
-  // Otherwise we will rely on the normal packages directory.
-  return null;
-}
-
-/** If our package root directory is set, return it as a VM argument. */
-final vmArgs = (packageDir == null) ? [] : ['--package-root=$packageDir'];
+/** The VM arguments we were given, most important package-root. */
+final vmArgs = Platform.executableArguments;
 
 /**
  * Translate a file path into this test directory, regardless of the
@@ -103,7 +75,8 @@ Future<ProcessResult> run(ProcessResult previousResult, List<String> filenames)
       ..add(filesInTheRightDirectory.first)
       ..addAll(["--output-dir=${dir()}"])
       ..addAll(filesInTheRightDirectory.skip(1));
-  var result = Process.run(dart, args);
+  var result = Process.run(dart, args, stdoutEncoding: UTF8,
+      stderrEncoding: UTF8);
   return result;
 }
 

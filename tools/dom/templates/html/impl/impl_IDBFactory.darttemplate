@@ -30,9 +30,9 @@ $endif
     try {
       var request;
       if (version != null) {
-        request = $dom_open(name, version);
+        request = _open(name, version);
       } else {
-        request = $dom_open(name);
+        request = _open(name);
       }
 
       if (onUpgradeNeeded != null) {
@@ -51,7 +51,7 @@ $endif
   Future<IdbFactory> deleteDatabase(String name,
       {void onBlocked(Event)}) {
     try {
-      var request = $dom_deleteDatabase(name);
+      var request = _deleteDatabase(name);
 
       if (onBlocked != null) {
         request.onBlocked.listen(onBlocked);
@@ -74,7 +74,7 @@ $endif
   @Experimental()
   Future<List<String>> getDatabaseNames() {
     try {
-      var request = $dom_webkitGetDatabaseNames();
+      var request = _webkitGetDatabaseNames();
 
       return _completeRequest(request);
     } catch (e, stacktrace) {

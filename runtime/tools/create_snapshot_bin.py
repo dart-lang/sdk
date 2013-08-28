@@ -73,7 +73,7 @@ def Main():
     return 1
 
   # Setup arguments to the snapshot generator binary.
-  script_args = ["--error_on_malformed_type", "--error_on_bad_override"]
+  script_args = ["--error_on_bad_type", "--error_on_bad_override"]
 
   # First setup the snapshot output filename.
   script_args.append(''.join([ "--snapshot=", options.output_bin ]))

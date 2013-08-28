@@ -3,22 +3,29 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Unmodifiable wrappers for [List], [Set] and [Map] objects.
+ * Wrappers that prevent List, Set, or Map objects from being modified.
  *
- * The wrappers allow reading from the source list, but writing is prohibited.
+ * The [Set] and [Map] wrappers allow reading from the wrapped collection,
+ * but prohibit writing.
  *
- * A non-growable list wrapper allows writing as well, but not changing the
- * list's length.
+ * The [List] wrapper prevents changes to the length of the wrapped list,
+ * but allows changes to the contents.
  */
 library unmodifiable_collection;
 
 export "dart:collection" show UnmodifiableListView;
 
 /**
- * A [List] wrapper that acts as a non-growable list.
+ * A fixed-length list.
  *
- * Writes to the list are written through to the source list, but operations
- * that change the length is not allowed.
+ * A NonGrowableListView contains a [List] object and ensures that
+ * its length does not change.
+ * Methods that would change the length of the list,
+ * such as [add] and [remove], throw an [UnsupportedError].
+ *
+ * This class _does_ allow changes to the contents of the wrapped list.
+ * You can, for example, [sort] the list.
+ * Permitted operations defer to the wrapped list.
  */
 class NonGrowableListView<E> extends _IterableView<E>
                                      implements List<E> {
@@ -65,35 +72,93 @@ class NonGrowableListView<E> extends _IterableView<E>
   }
 
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the length of the list are disallowed.
+   */
   void set length(int newLength) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the length of the list are disallowed.
+   */
   void add(E value) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the length of the list are disallowed.
+   */
   void addAll(Iterable<E> iterable) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the length of the list are disallowed.
+   */
   void insert(int index, E element) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the length of the list are disallowed.
+   */
   void insertAll(int index, Iterable<E> iterable) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the length of the list are disallowed.
+   */
   bool remove(Object value) { _throw(); }
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the length of the list are disallowed.
+   */
   E removeAt(int index) { _throw(); }
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the length of the list are disallowed.
+   */
   E removeLast() { _throw(); }
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the length of the list are disallowed.
+   */
   void removeWhere(bool test(E element)) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the length of the list are disallowed.
+   */
   void retainWhere(bool test(E element)) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the length of the list are disallowed.
+   */
   void removeRange(int start, int end) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the length of the list are disallowed.
+   */
   void replaceRange(int start, int end, Iterable<E> iterable) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the length of the list are disallowed.
+   */
   void clear() => _throw();
 }
 
 /**
- * A [Set] wrapper that acts as an unmodifiable set.
+ * An unmodifiable set.
+ *
+ * An UnmodifiableSetView contains a [Set] object and ensures 
+ * that it does not change.
+ * Methods that would change the set,
+ * such as [add] and [remove], throw an [UnsupportedError].
+ * Permitted operations defer to the wrapped set.
  */
 class UnmodifiableSetView<E> extends _IterableView<E>
                                       implements Set<E> {
@@ -113,25 +178,63 @@ class UnmodifiableSetView<E> extends _IterableView<E>
   Set<E> difference(Set<E> other) => _source.difference(other);
 
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the set are disallowed.
+   */
   void add(E value) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the set are disallowed.
+   */
   void addAll(Iterable<E> elements) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the set are disallowed.
+   */
   bool remove(Object value) { _throw(); }
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the set are disallowed.
+   */
   void removeAll(Iterable elements) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the set are disallowed.
+   */
   void retainAll(Iterable elements) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the set are disallowed.
+   */
   void removeWhere(bool test(E element)) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the set are disallowed.
+   */
   void retainWhere(bool test(E element)) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the set are disallowed.
+   */
   void clear() => _throw();
 }
 
 /**
- * A [Map] wrapper that acts as an unmodifiable map.
+ * An unmodifiable map.
+ *
+ * An UnmodifiableMapView contains a [Map] object and ensures 
+ * that it does not change.
+ * Methods that would change the map,
+ * such as [addAll] and [remove], throw an [UnsupportedError].
+ * Permitted operations defer to the wrapped map.
  */
 class UnmodifiableMapView<K, V> implements Map<K, V> {
   Map<K, V> _source;
@@ -160,14 +263,34 @@ class UnmodifiableMapView<K, V> implements Map<K, V> {
   Iterable<V> get values => _source.values;
 
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the map are disallowed.
+   */
   void operator []=(K key, V value) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the map are disallowed.
+   */
   V putIfAbsent(K key, V ifAbsent()) { _throw(); }
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the map are disallowed.
+   */
   void addAll(Map<K, V> other) => _throw();
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the map are disallowed.
+   */
   V remove(K key) { _throw(); }
 
+  /**
+   * Throws an [UnsupportedError];
+   * operations that change the map are disallowed.
+   */
   void clear() => _throw();
 }
 

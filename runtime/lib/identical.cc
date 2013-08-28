@@ -13,7 +13,7 @@ DEFINE_NATIVE_ENTRY(Identical_comparison, 2) {
   GET_NATIVE_ARGUMENT(Instance, b, arguments->NativeArgAt(1));
   if (a.raw() == b.raw()) return Bool::True().raw();
   if (a.IsInteger() && b.IsInteger()) {
-    return Bool::Get(a.Equals(b));
+    return Bool::Get(a.Equals(b)).raw();
   }
   if (a.IsDouble() && b.IsDouble()) {
     if (a.Equals(b)) return Bool::True().raw();

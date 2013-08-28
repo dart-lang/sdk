@@ -9,12 +9,12 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   @DomName('HTMLTableSectionElement.rows')
   List<TableRowElement> get rows =>
-    new _WrappedList<TableRowElement>($dom_rows);
+    new _WrappedList<TableRowElement>(_rows);
 
   TableRowElement addRow() {
     return insertRow(-1);
   }
 
-  TableRowElement insertRow(int index) => $dom_insertRow(index);
+  TableRowElement insertRow(int index) => _insertRow(index);
 
 $!MEMBERS}
