@@ -18,7 +18,7 @@ import 'dart:_collection-dev' hide Symbol, deprecated;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
-import 'dart:json' as json;
+import "dart:convert";
 import 'dart:math';
 // TODO(vsm): Remove this when we can do the proper checking in
 // native code for custom elements.
@@ -113,7 +113,7 @@ var _callPortLastResult = null;
 _callPortSync(num id, var message) {
   if (!_callPortInitialized) {
     window.on['js-result'].listen((event) {
-      _callPortLastResult = json.parse(_getPortSyncEventData(event));
+      _callPortLastResult = JSON.decode(_getPortSyncEventData(event));
     });
     _callPortInitialized = true;
   }

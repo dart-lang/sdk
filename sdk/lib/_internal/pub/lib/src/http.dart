@@ -6,8 +6,8 @@
 library pub.http;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 
 import 'package:http/http.dart' as http;
 
@@ -203,7 +203,7 @@ void handleJsonError(http.Response response) {
 Map parseJsonResponse(http.Response response) {
   var value;
   try {
-    value = json.parse(response.body);
+    value = JSON.decode(response.body);
   } on FormatException catch (e) {
     invalidServerResponse(response);
   }

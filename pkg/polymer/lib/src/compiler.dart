@@ -6,7 +6,7 @@ library compiler;
 
 import 'dart:async';
 import 'dart:collection' show SplayTreeMap;
-import 'dart:json' as json;
+import 'dart:convert';
 
 import 'package:analyzer_experimental/src/generated/ast.dart' show Directive, UriBasedDirective;
 import 'package:csslib/visitor.dart' show StyleSheet, treeToDebugString;
@@ -746,13 +746,13 @@ class Compiler {
     var sourcePath = dartCodeUrl != null ? dartCodeUrl.resolvedPath : null;
     output.add(new OutputFile(libPath, printer.text, source: sourcePath));
     // Fix-up the paths in the source map file
-    var sourceMap = json.parse(printer.map);
+    var sourceMap = JSON.decode(printer.map);
     var urls = sourceMap['sources'];
     for (int i = 0; i < urls.length; i++) {
       urls[i] = path.relative(urls[i], from: dir);
     }
     output.add(new OutputFile(path.join(dir, '$filename.map'),
-          json.stringify(sourceMap)));
+          JSON.encode(sourceMap)));
   }
 
   _time(String logMessage, String filePath, callback(),

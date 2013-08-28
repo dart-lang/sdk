@@ -15,8 +15,8 @@
 library apidoc;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 
 import 'html_diff.dart';
 
@@ -112,7 +112,7 @@ void main() {
 
   print('Parsing MDN data...');
   final mdnFile = new File(path.join(scriptDir, 'mdn', 'database.json'));
-  final mdn = json.parse(mdnFile.readAsStringSync());
+  final mdn = JSON.decode(mdnFile.readAsStringSync());
 
   print('Cross-referencing dart:html...');
   // TODO(amouravski): move HtmlDiff inside of the future chain below to re-use

@@ -4,7 +4,7 @@
 
 library serialization_test;
 
-import 'dart:json' as json;
+import 'dart:convert';
 import 'package:unittest/unittest.dart';
 import 'package:serialization/serialization.dart';
 import 'package:serialization/src/serialization_helpers.dart';
@@ -366,8 +366,8 @@ void main() {
   test("Straight JSON format", () {
     var s = new Serialization();
     var writer = s.newWriter(const SimpleJsonFormat());
-    var out = json.stringify(writer.write(a1));
-    var reconstituted = json.parse(out);
+    var out = JSON.encode(writer.write(a1));
+    var reconstituted = JSON.decode(out);
     expect(reconstituted.length, 4);
     expect(reconstituted[0], "Seattle");
   });
@@ -378,8 +378,8 @@ void main() {
     var addressRule = s.addRuleFor(Address)..configureForMaps();
     var personRule = s.addRuleFor(Person)..configureForMaps();
     var writer = s.newWriter(const SimpleJsonFormat(storeRoundTripInfo: true));
-    var out = json.stringify(writer.write(p1));
-    var reconstituted = json.parse(out);
+    var out = JSON.encode(writer.write(p1));
+    var reconstituted = JSON.decode(out);
     var expected = {
       "name" : "Alice",
       "rank" : null,

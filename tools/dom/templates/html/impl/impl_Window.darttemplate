@@ -32,7 +32,7 @@ $endif
     if (portStr == null) {
       return null;
     }
-    var port = json.parse(portStr);
+    var port = JSON.decode(portStr);
     return _deserialize(port);
   }
 
@@ -44,7 +44,7 @@ $endif
   void registerPort(String name, var port) {
     var serialized = _serialize(port);
     document.documentElement.attributes['dart-port:$name'] =
-        json.stringify(serialized);
+        JSON.encode(serialized);
   }
 
   /**

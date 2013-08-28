@@ -7,7 +7,6 @@ library http_server;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as JSON;
 
 import 'package:mime/mime.dart';
 import "package:path/path.dart";

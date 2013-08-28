@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
@@ -35,7 +35,7 @@ main() {
 
         request.response.headers.contentType =
             new ContentType("application", "json");
-        request.response.write(json.stringify({
+        request.response.write(JSON.encode({
           "access_token": "new access token",
           "token_type": "bearer"
         }));

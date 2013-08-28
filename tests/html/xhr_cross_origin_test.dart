@@ -6,7 +6,7 @@ library XHRCrossOriginTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
-import 'dart:json' as json;
+import "dart:convert";
 
 /**
  * Examine the value of "crossOriginPort" as passed in from the url from
@@ -42,7 +42,7 @@ main() {
       var gotError = false;
       var url = '$host/root_dart/tests/html/xhr_cross_origin_data.txt';
       return HttpRequest.request(url).then((xhr) {
-        var data = json.parse(xhr.response);
+        var data = JSON.decode(xhr.response);
         expect(data, contains('feed'));
         expect(data['feed'], contains('entry'));
         expect(data, isMap);
@@ -92,7 +92,7 @@ main() {
       xhr.onReadyStateChange.listen((e) {
         guardAsync(() {
           if (xhr.readyState == HttpRequest.DONE) {
-            validate(json.parse(xhr.response));
+            validate(JSON.decode(xhr.response));
           }
         });
       });
@@ -102,7 +102,7 @@ main() {
     test('XHR.getWithCredentials Cross-domain', () {
       var url = '$host/root_dart/tests/html/xhr_cross_origin_data.txt';
       return HttpRequest.request(url, withCredentials: true).then((xhr) {
-        var data = json.parse(xhr.response);
+        var data = JSON.decode(xhr.response);
         expect(data, contains('feed'));
         expect(data['feed'], contains('entry'));
         expect(data, isMap);

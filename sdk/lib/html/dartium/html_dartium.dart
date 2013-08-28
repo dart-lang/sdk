@@ -11,7 +11,7 @@ import 'dart:_collection-dev' hide Symbol, deprecated;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
-import 'dart:json' as json;
+import "dart:convert";
 import 'dart:math';
 import 'dart:mirrors';
 import 'dart:nativewrappers';
@@ -84,7 +84,7 @@ var _callPortLastResult = null;
 _callPortSync(num id, var message) {
   if (!_callPortInitialized) {
     window.on['js-result'].listen((event) {
-      _callPortLastResult = json.parse(_getPortSyncEventData(event));
+      _callPortLastResult = JSON.decode(_getPortSyncEventData(event));
     });
     _callPortInitialized = true;
   }
@@ -26098,13 +26098,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -26663,7 +26663,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
     if (portStr == null) {
       return null;
     }
-    var port = json.parse(portStr);
+    var port = JSON.decode(portStr);
     return _deserialize(port);
   }
 
@@ -26675,7 +26675,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   void registerPort(String name, var port) {
     var serialized = _serialize(port);
     document.documentElement.attributes['dart-port:$name'] =
-        json.stringify(serialized);
+        JSON.encode(serialized);
   }
 
   /**
@@ -31297,7 +31297,7 @@ class _RemoteSendPortSync implements SendPortSync {
     var source = '$target-result';
     var result = null;
     window.on[source].first.then((Event e) {
-      result = json.parse(_getPortSyncEventData(e));
+      result = JSON.decode(_getPortSyncEventData(e));
     });
     _dispatchEvent(target, [source, message]);
     return result;
@@ -31381,7 +31381,7 @@ class ReceivePortSync {
     _callback = callback;
     if (_portSubscription == null) {
       _portSubscription = window.on[_listenerName].listen((Event e) {
-        var data = json.parse(_getPortSyncEventData(e));
+        var data = JSON.decode(_getPortSyncEventData(e));
         var replyTo = data[0];
         var message = _deserialize(data[1]);
         var result = _callback(message);
@@ -31412,7 +31412,7 @@ get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
   var event = new CustomEvent(receiver, canBubble: false, cancelable:false,
-    detail: json.stringify(message));
+    detail: JSON.encode(message));
   window.dispatchEvent(event);
 }
 

@@ -5,7 +5,7 @@
 library credentials_test;
 
 import 'dart:async';
-import 'dart:json' as JSON;
+import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:oauth2/oauth2.dart' as oauth2;
@@ -74,7 +74,7 @@ void main() {
         "client_secret": "secret"
       }));
 
-      return new Future.value(new http.Response(JSON.stringify({
+      return new Future.value(new http.Response(JSON.encode({
         'access_token': 'new access token',
         'token_type': 'bearer',
         'refresh_token': 'new refresh token'
@@ -104,7 +104,7 @@ void main() {
         "client_secret": "secret"
       }));
 
-      return new Future.value(new http.Response(JSON.stringify({
+      return new Future.value(new http.Response(JSON.encode({
         'access_token': 'new access token',
         'token_type': 'bearer'
       }), 200, headers: {'content-type': 'application/json'}));
@@ -120,7 +120,7 @@ void main() {
 
   group("fromJson", () {
     oauth2.Credentials fromMap(Map map) =>
-      new oauth2.Credentials.fromJson(JSON.stringify(map));
+      new oauth2.Credentials.fromJson(JSON.encode(map));
 
     test("should load the same credentials from toJson", () {
       var expiration = new DateTime.now().subtract(new Duration(hours: 1));

@@ -5,7 +5,7 @@
 library pub.solver.version_solver;
 
 import 'dart:async';
-import 'dart:json' as json;
+import "dart:convert";
 
 import '../lock_file.dart';
 import '../log.dart' as log;
@@ -293,6 +293,6 @@ class DescriptionMismatchException extends SolveFailure {
 
   String _describeDependency(PackageDep dep) {
     // TODO(nweiz): Dump descriptions to YAML when that's supported.
-    return "depends on it with description ${json.stringify(dep.description)}";
+    return "depends on it with description ${JSON.encode(dep.description)}";
   }
 }

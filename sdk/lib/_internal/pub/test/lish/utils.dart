@@ -4,8 +4,8 @@
 
 library lish.utils;
 
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
@@ -30,7 +30,7 @@ void handleUploadForm(ScheduledServer server, [Map body]) {
 
       request.response.headers.contentType =
           new ContentType("application", "json");
-      request.response.write(json.stringify(body));
+      request.response.write(JSON.encode(body));
       request.response.close();
     });
   });

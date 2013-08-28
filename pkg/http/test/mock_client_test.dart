@@ -5,7 +5,7 @@
 library mock_client_test;
 
 import 'dart:async';
-import 'dart:json' as json;
+import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:http/src/utils.dart';
@@ -18,7 +18,7 @@ void main() {
   test('handles a request', () {
     var client = new MockClient((request) {
       return new Future.value(new http.Response(
-          json.stringify(request.bodyFields), 200,
+          JSON.encode(request.bodyFields), 200,
           request: request, headers: {'content-type': 'application/json'}));
     });
 

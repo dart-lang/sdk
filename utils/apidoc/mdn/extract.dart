@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:collection";
+import 'dart:convert';
 import 'dart:html';
-import 'dart:json' as json;
 
 // Workaround for HTML lib missing feature.
 Range newRange() {
@@ -346,8 +346,8 @@ bool isSkippable(Node n) {
 
 void onEnd() {
   // Hideous hack to send JSON back to JS.
-  String dbJson = json.stringify(dbEntry);
-  // workaround bug in json.parse.
+  String dbJson = JSON.encode(dbEntry);
+  // workaround bug in JSON.decode.
   dbJson = dbJson.replaceAll("ZDARTIUMDOESNTESCAPESLASHNJXXXX", "\\n");
 
   // Use postMessage to end the JSON to JavaScript. TODO(jacobr): use a simple
@@ -1314,7 +1314,7 @@ void main() {
 void documentLoaded(event) {
   // Load the database of expected methods and properties with an HttpRequest.
   new HttpRequest.get('${window.location}.json', (req) {
-    data = json.parse(req.responseText);
+    data = JSON.decode(req.responseText);
     dbEntry = {'members': [], 'srcUrl': pageUrl};
     run();
   });

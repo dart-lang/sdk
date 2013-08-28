@@ -11,7 +11,7 @@ import 'dart:_collection-dev' hide Symbol, deprecated;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
-import 'dart:json' as json;
+import "dart:convert";
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:svg' as svg;
@@ -24604,7 +24604,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
     if (portStr == null) {
       return null;
     }
-    var port = json.parse(portStr);
+    var port = JSON.decode(portStr);
     return _deserialize(port);
   }
 
@@ -24616,7 +24616,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   void registerPort(String name, var port) {
     var serialized = _serialize(port);
     document.documentElement.attributes['dart-port:$name'] =
-        json.stringify(serialized);
+        JSON.encode(serialized);
   }
 
   /**
@@ -29194,7 +29194,7 @@ class _RemoteSendPortSync implements SendPortSync {
     var source = '$target-result';
     var result = null;
     window.on[source].first.then((Event e) {
-      result = json.parse(_getPortSyncEventData(e));
+      result = JSON.decode(_getPortSyncEventData(e));
     });
     _dispatchEvent(target, [source, message]);
     return result;
@@ -29278,7 +29278,7 @@ class ReceivePortSync {
     _callback = callback;
     if (_portSubscription == null) {
       _portSubscription = window.on[_listenerName].listen((Event e) {
-        var data = json.parse(_getPortSyncEventData(e));
+        var data = JSON.decode(_getPortSyncEventData(e));
         var replyTo = data[0];
         var message = _deserialize(data[1]);
         var result = _callback(message);
@@ -29309,7 +29309,7 @@ get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
   var event = new CustomEvent(receiver, canBubble: false, cancelable:false,
-    detail: json.stringify(message));
+    detail: JSON.encode(message));
   window.dispatchEvent(event);
 }
 

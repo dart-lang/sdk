@@ -7,7 +7,6 @@
 
 import "dart:convert";
 import "dart:io";
-import "dart:json" as json;
 import "dart:async";
 
 
@@ -69,9 +68,9 @@ Future sendCmd(Map<String, dynamic> cmd) {
   int id = cmd["id"];
   outstandingCommands[id] = completer;
   if (verbose) {
-    print("sending: '${json.stringify(cmd)}'");
+    print("sending: '${JSON.encode(cmd)}'");
   }
-  vmSock.write(json.stringify(cmd));
+  vmSock.write(JSON.encode(cmd));
   return completer.future;
 }
 
@@ -462,7 +461,7 @@ void handlePausedEvent(msg) {
 
 
 void processVmMessage(String jsonString) {
-  var msg = json.parse(jsonString);
+  var msg = JSON.decode(jsonString);
   if (msg == null) {
     return;
   }

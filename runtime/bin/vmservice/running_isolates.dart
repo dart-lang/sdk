@@ -35,7 +35,7 @@ class RunningIsolates implements ServiceRequestRouter {
     });
     result['type'] = 'IsolateList';
     result['members'] = members;
-    request.setResponse(JSON.stringify(result));
+    request.setResponse(JSON.encode(result));
   }
 
   Future route(ServiceRequest request) {

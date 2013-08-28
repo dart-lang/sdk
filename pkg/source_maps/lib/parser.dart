@@ -5,7 +5,7 @@
 /// Contains the top-level function to parse source maps version 3.
 library source_maps.parser;
 
-import 'dart:json' as json;
+import 'dart:convert';
 
 import 'span.dart';
 import 'src/utils.dart';
@@ -15,7 +15,7 @@ import 'src/vlq.dart';
 // TODO(sigmund): evaluate whether other maps should have the json parsed, or
 // the string represenation.
 Mapping parse(String jsonMap, {Map<String, Map> otherMaps}) =>
-  parseJson(json.parse(jsonMap), otherMaps: otherMaps);
+  parseJson(JSON.decode(jsonMap), otherMaps: otherMaps);
 
 /// Parses a source map directly from a json map object.
 Mapping parseJson(Map map, {Map<String, Map> otherMaps}) {

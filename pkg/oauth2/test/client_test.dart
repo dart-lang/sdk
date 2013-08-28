@@ -5,7 +5,7 @@
 library client_test;
 
 import 'dart:async';
-import 'dart:json' as JSON;
+import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:oauth2/oauth2.dart' as oauth2;
@@ -49,7 +49,7 @@ void main() {
       httpClient.expectRequest((request) {
         expect(request.method, equals('POST'));
         expect(request.url.toString(), equals(tokenEndpoint.toString()));
-        return new Future.value(new http.Response(JSON.stringify({
+        return new Future.value(new http.Response(JSON.encode({
           'access_token': 'new access token',
           'token_type': 'bearer'
         }), 200, headers: {'content-type': 'application/json'}));
@@ -99,7 +99,7 @@ void main() {
       httpClient.expectRequest((request) {
         expect(request.method, equals('POST'));
         expect(request.url.toString(), equals(tokenEndpoint.toString()));
-        return new Future.value(new http.Response(JSON.stringify({
+        return new Future.value(new http.Response(JSON.encode({
           'access_token': 'new access token',
           'token_type': 'bearer'
         }), 200, headers: {'content-type': 'application/json'}));

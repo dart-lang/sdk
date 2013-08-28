@@ -1,7 +1,6 @@
 library util;
 
 import 'dart:io';
-import 'dart:json' as json;
 
 Map<String, Map> _allProps;
 

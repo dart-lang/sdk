@@ -6,7 +6,7 @@
 library client;
 
 import 'dart:html';
-import 'dart:json' as jsonlib;
+import 'dart:convert';
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../classify.dart';
 import '../../markdown.dart' as md;
@@ -20,7 +20,7 @@ main() {
 
   // Request the navigation data so we can build the HTML for it.
   HttpRequest.getString('${prefix}nav.json').then((text) {
-    var json = jsonlib.parse(text);
+    var json = JSON.decode(text);
     buildNavigation(json);
     setupSearch(json);
   });

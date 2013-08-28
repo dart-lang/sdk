@@ -10,8 +10,8 @@
  * German and French locales.
  */
 
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 import 'package:path/path.dart' as path;
 import 'package:args/args.dart';
 import 'package:intl/src/intl_message.dart';
@@ -220,7 +220,7 @@ void translate(List originals, String locale, Map translations) {
     translated[name] = translations[name];
   }
   var file = new File(path.join(targetDir, 'translation_$locale.json'));
-  file.writeAsStringSync(json.stringify(translated));
+  file.writeAsStringSync(JSON.encode(translated));
 }
 
 main() {
@@ -237,7 +237,7 @@ main() {
 
   var fileArgs = args.where((x) => x.contains('.json'));
 
-  var messages = json.parse(new File(fileArgs.first).readAsStringSync());
+  var messages = JSON.decode(new File(fileArgs.first).readAsStringSync());
   translate(messages, "fr", french);
   translate(messages, "de_DE", german);
 }

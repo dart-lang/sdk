@@ -20,9 +20,9 @@
  */
 library extract_to_json;
 
+import 'dart:convert';
 import 'dart:io';
 import 'package:intl/extract_messages.dart';
-import 'dart:json' as json;
 import 'package:path/path.dart' as path;
 import 'package:intl/src/intl_message.dart';
 import 'package:args/args.dart';
@@ -50,7 +50,7 @@ main() {
     messages.forEach((k, v) => allMessages.add(toJson(v)));
   }
   var file = new File(path.join(targetDir, 'intl_messages.json'));
-  file.writeAsStringSync(json.stringify(allMessages));
+  file.writeAsStringSync(JSON.encode(allMessages));
   if (hasWarnings && warningsAreErrors) {
     exit(1);
   }

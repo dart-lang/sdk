@@ -5,8 +5,8 @@
 library pub.command.list_package_dirs;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 
 import 'package:path/path.dart' as path;
 
@@ -28,7 +28,7 @@ class ListPackageDirsCommand extends PubCommand {
 
   Future onRun() {
     if (!entrypoint.lockFileExists) {
-      log.error(json.stringify(
+      log.error(JSON.encode(
           'Package "myapp" has no lockfile. Please run "pub install" first.'));
       exit(exit_codes.NO_INPUT);
     }
@@ -55,7 +55,7 @@ class ListPackageDirsCommand extends PubCommand {
     output["input_files"] = [entrypoint.lockFilePath];
 
     return Future.wait(futures).then((_) {
-      log.message(json.stringify(output));
+      log.message(JSON.encode(output));
     });
   }
 }

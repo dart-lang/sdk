@@ -100,7 +100,7 @@ class _RemoteSendPortSync implements SendPortSync {
     var source = '$target-result';
     var result = null;
     window.on[source].first.then((Event e) {
-      result = json.parse(_getPortSyncEventData(e));
+      result = JSON.decode(_getPortSyncEventData(e));
     });
     _dispatchEvent(target, [source, message]);
     return result;
@@ -184,7 +184,7 @@ class ReceivePortSync {
     _callback = callback;
     if (_portSubscription == null) {
       _portSubscription = window.on[_listenerName].listen((Event e) {
-        var data = json.parse(_getPortSyncEventData(e));
+        var data = JSON.decode(_getPortSyncEventData(e));
         var replyTo = data[0];
         var message = _deserialize(data[1]);
         var result = _callback(message);
@@ -215,7 +215,7 @@ get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
   var event = new CustomEvent(receiver, canBubble: false, cancelable:false,
-    detail: json.stringify(message));
+    detail: JSON.encode(message));
   window.dispatchEvent(event);
 }
 

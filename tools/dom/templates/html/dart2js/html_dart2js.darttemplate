@@ -19,7 +19,7 @@ import 'dart:_collection-dev' hide Symbol, deprecated;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
-import 'dart:json' as json;
+import "dart:convert";
 import 'dart:math';
 import 'dart:typed_data';
 // Not actually used, but imported since dart:html can generate these objects.

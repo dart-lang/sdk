@@ -6,13 +6,13 @@
 
 library postProcess;
 
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 import 'util.dart';
 
 void main() {
   // Database of code documentation.
-  Map<String, List> database = json.parse(
+  Map<String, List> database = JSON.decode(
       new File('output/database.json').readAsStringSync());
   final filteredDb = {};
   final obsolete = [];
@@ -33,6 +33,6 @@ void main() {
       }
     }
   }
-  writeFileSync("output/database.filtered.json", json.stringify(filteredDb));
-  writeFileSync("output/obsolete.json", json.stringify(obsolete));
+  writeFileSync("output/database.filtered.json", JSON.encode(filteredDb));
+  writeFileSync("output/obsolete.json", JSON.encode(obsolete));
 }

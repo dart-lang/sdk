@@ -5,7 +5,7 @@
 library authorization_code_grant_test;
 
 import 'dart:async';
-import 'dart:json' as JSON;
+import 'dart:convert';
 
 import 'package:unittest/unittest.dart';
 import 'package:http/http.dart' as http;
@@ -151,7 +151,7 @@ void main() {
           'client_secret': 'secret'
         }));
 
-        return new Future.value(new http.Response(JSON.stringify({
+        return new Future.value(new http.Response(JSON.encode({
           'access_token': 'access token',
           'token_type': 'bearer',
         }), 200, headers: {'content-type': 'application/json'}));
@@ -195,7 +195,7 @@ void main() {
           'client_secret': 'secret'
         }));
 
-        return new Future.value(new http.Response(JSON.stringify({
+        return new Future.value(new http.Response(JSON.encode({
           'access_token': 'access token',
           'token_type': 'bearer',
         }), 200, headers: {'content-type': 'application/json'}));

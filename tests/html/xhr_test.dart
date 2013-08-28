@@ -7,7 +7,7 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:async';
 import 'dart:html';
-import 'dart:json' as json;
+import "dart:convert";
 import 'dart:typed_data';
 
 void fail(message) {
@@ -26,7 +26,7 @@ main() {
 
   void validate200Response(xhr) {
     expect(xhr.status, equals(200));
-    var data = json.parse(xhr.responseText);
+    var data = JSON.decode(xhr.responseText);
     expect(data, contains('feed'));
     expect(data['feed'], contains('entry'));
     expect(data, isMap);

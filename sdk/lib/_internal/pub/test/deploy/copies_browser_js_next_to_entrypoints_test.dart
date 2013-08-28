@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:json' as json;
+import 'dart:convert';
 
 import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_test.dart';
@@ -21,12 +21,12 @@ main() {
     serve([
       d.dir('api', [
         d.dir('packages', [
-          d.file('browser', json.stringify({
+          d.file('browser', JSON.encode({
             'versions': [packageVersionApiMap(packageMap('browser', '1.0.0'))]
           })),
           d.dir('browser', [
             d.dir('versions', [
-              d.file('1.0.0', json.stringify(
+              d.file('1.0.0', JSON.encode(
                   packageVersionApiMap(
                       packageMap('browser', '1.0.0'),
                       full: true)))

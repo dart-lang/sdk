@@ -15,8 +15,8 @@
  */
 library docgen;
 
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json';
 import 'dart:async';
 
 import 'package:logging/logging.dart';
@@ -253,7 +253,8 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
     if (!docsDir.contains('docs/library_list.json')) {
       throw new StateError('No library_list.json');
     }
-    libraryMap = parse(new File('docs/library_list.json').readAsStringSync());
+    libraryMap =
+        JSON.decode(new File('docs/library_list.json').readAsStringSync());
     libraryMap['libraries'].addAll(filteredEntities
         .where((e) => e is Library)
         .map((e) => e.previewMap));
@@ -277,7 +278,7 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
       'filetype' : outputToYaml ? 'yaml' : 'json'
     };
   }
-  _writeToFile(stringify(libraryMap), 'library_list.json');
+  _writeToFile(JSON.encode(libraryMap), 'library_list.json');
   // Output libraries and classes to file after all information is generated.
   filteredEntities.where((e) => e is Class || e is Library).forEach((output) {
     _writeIndexableToFile(output, outputToYaml);
@@ -303,7 +304,7 @@ void _writeIndexableToFile(Indexable result, bool outputToYaml) {
   if (outputToYaml) {
     _writeToFile(getYamlString(result.toMap()), '${result.qualifiedName}.yaml');
   } else {
-    _writeToFile(stringify(result.toMap()), '${result.qualifiedName}.json');
+    _writeToFile(JSON.encode(result.toMap()), '${result.qualifiedName}.json');
   }
 }
 
@@ -399,7 +400,7 @@ void _mdnComment(Indexable item) {
     // Reading in MDN related json file. 
     var mdnDir = path.join(path.dirname(path.dirname(path.dirname(path.dirname(
         path.absolute(new Options().script))))), 'utils', 'apidoc', 'mdn');
-    _mdn = parse(new File(path.join(mdnDir, 'database.json'))
+    _mdn = JSON.decode(new File(path.join(mdnDir, 'database.json'))
         .readAsStringSync());
   }
   if (item.comment.isNotEmpty) return;

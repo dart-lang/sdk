@@ -7,7 +7,7 @@ library pub.utils;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:json' as json;
+import "dart:convert";
 import 'dart:mirrors';
 
 import "package:crypto/crypto.dart";
@@ -494,7 +494,7 @@ String yamlToString(data) {
 
         var keyString = key;
         if (key is! String || !_unquotableYamlString.hasMatch(key)) {
-          keyString = json.stringify(key);
+          keyString = JSON.encode(key);
         }
 
         buffer.write('$indent$keyString:');
@@ -510,7 +510,7 @@ String yamlToString(data) {
 
     // Don't quote plain strings if not needed.
     if (data is! String || !_unquotableYamlString.hasMatch(data)) {
-      string = json.stringify(data);
+      string = JSON.encode(data);
     }
 
     if (isMapValue) {

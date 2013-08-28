@@ -7,7 +7,6 @@ library test_utils;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 
 import 'package:http/src/byte_stream.dart';
 import 'package:http/src/utils.dart';
@@ -96,7 +95,7 @@ Future startServer() {
           content['headers'][name] = values;
         });
 
-        var body = json.stringify(content);
+        var body = JSON.encode(content);
         response.contentLength = body.length;
         response.write(body);
         response.close();
@@ -154,7 +153,7 @@ class _Parse extends Matcher {
 
     var parsed;
     try {
-      parsed = json.parse(item);
+      parsed = JSON.decode(item);
     } catch (e) {
       return false;
     }

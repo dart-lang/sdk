@@ -15,8 +15,8 @@
 library polymer.deploy;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
@@ -182,7 +182,7 @@ Map<String, String> _packageDirs = () {
     print(result.stderr);
     exit(result.exitCode);
   }
-  var map = json.parse(result.stdout)["packages"];
+  var map = JSON.decode(result.stdout)["packages"];
   map.forEach((k, v) { map[k] = path.dirname(v); });
   map[_currentPackage] = '.';
   return map;
