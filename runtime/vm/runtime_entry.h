@@ -23,7 +23,7 @@ typedef void (*RuntimeFunction)(NativeArguments arguments);
 class RuntimeEntry : public ValueObject {
  public:
   RuntimeEntry(const char* name, RuntimeFunction function,
-               int argument_count, bool is_leaf, bool is_float)
+               intptr_t argument_count, bool is_leaf, bool is_float)
       : name_(name),
         function_(function),
         argument_count_(argument_count),
@@ -33,18 +33,18 @@ class RuntimeEntry : public ValueObject {
 
   const char* name() const { return name_; }
   RuntimeFunction function() const { return function_; }
-  int argument_count() const { return argument_count_; }
+  intptr_t argument_count() const { return argument_count_; }
   bool is_leaf() const { return is_leaf_; }
   bool is_float() const { return is_float_; }
   uword GetEntryPoint() const { return reinterpret_cast<uword>(function()); }
 
   // Generate code to call the runtime entry.
-  void Call(Assembler* assembler) const;
+  void Call(Assembler* assembler, intptr_t argument_count) const;
 
  private:
   const char* name_;
   const RuntimeFunction function_;
-  const int argument_count_;
+  const intptr_t argument_count_;
   const bool is_leaf_;
   const bool is_float_;
 

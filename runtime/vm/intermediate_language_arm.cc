@@ -249,6 +249,7 @@ static void EmitAssertBoolean(Register reg,
   compiler->GenerateCallRuntime(token_pos,
                                 deopt_id,
                                 kConditionTypeErrorRuntimeEntry,
+                                1,
                                 locs);
   // We should never return here.
   __ bkpt(0);
@@ -1799,7 +1800,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ Push(field_reg);
     __ Push(value_reg);
-    __ CallRuntime(kUpdateFieldCidRuntimeEntry);
+    __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
     __ Drop(2);  // Drop the field and the value.
   }
 
@@ -1952,6 +1953,7 @@ void AllocateObjectWithBoundsCheckInstr::EmitNativeCode(
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
                                 kAllocateObjectWithBoundsCheckRuntimeEntry,
+                                3,
                                 locs());
   __ Drop(3);
   ASSERT(locs()->out().reg() == R0);
@@ -1999,6 +2001,7 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
                                 kInstantiateTypeRuntimeEntry,
+                                2,
                                 locs());
   __ Drop(2);  // Drop instantiator and uninstantiated type.
   __ Pop(result_reg);  // Pop instantiated type.
@@ -2045,6 +2048,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
                                 kInstantiateTypeArgumentsRuntimeEntry,
+                                2,
                                 locs());
   __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
   __ Pop(result_reg);  // Pop instantiated type arguments.
@@ -2180,6 +2184,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
                                 kCloneContextRuntimeEntry,
+                                1,
                                 locs());
   __ Drop(1);  // Remove argument.
   __ Pop(result);  // Get result (cloned context).
@@ -2251,6 +2256,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
     compiler->GenerateCallRuntime(instruction_->token_pos(),
                                   instruction_->deopt_id(),
                                   kStackOverflowRuntimeEntry,
+                                  0,
                                   instruction_->locs());
 
     if (FLAG_use_osr && !compiler->is_optimizing() && instruction_->in_loop()) {
@@ -4185,7 +4191,7 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Args must be in D0 and D1, so move arg from Q1(== D3:D2) to D1.
     __ vmovd(D1, D2);
   }
-  __ CallRuntime(TargetFunction());
+  __ CallRuntime(TargetFunction(), InputCount());
   __ Bind(&skip_call);
 }
 
@@ -4434,6 +4440,7 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
                                 kThrowRuntimeEntry,
+                                1,
                                 locs());
   __ bkpt(0);
 }
@@ -4448,6 +4455,7 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
                                 kReThrowRuntimeEntry,
+                                2,
                                 locs());
   __ bkpt(0);
 }

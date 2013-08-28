@@ -125,7 +125,7 @@ END_LEAF_RUNTIME_ENTRY
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
   __ EnterCallRuntimeFrame(0);
   // Call the runtime leaf function. A0 already contains the parameter.
-  __ CallRuntime(kPrintStopMessageRuntimeEntry);
+  __ CallRuntime(kPrintStopMessageRuntimeEntry, 1);
   __ LeaveCallRuntimeFrame();
   __ Ret();
 }
@@ -328,7 +328,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
   __ sw(TMP, Address(SP, 0 * kWordSize));
 
-  __ CallRuntime(kPatchStaticCallRuntimeEntry);
+  __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
   __ TraceSimMsg("CallStaticFunctionStub return");
 
   // Get Code object result and restore arguments descriptor array.
@@ -357,7 +357,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ sw(S4, Address(SP, 1 * kWordSize));
   __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
   __ sw(TMP, Address(SP, 0 * kWordSize));
-  __ CallRuntime(kFixCallersTargetRuntimeEntry);
+  __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   // Get Code object result and restore arguments descriptor array.
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ lw(S4, Address(SP, 1 * kWordSize));
@@ -438,7 +438,7 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   PushArgumentsArray(assembler);
   __ TraceSimMsg("InstanceFunctionLookupStub return");
 
-  __ CallRuntime(kInstanceFunctionLookupRuntimeEntry);
+  __ CallRuntime(kInstanceFunctionLookupRuntimeEntry, 4);
 
   __ lw(V0, Address(SP, 4 * kWordSize));  // Get result into V0.
   __ addiu(SP, SP, Immediate(5 * kWordSize));    // Remove arguments.
@@ -521,7 +521,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
   __ mov(A0, SP);  // Pass address of saved registers block.
   __ ReserveAlignedFrameSpace(1 * kWordSize);
-  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
+  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 1);
   // Result (V0) is stack-size (FP - SP) in bytes, incl. the return address.
 
   if (preserve_result) {
@@ -549,7 +549,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ Push(T1);  // Preserve result as first local.
   }
   __ ReserveAlignedFrameSpace(1 * kWordSize);
-  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);  // Pass last FP in A0.
+  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);  // Pass last FP in A0.
   if (preserve_result) {
     // Restore result into T1.
     __ lw(T1, Address(FP, kFirstLocalSlotFromFp * kWordSize));
@@ -569,7 +569,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ Push(T1);  // Preserve result, it will be GC-d here.
   }
   __ PushObject(Smi::ZoneHandle());  // Space for the result.
-  __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry);
+  __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry, 0);
   // Result tells stub how many bytes to remove from the expression stack
   // of the bottom-most frame. They were used as materialization arguments.
   __ Pop(T1);
@@ -621,7 +621,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ sw(S5, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
 
-  __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry);
+  __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry, 3);
 
   __ lw(T0, Address(SP, 3 * kWordSize));  // Get result.
   __ lw(S4, Address(SP, 4 * kWordSize));  // Restore argument descriptor.
@@ -768,7 +768,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ sw(TMP, Address(SP, 2 * kWordSize));
   __ sw(A1, Address(SP, 1 * kWordSize));
   __ sw(A0, Address(SP, 0 * kWordSize));
-  __ CallRuntime(kAllocateArrayRuntimeEntry);
+  __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
   __ TraceSimMsg("AllocateArrayStub return");
   // Pop arguments; result is popped in IP.
   __ lw(V0, Address(SP, 2 * kWordSize));
@@ -838,7 +838,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S4, Address(SP, 1 * kWordSize));
   __ sw(T2, Address(SP, 0 * kWordSize));
-  __ CallRuntime(kCompileFunctionRuntimeEntry);
+  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
   __ TraceSimMsg("GenerateCallClosureFunctionStub return");
   // Restore arguments descriptor array and read-only function object argument.
   __ lw(T2, Address(SP, 0 * kWordSize));
@@ -888,7 +888,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // TOS + 5: PC marker (0 for stub).
   // TOS + 6: Last argument of caller.
   // ....
-  __ CallRuntime(kInvokeNonClosureRuntimeEntry);
+  __ CallRuntime(kInvokeNonClosureRuntimeEntry, 2);
   __ lw(V0, Address(SP, 2 * kWordSize));  // Get result into V0.
   __ addiu(SP, SP, Immediate(3 * kWordSize));  // Remove arguments.
 
@@ -1129,7 +1129,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
   __ sw(TMP, Address(SP, 1 * kWordSize));  // Store null.
   __ sw(T1, Address(SP, 0 * kWordSize));
-  __ CallRuntime(kAllocateContextRuntimeEntry);  // Allocate context.
+  __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
   __ lw(V0, Address(SP, 1 * kWordSize));  // Get the new context.
   __ addiu(SP, SP, Immediate(2 * kWordSize));  // Pop argument and return.
 
@@ -1206,7 +1206,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 
   __ EnterCallRuntimeFrame(1 * kWordSize);
   __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
-  __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry);
+  __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   __ TraceSimMsg("UpdateStoreBufferStub return");
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();
@@ -1379,7 +1379,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ sw(T7, Address(SP, 1 * kWordSize));
     __ sw(T1, Address(SP, 0 * kWordSize));
   }
-  __ CallRuntime(kAllocateObjectRuntimeEntry);  // Allocate object.
+  __ CallRuntime(kAllocateObjectRuntimeEntry, 3);  // Allocate object.
   __ TraceSimMsg("AllocationStubForClass return");
   // Pop result (newly allocated object).
   __ lw(V0, Address(SP, 3 * kWordSize));
@@ -1518,11 +1518,11 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   __ sw(T2, Address(SP, 0 * kWordSize));
 
   if (is_implicit_instance_closure) {
-    __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry);
+    __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry, 3);
     __ TraceSimMsg("AllocationStubForClosure return");
   } else {
     ASSERT(func.IsNonImplicitClosureFunction());
-    __ CallRuntime(kAllocateClosureRuntimeEntry);
+    __ CallRuntime(kAllocateClosureRuntimeEntry, 2);
     __ TraceSimMsg("AllocationStubForClosure return");
   }
   __ lw(V0, Address(SP, (num_slots - 1) * kWordSize));  // Pop function object.
@@ -1565,7 +1565,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // A1: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
 
-  __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry);
+  __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry, 4);
 
   __ lw(V0, Address(SP, 4 * kWordSize));  // Get result into V0.
   __ LeaveStubFrameAndReturn();
@@ -1587,7 +1587,7 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
     __ sw(S5, Address(SP, 2 * kWordSize));
     __ sw(ic_reg, Address(SP, 1 * kWordSize));  // Argument.
     __ sw(func_reg, Address(SP, 0 * kWordSize));  // Argument.
-    __ CallRuntime(kTraceICCallRuntimeEntry);
+    __ CallRuntime(kTraceICCallRuntimeEntry, 2);
     __ lw(S5, Address(SP, 2 * kWordSize));
     __ lw(T0, Address(SP, 3 * kWordSize));
     __ addiu(SP, SP, Immediate(4 * kWordSize));  // Discard argument;
@@ -1650,7 +1650,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
   __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ lw(S5, Address(SP, 1 * kWordSize));
   __ addiu(SP, SP, Immediate(2 * kWordSize));
@@ -1751,7 +1751,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
   // Pass IC data object.
   __ sw(S5, Address(SP, (num_slots - num_args - 4) * kWordSize));
-  __ CallRuntime(handle_ic_miss);
+  __ CallRuntime(handle_ic_miss, num_args + 1);
   __ TraceSimMsg("NArgsCheckInlineCacheStub return");
   // Pop returned code object into T3 (null if not found).
   // Restore arguments descriptor array and IC data array.
@@ -1904,7 +1904,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
   __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ lw(S5, Address(SP, 1 * kWordSize));
   __ addiu(SP, SP, Immediate(2 * kWordSize));
@@ -1945,7 +1945,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ sw(S5, Address(SP, 2 * kWordSize));  // Preserve IC data.
   __ sw(T3, Address(SP, 1 * kWordSize));  // Preserve function.
   __ sw(T3, Address(SP, 0 * kWordSize));  // Function argument.
-  __ CallRuntime(kCompileFunctionRuntimeEntry);
+  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
   __ lw(T3, Address(SP, 1 * kWordSize));  // Restore function.
   __ lw(S5, Address(SP, 2 * kWordSize));  // Restore IC data.
   __ addiu(SP, SP, Immediate(3 * kWordSize));
@@ -1988,7 +1988,7 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   __ sw(S5, Address(SP, 1 * kWordSize));
   __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
   __ sw(TMP, Address(SP, 0 * kWordSize));
-  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
+  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry, 0);
   // Pop code object result and restore arguments descriptor.
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ lw(S5, Address(SP, 1 * kWordSize));
@@ -2012,7 +2012,7 @@ void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   __ Push(V0);
-  __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry);
+  __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry, 0);
   __ Pop(V0);
   __ LeaveStubFrame();
 
@@ -2030,7 +2030,7 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ TraceSimMsg("BreakpointDynamicStub");
   __ EnterStubFrame();
   __ Push(S5);
-  __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);
+  __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry, 0);
   __ Pop(S5);
   __ LeaveStubFrame();
 
@@ -2285,7 +2285,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ LoadObject(TMP1, Symbols::EqualOperator());  // Target's name.
   __ sw(TMP1, Address(SP, 1 * kWordSize));
   __ sw(T0, Address(SP, 0 * kWordSize));  // ICData.
-  __ CallRuntime(kUpdateICDataTwoArgsRuntimeEntry);
+  __ CallRuntime(kUpdateICDataTwoArgsRuntimeEntry, 4);
   __ lw(A0, Address(SP, 2 * kWordSize));
   __ lw(A1, Address(SP, 3 * kWordSize));
   __ b(&compute_result);
@@ -2305,7 +2305,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
   __ sw(TMP, Address(SP, 1 * kWordSize));
   __ sw(T0, Address(SP, 0 * kWordSize));
-  __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
+  __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ TraceSimMsg("OptimizeFunctionStub return");
   __ lw(T0, Address(SP, 1 * kWordSize));  // Get Code object
   __ lw(S4, Address(SP, 2 * kWordSize));  // Restore argument descriptor.
@@ -2392,7 +2392,7 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ sw(right, Address(SP, 0 * kWordSize));
   __ mov(A0, left);
   __ mov(A1, right);
-  __ CallRuntime(kBigintCompareRuntimeEntry);
+  __ CallRuntime(kBigintCompareRuntimeEntry, 2);
   __ TraceSimMsg("IdenticalWithNumberCheckStub return");
   // Result in V0, 0 means equal.
   __ LeaveStubFrame();
@@ -2422,7 +2422,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   // Call single step callback in debugger.
   __ addiu(SP, SP, Immediate(-1 * kWordSize));
   __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ addiu(SP, SP, Immediate(1 * kWordSize));
   __ Bind(&not_stepping);

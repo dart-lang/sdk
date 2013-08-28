@@ -2200,8 +2200,9 @@ void Assembler::LeaveCallRuntimeFrame() {
 }
 
 
-void Assembler::CallRuntime(const RuntimeEntry& entry) {
-  entry.Call(this);
+void Assembler::CallRuntime(const RuntimeEntry& entry,
+                            intptr_t argument_count) {
+  entry.Call(this, argument_count);
 }
 
 

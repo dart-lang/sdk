@@ -285,6 +285,7 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateCallRuntime(intptr_t token_pos,
                            intptr_t deopt_id,
                            const RuntimeEntry& entry,
+                           intptr_t argument_count,
                            LocationSummary* locs);
 
   void GenerateCall(intptr_t token_pos,
