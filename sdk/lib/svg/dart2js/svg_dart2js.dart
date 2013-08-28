@@ -21,39 +21,11 @@ import 'dart:_interceptors' show Interceptor;
 // BSD-style license that can be found in the LICENSE file.
 
 
-final _START_TAG_REGEXP = new RegExp('<(\\w+)');
-
 class _SvgElementFactoryProvider {
   static SvgElement createSvgElement_tag(String tag) {
     final Element temp =
       document.$dom_createElementNS("http://www.w3.org/2000/svg", tag);
     return temp;
-  }
-
-  static SvgElement createSvgElement_svg(String svg) {
-    Element parentTag;
-    final match = _START_TAG_REGEXP.firstMatch(svg);
-    if (match != null && match.group(1).toLowerCase() == 'svg') {
-      parentTag = new Element.tag('div');
-    } else {
-      parentTag = new SvgSvgElement();
-    }
-
-    parentTag.innerHtml = svg;
-    if (parentTag.children.length == 1) return parentTag.children.removeLast();
-
-    throw new ArgumentError(
-        'SVG had ${parentTag.children.length} '
-        'top-level children but 1 expected');
-  }
-}
-
-class _SvgSvgElementFactoryProvider {
-  static SvgSvgElement createSvgSvgElement() {
-    final el = new SvgElement.tag("svg");
-    // The SVG spec requires the version attribute to match the spec version
-    el.attributes['version'] = "1.1";
-    return el;
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4757,10 +4729,28 @@ class _AttributeClassSet extends CssClassSetImpl {
 @DomName('SVGElement')
 @Unstable()
 class SvgElement extends Element native "SVGElement" {
+  static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
+
   factory SvgElement.tag(String tag) =>
-      _SvgElementFactoryProvider.createSvgElement_tag(tag);
-  factory SvgElement.svg(String svg) =>
-      _SvgElementFactoryProvider.createSvgElement_svg(svg);
+      document.$dom_createElementNS("http://www.w3.org/2000/svg", tag);
+  factory SvgElement.svg(String svg,
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+
+    if (validator == null && treeSanitizer == null) {
+      validator = new NodeValidatorBuilder.common()..allowSvg();
+    }
+
+    final match = _START_TAG_REGEXP.firstMatch(svg);
+    var parentElement;
+    if (match != null && match.group(1).toLowerCase() == 'svg') {
+      parentElement = document.body;
+    } else {
+      parentElement = new SvgSvgElement();
+    }
+    var fragment = parentElement.createFragment(svg, validator: validator,
+        treeSanitizer: treeSanitizer);
+    return fragment.nodes.where((e) => e is SvgElement).single;
+  }
 
   _AttributeClassSet _cssClassSet;
   CssClassSet get classes {
@@ -4792,12 +4782,33 @@ class SvgElement extends Element native "SVGElement" {
     return container.innerHtml;
   }
 
-  void set innerHtml(String svg) {
-    final container = new Element.tag("div");
-    // Wrap the SVG string in <svg> so that SvgElements are created, rather than
-    // HTMLElements.
-    container.innerHtml = '<svg version="1.1">$svg</svg>';
-    this.children = container.children[0].children;
+  void set innerHtml(String value) {
+    this.setInnerHtml(value);
+  }
+
+  DocumentFragment createFragment(String svg,
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+
+    if (treeSanitizer == null) {
+      if (validator == null) {
+        validator = new NodeValidatorBuilder.common()
+          ..allowSvg();
+      }
+      treeSanitizer = new NodeTreeSanitizer(validator);
+    }
+
+    // We create a fragment which will parse in the HTML parser
+    var html = '<svg version="1.1">$svg</svg>';
+    var fragment = document.body.createFragment(html,
+        treeSanitizer: treeSanitizer);
+
+    var svgFragment = new DocumentFragment();
+    // The root is the <svg/> element, need to pull out the contents.
+    var root = fragment.nodes.single;
+    while (root.firstChild != null) {
+      svgFragment.append(root.firstChild);
+    }
+    return svgFragment;
   }
 
   // Unsupported methods inherited from Element.
@@ -4876,7 +4887,12 @@ class SvgElement extends Element native "SVGElement" {
 @DomName('SVGSVGElement')
 @Unstable()
 class SvgSvgElement extends GraphicsElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan native "SVGSVGElement" {
-  factory SvgSvgElement() => _SvgSvgElementFactoryProvider.createSvgSvgElement();
+  factory SvgSvgElement() {
+    final el = new SvgElement.tag("svg");
+    // The SVG spec requires the version attribute to match the spec version
+    el.attributes['version'] = "1.1";
+    return el;
+  }
 
   // To suppress missing implicit constructor warnings.
   factory SvgSvgElement._() { throw new UnsupportedError("Not supported"); }

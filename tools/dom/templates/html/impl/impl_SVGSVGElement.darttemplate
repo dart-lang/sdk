@@ -5,7 +5,12 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  factory $CLASSNAME() => _$(CLASSNAME)FactoryProvider.createSvgSvgElement();
+  factory $CLASSNAME() {
+    final el = new SvgElement.tag("svg");
+    // The SVG spec requires the version attribute to match the spec version
+    el.attributes['version'] = "1.1";
+    return el;
+  }
 
 $!MEMBERS
 }

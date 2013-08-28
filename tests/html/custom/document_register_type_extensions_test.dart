@@ -6,6 +6,7 @@ library document_register_type_extensions_test;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
+import '../utils.dart';
 
 class Foo extends HtmlElement {
   static final tag = 'x-foo';
@@ -170,8 +171,9 @@ main() {
     // Parser
 
     createElementFromHtml(html) {
-	var container = new DivElement()..innerHtml = html;
-	return container.firstChild;
+      var container = new DivElement()..setInnerHtml(html,
+        treeSanitizer: new NullTreeSanitizer());
+      return container.firstChild;
     }
 
     var fooParsed = createElementFromHtml('<x-foo>');

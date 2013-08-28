@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:html';
 import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
+import 'utils.dart';
 
 class CustomMixin {
   var mixinMethodCalled;
@@ -144,7 +145,9 @@ main() {
       var tag = nextTag;
       document.register(tag, CustomType);
       var element = new DivElement();
-      element.innerHtml = '<$tag></$tag>';
+      element.setInnerHtml('<$tag></$tag>',
+          treeSanitizer: new NullTreeSanitizer());
+	  Platform.upgradeCustomElements(element);
       document.body.nodes.add(element);
       var queried = query(tag);
 
@@ -157,7 +160,9 @@ main() {
       var tag = nextTag;
       document.register(tag, CustomType);
       var element = new DivElement();
-      element.innerHtml = '<$tag id="someid"></$tag>';
+      element.setInnerHtml('<$tag id="someid"></$tag>',
+          treeSanitizer: new NullTreeSanitizer());
+	  Platform.upgradeCustomElements(element);
       document.body.nodes.add(element);
       var queried = query('#someid');
 
@@ -173,7 +178,8 @@ main() {
       var tag = nextTag;
       document.register(tag, CustomType);
       var element = new DivElement();
-      element.innerHtml = '<$tag></$tag>';
+      element.setInnerHtml('<$tag></$tag>',
+          treeSanitizer: new NullTreeSanitizer());
       Platform.upgradeCustomElements(element);
       document.body.nodes.add(element);
       expect(customCreatedCount, oldCount + 1);

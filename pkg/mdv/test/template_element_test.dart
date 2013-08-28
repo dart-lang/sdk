@@ -40,7 +40,7 @@ templateElementTests() {
 
   createTestHtml(s) {
     var div = new DivElement();
-    div.innerHtml = s;
+    div.setInnerHtml(s, treeSanitizer: new NullTreeSanitizer());
     testDiv.append(div);
 
     for (var node in div.queryAll('*')) {
@@ -1778,4 +1778,11 @@ _deepToSymbol(value) {
     return value.map(_deepToSymbol).toList();
   }
   return value;
+}
+
+/**
+ * Sanitizer which does nothing.
+ */
+class NullTreeSanitizer implements NodeTreeSanitizer {
+  void sanitizeTree(Node node) {}
 }

@@ -313,6 +313,20 @@ class CustomElement implements Element {
     host.innerHtml = v;
   }
 
+  void setInnerHtml(String html,
+    {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    host.setInnerHtml(html, validator: validator, treeSanitizer: treeSanitizer);
+  }
+
+  void set unsafeInnerHtml(String html) {
+    host.unsafeInnerHtml = html;
+  }
+
+  DocumentFragment createFragment(String html,
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) =>
+    host.createFragment(html,
+        validator: validator, treeSanitizer: treeSanitizer);
+
   InputMethodContext get inputMethodContext => host.inputMethodContext;
 
   bool get isContentEditable => host.isContentEditable;

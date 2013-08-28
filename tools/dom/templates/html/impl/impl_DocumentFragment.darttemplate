@@ -7,21 +7,18 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME() => document.createDocumentFragment();
 
-  factory $CLASSNAME.html(String html) {
-    final fragment = new DocumentFragment();
-    fragment.innerHtml = html;
-    return fragment;
+  factory $CLASSNAME.html(String html,
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+
+    return document.body.createFragment(html,
+      validator: validator, treeSanitizer: treeSanitizer);
   }
 
-  factory $CLASSNAME.svg(String svgContent) {
-    final fragment = new DocumentFragment();
-    final e = new svg.SvgSvgElement();
-    e.innerHtml = svgContent;
+  factory $CLASSNAME.svg(String svgContent,
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
 
-    // Copy list first since we don't want liveness during iteration.
-    final List nodes = new List.from(e.nodes);
-    fragment.nodes.addAll(nodes);
-    return fragment;
+    return new svg.SvgSvgElement().createFragment(svgContent,
+        validator: validator, treeSanitizer: treeSanitizer);
   }
 
 $if DART2JS
@@ -57,17 +54,16 @@ $endif
     return e.innerHtml;
   }
 
-  // TODO(nweiz): Do we want to support some variant of innerHtml for XML and/or
-  // SVG strings?
   void set innerHtml(String value) {
+    this.setInnerHtml(value);
+  }
+
+  void setInnerHtml(String html,
+    {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+
     this.nodes.clear();
-
-    final e = new Element.tag("div");
-    e.innerHtml = value;
-
-    // Copy list first since we don't want liveness during iteration.
-    List nodes = new List.from(e.nodes, growable: false);
-    this.nodes.addAll(nodes);
+    append(document.body.createFragment(
+        html, validator: validator, treeSanitizer: treeSanitizer));
   }
 
   /**

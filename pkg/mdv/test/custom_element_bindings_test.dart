@@ -32,7 +32,7 @@ customElementBindingsTest() {
 
   createTestHtml(s) {
     var div = new DivElement();
-    div.innerHtml = s;
+    div.setInnerHtml(s, treeSanitizer: new NullTreeSanitizer());
     testDiv.append(div);
 
     for (var node in div.queryAll('*')) {
@@ -272,4 +272,11 @@ class AttributeMapWrapper<K, V> implements Map<K, V> {
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
   bool get isNotEmpty => _map.isNotEmpty;
+}
+
+/**
+ * Sanitizer which does nothing.
+ */
+class NullTreeSanitizer implements NodeTreeSanitizer {
+  void sanitizeTree(Node node) {}
 }

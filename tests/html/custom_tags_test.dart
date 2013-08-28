@@ -6,6 +6,7 @@ library custom_tags_test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'utils.dart';
 
 main() {
   useHtmlConfiguration();
@@ -24,7 +25,8 @@ main() {
 
   test('custom inner html', () {
     var element = new DivElement();
-    element.innerHtml = "<x-basic2 id='basic2'></x-basic2>";
+    element.setInnerHtml("<x-basic2 id='basic2'></x-basic2>",
+        treeSanitizer: new NullTreeSanitizer());
     document.body.nodes.add(element);
 
     var queryById = query('#basic2');
@@ -37,7 +39,8 @@ main() {
 
   test('type extension inner html', () {
     var element = new DivElement();
-    element.innerHtml = "<div is='x-basic3' id='basic3'></div>";
+    element.setInnerHtml("<div is='x-basic3' id='basic3'></div>",
+        treeSanitizer: new NullTreeSanitizer());
     document.body.nodes.add(element);
 
     var queryById = query('#basic3');
