@@ -109,7 +109,10 @@ setter_override_test/03: Fail # Issue 11496
 setter_override2_test/02: Fail # Issue 11496
 constructor_named_arguments_test/01: Fail # Issue 5519
 getter_no_setter_test/01: Fail # Issue 5519
-not_enough_positional_arguments_test/01: Fail # Issue 5519
+not_enough_positional_arguments_test/01: Fail # Issue 12838
+not_enough_positional_arguments_test/02: Fail # Issue 12838
+not_enough_positional_arguments_test/04: Fail # Issue 12838
+not_enough_positional_arguments_test/05: Fail # Issue 12838
 dynamic_test: Fail # Issue 12398
 dynamic_prefix_core_test: Fail # Issue 12398
 metadata_test: Fail # Issue 5841
@@ -134,8 +137,8 @@ method_binding_test: Fail # Issue 12807
 method_override_test: Fail # Issue 12808
 method_override5_test: Fail # Issue 12809
 parameter_initializer6_negative_test: Fail # Issue 3502
-named_parameters_aggregated_test/01: Fail # Presence of default values for optional params is not properly validated in type definitions.
-named_parameters_aggregated_test/03: Fail # Presence of default values for optional params is not properly validated in closure types.
+named_parameters_aggregated_test/01: Fail # Issue 12801
+named_parameters_aggregated_test/03: Fail # Issue 12812
 pseudo_kw_test: Fail # Unexpected token '('
 super_implicit_closure_test: Fail # internal error: super property read not implemented
 
@@ -338,9 +341,12 @@ final_syntax_test/02: Fail # Issue 5519
 final_syntax_test/03: Fail # Issue 5519
 final_syntax_test/04: Fail # Issue 5519
 getter_no_setter_test/01: Fail # Issue 5519
-named_parameters_aggregated_test/01: Fail # Issue 5519
-named_parameters_aggregated_test/03: Fail # Issue 5519
-not_enough_positional_arguments_test/01: Fail # Issue 5519
+named_parameters_aggregated_test/01: Fail # Issue 12802
+named_parameters_aggregated_test/03: Fail # Issue 12813
+not_enough_positional_arguments_test/01: Fail # Issue 12839
+not_enough_positional_arguments_test/02: Fail # Issue 12839
+not_enough_positional_arguments_test/04: Fail # Issue 12839
+not_enough_positional_arguments_test/05: Fail # Issue 12839
 
 metadata_test: Fail # Issue 12762
 const_var_test: Pass, Fail # Issue 12794
