@@ -33794,6 +33794,8 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
         Element element = node;
         var attrs = element.attributes;
         if (!validator.allowsElement(element)) {
+          window.console.warn(
+              'Removing disallowed element <${element.tagName}>');
           element.remove();
           break;
         }
@@ -33801,6 +33803,8 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
         var isAttr = attrs['is'];
         if (isAttr != null) {
           if (!validator.allowsAttribute(element, 'is', isAttr)) {
+            window.console.warn('Removing disallowed type extension '
+                '<${element.tagName} is="$isAttr">');
             element.remove();
             break;
           }
@@ -33813,6 +33817,8 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
           var name = keys[i];
           if (!validator.allowsAttribute(element, name.toLowerCase(),
               attrs[name])) {
+            window.console.warn('Removing disallowed attribute '
+                '<${element.tagName} $name="${attrs[name]}">');
             attrs.remove(name);
           }
         }
