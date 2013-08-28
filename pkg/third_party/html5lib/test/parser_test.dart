@@ -1,7 +1,7 @@
 library parser_test;
 
+import 'dart:convert;
 import 'dart:io';
-import 'dart:json' as json;
 import 'package:path/path.dart' as pathos;
 import 'package:unittest/unittest.dart';
 import 'package:html5lib/dom.dart';
@@ -114,11 +114,11 @@ void main() {
 
 /** Extract the name for the test based on the test input data. */
 _nameFor(String input) {
-  // Using json.parse to unescape other unicode characters
+  // Using JSON.decode to unescape other unicode characters
   var escapeQuote = input
       .replaceAll(new RegExp('\\\\.'), '_')
       .replaceAll(new RegExp('\u0000'), '_')
       .replaceAll('"', '\\"')
       .replaceAll(new RegExp('[\n\r\t]'),'_');
-  return json.parse('"$escapeQuote"');
+  return JSON.decode('"$escapeQuote"');
 }
