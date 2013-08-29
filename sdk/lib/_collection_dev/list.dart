@@ -125,16 +125,6 @@ abstract class UnmodifiableListMixin<E> {
         "Cannot remove from an unmodifiable list");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot remove from an unmodifiable list");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot remove from an unmodifiable list");
-  }
-
   void removeWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove from an unmodifiable list");

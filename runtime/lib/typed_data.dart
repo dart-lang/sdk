@@ -432,16 +432,6 @@ abstract class _TypedListBase {
         "Cannot remove from a non-extendable array");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot remove from a non-extendable array");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot remove from a non-extendable array");
-  }
-
   void removeWhere(bool test(element)) {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");

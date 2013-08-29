@@ -318,6 +318,32 @@ LibTest/typed_data/Float32x4/zzzy_A01_t01: FAIL, OK # co19 issue 546
 LibTest/typed_data/Float32x4/zzzz_A01_t01: FAIL, OK # co19 issue 546
 LibTest/typed_data/Int8List/Int8List.fromList_A01_t02: Fail # co19-roll r559: Please triage this failure
 
+LibTest/typed_data/Float32List/removeAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Float32List/retainAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Float32x4List/removeAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Float32x4List/retainAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Float64List/removeAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Float64List/retainAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Int16List/removeAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Int16List/retainAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Int32List/removeAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Int32List/retainAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Int64List/removeAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Int64List/retainAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Int8List/removeAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Int8List/retainAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Uint16List/removeAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Uint16List/retainAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Uint32List/removeAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Uint32List/retainAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Uint64List/removeAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Uint64List/retainAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Uint8ClampedList/removeAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Uint8ClampedList/retainAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Uint8List/removeAll_A01_t01: Fail  # co19 issue 548
+LibTest/typed_data/Uint8List/retainAll_A01_t01: Fail  # co19 issue 548
+
+
 ### CHECKED MODE FAILURES ###
 
 [ ($runtime == vm || $compiler == dart2js) && $checked]
