@@ -80,7 +80,6 @@ metadata_test: fail
 
 # test issue 11575, classes with abstrac members are not marked as abstract
 abstract_factory_constructor_test/none: fail # Issue 11575
-abstract_syntax_test/none: fail # Issue 11575
 get_set_syntax_test/none: fail # Issue 11575
 implicit_this_test/none: fail # Issue 11575
 interface_test/none: fail # Issue 11575

@@ -130,7 +130,6 @@ named_parameters_with_object_property_names_test: fail
 
 # test issue 11575, classes with abstrac members are not marked as abstract
 abstract_factory_constructor_test/none: fail
-abstract_syntax_test/none: fail
 get_set_syntax_test/none: fail
 implicit_this_test/none: fail
 interface_test/none: fail
