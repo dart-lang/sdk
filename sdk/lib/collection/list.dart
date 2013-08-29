@@ -20,17 +20,11 @@ typedef ListBase<E> = Object with ListMixin<E>;
  * This implements all read operations using only the `length` and
  * `operator[]` members. It implements write operations using those and
  * `length=` and `operator[]=`
- *
- * A fixed-length list should mix this class in, and the [FixedLengthListMixin]
- * as well, in that order, to overwrite the methods that modify the length.
- *
- * An unmodifiable list should mix [UnmodifiableListMixin] on top of this
- * mixin to prevent all modifications.
  */
 abstract class ListMixin<E> implements List<E> {
-  // A list to identify cyclic lists during toString() calls. 
+  // A list to identify cyclic lists during toString() calls.
   static List _toStringList = new List();
-  
+
   // Iterable interface.
   Iterator<E> get iterator => new ListIterator<E>(this);
 
@@ -493,9 +487,9 @@ abstract class ListMixin<E> implements List<E> {
       result.write(']');
      } finally {
        assert(identical(_toStringList.last, this));
-       _toStringList.removeLast();  
+       _toStringList.removeLast();
      }
-     
+
     return result.toString();
   }
 }

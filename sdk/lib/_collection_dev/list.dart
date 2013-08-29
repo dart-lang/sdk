@@ -40,16 +40,6 @@ abstract class FixedLengthListMixin<E>  {
         "Cannot remove from a fixed-length list");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot remove from a fixed-length list");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot remove from a fixed-length list");
-  }
-
   void removeWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove from a fixed-length list");
