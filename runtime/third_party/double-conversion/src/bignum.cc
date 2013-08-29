@@ -755,7 +755,6 @@ void Bignum::SubtractTimes(const Bignum& other, int factor) {
     Chunk difference = bigits_[i] - borrow;
     bigits_[i] = difference & kBigitMask;
     borrow = difference >> (kChunkSize - 1);
-    ++i;
   }
   Clamp();
 }
