@@ -174,11 +174,6 @@ class World {
         : false;
   }
 
-  bool isSubtype(ClassElement supertype, ClassElement test) {
-    Set<ClassElement> subtypes = subtypesOf(supertype);
-    return subtypes != null && subtypes.contains(test.declaration);
-  }
-
   void registerUsedElement(Element element) {
     if (element.isInstanceMember() && !element.isAbstract(compiler)) {
       allFunctions.add(element);
