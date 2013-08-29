@@ -3,22 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check fail because of cycles in super class relationship.
 
-class C extends B {
+class C extends B {}
 
-}
+class A extends B {}
 
-class A extends B {
+class B
+  extends A  /// 01: compile-time error
+  extends A  /// 02: compile-time error
+{}
 
-}
-
-class B extends A {
-
-}
-
-class ClassCycleNegativeTest {
-  static testMain() {
-  }
-}
 main() {
-  ClassCycleNegativeTest.testMain();
+  new C();  /// 01: continued
+  new List<C>();  /// 02: continued
 }
