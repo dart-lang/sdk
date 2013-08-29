@@ -30,8 +30,10 @@ worker_test/functional: Pass, Crash # Issue 9929.
 dom_isolates_test: Skip # Need to migrate to new spawnDomFunction.
 
 [ $compiler == dart2js && $runtime == ie10 ]
-indexeddb_3_test: Pass, Timeout, Slow # Issue: http://dartbug.com/9437
-indexeddb_4_test: Pass, Timeout, Slow # Issue: http://dartbug.com/9437
+indexeddb_2_test: Fail # Issue 12893
+indexeddb_3_test: Fail, Timeout # Issue 9437 + 12893
+indexeddb_4_test: Fail, Timeout # Issue 9437 + 12893
+indexeddb_5_test: Fail # Issue 12893
 async_test: Pass, Fail # timers test fails on ie10.
 
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
@@ -84,7 +86,7 @@ audiobuffersourcenode_test: Pass, Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 history_test/history: Pass, Fail # issue 8183
-indexeddb_1_test/functional: Pass, Timeout # http://dartbug.com/9269
+indexeddb_1_test/functional: Fail, Timeout # Issue 9269 + 12893
 isolates_test: Skip
 microtask_test: Fail, Pass # Appears to be flaky
 native_gc_test: Fail, Pass # BUG(7774): Untriaged.
