@@ -140,32 +140,24 @@ parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters_aggregated_test/01: Fail # Issue 12801
 named_parameters_aggregated_test/03: Fail # Issue 12812
 pseudo_kw_test: Fail # Unexpected token '('
-super_implicit_closure_test: Fail # internal error: super property read not implemented
-
-# Missing compilation error for wrong number of type arguments.
-mixin_type_parameters_errors_test/01: Fail
-mixin_type_parameters_errors_test/02: Fail
-mixin_type_parameters_errors_test/05: Fail
-
-# External tests.
-external_test/01: Fail
-external_test/02: Fail
-external_test/11: Fail
-external_test/12: Fail
-external_test/13: Skip  # Runtime error (missing patch).
-external_test/14: Fail
-external_test/20: Skip  # Runtime error (missing patch).
-external_test/21: Fail
-external_test/22: Fail
-external_test/23: Fail
-external_test/30: Fail
-external_test/31: Fail
-
-
-# Implementation errors (library or generated code).
-instanceof4_test: Fail # Expect.isTrue(false) fails.
-list_literal4_test: Fail # Illegal argument(s): 0 -- checked mode test.
-map_literal4_test: Fail # Attempt to modify an immutable object -- checked mode test.
+super_implicit_closure_test: Fail # Issue 12884
+mixin_type_parameters_errors_test/01: Fail # Issue 12885
+mixin_type_parameters_errors_test/02: Fail # Issue 12885
+mixin_type_parameters_errors_test/05: Fail # Issue 12885
+external_test/01: Fail # Issue 12887
+external_test/02: Fail # Issue 12887
+external_test/11: Fail # Issue 12887
+external_test/12: Fail # Issue 12887
+external_test/13: Fail # Issue 12887
+external_test/14: Fail # Issue 12887
+external_test/21: Fail # Issue 12887
+external_test/22: Fail # Issue 12887
+external_test/23: Fail # Issue 12887
+external_test/30: Fail # Issue 12887
+external_test/31: Fail # Issue 12887
+instanceof4_test/01: Fail # Issue 12889
+list_literal4_test: Fail # Issue 12890
+map_literal4_test: Fail # Issue 12891
 
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
@@ -279,8 +271,9 @@ overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test de
 
 on_catch_malformed_type_test: Fail # Issue 8601
 
-# False positive compile-time error is masking expected compile-time error
-mixin_type_parameters_errors_test/*: Skip
+mixin_type_parameters_errors_test/01: Fail # Issue 12886
+mixin_type_parameters_errors_test/02: Fail # Issue 12886
+mixin_type_parameters_errors_test/05: Fail # Issue 12886
 
 # Mixins fail on the VM.
 mixin_mixin_test: Fail # Issue 9683
@@ -358,8 +351,17 @@ interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # chokes on things like typedef(x) => "typedef $x" and alike.
 abstract_syntax_test/01: Fail
 pseudo_kw_test: Fail
-# external keyword is not yet supported by dart2js/dart2dart.
-external_test/*: Skip
+external_test/01: Fail # Issue 12888
+external_test/02: Fail # Issue 12888
+external_test/11: Fail # Issue 12888
+external_test/12: Fail # Issue 12888
+external_test/13: Fail # Issue 12888
+external_test/14: Fail # Issue 12888
+external_test/21: Fail # Issue 12888
+external_test/22: Fail # Issue 12888
+external_test/23: Fail # Issue 12888
+external_test/30: Fail # Issue 12888
+external_test/31: Fail # Issue 12888
 lazy_static3_test: Fail # Issue 12593
 # dart2js frontend doesn't even analyse problematic classes.
 duplicate_implements_test/01: Fail
