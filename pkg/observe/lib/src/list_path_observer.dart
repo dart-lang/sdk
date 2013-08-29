@@ -2,56 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Helpers for observable objects.
- * Intended for use with `package:observe`.
- */
-library polymer.observe;
-
-import 'dart:async';
-import 'package:observe/observe.dart';
+part of observe;
 
 const _VALUE = const Symbol('value');
-
-/**
- * Forwards an observable property from one object to another. For example:
- *
- *     class MyModel extends ObservableBase {
- *       StreamSubscription _sub;
- *       MyOtherModel _otherModel;
- *
- *       MyModel() {
- *         ...
- *         _sub = bindProperty(_otherModel, const Symbol('value'),
- *             () => notifyProperty(this, const Symbol('prop'));
- *       }
- *
- *       String get prop => _otherModel.value;
- *       set prop(String value) { _otherModel.value = value; }
- *     }
- *
- * See also [notifyProperty].
- */
-StreamSubscription bindProperty(Observable source, Symbol sourceName,
-    void callback()) {
-  return source.changes.listen((records) {
-    for (var record in records) {
-      if (record.changes(sourceName)) {
-        callback();
-      }
-    }
-  });
-}
-
-/**
- * Notify the property change. Shorthand for:
- *
- *     target.notifyChange(new PropertyChangeRecord(targetName));
- */
-void notifyProperty(Observable target, Symbol targetName) {
-  target.notifyChange(new PropertyChangeRecord(targetName));
-}
-
 
 // Inspired by ArrayReduction at:
 // https://raw.github.com/rafaelw/ChangeSummary/master/util/array_reduction.js

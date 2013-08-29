@@ -80,9 +80,11 @@ import 'dart:mirrors';
 // above.
 import 'src/dirty_check.dart';
 
+part 'src/bind_property.dart';
 part 'src/change_notifier.dart';
 part 'src/change_record.dart';
 part 'src/compound_binding.dart';
+part 'src/list_path_observer.dart';
 part 'src/observable.dart';
 part 'src/observable_box.dart';
 part 'src/observable_list.dart';

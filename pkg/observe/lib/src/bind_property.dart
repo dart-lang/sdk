@@ -1,0 +1,35 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of observe;
+
+/**
+ * Forwards an observable property from one object to another. For example:
+ *
+ *     class MyModel extends ObservableBase {
+ *       StreamSubscription _sub;
+ *       MyOtherModel _otherModel;
+ *
+ *       MyModel() {
+ *         ...
+ *         _sub = bindProperty(_otherModel, const Symbol('value'),
+ *             () => notifyProperty(this, const Symbol('prop'));
+ *       }
+ *
+ *       String get prop => _otherModel.value;
+ *       set prop(String value) { _otherModel.value = value; }
+ *     }
+ *
+ * See also [notifyProperty].
+ */
+StreamSubscription bindProperty(Observable source, Symbol sourceName,
+    void callback()) {
+  return source.changes.listen((records) {
+    for (var record in records) {
+      if (record.changes(sourceName)) {
+        callback();
+      }
+    }
+  });
+}
