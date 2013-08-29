@@ -62,8 +62,6 @@ DEFINE_FLAG(bool, trace_osr, false, "Trace attempts at on-stack replacement.");
 
 
 DEFINE_RUNTIME_ENTRY(TraceFunctionEntry, 1) {
-  ASSERT(arguments.ArgCount() ==
-      kTraceFunctionEntryRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   const String& function_name = String::Handle(function.name());
   const String& class_name =
@@ -74,8 +72,6 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionEntry, 1) {
 
 
 DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
-  ASSERT(arguments.ArgCount() ==
-      kTraceFunctionExitRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   const String& function_name = String::Handle(function.name());
   const String& class_name =
@@ -92,7 +88,6 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
 // Arg1: array type arguments, i.e. vector of 1 type, the element type.
 // Return value: newly allocated array of length arg0.
 DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
-  ASSERT(arguments.ArgCount() == kAllocateArrayRuntimeEntry.argument_count());
   const Smi& length = Smi::CheckedHandle(arguments.ArgAt(0));
   const Array& array = Array::Handle(Array::New(length.Value()));
   arguments.SetReturn(array);
@@ -113,7 +108,6 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
 // Arg2: type arguments of the instantiator or kNoInstantiator.
 // Return value: newly allocated object.
 DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
-  ASSERT(arguments.ArgCount() == kAllocateObjectRuntimeEntry.argument_count());
   const Class& cls = Class::CheckedHandle(arguments.ArgAt(0));
   const Instance& instance = Instance::Handle(Instance::New(cls));
   arguments.SetReturn(instance);
@@ -168,8 +162,6 @@ static intptr_t GetCallerLocation() {
 // Return value: newly allocated object.
 DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
   ASSERT(FLAG_enable_type_checks);
-  ASSERT(arguments.ArgCount() ==
-         kAllocateObjectWithBoundsCheckRuntimeEntry.argument_count());
   const Class& cls = Class::CheckedHandle(arguments.ArgAt(0));
   const Instance& instance = Instance::Handle(Instance::New(cls));
   arguments.SetReturn(instance);
@@ -219,7 +211,6 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
 // Arg1: instantiator type arguments.
 // Return value: instantiated type.
 DEFINE_RUNTIME_ENTRY(InstantiateType, 2) {
-  ASSERT(arguments.ArgCount() == kInstantiateTypeRuntimeEntry.argument_count());
   AbstractType& type = AbstractType::CheckedHandle(arguments.ArgAt(0));
   const AbstractTypeArguments& instantiator =
       AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
@@ -247,8 +238,6 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 2) {
 // Arg1: instantiator type arguments.
 // Return value: instantiated type arguments.
 DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
-  ASSERT(arguments.ArgCount() ==
-         kInstantiateTypeArgumentsRuntimeEntry.argument_count());
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::CheckedHandle(arguments.ArgAt(0));
   const AbstractTypeArguments& instantiator =
@@ -273,7 +262,6 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
 // Arg1: type arguments of the closure (i.e. instantiator).
 // Return value: newly allocated closure.
 DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
-  ASSERT(arguments.ArgCount() == kAllocateClosureRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(function.IsClosureFunction() && !function.IsImplicitClosureFunction());
   const AbstractTypeArguments& type_arguments =
@@ -295,8 +283,6 @@ DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
 // Arg2: type arguments of the closure.
 // Return value: newly allocated closure.
 DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 3) {
-  ASSERT(arguments.ArgCount() ==
-         kAllocateImplicitInstanceClosureRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(function.IsImplicitInstanceClosureFunction());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(1));
@@ -316,7 +302,6 @@ DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 3) {
 // Arg0: number of variables.
 // Return value: newly allocated context.
 DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
-  ASSERT(arguments.ArgCount() == kAllocateContextRuntimeEntry.argument_count());
   const Smi& num_variables = Smi::CheckedHandle(arguments.ArgAt(0));
   arguments.SetReturn(Context::Handle(Context::New(num_variables.Value())));
 }
@@ -327,7 +312,6 @@ DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
 // Arg0: the context to be cloned.
 // Return value: newly allocated context.
 DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
-  ASSERT(arguments.ArgCount() == kCloneContextRuntimeEntry.argument_count());
   const Context& ctx = Context::CheckedHandle(arguments.ArgAt(0));
   Context& cloned_ctx = Context::Handle(Context::New(ctx.num_variables()));
   cloned_ctx.set_parent(Context::Handle(ctx.parent()));
@@ -554,7 +538,6 @@ static void UpdateTypeTestCache(
 // Arg4: SubtypeTestCache.
 // Return value: true or false, or may throw a type error in checked mode.
 DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
-  ASSERT(arguments.ArgCount() == kInstanceofRuntimeEntry.argument_count());
   const Instance& instance = Instance::CheckedHandle(arguments.ArgAt(0));
   const AbstractType& type = AbstractType::CheckedHandle(arguments.ArgAt(1));
   const Instance& instantiator = Instance::CheckedHandle(arguments.ArgAt(2));
@@ -598,7 +581,6 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
 // Arg5: SubtypeTestCache.
 // Return value: instance if a subtype, otherwise throw a TypeError.
 DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
-  ASSERT(arguments.ArgCount() == kTypeCheckRuntimeEntry.argument_count());
   const Instance& src_instance = Instance::CheckedHandle(arguments.ArgAt(0));
   const AbstractType& dst_type =
       AbstractType::CheckedHandle(arguments.ArgAt(1));
@@ -658,8 +640,6 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
 // Arg0: bad object.
 // Return value: none, throws a TypeError.
 DEFINE_RUNTIME_ENTRY(ConditionTypeError, 1) {
-  ASSERT(arguments.ArgCount() ==
-      kConditionTypeErrorRuntimeEntry.argument_count());
   const intptr_t location = GetCallerLocation();
   const Instance& src_instance = Instance::CheckedHandle(arguments.ArgAt(0));
   ASSERT(src_instance.IsNull() || !src_instance.IsBool());
@@ -682,8 +662,6 @@ DEFINE_RUNTIME_ENTRY(ConditionTypeError, 1) {
 // Arg2: malformed type error message.
 // Return value: none, throws an exception.
 DEFINE_RUNTIME_ENTRY(MalformedTypeError, 3) {
-  ASSERT(arguments.ArgCount() ==
-      kMalformedTypeErrorRuntimeEntry.argument_count());
   const intptr_t location = GetCallerLocation();
   const Instance& src_value = Instance::CheckedHandle(arguments.ArgAt(0));
   const String& dst_name = String::CheckedHandle(arguments.ArgAt(1));
@@ -698,14 +676,12 @@ DEFINE_RUNTIME_ENTRY(MalformedTypeError, 3) {
 
 
 DEFINE_RUNTIME_ENTRY(Throw, 1) {
-  ASSERT(arguments.ArgCount() == kThrowRuntimeEntry.argument_count());
   const Instance& exception = Instance::CheckedHandle(arguments.ArgAt(0));
   Exceptions::Throw(exception);
 }
 
 
 DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
-  ASSERT(arguments.ArgCount() == kReThrowRuntimeEntry.argument_count());
   const Instance& exception = Instance::CheckedHandle(arguments.ArgAt(0));
   const Instance& stacktrace = Instance::CheckedHandle(arguments.ArgAt(1));
   Exceptions::ReThrow(exception, stacktrace);
@@ -715,7 +691,6 @@ DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
 // Patches static call in optimized code with the target's entry point.
 // Compiles target if necessary.
 DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
-  ASSERT(arguments.ArgCount() == kPatchStaticCallRuntimeEntry.argument_count());
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
@@ -789,8 +764,6 @@ static void CheckResultError(const Object& result) {
 // Gets called from debug stub when code reaches a breakpoint
 // set on a runtime stub call.
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
-  ASSERT(arguments.ArgCount() ==
-         kBreakpointRuntimeHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
@@ -805,8 +778,6 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 
 // Gets called from debug stub when code reaches a breakpoint.
 DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 0) {
-  ASSERT(arguments.ArgCount() ==
-      kBreakpointStaticHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
   isolate->debugger()->SignalBpReached();
   // Make sure the static function that is about to be called is
@@ -834,8 +805,6 @@ DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 0) {
 // Gets called from debug stub when code reaches a breakpoint at a return
 // in Dart code.
 DEFINE_RUNTIME_ENTRY(BreakpointReturnHandler, 0) {
-  ASSERT(arguments.ArgCount() ==
-         kBreakpointReturnHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
   isolate->debugger()->SignalBpReached();
 }
@@ -843,16 +812,12 @@ DEFINE_RUNTIME_ENTRY(BreakpointReturnHandler, 0) {
 
 // Gets called from debug stub when code reaches a breakpoint.
 DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
-  ASSERT(arguments.ArgCount() ==
-     kBreakpointDynamicHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
   isolate->debugger()->SignalBpReached();
 }
 
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
-  ASSERT(arguments.ArgCount() ==
-         kSingleStepHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
   isolate->debugger()->SingleStepCallback();
 }
@@ -920,8 +885,6 @@ static RawFunction* InlineCacheMissHandler(
 //   Returns: target function with compiled code or null.
 // Modifies the instance call to hold the updated IC data array.
 DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
-  ASSERT(arguments.ArgCount() ==
-      kInlineCacheMissHandlerOneArgRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   GrowableArray<const Instance*> args(1);
@@ -940,8 +903,6 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
 //   Returns: target function with compiled code or null.
 // Modifies the instance call to hold the updated IC data array.
 DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 3) {
-  ASSERT(arguments.ArgCount() ==
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const Instance& other = Instance::CheckedHandle(arguments.ArgAt(1));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(2));
@@ -963,8 +924,6 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 3) {
 //   Returns: target function with compiled code or null.
 // Modifies the instance call to hold the updated IC data array.
 DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 4) {
-  ASSERT(arguments.ArgCount() ==
-      kInlineCacheMissHandlerThreeArgsRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const Instance& arg1 = Instance::CheckedHandle(arguments.ArgAt(1));
   const Instance& arg2 = Instance::CheckedHandle(arguments.ArgAt(2));
@@ -985,8 +944,6 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 4) {
 // Arg1: argument 1.
 // Arg2: IC data object.
 DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
-  ASSERT(arguments.ArgCount() ==
-      kStaticCallMissHandlerTwoArgsRuntimeEntry.argument_count());
   const Instance& arg0 = Instance::CheckedHandle(arguments.ArgAt(0));
   const Instance& arg1 = Instance::CheckedHandle(arguments.ArgAt(1));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(2));
@@ -1025,8 +982,6 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
 // InstanceFunctionLookup stub should be used (e.g., to invoke no such
 // method and implicit closures)..
 DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
-  ASSERT(arguments.ArgCount() ==
-     kMegamorphicCacheMissHandlerRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   const Array& descriptor = Array::CheckedHandle(arguments.ArgAt(2));
@@ -1074,8 +1029,6 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
 //   Arg2: Target's name.
 //   Arg3: ICData.
 DEFINE_RUNTIME_ENTRY(UpdateICDataTwoArgs, 4) {
-  ASSERT(arguments.ArgCount() ==
-      kUpdateICDataTwoArgsRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const Instance& arg1 = Instance::CheckedHandle(arguments.ArgAt(1));
   const String& target_name = String::CheckedHandle(arguments.ArgAt(2));
@@ -1105,8 +1058,6 @@ DEFINE_RUNTIME_ENTRY(UpdateICDataTwoArgs, 4) {
 // Arg2: arguments descriptor array.
 // Arg3: arguments array.
 DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
-  ASSERT(arguments.ArgCount() ==
-         kInvokeNoSuchMethodFunctionRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(2));
@@ -1135,8 +1086,6 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
 // Arg0: arguments descriptor.
 // Arg1: arguments array, including non-closure object.
 DEFINE_RUNTIME_ENTRY(InvokeNonClosure, 2) {
-  ASSERT(arguments.ArgCount() ==
-         kInvokeNonClosureRuntimeEntry.argument_count());
   const Array& args_descriptor = Array::CheckedHandle(arguments.ArgAt(0));
   const Array& function_args = Array::CheckedHandle(arguments.ArgAt(1));
 
@@ -1206,8 +1155,6 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
 //
 // 3. There is no such method.
 DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
-  ASSERT(arguments.ArgCount() ==
-         kInstanceFunctionLookupRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   const Array& args_descriptor = Array::CheckedHandle(arguments.ArgAt(2));
@@ -1311,8 +1258,6 @@ static bool CanOptimizeFunction(const Function& function, Isolate* isolate) {
 
 
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
-  ASSERT(arguments.ArgCount() ==
-         kStackOverflowRuntimeEntry.argument_count());
 #if defined(USING_SIMULATOR)
   uword stack_pos = Simulator::Current()->get_register(SPREG);
 #else
@@ -1398,8 +1343,6 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 
 
 DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
-  ASSERT(arguments.ArgCount() ==
-         kTraceICCallRuntimeEntry.argument_count());
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(0));
   const Function& function = Function::CheckedHandle(arguments.ArgAt(1));
   DartFrameIterator iterator;
@@ -1420,8 +1363,6 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
 // The requesting function can be already optimized (reoptimization).
 // Returns the Code object where to continue execution.
 DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
-  ASSERT(arguments.ArgCount() ==
-         kOptimizeInvokedFunctionRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(!function.IsNull());
 
@@ -1443,9 +1384,6 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 // The caller must be a static call in a Dart frame, or an entry frame.
 // Patch static call to point to valid code's entry point.
 DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
-  ASSERT(arguments.ArgCount() ==
-      kFixCallersTargetRuntimeEntry.argument_count());
-
   StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = iterator.NextFrame();
   while (frame != NULL && (frame->IsStubFrame() || frame->IsExitFrame())) {
@@ -1884,7 +1822,6 @@ static intptr_t GetListLength(const Object& value) {
 //   Arg0: Field object;
 //   Arg1: Value that is being stored.
 DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
-  ASSERT(arguments.ArgCount() == kUpdateFieldCidRuntimeEntry.argument_count());
   const Field& field = Field::CheckedHandle(arguments.ArgAt(0));
   const Object& value = Object::Handle(arguments.ArgAt(1));
   const intptr_t cid = value.GetClassId();

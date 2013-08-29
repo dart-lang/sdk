@@ -62,6 +62,7 @@ class RuntimeEntry : public ValueObject {
   void DRT_##name(NativeArguments arguments) {                                 \
     CHECK_STACK_ALIGNMENT;                                                     \
     VERIFY_ON_TRANSITION;                                                      \
+    ASSERT(arguments.ArgCount() == argument_count);                            \
     if (FLAG_trace_runtime_calls) OS::Print("Runtime call: %s\n", ""#name);    \
     {                                                                          \
       StackZone zone(arguments.isolate());                                     \
