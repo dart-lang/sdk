@@ -3,114 +3,275 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class HashMap<K, V> {
-  final _HashMapTable<K, V> _hashTable = new _HashMapTable<K, V>();
+  static const int _INITIAL_CAPACITY = 8;
+  static const int _MODIFICATION_COUNT_MASK = 0x3fffffff;
 
-  /* patch */ HashMap() {
-    _hashTable._container = this;
-  }
+  int _elementCount = 0;
+  List<_HashMapEntry> _buckets = new List(_INITIAL_CAPACITY);
+  int _modificationCount = 0;
+
+  /* patch */ HashMap();
+
+  /* patch */ int get length => _elementCount;
+  /* patch */ bool get isEmpty => _elementCount == 0;
+  /* patch */ bool get isNotEmpty => _elementCount != 0;
+
+  /* patch */ Iterable<K> get keys => new _HashMapKeyIterable<K>(this);
+  /* patch */ Iterable<V> get values => new _HashMapValueIterable<V>(this);
 
   /* patch */ bool containsKey(Object key) {
-    return _hashTable._get(key) >= 0;
+    int hashCode = key.hashCode;
+    List buckets = _buckets;
+    int index = hashCode & (buckets.length - 1);
+    _HashMapEntry entry = buckets[index];
+    while (entry != null) {
+      if (hashCode == entry.hashCode && entry.key == key) return true;
+      entry = entry.next;
+    }
+    return false;
   }
 
   /* patch */ bool containsValue(Object value) {
-    List table = _hashTable._table;
-    int entrySize = _hashTable._entrySize;
-    for (int offset = 0; offset < table.length; offset += entrySize) {
-      if (!_hashTable._isFree(table[offset]) &&
-          _hashTable._value(offset) == value) {
-        return true;
+    List buckets = _buckets;
+    int length = buckets.length;
+    for (int i = 0; i < length; i++) {
+      _HashMapEntry entry = buckets[i];
+      while (entry != null) {
+        if (entry.value == value) return true;
+        entry = entry.next;
       }
     }
     return false;
   }
 
-  /* patch */ void addAll(Map<K, V> other) {
-    other.forEach((K key, V value) {
-      int offset = _hashTable._put(key);
-      _hashTable._setValue(offset, value);
-      _hashTable._checkCapacity();
-    });
-  }
-
-  /* patch */ V operator [](Object key) {
-    int offset = _hashTable._get(key);
-    if (offset >= 0) return _hashTable._value(offset);
+  /* patch */ V operator[](Object key) {
+    int hashCode = key.hashCode;
+    List buckets = _buckets;
+    int index = hashCode & (buckets.length - 1);
+    _HashMapEntry entry = buckets[index];
+    while (entry != null) {
+      if (hashCode == entry.hashCode && entry.key == key) {
+        return entry.value;
+      }
+      entry = entry.next;
+    }
     return null;
   }
 
   /* patch */ void operator []=(K key, V value) {
-    int offset = _hashTable._put(key);
-    _hashTable._setValue(offset, value);
-    _hashTable._checkCapacity();
+    int hashCode = key.hashCode;
+    List buckets = _buckets;
+    int length = buckets.length;
+    int index = hashCode & (length - 1);
+    _HashMapEntry entry = buckets[index];
+    while (entry != null) {
+      if (hashCode == entry.hashCode && entry.key == key) {
+        entry.value = value;
+        return;
+      }
+      entry = entry.next;
+    }
+    _addEntry(buckets, index, length, key, value, hashCode);
   }
 
   /* patch */ V putIfAbsent(K key, V ifAbsent()) {
-    int offset = _hashTable._probeForAdd(_hashTable._hashCodeOf(key), key);
-    Object entry = _hashTable._table[offset];
-    if (!_hashTable._isFree(entry)) {
-      return _hashTable._value(offset);
-    }
-    int modificationCount = _hashTable._modificationCount;
-    V value = ifAbsent();
-    if (modificationCount == _hashTable._modificationCount) {
-      _hashTable._setKey(offset, key);
-      _hashTable._setValue(offset, value);
-      if (entry == null) {
-        _hashTable._entryCount++;
-        _hashTable._checkCapacity();
-      } else {
-        assert(identical(entry, _TOMBSTONE));
-        _hashTable._deletedCount--;
+    int hashCode = key.hashCode;
+    List buckets = _buckets;
+    int length = buckets.length;
+    int index = hashCode & (length - 1);
+    _HashMapEntry entry = buckets[index];
+    while (entry != null) {
+      if (hashCode == entry.hashCode && entry.key == key) {
+        return entry.value;
       }
-      _hashTable._recordModification();
+      entry = entry.next;
+    }
+    int stamp = _modificationCount;
+    V value = ifAbsent();
+    if (stamp == _modificationCount) {
+      _addEntry(buckets, index, length, key, value, hashCode);
     } else {
-      // The table might have changed, so we can't trust [offset] any more.
-      // Do another lookup before setting the value.
-      offset = _hashTable._put(key);
-      _hashTable._setValue(offset, value);
-      _hashTable._checkCapacity();
+      this[key] = value;
     }
     return value;
   }
 
-  /* patch */ V remove(Object key) {
-    int offset = _hashTable._remove(key);
-    if (offset < 0) return null;
-    V oldValue = _hashTable._value(offset);
-    _hashTable._setValue(offset, null);
-    _hashTable._checkCapacity();
-    return oldValue;
-  }
-
-  /* patch */ void clear() {
-    _hashTable._clear();
+  /* patch */ void addAll(Map<K, V> other) {
+    other.forEach((K key, V value) {
+      this[key] = value;
+    });
   }
 
   /* patch */ void forEach(void action(K key, V value)) {
-    int modificationCount = _hashTable._modificationCount;
-    List table = _hashTable._table;
-    int entrySize = _hashTable._entrySize;
-    for (int offset = 0; offset < table.length; offset += entrySize) {
-      Object entry = table[offset];
-      if (!_hashTable._isFree(entry)) {
-        K key = identical(entry, _NULL) ? null : entry;
-        V value = _hashTable._value(offset);
-        action(key, value);
-        _hashTable._checkModification(modificationCount);
+    int stamp = _modificationCount;
+    List buckets = _buckets;
+    int length = buckets.length;
+    for (int i = 0; i < length; i++) {
+      _HashMapEntry entry = buckets[i];
+      while (entry != null) {
+        action(entry.key, entry.value);
+        if (stamp != _modificationCount) {
+          throw new ConcurrentModificationError(this);
+        }
+        entry = entry.next;
       }
     }
   }
 
-  /* patch */ Iterable<K> get keys => new _HashTableKeyIterable<K>(_hashTable);
-  /* patch */ Iterable<V> get values =>
-      new _HashTableValueIterable<V>(_hashTable, _HashMapTable._VALUE_INDEX);
+  /* patch */ V remove(Object key) {
+    int hashCode = key.hashCode;
+    List buckets = _buckets;
+    int index = hashCode & (buckets.length - 1);
+    _HashMapEntry entry = buckets[index];
+    _HashMapEntry previous = null;
+    while (entry != null) {
+      _HashMapEntry next = entry.next;
+      if (hashCode == entry.hashCode && entry.key == key) {
+        if (previous == null) {
+          buckets[index] = next;
+        } else {
+          previous.next = next;
+        }
+        _elementCount--;
+        _modificationCount =
+            (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
+        return entry.value;
+      }
+      previous = entry;
+      entry = next;
+    }
+    return null;
+  }
 
-  /* patch */ int get length => _hashTable._elementCount;
+  /* patch */ void clear() {
+    _elementCount = 0;
+    _buckets = new List(_INITIAL_CAPACITY);
+    _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
+  }
 
-  /* patch */ bool get isEmpty => _hashTable._elementCount == 0;
+  void _addEntry(List buckets, int index, int length,
+                 K key, V value, int hashCode) {
+    _HashMapEntry entry =
+        new _HashMapEntry(key, value, hashCode, buckets[index]);
+    buckets[index] = entry;
+    int newElements = _elementCount + 1;
+    _elementCount = newElements;
+    // If we end up with more than 75% non-empty entries, we
+    // resize the backing store.
+    if ((newElements << 2) > ((length << 1) + length)) _resize();
+    _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
+  }
 
-  /* patch */ bool get isNotEmpty => !isEmpty;
+  void _resize() {
+    List oldBuckets = _buckets;
+    int oldLength = oldBuckets.length;
+    int newLength = oldLength << 1;
+    List newBuckets = new List(newLength);
+    for (int i = 0; i < oldLength; i++) {
+      _HashMapEntry entry = oldBuckets[i];
+      while (entry != null) {
+        _HashMapEntry next = entry.next;
+        int hashCode = entry.hashCode;
+        int index = hashCode & (newLength - 1);
+        entry.next = newBuckets[index];
+        newBuckets[index] = entry;
+        entry = next;
+      }
+    }
+    _buckets = newBuckets;
+  }
+}
+
+class _HashMapEntry {
+  final key;
+  var value;
+  final int hashCode;
+  _HashMapEntry next;
+  _HashMapEntry(this.key, this.value, this.hashCode, this.next);
+}
+
+abstract class _HashMapIterable<E> extends IterableBase<E> {
+  final HashMap _map;
+  _HashMapIterable(this._map);
+  int get length => _map.length;
+  bool get isEmpty => _map.isEmpty;
+  bool get isNotEmpty => _map.isNotEmpty;
+}
+
+class _HashMapKeyIterable<K> extends _HashMapIterable<K> {
+  _HashMapKeyIterable(HashMap map) : super(map);
+  Iterator<K> get iterator => new _HashMapKeyIterator<K>(_map);
+  bool contains(K key) => _map.containsKey(key);
+  void forEach(void action(K key)) {
+    _map.forEach((K key, _) {
+      action(key);
+    });
+  }
+}
+
+class _HashMapValueIterable<V> extends _HashMapIterable<V> {
+  _HashMapValueIterable(HashMap map) : super(map);
+  Iterator<V> get iterator => new _HashMapValueIterator<V>(_map);
+  bool contains(V value) => _map.containsValue(value);
+  void forEach(void action(V value)) {
+    _map.forEach((_, V value) {
+      action(value);
+    });
+  }
+}
+
+abstract class _HashMapIterator<E> implements Iterator<E> {
+  final HashMap _map;
+  final int _stamp;
+
+  int _index = 0;
+  _HashMapEntry _entry;
+
+  _HashMapIterator(HashMap map)
+     : _map = map, _stamp = map._modificationCount;
+
+  bool moveNext() {
+    if (_stamp != _map._modificationCount) {
+      throw new ConcurrentModificationError(_map);
+    }
+    _HashMapEntry entry = _entry;
+    if (entry != null) {
+      _HashMapEntry next = entry.next;
+      if (next != null) {
+        _entry = next;
+        return true;
+      }
+      _entry = null;
+    }
+    List buckets = _map._buckets;
+    int length = buckets.length;
+    for (int i = _index; i < length; i++) {
+      entry = buckets[i];
+      if (entry != null) {
+        _index = i + 1;
+        _entry = entry;
+        return true;
+      }
+    }
+    _index = length;
+    return false;
+  }
+}
+
+class _HashMapKeyIterator<K> extends _HashMapIterator<K> {
+  _HashMapKeyIterator(HashMap map) : super(map);
+  K get current {
+    _HashMapEntry entry = _entry;
+    return (entry == null) ? null : entry.key;
+  }
+}
+
+class _HashMapValueIterator<V> extends _HashMapIterator<V> {
+  _HashMapValueIterator(HashMap map) : super(map);
+  V get current {
+    _HashMapEntry entry = _entry;
+    return (entry == null) ? null : entry.value;
+  }
 }
 
 patch class HashSet<E> {
@@ -193,119 +354,264 @@ patch class HashSet<E> {
   }
 }
 
+class _LinkedHashMapEntry extends _HashMapEntry {
+  var _nextEntry;
+  var _previousEntry;
+  _LinkedHashMapEntry(key, value, int hashCode, _LinkedHashMapEntry next,
+                      this._previousEntry, this._nextEntry)
+      : super(key, value, hashCode, next) {
+    _previousEntry._nextEntry = this;
+    _nextEntry._previousEntry = this;
+  }
+}
+
+class _LinkedHashMapKeyIterable<K> extends IterableBase<K> {
+  LinkedHashMap<K, dynamic> _map;
+  _LinkedHashMapKeyIterable(this._map);
+  Iterator<K> get iterator => new _LinkedHashMapKeyIterator<K>(_map);
+  bool contains(K key) => _map.containsKey(key);
+  bool get isEmpty => _map.isEmpty;
+  bool get isNotEmpty => _map.isNotEmpty;
+  int get length => _map.length;
+}
+
+class _LinkedHashMapValueIterable<V> extends IterableBase<V> {
+  LinkedHashMap<dynamic, V> _map;
+  _LinkedHashMapValueIterable(this._map);
+  Iterator<K> get iterator => new _LinkedHashMapValueIterator<V>(_map);
+  bool contains(V value) => _map.containsValue(value);
+  bool get isEmpty => _map.isEmpty;
+  bool get isNotEmpty => _map.isNotEmpty;
+  int get length => _map.length;
+}
+
+abstract class _LinkedHashMapIterator<T> implements Iterator<T> {
+  final _LinkedHashMap _map;
+  var _next;
+  T _current;
+  int _modificationCount;
+  _LinkedHashMapIterator(_LinkedHashMap map)
+      : _map = map,
+        _current = null,
+        _next = map._nextEntry,
+        _modificationCount = map._modificationCount;
+
+  bool moveNext() {
+    if (_modificationCount != _map._modificationCount) {
+      throw new ConcurrentModificationError(_map);
+    }
+    if (identical(_map, _next)) {
+      _current = null;
+      return false;
+    }
+    _LinkedHashMapEntry entry = _next;
+    _next = entry._nextEntry;
+    _current = _getValue(entry);
+    return true;
+  }
+
+  T _getValue(_LinkedHashMapEntry entry);
+
+  T get current => _current;
+}
+
+class _LinkedHashMapKeyIterator<K> extends _LinkedHashMapIterator<K> {
+  _LinkedHashMapKeyIterator(_LinkedHashMap map) : super(map);
+  K _getValue(_LinkedHashMapEntry entry) => entry.key;
+}
+
+class _LinkedHashMapValueIterator<V> extends _LinkedHashMapIterator<V> {
+  _LinkedHashMapValueIterator(_LinkedHashMap map) : super(map);
+  V _getValue(_LinkedHashMapEntry entry) => entry.value;
+}
+
+
 /**
  * A hash-based map that iterates keys and values in key insertion order.
  */
 patch class LinkedHashMap<K, V> {
-  final _LinkedHashMapTable _hashTable;
+  static const int _INITIAL_CAPACITY = 8;
+  static const int _MODIFICATION_COUNT_MASK = 0x3fffffff;
 
-  /* patch */ LinkedHashMap() : _hashTable = new _LinkedHashMapTable<K, V>() {
-    _hashTable._container = this;
+  int _elementCount = 0;
+  List<_HashMapEntry> _buckets = new List(_INITIAL_CAPACITY);
+  int _modificationCount = 0;
+
+  var _nextEntry;
+  var _previousEntry;
+
+  /* patch */ LinkedHashMap() {
+    _nextEntry = _previousEntry = this;
   }
+
+  /* patch */ int get length => _elementCount;
+  /* patch */ bool get isEmpty => _elementCount == 0;
+  /* patch */ bool get isNotEmpty => _elementCount != 0;
+
+  /* patch */ Iterable<K> get keys => new _LinkedHashMapKeyIterable<K>(this);
+  /* patch */ Iterable<V> get values => new _LinkedHashMapValueIterable<V>(this);
 
   /* patch */ bool containsKey(Object key) {
-    return _hashTable._get(key) >= 0;
-  }
-
-  /* patch */ bool containsValue(Object value) {
-    int modificationCount = _hashTable._modificationCount;
-    for (int offset = _hashTable._next(_LinkedHashTable._HEAD_OFFSET);
-         offset != _LinkedHashTable._HEAD_OFFSET;
-         offset = _hashTable._next(offset)) {
-      if (_hashTable._value(offset) == value) {
-        return true;
-      }
-      // The == call may modify the table.
-      _hashTable._checkModification(modificationCount);
+    int hashCode = key.hashCode;
+    List buckets = _buckets;
+    int index = hashCode & (buckets.length - 1);
+    _HashMapEntry entry = buckets[index];
+    while (entry != null) {
+      if (hashCode == entry.hashCode && entry.key == key) return true;
+      entry = entry.next;
     }
     return false;
   }
 
-  /* patch */ void addAll(Map<K, V> other) {
-    other.forEach((K key, V value) {
-      int offset = _hashTable._put(key);
-      _hashTable._setValue(offset, value);
-      _hashTable._checkCapacity();
-    });
+  /* patch */ bool containsValue(Object value) {
+    var cursor = _nextEntry;
+    int modificationCount = _modificationCount;
+    while (!identical(cursor, this)) {
+      _HashMapEntry entry = cursor;
+      if (entry.value == value) return true;
+      cursor = cursor._nextEntry;
+    }
+    return false;
   }
 
-  /* patch */ V operator [](Object key) {
-    int offset = _hashTable._get(key);
-    if (offset >= 0) return _hashTable._value(offset);
+  /* patch */ V operator[](Object key) {
+    int hashCode = key.hashCode;
+    List buckets = _buckets;
+    int index = hashCode & (buckets.length - 1);
+    _HashMapEntry entry = buckets[index];
+    while (entry != null) {
+      if (hashCode == entry.hashCode && entry.key == key) {
+        return entry.value;
+      }
+      entry = entry.next;
+    }
     return null;
   }
 
   /* patch */ void operator []=(K key, V value) {
-    int offset = _hashTable._put(key);
-    _hashTable._setValue(offset, value);
-    _hashTable._checkCapacity();
+    int hashCode = key.hashCode;
+    List buckets = _buckets;
+    int length = buckets.length;
+    int index = hashCode & (length - 1);
+    _HashMapEntry entry = buckets[index];
+    while (entry != null) {
+      if (hashCode == entry.hashCode && entry.key == key) {
+        entry.value = value;
+        return;
+      }
+      entry = entry.next;
+    }
+    _addEntry(buckets, index, length, key, value, hashCode);
   }
 
   /* patch */ V putIfAbsent(K key, V ifAbsent()) {
-    int offset = _hashTable._probeForAdd(_hashTable._hashCodeOf(key), key);
-    Object entry = _hashTable._table[offset];
-    if (!_hashTable._isFree(entry)) {
-      return _hashTable._value(offset);
-    }
-    int modificationCount = _hashTable._modificationCount;
-    V value = ifAbsent();
-    if (modificationCount == _hashTable._modificationCount) {
-      _hashTable._setKey(offset, key);
-      _hashTable._setValue(offset, value);
-      _hashTable._linkLast(offset);
-      if (entry == null) {
-        _hashTable._entryCount++;
-        _hashTable._checkCapacity();
-      } else {
-        assert(identical(entry, _TOMBSTONE));
-        _hashTable._deletedCount--;
+    int hashCode = key.hashCode;
+    List buckets = _buckets;
+    int length = buckets.length;
+    int index = hashCode & (length - 1);
+    _HashMapEntry entry = buckets[index];
+    while (entry != null) {
+      if (hashCode == entry.hashCode && entry.key == key) {
+        return entry.value;
       }
-      _hashTable._recordModification();
+      entry = entry.next;
+    }
+    int stamp = _modificationCount;
+    V value = ifAbsent();
+    if (stamp == _modificationCount) {
+      _addEntry(buckets, index, length, key, value, hashCode);
     } else {
-      // The table might have changed, so we can't trust [offset] any more.
-      // Do another lookup before setting the value.
-      offset = _hashTable._put(key);
-      _hashTable._setValue(offset, value);
-      _hashTable._checkCapacity();
+      this[key] = value;
     }
     return value;
   }
 
-  /* patch */ V remove(Object key) {
-    int offset = _hashTable._remove(key);
-    if (offset < 0) return null;
-    Object oldValue = _hashTable._value(offset);
-    _hashTable._setValue(offset, null);
-    _hashTable._checkCapacity();
-    return oldValue;
+  /* patch */ void addAll(Map<K, V> other) {
+    other.forEach((K key, V value) {
+      this[key] = value;
+    });
   }
 
-  /* patch */ void clear() {
-    _hashTable._clear();
-  }
-
-  /* patch */ void forEach(void action (K key, V value)) {
-    int modificationCount = _hashTable._modificationCount;
-    for (int offset = _hashTable._next(_LinkedHashTable._HEAD_OFFSET);
-         offset != _LinkedHashTable._HEAD_OFFSET;
-         offset = _hashTable._next(offset)) {
-      action(_hashTable._key(offset), _hashTable._value(offset));
-      _hashTable._checkModification(modificationCount);
+  /* patch */ void forEach(void action(K key, V value)) {
+    int stamp = _modificationCount;
+    var cursor = _nextEntry;
+    while (!identical(cursor, this)) {
+      _HashMapEntry entry = cursor;
+      action(entry.key, entry.value);
+      if (stamp != _modificationCount) {
+        throw new ConcurrentModificationError(this);
+      }
+      cursor = cursor._nextEntry;
     }
   }
 
-  /* patch */ Iterable<K> get keys =>
-      new _LinkedHashTableKeyIterable<K>(_hashTable);
+  /* patch */ V remove(Object key) {
+    int hashCode = key.hashCode;
+    List buckets = _buckets;
+    int index = hashCode & (buckets.length - 1);
+    _LinkedHashMapEntry entry = buckets[index];
+    _HashMapEntry previous = null;
+    while (entry != null) {
+      _HashMapEntry next = entry.next;
+      if (hashCode == entry.hashCode && entry.key == key) {
+        if (previous == null) {
+          buckets[index] = next;
+        } else {
+          previous.next = next;
+        }
+        entry._previousEntry._nextEntry = entry._nextEntry;
+        entry._nextEntry._previousEntry = entry._previousEntry;
+        entry._nextEntry = entry._previousEntry = null;
+        _elementCount--;
+        _modificationCount =
+            (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
+        return entry.value;
+      }
+      previous = entry;
+      entry = next;
+    }
+    return null;
+  }
 
-  /* patch */ Iterable<V> get values =>
-      new _LinkedHashTableValueIterable<V>(_hashTable,
-                                           _LinkedHashMapTable._VALUE_INDEX);
+  /* patch */ void clear() {
+    _elementCount = 0;
+    _nextEntry = _previousEntry = this;
+    _buckets = new List(_INITIAL_CAPACITY);
+    _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
+  }
 
-  /* patch */ int get length => _hashTable._elementCount;
+  void _addEntry(List buckets, int index, int length,
+                 K key, V value, int hashCode) {
+    _HashMapEntry entry =
+        new _LinkedHashMapEntry(key, value, hashCode, buckets[index],
+                                _previousEntry, this);
+    buckets[index] = entry;
+    int newElements = _elementCount + 1;
+    _elementCount = newElements;
+    // If we end up with more than 75% non-empty entries, we
+    // resize the backing store.
+    if ((newElements << 2) > ((length << 1) + length)) _resize();
+    _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
+  }
 
-  /* patch */ bool get isEmpty => _hashTable._elementCount == 0;
-
-  /* patch */ bool get isNotEmpty => !isEmpty;
+  void _resize() {
+    List oldBuckets = _buckets;
+    int oldLength = oldBuckets.length;
+    int newLength = oldLength << 1;
+    List newBuckets = new List(newLength);
+    for (int i = 0; i < oldLength; i++) {
+      _HashMapEntry entry = oldBuckets[i];
+      while (entry != null) {
+        _HashMapEntry next = entry.next;
+        int hashCode = entry.hashCode;
+        int index = hashCode & (newLength - 1);
+        entry.next = newBuckets[index];
+        newBuckets[index] = entry;
+        entry = next;
+      }
+    }
+    _buckets = newBuckets;
+  }
 }
 
 patch class LinkedHashSet<E> extends _HashSetBase<E> {

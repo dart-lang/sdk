@@ -10,25 +10,25 @@ import '../../async_helper.dart';
 
 final JSON_UTF8 = JSON.fuse(UTF8);
 
-bool isJsonEqual(o1, o2) {
-  if (o1 == o2) return true;
+void expectJsonEquals(o1, o2, [path = "result"]) {
+  if (o1 == o2) return;
   if (o1 is List && o2 is List) {
-    if (o1.length != o2.length) return false;
+    Expect.equals(o1.length, o2.length, "$path.length");
     for (int i = 0; i < o1.length; i++) {
-      if (!isJsonEqual(o1[i], o2[i])) return false;
+      expectJsonEquals(o1[i], o2[i], "$path[$i]");
     }
-    return true;
+    return;
   }
   if (o1 is Map && o2 is Map) {
-    if (o1.length != o2.length) return false;
+    Expect.equals(o1.length, o2.length, "$path.length");
     for (var key in o1.keys) {
-      Expect.isTrue(key is String);
-      if (!o2.containsKey(key)) return false;
-      if (!isJsonEqual(o1[key], o2[key])) return false;
+      Expect.isTrue(key is String, "$path:key = $key");
+      Expect.isTrue(o2.containsKey(key), "$path[$key] missing in $o2");
+      expectJsonEquals(o1[key], o2[key], "$path[$key]");
     }
-    return true;
+    return;
   }
-  return false;
+  Expect.equals(o1, o2);
 }
 
 Stream<Object> createStream(List<List<int>> chunks) {
@@ -61,7 +61,7 @@ Stream<Object> decodeChunked(List<int> bytes, int chunkSize) {
 void checkIsJsonEqual(expected, stream) {
   asyncStart();
   stream.single.then((o) {
-    Expect.isTrue(isJsonEqual(expected, o));
+    expectJsonEquals(expected, o);
     asyncEnd();
   });
 }

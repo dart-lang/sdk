@@ -7,7 +7,7 @@ part of dart.core;
 /**
  * The reserved words [:true:] and [:false:] denote objects that are the only
  * instances of this class.
- * 
+ *
  * It is a compile-time error for a class to attempt to extend or implement
  * bool.
  */

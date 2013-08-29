@@ -463,7 +463,8 @@ class JsonParser {
       }
       char = source.codeUnitAt(position);
       if (char == QUOTE) {
-        listener.handleString(source.substring(start, position));
+        String result = source.substring(start, position);
+        listener.handleString(result);
         return position + 1;
       }
       if (char < SPACE) {
