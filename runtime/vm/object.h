@@ -2950,18 +2950,15 @@ class Code : public Object {
   intptr_t pointer_offsets_length() const {
     return raw_ptr()->pointer_offsets_length_;
   }
+
   bool is_optimized() const {
-    return (raw_ptr()->is_optimized_ == 1);
+    return OptimizedBit::decode(raw_ptr()->state_bits_);
   }
-  void set_is_optimized(bool value) const {
-    raw_ptr()->is_optimized_ = value ? 1 : 0;
-  }
+  void set_is_optimized(bool value) const;
   bool is_alive() const {
-    return (raw_ptr()->is_alive_ == 1);
+    return AliveBit::decode(raw_ptr()->state_bits_);
   }
-  void set_is_alive(bool value) const {
-    raw_ptr()->is_alive_ = value ? 1 : 0;
-  }
+  void set_is_alive(bool value) const;
 
   uword EntryPoint() const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -3133,6 +3130,17 @@ class Code : public Object {
   RawArray* ExtractTypeFeedbackArray() const;
 
  private:
+  void set_state_bits(intptr_t bits) const;
+
+  friend class RawCode;
+  enum {
+    kOptimizedBit = 0,
+    kAliveBit = 1,
+  };
+
+  class OptimizedBit : public BitField<bool, kOptimizedBit, 1> {};
+  class AliveBit : public BitField<bool, kAliveBit, 1> {};
+
   // An object finder visitor interface.
   class FindRawCodeVisitor : public FindObjectVisitor {
    public:
