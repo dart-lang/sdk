@@ -551,9 +551,9 @@ LibTest/typed_data/Uint16List/hashCode_A01_t01: fail # co19-roll r559: Please tr
 LibTest/typed_data/Uint16List/toList_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint16List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint32List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint32List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint32List/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint8ClampedList/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint8ClampedList/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
 
