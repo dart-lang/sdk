@@ -450,17 +450,17 @@ LibTest/isolate/IsolateSink/operator_equality_A01_t01: fail # co19-roll r546: Pl
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/contains_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/typed_data/Float32List/buffer_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32List/Float32List.view_A01_t02: Fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float32List/buffer_A01_t01: Fail, Ok # co19 issue: 549
+LibTest/typed_data/Float32List/Float32List.view_A01_t02: Fail, Ok # co19 issue: 549
 LibTest/typed_data/Float32List/Float32List.view_A05_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32List/Float32List.view_A05_t02: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32List/Float32List.view_A05_t03: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32List/fold_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32List/join_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32List/join_A01_t02: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32List/offsetInBytes_A01_t01: fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float32List/offsetInBytes_A01_t01: Fail, Ok # co19 issue: 549
 LibTest/typed_data/Float32x4/clamp_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/Float32x4List.view_A01_t02: Fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float32x4List/Float32x4List.view_A01_t02: Fail, Ok # co19 issue: 549
 LibTest/typed_data/Float32x4List/Float32x4List.view_A02_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A05_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A05_t02: Fail # co19-roll r559: Please triage this failure
@@ -468,39 +468,39 @@ LibTest/typed_data/Float32x4List/Float32x4List.view_A05_t03: Fail # co19-roll r5
 LibTest/typed_data/Float32x4List/fold_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/join_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/join_A01_t02: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float64List/buffer_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float64List/Float64List.view_A01_t02: Fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float64List/buffer_A01_t01: Fail, Ok # co19 issue: 549
+LibTest/typed_data/Float64List/Float64List.view_A01_t02: Fail, Ok # co19 issue: 549
 LibTest/typed_data/Float64List/Float64List.view_A05_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/Float64List.view_A05_t02: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/Float64List.view_A05_t03: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/fold_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/join_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/join_A01_t02: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float64List/offsetInBytes_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Int16List/buffer_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Int16List/Int16List.view_A01_t02: Fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float64List/offsetInBytes_A01_t01: Fail, Ok # co19 issue: 549
+LibTest/typed_data/Int16List/buffer_A01_t01: Fail, Ok # co19 issue: 549
+LibTest/typed_data/Int16List/Int16List.view_A01_t02: Fail, Ok # co19 issue: 549
 LibTest/typed_data/Int16List/Int16List.view_A05_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int16List/Int16List.view_A05_t02: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int16List/Int16List.view_A05_t03: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Int16List/offsetInBytes_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Int32List/buffer_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Int32List/Int32List.view_A01_t02: Fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Int16List/offsetInBytes_A01_t01: Fail, Ok # co19 issue: 549
+LibTest/typed_data/Int32List/buffer_A01_t01: Fail, Ok # co19 issue: 549
+LibTest/typed_data/Int32List/Int32List.view_A01_t02: Fail, Ok # co19 issue: 549
 LibTest/typed_data/Int32List/Int32List.view_A05_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int32List/Int32List.view_A05_t02: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int32List/Int32List.view_A05_t03: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Int32List/offsetInBytes_A01_t01: fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Int32List/offsetInBytes_A01_t01: Fail, Ok # co19 issue: 549
 LibTest/typed_data/Int8List/Int8List.view_A05_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int8List/Int8List.view_A05_t02: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int8List/Int8List.view_A05_t03: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint16List/buffer_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint16List/offsetInBytes_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint16List/Uint16List.view_A01_t02: Fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint16List/buffer_A01_t01: Fail, Ok # co19 issue: 549
+LibTest/typed_data/Uint16List/offsetInBytes_A01_t01: Fail, Ok # co19 issue: 549
+LibTest/typed_data/Uint16List/Uint16List.view_A01_t02: Fail, Ok # co19 issue: 549
 LibTest/typed_data/Uint16List/Uint16List.view_A05_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint16List/Uint16List.view_A05_t02: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint16List/Uint16List.view_A05_t03: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint32List/buffer_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint32List/offsetInBytes_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint32List/Uint32List.view_A01_t02: Fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint32List/buffer_A01_t01: Fail, Ok # co19 issue: 549
+LibTest/typed_data/Uint32List/offsetInBytes_A01_t01: Fail, Ok # co19 issue: 549
+LibTest/typed_data/Uint32List/Uint32List.view_A01_t02: Fail, Ok # co19 issue: 549
 LibTest/typed_data/Uint32List/Uint32List.view_A05_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint32List/Uint32List.view_A05_t02: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint32List/Uint32List.view_A05_t03: Fail # co19-roll r559: Please triage this failure
