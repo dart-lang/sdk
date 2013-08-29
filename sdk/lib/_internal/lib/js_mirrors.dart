@@ -25,6 +25,7 @@ import 'dart:_js_helper' show
     createRuntimeType,
     createUnmangledInvocationMirror,
     getMangledTypeName,
+    throwInvalidReflectionError,
     runtimeTypeToString;
 import 'dart:_interceptors' show
     Interceptor,
@@ -260,7 +261,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
 
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
-                        [Map<Symbol,dynamic> namedArguments]) {
+                        [Map<Symbol, dynamic> namedArguments]) {
     if (namedArguments != null && !namedArguments.isEmpty) {
       throw new UnsupportedError('Named arguments are not implemented.');
     }
@@ -271,6 +272,12 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
       // TODO(ahe): What receiver to use?
       throw new NoSuchMethodError(
           this, '${n(memberName)}', positionalArguments, null);
+    }
+    if (mirror is JsMethodMirror) {
+      JsMethodMirror method = mirror;
+      if (!method.canInvokeReflectively()) {
+        throwInvalidReflectionError(memberName);
+      }
     }
     return reflect(mirror._invoke(positionalArguments, namedArguments));
   }
@@ -1010,6 +1017,9 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       throw new NoSuchMethodError(
           this, n(memberName), positionalArguments, null);
     }
+    if (!mirror.canInvokeReflectively()) {
+      throwInvalidReflectionError(memberName);
+    }
     return reflect(mirror._invoke(positionalArguments, namedArguments));
   }
 
@@ -1039,6 +1049,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 }
 
 class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
+  static final int REFLECTION_MARKER = 45;
+
   // TODO(ahe): The values in these fields are virtually untested.
   final String _jsName;
   final bool isFinal;
@@ -1061,6 +1073,16 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
                                 bool isStatic) {
     int length = descriptor.length;
     var code = fieldCode(descriptor.codeUnitAt(length - 1));
+    if (code == REFLECTION_MARKER) {
+      // If the field descriptor has a reflection marker, remove it by
+      // changing length and getting the real getter/setter code.  The
+      // descriptor will be truncated below.
+      length--;
+      code = fieldCode(descriptor.codeUnitAt(length - 1));
+    } else {
+      // The field is not available for reflection.
+      return null;
+    }
     bool isFinal = false;
     if (code == 0) return null; // Inherited field.
     bool hasGetter = (code & 3) != 0;
@@ -1113,6 +1135,7 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
   }
 
   static int fieldCode(int code) {
+    if (code == REFLECTION_MARKER) return code;
     if (code >= 60 && code <= 64) return code - 59;
     if (code >= 123 && code <= 126) return code - 117;
     if (code >= 37 && code <= 43) return code - 27;
@@ -1246,6 +1269,10 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
     if (_parameters != null) return _parameters;
     metadata; // Compute _parameters as a side-effect of extracting metadata.
     return _parameters;
+  }
+
+  bool canInvokeReflectively() {
+    return JS('bool', '#[#] != false', _jsFunction, JS_GET_NAME("REFLECTABLE"));
   }
 
   DeclarationMirror get owner => _owner;

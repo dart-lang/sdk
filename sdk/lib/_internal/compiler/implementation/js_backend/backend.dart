@@ -1555,6 +1555,25 @@ class JavaScriptBackend extends Backend {
     if (metaTargets != null) metaTargetsUsed.addAll(metaTargets);
   }
 
+  /**
+   * Returns `true` if [element] can be accessed through reflection, that is,
+   * is in the set of elements covered by a `MirrorsUsed` annotation.
+   *
+   * This property is used to tag emitted elements with a marker which is
+   * checked by the runtime system to throw an exception if an element is
+   * accessed (invoked, get, set) that is not accessible for the reflective
+   * system.
+   */
+  bool isAccessibleByReflection(Element element) {
+    if (hasInsufficientMirrorsUsed) return true;
+    return isNeededForReflection(element);
+  }
+
+  /**
+   * Returns `true` if the emitter must emit the element even though there
+   * is no direct use in the program, but because the reflective system may
+   * need to access it.
+   */
   bool isNeededForReflection(Element element) {
     if (hasInsufficientMirrorsUsed) return isTreeShakingDisabled;
     /// Record the name of [element] in [symbolsUsed]. Return true for

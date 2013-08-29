@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -86,6 +86,11 @@ createUnmangledInvocationMirror(Symbol symbol, internalName, kind, arguments,
                                 argumentNames);
 }
 
+void throwInvalidReflectionError(Symbol memberName) {
+  throw new UnsupportedError('invalid reflective use of ${memberName}, '
+      'which is not included by a @MirrorsUsed annotation');
+}
+
 class JSInvocationMirror implements Invocation {
   static const METHOD = 0;
   static const GETTER = 1;
@@ -99,7 +104,7 @@ class JSInvocationMirror implements Invocation {
   final List _arguments;
   final List _namedArgumentNames;
   /** Map from argument name to index in _arguments. */
-  Map<String,dynamic> _namedIndices = null;
+  Map<String, dynamic> _namedIndices = null;
 
   JSInvocationMirror(this._memberName,
                      this._internalName,
@@ -135,7 +140,7 @@ class JSInvocationMirror implements Invocation {
     return makeLiteralListConst(list);
   }
 
-  Map<Symbol,dynamic> get namedArguments {
+  Map<Symbol, dynamic> get namedArguments {
     // TODO: Make maps const (issue 10471)
     if (isAccessor) return <Symbol, dynamic>{};
     int namedArgumentCount = _namedArgumentNames.length;
@@ -170,6 +175,9 @@ class JSInvocationMirror implements Invocation {
     }
     var method = JS('var', '#[#]', receiver, name);
     if (JS('String', 'typeof #', method) == 'function') {
+      if (JS('bool', '#[#] == false', method, JS_GET_NAME("REFLECTABLE"))) {
+        throwInvalidReflectionError(memberName);
+      }
       return new CachedInvocation(method, isIntercepted, interceptor);
     } else {
       // In this case, receiver doesn't implement name.  So we should
