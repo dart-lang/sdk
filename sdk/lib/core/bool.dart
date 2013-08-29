@@ -21,5 +21,7 @@ class bool {
    * Returns [:"true":] if the receiver is [:true:], or [:"false":] if the
    * receiver is [:false:].
    */
-  String toString();
+  String toString() {
+    return this ? "true" : "false";
+  }
 }

@@ -9,8 +9,4 @@ patch class bool {
   int get hashCode {
     return this ? 1231 : 1237;
   }
-
-  String toString() {
-  	return this ? "true" : "false";
-  }
 }

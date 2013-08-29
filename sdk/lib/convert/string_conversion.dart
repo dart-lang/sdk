@@ -92,8 +92,8 @@ class _ClosableStringSink implements ClosableStringSink {
 
   void writeCharCode(int charCode) => _sink.writeCharCode(charCode);
   void write(Object o) => _sink.write(o);
-  void writeln([Object o]) => _sink.writeln(o);
-  void writeAll(Iterable objects, [String separator])
+  void writeln([Object o = ""]) => _sink.writeln(o);
+  void writeAll(Iterable objects, [String separator = ""])
       => _sink.writeAll(objects, separator);
 }
 
@@ -128,12 +128,12 @@ class _StringConversionSinkAsStringSinkAdapter implements ClosableStringSink {
     _chunkedSink.add(o.toString());
   }
 
-  void writeln([Object o]) {
+  void writeln([Object o = ""]) {
     _buffer.writeln(o);
     if (_buffer.length > _MIN_STRING_SIZE) _flush();
   }
 
-  void writeAll(Iterable objects, [String separator]) {
+  void writeAll(Iterable objects, [String separator = ""]) {
     if (_buffer.isNotEmpty) _flush();
     Iterator iterator = objects.iterator;
     if (!iterator.moveNext()) return;

@@ -185,7 +185,8 @@ class _LinkedListLink {
 /**
  * Entry element for a [LinkedList]. Any entry must extend this class.
  */
-abstract class LinkedListEntry<E> implements _LinkedListLink {
+abstract class LinkedListEntry<E extends LinkedListEntry>
+    implements _LinkedListLink {
   LinkedList<E> _list;
   _LinkedListLink _next;
   _LinkedListLink _previous;

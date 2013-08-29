@@ -83,7 +83,7 @@ abstract class FixedLengthListMixin<E>  {
  * This mixin is intended to be mixed in on top of [ListMixin] on
  * unmodifiable lists.
  */
-abstract class UnmodifiableListMixin<E> {
+abstract class UnmodifiableListMixin<E> implements List<E> {
 
   void operator []=(int index, E value) {
     throw new UnsupportedError(
