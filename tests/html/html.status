@@ -30,11 +30,12 @@ worker_test/functional: Pass, Crash # Issue 9929.
 dom_isolates_test: Skip # Need to migrate to new spawnDomFunction.
 
 [ $compiler == dart2js && $runtime == ie10 ]
+async_test: Pass, Fail # timers test fails on ie10.
+callbacks_test: Pass, Timeout # Issue 12896
 indexeddb_2_test: Fail # Issue 12893
 indexeddb_3_test: Fail, Timeout # Issue 9437 + 12893
 indexeddb_4_test: Fail, Timeout # Issue 9437 + 12893
 indexeddb_5_test: Fail # Issue 12893
-async_test: Pass, Fail # timers test fails on ie10.
 
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
