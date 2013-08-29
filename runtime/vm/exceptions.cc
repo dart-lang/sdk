@@ -378,15 +378,18 @@ static RawField* LookupStacktraceField(const Instance& instance) {
     ASSERT(!error_class.IsNull());
     isolate->object_store()->set_error_class(error_class);
   }
-  const Class& instance_class = Class::Handle(isolate, instance.clazz());
-  Error& malformed_type_error = Error::Handle(isolate);
-  if (instance_class.IsSubtypeOf(Object::null_abstract_type_arguments(),
-                                 error_class,
-                                 Object::null_abstract_type_arguments(),
-                                 &malformed_type_error)) {
-    ASSERT(malformed_type_error.IsNull());
-    return error_class.LookupInstanceField(Symbols::_stackTrace());
-  }
+  // If instance class extends 'class Error' return '_stackTrace' field.
+  Class& test_class = Class::Handle(isolate, instance.clazz());
+  AbstractType& type = AbstractType::Handle(isolate, AbstractType::null());
+  while (true) {
+    if (test_class.raw() == error_class.raw()) {
+      return error_class.LookupInstanceField(Symbols::_stackTrace());
+    }
+    type = test_class.super_type();
+    if (type.IsNull()) return Field::null();
+    test_class = type.type_class();
+  };
+  UNREACHABLE();
   return Field::null();
 }
 
