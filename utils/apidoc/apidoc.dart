@@ -163,14 +163,14 @@ void main() {
       var libPath = '../../$lib';
       if (new File(libPath).existsSync()) {
         apidocLibraries.add(path.toUri(libPath));
-        var libName = libPath.replaceAll('.dart', '');
+        var libName = path.basename(libPath).replaceAll('.dart', '');
         includedLibraries.add(libName);
       }
     }
 
     final apidoc = new Apidoc(mdn, outputDir, mode, generateAppCache,
                               excludedLibraries, version);
-    apidoc.dartdocPath = 
+    apidoc.dartdocPath =
         path.join(scriptDir, '..', '..', 'sdk', 'lib', '_internal', 'dartdoc');
     // Select the libraries to include in the produced documentation:
     apidoc.includeApi = true;
