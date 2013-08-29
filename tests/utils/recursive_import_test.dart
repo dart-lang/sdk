@@ -54,6 +54,10 @@ class JSString {
   concat(x) => null;
   toString() => null;
 }
+class JSNull {
+}
+class JSBool {
+}
 """;
 
 const String RECURSIVE_MAIN = """
