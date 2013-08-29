@@ -70,7 +70,10 @@ function compare {
 }
 
 if [[ ($TEST_PATTERN == "") ]]; then
-  echo Analyzing compiler for warnings or type errors
+  echo Analyzing analyzer for warnings or type errors
+  $dartanalyzer --hints --fatal-warnings --fatal-type-errors lib/dwc.dart
+
+  echo Analyzing deploy-compiler for warnings or type errors
   $dartanalyzer --hints --fatal-warnings --fatal-type-errors lib/deploy.dart
 
   echo -e "\nAnalyzing runtime for warnings or type errors"

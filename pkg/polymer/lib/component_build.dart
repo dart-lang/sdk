@@ -32,7 +32,7 @@ import 'src/compiler_options.dart';
  * [entryPoints] listed. On clean commands, the directory where [entryPoints]
  * live will be scanned for generated files to delete them.
  */
-Future<List<dwc.AnalysisResult>> build(List<String> arguments,
+Future<List<dwc.AnalysisResults>> build(List<String> arguments,
     List<String> entryPoints,
     {bool printTime: true, bool shouldPrint: true}) {
   bool useColors = stdioType(stdout) == StdioType.TERMINAL;

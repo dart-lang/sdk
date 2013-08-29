@@ -6,22 +6,16 @@ library compiler;
 
 import 'dart:async';
 import 'dart:collection' show SplayTreeMap;
-import 'dart:convert';
 
-import 'package:analyzer_experimental/src/generated/ast.dart' show Directive, UriBasedDirective;
 import 'package:csslib/visitor.dart' show StyleSheet, treeToDebugString;
 import 'package:html5lib/dom.dart';
 import 'package:html5lib/parser.dart';
-import 'package:source_maps/span.dart' show Span;
-import 'package:source_maps/refactor.dart' show TextEditTransaction;
-import 'package:source_maps/printer.dart';
 
 import 'analyzer.dart';
 import 'css_analyzer.dart' show analyzeCss, findUrlsImported,
        findImportsInStyleSheet, parseCss;
 import 'css_emitters.dart' show rewriteCssUris,
        emitComponentStyleSheet, emitOriginalCss, emitStyleSheet;
-import 'dart_parser.dart';
 import 'file_system.dart';
 import 'files.dart';
 import 'info.dart';
@@ -66,7 +60,6 @@ class Compiler {
 
   /** Information about source [files] given their href. */
   final Map<String, FileInfo> info = new SplayTreeMap<String, FileInfo>();
-  final _edits = new Map<DartCodeInfo, TextEditTransaction>();
 
   final GlobalInfo global = new GlobalInfo();
 
@@ -137,7 +130,7 @@ class Compiler {
 
     var fileInfo = _time('Analyzed definitions', inputUrl.url, () {
       return analyzeDefinitions(global, inputUrl, file.document, _packageRoot,
-        _messages, isEntryPoint: isEntryPoint);
+        _messages);
     });
     info[inputUrl.resolvedPath] = fileInfo;
 
@@ -146,8 +139,6 @@ class Compiler {
       _tasks.add(_parseCssFile(new UrlInfo(_resetCssFile, _resetCssFile,
           null)));
     }
-
-    _processImports(fileInfo);
 
     // Load component files referenced by [file].
     for (var link in fileInfo.componentLinks) {
@@ -159,9 +150,6 @@ class Compiler {
       _loadFile(link, _parseCssFile);
     }
 
-    // Load .dart files being referenced in the page.
-    _loadFile(fileInfo.externalFile, _parseDartFile);
-
     // Process any @imports inside of a <style> tag.
     var urlInfos = findUrlsImported(fileInfo, fileInfo.inputUrl, _packageRoot,
         file.document, _messages, options);
@@ -171,16 +159,9 @@ class Compiler {
 
     // Load .dart files being referenced in components.
     for (var component in fileInfo.declaredComponents) {
-      if (component.externalFile != null) {
-        _loadFile(component.externalFile, _parseDartFile);
-      } else if (component.userCode != null) {
-        _processImports(component);
-      }
-
       // Process any @imports inside of the <style> tag in a component.
-      var urlInfos = findUrlsImported(component,
-          component.declaringFile.inputUrl, _packageRoot, component.element,
-          _messages, options);
+      var urlInfos = findUrlsImported(component, fileInfo.inputUrl,
+          _packageRoot, component.element, _messages, options);
       for (var urlInfo in urlInfos) {
         _loadFile(urlInfo, _parseCssFile);
       }
@@ -214,19 +195,6 @@ class Compiler {
         });
   }
 
-  /** Parse a Dart file. */
-  Future _parseDartFile(UrlInfo inputUrl) {
-    var filePath = inputUrl.resolvedPath;
-    return fileSystem.readText(filePath)
-        .catchError((e) => _readError(e, inputUrl))
-        .then((code) {
-          if (code == null) return;
-          var file = new SourceFile(filePath, type: SourceFile.DART);
-          file.code = code;
-          _processDartFile(inputUrl, file);
-        });
-  }
-
   /** Parse a stylesheet file. */
   Future _parseCssFile(UrlInfo inputUrl) {
     if (!options.emulateScopedCss) {
@@ -255,26 +223,6 @@ class Compiler {
       _messages.error(message, inputUrl.sourceSpan);
     }
     return null;
-  }
-
-  void _processDartFile(UrlInfo inputUrl, SourceFile dartFile) {
-    if (dartFile == null) return;
-
-    files.add(dartFile);
-
-    var resolvedPath = inputUrl.resolvedPath;
-    var fileInfo = new FileInfo(inputUrl);
-    info[resolvedPath] = fileInfo;
-    fileInfo.inlinedCode = parseDartCode(resolvedPath, dartFile.code);
-    _processImports(fileInfo);
-  }
-
-  void _processImports(LibraryInfo library) {
-    if (library.userCode == null) return;
-
-    for (var directive in library.userCode.directives) {
-      _loadFile(_getDirectiveUrlInfo(library, directive), _parseDartFile);
-    }
   }
 
   void _processCssFile(UrlInfo inputUrl, SourceFile cssFile) {
@@ -307,99 +255,6 @@ class Compiler {
     }
   }
 
-  String _directiveUri(Directive directive) {
-    var uriDirective = (directive as UriBasedDirective).uri;
-    return (uriDirective as dynamic).value;
-  }
-
-  UrlInfo _getDirectiveUrlInfo(LibraryInfo library, Directive directive) {
-    var uri = _directiveUri(directive);
-    if (uri.startsWith('dart:')) return null;
-    if (uri.startsWith('package:') && uri.startsWith('package:polymer/')) {
-      // Don't process our own package -- we'll implement @observable manually.
-      return null;
-    }
-
-    var span = library.userCode.sourceFile.span(
-        directive.offset, directive.end);
-    return UrlInfo.resolve(uri, library.dartCodeUrl, span, _packageRoot,
-        _messages);
-  }
-
-  /**
-   * Finds all Dart code libraries.
-   * Each library will have [LibraryInfo.inlinedCode] that is non-null.
-   * Also each inlinedCode will be unique.
-   */
-  List<LibraryInfo> _findAllDartLibraries() {
-    var libs = <LibraryInfo>[];
-    void _addLibrary(LibraryInfo lib) {
-      if (lib.inlinedCode != null) libs.add(lib);
-    }
-
-    for (var sourceFile in files) {
-      var file = info[sourceFile.path];
-      _addLibrary(file);
-      file.declaredComponents.forEach(_addLibrary);
-    }
-
-    // Assert that each file path is unique.
-    assert(_uniquePaths(libs));
-    return libs;
-  }
-
-  bool _uniquePaths(List<LibraryInfo> libs) {
-    var seen = new Set();
-    for (var lib in libs) {
-      if (seen.contains(lib.inlinedCode)) {
-        throw new StateError('internal error: '
-            'duplicate user code for ${lib.dartCodeUrl.resolvedPath}.'
-            ' Files were: $files');
-      }
-      seen.add(lib.inlinedCode);
-    }
-    return true;
-  }
-
-  /**
-   * This method computes which Dart files have been modified, starting
-   * from [transformed] and marking recursively through all files that import
-   * the modified files.
-   */
-  void _findModifiedDartFiles(List<LibraryInfo> libraries,
-      List<FileInfo> transformed) {
-
-    if (transformed.length == 0) return;
-
-    // Compute files that reference each file, then use this information to
-    // flip the modified bit transitively. This is a lot simpler than trying
-    // to compute it the other way because of circular references.
-    for (var lib in libraries) {
-      for (var directive in lib.userCode.directives) {
-        var importPath = _getDirectiveUrlInfo(lib, directive);
-        if (importPath == null) continue;
-
-        var importInfo = info[importPath.resolvedPath];
-        if (importInfo != null) {
-          importInfo.referencedBy.add(lib);
-        }
-      }
-    }
-
-    // Propegate the modified bit to anything that references a modified file.
-    void setModified(LibraryInfo library) {
-      if (library.modified) return;
-      library.modified = true;
-      library.referencedBy.forEach(setModified);
-    }
-    transformed.forEach(setModified);
-
-    for (var lib in libraries) {
-      // We don't need this anymore, so free it.
-      lib.referencedBy = null;
-    }
-  }
-
   /** Run the analyzer on every input html file. */
   void _analyze() {
     var uniqueIds = new IntIterator();
@@ -429,9 +284,6 @@ class Compiler {
       var fileInfo = info[file.path];
       if (file.isStyleSheet) {
         for (var styleSheet in fileInfo.styleSheets) {
-          // Translate any URIs in CSS.
-          rewriteCssUris(_pathMapper, fileInfo.inputUrl.resolvedPath,
-              options.rewriteUrls, styleSheet);
           css.write(
               '/* Auto-generated from style sheet href = ${file.path} */\n'
               '/* DO NOT EDIT. */\n\n');
@@ -448,9 +300,6 @@ class Compiler {
         for (var component in fileInfo.declaredComponents) {
           for (var styleSheet in component.styleSheets) {
             // Translate any URIs in CSS.
-            rewriteCssUris(_pathMapper, fileInfo.inputUrl.resolvedPath,
-                options.rewriteUrls, styleSheet);
-
             if (buff.isEmpty) {
               buff.write(
                   '/* Auto-generated from components style tags. */\n'
@@ -490,9 +339,6 @@ class Compiler {
     }
 
     if (buff.isEmpty) return false;
-
-    var cssPath = _pathMapper.outputPath(_mainPath, '.css', true);
-    output.add(new OutputFile(cssPath, buff.toString()));
     return true;
   }
 

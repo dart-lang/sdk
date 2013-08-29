@@ -8,7 +8,6 @@ import 'package:csslib/visitor.dart' show Visitor, CssPrinter, ElementSelector,
        UriTerm, Selector, HostDirective, SimpleSelectorSequence, StyleSheet;
 
 import 'info.dart';
-import 'utils.dart';
 
 
 /** Emit the contents of the style tag outside of a component. */

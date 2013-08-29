@@ -48,7 +48,7 @@ class _AnalyzerCss {
   void process(SourceFile file) {
     var fileInfo = info[file.path];
     if (file.isStyleSheet || fileInfo.styleSheets.length > 0) {
-      var styleSheets = processVars(fileInfo);
+      var styleSheets = processVars(fileInfo.inputUrl, fileInfo);
 
       // Add to list of all style sheets analyzed.
       allStyleSheets.addAll(styleSheets);
@@ -56,7 +56,7 @@ class _AnalyzerCss {
 
     // Process any components.
     for (var component in fileInfo.declaredComponents) {
-      var all = processVars(component);
+      var all = processVars(fileInfo.inputUrl, component);
 
       // Add to list of all style sheets analyzed.
       allStyleSheets.addAll(all);
@@ -70,9 +70,9 @@ class _AnalyzerCss {
     for (var tree in allStyleSheets) new _RemoveVarDefinitions().visitTree(tree);
   }
 
-  List<StyleSheet> processVars(var libraryInfo) {
+  List<StyleSheet> processVars(inputUrl, libraryInfo) {
     // Get list of all stylesheet(s) dependencies referenced from this file.
-    var styleSheets = _dependencies(libraryInfo).toList();
+    var styleSheets = _dependencies(inputUrl, libraryInfo).toList();
 
     var errors = [];
     css.analyze(styleSheets, errors: errors, options:
@@ -118,13 +118,8 @@ class _AnalyzerCss {
    * return a list of all referenced stylesheet dependencies (@imports or <link
    * rel="stylesheet" ..>).
    */
-  Set<StyleSheet> _dependencies(var libraryInfo, {Set<StyleSheet> seen}) {
+  Set<StyleSheet> _dependencies(inputUrl, libraryInfo, {Set<StyleSheet> seen}) {
     if (seen == null) seen = new Set();
-
-    // Used to resolve all pathing information.
-    var inputUrl = libraryInfo is FileInfo
-        ? libraryInfo.inputUrl
-        : (libraryInfo as ComponentInfo).declaringFile.inputUrl;
 
     for (var styleSheet in libraryInfo.styleSheets) {
       if (!seen.contains(styleSheet)) {
@@ -152,7 +147,8 @@ class _AnalyzerCss {
               var urls = findImportsInStyleSheet(ss, packageRoot, inputUrl,
                   _messages);
               for (var url in urls) {
-                _dependencies(info[url.resolvedPath], seen: seen);
+                var fileInfo = info[url.resolvedPath];
+                _dependencies(fileInfo.inputUrl, fileInfo, seen: seen);
               }
             }
           }

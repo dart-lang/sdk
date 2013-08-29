@@ -54,15 +54,9 @@ main() {
       compiler.run().then(expectAsync1((e) {
         var msgs = messages.messages.where((m) =>
             m.message.contains('unable')).toList();
-
-        expect(msgs.length, 1);
-        expect(msgs[0].level, Level.SEVERE);
-        expect(msgs[0].message, contains('unable to open file'));
-        expect(msgs[0].span, isNotNull);
-        expect(msgs[0].span.sourceUrl, 'index.html');
-
+        expect(msgs.length, 0);
         MockFileSystem fs = compiler.fileSystem;
-        expect(fs.readCount, { 'index.html': 1, 'notfound.dart': 1 });
+        expect(fs.readCount, { 'index.html': 1 });
       }));
     });
 
@@ -106,14 +100,10 @@ main() {
       compiler.run().then(expectAsync1((e) {
         var msgs = messages.messages.where((m) =>
             m.message.contains('unable')).toList();
-
-        expect(msgs.length, 1);
-        expect(msgs[0].level, Level.SEVERE);
-        expect(msgs[0].message, contains('unable to open file'));
-
+        expect(msgs.length, 0);
         MockFileSystem fs = compiler.fileSystem;
         expect(fs.readCount,
-            { 'index.html': 1, 'foo.html': 1, 'notfound.dart': 1  });
+            { 'index.html': 1, 'foo.html': 1 });
       }));
     });
   });
