@@ -223,7 +223,7 @@ bool _listEquals(List a, List b) {
 
 int _hashList(List l) {
   var hash = l.fold(0,
-      (hash, item) => _JenkinsSmiHash.combine(hash, item.hashCode));
+      (h, item) => _JenkinsSmiHash.combine(h, item.hashCode));
   return _JenkinsSmiHash.finish(hash);
 }
 
