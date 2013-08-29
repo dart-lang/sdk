@@ -50,7 +50,26 @@ bool isInstanceOf(o, Type t) {
     }
   }
   if (tTypeName == "ExecutableElement") {
-    if (oTypeName == "MethodElementImpl" || oTypeName == "FunctionElementImpl") {
+    if (oTypeName == "MethodElementImpl" ||
+        oTypeName == "FunctionElementImpl" ||
+        oTypeName == "PropertyAccessorElementImpl") {
+      return true;
+    }
+  }
+  if (tTypeName == "ParameterElement") {
+    if (oTypeName == "FieldFormalParameterElementImpl" ||
+        oTypeName == "DefaultFieldFormalParameterElementImpl" ||
+        oTypeName == "DefaultParameterElementImpl") {
+      return true;
+    }
+  }
+  if (tTypeName == "VariableElement") {
+    if (oTypeName == "LocalVariableElementImpl" ||
+        oTypeName == "ConstLocalVariableElementImpl" ||
+        oTypeName == "FieldElementImpl" ||
+        oTypeName == "ConstFieldElementImpl" ||
+        oTypeName == "TopLevelVariableElementImpl" ||
+        oTypeName == "ConstTopLevelVariableElementImpl") {
       return true;
     }
   }

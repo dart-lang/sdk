@@ -45,7 +45,7 @@ class _ASTVisitor extends GeneralizingASTVisitor {
   visitNode(ASTNode node) {
     String text = '${node.runtimeType} : <"${node.toString()}">';
     if (node is SimpleIdentifier) {
-      Element element = (node as SimpleIdentifier).element;
+      Element element = (node as SimpleIdentifier).staticElement;
       if (element != null) {
         text += " element: ${element.runtimeType}";
         LibraryElement library = element.library;

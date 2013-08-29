@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
+lib/async/async: fail
 lib/core/core: fail
 lib/typed_data/typed_data: fail
 lib/io/io: fail

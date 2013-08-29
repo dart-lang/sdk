@@ -6331,7 +6331,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
   }
   Object visitFieldDeclaration(FieldDeclaration node) {
     visit(node.documentationComment);
-    visit8(node.keyword, " ");
+    visit8(node.staticKeyword, " ");
     visit(node.fields);
     _writer.print(";");
     return null;
@@ -6528,8 +6528,8 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitListLiteral(ListLiteral node) {
-    if (node.modifier != null) {
-      _writer.print(node.modifier.lexeme);
+    if (node.constKeyword != null) {
+      _writer.print(node.constKeyword.lexeme);
       _writer.print(' ');
     }
     visit6(node.typeArguments, " ");
@@ -6549,8 +6549,8 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitMapLiteral(MapLiteral node) {
-    if (node.modifier != null) {
-      _writer.print(node.modifier.lexeme);
+    if (node.constKeyword != null) {
+      _writer.print(node.constKeyword.lexeme);
       _writer.print(' ');
     }
     visit6(node.typeArguments, " ");
@@ -6770,7 +6770,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print("try ");
     visit(node.body);
     visitList7(" ", node.catchClauses, " ");
-    visit7(" finally ", node.finallyClause);
+    visit7(" finally ", node.finallyBlock);
     return null;
   }
   Object visitTypeArgumentList(TypeArgumentList node) {

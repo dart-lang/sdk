@@ -7,24 +7,8 @@
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
-illegal_invocation_test/01: fail # Issue: 11892
-
-# TBF: m([int p = 'String'])
-assign_static_type_test/06: fail
-
 # TBD: using built-in identifers
 built_in_identifier_prefix_test: fail # Issue 12694
-
-# TBF: (o as C) is not rolled back
-cast_test/04: fail
-cast_test/05: fail
-
-# TBF: It is a compile-time error if the superclass of a class C appears in the implements clause of C.
-const_constructor_super_test/01: fail
-
-# TBF: m([int p = 'String']) and call 'const' instance creation
-compile_time_constant_checked2_test/03: fail
-compile_time_constant_checked3_test/03: fail
 
 # TBF: It is a static type warning if a type parameter is a supertype of its upper bound.
 cyclic_type_variable_test/01: fail
@@ -49,20 +33,14 @@ list_literal_syntax_test/02: fail # Issue 12103
 list_literal_syntax_test/03: fail # Issue 12103
 malformed_test/none: fail # Issue 12696
 
-# TBF: disallowed in the most recent spec
-named_parameters_aggregated_test/03: fail
-positional_parameters_type_test: fail
-
-# TBF: non-const superinitializer; 7.6.3 Constant Constructors: The superinitializer that appears, explicitly or implicitly, in the initializer list of a constant constructor must specify a constant constructor of the superclass of the immediately enclosing class.
-non_const_super_negative_test: fail
-
 # TBF: 1is int; invalid character in number
 number_identifier_negative_test: fail
 
 # TBF: we should check conflicts not only for methods, but for accessors too
-override_field_test/01: fail
 override_field_test/02: fail
 override_field_test/03: fail
+method_override7_test/03: Fail # Issue 11496
+method_override8_test/03: Fail # Issue 11496
 
 # TBF: prefix T hidden by type variable T in 'new T.Class()'
 prefix10_negative_test: fail
@@ -74,28 +52,6 @@ private_member3_negative_test: fail
 
 # TBF
 pseudo_kw_test: fail
-
-# TBF: hiding at start of the block and declared after declaration statement
-scope_negative_test: fail
-
-# TBF: 'instance.staticMethod()' is static warning
-static_field_test/01: fail
-static_field_test/02: fail
-static_field_test/03: fail
-
-# TBF
-method_override2_test/00: fail # issue 11497
-method_override2_test/01: fail # issue 11497
-method_override2_test/02: fail # issue 11497
-method_override2_test/03: fail # issue 11497
-method_override3_test/00: fail # issue 11497
-method_override3_test/01: fail # issue 11497
-method_override3_test/02: fail # issue 11497
-method_override4_test: fail # issue 11497
-method_override5_test: fail # issue 11497
-method_override6_test: fail # issue 11497
-
-
 
 
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
@@ -117,36 +73,30 @@ final_syntax_test/03: fail
 const_escape_frog_test: fail
 compile_time_constant_test/none: fail
 
-# Test issue 11544, using @TypeName as annotation is not valid
-inferrer_constructor2_test: fail
-inferrer_constructor3_test: fail
-multiple_field_assignment_constructor_test: fail
-
 # Test issue 11545, using not existing constructor name in annotation
 metadata_test: fail
 
-# Test issue 11564, named parameter starts with '_'
-named_parameters_with_object_property_names_test: fail
-
 # test issue 11575, classes with abstrac members are not marked as abstract
-abstract_factory_constructor_test/none: fail
-get_set_syntax_test/none: fail
-implicit_this_test/none: fail
-interface_test/none: fail
-syntax_test/none: fail
+abstract_factory_constructor_test/none: fail # Issue 11575
+get_set_syntax_test/none: fail # Issue 11575
+implicit_this_test/none: fail # Issue 11575
+interface_test/none: fail # Issue 11575
+syntax_test/none: fail # Issue 11575
 
 # test issue 11576
-bad_constructor_test/none: fail
+bad_constructor_test/none: fail # Issue 11576
 
 # test issue 11577, has return type for []=
-cascade_test/none: fail
+cascade_test/none: fail # Issue 11577
 
 # test issue 11578, redirecting factory with not subtype
-factory5_test/none: fail
-factory_redirection_test/none: fail
-type_variable_bounds_test/none: fail
-type_variable_scope_test/none: fail
-factory_implementation_test/none: fail
+factory5_test/none: fail # Issue 11578
+factory_redirection_test/none: fail # Issue 11578
+type_variable_bounds_test/none: fail # Issue 11578
+type_variable_scope_test/none: fail # Issue 11578
+factory_implementation_test/none: fail # Issue 11578
+
+redirecting_factory_malbounded_test/none: Fail # Issue 12827
 
 # test issue 11579, assignment, no setter
 getter_no_setter_test/none: fail
@@ -234,13 +184,12 @@ type_variable_bounds2_test/06: fail # Issue 12162
 
 # test issue 12163, unresolved identifier is static warning in static context
 unresolved_in_factory_negative_test: fail # Issue 12163
-unresolved_top_level_method_negative_test: fail # Issue 12163
 unresolved_top_level_var_negative_test: fail # Issue 12163
 
 # test issue 12181, uses argument definition test
 constructor_initializer_test: fail # Issue 12181
 
-# test issue 12191, ambuguous import is always warning now
+# test issue 12191, ambiguous import is always warning now
 prefix3_negative_test: fail # Issue 12191
 library_ambiguous_test/00: fail # Issue 12191
 library_ambiguous_test/01: fail # Issue 12191
@@ -249,6 +198,22 @@ library_ambiguous_test/03: fail # Issue 12191
 
 # test issue 12289, assignment in assert statement
 type_error_test: fail # Issue 12289
+
+# test issue 12381, It is compile-time error to invoke not existing function
+issue11724_test: fail # Issue 12381
+call_nonexistent_static_test/08: fail # Issue 12381
+
+# test issue 12397; it is static warning, not error to use variable before declaration (or hidden)
+scope_negative_test: fail # Issue 12397
+
+# test issue 12539, rules for finals were loosened, contradiction in spec was fixed
+const_syntax_test/09: fail # Issue 12539
+
+# test issue 12541; there shouldn't be a static warning
+static_field_test/01: fail # Issue 12541
+static_field_test/02: fail # Issue 12541
+static_field_test/03: fail # Issue 12541
+static_field_test/04: fail # Issue 12541
 
 [ $compiler == dart2analyzer && $checked ]
 factory1_test/00: fail

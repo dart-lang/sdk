@@ -676,7 +676,7 @@ class SimpleParserTest extends ParserTestCase {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "p.A f;");
     JUnitTestCase.assertNull(field.documentationComment);
     EngineTestCase.assertSize(0, field.metadata);
-    JUnitTestCase.assertNull(field.keyword);
+    JUnitTestCase.assertNull(field.staticKeyword);
     VariableDeclarationList list = field.fields;
     JUnitTestCase.assertNotNull(list);
     NodeList<VariableDeclaration> variables = list.variables;
@@ -688,7 +688,7 @@ class SimpleParserTest extends ParserTestCase {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var get;");
     JUnitTestCase.assertNull(field.documentationComment);
     EngineTestCase.assertSize(0, field.metadata);
-    JUnitTestCase.assertNull(field.keyword);
+    JUnitTestCase.assertNull(field.staticKeyword);
     VariableDeclarationList list = field.fields;
     JUnitTestCase.assertNotNull(list);
     NodeList<VariableDeclaration> variables = list.variables;
@@ -700,7 +700,7 @@ class SimpleParserTest extends ParserTestCase {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var operator;");
     JUnitTestCase.assertNull(field.documentationComment);
     EngineTestCase.assertSize(0, field.metadata);
-    JUnitTestCase.assertNull(field.keyword);
+    JUnitTestCase.assertNull(field.staticKeyword);
     VariableDeclarationList list = field.fields;
     JUnitTestCase.assertNotNull(list);
     NodeList<VariableDeclaration> variables = list.variables;
@@ -712,7 +712,7 @@ class SimpleParserTest extends ParserTestCase {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var set;");
     JUnitTestCase.assertNull(field.documentationComment);
     EngineTestCase.assertSize(0, field.metadata);
-    JUnitTestCase.assertNull(field.keyword);
+    JUnitTestCase.assertNull(field.staticKeyword);
     VariableDeclarationList list = field.fields;
     JUnitTestCase.assertNotNull(list);
     NodeList<VariableDeclaration> variables = list.variables;
@@ -1424,7 +1424,7 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseConstExpression_listLiteral_typed() {
     ListLiteral literal = ParserTestCase.parse5("parseConstExpression", "const <A> []", []);
-    JUnitTestCase.assertNotNull(literal.modifier);
+    JUnitTestCase.assertNotNull(literal.constKeyword);
     JUnitTestCase.assertNotNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
     EngineTestCase.assertSize(0, literal.elements);
@@ -1432,7 +1432,7 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseConstExpression_listLiteral_untyped() {
     ListLiteral literal = ParserTestCase.parse5("parseConstExpression", "const []", []);
-    JUnitTestCase.assertNotNull(literal.modifier);
+    JUnitTestCase.assertNotNull(literal.constKeyword);
     JUnitTestCase.assertNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
     EngineTestCase.assertSize(0, literal.elements);
@@ -2346,7 +2346,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(fields.keyword);
     JUnitTestCase.assertEquals(type, fields.type);
     EngineTestCase.assertSize(3, fields.variables);
-    JUnitTestCase.assertEquals(staticKeyword, declaration.keyword);
+    JUnitTestCase.assertEquals(staticKeyword, declaration.staticKeyword);
     JUnitTestCase.assertNotNull(declaration.semicolon);
   }
   void test_parseInitializedIdentifierList_var() {
@@ -2364,7 +2364,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertEquals(varKeyword, fields.keyword);
     JUnitTestCase.assertNull(fields.type);
     EngineTestCase.assertSize(3, fields.variables);
-    JUnitTestCase.assertEquals(staticKeyword, declaration.keyword);
+    JUnitTestCase.assertEquals(staticKeyword, declaration.staticKeyword);
     JUnitTestCase.assertNotNull(declaration.semicolon);
   }
   void test_parseInstanceCreationExpression_qualifiedType() {
@@ -2431,7 +2431,7 @@ class SimpleParserTest extends ParserTestCase {
     Token token = TokenFactory.token(Keyword.CONST);
     TypeArgumentList typeArguments = null;
     ListLiteral literal = ParserTestCase.parse("parseListLiteral", <Object> [token, typeArguments], "[]");
-    JUnitTestCase.assertEquals(token, literal.modifier);
+    JUnitTestCase.assertEquals(token, literal.constKeyword);
     JUnitTestCase.assertEquals(typeArguments, literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
     EngineTestCase.assertSize(0, literal.elements);
@@ -2441,7 +2441,7 @@ class SimpleParserTest extends ParserTestCase {
     Token token = TokenFactory.token(Keyword.CONST);
     TypeArgumentList typeArguments = null;
     ListLiteral literal = ParserTestCase.parse("parseListLiteral", <Object> [token, typeArguments], "[ ]");
-    JUnitTestCase.assertEquals(token, literal.modifier);
+    JUnitTestCase.assertEquals(token, literal.constKeyword);
     JUnitTestCase.assertEquals(typeArguments, literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
     EngineTestCase.assertSize(0, literal.elements);
@@ -2449,7 +2449,7 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseListLiteral_multiple() {
     ListLiteral literal = ParserTestCase.parse("parseListLiteral", <Object> [null, null], "[1, 2, 3]");
-    JUnitTestCase.assertNull(literal.modifier);
+    JUnitTestCase.assertNull(literal.constKeyword);
     JUnitTestCase.assertNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
     EngineTestCase.assertSize(3, literal.elements);
@@ -2457,7 +2457,7 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseListLiteral_single() {
     ListLiteral literal = ParserTestCase.parse("parseListLiteral", <Object> [null, null], "[1]");
-    JUnitTestCase.assertNull(literal.modifier);
+    JUnitTestCase.assertNull(literal.constKeyword);
     JUnitTestCase.assertNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
     EngineTestCase.assertSize(1, literal.elements);
@@ -2465,7 +2465,7 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseListOrMapLiteral_list_noType() {
     ListLiteral literal = ParserTestCase.parse("parseListOrMapLiteral", <Object> [null], "[1]");
-    JUnitTestCase.assertNull(literal.modifier);
+    JUnitTestCase.assertNull(literal.constKeyword);
     JUnitTestCase.assertNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
     EngineTestCase.assertSize(1, literal.elements);
@@ -2473,7 +2473,7 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseListOrMapLiteral_list_type() {
     ListLiteral literal = ParserTestCase.parse("parseListOrMapLiteral", <Object> [null], "<int> [1]");
-    JUnitTestCase.assertNull(literal.modifier);
+    JUnitTestCase.assertNull(literal.constKeyword);
     JUnitTestCase.assertNotNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
     EngineTestCase.assertSize(1, literal.elements);
@@ -2481,7 +2481,7 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseListOrMapLiteral_map_noType() {
     MapLiteral literal = ParserTestCase.parse("parseListOrMapLiteral", <Object> [null], "{'1' : 1}");
-    JUnitTestCase.assertNull(literal.modifier);
+    JUnitTestCase.assertNull(literal.constKeyword);
     JUnitTestCase.assertNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
     EngineTestCase.assertSize(1, literal.entries);
@@ -2489,7 +2489,7 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseListOrMapLiteral_map_type() {
     MapLiteral literal = ParserTestCase.parse("parseListOrMapLiteral", <Object> [null], "<String, int> {'1' : 1}");
-    JUnitTestCase.assertNull(literal.modifier);
+    JUnitTestCase.assertNull(literal.constKeyword);
     JUnitTestCase.assertNotNull(literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
     EngineTestCase.assertSize(1, literal.entries);
@@ -2515,7 +2515,7 @@ class SimpleParserTest extends ParserTestCase {
         ASTFactory.typeName4("String", []),
         ASTFactory.typeName4("int", [])]);
     MapLiteral literal = ParserTestCase.parse("parseMapLiteral", <Object> [token, typeArguments], "{}");
-    JUnitTestCase.assertEquals(token, literal.modifier);
+    JUnitTestCase.assertEquals(token, literal.constKeyword);
     JUnitTestCase.assertEquals(typeArguments, literal.typeArguments);
     JUnitTestCase.assertNotNull(literal.leftBracket);
     EngineTestCase.assertSize(0, literal.entries);
@@ -3254,7 +3254,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(clause.stackTraceParameter);
     JUnitTestCase.assertNotNull(clause.body);
     JUnitTestCase.assertNull(statement.finallyKeyword);
-    JUnitTestCase.assertNull(statement.finallyClause);
+    JUnitTestCase.assertNull(statement.finallyBlock);
   }
   void test_parseTryStatement_catch_finally() {
     TryStatement statement = ParserTestCase.parse5("parseTryStatement", "try {} catch (e, s) {} finally {}", []);
@@ -3271,7 +3271,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(clause.stackTraceParameter);
     JUnitTestCase.assertNotNull(clause.body);
     JUnitTestCase.assertNotNull(statement.finallyKeyword);
-    JUnitTestCase.assertNotNull(statement.finallyClause);
+    JUnitTestCase.assertNotNull(statement.finallyBlock);
   }
   void test_parseTryStatement_finally() {
     TryStatement statement = ParserTestCase.parse5("parseTryStatement", "try {} finally {}", []);
@@ -3279,7 +3279,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.body);
     EngineTestCase.assertSize(0, statement.catchClauses);
     JUnitTestCase.assertNotNull(statement.finallyKeyword);
-    JUnitTestCase.assertNotNull(statement.finallyClause);
+    JUnitTestCase.assertNotNull(statement.finallyBlock);
   }
   void test_parseTryStatement_multiple() {
     TryStatement statement = ParserTestCase.parse5("parseTryStatement", "try {} on NPE catch (e) {} on Error {} catch (e) {}", []);
@@ -3287,7 +3287,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.body);
     EngineTestCase.assertSize(3, statement.catchClauses);
     JUnitTestCase.assertNull(statement.finallyKeyword);
-    JUnitTestCase.assertNull(statement.finallyClause);
+    JUnitTestCase.assertNull(statement.finallyBlock);
   }
   void test_parseTryStatement_on() {
     TryStatement statement = ParserTestCase.parse5("parseTryStatement", "try {} on Error {}", []);
@@ -3304,7 +3304,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(clause.stackTraceParameter);
     JUnitTestCase.assertNotNull(clause.body);
     JUnitTestCase.assertNull(statement.finallyKeyword);
-    JUnitTestCase.assertNull(statement.finallyClause);
+    JUnitTestCase.assertNull(statement.finallyBlock);
   }
   void test_parseTryStatement_on_catch() {
     TryStatement statement = ParserTestCase.parse5("parseTryStatement", "try {} on Error catch (e, s) {}", []);
@@ -3321,7 +3321,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(clause.stackTraceParameter);
     JUnitTestCase.assertNotNull(clause.body);
     JUnitTestCase.assertNull(statement.finallyKeyword);
-    JUnitTestCase.assertNull(statement.finallyClause);
+    JUnitTestCase.assertNull(statement.finallyBlock);
   }
   void test_parseTryStatement_on_catch_finally() {
     TryStatement statement = ParserTestCase.parse5("parseTryStatement", "try {} on Error catch (e, s) {} finally {}", []);
@@ -3338,7 +3338,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(clause.stackTraceParameter);
     JUnitTestCase.assertNotNull(clause.body);
     JUnitTestCase.assertNotNull(statement.finallyKeyword);
-    JUnitTestCase.assertNotNull(statement.finallyClause);
+    JUnitTestCase.assertNotNull(statement.finallyBlock);
   }
   void test_parseTypeAlias_class_implementsC() {
     ClassTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef A = Object with B implements C;");

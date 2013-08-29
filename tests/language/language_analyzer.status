@@ -54,8 +54,6 @@ private_member3_negative_test: fail
 pseudo_kw_test: fail
 
 
-
-
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
 block_scope_test: fail
 lazy_static3_test: fail

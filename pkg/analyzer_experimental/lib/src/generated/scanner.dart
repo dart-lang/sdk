@@ -830,7 +830,7 @@ abstract class AbstractScanner {
       return next;
     }
   }
-  int select3(int choice, TokenType yesType, TokenType noType, int offset) {
+  int select2(int choice, TokenType yesType, TokenType noType, int offset) {
     int next = advance();
     if (next == choice) {
       appendToken2(yesType, offset);
@@ -937,7 +937,7 @@ abstract class AbstractScanner {
     if (!hasDigit) {
       appendStringToken(TokenType.INT, getString(start, -2));
       if (0x2E == next) {
-        return select3(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, offset - 1);
+        return select2(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, offset - 1);
       }
       appendToken2(TokenType.PERIOD, offset - 1);
       return bigSwitch(next);
@@ -1232,7 +1232,10 @@ abstract class AbstractScanner {
   int tokenizeSingleLineComment(int next) {
     while (true) {
       next = advance();
-      if (0xA == next || 0xD == next || -1 == next) {
+      if (-1 == next) {
+        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, getString(_tokenStart, 0));
+        return next;
+      } else if (0xA == next || 0xD == next) {
         appendCommentToken(TokenType.SINGLE_LINE_COMMENT, getString(_tokenStart, -1));
         return next;
       }

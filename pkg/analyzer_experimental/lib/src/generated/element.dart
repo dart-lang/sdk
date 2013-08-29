@@ -275,6 +275,14 @@ abstract class ClassMemberElement implements Element {
    * @return the type in which this member is defined
    */
   ClassElement get enclosingElement;
+
+  /**
+   * Return `true` if this element is a static element. A static element is an element that is
+   * not associated with a particular instance, but rather with an entire library or class.
+   *
+   * @return `true` if this executable element is a static element
+   */
+  bool get isStatic;
 }
 /**
  * The interface `CompilationUnitElement` defines the behavior of elements representing a
@@ -5606,6 +5614,34 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
   bool get isAbstract => baseElement.isAbstract;
   bool get isGetter => baseElement.isGetter;
   bool get isSetter => baseElement.isSetter;
+  String toString() {
+    PropertyAccessorElement baseElement = this.baseElement;
+    List<ParameterElement> parameters = this.parameters;
+    FunctionType type = this.type;
+    JavaStringBuilder builder = new JavaStringBuilder();
+    if (isGetter) {
+      builder.append("get ");
+    } else {
+      builder.append("set ");
+    }
+    builder.append(baseElement.enclosingElement.displayName);
+    builder.append(".");
+    builder.append(baseElement.displayName);
+    builder.append("(");
+    int parameterCount = parameters.length;
+    for (int i = 0; i < parameterCount; i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
+      builder.append(parameters[i]).toString();
+    }
+    builder.append(")");
+    if (type != null) {
+      builder.append(" -> ");
+      builder.append(type.returnType);
+    }
+    return builder.toString();
+  }
   InterfaceType get definingType => super.definingType as InterfaceType;
 }
 /**
@@ -5908,6 +5944,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     return element.hashCode;
   }
+  bool isAssignableTo(Type2 type) => this.isSubtypeOf(type);
   bool isSubtypeOf(Type2 type) {
     if (type == null) {
       return false;
@@ -6705,17 +6742,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else if (typeS.isDartCoreFunction && elementT.getMethod("call") != null) {
       return true;
     }
-    InterfaceType supertype = elementT.supertype;
+    InterfaceType supertype = superclass;
     if (supertype != null && ((supertype as InterfaceTypeImpl)).isSubtypeOf2(typeS, visitedClasses)) {
       return true;
     }
-    List<InterfaceType> interfaceTypes = elementT.interfaces;
+    List<InterfaceType> interfaceTypes = interfaces;
     for (InterfaceType interfaceType in interfaceTypes) {
       if (((interfaceType as InterfaceTypeImpl)).isSubtypeOf2(typeS, visitedClasses)) {
         return true;
       }
     }
-    List<InterfaceType> mixinTypes = elementT.mixins;
+    List<InterfaceType> mixinTypes = mixins;
     for (InterfaceType mixinType in mixinTypes) {
       if (((mixinType as InterfaceTypeImpl)).isSubtypeOf2(typeS, visitedClasses)) {
         return true;

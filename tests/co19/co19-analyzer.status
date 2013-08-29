@@ -25,6 +25,13 @@ Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail
 # TBF: infinite look: class A {const A();final m = const A();}
 Language/12_Expressions/01_Constants_A17_t03: fail
 
+# analyzer issue https://code.google.com/p/dart/issues/detail?id=11534
+Language/15_Types/4_Interface_Types_A11_t01: Skip
+Language/15_Types/4_Interface_Types_A11_t02: Skip
+
+
+
+
 # co19 issue #380, Strings class has been removed
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: fail, OK
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: fail, OK

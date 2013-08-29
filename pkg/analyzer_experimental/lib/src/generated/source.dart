@@ -135,7 +135,7 @@ class SourceFactory {
    * @return the source representing the contained URI
    */
   Source resolveUri(Source containingSource, String containedUri) {
-    if (containedUri == null) {
+    if (containedUri == null || containedUri.isEmpty) {
       return null;
     }
     try {
