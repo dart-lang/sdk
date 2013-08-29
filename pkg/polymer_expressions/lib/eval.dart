@@ -74,24 +74,30 @@ void assign(Expression expr, Object value, Scope scope) {
   bool isIndex = false;
   var filters = <Expression>[]; // reversed order for assignment
 
-  while (expr is BinaryOperator && expr.operator == '|') {
-    filters.add(expr.right);
-    expr = expr.left;
+  while (expr is BinaryOperator) {
+    BinaryOperator op = expr;
+    if (op.operator != '|') {
+      break;
+    }
+    filters.add(op.right);
+    expr = op.left;
   }
 
   if (expr is Identifier) {
     expression = empty();
-    property = expr.value;
+    Identifier ident = expr;
+    property = ident.value;
   } else if (expr is Invoke) {
-    expression = expr.receiver;
-    if (expr.method == '[]') {
-      if (expr.arguments[0] is! Literal) notAssignable();
-      Literal l = expr.arguments[0];
+    Invoke invoke = expr;
+    expression = invoke.receiver;
+    if (invoke.method == '[]') {
+      if (invoke.arguments[0] is! Literal) notAssignable();
+      Literal l = invoke.arguments[0];
       property = l.value;
       isIndex = true;
-    } else if (expr.method != null) {
-      if (expr.arguments != null) notAssignable();
-      property = expr.method;
+    } else if (invoke.method != null) {
+      if (invoke.arguments != null) notAssignable();
+      property = invoke.method;
     } else {
       notAssignable();
     }
@@ -418,7 +424,7 @@ class ParenthesizedObserver extends ExpressionObserver<ParenthesizedExpression>
     implements ParenthesizedExpression {
   final ExpressionObserver child;
 
-  ParenthesizedObserver(ExpressionObserver expr, this.child) : super(expr);
+  ParenthesizedObserver(ParenthesizedExpression expr, this.child) : super(expr);
 
 
   _updateSelf(Scope scope) {

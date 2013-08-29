@@ -84,6 +84,8 @@ class MapLiteral extends Expression {
   String toString() => "{$entries}";
 
   bool operator ==(o) => o is MapLiteral && _listEquals(o.entries, entries);
+
+  int get hashCode => _hashList(entries);
 }
 
 class MapLiteralEntry extends Expression {
@@ -98,6 +100,8 @@ class MapLiteralEntry extends Expression {
 
   bool operator ==(o) => o is MapLiteralEntry && o.key == key
       && o.entryValue == entryValue;
+
+  int get hashCode => _JenkinsSmiHash.hash2(key.hashCode, entryValue.hashCode);
 }
 
 class ParenthesizedExpression extends Expression {
@@ -140,6 +144,8 @@ class UnaryOperator extends Expression {
 
   bool operator ==(o) => o is UnaryOperator && o.operator == operator
       && o.child == child;
+
+  int get hashCode => _JenkinsSmiHash.hash2(operator.hashCode, child.hashCode);
 }
 
 class BinaryOperator extends Expression {
@@ -155,6 +161,9 @@ class BinaryOperator extends Expression {
 
   bool operator ==(o) => o is BinaryOperator && o.operator == operator
       && o.left == left && o.right == right;
+
+  int get hashCode => _JenkinsSmiHash.hash3(operator.hashCode, left.hashCode,
+      right.hashCode);
 }
 
 class InExpression extends Expression {
@@ -169,6 +178,8 @@ class InExpression extends Expression {
 
   bool operator ==(o) => o is InExpression && o.left == left
       && o.right == right;
+
+  int get hashCode => _JenkinsSmiHash.hash2(left.hashCode, right.hashCode);
 }
 
 /**
@@ -195,6 +206,9 @@ class Invoke extends Expression {
       && o.receiver == receiver
       && o.method == method
       && _listEquals(o.arguments, arguments);
+
+  int get hashCode => _JenkinsSmiHash.hash3(receiver.hashCode, method.hashCode,
+      _hashList(arguments));
 }
 
 bool _listEquals(List a, List b) {
@@ -205,4 +219,33 @@ bool _listEquals(List a, List b) {
     if (a[i] != b[i]) return false;
   }
   return true;
+}
+
+int _hashList(List l) {
+  var hash = l.fold(0,
+      (hash, item) => _JenkinsSmiHash.combine(hash, item.hashCode));
+  return _JenkinsSmiHash.finish(hash);
+}
+
+class _JenkinsSmiHash {
+  // TODO: Bug 11617- This class should be optimized and standardized elsewhere.
+
+  static int combine(int hash, int value) {
+    hash = 0x1fffffff & (hash + value);
+    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+    return hash ^ (hash >> 6);
+  }
+
+  static int finish(int hash) {
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) <<  3));
+    hash = hash ^ (hash >> 11);
+    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  }
+
+  static int hash2(a, b) => finish(combine(combine(0, a), b));
+
+  static int hash3(a, b, c) => finish(combine(combine(combine(0, a), b), c));
+
+  static int hash4(a, b, c, d) =>
+      finish(combine(combine(combine(combine(0, a), b), c), d));
 }
