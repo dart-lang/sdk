@@ -30,7 +30,8 @@ import 'utils.dart';
  *
  * Adds emitted error/warning to [messages], if [messages] is supplied.
  */
-Document parseHtml(contents, String sourcePath, Messages messages) {
+Document parseHtml(contents, String sourcePath, Messages messages,
+    bool checkDocType) {
   var parser = new HtmlParser(contents, generateSpans: true,
       sourceUrl: sourcePath);
   var document = parser.parse();
@@ -38,7 +39,9 @@ Document parseHtml(contents, String sourcePath, Messages messages) {
   // Note: errors aren't fatal in HTML (unless strict mode is on).
   // So just print them as warnings.
   for (var e in parser.errors) {
-    messages.warning(e.message, e.span);
+    if (checkDocType || e.errorCode != 'expected-doctype-but-got-start-tag') {
+      messages.warning(e.message, e.span);
+    }
   }
   return document;
 }
@@ -117,7 +120,7 @@ class Compiler {
     _tasks = new FutureGroup();
     _processed = new Set();
     _processed.add(inputFile);
-    _tasks.add(_parseHtmlFile(new UrlInfo(inputFile, inputFile, null)));
+    _tasks.add(_parseHtmlFile(new UrlInfo(inputFile, inputFile, null), true));
     return _tasks.future;
   }
 
@@ -182,7 +185,7 @@ class Compiler {
   }
 
   /** Parse an HTML file. */
-  Future _parseHtmlFile(UrlInfo inputUrl) {
+  Future _parseHtmlFile(UrlInfo inputUrl, [bool checkDocType = false]) {
     var filePath = inputUrl.resolvedPath;
     return fileSystem.readTextOrBytes(filePath)
         .catchError((e) => _readError(e, inputUrl))
@@ -190,7 +193,7 @@ class Compiler {
           if (source == null) return;
           var file = new SourceFile(filePath);
           file.document = _time('Parsed', filePath,
-              () => parseHtml(source, filePath, _messages));
+              () => parseHtml(source, filePath, _messages, checkDocType));
           _processHtmlFile(inputUrl, file);
         });
   }
