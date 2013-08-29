@@ -295,9 +295,6 @@ class SimpleTypesInferrer extends TypesInferrer {
   }
   TypeMask getTypeOfElement(Element element) {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
-    if (element.isField() && compiler.backend.isNeededForReflection(element)) {
-      return compiler.typesTask.dynamicType;
-    }
     return internal.getTypeOfElement(element.implementation);
   }
   TypeMask getTypeOfNode(Element owner, Node node) {

@@ -633,7 +633,9 @@ abstract class Compiler implements DiagnosticListener {
 
   bool get compileAll => false;
 
-  bool get disableTypeInference => disableTypeInferenceFlag;
+  bool get disableTypeInference {
+    return disableTypeInferenceFlag || disableTypeInferenceForMirrors;
+  }
 
   int getNextFreeClassId() => nextFreeClassId++;
 
