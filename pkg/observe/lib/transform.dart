@@ -173,8 +173,7 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
 
   for (var member in cls.members) {
     if (member is FieldDeclaration) {
-      bool isStatic = _hasKeyword(member.keyword, Keyword.STATIC);
-      if (isStatic) {
+      if (member.isStatic) {
         if (_hasObservable(member)){
           logger.warning('Static fields can no longer be observable. '
               'Observable fields should be put in an observable objects.',
