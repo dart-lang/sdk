@@ -134,6 +134,7 @@ io/options_test: Fail, OK # Cannot pass options to d8.
 [ $compiler == dart2js && $runtime == none ]
 io/options_test: Fail
 medium_integer_test: Pass # The test only fails at runtime, not at compilation.
+oom_error_stacktrace_test: Pass # The test only fails at runtime.
 
 [ $compiler == dart2js && $browser ]
 *: Skip
