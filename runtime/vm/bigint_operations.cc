@@ -152,6 +152,7 @@ RawBigint* BigintOperations::FromHexCString(const char* hex_string,
 
 RawBigint* BigintOperations::FromDecimalCString(const char* str,
                                                 Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
   // Read 8 digits a time. 10^8 < 2^27.
   const int kDigitsPerIteration = 8;
   const Chunk kTenMultiplier = 100000000;
@@ -178,6 +179,7 @@ RawBigint* BigintOperations::FromDecimalCString(const char* str,
   // 'increment' to the new result.
   const Bigint& increment = Bigint::Handle(Bigint::Allocate(1));
   while (str_pos < str_length - 1) {
+    HANDLESCOPE(isolate);
     Chunk digit = 0;
     for (intptr_t i = 0; i < kDigitsPerIteration; i++) {
       char c = str[str_pos++];
@@ -1569,6 +1571,7 @@ void BigintOperations::DivideRemainder(
     //     dividend: 56822123, and divisor: 563  (with t == 5) is bad.
     //     dividend:  6822123, and divisor: 563  (with t == 5) is ok.
 
+    HANDLESCOPE(isolate);
     // The dividend has changed. So recompute its length.
     dividend_length = dividend.Length();
     Chunk dividend_digit;
@@ -1614,6 +1617,7 @@ void BigintOperations::DivideRemainder(
     target.SetChunkAt(1, ((i - 1) < 0) ? 0 : dividend.GetChunkAt(i - 1));
     target.SetChunkAt(2, dividend_digit);
     do {
+      HANDLESCOPE(isolate);
       quotient_digit = (quotient_digit - 1) & kDigitMask;
       estimation_product = MultiplyWithDigit(short_divisor, quotient_digit);
     } while (UnsignedCompareNonClamped(estimation_product, target) > 0);
