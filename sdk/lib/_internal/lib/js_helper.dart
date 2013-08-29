@@ -346,10 +346,9 @@ class Primitives {
         }
         if (radix < 10 || match[decimalIndex] == null) {
           // We know that the characters must be ASCII as otherwise the
-          // regexp wouldn't have matched. Calling toLowerCase is thus
-          // guaranteed to be a safe operation. If it wasn't ASCII, then
-          // "İ" would become "i", and we would accept it for radices greater
-          // than 18.
+          // regexp wouldn't have matched. Lowercasing by doing `| 0x20` is thus
+          // guaranteed to be a safe operation, since it preserves digits
+          // and lower-cases ASCII letters.
           int maxCharCode;
           if (radix <= 10) {
             // Allow all digits less than the radix. For example 0, 1, 2 for
@@ -357,15 +356,16 @@ class Primitives {
             // "0".codeUnitAt(0) + radix - 1;
             maxCharCode = 0x30 + radix - 1;
           } else {
-            // Characters are located after the digits in ASCII. Therefore we
+            // Letters are located after the digits in ASCII. Therefore we
             // only check for the character code. The regexp above made already
             // sure that the string does not contain anything but digits or
-            // characters.
-            // "0".codeUnitAt(0) + radix - 1;
+            // letters.
+            // "a".codeUnitAt(0) + (radix - 10) - 1;
             maxCharCode = 0x61 + radix - 10 - 1;
           }
-          String digitsPart = match[digitsIndex].toLowerCase();
+          String digitsPart = match[digitsIndex];
           for (int i = 0; i < digitsPart.length; i++) {
+            int characterCode = digitsPart.codeUnitAt(0) | 0x20;
             if (digitsPart.codeUnitAt(i) > maxCharCode) {
               return handleError(source);
             }
