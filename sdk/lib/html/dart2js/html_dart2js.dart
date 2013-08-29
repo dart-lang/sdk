@@ -16721,7 +16721,7 @@ class ModElement extends HtmlElement native "HTMLModElement" {
 
 
 @DomName('MouseEvent')
-class MouseEvent extends UIEvent native "MouseEvent,DragEvent" {
+class MouseEvent extends UIEvent native "MouseEvent,DragEvent,PointerEvent" {
   factory MouseEvent(String type,
       {Window view, int detail: 0, int screenX: 0, int screenY: 0,
       int clientX: 0, int clientY: 0, int button: 0, bool canBubble: true,
