@@ -39,6 +39,7 @@ void printHelp() {
   po <id> Print object info for given id
   eval obj <id> <expr> Evaluate expr on object id
   eval cls <id> <expr> Evaluate expr on class id
+  eval lib <id> <expr> Evaluate expr in toplevel of library id
   pl <id> <idx> [<len>] Print list element/slice
   pc <id> Print class info for given id
   ll  List loaded libraries
@@ -138,6 +139,8 @@ void processCommand(String cmdLine) {
       target = "objectId";
     } else if (target == "cls") {
       target = "classId";
+    } else if (target == "lib") {
+      target = "libraryId";
     } else {
       huh();
       return;

@@ -7242,6 +7242,20 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 }
 
 
+RawObject* Library::Evaluate(const String& expr) const {
+  // Make a fake top-level class and evaluate the expression
+  // as a static function of the class.
+  Script& script = Script::Handle();
+  script = Script::New(Symbols::Empty(),
+                       Symbols::Empty(),
+                       RawScript::kSourceTag);
+  Class& temp_class =
+      Class::Handle(Class::New(Symbols::TopLevel(), script, 0));
+  temp_class.set_library(*this);
+  return temp_class.Evaluate(expr);
+}
+
+
 void Library::InitNativeWrappersLibrary(Isolate* isolate) {
   static const int kNumNativeWrappersClasses = 4;
   ASSERT(kNumNativeWrappersClasses > 0 && kNumNativeWrappersClasses < 10);

@@ -2350,6 +2350,8 @@ class Library : public Object {
 
   static RawLibrary* New(const String& url);
 
+  RawObject* Evaluate(const String& expr) const;
+
   // Library scope name dictionary.
   //
   // TODO(turnidge): The Lookup functions are not consistent in how
