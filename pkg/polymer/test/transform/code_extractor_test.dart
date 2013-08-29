@@ -18,7 +18,7 @@ void main() {
       'a|test.html': '<!DOCTYPE html><html></html>',
     });
 
-  testPhases('single script', [[new InlineCodeExtractor()]], {
+  testPhases('single script, no lib', [[new InlineCodeExtractor()]], {
       'a|test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart">main() { }</script>',
@@ -29,14 +29,28 @@ void main() {
           '</head><body></body></html>',
 
       'a|test.html.0.dart':
-          'main() { }',
+          'library test_html_0;\nmain() { }',
+    });
+
+  testPhases('single script, with lib', [[new InlineCodeExtractor()]], {
+      'a|test.html':
+          '<!DOCTYPE html><html><head>'
+          '<script type="application/dart">library f;\nmain() { }</script>',
+    }, {
+      'a|test.html':
+          '<!DOCTYPE html><html><head>'
+          '<script type="application/dart" src="test.html.0.dart"></script>'
+          '</head><body></body></html>',
+
+      'a|test.html.0.dart':
+          'library f;\nmain() { }',
     });
 
   testPhases('multiple scripts', [[new InlineCodeExtractor()]], {
       'a|test.html':
           '<!DOCTYPE html><html><head>'
-          '<script type="application/dart">main1() { }</script>'
-          '<script type="application/dart">main2() { }</script>',
+          '<script type="application/dart">library a1;\nmain1() { }</script>'
+          '<script type="application/dart">library a2;\nmain2() { }</script>',
     }, {
       'a|test.html':
           '<!DOCTYPE html><html><head>'
@@ -45,10 +59,10 @@ void main() {
           '</head><body></body></html>',
 
       'a|test.html.0.dart':
-          'main1() { }',
+          'library a1;\nmain1() { }',
 
       'a|test.html.1.dart':
-          'main2() { }',
+          'library a2;\nmain2() { }',
     });
 
   testPhases('multiple deeper scripts', [[new InlineCodeExtractor()]], {
@@ -71,12 +85,12 @@ void main() {
           '</div></div></body></html>',
 
       'a|test.html.0.dart':
-          'main1() { }',
+          'library test_html_0;\nmain1() { }',
 
       'a|test.html.1.dart':
-          'main2() { }',
+          'library test_html_1;\nmain2() { }',
 
       'a|test.html.2.dart':
-          'main3() { }',
+          'library test_html_2;\nmain3() { }',
     });
 }

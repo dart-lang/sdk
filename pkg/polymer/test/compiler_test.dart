@@ -39,18 +39,6 @@ main() {
         'foo.html': 1,
         'bar.html': 1
       }), reason: 'Actual:\n  ${fs.readCount}');
-
-      var outputs = compiler.output.map((o) => o.path);
-      expect(outputs, equals([
-        'foo.html.dart',
-        'foo.html.dart.map',
-        'bar.html.dart',
-        'bar.html.dart.map',
-        'index.html.dart',
-        'index.html.dart.map',
-        'index.html_bootstrap.dart',
-        'index.html',
-      ].map((p) => path.join('out', p))));
     }));
   });
 
@@ -75,9 +63,6 @@ main() {
 
         MockFileSystem fs = compiler.fileSystem;
         expect(fs.readCount, { 'index.html': 1, 'notfound.dart': 1 });
-
-        var outputs = compiler.output.map((o) => o.path.toString());
-        expect(outputs, []);
       }));
     });
 
@@ -102,9 +87,6 @@ main() {
 
         MockFileSystem fs = compiler.fileSystem;
         expect(fs.readCount, { 'index.html': 1, 'notfound.html': 1 });
-
-        var outputs = compiler.output.map((o) => o.path.toString());
-        expect(outputs, []);
       }));
     });
 
@@ -132,9 +114,6 @@ main() {
         MockFileSystem fs = compiler.fileSystem;
         expect(fs.readCount,
             { 'index.html': 1, 'foo.html': 1, 'notfound.dart': 1  });
-
-        var outputs = compiler.output.map((o) => o.path.toString());
-        expect(outputs, []);
       }));
     });
   });

@@ -10,15 +10,18 @@ import 'package:observe/transform.dart';
 import 'transform/code_extractor.dart';
 import 'transform/import_inliner.dart';
 import 'transform/script_compactor.dart';
+import 'transform/polyfill_injector.dart';
 
 export 'transform/code_extractor.dart';
 export 'transform/import_inliner.dart';
 export 'transform/script_compactor.dart';
+export 'transform/polyfill_injector.dart';
 
 /** Phases to deploy a polymer application. */
 var phases = [
   [new InlineCodeExtractor()],
   [new ObservableTransformer()],
   [new ImportedElementInliner()],
-  [new ScriptCompactor()]
+  [new ScriptCompactor()],
+  [new PolyfillInjector()]
 ];

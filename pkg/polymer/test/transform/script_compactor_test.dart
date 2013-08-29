@@ -27,8 +27,7 @@ void main() {
           '<!DOCTYPE html><html><head></head><body>'
           '<script type="application/dart" '
           'src="test.html_bootstrap.dart"></script>'
-          '<script type="text/javascript" '
-          'src="packages/browser/dart.js"></script>'
+          '<script src="packages/browser/dart.js"></script>'
           '</body></html>',
 
       'a|test.html_bootstrap.dart':
@@ -61,8 +60,7 @@ void main() {
           '<!DOCTYPE html><html><head></head><body><div></div>'
           '<script type="application/dart" '
           'src="test.html_bootstrap.dart"></script>'
-          '<script type="text/javascript" '
-          'src="packages/browser/dart.js"></script>'
+          '<script src="packages/browser/dart.js"></script>'
           '</body></html>',
 
       'a|test.html_bootstrap.dart':

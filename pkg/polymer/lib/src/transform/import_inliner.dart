@@ -8,15 +8,17 @@ library polymer.src.transform.import_inliner;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
+import 'package:path/path.dart' as path;
 import 'package:html5lib/dom.dart' show Document, Node, DocumentFragment;
+import 'package:html5lib/dom_parsing.dart' show TreeVisitor;
 import 'common.dart';
 
 /** Recursively inlines polymer-element definitions from html imports. */
 // TODO(sigmund): make sure we match semantics of html-imports for tags other
 // than polymer-element (see dartbug.com/12613).
 class ImportedElementInliner extends Transformer {
-  Future<bool> isPrimary(Asset input) =>
-      new Future.value(input.id.extension == ".html");
+  /** Only run this transformer on .html files. */
+  final String allowedExtensions = ".html";
 
   Future apply(Transform transform) {
     var seen = new Set<AssetId>();
@@ -78,14 +80,91 @@ class ImportedElementInliner extends Transformer {
    * Loads an asset identified by [id], visits its imports and collects it's
    * polymer-element definitions.
    */
-  Future _collectPolymerElements(
-      AssetId id, Transform transform, Set<AssetId> seen, List elements) {
-    return transform.readInputAsString(id)
-        .then((content) => parseHtml(
-              content, id.path, transform.logger, checkDocType: false))
-        .then((document) {
-          return _visitImports(document, id, transform, seen, elements)
-            .then((_) => elements.addAll(document.queryAll('polymer-element')));
-        });
+  Future _collectPolymerElements(AssetId id, Transform transform,
+      Set<AssetId> seen, List elements) {
+    return transform.readInputAsString(id).then((content) {
+      var document = parseHtml(
+          content, id.path, transform.logger, checkDocType: false);
+      return _visitImports(document, id, transform, seen, elements).then((_) {
+        var normalizer = new _UrlNormalizer(transform, id);
+        for (var element in document.queryAll('polymer-element')) {
+          normalizer.visit(document);
+          elements.add(element);
+        }
+      });
+    });
   }
 }
+
+/** Internally adjusts urls in the html that we are about to inline. */
+class _UrlNormalizer extends TreeVisitor {
+  final Transform transform;
+
+  /** Asset where the original content (and original url) was found. */
+  final AssetId sourceId;
+
+  _UrlNormalizer(this.transform, this.sourceId);
+
+  visitElement(Element node) {
+    for (var key in node.attributes.keys) {
+      if (_urlAttributes.contains(key)) {
+        var url = node.attributes[key];
+        if (url != null && url != '') {
+          node.attributes[key] = _newUrl(url, node.sourceSpan);
+        }
+      }
+    }
+    super.visitElement(node);
+  }
+
+  _newUrl(String href, Span span) {
+    var uri = Uri.parse(href);
+    if (uri.isAbsolute) return href;
+    if (!uri.scheme.isEmpty) return href;
+    if (!uri.host.isEmpty) return href;
+    if (uri.path.isEmpty) return href;  // Implies standalone ? or # in URI.
+    if (path.isAbsolute(href)) return href;
+
+    var id = resolve(sourceId, href, transform.logger, span);
+    var primaryId = transform.primaryInput.id;
+
+    if (id.path.startsWith('lib/')) {
+      return 'packages/${id.package}/${id.path.substring(4)}';
+    }
+
+    if (id.path.startsWith('asset/')) {
+      return 'assets/${id.package}/${id.path.substring(6)}';
+    }
+
+    if (primaryId.package != id.package) {
+      // Techincally we shouldn't get there
+      logger.error("don't know how to include $id from $primaryId", span);
+      return null;
+    }
+    
+    var builder = path.url;
+    return builder.relative(builder.join('/', id.path),
+        from: builder.join('/', builder.dirname(primaryId.path)));
+  }
+}
+
+/**
+ * HTML attributes that expect a URL value.
+ * <http://dev.w3.org/html5/spec/section-index.html#attributes-1>
+ *
+ * Every one of these attributes is a URL in every context where it is used in
+ * the DOM. The comments show every DOM element where an attribute can be used.
+ */
+const _urlAttributes = const [
+  'action',     // in form
+  'background', // in body
+  'cite',       // in blockquote, del, ins, q
+  'data',       // in object
+  'formaction', // in button, input
+  'href',       // in a, area, link, base, command
+  'icon',       // in command
+  'manifest',   // in html
+  'poster',     // in video
+  'src',        // in audio, embed, iframe, img, input, script, source, track,
+                //    video
+];

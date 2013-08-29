@@ -26,7 +26,6 @@ export 'package:observe/src/microtask.dart';
 export 'observe.dart';
 export 'observe_html.dart';
 export 'polymer_element.dart';
-export 'safe_html.dart';
 
 
 /** Annotation used to automatically register polymer elements. */

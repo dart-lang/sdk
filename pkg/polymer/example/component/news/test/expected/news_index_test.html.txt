@@ -1,8 +1,8 @@
 Content-Type: text/plain
-<html><head><style shadowcssshim="">template { display: none; }</style>
+<html><head>
   <title>Simple Web Components Example</title>
   
-  <script src="../../packages/polymer/testing/testing.js"></script>
+  <script src="packages/polymer/testing/testing.js"></script>
 <style>template,
 thead[template],
 tbody[template],
@@ -16,7 +16,9 @@ col[template],
 option[template] {
   display: none;
 }</style></head>
-<body><polymer-element name="x-news" extends="ul">
+<body><script src="packages/shadow_dom/shadow_dom.min.js"></script>
+<script src="packages/browser/interop.js"></script>
+<polymer-element name="x-news" extends="ul">
     <template>
         <style scoped="">
             div.breaking {
@@ -44,20 +46,9 @@ option[template] {
     </template>
     
 </polymer-element>
-
 <h1>Simple Web Components Example</h1>
 <ul is="x-news"><shadow-root>
-        <style scoped="">
-            div.breaking {
-                color: Red;
-                font-size: 20px;
-                border: 1px dashed Purple;
-            }
-            div.other {
-                padding: 2px 0 0 0;
-                border: 1px solid Cyan;
-            }
-        </style>
+        <style scoped="">/* style hidden by testing.js */</style>
         <div class="breaking">
             <h2>Breaking Stories</h2>
             <ul>
@@ -81,6 +72,4 @@ option[template] {
 
 
 
-<script type="text/javascript" src="packages/shadow_dom/shadow_dom.debug.js"></script>
-<script type="text/javascript" src="packages/browser/interop.js"></script>
 <script type="application/dart" src="news_index_test.html_bootstrap.dart"></script></body></html>

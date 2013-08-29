@@ -56,9 +56,6 @@ class CompilerOptions {
   /** Use CSS file for CSS Reset. */
   final String resetCssFile;
 
-  /** Whether to analyze the input for warnings without generating any code. */
-  final bool analysisOnly;
-
   // We could make this faster, if it ever matters.
   factory CompilerOptions() => parse(['']);
 
@@ -76,7 +73,6 @@ class CompilerOptions {
       componentsOnly = args['components_only'],
       emulateScopedCss = args['scoped-css'],
       resetCssFile = args['css-reset'],
-      analysisOnly = !args['deploy'],
       inputFile = args.rest.length > 0 ? args.rest[0] : null;
 
   /**
@@ -116,8 +112,8 @@ class CompilerOptions {
       ..addFlag('scoped-css', help: 'Emulate scoped styles with CSS polyfill',
           defaultsTo: false)
       ..addOption('css-reset', abbr: 'r', help: 'CSS file used to reset CSS')
-      ..addFlag('deploy', help: 'Emit code used for deploying a polymer app,'
-          ' if false just show warnings and errors (default)',
+      // TODO(sigmund): remove this flag 
+      ..addFlag('deploy', help: '(deprecated) currently a noop',
           defaultsTo: false, negatable: false)
       ..addOption('out', abbr: 'o', help: 'Directory where to generate files'
           ' (defaults to the same directory as the source file)')

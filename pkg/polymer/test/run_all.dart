@@ -15,12 +15,12 @@ import 'package:polymer/testing/content_shell_test.dart';
 
 import 'css_test.dart' as css_test;
 import 'compiler_test.dart' as compiler_test;
-import 'paths_test.dart' as paths_test;
 import 'utils_test.dart' as utils_test;
+import 'transform/all_phases_test.dart' as all_phases_test;
 import 'transform/code_extractor_test.dart' as code_extractor_test;
 import 'transform/import_inliner_test.dart' as import_inliner_test;
+import 'transform/polyfill_injector_test.dart' as polyfill_injector_test;
 import 'transform/script_compactor_test.dart' as script_compactor_test;
-import 'transform/all_phases_test.dart' as all_phases_test;
 
 main() {
   var args = new Options().arguments;
@@ -36,11 +36,12 @@ main() {
 
   addGroup('compiler_test.dart', compiler_test.main);
   addGroup('css_test.dart', css_test.main);
-  addGroup('paths_test.dart', paths_test.main);
   addGroup('utils_test.dart', utils_test.main);
   addGroup('transform/code_extractor_test.dart', code_extractor_test.main);
   addGroup('transform/import_inliner_test.dart', import_inliner_test.main);
   addGroup('transform/script_compactor_test.dart', script_compactor_test.main);
+  addGroup('transform/polyfill_injector_test.dart',
+      polyfill_injector_test.main);
   addGroup('transform/all_phases_test.dart', all_phases_test.main);
 
   endToEndTests('data/unit/', 'data/out');
@@ -55,32 +56,13 @@ main() {
   exampleTest('../../../samples/third_party/todomvc');
 }
 
-void exampleTest(String path, [List<String> args]) {
-  renderTests(path, '$path/test', '$path/test/expected', '$path/test/out',
-      arguments: args);
-}
-
-void cssCompileMangleTest(String path, String pattern,
-    [bool deleteDirectory = true]) {
-  renderTests(path, path, '$path/expected', '$path/out',
-      arguments: ['--css-mangle'], pattern: pattern,
-      deleteDir: deleteDirectory);
-}
-
-void cssCompilePolyFillTest(String path, String pattern, String cssReset,
-    [bool deleteDirectory = true]) {
-  var args = ['--no-css-mangle'];
-  if (cssReset != null) {
-    args.addAll(['--css-reset', '${path}/${cssReset}']);
-  }
-  renderTests(path, path, '$path/expected', '$path/out',
-      arguments: args, pattern: pattern, deleteDir: deleteDirectory);
-}
-
-void cssCompileShadowDOMTest(String path, String pattern,
-    [bool deleteDirectory = true]) {
-  var args = ['--no-css'];
-  renderTests(path, path, '$path/expected', '$path/out',
-      arguments: args, pattern: pattern,
-      deleteDir: deleteDirectory);
+void exampleTest(String path, [List args]) {
+  // TODO(sigmund): renderTests currently contatenates [path] with the out
+  // folder. This can be a problem with relative paths that go up (like todomvc
+  // above, which has '../../../'). If we continue running tests with
+  // test/run.sh, we should fix this. For now we work around this problem by
+  // using a long path 'data/out/example/test'. That way we avoid dumping output
+  // in the source-tree.
+  renderTests(path, '$path/test', '$path/test/expected',
+      'data/out/example/test', arguments: args);
 }

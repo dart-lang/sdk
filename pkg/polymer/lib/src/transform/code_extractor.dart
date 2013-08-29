@@ -7,6 +7,10 @@ library polymer.src.transformers;
 
 import 'dart:async';
 
+import 'package:analyzer_experimental/src/generated/ast.dart';
+import 'package:analyzer_experimental/src/generated/error.dart';
+import 'package:analyzer_experimental/src/generated/parser.dart';
+import 'package:analyzer_experimental/src/generated/scanner.dart';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 
@@ -17,8 +21,9 @@ import 'common.dart';
  * separate file for each.
  */
 class InlineCodeExtractor extends Transformer {
-  Future<bool> isPrimary(Asset input) =>
-      new Future.value(input.id.extension == ".html");
+  /** Only run this transformer on .html files. */
+  final String allowedExtensions = ".html";
+
 
   Future apply(Transform transform) {
     var inputId = transform.primaryInput.id;
@@ -40,14 +45,18 @@ class InlineCodeExtractor extends Transformer {
           continue;
         }
 
-        // TODO(sigmund): should we automatically include a library directive
-        // if it doesn't have one?
         var filename = path.url.basename(inputId.path);
         // TODO(sigmund): ensure this filename is unique (dartbug.com/12618).
         tag.attributes['src'] = '$filename.$count.dart';
         var textContent = tag.nodes.first;
+        var code = textContent.value;
         var id = inputId.addExtension('.$count.dart');
-        transform.addOutput(new Asset.fromString(id, textContent.value));
+        if (!_hasLibraryDirective(code)) {
+          var libname = path.withoutExtension(id.path)
+              .replaceAll(new RegExp('[-./]'), '_');
+          code = "library $libname;\n$code";
+        }
+        transform.addOutput(new Asset.fromString(id, code));
         textContent.remove();
         count++;
       }
@@ -55,4 +64,17 @@ class InlineCodeExtractor extends Transformer {
           htmlChanged ? document.outerHtml : content));
     });
   }
+}
+
+/** Parse [code] and determine whether it has a library directive. */
+bool _hasLibraryDirective(String code) {
+  var errorListener = new _ErrorCollector();
+  var token = new StringScanner(null, code, errorListener).tokenize();
+  var unit = new Parser(null, errorListener).parseCompilationUnit(token);
+  return unit.directives.any((d) => d is LibraryDirective);
+}
+
+class _ErrorCollector extends AnalysisErrorListener {
+  final errors = <AnalysisError>[];
+  onError(error) => errors.add(error);
 }

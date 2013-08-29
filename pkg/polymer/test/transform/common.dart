@@ -95,3 +95,7 @@ testPhases(String testName, List<List<Transformer>> phases,
   });
 }
 
+const SHADOW_DOM_TAG =
+    '<script src="packages/shadow_dom/shadow_dom.min.js"></script>\n';
+
+const INTEROP_TAG = '<script src="packages/browser/interop.js"></script>\n';

@@ -71,6 +71,17 @@
         }
       }
 
+      // We remove the contents of style tags so that we can compare both runs
+      // with and without the runtmie css shim. We keep the STYLE right under
+      // HEAD, because it is not affected by the shim.
+      if (node.tagName == 'STYLE') {
+        if (node.attributes['shadowcssshim'] != null) {
+          node.parentNode.removeChild(node);
+        } else if (node.parentNode.tagName != "HEAD") {
+          node.textContent = '/* style hidden by testing.js */'
+        }
+      }
+
       if (node.tagName == 'SCRIPT') {
         if (node.textContent.indexOf('_DART_TEMPORARY_ATTACHED') >= 0)  {
           node.parentNode.removeChild(node);

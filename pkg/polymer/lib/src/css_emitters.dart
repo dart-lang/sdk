@@ -8,41 +8,7 @@ import 'package:csslib/visitor.dart' show Visitor, CssPrinter, ElementSelector,
        UriTerm, Selector, HostDirective, SimpleSelectorSequence, StyleSheet;
 
 import 'info.dart';
-import 'paths.dart' show PathMapper;
 import 'utils.dart';
-
-void rewriteCssUris(PathMapper pathMapper, String cssPath, bool rewriteUrls,
-    StyleSheet styleSheet) {
-  new _UriVisitor(pathMapper, cssPath, rewriteUrls).visitTree(styleSheet);
-}
-
-/** Compute each CSS URI resource relative from the generated CSS file. */
-class _UriVisitor extends Visitor {
-  /**
-   * Relative path from the output css file to the location of the original
-   * css file that contained the URI to each resource.
-   */
-  final String _pathToOriginalCss;
-
-  factory _UriVisitor(PathMapper pathMapper, String cssPath, bool rewriteUrl) {
-    var cssDir = path.dirname(cssPath);
-    var outCssDir = rewriteUrl ? pathMapper.outputDirPath(cssPath)
-        : path.dirname(cssPath);
-    return new _UriVisitor._internal(path.relative(cssDir, from: outCssDir));
-  }
-
-  _UriVisitor._internal(this._pathToOriginalCss);
-
-  void visitUriTerm(UriTerm node) {
-    // Don't touch URIs that have any scheme (http, etc.).
-    var uri = Uri.parse(node.text);
-    if (uri.host != '') return;
-    if (uri.scheme != '' && uri.scheme != 'package') return;
-
-    node.text = pathToUrl(
-        path.normalize(path.join(_pathToOriginalCss, node.text)));
-  }
-}
 
 
 /** Emit the contents of the style tag outside of a component. */

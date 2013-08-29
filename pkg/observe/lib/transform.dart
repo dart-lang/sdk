@@ -9,12 +9,13 @@
 library observe.transform;
 
 import 'dart:async';
-import 'package:path/path.dart' as path;
+
 import 'package:analyzer_experimental/src/generated/ast.dart';
 import 'package:analyzer_experimental/src/generated/error.dart';
 import 'package:analyzer_experimental/src/generated/parser.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
 import 'package:barback/barback.dart';
+import 'package:path/path.dart' as path;
 import 'package:source_maps/refactor.dart';
 import 'package:source_maps/span.dart' show SourceFile;
 
@@ -62,15 +63,7 @@ class ObservableTransformer extends Transformer {
 TextEditTransaction _transformCompilationUnit(
     String inputCode, SourceFile sourceFile, TransformLogger logger) {
   var unit = _parseCompilationUnit(inputCode);
-  return transformObservables(unit, sourceFile, inputCode, logger);
-}
-
-// TODO(sigmund): make this private. This is currently public so it can be used
-// by the polymer.dart package which is not yet entirely migrated to use
-// pub-serve and pub-deploy.
-TextEditTransaction transformObservables(CompilationUnit unit,
-    SourceFile sourceFile, String content, TransformLogger logger) {
-  var code = new TextEditTransaction(content, sourceFile);
+  var code = new TextEditTransaction(inputCode, sourceFile);
   for (var directive in unit.directives) {
     if (directive is LibraryDirective && _hasObservable(directive)) {
       logger.warning('@observable on a library no longer has any effect. '
