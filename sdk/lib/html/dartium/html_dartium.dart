@@ -1,8 +1,27 @@
-/// The Dart HTML library.
-///
-/// For examples, see
-/// [Dart HTML5 Samples](https://github.com/dart-lang/dart-html5-samples)
-/// on Github.
+/**
+ * HTML elements and other resources for web-based applications that need to
+ * interact with the browser and the DOM (Document Object Model).
+ *
+ * This library includes DOM element types, CSS styling, local storage,
+ * media, speech, events, and more.
+ * To get started,
+ * check out the [Element] class, the base class for many of the HTML
+ * DOM types.
+ *
+ * ## Other resources
+ *
+ * * If you've never written a web app before, try our
+ * tutorials&mdash;[A Game of Darts](http://dartlang.org/docs/tutorials).
+ * 
+ * * To see some web-based Dart apps in action and to play with the code,
+ * download
+ * [Dart Editor](http://www.dartlang.org/#get-started)
+ * and run its built-in examples.
+ *
+ * * For even more examples, see
+ * [Dart HTML5 Samples](https://github.com/dart-lang/dart-html5-samples)
+ * on Github.
+ */
 library dart.dom.html;
 
 import 'dart:async';
@@ -26100,13 +26119,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
