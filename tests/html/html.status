@@ -93,6 +93,7 @@ native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 serialized_script_value_test: Fail
 storage_test: Fail, Pass
 transferables_test: Fail # Issue 9846
+audioelement_test: Pass, Timeout # Issue 12894
 websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
