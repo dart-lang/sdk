@@ -3380,6 +3380,10 @@ class CodeEmitterTask extends CompilerTask {
       //    }
       bool containsArray = classes.contains(backend.jsArrayClass);
       bool containsString = classes.contains(backend.jsStringClass);
+      bool containsJsIndexable = classes.any((cls) {
+        return compiler.world.isSubtype(
+            backend.jsIndexingBehaviorInterface, cls);
+      });
       // The index set operator requires a check on its set value in
       // checked mode, so we don't optimize the interceptor if the
       // compiler has type assertions enabled.
@@ -3393,26 +3397,42 @@ class CodeEmitterTask extends CompilerTask {
       jsAst.Expression isIntAndAboveZero = js('a0 >>> 0 === a0');
       jsAst.Expression belowLength = js('a0 < receiver.length');
       jsAst.Expression arrayCheck = js('receiver.constructor == Array');
+      jsAst.Expression indexableCheck =
+          backend.generateIsJsIndexableCall(js('receiver'), js('receiver'));
+
+      jsAst.Expression orExp(left, right) {
+        return left == null ? right : left.binary('||', right);
+      }
 
       if (selector.isIndex()) {
         jsAst.Expression stringCheck = js('typeof receiver == "string"');
         jsAst.Expression typeCheck;
         if (containsArray) {
-          if (containsString) {
-            typeCheck = arrayCheck.binary('||', stringCheck);
-          } else {
-            typeCheck = arrayCheck;
-          }
-        } else {
-          assert(containsString);
-          typeCheck = stringCheck;
+          typeCheck = arrayCheck;
+        }
+
+        if (containsString) {
+          typeCheck = orExp(typeCheck, stringCheck);
+        }
+
+        if (containsJsIndexable) {
+          typeCheck = orExp(typeCheck, indexableCheck);
         }
 
         return js.if_(typeCheck,
                       js.if_(isIntAndAboveZero.binary('&&', belowLength),
                              js.return_(js('receiver[a0]'))));
       } else {
-        jsAst.Expression isImmutableArray = arrayCheck.binary(
+        jsAst.Expression typeCheck;
+        if (containsArray) {
+          typeCheck = arrayCheck;
+        }
+
+        if (containsJsIndexable) {
+          typeCheck = orExp(typeCheck, indexableCheck);
+        }
+
+        jsAst.Expression isImmutableArray = typeCheck.binary(
             '&&', js(r'!receiver.immutable$list'));
         return js.if_(isImmutableArray.binary(
                       '&&', isIntAndAboveZero.binary('&&', belowLength)),
