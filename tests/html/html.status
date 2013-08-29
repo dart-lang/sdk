@@ -160,7 +160,6 @@ canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not suppor
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_image_element: Pass, Fail # Issue: 11416
 input_element_test/attributes: Fail # IE returns null while others ''
-xhr_cross_origin_test/functional: Pass, Timeout # Issue 12853
 
 # IE9 Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
