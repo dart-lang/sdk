@@ -48,7 +48,7 @@ class ObservableTransformer extends Transformer {
       var transaction = _transformCompilationUnit(
           content, sourceFile, transform.logger);
       if (!transaction.hasEdits) {
-        transform.addOutput(input);
+        transform.addOutput(transform.primaryInput);
         return;
       }
       var printer = transaction.commit();
