@@ -510,14 +510,6 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
-    // Abort if the callee has an intrinsic translation.
-    if (Intrinsifier::CanIntrinsify(function) &&
-        !function.is_optimizable()) {
-      function.set_is_inlinable(false);
-      TRACE_INLINING(OS::Print("     Bailout: can intrinsify\n"));
-      return false;
-    }
-
     Isolate* isolate = Isolate::Current();
     // Save and clear deopt id.
     const intptr_t prev_deopt_id = isolate->deopt_id();

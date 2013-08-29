@@ -2879,16 +2879,21 @@ static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
 }
 
 
+static LoadLocalInstr* BuildLoadThisVar(LocalScope* scope) {
+  LocalVariable* receiver_var = scope->LookupVariable(Symbols::This(),
+                                                      true);  // Test only.
+  return new LoadLocalInstr(*receiver_var);
+}
+
+
 void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
   const Function& function = owner()->parsed_function()->function();
   if (!function.IsClosureFunction()) {
     MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
     switch (kind) {
-      case MethodRecognizer::kStringBaseLength: {
-        LocalVariable* receiver_var =
-            node->scope()->LookupVariable(Symbols::This(),
-                                          true);  // Test only.
-        Value* receiver = Bind(new LoadLocalInstr(*receiver_var));
+      case MethodRecognizer::kStringBaseLength:
+      case MethodRecognizer::kStringBaseIsEmpty: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
         // Treat length loads as mutable (i.e. affected by side effects) to
         // avoid hoisting them since we can't hoist the preceding class-check.
         // This is because of externalization of strings that affects their
@@ -2901,16 +2906,24 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
             is_immutable);
         load->set_result_cid(kSmiCid);
         load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
-        return ReturnDefinition(load);
+        if (kind == MethodRecognizer::kStringBaseLength) {
+          return ReturnDefinition(load);
+        }
+        ASSERT(kind == MethodRecognizer::kStringBaseIsEmpty);
+        Value* zero_val = Bind(new ConstantInstr(Smi::ZoneHandle(Smi::New(0))));
+        Value* load_val = Bind(load);
+        StrictCompareInstr* compare =
+            new StrictCompareInstr(node->token_pos(),
+                                   Token::kEQ_STRICT,
+                                   load_val,
+                                   zero_val);
+        return ReturnDefinition(compare);
       }
       case MethodRecognizer::kGrowableArrayLength:
       case MethodRecognizer::kObjectArrayLength:
       case MethodRecognizer::kImmutableArrayLength:
       case MethodRecognizer::kTypedDataLength: {
-        LocalVariable* receiver_var =
-            node->scope()->LookupVariable(Symbols::This(),
-                                          true);  // Test only.
-        Value* receiver = Bind(new LoadLocalInstr(*receiver_var));
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
         const bool is_immutable =
             (kind != MethodRecognizer::kGrowableArrayLength);
         LoadFieldInstr* load = new LoadFieldInstr(
@@ -2921,6 +2934,27 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         load->set_result_cid(kSmiCid);
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
+      }
+      case MethodRecognizer::kObjectCid: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        LoadClassIdInstr* load = new LoadClassIdInstr(receiver);
+        return ReturnDefinition(load);
+      }
+      case MethodRecognizer::kGrowableArrayCapacity: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        LoadFieldInstr* data_load = new LoadFieldInstr(
+            receiver,
+            Array::data_offset(),
+            Type::ZoneHandle(Type::DynamicType()));
+        data_load->set_result_cid(kArrayCid);
+        Value* data = Bind(data_load);
+        LoadFieldInstr* length_load = new LoadFieldInstr(
+            data,
+            Array::length_offset(),
+            Type::ZoneHandle(Type::SmiType()));
+        length_load->set_result_cid(kSmiCid);
+        length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
+        return ReturnDefinition(length_load);
       }
       default:
         break;
