@@ -49,11 +49,11 @@ List<Function> _pending = [];
  * Wraps the [testCase] in a zone that supports [performMicrotaskCheckpoint],
  * and returns the test case.
  */
-wrapMicrotask(void testCase()) {
+wrapMicrotask(testCase()) {
   return () {
-    runZonedExperimental(() {
+    return runZonedExperimental(() {
       try {
-        testCase();
+        return testCase();
       } finally {
         performMicrotaskCheckpoint();
       }

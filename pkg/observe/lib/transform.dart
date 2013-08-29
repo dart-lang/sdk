@@ -15,7 +15,6 @@ import 'package:analyzer_experimental/src/generated/error.dart';
 import 'package:analyzer_experimental/src/generated/parser.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
 import 'package:barback/barback.dart';
-import 'package:path/path.dart' as path;
 import 'package:source_maps/refactor.dart';
 import 'package:source_maps/span.dart' show SourceFile;
 

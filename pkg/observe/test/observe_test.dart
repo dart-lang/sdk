@@ -14,7 +14,7 @@ import 'observe_test_utils.dart';
 
 const _VALUE = const Symbol('value');
 
-main() {
+void main() {
   // Note: to test the basic Observable system, we use ObservableBox due to its
   // simplicity. We also test a variant that is based on dirty-checking.
 
@@ -22,9 +22,9 @@ main() {
     expect(dirty_check.allObservablesCount, 0);
   });
 
-  group('WatcherModel', () { observeTests(watch: true); });
+  group('WatcherModel', () { _observeTests(watch: true); });
 
-  group('ObservableBox', () { observeTests(); });
+  group('ObservableBox', () { _observeTests(); });
 
   group('dirtyCheck loops can be debugged', () {
     var messages;
@@ -60,8 +60,7 @@ main() {
   });
 }
 
-observeTests({bool watch: false}) {
-
+void _observeTests({bool watch: false}) {
   final createModel = watch ? (x) => new WatcherModel(x)
       : (x) => new ObservableBox(x);
 
@@ -82,6 +81,11 @@ observeTests({bool watch: false}) {
 
     expect(dirty_check.allObservablesCount, initialObservers,
         reason: 'Observable object leaked');
+  });
+
+  observeTest('handle future result', () {
+    var callback = expectAsync0((){});
+    return new Future(callback);
   });
 
   observeTest('no observers', () {
