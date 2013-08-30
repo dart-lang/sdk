@@ -52,8 +52,6 @@ main() {
   // TODO(jmesserly): figure out why this fails in content_shell but works in
   // Dartium and Firefox when using the ShadowDOM polyfill.
   exampleTest('../example/component/news', ['--no-shadowdom']..addAll(args));
-
-  exampleTest('../../../samples/third_party/todomvc');
 }
 
 void exampleTest(String path, [List args]) {

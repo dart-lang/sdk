@@ -11,6 +11,7 @@
 library observe.src.microtask;
 
 import 'dart:async' show Completer, runZonedExperimental;
+import 'dart:collection';
 import 'package:observe/observe.dart' show Observable;
 
 // TODO(jmesserly): remove "microtask" from these names and instead import
@@ -24,14 +25,17 @@ import 'package:observe/observe.dart' show Observable;
  * performing [Observable.dirtyCheck], until there are no more pending events.
  * It will always dirty check at least once.
  */
+// TODO(jmesserly): do we want to support nested microtasks similar to nested
+// zones? Instead of a single pending list we'd need one per wrapMicrotask,
+// and [performMicrotaskCheckpoint] would only run pending callbacks
+// corresponding to the innermost wrapMicrotask body.
 void performMicrotaskCheckpoint() {
   Observable.dirtyCheck();
 
-  while (_pending.length > 0) {
-    var pending = _pending;
-    _pending = [];
+  while (_pending.isNotEmpty) {
 
-    for (var callback in pending) {
+    for (int len = _pending.length; len > 0 && _pending.isNotEmpty; len--) {
+      final callback = _pending.removeFirst();
       try {
         callback();
       } catch (e, s) {
@@ -43,20 +47,23 @@ void performMicrotaskCheckpoint() {
   }
 }
 
-List<Function> _pending = [];
+final Queue<Function> _pending = new Queue<Function>();
 
 /**
- * Wraps the [testCase] in a zone that supports [performMicrotaskCheckpoint],
- * and returns the test case.
+ * Wraps the [body] in a zone that supports [performMicrotaskCheckpoint],
+ * and returns the body.
  */
-wrapMicrotask(testCase()) {
-  return () {
-    return runZonedExperimental(() {
-      try {
-        return testCase();
-      } finally {
-        performMicrotaskCheckpoint();
-      }
-    }, onRunAsync: (callback) => _pending.add(callback));
-  };
-}
+// TODO(jmesserly): deprecate? this doesn't add much over runMicrotask.
+wrapMicrotask(body()) => () => runMicrotask(body);
+
+/**
+ * Runs the [body] in a zone that supports [performMicrotaskCheckpoint],
+ * and returns the result.
+ */
+runMicrotask(body()) => runZonedExperimental(() {
+  try {
+    return body();
+  } finally {
+    performMicrotaskCheckpoint();
+  }
+}, onRunAsync: (callback) => _pending.add(callback));

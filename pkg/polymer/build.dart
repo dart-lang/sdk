@@ -11,6 +11,5 @@ import 'dart:io';
 void main() {
   build(new Options().arguments, [
     'example/component/news/web/index.html',
-    'example/scoped_style/index.html',
-    '../../samples/third_party/todomvc/web/index.html']);
+    'example/scoped_style/index.html']);
 }

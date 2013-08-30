@@ -965,21 +965,29 @@ class StandardTestSuite extends TestSuite {
       String content = null;
       Path dir = filePath.directoryPath;
       String nameNoExt = filePath.filenameWithoutExtension;
+
       Path pngPath = dir.append('$nameNoExt.png');
       Path txtPath = dir.append('$nameNoExt.txt');
+      Path customHtmlPath = dir.append('$nameNoExt.html');
       Path expectedOutput = null;
-      if (new File(pngPath.toNativePath()).existsSync()) {
-        expectedOutput = pngPath;
-        content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
-      } else if (new File(txtPath.toNativePath()).existsSync()) {
-        expectedOutput = txtPath;
-        content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
+
+      if (new File(customHtmlPath.toNativePath()).existsSync()) {
+        // Use existing HTML document if available.
+        htmlPath = customHtmlPath.toNativePath();
       } else {
-        content = getHtmlContents(filename, scriptType,
-            new Path("$scriptPath"));
+        if (new File(pngPath.toNativePath()).existsSync()) {
+          expectedOutput = pngPath;
+          content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
+        } else if (new File(txtPath.toNativePath()).existsSync()) {
+          expectedOutput = txtPath;
+          content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
+        } else {
+          content = getHtmlContents(filename, scriptType,
+              new Path("$scriptPath"));
+        }
+        htmlTest.writeStringSync(content);
+        htmlTest.closeSync();
       }
-      htmlTest.writeStringSync(content);
-      htmlTest.closeSync();
 
       // Construct the command(s) that compile all the inputs needed by the
       // browser test. For running Dart in DRT, this will be noop commands.

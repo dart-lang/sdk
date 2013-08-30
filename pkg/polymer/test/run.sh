@@ -87,8 +87,7 @@ function compare_all {
 # TODO(jmesserly): bash and dart regexp might not be 100% the same. Ideally we
 # could do all the heavy lifting in Dart code, and keep this script as a thin
 # wrapper that sets `--enable-type-checks --enable-asserts`
-  for input in $DIR/../example/component/news/test/*_test.html \
-               $DIR/../../../samples/third_party/todomvc/test/*_test.html; do
+  for input in $DIR/../example/component/news/test/*_test.html; do
     if [[ ($TEST_PATTERN == "") || ($input =~ $TEST_PATTERN) ]]; then
       FILENAME=`basename $input`
       DIRNAME=`dirname $input`
@@ -115,15 +114,14 @@ if [[ ($TEST_PATTERN == "") ]]; then
   # http://dartbug.com/9637
   $dart build.dart --machine --clean > /dev/null
   $dart build.dart --machine --full > /dev/null
-  $dart build.dart --machine --changed ../../samples/third_party/todomvc/web/index.html > /dev/null
 fi
 
 echo -e "\nRunning unit tests... "
 $dart $DART_FLAGS test/run_all.dart $@ || compare_all
 
 # Run Dart analyzer to check that we're generating warning clean code.
-# It's a bit slow, so only do this for TodoMVC.
-OUT_PATTERN="$DIR/../../../third_party/samples/todomvc/test/out/test/*$TEST_PATTERN*_bootstrap.dart"
+# It's a bit slow, so only do this for one test.
+OUT_PATTERN="$DIR/../example/component/news/test/out/test/*$TEST_PATTERN*_bootstrap.dart"
 if [[ `ls $OUT_PATTERN 2>/dev/null` != "" ]]; then
   echo -e "\nAnalyzing generated code for warnings or type errors."
   ls $OUT_PATTERN 2>/dev/null | $dartanalyzer \
