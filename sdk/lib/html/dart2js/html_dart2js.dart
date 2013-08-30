@@ -24472,6 +24472,8 @@ class WheelEvent extends MouseEvent native "WheelEvent,MouseWheelEvent,MouseScro
           screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey, button, relatedTarget, axis);
     } else {
+      // Chrome does an auto-convert to pixels.
+      deltaY = deltaY ~/ 120;
       // Fallthrough for Dartium.
       event._initMouseEvent(type, canBubble, cancelable, view, detail,
           screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,

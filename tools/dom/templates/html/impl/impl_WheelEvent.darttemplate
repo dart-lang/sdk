@@ -64,6 +64,8 @@ $if DART2JS
           screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey, button, relatedTarget, axis);
     } else {
+      // Chrome does an auto-convert to pixels.
+      deltaY = deltaY ~/ 120;
 $else
     // Dartium always needs these flipped because we're using the legacy
     // _initWebKitWheelEvent instead of the more modern WheelEvent constructor
