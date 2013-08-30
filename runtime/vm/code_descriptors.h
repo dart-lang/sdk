@@ -135,6 +135,17 @@ class ExceptionHandlerList : public ZoneAllocated {
     list_[try_index].needs_stacktrace = needs_stacktrace;
   }
 
+
+  static bool ContainsDynamic(const Array& array) {
+    for (intptr_t i = 0; i < array.Length(); i++) {
+      if (array.At(i) == Type::DynamicType()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
   RawExceptionHandlers* FinalizeExceptionHandlers(uword entry_point) {
     intptr_t num_handlers = Length();
     const ExceptionHandlers& handlers =
@@ -142,10 +153,12 @@ class ExceptionHandlerList : public ZoneAllocated {
     for (intptr_t i = 0; i < num_handlers; i++) {
       // Assert that every element in the array has been initialized.
       ASSERT(list_[i].handler_types != NULL);
+      bool has_catch_all = ContainsDynamic(*list_[i].handler_types);
       handlers.SetHandlerInfo(i,
                               list_[i].outer_try_index,
                               (entry_point + list_[i].pc_offset),
-                              list_[i].needs_stacktrace);
+                              list_[i].needs_stacktrace,
+                              has_catch_all);
       handlers.SetHandledTypes(i, *list_[i].handler_types);
     }
     return handlers.raw();

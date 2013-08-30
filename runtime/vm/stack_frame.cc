@@ -156,28 +156,31 @@ RawCode* StackFrame::GetCodeObject() const {
 
 bool StackFrame::FindExceptionHandler(uword* handler_pc,
                                       bool* needs_stacktrace,
-                                      bool* is_catch_all) const {
-  const Code& code = Code::Handle(LookupDartCode());
+                                      bool* has_catch_all) const {
+  Isolate* isolate = Isolate::Current();
+  Code& code = Code::Handle(isolate, LookupDartCode());
   if (code.IsNull()) {
     return false;  // Stub frames do not have exception handlers.
   }
 
   ExceptionHandlers& handlers =
-      ExceptionHandlers::Handle(code.exception_handlers());
+      ExceptionHandlers::Handle(isolate, code.exception_handlers());
   if (handlers.Length() == 0) {
     return false;
   }
   // Find pc descriptor for the current pc.
   const PcDescriptors& descriptors =
-      PcDescriptors::Handle(code.pc_descriptors());
-  for (intptr_t i = 0; i < descriptors.Length(); i++) {
+      PcDescriptors::Handle(isolate, code.pc_descriptors());
+  const intptr_t len = descriptors.Length();
+  for (intptr_t i = 0; i < len; i++) {
     if ((static_cast<uword>(descriptors.PC(i)) == pc()) &&
         (descriptors.TryIndex(i) != -1)) {
       const intptr_t try_index = descriptors.TryIndex(i);
-      handlers = code.exception_handlers();
-      *handler_pc = handlers.HandlerPC(try_index);
-      *needs_stacktrace = handlers.NeedsStacktrace(try_index);
-      *is_catch_all = handlers.HasCatchAll(try_index);
+      RawExceptionHandlers::HandlerInfo handler_info;
+      handlers.GetHandlerInfo(try_index, &handler_info);
+      *handler_pc = handler_info.handler_pc;
+      *needs_stacktrace = handler_info.needs_stacktrace;
+      *has_catch_all = handler_info.has_catch_all;
       return true;
     }
   }

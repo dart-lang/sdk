@@ -8303,22 +8303,22 @@ intptr_t ExceptionHandlers::Length() const {
 void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        intptr_t outer_try_index,
                                        intptr_t handler_pc,
-                                       bool needs_stacktrace) const {
+                                       bool needs_stacktrace,
+                                       bool has_catch_all) const {
   ASSERT((try_index >= 0) && (try_index < Length()));
   RawExceptionHandlers::HandlerInfo* info = &raw_ptr()->data_[try_index];
   info->outer_try_index = outer_try_index;
   info->handler_pc = handler_pc;
   info->needs_stacktrace = needs_stacktrace;
+  info->has_catch_all = has_catch_all;
 }
 
 void ExceptionHandlers::GetHandlerInfo(
-                            intptr_t try_index,
-                            RawExceptionHandlers::HandlerInfo* info) const {
+    intptr_t try_index,
+    RawExceptionHandlers::HandlerInfo* info) const {
   ASSERT((try_index >= 0) && (try_index < Length()));
   ASSERT(info != NULL);
-  RawExceptionHandlers::HandlerInfo* data = &raw_ptr()->data_[try_index];
-  info->outer_try_index = data->outer_try_index;
-  info->handler_pc = data->handler_pc;
+  *info = raw_ptr()->data_[try_index];
 }
 
 
@@ -8340,6 +8340,12 @@ bool ExceptionHandlers::NeedsStacktrace(intptr_t try_index) const {
 }
 
 
+bool ExceptionHandlers::HasCatchAll(intptr_t try_index) const {
+  ASSERT((try_index >= 0) && (try_index < Length()));
+  return raw_ptr()->data_[try_index].has_catch_all;
+}
+
+
 void ExceptionHandlers::SetHandledTypes(intptr_t try_index,
                                         const Array& handled_types) const {
   ASSERT((try_index >= 0) && (try_index < Length()));
@@ -8354,19 +8360,6 @@ RawArray* ExceptionHandlers::GetHandledTypes(intptr_t try_index) const {
   Array& array = Array::Handle(raw_ptr()->handled_types_data_);
   array ^= array.At(try_index);
   return array.raw();
-}
-
-
-bool ExceptionHandlers::HasCatchAll(intptr_t try_index) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
-  Array& array = Array::Handle(raw_ptr()->handled_types_data_);
-  array ^= array.At(try_index);
-  for (intptr_t i = 0; i < array.Length(); i++) {
-    if (array.At(i) == Type::DynamicType()) {
-      return true;
-    }
-  }
-  return false;
 }
 
 

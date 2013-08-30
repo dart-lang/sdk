@@ -2830,7 +2830,8 @@ class ExceptionHandlers : public Object {
   void SetHandlerInfo(intptr_t try_index,
                       intptr_t outer_try_index,
                       intptr_t handler_pc,
-                      bool needs_stacktrace) const;
+                      bool needs_stacktrace,
+                      bool has_catch_all) const;
 
   RawArray* GetHandledTypes(intptr_t try_index) const;
   void SetHandledTypes(intptr_t try_index, const Array& handled_types) const;

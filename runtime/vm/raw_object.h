@@ -944,7 +944,8 @@ class RawExceptionHandlers : public RawObject {
   struct HandlerInfo {
     intptr_t handler_pc;       // PC value of handler.
     int16_t outer_try_index;   // Try block index of enclosing try block.
-    int16_t needs_stacktrace;  // True if a stacktrace is needed.
+    int8_t needs_stacktrace;   // True if a stacktrace is needed.
+    int8_t has_catch_all;      // Catches all exceptions.
   };
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);
