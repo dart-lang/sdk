@@ -7753,7 +7753,7 @@ class Document extends Node
 
   @DomName('Document.createRange')
   @DocsEditable()
-  Range $dom_createRange() native "Document_createRange_Callback";
+  Range createRange() native "Document_createRange_Callback";
 
   @DomName('Document.createTextNode')
   @DocsEditable()
@@ -10104,7 +10104,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
     }
     var fragment;
     if (Range.supportsCreateContextualFragment) {
-      var range = _parseDocument.$dom_createRange();
+      var range = _parseDocument.createRange();
       range.selectNodeContents(contextElement);
       fragment = range.createContextualFragment(html);
     } else {
@@ -10572,11 +10572,11 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.getAttribute')
   @DocsEditable()
-  String $dom_getAttribute(String name) native "Element_getAttribute_Callback";
+  String _getAttribute(String name) native "Element_getAttribute_Callback";
 
   @DomName('Element.getAttributeNS')
   @DocsEditable()
-  String $dom_getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
+  String _getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
 
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
@@ -10676,11 +10676,11 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.setAttribute')
   @DocsEditable()
-  void $dom_setAttribute(String name, String value) native "Element_setAttribute_Callback";
+  void _setAttribute(String name, String value) native "Element_setAttribute_Callback";
 
   @DomName('Element.setAttributeNS')
   @DocsEditable()
-  void $dom_setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
+  void _setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
 
   @DomName('Element.webkitGetRegionFlowRanges')
   @DocsEditable()
@@ -18943,7 +18943,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
     _this._replaceChild(value, this[index]);
   }
 
-  Iterator<Node> get iterator => _this.$dom_childNodes.iterator;
+  Iterator<Node> get iterator => _this._childNodes.iterator;
 
   // From List<Node>:
 
@@ -18965,15 +18965,15 @@ class _ChildNodeListLazy extends ListBase<Node> {
   // -- end List<Node> mixins.
 
   // TODO(jacobr): benchmark whether this is more efficient or whether caching
-  // a local copy of $dom_childNodes is more efficient.
-  int get length => _this.$dom_childNodes.length;
+  // a local copy of _childNodes is more efficient.
+  int get length => _this._childNodes.length;
 
   void set length(int value) {
     throw new UnsupportedError(
         "Cannot set length on immutable List.");
   }
 
-  Node operator[](int index) => _this.$dom_childNodes[index];
+  Node operator[](int index) => _this._childNodes[index];
 }
 
 /** Information about the instantiated template. */
@@ -19169,7 +19169,7 @@ class Node extends EventTarget {
 
   @DomName('Node.childNodes')
   @DocsEditable()
-  List<Node> get $dom_childNodes native "Node_childNodes_Getter";
+  List<Node> get _childNodes native "Node_childNodes_Getter";
 
   @DomName('Node.firstChild')
   @DocsEditable()
@@ -21100,7 +21100,7 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 @DomName('Range')
 @Unstable()
 class Range extends NativeFieldWrapperClass1 {
-  factory Range() => document.$dom_createRange();
+  factory Range() => document.createRange();
 
   factory Range.fromPoint(Point point) =>
       document._caretRangeFromPoint(point.x, point.y);
@@ -29557,15 +29557,15 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   String operator [](String key) {
-    return _element.$dom_getAttribute(key);
+    return _element._getAttribute(key);
   }
 
   void operator []=(String key, String value) {
-    _element.$dom_setAttribute(key, value);
+    _element._setAttribute(key, value);
   }
 
   String remove(String key) {
-    String value = _element.$dom_getAttribute(key);
+    String value = _element._getAttribute(key);
     _element._removeAttribute(key);
     return value;
   }
@@ -29594,11 +29594,11 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   String operator [](String key) {
-    return _element.$dom_getAttributeNS(_namespace, key);
+    return _element._getAttributeNS(_namespace, key);
   }
 
   void operator []=(String key, String value) {
-    _element.$dom_setAttributeNS(_namespace, key, value);
+    _element._setAttributeNS(_namespace, key, value);
   }
 
   String remove(String key) {

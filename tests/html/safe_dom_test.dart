@@ -70,7 +70,7 @@ DocumentFragment createContextualFragment(String html, [String contextTag]) {
   }
 
   if (Range.supportsCreateContextualFragment) {
-    var range = doc.$dom_createRange();
+    var range = doc.createRange();
     range.selectNode(contextElement);
     return range.createContextualFragment(html);
   } else {

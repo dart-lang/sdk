@@ -1238,7 +1238,7 @@ $endif
     }
     var fragment;
     if (Range.supportsCreateContextualFragment) {
-      var range = _parseDocument.$dom_createRange();
+      var range = _parseDocument.createRange();
       range.selectNodeContents(contextElement);
       fragment = range.createContextualFragment(html);
     } else {

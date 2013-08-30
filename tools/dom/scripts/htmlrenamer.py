@@ -159,14 +159,8 @@ convert_to_future_members = monitored.Set(
 dom_private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Document.createElement',
   'Document.createElementNS',
-  'Document.createRange',
-  'Element.getAttribute',
-  'Element.getAttributeNS',
-  'Element.setAttribute',
-  'Element.setAttributeNS',
   'EventTarget.addEventListener',
   'EventTarget.removeEventListener',
-  'Node.childNodes',
 ])
 
 # Members from the standard dom that should not be exposed publicly in dart:html
@@ -218,9 +212,13 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Element.children',
   'Element.childElementCount',
   'Element.firstElementChild',
+  'Element.getAttribute',
+  'Element.getAttributeNS',
   'Element.getElementsByTagName',
   'Element.scrollIntoView',
   'Element.scrollIntoViewIfNeeded',
+  'Element.setAttribute',
+  'Element.setAttributeNS',
   'Element.removeAttribute',
   'Element.removeAttributeNS',
   'Element.hasAttribute',
@@ -279,6 +277,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'MutationEvent.initMutationEvent',
   'MutationObserver.observe',
   'Node.attributes',
+  'Node.childNodes',
   'Node.localName',
   'Node.namespaceURI',
   'Node.removeChild',
