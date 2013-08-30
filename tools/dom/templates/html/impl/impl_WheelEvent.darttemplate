@@ -171,8 +171,6 @@ $if DART2JS
     return 0;
   }
 
-  num get _deltaY => JS('num', '#.deltaY', this);
-  num get _deltaX => JS('num', '#.deltaX', this);
   num get _wheelDelta => JS('num', '#.wheelDelta', this);
   num get _wheelDeltaX => JS('num', '#.wheelDeltaX', this);
   num get _detail => JS('num', '#.detail', this);
