@@ -18,12 +18,9 @@ main() {
   LibraryMirror mirrorsLibrary = libraries[Uri.parse('dart:mirrors')];
   Expect.isNotNull(mirrorsLibrary, 'mirrorsLibrary is null');
 
-  print(mirrorsLibrary.classes);
   ClassMirror cls = mirrorsLibrary.classes[const Symbol('LibraryMirror')];
   Expect.isNotNull(cls, 'cls is null');
 
   Expect.equals(const Symbol('dart.mirrors.LibraryMirror'), cls.qualifiedName);
-  // TODO(ahe): Enable when VM implements equality of class mirrors:
-  // Expect.equals(reflectClass(LibraryMirror), cls);
-  print(mirrorsLibrary);
+  Expect.equals(reflectClass(LibraryMirror), cls);
 }

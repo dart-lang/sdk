@@ -283,6 +283,7 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
            identical(_reflectee, other._reflectee);
   }
 
+  // TODO(12909): Use the reflectee's identity hash.
   int get hashCode => _reflectee.hashCode;
 
   _invoke(reflectee, functionName, positionalArguments)
@@ -629,8 +630,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   bool operator ==(other) {
     return this.runtimeType == other.runtimeType &&
            this._reflectee == other._reflectee &&
-           (isOriginalDeclaration || 
-            this._reflectedType == other._reflectedType);
+           this._reflectedType == other._reflectedType;
   }
 
   int get hashCode => simpleName.hashCode;
