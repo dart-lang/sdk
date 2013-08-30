@@ -8136,8 +8136,7 @@ RawStackmap* Stackmap::New(intptr_t pc_offset,
   intptr_t payload_size =
       Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
   if ((payload_size < 0) ||
-      (payload_size >
-           (kSmiMax - static_cast<intptr_t>(sizeof(RawStackmap))))) {
+      (payload_size > kMaxLengthInBytes)) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in Stackmap::New: invalid length %" Pd "\n",
            length);
@@ -8561,6 +8560,10 @@ void DeoptInfo::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 RawDeoptInfo* DeoptInfo::New(intptr_t num_commands) {
   ASSERT(Object::deopt_info_class() != Class::null());
+  if ((num_commands < 0) || (num_commands > kMaxElements)) {
+    FATAL1("Fatal error in DeoptInfo::New(): invalid num_commands %" Pd "\n",
+           num_commands);
+  }
   DeoptInfo& result = DeoptInfo::Handle();
   {
     uword size = DeoptInfo::InstanceSize(num_commands);
@@ -14360,13 +14363,11 @@ const intptr_t TypedData::element_size[] = {
 RawTypedData* TypedData::New(intptr_t class_id,
                              intptr_t len,
                              Heap::Space space) {
-  // TODO(asiva): Add a check for maximum elements.
+  if (len < 0 || len > TypedData::MaxElements(class_id)) {
+    FATAL1("Fatal error in TypedData::New: invalid len %" Pd "\n", len);
+  }
   TypedData& result = TypedData::Handle();
   {
-    // The len field has already been checked by the caller, we only assert
-    // here that it is within a valid range.
-    ASSERT((len >= 0) &&
-           (len < (kSmiMax / TypedData::ElementSizeInBytes(class_id))));
     intptr_t lengthInBytes = len * ElementSizeInBytes(class_id);
     RawObject* raw = Object::Allocate(class_id,
                                       TypedData::InstanceSize(lengthInBytes),
