@@ -162,10 +162,14 @@ bool StackFrame::FindExceptionHandler(uword* handler_pc,
     return false;  // Stub frames do not have exception handlers.
   }
 
+  ExceptionHandlers& handlers =
+      ExceptionHandlers::Handle(code.exception_handlers());
+  if (handlers.Length() == 0) {
+    return false;
+  }
   // Find pc descriptor for the current pc.
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
-  ExceptionHandlers& handlers = ExceptionHandlers::Handle();
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if ((static_cast<uword>(descriptors.PC(i)) == pc()) &&
         (descriptors.TryIndex(i) != -1)) {
