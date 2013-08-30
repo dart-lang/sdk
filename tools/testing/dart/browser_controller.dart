@@ -535,6 +535,10 @@ class BrowserTest {
   String url;
   int timeout;
   Stopwatch stopwatch;
+
+  // This might be null
+  Duration delayUntilTestStarted;
+
   // We store this here for easy access when tests time out (instead of
   // capturing this in a closure)
   Timer timeoutTimer;
@@ -589,6 +593,7 @@ class BrowserTestRunner {
     testingServer = new BrowserTestingServer(local_ip, useIframe);
     return testingServer.start().then((_) {
       testingServer.testDoneCallBack = handleResults;
+      testingServer.testStartedCallBack = handleStarted;
       testingServer.nextTestCallBack = getNextTest;
       return getBrowsers().then((browsers) {
         var futures = [];
@@ -674,6 +679,7 @@ class BrowserTestRunner {
       testCache[testId] = status.currentTest.url;
       Stopwatch watch = new Stopwatch()..start();
       status.currentTest.doneCallback(output,
+                                      status.currentTest.delayUntilTestStarted,
                                       status.currentTest.stopwatch.elapsed);
       watch.stop();
       status.lastTest = status.currentTest;
@@ -685,6 +691,18 @@ class BrowserTestRunner {
       terminate().then((_) {
         exit(1);
       });
+    }
+  }
+
+  void handleStarted(String browserId, String output, int testId) {
+    var status = browserStatus[browserId];
+
+    if (status != null && !status.timeout && status.currentTest != null) {
+      status.currentTest.timeoutTimer.cancel();
+      status.currentTest.timeoutTimer =
+          createTimeoutTimer(status.currentTest, status);
+      status.currentTest.delayUntilTestStarted =
+          status.currentTest.stopwatch.elapsed;
     }
   }
 
@@ -731,6 +749,7 @@ class BrowserTestRunner {
     });
     status.currentTest.stopwatch.stop();
     status.currentTest.doneCallback("TIMEOUT",
+                                    status.currentTest.delayUntilTestStarted,
                                     status.currentTest.stopwatch.elapsed);
     status.currentTest = null;
   }
@@ -756,11 +775,15 @@ class BrowserTestRunner {
       }
       exit(1);
     }
-    Timer timer = new Timer(new Duration(seconds: test.timeout),
-                            () { handleTimeout(status); });
-    status.currentTest.timeoutTimer = timer;
+
+    status.currentTest.timeoutTimer = createTimeoutTimer(test, status);
     status.currentTest.stopwatch = new Stopwatch()..start();
     return test;
+  }
+
+  Timer createTimeoutTimer(BrowserTest test, BrowserTestingStatus status) {
+    return new Timer(
+        new Duration(seconds: test.timeout), () { handleTimeout(status); });
   }
 
   void queueTest(BrowserTest test) {
@@ -819,6 +842,7 @@ class BrowserTestingServer {
   static const String driverPath = "/driver";
   static const String nextTestPath = "/next_test";
   static const String reportPath = "/report";
+  static const String startedPath = "/started";
   static const String waitSignal = "WAIT";
   static const String terminateSignal = "TERMINATE";
 
@@ -829,6 +853,7 @@ class BrowserTestingServer {
   bool useIframe = false;
 
   Function testDoneCallBack;
+  Function testStartedCallBack;
   Function nextTestCallBack;
 
   BrowserTestingServer(this.local_ip, this.useIframe);
@@ -848,6 +873,13 @@ class BrowserTestingServer {
           handleReport(request, browserId, testId);
           // handleReport will asynchroniously fetch the data and will handle
           // the closing of the streams.
+          return;
+        }
+        if (request.uri.path.startsWith(startedPath)) {
+          var browserId = request.uri.path.substring(startedPath.length + 1);
+          var testId =
+              int.parse(request.uri.queryParameters["id"].split("=")[1]);
+          handleStarted(request, browserId, testId);
           return;
         }
         var textResponse = "";
@@ -907,11 +939,23 @@ class BrowserTestingServer {
     StringBuffer buffer = new StringBuffer();
     request.transform(UTF8.decoder).listen((data) {
       buffer.write(data);
-      }, onDone: () {
-        String back = buffer.toString();
-        request.response.close();
-        testDoneCallBack(browserId, back, testId);
-      }, onError: (error) { print(error); });
+    }, onDone: () {
+      String back = buffer.toString();
+      request.response.close();
+      testDoneCallBack(browserId, back, testId);
+      // TODO(ricow): We should do something smart if we get an error here.
+    }, onError: (error) { DebugLogger.error(error); });
+  }
+
+  void handleStarted(HttpRequest request, String browserId, var testId) {
+    StringBuffer buffer = new StringBuffer();
+    request.transform(UTF8.decoder).listen((data) {
+      buffer.write(data);
+    }, onDone: () {
+      String back = buffer.toString();
+      request.response.close();
+      testStartedCallBack(browserId, back, testId);
+    }, onError: (error) { DebugLogger.error(error); });
   }
 
   String getNextTest(String browserId) {
@@ -983,13 +1027,26 @@ class BrowserTestingServer {
         }
       }
 
+      function contactBrowserController(method,
+                                        path,
+                                        callback,
+                                        msg,
+                                        isUrlEncoded) {
+        var client = new XMLHttpRequest();
+        client.onreadystatechange = callback;
+        client.open(method, path);
+        if (isUrlEncoded) {
+          client.setRequestHeader('Content-type',
+                                  'application/x-www-form-urlencoded');
+        }
+        client.send(msg);
+      }
+
       function getNextTask() {
         // Until we have the next task we set the current_id to a specific
         // negative value.
-        var client = new XMLHttpRequest();
-        client.onreadystatechange = newTaskHandler;
-        client.open('GET', '$nextTestPath/$browserId');
-        client.send();
+        contactBrowserController(
+            'GET', '$nextTestPath/$browserId', newTaskHandler, "", false); 
       }
 
       function run(url) {
@@ -1015,24 +1072,23 @@ class BrowserTestingServer {
       }
 
       function reportError(msg) {
-        var client = new XMLHttpRequest();
         function handleReady() {
           if (this.readyState == this.DONE && this.status != 200) {
             // We could not report, pop up to notify if running interactively.
             alert(this.status);
           }
         }
-        client.onreadystatechange = handleReady;
-        client.open('POST', '$errorReportingUrl?test=1');
-        client.setRequestHeader('Content-type',
-                                'application/x-www-form-urlencoded');
-        client.send(msg);
+        contactBrowserController(
+            'POST', '$errorReportingUrl?test=1', handleReady, msg, true); 
       }
 
       function reportMessage(msg) {
         if (msg == 'STARTING') {
           test_completed = false;
           current_id = next_id;
+          contactBrowserController(
+            'POST', '$startedPath/${browserId}?id=' + current_id,
+            function () {}, msg, true);
           return;
         }
 
@@ -1050,12 +1106,9 @@ class BrowserTestingServer {
             }
           }
         }
-        var client = new XMLHttpRequest();
-        client.onreadystatechange = handleReady;
-        client.open('POST', '$reportPath/${browserId}?id=' + current_id);
-        client.setRequestHeader('Content-type',
-                                'application/x-www-form-urlencoded');
-        client.send(msg);
+        contactBrowserController(
+            'POST', '$reportPath/${browserId}?id=' + current_id, handleReady,
+            msg, true);
       }
 
       function messageHandler(e) {
