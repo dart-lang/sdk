@@ -1610,6 +1610,15 @@ class JavaScriptBackend extends Backend {
 
     return false;
   }
+
+  bool isTypedArray(TypeMask mask) {
+    // Just checking for [:TypedData:] is not sufficient, as it is an
+    // abstract class any user-defined class can implement. So we also
+    // check for the interface [JavaScriptIndexingBehavior].
+    return compiler.typedDataClass != null
+        && mask.satisfies(compiler.typedDataClass, compiler)
+        && mask.satisfies(jsIndexingBehaviorInterface, compiler);
+  }
 }
 
 /// Records that [type] is used by [user.element].

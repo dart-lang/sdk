@@ -398,6 +398,9 @@ abstract class Compiler implements DiagnosticListener {
   /// Initialized when dart:mirrors is loaded.
   LibraryElement mirrorsLibrary;
 
+  /// Initialized when dart:typed_data is loaded.
+  LibraryElement typedDataLibrary;
+
   ClassElement objectClass;
   ClassElement closureClass;
   ClassElement boundClosureClass;
@@ -414,6 +417,7 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement mapClass;
   ClassElement symbolClass;
   ClassElement stackTraceClass;
+  ClassElement typedDataClass;
 
   // Initialized after mirrorSystemClass has been resolved.
   FunctionElement symbolConstructor;
@@ -769,6 +773,10 @@ abstract class Compiler implements DiagnosticListener {
           findRequiredElement(library, const SourceString('MirrorSystem'));
       mirrorsUsedClass =
           findRequiredElement(library, const SourceString('MirrorsUsed'));
+    } else if (uri == new Uri(scheme: 'dart', path: 'typed_data')) {
+      typedDataLibrary = library;
+      typedDataClass =
+          findRequiredElement(library, const SourceString('TypedData'));
     } else if (uri == new Uri(scheme: 'dart', path: '_collection-dev')) {
       symbolImplementationClass =
           findRequiredElement(library, const SourceString('Symbol'));

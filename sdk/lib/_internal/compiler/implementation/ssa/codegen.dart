@@ -1664,7 +1664,21 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // We're accessing a native JavaScript property called 'length'
       // on a JS String or a JS array. Therefore, the name of that
       // property should not be mangled.
-      push(new js.PropertyAccess.field(pop(), 'length'), node);
+      if (backend.isTypedArray(
+            node.receiver.instructionType.computeMask(compiler))) {
+        // TODO(12929): Remove this custom code for typed arrays once V8
+        // optimizes their length access.
+        // Do a call to `fetchLength` instead of accessing `length`
+        // directly. Because `fetchLength` is a constant we use its
+        // constant value instead.
+        Element element = compiler.findRequiredElement(
+            compiler.typedDataLibrary, const SourceString('fetchLength'));
+        Constant constant = compiler.constantHandler.compileConstant(element);
+        var jsConstant = backend.emitter.constantReference(constant);
+        push(new js.Call(jsConstant, [pop()]), node);
+      } else {
+        push(new js.PropertyAccess.field(pop(), 'length'), node);
+      }
     } else {
       String name = _fieldPropertyName(element);
       push(new js.PropertyAccess.field(pop(), name), node);

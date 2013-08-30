@@ -255,3 +255,17 @@ String JS_GET_NAME(String name) {}
  * externally initialized elements.
  */
 void JS_EFFECT(Function code) { code(null); }
+
+/**
+ * Use this class for creating constants that hold JavaScript code.
+ * For example:
+ *
+ * const constant = JS_CONST('typeof window != "undefined");
+ *
+ * This code will generate:
+ * $.JS_CONST_1 = typeof window != "undefined";
+ */
+class JS_CONST {
+  String code;
+  const JS_CONST(this.code);
+}
