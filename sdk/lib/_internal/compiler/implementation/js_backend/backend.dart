@@ -371,7 +371,8 @@ class JavaScriptBackend extends Backend {
         || element.isField()) {
       element = element.enclosingElement;
     }
-    return !helpersUsed.contains(element.declaration);
+    element = element.declaration;
+    return !isNeededForReflection(element) && !helpersUsed.contains(element);
   }
 
   bool isInterceptorClass(ClassElement element) {
