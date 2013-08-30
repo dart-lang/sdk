@@ -67,6 +67,11 @@ compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 generic_test: Fail, OK
+named_parameters_type_test/01: Fail, OK
+named_parameters_type_test/02: Fail, OK
+named_parameters_type_test/03: Fail, OK
+positional_parameters_type_test/01: Fail, OK
+positional_parameters_type_test/02: Fail, OK
 
 [ $compiler == dart2js && $minified ]
 f_bounded_quantification4_test: Fail # Issue 12605.
@@ -118,8 +123,6 @@ dynamic_prefix_core_test: Fail # Issue 12398
 metadata_test: Fail # Issue 5841
 infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # Issue 12795
-named_parameters_type_test: Fail
-positional_parameters_type_test: Fail
 
 # Compilation errors.
 const_var_test: Fail # Issue 12793
@@ -388,6 +391,7 @@ function_type_alias5_test/01: Fail # Issue 12755
 function_type_alias5_test/02: Fail # Issue 12755
 function_type_alias7_test/00: Fail # Issue 12802
 parameter_initializer6_negative_test: Fail # Issue 3502
+
 # DartVM problem.
 constructor5_test: Fail
 constructor6_test: Fail
@@ -422,7 +426,6 @@ compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
-positional_parameters_type_test: Fail # Triage this.
 final_is_not_const_test/01: Fail # Issue 12692
 
 [ $compiler == dart2dart && $minified ]
