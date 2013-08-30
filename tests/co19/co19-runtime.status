@@ -56,11 +56,6 @@ LibTest/async/Timer/Timer.periodic_A02_t01: Pass, Fail # co19 issue 537
 
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/async/Future/catchError_A01_t01: Fail # Future constructors have changed # issue 408
-LibTest/core/Set/intersection_A03_t01: Fail # co19 issue 510
-
-LibTest/core/Set/intersection_A01_t01: Fail # issue 390
-LibTest/core/Set/intersection_A01_t02: Fail # issue 390
-LibTest/core/Set/intersection_A01_t03: Fail # issue 390
 
 # Passing for the wrong reasons:
 LibTest/async/Completer/completeError_A03_t02: Pass # No AsyncError anymore. Issue 407 and 463
@@ -143,23 +138,23 @@ Language/13_Statements/09_Switch_A03_t01: fail # Dart issue 7307
 Language/13_Statements/09_Switch_A03_t02: fail # Dart issue 7307
 Language/13_Statements/09_Switch_A04_t01: fail # Dart issue 11233
 Language/13_Statements/12_Labels_A01_t03: fail # Dart issue 2238
-Language/14_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A02_t21: crash # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A02_t22: crash # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t10: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t27: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t29: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t30: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t47: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t49: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t50: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t67: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t69: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t70: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/2_Exports_A04_t02: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/2_Exports_A05_t01: fail # co19-roll r546: Please triage this failure
+Language/14_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: fail # Dart issue 12913
+Language/14_Libraries_and_Scripts/1_Imports_A02_t21: crash # Dart issue 6595
+Language/14_Libraries_and_Scripts/1_Imports_A02_t22: crash # Dart issue 6595
+Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # Dart issue 12915
+Language/14_Libraries_and_Scripts/1_Imports_A03_t10: fail # Dart issue 12915
+Language/14_Libraries_and_Scripts/1_Imports_A03_t27: fail # Dart issue 12915
+Language/14_Libraries_and_Scripts/1_Imports_A03_t29: fail # Dart issue 12915
+Language/14_Libraries_and_Scripts/1_Imports_A03_t30: fail # Dart issue 12915
+Language/14_Libraries_and_Scripts/1_Imports_A03_t47: fail # Dart issue 12915
+Language/14_Libraries_and_Scripts/1_Imports_A03_t49: fail # Dart issue 12915
+Language/14_Libraries_and_Scripts/1_Imports_A03_t50: fail # Dart issue 12915
+Language/14_Libraries_and_Scripts/1_Imports_A03_t67: fail # Dart issue 12915
+Language/14_Libraries_and_Scripts/1_Imports_A03_t69: fail # Dart issue 12915
+Language/14_Libraries_and_Scripts/1_Imports_A03_t70: fail # Dart issue 12915
+Language/14_Libraries_and_Scripts/2_Exports_A04_t02: fail # Dart issue 12916
+Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # Dart issue 12916
+Language/14_Libraries_and_Scripts/2_Exports_A05_t01: fail # Dart issue 12918
 Language/14_Libraries_and_Scripts/5_URIs_A01_t01: fail # Issue 12521
 Language/14_Libraries_and_Scripts/5_URIs_A01_t04: fail # Issue 12521
 Language/14_Libraries_and_Scripts/5_URIs_A01_t05: fail # Issue 12521
@@ -180,37 +175,34 @@ LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this
 
 [ $compiler == none && $runtime == vm && $checked ]
 Language/12_Expressions/12_Instance_Creation_A01_t08: FAIL, OK  # co19 issue 498
-LibTest/core/double/truncate_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/core/double/truncate_A01_t05: Fail # co19-roll r559: Please triage this failure
+LibTest/core/double/truncate_A01_t01: Fail # co19 issue 554
+LibTest/core/double/truncate_A01_t05: Fail #  co19 issue 554
 LibTest/core/int/ceilToDouble_A01_t01: fail  # co19 issue 498
 LibTest/core/int/floorToDouble_A01_t01: fail  # co19 issue 498
 LibTest/core/int/roundToDouble_A01_t01: fail  # co19 issue 498
 LibTest/core/int/truncateToDouble_A01_t01: fail  # co19 issue 498
-LibTest/core/Set/intersection_A01_t01: pass # co19-roll r546: Please triage this failure
-LibTest/core/Set/intersection_A01_t03: pass # co19-roll r546: Please triage this failure
-LibTest/core/Set/intersection_A03_t01: pass # co19-roll r546: Please triage this failure
-LibTest/typed_data/Float32List/operator_subscripted_assignment_A02_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/elementAt_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/fillRange_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/first_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/first_A03_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/firstWhere_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/firstWhere_A02_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/getRange_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/getRange_A02_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/last_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/lastWhere_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/map_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/map_A02_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/map_A03_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/operator_subscript_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/operator_subscripted_assignment_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/operator_subscripted_assignment_A02_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/reduce_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/reversed_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/single_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/singleWhere_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/skip_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/take_A01_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/take_A02_t01: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float64List/operator_subscripted_assignment_A02_t01: Fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float32List/operator_subscripted_assignment_A02_t01: Fail # co19 issue 555
+LibTest/typed_data/Float64List/operator_subscripted_assignment_A02_t01: Fail # co19 issue 555
+LibTest/typed_data/Float32x4List/elementAt_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/fillRange_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/first_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/first_A03_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/firstWhere_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/firstWhere_A02_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/getRange_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/getRange_A02_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/last_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/lastWhere_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/map_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/map_A02_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/map_A03_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/operator_subscript_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/operator_subscripted_assignment_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/operator_subscripted_assignment_A02_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/reduce_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/reversed_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/single_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/singleWhere_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/skip_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/take_A01_t01: Fail # Dart issue 12861
+LibTest/typed_data/Float32x4List/take_A02_t01: Fail # Dart issue 12861
