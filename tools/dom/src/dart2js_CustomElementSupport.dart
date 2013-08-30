@@ -18,32 +18,7 @@ _makeCreatedCallbackMethod() {
       convertDartClosureToJS(_callCreated, 1));
 }
 
-const _typeNameToTag = const {
-  'HTMLAnchorElement': 'a',
-  'HTMLAudioElement': 'audio',
-  'HTMLButtonElement': 'button',
-  'HTMLCanvasElement': 'canvas',
-  'HTMLDivElement': 'div',
-  'HTMLImageElement': 'img',
-  'HTMLInputElement': 'input',
-  'HTMLLIElement': 'li',
-  'HTMLLabelElement': 'label',
-  'HTMLMenuElement': 'menu',
-  'HTMLMeterElement': 'meter',
-  'HTMLOListElement': 'ol',
-  'HTMLOptionElement': 'option',
-  'HTMLOutputElement': 'output',
-  'HTMLParagraphElement': 'p',
-  'HTMLPreElement': 'pre',
-  'HTMLProgressElement': 'progress',
-  'HTMLSelectElement': 'select',
-  'HTMLSpanElement': 'span',
-  'HTMLUListElement': 'ul',
-  'HTMLVideoElement': 'video',
-};
-
-void _registerCustomElement(context, document, String tag, Type type,
-    String nativeTagName) {
+void _registerCustomElement(context, document, String tag, Type type) {
   // Function follows the same pattern as the following JavaScript code for
   // registering a custom element.
   //
@@ -85,15 +60,6 @@ void _registerCustomElement(context, document, String tag, Type type,
 
   setNativeSubclassDispatchRecord(proto, interceptor);
 
-  var options = JS('=Object', '{prototype: #}', proto);
-
-  if (baseClassName != 'HTMLElement') {
-    if (nativeTagName != null) {
-      JS('=Object', '#.extends = #', options, nativeTagName);
-    } else if (_typeNameToTag.containsKey(baseClassName)) {
-      JS('=Object', '#.extends = #', options, _typeNameToTag[baseClassName]);
-    }
-  }
-
-  JS('void', '#.register(#, #)', document, tag, options);
+  JS('void', '#.register(#, #)',
+      document, tag, JS('', '{prototype: #}', proto));
 }

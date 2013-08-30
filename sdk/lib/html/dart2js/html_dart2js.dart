@@ -8825,8 +8825,8 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    *
    * * [isTagSupported]
    */
-  factory Element.tag(String tag, [String typeExtention]) =>
-      _ElementFactoryProvider.createElement_tag(tag, typeExtention);
+  factory Element.tag(String tag) =>
+      _ElementFactoryProvider.createElement_tag(tag);
 
   /// Creates a new `<a>` element.
   ///
@@ -9143,7 +9143,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    * The tag should be a valid HTML tag name.
    */
   static bool isTagSupported(String tag) {
-    var e = _ElementFactoryProvider.createElement_tag(tag, null);
+    var e = _ElementFactoryProvider.createElement_tag(tag);
     return e is Element && !(e is UnknownElement);
   }
 
@@ -10585,19 +10585,9 @@ class _ElementFactoryProvider {
   @DomName('Document.createElement')
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
-  static dynamic createElement_tag(String tag, String typeExtension) {
-    // Firefox may return a JS function for some types (Embed, Object).
-    if (typeExtension != null) {
-      return JS('Element|=Object', 'document.createElement(#, #)',
-          tag, typeExtension);
-    }
-    // Should be able to eliminate this and just call the two-arg version above
-    // with null typeExtension, but Chrome treats the tag as case-sensitive if
-    // typeExtension is null.
-    // https://code.google.com/p/chromium/issues/detail?id=282467
-    return JS('Element|=Object', 'document.createElement(#)', tag);
-  }
-
+  static dynamic createElement_tag(String tag) =>
+      // Firefox may return a JS function for some types (Embed, Object).
+      JS('Element|=Object', 'document.createElement(#)', tag);
 }
 
 
@@ -12704,76 +12694,8 @@ class HtmlDocument extends Document native "HTMLDocument" {
   String get visibilityState => _webkitVisibilityState;
 
   @Experimental
-  /**
-   * Register a custom subclass of Element to be instantiatable by the DOM.
-   *
-   * This is necessary to allow the construction of any custom elements.
-   *
-   * The class being registered must either subclass HtmlElement or SvgElement.
-   * If they subclass these directly then they can be used as:
-   *
-   *     class FooElement extends HtmlElement{
-   *        void created() {
-   *          print('FooElement created!');
-   *        }
-   *     }
-   *
-   *     main() {
-   *       document.register('x-foo', FooElement);
-   *       var myFoo = new Element.tag('x-foo');
-   *       // prints 'FooElement created!' to the console.
-   *     }
-   *
-   * The custom element can also be instantiated via HTML using the syntax
-   * `<x-foo></x-foo>`
-   *
-   * Other elements can be subclassed as well:
-   *
-   *     class BarElement extends InputElement{
-   *        void created() {
-   *          print('BarElement created!');
-   *        }
-   *     }
-   *
-   *     main() {
-   *       document.register('x-bar', BarElement);
-   *       var myBar = new Element.tag('input', 'x-bar');
-   *       // prints 'BarElement created!' to the console.
-   *     }
-   *
-   * This custom element can also be instantiated via HTML using the syntax
-   * `<input is="x-bar"></input>`
-   *
-   * The [nativeTagName] parameter is needed by platforms without native support
-   * when subclassing a native type other than:
-   *
-   * * HtmlElement
-   * * SvgElement
-   * * AnchorElement
-   * * AudioElement
-   * * ButtonElement
-   * * CanvasElement
-   * * DivElement
-   * * ImageElement
-   * * InputElement
-   * * LIElement
-   * * LabelElement
-   * * MenuElement
-   * * MeterElement
-   * * OListElement
-   * * OptionElement
-   * * OutputElement
-   * * ParagraphElement
-   * * PreElement
-   * * ProgressElement
-   * * SelectElement
-   * * SpanElement
-   * * UListElement
-   * * VideoElement
-   */
-  void register(String tag, Type customElementClass, {String nativeTagName}) {
-    _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
-        nativeTagName);
+  void register(String tag, Type customElementClass) {
+    _registerCustomElement(JS('', 'window'), this, tag, customElementClass);
   }
 
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
@@ -31959,32 +31881,7 @@ _makeCreatedCallbackMethod() {
       convertDartClosureToJS(_callCreated, 1));
 }
 
-const _typeNameToTag = const {
-  'HTMLAnchorElement': 'a',
-  'HTMLAudioElement': 'audio',
-  'HTMLButtonElement': 'button',
-  'HTMLCanvasElement': 'canvas',
-  'HTMLDivElement': 'div',
-  'HTMLImageElement': 'img',
-  'HTMLInputElement': 'input',
-  'HTMLLIElement': 'li',
-  'HTMLLabelElement': 'label',
-  'HTMLMenuElement': 'menu',
-  'HTMLMeterElement': 'meter',
-  'HTMLOListElement': 'ol',
-  'HTMLOptionElement': 'option',
-  'HTMLOutputElement': 'output',
-  'HTMLParagraphElement': 'p',
-  'HTMLPreElement': 'pre',
-  'HTMLProgressElement': 'progress',
-  'HTMLSelectElement': 'select',
-  'HTMLSpanElement': 'span',
-  'HTMLUListElement': 'ul',
-  'HTMLVideoElement': 'video',
-};
-
-void _registerCustomElement(context, document, String tag, Type type,
-    String nativeTagName) {
+void _registerCustomElement(context, document, String tag, Type type) {
   // Function follows the same pattern as the following JavaScript code for
   // registering a custom element.
   //
@@ -32026,17 +31923,8 @@ void _registerCustomElement(context, document, String tag, Type type,
 
   setNativeSubclassDispatchRecord(proto, interceptor);
 
-  var options = JS('=Object', '{prototype: #}', proto);
-
-  if (baseClassName != 'HTMLElement') {
-    if (nativeTagName != null) {
-      JS('=Object', '#.extends = #', options, nativeTagName);
-    } else if (_typeNameToTag.containsKey(baseClassName)) {
-      JS('=Object', '#.extends = #', options, _typeNameToTag[baseClassName]);
-    }
-  }
-
-  JS('void', '#.register(#, #)', document, tag, options);
+  JS('void', '#.register(#, #)',
+      document, tag, JS('', '{prototype: #}', proto));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

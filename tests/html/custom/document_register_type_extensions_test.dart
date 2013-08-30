@@ -9,43 +9,28 @@ import 'dart:html';
 import '../utils.dart';
 
 class Foo extends HtmlElement {
-  static const tag = 'x-foo';
-  static const outerHtmlString = '<x-foo></x-foo>';
+  static final tag = 'x-foo';
   factory Foo() => new Element.tag(tag);
 }
 
 class Bar extends InputElement {
-  static const tag = 'x-bar';
-  static const outerHtmlString = '<input is="x-bar">';
-  factory Bar() => new Element.tag('input', tag);
+  static final tag = 'x-bar';
+  factory Bar() => document.$dom_createElement('input', tag);
 }
 
 class Baz extends Foo {
-  static const tag = 'x-baz';
-  static const outerHtmlString = '<x-baz></x-baz>';
+  static final tag = 'x-baz';
   factory Baz() => new Element.tag(tag);
 }
 
 class Qux extends Bar {
-  static const tag = 'x-qux';
-  factory Qux() => new Element.tag('input', tag);
+  static final tag = 'x-qux';
+  factory Qux() => document.$dom_createElement('input', tag);
 }
 
 class FooBad extends DivElement {
-  static const tag = 'x-foo';
-  factory FooBad() => new Element.tag('div', tag);
-}
-
-loadPolyfills() {
-  if (!document.supportsRegister) {
-    // Cache blocker is a workaround for:
-    // https://code.google.com/p/dart/issues/detail?id=11834
-    var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
-    return HttpRequest.getString('/root_dart/pkg/custom_element/lib/'
-      'custom-elements.debug.js?cacheBlock=$cacheBlocker').then((code) {
-      document.head.children.add(new ScriptElement()..text = code);
-    });
-  }
+  static final tag = 'x-foo';
+  factory FooBad() => document.$dom_createElement('div', tag);
 }
 
 main() {
@@ -61,197 +46,154 @@ main() {
     return element.form == testForm;
   };
 
-  var registeredTypes = false;
-  void registerTypes() {
-    if (registeredTypes) {
-      return;
-    }
-    registeredTypes = true;
+  test('construction', () {
     document.register(Foo.tag, Foo);
     document.register(Bar.tag, Bar);
     document.register(Baz.tag, Baz);
     document.register(Qux.tag, Qux);
-  }
 
-  setUp(loadPolyfills);
+    expect(() => document.register(FooBad.tag, Foo), throws);
 
-  group('construction', () {
-    setUp(registerTypes);
+    // Constructors
 
-    test('cannot register twice', () {
-      expect(() => document.register(FooBad.tag, Foo), throws);
-    });
+    var fooNewed = new Foo();
+    var fooOuterHtml = "<x-foo></x-foo>";
+    expect(fooNewed.outerHtml, fooOuterHtml);
+    expect(fooNewed is Foo, isTrue);
+    expect(fooNewed is HtmlElement, isTrue);
+    expect(fooNewed is UnknownElement, isFalse);
 
-    group('constructors', () {
+    var barNewed = new Bar();
+    var barOuterHtml = '<input is="x-bar">';
+    expect(barNewed.outerHtml, barOuterHtml);
+    expect(barNewed is Bar, isTrue);
+    expect(barNewed is InputElement, isTrue);
+    expect(isFormControl(barNewed), isTrue);
 
-      test('custom tag', () {
-        var fooNewed = new Foo();
-        expect(fooNewed.outerHtml, Foo.outerHtmlString);
-        expect(fooNewed is Foo, isTrue);
-        expect(fooNewed is HtmlElement, isTrue);
-        expect(fooNewed is UnknownElement, isFalse);
-      });
+    var bazNewed = new Baz();
+    var bazOuterHtml = "<x-baz></x-baz>";
+    expect(bazNewed.outerHtml, bazOuterHtml);
+    expect(bazNewed is Baz, isTrue);
+    expect(bazNewed is HtmlElement, isTrue);
+    expect(bazNewed is UnknownElement, isFalse);
 
-      test('type extension', () {
-        var barNewed = new Bar();
-        expect(barNewed.outerHtml, Bar.outerHtmlString);
-        expect(barNewed is Bar, isTrue);
-        expect(barNewed is InputElement, isTrue);
-        expect(isFormControl(barNewed), isTrue);
-      });
+    var quxNewed = new Qux();
+    var quxOuterHtml = '<input is="x-qux">';
+    expect(quxNewed.outerHtml, quxOuterHtml);
+    expect(quxNewed is Qux, isTrue);
+    expect(quxNewed is InputElement, isTrue);
+    expect(isFormControl(quxNewed), isTrue);
 
-      test('custom tag deriving from custom tag', () {
-        var bazNewed = new Baz();
-        expect(bazNewed.outerHtml, Baz.outerHtmlString);
-        expect(bazNewed is Baz, isTrue);
-        expect(bazNewed is HtmlElement, isTrue);
-        expect(bazNewed is UnknownElement, isFalse);
-      });
+    // new Element.tag
 
-      test('type extension deriving from custom tag', () {
-        var quxNewed = new Qux();
-        var quxOuterHtml = '<input is="x-qux">';
-        expect(quxNewed.outerHtml, quxOuterHtml);
-        expect(quxNewed is Qux, isTrue);
-        expect(quxNewed is InputElement, isTrue);
-        expect(isFormControl(quxNewed), isTrue);
-      });
-    });
+    var fooCreated = new Element.tag('x-foo');
+    expect(fooCreated.outerHtml, fooOuterHtml);
+    expect(fooCreated is Foo, isTrue);
 
-    group('single-parameter createElement', () {
-      test('custom tag', () {
-        var fooCreated = new Element.tag('x-foo');
-        expect(fooCreated.outerHtml, Foo.outerHtmlString);
-        expect(fooCreated is Foo, isTrue);
-      });
+    var barCreated = new Element.tag('x-bar');
+    expect(barCreated.outerHtml, "<x-bar></x-bar>");
+    expect(barCreated is Bar, isFalse);
+    expect(barCreated is UnknownElement, isFalse);
+    expect(barCreated is HtmlElement, isTrue);
 
-      test('does not upgrade type extension', () {
-        var barCreated = new Element.tag('x-bar');
-        expect(barCreated is Bar, isFalse);
-        expect(barCreated.outerHtml, "<x-bar></x-bar>");
-        expect(barCreated is UnknownElement, isFalse);
-        expect(barCreated is HtmlElement, isTrue);
-      });
+    var bazCreated = new Element.tag('x-baz');
+    expect(bazCreated.outerHtml, bazOuterHtml);
+    expect(bazCreated is Baz, isTrue);
+    expect(bazCreated is UnknownElement, isFalse);
 
-      test('custom tag deriving from custom tag', () {
-        var bazCreated = new Element.tag('x-baz');
-        expect(bazCreated.outerHtml, Baz.outerHtmlString);
-        expect(bazCreated is Baz, isTrue);
-        expect(bazCreated is UnknownElement, isFalse);
-      });
+    var quxCreated = new Element.tag('x-qux');
+    expect(quxCreated.outerHtml, "<x-qux></x-qux>");
+    expect(quxCreated is Qux, isFalse);
+    expect(quxCreated is UnknownElement, isFalse);
+    expect(quxCreated is HtmlElement, isTrue);
 
-      test('type extension deriving from custom tag', () {
-        var quxCreated = new Element.tag('x-qux');
-        expect(quxCreated.outerHtml, "<x-qux></x-qux>");
-        expect(quxCreated is Qux, isFalse);
-        expect(quxCreated is UnknownElement, isFalse);
-        expect(quxCreated is HtmlElement, isTrue);
-      });
-    });
+    // create with type extensions
+    // TODO(vsm): How should we expose this?
 
-    group('createElement with type extension', () {
-      test('does not upgrade extension of custom tag', () {
-        var divFooCreated = new Element.tag("div", Foo.tag);
-        expect(divFooCreated.outerHtml, '<div is="x-foo"></div>');
-        expect(divFooCreated is Foo, isFalse);
-        expect(divFooCreated is DivElement, isTrue);
-      });
+    var divFooCreated = document.$dom_createElement("div", Foo.tag);
+    expect(divFooCreated.outerHtml, '<div is="x-foo"></div>');
+    expect(divFooCreated is Foo, isFalse);
+    expect(divFooCreated is DivElement, isTrue);
 
-      test('upgrades valid extension', () {
-        var inputBarCreated = new Element.tag("input", Bar.tag);
-        expect(inputBarCreated.outerHtml, Bar.outerHtmlString);
-        expect(inputBarCreated is Bar, isTrue);
-        expect(inputBarCreated is UnknownElement, isFalse);
-        expect(isFormControl(inputBarCreated), isTrue);
-      });
+    var inputBarCreated =
+	document.$dom_createElement("input", Bar.tag);
+    expect(inputBarCreated.outerHtml, barOuterHtml);
+    expect(inputBarCreated is Bar, isTrue);
+    expect(inputBarCreated is UnknownElement, isFalse);
+    expect(isFormControl(inputBarCreated), isTrue);
 
-      test('type extension of incorrect tag', () {
-        var divBarCreated = new Element.tag("div", Bar.tag);
-        expect(divBarCreated.outerHtml, '<div is="x-bar"></div>');
-        expect(divBarCreated is Bar, isFalse);
-        expect(divBarCreated is DivElement, isTrue);
-      });
+    var divBarCreated = document.$dom_createElement("div", Bar.tag);
+    expect(divBarCreated.outerHtml, '<div is="x-bar"></div>');
+    expect(divBarCreated is Bar, isFalse);
+    expect(divBarCreated is DivElement, isTrue);
 
-      test('incorrect extension of custom tag', () {
-        var fooBarCreated = new Element.tag(Foo.tag, Bar.tag);
-        expect(fooBarCreated.outerHtml, '<x-foo is="x-bar"></x-foo>');
-        expect(fooBarCreated is Foo, isTrue);
-      });
+    var fooBarCreated =
+	document.$dom_createElement(Foo.tag, Bar.tag);
+    expect(fooBarCreated.outerHtml, '<x-foo is="x-bar"></x-foo>');
+    expect(fooBarCreated is Foo, isTrue);
 
-      test('incorrect extension of type extension', () {
-        var barFooCreated = new Element.tag(Bar.tag, Foo.tag);
-        expect(barFooCreated.outerHtml, '<x-bar is="x-foo"></x-bar>');
-        expect(barFooCreated is UnknownElement, isFalse);
-        expect(barFooCreated is HtmlElement, isTrue);
-      });
+    var barFooCreated = document.$dom_createElement(Bar.tag,
+						      Foo.tag);
+    expect(barFooCreated.outerHtml, '<x-bar is="x-foo"></x-bar>');
+    expect(barFooCreated is UnknownElement, isFalse);
+    expect(barFooCreated is HtmlElement, isTrue);
 
-      test('null type extension', () {
-        var fooCreatedNull = new Element.tag(Foo.tag, null);
-        expect(fooCreatedNull.outerHtml, Foo.outerHtmlString);
-        expect(fooCreatedNull is Foo, isTrue);
-      });
+    var fooCreatedNull = document.$dom_createElement(Foo.tag, null);
+    expect(fooCreatedNull.outerHtml, fooOuterHtml);
+    expect(fooCreatedNull is Foo, isTrue);
 
-      test('empty type extension', () {
-        var fooCreatedEmpty = new Element.tag(Foo.tag, "");
-        expect(fooCreatedEmpty.outerHtml, Foo.outerHtmlString);
-        expect(fooCreatedEmpty is Foo, isTrue);
-      });
-    });
-  });
+    var fooCreatedEmpty = document.$dom_createElement(Foo.tag, "");
+    expect(fooCreatedEmpty.outerHtml, fooOuterHtml);
+    expect(fooCreatedEmpty is Foo, isTrue);
 
-  group('namespaces', () {
-    setUp(registerTypes);
+    expect(() => document.$dom_createElement('@invalid', 'x-bar'), throws);
 
-    test('createElementNS', () {
-      var fooCreatedNS =
-          document.$dom_createElementNS("http://www.w3.org/1999/xhtml",
-          Foo.tag, null);
-      expect(fooCreatedNS.outerHtml, Foo.outerHtmlString);
-      expect(fooCreatedNS is Foo, isTrue);
+    // Create NS with type extensions
 
-      var barCreatedNS =
-          document.$dom_createElementNS("http://www.w3.org/1999/xhtml", "input",
-          Bar.tag);
-      expect(barCreatedNS.outerHtml, Bar.outerHtmlString);
-      expect(barCreatedNS is Bar, isTrue);
-      expect(isFormControl(barCreatedNS), isTrue);
+    var fooCreatedNS =
+	document.$dom_createElementNS("http://www.w3.org/1999/xhtml",
+				      Foo.tag, null);
+    expect(fooCreatedNS.outerHtml, fooOuterHtml);
+    expect(fooCreatedNS is Foo, isTrue);
 
-      expect(() =>
-         document.$dom_createElementNS(
-             'http://example.com/2013/no-such-namespace',
-       'xml:lang', 'x-bar'), throws);
-    });
-  });
+    var barCreatedNS =
+	document.$dom_createElementNS("http://www.w3.org/1999/xhtml", "input",
+				      Bar.tag);
+    expect(barCreatedNS.outerHtml, barOuterHtml);
+    expect(barCreatedNS is Bar, isTrue);
+    expect(isFormControl(barCreatedNS), isTrue);
 
-  group('parsing', () {
-    setUp(registerTypes);
+    expect(() =>
+	     document.$dom_createElementNS(
+	         'http://example.com/2013/no-such-namespace',
+		 'xml:lang', 'x-bar'), throws);
 
-    test('parsing', () {
-      createElementFromHtml(html) {
-        var container = new DivElement()..setInnerHtml(html,
-          treeSanitizer: new NullTreeSanitizer());
-        return container.firstChild;
-      }
+    // Parser
 
-      var fooParsed = createElementFromHtml('<x-foo>');
-      expect(fooParsed is Foo, isTrue);
+    createElementFromHtml(html) {
+      var container = new DivElement()..setInnerHtml(html,
+        treeSanitizer: new NullTreeSanitizer());
+      return container.firstChild;
+    }
 
-      var barParsed = createElementFromHtml('<input is=x-bar>');
-      expect(barParsed is Bar, isTrue);
-      expect(isFormControl(barParsed), isTrue);
+    var fooParsed = createElementFromHtml('<x-foo>');
+    expect(fooParsed is Foo, isTrue);
 
-      var divFooParsed = createElementFromHtml('<div is=x-foo>');
-      expect(divFooParsed is Foo, isFalse);
-      expect(divFooParsed is DivElement, isTrue);
+    var barParsed = createElementFromHtml('<input is=x-bar>');
+    expect(barParsed is Bar, isTrue);
+    expect(isFormControl(barParsed), isTrue);
 
-      var namedBarParsed = createElementFromHtml('<x-bar>');
-      expect(namedBarParsed is Bar, isFalse);
-      expect(namedBarParsed is UnknownElement, isFalse);
-      expect(namedBarParsed is HtmlElement, isTrue);
+    var divFooParsed = createElementFromHtml('<div is=x-foo>');
+    expect(divFooParsed is Foo, isFalse);
+    expect(divFooParsed is DivElement, isTrue);
 
-      var divBarParsed = createElementFromHtml('<div is=x-bar>');
-      expect(divBarParsed is Bar, isFalse);
-      expect(divBarParsed is DivElement, isTrue);
-    });
+    var namedBarParsed = createElementFromHtml('<x-bar>');
+    expect(namedBarParsed is Bar, isFalse);
+    expect(namedBarParsed is UnknownElement, isFalse);
+    expect(namedBarParsed is HtmlElement, isTrue);
+
+    var divBarParsed = createElementFromHtml('<div is=x-bar>');
+    expect(divBarParsed is Bar, isFalse);
+    expect(divBarParsed is DivElement, isTrue);
   });
 }
