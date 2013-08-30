@@ -397,7 +397,7 @@ js_support_checks = dict({
     'Crypto':
         "JS('bool', '!!(window.crypto && window.crypto.getRandomValues)')",
     'Database': "JS('bool', '!!(window.openDatabase)')",
-    'DOMApplicationCache': "JS('bool', '!!(window.applicationCache)')",
+    'ApplicationCache': "JS('bool', '!!(window.applicationCache)')",
     'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
     'FormData': "JS('bool', '!!(window.FormData)')",
     'HashChangeEvent': "Device.isEventTypeSupported('HashChangeEvent')",

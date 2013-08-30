@@ -503,75 +503,25 @@ class Index extends NativeFieldWrapperClass1 {
   @DocsEditable()
   bool get unique native "IDBIndex_unique_Getter";
 
-  Request _count([key_OR_range]) {
-    if ((key_OR_range is KeyRange || key_OR_range == null)) {
-      return _count_1(key_OR_range);
-    }
-    if (key_OR_range != null) {
-      return _count_2(key_OR_range);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
+  @DomName('IDBIndex.count')
+  @DocsEditable()
+  Request _count(Object key) native "IDBIndex_count_Callback";
 
-  Request _count_1(key_OR_range) native "IDBIndex__count_1_Callback";
+  @DomName('IDBIndex.get')
+  @DocsEditable()
+  Request _get(Object key) native "IDBIndex_get_Callback";
 
-  Request _count_2(key_OR_range) native "IDBIndex__count_2_Callback";
+  @DomName('IDBIndex.getKey')
+  @DocsEditable()
+  Request _getKey(Object key) native "IDBIndex_getKey_Callback";
 
-  Request _get(key) {
-    if ((key is KeyRange || key == null)) {
-      return _get_1(key);
-    }
-    if (key != null) {
-      return _get_2(key);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
+  @DomName('IDBIndex.openCursor')
+  @DocsEditable()
+  Request _openCursor(Object key, String direction) native "IDBIndex_openCursor_Callback";
 
-  Request _get_1(key) native "IDBIndex__get_1_Callback";
-
-  Request _get_2(key) native "IDBIndex__get_2_Callback";
-
-  Request _getKey(key) {
-    if ((key is KeyRange || key == null)) {
-      return _getKey_1(key);
-    }
-    if (key != null) {
-      return _getKey_2(key);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Request _getKey_1(key) native "IDBIndex__getKey_1_Callback";
-
-  Request _getKey_2(key) native "IDBIndex__getKey_2_Callback";
-
-  Request _openCursor([key_OR_range, String direction]) {
-    if ((direction is String || direction == null) && (key_OR_range is KeyRange || key_OR_range == null)) {
-      return _openCursor_1(key_OR_range, direction);
-    }
-    if ((direction is String || direction == null) && key_OR_range != null) {
-      return _openCursor_2(key_OR_range, direction);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Request _openCursor_1(key_OR_range, direction) native "IDBIndex__openCursor_1_Callback";
-
-  Request _openCursor_2(key_OR_range, direction) native "IDBIndex__openCursor_2_Callback";
-
-  Request _openKeyCursor([key_OR_range, String direction]) {
-    if ((direction is String || direction == null) && (key_OR_range is KeyRange || key_OR_range == null)) {
-      return _openKeyCursor_1(key_OR_range, direction);
-    }
-    if ((direction is String || direction == null) && key_OR_range != null) {
-      return _openKeyCursor_2(key_OR_range, direction);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Request _openKeyCursor_1(key_OR_range, direction) native "IDBIndex__openKeyCursor_1_Callback";
-
-  Request _openKeyCursor_2(key_OR_range, direction) native "IDBIndex__openKeyCursor_2_Callback";
+  @DomName('IDBIndex.openKeyCursor')
+  @DocsEditable()
+  Request _openKeyCursor(Object key, String direction) native "IDBIndex_openKeyCursor_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -807,19 +757,9 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DocsEditable()
   Request _clear() native "IDBObjectStore_clear_Callback";
 
-  Request _count([key_OR_range]) {
-    if ((key_OR_range is KeyRange || key_OR_range == null)) {
-      return _count_1(key_OR_range);
-    }
-    if (key_OR_range != null) {
-      return _count_2(key_OR_range);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Request _count_1(key_OR_range) native "IDBObjectStore__count_1_Callback";
-
-  Request _count_2(key_OR_range) native "IDBObjectStore__count_2_Callback";
+  @DomName('IDBObjectStore.count')
+  @DocsEditable()
+  Request _count(Object key) native "IDBObjectStore_count_Callback";
 
   Index _createIndex(String name, keyPath, [Map options]) {
     if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
@@ -835,55 +775,25 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 
   Index _createIndex_2(name, keyPath, options) native "IDBObjectStore__createIndex_2_Callback";
 
-  Request _delete(key_OR_keyRange) {
-    if ((key_OR_keyRange is KeyRange || key_OR_keyRange == null)) {
-      return _delete_1(key_OR_keyRange);
-    }
-    if (key_OR_keyRange != null) {
-      return _delete_2(key_OR_keyRange);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Request _delete_1(key_OR_keyRange) native "IDBObjectStore__delete_1_Callback";
-
-  Request _delete_2(key_OR_keyRange) native "IDBObjectStore__delete_2_Callback";
+  @DomName('IDBObjectStore.delete')
+  @DocsEditable()
+  Request _delete(Object key) native "IDBObjectStore_delete_Callback";
 
   @DomName('IDBObjectStore.deleteIndex')
   @DocsEditable()
   void deleteIndex(String name) native "IDBObjectStore_deleteIndex_Callback";
 
-  Request _get(key) {
-    if ((key is KeyRange || key == null)) {
-      return _get_1(key);
-    }
-    if (key != null) {
-      return _get_2(key);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Request _get_1(key) native "IDBObjectStore__get_1_Callback";
-
-  Request _get_2(key) native "IDBObjectStore__get_2_Callback";
+  @DomName('IDBObjectStore.get')
+  @DocsEditable()
+  Request _get(Object key) native "IDBObjectStore_get_Callback";
 
   @DomName('IDBObjectStore.index')
   @DocsEditable()
   Index index(String name) native "IDBObjectStore_index_Callback";
 
-  Request _openCursor([key_OR_range, String direction]) {
-    if ((direction is String || direction == null) && (key_OR_range is KeyRange || key_OR_range == null)) {
-      return _openCursor_1(key_OR_range, direction);
-    }
-    if ((direction is String || direction == null) && key_OR_range != null) {
-      return _openCursor_2(key_OR_range, direction);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Request _openCursor_1(key_OR_range, direction) native "IDBObjectStore__openCursor_1_Callback";
-
-  Request _openCursor_2(key_OR_range, direction) native "IDBObjectStore__openCursor_2_Callback";
+  @DomName('IDBObjectStore.openCursor')
+  @DocsEditable()
+  Request _openCursor(Object key, [String direction]) native "IDBObjectStore_openCursor_Callback";
 
   @DomName('IDBObjectStore.put')
   @DocsEditable()

@@ -37,6 +37,7 @@ _cpp_callback_map = {
   ('DOMWindow', 'btoa'): 'DOMWindowBase64',
   ('DOMWindow', 'clearTimeout'): 'DOMWindowTimers',
   ('DOMWindow', 'clearInterval'): 'DOMWindowTimers',
+  ('DOMWindow', 'createImageBitmap'): 'ImageBitmapFactories',
   ('HTMLInputElement', 'webkitEntries'): 'HTMLInputElementFileSystem',
   ('Navigator', 'doNotTrack'): 'NavigatorDoNotTrack',
   ('Navigator', 'geolocation'): 'NavigatorGeolocation',
@@ -48,6 +49,11 @@ _cpp_callback_map = {
   ('Navigator', 'webkitGetGamepads'): 'NavigatorGamepad',
   ('Navigator', 'requestMIDIAccess'): 'NavigatorWebMIDI',
   ('Navigator', 'vibrate'): 'NavigatorVibration',
+  ('Navigator', 'appName'): 'NavigatorID',
+  ('Navigator', 'appVersion'): 'NavigatorID',
+  ('Navigator', 'platform'): 'NavigatorID',
+  ('Navigator', 'userAgent'): 'NavigatorID',
+  ('Navigator', 'onLine'): 'NavigatorOnLine',
   ('WorkerGlobalScope', 'crypto'): 'WorkerGlobalScopeCrypto',
   ('WorkerGlobalScope', 'indexedDB'): 'WorkerGlobalScopeIndexedDatabase',
   ('WorkerGlobalScope', 'webkitNotifications'): 'WorkerGlobalScopeNotifications',
@@ -63,6 +69,10 @@ _cpp_callback_map = {
   ('WorkerGlobalScope', 'clearTimeout'): 'DOMWindowTimers',
   ('WorkerGlobalScope', 'clearInterval'): 'DOMWindowTimers',
   }
+
+_cpp_import_map = {
+  'ImageBitmapFactories' : 'modules/imagebitmap/ImageBitmapFactories'
+}
 
 _cpp_overloaded_callback_map = {
   ('DOMURL', 'createObjectUrlFromSourceCallback'): 'URLMediaSource',
@@ -81,7 +91,11 @@ def _GetCPPPartialNames(interface):
     for (type, member) in _cpp_callback_map.keys():
       if type not in _cpp_partial_map:
         _cpp_partial_map[type] = set([])
-      _cpp_partial_map[type].add(_cpp_callback_map[(type, member)])
+
+      name_with_path = _cpp_callback_map[(type, member)]
+      if name_with_path in _cpp_import_map:
+        name_with_path = _cpp_import_map[name_with_path]
+      _cpp_partial_map[type].add(name_with_path)
 
     for (type, member) in _cpp_overloaded_callback_map.keys():
       if type not in _cpp_partial_map:

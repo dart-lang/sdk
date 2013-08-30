@@ -72,7 +72,7 @@ interface CanvasRenderingContext2D {
 };
 
 [Supplemental]
-interface Console {
+interface ConsoleBase {
   [Suppressed] void assert(boolean condition);
   [CallWith=ScriptArguments|ScriptState] void assertCondition(boolean condition);
 };
@@ -183,14 +183,11 @@ interface IDBCursor {
 };
 [Supplemental]
 interface IDBIndex {
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor([ForceOptional] optional IDBKeyRange? range, [ForceOptional] optional DOMString direction);
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor(any key, [ForceOptional] optional DOMString direction);
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openKeyCursor([ForceOptional] optional IDBKeyRange? range, [ForceOptional] optional DOMString  direction);
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openKeyCursor(any key,
-    [ForceOptional] optional DOMString direction);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor([Default=Undefined] optional any key, [Default=NullString] optional DOMString direction);
 
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count([ForceOptional] optional IDBKeyRange? range);
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count(any key);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openKeyCursor([Default=Undefined] optional any key, [Default=NullString] optional DOMString direction);
+
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count([Default=Undefined] optional any key);
 };
 
 [Supplemental]
@@ -205,13 +202,13 @@ interface IDBKeyRange {
   [DartName=upperBound_] static IDBKeyRange upperBound(any bound, [ForceOptional] optional boolean open);
   [DartName=bound_] static IDBKeyRange bound(any lower, any upper, [ForceOptional] optional boolean lowerOpen, [ForceOptional] optional boolean upperOpen);
 };
+
 [Supplemental]
 interface IDBObjectStore {
     [CallWith=ScriptState, RaisesException] IDBRequest put(any value, [ForceOptional] optional any key);
     [CallWith=ScriptState, RaisesException] IDBRequest add(any value, [ForceOptional] optional any key);
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor([ForceOptional] optional IDBKeyRange? range, [ForceOptional] optional DOMString direction);
+    # [CallWith=ScriptExecutionContext, ImplementedAs=deleteFunction, RaisesException] IDBRequest delete(any key);
     [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor(any key, [ForceOptional] optional DOMString direction);
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count([ForceOptional] optional IDBKeyRange? range);
     [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count(any key);
 };
 
@@ -300,7 +297,6 @@ interface XMLHttpRequest {
    [Custom] void send([StrictTypeChecking] DOMString data);
    [Custom] void send(FormData data);
 };
-
 
 [Suppressed]
 interface AbstractView {};

@@ -291,7 +291,7 @@ class AnimationEvent extends Event native "WebKitAnimationEvent" {
 
 
 @DocsEditable()
-@DomName('DOMApplicationCache')
+@DomName('ApplicationCache')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
@@ -302,110 +302,110 @@ class ApplicationCache extends EventTarget native "ApplicationCache,DOMApplicati
   // To suppress missing implicit constructor warnings.
   factory ApplicationCache._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('DOMApplicationCache.cachedEvent')
+  @DomName('ApplicationCache.cachedEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> cachedEvent = const EventStreamProvider<Event>('cached');
 
-  @DomName('DOMApplicationCache.checkingEvent')
+  @DomName('ApplicationCache.checkingEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> checkingEvent = const EventStreamProvider<Event>('checking');
 
-  @DomName('DOMApplicationCache.downloadingEvent')
+  @DomName('ApplicationCache.downloadingEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> downloadingEvent = const EventStreamProvider<Event>('downloading');
 
-  @DomName('DOMApplicationCache.errorEvent')
+  @DomName('ApplicationCache.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DomName('DOMApplicationCache.noupdateEvent')
+  @DomName('ApplicationCache.noupdateEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> noUpdateEvent = const EventStreamProvider<Event>('noupdate');
 
-  @DomName('DOMApplicationCache.obsoleteEvent')
+  @DomName('ApplicationCache.obsoleteEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> obsoleteEvent = const EventStreamProvider<Event>('obsolete');
 
-  @DomName('DOMApplicationCache.progressEvent')
+  @DomName('ApplicationCache.progressEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
-  @DomName('DOMApplicationCache.updatereadyEvent')
+  @DomName('ApplicationCache.updatereadyEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.applicationCache)');
 
-  @DomName('DOMApplicationCache.CHECKING')
+  @DomName('ApplicationCache.CHECKING')
   @DocsEditable()
   static const int CHECKING = 2;
 
-  @DomName('DOMApplicationCache.DOWNLOADING')
+  @DomName('ApplicationCache.DOWNLOADING')
   @DocsEditable()
   static const int DOWNLOADING = 3;
 
-  @DomName('DOMApplicationCache.IDLE')
+  @DomName('ApplicationCache.IDLE')
   @DocsEditable()
   static const int IDLE = 1;
 
-  @DomName('DOMApplicationCache.OBSOLETE')
+  @DomName('ApplicationCache.OBSOLETE')
   @DocsEditable()
   static const int OBSOLETE = 5;
 
-  @DomName('DOMApplicationCache.UNCACHED')
+  @DomName('ApplicationCache.UNCACHED')
   @DocsEditable()
   static const int UNCACHED = 0;
 
-  @DomName('DOMApplicationCache.UPDATEREADY')
+  @DomName('ApplicationCache.UPDATEREADY')
   @DocsEditable()
   static const int UPDATEREADY = 4;
 
-  @DomName('DOMApplicationCache.status')
+  @DomName('ApplicationCache.status')
   @DocsEditable()
   final int status;
 
-  @DomName('DOMApplicationCache.abort')
+  @DomName('ApplicationCache.abort')
   @DocsEditable()
   void abort() native;
 
-  @DomName('DOMApplicationCache.swapCache')
+  @DomName('ApplicationCache.swapCache')
   @DocsEditable()
   void swapCache() native;
 
-  @DomName('DOMApplicationCache.update')
+  @DomName('ApplicationCache.update')
   @DocsEditable()
   void update() native;
 
-  @DomName('DOMApplicationCache.oncached')
+  @DomName('ApplicationCache.oncached')
   @DocsEditable()
   Stream<Event> get onCached => cachedEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.onchecking')
+  @DomName('ApplicationCache.onchecking')
   @DocsEditable()
   Stream<Event> get onChecking => checkingEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.ondownloading')
+  @DomName('ApplicationCache.ondownloading')
   @DocsEditable()
   Stream<Event> get onDownloading => downloadingEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.onerror')
+  @DomName('ApplicationCache.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.onnoupdate')
+  @DomName('ApplicationCache.onnoupdate')
   @DocsEditable()
   Stream<Event> get onNoUpdate => noUpdateEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.onobsolete')
+  @DomName('ApplicationCache.onobsolete')
   @DocsEditable()
   Stream<Event> get onObsolete => obsoleteEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.onprogress')
+  @DomName('ApplicationCache.onprogress')
   @DocsEditable()
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.onupdateready')
+  @DomName('ApplicationCache.onupdateready')
   @DocsEditable()
   Stream<Event> get onUpdateReady => updateReadyEvent.forTarget(this);
 }
@@ -1935,17 +1935,124 @@ class Console {
   @DomName('Console.warn')
   void warn(Object arg) => _isConsoleDefined ?
       JS('void', 'console.warn(#)', arg) : null;
+  // To suppress missing implicit constructor warnings.
+  factory Console._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('Console.clear')
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('ConsoleBase')
+@Experimental() // untriaged
+class ConsoleBase extends Interceptor native "ConsoleBase" {
+
+  @DomName('ConsoleBase.assertCondition')
   @DocsEditable()
-  @Experimental()
+  @Experimental() // untriaged
+  void assertCondition(bool condition, Object arg) native;
+
+  @DomName('ConsoleBase.clear')
+  @DocsEditable()
+  @Experimental() // untriaged
   void clear(Object arg) native;
 
-  @DomName('Console.table')
+  @DomName('ConsoleBase.count')
   @DocsEditable()
-  @Experimental()
+  @Experimental() // untriaged
+  void count(Object arg) native;
+
+  @DomName('ConsoleBase.debug')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void debug(Object arg) native;
+
+  @DomName('ConsoleBase.dir')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void dir(Object arg) native;
+
+  @DomName('ConsoleBase.dirxml')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void dirxml(Object arg) native;
+
+  @DomName('ConsoleBase.error')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void error(Object arg) native;
+
+  @DomName('ConsoleBase.group')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void group(Object arg) native;
+
+  @DomName('ConsoleBase.groupCollapsed')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void groupCollapsed(Object arg) native;
+
+  @DomName('ConsoleBase.groupEnd')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void groupEnd() native;
+
+  @DomName('ConsoleBase.info')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void info(Object arg) native;
+
+  @DomName('ConsoleBase.log')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void log(Object arg) native;
+
+  @DomName('ConsoleBase.markTimeline')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void markTimeline(Object arg) native;
+
+  @DomName('ConsoleBase.profile')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void profile(String title) native;
+
+  @DomName('ConsoleBase.profileEnd')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void profileEnd(String title) native;
+
+  @DomName('ConsoleBase.table')
+  @DocsEditable()
+  @Experimental() // untriaged
   void table(Object arg) native;
 
+  @DomName('ConsoleBase.time')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void time(String title) native;
+
+  @DomName('ConsoleBase.timeEnd')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void timeEnd(String title) native;
+
+  @DomName('ConsoleBase.timeStamp')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void timeStamp(Object arg) native;
+
+  @DomName('ConsoleBase.trace')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void trace(Object arg) native;
+
+  @DomName('ConsoleBase.warn')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void warn(Object arg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2075,43 +2182,6 @@ class CryptoKey extends Interceptor native "Key" {
   @DocsEditable()
   @Experimental() // untriaged
   final List<String> usages;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('CryptoOperation')
-@Experimental() // untriaged
-class CryptoOperation extends Interceptor native "CryptoOperation" {
-
-  @DomName('CryptoOperation.algorithm')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final Algorithm algorithm;
-
-  @DomName('CryptoOperation.abort')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object abort() native;
-
-  @DomName('CryptoOperation.finish')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object finish() native;
-
-  @JSName('process')
-  @DomName('CryptoOperation.process')
-  @DocsEditable()
-  @Experimental() // untriaged
-  CryptoOperation processByteBuffer(ByteBuffer data) native;
-
-  @JSName('process')
-  @DomName('CryptoOperation.process')
-  @DocsEditable()
-  @Experimental() // untriaged
-  CryptoOperation processTypedData(TypedData data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2334,21 +2404,20 @@ class CssImportRule extends CssRule native "CSSImportRule" {
 
 
 @DocsEditable()
-@DomName('WebKitCSSKeyframeRule')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-// http://www.w3.org/TR/css3-animations/#CSSKeyframeRule-interface
-class CssKeyframeRule extends CssRule native "CSSKeyframeRule,MozCSSKeyframeRule,WebKitCSSKeyframeRule" {
+@DomName('CSSKeyframeRule')
+@Experimental() // untriaged
+class CssKeyframeRule extends CssRule native "CSSKeyframeRule" {
   // To suppress missing implicit constructor warnings.
   factory CssKeyframeRule._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('WebKitCSSKeyframeRule.keyText')
+  @DomName('CSSKeyframeRule.keyText')
   @DocsEditable()
+  @Experimental() // untriaged
   String keyText;
 
-  @DomName('WebKitCSSKeyframeRule.style')
+  @DomName('CSSKeyframeRule.style')
   @DocsEditable()
+  @Experimental() // untriaged
   final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2357,45 +2426,43 @@ class CssKeyframeRule extends CssRule native "CSSKeyframeRule,MozCSSKeyframeRule
 
 
 @DocsEditable()
-@DomName('WebKitCSSKeyframesRule')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-// http://www.w3.org/TR/css3-animations/#csskeyframesrule
-class CssKeyframesRule extends CssRule native "CSSKeyframesRule,MozCSSKeyframesRule,WebKitCSSKeyframesRule" {
+@DomName('CSSKeyframesRule')
+@Experimental() // untriaged
+class CssKeyframesRule extends CssRule native "CSSKeyframesRule" {
   // To suppress missing implicit constructor warnings.
   factory CssKeyframesRule._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('WebKitCSSKeyframesRule.cssRules')
+  @DomName('CSSKeyframesRule.cssRules')
   @DocsEditable()
+  @Experimental() // untriaged
   @Returns('_CssRuleList')
   @Creates('_CssRuleList')
   final List<CssRule> cssRules;
 
-  @DomName('WebKitCSSKeyframesRule.name')
+  @DomName('CSSKeyframesRule.name')
   @DocsEditable()
+  @Experimental() // untriaged
   String name;
 
-  @DomName('WebKitCSSKeyframesRule.__getter__')
+  @DomName('CSSKeyframesRule.__getter__')
   @DocsEditable()
+  @Experimental() // untriaged
   CssKeyframeRule __getter__(int index) native;
 
-  @DomName('WebKitCSSKeyframesRule.deleteRule')
+  @DomName('CSSKeyframesRule.deleteRule')
   @DocsEditable()
+  @Experimental() // untriaged
   void deleteRule(String key) native;
 
-  @DomName('WebKitCSSKeyframesRule.findRule')
+  @DomName('CSSKeyframesRule.findRule')
   @DocsEditable()
+  @Experimental() // untriaged
   CssKeyframeRule findRule(String key) native;
 
-
-  void appendRule(String rule) {
-    if (JS('bool', '("appendRule" in #)', this)) {
-      JS('', '#.appendRule(#)', this, rule);
-    } else {
-      JS('', '#.insertRule(#)', this, rule);
-    }
-  }
+  @DomName('CSSKeyframesRule.insertRule')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void insertRule(String rule) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2664,6 +2731,16 @@ class CssRule extends Interceptor native "CSSRule" {
   @DomName('CSSRule.IMPORT_RULE')
   @DocsEditable()
   static const int IMPORT_RULE = 3;
+
+  @DomName('CSSRule.KEYFRAMES_RULE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int KEYFRAMES_RULE = 7;
+
+  @DomName('CSSRule.KEYFRAME_RULE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int KEYFRAME_RULE = 8;
 
   @DomName('CSSRule.MEDIA_RULE')
   @DocsEditable()
@@ -6484,27 +6561,33 @@ class DataTransferItemList extends Interceptor native "DataTransferItemList" {
   @DocsEditable()
   final int length;
 
+  @DomName('DataTransferItemList.__getter__')
+  @DocsEditable()
+  @Experimental() // untriaged
+  DataTransferItem __getter__(int index) native;
+
   @DomName('DataTransferItemList.add')
   @DocsEditable()
-  void add(data_OR_file, [String type]) native;
+  DataTransferItem add(data_OR_file, [String type]) native;
 
   @JSName('add')
   @DomName('DataTransferItemList.add')
   @DocsEditable()
-  void addData(String data, String type) native;
+  DataTransferItem addData(String data, String type) native;
 
   @JSName('add')
   @DomName('DataTransferItemList.add')
   @DocsEditable()
-  void addFile(File file) native;
+  DataTransferItem addFile(File file) native;
 
   @DomName('DataTransferItemList.clear')
   @DocsEditable()
   void clear() native;
 
-  @DomName('DataTransferItemList.item')
+  @DomName('DataTransferItemList.remove')
   @DocsEditable()
-  DataTransferItem item(int index) native;
+  @Experimental() // untriaged
+  void remove(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10090,6 +10173,12 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DocsEditable()
   String id;
 
+  // Use implementation from Node.
+  // final String _localName;
+
+  // Use implementation from Node.
+  // final String _namespaceUri;
+
   @DomName('Element.offsetHeight')
   @DocsEditable()
   final int offsetHeight;
@@ -11396,7 +11485,9 @@ class FileEntry extends Entry native "FileEntry" {
 @DomName('FileError')
 // http://dev.w3.org/2009/dap/file-system/pub/FileSystem/
 @Experimental()
-class FileError extends Interceptor native "FileError" {
+class FileError extends DomError native "FileError" {
+  // To suppress missing implicit constructor warnings.
+  factory FileError._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('FileError.ABORT_ERR')
   @DocsEditable()
@@ -12364,6 +12455,28 @@ class History extends Interceptor implements HistoryBase native "History" {
 
 
 @DocsEditable()
+@DomName('HmacKeyParams')
+@Experimental() // untriaged
+class HmacKeyParams extends Algorithm native "HmacKeyParams" {
+  // To suppress missing implicit constructor warnings.
+  factory HmacKeyParams._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('HmacKeyParams.hash')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Algorithm hash;
+
+  @DomName('HmacKeyParams.length')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int length;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('HmacParams')
 @Experimental() // untriaged
 class HmacParams extends Algorithm native "HmacParams" {
@@ -12775,7 +12888,7 @@ class HtmlOptionsCollection extends HtmlCollection native "HTMLOptionsCollection
  * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
 @DomName('XMLHttpRequest')
-class HttpRequest extends EventTarget native "XMLHttpRequest" {
+class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
 
   /**
    * Creates a URL get request for the specified [url].
@@ -12996,30 +13109,6 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
 
   // To suppress missing implicit constructor warnings.
   factory HttpRequest._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('XMLHttpRequest.abortEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
-
-  @DomName('XMLHttpRequest.errorEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
-
-  @DomName('XMLHttpRequest.loadEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
-
-  @DomName('XMLHttpRequest.loadendEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
-
-  @DomName('XMLHttpRequest.loadstartEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
-
-  @DomName('XMLHttpRequest.progressEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
   @DomName('XMLHttpRequest.readystatechangeEvent')
   @DocsEditable()
@@ -13275,65 +13364,6 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
   void setRequestHeader(String header, String value) native;
 
   /**
-   * Event listeners to be notified when request has been aborted,
-   * generally due to calling `httpRequest.abort()`.
-   */
-  @DomName('XMLHttpRequest.onabort')
-  @DocsEditable()
-  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
-
-  /**
-   * Event listeners to be notified when a request has failed, such as when a
-   * cross-domain error occurred or the file wasn't found on the server.
-   */
-  @DomName('XMLHttpRequest.onerror')
-  @DocsEditable()
-  Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
-
-  /**
-   * Event listeners to be notified once the request has completed
-   * *successfully*.
-   */
-  @DomName('XMLHttpRequest.onload')
-  @DocsEditable()
-  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
-
-  /**
-   * Event listeners to be notified once the request has completed (on
-   * either success or failure).
-   */
-  @DomName('XMLHttpRequest.onloadend')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
-
-  /**
-   * Event listeners to be notified when the request starts, once
-   * `httpRequest.send()` has been called.
-   */
-  @DomName('XMLHttpRequest.onloadstart')
-  @DocsEditable()
-  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
-
-  /**
-   * Event listeners to be notified when data for the request
-   * is being sent or loaded.
-   *
-   * Progress events are fired every 50ms or for every byte transmitted,
-   * whichever is less frequent.
-   */
-  @DomName('XMLHttpRequest.onprogress')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
-
-  /**
    * Event listeners to be notified every time the [HttpRequest]
    * object's `readyState` changes values.
    */
@@ -13377,57 +13407,9 @@ class HttpRequestProgressEvent extends ProgressEvent native "XMLHttpRequestProgr
 @DomName('XMLHttpRequestUpload')
 // http://xhr.spec.whatwg.org/#xmlhttprequestupload
 @Experimental()
-class HttpRequestUpload extends EventTarget native "XMLHttpRequestUpload,XMLHttpRequestEventTarget" {
+class HttpRequestUpload extends XmlHttpRequestEventTarget native "XMLHttpRequestUpload,XMLHttpRequestEventTarget" {
   // To suppress missing implicit constructor warnings.
   factory HttpRequestUpload._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('XMLHttpRequestUpload.abortEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
-
-  @DomName('XMLHttpRequestUpload.errorEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
-
-  @DomName('XMLHttpRequestUpload.loadEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
-
-  @DomName('XMLHttpRequestUpload.loadendEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
-
-  @DomName('XMLHttpRequestUpload.loadstartEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
-
-  @DomName('XMLHttpRequestUpload.progressEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
-
-  @DomName('XMLHttpRequestUpload.onabort')
-  @DocsEditable()
-  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestUpload.onerror')
-  @DocsEditable()
-  Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestUpload.onload')
-  @DocsEditable()
-  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestUpload.onloadend')
-  @DocsEditable()
-  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestUpload.onloadstart')
-  @DocsEditable()
-  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestUpload.onprogress')
-  @DocsEditable()
-  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16191,13 +16173,6 @@ class MenuElement extends HtmlElement native "HTMLMenuElement" {
 @Unstable()
 class MessageChannel extends Interceptor native "MessageChannel" {
 
-  @DomName('MessageChannel.MessageChannel')
-  @DocsEditable()
-  factory MessageChannel() {
-    return MessageChannel._create_1();
-  }
-  static MessageChannel _create_1() => JS('MessageChannel', 'new MessageChannel()');
-
   @DomName('MessageChannel.port1')
   @DocsEditable()
   final MessagePort port1;
@@ -16253,12 +16228,10 @@ class MessageEvent extends Event native "MessageEvent" {
   @Creates('JSExtendableArray')
   final List<MessagePort> ports;
 
-  WindowBase get source => _convertNativeToDart_Window(this._get_source);
+  EventTarget get source => _convertNativeToDart_EventTarget(this._get_source);
   @JSName('source')
   @DomName('MessageEvent.source')
   @DocsEditable()
-  @Creates('Window|=Object')
-  @Returns('Window|=Object')
   final dynamic _get_source;
 
   @JSName('initMessageEvent')
@@ -17185,7 +17158,7 @@ class NamedFlowCollection extends Interceptor native "WebKitNamedFlowCollection"
 
 
 @DomName('Navigator')
-class Navigator extends Interceptor native "Navigator" {
+class Navigator extends Interceptor implements NavigatorOnLine, NavigatorID native "Navigator" {
 
   @DomName('Navigator.language')
   String get language => JS('String', '#.language || #.userLanguage', this,
@@ -17264,14 +17237,6 @@ class Navigator extends Interceptor native "Navigator" {
   @Experimental() // non-standard
   final String appCodeName;
 
-  @DomName('Navigator.appName')
-  @DocsEditable()
-  final String appName;
-
-  @DomName('Navigator.appVersion')
-  @DocsEditable()
-  final String appVersion;
-
   @DomName('Navigator.cookieEnabled')
   @DocsEditable()
   @Unstable()
@@ -17293,15 +17258,6 @@ class Navigator extends Interceptor native "Navigator" {
   @Experimental() // nonstandard
   final MimeTypeArray mimeTypes;
 
-  @DomName('Navigator.onLine')
-  @DocsEditable()
-  @Unstable()
-  final bool onLine;
-
-  @DomName('Navigator.platform')
-  @DocsEditable()
-  final String platform;
-
   @DomName('Navigator.plugins')
   @DocsEditable()
   @deprecated // nonstandard
@@ -17316,10 +17272,6 @@ class Navigator extends Interceptor native "Navigator" {
   @DocsEditable()
   @Unstable()
   final String productSub;
-
-  @DomName('Navigator.userAgent')
-  @DocsEditable()
-  final String userAgent;
 
   @DomName('Navigator.vendor')
   @DocsEditable()
@@ -17397,6 +17349,61 @@ class Navigator extends Interceptor native "Navigator" {
   @Creates('_GamepadList')
   List<Gamepad> getGamepads() native;
 
+  // From NavigatorID
+
+  @DomName('Navigator.appName')
+  @DocsEditable()
+  final String appName;
+
+  @DomName('Navigator.appVersion')
+  @DocsEditable()
+  final String appVersion;
+
+  @DomName('Navigator.platform')
+  @DocsEditable()
+  final String platform;
+
+  @DomName('Navigator.userAgent')
+  @DocsEditable()
+  final String userAgent;
+
+  // From NavigatorOnLine
+
+  @DomName('Navigator.onLine')
+  @DocsEditable()
+  @Unstable()
+  final bool onLine;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('NavigatorID')
+@Experimental() // untriaged
+abstract class NavigatorID extends Interceptor {
+
+  String appName;
+
+  String appVersion;
+
+  String platform;
+
+  String userAgent;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('NavigatorOnLine')
+@Experimental() // untriaged
+abstract class NavigatorOnLine extends Interceptor {
+
+  bool onLine;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19278,14 +19285,9 @@ class PreElement extends HtmlElement native "HTMLPreElement" {
 @DocsEditable()
 @DomName('ProcessingInstruction')
 @Unstable()
-class ProcessingInstruction extends Node native "ProcessingInstruction" {
+class ProcessingInstruction extends CharacterData native "ProcessingInstruction" {
   // To suppress missing implicit constructor warnings.
   factory ProcessingInstruction._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('ProcessingInstruction.data')
-  @DocsEditable()
-  @Experimental() // non-standard
-  String data;
 
   @DomName('ProcessingInstruction.sheet')
   @DocsEditable()
@@ -22168,41 +22170,41 @@ class SubtleCrypto extends Interceptor native "SubtleCrypto" {
   @DomName('SubtleCrypto.decrypt')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation decrypt(Map algorithm, CryptoKey key) {
+  Object decrypt(Map algorithm, CryptoKey key, TypedData data) {
     var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _decrypt_1(algorithm_1, key);
+    return _decrypt_1(algorithm_1, key, data);
   }
   @JSName('decrypt')
   @DomName('SubtleCrypto.decrypt')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation _decrypt_1(algorithm, CryptoKey key) native;
+  Object _decrypt_1(algorithm, CryptoKey key, TypedData data) native;
 
   @DomName('SubtleCrypto.digest')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation digest(Map algorithm) {
+  Object digest(Map algorithm, TypedData data) {
     var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _digest_1(algorithm_1);
+    return _digest_1(algorithm_1, data);
   }
   @JSName('digest')
   @DomName('SubtleCrypto.digest')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation _digest_1(algorithm) native;
+  Object _digest_1(algorithm, TypedData data) native;
 
   @DomName('SubtleCrypto.encrypt')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation encrypt(Map algorithm, CryptoKey key) {
+  Object encrypt(Map algorithm, CryptoKey key, TypedData data) {
     var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _encrypt_1(algorithm_1, key);
+    return _encrypt_1(algorithm_1, key, data);
   }
   @JSName('encrypt')
   @DomName('SubtleCrypto.encrypt')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation _encrypt_1(algorithm, CryptoKey key) native;
+  Object _encrypt_1(algorithm, CryptoKey key, TypedData data) native;
 
   @DomName('SubtleCrypto.generateKey')
   @DocsEditable()
@@ -22233,28 +22235,28 @@ class SubtleCrypto extends Interceptor native "SubtleCrypto" {
   @DomName('SubtleCrypto.sign')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation sign(Map algorithm, CryptoKey key) {
+  Object sign(Map algorithm, CryptoKey key, TypedData data) {
     var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _sign_1(algorithm_1, key);
+    return _sign_1(algorithm_1, key, data);
   }
   @JSName('sign')
   @DomName('SubtleCrypto.sign')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation _sign_1(algorithm, CryptoKey key) native;
+  Object _sign_1(algorithm, CryptoKey key, TypedData data) native;
 
   @DomName('SubtleCrypto.verify')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation verify(Map algorithm, CryptoKey key, TypedData signature) {
+  Object verify(Map algorithm, CryptoKey key, TypedData signature, TypedData data) {
     var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _verify_1(algorithm_1, key, signature);
+    return _verify_1(algorithm_1, key, signature, data);
   }
   @JSName('verify')
   @DomName('SubtleCrypto.verify')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation _verify_1(algorithm, CryptoKey key, TypedData signature) native;
+  Object _verify_1(algorithm, CryptoKey key, TypedData signature, TypedData data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24472,8 +24474,7 @@ class WheelEvent extends MouseEvent native "WheelEvent,MouseWheelEvent,MouseScro
       event._initMouseEvent(type, canBubble, cancelable, view, detail,
           screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey, button, relatedTarget);
-      event._initWebKitWheelEvent(deltaX,
-          deltaY ~/ 120, // Chrome does an auto-convert to pixels.
+      event._initWebKitWheelEvent(deltaX, deltaY,
           view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey);
     }
@@ -24495,6 +24496,23 @@ class WheelEvent extends MouseEvent native "WheelEvent,MouseWheelEvent,MouseScro
   @DomName('WheelEvent.DOM_DELTA_PIXEL')
   @DocsEditable()
   static const int DOM_DELTA_PIXEL = 0x00;
+
+  @JSName('deltaX')
+  @DomName('WheelEvent.deltaX')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double _deltaX;
+
+  @JSName('deltaY')
+  @DomName('WheelEvent.deltaY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double _deltaY;
+
+  @DomName('WheelEvent.deltaZ')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double deltaZ;
 
   @JSName('webkitDirectionInvertedFromDevice')
   @DomName('WheelEvent.webkitDirectionInvertedFromDevice')
@@ -25261,6 +25279,12 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DocsEditable()
   bool confirm(String message) native;
 
+  @JSName('createImageBitmap')
+  @DomName('Window.createImageBitmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object _createImageBitmap(canvas_OR_context_OR_image_OR_video, [int sx, int sy, int sw, int sh]) native;
+
   @DomName('Window.find')
   @DocsEditable()
   @Experimental() // non-standard
@@ -25868,6 +25892,18 @@ class Worker extends EventTarget implements AbstractWorker native "Worker" {
 
 
 @DocsEditable()
+@DomName('WorkerConsole')
+@Experimental() // untriaged
+class WorkerConsole extends ConsoleBase native "WorkerConsole" {
+  // To suppress missing implicit constructor warnings.
+  factory WorkerConsole._() { throw new UnsupportedError("Not supported"); }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('WorkerCrypto')
 @Experimental() // untriaged
 class WorkerCrypto extends Interceptor native "WorkerCrypto" {
@@ -25905,6 +25941,11 @@ class WorkerGlobalScope extends EventTarget implements WindowTimers, WindowBase6
   @DocsEditable()
   @Experimental() // untriaged
   static const int TEMPORARY = 0;
+
+  @DomName('WorkerGlobalScope.console')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final WorkerConsole console;
 
   @DomName('WorkerGlobalScope.crypto')
   @DocsEditable()
@@ -25949,11 +25990,6 @@ class WorkerGlobalScope extends EventTarget implements WindowTimers, WindowBase6
   @DocsEditable()
   @Experimental() // untriaged
   void close() native;
-
-  @DomName('WorkerGlobalScope.importScripts')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void importScripts() native;
 
   @DomName('WorkerGlobalScope.openDatabase')
   @DocsEditable()
@@ -26227,6 +26263,78 @@ class XPathResult extends Interceptor native "XPathResult" {
 
 
 @DocsEditable()
+@DomName('XMLHttpRequestEventTarget')
+@Experimental() // untriaged
+class XmlHttpRequestEventTarget extends EventTarget native "XMLHttpRequestEventTarget" {
+  // To suppress missing implicit constructor warnings.
+  factory XmlHttpRequestEventTarget._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('XMLHttpRequestEventTarget.abortEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
+
+  @DomName('XMLHttpRequestEventTarget.errorEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
+
+  @DomName('XMLHttpRequestEventTarget.loadEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
+
+  @DomName('XMLHttpRequestEventTarget.loadendEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
+
+  @DomName('XMLHttpRequestEventTarget.loadstartEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
+
+  @DomName('XMLHttpRequestEventTarget.progressEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
+
+  @DomName('XMLHttpRequestEventTarget.onabort')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onerror')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onload')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onloadend')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onloadstart')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onprogress')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('XMLSerializer')
 // http://domparsing.spec.whatwg.org/#the-xmlserializer-interface
 @deprecated // stable
@@ -26313,9 +26421,15 @@ class _Attr extends Node native "Attr" {
   @DocsEditable()
   final bool isId;
 
+  // Use implementation from Node.
+  // final String _localName;
+
   @DomName('Attr.name')
   @DocsEditable()
   final String name;
+
+  // Use implementation from Node.
+  // final String _namespaceUri;
 
   @DomName('Attr.ownerElement')
   @DocsEditable()
@@ -27408,7 +27522,11 @@ abstract class _WorkerLocation extends Interceptor native "WorkerLocation" {
 @DomName('WorkerNavigator')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workernavigator
 @Experimental()
-abstract class _WorkerNavigator extends Interceptor native "WorkerNavigator" {
+abstract class _WorkerNavigator extends Interceptor implements NavigatorOnLine, NavigatorID native "WorkerNavigator" {
+
+  // From NavigatorID
+
+  // From NavigatorOnLine
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27694,7 +27812,7 @@ abstract class CanvasImageSource {}
  * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
  * * [Window](http://www.w3.org/TR/Window/) from the W3C.
  */
-abstract class WindowBase {
+abstract class WindowBase implements EventTarget {
   // Fields.
 
   /**

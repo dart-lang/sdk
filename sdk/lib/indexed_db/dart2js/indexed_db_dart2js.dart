@@ -644,7 +644,7 @@ class Index extends Interceptor native "IDBIndex" {
   @JSName('count')
   @DomName('IDBIndex.count')
   @DocsEditable()
-  Request _count([key_OR_range]) native;
+  Request _count(Object key) native;
 
   @JSName('get')
   @DomName('IDBIndex.get')
@@ -652,7 +652,7 @@ class Index extends Interceptor native "IDBIndex" {
   @Returns('Request')
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
-  Request _get(key) native;
+  Request _get(Object key) native;
 
   @JSName('getKey')
   @DomName('IDBIndex.getKey')
@@ -661,7 +661,7 @@ class Index extends Interceptor native "IDBIndex" {
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
   @Creates('ObjectStore')
-  Request _getKey(key) native;
+  Request _getKey(Object key) native;
 
   @JSName('openCursor')
   @DomName('IDBIndex.openCursor')
@@ -669,7 +669,7 @@ class Index extends Interceptor native "IDBIndex" {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openCursor([key_OR_range, String direction]) native;
+  Request _openCursor(Object key, String direction) native;
 
   @JSName('openKeyCursor')
   @DomName('IDBIndex.openKeyCursor')
@@ -677,7 +677,7 @@ class Index extends Interceptor native "IDBIndex" {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openKeyCursor([key_OR_range, String direction]) native;
+  Request _openKeyCursor(Object key, String direction) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -947,7 +947,7 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @JSName('count')
   @DomName('IDBObjectStore.count')
   @DocsEditable()
-  Request _count([key_OR_range]) native;
+  Request _count(Object key) native;
 
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
@@ -990,7 +990,7 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @JSName('delete')
   @DomName('IDBObjectStore.delete')
   @DocsEditable()
-  Request _delete(key_OR_keyRange) native;
+  Request _delete(Object key) native;
 
   @DomName('IDBObjectStore.deleteIndex')
   @DocsEditable()
@@ -1002,7 +1002,7 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @Returns('Request')
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
-  Request _get(key) native;
+  Request _get(Object key) native;
 
   @DomName('IDBObjectStore.index')
   @DocsEditable()
@@ -1014,7 +1014,7 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openCursor([key_OR_range, String direction]) native;
+  Request _openCursor(Object key, [String direction]) native;
 
   @DomName('IDBObjectStore.put')
   @DocsEditable()

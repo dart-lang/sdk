@@ -65,8 +65,9 @@ $if DART2JS
           metaKey, button, relatedTarget, axis);
     } else {
 $else
-    // Dartium always needs these flipped because we're essentially always
-    // polyfilling (see similar dart2js code as well)
+    // Dartium always needs these flipped because we're using the legacy
+    // _initWebKitWheelEvent instead of the more modern WheelEvent constructor
+    // which isn't yet properly exposed by the Dartium bindings.
     deltaX = -deltaX;
     deltaY = -deltaY;
 $endif
@@ -74,8 +75,7 @@ $endif
       event._initMouseEvent(type, canBubble, cancelable, view, detail,
           screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey, button, relatedTarget);
-      event._initWebKitWheelEvent(deltaX,
-          deltaY ~/ 120, // Chrome does an auto-convert to pixels.
+      event._initWebKitWheelEvent(deltaX, deltaY,
           view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey);
 $if DART2JS
@@ -230,7 +230,7 @@ $else
    * * [WheelEvent.deltaX](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaX) from the W3C.
    */
   @DomName('WheelEvent.deltaX')
-  num get deltaX => -_wheelDeltaX;
+  num get deltaX => _deltaX;
 
   /**
    * The amount that is expected to scroll vertically, in units determined by
@@ -241,6 +241,6 @@ $else
    * * [WheelEvent.deltaY](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY) from the W3C.
    */
   @DomName('WheelEvent.deltaY')
-  num get deltaY => -_wheelDeltaY;
+  num get deltaY => _deltaY;
 $endif
 }
