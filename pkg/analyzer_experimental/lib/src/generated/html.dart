@@ -5,8 +5,6 @@ import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'source.dart';
-import 'error.dart';
-import 'instrumentation.dart';
 import 'element.dart' show HtmlElementImpl;
 import 'engine.dart' show AnalysisEngine;
 /**

@@ -1,22 +1,16 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 library engine.element_test;
-import 'dart:collection';
-import 'dart:io';
 import 'package:analyzer_experimental/src/generated/java_core.dart';
-import 'package:analyzer_experimental/src/generated/java_engine.dart';
 import 'package:analyzer_experimental/src/generated/java_engine_io.dart';
 import 'package:analyzer_experimental/src/generated/java_junit.dart';
 import 'package:analyzer_experimental/src/generated/source_io.dart';
-import 'package:analyzer_experimental/src/generated/error.dart';
-import 'package:analyzer_experimental/src/generated/scanner.dart';
 import 'package:analyzer_experimental/src/generated/utilities_dart.dart';
 import 'package:analyzer_experimental/src/generated/ast.dart';
 import 'package:analyzer_experimental/src/generated/element.dart';
 import 'package:analyzer_experimental/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl;
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
-import 'scanner_test.dart' show TokenFactory;
 import 'ast_test.dart' show ASTFactory;
 import 'resolver_test.dart' show TestTypeProvider;
 class ElementLocationImplTest extends EngineTestCase {
