@@ -41,7 +41,8 @@ class ByteBuffer native "ArrayBuffer" {
 // Chrome.
 const fetchLength = const JS_CONST(r'''
     ((typeof version == "function" && typeof os == "object" && "system" in os)
-    || (typeof navigator == "object" && navigator.userAgent.contains('Chrome')))
+    || (typeof navigator == "object"
+        && navigator.userAgent.indexOf('Chrome') != -1))
         ? function(x) { return x.$dartCachedLength; }
         : function(x) { return x.length; };
 ''');
