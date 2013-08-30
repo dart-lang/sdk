@@ -76,6 +76,7 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 
 [ $compiler == dart2dart ]
 mirrors/*: Skip # http://dartbug.com/11511
+library_metadata2_test/01: Skip # http://dartbug.com/11511
 async/run_async6_test: Fail             # Issue 10957 - may be related to issue 10910
 
 [ $compiler == dart2dart && $minified ]
