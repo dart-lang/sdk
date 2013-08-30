@@ -74,9 +74,8 @@ class MirrorPrinter {
           ..write(': ')
           ..write(stringifyInstance(mirror.getField(name)));
     });
-    return buffer
-        ..write(')')
-        ..toString();
+    buffer.write(')');
+    return buffer.toString();
   }
 
   String stringifyMetadata(InstanceMirror mirror) {
