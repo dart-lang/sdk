@@ -531,12 +531,7 @@ class Index extends Interceptor native "IDBIndex" {
   @DomName('IDBIndex.count')
   Future<int> count([key_OR_range]) {
    try {
-      var request;
-      if (key_OR_range != null) {
-        request = _count(key_OR_range);
-      } else {
-        request = _count();
-      }
+      var request = _count(key_OR_range);
       return _completeRequest(request);
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
@@ -583,12 +578,7 @@ class Index extends Interceptor native "IDBIndex" {
     } else {
       key_OR_range = range;
     }
-    var request;
-    if (direction == null) {
-      request = _openCursor(key_OR_range);
-    } else {
-      request = _openCursor(key_OR_range, direction);
-    }
+    var request = _openCursor(key_OR_range, direction);
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
 
@@ -610,12 +600,7 @@ class Index extends Interceptor native "IDBIndex" {
     } else {
       key_OR_range = range;
     }
-    var request;
-    if (direction == null) {
-      request = _openKeyCursor(key_OR_range);
-    } else {
-      request = _openKeyCursor(key_OR_range, direction);
-    }
+    var request = _openKeyCursor(key_OR_range, direction);
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
 
