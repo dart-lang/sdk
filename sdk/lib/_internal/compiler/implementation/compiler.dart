@@ -715,7 +715,8 @@ abstract class Compiler implements DiagnosticListener {
       return spanFromElement(node);
     } else if (node is MetadataAnnotation) {
       MetadataAnnotation annotation = node;
-      return spanFromTokens(annotation.beginToken, annotation.endToken);
+      uri = annotation.annotatedElement.getCompilationUnit().script.uri;
+      return spanFromTokens(annotation.beginToken, annotation.endToken, uri);
     } else {
       throw 'No error location.';
     }

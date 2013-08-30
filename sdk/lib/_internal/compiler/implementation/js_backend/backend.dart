@@ -1443,13 +1443,7 @@ class JavaScriptBackend extends Backend {
       if (mustRetainMetadata) return;
       compiler.log('Retaining metadata.');
       mustRetainMetadata = true;
-      for (LibraryElement library in compiler.libraries.values) {
-        if (retainMetadataOf(library)) {
-          for (Link link = library.metadata; !link.isEmpty; link = link.tail) {
-            link.head.ensureResolved(compiler);
-          }
-        }
-      }
+      compiler.libraries.values.forEach(retainMetadataOf);
       for (Dependency dependency in metadataInstantiatedTypes) {
         registerMetadataInstantiatedType(dependency.type, dependency.user);
       }
@@ -1493,7 +1487,8 @@ class JavaScriptBackend extends Backend {
     if (mustRetainMetadata) hasRetainedMetadata = true;
     if (mustRetainMetadata && isNeededForReflection(element)) {
       for (MetadataAnnotation metadata in element.metadata) {
-        metadata.value.accept(new ConstantCopier(compiler.constantHandler));
+        metadata.ensureResolved(compiler)
+            .value.accept(new ConstantCopier(compiler.constantHandler));
       }
       return true;
     }

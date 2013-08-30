@@ -91,7 +91,7 @@ class JsMirrorSystem implements MirrorSystem {
       var fields = data[5];
       bool isRoot = data[6];
       List metadata = (metadataFunction == null)
-          ? null : JS('List', '#()', metadataFunction);
+          ? const [] : JS('List', '#()', metadataFunction);
       var libraries = result.putIfAbsent(name, () => <LibraryMirror>[]);
       libraries.add(
           new JsLibraryMirror(
@@ -294,14 +294,19 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
 
   List<JsMethodMirror> get _functionMirrors {
     if (_cachedFunctionMirrors != null) return _cachedFunctionMirrors;
-    var result = new List<JsMethodMirror>(_functions.length);
+    var result = new List<JsMethodMirror>();
     for (int i = 0; i < _functions.length; i++) {
       String name = _functions[i];
       // TODO(ahe): Create accessor for accessing $.  It is also
       // used in js_helper.
       var jsFunction = JS('', '#[#]', JS_CURRENT_ISOLATE(), name);
       String unmangledName = mangledGlobalNames[name];
-      if (unmangledName == null) unmangledName = name;
+      if (unmangledName == null) {
+        // If there is no unmangledName, [jsFunction] is either a synthetic
+        // implementation detail, or something that is excluded
+        // by @MirrorsUsed.
+        continue;
+      }
       bool isConstructor = unmangledName.startsWith('new ');
       bool isStatic = !isConstructor; // Top-level functions are static, but
                                       // constructors are not.
@@ -311,7 +316,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
       JsMethodMirror mirror =
           new JsMethodMirror.fromUnmangledName(
               unmangledName, jsFunction, isStatic, isConstructor);
-      result[i] = mirror;
+      result.add(mirror);
       mirror._owner = this;
     }
     return _cachedFunctionMirrors = result;
@@ -755,6 +760,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     int length = keys.length;
     for (int i = 0; i < length; i++) {
       String mangledName = keys[i];
+      if (mangledName == '') continue; // Skip static field descriptor.
       String unmangledName = mangledName;
       // TODO(ahe): Create accessor for accessing $.  It is also
       // used in js_helper.
@@ -1094,7 +1100,7 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
     int divider = descriptor.indexOf(':');
     if (divider > 0) {
       accessorName = accessorName.substring(0, divider);
-      jsName = accessorName.substring(divider + 1);
+      jsName = descriptor.substring(divider + 1);
     }
     var unmangledName;
     if (isStatic) {
