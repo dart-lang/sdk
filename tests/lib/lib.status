@@ -93,7 +93,9 @@ convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
 [ $runtime == ie9 ]
 # IE9 doesn't support typed arrays.
 typed_data/*: Fail # Issue 11971
-convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12029
+convert/chunked_conversion_utf88_test: Pass, Slow, Timeout  # Issue 12029
+convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Issue 12029
+async/deferred/deferred_api_test: Pass, Timeout # Issue 12029
 
 
 [ $runtime == opera ]

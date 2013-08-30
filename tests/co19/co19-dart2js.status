@@ -63,6 +63,7 @@ Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail # Partially impleme
 
 [ $compiler == dart2js && $runtime == ie9 ]
 LibTest/async/Completer/completeError_A02_t01: Pass, Fail # Issue 8920
+LibTest/async/Stream/listen_A04_t01: Pass, Timeout # Issue: 8920
 LibTest/core/DateTime/timeZoneName_A01_t01: Fail # Issue: 8920
 LibTest/core/double/round_A01_t01: Fail # Issue: 8920
 LibTest/core/double/toRadixString_A01_t01: Fail # Issue: 8920
@@ -75,6 +76,7 @@ LibTest/core/int/operator_truncating_division_A01_t02: Fail # Issue: 8920
 LibTest/core/int/remainder_A01_t01: Fail # Issue: 8920
 LibTest/core/int/remainder_A01_t03: Fail # Issue: 8920
 LibTest/core/int/toRadixString_A01_t01: Fail # Issue: 8920
+LibTest/core/Map/Map_class_A01_t04: Pass, Timeout # Issue 8096
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # Issue: 8920
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Issue: 8920
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue: 8920

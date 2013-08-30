@@ -159,7 +159,6 @@ void testConfigurations(List<Map> configurations) {
       // underlying issue has not been determined yet. Our current hypothesis
       // is that windows makes bad scheduling decisions if we overload a
       // machine (i.e. some processes seem to starve).
-      maxProcesses = math.max(1, maxProcesses-2);
       maxBrowserProcesses = 1;
     } else if (conf['runtime'].startsWith('safari') &&
                conf['use_browser_controller']) {
