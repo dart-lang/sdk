@@ -161,7 +161,7 @@ void PreallocatedStacktraceBuilder::AddFrame(const Function& func,
       stacktrace_.SetFunctionAtFrame(null_slot, frame_func);
       stacktrace_.SetCodeAtFrame(null_slot, frame_code);
     }
-    // Move frames one slot down so that we can accomodate the new frame.
+    // Move frames one slot down so that we can accomadate the new frame.
     for (intptr_t i = start; i < Stacktrace::kPreallocatedStackdepth; i++) {
       intptr_t prev = (i - 1);
       frame_func = stacktrace_.FunctionAtFrame(i);
@@ -365,10 +365,6 @@ static void JumpToExceptionHandler(uword program_counter,
 
 
 static RawField* LookupStacktraceField(const Instance& instance) {
-  if (instance.GetClassId() < kNumPredefinedCids) {
-    // 'class Error' is not a predefined class.
-    return Field::null();
-  }
   Isolate* isolate = Isolate::Current();
   Class& error_class = Class::Handle(isolate,
                                      isolate->object_store()->error_class());

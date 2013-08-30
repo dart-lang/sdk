@@ -8643,21 +8643,6 @@ Code::Comments::Comments(const Array& comments)
 }
 
 
-void Code::set_state_bits(intptr_t bits) const {
-  raw_ptr()->state_bits_ = bits;
-}
-
-
-void Code::set_is_optimized(bool value) const {
-  set_state_bits(OptimizedBit::update(value, raw_ptr()->state_bits_));
-}
-
-
-void Code::set_is_alive(bool value) const {
-  set_state_bits(AliveBit::update(value, raw_ptr()->state_bits_));
-}
-
-
 void Code::set_stackmaps(const Array& maps) const {
   ASSERT(maps.IsOld());
   StorePointer(&raw_ptr()->stackmaps_, maps.raw());
