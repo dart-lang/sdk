@@ -179,4 +179,7 @@ class MirrorPrinter {
 
 main() {
   print(MirrorPrinter.stringify(currentMirrorSystem().libraries));
+  // Clear the nodes to avoid confusing the fine test framework (by "fine" I
+  // mean something else) -- ahe.
+  document.body.nodes.clear();
 }
