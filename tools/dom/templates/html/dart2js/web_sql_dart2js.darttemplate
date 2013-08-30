@@ -19,7 +19,7 @@ import 'dart:collection';
 import 'dart:_collection-dev' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
-import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName;
+import 'dart:_js_helper' show convertDartClosureToJS, Creates, JSName;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor;
 

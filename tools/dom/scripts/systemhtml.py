@@ -651,7 +651,7 @@ class Dart2JSBackend(HtmlDartGenerator):
 
   def AdditionalImplementedInterfaces(self):
     implements = super(Dart2JSBackend, self).AdditionalImplementedInterfaces()
-    if self._interface_type_info.list_item_type():
+    if self._interface_type_info.list_item_type() and self.HasIndexedGetter():
       implements.append('JavaScriptIndexingBehavior')
     return implements
 
@@ -718,6 +718,15 @@ class Dart2JSBackend(HtmlDartGenerator):
       self._current_secondary_parent = interface
       self._members_emitter.Emit('\n  // From $WHERE\n', WHERE=interface.id)
 
+  def HasIndexedGetter(self):
+    ext_attrs = self._interface.ext_attrs
+    has_indexed_getter = 'CustomIndexedGetter' in ext_attrs
+    for operation in self._interface.operations:
+      if operation.id == 'item' and 'getter' in operation.specials:
+        has_indexed_getter = True
+        break
+    return has_indexed_getter
+
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
     # We would like to simply inherit the implementation of everything except
@@ -738,12 +747,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     #   class YImpl extends ListBase<T> { copies of transitive XImpl methods; }
     #
 
-    ext_attrs = self._interface.ext_attrs
-    has_indexed_getter = 'CustomIndexedGetter' in ext_attrs
-    for operation in self._interface.operations:
-      if operation.id == 'item' and 'getter' in operation.specials:
-        has_indexed_getter = True
-        break
+    has_indexed_getter = self.HasIndexedGetter()
 
     if has_indexed_getter:
       indexed_getter = ('JS("%s", "#[#]", this, index)' %

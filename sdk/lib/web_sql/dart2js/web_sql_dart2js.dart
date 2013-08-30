@@ -15,7 +15,7 @@ import 'dart:collection';
 import 'dart:_collection-dev' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
-import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName;
+import 'dart:_js_helper' show convertDartClosureToJS, Creates, JSName;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor;
 // DO NOT EDIT - unless you are editing documentation as per:
@@ -197,7 +197,7 @@ class SqlResultSet extends Interceptor native "SQLResultSet" {
 @DomName('SQLResultSetRowList')
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental() // deprecated
-class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements JavaScriptIndexingBehavior, List<Map> native "SQLResultSetRowList" {
+class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> native "SQLResultSetRowList" {
 
   @DomName('SQLResultSetRowList.length')
   @DocsEditable()
