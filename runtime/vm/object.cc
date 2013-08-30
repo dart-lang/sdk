@@ -6719,15 +6719,19 @@ void Library::AddObject(const Object& obj, const String& name) const {
 RawObject* Library::LookupExport(const String& name) const {
   if (HasExports()) {
     const Array& exports = Array::Handle(this->exports());
+    // Break potential export cycle while looking up name.
+    StorePointer(&raw_ptr()->exports_, Object::empty_array().raw());
     Namespace& ns = Namespace::Handle();
     Object& obj = Object::Handle();
     for (int i = 0; i < exports.Length(); i++) {
       ns ^= exports.At(i);
       obj = ns.Lookup(name);
       if (!obj.IsNull()) {
-        return obj.raw();
+        break;
       }
     }
+    StorePointer(&raw_ptr()->exports_, exports.raw());
+    return obj.raw();
   }
   return Object::null();
 }
