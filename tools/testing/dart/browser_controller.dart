@@ -949,6 +949,9 @@ class BrowserTestingServer {
 
   void handleStarted(HttpRequest request, String browserId, var testId) {
     StringBuffer buffer = new StringBuffer();
+    // If an error occurs while receiving the data from the request stream,
+    // we don't handle it specially. We can safely ignore it, since the started
+    // events are not crucial.
     request.transform(UTF8.decoder).listen((data) {
       buffer.write(data);
     }, onDone: () {

@@ -238,7 +238,6 @@ double_to_string_as_precision3_test: Fail # Issue 12750
 expect_test: Fail
 stack_overflow_test: Fail
 stack_overflow_stacktrace_test: Fail
-licm2_test: Pass, Timeout # Issue: 11848
 
 
 [ $runtime == opera ]
