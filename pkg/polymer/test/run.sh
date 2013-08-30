@@ -35,8 +35,9 @@ function first_non_option {
 TEST_PATTERN=$(first_non_option $@)
 
 SDK_DIR=$(cd ../../out/ReleaseIA32/dart-sdk/; pwd)
-dart=$SDK_DIR/bin/dart
-dartanalyzer=$SDK_DIR/bin/dartanalyzer
+package_root=$SDK_DIR/../packages
+dart="$SDK_DIR/bin/dart --package-root=$package_root"
+dartanalyzer="$SDK_DIR/bin/dartanalyzer --package-root=$package_root"
 
 function fail {
   return 1
@@ -125,7 +126,7 @@ $dart $DART_FLAGS test/run_all.dart $@ || compare_all
 OUT_PATTERN="$DIR/../../../third_party/samples/todomvc/test/out/test/*$TEST_PATTERN*_bootstrap.dart"
 if [[ `ls $OUT_PATTERN 2>/dev/null` != "" ]]; then
   echo -e "\nAnalyzing generated code for warnings or type errors."
-  ls $OUT_PATTERN 2>/dev/null | $dartanalyzer --package-root=packages \
+  ls $OUT_PATTERN 2>/dev/null | $dartanalyzer \
       --fatal-warnings --fatal-type-errors -batch
 fi
 

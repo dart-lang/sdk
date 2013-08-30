@@ -40,6 +40,17 @@ main() {
  */
 Future runForTest(String webDir, String outDir) {
   _currentPackage = 'test';
+
+  // associate package dirs with their location in the repo:
+  _packageDirs = {'test' : '.'};
+  addPackages(String dir) {
+    for (var packageDir in new Directory(dir).listSync().map((d) => d.path)) {
+      _packageDirs[path.basename(packageDir)] = packageDir;
+    }
+  }
+  addPackages('..');
+  addPackages('../third_party');
+  addPackages('../../third_party/pkg');
   return _run(webDir, outDir);
 }
 
