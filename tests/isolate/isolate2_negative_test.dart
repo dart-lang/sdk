@@ -7,7 +7,7 @@
 
 library isolate2_negative_test;
 import 'dart:isolate';
-import '../async_helper.dart';
+import "package:async_helper/async_helper.dart";
 
 void entry() {
   throw "foo";

@@ -8,7 +8,7 @@ library light_unittest;
 
 import 'dart:async';
 
-import 'async_helper.dart';
+import 'package:async_helper/async_helper.dart';
 import '../pkg/expect/lib/expect.dart';
 
 test(name, f) {
