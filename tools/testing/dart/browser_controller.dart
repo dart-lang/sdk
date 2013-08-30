@@ -944,7 +944,7 @@ class BrowserTestingServer {
       request.response.close();
       testDoneCallBack(browserId, back, testId);
       // TODO(ricow): We should do something smart if we get an error here.
-    }, onError: (error) { DebugLogger.error(error); });
+    }, onError: (error) { DebugLogger.error("$error"); });
   }
 
   void handleStarted(HttpRequest request, String browserId, var testId) {
@@ -958,7 +958,7 @@ class BrowserTestingServer {
       String back = buffer.toString();
       request.response.close();
       testStartedCallBack(browserId, back, testId);
-    }, onError: (error) { DebugLogger.error(error); });
+    }, onError: (error) { DebugLogger.error("$error"); });
   }
 
   String getNextTest(String browserId) {
