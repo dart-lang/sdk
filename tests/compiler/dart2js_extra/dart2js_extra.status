@@ -10,10 +10,6 @@ no_such_method_test: Fail # Wrong Invocation.memberName.
 
 constant_javascript_semantics4_test: Fail, OK
 
-[ $runtime == ff || $jscl ]
-deferred/deferred_constant_test: Pass, Crash, Fail # Issue 9158
-deferred/deferred_class_test: Pass, Crash # Issue 9158
-
 [ $compiler == dart2js && $checked ]
 variable_type_test/03: Fail, OK
 variable_type_test/01: Fail, OK
@@ -24,7 +20,6 @@ string_interpolation_test: Skip
 
 [ $compiler == dart2js && $runtime == ie9 ]
 class_test: Fail
-deferred/deferred_function_test: Pass, Fail, Timeout # Issue 12635
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

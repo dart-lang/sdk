@@ -424,29 +424,49 @@ class IsolateNatives {
   /// Associates an ID with a native worker object.
   static final Expando<int> workerIds = new Expando<int>();
 
+  static bool get isD8 {
+    return JS('bool',
+              'typeof version == "function"'
+              ' && typeof os == "object" && "system" in os');
+  }
+
+  static bool get isJsshell {
+    return JS('bool',
+              'typeof version == "function" && typeof system == "function"');
+  }
+
   /**
    * The src url for the script tag that loaded this code. Used to create
    * JavaScript workers.
    */
   static String computeThisScript() {
-    var currentScript = JS('', r'#.$currentScript', JS_CURRENT_ISOLATE());
+    var currentScript = JS('', r'init.currentScript');
     if (currentScript != null) {
       return JS('String', 'String(#.src)', currentScript);
     }
+    if (isD8) return computeThisScriptD8();
+    if (isJsshell) return computeThisScriptJsshell();
+    return null;
+  }
 
-    // TODO(ahe): The following is for supporting command-line engines
-    // such as d8 and jsshell. We should move this code to a helper
-    // library that is only loaded when testing on those engines.
+  static String computeThisScriptJsshell() {
+    return JS('String|Null', 'thisFilename()');
+  }
+
+  static String computeThisScriptD8() {
+    // TODO(ahe): The following is for supporting D8.  We should move this code
+    // to a helper library that is only loaded when testing on D8.
 
     var stack = JS('String|Null', 'new Error().stack');
     if (stack == null) {
       // According to Internet Explorer documentation, the stack
       // property is not set until the exception is thrown. The stack
       // property was not provided until IE10.
-      stack = JS('String',
+      stack = JS('String|Null',
                  '(function() {'
                  'try { throw new Error() } catch(e) { return e.stack }'
                  '})()');
+      if (stack == null) throw new UnsupportedError('No stack trace');
     }
     var pattern, matches;
 

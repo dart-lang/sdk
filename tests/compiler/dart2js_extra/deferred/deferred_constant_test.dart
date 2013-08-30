@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+import '../../../async_helper.dart';
+
+import 'package:expect/expect.dart';
+
 import 'dart:async';
 
 @lazy import 'deferred_class_library.dart';
@@ -16,6 +19,7 @@ main() {
   Expect.isNull(const [const Constant(42)]);
   Expect.isNull(x);
   int counter = 0;
+  asyncStart();
   lazy.load().then((bool didLoad) {
     Expect.isTrue(didLoad);
     Expect.equals(1, ++counter);
@@ -23,9 +27,11 @@ main() {
     x = const MyClass();
     Expect.equals(42, x.foo(87));
     Expect.listEquals(const [const Constant(42)], [new Constant(42)]);
+    asyncEnd();
   });
   Expect.equals(0, counter);
   Expect.isNull(x);
+  asyncStart();
   lazy.load().then((bool didLoad) {
     Expect.isFalse(didLoad);
     Expect.equals(2, ++counter);
@@ -33,6 +39,7 @@ main() {
     x = const MyClass();
     Expect.equals(42, x.foo(87));
     Expect.listEquals(const [const Constant(42)], [new Constant(42)]);
+    asyncEnd();
   });
   Expect.equals(0, counter);
   Expect.isNull(x);

@@ -40,21 +40,46 @@ Future<bool> _load(String libraryName, String uri) {
   // TODO(ahe): Validate libraryName.  Kasper points out that you want
   // to be able to experiment with the effect of toggling @DeferLoad,
   // so perhaps we should silently ignore "bad" library names.
-  Completer completer = new Completer<bool>();
   Future<bool> future = _loadedLibraries[libraryName];
   if (future != null) {
-    future.then((_) { completer.complete(false); });
-    return completer.future;
+    return future.then((_) => false);
   }
+
+  if (IsolateNatives.isJsshell) {
+    // TODO(ahe): Move this code to a JavaScript command helper script that is
+    // not included in generated output.
+    return _loadedLibraries[libraryName] = new Future<bool>(() {
+      if (uri == null) uri = 'part.js';
+      // Create a new function to avoid getting access to current function
+      // context.
+      JS('void', '(new Function(#))()', 'loadRelativeToScript("$uri")');
+      return true;
+    });
+  } else if (IsolateNatives.isD8) {
+    // TODO(ahe): Move this code to a JavaScript command helper script that is
+    // not included in generated output.
+    return _loadedLibraries[libraryName] = new Future<bool>(() {
+      if (uri == null) {
+        uri = IsolateNatives.computeThisScriptD8();
+        int index = uri.lastIndexOf('/');
+        uri = '${uri.substring(0, index + 1)}part.js';
+      }
+      // Create a new function to avoid getting access to current function
+      // context.
+      JS('void', '(new Function(#))()', 'load("$uri")');
+      return true;
+    });
+  }
+
+  Completer completer = new Completer<bool>();
   _loadedLibraries[libraryName] = completer.future;
+  try {
+    if (uri == null) {
+      uri = IsolateNatives.thisScript;
+      int index = uri.lastIndexOf('/');
+      uri = '${uri.substring(0, index + 1)}part.js';
+    }
 
-  if (uri == null) {
-    uri = IsolateNatives.thisScript;
-    int index = uri.lastIndexOf('/');
-    uri = '${uri.substring(0, index + 1)}part.js';
-  }
-
-  if (_hasDocument) {
     // Inject a script tag.
     var script = JS('', 'document.createElement("script")');
     JS('', '#.type = "text/javascript"', script);
@@ -64,13 +89,8 @@ Future<bool> _load(String libraryName, String uri) {
                     DART_CLOSURE_TO_JS(_onDeferredLibraryLoad), completer);
     JS('', '#.addEventListener("load", #, false)', script, onLoad);
     JS('', 'document.body.appendChild(#)', script);
-  } else if (JS('String', 'typeof load') == 'function') {
-    Timer.run(() {
-      JS('void', 'load(#)', uri);
-      completer.complete(true);
-    });
-  } else {
-    throw new UnsupportedError('load not supported');
+  } catch (e, trace) {
+    completer.completeError(e, trace);
   }
   return completer.future;
 }

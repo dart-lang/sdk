@@ -5,8 +5,12 @@
 // Test that loading of a library (with top-level functions only) can
 // be deferred.
 
-import "package:expect/expect.dart";
+import '../../../async_helper.dart';
+
+import 'package:expect/expect.dart';
+
 import 'dart:async';
+
 @lazy import 'deferred_function_library.dart';
 
 const lazy = const DeferredLibrary('deferred_function_library');
@@ -21,26 +25,27 @@ readFoo() {
 }
 
 main() {
-  print('unittest-suite-wait-for-done');
-
   Expect.throws(() { foo('a'); }, isNoSuchMethodError);
   Expect.isNull(readFoo());
   int counter = 0;
+  asyncStart();
   lazy.load().then((bool didLoad) {
     Expect.isTrue(didLoad);
     Expect.equals(1, ++counter);
     print('lazy was loaded');
     Expect.equals(42, foo('b'));
     Expect.isNotNull(readFoo());
+    asyncEnd();
   });
   Expect.equals(0, counter);
+  asyncStart();
   lazy.load().then((bool didLoad) {
     Expect.isFalse(didLoad);
     Expect.equals(2, ++counter);
     print('lazy was loaded');
     Expect.equals(42, foo('b'));
     Expect.isNotNull(readFoo());
-    print('unittest-suite-success');
+    asyncEnd();
   });
   Expect.equals(0, counter);
   Expect.throws(() { foo('a'); }, isNoSuchMethodError);

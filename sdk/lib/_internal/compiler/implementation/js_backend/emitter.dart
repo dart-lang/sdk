@@ -872,8 +872,6 @@ class CodeEmitterTask extends CompilerTask {
     return js.fun('oldIsolate', [
       js('var isolateProperties = oldIsolate.${namer.isolatePropertiesName}'),
 
-      js(r'isolateProperties.$currentScript = null'),
-
       js('var isolatePrototype = oldIsolate.prototype'),
       js('var str = "{\\n"'),
       js('str += "var properties = '
@@ -2996,8 +2994,7 @@ class CodeEmitterTask extends CompilerTask {
     scripts[i].addEventListener("load", onLoad, false);
   }
 })(function(currentScript) {
-  ${namer.isolateName}.${namer.isolatePropertiesName}.\$currentScript =
-      currentScript;
+  init.currentScript = currentScript;
 
   if (typeof console !== "undefined" && typeof document !== "undefined" &&
       document.readyState == "loading") {

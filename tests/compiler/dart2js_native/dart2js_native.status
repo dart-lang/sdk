@@ -8,3 +8,9 @@
 [ $compiler == dart2js ]
 native_no_such_method_exception4_frog_test: Fail  # Issue 9631
 native_no_such_method_exception5_frog_test: Fail  # Issue 9631
+
+[ $browser || $runtime == jsshell ]
+only_pass_on_d8_test: Fail, OK # This test should only pass on D8.
+
+[ $browser || $runtime == d8 ]
+only_pass_on_jsshell_test: Fail, OK # This test should only pass on jsshell.
