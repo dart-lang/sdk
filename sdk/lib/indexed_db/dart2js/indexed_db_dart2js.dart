@@ -776,12 +776,7 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @DomName('IDBObjectStore.count')
   Future<int> count([key_OR_range]) {
    try {
-      var request;
-      if (key_OR_range != null) {
-        request = _count(key_OR_range);
-      } else {
-        request = _count();
-      }
+      var request = _count(key_OR_range);
       return _completeRequest(request);
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
