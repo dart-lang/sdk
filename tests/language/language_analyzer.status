@@ -164,7 +164,7 @@ static_call_wrong_argument_count_negative_test: fail
 
 # test issue 12157, uninitializer instance variable is warning, so not negative test
 static_final_field_negative_test: fail
-constructor2_negative_test: fail
+constructor9_test/01: fail # Issue 12157
 
 # test issue 12159, print(exception.message_); causes static warning, not an error
 throw7_negative_test: fail

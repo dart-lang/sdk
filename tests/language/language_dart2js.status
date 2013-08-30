@@ -166,10 +166,14 @@ map_literal4_test: Fail # Issue 12891
 # The following tests are all negative tests that should be fixed.
 #
 abstract_syntax_test/01: Fail # Issue 12898
-const_constructor_syntax_test/04: Fail # Negative language test.
-const_syntax_test/04: Fail # Negative language test.
-constructor2_negative_test: Fail # Negative language test.
-constructor_return_negative_test: Fail # Negative language test.
+const_constructor_syntax_test/04: Fail # Issue 12900
+const_syntax_test/01: Fail # Issue 12932
+const_syntax_test/02: Fail # Issue 12932
+const_syntax_test/03: Fail # Issue 12932
+const_syntax_test/04: Fail # Issue 12932
+constructor9_test/01: Fail # Issue 12934
+constructor_return_test/01: Fail # Issue 12937
+constructor_return_test/02: Fail # Issue 12937
 constructor_return_with_arrow_negative_test: Fail # Negative language test.
 constructor_return_with_init_and_arrow_negative_test: Fail # Negative language test.
 constructor_return_with_init_negative_test: Fail # Negative language test.
@@ -201,9 +205,6 @@ final_syntax_test/01: Fail # Missing error for uninitialized final field.
 final_syntax_test/02: Fail # Missing error for uninitialized final field.
 final_syntax_test/03: Fail # Missing error for uninitialized final field.
 final_syntax_test/04: Fail # Missing error for uninitialized final field.
-const_syntax_test/01: Fail # Missing error for uninitialized final field.
-const_syntax_test/02: Fail # Missing error for uninitialized final field.
-const_syntax_test/03: Fail # Missing error for uninitialized final field.
 
 canonical_const2_test: Fail, OK # Dart2js only has doubles.
 
@@ -316,16 +317,19 @@ compile_time_constant_arguments_test/02: Fail # Issue 5519
 compile_time_constant_arguments_test/03: Fail # Issue 5519
 compile_time_constant_arguments_test/05: Fail # Issue 5519
 compile_time_constant_arguments_test/06: Fail # Issue 5519
-const_constructor_syntax_test/04: Fail # Issue 5519
-const_syntax_test/01: Fail # Issue 5519
-const_syntax_test/02: Fail # Issue 5519
-const_syntax_test/03: Fail # Issue 5519
-const_syntax_test/04: Fail # Issue 5519
-const_syntax_test/05: Fail # Issue 5519
-const_syntax_test/06: Fail # Issue 5519
-const_syntax_test/07: Fail # Issue 5519
-const_syntax_test/08: Fail # Issue 5519
-const_syntax_test/10: Fail # Issue 5519
+const_constructor_syntax_test/04: Fail # Issue 12901
+const_syntax_test/01: Fail # Issue 12933
+const_syntax_test/02: Fail # Issue 12933
+const_syntax_test/03: Fail # Issue 12933
+const_syntax_test/04: Fail # Issue 12933
+const_syntax_test/05: Fail # Issue 12933
+const_syntax_test/06: Fail # Issue 12933
+const_syntax_test/07: Fail # Issue 12933
+const_syntax_test/08: Fail # Issue 12933
+const_syntax_test/10: Fail # Issue 12933
+constructor9_test/01: Fail # Issue 12935
+constructor_return_test/01: Fail # Issue 12938
+constructor_return_test/02: Fail # Issue 12938
 constructor_named_arguments_test/01: Fail # Issue 5519
 final_syntax_test/01: Fail # Issue 5519
 final_syntax_test/02: Fail # Issue 5519
