@@ -154,10 +154,12 @@ void testConfigurations(List<Map> configurations) {
       }
     }
 
-    // There should not be more than one InternetExplorerDriver instance
-    // running at a time. For details, see
-    // http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
-    if (conf['runtime'].startsWith('ie') && !conf["use_browser_controller"]) {
+    if (conf['runtime'].startsWith('ie')) {
+      // NOTE: We've experienced random timeouts of tests on ie9/ie10. The
+      // underlying issue has not been determined yet. Our current hypothesis
+      // is that windows makes bad scheduling decisions if we overload a
+      // machine (i.e. some processes seem to starve).
+      maxProcesses = math.max(1, maxProcesses-2);
       maxBrowserProcesses = 1;
     } else if (conf['runtime'].startsWith('safari') &&
                conf['use_browser_controller']) {
