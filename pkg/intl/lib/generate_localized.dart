@@ -165,15 +165,16 @@ String generateMainImportFile() {
     output.write("import '$file' as ${_libraryName(locale)};\n");
   }
   output.write("\n");
-  for (var locale in allLocales) {
-    output.write("const ${_deferredName(locale)} = const DeferredLibrary");
-    output.write("('${_libraryName(locale)}');\n");
-  }
-  output.write("\nconst deferredLibraries = const {\n");
-  for (var locale in allLocales) {
-    output.write("  '$locale' : ${_deferredName(locale)},\n");
-  }
-  output.write("};\n");
+  // Issue 12824
+  //for (var locale in allLocales) {
+  //  output.write("const ${_deferredName(locale)} = const DeferredLibrary");
+  //  output.write("('${_libraryName(locale)}');\n");
+  //}
+  //output.write("\nconst deferredLibraries = const {\n");
+  //for (var locale in allLocales) {
+  //  output.write("  '$locale' : ${_deferredName(locale)},\n");
+  //}
+  //output.write("};\n");
   output.write(
     "\nMessageLookupByLibrary _findExact(localeName) {\n"
     "  switch (localeName) {\n");
@@ -217,8 +218,8 @@ const closing = """
 Future initializeMessages(String localeName) {
   initializeInternalMessageLookup(() => new CompositeMessageLookup());
   messageLookup.addLocale(localeName, _findGeneratedMessagesFor);
-  var lib = deferredLibraries[localeName];      
-  // TODO(alanknight): Restore once Issue 12824 is fixed.                                                     
+  // TODO(alanknight): Restore once Issue 12824 is fixed.
+  // var lib = deferredLibraries[localeName];
   // return lib == null ? new Future.value(false) : lib.load();
   return new Future.value(true);
 }
