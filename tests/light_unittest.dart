@@ -59,7 +59,10 @@ get isTrue => new Expectation((actual) => Expect.isTrue(actual));
 expectAsync1(then) {
   asyncStart();
   return (x) {
+    // 'then(x)' may call 'asyncStart()', so we first need to execute it, before
+    // we can call 'asyncEnd()'.
+    var result = then(x);
     asyncEnd();
-    return then(x);
+    return result;
   };
 }
