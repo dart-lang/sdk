@@ -2204,30 +2204,19 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.Binary('!=', pop(), new js.LiteralNull()));
   }
 
-  void checkIndexingBehavior(HInstruction input, {bool negative: false}) {
+  bool checkIndexingBehavior(HInstruction input, {bool negative: false}) {
+    if (!compiler.enqueuer.resolution.seenClasses.contains(
+          backend.jsIndexingBehaviorInterface)) {
+      return false;
+    }
+
     use(input);
-    js.Expression object = pop();
-
-    Element dispatchProperty =
-        compiler.findInterceptor(const SourceString('dispatchPropertyName'));
-    String dispatchPropertyName =
-        backend.namer.isolateAccess(dispatchProperty);
-    world.registerStaticUse(dispatchProperty);
-
-    // We pass the dispatch property record to the isJsIndexable
-    // helper rather than reading it inside the helper to increase the
-    // chance of making the dispatch record access monomorphic.
+    js.Expression object1 = pop();
     use(input);
-    js.PropertyAccess record = new js.PropertyAccess(
-        pop(), new js.VariableUse(dispatchPropertyName));
-
-    List<js.Expression> arguments = <js.Expression>[object, record];
-    FunctionElement helper =
-        compiler.findHelper(const SourceString('isJsIndexable'));
-    world.registerStaticUse(helper);
-    String helperName = backend.namer.isolateAccess(helper);
-    push(new js.Call(new js.VariableUse(helperName), arguments));
+    js.Expression object2 = pop();
+    push(backend.generateIsJsIndexableCall(object1, object2));
     if (negative) push(new js.Prefix('!', pop()));
+    return true;
   }
 
   void checkType(HInstruction input, HInstruction interceptor,
@@ -2461,8 +2450,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression arrayTest = pop();
       checkImmutableArray(input);
       js.Binary notArrayOrImmutable = new js.Binary('||', arrayTest, pop());
-      checkIndexingBehavior(input, negative: true);
-      js.Binary notIndexing = new js.Binary('&&', notArrayOrImmutable, pop());
+      
+      js.Binary notIndexing = checkIndexingBehavior(input, negative: true)
+          ? new js.Binary('&&', notArrayOrImmutable, pop())
+          : notArrayOrImmutable;
       test = new js.Binary('||', objectTest, notIndexing);
     } else if (node.isReadableArray(compiler)) {
       // input is !Object
@@ -2471,8 +2462,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression objectTest = pop();
       checkArray(input, '!==');
       js.Expression arrayTest = pop();
-      checkIndexingBehavior(input, negative: true);
-      js.Expression notIndexing = new js.Binary('&&', arrayTest, pop());
+      
+      js.Expression notIndexing = checkIndexingBehavior(input, negative: true)
+          ? new js.Binary('&&', arrayTest, pop())
+          : arrayTest;
       test = new js.Binary('||', objectTest, notIndexing);
     } else if (node.isIndexablePrimitive(compiler)) {
       // input is !String
@@ -2484,8 +2477,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression objectTest = pop();
       checkArray(input, '!==');
       js.Expression arrayTest = pop();
-      checkIndexingBehavior(input, negative: true);
-      js.Binary notIndexingTest = new js.Binary('&&', arrayTest, pop());
+      
+      js.Binary notIndexingTest = checkIndexingBehavior(input, negative: true)
+          ? new js.Binary('&&', arrayTest, pop())
+          : arrayTest;
       js.Binary notObjectOrIndexingTest =
           new js.Binary('||', objectTest, notIndexingTest);
       test = new js.Binary('&&', stringTest, notObjectOrIndexingTest);

@@ -566,6 +566,9 @@ class JavaScriptBackend extends Backend {
     objectEquals = compiler.lookupElementIn(
         compiler.objectClass, const SourceString('=='));
 
+    jsIndexingBehaviorInterface =
+        compiler.findHelper(const SourceString('JavaScriptIndexingBehavior'));
+
     specialOperatorEqClasses
         ..add(compiler.objectClass)
         ..add(jsInterceptorClass)
@@ -737,6 +740,18 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsUnknownJavaScriptObjectClass, enqueuer, elements);
     } else if (Elements.isNativeOrExtendsNative(cls)) {
       addInterceptorsForNativeClassMembers(cls, enqueuer);
+    } else if (cls == jsIndexingBehaviorInterface) {
+      // These two helpers are used by the emitter and the codegen.
+      // Because we cannot enqueue elements at the time of emission,
+      // we make sure they are always generated.
+      enqueue(
+          enqueuer,
+          compiler.findHelper(const SourceString('isJsIndexable')),
+          elements);
+      enqueue(
+          enqueuer,
+          compiler.findInterceptor(const SourceString('dispatchPropertyName')),
+          elements);
     }
   }
 
@@ -756,21 +771,11 @@ class JavaScriptBackend extends Backend {
   }
 
   void enqueueHelpers(ResolutionEnqueuer world, TreeElements elements) {
-    jsIndexingBehaviorInterface =
-        compiler.findHelper(const SourceString('JavaScriptIndexingBehavior'));
-    if (jsIndexingBehaviorInterface != null) {
-      world.registerIsCheck(jsIndexingBehaviorInterface.computeType(compiler),
-                            elements);
-      enqueue(
-          world,
-          compiler.findHelper(const SourceString('isJsIndexable')),
-          elements);
-      enqueue(
-          world,
-          compiler.findInterceptor(const SourceString('dispatchPropertyName')),
-          elements);
-    }
-
+    // TODO(ngeoffray): Not enqueuing those two classes currently make
+    // the compiler potentially crash. However, any reasonable program
+    // will instantiate those two classes.
+    addInterceptors(jsBoolClass, world, elements);
+    addInterceptors(jsNullClass, world, elements);
     if (compiler.enableTypeAssertions) {
       // Unconditionally register the helper that checks if the
       // expression in an if/while/for is a boolean.
@@ -1609,6 +1614,25 @@ class JavaScriptBackend extends Backend {
     }
 
     return false;
+  }
+
+  jsAst.Call generateIsJsIndexableCall(jsAst.Expression use1,
+                                       jsAst.Expression use2) {
+    Element dispatchProperty =
+        compiler.findInterceptor(const SourceString('dispatchPropertyName'));
+    String dispatchPropertyName = namer.isolateAccess(dispatchProperty);
+
+    // We pass the dispatch property record to the isJsIndexable
+    // helper rather than reading it inside the helper to increase the
+    // chance of making the dispatch record access monomorphic.
+    jsAst.PropertyAccess record = new jsAst.PropertyAccess(
+        use2, new jsAst.VariableUse(dispatchPropertyName));
+
+    List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
+    FunctionElement helper =
+        compiler.findHelper(const SourceString('isJsIndexable'));
+    String helperName = namer.isolateAccess(helper);
+    return new jsAst.Call(new jsAst.VariableUse(helperName), arguments);
   }
 
   bool isTypedArray(TypeMask mask) {
