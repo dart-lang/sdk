@@ -979,6 +979,9 @@
   },
   "Console": {
     "members": {
+      "assert": {
+        "support_level": "untriaged"
+      },
       "assertCondition": {
         "support_level": "experimental"
       },
@@ -1175,6 +1178,53 @@
       "initCustomEvent": {}
     },
     "support_level": "stable"
+  },
+  "DOMApplicationCache": {
+    "members": {
+      "CHECKING": {
+        "support_level": "untriaged"
+      },
+      "DOWNLOADING": {
+        "support_level": "untriaged"
+      },
+      "IDLE": {
+        "support_level": "untriaged"
+      },
+      "OBSOLETE": {
+        "support_level": "untriaged"
+      },
+      "UNCACHED": {
+        "support_level": "untriaged"
+      },
+      "UPDATEREADY": {
+        "support_level": "untriaged"
+      },
+      "abort": {
+        "support_level": "untriaged"
+      },
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
+      "onerror": {
+        "support_level": "untriaged"
+      },
+      "removeEventListener": {
+        "support_level": "untriaged"
+      },
+      "status": {
+        "support_level": "untriaged"
+      },
+      "swapCache": {
+        "support_level": "untriaged"
+      },
+      "update": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "DOMError": {
     "comment": "http://www.w3.org/TR/dom/#interface-domerror",

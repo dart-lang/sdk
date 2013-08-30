@@ -6,7 +6,9 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(CLASS_MODIFIERS)class Console {
 
-  static Console _safeConsole = new Console();
+  Console._safe() {}
+
+  static Console _safeConsole = new Console._safe();
 
   bool get _isConsoleDefined => JS('bool', 'typeof console != "undefined"');
 
