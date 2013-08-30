@@ -26119,13 +26119,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -32871,6 +32871,21 @@ class NodeValidatorBuilder implements NodeValidator {
    */
   void allowTextElements() {
     add(new _SimpleNodeValidator.allowTextElements());
+  }
+
+  /**
+   * Allow inline styles on elements.
+   *
+   * If [tagName] is not specified then this allows inline styles on all
+   * elements. Otherwise tagName limits the styles to the specified elements.
+   */
+  void allowInlineStyles({String tagName}) {
+    if (tagName == null) {
+      tagName = '*';
+    } else {
+      tagName = tagName.toUpperCase();
+    }
+    add(new _SimpleNodeValidator(null, allowedAttributes: ['$tagName::style']));
   }
 
   /**

@@ -30821,6 +30821,21 @@ class NodeValidatorBuilder implements NodeValidator {
   }
 
   /**
+   * Allow inline styles on elements.
+   *
+   * If [tagName] is not specified then this allows inline styles on all
+   * elements. Otherwise tagName limits the styles to the specified elements.
+   */
+  void allowInlineStyles({String tagName}) {
+    if (tagName == null) {
+      tagName = '*';
+    } else {
+      tagName = tagName.toUpperCase();
+    }
+    add(new _SimpleNodeValidator(null, allowedAttributes: ['$tagName::style']));
+  }
+
+  /**
    * Allow common safe HTML5 elements and attributes.
    *
    * This list is based off of the Caja whitelists at:
