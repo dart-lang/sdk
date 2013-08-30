@@ -9391,8 +9391,8 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    *
    * * [isTagSupported]
    */
-  factory Element.tag(String tag) =>
-      _ElementFactoryProvider.createElement_tag(tag);
+  factory Element.tag(String tag, [String typeExtention]) =>
+      _ElementFactoryProvider.createElement_tag(tag, typeExtention);
 
   /// Creates a new `<a>` element.
   ///
@@ -9709,7 +9709,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    * The tag should be a valid HTML tag name.
    */
   static bool isTagSupported(String tag) {
-    var e = _ElementFactoryProvider.createElement_tag(tag);
+    var e = _ElementFactoryProvider.createElement_tag(tag, null);
     return e is Element && !(e is UnknownElement);
   }
 
@@ -10982,8 +10982,8 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 class _ElementFactoryProvider {
 
   @DomName('Document.createElement')
-  static Element createElement_tag(String tag) =>
-      document.$dom_createElement(tag);
+  static Element createElement_tag(String tag, String typeExtension) =>
+      document.$dom_createElement(tag, typeExtension);
 }
 
 
@@ -13227,8 +13227,75 @@ class HtmlDocument extends Document {
   String get visibilityState => _webkitVisibilityState;
 
   @Experimental
-  void register(String tag, Type custom) {
-    _Utils.register(tag, custom);
+  /**
+   * Register a custom subclass of Element to be instantiatable by the DOM.
+   *
+   * This is necessary to allow the construction of any custom elements.
+   *
+   * The class being registered must either subclass HtmlElement or SvgElement.
+   * If they subclass these directly then they can be used as:
+   *
+   *     class FooElement extends HtmlElement{
+   *        void created() {
+   *          print('FooElement created!');
+   *        }
+   *     }
+   *
+   *     main() {
+   *       document.register('x-foo', FooElement);
+   *       var myFoo = new Element.tag('x-foo');
+   *       // prints 'FooElement created!' to the console.
+   *     }
+   *
+   * The custom element can also be instantiated via HTML using the syntax
+   * `<x-foo></x-foo>`
+   *
+   * Other elements can be subclassed as well:
+   *
+   *     class BarElement extends InputElement{
+   *        void created() {
+   *          print('BarElement created!');
+   *        }
+   *     }
+   *
+   *     main() {
+   *       document.register('x-bar', BarElement);
+   *       var myBar = new Element.tag('input', 'x-bar');
+   *       // prints 'BarElement created!' to the console.
+   *     }
+   *
+   * This custom element can also be instantiated via HTML using the syntax
+   * `<input is="x-bar"></input>`
+   *
+   * The [nativeTagName] parameter is needed by platforms without native support
+   * when subclassing a native type other than:
+   *
+   * * HtmlElement
+   * * SvgElement
+   * * AnchorElement
+   * * AudioElement
+   * * ButtonElement
+   * * CanvasElement
+   * * DivElement
+   * * ImageElement
+   * * InputElement
+   * * LIElement
+   * * LabelElement
+   * * MenuElement
+   * * MeterElement
+   * * OListElement
+   * * OptionElement
+   * * OutputElement
+   * * ParagraphElement
+   * * PreElement
+   * * ProgressElement
+   * * SelectElement
+   * * SpanElement
+   * * UListElement
+   * * VideoElement
+   */
+  void register(String tag, Type customElementClass, {String nativeTagName}) {
+    _Utils.register(tag, customElementClass);
   }
 
   // Note: used to polyfill <template>
