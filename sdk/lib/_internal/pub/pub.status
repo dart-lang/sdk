@@ -4,12 +4,16 @@
 
 test/serve/missing_file_test: Pass, Fail # Issue 12570
 test/oauth2/with_an_expired_credentials_refreshes_and_saves_test: Pass, Fail # Issue 12581
+
+# Issue 12837 is a networking issue on the pub-mac buildbot.
+[ $runtime == vm && $system == macos ]
 test/hosted/remove_removed_dependency_test: Pass, Fail # Issue 12837
 test/hosted/remove_removed_transitive_dependency_test: Pass, Fail # Issue 12837
 test/install/hosted/cached_pubspec_test: Pass, Fail # Issue 12837
 test/install/hosted/do_not_update_on_removed_constraints_test: Pass, Fail # Issue 12837
 test/install/hosted/install_test: Pass, Fail # Issue 12837
 test/install/hosted/install_transitive_test: Pass, Fail # Issue 12837
+test/install/hosted/version_negotiation_test: Pass, Fail # Issue 12837
 test/install/hosted/repair_cache_test: Pass, Fail # Issue 12837
 test/serve/serve_from_dependency_asset_test: Pass, Fail # Issue 12837
 test/install/hosted/stay_locked_if_new_is_satisfied_test: Pass, Fail # Issue 12837
