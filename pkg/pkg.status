@@ -20,6 +20,7 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
 # Skip test not runnable via test.dart
 third_party/html5lib/test/dom_compat_test: Skip
+third_party/html5lib/test/browser/browser_test: Skip
 
 polymer_expressions/test/syntax_test: Skip # Issue 12954
 
