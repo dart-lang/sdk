@@ -6,9 +6,11 @@ library pub_tests;
 
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'package:unittest/unittest.dart' show unittestConfiguration;
 
 main() {
   initConfig();
+  unittestConfiguration.timeout = const Duration(seconds: 60);
   integration("updates one locked Git package but no others", () {
     ensureGit();
 
