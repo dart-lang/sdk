@@ -20,7 +20,6 @@ string_interpolation_test: Skip
 
 [ $compiler == dart2js && $runtime == ie9 ]
 class_test: Fail
-deferred/*: Skip # http://dartbug.com/12635
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

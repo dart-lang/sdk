@@ -71,9 +71,8 @@ Future<bool> _load(String libraryName, String uri) {
     });
   }
 
-  Completer completer = new Completer<bool>();
-  _loadedLibraries[libraryName] = completer.future;
-  try {
+  return _loadedLibraries[libraryName] = new Future<bool>(() {
+    Completer completer = new Completer<bool>();
     if (uri == null) {
       uri = IsolateNatives.thisScript;
       int index = uri.lastIndexOf('/');
@@ -83,16 +82,14 @@ Future<bool> _load(String libraryName, String uri) {
     // Inject a script tag.
     var script = JS('', 'document.createElement("script")');
     JS('', '#.type = "text/javascript"', script);
-    JS('', '#.async = "async"', script);
     JS('', '#.src = #', script, uri);
     var onLoad = JS('', '#.bind(null, #)',
                     DART_CLOSURE_TO_JS(_onDeferredLibraryLoad), completer);
     JS('', '#.addEventListener("load", #, false)', script, onLoad);
     JS('', 'document.body.appendChild(#)', script);
-  } catch (e, trace) {
-    completer.completeError(e, trace);
-  }
-  return completer.future;
+
+    return completer.future;
+  });
 }
 
 /// Used to implement deferred loading. Used as callback on "load"
