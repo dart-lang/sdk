@@ -160,6 +160,7 @@ function dartPrint(msg) {
     window.postMessage(msg, '*');
     return;
   }
+  if (typeof console === 'object') console.warn(msg);
   var pre = document.createElement("pre");
   pre.appendChild(document.createTextNode(String(msg)));
   document.body.appendChild(pre);

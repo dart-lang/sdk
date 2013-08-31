@@ -52,6 +52,9 @@ class SimpleConfiguration extends Configuration {
   // we do with this List.
   final _testLogBuffer = <Pair<String, StackTrace>>[];
 
+  /// How long a [TestCase] can run before it is considered an error.
+  Duration timeout = const Duration(seconds: 20);
+
   /**
    * The constructor sets up a failure handler for [expect] that redirects
    * [expect] failures to [onExpectFailure].
