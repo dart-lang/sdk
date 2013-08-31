@@ -659,7 +659,7 @@ Error: "#{value}" is not a valid Symbol name because is not:
       howToFix: "Did you forget to add quotes?",
       examples: const [
           """
-// 'main' is a method, not a class.
+// 'Foo' is a type literal, not a string.
 @MirrorsUsed(symbols: const [Foo])
 import 'dart:mirrors';
 
