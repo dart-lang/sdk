@@ -325,6 +325,11 @@ void FlowGraphCompiler::AddExceptionHandler(intptr_t try_index,
 }
 
 
+void FlowGraphCompiler::SetNeedsStacktrace(intptr_t try_index) {
+  exception_handlers_list_->SetNeedsStacktrace(try_index);
+}
+
+
 // Uses current pc position and try-index.
 void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
                                              intptr_t deopt_id,

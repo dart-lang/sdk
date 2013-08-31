@@ -5,6 +5,7 @@
 #ifndef VM_CODE_DESCRIPTORS_H_
 #define VM_CODE_DESCRIPTORS_H_
 
+#include "vm/ast.h"
 #include "vm/code_generator.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
@@ -133,6 +134,17 @@ class ExceptionHandlerList : public ZoneAllocated {
     ASSERT(handler_types.IsZoneHandle());
     list_[try_index].handler_types = &handler_types;
     list_[try_index].needs_stacktrace = needs_stacktrace;
+  }
+
+
+  // Called by rethrows, to mark their enclosing handlers.
+  void SetNeedsStacktrace(intptr_t try_index) {
+    // Rethrows can be generated outside a try by the compiler.
+    if (try_index == CatchClauseNode::kInvalidTryIndex) {
+      return;
+    }
+    ASSERT((0 <= try_index) && (try_index < Length()));
+    list_[try_index].needs_stacktrace = true;
   }
 
 

@@ -4571,6 +4571,7 @@ LocationSummary* ReThrowInstr::MakeLocationSummary() const {
 
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  compiler->SetNeedsStacktrace(catch_try_index());
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
                                 kReThrowRuntimeEntry,

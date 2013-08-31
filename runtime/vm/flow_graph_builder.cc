@@ -58,6 +58,7 @@ FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
     last_used_block_id_(0),  // 0 is used for the graph entry.
     context_level_(0),
     try_index_(CatchClauseNode::kInvalidTryIndex),
+    catch_try_index_(CatchClauseNode::kInvalidTryIndex),
     loop_depth_(0),
     graph_entry_(NULL),
     args_pushed_(0),
@@ -3466,7 +3467,7 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
 void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   InlineBailout("EffectGraphVisitor::VisitTryCatchNode (exception)");
   intptr_t original_handler_index = owner()->try_index();
-  intptr_t try_handler_index = node->try_index();
+  const intptr_t try_handler_index = node->try_index();
   ASSERT(try_handler_index != original_handler_index);
   owner()->set_try_index(try_handler_index);
 
@@ -3502,9 +3503,13 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
       ? original_handler_index
       : catch_block->catch_handler_index();
 
+  const intptr_t prev_catch_try_index = owner()->catch_try_index();
+
   owner()->set_try_index(catch_handler_index);
+  owner()->set_catch_try_index(try_handler_index);
   EffectGraphVisitor for_catch(owner(), temp_index());
   catch_block->Visit(&for_catch);
+  owner()->set_catch_try_index(prev_catch_try_index);
 
   // NOTE: The implicit variables ':saved_context', ':exception_var'
   // and ':stacktrace_var' can never be captured variables.
@@ -3546,7 +3551,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
       Value* stacktrace = for_finally.Bind(
           for_finally.BuildLoadLocal(catch_block->stacktrace_var()));
       for_finally.PushArgument(stacktrace);
-      for_finally.AddInstruction(new ReThrowInstr(catch_block->token_pos()));
+      for_finally.AddInstruction(
+          new ReThrowInstr(catch_block->token_pos(), catch_handler_index));
       for_finally.CloseFragment();
     }
     ASSERT(!for_finally.is_open());
@@ -3692,7 +3698,7 @@ void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
     node->stacktrace()->Visit(&for_stack_trace);
     Append(for_stack_trace);
     PushArgument(for_stack_trace.value());
-    instr = new ReThrowInstr(node->token_pos());
+    instr = new ReThrowInstr(node->token_pos(), owner()->catch_try_index());
   }
   AddInstruction(instr);
 }

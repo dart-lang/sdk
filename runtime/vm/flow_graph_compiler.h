@@ -404,6 +404,7 @@ class FlowGraphCompiler : public ValueObject {
                            intptr_t pc_offset,
                            const Array& handler_types,
                            bool needs_stacktrace);
+  void SetNeedsStacktrace(intptr_t try_index);
   void AddCurrentDescriptor(PcDescriptors::Kind kind,
                             intptr_t deopt_id,
                             intptr_t token_pos);

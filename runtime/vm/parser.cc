@@ -6687,9 +6687,9 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   }
   catch_handler_list = CloseBlock();
   TryBlocks* inner_try_block = PopTryBlock();
-  intptr_t try_index = inner_try_block->try_index();
+  const intptr_t try_index = inner_try_block->try_index();
   TryBlocks* outer_try_block = try_blocks_list_;
-  intptr_t outer_try_index = (outer_try_block != NULL)
+  const intptr_t outer_try_index = (outer_try_block != NULL)
       ? outer_try_block->try_index()
       : CatchClauseNode::kInvalidTryIndex;
 
