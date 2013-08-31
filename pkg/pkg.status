@@ -21,6 +21,8 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 # Skip test not runnable via test.dart
 third_party/html5lib/test/dom_compat_test: Skip
 
+polymer_expressions/test/syntax_test: Skip # Issue 12954
+
 [ $compiler == dart2js && $runtime == d8 ]
 unmodifiable_collection/test/unmodifiable_collection_test: Pass, Fail # Issue 12429
 
