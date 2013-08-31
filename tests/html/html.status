@@ -384,3 +384,6 @@ js_interop_3_test: Skip            # Test cannot run under CSP restrictions (tim
 js_test: Skip                      # Test cannot run under CSP restrictions (times out).
 postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (times out).
 safe_dom_test: Skip                # Test cannot run under CSP restrictions (times out).
+
+[ $compiler == dart2js && $runtime == drt ]
+wheelevent_test: Fail # http://dartbug.com/12958
