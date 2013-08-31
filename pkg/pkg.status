@@ -214,3 +214,6 @@ unittest/test/missing_tick_test: Fail, OK # This test should fail, not time out.
 # Issue http://dartbug.com/12930
 [ $runtime == vm ]
 intl/test/message_extraction/message_extraction_test: Pass, Fail # Issue 12930
+
+[ $compiler == none && $runtime == drt && $checked && $arch == ia32 ]
+custom_element/test/custom_element_test: Fail # http://dartbug.com/12964
