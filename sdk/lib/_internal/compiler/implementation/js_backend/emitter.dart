@@ -1254,13 +1254,6 @@ class CodeEmitterTask extends CompilerTask {
     return field is ClosureFieldElement;
   }
 
-  String compiledFieldName(Element member) {
-    assert(member.isField());
-    return member.hasFixedBackendName()
-        ? member.fixedBackendName()
-        : namer.getName(member);
-  }
-
   /**
    * Documentation wanted -- johnniwinther
    *
