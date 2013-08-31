@@ -443,3 +443,5 @@ import_core_prefix_test: Pass
 prefix22_test: Pass
 invocation_mirror_test: Fail, OK # Issue 12706 (hardcoded names).
 super_call4_test: Fail, OK # hardcoded names.
+
+stack_trace_test: Fail, OK # Stack trace no preserved in minified code.
