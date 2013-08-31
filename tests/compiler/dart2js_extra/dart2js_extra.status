@@ -45,3 +45,4 @@ mirror_invalid_field_access3_test: Fail # http://dartbug.com/6490
 mirror_invalid_field_access4_test: Fail # http://dartbug.com/6490
 deferred/deferred_class_test: Fail # http://dartbug.com/3940
 deferred/deferred_constant_test: Fail # http://dartbug.com/3940
+mirror_type_inference_field_test: Fail # http://dartbug.com/6490
