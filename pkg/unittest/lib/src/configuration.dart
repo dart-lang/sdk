@@ -28,6 +28,9 @@ abstract class Configuration {
    */
   bool get autoStart => true;
 
+  /// How long a [TestCase] can run before it is considered an error.
+  Duration get timeout => const Duration(seconds: 20);
+
   /**
    * Called as soon as the unittest framework becomes initialized. This is done
    * even before tests are added to the test framework. It might be used to
