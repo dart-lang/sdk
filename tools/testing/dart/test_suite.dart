@@ -273,11 +273,12 @@ abstract class TestSuite {
     int shards = configuration['shards'];
     if (shards > 1) {
       int shard = configuration['shard'];
-      if ("${testCase.info.originTestPath}".hashCode % shards != shard - 1) {
+      var testPath =
+          testCase.info.originTestPath.relativeTo(TestUtils.dartDir());
+      if ("$testPath".hashCode % shards != shard - 1) {
         return;
       }
     }
-
     // Test if the selector includes this test.
     RegExp pattern = configuration['selectors'][suiteName];
     if (!pattern.hasMatch(testCase.displayName)) {
