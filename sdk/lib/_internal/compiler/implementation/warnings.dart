@@ -4,6 +4,8 @@
 
 part of dart2js;
 
+const DONT_KNOW_HOW_TO_FIX = "";
+
 /**
  * The messages in this file should meet the following guide lines:
  *
@@ -540,7 +542,13 @@ class MessageKind {
       warning: const MessageKind('Warning: Cannot resolve setter.'));
 
   static const MessageKind VOID_NOT_ALLOWED = const MessageKind(
-      'Error: Type "void" is only allowed in a return type.');
+      "Error: Type 'void' can't be used here because it isn't a return type.",
+      howToFix: "Try removing 'void' keyword or replace it with 'var', 'final',"
+          " or a type.",
+      examples: const [
+          "void x; main() {}",
+          "foo(void x) {} main() { foo(null); }",
+      ]);
 
   static const MessageKind BEFORE_TOP_LEVEL = const MessageKind(
       'Error: Part header must come before top-level definitions.');
@@ -754,6 +762,8 @@ main() {}
 
   static const MessageKind READ_SCRIPT_ERROR = const MessageKind(
       "Error: Can't read '#{uri}' (#{exception}).",
+      // Don't know how to fix since the underlying error is unknown.
+      howToFix: DONT_KNOW_HOW_TO_FIX,
       examples: const [
           """
 // 'foo.dart' does not exist.
@@ -761,6 +771,47 @@ import 'foo.dart';
 
 main() {}
 """]);
+
+  static const MessageKind EXTRANEOUS_MODIFIER = const MessageKind(
+      "Error: Can't have modifier '#{modifier}' here.",
+      howToFix: "Try removing '#{modifier}'.",
+      examples: const [
+          "var String foo; main(){}",
+          // "var get foo; main(){}",
+          "var set foo; main(){}",
+          "var final foo; main(){}",
+          "var var foo; main(){}",
+          "var const foo; main(){}",
+          "var abstract foo; main(){}",
+          "var static foo; main(){}",
+          "var external foo; main(){}",
+          "get var foo; main(){}",
+          "set var foo; main(){}",
+          "final var foo; main(){}",
+          "var var foo; main(){}",
+          "const var foo; main(){}",
+          "abstract var foo; main(){}",
+          "static var foo; main(){}",
+          "external var foo; main(){}"]);
+
+  static const MessageKind EXTRANEOUS_MODIFIER_REPLACE = const MessageKind(
+      "Error: Can't have modifier '#{modifier}' here.",
+      howToFix: "Try replacing modifier '#{modifier}' with 'var', 'final',"
+          " or a type.",
+      examples: const [
+          // "get foo; main(){}",
+          "set foo; main(){}",
+          "abstract foo; main(){}",
+          "static foo; main(){}",
+          "external foo; main(){}"]);
+
+  static const MessageKind BODY_EXPECTED = const MessageKind(
+      "Error: Expected a function body or '=>'.",
+      // TODO(ahe): In some scenarios, we can suggest removing the 'static'
+      // keyword.
+      howToFix: "Try adding {}.",
+      examples: const [
+          "main();"]);
 
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       'Error: The compiler crashed when compiling this element.');
@@ -844,6 +895,8 @@ Please include the following information:
   static const MessageKind PATCH_NON_EXISTING = const MessageKind(
       'Error: Origin does not exist for patch "#{name}".');
 
+  // TODO(ahe): Eventually, this error should be removed as it will be handled
+  // by the regular parser.
   static const MessageKind PATCH_NONPATCHABLE = const MessageKind(
       'Error: Only classes and functions can be patched.');
 
@@ -886,6 +939,8 @@ Please include the following information:
   CompilationError error([Map arguments = const {}, bool terse = false]) {
     return new CompilationError(this, arguments, terse);
   }
+
+  bool get hasHowToFix => howToFix != null && howToFix != DONT_KNOW_HOW_TO_FIX;
 }
 
 class DualKind {
@@ -916,7 +971,7 @@ class Message {
           CURRENT_ELEMENT_SPANNABLE,
           !message.contains(new RegExp(r'#\{.+\}')),
           message: 'Missing arguments in error message: "$message"'));
-      if (!terse && kind.howToFix != null) {
+      if (!terse && kind.hasHowToFix) {
         String howToFix = kind.howToFix;
         arguments.forEach((key, value) {
           String string = slowToString(value);

@@ -104,7 +104,7 @@ class JsMirrorSystem implements MirrorSystem {
 abstract class JsMirror implements Mirror {
   const JsMirror();
 
-  abstract String get _prettyName;
+  String get _prettyName;
 
   String toString() => _prettyName;
 

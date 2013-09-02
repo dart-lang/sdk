@@ -95,10 +95,13 @@ class PartialParser extends Parser {
     return endGroup;
   }
 
-  Token parseFunctionBody(Token token, bool isExpression) {
+  Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     assert(!isExpression);
     String value = token.stringValue;
     if (identical(value, ';')) {
+      if (!allowAbstract) {
+        listener.reportError(token, MessageKind.BODY_EXPECTED);
+      }
       // No body.
     } else if (identical(value, '=>')) {
       token = parseExpression(token.next);

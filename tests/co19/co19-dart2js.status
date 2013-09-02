@@ -21,7 +21,6 @@ LibTest/isolate/isolate_api/spawnUri_A02_t03: Pass, Fail # Issue 8920
 
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t07: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/List/List_A03_t01: Fail # TODO(kasperl): Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
@@ -53,8 +52,6 @@ LibTest/typed_data/Uint32List/Uint32List.view_A01_t01: Fail, OK # Issue 12928
 LibTest/typed_data/Int32List/Int32List.view_A01_t01: Fail, OK # Issue 12928
 LibTest/typed_data/Float32x4List/Float32x4List.view_A01_t01: Fail, OK # Issue 12928
 
-
-Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail # Partially implemented rediriecting constructors makes this fail.
 
 [ $compiler == dart2js && $runtime == ie9 ]
 LibTest/async/Completer/completeError_A02_t01: Pass, Fail # Issue 8920
@@ -216,7 +213,6 @@ Language/05_Variables/05_Variables_A01_t08: Fail # Checks different variables in
 Language/05_Variables/05_Variables_A01_t12: Fail # Checks that variable declaration cannot contain both 'const' and 'var'.
 Language/05_Variables/05_Variables_A01_t13: Fail # Checks that variable declaration cannot contain both 'const' and 'final'.
 Language/05_Variables/05_Variables_A01_t14: Fail # Checks that variable declaration cannot contain 'const', 'final' and 'var' simultaneously.
-Language/05_Variables/05_Variables_A01_t15: Fail # Checks that a variable declaration cannot contain the 'abstract' keyword.
 Language/05_Variables/05_Variables_A07_t05: Fail # Checks that a compile-time error occurs if a local constant variable is not initialized at declaration.
 Language/05_Variables/05_Variables_A07_t06: Fail # Checks that a compile-time error occurs if a local typed constant variable is not initialized at declaration.
 Language/05_Variables/05_Variables_A07_t07: Fail # Checks that a compile-time error occurs if a global constant variable is not initialized at declaration.
@@ -238,14 +234,6 @@ Language/06_Functions/2_Formal_Parameters_A03_t06: Fail # TODO(ahe): Enforce opt
 Language/07_Classes/07_Classes_A02_t02: Fail # Checks that it is a compile-time error if a constant constructor declaration includes a body.
 Language/07_Classes/07_Classes_A02_t04: Fail # Checks that it is a compile-time error if a constant constructor declaration with initializers includes a body.
 Language/07_Classes/07_Classes_A02_t11: Fail # Checks that it is a compile-time error if a static final variable declaration does not include explicit initializer.
-Language/07_Classes/07_Classes_A03_t02: Fail # Checks that it is a compile-time error if a factory constructor method definition does not include a body.
-Language/07_Classes/07_Classes_A03_t08: Fail # Checks that it is a compile-time error if a static setter method definition does not include a body.
-Language/07_Classes/07_Classes_A03_t09: Fail # Checks that it is a compile-time error if a static function method definition does not include a body.
-Language/07_Classes/07_Classes_A04_t19: Fail # Checks that an abstract static method can't be used in place of a class member definition./
-Language/07_Classes/07_Classes_A04_t21: Fail # Checks that a static operator can't be used in place of a class member definition.
-Language/07_Classes/07_Classes_A04_t22: Fail # Checks that an abstract static operator can't be used in place of a class member definition./
-Language/07_Classes/07_Classes_A04_t24: Fail # Checks that a static abstract getter can't be used in place of a class member definition.
-Language/07_Classes/07_Classes_A04_t25: Fail # Checks that a static abstract setter can't be used in place of a class member definition.
 Language/07_Classes/07_Classes_A11_t01: Fail # Checks that a class name cannot be used as a name of a member variable.
 Language/07_Classes/07_Classes_A11_t03: Fail # Checks that a class name cannot be used as a name of a static variable.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t01: Fail # Checks that a compile-time error is produced when a class with constant  constructor also declares a non-final instance variable.
@@ -288,6 +276,7 @@ Language/15_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Checks that self
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # Checks that self-referencing typedef is not allowed (named optional parameter type annotation has the same name as the type alias).
 Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # Checks that other Unicode whitespaces are not allowed:  check NO-BREAK SPACE (U+00A0)
 Language/16_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
+
 
 #
 # Unexpected compile-time errors.
@@ -415,7 +404,6 @@ Language/14_Libraries_and_Scripts/1_Imports_A03_t68: fail # co19-roll r546: Plea
 Language/14_Libraries_and_Scripts/1_Imports_A03_t69: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t70: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A04_t03: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/3_Parts_A03_t02: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t01: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/5_URIs_A01_t01: fail # co19-roll r546: Please triage this failure

@@ -401,6 +401,7 @@ void patchElement(leg.DiagnosticListener listener,
         origin.isConstructor() ||
         origin.isFunction() ||
         origin.isAbstractField())) {
+    // TODO(ahe): Remove this error when the parser rejects all bad modifiers.
     listener.reportError(origin, leg.MessageKind.PATCH_NONPATCHABLE);
     return;
   }
@@ -415,6 +416,7 @@ void patchElement(leg.DiagnosticListener listener,
   } else if(patch.isFunction()) {
     tryPatchFunction(listener, origin, patch);
   } else {
+    // TODO(ahe): Remove this error when the parser rejects all bad modifiers.
     listener.reportError(patch, leg.MessageKind.PATCH_NONPATCHABLE);
   }
 }
