@@ -6,9 +6,9 @@
 
 library slow_consumer3_test;
 
+import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'dart:isolate';
 
 const int KB = 1024;
 const int MB = KB * KB;
@@ -71,7 +71,7 @@ Stream<List> dataGenerator(int bytesTotal, int chunkSize) {
 }
 
 main() {
-  var port = new ReceivePort();
+  asyncStart();
   // The data provider can deliver 800MBs of data as fast as it is
   // requested. The data is sent in 0.5MB chunks. The consumer has a buffer of
   // 3MB. That is, it can accept a few packages without pausing its input.
@@ -88,7 +88,7 @@ main() {
   dataGenerator(100 * MB, 512 * KB)
     .pipe(new SlowConsumer(200 * MB, 3 * MB))
     .then((count) {
-      port.close();
       Expect.equals(100 * MB, count);
+      asyncEnd();
     });
 }

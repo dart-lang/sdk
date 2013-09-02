@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'dart:isolate';
 import 'catch_errors.dart';
 
 main() {
-  // We keep a ReceivePort open until all tests are done. This way the VM will
-  // hang if the callbacks are not invoked and the test will time out.
-  var port = new ReceivePort();
+  asyncStart();
   var events = [];
   StreamController controller;
   // Test multiple subscribers of an asBroadcastStream inside the same
@@ -22,6 +20,6 @@ main() {
   }).listen((x) { events.add("outer: $x"); },
             onDone: () {
               Expect.listEquals([1, 1, 2, 2], events);
-              port.close();
+              asyncEnd();
             });
 }

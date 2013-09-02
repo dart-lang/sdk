@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'dart:isolate';
 import 'catch_errors.dart';
 
 main() {
-  // We keep a ReceivePort open until all tests are done. This way the VM will
-  // hang if the callbacks are not invoked and the test will time out.
-  var port = new ReceivePort();
+  asyncStart();
   var events = [];
   Stream stream = new Stream.periodic(const Duration(milliseconds: 20),
                                       (x) => x);
@@ -28,6 +26,6 @@ main() {
   }).listen((x) { events.add("outer: $x"); },
             onDone: () {
               Expect.listEquals([0, 1, 2, 3, 4, "cancel"], events);
-              port.close();
+              asyncEnd();
             });
 }

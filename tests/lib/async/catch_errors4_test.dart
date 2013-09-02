@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'dart:isolate';
 import 'catch_errors.dart';
 
 main() {
-  // We keep a ReceivePort open until all tests are done. This way the VM will
-  // hang if the callbacks are not invoked and the test will time out.
-  var port = new ReceivePort();
+  asyncStart();
   var events = [];
   // Test that synchronous errors inside a `catchErrors` are caught.
   catchErrors(() {
@@ -25,7 +23,7 @@ main() {
                          "catch error",
                          ],
                          events);
-      port.close();
+      asyncEnd();
     });
   events.add("main exit");
 }
