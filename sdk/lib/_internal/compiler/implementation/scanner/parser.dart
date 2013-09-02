@@ -664,7 +664,7 @@ class Parser {
       // TODO(ahe): Report recoverable error on 'void'.
       parseReturnTypeOpt(type);
     }
-    var token = parseIdentifier(name);
+    Token token = parseIdentifier(name);
 
     int fieldCount = 1;
     token = parseVariableInitializerOpt(token);
@@ -689,7 +689,7 @@ class Parser {
     } else {
       parseReturnTypeOpt(type);
     }
-    var token = parseIdentifier(name);
+    Token token = parseIdentifier(name);
 
     token = parseFormalParametersOpt(token);
     token = parseFunctionBody(token, false);
@@ -903,6 +903,7 @@ class Parser {
       return listener.unexpected(start);
     }
     Token name = identifiers.head;
+    Token afterName = name.next;
     identifiers = identifiers.tail;
     if (!identifiers.isEmpty) {
       if (optional('operator', identifiers.head)) {
@@ -924,18 +925,8 @@ class Parser {
         identifiers = identifiers.tail;
       }
     }
-    parseModifierList(identifiers.reverse());
-    if (type == null) {
-      listener.handleNoType(token);
-    } else {
-      parseReturnTypeOpt(type);
-    }
 
-    if (optional('operator', name)) {
-      token = parseOperatorName(name);
-    } else {
-      token = parseIdentifier(name);
-    }
+    token = afterName;
     bool isField;
     while (true) {
       // Loop to allow the listener to rewrite the token stream for
@@ -967,31 +958,71 @@ class Parser {
         }
       }
     }
-    if (isField) {
-      int fieldCount = 1;
-      token = parseVariableInitializerOpt(token);
-      if (getOrSet != null) {
-        listener.recoverableError("unexpected", token: getOrSet);
-      }
-      while (optional(',', token)) {
-        // TODO(ahe): Count these.
-        token = parseIdentifier(token.next);
-        token = parseVariableInitializerOpt(token);
-        ++fieldCount;
-      }
-      expectSemicolon(token);
-      listener.endFields(fieldCount, start, token);
+
+    var modifiers = identifiers.reverse();
+    return isField
+        ? parseFields(start, modifiers, type, getOrSet, name)
+        : parseMethod(start, modifiers, type, getOrSet, name);
+
+  }
+
+  Token parseFields(Token start,
+                    Link<Token> modifiers,
+                    Token type,
+                    Token getOrSet,
+                    Token name) {
+    parseModifierList(modifiers);
+    if (type == null) {
+      listener.handleNoType(name);
     } else {
-      token = parseQualifiedRestOpt(token);
-      token = parseFormalParametersOpt(token);
-      token = parseInitializersOpt(token);
-      if (optional('=', token)) {
-        token = parseRedirectingFactoryBody(token);
-      } else {
-        token = parseFunctionBody(token, false);
-      }
-      listener.endMethod(getOrSet, start, token);
+      parseReturnTypeOpt(type);
     }
+
+    Token token = parseIdentifier(name);
+
+    int fieldCount = 1;
+    token = parseVariableInitializerOpt(token);
+    if (getOrSet != null) {
+      listener.recoverableError("unexpected", token: getOrSet);
+    }
+    while (optional(',', token)) {
+      // TODO(ahe): Count these.
+      token = parseIdentifier(token.next);
+      token = parseVariableInitializerOpt(token);
+      ++fieldCount;
+    }
+    expectSemicolon(token);
+    listener.endFields(fieldCount, start, token);
+    return token.next;
+  }
+
+  Token parseMethod(Token start,
+                    Link<Token> modifiers,
+                    Token type,
+                    Token getOrSet,
+                    Token name) {
+    parseModifierList(modifiers);
+    if (type == null) {
+      listener.handleNoType(name);
+    } else {
+      parseReturnTypeOpt(type);
+    }
+    Token token;
+    if (optional('operator', name)) {
+      token = parseOperatorName(name);
+    } else {
+      token = parseIdentifier(name);
+    }
+
+    token = parseQualifiedRestOpt(token);
+    token = parseFormalParametersOpt(token);
+    token = parseInitializersOpt(token);
+    if (optional('=', token)) {
+      token = parseRedirectingFactoryBody(token);
+    } else {
+      token = parseFunctionBody(token, false);
+    }
+    listener.endMethod(getOrSet, start, token);
     return token.next;
   }
 
