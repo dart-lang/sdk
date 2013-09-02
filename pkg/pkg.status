@@ -28,7 +28,7 @@ polymer_expressions/test/syntax_test: Skip # Issue 12954
 unmodifiable_collection/test/unmodifiable_collection_test: Pass, Fail # Issue 12429
 
 [ $compiler == dart2js ]
-#analyzer_experimental/test/generated/ast_test: Fail #Issue 12341
+analyzer_experimental/test/generated/ast_test: Fail #Issue 12341
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
