@@ -74,20 +74,21 @@ patch class int {
   /* patch */ static int parse(String source,
                                { int radix,
                                  int onError(String str) }) {
-    if ((radix == null) && (onError == null)) return _parse(source);
+    if (radix == null) {
+      int result = _parse(source);
+      if (result == null) {
+        if (onError == null) {
+          throw new FormatException(source);
+        }
+        return onError(source);
+      }
+      return result;
+    }
     return _slowParse(source, radix, onError);
   }
 
   static int _slowParse(String source, int radix, int onError(String str)) {
     if (source is! String) throw new ArgumentError(source);
-    if (radix == null) {
-      assert(onError != null);
-      try {
-        return _parse(source);
-      } on FormatException {
-        return onError(source);
-      }
-    }
     if (radix is! int) throw new ArgumentError("Radix is not an integer");
     if (radix < 2 || radix > 36) {
       throw new RangeError("Radix $radix not in range 2..36");
