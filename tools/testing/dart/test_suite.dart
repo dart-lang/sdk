@@ -38,7 +38,9 @@ typedef void CreateTest(Path filePath,
                         bool hasRuntimeError,
                         {bool isNegativeIfChecked,
                          bool hasFatalTypeErrors,
-                         Set<String> multitestOutcome});
+                         Set<String> multitestOutcome,
+                         String multitestKey,
+                         Path originTestPath});
 
 typedef void VoidFunction();
 
@@ -251,6 +253,76 @@ abstract class TestSuite {
    * to be listed each time.
    */
   void forEachTest(TestCaseEvent onTest, Map testCache, [VoidFunction onDone]);
+
+
+  // This function is set by subclasses before enqueueing starts.
+  Function doTest;
+
+  // This function will be called for every TestCase of this test suite.
+  // It will
+  //  - handle sharding
+  //  - update SummaryReport
+  //  - handle SKIP/SKIP_BY_DESIGN markers
+  //  - test if the selector matches
+  // and will enqueue the test (if necessary).
+  void enqueueNewTestCase(TestCase testCase) {
+    var expectations = testCase.expectedOutcomes;
+
+    // Handle sharding based on the original test path (i.e. all multitests
+    // of a given original test belong to the same shard)
+    int shards = configuration['shards'];
+    if (shards > 1) {
+      int shard = configuration['shard'];
+      if ("${testCase.info.originTestPath}".hashCode % shards != shard - 1) {
+        return;
+      }
+    }
+
+    // Test if the selector includes this test.
+    RegExp pattern = configuration['selectors'][suiteName];
+    if (!pattern.hasMatch(testCase.displayName)) {
+      return;
+    }
+
+    // Update Summary report
+    if (configuration['report']) {
+      SummaryReport.add(expectations);
+
+      if (testCase.info.hasCompileError &&
+          TestUtils.isBrowserRuntime(configuration['runtime']) &&
+          configuration['compiler'] != 'none') {
+        SummaryReport.addCompileErrorSkipTest();
+        return;
+      }
+    }
+
+    // Handle skipped tests
+    if (expectations.contains(SKIP) ||
+        expectations.contains(SKIP_BY_DESIGN)) {
+      return;
+    }
+
+    doTest(testCase);
+  }
+
+  String buildTestCaseDisplayName(Path suiteDir,
+                                  Path originTestPath,
+                                  {String multitestName: ""}) {
+    Path testNamePath = originTestPath.relativeTo(suiteDir);
+    var directory = testNamePath.directoryPath;
+    var filenameWithoutExt = testNamePath.filenameWithoutExtension;
+
+    String concat(String base, String part) {
+      if (base == "") return part;
+      if (part == "") return base;
+      return "$base/$part";
+    }
+
+    var testName = "$directory";
+    testName = concat(testName, "$filenameWithoutExt");
+    testName = concat(testName, multitestName);
+    return testName;
+  }
 }
 
 
@@ -311,7 +383,6 @@ class CCTestSuite extends TestSuite {
   String hostRunnerPath;
   final String dartDir;
   List<String> statusFilePaths;
-  Function doTest;
   VoidFunction doDone;
   ReceivePort receiveTestName;
   TestExpectations testExpectations;
@@ -345,28 +416,17 @@ class CCTestSuite extends TestSuite {
     } else {
       // Only run the tests that match the pattern. Use the name
       // "suiteName/testName" for cc tests.
-      RegExp pattern = configuration['selectors'][suiteName];
       String constructedName = '$suiteName/$testPrefix$testName';
-      if (!pattern.hasMatch(constructedName)) return;
 
       var expectations = testExpectations.expectations(
           '$testPrefix$testName');
-
-      if (configuration["report"]) {
-        SummaryReport.add(expectations);
-      }
-
-      if (expectations.contains(SKIP) ||
-          expectations.contains(SKIP_BY_DESIGN)) {
-        return;
-      }
 
       var args = TestUtils.standardOptions(configuration);
       args.add(testName);
 
       var command = CommandBuilder.instance.getCommand(
           'run_vm_unittest', targetRunnerPath, args, configurationDir);
-      doTest(
+      enqueueNewTestCase(
           new TestCase(constructedName,
                        [command],
                        configuration,
@@ -401,6 +461,7 @@ class CCTestSuite extends TestSuite {
 
 
 class TestInformation {
+  Path originTestPath;
   Path filePath;
   Map optionsFromFile;
   bool hasCompileError;
@@ -408,12 +469,15 @@ class TestInformation {
   bool isNegativeIfChecked;
   bool hasFatalTypeErrors;
   Set<String> multitestOutcome;
+  String multitestKey;
 
   TestInformation(this.filePath, this.optionsFromFile,
                   this.hasCompileError, this.hasRuntimeError,
                   this.isNegativeIfChecked, this.hasFatalTypeErrors,
-                  this.multitestOutcome) {
+                  this.multitestOutcome,
+                  {this.multitestKey, this.originTestPath}) {
     assert(filePath.isAbsolute);
+    if (originTestPath == null) originTestPath = filePath;
   }
 }
 
@@ -424,7 +488,6 @@ class TestInformation {
 class StandardTestSuite extends TestSuite {
   final Path suiteDir;
   final List<String> statusFilePaths;
-  Function doTest;
   TestExpectations testExpectations;
   List<TestInformation> cachedTests;
   final Path dartDir;
@@ -619,11 +682,10 @@ class StandardTestSuite extends TestSuite {
     Path filePath = new Path(filename);
 
     // Only run the tests that match the pattern.
-    RegExp pattern = configuration['selectors'][suiteName];
     if (filePath.filename.endsWith('test_config.dart')) return;
 
     var optionsFromFile = readOptionsFromFile(filePath);
-    CreateTest createTestCase = makeTestCaseCreator(pattern, optionsFromFile);
+    CreateTest createTestCase = makeTestCaseCreator(optionsFromFile);
 
     if (optionsFromFile['isMultitest']) {
       group.add(doMultitest(filePath, buildDir, suiteDir, createTestCase));
@@ -638,55 +700,10 @@ class StandardTestSuite extends TestSuite {
     var filePath = info.filePath;
     var optionsFromFile = info.optionsFromFile;
 
-    // Look up expectations in status files using a test name generated
-    // from the test file's path.
-    String testName;
-
-    if (optionsFromFile['isMultitest']) {
-      // Multitests are in [build directory]/generated_tests/... .
-      // The test name will be '[test filename (no extension)]/[multitest key].
-      String name = filePath.filenameWithoutExtension;
-      int middle = name.lastIndexOf('_');
-      testName = '${name.substring(0, middle)}/${name.substring(middle + 1)}';
-    } else {
-      // The test name is the relative path from the test suite directory to
-      // the test, with the .dart extension removed.
-      assert(filePath.toNativePath().startsWith(
-                    suiteDir.toNativePath()));
-      var testNamePath = filePath.relativeTo(suiteDir);
-      assert(testNamePath.extension == 'dart');
-      if (testNamePath.extension == 'dart') {
-        testName = testNamePath.directoryPath.append(
-            testNamePath.filenameWithoutExtension).toString();
-      }
-    }
-    int shards = configuration['shards'];
-    if (shards > 1) {
-      int shard = configuration['shard'];
-      if (testName.hashCode % shards != shard - 1) {
-        return;
-      }
-    }
+    String testName = buildTestCaseDisplayName(suiteDir, info.originTestPath,
+        multitestName: optionsFromFile['isMultitest'] ? info.multitestKey : "");
 
     Set<String> expectations = testExpectations.expectations(testName);
-    if (info.hasCompileError &&
-        TestUtils.isBrowserRuntime(configuration['runtime']) &&
-        configuration['report'] &&
-        configuration['compiler'] != 'none') {
-      SummaryReport.addCompileErrorSkipTest();
-      return;
-    }
-    if (configuration['report']) {
-      // Tests with multiple VMOptions are counted more than once.
-      for (var dummy in getVmOptions(optionsFromFile)) {
-        SummaryReport.add(expectations);
-      }
-    }
-    if (expectations.contains(SKIP) ||
-        expectations.contains(SKIP_BY_DESIGN)) {
-      return;
-    }
-
     if (configuration['compiler'] != 'none' && info.hasCompileError) {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
@@ -729,12 +746,13 @@ class StandardTestSuite extends TestSuite {
         allVmOptions = new List.from(vmOptions)..addAll(extraVmOptions);
       }
 
-      doTest(new TestCase('$suiteName/$testName',
-                          makeCommands(info, allVmOptions, commonArguments),
-                          configuration,
-                          expectations,
-                          isNegative: isNegative(info),
-                          info: info));
+      enqueueNewTestCase(
+          new TestCase('$suiteName/$testName',
+                       makeCommands(info, allVmOptions, commonArguments),
+                       configuration,
+                       expectations,
+                       isNegative: isNegative(info),
+                       info: info));
     }
   }
 
@@ -822,25 +840,27 @@ class StandardTestSuite extends TestSuite {
     }
   }
 
-  CreateTest makeTestCaseCreator(RegExp pattern, Map optionsFromFile) {
+  CreateTest makeTestCaseCreator(Map optionsFromFile) {
     return (Path filePath,
             bool hasCompileError,
             bool hasRuntimeError,
             {bool isNegativeIfChecked: false,
              bool hasFatalTypeErrors: false,
-             Set<String> multitestOutcome: null}) {
-      if (pattern.hasMatch('$filePath')) {
-        // Cache the test information for each test case.
-        var info = new TestInformation(filePath,
-                                       optionsFromFile,
-                                       hasCompileError,
-                                       hasRuntimeError,
-                                       isNegativeIfChecked,
-                                       hasFatalTypeErrors,
-                                       multitestOutcome);
-        cachedTests.add(info);
-        enqueueTestCaseFromTestInformation(info);
-      }
+             Set<String> multitestOutcome: null,
+             String multitestKey,
+             Path originTestPath}) {
+      // Cache the test information for each test case.
+      var info = new TestInformation(filePath,
+                                     optionsFromFile,
+                                     hasCompileError,
+                                     hasRuntimeError,
+                                     isNegativeIfChecked,
+                                     hasFatalTypeErrors,
+                                     multitestOutcome,
+                                     multitestKey: multitestKey,
+                                     originTestPath: originTestPath);
+      cachedTests.add(info);
+      enqueueTestCaseFromTestInformation(info);
     };
   }
 
@@ -1102,7 +1122,7 @@ class StandardTestSuite extends TestSuite {
               info, isNegative(info), fullHtmlPath);
         }
 
-        doTest(testCase);
+        enqueueNewTestCase(testCase);
         subtestIndex++;
       } while(subtestIndex < subtestNames.length);
     }
@@ -1578,7 +1598,6 @@ class JUnitTestSuite extends TestSuite {
   final String dartDir;
   String classPath;
   List<String> testClasses;
-  TestCaseEvent doTest;
   VoidFunction doDone;
   TestExpectations testExpectations;
 
@@ -1659,10 +1678,10 @@ class JUnitTestSuite extends TestSuite {
     updatedConfiguration['timeout'] *= 3;
     var command = CommandBuilder.instance.getCommand(
         'junit_test', 'java', args, configurationDir);
-    doTest(new TestCase(suiteName,
-                        [command],
-                        updatedConfiguration,
-                        new Set<String>.from([PASS])));
+    enqueueNewTestCase(new TestCase(suiteName,
+                                   [command],
+                                   updatedConfiguration,
+                                   new Set<String>.from([PASS])));
     doDone();
   }
 

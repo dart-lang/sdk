@@ -9,7 +9,7 @@ standalone/io/dependency_graph_test: Skip # http/dartbug.com/12449
 standalone/io/status_file_parser_test: Skip # http/dartbug.com/12449
 
 [ $compiler == dartanalyzer ]
-javascript_int_overflow_literal_test/01: fail, ok
+standalone/javascript_int_overflow_literal_test/01: fail, ok
 
 # https://code.google.com/p/dart/issues/detail?id=11665
 standalone/io/directory_invalid_arguments_test: fail
@@ -36,7 +36,7 @@ standalone/package/package_isolate_test: fail
 
 
 [ $compiler == dart2analyzer ]
-javascript_int_overflow_literal_test/01: fail, ok
+standalone/javascript_int_overflow_literal_test/01: fail, ok
 
 # https://code.google.com/p/dart/issues/detail?id=11665
 standalone/io/directory_invalid_arguments_test: fail

@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-reg_exp_unicode_2_test: Fail # Bug 6592
-
 [ $compiler == dart2js && $runtime == drt ]
 hash_set_test: Pass, Fail # v8 bug: Issue 12293
 list_test: Pass, Fail # v8 bug: Issue 12293
@@ -33,37 +31,24 @@ double_round4_test: Fail, OK # IE bug: Math.round(4503599627370497) != 450359962
 double_round_to_double3_test: Fail, OK # IE bug: Math.round(4503599627370497) != 4503599627370497.
 collection_length_test: Pass, Timeout # Issue 12844
 
-
-[ $compiler == dart2js && ($runtime == chrome || $runtime == drt || $runtime == d8 || $runtime == safari) ]
-string_trim_unicode_test: Fail  # V8 bug 2408
-
 [ $runtime == opera ]
 core_runtime_types_test: Fail
 null_nosuchmethod_test: Fail # Issue: 7413
 date_time7_test: Fail
 unicode_test: Fail
 
-[ $runtime == vm ]
-string_trim_unicode_test: Fail  # Bug 6569
-
 [ $compiler == dart2js ]
 error_stack_trace1_test: Fail # Issue 12399
-math_parse_double_test: Fail # Expect.equals(expected: <78187493520>, actual: <0>)
-math_test: Fail # issue 3333
-surrogate_pair_toUpper_test: Fail # Issue 6707
 
 big_integer_vm_test: Fail, OK # VM specific test.
 compare_to2_test: Fail, OK    # Requires bigint support.
 string_base_vm_test: Fail, OK # VM specific test.
-
-string_replace_func_test: Skip # Bug 6554 - doesn't terminate.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js && $runtime == ie9 ]
 date_time7_test: Fail # BUG(3304): Maybe this doesn't time out?
-json_strict_test: Fail # IE parses slightly harmless no-standard JSON.
 string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
 list_test: Fail # IE doesn't support typed data.
 

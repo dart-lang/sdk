@@ -238,7 +238,9 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
              hasRuntimeErrors,
              isNegativeIfChecked: isNegativeIfChecked,
              hasFatalTypeErrors: enableFatalTypeErrors,
-             multitestOutcome: outcome);
+             multitestOutcome: outcome,
+             multitestKey: key,
+             originTestPath: filePath);
     }
 
     return null;

@@ -116,7 +116,6 @@ constructor_named_arguments_test/01: Fail # Issue 5519
 getter_no_setter_test/01: Fail # Issue 5519
 not_enough_positional_arguments_test/01: Fail # Issue 12838
 not_enough_positional_arguments_test/02: Fail # Issue 12838
-not_enough_positional_arguments_test/04: Fail # Issue 12838
 not_enough_positional_arguments_test/05: Fail # Issue 12838
 dynamic_test: Fail # Issue 12398
 dynamic_prefix_core_test: Fail # Issue 12398
@@ -340,7 +339,6 @@ named_parameters_aggregated_test/01: Fail # Issue 12802
 named_parameters_aggregated_test/03: Fail # Issue 12813
 not_enough_positional_arguments_test/01: Fail # Issue 12839
 not_enough_positional_arguments_test/02: Fail # Issue 12839
-not_enough_positional_arguments_test/04: Fail # Issue 12839
 not_enough_positional_arguments_test/05: Fail # Issue 12839
 
 metadata_test: Fail # Issue 12762
