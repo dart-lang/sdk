@@ -35,6 +35,7 @@ io/directory_fuzz_test: Skip
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
+io/web_socket_pipe_test: Skip # Issue 12974
 
 # These tests pass on MacOS 10.8.2 but fails on the buildbot machines
 # that are running an earlier version of MacOS. The issue is that the
@@ -46,6 +47,9 @@ io/file_non_ascii_test: Pass, Fail
 io/directory_non_ascii_sync_test: Pass, Fail
 io/directory_non_ascii_test: Pass, Fail
 io/process_non_ascii_test: Pass, Fail
+
+[ $runtime == vm && $system == windows ]
+io/web_socket_pipe_test: Skip # Issue 12974
 
 [ $compiler == none && $runtime == drt ]
 typed_data_isolate_test: Skip # This test uses dart:io
