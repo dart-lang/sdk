@@ -154,30 +154,4 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
       js('Isolate.${namer.isolatePropertiesName} = isolateProperties'),
       js.return_('Isolate')]);
   }
-
-  String get nameOfDispatchPropertyInitializer =>
-      'initializeDispatchPropertyCSP';
-
-  jsAst.Expression generateDispatchPropertyInitialization() {
-    String ref(Element topLevelElement) {
-      return '${namer.CURRENT_ISOLATE}.${namer.getName(topLevelElement)}';
-    }
-
-    jsAst.Expression makeGetter(int seed) {
-      return js.fun('a',
-          js.return_(js('a.${generateDispatchPropertyName(seed)}')));
-    }
-
-    List<jsAst.Expression> getters = <jsAst.Expression>[
-        makeGetter(3),
-        makeGetter(2),
-        makeGetter(1),
-        makeGetter(0)];
-
-    return js(ref(backend.initializeDispatchPropertyMethod))([
-        js.fun(['a'], [ js('${ref(backend.getDispatchPropertyMethod)} = a')]),
-        new jsAst.ArrayInitializer.from(getters),
-        js('${ref(backend.jsPlainJavaScriptObjectClass)}.prototype')
-      ]);
-  }
 }

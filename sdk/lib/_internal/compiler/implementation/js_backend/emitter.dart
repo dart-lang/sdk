@@ -2923,18 +2923,15 @@ class CodeEmitterTask extends CompilerTask {
     return "${namer.isolateAccess(isolateMain)}($mainAccess)";
   }
 
-  String get nameOfDispatchPropertyInitializer => 'initializeDispatchProperty';
-
   jsAst.Expression generateDispatchPropertyInitialization() {
-    String ref(Element element) {
-      return '${namer.CURRENT_ISOLATE}.${namer.getName(element)}';
-    }
-
-    return js(ref(backend.initializeDispatchPropertyMethod))([
-        js.fun(['a'], [ js('${ref(backend.getDispatchPropertyMethod)} = a')]),
-        js.string(generateDispatchPropertyName(0)),
-        js('${ref(backend.jsPlainJavaScriptObjectClass)}.prototype')
-      ]);
+    return js('!#', js.fun([], [
+        js('var objectProto = Object.prototype'),
+        js.for_('var i = 0', null, 'i++', [
+            js('var property = "${generateDispatchPropertyName(0)}"'),
+            js.if_('i > 0', js('property = rootProperty + "_" + i')),
+            js.if_('!(property in  objectProto)',
+                   js.return_(
+                       js('init.dispatchPropertyName = property')))])])());
   }
 
   String generateDispatchPropertyName(int seed) {

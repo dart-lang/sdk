@@ -221,9 +221,6 @@ class JavaScriptBackend extends Backend {
   Element dispatchPropertyName;
   Element getNativeInterceptorMethod;
   Element defineNativeMethodsFinishMethod;
-  Element getDispatchPropertyMethod;
-  Element setDispatchPropertyMethod;
-  Element initializeDispatchPropertyMethod;
   bool needToInitializeDispatchProperty = false;
 
   bool seenAnyClass = false;
@@ -481,22 +478,13 @@ class JavaScriptBackend extends Backend {
         compiler.findInterceptor(const SourceString('mapTypeToInterceptor'));
     dispatchPropertyName =
         compiler.findInterceptor(const SourceString('dispatchPropertyName'));
-    getDispatchPropertyMethod =
-        compiler.findInterceptor(const SourceString('getDispatchProperty'));
-    setDispatchPropertyMethod =
-        compiler.findInterceptor(const SourceString('setDispatchProperty'));
     getNativeInterceptorMethod =
         compiler.findInterceptor(const SourceString('getNativeInterceptor'));
-    initializeDispatchPropertyMethod =
-        compiler.findInterceptor(
-            new SourceString(emitter.nameOfDispatchPropertyInitializer));
     defineNativeMethodsFinishMethod =
         compiler.findHelper(const SourceString('defineNativeMethodsFinish'));
 
     // These methods are overwritten with generated versions.
     inlineCache.markAsNonInlinable(getInterceptorMethod, insideLoop: true);
-    inlineCache.markAsNonInlinable(getDispatchPropertyMethod, insideLoop: true);
-    inlineCache.markAsNonInlinable(setDispatchPropertyMethod, insideLoop: true);
 
     List<ClassElement> classes = [
       jsInterceptorClass =
@@ -673,7 +661,6 @@ class JavaScriptBackend extends Backend {
         // native classes.
         enqueue(enqueuer, getNativeInterceptorMethod, elements);
         enqueue(enqueuer, defineNativeMethodsFinishMethod, elements);
-        enqueue(enqueuer, initializeDispatchPropertyMethod, elements);
         enqueueClass(enqueuer, jsInterceptorClass, compiler.globalDependencies);
       }
     }
@@ -764,7 +751,6 @@ class JavaScriptBackend extends Backend {
     TreeElements elements = compiler.globalDependencies;
     enqueue(enqueuer, getNativeInterceptorMethod, elements);
     enqueue(enqueuer, defineNativeMethodsFinishMethod, elements);
-    enqueue(enqueuer, initializeDispatchPropertyMethod, elements);
     enqueueClass(enqueuer, jsPlainJavaScriptObjectClass, elements);
     needToInitializeDispatchProperty = true;
   }

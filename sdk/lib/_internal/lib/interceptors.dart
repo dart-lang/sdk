@@ -66,21 +66,11 @@ getInterceptor(object) {
 var dispatchPropertyName = null;
 
 getDispatchProperty(object) {
-  // This is a magic method: the compiler replaces it with a runtime generated
-  // function
-  //
-  //     function(object){return object._zzyzx;}
-  //
-  // where `_zzyzx` is replaced with the actual [dispatchPropertyName].
-  //
-  // The CSP compliant version replaces this function with one of a few
-  // pre-compiled accessors, unless the pre-compiled versions are all in use,
-  // when it falls back on this code.
-  return JS('', '#[#]', object, dispatchPropertyName);
+  return JS('', '#[#]', object, JS('String', 'init.dispatchPropertyName'));
 }
 
 setDispatchProperty(object, value) {
-  defineProperty(object, dispatchPropertyName, value);
+  defineProperty(object, JS('String', 'init.dispatchPropertyName'), value);
 }
 
 makeDispatchRecord(interceptor, proto, extension, indexability) {
@@ -159,86 +149,6 @@ getNativeInterceptor(object) {
   return getNativeInterceptor(object);
 }
 
-/**
- * Initializes the [getDispatchProperty] function and [dispatchPropertyName]
- * variable.  Each isolate running in a web page needs a different
- * [dispatchPropertyName], so if a given dispatch property name is in use by
- * some other program loaded into the web page, another name is chosen.
- *
- * The non-CSP version is called like this:
- *
- *     initializeDispatchProperty(
- *         function(x){$.getDispatchProperty=x},
- *         '_f4$Dxv7S',
- *         $.Interceptor);
- *
- * The [getDispatchProperty] function is generated from the chosen name of the
- * property.
- *
- * The CSP version can't create functions via `new Function(...)`, so it is
- * given a fixed set of functions to choose from.  If all the property names in
- * the fixed set of functions are in use, it falls back on the definition of
- * [getDispatchProperty] above.
- *
- *     initializeDispatchPropertyCSP(
- *         function(x){$.getDispatchProperty=x},
- *         [function(a){return a._f4$Dxv7S},
- *          function(a){return a._Q2zpL9iY}],
- *         $.Interceptor);
- */
-void initializeDispatchProperty(
-    setGetDispatchPropertyFn, rootProperty, jsObjectInterceptor) {
-  // We must be extremely careful to avoid any language feature that needs an
-  // interceptor.  Avoid type annotations since they might generate type checks.
-  var objectProto = JS('=Object', 'Object.prototype');
-  for (var i = 0; ; i = JS('int', '# + 1', i)) {
-    var property = rootProperty;
-    if (JS('bool', '# > 0', i)) {
-      property = JS('String', '# + "_" + #', rootProperty, i);
-    }
-    if (JS('bool', 'typeof #[#] === "undefined"', objectProto, property)) {
-      dispatchPropertyName = property;
-      var getter = JS('', 'new Function("a", "return a." + #)', property);
-      JS('void', '#(#)', setGetDispatchPropertyFn, getter);
-      setDispatchProperty(
-          objectProto,
-          makeDispatchRecord(jsObjectInterceptor, objectProto, null, null));
-      return;
-    }
-  }
-}
-
-void initializeDispatchPropertyCSP(
-    setGetDispatchPropertyFn, getterFunctions, jsObjectInterceptor) {
-  // We must be extremely careful to avoid any language feature that needs an
-  // interceptor.  Avoid type annotations since they might generate type checks.
-  var objectProto = JS('=Object', 'Object.prototype');
-  var property = null;
-  var getter = null;
-  var rootProperty = null;
-  for (var i = 0; ; i = JS('int', '# + 1', i)) {
-    if (JS('bool', '# < #.length', i, getterFunctions)) {
-      getter = JS('', '#[#]', getterFunctions, i);
-      var fnText = JS('String', '"" + #', getter);
-      property =
-          JS('String', '#.match(#)[1]', fnText, JS('', r'/\.([^;}]*)/'));
-      rootProperty = property;
-    } else {
-      getter = null;
-      property = JS('String', '# + "_" + #', rootProperty, i);
-    }
-    if (JS('bool', 'typeof #[#] === "undefined"', objectProto, property)) {
-      dispatchPropertyName = property;
-      if (!identical(getter, null)) {
-        JS('void', '#(#)', setGetDispatchPropertyFn, getter);
-      }
-      setDispatchProperty(
-          objectProto,
-          makeDispatchRecord(jsObjectInterceptor, objectProto, null, null));
-      return;
-    }
-  }
-}
 
 /**
  * If [JSInvocationMirror._invokeOn] is being used, this variable
