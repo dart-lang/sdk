@@ -1931,7 +1931,9 @@ void assertHelper(condition) {
  * resolved cannot be found.
  */
 void throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {
-  throw new NoSuchMethodError(obj, name, arguments, const {},
+  Symbol memberName = new _symbol_dev.Symbol.unvalidated(name);
+  throw new NoSuchMethodError(obj, memberName, arguments,
+                              new Map<Symbol, dynamic>(),
                               expectedArgumentNames);
 }
 
