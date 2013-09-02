@@ -50,6 +50,7 @@ io/process_non_ascii_test: Pass, Fail
 
 [ $runtime == vm && $system == windows ]
 io/web_socket_pipe_test: Skip # Issue 12974
+io/http_server_early_client_close_test: Crash, Pass # Issue 12982
 
 [ $compiler == none && $runtime == drt ]
 typed_data_isolate_test: Skip # This test uses dart:io
