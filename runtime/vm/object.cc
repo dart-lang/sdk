@@ -146,7 +146,7 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 
 
 // The following functions are marked as invisible, meaning they will be hidden
-// in the stack trace.
+// in the stack trace and will be hidden from reflective access.
 // (Library, class name, method name)
 #define INVISIBLE_LIST(V)                                                      \
   V(CoreLibrary, Object, _noSuchMethod)                                        \
@@ -160,6 +160,7 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
   V(CoreLibrary, StackTrace, _setupFullStackTrace)                             \
+  V(CoreLibrary, _OneByteString, _setAt)                                       \
 
 
 static void MarkFunctionAsInvisible(const Library& lib,
