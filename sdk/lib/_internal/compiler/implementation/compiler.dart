@@ -215,7 +215,9 @@ abstract class Backend {
    * Call this method to enable [noSuchMethod] handling in the
    * backend.
    */
-  void enableNoSuchMethod(Enqueuer enqueuer) {}
+  void enableNoSuchMethod(Enqueuer enqueuer) {
+    enqueuer.registerInvocation(compiler.noSuchMethodSelector);
+  }
 
   void registerRequiredType(DartType type, Element enclosingElement) {}
   void registerClassUsingVariableExpression(ClassElement cls) {}
