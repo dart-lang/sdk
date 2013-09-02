@@ -1,0 +1,73 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+//
+// VMOptions=
+// VMOptions=--short_socket_read
+// VMOptions=--short_socket_write
+// VMOptions=--short_socket_read --short_socket_write
+
+import "package:expect/expect.dart";
+import "dart:async";
+import "dart:io";
+
+class IdentityTransformer extends StreamEventTransformer {
+  void handleData(data, sink) => sink.add(data);
+}
+
+class ReverseStringTransformer extends StreamEventTransformer {
+  void handleData(String data, sink) {
+    var sb = new StringBuffer();
+    for (int i = data.length - 1; i >= 0; i--) sb.write(data[i]);
+    sink.add(sb.toString());
+  }
+}
+
+testPipe({int messages, bool transform}) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
+    server.listen((request) {
+      WebSocketTransformer.upgrade(request).then((websocket) {
+          Future done;
+          if (transform) {
+            done = websocket
+                .transform(new ReverseStringTransformer())
+                .pipe(websocket);
+          } else {
+            done = websocket.pipe(websocket);
+          }
+          done.then((_) => server.close());
+      });
+    });
+    WebSocket.connect("ws://localhost:${server.port}/").then((client) {
+      var count = 0;
+      next() {
+        if (count < messages) {
+          client.add("Hello");
+        } else {
+          client.close();
+        }
+      }
+
+      next();
+      client.listen((data) {
+          count++;
+          if (transform) {
+            Expect.equals("olleH", data);
+          } else {
+            Expect.equals("Hello", data);
+          }
+          next();
+        },
+        onDone: () => print("Client received close"));
+    });
+  });
+}
+
+void main() {
+  testPipe(messages: 0, transform: false);
+  testPipe(messages: 0, transform: true);
+  testPipe(messages: 1, transform: false);
+  testPipe(messages: 1, transform: true);
+  testPipe(messages: 10, transform: false);
+  testPipe(messages: 10, transform: true);
+}
