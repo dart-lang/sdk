@@ -21,6 +21,9 @@ test/install/hosted/unlock_if_incompatible_test: Pass, Fail # Issue 12837
 test/install/hosted/unlock_if_new_is_unsatisfied_test: Pass, Fail # Issue 12837
 test/install/hosted/stay_locked_test: Pass, Fail # Issue 12837
 
+[ $runtime == vm && $system == windows ]
+test/update/git/update_locked_test: Pass, Fail # Issue 12983
+
 # Pub only runs on the VM, so just rule out all compilers.
 [ $compiler == dart2js || $compiler == dart2dart ]
 *: Skip
