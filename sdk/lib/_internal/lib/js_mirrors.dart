@@ -244,7 +244,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     if (mirror == null) mirror = variables[fieldName];
     if (mirror == null) {
       // TODO(ahe): What receiver to use?
-      throw new NoSuchMethodError(this, '${n(fieldName)}=', [arg], null);
+      throw new NoSuchMethodError(this, setterSymbol(fieldName), [arg], null);
     }
     mirror._setField(this, arg);
     return reflect(arg);
@@ -254,7 +254,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     JsMirror mirror = members[fieldName];
     if (mirror == null) {
       // TODO(ahe): What receiver to use?
-      throw new NoSuchMethodError(this, '${n(fieldName)}', [], null);
+      throw new NoSuchMethodError(this, fieldName, [], null);
     }
     return reflect(mirror._getField(this));
   }
@@ -267,11 +267,9 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     }
     JsDeclarationMirror mirror = members[memberName];
     if (mirror == null) {
-      // TODO(ahe): Pass namedArguments when NoSuchMethodError has been
-      // fixed to use Symbol.
       // TODO(ahe): What receiver to use?
       throw new NoSuchMethodError(
-          this, '${n(memberName)}', positionalArguments, null);
+          this, memberName, positionalArguments, namedArguments);
     }
     if (mirror is JsMethodMirror) {
       JsMethodMirror method = mirror;
@@ -397,6 +395,8 @@ Symbol s(String name) {
   return new _symbol_dev.Symbol.unvalidated(name);
 }
 
+Symbol setterSymbol(Symbol symbol) => s("${n(symbol)}=");
+
 final JsMirrorSystem currentJsMirrorSystem = new JsMirrorSystem();
 
 InstanceMirror reflect(Object reflectee) {
@@ -519,20 +519,19 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
       Symbol memberName,
       List positionalArguments,
       [Map<Symbol,dynamic> namedArguments]) {
-    // TODO(ahe): Pass namedArguments when NoSuchMethodError has
-    // been fixed to use Symbol.
     // TODO(ahe): What receiver to use?
-    throw new NoSuchMethodError(this, n(memberName), positionalArguments, null);
+    throw new NoSuchMethodError(this, memberName,
+                                positionalArguments, namedArguments);
   }
 
   InstanceMirror getField(Symbol fieldName) {
     // TODO(ahe): What receiver to use?
-    throw new NoSuchMethodError(this, n(fieldName), null, null);
+    throw new NoSuchMethodError(this, fieldName, null, null);
   }
 
   InstanceMirror setField(Symbol fieldName, Object arg) {
     // TODO(ahe): What receiver to use?
-    throw new NoSuchMethodError(this, '${n(fieldName)}=', [arg], null);
+    throw new NoSuchMethodError(this, setterSymbol(fieldName), [arg], null);
   }
 
   List<ClassMirror> get superinterfaces => [mixin];
@@ -902,7 +901,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       return reflect(arg);
     }
     // TODO(ahe): What receiver to use?
-    throw new NoSuchMethodError(this, '${n(fieldName)}=', [arg], null);
+    throw new NoSuchMethodError(this, setterSymbol(fieldName), [arg], null);
   }
 
   InstanceMirror getField(Symbol fieldName) {
@@ -920,7 +919,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       }
     }
     // TODO(ahe): What receiver to use?
-    throw new NoSuchMethodError(this, n(fieldName), null, null);
+    throw new NoSuchMethodError(this, fieldName, null, null);
   }
 
   InstanceMirror newInstance(Symbol constructorName,
@@ -935,11 +934,9 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       mirror = constructors.values.firstWhere(
           (m) => m.constructorName == constructorName,
           orElse: () {
-            // TODO(ahe): Pass namedArguments when NoSuchMethodError has been
-            // fixed to use Symbol.
             // TODO(ahe): What receiver to use?
             throw new NoSuchMethodError(
-                owner, n(constructorName), positionalArguments, null);
+                owner, constructorName, positionalArguments, namedArguments);
           });
       JsCache.update(_jsConstructorCache, n(constructorName), mirror);
     }
@@ -1017,11 +1014,9 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     }
     JsMethodMirror mirror = methods[memberName];
     if (mirror == null || !mirror.isStatic) {
-      // TODO(ahe): Pass namedArguments when NoSuchMethodError has
-      // been fixed to use Symbol.
       // TODO(ahe): What receiver to use?
       throw new NoSuchMethodError(
-          this, n(memberName), positionalArguments, null);
+          this, memberName, positionalArguments, namedArguments);
     }
     if (!mirror.canInvokeReflectively()) {
       throwInvalidReflectionError(memberName);
@@ -1152,7 +1147,7 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
 
   void _setField(JsMirror receiver, Object arg) {
     if (isFinal) {
-      throw new NoSuchMethodError(this, '${n(simpleName)}=', [arg], null);
+      throw new NoSuchMethodError(this, setterSymbol(simpleName), [arg], null);
     }
     receiver._storeField(_jsName, arg);
   }
@@ -1331,11 +1326,9 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
       throw new RuntimeError('Cannot invoke instance method without receiver.');
     }
     if (_parameterCount != positionalArguments.length || _jsFunction == null) {
-      // TODO(ahe): Pass namedArguments when NoSuchMethodError has
-      // been fixed to use Symbol.
       // TODO(ahe): What receiver to use?
       throw new NoSuchMethodError(
-          owner, n(simpleName), positionalArguments, null);
+          owner, simpleName, positionalArguments, namedArguments);
     }
     return JS('', r'#.apply(#, #)', _jsFunction, JS_CURRENT_ISOLATE(),
               new List.from(positionalArguments));
@@ -1354,7 +1347,7 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
     if (isSetter) {
       return _invoke([arg], null);
     } else {
-      throw new NoSuchMethodError(this, '${n(simpleName)}=', [], null);
+      throw new NoSuchMethodError(this, setterSymbol(simpleName), [], null);
     }
   }
 

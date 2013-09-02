@@ -157,7 +157,6 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, TypeError, _throwNew)                                         \
   V(CoreLibrary, FallThroughError, _throwNew)                                  \
   V(CoreLibrary, AbstractClassInstantiationError, _throwNew)                   \
-  V(CoreLibrary, NoSuchMethodError, _throwNew)                                 \
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
   V(CoreLibrary, StackTrace, _setupFullStackTrace)                             \

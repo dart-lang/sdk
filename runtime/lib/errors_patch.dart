@@ -148,13 +148,13 @@ patch class NoSuchMethodError {
     } else {
       positionalArguments = arguments.sublist(0, numPositionalArguments);
     }
-    Map<String, dynamic> namedArguments = new Map<String, dynamic>();
+    Map<Symbol, dynamic> namedArguments = new Map<Symbol, dynamic>();
     for (int i = 0; i < numNamedArguments; i++) {
       var arg_value = arguments[numPositionalArguments + i];
-      namedArguments[argumentNames[i]] = arg_value;
+      namedArguments[new Symbol(argumentNames[i])] = arg_value;
     }
     throw new NoSuchMethodError._withType(receiver,
-                                          memberName,
+                                          new Symbol(memberName),
                                           invocation_type,
                                           positionalArguments,
                                           namedArguments,
@@ -167,20 +167,31 @@ patch class NoSuchMethodError {
   final int _invocation_type;
 
   NoSuchMethodError(Object this._receiver,
-                    String this._memberName,
+                    Symbol this._memberName,
                     List this._arguments,
-                    Map<String,dynamic> this._namedArguments,
+                    Map<Symbol, dynamic> this._namedArguments,
                     [List existingArgumentNames = null])
       : this._existingArgumentNames = existingArgumentNames,
         this._invocation_type = -1;
 
+  // This constructor seems to be called with either strings or
+  // values read from another NoSuchMethodError.
   NoSuchMethodError._withType(Object this._receiver,
-                              String this._memberName,
+                              /*String|Symbol*/ memberName,
                               this._invocation_type,
                               List this._arguments,
-                              Map<String,dynamic> this._namedArguments,
+                              Map<dynamic, dynamic> namedArguments,
                               [List existingArgumentNames = null])
-      : this._existingArgumentNames = existingArgumentNames;
+      : this._memberName =
+            (memberName is String) ? new Symbol(memberName) : memberName,
+        this._namedArguments =
+            (namedArguments == null)
+                ? null
+                : new Map<Symbol, dynamic>.fromIterable(
+                    namedArguments.keys,
+                    key: (k) => (k is String) ? new Symbol(k) : k,
+                    value: (k) => namedArguments[k]),
+        this._existingArgumentNames = existingArgumentNames;
 
 
   String _developerMessage(args_mismatch) {
@@ -194,33 +205,35 @@ patch class NoSuchMethodError {
         (const ["method", "getter", "setter", "getter or setter"])[type];
     var args_message = args_mismatch ? " with matching arguments" : "";
     var msg;
+    var memberName =
+        (_memberName == null) ? "" :_collection_dev.Symbol.getName(_memberName);
     switch (level) {
       case _InvocationMirror._DYNAMIC: {
         if (_receiver == null) {
-          msg = "The null object does not have a $type_str '$_memberName'"
+          msg = "The null object does not have a $type_str '$memberName'"
               "$args_message.";
         } else {
           if (_receiver is Function) {
             msg = "Closure call with mismatched arguments: "
-                "function '$_memberName'";
+                "function '$memberName'";
           } else {
             msg = "Class '${_receiver.runtimeType}' has no instance $type_str "
-                "'$_memberName'$args_message.";
+                "'$memberName'$args_message.";
           }
         }
         break;
       }
       case _InvocationMirror._STATIC: {
-        msg = "No static $type_str '$_memberName' declared in class "
+        msg = "No static $type_str '$memberName' declared in class "
             "'$_receiver'.";
         break;
       }
       case _InvocationMirror._CONSTRUCTOR: {
-        msg = "No constructor '$_memberName' declared in class '$_receiver'.";
+        msg = "No constructor '$memberName' declared in class '$_receiver'.";
         break;
       }
       case _InvocationMirror._TOP_LEVEL: {
-        msg = "No top-level $type_str '$_memberName'$args_message declared.";
+        msg = "No top-level $type_str '$memberName'$args_message declared.";
         break;
       }
     }
@@ -244,11 +257,11 @@ patch class NoSuchMethodError {
       }
     }
     if (_namedArguments != null) {
-      _namedArguments.forEach((String key, var value) {
+      _namedArguments.forEach((Symbol key, var value) {
         if (i > 0) {
           actual_buf.write(", ");
         }
-        actual_buf.write(key);
+        actual_buf.write(_collection_dev.Symbol.getName(key));
         actual_buf.write(": ");
         actual_buf.write(Error.safeToString(value));
         i++;
@@ -264,9 +277,11 @@ patch class NoSuchMethodError {
     } else {
       receiver_str = Error.safeToString(_receiver);
     }
+    var memberName =
+        (_memberName == null) ? "" :_collection_dev.Symbol.getName(_memberName);
     if (!args_mismatch) {
       msg_buf.write(
-          "NoSuchMethodError : method not found: '$_memberName'\n"
+          "NoSuchMethodError : method not found: '$memberName'\n"
           "Receiver: $receiver_str\n"
           "Arguments: [$actual_buf]");
     } else {
@@ -281,7 +296,7 @@ patch class NoSuchMethodError {
       String formalParameters = formal_buf.toString();
       msg_buf.write(
           "NoSuchMethodError: incorrect number of arguments passed to "
-          "method named '$_memberName'\n"
+          "method named '$memberName'\n"
           "Receiver: $receiver_str\n"
           "Tried calling: $_memberName($actualParameters)\n"
           "Found: $_memberName($formalParameters)");

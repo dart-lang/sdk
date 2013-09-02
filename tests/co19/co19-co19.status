@@ -412,3 +412,7 @@ LibTest/core/TypeError/failedAssertion_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/line_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/srcType_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/url_A01_t01: FAIL, OK # co19 issue 510
+LibTest/isolate/IsolateStream/last_A01_t01: FAIL, OK # co19 issue 498
+LibTest/isolate/IsolateStream/length_A01_t01: FAIL, OK # co19 issue 498
+LibTest/isolate/IsolateStream/single_A01_t01: FAIL, OK # co19 issue 498
+LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: Fail # co19 issue 550

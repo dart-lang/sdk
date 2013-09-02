@@ -16,10 +16,10 @@ main() {
 }
 
 void defaultFunctionValuesTest() {
-  var map = new Map.fromIterable([1, 2, 3]);
+  var map = new HashMap.fromIterable([1, 2, 3]);
 
   Expect.isTrue(map is Map);
-  Expect.isTrue(map is LinkedHashMap);
+  Expect.isTrue(map is HashMap);
 
   Expect.equals(3, map.length);
   Expect.equals(3, map.keys.length);
@@ -31,10 +31,10 @@ void defaultFunctionValuesTest() {
 }
 
 void defaultKeyFunctionTest() {
-  var map = new Map.fromIterable([1, 2, 3], value: (x) => x + 1);
+  var map = new HashMap.fromIterable([1, 2, 3], value: (x) => x + 1);
 
   Expect.isTrue(map is Map);
-  Expect.isTrue(map is LinkedHashMap);
+  Expect.isTrue(map is HashMap);
 
   Expect.equals(3, map.length);
   Expect.equals(3, map.keys.length);
@@ -46,10 +46,10 @@ void defaultKeyFunctionTest() {
 }
 
 void defaultValueFunctionTest() {
-  var map = new Map.fromIterable([1, 2, 3], key: (x) => x + 1);
+  var map = new HashMap.fromIterable([1, 2, 3], key: (x) => x + 1);
 
   Expect.isTrue(map is Map);
-  Expect.isTrue(map is LinkedHashMap);
+  Expect.isTrue(map is HashMap);
 
   Expect.equals(3, map.length);
   Expect.equals(3, map.keys.length);
@@ -61,11 +61,11 @@ void defaultValueFunctionTest() {
 }
 
 void noDefaultValuesTest() {
-  var map = new Map.fromIterable([1, 2, 3],
+  var map = new HashMap.fromIterable([1, 2, 3],
       key: (x) => x + 1, value: (x) => x - 1);
 
   Expect.isTrue(map is Map);
-  Expect.isTrue(map is LinkedHashMap);
+  Expect.isTrue(map is HashMap);
 
   Expect.equals(3, map.length);
   Expect.equals(3, map.keys.length);
@@ -77,9 +77,9 @@ void noDefaultValuesTest() {
 }
 
 void emptyIterableTest() {
-  var map = new Map.fromIterable([]);
+  var map = new HashMap.fromIterable([]);
   Expect.isTrue(map is Map);
-  Expect.isTrue(map is LinkedHashMap);
+  Expect.isTrue(map is HashMap);
 
   Expect.equals(0, map.length);
   Expect.equals(0, map.keys.length);
@@ -87,10 +87,10 @@ void emptyIterableTest() {
 }
 
 void equalElementsTest() {
-  var map = new Map.fromIterable([1, 2, 2], key: (x) => x + 1);
+  var map = new HashMap.fromIterable([1, 2, 2], key: (x) => x + 1);
 
   Expect.isTrue(map is Map);
-  Expect.isTrue(map is LinkedHashMap);
+  Expect.isTrue(map is HashMap);
 
   Expect.equals(2, map.length);
   Expect.equals(2, map.keys.length);
@@ -101,11 +101,12 @@ void equalElementsTest() {
 }
 
 void genericTypeTest() {
-  var map = new Map<int, String>.fromIterable([1, 2, 3], value: (x) => '$x');
-  Expect.isTrue(map is Map<int, String>);
+  var map = new HashMap<String, String>.fromIterable(
+      <int>[1, 2, 3], key: (x) => '$x', value: (x) => '$x');
+  Expect.isTrue(map is Map<String, String>);
 
   // Make sure it is not just Map<dynamic, dynamic>.
-  Expect.isFalse(map is Map<String, dynamic>);
+  Expect.isFalse(map is Map<int, dynamic>);
   Expect.isFalse(map is Map<dynamic, int>);
 }
 

@@ -338,9 +338,9 @@ abstract class Interceptor {
   dynamic noSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError(
         this,
-        _symbolToString(invocation.memberName),
+        invocation.memberName,
         invocation.positionalArguments,
-        _symbolMapToStringMap(invocation.namedArguments));
+        invocation.namedArguments);
   }
 
   Type get runtimeType => getRuntimeType(this);

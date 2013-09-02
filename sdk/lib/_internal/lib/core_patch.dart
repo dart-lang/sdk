@@ -35,9 +35,9 @@ patch class Object {
   patch dynamic noSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError(
         this,
-        _symbolToString(invocation.memberName),
+        invocation.memberName,
         invocation.positionalArguments,
-        _symbolMapToStringMap(invocation.namedArguments));
+        invocation.namedArguments);
   }
 
   patch Type get runtimeType => getRuntimeType(this);
