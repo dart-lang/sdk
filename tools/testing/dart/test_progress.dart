@@ -4,6 +4,7 @@
 
 library test_progress;
 
+import "dart:async";
 import "dart:io";
 import "dart:io" as io;
 import "http_server.dart" as http_server;
@@ -327,30 +328,47 @@ class SkippedCompilationsPrinter extends EventListener {
 class LeftOverTempDirPrinter extends EventListener {
   final MIN_NUMBER_OF_TEMP_DIRS = 50;
 
-  Path _tempDir() {
+  static Directory _getTemporaryDirectory() {
     // Dir will be located in the system temporary directory.
     var dir = new Directory('').createTempSync();
     var path = new Path(dir.path).directoryPath;
     dir.deleteSync();
-    return path;
+    return new Directory(path.toNativePath());
+  }
+
+  static RegExp _getTemporaryDirectoryRegexp() {
+    // These are the patterns of temporary directory names created by
+    // 'Directory.createTempSync()' on linux/macos and windows.
+    if (['macos', 'linux'].contains(Platform.operatingSystem)) {
+      return new RegExp(r'^temp_dir1_......$');
+    } else {
+      return new RegExp(r'tempdir-........-....-....-....-............$');
+    }
+  }
+
+  static Stream<Directory> getLeftOverTemporaryDirectories() {
+    var regExp = _getTemporaryDirectoryRegexp();
+    return _getTemporaryDirectory().list().where(
+        (FileSystemEntity fse) {
+          if (fse is Directory) {
+            if (regExp.hasMatch(new Path(fse.path).filename)) {
+              return true;
+            }
+          }
+          return false;
+        });
   }
 
   void allDone() {
-    var count = 0;
-    var systemTempDir = _tempDir();
-    var lister = new Directory(systemTempDir.toNativePath()).list().listen(
-        (FileSystemEntity fse) {
-          if (fse is Directory) count++;
-        },
-        onError: (error) {
-          DebugLogger.warning("Could not list temp directories, got: $error");
-        },
-        onDone: () {
-          if (count > MIN_NUMBER_OF_TEMP_DIRS) {
-            DebugLogger.warning("There are ${count} directories "
-                                "in the system tempdir ('$systemTempDir')! "
-                                "Maybe left over directories?\n");
+    getLeftOverTemporaryDirectories().length.then((int count) {
+      if (count > MIN_NUMBER_OF_TEMP_DIRS) {
+        DebugLogger.warning("There are ${count} directories "
+                            "in the system tempdir "
+                            "('${_getTemporaryDirectory().path}')! "
+                            "Maybe left over directories?\n");
       }
+    }).catchError((error) {
+      DebugLogger.warning("Could not list temp directories, got: $error");
     });
   }
 }

@@ -263,34 +263,14 @@ Future deleteTemporaryDartDirectories() {
   var completer = new Completer();
   var environment = Platform.environment;
   if (environment['DART_TESTING_DELETE_TEMPORARY_DIRECTORIES'] == '1') {
-    Directory getTempDir() {
-      // dir will be located in the system temporary directory.
-      var dir = new Directory('').createTempSync();
-      var path = new Path(dir.path).directoryPath;
-      dir.deleteSync();
-      return new Directory(path.toNativePath());
-    }
-
-    // These are the patterns of temporary directory names created by
-    // 'Directory.createTempSync()' on linux/macos and windows.
-    var regExp;
-    if (['macos', 'linux'].contains(Platform.operatingSystem)) {
-      regExp = new RegExp(r'^temp_dir1_......$');
-    } else {
-      regExp = new RegExp(r'tempdir-........-....-....-....-............$');
-    }
-
-    getTempDir().list().listen((directoryEntry) {
-      if (directoryEntry is Directory) {
-        if (regExp.hasMatch(new Path(directoryEntry.path).filename)) {
+    LeftOverTempDirPrinter.getLeftOverTemporaryDirectories().listen(
+        (Directory tempDirectory) {
           try {
-            directoryEntry.deleteSync(recursive: true);
+            tempDirectory.deleteSync(recursive: true);
           } catch (error) {
             DebugLogger.error(error);
           }
-        }
-      }
-    }, onDone: completer.complete);
+        }, onDone: completer.complete);
   } else {
     completer.complete();
   }
