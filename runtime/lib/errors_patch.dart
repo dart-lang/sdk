@@ -298,8 +298,8 @@ patch class NoSuchMethodError {
           "NoSuchMethodError: incorrect number of arguments passed to "
           "method named '$memberName'\n"
           "Receiver: $receiver_str\n"
-          "Tried calling: $_memberName($actualParameters)\n"
-          "Found: $_memberName($formalParameters)");
+          "Tried calling: $memberName($actualParameters)\n"
+          "Found: $memberName($formalParameters)");
     }
     return msg_buf.toString();
   }
