@@ -27,18 +27,13 @@ testPipe({int messages, bool transform}) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       WebSocketTransformer.upgrade(request).then((websocket) {
-          Future done;
-          if (transform) {
-            done = websocket
-                .transform(new ReverseStringTransformer())
-                .pipe(websocket);
-          } else {
-            done = websocket.pipe(websocket);
-          }
-          done.then((_) => server.close());
+        (transform ? websocket.transform(new ReverseStringTransformer())
+                   : websocket)
+            .pipe(websocket)
+            .then((_) => server.close());
       });
     });
-    WebSocket.connect("ws://localhost:${server.port}/").then((client) {
+    WebSocket.connect("ws://127.0.0.1:${server.port}/").then((client) {
       var count = 0;
       next() {
         if (count < messages) {
@@ -49,16 +44,17 @@ testPipe({int messages, bool transform}) {
       }
 
       next();
-      client.listen((data) {
-          count++;
-          if (transform) {
-            Expect.equals("olleH", data);
-          } else {
-            Expect.equals("Hello", data);
-          }
-          next();
-        },
-        onDone: () => print("Client received close"));
+      client.listen(
+          (data) {
+            count++;
+            if (transform) {
+              Expect.equals("olleH", data);
+            } else {
+              Expect.equals("Hello", data);
+            }
+            next();
+          },
+          onDone: () => print("Client received close"));
     });
   });
 }
