@@ -535,7 +535,7 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
   ErrorResult union(ErrorResult leftResult, EvaluationResultImpl rightResult) {
     if (rightResult is ErrorResult) {
       if (leftResult != null) {
-        return new ErrorResult.con2(leftResult, (rightResult as ErrorResult));
+        return new ErrorResult.con2(leftResult, rightResult as ErrorResult);
       } else {
         return rightResult as ErrorResult;
       }
@@ -1257,19 +1257,19 @@ class ValidResult extends EvaluationResultImpl {
       return valueOf2(_value == null);
     } else if (leftValue is bool) {
       if (_value is bool) {
-        return valueOf2(identical(((leftValue as bool)), ((_value as bool))));
+        return valueOf2(identical(leftValue as bool, _value as bool));
       }
       return RESULT_FALSE;
     } else if (leftValue is int) {
       if (_value is int) {
         return valueOf2(((leftValue as int)) == _value);
       } else if (_value is double) {
-        return valueOf2(toDouble((leftValue as int)) == _value);
+        return valueOf2(toDouble(leftValue as int) == _value);
       }
       return RESULT_FALSE;
     } else if (leftValue is double) {
       if (_value is int) {
-        return valueOf2(((leftValue as double)) == toDouble((_value as int)));
+        return valueOf2(((leftValue as double)) == toDouble(_value as int));
       } else if (_value is double) {
         return valueOf2(((leftValue as double)) == _value);
       }
@@ -1298,7 +1298,7 @@ class ValidResult extends EvaluationResultImpl {
       return error(node.rightOperand);
     } else if (leftValue is int) {
       if (_value is int) {
-        return valueOf2(((leftValue as int)).compareTo((_value as int)) >= 0);
+        return valueOf2(((leftValue as int)).compareTo(_value as int) >= 0);
       } else if (_value is double) {
         return valueOf2(((leftValue as int)).toDouble() >= ((_value as double)));
       }
@@ -1325,7 +1325,7 @@ class ValidResult extends EvaluationResultImpl {
       return error(node.rightOperand);
     } else if (leftValue is int) {
       if (_value is int) {
-        return valueOf2(((leftValue as int)).compareTo((_value as int)) > 0);
+        return valueOf2(((leftValue as int)).compareTo(_value as int) > 0);
       } else if (_value is double) {
         return valueOf2(((leftValue as int)).toDouble() > ((_value as double)));
       }
@@ -1388,7 +1388,7 @@ class ValidResult extends EvaluationResultImpl {
       return error(node.rightOperand);
     } else if (leftValue is int) {
       if (_value is int) {
-        return valueOf2(((leftValue as int)).compareTo((_value as int)) <= 0);
+        return valueOf2(((leftValue as int)).compareTo(_value as int) <= 0);
       } else if (_value is double) {
         return valueOf2(((leftValue as int)).toDouble() <= ((_value as double)));
       }
@@ -1415,7 +1415,7 @@ class ValidResult extends EvaluationResultImpl {
       return error(node.rightOperand);
     } else if (leftValue is int) {
       if (_value is int) {
-        return valueOf2(((leftValue as int)).compareTo((_value as int)) < 0);
+        return valueOf2(((leftValue as int)).compareTo(_value as int) < 0);
       } else if (_value is double) {
         return valueOf2(((leftValue as int)).toDouble() < ((_value as double)));
       }
@@ -1506,12 +1506,12 @@ class ValidResult extends EvaluationResultImpl {
       if (_value is int) {
         return valueOf2(((leftValue as int)) != _value);
       } else if (_value is double) {
-        return valueOf2(toDouble((leftValue as int)) != _value);
+        return valueOf2(toDouble(leftValue as int) != _value);
       }
       return RESULT_TRUE;
     } else if (leftValue is double) {
       if (_value is int) {
-        return valueOf2(((leftValue as double)) != toDouble((_value as int)));
+        return valueOf2(((leftValue as double)) != toDouble(_value as int));
       } else if (_value is double) {
         return valueOf2(((leftValue as double)) != _value);
       }
@@ -1544,7 +1544,7 @@ class ValidResult extends EvaluationResultImpl {
         if (((_value as int)) == 0) {
           return valueOf3(((leftValue as int)).toDouble() % ((_value as int)).toDouble());
         }
-        return valueOf(((leftValue as int)).remainder((_value as int)));
+        return valueOf(((leftValue as int)).remainder(_value as int));
       } else if (_value is double) {
         return valueOf3(((leftValue as int)).toDouble() % ((_value as double)));
       }

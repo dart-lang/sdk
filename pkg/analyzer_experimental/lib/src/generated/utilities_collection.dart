@@ -16,7 +16,7 @@ class BooleanArray {
    * @return the value of the element at the given index
    * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
    */
-  static bool get(int array, Enum<Object> index) => get2(array, index.ordinal);
+  static bool get(int array, Enum index) => get2(array, index.ordinal);
 
   /**
    * Return the value of the element at the given index.
@@ -40,7 +40,7 @@ class BooleanArray {
    * @return the updated value of the array
    * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
    */
-  static int set(int array, Enum<Object> index, bool value) => set2(array, index.ordinal, value);
+  static int set(int array, Enum index, bool value) => set2(array, index.ordinal, value);
 
   /**
    * Set the value of the element at the given index to the given value.

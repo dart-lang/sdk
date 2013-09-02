@@ -547,7 +547,7 @@ abstract class Element {
    *
    * @param visitor the visitor that will be used to visit the children of this element
    */
-  void visitChildren(ElementVisitor<Object> visitor);
+  void visitChildren(ElementVisitor visitor);
 }
 /**
  * The interface `ElementAnnotation` defines the behavior of objects representing a single
@@ -570,7 +570,7 @@ abstract class ElementAnnotation {
  *
  * @coverage dart.engine.element
  */
-class ElementKind implements Enum<ElementKind> {
+class ElementKind extends Enum<ElementKind> {
   static final ElementKind CLASS = new ElementKind('CLASS', 0, "class");
   static final ElementKind COMPILATION_UNIT = new ElementKind('COMPILATION_UNIT', 1, "compilation unit");
   static final ElementKind CONSTRUCTOR = new ElementKind('CONSTRUCTOR', 2, "constructor");
@@ -623,12 +623,6 @@ class ElementKind implements Enum<ElementKind> {
       TYPE_VARIABLE,
       UNIVERSE];
 
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
-
   /**
    * Return the kind of the given element, or [ERROR] if the element is `null`. This is
    * a utility method that can reduce the need for null checks in other places.
@@ -653,7 +647,7 @@ class ElementKind implements Enum<ElementKind> {
    *
    * @param displayName the name displayed in the UI for this kind of element
    */
-  ElementKind(this.name, this.ordinal, String displayName) {
+  ElementKind(String name, int ordinal, String displayName) : super(name, ordinal) {
     this._displayName = displayName;
   }
 
@@ -663,9 +657,6 @@ class ElementKind implements Enum<ElementKind> {
    * @return the name of this [ElementKind] to display in UI.
    */
   String get displayName => _displayName;
-  int compareTo(ElementKind other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
 }
 /**
  * The interface `ElementLocation` defines the behavior of objects that represent the location
@@ -1565,11 +1556,11 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R visitLibraryElement(LibraryElement element) => visitElement(element);
   R visitLocalElement(LocalElement element) {
     if (element is LocalVariableElement) {
-      return visitVariableElement((element as LocalVariableElement));
+      return visitVariableElement(element as LocalVariableElement);
     } else if (element is ParameterElement) {
-      return visitVariableElement((element as ParameterElement));
+      return visitVariableElement(element as ParameterElement);
     } else if (element is FunctionElement) {
-      return visitExecutableElement((element as FunctionElement));
+      return visitExecutableElement(element as FunctionElement);
     }
     return null;
   }
@@ -1717,6 +1708,48 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitPropertyAccessorElement(PropertyAccessorElement element) => null;
   R visitTopLevelVariableElement(TopLevelVariableElement element) => null;
   R visitTypeVariableElement(TypeVariableElement element) => null;
+}
+/**
+ * For AST nodes that could be in both the getter and setter contexts ([IndexExpression]s and
+ * [SimpleIdentifier]s), the additional resolved elements are stored in the AST node, in an
+ * [AuxiliaryElements]. Since resolved elements are either statically resolved or resolved
+ * using propagated type information, this class is a wrapper for a pair of
+ * [ExecutableElement]s, not just a single [ExecutableElement].
+ */
+class AuxiliaryElements {
+
+  /**
+   * The element based on propagated type information, or `null` if the AST structure has not
+   * been resolved or if this identifier could not be resolved.
+   */
+  ExecutableElement _propagatedElement;
+
+  /**
+   * The element associated with this identifier based on static type information, or `null`
+   * if the AST structure has not been resolved or if this identifier could not be resolved.
+   */
+  ExecutableElement _staticElement;
+
+  /**
+   * Create the [AuxiliaryElements] with a static and propagated [ExecutableElement].
+   *
+   * @param staticElement the static element
+   * @param propagatedElement the propagated element
+   */
+  AuxiliaryElements(ExecutableElement staticElement, ExecutableElement propagatedElement) {
+    this._staticElement = staticElement;
+    this._propagatedElement = propagatedElement;
+  }
+
+  /**
+   * Get the propagated element.
+   */
+  ExecutableElement get propagatedElement => _propagatedElement;
+
+  /**
+   * Get the static element.
+   */
+  ExecutableElement get staticElement => _staticElement;
 }
 /**
  * Instances of the class `ClassElementImpl` implement a `ClassElement`.
@@ -2129,7 +2162,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   void set validMixin(bool isValidMixin) {
     setModifier(Modifier.MIXIN, isValidMixin);
   }
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_accessors, visitor);
     safelyVisitChildren(_constructors, visitor);
@@ -2369,7 +2402,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   void set uri(String uri2) {
     this._uri = uri2;
   }
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_accessors, visitor);
     safelyVisitChildren(_functions, visitor);
@@ -2804,7 +2837,7 @@ abstract class ElementImpl implements Element {
     appendTo(builder);
     return builder.toString();
   }
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
   }
 
   /**
@@ -2844,7 +2877,7 @@ abstract class ElementImpl implements Element {
    * @param child the child to be visited
    * @param visitor the visitor to be used to visit the child
    */
-  void safelyVisitChild(Element child, ElementVisitor<Object> visitor) {
+  void safelyVisitChild(Element child, ElementVisitor visitor) {
     if (child != null) {
       child.accept(visitor);
     }
@@ -2856,7 +2889,7 @@ abstract class ElementImpl implements Element {
    * @param children the children to be visited
    * @param visitor the visitor being used to visit the children
    */
-  void safelyVisitChildren(List<Element> children, ElementVisitor<Object> visitor) {
+  void safelyVisitChildren(List<Element> children, ElementVisitor visitor) {
     if (children != null) {
       for (Element child in children) {
         child.accept(visitor);
@@ -3096,7 +3129,7 @@ class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl implements Emb
     scriptLibrary2.enclosingElement = this;
     this._scriptLibrary = scriptLibrary2;
   }
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
     safelyVisitChild(_scriptLibrary, visitor);
   }
 }
@@ -3254,7 +3287,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
   void set type(FunctionType type2) {
     this._type = type2;
   }
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_functions, visitor);
     safelyVisitChildren(_labels, visitor);
@@ -3649,7 +3682,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
   void shareTypeVariables(List<TypeVariableElement> typeVariables2) {
     this._typeVariables = typeVariables2;
   }
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_parameters, visitor);
     safelyVisitChildren(_typeVariables, visitor);
@@ -3787,7 +3820,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   void set source(Source source2) {
     this._source = source2;
   }
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_scripts, visitor);
   }
@@ -3895,7 +3928,7 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   void set uri(String uri2) {
     this._uri = uri2;
   }
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_prefix, visitor);
   }
@@ -4191,7 +4224,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     }
     this._parts = parts2;
   }
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_definingCompilationUnit, visitor);
     safelyVisitChildren(_exports, visitor);
@@ -4365,7 +4398,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
  *
  * @coverage dart.engine.element
  */
-class Modifier implements Enum<Modifier> {
+class Modifier extends Enum<Modifier> {
   static final Modifier ABSTRACT = new Modifier('ABSTRACT', 0);
   static final Modifier CONST = new Modifier('CONST', 1);
   static final Modifier FACTORY = new Modifier('FACTORY', 2);
@@ -4389,16 +4422,7 @@ class Modifier implements Enum<Modifier> {
       STATIC,
       SYNTHETIC,
       TYPEDEF];
-
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
-  Modifier(this.name, this.ordinal);
-  int compareTo(Modifier other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
+  Modifier(String name, int ordinal) : super(name, ordinal);
 }
 /**
  * Instances of the class `MultiplyDefinedElementImpl` represent a collection of elements that
@@ -4471,7 +4495,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     builder.append("]");
     return builder.toString();
   }
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
   }
 
   /**
@@ -4631,7 +4655,7 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
     _visibleRangeOffset = offset;
     _visibleRangeLength = length;
   }
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_parameters, visitor);
   }
@@ -5102,7 +5126,7 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
   void set type(Type2 type2) {
     this._type = type2;
   }
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_initializer, visitor);
   }
@@ -5227,7 +5251,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   FunctionType get type => substituteFor(baseElement.type);
   bool get isOperator => baseElement.isOperator;
   bool get isStatic => baseElement.isStatic;
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(baseElement.functions, visitor);
     safelyVisitChildren(labels, visitor);
@@ -5330,7 +5354,7 @@ abstract class Member implements Element {
   Source get source => _baseElement.source;
   bool isAccessibleIn(LibraryElement library) => _baseElement.isAccessibleIn(library);
   bool get isSynthetic => _baseElement.isSynthetic;
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
   }
 
   /**
@@ -5346,7 +5370,7 @@ abstract class Member implements Element {
    * @param child the child to be visited
    * @param visitor the visitor to be used to visit the child
    */
-  void safelyVisitChild(Element child, ElementVisitor<Object> visitor) {
+  void safelyVisitChild(Element child, ElementVisitor visitor) {
     if (child != null) {
       child.accept(visitor);
     }
@@ -5358,7 +5382,7 @@ abstract class Member implements Element {
    * @param children the children to be visited
    * @param visitor the visitor being used to visit the children
    */
-  void safelyVisitChildren(List<Element> children, ElementVisitor<Object> visitor) {
+  void safelyVisitChildren(List<Element> children, ElementVisitor visitor) {
     if (children != null) {
       for (Element child in children) {
         child.accept(visitor);
@@ -5506,11 +5530,11 @@ class ParameterMember extends VariableMember implements ParameterElement {
     if (definingType is InterfaceType) {
       InterfaceType definingInterfaceType = definingType as InterfaceType;
       if (element is ConstructorElement) {
-        return ConstructorMember.from((element as ConstructorElement), definingInterfaceType) as Element;
+        return ConstructorMember.from(element as ConstructorElement, definingInterfaceType) as Element;
       } else if (element is MethodElement) {
-        return MethodMember.from((element as MethodElement), definingInterfaceType) as Element;
+        return MethodMember.from(element as MethodElement, definingInterfaceType) as Element;
       } else if (element is PropertyAccessorElement) {
-        return PropertyAccessorMember.from((element as PropertyAccessorElement), definingInterfaceType) as Element;
+        return PropertyAccessorMember.from(element as PropertyAccessorElement, definingInterfaceType) as Element;
       }
     }
     return element;
@@ -5555,7 +5579,7 @@ class ParameterMember extends VariableMember implements ParameterElement {
     builder.append(right);
     return builder.toString();
   }
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(parameters, visitor);
   }
@@ -5607,7 +5631,7 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
   PropertyInducingElement get variable {
     PropertyInducingElement variable = baseElement.variable;
     if (variable is FieldElement) {
-      return FieldMember.from(((variable as FieldElement)), definingType);
+      return FieldMember.from(variable as FieldElement, definingType);
     }
     return variable;
   }
@@ -5666,7 +5690,7 @@ abstract class VariableMember extends Member implements VariableElement {
   Type2 get type => substituteFor(baseElement.type);
   bool get isConst => baseElement.isConst;
   bool get isFinal => baseElement.isFinal;
-  void visitChildren(ElementVisitor<Object> visitor) {
+  void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(baseElement.initializer, visitor);
   }
@@ -6046,7 +6070,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return this;
     }
     Element element = this.element;
-    FunctionTypeImpl newType = (element is ExecutableElement) ? new FunctionTypeImpl.con1((element as ExecutableElement)) : new FunctionTypeImpl.con2((element as FunctionTypeAliasElement));
+    FunctionTypeImpl newType = (element is ExecutableElement) ? new FunctionTypeImpl.con1(element as ExecutableElement) : new FunctionTypeImpl.con2(element as FunctionTypeAliasElement);
     newType.typeArguments = TypeImpl.substitute(_typeArguments, argumentTypes, parameterTypes);
     return newType;
   }
@@ -6498,7 +6522,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else if (type is! InterfaceType) {
       return false;
     }
-    return isMoreSpecificThan2((type as InterfaceType), new Set<ClassElement>());
+    return isMoreSpecificThan2(type as InterfaceType, new Set<ClassElement>());
   }
   bool get isObject => element.supertype == null;
   bool isSubtypeOf(Type2 type2) {
@@ -6518,7 +6542,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else if (this == type2) {
       return true;
     }
-    return isSubtypeOf2((type2 as InterfaceType), new Set<ClassElement>());
+    return isSubtypeOf2(type2 as InterfaceType, new Set<ClassElement>());
   }
   ConstructorElement lookUpConstructor(String constructorName, LibraryElement library) {
     ConstructorElement constructorElement;

@@ -1818,7 +1818,7 @@ class ElementFactory {
   static FunctionElementImpl functionElement7(String functionName, List<ClassElement> normalParameters, List<String> names, List<ClassElement> namedParameters) => functionElement4(functionName, null, normalParameters, names, namedParameters);
   static ClassElementImpl get object {
     if (_objectElement == null) {
-      _objectElement = classElement("Object", (null as InterfaceType), []);
+      _objectElement = classElement("Object", null as InterfaceType, []);
     }
     return _objectElement;
   }
@@ -2368,7 +2368,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     type.hashCode;
   }
   void test_hashCode_noElement() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1((null as ExecutableElement));
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(null as ExecutableElement);
     type.hashCode;
   }
   void test_isAssignableTo_normalAndPositionalArgs() {

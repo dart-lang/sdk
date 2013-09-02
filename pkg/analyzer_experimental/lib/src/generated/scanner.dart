@@ -135,14 +135,14 @@ class KeywordState {
  *
  * @coverage dart.engine.parser
  */
-class ScannerErrorCode implements Enum<ScannerErrorCode>, ErrorCode {
-  static final ScannerErrorCode CHARACTER_EXPECTED_AFTER_SLASH = new ScannerErrorCode('CHARACTER_EXPECTED_AFTER_SLASH', 0, "Character expected after slash");
-  static final ScannerErrorCode ILLEGAL_CHARACTER = new ScannerErrorCode('ILLEGAL_CHARACTER', 1, "Illegal character %x");
-  static final ScannerErrorCode MISSING_DIGIT = new ScannerErrorCode('MISSING_DIGIT', 2, "Decimal digit expected");
-  static final ScannerErrorCode MISSING_HEX_DIGIT = new ScannerErrorCode('MISSING_HEX_DIGIT', 3, "Hexidecimal digit expected");
-  static final ScannerErrorCode MISSING_QUOTE = new ScannerErrorCode('MISSING_QUOTE', 4, "Expected quote (' or \")");
-  static final ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT = new ScannerErrorCode('UNTERMINATED_MULTI_LINE_COMMENT', 5, "Unterminated multi-line comment");
-  static final ScannerErrorCode UNTERMINATED_STRING_LITERAL = new ScannerErrorCode('UNTERMINATED_STRING_LITERAL', 6, "Unterminated string literal");
+class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
+  static final ScannerErrorCode CHARACTER_EXPECTED_AFTER_SLASH = new ScannerErrorCode.con1('CHARACTER_EXPECTED_AFTER_SLASH', 0, "Character expected after slash");
+  static final ScannerErrorCode ILLEGAL_CHARACTER = new ScannerErrorCode.con1('ILLEGAL_CHARACTER', 1, "Illegal character %x");
+  static final ScannerErrorCode MISSING_DIGIT = new ScannerErrorCode.con1('MISSING_DIGIT', 2, "Decimal digit expected");
+  static final ScannerErrorCode MISSING_HEX_DIGIT = new ScannerErrorCode.con1('MISSING_HEX_DIGIT', 3, "Hexidecimal digit expected");
+  static final ScannerErrorCode MISSING_QUOTE = new ScannerErrorCode.con1('MISSING_QUOTE', 4, "Expected quote (' or \")");
+  static final ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT = new ScannerErrorCode.con1('UNTERMINATED_MULTI_LINE_COMMENT', 5, "Unterminated multi-line comment");
+  static final ScannerErrorCode UNTERMINATED_STRING_LITERAL = new ScannerErrorCode.con1('UNTERMINATED_STRING_LITERAL', 6, "Unterminated string literal");
   static final List<ScannerErrorCode> values = [
       CHARACTER_EXPECTED_AFTER_SLASH,
       ILLEGAL_CHARACTER,
@@ -152,31 +152,40 @@ class ScannerErrorCode implements Enum<ScannerErrorCode>, ErrorCode {
       UNTERMINATED_MULTI_LINE_COMMENT,
       UNTERMINATED_STRING_LITERAL];
 
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
-
   /**
-   * The message template used to create the message to be displayed for this error.
+   * The template used to create the message to be displayed for this error.
    */
   String _message;
+
+  /**
+   * The template used to create the correction to be displayed for this error, or `null` if
+   * there is no correction information for this error.
+   */
+  String correction10;
 
   /**
    * Initialize a newly created error code to have the given message.
    *
    * @param message the message template used to create the message to be displayed for this error
    */
-  ScannerErrorCode(this.name, this.ordinal, String message) {
+  ScannerErrorCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
     this._message = message;
   }
+
+  /**
+   * Initialize a newly created error code to have the given message and correction.
+   *
+   * @param message the template used to create the message to be displayed for the error
+   * @param correction the template used to create the correction to be displayed for the error
+   */
+  ScannerErrorCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
+    this._message = message;
+    this.correction10 = correction;
+  }
+  String get correction => correction10;
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
   String get message => _message;
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
-  int compareTo(ScannerErrorCode other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
 }
 /**
  * Instances of the class `TokenWithComment` represent a string token that is preceded by
@@ -209,7 +218,7 @@ class StringTokenWithComment extends StringToken {
  *
  * @coverage dart.engine.parser
  */
-class Keyword implements Enum<Keyword> {
+class Keyword extends Enum<Keyword> {
   static final Keyword ASSERT = new Keyword.con1('ASSERT', 0, "assert");
   static final Keyword BREAK = new Keyword.con1('BREAK', 1, "break");
   static final Keyword CASE = new Keyword.con1('CASE', 2, "case");
@@ -308,12 +317,6 @@ class Keyword implements Enum<Keyword> {
       STATIC,
       TYPEDEF];
 
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
-
   /**
    * The lexeme for the keyword.
    */
@@ -358,7 +361,7 @@ class Keyword implements Enum<Keyword> {
    * @param syntax the lexeme for the keyword
    * @param isPseudoKeyword `true` if this keyword is a pseudo-keyword
    */
-  Keyword.con2(this.name, this.ordinal, String syntax, bool isPseudoKeyword) {
+  Keyword.con2(String name, int ordinal, String syntax, bool isPseudoKeyword) : super(name, ordinal) {
     this._syntax = syntax;
     this._isPseudoKeyword2 = isPseudoKeyword;
   }
@@ -377,9 +380,6 @@ class Keyword implements Enum<Keyword> {
    * @return `true` if this keyword is a pseudo-keyword
    */
   bool get isPseudoKeyword => _isPseudoKeyword2;
-  int compareTo(Keyword other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
 }
 /**
  * The abstract class `AbstractScanner` implements a scanner for Dart code. Subclasses are
@@ -1046,7 +1046,7 @@ abstract class AbstractScanner {
     KeywordState state = KeywordState.KEYWORD_STATE;
     int start = offset;
     while (state != null && 0x61 <= next2 && next2 <= 0x7A) {
-      state = state.next((next2 as int));
+      state = state.next(next2 as int);
       next2 = advance();
     }
     if (state == null || state.keyword() == null) {
@@ -1803,7 +1803,7 @@ class BeginToken extends Token {
  *
  * @coverage dart.engine.parser
  */
-class TokenClass implements Enum<TokenClass> {
+class TokenClass extends Enum<TokenClass> {
 
   /**
    * A value used to indicate that the token type is not part of any specific class of token.
@@ -1902,19 +1902,13 @@ class TokenClass implements Enum<TokenClass> {
       UNARY_POSTFIX_OPERATOR,
       UNARY_PREFIX_OPERATOR];
 
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
-
   /**
    * The precedence of tokens of this class, or `0` if the such tokens do not represent an
    * operator.
    */
   int _precedence = 0;
   TokenClass.con1(String name, int ordinal) : this.con2(name, ordinal, 0);
-  TokenClass.con2(this.name, this.ordinal, int precedence) {
+  TokenClass.con2(String name, int ordinal, int precedence) : super(name, ordinal) {
     this._precedence = precedence;
   }
 
@@ -1925,9 +1919,6 @@ class TokenClass implements Enum<TokenClass> {
    * @return the precedence of tokens of this class
    */
   int get precedence => _precedence;
-  int compareTo(TokenClass other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
 }
 /**
  * Instances of the class `KeywordTokenWithComment` implement a keyword token that is preceded
@@ -1961,7 +1952,7 @@ class KeywordTokenWithComment extends KeywordToken {
  *
  * @coverage dart.engine.parser
  */
-class TokenType implements Enum<TokenType> {
+class TokenType extends Enum<TokenType> {
 
   /**
    * The type of the token that marks the end of the input.
@@ -2104,12 +2095,6 @@ class TokenType implements Enum<TokenType> {
       BACKSLASH,
       PERIOD_PERIOD_PERIOD];
 
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
-
   /**
    * The class of the token.
    */
@@ -2121,7 +2106,7 @@ class TokenType implements Enum<TokenType> {
    */
   String _lexeme;
   TokenType.con1(String name, int ordinal) : this.con2(name, ordinal, TokenClass.NO_CLASS, null);
-  TokenType.con2(this.name, this.ordinal, TokenClass tokenClass, String lexeme) {
+  TokenType.con2(String name, int ordinal, TokenClass tokenClass, String lexeme) : super(name, ordinal) {
     this._tokenClass = tokenClass == null ? TokenClass.NO_CLASS : tokenClass;
     this._lexeme = lexeme;
   }
@@ -2231,9 +2216,6 @@ class TokenType implements Enum<TokenType> {
    * @return `true` if this token type represents an operator that can be defined by users
    */
   bool get isUserDefinableOperator => identical(_lexeme, "==") || identical(_lexeme, "~") || identical(_lexeme, "[]") || identical(_lexeme, "[]=") || identical(_lexeme, "*") || identical(_lexeme, "/") || identical(_lexeme, "%") || identical(_lexeme, "~/") || identical(_lexeme, "+") || identical(_lexeme, "-") || identical(_lexeme, "<<") || identical(_lexeme, ">>") || identical(_lexeme, ">=") || identical(_lexeme, ">") || identical(_lexeme, "<=") || identical(_lexeme, "<") || identical(_lexeme, "&") || identical(_lexeme, "^") || identical(_lexeme, "|");
-  int compareTo(TokenType other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
 }
 class TokenType_EOF extends TokenType {
   TokenType_EOF(String name, int ordinal, TokenClass arg0, String arg1) : super.con2(name, ordinal, arg0, arg1);

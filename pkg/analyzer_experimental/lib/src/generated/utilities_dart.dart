@@ -9,17 +9,11 @@ import 'java_core.dart';
  *
  * @coverage dart.engine.utilities
  */
-class ParameterKind implements Enum<ParameterKind> {
+class ParameterKind extends Enum<ParameterKind> {
   static final ParameterKind REQUIRED = new ParameterKind('REQUIRED', 0, false);
   static final ParameterKind POSITIONAL = new ParameterKind('POSITIONAL', 1, true);
   static final ParameterKind NAMED = new ParameterKind('NAMED', 2, true);
   static final List<ParameterKind> values = [REQUIRED, POSITIONAL, NAMED];
-
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
 
   /**
    * A flag indicating whether this is an optional parameter.
@@ -31,7 +25,7 @@ class ParameterKind implements Enum<ParameterKind> {
    *
    * @param isOptional `true` if this is an optional parameter
    */
-  ParameterKind(this.name, this.ordinal, bool isOptional) {
+  ParameterKind(String name, int ordinal, bool isOptional) : super(name, ordinal) {
     this._isOptional2 = isOptional;
   }
 
@@ -41,7 +35,4 @@ class ParameterKind implements Enum<ParameterKind> {
    * @return `true` if this is an optional parameter
    */
   bool get isOptional => _isOptional2;
-  int compareTo(ParameterKind other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
 }

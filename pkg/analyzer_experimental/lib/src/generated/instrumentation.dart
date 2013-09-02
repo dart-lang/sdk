@@ -255,7 +255,7 @@ abstract class InstrumentationBuilder {
  *
  * @coverage dart.engine.utilities
  */
-class InstrumentationLevel implements Enum<InstrumentationLevel> {
+class InstrumentationLevel extends Enum<InstrumentationLevel> {
 
   /** Recording all instrumented information */
   static final InstrumentationLevel EVERYTHING = new InstrumentationLevel('EVERYTHING', 0);
@@ -266,12 +266,6 @@ class InstrumentationLevel implements Enum<InstrumentationLevel> {
   /** Nothing recorded */
   static final InstrumentationLevel OFF = new InstrumentationLevel('OFF', 2);
   static final List<InstrumentationLevel> values = [EVERYTHING, METRICS, OFF];
-
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
   static InstrumentationLevel fromString(String str) {
     if (str == "EVERYTHING") {
       return InstrumentationLevel.EVERYTHING;
@@ -284,10 +278,7 @@ class InstrumentationLevel implements Enum<InstrumentationLevel> {
     }
     throw new IllegalArgumentException("Unrecognised InstrumentationLevel");
   }
-  InstrumentationLevel(this.name, this.ordinal);
-  int compareTo(InstrumentationLevel other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
+  InstrumentationLevel(String name, int ordinal) : super(name, ordinal);
 }
 /**
  * The interface `InstrumentationLogger` defines the behavior of objects that are used to log

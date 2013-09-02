@@ -1087,7 +1087,7 @@ abstract class DartEntry implements SourceEntry {
    *          context for the data
    * @return the value of the data represented by the given descriptor and library
    */
-  CacheState getState2(DataDescriptor<Object> descriptor, Source librarySource);
+  CacheState getState2(DataDescriptor descriptor, Source librarySource);
 
   /**
    * Return the value of the data represented by the given descriptor in the context of the given
@@ -1310,7 +1310,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     ;
     return null;
   }
-  CacheState getState(DataDescriptor<Object> descriptor) {
+  CacheState getState(DataDescriptor descriptor) {
     if (identical(descriptor, DartEntry.ELEMENT)) {
       return _elementState;
     } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
@@ -1335,7 +1335,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return super.getState(descriptor);
     }
   }
-  CacheState getState2(DataDescriptor<Object> descriptor, Source librarySource2) {
+  CacheState getState2(DataDescriptor descriptor, Source librarySource2) {
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
       if (librarySource2 == state._librarySource) {
@@ -1569,7 +1569,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       _parseErrorsState = CacheState.VALID;
     }
   }
-  void setState(DataDescriptor<Object> descriptor, CacheState state) {
+  void setState(DataDescriptor descriptor, CacheState state) {
     if (identical(descriptor, DartEntry.ELEMENT)) {
       _element = updatedValue(state, _element, null);
       _elementState = state;
@@ -1618,7 +1618,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    *          context for the data
    * @param cacheState the new state of the data represented by the given descriptor
    */
-  void setState2(DataDescriptor<Object> descriptor, Source librarySource, CacheState cacheState) {
+  void setState2(DataDescriptor descriptor, Source librarySource, CacheState cacheState) {
     DartEntryImpl_ResolutionState state = getOrCreateResolutionState(librarySource);
     if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
       state._resolutionErrors = updatedValue(cacheState, state._resolutionErrors, AnalysisError.NO_ERRORS);
@@ -2064,7 +2064,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     return new List.from(errors);
   }
   SourceKind get kind => SourceKind.HTML;
-  CacheState getState(DataDescriptor<Object> descriptor) {
+  CacheState getState(DataDescriptor descriptor) {
     if (identical(descriptor, HtmlEntry.ELEMENT)) {
       return _elementState;
     } else if (identical(descriptor, HtmlEntry.PARSED_UNIT)) {
@@ -2109,7 +2109,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     _hints = AnalysisError.NO_ERRORS;
     _hintsState = CacheState.INVALID;
   }
-  void setState(DataDescriptor<Object> descriptor, CacheState state) {
+  void setState(DataDescriptor descriptor, CacheState state) {
     if (identical(descriptor, HtmlEntry.ELEMENT)) {
       _element = updatedValue(state, _element, null);
       _elementState = state;
@@ -2213,7 +2213,7 @@ abstract class SourceEntry {
    * @param descriptor the descriptor representing the data whose state is to be returned
    * @return the state of the data represented by the given descriptor
    */
-  CacheState getState(DataDescriptor<Object> descriptor);
+  CacheState getState(DataDescriptor descriptor);
 
   /**
    * Return the value of the data represented by the given descriptor, or `null` if the data
@@ -2257,7 +2257,7 @@ abstract class SourceEntryImpl implements SourceEntry {
    */
   LineInfo _lineInfo;
   int get modificationTime => _modificationTime;
-  CacheState getState(DataDescriptor<Object> descriptor) {
+  CacheState getState(DataDescriptor descriptor) {
     if (identical(descriptor, SourceEntry.LINE_INFO)) {
       return _lineInfoState;
     } else {
@@ -2288,7 +2288,7 @@ abstract class SourceEntryImpl implements SourceEntry {
    * @param descriptor the descriptor representing the data whose state is to be set
    * @param the new state of the data represented by the given descriptor
    */
-  void setState(DataDescriptor<Object> descriptor, CacheState state) {
+  void setState(DataDescriptor descriptor, CacheState state) {
     if (identical(descriptor, SourceEntry.LINE_INFO)) {
       _lineInfo = updatedValue(state, _lineInfo, null);
       _lineInfoState = state;
@@ -2368,7 +2368,7 @@ class AnalysisContentStatisticsImpl implements AnalysisContentStatistics {
     Iterable<AnalysisContentStatistics_CacheRow> items = _dataMap.values;
     return new List.from(items);
   }
-  void putCacheItem(DataDescriptor<Object> rowDesc, CacheState state) {
+  void putCacheItem(DataDescriptor rowDesc, CacheState state) {
     String rowName = rowDesc.toString();
     AnalysisContentStatisticsImpl_CacheRowImpl row = _dataMap[rowName] as AnalysisContentStatisticsImpl_CacheRowImpl;
     if (row == null) {
@@ -2425,7 +2425,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Helper for [getStatistics], puts the library-specific state into the given statistics
    * object.
    */
-  static void putStatCacheItem(AnalysisContentStatisticsImpl statistics, DartEntry dartEntry, Source librarySource, DataDescriptor<Object> key) {
+  static void putStatCacheItem(AnalysisContentStatisticsImpl statistics, DartEntry dartEntry, Source librarySource, DataDescriptor key) {
     statistics.putCacheItem(key, dartEntry.getState2(key, librarySource));
   }
 
@@ -2433,7 +2433,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Helper for [getStatistics], puts the library independent state into the given
    * statistics object.
    */
-  static void putStatCacheItem2(AnalysisContentStatisticsImpl statistics, SourceEntry entry, DataDescriptor<Object> key) {
+  static void putStatCacheItem2(AnalysisContentStatisticsImpl statistics, SourceEntry entry, DataDescriptor key) {
     statistics.putCacheItem(key, entry.getState(key));
   }
 
@@ -2627,7 +2627,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return SourceKind.UNKNOWN;
     } else if (sourceEntry is DartEntry) {
       try {
-        return internalGetDartParseData(source, (sourceEntry as DartEntry), DartEntry.SOURCE_KIND);
+        return internalGetDartParseData(source, sourceEntry as DartEntry, DartEntry.SOURCE_KIND);
       } on AnalysisException catch (exception) {
         return SourceKind.UNKNOWN;
       }
@@ -2686,7 +2686,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       internalParseDart(source);
     }
   }
-  AnalysisContext extractContext(SourceContainer container) => extractContextInto(container, (AnalysisEngine.instance.createAnalysisContext() as InternalAnalysisContext));
+  AnalysisContext extractContext(SourceContainer container) => extractContextInto(container, AnalysisEngine.instance.createAnalysisContext() as InternalAnalysisContext);
   InternalAnalysisContext extractContextInto(SourceContainer container, InternalAnalysisContext newContext) {
     List<Source> sourcesToRemove = new List<Source>();
     {
@@ -3080,6 +3080,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             InheritanceManager inheritanceManager = new InheritanceManager(libraryElement);
             ResolverVisitor resolverVisitor = new ResolverVisitor.con2(libraryElement, unitSource, typeProvider, inheritanceManager, errorListener);
             unitAST.accept(resolverVisitor);
+            for (ProxyConditionalAnalysisError conditionalCode in resolverVisitor.proxyConditionalAnalysisErrors) {
+              if (conditionalCode.shouldIncludeErrorCode()) {
+                resolverVisitor.reportError(conditionalCode.analysisError);
+              }
+            }
             ErrorReporter errorReporter = new ErrorReporter(errorListener, unitSource);
             ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, libraryElement, typeProvider, inheritanceManager);
             unitAST.accept(errorVerifier);
@@ -3592,8 +3597,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param descriptor the descriptor representing the data to be returned
    * @return a cache entry containing the required data
    */
-  bool hasHtmlParseDataCached(HtmlEntry htmlEntry, List<DataDescriptor<Object>> descriptors) {
-    for (DataDescriptor<Object> descriptor in descriptors) {
+  bool hasHtmlParseDataCached(HtmlEntry htmlEntry, List<DataDescriptor> descriptors) {
+    for (DataDescriptor descriptor in descriptors) {
       CacheState state = htmlEntry.getState(descriptor);
       if (state != CacheState.VALID && state != CacheState.ERROR) {
         return false;
@@ -3614,7 +3619,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @throws AnalysisException if data could not be returned because the source could not be
    *           resolved
    */
-  DartEntry internalCacheDartParseData(Source source, DartEntry dartEntry, DataDescriptor<Object> descriptor) {
+  DartEntry internalCacheDartParseData(Source source, DartEntry dartEntry, DataDescriptor descriptor) {
     CacheState state = dartEntry.getState(descriptor);
     while (state != CacheState.ERROR && state != CacheState.VALID) {
       dartEntry = internalParseDart(source);
@@ -3636,7 +3641,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @return the requested data about the given source
    * @throws AnalysisException if data could not be returned because the source could not be parsed
    */
-  DartEntry internalCacheDartResolutionData(Source unitSource, Source librarySource, DartEntry dartEntry, DataDescriptor<Object> descriptor) {
+  DartEntry internalCacheDartResolutionData(Source unitSource, Source librarySource, DartEntry dartEntry, DataDescriptor descriptor) {
     CacheState state = dartEntry.getState2(descriptor, librarySource);
     while (state != CacheState.ERROR && state != CacheState.VALID) {
       dartEntry = internalResolveDart(unitSource, librarySource);
@@ -3657,7 +3662,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @throws AnalysisException if data could not be returned because the source could not be
    *           resolved
    */
-  HtmlEntry internalCacheHtmlParseData(Source source, HtmlEntry htmlEntry, List<DataDescriptor<Object>> descriptors) {
+  HtmlEntry internalCacheHtmlParseData(Source source, HtmlEntry htmlEntry, List<DataDescriptor> descriptors) {
     while (!hasHtmlParseDataCached(htmlEntry, descriptors)) {
       htmlEntry = internalParseHtml(source);
     }
@@ -3797,19 +3802,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       Set<Source> includedSources = new Set<Source>();
       for (Directive directive in unit.directives) {
         if (directive is ExportDirective) {
-          Source exportSource = resolveSource(source, (directive as ExportDirective));
+          Source exportSource = resolveSource(source, directive as ExportDirective);
           if (exportSource != null) {
             javaSetAdd(exportedSources, exportSource);
           }
         } else if (directive is ImportDirective) {
-          Source importSource = resolveSource(source, (directive as ImportDirective));
+          Source importSource = resolveSource(source, directive as ImportDirective);
           if (importSource != null) {
             javaSetAdd(importedSources, importSource);
           }
         } else if (directive is LibraryDirective) {
           hasLibraryDirective = true;
         } else if (directive is PartDirective) {
-          Source partSource = resolveSource(source, (directive as PartDirective));
+          Source partSource = resolveSource(source, directive as PartDirective);
           if (partSource != null) {
             javaSetAdd(includedSources, partSource);
           }
@@ -3873,19 +3878,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       errors = errorListener.getErrors2(source);
       for (Directive directive in unit.directives) {
         if (directive is ExportDirective) {
-          Source exportSource = resolveSource(source, (directive as ExportDirective));
+          Source exportSource = resolveSource(source, directive as ExportDirective);
           if (exportSource != null) {
             javaSetAdd(exportedSources, exportSource);
           }
         } else if (directive is ImportDirective) {
-          Source importSource = resolveSource(source, (directive as ImportDirective));
+          Source importSource = resolveSource(source, directive as ImportDirective);
           if (importSource != null) {
             javaSetAdd(importedSources, importSource);
           }
         } else if (directive is LibraryDirective) {
           hasLibraryDirective = true;
         } else if (directive is PartDirective) {
-          Source partSource = resolveSource(source, (directive as PartDirective));
+          Source partSource = resolveSource(source, directive as PartDirective);
           if (partSource != null) {
             javaSetAdd(includedSources, partSource);
           }
@@ -4427,7 +4432,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       parseHtmlUnit(source);
     } on AnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not parse ${source.fullName}", exception);
+      if (exception.cause is! JavaIOException) {
+        AnalysisEngine.instance.logger.logError2("Could not parse ${source.fullName}", exception);
+      }
     }
   }
 
@@ -4910,7 +4917,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 /**
  * The enumeration `CacheState` defines the possible states of cached data.
  */
-class CacheState implements Enum<CacheState> {
+class CacheState extends Enum<CacheState> {
 
   /**
    * The data is not in the cache and the last time an attempt was made to compute the data an
@@ -4967,16 +4974,7 @@ class CacheState implements Enum<CacheState> {
    */
   static final CacheState VALID = new CacheState('VALID', 4);
   static final List<CacheState> values = [ERROR, FLUSHED, IN_PROCESS, INVALID, VALID];
-
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
-  CacheState(this.name, this.ordinal);
-  int compareTo(CacheState other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
+  CacheState(String name, int ordinal) : super(name, ordinal);
 }
 /**
  * Instances of the class `ChangeNoticeImpl` represent a change to the analysis results

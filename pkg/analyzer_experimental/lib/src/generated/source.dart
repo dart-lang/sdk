@@ -422,7 +422,7 @@ abstract class Source_ContentReceiver {
  *
  * @coverage dart.engine.source
  */
-class SourceKind implements Enum<SourceKind> {
+class SourceKind extends Enum<SourceKind> {
 
   /**
    * A source containing HTML. The HTML might or might not contain Dart scripts.
@@ -447,16 +447,7 @@ class SourceKind implements Enum<SourceKind> {
    */
   static final SourceKind UNKNOWN = new SourceKind('UNKNOWN', 3);
   static final List<SourceKind> values = [HTML, LIBRARY, PART, UNKNOWN];
-
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
-  SourceKind(this.name, this.ordinal);
-  int compareTo(SourceKind other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
+  SourceKind(String name, int ordinal) : super(name, ordinal);
 }
 /**
  * The enumeration `UriKind` defines the different kinds of URI's that are known to the
@@ -464,7 +455,7 @@ class SourceKind implements Enum<SourceKind> {
  *
  * @coverage dart.engine.source
  */
-class UriKind implements Enum<UriKind> {
+class UriKind extends Enum<UriKind> {
 
   /**
    * A 'dart:' URI.
@@ -482,12 +473,6 @@ class UriKind implements Enum<UriKind> {
   static final UriKind PACKAGE_URI = new UriKind('PACKAGE_URI', 2, 0x70);
   static final List<UriKind> values = [DART_URI, FILE_URI, PACKAGE_URI];
 
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
-
   /**
    * The single character encoding used to identify this kind of URI.
    */
@@ -498,7 +483,7 @@ class UriKind implements Enum<UriKind> {
    *
    * @param encoding the single character encoding used to identify this kind of URI.
    */
-  UriKind(this.name, this.ordinal, int encoding) {
+  UriKind(String name, int ordinal, int encoding) : super(name, ordinal) {
     this._encoding = encoding;
   }
 
@@ -529,9 +514,6 @@ class UriKind implements Enum<UriKind> {
    * @return the single character encoding used to identify this kind of URI
    */
   int get encoding => _encoding;
-  int compareTo(UriKind other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
 }
 /**
  * A source range defines an [Element]'s source coordinates relative to its [Source].

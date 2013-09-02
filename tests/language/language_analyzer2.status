@@ -10,6 +10,10 @@ closure_call_wrong_argument_count_negative_test: skip
 # TBD: using built-in identifers
 built_in_identifier_prefix_test: fail # Issue 12694
 
+# TBD: these look like bad tests, no issue number
+class_literal_test: fail
+constructor_call_as_function_test/01: fail
+
 # TBF: It is a static type warning if a type parameter is a supertype of its upper bound.
 cyclic_type_variable_test/01: fail
 cyclic_type_variable_test/02: fail
@@ -192,9 +196,6 @@ constructor_initializer_test: fail # Issue 12181
 # test issue 12191, ambiguous import is always warning now
 prefix3_negative_test: fail # Issue 12191
 library_ambiguous_test/00: fail # Issue 12191
-library_ambiguous_test/01: fail # Issue 12191
-library_ambiguous_test/02: fail # Issue 12191
-library_ambiguous_test/03: fail # Issue 12191
 
 # test issue 12289, assignment in assert statement
 type_error_test: fail # Issue 12289

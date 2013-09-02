@@ -209,7 +209,7 @@ abstract class ASTNode {
    *
    * @param visitor the visitor that will be used to visit the children of this node
    */
-  void visitChildren(ASTVisitor<Object> visitor);
+  void visitChildren(ASTVisitor visitor);
 
   /**
    * Make this node the parent of the given child node.
@@ -231,7 +231,7 @@ abstract class ASTNode {
    * @param child the child to be visited
    * @param visitor the visitor that will be used to visit the child
    */
-  void safelyVisitChild(ASTNode child, ASTVisitor<Object> visitor) {
+  void safelyVisitChild(ASTNode child, ASTVisitor visitor) {
     if (child != null) {
       child.accept(visitor);
     }
@@ -406,7 +406,7 @@ class AdjacentStrings extends StringLiteral {
    * @return the strings that are implicitly concatenated
    */
   NodeList<StringLiteral> get strings => _strings;
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     _strings.accept(visitor);
   }
   void appendStringValue(JavaStringBuilder builder) {
@@ -504,7 +504,7 @@ abstract class AnnotatedNode extends ASTNode {
     this._metadata.clear();
     this._metadata.addAll(metadata2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     if (commentIsBeforeAnnotations()) {
       safelyVisitChild(_comment, visitor);
       _metadata.accept(visitor);
@@ -757,7 +757,7 @@ class Annotation extends ASTNode {
   void set period(Token period2) {
     this._period = period2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_constructorName, visitor);
     safelyVisitChild(_arguments, visitor);
@@ -838,7 +838,7 @@ class ArgumentDefinitionTest extends Expression {
   void set question(Token question2) {
     this._question = question2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_identifier, visitor);
   }
 }
@@ -988,7 +988,7 @@ class ArgumentList extends ASTNode {
   void set rightParenthesis(Token parenthesis) {
     _rightParenthesis = parenthesis;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     _arguments.accept(visitor);
   }
 
@@ -1139,7 +1139,7 @@ class AsExpression extends Expression {
   void set type(TypeName name) {
     this._type = becomeParentOf(name);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
     safelyVisitChild(_type, visitor);
   }
@@ -1291,7 +1291,7 @@ class AssertStatement extends Statement {
   void set semicolon(Token semicolon2) {
     this._semicolon = semicolon2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_condition, visitor);
   }
 }
@@ -1464,7 +1464,7 @@ class AssignmentExpression extends Expression {
   void set staticElement(MethodElement element) {
     _staticElement = element;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_leftHandSide, visitor);
     safelyVisitChild(_rightHandSide, visitor);
   }
@@ -1680,7 +1680,7 @@ class BinaryExpression extends Expression {
   void set staticElement(MethodElement element) {
     _staticElement = element;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_leftOperand, visitor);
     safelyVisitChild(_rightOperand, visitor);
   }
@@ -1818,7 +1818,7 @@ class Block extends Statement {
   void set rightBracket(Token rightBracket2) {
     this._rightBracket = rightBracket2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     _statements.accept(visitor);
   }
 }
@@ -1874,7 +1874,7 @@ class BlockFunctionBody extends FunctionBody {
   void set block(Block block2) {
     this._block = becomeParentOf(block2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_block, visitor);
   }
 }
@@ -1954,7 +1954,7 @@ class BooleanLiteral extends Literal {
   void set value(bool value2) {
     this._value = value2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -2056,7 +2056,7 @@ class BreakStatement extends Statement {
   void set semicolon(Token semicolon2) {
     this._semicolon = semicolon2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_label, visitor);
   }
 }
@@ -2137,7 +2137,7 @@ class CascadeExpression extends Expression {
   void set target(Expression target2) {
     this._target = becomeParentOf(target2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_target, visitor);
     _cascadeSections.accept(visitor);
   }
@@ -2402,7 +2402,7 @@ class CatchClause extends ASTNode {
   void set stackTraceParameter(SimpleIdentifier parameter) {
     _stackTraceParameter = becomeParentOf(parameter);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_exceptionType, visitor);
     safelyVisitChild(_exceptionParameter, visitor);
     safelyVisitChild(_stackTraceParameter, visitor);
@@ -2702,7 +2702,7 @@ class ClassDeclaration extends CompilationUnitMember {
   void set withClause(WithClause withClause2) {
     this._withClause = becomeParentOf(withClause2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_typeParameters, visitor);
@@ -2952,7 +2952,7 @@ class ClassTypeAlias extends TypeAlias {
   void set withClause(WithClause withClause2) {
     this._withClause = becomeParentOf(withClause2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_typeParameters, visitor);
@@ -3150,7 +3150,7 @@ class Comment extends ASTNode {
    * @return `true` if this is an end-of-line comment
    */
   bool get isEndOfLine => identical(_type, CommentType.END_OF_LINE);
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     _references.accept(visitor);
   }
 }
@@ -3158,7 +3158,7 @@ class Comment extends ASTNode {
  * The enumeration `CommentType` encodes all the different types of comments that are
  * recognized by the parser.
  */
-class CommentType implements Enum<CommentType> {
+class CommentType extends Enum<CommentType> {
 
   /**
    * An end-of-line comment.
@@ -3175,16 +3175,7 @@ class CommentType implements Enum<CommentType> {
    */
   static final CommentType DOCUMENTATION = new CommentType('DOCUMENTATION', 2);
   static final List<CommentType> values = [END_OF_LINE, BLOCK, DOCUMENTATION];
-
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
-  CommentType(this.name, this.ordinal);
-  int compareTo(CommentType other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
+  CommentType(String name, int ordinal) : super(name, ordinal);
 }
 /**
  * Instances of the class `CommentReference` represent a reference to a Dart element that is
@@ -3262,7 +3253,7 @@ class CommentReference extends ASTNode {
   void set newKeyword(Token newKeyword2) {
     this._newKeyword = newKeyword2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_identifier, visitor);
   }
 }
@@ -3500,7 +3491,7 @@ class CompilationUnit extends ASTNode {
   void set scriptTag(ScriptTag scriptTag2) {
     this._scriptTag = becomeParentOf(scriptTag2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_scriptTag, visitor);
     if (directivesAreBeforeDeclarations()) {
       _directives.accept(visitor);
@@ -3730,7 +3721,7 @@ class ConditionalExpression extends Expression {
   void set thenExpression(Expression expression) {
     _thenExpression = becomeParentOf(expression);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_condition, visitor);
     safelyVisitChild(_thenExpression, visitor);
     safelyVisitChild(_elseExpression, visitor);
@@ -4077,7 +4068,7 @@ class ConstructorDeclaration extends ClassMember {
   void set separator(Token separator2) {
     this._separator = separator2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(_name, visitor);
@@ -4270,7 +4261,7 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
   void set period(Token period2) {
     this._period = period2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_fieldName, visitor);
     safelyVisitChild(_expression, visitor);
   }
@@ -4449,7 +4440,7 @@ class ConstructorName extends ASTNode {
   void set type(TypeName type2) {
     this._type = becomeParentOf(type2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_type, visitor);
     safelyVisitChild(_name, visitor);
   }
@@ -4553,7 +4544,7 @@ class ContinueStatement extends Statement {
   void set semicolon(Token semicolon2) {
     this._semicolon = semicolon2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_label, visitor);
   }
 }
@@ -4710,7 +4701,7 @@ class DeclaredIdentifier extends Declaration {
   void set type(TypeName typeName) {
     _type = becomeParentOf(typeName);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
     safelyVisitChild(_identifier, visitor);
@@ -4858,7 +4849,7 @@ class DefaultFormalParameter extends FormalParameter {
   void set separator(Token separator2) {
     this._separator = separator2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_parameter, visitor);
     safelyVisitChild(_defaultValue, visitor);
   }
@@ -5123,7 +5114,7 @@ class DoStatement extends Statement {
   void set whileKeyword(Token whileKeyword2) {
     this._whileKeyword = whileKeyword2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_body, visitor);
     safelyVisitChild(_condition, visitor);
   }
@@ -5207,7 +5198,7 @@ class DoubleLiteral extends Literal {
   void set value(double value2) {
     this._value = value2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -5263,7 +5254,7 @@ class EmptyFunctionBody extends FunctionBody {
   void set semicolon(Token semicolon2) {
     this._semicolon = semicolon2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -5317,7 +5308,7 @@ class EmptyStatement extends Statement {
   void set semicolon(Token semicolon2) {
     this._semicolon = semicolon2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -5374,7 +5365,7 @@ class ExportDirective extends NamespaceDirective {
     }
     return null;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     combinators.accept(visitor);
   }
@@ -5646,7 +5637,7 @@ class ExpressionFunctionBody extends FunctionBody {
   void set semicolon(Token semicolon2) {
     this._semicolon = semicolon2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -5733,7 +5724,7 @@ class ExpressionStatement extends Statement {
   void set semicolon(Token semicolon2) {
     this._semicolon = semicolon2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -5813,7 +5804,7 @@ class ExtendsClause extends ASTNode {
   void set superclass(TypeName name) {
     _superclass = becomeParentOf(name);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_superclass, visitor);
   }
 }
@@ -5929,7 +5920,7 @@ class FieldDeclaration extends ClassMember {
   void set semicolon(Token semicolon2) {
     this._semicolon = semicolon2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_fieldList, visitor);
   }
@@ -6111,7 +6102,7 @@ class FieldFormalParameter extends NormalFormalParameter {
   void set type(TypeName typeName) {
     _type = becomeParentOf(typeName);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
     safelyVisitChild(identifier, visitor);
@@ -6311,7 +6302,7 @@ class ForEachStatement extends Statement {
   void set rightParenthesis(Token rightParenthesis2) {
     this._rightParenthesis = rightParenthesis2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_loopVariable, visitor);
     safelyVisitChild(_iterator, visitor);
     safelyVisitChild(_body, visitor);
@@ -6589,7 +6580,7 @@ class ForStatement extends Statement {
   void set variables(VariableDeclarationList variableList) {
     variableList = becomeParentOf(variableList);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_variableList, visitor);
     safelyVisitChild(_initialization, visitor);
     safelyVisitChild(_condition, visitor);
@@ -6839,7 +6830,7 @@ class FormalParameterList extends ASTNode {
   void set rightParenthesis(Token parenthesis) {
     _rightParenthesis = parenthesis;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     _parameters.accept(visitor);
   }
 }
@@ -7031,7 +7022,7 @@ class FunctionDeclaration extends CompilationUnitMember {
   void set returnType(TypeName name) {
     _returnType = becomeParentOf(name);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(_name, visitor);
@@ -7098,7 +7089,7 @@ class FunctionDeclarationStatement extends Statement {
   void set functionExpression(FunctionDeclaration functionDeclaration2) {
     this._functionDeclaration = becomeParentOf(functionDeclaration2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_functionDeclaration, visitor);
   }
 }
@@ -7214,7 +7205,7 @@ class FunctionExpression extends Expression {
   void set parameters(FormalParameterList parameters2) {
     this._parameters = becomeParentOf(parameters2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_parameters, visitor);
     safelyVisitChild(_body, visitor);
   }
@@ -7366,7 +7357,7 @@ class FunctionExpressionInvocation extends Expression {
   void set staticElement(ExecutableElement element) {
     this._staticElement = element;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_function, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
@@ -7508,7 +7499,7 @@ class FunctionTypeAlias extends TypeAlias {
   void set typeParameters(TypeParameterList typeParameters2) {
     this._typeParameters = becomeParentOf(typeParameters2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(_name, visitor);
@@ -7608,7 +7599,7 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
   void set returnType(TypeName returnType2) {
     this._returnType = becomeParentOf(returnType2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(identifier, visitor);
@@ -7660,7 +7651,7 @@ class HideCombinator extends Combinator {
    * @return the list of names from the library that are hidden by this combinator
    */
   NodeList<SimpleIdentifier> get hiddenNames => _hiddenNames;
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     _hiddenNames.accept(visitor);
   }
 }
@@ -7931,7 +7922,7 @@ class IfStatement extends Statement {
   void set thenStatement(Statement statement) {
     _thenStatement = becomeParentOf(statement);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_condition, visitor);
     safelyVisitChild(_thenStatement, visitor);
     safelyVisitChild(_elseStatement, visitor);
@@ -8005,7 +7996,7 @@ class ImplementsClause extends ASTNode {
   void set keyword(Token keyword2) {
     this._keyword = keyword2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     _interfaces.accept(visitor);
   }
 }
@@ -8104,7 +8095,7 @@ class ImportDirective extends NamespaceDirective {
   void set prefix(SimpleIdentifier prefix2) {
     this._prefix = becomeParentOf(prefix2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_prefix, visitor);
     combinators.accept(visitor);
@@ -8164,6 +8155,13 @@ class IndexExpression extends Expression {
   MethodElement _propagatedElement;
 
   /**
+   * If this expression is both in a getter and setter context, the [AuxiliaryElements] will
+   * be set to hold onto the static and propagated information. The auxiliary element will hold onto
+   * the elements from the getter context.
+   */
+  AuxiliaryElements _auxiliaryElements = null;
+
+  /**
    * Initialize a newly created index expression.
    *
    * @param target the expression used to compute the object being indexed
@@ -8213,6 +8211,12 @@ class IndexExpression extends Expression {
    */
   IndexExpression.forCascade({Token period, Token leftBracket, Expression index, Token rightBracket}) : this.forCascade_full(period, leftBracket, index, rightBracket);
   accept(ASTVisitor visitor) => visitor.visitIndexExpression(this);
+
+  /**
+   * Get the auxiliary elements, this will be `null` if the node is not in a getter and setter
+   * context, or if it is not yet fully resolved.
+   */
+  AuxiliaryElements get auxiliaryElements => _auxiliaryElements;
   Token get beginToken {
     if (_target != null) {
       return _target.beginToken;
@@ -8371,6 +8375,13 @@ class IndexExpression extends Expression {
   bool get isCascaded => _period != null;
 
   /**
+   * Set the auxiliary elements.
+   */
+  void set auxiliaryElements(AuxiliaryElements auxiliaryElements2) {
+    this._auxiliaryElements = auxiliaryElements2;
+  }
+
+  /**
    * Set the expression used to compute the index to the given expression.
    *
    * @param expression the expression used to compute the index
@@ -8434,7 +8445,7 @@ class IndexExpression extends Expression {
   void set target(Expression expression) {
     _target = becomeParentOf(expression);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_target, visitor);
     safelyVisitChild(_index, visitor);
   }
@@ -8639,7 +8650,7 @@ class InstanceCreationExpression extends Expression {
   void set staticElement(ConstructorElement element) {
     this._staticElement = element;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_constructorName, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
@@ -8727,7 +8738,7 @@ class IntegerLiteral extends Literal {
   void set value(int value2) {
     this._value = value2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -8852,7 +8863,7 @@ class InterpolationExpression extends InterpolationElement {
   void set rightBracket(Token rightBracket2) {
     this._rightBracket = rightBracket2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -8932,7 +8943,7 @@ class InterpolationString extends InterpolationElement {
   void set value(String string) {
     _value = string;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -9059,7 +9070,7 @@ class IsExpression extends Expression {
   void set type(TypeName name) {
     this._type = becomeParentOf(name);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
     safelyVisitChild(_type, visitor);
   }
@@ -9139,7 +9150,7 @@ class Label extends ASTNode {
   void set label(SimpleIdentifier label2) {
     this._label = becomeParentOf(label2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_label, visitor);
   }
 }
@@ -9216,7 +9227,7 @@ class LabeledStatement extends Statement {
   void set statement(Statement statement2) {
     this._statement = becomeParentOf(statement2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     _labels.accept(visitor);
     safelyVisitChild(_statement, visitor);
   }
@@ -9324,7 +9335,7 @@ class LibraryDirective extends Directive {
   void set semicolon(Token semicolon2) {
     this._semicolon = semicolon2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
   }
@@ -9389,7 +9400,7 @@ class LibraryIdentifier extends Identifier {
   }
   Element get propagatedElement => null;
   Element get staticElement => null;
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     _components.accept(visitor);
   }
 }
@@ -9500,7 +9511,7 @@ class ListLiteral extends TypedLiteral {
   void set rightBracket(Token bracket) {
     _rightBracket = bracket;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     _elements.accept(visitor);
   }
@@ -9631,7 +9642,7 @@ class MapLiteral extends TypedLiteral {
   void set rightBracket(Token bracket) {
     _rightBracket = bracket;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     _entries.accept(visitor);
   }
@@ -9738,7 +9749,7 @@ class MapLiteralEntry extends ASTNode {
   void set value(Expression expression) {
     _value = becomeParentOf(expression);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_key, visitor);
     safelyVisitChild(_value, visitor);
   }
@@ -10028,7 +10039,7 @@ class MethodDeclaration extends ClassMember {
   void set returnType(TypeName typeName) {
     _returnType = becomeParentOf(typeName);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(_name, visitor);
@@ -10220,7 +10231,7 @@ class MethodInvocation extends Expression {
   void set target(Expression expression) {
     _target = becomeParentOf(expression);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_target, visitor);
     safelyVisitChild(_methodName, visitor);
     safelyVisitChild(_argumentList, visitor);
@@ -10317,7 +10328,7 @@ class NamedExpression extends Expression {
   void set name(Label identifier) {
     _name = becomeParentOf(identifier);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_expression, visitor);
   }
@@ -10492,7 +10503,7 @@ class NativeClause extends ASTNode {
   void set name(StringLiteral name2) {
     this._name = name2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_name, visitor);
   }
 }
@@ -10571,7 +10582,7 @@ class NativeFunctionBody extends FunctionBody {
    * @return the string literal representing the string after the 'native' token
    */
   StringLiteral get stringLiteral => _stringLiteral;
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_stringLiteral, visitor);
   }
 }
@@ -10669,7 +10680,7 @@ abstract class NormalFormalParameter extends FormalParameter {
   void set identifier(SimpleIdentifier identifier2) {
     this._identifier = becomeParentOf(identifier2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     if (commentIsBeforeAnnotations()) {
       safelyVisitChild(_comment, visitor);
       _metadata.accept(visitor);
@@ -10760,7 +10771,7 @@ class NullLiteral extends Literal {
   void set literal(Token literal2) {
     this._literal = literal2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -10862,7 +10873,7 @@ class ParenthesizedExpression extends Expression {
   void set rightParenthesis(Token parenthesis) {
     _rightParenthesis = parenthesis;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -11077,7 +11088,7 @@ class PartOfDirective extends Directive {
   void set semicolon(Token semicolon2) {
     this._semicolon = semicolon2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_libraryName, visitor);
   }
@@ -11228,7 +11239,7 @@ class PostfixExpression extends Expression {
   void set staticElement(MethodElement element) {
     _staticElement = element;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_operand, visitor);
   }
 
@@ -11419,7 +11430,7 @@ class PrefixExpression extends Expression {
   void set staticElement(MethodElement element) {
     _staticElement = element;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_operand, visitor);
   }
 
@@ -11586,7 +11597,7 @@ class PrefixedIdentifier extends Identifier {
   void set prefix(SimpleIdentifier identifier) {
     _prefix = becomeParentOf(identifier);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_prefix, visitor);
     safelyVisitChild(_identifier, visitor);
   }
@@ -11735,7 +11746,7 @@ class PropertyAccess extends Expression {
   void set target(Expression expression) {
     _target = becomeParentOf(expression);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_target, visitor);
     safelyVisitChild(_propertyName, visitor);
   }
@@ -11922,7 +11933,7 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
   void set staticElement(ConstructorElement element) {
     this._staticElement = element;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_constructorName, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
@@ -11978,7 +11989,7 @@ class RethrowExpression extends Expression {
   void set keyword(Token keyword2) {
     this._keyword = keyword2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -12082,7 +12093,7 @@ class ReturnStatement extends Statement {
   void set semicolon(Token semicolon2) {
     this._semicolon = semicolon2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -12138,7 +12149,7 @@ class ScriptTag extends ASTNode {
   void set scriptTag(Token scriptTag2) {
     this._scriptTag = scriptTag2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -12186,7 +12197,7 @@ class ShowCombinator extends Combinator {
    * @return the list of names from the library that are made visible by this combinator
    */
   NodeList<SimpleIdentifier> get shownNames => _shownNames;
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     _shownNames.accept(visitor);
   }
 }
@@ -12283,7 +12294,7 @@ class SimpleFormalParameter extends NormalFormalParameter {
   void set type(TypeName typeName) {
     _type = becomeParentOf(typeName);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
     safelyVisitChild(identifier, visitor);
@@ -12324,6 +12335,13 @@ class SimpleIdentifier extends Identifier {
   Element _propagatedElement;
 
   /**
+   * If this expression is both in a getter and setter context, the [AuxiliaryElements] will
+   * be set to hold onto the static and propagated information. The auxiliary element will hold onto
+   * the elements from the getter context.
+   */
+  AuxiliaryElements _auxiliaryElements = null;
+
+  /**
    * Initialize a newly created identifier.
    *
    * @param token the token representing the identifier
@@ -12339,6 +12357,12 @@ class SimpleIdentifier extends Identifier {
    */
   SimpleIdentifier({Token token}) : this.full(token);
   accept(ASTVisitor visitor) => visitor.visitSimpleIdentifier(this);
+
+  /**
+   * Get the auxiliary elements, this will be `null` if the node is not in a getter and setter
+   * context, or if it is not yet fully resolved.
+   */
+  AuxiliaryElements get auxiliaryElements => _auxiliaryElements;
   Token get beginToken => _token;
   Element get bestElement {
     if (_propagatedElement == null) {
@@ -12472,6 +12496,13 @@ class SimpleIdentifier extends Identifier {
   bool get isSynthetic => _token.isSynthetic;
 
   /**
+   * Set the auxiliary elements.
+   */
+  void set auxiliaryElements(AuxiliaryElements auxiliaryElements2) {
+    this._auxiliaryElements = auxiliaryElements2;
+  }
+
+  /**
    * Set the element associated with this identifier based on propagated type information to the
    * given element.
    *
@@ -12499,7 +12530,7 @@ class SimpleIdentifier extends Identifier {
   void set token(Token token2) {
     this._token = token2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
 
   /**
@@ -12663,7 +12694,7 @@ class SimpleStringLiteral extends StringLiteral {
   void set value(String string) {
     _value = StringUtilities.intern(_value);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
   void appendStringValue(JavaStringBuilder builder) {
     builder.append(value);
@@ -12739,7 +12770,7 @@ class StringInterpolation extends StringLiteral {
    */
   NodeList<InterpolationElement> get elements => _elements;
   Token get endToken => _elements.endToken;
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     _elements.accept(visitor);
   }
   void appendStringValue(JavaStringBuilder builder) {
@@ -12966,7 +12997,7 @@ class SuperConstructorInvocation extends ConstructorInitializer {
   void set staticElement(ConstructorElement element) {
     this._staticElement = element;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_constructorName, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
@@ -13022,7 +13053,7 @@ class SuperExpression extends Expression {
   void set keyword(Token keyword2) {
     this._keyword = keyword2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -13082,7 +13113,7 @@ class SwitchCase extends SwitchMember {
   void set expression(Expression expression2) {
     this._expression = becomeParentOf(expression2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     labels.accept(visitor);
     safelyVisitChild(_expression, visitor);
     statements.accept(visitor);
@@ -13120,7 +13151,7 @@ class SwitchDefault extends SwitchMember {
    */
   SwitchDefault({List<Label> labels, Token keyword, Token colon, List<Statement> statements}) : this.full(labels, keyword, colon, statements);
   accept(ASTVisitor visitor) => visitor.visitSwitchDefault(this);
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     labels.accept(visitor);
     statements.accept(visitor);
   }
@@ -13432,7 +13463,7 @@ class SwitchStatement extends Statement {
   void set rightParenthesis(Token rightParenthesis2) {
     this._rightParenthesis = rightParenthesis2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
     _members.accept(visitor);
   }
@@ -13503,7 +13534,7 @@ class SymbolLiteral extends Literal {
   void set poundSign(Token poundSign2) {
     this._poundSign = poundSign2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -13557,7 +13588,7 @@ class ThisExpression extends Expression {
   void set keyword(Token keyword2) {
     this._keyword = keyword2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -13640,7 +13671,7 @@ class ThrowExpression extends Expression {
   void set keyword(Token keyword2) {
     this._keyword = keyword2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -13725,7 +13756,7 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
   void set variables(VariableDeclarationList variableList) {
     variableList = becomeParentOf(variableList);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_variableList, visitor);
   }
@@ -13886,7 +13917,7 @@ class TryStatement extends Statement {
   void set tryKeyword(Token tryKeyword2) {
     this._tryKeyword = tryKeyword2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_body, visitor);
     _catchClauses.accept(visitor);
     safelyVisitChild(_finallyBlock, visitor);
@@ -14066,7 +14097,7 @@ class TypeArgumentList extends ASTNode {
   void set rightBracket(Token rightBracket2) {
     this._rightBracket = rightBracket2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     _arguments.accept(visitor);
   }
 }
@@ -14176,7 +14207,7 @@ class TypeName extends ASTNode {
   void set typeArguments(TypeArgumentList typeArguments2) {
     this._typeArguments = becomeParentOf(typeArguments2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_typeArguments, visitor);
   }
@@ -14293,7 +14324,7 @@ class TypeParameter extends Declaration {
   void set name(SimpleIdentifier identifier) {
     _name = becomeParentOf(identifier);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_bound, visitor);
@@ -14373,7 +14404,7 @@ class TypeParameterList extends ASTNode {
    * @return the type parameters for the type
    */
   NodeList<TypeParameter> get typeParameters => _typeParameters;
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     _typeParameters.accept(visitor);
   }
 }
@@ -14455,7 +14486,7 @@ abstract class TypedLiteral extends Literal {
   void set typeArguments(TypeArgumentList typeArguments2) {
     this._typeArguments = typeArguments2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_typeArguments, visitor);
   }
 }
@@ -14523,7 +14554,7 @@ abstract class UriBasedDirective extends Directive {
   void set uri(StringLiteral uri2) {
     this._uri = becomeParentOf(uri2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_uri, visitor);
   }
@@ -14681,7 +14712,7 @@ class VariableDeclaration extends Declaration {
   void set name(SimpleIdentifier name2) {
     this._name = becomeParentOf(name2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_initializer, visitor);
@@ -14807,7 +14838,7 @@ class VariableDeclarationList extends AnnotatedNode {
   void set type(TypeName typeName) {
     _type = becomeParentOf(typeName);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_type, visitor);
     _variables.accept(visitor);
   }
@@ -14896,7 +14927,7 @@ class VariableDeclarationStatement extends Statement {
   void set variables(VariableDeclarationList variableList2) {
     this._variableList = becomeParentOf(variableList2);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_variableList, visitor);
   }
 }
@@ -15048,7 +15079,7 @@ class WhileStatement extends Statement {
   void set rightParenthesis(Token rightParenthesis2) {
     this._rightParenthesis = rightParenthesis2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_condition, visitor);
     safelyVisitChild(_body, visitor);
   }
@@ -15120,7 +15151,7 @@ class WithClause extends ASTNode {
   void set mixinKeyword(Token withKeyword2) {
     this._withKeyword = withKeyword2;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     _mixinTypes.accept(visitor);
   }
 }
@@ -15284,7 +15315,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.EQ_EQ) {
         if (leftOperand is bool && rightOperand is bool) {
-          return identical(((leftOperand as bool)), ((rightOperand as bool)));
+          return identical(leftOperand as bool, rightOperand as bool);
         } else if (leftOperand is int && rightOperand is int) {
           return ((leftOperand as int)) == rightOperand;
         } else if (leftOperand is double && rightOperand is double) {
@@ -15294,15 +15325,15 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.GT) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).compareTo((rightOperand as int)) > 0;
+          return ((leftOperand as int)).compareTo(rightOperand as int) > 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)).compareTo((rightOperand as double)) > 0;
+          return ((leftOperand as double)).compareTo(rightOperand as double) > 0;
         }
       } else if (node.operator.type == TokenType.GT_EQ) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).compareTo((rightOperand as int)) >= 0;
+          return ((leftOperand as int)).compareTo(rightOperand as int) >= 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)).compareTo((rightOperand as double)) >= 0;
+          return ((leftOperand as double)).compareTo(rightOperand as double) >= 0;
         }
       } else if (node.operator.type == TokenType.GT_GT) {
         if (leftOperand is int && rightOperand is int) {
@@ -15310,15 +15341,15 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.LT) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).compareTo((rightOperand as int)) < 0;
+          return ((leftOperand as int)).compareTo(rightOperand as int) < 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)).compareTo((rightOperand as double)) < 0;
+          return ((leftOperand as double)).compareTo(rightOperand as double) < 0;
         }
       } else if (node.operator.type == TokenType.LT_EQ) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).compareTo((rightOperand as int)) <= 0;
+          return ((leftOperand as int)).compareTo(rightOperand as int) <= 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)).compareTo((rightOperand as double)) <= 0;
+          return ((leftOperand as double)).compareTo(rightOperand as double) <= 0;
         }
       } else if (node.operator.type == TokenType.LT_LT) {
         if (leftOperand is int && rightOperand is int) {
@@ -15332,7 +15363,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.PERCENT) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).remainder((rightOperand as int));
+          return ((leftOperand as int)).remainder(rightOperand as int);
         } else if (leftOperand is double && rightOperand is double) {
           return ((leftOperand as double)) % ((rightOperand as double));
         }
@@ -17350,7 +17381,7 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   List clone3(NodeList nodes) {
     List clonedNodes = new List();
     for (ASTNode node in nodes) {
-      clonedNodes.add((node.accept(this) as ASTNode));
+      clonedNodes.add(node.accept(this) as ASTNode);
     }
     return clonedNodes;
   }

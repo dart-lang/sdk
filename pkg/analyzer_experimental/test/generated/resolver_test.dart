@@ -2320,18 +2320,6 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
-  void test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod() {
-    Source source = addSource(EngineTestCase.createSource([
-        "abstract class A {",
-        "  m(p);",
-        "}",
-        "class B extends A {",
-        "  noSuchMethod(invocation) {}",
-        "}"]));
-    resolve(source);
-    assertNoErrors();
-    verify([source]);
-  }
   void test_nonBoolExpression_functionType() {
     Source source = addSource(EngineTestCase.createSource([
         "bool makeAssertion() => true;",
@@ -2672,6 +2660,93 @@ class NonErrorResolverTest extends ResolverTestCase {
     resolve(source);
     assertNoErrors();
     verify([source]);
+  }
+  void test_proxy_annotation_prefixed() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library L;",
+        "import 'meta.dart';",
+        "@proxy",
+        "class A {}",
+        "f(A a) {",
+        "  a.m();",
+        "  var x = a.g;",
+        "  a.s = 1;",
+        "  var y = a + a;",
+        "  a++;",
+        "  ++a;",
+        "}"]));
+    addSource2("/meta.dart", EngineTestCase.createSource([
+        "library meta;",
+        "const proxy = const _Proxy();",
+        "class _Proxy { const _Proxy(); }"]));
+    resolve(source);
+    assertNoErrors();
+  }
+  void test_proxy_annotation_prefixed2() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library L;",
+        "import 'meta.dart';",
+        "@proxy",
+        "class A {}",
+        "class B {",
+        "  f(A a) {",
+        "    a.m();",
+        "    var x = a.g;",
+        "    a.s = 1;",
+        "    var y = a + a;",
+        "    a++;",
+        "    ++a;",
+        "  }",
+        "}"]));
+    addSource2("/meta.dart", EngineTestCase.createSource([
+        "library meta;",
+        "const proxy = const _Proxy();",
+        "class _Proxy { const _Proxy(); }"]));
+    resolve(source);
+    assertNoErrors();
+  }
+  void test_proxy_annotation_prefixed3() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library L;",
+        "import 'meta.dart';",
+        "class B {",
+        "  f(A a) {",
+        "    a.m();",
+        "    var x = a.g;",
+        "    a.s = 1;",
+        "    var y = a + a;",
+        "    a++;",
+        "    ++a;",
+        "  }",
+        "}",
+        "@proxy",
+        "class A {}"]));
+    addSource2("/meta.dart", EngineTestCase.createSource([
+        "library meta;",
+        "const proxy = const _Proxy();",
+        "class _Proxy { const _Proxy(); }"]));
+    resolve(source);
+    assertNoErrors();
+  }
+  void test_proxy_annotation_simple() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library L;",
+        "import 'meta.dart';",
+        "@proxy",
+        "class B {",
+        "  m() {",
+        "    n();",
+        "    var x = g;",
+        "    s = 1;",
+        "    var y = this + this;",
+        "  }",
+        "}"]));
+    addSource2("/meta.dart", EngineTestCase.createSource([
+        "library meta;",
+        "const proxy = const _Proxy();",
+        "class _Proxy { const _Proxy(); }"]));
+    resolve(source);
+    assertNoErrors();
   }
   void test_recursiveConstructorRedirect() {
     Source source = addSource(EngineTestCase.createSource([
@@ -3750,10 +3825,6 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_method);
       });
-      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod', () {
-        final __test = new NonErrorResolverTest();
-        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod);
-      });
       _ut.test('test_nonBoolExpression_functionType', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_nonBoolExpression_functionType);
@@ -3889,6 +3960,22 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_prefixCollidesWithTopLevelMembers', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_prefixCollidesWithTopLevelMembers);
+      });
+      _ut.test('test_proxy_annotation_prefixed', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_proxy_annotation_prefixed);
+      });
+      _ut.test('test_proxy_annotation_prefixed2', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_proxy_annotation_prefixed2);
+      });
+      _ut.test('test_proxy_annotation_prefixed3', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_proxy_annotation_prefixed3);
+      });
+      _ut.test('test_proxy_annotation_simple', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_proxy_annotation_simple);
       });
       _ut.test('test_recursiveConstructorRedirect', () {
         final __test = new NonErrorResolverTest();
@@ -4782,7 +4869,9 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
   void test_undefinedOperator_indexBoth() {
     Source source = addSource(EngineTestCase.createSource(["class A {}", "f(A a) {", "  a[0]++;", "}"]));
     resolve(source);
-    assertErrors([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    assertErrors([
+        StaticTypeWarningCode.UNDEFINED_OPERATOR,
+        StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
   void test_undefinedOperator_indexGetter() {
     Source source = addSource(EngineTestCase.createSource(["class A {}", "f(A a) {", "  a[0];", "}"]));
@@ -6946,7 +7035,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors([
         StaticWarningCode.AMBIGUOUS_IMPORT,
-        StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+        CompileTimeErrorCode.UNDEFINED_FUNCTION]);
   }
   void test_argumentDefinitionTestNonParameter() {
     Source source = addSource(EngineTestCase.createSource(["f() {", " var v = 0;", " return ?v;", "}"]));
@@ -10885,7 +10974,7 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
     if (node != null) {
       ASTNode root = node.root;
       if (root is CompilationUnit) {
-        CompilationUnit rootCU = (root as CompilationUnit);
+        CompilationUnit rootCU = root as CompilationUnit;
         if (rootCU.element != null) {
           return rootCU.element.source.fullName;
         } else {
@@ -15157,7 +15246,7 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
     }
     ASTNode parent = node.parent;
     if (parent is MethodInvocation) {
-      MethodInvocation invocation = (parent as MethodInvocation);
+      MethodInvocation invocation = parent as MethodInvocation;
       if (identical(invocation.methodName, node)) {
         Expression target = invocation.realTarget;
         Type2 targetType = target == null ? null : target.staticType;
@@ -15185,7 +15274,7 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
     if (node != null) {
       ASTNode root = node.root;
       if (root is CompilationUnit) {
-        CompilationUnit rootCU = (root as CompilationUnit);
+        CompilationUnit rootCU = root as CompilationUnit;
         if (rootCU.element != null) {
           return rootCU.element.source.fullName;
         } else {
@@ -15919,7 +16008,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void assertType2(Type2 expectedType, Type2 actualType) {
     if (expectedType is InterfaceTypeImpl) {
       EngineTestCase.assertInstanceOf(InterfaceTypeImpl, actualType);
-      assertType((expectedType as InterfaceTypeImpl), (actualType as InterfaceTypeImpl));
+      assertType(expectedType as InterfaceTypeImpl, actualType as InterfaceTypeImpl);
     }
   }
 
@@ -17304,7 +17393,7 @@ class SimpleResolverTest extends ResolverTestCase {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     JUnitTestCase.assertNotNull(unit);
     ClassDeclaration classDeclaration = unit.declarations[0] as ClassDeclaration;
-    MethodDeclaration methodDeclaration = (classDeclaration.members[0] as MethodDeclaration);
+    MethodDeclaration methodDeclaration = classDeclaration.members[0] as MethodDeclaration;
     Block block = ((methodDeclaration.body as BlockFunctionBody)).block;
     ExpressionStatement statement = block.statements[0] as ExpressionStatement;
     MethodInvocation invocation = statement.expression as MethodInvocation;
