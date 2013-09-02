@@ -369,7 +369,9 @@ class JavaScriptBackend extends Backend {
     if (element.isParameter()
         || element.isFieldParameter()
         || element.isField()) {
-      element = element.enclosingElement;
+      if (!canBeUsedForGlobalOptimizations(element.enclosingElement)) {
+        return false;
+      }
     }
     element = element.declaration;
     return !isNeededForReflection(element) && !helpersUsed.contains(element);
@@ -952,6 +954,11 @@ class JavaScriptBackend extends Backend {
 
   void registerFallThroughError(TreeElements elements) {
     enqueueInResolution(getFallThroughError(), elements);
+  }
+
+  void enableNoSuchMethod(Enqueuer world) {
+    enqueue(world, getCreateInvocationMirror(), compiler.globalDependencies);
+    world.registerInvocation(compiler.noSuchMethodSelector);
   }
 
   void registerSuperNoSuchMethod(TreeElements elements) {

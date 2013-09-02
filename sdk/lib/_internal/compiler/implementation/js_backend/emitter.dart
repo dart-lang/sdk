@@ -585,7 +585,7 @@ class CodeEmitterTask extends CompilerTask {
     // Object class to catch noSuchMethod invocations.
     ClassElement objectClass = compiler.objectClass;
     String createInvocationMirror = namer.getName(
-        compiler.createInvocationMirrorElement);
+        backend.getCreateInvocationMirror());
     String noSuchMethodName = namer.publicInstanceMethodNameByArity(
         Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
     var type = 0;
@@ -2826,8 +2826,7 @@ class CodeEmitterTask extends CompilerTask {
     String noSuchMethodName = namer.publicInstanceMethodNameByArity(
         Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
 
-    Element createInvocationMirrorElement =
-        compiler.findHelper(const SourceString("createInvocationMirror"));
+    Element createInvocationMirrorElement = backend.getCreateInvocationMirror();
     String createInvocationMirrorName =
         namer.getName(createInvocationMirrorElement);
 
@@ -2888,7 +2887,7 @@ class CodeEmitterTask extends CompilerTask {
       }
 
       String createInvocationMirror = namer.getName(
-          compiler.createInvocationMirrorElement);
+          backend.getCreateInvocationMirror());
 
       assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
       jsAst.Expression expression = js('this.$noSuchMethodName')(

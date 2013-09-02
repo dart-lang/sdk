@@ -211,6 +211,12 @@ abstract class Backend {
    */
   void registerRuntimeType(Enqueuer enqueuer, TreeElements elements) {}
 
+  /**
+   * Call this method to enable [noSuchMethod] handling in the
+   * backend.
+   */
+  void enableNoSuchMethod(Enqueuer enqueuer) {}
+
   void registerRequiredType(DartType type, Element enclosingElement) {}
   void registerClassUsingVariableExpression(ClassElement cls) {}
 
@@ -450,7 +456,6 @@ abstract class Compiler implements DiagnosticListener {
   Element identicalFunction;
   Element functionApplyMethod;
   Element invokeOnMethod;
-  Element createInvocationMirrorElement;
 
   Element get currentElement => _currentElement;
 
@@ -1036,8 +1041,7 @@ abstract class Compiler implements DiagnosticListener {
       enqueuer.codegen.registerGetOfStaticFunction(mainApp.find(MAIN));
     }
     if (enabledNoSuchMethod) {
-      enqueuer.codegen.registerInvocation(noSuchMethodSelector);
-      enqueuer.codegen.addToWorkList(createInvocationMirrorElement);
+      backend.enableNoSuchMethod(enqueuer.codegen);
     }
     if (compileAll) {
       libraries.forEach((_, lib) => fullyEnqueueLibrary(lib, enqueuer.codegen));
