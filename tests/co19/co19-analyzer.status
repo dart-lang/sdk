@@ -199,6 +199,8 @@ Language/12_Expressions/30_Identifier_Reference_A14_t03: fail, OK
 # co19 issue #543: invocation of a non-function
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t02: fail, OK
 
+LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: Fail, OK # co19 issue 556
+
 Language/13_Statements/11_Return_A07_t01: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/11_Try_A02_t03: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/11_Try_A03_t03: fail # co19-roll r546: Please triage this failure
