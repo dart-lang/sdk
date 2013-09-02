@@ -10,30 +10,44 @@
 import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
+import "dart:math";
 
+part "../../../sdk/lib/io/crypto.dart";
+
+
+const String webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 void testPing(int totalConnections) {
   HttpServer.bind('localhost', 0).then((server) {
-    server.transform(new WebSocketTransformer()).listen((webSocket) {
-      webSocket.pingInterval = const Duration(milliseconds: 500);
-      webSocket.drain();
+    int closed = 0;
+    server.listen((request) {
+      var response = request.response;
+      response.statusCode = HttpStatus.SWITCHING_PROTOCOLS;
+      response.headers.set(HttpHeaders.CONNECTION, "upgrade");
+      response.headers.set(HttpHeaders.UPGRADE, "websocket");
+      String key = request.headers.value("Sec-WebSocket-Key");
+      _SHA1 sha1 = new _SHA1();
+      sha1.add("$key$webSocketGUID".codeUnits);
+      String accept = _CryptoUtils.bytesToBase64(sha1.close());
+      response.headers.add("Sec-WebSocket-Accept", accept);
+      response.headers.contentLength = 0;
+      response.detachSocket().then((socket) {
+        socket.drain().then((_) {
+          socket.close();
+          closed++;
+          if (closed == totalConnections) {
+            server.close();
+          }
+        });
+      });
     });
 
-    var futures = [];
     for (int i = 0; i < totalConnections; i++) {
-      futures.add(
-          WebSocket.connect('ws://localhost:${server.port}').then((webSocket) {
-        webSocket.pingInterval = const Duration(milliseconds: 500);
+      WebSocket.connect('ws://localhost:${server.port}').then((webSocket) {
+        webSocket.pingInterval = const Duration(milliseconds: 100);
         webSocket.drain();
-        new Timer(const Duration(seconds: 2), () {
-          // Should not be closed yet.
-          Expect.equals(null, webSocket.closeCode);
-          webSocket.close();
-        });
-        return webSocket.done;
-      }));
+      });
     }
-    Future.wait(futures).then((_) => server.close());
   });
 }
 

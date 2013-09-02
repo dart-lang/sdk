@@ -156,7 +156,6 @@ io/internet_address_test: Fail  # localhost is an Unknown name?
 [ $arch == simarm ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
-io/web_socket_ping_test: Skip # TODO(ajohnsen): Timeout issue
 io/test_runner_test: Pass, Fail # Issue 12413
 
 [ $arch == simmips || $arch == mips ]
@@ -165,7 +164,6 @@ io/web_socket_test: Pass, Slow
 io/http_server_response_test: Pass, Slow
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
-io/web_socket_ping_test: Skip # TODO(ajohnsen): Timeout issue
 
 [ $arch == mips ]
 io/test_extension_test: Fail
