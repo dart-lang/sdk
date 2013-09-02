@@ -276,11 +276,11 @@ patch class NoSuchMethodError {
       }
     }
     if (_namedArguments != null) {
-      _namedArguments.forEach((String key, var value) {
+      _namedArguments.forEach((Symbol key, var value) {
         if (i > 0) {
           sb.write(", ");
         }
-        sb.write(key);
+        sb.write(_symbolToString(key));
         sb.write(": ");
         sb.write(Error.safeToString(value));
         i++;
