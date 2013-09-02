@@ -154,11 +154,9 @@ void testConfigurations(List<Map> configurations) {
       }
     }
 
-    if (conf['runtime'].startsWith('ie')) {
-      // NOTE: We've experienced random timeouts of tests on ie9/ie10. The
-      // underlying issue has not been determined yet. Our current hypothesis
-      // is that windows makes bad scheduling decisions if we overload a
-      // machine (i.e. some processes seem to starve).
+    // If people use selenium they will have issues if we use more than one
+    // ie browser at a time.
+    if (conf['runtime'].startsWith('ie') && !conf['use_browser_controller']) {
       maxBrowserProcesses = 1;
     } else if (conf['runtime'].startsWith('safari') &&
                conf['use_browser_controller']) {
