@@ -613,14 +613,8 @@ class Parser {
         identifiers = identifiers.tail;
       }
     }
-    parseModifierList(identifiers.reverse());
-    if (type == null) {
-      listener.handleNoType(token);
-    } else {
-      parseReturnTypeOpt(type);
-    }
-    token = parseIdentifier(name);
 
+    token = name.next;
     bool isField;
     while (true) {
       // Loop to allow the listener to rewrite the token stream for
@@ -645,29 +639,61 @@ class Parser {
         break;
       } else {
         token = listener.unexpected(token);
-        if (identical(token.kind, EOF_TOKEN)) {
-          // TODO(ahe): This is a hack. It would be better to tell the
-          // listener more explicitly that it must pop an identifier.
-          listener.endTopLevelFields(1, start, token);
-          return token;
-        }
+        if (identical(token.kind, EOF_TOKEN)) return token;
       }
     }
-    if (isField) {
-      int fieldCount = 1;
-      token = parseVariableInitializerOpt(token);
-      while (optional(',', token)) {
-        token = parseIdentifier(token.next);
-        token = parseVariableInitializerOpt(token);
-        ++fieldCount;
-      }
-      expectSemicolon(token);
-      listener.endTopLevelFields(fieldCount, start, token);
+    var modifiers = identifiers.reverse();
+    return isField
+        ? parseTopLevelFields(start, modifiers, type, getOrSet, name)
+        : parseTopLevelMethod(start, modifiers, type, getOrSet, name);
+  }
+
+  Token parseTopLevelFields(Token start,
+                            Link<Token> modifiers,
+                            Token type,
+                            Token getOrSet,
+                            Token name) {
+    if (getOrSet != null) {
+      // TODO(ahe): Enable this error:
+      // listener.recoverableError("unexpected", token: getOrSet);
+    }
+    parseModifierList(modifiers);
+    if (type == null) {
+      listener.handleNoType(name);
     } else {
-      token = parseFormalParametersOpt(token);
-      token = parseFunctionBody(token, false);
-      listener.endTopLevelMethod(start, getOrSet, token);
+      // TODO(ahe): Report recoverable error on 'void'.
+      parseReturnTypeOpt(type);
     }
+    var token = parseIdentifier(name);
+
+    int fieldCount = 1;
+    token = parseVariableInitializerOpt(token);
+    while (optional(',', token)) {
+      token = parseIdentifier(token.next);
+      token = parseVariableInitializerOpt(token);
+      ++fieldCount;
+    }
+    expectSemicolon(token);
+    listener.endTopLevelFields(fieldCount, start, token);
+    return token.next;
+  }
+
+  Token parseTopLevelMethod(Token start,
+                            Link<Token> modifiers,
+                            Token type,
+                            Token getOrSet,
+                            Token name) {
+    parseModifierList(modifiers);
+    if (type == null) {
+      listener.handleNoType(name);
+    } else {
+      parseReturnTypeOpt(type);
+    }
+    var token = parseIdentifier(name);
+
+    token = parseFormalParametersOpt(token);
+    token = parseFunctionBody(token, false);
+    listener.endTopLevelMethod(start, getOrSet, token);
     return token.next;
   }
 
