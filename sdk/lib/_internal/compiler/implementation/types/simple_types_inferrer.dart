@@ -12,7 +12,7 @@ import '../dart_types.dart'
 import '../elements/elements.dart';
 import '../native_handler.dart' as native;
 import '../tree/tree.dart';
-import '../util/util.dart' show Link;
+import '../util/util.dart' show Link, Spannable;
 import 'types.dart'
     show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
          ElementTypeMask, TypeSystem, MinimalInferrerEngine;
@@ -168,7 +168,7 @@ abstract class TypeInformation {
    * Assignments on the element and the types inferred at
    * these assignments.
    */
-  Map<Node, TypeMask> get assignments => null;
+  Map<Spannable, TypeMask> get assignments => null;
 
   /**
    * Callers of an element.
@@ -204,7 +204,7 @@ abstract class TypeInformation {
     }
   }
 
-  void addAssignment(Node node, TypeMask mask) {
+  void addAssignment(Spannable node, TypeMask mask) {
     assignments[node] = mask;
   }
 
@@ -223,7 +223,7 @@ class FunctionTypeInformation extends TypeInformation {
 }
 
 class ParameterTypeInformation extends TypeInformation {
-  Map<Node, TypeMask> assignments = new Map<Node, TypeMask>();
+  Map<Spannable, TypeMask> assignments = new Map<Spannable, TypeMask>();
   TypeMask type;
   TypeMask defaultType;
 
@@ -235,7 +235,7 @@ class ParameterTypeInformation extends TypeInformation {
 class FieldTypeInformation extends TypeInformation {
   TypeMask type;
   Map<Element, int> callers = new Map<Element, int>();
-  Map<Node, TypeMask> assignments = new Map<Node, TypeMask>();
+  Map<Spannable, TypeMask> assignments = new Map<Spannable, TypeMask>();
   int analyzeCount = 0;
 
   void clear() {
@@ -384,7 +384,7 @@ abstract class InferrerEngine<T> implements MinimalInferrerEngine<T> {
    * [constraint] is a field assignment constraint, as described in
    * [InternalSimpleTypesInferrer].
    */
-  void recordTypeOfNonFinalField(Node node,
+  void recordTypeOfNonFinalField(Spannable node,
                                  Element field,
                                  T type,
                                  CallSite constraint);
@@ -407,7 +407,7 @@ abstract class InferrerEngine<T> implements MinimalInferrerEngine<T> {
   void recordReturnType(Element element, T type);
 
   /**
-   * Registers that [caller] calls [callee] at node [node], with
+   * Registers that [caller] calls [callee] at location [node], with
    * [selector], and [arguments]. Note that [selector] is null for
    * forwarding constructors.
    *
@@ -419,7 +419,7 @@ abstract class InferrerEngine<T> implements MinimalInferrerEngine<T> {
    *
    * [inLoop] tells whether the call happens in a loop.
    */
-  void registerCalledElement(Node node,
+  void registerCalledElement(Spannable node,
                              Selector selector,
                              Element caller,
                              Element callee,
@@ -626,7 +626,7 @@ class InternalSimpleTypesInferrer
    * returns that type.
    *
    */
-  Map<Node, CallSite> setterConstraints = new Map<Node, CallSite>();
+  Map<Spannable, CallSite> setterConstraints = new Map<Spannable, CallSite>();
 
   /**
    * The work list of the inferrer.
@@ -1184,7 +1184,7 @@ class InternalSimpleTypesInferrer
     typeInformationOf(callee).addCaller(caller);
   }
 
-  bool addArguments(Node node,
+  bool addArguments(Spannable node,
                     FunctionElement element,
                     ArgumentsTypes arguments) {
     FunctionTypeInformation info = typeInformationOf(element);
@@ -1232,7 +1232,7 @@ class InternalSimpleTypesInferrer
 
     ParameterTypeInformation info = typeInformationOf(parameter);
     TypeMask elementType;
-    info.assignments.forEach((Node node, TypeMask mask) {
+    info.assignments.forEach((Spannable node, TypeMask mask) {
       if (mask == null) {
         // Now that we know we have analyzed the function holding
         // [parameter], we have a default type for that [parameter].
@@ -1259,7 +1259,7 @@ class InternalSimpleTypesInferrer
    * [arguments]. [constraint] is a setter constraint (see
    * [setterConstraints] documentation).
    */
-  void registerCalledElement(Node node,
+  void registerCalledElement(Spannable node,
                              Selector selector,
                              Element caller,
                              Element callee,
@@ -1329,7 +1329,7 @@ class InternalSimpleTypesInferrer
     typeInformationOf(callee).removeCall(caller);
     if (callee.isField()) {
       if (selector.isSetter()) {
-        Map<Node, TypeMask> assignments = typeInformationOf(callee).assignments;
+        Map<Spannable, TypeMask> assignments = typeInformationOf(callee).assignments;
         if (assignments == null || !assignments.containsKey(node)) return;
         assignments.remove(node);
         if (hasAnalyzedAll) updateNonFinalFieldType(callee);
@@ -1339,7 +1339,7 @@ class InternalSimpleTypesInferrer
     } else {
       FunctionElement element = callee;
       element.computeSignature(compiler).forEachParameter((Element parameter) {
-        Map<Node, TypeMask> assignments =
+        Map<Spannable, TypeMask> assignments =
             typeInformationOf(parameter).assignments;
         if (assignments == null || !assignments.containsKey(node)) return;
         assignments.remove(node);
@@ -1438,7 +1438,7 @@ class InternalSimpleTypesInferrer
    * Records an assignment to [element] with the given
    * [argumentType].
    */
-  void recordTypeOfNonFinalField(Node node,
+  void recordTypeOfNonFinalField(Spannable node,
                                  Element element,
                                  TypeMask argumentType,
                                  CallSite constraint) {
@@ -1457,10 +1457,10 @@ class InternalSimpleTypesInferrer
   }
 
   TypeMask computeTypeWithConstraints(Element element,
-                                      Map<Node, TypeMask> assignments) {
+                                      Map<Spannable, TypeMask> assignments) {
     List<CallSite> constraints = <CallSite>[];
     TypeMask elementType;
-    assignments.forEach((Node node, TypeMask mask) {
+    assignments.forEach((Spannable node, TypeMask mask) {
       CallSite constraint = setterConstraints[node];
       if (constraint != null) {
         // If this update has a constraint, we collect it and don't
@@ -1516,7 +1516,7 @@ class InternalSimpleTypesInferrer
     assert(hasAnalyzedAll);
 
     TypeInformation info = typeInformationOf(element);
-    Map<Node, TypeMask> assignments = info.assignments;
+    Map<Spannable, TypeMask> assignments = info.assignments;
     if (assignments.isEmpty) return;
 
     TypeMask fieldType = computeTypeWithConstraints(element, assignments);
@@ -1675,14 +1675,12 @@ class SimpleTypeInferrerVisitor<T>
                 parameterType,
                 null);
           }
-        } else {
-          locals.update(element, parameterType, node);
         }
+        locals.update(element, parameterType, node);
       });
       if (analyzedElement.isSynthesized) {
-        // Use the enclosing class of the synthesized constructor as
-        // the location for the initialized fields.
-        node = analyzedElement.enclosingElement.parseNode(compiler);
+        node = analyzedElement;
+        synthesizeForwardingCall(node, analyzedElement.targetConstructor);
       } else {
         visitingInitializers = true;
         visit(node.initializers);
@@ -2237,40 +2235,45 @@ class SimpleTypeInferrerVisitor<T>
     returnType = inferrer.addReturnTypeFor(analyzedElement, returnType, type);
   }
 
+  void synthesizeForwardingCall(Spannable node, FunctionElement element) {
+    element = element.implementation;
+    FunctionElement function = analyzedElement;
+    FunctionSignature signature = function.computeSignature(compiler);
+    List<T> unnamed = <T>[];
+    Map<SourceString, T> named = new Map<SourceString, T>();
+    signature.forEachRequiredParameter((Element element) {
+      assert(locals.use(element) != null);
+      unnamed.add(locals.use(element));
+    });
+    signature.forEachOptionalParameter((Element element) {
+      if (signature.optionalParametersAreNamed) {
+        named[element.name] = locals.use(element);
+      } else {
+        unnamed.add(locals.use(element));
+      }
+    });
+    ArgumentsTypes arguments = new ArgumentsTypes<T>(unnamed, named);
+    inferrer.registerCalledElement(node,
+                                   null,
+                                   outermostElement,
+                                   element,
+                                   arguments,
+                                   null,
+                                   sideEffects,
+                                   inLoop);
+  }
+
   T visitReturn(Return node) {
     if (node.isRedirectingFactoryBody) {
       Element element = elements[node.expression];
       if (Elements.isErroneousElement(element)) {
         recordReturnType(types.dynamicType);
       } else {
-        element = element.implementation;
         // We don't create a selector for redirecting factories, and
         // the send is just a property access. Therefore we must
         // manually create the [ArgumentsTypes] of the call, and
         // manually register [analyzedElement] as a caller of [element].
-        FunctionElement function = analyzedElement;
-        FunctionSignature signature = function.computeSignature(compiler);
-        List<T> unnamed = <T>[];
-        Map<SourceString, T> named = new Map<SourceString, T>();
-        signature.forEachRequiredParameter((Element element) {
-          unnamed.add(locals.use(element));
-        });
-        signature.forEachOptionalParameter((Element element) {
-          if (signature.optionalParametersAreNamed) {
-            named[element.name] = locals.use(element);
-          } else {
-            unnamed.add(locals.use(element));
-          }
-        });
-        ArgumentsTypes arguments = new ArgumentsTypes<T>(unnamed, named);
-        inferrer.registerCalledElement(node.expression,
-                                       null,
-                                       outermostElement,
-                                       element,
-                                       arguments,
-                                       null,
-                                       sideEffects,
-                                       inLoop);
+        synthesizeForwardingCall(node.expression, element);
         recordReturnType(inferrer.returnTypeOfElement(element));
       }
     } else {
