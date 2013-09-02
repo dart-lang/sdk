@@ -866,7 +866,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
       _outCloseReason = reason;
       _writeClosed = true;
     }
-    if (!_sink._isBound) _sink.close();
+    if (!(_sink as _StreamSinkImpl)._isBound) _sink.close();
     return _sink.done;
   }
 
