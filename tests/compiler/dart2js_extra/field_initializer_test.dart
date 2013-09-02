@@ -7,21 +7,21 @@ import "package:expect/expect.dart";
 class A {
   static var a;
   static var b = c;
-  static const var c = 499;
-  static const var d = c;
-  static const var e = d;
-  static const var f = B.g;
-  static const var h = true;
-  static const var i = false;
-  static const var j = n;
-  static const var k = 4.99;
-  static const var l;
-  static const var m = l;
-  static const var n = 42;
+  static const c = 499;
+  static const d = c;
+  static const e = d;
+  static const f = B.g;
+  static const h = true;
+  static const i = false;
+  static const j = n;
+  static const k = 4.99;
+  static const l;
+  static const m = l;
+  static const n = 42;
 }
 
 class B {
-  static const var g = A.c;
+  static const g = A.c;
 }
 
 testInitialValues() {
