@@ -368,6 +368,12 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     eventHandlers = new List(EVENT_COUNT + 1);
   }
 
+  _NativeSocket.watch(int id) : typeFlags = TYPE_NORMAL_SOCKET {
+    eventHandlers = new List(EVENT_COUNT + 1);
+    isClosedWrite = true;
+    nativeSetSocketId(id);
+  }
+
   int available() {
     if (isClosing || isClosed) return 0;
     var result = nativeAvailable();
@@ -653,6 +659,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     return nativeSetOption(option._value, enabled);
   }
 
+  void nativeSetSocketId(int id) native "Socket_SetSocketId";
   nativeAvailable() native "Socket_Available";
   nativeRead(int len) native "Socket_Read";
   nativeWrite(List<int> buffer, int offset, int bytes)

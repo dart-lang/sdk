@@ -181,7 +181,7 @@ int Socket::GetType(intptr_t fd) {
 }
 
 
-intptr_t Socket::GetStdioHandle(int num) {
+intptr_t Socket::GetStdioHandle(intptr_t num) {
   HANDLE handle;
   switch (num) {
     case 0:

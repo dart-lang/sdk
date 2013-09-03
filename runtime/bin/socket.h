@@ -165,7 +165,7 @@ class Socket {
   static bool GetRemotePeer(intptr_t fd, char* host, intptr_t* port);
   static void GetError(intptr_t fd, OSError* os_error);
   static int GetType(intptr_t fd);
-  static intptr_t GetStdioHandle(int num);
+  static intptr_t GetStdioHandle(intptr_t num);
   static void Close(intptr_t fd);
   static bool SetNonBlocking(intptr_t fd);
   static bool SetBlocking(intptr_t fd);

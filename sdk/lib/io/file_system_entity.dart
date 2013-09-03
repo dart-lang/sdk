@@ -317,6 +317,34 @@ abstract class FileSystemEntity {
   FileStat statSync();
 
 
+
+  /**
+   * Start watch the [FileSystemEntity] for changes.
+   *
+   * The implementation uses platform-depending event-based APIs for receiving
+   * file-system notifixations, thus behvaiour depends on the platform.
+   *
+   *   * `Windows`: Uses `ReadDirectoryChangesW`. The implementation supports
+   *     only watching dirctories but supports recursive watching.
+   *   * `Linux`: Uses `inotify`. The implementation supports watching both
+   *     files and dirctories, but doesn't support recursive watching.
+   *   * `Mac OS`: Uses `FSEvents`. The implementation supports watching both
+   *     files and dirctories, and also recursive watching. Note that FSEvents
+   *     always use recursion internally, so when disabled, some events are
+   *     ignored.
+   *
+   * The system will start listen for events once the returned [Stream] is
+   * being listened to, not when the call to [watch] is issued. Note that the
+   * returned [Stream] is endless. To stop the [Stream], simply cancel the
+   * subscription.
+   */
+  Stream<FileSystemEvent> watch({int events: FileSystemEvent.ALL,
+                                 bool recursive: false})
+     => new _FileSystemWatcher(_trimTrailingPathSeparators(path),
+                               events,
+                               recursive).stream;
+
+
   /**
    * Finds the type of file system object that a path points to. Returns
    * a [:Future<FileSystemEntityType>:] that completes with the result.
@@ -390,11 +418,214 @@ abstract class FileSystemEntity {
       (_getTypeSync(path, true) == FileSystemEntityType.DIRECTORY._type);
 
 
-  static _throwIfError(Object result, String msg) {
+  static _throwIfError(Object result, String msg, [String path]) {
     if (result is OSError) {
-      throw new FileException(msg, result);
+      throw new FileException(msg, result, path);
     } else if (result is ArgumentError) {
       throw result;
     }
   }
+
+  static String _trimTrailingPathSeparators(String path) {
+    // Don't handle argument errors here.
+    if (path is! String) return path;
+    if (Platform.operatingSystem == 'windows') {
+      while (path.length > 1 &&
+             (path.endsWith(Platform.pathSeparator) ||
+              path.endsWith('/'))) {
+        path = path.substring(0, path.length - 1);
+      }
+    } else {
+      while (path.length > 1 && path.endsWith(Platform.pathSeparator)) {
+        path = path.substring(0, path.length - 1);
+      }
+    }
+    return path;
+  }
+}
+
+
+/**
+ * Base event class emitted by FileSystemWatcher.
+ */
+class FileSystemEvent {
+  static const int CREATE = 1 << 0;
+  static const int MODIFY = 1 << 1;
+  static const int DELETE = 1 << 2;
+  static const int MOVE = 1 << 3;
+  static const int ALL = CREATE | MODIFY | DELETE | MOVE;
+
+  static const int _MODIFY_ATTRIBUTES = 1 << 4;
+
+  /**
+   * The type of event. See [FileSystemEvent] for a list of events.
+   */
+  final int type;
+
+  /**
+   * The path that triggered the event. Depending on the platform and the
+   * FileSystemEntity, the path may be relative.
+   */
+  final String path;
+
+  FileSystemEvent._(this.type, this.path);
+}
+
+
+/**
+ * File system event for newly created file system objects.
+ */
+class FileSystemCreateEvent extends FileSystemEvent {
+  FileSystemCreateEvent._(path)
+      : super._(FileSystemEvent.CREATE, path);
+
+  String toString() => "FileSystemCreateEvent('$path')";
+}
+
+
+/**
+ * File system event for modifications of file system objects.
+ */
+class FileSystemModifyEvent extends FileSystemEvent {
+  /**
+   * If the content was changed and not only the attributes, [contentChanged]
+   * is `true`.
+   */
+  final bool contentChanged;
+
+  FileSystemModifyEvent._(path, this.contentChanged)
+      : super._(FileSystemEvent.MODIFY, path);
+
+  String toString() =>
+      "FileSystemModifyEvent('$path', contentChanged=$contentChanged)";
+}
+
+
+/**
+ * File system event for deletion of file system objects.
+ */
+class FileSystemDeleteEvent extends FileSystemEvent {
+  FileSystemDeleteEvent._(path)
+      : super._(FileSystemEvent.DELETE, path);
+
+  String toString() => "FileSystemDeleteEvent('$path')";
+}
+
+
+/**
+ * File system event for moving of file system objects.
+ */
+class FileSystemMoveEvent extends FileSystemEvent {
+  /**
+   * If the underlaying implementation is able to identify the destination of
+   * the moved file, [destination] will be set. Otherwise, it will be `null`.
+   */
+  final String destination;
+
+  FileSystemMoveEvent._(path, this.destination)
+      : super._(FileSystemEvent.MOVE, path);
+
+  String toString() {
+    var buffer = new StringBuffer();
+    buffer.write("FileSystemMoveEvent('$path'");
+    if (destination != null) buffer.write(", '$destination'");
+    buffer.write(')');
+    return buffer.toString();
+  }
+}
+
+
+class _FileSystemWatcher extends NativeFieldWrapperClass1 {
+  final String _path;
+  final int _events;
+  final bool _recursive;
+
+  StreamController _controller;
+  StreamSubscription _subscription;
+
+  _FileSystemWatcher(this._path, this._events, this._recursive) {
+    _controller = new StreamController(onListen: _listen, onCancel: _cancel);
+  }
+
+  void _listen() {
+    int socketId;
+    try {
+      socketId = _watchPath(_path, _events, identical(true, _recursive));
+    } catch (e) {
+      throw new FileException(
+          "Failed to watch path",
+          _path,
+          e);
+    }
+    var socket = new _RawSocket(new _NativeSocket.watch(socketId));
+    _subscription = socket.expand((event) {
+      var events = [];
+      var pair = {};
+      if (event == RawSocketEvent.READ) {
+        String getPath(event) {
+          var path = _path;
+          if (event[2] != null) {
+            path += Platform.pathSeparator;
+            path += event[2];
+          }
+          return path;
+        }
+        while (socket.available() > 0) {
+          for (var event in _readEvents()) {
+            if (event == null) continue;
+            var path = getPath(event);
+            if ((event[0] & FileSystemEvent.CREATE) != 0) {
+              events.add(new FileSystemCreateEvent._(path));
+            }
+            if ((event[0] & FileSystemEvent.MODIFY) != 0) {
+              events.add(new FileSystemModifyEvent._(path, true));
+            }
+            if ((event[0] & FileSystemEvent._MODIFY_ATTRIBUTES) != 0) {
+              events.add(new FileSystemModifyEvent._(path, false));
+            }
+            if ((event[0] & FileSystemEvent.MOVE) != 0) {
+              int link = event[1];
+              if (link > 0) {
+                if (pair.containsKey(link)) {
+                  events.add(
+                      new FileSystemMoveEvent._(getPath(pair[link]), path));
+                  pair.remove(link);
+                } else {
+                  pair[link] = event;
+                }
+              } else {
+                events.add(new FileSystemMoveEvent._(path, null));
+              }
+            }
+            if ((event[0] & FileSystemEvent.DELETE) != 0) {
+              events.add(new FileSystemDeleteEvent._(path));
+            }
+          }
+        }
+        for (var event in pair.values) {
+          events.add(new FileSystemMoveEvent._(getPath(event), null));
+        }
+      } else if (event == RawSocketEvent.CLOSED) {
+      } else if (event == RawSocketEvent.READ_CLOSED) {
+      } else {
+        assert(false);
+      }
+      return events;
+    })
+    .where((event) => (event.type & _events) != 0)
+    .listen(_controller.add, onDone: _cancel);
+  }
+
+  void _cancel() {
+    _unwatchPath();
+    if (_subscription != null) {
+      _subscription.cancel();
+    }
+  }
+
+  Stream<FileSystemEvent> get stream => _controller.stream;
+
+  external int _watchPath(String path, int events, bool recursive);
+  external void _unwatchPath();
+  external List _readEvents();
 }

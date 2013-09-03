@@ -42,6 +42,13 @@ patch class _RandomAccessFile {
   /* patch */ static _flush(int id) native "File_Flush";
 }
 
+patch class _FileSystemWatcher {
+  int _watchPath(String path, int events, bool recursive)
+      native "FileSystemWatcher_WatchPath";
+  void _unwatchPath() native "FileSystemWatcher_UnwatchPath";
+  List _readEvents() native "FileSystemWatcher_ReadEvents";
+}
+
 Uint8List _makeUint8ListView(Uint8List source, int offsetInBytes, int length) {
   return new Uint8List.view(source.buffer, offsetInBytes, length);
 }

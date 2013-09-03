@@ -234,7 +234,7 @@ class _FileUtils {
 }
 
 // Class for encapsulating the native implementation of files.
-class _File implements File {
+class _File extends FileSystemEntity implements File {
   final String path;
   SendPort _fileService;
 

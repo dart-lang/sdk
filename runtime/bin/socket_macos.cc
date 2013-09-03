@@ -192,8 +192,8 @@ int Socket::GetType(intptr_t fd) {
 }
 
 
-intptr_t Socket::GetStdioHandle(int num) {
-  return static_cast<intptr_t>(num);
+intptr_t Socket::GetStdioHandle(intptr_t num) {
+  return num;
 }
 
 

@@ -60,6 +60,9 @@ namespace bin {
   V(File_GetType, 2)                                                           \
   V(File_AreIdentical, 2)                                                      \
   V(File_NewServicePort, 0)                                                    \
+  V(FileSystemWatcher_ReadEvents, 1)                                           \
+  V(FileSystemWatcher_UnwatchPath, 1)                                          \
+  V(FileSystemWatcher_WatchPath, 4)                                            \
   V(Logger_PrintString, 1)
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
