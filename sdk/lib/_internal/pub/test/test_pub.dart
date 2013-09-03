@@ -39,6 +39,7 @@ import 'descriptor.dart' as d;
 initConfig() {
   useCompactVMConfiguration();
   filterStacks = true;
+  unittestConfiguration.timeout = null;
 }
 
 /// Returns whether we're running on a Dart build bot.

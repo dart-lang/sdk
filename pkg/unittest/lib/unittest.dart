@@ -753,14 +753,16 @@ void _runTest() {
     final testCase = testCases[_currentTestCaseIndex];
     var f = _guardAsync(testCase._run, null, testCase);
     Timer timer;
-    try {
-      final Duration timeout = unittestConfiguration.timeout;
-      timer = new Timer(timeout, () {
-        testCase.error("Test timed out after ${timeout.inSeconds} seconds.");
-      });
-    } on UnsupportedError catch (e) {
-      if (e.message != "Timer greater than 0.") rethrow;
-      // Support running on d8 and jsshell which don't support timers.
+    final Duration timeout = unittestConfiguration.timeout;
+    if (timeout != null) {
+      try {
+        timer = new Timer(timeout, () {
+          testCase.error("Test timed out after ${timeout.inSeconds} seconds.");
+        });
+      } on UnsupportedError catch (e) {
+        if (e.message != "Timer greater than 0.") rethrow;
+        // Support running on d8 and jsshell which don't support timers.
+      }
     }
     f.whenComplete(() {
       if (timer != null) timer.cancel();
