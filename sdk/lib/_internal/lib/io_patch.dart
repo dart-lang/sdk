@@ -349,3 +349,9 @@ patch class Stdin {
     throw new UnsupportedError("Stdin.lineMode");
   }
 }
+
+patch class _FileSystemWatcher {
+  patch factory _FileSystemWatcher(String path, int events, bool recursive) {
+    throw new UnsupportedError("_FileSystemWatcher._FileSystemWatcher");
+  }
+}

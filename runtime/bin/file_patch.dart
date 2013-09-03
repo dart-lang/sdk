@@ -43,6 +43,103 @@ patch class _RandomAccessFile {
 }
 
 patch class _FileSystemWatcher {
+  /* patch */ factory _FileSystemWatcher(
+      String path, int events, bool recursive)
+    => new _FileSystemWatcherImpl(path, events, recursive);
+}
+
+class _FileSystemWatcherImpl
+    extends NativeFieldWrapperClass1
+    implements _FileSystemWatcher {
+  final String _path;
+  final int _events;
+  final bool _recursive;
+
+  StreamController _controller;
+  StreamSubscription _subscription;
+
+  _FileSystemWatcherImpl(this._path, this._events, this._recursive) {
+    _controller = new StreamController(onListen: _listen, onCancel: _cancel);
+  }
+
+  void _listen() {
+    int socketId;
+    try {
+      socketId = _watchPath(_path, _events, identical(true, _recursive));
+    } catch (e) {
+      throw new FileException(
+          "Failed to watch path",
+          _path,
+          e);
+    }
+    var socket = new _RawSocket(new _NativeSocket.watch(socketId));
+    _subscription = socket.expand((event) {
+      var events = [];
+      var pair = {};
+      if (event == RawSocketEvent.READ) {
+        String getPath(event) {
+          var path = _path;
+          if (event[2] != null) {
+            path += Platform.pathSeparator;
+            path += event[2];
+          }
+          return path;
+        }
+        while (socket.available() > 0) {
+          for (var event in _readEvents()) {
+            if (event == null) continue;
+            var path = getPath(event);
+            if ((event[0] & FileSystemEvent.CREATE) != 0) {
+              events.add(new FileSystemCreateEvent._(path));
+            }
+            if ((event[0] & FileSystemEvent.MODIFY) != 0) {
+              events.add(new FileSystemModifyEvent._(path, true));
+            }
+            if ((event[0] & FileSystemEvent._MODIFY_ATTRIBUTES) != 0) {
+              events.add(new FileSystemModifyEvent._(path, false));
+            }
+            if ((event[0] & FileSystemEvent.MOVE) != 0) {
+              int link = event[1];
+              if (link > 0) {
+                if (pair.containsKey(link)) {
+                  events.add(
+                      new FileSystemMoveEvent._(getPath(pair[link]), path));
+                  pair.remove(link);
+                } else {
+                  pair[link] = event;
+                }
+              } else {
+                events.add(new FileSystemMoveEvent._(path, null));
+              }
+            }
+            if ((event[0] & FileSystemEvent.DELETE) != 0) {
+              events.add(new FileSystemDeleteEvent._(path));
+            }
+          }
+        }
+        for (var event in pair.values) {
+          events.add(new FileSystemMoveEvent._(getPath(event), null));
+        }
+      } else if (event == RawSocketEvent.CLOSED) {
+      } else if (event == RawSocketEvent.READ_CLOSED) {
+      } else {
+        assert(false);
+      }
+      return events;
+    })
+    .where((event) => (event.type & _events) != 0)
+    .listen(_controller.add, onDone: _cancel);
+  }
+
+  void _cancel() {
+    _unwatchPath();
+    if (_subscription != null) {
+      _subscription.cancel();
+    }
+  }
+
+  Stream<FileSystemEvent> get stream => _controller.stream;
+
   int _watchPath(String path, int events, bool recursive)
       native "FileSystemWatcher_WatchPath";
   void _unwatchPath() native "FileSystemWatcher_UnwatchPath";
