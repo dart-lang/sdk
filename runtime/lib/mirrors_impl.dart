@@ -1162,7 +1162,8 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
                             this.isOptional,
                             this.isNamed,
                             bool isFinal,
-                            this._defaultValueReflectee)
+                            this._defaultValueReflectee,
+                            this._unmirroredMetadata)
       : super(reflectee,
               simpleName,
               owner,
@@ -1173,6 +1174,7 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
   final int _position;
   final bool isOptional;
   final bool isNamed;
+  final List _unmirroredMetadata;
 
   Object _defaultValueReflectee;
   InstanceMirror _defaultValue;
@@ -1188,10 +1190,9 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
 
   bool get hasDefaultValue => _defaultValueReflectee != null;
 
-  // TODO(11418): Implement.
   List<InstanceMirror> get metadata {
-    throw new UnimplementedError(
-        'ParameterMirror.metadata is not implemented');
+    if ( _unmirroredMetadata == null) return const [];
+    return _unmirroredMetadata.map(reflect).toList(growable:false);
   }
 
   TypeMirror _type = null;

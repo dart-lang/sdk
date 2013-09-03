@@ -125,7 +125,7 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
   const intptr_t index_of_first_named_param =
       non_implicit_param_count - func.NumOptionalNamedParameters();
   const Array& results = Array::Handle(Array::New(non_implicit_param_count));
-  const Array& args = Array::Handle(Array::New(8));
+  const Array& args = Array::Handle(Array::New(9));
 
   // Return for synthetic functions and getters.
   if (func.IsGetterFunction() ||
@@ -140,10 +140,12 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
   Instance& param = Instance::Handle();
   Bool& is_final = Bool::Handle();
   Object& default_value = Object::Handle();
+  Object& metadata = Object::Handle();
 
   // Reparse the function for the following information:
   // * The default value of a parameter.
   // * Whether a parameters has been deflared as final.
+  // * Any metadata associated with the parameter.
   const Object& result = Object::Handle(Parser::ParseFunctionParameters(func));
   if (result.IsError()) {
     ThrowInvokeError(Error::Cast(result));
@@ -154,12 +156,18 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
   args.SetAt(2, owner_mirror);
 
   const Array& param_descriptor = Array::Cast(result);
-  ASSERT(param_descriptor.Length() == (2 * non_implicit_param_count));
+  ASSERT(param_descriptor.Length() ==
+         (Parser::kParameterEntrySize * non_implicit_param_count));
   for (intptr_t i = 0; i < non_implicit_param_count; i++) {
     pos ^= Smi::New(i);
     name ^= func.ParameterNameAt(implicit_param_count + i);
-    is_final ^= param_descriptor.At(i * 2);
-    default_value = param_descriptor.At(i * 2 + 1);
+    is_final ^= param_descriptor.At(
+        i * Parser::kParameterEntrySize + Parser::kParameterIsFinalOffset);
+    default_value = param_descriptor.At(
+        i * Parser::kParameterEntrySize + Parser::kParameterDefaultValueOffset);
+    metadata = param_descriptor.At(
+        i * Parser::kParameterEntrySize + Parser::kParameterMetadataOffset);
+
     ASSERT(default_value.IsNull() || default_value.IsInstance());
 
     // Arguments 0 (referent) and 2 (owner) are the same for all parameters. See
@@ -170,6 +178,7 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     args.SetAt(5, Bool::Get(i >= index_of_first_named_param));
     args.SetAt(6, is_final);
     args.SetAt(7, default_value);
+    args.SetAt(8, metadata);
     param ^= CreateMirror(Symbols::_LocalParameterMirrorImpl(), args);
     results.SetAt(i, param);
   }

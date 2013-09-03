@@ -144,13 +144,19 @@ class Parser : public ValueObject {
   // class if the metadata is at the top-level).
   static RawObject* ParseMetadata(const Class& cls, intptr_t token_pos);
 
-  // Parse a function func and retrieve parameter information that can not be
-  // found in its function object. Returns either an error if the parser fails
-  // (which could be the case for local functions), or a flat array of the size
-  // (2*number_of_parameters). For each parameter i in this array, (2*i)
-  // contains a bool indicating whether the parameter has been final, and
-  // (2*i+1) contains an array of its default values (or null if it has no
-  // default values).
+  // Parse a function to retrieve parameter information that is not retained in
+  // the dart::Function object. Returns either an error if the parse fails
+  // (which could be the case for local functions), or a flat array of entries
+  // for each parameter. Each parameter entry contains:
+  // * a Dart bool indicating whether the parameter was declared final
+  // * its default value (or null if none was declared)
+  // * an array of metadata (or null if no metadata was declared).
+  enum {
+    kParameterIsFinalOffset,
+    kParameterDefaultValueOffset,
+    kParameterMetadataOffset,
+    kParameterEntrySize,
+  };
   static RawObject* ParseFunctionParameters(const Function& func);
 
   // Format and print a message with source location.
@@ -382,10 +388,13 @@ class Parser : public ValueObject {
   void ParseClassMemberDefinition(ClassDesc* members,
                                   intptr_t metadata_pos);
   void ParseFormalParameter(bool allow_explicit_default_value,
+                            bool evaluate_metadata,
                             ParamList* params);
   void ParseFormalParameters(bool allow_explicit_default_values,
+                             bool evaluate_metadata,
                              ParamList* params);
   void ParseFormalParameterList(bool allow_explicit_default_values,
+                                bool evaluate_metadata,
                                 ParamList* params);
   void CheckConstFieldsInitialized(const Class& cls);
   void CheckConstructors(ClassDesc* members);
