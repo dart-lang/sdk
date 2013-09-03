@@ -88,9 +88,5 @@ mandel_isolate_stream_test: Pass, Fail, Timeout # Issue 7952
 [ $compiler == dart2js && ( $runtime == ff || $runtime == safari || $runtime == drt || $runtime == chrome ) ]
 isolate_stress_test: Pass, Slow # Issue 10697
 
-[ ($arch == mips || $arch == simmips) && $mode == debug ]
-mandel_isolate_test: Crash  # Issue 12823
-mandel_isolate_stream_test: Crash  # Issue 12823
-
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 isolate_stress_test: Skip # Issue 12537
