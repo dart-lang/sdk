@@ -15,6 +15,7 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 testOutOfRange() {
+  asyncStart();
   RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((client) {
       client.writeEventsEnabled = false;
@@ -79,7 +80,7 @@ testOutOfRange() {
           default: throw "Unexpected event $event";
         }
       },
-      onDone: () => port.close());
+      onDone: asyncEnd);
     });
   });
 }
@@ -206,7 +207,7 @@ void testSimpleReadWrite() {
           default: throw "Unexpected event $event";
         }
       },
-      onDone: () => asyncEnd());
+      onDone: asyncEnd);
     });
   });
 }

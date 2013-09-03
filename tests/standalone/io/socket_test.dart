@@ -53,7 +53,6 @@ void testInvalidBind() {
         ServerSocket.bind("127.0.0.1", s.port)
             .then((t) {
               Expect.fail("Multiple listens on same port");
-              port.toSendPort().send(1);
             })
             .catchError((error) {
               Expect.isTrue(error is SocketException);

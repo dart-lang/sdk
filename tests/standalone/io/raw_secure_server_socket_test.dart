@@ -53,15 +53,14 @@ void testInvalidBind() {
     RawSecureServerSocket.bind(HOST_NAME,
                                s.port,
                                CERTIFICATE).then((t) {
-      Expect.fail("Multiple listens on same port");
       s.close();
       t.close();
-      port.toSendPort().send(1);
+      Expect.fail("Multiple listens on same port");
     })
     .catchError((error) {
       Expect.isTrue(error is SocketException);
       s.close();
-    asyncEnd();
+      asyncEnd();
     });
   });
 }

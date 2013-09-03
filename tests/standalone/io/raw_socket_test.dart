@@ -53,7 +53,6 @@ void testInvalidBind() {
           RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, s.port)
             .then((t) {
               Expect.fail("Multiple listens on same port");
-              port.toSendPort().send(1);
             })
             .catchError((error) {
               Expect.isTrue(error is SocketException);
