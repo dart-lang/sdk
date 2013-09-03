@@ -1005,6 +1005,9 @@ class BrowserTestingServer {
       var testing_window;
 
       var embedded_iframe = document.getElementById('embedded_iframe');
+      var number_div = document.getElementById('number');
+      var executing_div = document.getElementById('currently_executing');
+      var error_div = document.getElementById('unhandled_error');
       var use_iframe = ${useIframe};
       var start = new Date();
 
@@ -1054,7 +1057,8 @@ class BrowserTestingServer {
 
       function run(url) {
         number_of_tests++;
-        document.getElementById('number').innerHTML = number_of_tests;
+        number_div.innerHTML = number_of_tests;
+        executing_div.innerHTML = url;
         if (use_iframe) {
           embedded_iframe.src = url;
         } else {
@@ -1077,8 +1081,9 @@ class BrowserTestingServer {
       function reportError(msg) {
         function handleReady() {
           if (this.readyState == this.DONE && this.status != 200) {
-            // We could not report, pop up to notify if running interactively.
-            alert(this.status);
+            var error = 'Sending back error did not succeeed: ' + this.status;
+            error = error + '. Failed to send msg: ' + msg;
+            error_div.innerHTML = error;
           }
         }
         contactBrowserController(
@@ -1129,7 +1134,9 @@ class BrowserTestingServer {
   </script>
 </head>
   <body onload="startTesting()">
-    Dart test driver, number of tests: <div id="number"></div>
+    Dart test driver, number of tests: <div id="number"></div><br>
+    Currently executing: <div id="currently_executing"></div><br>
+    Unhandled error: <div id="unhandled_error"></div>
     <iframe id="embedded_iframe"></iframe>
   </body>
 </html>
