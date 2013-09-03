@@ -1124,7 +1124,7 @@ void Intrinsifier::Double_div(Assembler* assembler) {
 
 void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   Label fall_through;
-  // Only Smi-s allowed.
+  // Only smis allowed.
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);

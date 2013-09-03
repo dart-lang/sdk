@@ -810,8 +810,7 @@ bool EqualityCompareInstr::RecomputeType() {
 
 
 CompileType RelationalOpInstr::ComputeType() const {
-  return IsInlinedNumericComparison() ? CompileType::Bool()
-                                      : CompileType::Dynamic();
+  return CompileType::Bool();
 }
 
 

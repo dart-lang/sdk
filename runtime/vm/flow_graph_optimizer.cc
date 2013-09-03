@@ -1077,6 +1077,66 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
 }
 
 
+static bool SmiFitsInDouble() { return kSmiBits < 53; }
+
+
+bool FlowGraphOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
+                                                    Token::Kind op_kind) {
+  const ICData& ic_data = *call->ic_data();
+  ASSERT(ic_data.num_args_tested() == 2);
+
+  ASSERT(call->ArgumentCount() == 2);
+  Definition* left = call->ArgumentAt(0);
+  Definition* right = call->ArgumentAt(1);
+
+  intptr_t cid = kIllegalCid;
+  if (HasOnlyTwoOf(ic_data, kSmiCid)) {
+    InsertBefore(call,
+                 new CheckSmiInstr(new Value(left), call->deopt_id()),
+                 call->env(),
+                 Definition::kEffect);
+    InsertBefore(call,
+                 new CheckSmiInstr(new Value(right), call->deopt_id()),
+                 call->env(),
+                 Definition::kEffect);
+    cid = kSmiCid;
+  } else if (HasTwoMintOrSmi(ic_data) &&
+             FlowGraphCompiler::SupportsUnboxedMints()) {
+    cid = kMintCid;
+  } else if (HasTwoDoubleOrSmi(ic_data)) {
+    // Use double comparison.
+    if (SmiFitsInDouble()) {
+      cid = kDoubleCid;
+    } else {
+      if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
+        // We cannot use double comparison on two smis. Need polymorphic
+        // call.
+        return false;
+      } else {
+        InsertBefore(call,
+                     new CheckEitherNonSmiInstr(new Value(left),
+                                                new Value(right),
+                                                call->deopt_id()),
+                     call->env(),
+                     Definition::kEffect);
+        cid = kDoubleCid;
+      }
+    }
+  } else {
+    return false;
+  }
+  ASSERT(cid != kIllegalCid);
+  RelationalOpInstr* comp = new RelationalOpInstr(call->token_pos(),
+                                                  op_kind,
+                                                  new Value(left),
+                                                  new Value(right),
+                                                  cid,
+                                                  call->deopt_id());
+  ReplaceCall(call, comp);
+  return true;
+}
+
+
 bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                                                 Token::Kind op_kind) {
   intptr_t operands_type = kIllegalCid;
@@ -2610,6 +2670,12 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if ((op_kind == Token::kINDEX) && TryReplaceWithLoadIndexed(instr)) {
     return;
   }
+
+  if (Token::IsRelationalOperator(op_kind) &&
+      TryReplaceWithRelationalOp(instr, op_kind)) {
+    return;
+  }
+
   if (Token::IsBinaryOperator(op_kind) &&
       TryReplaceWithBinaryOp(instr, op_kind)) {
     return;
@@ -2698,7 +2764,7 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
   } else if ((recognized_kind == MethodRecognizer::kMathMin) ||
              (recognized_kind == MethodRecognizer::kMathMax)) {
     // We can handle only monomorphic min/max call sites with both arguments
-    // being either doubles or Smi-s
+    // being either doubles or smis.
     if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
       const ICData& ic_data = *call->ic_data();
       intptr_t result_cid = kIllegalCid;
@@ -2810,64 +2876,6 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   instr->RemoveEnvironment();
   ReplaceCall(instr, store);
   return true;
-}
-
-
-static bool SmiFitsInDouble() { return kSmiBits < 53; }
-
-
-void FlowGraphOptimizer::HandleComparison(ComparisonInstr* comp,
-                                          const ICData& ic_data,
-                                          Instruction* current_instruction) {
-  ASSERT(ic_data.num_args_tested() == 2);
-  ASSERT(comp->operation_cid() == kIllegalCid);
-  if (HasOnlyTwoOf(ic_data, kSmiCid)) {
-    InsertBefore(current_instruction,
-                 new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
-                 current_instruction->env(),
-                 Definition::kEffect);
-    InsertBefore(current_instruction,
-                 new CheckSmiInstr(comp->right()->Copy(), comp->deopt_id()),
-                 current_instruction->env(),
-                 Definition::kEffect);
-    comp->set_operation_cid(kSmiCid);
-  } else if (HasTwoMintOrSmi(ic_data) &&
-             FlowGraphCompiler::SupportsUnboxedMints()) {
-    comp->set_operation_cid(kMintCid);
-  } else if (HasTwoDoubleOrSmi(ic_data)) {
-    // Use double comparison.
-    if (SmiFitsInDouble()) {
-      comp->set_operation_cid(kDoubleCid);
-    } else {
-      if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
-        // We cannot use double comparison on two Smi-s.
-        ASSERT(comp->operation_cid() == kIllegalCid);
-      } else {
-        InsertBefore(current_instruction,
-                     new CheckEitherNonSmiInstr(comp->left()->Copy(),
-                                                comp->right()->Copy(),
-                                                comp->deopt_id()),
-                     current_instruction->env(),
-                     Definition::kEffect);
-        comp->set_operation_cid(kDoubleCid);
-      }
-    }
-  } else {
-    ASSERT(comp->operation_cid() == kIllegalCid);
-  }
-}
-
-
-void FlowGraphOptimizer::HandleRelationalOp(RelationalOpInstr* comp) {
-  if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) {
-    return;
-  }
-  HandleComparison(comp, *comp->ic_data(), current_iterator()->Current());
-}
-
-
-void FlowGraphOptimizer::VisitRelationalOp(RelationalOpInstr* instr) {
-  HandleRelationalOp(instr);
 }
 
 
@@ -2993,7 +3001,40 @@ void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
   }
 
   const ICData& ic_data = *comp->ic_data();
-  HandleComparison(comp, ic_data, current_instruction);
+  ASSERT(ic_data.num_args_tested() == 2);
+  ASSERT(comp->operation_cid() == kIllegalCid);
+  if (HasOnlyTwoOf(ic_data, kSmiCid)) {
+    InsertBefore(current_instruction,
+                 new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
+                 current_instruction->env(),
+                 Definition::kEffect);
+    InsertBefore(current_instruction,
+                 new CheckSmiInstr(comp->right()->Copy(), comp->deopt_id()),
+                 current_instruction->env(),
+                 Definition::kEffect);
+    comp->set_operation_cid(kSmiCid);
+  } else if (HasTwoMintOrSmi(ic_data) &&
+             FlowGraphCompiler::SupportsUnboxedMints()) {
+    comp->set_operation_cid(kMintCid);
+  } else if (HasTwoDoubleOrSmi(ic_data)) {
+    // Use double comparison.
+    if (SmiFitsInDouble()) {
+      comp->set_operation_cid(kDoubleCid);
+    } else {
+      if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
+        // We cannot use double comparison on two smis.
+        ASSERT(comp->operation_cid() == kIllegalCid);
+      } else {
+        InsertBefore(current_instruction,
+                     new CheckEitherNonSmiInstr(comp->left()->Copy(),
+                                                comp->right()->Copy(),
+                                                comp->deopt_id()),
+                     current_instruction->env(),
+                     Definition::kEffect);
+        comp->set_operation_cid(kDoubleCid);
+      }
+    }
+  }
 
   if (comp->operation_cid() != kIllegalCid) {
     // Done.
@@ -3045,9 +3086,7 @@ void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareInstr* instr) {
 
 void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
   ComparisonInstr* comparison = instr->comparison();
-  if (comparison->IsRelationalOp()) {
-    HandleRelationalOp(comparison->AsRelationalOp());
-  } else if (comparison->IsEqualityCompare()) {
+  if (comparison->IsEqualityCompare()) {
     HandleEqualityCompare(comparison->AsEqualityCompare(), instr);
   } else {
     ASSERT(comparison->IsStrictCompare());
@@ -6947,9 +6986,8 @@ BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
                               comparison->kind(),
                               left,
                               right,
-                              Object::null_array());
-    new_relational_op->set_ic_data(relational_op->ic_data());
-    new_relational_op->set_operation_cid(relational_op->operation_cid());
+                              relational_op->operation_cid(),
+                              relational_op->deopt_id());
     new_comparison = new_relational_op;
   }
   return new BranchInstr(new_comparison, branch->is_checked());

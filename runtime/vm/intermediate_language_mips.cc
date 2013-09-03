@@ -902,25 +902,18 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
     summary->set_in(1, Location::RequiresFpuRegister());
     summary->set_out(Location::RequiresRegister());
     return summary;
-  } else if (operation_cid() == kSmiCid) {
-    LocationSummary* summary =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RegisterOrConstant(left()));
-    // Only one input can be a constant operand. The case of two constant
-    // operands should be handled by constant propagation.
-    summary->set_in(1, summary->in(0).IsConstant()
-                           ? Location::RequiresRegister()
-                           : Location::RegisterOrConstant(right()));
-    summary->set_out(Location::RequiresRegister());
-    return summary;
   }
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  // Pick arbitrary fixed input registers because this is a call.
-  locs->set_in(0, Location::RegisterLocation(A0));
-  locs->set_in(1, Location::RegisterLocation(A1));
-  locs->set_out(Location::RegisterLocation(V0));
-  return locs;
+  ASSERT(operation_cid() == kSmiCid);
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RegisterOrConstant(left()));
+  // Only one input can be a constant operand. The case of two constant
+  // operands should be handled by constant propagation.
+  summary->set_in(1, summary->in(0).IsConstant()
+                         ? Location::RequiresRegister()
+                         : Location::RegisterOrConstant(right()));
+  summary->set_out(Location::RequiresRegister());
+  return summary;
 }
 
 
@@ -934,69 +927,9 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitUnboxedMintComparisonOp(compiler, *locs(), kind(), NULL);
     return;
   }
-  if (operation_cid() == kDoubleCid) {
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL);
-    return;
-  }
-
-  // Push arguments for the call.
-  // TODO(fschneider): Split this instruction into different types to avoid
-  // explicitly pushing arguments to the call here.
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(left, Address(SP, 1 * kWordSize));
-  __ sw(right, Address(SP, 0 * kWordSize));
-  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
-    Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptRelationalOp);
-    // Load class into A2.
-    const intptr_t kNumArguments = 2;
-    LoadValueCid(compiler, A2, left);
-    compiler->EmitTestAndCall(ICData::Handle(ic_data()->AsUnaryClassChecks()),
-                              A2,  // Class id register.
-                              kNumArguments,
-                              Object::null_array(),  // No named arguments.
-                              deopt,  // Deoptimize target.
-                              deopt_id(),
-                              token_pos(),
-                              locs());
-    return;
-  }
-  const String& function_name =
-      String::ZoneHandle(Symbols::New(Token::Str(kind())));
-  if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                   deopt_id(),
-                                   token_pos());
-  }
-  const intptr_t kNumArguments = 2;
-  const intptr_t kNumArgsChecked = 2;  // Type-feedback.
-  ICData& relational_ic_data = ICData::ZoneHandle(ic_data()->raw());
-  if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
-    ASSERT(!ic_data()->IsNull());
-    if (ic_data()->NumberOfChecks() == 0) {
-      // IC call for reoptimization populates original ICData.
-      relational_ic_data = ic_data()->raw();
-    } else {
-      // Megamorphic call.
-      relational_ic_data = ic_data()->AsUnaryClassChecks();
-    }
-  } else {
-    const Array& arguments_descriptor =
-        Array::Handle(ArgumentsDescriptor::New(kNumArguments,
-                                               Object::null_array()));
-    relational_ic_data = ICData::New(compiler->parsed_function().function(),
-                                     function_name,
-                                     arguments_descriptor,
-                                     deopt_id(),
-                                     kNumArgsChecked);
-  }
-  compiler->GenerateInstanceCall(deopt_id(),
-                                 token_pos(),
-                                 kNumArguments,
-                                 Object::null_array(),  // No optional args.
-                                 locs(),
-                                 relational_ic_data);
+  ASSERT(operation_cid() == kDoubleCid);
+  EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL);
+  return;
 }
 
 
@@ -1011,13 +944,8 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     EmitUnboxedMintComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
-  if (operation_cid() == kDoubleCid) {
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
-    return;
-  }
-  EmitNativeCode(compiler);
-  __ CompareObject(CMPRES1, CMPRES2, V0, Bool::True());
-  branch->EmitBranchOnCondition(compiler, EQ);
+  ASSERT(operation_cid() == kDoubleCid);
+  EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
 }
 
 

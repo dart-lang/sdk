@@ -723,7 +723,7 @@ void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
   __ subl(EAX, EBX);
 
   __ Bind(&done);
-  // The remainder of two Smi-s is always a Smi, no overflow check needed.
+  // The remainder of two smis is always a smi, no overflow check needed.
   __ SmiTag(EAX);
   __ ret();
 
@@ -1213,7 +1213,7 @@ void Intrinsifier::Double_div(Assembler* assembler) {
 // Left is double right is integer (Bigint, Mint or Smi)
 void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   Label fall_through;
-  // Only Smi-s allowed.
+  // Only smis allowed.
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);

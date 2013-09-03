@@ -958,6 +958,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class DoubleToIntegerInstr;
   friend class BranchSimplifier;
   friend class BlockEntryInstr;
+  friend class RelationalOpInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -2671,6 +2672,7 @@ class InstanceCallInstr : public TemplateDefinition<0> {
     ASSERT(!arguments->is_empty());
     ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
     ASSERT(Token::IsBinaryOperator(token_kind) ||
+           Token::IsRelationalOperator(token_kind) ||
            Token::IsPrefixOperator(token_kind) ||
            Token::IsIndexOperator(token_kind) ||
            Token::IsTypeTestOperator(token_kind) ||
@@ -3000,32 +3002,25 @@ class RelationalOpInstr : public ComparisonInstr {
                     Token::Kind kind,
                     Value* left,
                     Value* right,
-                    const Array& ic_data_array)
-      : ComparisonInstr(token_pos, kind, left, right),
-        ic_data_(GetICData(ic_data_array)) {
+                    intptr_t cid,
+                    intptr_t deopt_id)
+      : ComparisonInstr(token_pos, kind, left, right) {
     ASSERT(Token::IsRelationalOperator(kind));
+    set_operation_cid(cid);
+    deopt_id_ = deopt_id;  // Override generated deopt-id.
   }
 
   DECLARE_INSTRUCTION(RelationalOp)
   virtual CompileType ComputeType() const;
   virtual bool RecomputeType();
 
-  const ICData* ic_data() const { return ic_data_; }
-  bool HasICData() const {
-    return (ic_data() != NULL) && !ic_data()->IsNull();
-  }
-  void set_ic_data(const ICData* value) { ic_data_ = value; }
-
-  bool IsInlinedNumericComparison() const {
-    return (operation_cid() == kDoubleCid)
-        || (operation_cid() == kMintCid)
-        || (operation_cid() == kSmiCid);
-  }
-
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const {
-    return !IsInlinedNumericComparison();
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    // RelationalOp can be merged into Branch and thus needs an environment.
+    return true;
   }
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
@@ -3044,14 +3039,12 @@ class RelationalOpInstr : public ComparisonInstr {
   }
 
   virtual EffectSet Effects() const {
-    return IsInlinedNumericComparison() ? EffectSet::None() : EffectSet::All();
+    return EffectSet::None();
   }
 
-  virtual bool MayThrow() const { return !IsInlinedNumericComparison(); }
+  virtual bool MayThrow() const { return false; }
 
  private:
-  const ICData* ic_data_;
-
   DISALLOW_COPY_AND_ASSIGN(RelationalOpInstr);
 };
 
