@@ -18,6 +18,11 @@
 namespace dart {
 namespace bin {
 
+bool FileSystemWatcher::IsSupported() {
+  return true;
+}
+
+
 intptr_t FileSystemWatcher::WatchPath(const char* path,
                                       int events,
                                       bool recursive) {

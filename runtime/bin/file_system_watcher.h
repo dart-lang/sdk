@@ -34,6 +34,7 @@ class FileSystemWatcher {
     int link;
   };
 
+  static bool IsSupported();
   static intptr_t WatchPath(const char* path, int events, bool recursive);
   static void UnwatchPath(intptr_t id);
   static intptr_t GetSocketId(intptr_t id);

@@ -24,6 +24,9 @@ void GetWatcherIdNativeField(Dart_Handle watcher, intptr_t* id) {
   ThrowIfError(Dart_GetNativeInstanceField(watcher, kWatcherNativeField, id));
 }
 
+void FUNCTION_NAME(FileSystemWatcher_IsSupported)(Dart_NativeArguments args) {
+  Dart_SetReturnValue(args, Dart_NewBoolean(FileSystemWatcher::IsSupported()));
+}
 
 void FUNCTION_NAME(FileSystemWatcher_WatchPath)(Dart_NativeArguments args) {
   Dart_Handle watcher = Dart_GetNativeArgument(args, 0);

@@ -237,6 +237,7 @@ void testWatchNonRecursive() {
 
 
 void main() {
+  if (!FileSystemEntity.isWatchSupported) return;
   testWatchCreateFile();
   testWatchModifyFile();
   testWatchMoveFile();

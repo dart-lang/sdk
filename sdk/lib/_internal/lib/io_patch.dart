@@ -354,4 +354,7 @@ patch class _FileSystemWatcher {
   patch factory _FileSystemWatcher(String path, int events, bool recursive) {
     throw new UnsupportedError("_FileSystemWatcher._FileSystemWatcher");
   }
+  patch static bool get isSupported {
+    throw new UnsupportedError("_FileSystemWatcher.isSupported");
+  }
 }

@@ -46,6 +46,8 @@ patch class _FileSystemWatcher {
   /* patch */ factory _FileSystemWatcher(
       String path, int events, bool recursive)
     => new _FileSystemWatcherImpl(path, events, recursive);
+
+  /* patch */ static bool get isSupported => _FileSystemWatcherImpl.isSupported;
 }
 
 class _FileSystemWatcherImpl
@@ -59,6 +61,11 @@ class _FileSystemWatcherImpl
   StreamSubscription _subscription;
 
   _FileSystemWatcherImpl(this._path, this._events, this._recursive) {
+    if (!isSupported) {
+      throw new FileException(
+          "File system watching is not supported on this system",
+          _path);
+    }
     _controller = new StreamController(onListen: _listen, onCancel: _cancel);
   }
 
@@ -139,6 +146,8 @@ class _FileSystemWatcherImpl
   }
 
   Stream<FileSystemEvent> get stream => _controller.stream;
+
+  static bool get isSupported native "FileSystemWatcher_IsSupported";
 
   int _watchPath(String path, int events, bool recursive)
       native "FileSystemWatcher_WatchPath";

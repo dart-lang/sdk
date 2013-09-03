@@ -344,6 +344,13 @@ abstract class FileSystemEntity {
                                events,
                                recursive).stream;
 
+  /**
+   * Test if [watch] is supported on the current system.
+   *
+   * Mac OS 10.6 and below is not supported.
+   */
+  static bool get isWatchSupported => _FileSystemWatcher.isSupported;
+
 
   /**
    * Finds the type of file system object that a path points to. Returns
@@ -537,6 +544,7 @@ class FileSystemMoveEvent extends FileSystemEvent {
 
 abstract class _FileSystemWatcher {
   external factory _FileSystemWatcher(String path, int events, bool recursive);
+  external static bool get isSupported;
 
   Stream<FileSystemEvent> get stream;
 }
