@@ -26,7 +26,7 @@ patch class HashMap<K, V> {
   // guard against concurrent modifications.
   List _keys;
 
-  patch HashMap();
+  patch HashMap._internal();
 
   patch int get length => _length;
   patch bool get isEmpty => _length == 0;

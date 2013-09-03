@@ -4,6 +4,11 @@
 
 part of dart.collection;
 
+/** Default function for equality comparison in customized HashMaps */
+bool _defaultEquals(a, b) => a == b;
+/** Default function for hash-code computation in customized HashMaps */
+int _defaultHashCode(a) => a.hashCode;
+
 /**
  * A hash-table based implementation of [Map].
  *
@@ -16,7 +21,41 @@ part of dart.collection;
  * The map allows `null` as a key.
  */
 class HashMap<K, V> implements Map<K, V> {
-  external HashMap();
+  /**
+   * Creates a hash-table based [Map].
+   *
+   * The created map is not ordered in any way. When iterating the keys or
+   * values, the iteration order is unspecified except that it will stay the
+   * same as long as the map isn't changed.
+   *
+   * If [equals] is provided, it is used to compare the keys in the table with
+   * new keys. If [equals] is omitted, the key's own [Object.operator==] is used
+   * instead.
+   *
+   * Similar, if [hashCode] is provided, it is used to produce a hash value
+   * for keys in order to place them in the hash table. If it is omitted, the
+   * key's own [Object.hashCode] is used.
+   *
+   * The used `equals` and `hashCode` method should always be consistent,
+   * so that if `equals(a, b)` then `hashCode(a) == hashCode(b)`. The hash
+   * of an object, or what it compares equal to, should not change while the
+   * object is in the table. If it does change, the result is unpredictable.
+   */
+  factory HashMap({bool equals(K key1, K key2), int hashCode(K key)}) {
+    if (equals != null || hashCode != null) {
+      if (equals == null) {
+        equals = _defaultEquals;
+      } else if (hashCode == null) {
+        hashCode = _defaultHashCode;
+      }
+      // Create new CustomHashMap<K, V>(equals, hashCode).
+      throw new UnimplementedError("Not implemented yet");
+    }
+    return new HashMap<K, V>._internal();
+  }
+
+  /** Creates an empty `HashMap` with the default equals and hashCode. */
+  external HashMap._internal();
 
   /**
    * Creates a [HashMap] that contains all key value pairs of [other].

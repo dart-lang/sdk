@@ -209,9 +209,11 @@ class _IdentityMapKey {
  * wrapped objects. It also treats equal primitive values as identical
  * to conserve space.
  */
-class IdentityMap<K, V> extends HashMap<K, V> {
+class IdentityMap<K, V> extends LinkedHashMap<K, V> {
 // TODO(alanknight): Replace with a system identity-based map once
 // one is available. Issue 4161.
+// TODO(lrn): Replace with identity map when custom hash maps are introduced
+// (which is soon).
 
   // Check before wrapping because some methods may call others, e.g. on
   // dart2js putIfAbsent calls containsKey, so without this we wrap forever.

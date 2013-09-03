@@ -10,7 +10,7 @@ patch class HashMap<K, V> {
   List<_HashMapEntry> _buckets = new List(_INITIAL_CAPACITY);
   int _modificationCount = 0;
 
-  /* patch */ HashMap();
+  /* patch */ HashMap._internal();
 
   /* patch */ int get length => _elementCount;
   /* patch */ bool get isEmpty => _elementCount == 0;
