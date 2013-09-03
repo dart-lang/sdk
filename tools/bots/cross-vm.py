@@ -5,7 +5,6 @@
 
 import os
 import re
-import shutil
 import sys
 
 import bot
@@ -34,17 +33,9 @@ def record_names(name, arch, mode):
 
 def cross_compiling_builder(arch, mode):
   build_py = os.path.join('tools', 'build.py')
-  test_py = os.path.join('tools', 'test.py')
-  test_args = [sys.executable, test_py, '--progress=line', '--report',
-               '--time', '--compiler=none', '--runtime=vm', '--write-debug-log']
 
   tarball = tarball_name(arch, mode)
-  (recording, recording_out) = record_names('tests', arch, mode)
-  (checked_recording, checked_recording_out) = record_names(
-      'checked_tests', arch, mode)
-
-  temporary_files = [tarball, recording, recording_out, checked_recording,
-                     checked_recording_out]
+  temporary_files = [tarball]
   bot.Clobber()
   try:
     num_run = int(os.environ['BUILDBOT_ANNOTATED_STEPS_RUN'])
@@ -68,31 +59,10 @@ def cross_compiling_builder(arch, mode):
         run([GSUTIL, 'cp', tarball, uri])
         run([GSUTIL, 'setacl', 'public-read', uri])
 
-      with bot.BuildStep('prepare tests'):
-        uri = "%s/%s" % (GCS_BUCKET, recording)
-        run(test_args + ['--mode=' + mode, '--arch=' + arch,
-                         '--record_to_file=' + recording])
-        run([GSUTIL, 'cp', recording, uri])
-        run([GSUTIL, 'setacl', 'public-read', uri])
-
-      with bot.BuildStep('prepare checked_tests'):
-        uri = "%s/%s" % (GCS_BUCKET, checked_recording)
-        run(test_args + ['--mode=' + mode, '--arch=' + arch, '--checked',
-                         '--record_to_file=' + checked_recording])
-        run([GSUTIL, 'cp', checked_recording, uri])
-        run([GSUTIL, 'setacl', 'public-read', uri])
     elif num_run == 2:
       with bot.BuildStep('tests'):
-        uri = "%s/%s" % (GCS_BUCKET, recording_out)
-        run([GSUTIL, 'cp', uri, recording_out])
-        run(test_args + ['--mode=' + mode, '--arch=' + arch,
-                         '--replay_from_file=' + recording_out])
-
-      with bot.BuildStep('checked_tests'):
-        uri = "%s/%s" % (GCS_BUCKET, checked_recording_out)
-        run([GSUTIL, 'cp', uri, checked_recording_out])
-        run(test_args + ['--mode=' + mode, '--arch=' + arch, '--checked',
-                         '--replay_from_file=' + checked_recording_out])
+        print "Please see the target device for results."
+        print "We no longer record/replay tests."
     else:
       raise Exception("Invalid annotated steps run")
   finally:
@@ -101,15 +71,13 @@ def cross_compiling_builder(arch, mode):
         os.remove(path)
 
 def target_builder(arch, mode):
-  execute_testcases_py = os.path.join('tools', 'execute_recorded_testcases.py')
+  test_py = os.path.join('tools', 'test.py')
+  test_args = [sys.executable, test_py, '--progress=line', '--report',
+               '--time', '--compiler=none', '--runtime=vm', '--write-debug-log',
+               '--mode=' + mode, '--arch=' + arch]
 
   tarball = tarball_name(arch, mode)
-  (recording, recording_out) = record_names('tests', arch, mode)
-  (checked_recording, checked_recording_out) = record_names(
-      'checked_tests', arch, mode)
-
-  temporary_files = [tarball, recording, recording_out, checked_recording,
-                     checked_recording_out]
+  temporary_files = [tarball]
   bot.Clobber()
   try:
     with bot.BuildStep('Fetch build tarball'):
@@ -119,21 +87,10 @@ def target_builder(arch, mode):
       run(['tar', '-xjf', tarball])
 
     with bot.BuildStep('execute tests'):
-      uri = "%s/%s" % (GCS_BUCKET, recording)
-      uri_out = "%s/%s" % (GCS_BUCKET, recording_out)
-      run([GSUTIL, 'cp', uri, recording])
-      run(['python', execute_testcases_py, recording, recording_out])
-      run([GSUTIL, 'cp', recording_out, uri_out])
-      run([GSUTIL, 'setacl', 'public-read', uri_out])
+      run(test_args)
 
     with bot.BuildStep('execute checked_tests'):
-      uri = "%s/%s" % (GCS_BUCKET, checked_recording)
-      uri_out = "%s/%s" % (GCS_BUCKET, checked_recording_out)
-      run([GSUTIL, 'cp', uri, checked_recording])
-      run(['python', execute_testcases_py, checked_recording,
-           checked_recording_out])
-      run([GSUTIL, 'cp', checked_recording_out, uri_out])
-      run([GSUTIL, 'setacl', 'public-read', uri_out])
+      run(test_args + ['--checked'])
   finally:
     for path in temporary_files:
       if os.path.exists(path):
