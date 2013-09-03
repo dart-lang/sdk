@@ -57,7 +57,7 @@ void testBasicTypes() {
     var inferrer = compiler.typesTask.typesInferrer;
     Expect.identical(compiler.typesTask.boolType, type);
   });
-  checkPrintType('1.0', (compiler, type) {
+  checkPrintType('1.5', (compiler, type) {
     var inferrer = compiler.typesTask.typesInferrer;
     Expect.identical(compiler.typesTask.doubleType, type);
   });

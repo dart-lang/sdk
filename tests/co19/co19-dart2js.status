@@ -43,6 +43,8 @@ LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail, Pass # TODO(ahe): Please tri
 
 [ $compiler == dart2js ]
 
+LibTest/core/List/removeAt_A02_t01: Fail # Issue 1533
+
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # Issue 6750
 
 LibTest/typed_data/Float64List/Float64List.view_A01_t01: Fail, OK # Issue 12928

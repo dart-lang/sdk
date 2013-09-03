@@ -124,13 +124,13 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   }
   class JSNumber extends Interceptor implements num {
     // All these methods return a number to please type inferencing.
-    operator-() => (this is JSInt) ? 42 : 42.0;
-    operator +(other) => (this is JSInt) ? 42 : 42.0;
-    operator -(other) => (this is JSInt) ? 42 : 42.0;
+    operator-() => (this is JSInt) ? 42 : 42.2;
+    operator +(other) => (this is JSInt) ? 42 : 42.2;
+    operator -(other) => (this is JSInt) ? 42 : 42.2;
     operator ~/(other) => 42;
-    operator /(other) => (this is JSInt) ? 42 : 42.0;
-    operator *(other) => (this is JSInt) ? 42 : 42.0;
-    operator %(other) => (this is JSInt) ? 42 : 42.0;
+    operator /(other) => (this is JSInt) ? 42 : 42.2;
+    operator *(other) => (this is JSInt) ? 42 : 42.2;
+    operator %(other) => (this is JSInt) ? 42 : 42.2;
     operator <<(other) => 42;
     operator >>(other) => 42;
     operator |(other) => 42;
@@ -144,8 +144,8 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator ==(other) => true;
     get hashCode => throw "JSNumber.hashCode not implemented.";
 
-    abs() => (this is JSInt) ? 42 : 42.0;
-    remainder(other) => (this is JSInt) ? 42 : 42.0;
+    abs() => (this is JSInt) ? 42 : 42.2;
+    remainder(other) => (this is JSInt) ? 42 : 42.2;
     truncate() => 42;
   }
   class JSInt extends JSNumber implements int {

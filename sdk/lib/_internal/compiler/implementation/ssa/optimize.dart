@@ -578,6 +578,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // We cannot just return false, because the expression may be of
         // type int or double.
       }
+    } else if (expressionType.canBePrimitiveNumber(compiler)
+               && identical(element, compiler.intClass)) {
+      // We let the JS semantics decide for that check.
+      return node;
     // We need the [:hasTypeArguments:] check because we don't have
     // the notion of generics in the backend. For example, [:this:] in
     // a class [:A<T>:], is currently always considered to have the

@@ -14,11 +14,11 @@ import 'parser_helper.dart';
 const String TEST = """
 returnNum1(a) {
   if (a) return 1;
-  else return 2.0;
+  else return 2.5;
 }
 
 returnNum2(a) {
-  if (a) return 1.0;
+  if (a) return 1.4;
   else return 2;
 }
 
@@ -28,8 +28,8 @@ returnInt1(a) {
 }
 
 returnDouble(a) {
-  if (a) return 1.0;
-  else return 2.0;
+  if (a) return 1.5;
+  else return 2.5;
 }
 
 returnGiveUp(a) {

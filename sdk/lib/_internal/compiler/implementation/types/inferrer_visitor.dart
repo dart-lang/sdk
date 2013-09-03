@@ -611,7 +611,13 @@ abstract class InferrerVisitor
   }
 
   T visitLiteralDouble(LiteralDouble node) {
-    return types.doubleType;
+    ConstantSystem constantSystem = compiler.backend.constantSystem;
+    Constant constant = constantSystem.createDouble(node.value);
+    // The JavaScript backend may turn this literal into an integer at
+    // runtime.
+    return constantSystem.isDouble(constant)
+        ? types.doubleType
+        : types.intType;
   }
 
   T visitLiteralInt(LiteralInt node) {
