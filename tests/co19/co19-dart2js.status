@@ -375,6 +375,48 @@ LibTest/typed_data/Uint32List/Uint32List_A02_t01: pass # co19-roll r559: Please 
 LibTest/typed_data/Uint8ClampedList/Uint8ClampedList_A02_t01: pass # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8List/Uint8List_A02_t01: pass # co19-roll r559: Please triage this failure
 
+LibTest/typed_data/ByteBuffer/hashCode_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteBuffer/hashCode_A01_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteBuffer/lengthInBytes_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteBuffer/lengthInBytes_A01_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteBuffer/operator_equality_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteBuffer/runtimeType_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteBuffer/runtimeType_A01_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteBuffer/toString_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/buffer_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/buffer_A01_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/ByteData_A01_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/ByteData.view_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/ByteData.view_A02_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/elementSizeInBytes_A01_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getFloat32_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getFloat64_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getInt16_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getInt32_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getInt8_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getUint16_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getUint32_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getUint8_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/hashCode_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/hashCode_A01_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/lengthInBytes_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/lengthInBytes_A01_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/offsetInBytes_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/offsetInBytes_A01_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/operator_equality_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/runtimeType_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/runtimeType_A01_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setFloat32_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setFloat64_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setInt16_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setInt32_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setInt8_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setUint16_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setUint32_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setUint8_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/toString_A01_t01: fail # co19-roll r569: Please triage this failure
+
+
 [ $compiler == dart2js ]
 Language/03_Overview/1_Scoping_A02_t28: fail # co19-roll r559: Please triage this failure
 Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
