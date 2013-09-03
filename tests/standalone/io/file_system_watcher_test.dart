@@ -100,8 +100,6 @@ void testWatchDeleteFile() {
       asyncEnd();
       dir.deleteSync(recursive: true);
     }
-  }, onDone: () {
-    Expect.isTrue(gotEvent);
   }, onError: (e) {
     dir.deleteSync(recursive: true);
     throw e;
