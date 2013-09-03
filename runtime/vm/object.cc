@@ -7693,11 +7693,12 @@ RawObject* Namespace::Lookup(const String& name) const {
   intptr_t ignore = 0;
   // Lookup the name in the library's symbols.
   Object& obj = Object::Handle(isolate, lib.LookupEntry(name, &ignore));
-  if (obj.IsNull()) {
+  // Library prefixes are not exported.
+  if (obj.IsNull() || obj.IsLibraryPrefix()) {
     // Lookup in the re-exported symbols.
     obj = lib.LookupExport(name);
   }
-  if (obj.IsNull() || HidesName(name)) {
+  if (obj.IsNull() || HidesName(name) || obj.IsLibraryPrefix()) {
     return Object::null();
   }
   return obj.raw();
