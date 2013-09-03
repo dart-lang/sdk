@@ -21,5 +21,6 @@ class B {
 
 main() {
   Expect.equals(42, new B().foo(0));
-  Expect.throws(() => new A().foo('foo'), (e) => e is ArgumentError);
+  Expect.throws(() => new A().foo('foo'),
+                (e) => e is ArgumentError || e is TypeError);
 }
