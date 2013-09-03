@@ -751,6 +751,18 @@ DEFINE_NATIVE_ENTRY(TypeVariableMirror_upper_bound, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(InstanceMirror_identityHash, 1) {
+  GET_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(0));
+  ObjectStore* object_store = isolate->object_store();
+  const Class& cls = Class::Handle(isolate, object_store->object_class());
+  const Function& function =
+      Function::Handle(isolate, cls.LookupDynamicFunction(Symbols::hashCode()));
+  const Array& args = Array::Handle(isolate, Array::New(1));
+  args.SetAt(0, reflectee);
+  return DartEntry::InvokeFunction(function, args);
+}
+
+
 // Invoke the function, or noSuchMethod if it is null. Propagate any unhandled
 // exceptions. Wrap and propagate any compilation errors.
 static RawObject* ReflectivelyInvokeDynamicFunction(const Instance& receiver,

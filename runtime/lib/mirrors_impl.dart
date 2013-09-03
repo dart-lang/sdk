@@ -283,8 +283,21 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
            identical(_reflectee, other._reflectee);
   }
 
-  // TODO(12909): Use the reflectee's identity hash.
-  int get hashCode => _reflectee.hashCode;
+  int get hashCode {
+    // If the reflectee is a double or bignum, use the base hashCode to preserve
+    // the illusion that boxed numbers with the same value are identical. If the
+    // reflectee is a Smi, use the base hashCode because Object.hashCode does
+    // not work for non-heap objects. Otherwise, use Object.hashCode to maintain
+    // correctness even if a user-defined hashCode returns different values for
+    // successive invocations.
+    var h = _reflectee is num ? _reflectee.hashCode : _identityHash(_reflectee);
+    // Avoid hash collisions with the reflectee. This constant is in Smi range
+    // and happens to be the inner padding from RFC 2104.
+    return h ^ 0x36363636;
+  }
+
+  static _identityHash(reflectee)
+      native "InstanceMirror_identityHash";
 
   _invoke(reflectee, functionName, positionalArguments)
       native 'InstanceMirror_invoke';
