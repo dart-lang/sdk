@@ -437,7 +437,12 @@ def DartBinary():
   if IsWindows():
     return os.path.join(dart_binary_prefix, 'windows', 'dart.exe')
   else:
-    return os.path.join(dart_binary_prefix, GuessOS(), 'dart')
+    arch = GuessArchitecture()
+    system = GuessOS()
+    if arch == 'arm':
+      return os.path.join(dart_binary_prefix, system, 'dart-arm')
+    else:
+      return os.path.join(dart_binary_prefix, system, 'dart')
 
 
 def DartSdkBinary():
