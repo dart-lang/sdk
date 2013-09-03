@@ -26,6 +26,7 @@ mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
 mirrors/mixin_test: Fail # Issue 12464
 mirrors/null_test : Fail # Issue 12129
 mirrors/parameter_test: Fail # Issue 6490
+mirrors/parameter_metadata_test: Fail # Issue 10905
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
 mirrors/reflected_type_test: Fail # Issue 12607
 mirrors/typedef_metadata_test: Fail # Issue 12785
