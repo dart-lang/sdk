@@ -3,9 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 cssstyledeclaration_test: Skip # Issue 12951
-indexeddb_3_test: Skip # Issue 12948
-indexeddb_4_test: Skip # Issue 12948
-indexeddb_5_test: Skip # Issue 12948
 
 async_window_test: Skip #TODO(gram): investigating
 event_test: Skip  # Issue 1996

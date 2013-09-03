@@ -652,7 +652,12 @@ class Index extends Interceptor native "IDBIndex" {
     } else {
       key_OR_range = range;
     }
-    var request = _openCursor(key_OR_range, direction);
+    var request;
+    if (direction == null) {
+      request = _openCursor(key_OR_range);
+    } else {
+      request = _openCursor(key_OR_range, direction);
+    }
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
 
@@ -674,7 +679,12 @@ class Index extends Interceptor native "IDBIndex" {
     } else {
       key_OR_range = range;
     }
-    var request = _openKeyCursor(key_OR_range, direction);
+    var request;
+    if (direction == null) {
+      request = _openKeyCursor(key_OR_range);
+    } else {
+      request = _openKeyCursor(key_OR_range, direction);
+    }
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
 
@@ -728,7 +738,7 @@ class Index extends Interceptor native "IDBIndex" {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openCursor(Object key, String direction) native;
+  Request _openCursor(Object key, [String direction]) native;
 
   @JSName('openKeyCursor')
   @DomName('IDBIndex.openKeyCursor')
@@ -736,7 +746,7 @@ class Index extends Interceptor native "IDBIndex" {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openKeyCursor(Object key, String direction) native;
+  Request _openKeyCursor(Object key, [String direction]) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
