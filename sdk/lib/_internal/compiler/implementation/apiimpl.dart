@@ -133,12 +133,10 @@ class Compiler extends leg.Compiler {
     return "lib/$path";
   }
 
-  elements.LibraryElement scanBuiltinLibrary(String path) {
+  Future<elements.LibraryElement> scanBuiltinLibrary(String path) {
     Uri uri = libraryRoot.resolve(lookupLibraryPath(path));
     Uri canonicalUri = new Uri(scheme: "dart", path: path);
-    elements.LibraryElement library =
-        libraryLoader.loadLibrary(uri, null, canonicalUri);
-    return library;
+    return libraryLoader.loadLibrary(uri, null, canonicalUri);
   }
 
   void log(message) {
@@ -157,30 +155,37 @@ class Compiler extends leg.Compiler {
   /**
    * Reads the script designated by [readableUri].
    */
-  leg.Script readScript(Uri readableUri, [tree.Node node]) {
+  Future<leg.Script> readScript(Uri readableUri,
+                                [elements.Element element, tree.Node node]) {
     if (!readableUri.isAbsolute) {
       internalError('Relative uri $readableUri provided to readScript(Uri)',
                     node: node);
     }
-    return fileReadingTask.measure(() {
-      Uri resourceUri = translateUri(readableUri, node);
-      String text = "";
-      try {
-        // TODO(ahe): We expect the future to be complete and call value
-        // directly. In effect, we don't support truly asynchronous API.
-        text = deprecatedFutureValue(provider(resourceUri));
-      } catch (exception) {
+
+    // TODO(johnniwinther): Add [:report(..., {Element element}):] to
+    // report methods in Compiler.
+    void reportReadError(String exception) {
+      withCurrentElement(element, () {
         reportError(node,
                     leg.MessageKind.READ_SCRIPT_ERROR,
                     {'uri': readableUri, 'exception': exception});
-        return null;
-      }
+      });
+    }
+
+    Uri resourceUri = translateUri(readableUri, node);
+    // TODO(johnniwinther): Wrap the result from [provider] in a specialized
+    // [Future] to ensure that we never execute an asynchronous action without setting
+    // up the current element of the compiler.
+    return new Future.sync(() => provider(resourceUri)).then((String text) {
       SourceFile sourceFile = new SourceFile(resourceUri.toString(), text);
       // We use [readableUri] as the URI for the script since need to preserve
       // the scheme in the script because [Script.uri] is used for resolving
       // relative URIs mentioned in the script. See the comment on
       // [LibraryLoader] for more details.
       return new leg.Script(readableUri, sourceFile);
+    }).catchError((error) {
+      reportReadError(error);
+      return null;
     });
   }
 
@@ -254,18 +259,19 @@ class Compiler extends leg.Compiler {
     return packageRoot.resolve(uri.path);
   }
 
-  bool run(Uri uri) {
+  Future<bool> run(Uri uri) {
     log('Allowed library categories: $allowedLibraryCategories');
-    bool success = super.run(uri);
-    int cumulated = 0;
-    for (final task in tasks) {
-      cumulated += task.timing;
-      log('${task.name} took ${task.timing}msec');
-    }
-    int total = totalCompileTime.elapsedMilliseconds;
-    log('Total compile-time ${total}msec;'
-        ' unaccounted ${total - cumulated}msec');
-    return success;
+    return super.run(uri).then((bool success) {
+      int cumulated = 0;
+      for (final task in tasks) {
+        cumulated += task.timing;
+        log('${task.name} took ${task.timing}msec');
+      }
+      int total = totalCompileTime.elapsedMilliseconds;
+      log('Total compile-time ${total}msec;'
+          ' unaccounted ${total - cumulated}msec');
+      return success;
+    });
   }
 
   void reportDiagnostic(leg.SourceSpan span, String message,

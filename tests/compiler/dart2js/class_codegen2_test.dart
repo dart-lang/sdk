@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that parameters keep their names in the output.
 
+import 'dart:async';
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 
@@ -87,15 +89,11 @@ main() {
   // At some point Dart2js generated bad object literals with dangling commas:
   // { a: true, }. Make sure this doesn't happen again.
   RegExp danglingComma = new RegExp(r',[ \n]*}');
-  String generated = compileAll(TEST_ONE);
-  Expect.isFalse(danglingComma.hasMatch(generated));
 
-  generated = compileAll(TEST_TWO);
-  Expect.isFalse(danglingComma.hasMatch(generated));
-
-  generated = compileAll(TEST_THREE);
-  Expect.isFalse(danglingComma.hasMatch(generated));
-
-  generated = compileAll(TEST_FOUR);
-  Expect.isFalse(danglingComma.hasMatch(generated));
+  asyncStart();
+  Future.forEach([TEST_ONE, TEST_TWO, TEST_THREE, TEST_FOUR], (test) {
+    return compileAll(test).then((generated) {
+      Expect.isFalse(danglingComma.hasMatch(generated));
+    });
+  }).whenComplete(() => asyncEnd());
 }

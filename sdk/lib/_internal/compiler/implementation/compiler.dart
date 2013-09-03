@@ -36,7 +36,6 @@ abstract class WorkItem {
     assert(invariant(element, element.isDeclaration));
   }
 
-
   void run(Compiler compiler, Enqueuer world);
 }
 
@@ -79,11 +78,6 @@ class PostProcessTask {
   final PostProcessAction action;
 
   PostProcessTask(this.element, this.action);
-}
-
-class ReadingFilesTask extends CompilerTask {
-  ReadingFilesTask(Compiler compiler) : super(compiler);
-  String get name => 'Reading input files';
 }
 
 abstract class Backend {
@@ -253,7 +247,9 @@ abstract class Backend {
 
   void registerStaticUse(Element element, Enqueuer enqueuer) {}
 
-  void onLibraryLoaded(LibraryElement library, Uri uri) {}
+  Future onLibraryLoaded(LibraryElement library, Uri uri) {
+    return new Future.value();
+  }
 
   void registerMetadataInstantiatedType(DartType type, TreeElements elements) {}
   void registerMetadataStaticUse(Element element) {}
@@ -512,7 +508,6 @@ abstract class Compiler implements DiagnosticListener {
   ConstantHandler constantHandler;
   ConstantHandler metadataHandler;
   EnqueueTask enqueuer;
-  CompilerTask fileReadingTask;
   DeferredLoadTask deferredLoadTask;
   MirrorUsageAnalyzerTask mirrorUsageAnalyzerTask;
   ContainerTracer containerTracer;
@@ -614,7 +609,6 @@ abstract class Compiler implements DiagnosticListener {
     validator = new TreeValidatorTask(this);
 
     tasks = [
-      fileReadingTask = new ReadingFilesTask(this),
       libraryLoader = new LibraryLoaderTask(this),
       scanner = new ScannerTask(this),
       dietParser = new DietParserTask(this),
@@ -731,14 +725,15 @@ abstract class Compiler implements DiagnosticListener {
     reportDiagnostic(null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
-  bool run(Uri uri) {
+  Future<bool> run(Uri uri) {
     totalCompileTime.start();
-    try {
-      runCompiler(uri);
-    } on CompilerCancelledException catch (exception) {
-      log('Error: $exception');
-      return false;
-    } catch (exception) {
+
+    return new Future.sync(() => runCompiler(uri)).catchError((error) {
+      if (error is CompilerCancelledException) {
+        log('Error: $error');
+        return false;
+      }
+
       try {
         if (!hasCrashed) {
           hasCrashed = true;
@@ -750,12 +745,13 @@ abstract class Compiler implements DiagnosticListener {
       } catch (doubleFault) {
         // Ignoring exceptions in exception handling.
       }
-      rethrow;
-    } finally {
+      throw error;
+    }).whenComplete(() {
       tracer.close();
       totalCompileTime.stop();
-    }
-    return !compilationFailed;
+    }).then((_) {
+      return !compilationFailed;
+    });
   }
 
   bool hasIsolateSupport() => isolateLibrary != null;
@@ -764,7 +760,7 @@ abstract class Compiler implements DiagnosticListener {
    * This method is called before [library] import and export scopes have been
    * set up.
    */
-  void onLibraryLoaded(LibraryElement library, Uri uri) {
+  Future onLibraryLoaded(LibraryElement library, Uri uri) {
     if (dynamicClass != null) {
       // When loading the built-in libraries, dynamicClass is null. We
       // take advantage of this as core imports js_helper and sees [dynamic]
@@ -791,12 +787,12 @@ abstract class Compiler implements DiagnosticListener {
           findRequiredElement(library, const SourceString('DeferredLibrary'));
     } else if (isolateHelperLibrary == null
 	       && (uri == new Uri(scheme: 'dart', path: '_isolate_helper'))) {
-      isolateHelperLibrary = scanBuiltinLibrary('_isolate_helper');
+      isolateHelperLibrary = library;
     } else if (foreignLibrary == null
 	       && (uri == new Uri(scheme: 'dart', path: '_foreign_helper'))) {
-      foreignLibrary = scanBuiltinLibrary('_foreign_helper');
+      foreignLibrary = library;
     }
-    backend.onLibraryLoaded(library, uri);
+    return backend.onLibraryLoaded(library, uri);
   }
 
   Element findRequiredElement(LibraryElement library, SourceString name) {
@@ -824,7 +820,7 @@ abstract class Compiler implements DiagnosticListener {
     }
   }
 
-  LibraryElement scanBuiltinLibrary(String filename);
+  Future<LibraryElement> scanBuiltinLibrary(String filename);
 
   void initializeSpecialClasses() {
     final List missingCoreClasses = [];
@@ -902,26 +898,32 @@ abstract class Compiler implements DiagnosticListener {
         listClass.lookupConstructor(callConstructor);
   }
 
-  void scanBuiltinLibraries() {
-    jsHelperLibrary = scanBuiltinLibrary('_js_helper');
-    interceptorsLibrary = scanBuiltinLibrary('_interceptors');
-    assertMethod = jsHelperLibrary.find(const SourceString('assertHelper'));
-    identicalFunction = coreLibrary.find(const SourceString('identical'));
+  Future scanBuiltinLibraries() {
+    return scanBuiltinLibrary('_js_helper').then((LibraryElement library) {
+      jsHelperLibrary = library;
+      return scanBuiltinLibrary('_interceptors');
+    }).then((LibraryElement library) {
+      interceptorsLibrary = library;
 
-    initializeSpecialClasses();
+      assertMethod = jsHelperLibrary.find(const SourceString('assertHelper'));
+      identicalFunction = coreLibrary.find(const SourceString('identical'));
 
-    functionClass.ensureResolved(this);
-    functionApplyMethod =
-        functionClass.lookupLocalMember(const SourceString('apply'));
-    jsInvocationMirrorClass.ensureResolved(this);
-    invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
+      initializeSpecialClasses();
 
-    if (preserveComments) {
-      var uri = new Uri(scheme: 'dart', path: 'mirrors');
-      LibraryElement libraryElement =
-          libraryLoader.loadLibrary(uri, null, uri);
-      documentClass = libraryElement.find(const SourceString('Comment'));
-    }
+      functionClass.ensureResolved(this);
+      functionApplyMethod =
+          functionClass.lookupLocalMember(const SourceString('apply'));
+      jsInvocationMirrorClass.ensureResolved(this);
+      invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
+
+      if (preserveComments) {
+        var uri = new Uri(scheme: 'dart', path: 'mirrors');
+        return libraryLoader.loadLibrary(uri, null, uri).then(
+            (LibraryElement libraryElement) {
+          documentClass = libraryElement.find(const SourceString('Comment'));
+        });
+      }
+    });
   }
 
   void importHelperLibrary(LibraryElement library) {
@@ -936,28 +938,39 @@ abstract class Compiler implements DiagnosticListener {
    */
   Uri resolvePatchUri(String dartLibraryPath);
 
-  void runCompiler(Uri uri) {
+  Future runCompiler(Uri uri) {
     // TODO(ahe): This prevents memory leaks when invoking the compiler
     // multiple times.  Implement a better mechanism where StringWrapper
     // instances are shared on a per library basis.
     SourceString.canonicalizedValues.clear();
 
     assert(uri != null || analyzeOnly);
-    scanBuiltinLibraries();
-    if (librariesToAnalyzeWhenRun != null) {
-      for (Uri libraryUri in librariesToAnalyzeWhenRun) {
-        log('analyzing $libraryUri ($buildId)');
-        libraryLoader.loadLibrary(libraryUri, null, libraryUri);
+    return scanBuiltinLibraries().then((_) {
+      if (librariesToAnalyzeWhenRun != null) {
+        return Future.forEach(librariesToAnalyzeWhenRun, (libraryUri) {
+          log('analyzing $libraryUri ($buildId)');
+          return libraryLoader.loadLibrary(libraryUri, null, libraryUri);
+        });
       }
-    }
-    if (uri != null) {
-      if (analyzeOnly) {
-        log('analyzing $uri ($buildId)');
-      } else {
-        log('compiling $uri ($buildId)');
+    }).then((_) {
+      if (uri != null) {
+        if (analyzeOnly) {
+          log('analyzing $uri ($buildId)');
+        } else {
+          log('compiling $uri ($buildId)');
+        }
+        return libraryLoader.loadLibrary(uri, null, uri)
+            .then((LibraryElement library) {
+          mainApp = library;
+        });
       }
-      mainApp = libraryLoader.loadLibrary(uri, null, uri);
-    }
+    }).then((_) {
+      compileLoadedLibraries();
+    });
+  }
+
+  /// Performs the compilation when all libraries have been loaded.
+  void compileLoadedLibraries() {
     Element main = null;
     if (mainApp != null) {
       main = mainApp.find(MAIN);
@@ -973,8 +986,8 @@ abstract class Compiler implements DiagnosticListener {
               mainApp,
               MessageKind.GENERIC,
               {'text': 'Error: Could not find "${MAIN.slowToString()}". '
-                  'No source will be analyzed. '
-                  'Use "--analyze-all" to analyze all code in the library.'});
+              'No source will be analyzed. '
+              'Use "--analyze-all" to analyze all code in the library.'});
         }
       } else {
         if (!main.isFunction()) {
@@ -990,7 +1003,7 @@ abstract class Compiler implements DiagnosticListener {
               parameter,
               MessageKind.GENERIC,
               {'text':
-                  'Error: "${MAIN.slowToString()}" cannot have parameters.'});
+                'Error: "${MAIN.slowToString()}" cannot have parameters.'});
         });
       }
 
@@ -1046,7 +1059,8 @@ abstract class Compiler implements DiagnosticListener {
       backend.enableNoSuchMethod(enqueuer.codegen);
     }
     if (compileAll) {
-      libraries.forEach((_, lib) => fullyEnqueueLibrary(lib, enqueuer.codegen));
+      libraries.forEach((_, lib) => fullyEnqueueLibrary(lib,
+          enqueuer.codegen));
     }
     processQueue(enqueuer.codegen, main);
     enqueuer.codegen.logSummary(log);
@@ -1373,7 +1387,7 @@ abstract class Compiler implements DiagnosticListener {
    *
    * See [LibraryLoader] for terminology on URIs.
    */
-  Script readScript(Uri readableUri, [Node node]) {
+  Future<Script> readScript(Uri readableUri, [Element element, Node node]) {
     unimplemented('Compiler.readScript');
   }
 
@@ -1517,10 +1531,14 @@ class SourceSpan {
 bool invariant(Spannable spannable, var condition, {var message: null}) {
   // TODO(johnniwinther): Use [spannable] and [message] to provide better
   // information on assertion errors.
+  if (spannable == null) {
+    throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+        "Spannable was null for invariant. Use CURRENT_ELEMENT_SPANNABLE.");
+  }
   if (condition is Function){
     condition = condition();
   }
-  if (spannable == null || !condition) {
+  if (!condition) {
     if (message is Function) {
       message = message();
     }

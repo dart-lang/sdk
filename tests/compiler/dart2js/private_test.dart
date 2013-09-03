@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'mock_compiler.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
@@ -68,8 +69,9 @@ void analyze(String text, [expectedWarnings]) {
                   ''';
   Uri uri = Uri.parse('src:public');
   compiler.registerSource(uri, source);
-  compiler.runCompiler(uri);
-  compareWarningKinds(text, expectedWarnings, compiler.warnings);
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    compareWarningKinds(text, expectedWarnings, compiler.warnings);
+  }));
 }
 
 void main() {

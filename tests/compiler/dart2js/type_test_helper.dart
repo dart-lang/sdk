@@ -4,6 +4,7 @@
 
 library type_test_helper;
 
+import 'dart:async';
 import "package:expect/expect.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import "parser_helper.dart" show SourceString;
@@ -22,7 +23,7 @@ GenericType instantiate(TypeDeclarationElement element,
 class TypeEnvironment {
   final MockCompiler compiler;
 
-  factory TypeEnvironment(String source) {
+  static Future<TypeEnvironment> create(String source) {
     var uri = new Uri(scheme: 'source');
     MockCompiler compiler = compilerFor('''
         main() {}
@@ -30,8 +31,9 @@ class TypeEnvironment {
         uri,
         analyzeAll: true,
         analyzeOnly: true);
-    compiler.runCompiler(uri);
-    return new TypeEnvironment._(compiler);
+    return compiler.runCompiler(uri).then((_) {
+      return new TypeEnvironment._(compiler);
+    });
   }
 
   TypeEnvironment._(MockCompiler this.compiler);

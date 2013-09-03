@@ -1490,7 +1490,7 @@ class JavaScriptBackend extends Backend {
     return false;
   }
 
-  void onLibraryLoaded(LibraryElement library, Uri uri) {
+  Future onLibraryLoaded(LibraryElement library, Uri uri) {
     if (uri == Uri.parse('dart:_js_mirrors')) {
       disableTreeShakingMarker =
           library.find(const SourceString('disableTreeShaking'));
@@ -1500,6 +1500,7 @@ class JavaScriptBackend extends Backend {
       preserveNamesMarker =
           library.find(const SourceString('preserveNames'));
     }
+    return new Future.value();
   }
 
   void registerMetadataInstantiatedType(DartType type, TreeElements elements) {

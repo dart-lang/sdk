@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
@@ -48,12 +49,13 @@ main() {
   var provider = new SourceFileProvider();
   var diagnosticHandler =
         new FormattingDiagnosticHandler(provider).diagnosticHandler;
+  asyncStart();
   var result = analyze([inputUri], libUri, null,
                        provider.readStringFromUri, diagnosticHandler,
                        <String>['--preserve-comments']);
   result.then((MirrorSystem mirrors) {
     test(mirrors);
-  });
+  }).whenComplete(() => asyncEnd());
 }
 
 void test(MirrorSystem mirrors) {

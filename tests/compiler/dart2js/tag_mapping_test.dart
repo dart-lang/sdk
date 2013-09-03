@@ -5,6 +5,7 @@
 // Test of import tag to library mapping.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 
 const MAIN_CODE = """
@@ -24,7 +25,7 @@ void main() {
     'library.dart': LIB_CODE,
   };
 
-  compileSources(sources, (MockCompiler compiler) {
+  asyncTest(() => compileSources(sources, (MockCompiler compiler) {
     LibraryElement mainApp = compiler.libraries['source:/main.dart'];
     LibraryElement lib = compiler.libraries['source:/library.dart'];
     Expect.isNotNull(mainApp, 'Could not find main.dart library');
@@ -36,5 +37,5 @@ void main() {
     // Test that we can get from the import tag in main.dart to the
     // library element representing library.dart.
     Expect.identical(lib, mainApp.getLibraryFromTag(tag));
-  });
+  }));
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'memory_source_file_helper.dart';
 
 import '../../../sdk/lib/_internal/compiler/compiler.dart'
@@ -15,8 +16,7 @@ main() {
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
-  MemorySourceFileProvider.MEMORY_SOURCE_FILES = MEMORY_SOURCE_FILES;
-  var provider = new MemorySourceFileProvider();
+  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
   var diagnostics = [];
   void diagnosticHandler(Uri uri, int begin, int end,
                          String message, Diagnostic kind) {
@@ -32,28 +32,30 @@ main() {
                                    libraryRoot,
                                    packageRoot,
                                    ['--analyze-only']);
-  compiler.run(Uri.parse('memory:main.dart'));
-  diagnostics.sort();
-  var expected = [
-      'memory:exporter.dart:43:47:Info: "function(hest)" is defined here.:info',
-      'memory:library.dart:14:19:Info: "class(Fisk)" is (re)exported by '
-      'multiple libraries.:info',
-      'memory:library.dart:30:34:Info: "function(fisk)" is (re)exported by '
-      'multiple libraries.:info',
-      'memory:library.dart:41:45:Info: "function(hest)" is defined here.'
-      ':info',
-      'memory:main.dart:0:22:Info: "class(Fisk)" is imported here.:info',
-      'memory:main.dart:0:22:Info: "function(fisk)" is imported here.:info',
-      'memory:main.dart:0:22:Info: "function(hest)" is imported here.:info',
-      'memory:main.dart:23:46:Info: "class(Fisk)" is imported here.:info',
-      'memory:main.dart:23:46:Info: "function(fisk)" is imported here.:info',
-      'memory:main.dart:23:46:Info: "function(hest)" is imported here.:info',
-      'memory:main.dart:59:63:Warning: Duplicate import of "Fisk".:warning',
-      'memory:main.dart:76:80:Error: Duplicate import of "fisk".:error',
-      'memory:main.dart:86:90:Error: Duplicate import of "hest".:error'
-  ];
-  Expect.listEquals(expected, diagnostics);
-  Expect.isTrue(compiler.compilationFailed);
+  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+    diagnostics.sort();
+    var expected = [
+        'memory:exporter.dart:43:47:Info: "function(hest)" is defined here.'
+        ':info',
+        'memory:library.dart:14:19:Info: "class(Fisk)" is (re)exported by '
+        'multiple libraries.:info',
+        'memory:library.dart:30:34:Info: "function(fisk)" is (re)exported by '
+        'multiple libraries.:info',
+        'memory:library.dart:41:45:Info: "function(hest)" is defined here.'
+        ':info',
+        'memory:main.dart:0:22:Info: "class(Fisk)" is imported here.:info',
+        'memory:main.dart:0:22:Info: "function(fisk)" is imported here.:info',
+        'memory:main.dart:0:22:Info: "function(hest)" is imported here.:info',
+        'memory:main.dart:23:46:Info: "class(Fisk)" is imported here.:info',
+        'memory:main.dart:23:46:Info: "function(fisk)" is imported here.:info',
+        'memory:main.dart:23:46:Info: "function(hest)" is imported here.:info',
+        'memory:main.dart:59:63:Warning: Duplicate import of "Fisk".:warning',
+        'memory:main.dart:76:80:Error: Duplicate import of "fisk".:error',
+        'memory:main.dart:86:90:Error: Duplicate import of "hest".:error'
+    ];
+    Expect.listEquals(expected, diagnostics);
+    Expect.isTrue(compiler.compilationFailed);
+  }));
 }
 
 const Map MEMORY_SOURCE_FILES = const {

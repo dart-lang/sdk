@@ -6,6 +6,7 @@
 // the presence of a fixed length list constructor call.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import
     '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
     show ContainerTypeMask, TypeMask;
@@ -25,14 +26,15 @@ main() {
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
-  compiler.runCompiler(uri);
-  var typesInferrer = compiler.typesTask.typesInferrer;
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    var typesInferrer = compiler.typesTask.typesInferrer;
 
-  checkType(String name, type) {
-    var element = findElement(compiler, name);
-    ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
-    Expect.equals(type, mask.elementType.simplify(compiler), name);
-  }
+    checkType(String name, type) {
+      var element = findElement(compiler, name);
+      ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
+      Expect.equals(type, mask.elementType.simplify(compiler), name);
+    }
 
-  checkType('myList', compiler.typesTask.intType);
+    checkType('myList', compiler.typesTask.intType);
+  }));
 }

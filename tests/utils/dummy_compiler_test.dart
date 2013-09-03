@@ -8,6 +8,7 @@
 library dummy_compiler;
 
 import 'dart:async';
+import "package:async_helper/async_helper.dart";
 
 import '../../sdk/lib/_internal/compiler/compiler.dart';
 
@@ -102,6 +103,7 @@ void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
 }
 
 main() {
+  asyncStart();
   Future<String> result =
       compile(new Uri(scheme: 'main'),
               new Uri(scheme: 'lib', path: '/'),
@@ -113,5 +115,5 @@ main() {
     }
   }, onError: (e) {
       throw 'Compilation failed';
-  });
+  }).whenComplete(() => asyncEnd());
 }

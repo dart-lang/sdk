@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 
 const String TEST = r"""
@@ -25,8 +26,9 @@ main() {
 """;
 
 void main() {
-  String generated = compileAll(TEST);
-  Expect.isTrue(generated.contains('return 42'));
-  Expect.isTrue(generated.contains('return 54'));
-  Expect.isFalse(generated.contains('return 68'));
+  asyncTest(() => compileAll(TEST).then((generated) {
+    Expect.isTrue(generated.contains('return 42'));
+    Expect.isTrue(generated.contains('return 54'));
+    Expect.isFalse(generated.contains('return 68'));
+  }));
 }

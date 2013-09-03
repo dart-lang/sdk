@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 
 const String TEST1 = r"""
@@ -63,8 +64,9 @@ main() {
 """;
 
 void checkRangeError(String test, {bool hasRangeError}) {
-  String generated = compileAll(test);
-  Expect.equals(hasRangeError, generated.contains('ioore'));
+  asyncTest(() => compileAll(test).then((generated) {
+    Expect.equals(hasRangeError, generated.contains('ioore'));
+  }));
 }
 
 main() {

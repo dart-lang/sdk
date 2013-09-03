@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
     show TypeMask;
 
@@ -15,12 +16,14 @@ void compileAndFind(String code,
                     bool disableInlining,
                     check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');
+  asyncStart();
   var compiler = compilerFor(code, uri);
   compiler.disableInlining = disableInlining;
-  compiler.runCompiler(uri);
-  var cls = findElement(compiler, className);
-  var member = cls.lookupLocalMember(buildSourceString(memberName));
-  return check(compiler, member);
+  compiler.runCompiler(uri).then((_) {
+    var cls = findElement(compiler, className);
+    var member = cls.lookupLocalMember(buildSourceString(memberName));
+    return check(compiler, member);
+  }).whenComplete(() => asyncEnd());
 }
 
 const String TEST_1 = r"""

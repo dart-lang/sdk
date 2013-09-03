@@ -5,6 +5,7 @@
 library subtype_test;
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart"
@@ -23,210 +24,210 @@ void main() {
 }
 
 void testInterfaceSubtype() {
-  var env = new TypeEnvironment(r"""
+  asyncTest(() => TypeEnvironment.create(r"""
       class A<T> {}
       class B<T1, T2> extends A<T1> {}
       // TODO(johnniwinther): Inheritance with different type arguments is
       // currently not supported by the implementation.
       class C<T1, T2> extends B<T2, T1> /*implements A<A<T1>>*/ {}
-      """);
+      """).then((env) {
 
-  void expect(bool value, DartType T, DartType S) {
-    Expect.equals(value, env.isSubtype(T, S), '$T <: $S');
-  }
+    void expect(bool value, DartType T, DartType S) {
+      Expect.equals(value, env.isSubtype(T, S), '$T <: $S');
+    }
 
-  ClassElement A = env.getElement('A');
-  ClassElement B = env.getElement('B');
-  ClassElement C = env.getElement('C');
-  DartType Object_ = env['Object'];
-  DartType num_ = env['num'];
-  DartType int_ = env['int'];
-  DartType String_ = env['String'];
-  DartType dynamic_ = env['dynamic'];
+    ClassElement A = env.getElement('A');
+    ClassElement B = env.getElement('B');
+    ClassElement C = env.getElement('C');
+    DartType Object_ = env['Object'];
+    DartType num_ = env['num'];
+    DartType int_ = env['int'];
+    DartType String_ = env['String'];
+    DartType dynamic_ = env['dynamic'];
 
-  expect(true, Object_, Object_);
-  expect(true, num_, Object_);
-  expect(true, int_, Object_);
-  expect(true, String_, Object_);
-  expect(true, dynamic_, Object_);
+    expect(true, Object_, Object_);
+    expect(true, num_, Object_);
+    expect(true, int_, Object_);
+    expect(true, String_, Object_);
+    expect(true, dynamic_, Object_);
 
-  expect(false, Object_, num_);
-  expect(true, num_, num_);
-  expect(true, int_, num_);
-  expect(false, String_, num_);
-  expect(true, dynamic_, num_);
+    expect(false, Object_, num_);
+    expect(true, num_, num_);
+    expect(true, int_, num_);
+    expect(false, String_, num_);
+    expect(true, dynamic_, num_);
 
-  expect(false, Object_, int_);
-  expect(false, num_, int_);
-  expect(true, int_, int_);
-  expect(false, String_, int_);
-  expect(true, dynamic_, int_);
+    expect(false, Object_, int_);
+    expect(false, num_, int_);
+    expect(true, int_, int_);
+    expect(false, String_, int_);
+    expect(true, dynamic_, int_);
 
-  expect(false, Object_, String_);
-  expect(false, num_, String_);
-  expect(false, int_, String_);
-  expect(true, String_, String_);
-  expect(true, dynamic_, String_);
+    expect(false, Object_, String_);
+    expect(false, num_, String_);
+    expect(false, int_, String_);
+    expect(true, String_, String_);
+    expect(true, dynamic_, String_);
 
-  expect(true, Object_, dynamic_);
-  expect(true, num_, dynamic_);
-  expect(true, int_, dynamic_);
-  expect(true, String_, dynamic_);
-  expect(true, dynamic_, dynamic_);
+    expect(true, Object_, dynamic_);
+    expect(true, num_, dynamic_);
+    expect(true, int_, dynamic_);
+    expect(true, String_, dynamic_);
+    expect(true, dynamic_, dynamic_);
 
-  DartType A_Object = instantiate(A, [Object_]);
-  DartType A_num = instantiate(A, [num_]);
-  DartType A_int = instantiate(A, [int_]);
-  DartType A_String = instantiate(A, [String_]);
-  DartType A_dynamic = instantiate(A, [dynamic_]);
+    DartType A_Object = instantiate(A, [Object_]);
+    DartType A_num = instantiate(A, [num_]);
+    DartType A_int = instantiate(A, [int_]);
+    DartType A_String = instantiate(A, [String_]);
+    DartType A_dynamic = instantiate(A, [dynamic_]);
 
-  expect(true, A_Object, Object_);
-  expect(false, A_Object, num_);
-  expect(false, A_Object, int_);
-  expect(false, A_Object, String_);
-  expect(true, A_Object, dynamic_);
+    expect(true, A_Object, Object_);
+    expect(false, A_Object, num_);
+    expect(false, A_Object, int_);
+    expect(false, A_Object, String_);
+    expect(true, A_Object, dynamic_);
 
-  expect(true, A_Object, A_Object);
-  expect(true, A_num, A_Object);
-  expect(true, A_int, A_Object);
-  expect(true, A_String, A_Object);
-  expect(true, A_dynamic, A_Object);
+    expect(true, A_Object, A_Object);
+    expect(true, A_num, A_Object);
+    expect(true, A_int, A_Object);
+    expect(true, A_String, A_Object);
+    expect(true, A_dynamic, A_Object);
 
-  expect(false, A_Object, A_num);
-  expect(true, A_num, A_num);
-  expect(true, A_int, A_num);
-  expect(false, A_String, A_num);
-  expect(true, A_dynamic, A_num);
+    expect(false, A_Object, A_num);
+    expect(true, A_num, A_num);
+    expect(true, A_int, A_num);
+    expect(false, A_String, A_num);
+    expect(true, A_dynamic, A_num);
 
-  expect(false, A_Object, A_int);
-  expect(false, A_num, A_int);
-  expect(true, A_int, A_int);
-  expect(false, A_String, A_int);
-  expect(true, A_dynamic, A_int);
+    expect(false, A_Object, A_int);
+    expect(false, A_num, A_int);
+    expect(true, A_int, A_int);
+    expect(false, A_String, A_int);
+    expect(true, A_dynamic, A_int);
 
-  expect(false, A_Object, A_String);
-  expect(false, A_num, A_String);
-  expect(false, A_int, A_String);
-  expect(true, A_String, A_String);
-  expect(true, A_dynamic, A_String);
+    expect(false, A_Object, A_String);
+    expect(false, A_num, A_String);
+    expect(false, A_int, A_String);
+    expect(true, A_String, A_String);
+    expect(true, A_dynamic, A_String);
 
-  expect(true, A_Object, A_dynamic);
-  expect(true, A_num, A_dynamic);
-  expect(true, A_int, A_dynamic);
-  expect(true, A_String, A_dynamic);
-  expect(true, A_dynamic, A_dynamic);
+    expect(true, A_Object, A_dynamic);
+    expect(true, A_num, A_dynamic);
+    expect(true, A_int, A_dynamic);
+    expect(true, A_String, A_dynamic);
+    expect(true, A_dynamic, A_dynamic);
 
-  DartType B_Object_Object = instantiate(B, [Object_, Object_]);
-  DartType B_num_num = instantiate(B, [num_, num_]);
-  DartType B_int_num = instantiate(B, [int_, num_]);
-  DartType B_dynamic_dynamic = instantiate(B, [dynamic_, dynamic_]);
-  DartType B_String_dynamic = instantiate(B, [String_, dynamic_]);
+    DartType B_Object_Object = instantiate(B, [Object_, Object_]);
+    DartType B_num_num = instantiate(B, [num_, num_]);
+    DartType B_int_num = instantiate(B, [int_, num_]);
+    DartType B_dynamic_dynamic = instantiate(B, [dynamic_, dynamic_]);
+    DartType B_String_dynamic = instantiate(B, [String_, dynamic_]);
 
-  expect(true, B_Object_Object, Object_);
-  expect(true, B_Object_Object, A_Object);
-  expect(false, B_Object_Object, A_num);
-  expect(false, B_Object_Object, A_int);
-  expect(false, B_Object_Object, A_String);
-  expect(true, B_Object_Object, A_dynamic);
+    expect(true, B_Object_Object, Object_);
+    expect(true, B_Object_Object, A_Object);
+    expect(false, B_Object_Object, A_num);
+    expect(false, B_Object_Object, A_int);
+    expect(false, B_Object_Object, A_String);
+    expect(true, B_Object_Object, A_dynamic);
 
-  expect(true, B_num_num, Object_);
-  expect(true, B_num_num, A_Object);
-  expect(true, B_num_num, A_num);
-  expect(false, B_num_num, A_int);
-  expect(false, B_num_num, A_String);
-  expect(true, B_num_num, A_dynamic);
+    expect(true, B_num_num, Object_);
+    expect(true, B_num_num, A_Object);
+    expect(true, B_num_num, A_num);
+    expect(false, B_num_num, A_int);
+    expect(false, B_num_num, A_String);
+    expect(true, B_num_num, A_dynamic);
 
-  expect(true, B_int_num, Object_);
-  expect(true, B_int_num, A_Object);
-  expect(true, B_int_num, A_num);
-  expect(true, B_int_num, A_int);
-  expect(false, B_int_num, A_String);
-  expect(true, B_int_num, A_dynamic);
+    expect(true, B_int_num, Object_);
+    expect(true, B_int_num, A_Object);
+    expect(true, B_int_num, A_num);
+    expect(true, B_int_num, A_int);
+    expect(false, B_int_num, A_String);
+    expect(true, B_int_num, A_dynamic);
 
-  expect(true, B_dynamic_dynamic, Object_);
-  expect(true, B_dynamic_dynamic, A_Object);
-  expect(true, B_dynamic_dynamic, A_num);
-  expect(true, B_dynamic_dynamic, A_int);
-  expect(true, B_dynamic_dynamic, A_String);
-  expect(true, B_dynamic_dynamic, A_dynamic);
+    expect(true, B_dynamic_dynamic, Object_);
+    expect(true, B_dynamic_dynamic, A_Object);
+    expect(true, B_dynamic_dynamic, A_num);
+    expect(true, B_dynamic_dynamic, A_int);
+    expect(true, B_dynamic_dynamic, A_String);
+    expect(true, B_dynamic_dynamic, A_dynamic);
 
-  expect(true, B_String_dynamic, Object_);
-  expect(true, B_String_dynamic, A_Object);
-  expect(false, B_String_dynamic, A_num);
-  expect(false, B_String_dynamic, A_int);
-  expect(true, B_String_dynamic, A_String);
-  expect(true, B_String_dynamic, A_dynamic);
+    expect(true, B_String_dynamic, Object_);
+    expect(true, B_String_dynamic, A_Object);
+    expect(false, B_String_dynamic, A_num);
+    expect(false, B_String_dynamic, A_int);
+    expect(true, B_String_dynamic, A_String);
+    expect(true, B_String_dynamic, A_dynamic);
 
-  expect(true, B_Object_Object, B_Object_Object);
-  expect(true, B_num_num, B_Object_Object);
-  expect(true, B_int_num, B_Object_Object);
-  expect(true, B_dynamic_dynamic, B_Object_Object);
-  expect(true, B_String_dynamic, B_Object_Object);
+    expect(true, B_Object_Object, B_Object_Object);
+    expect(true, B_num_num, B_Object_Object);
+    expect(true, B_int_num, B_Object_Object);
+    expect(true, B_dynamic_dynamic, B_Object_Object);
+    expect(true, B_String_dynamic, B_Object_Object);
 
-  expect(false, B_Object_Object, B_num_num);
-  expect(true, B_num_num, B_num_num);
-  expect(true, B_int_num, B_num_num);
-  expect(true, B_dynamic_dynamic, B_num_num);
-  expect(false, B_String_dynamic, B_num_num);
+    expect(false, B_Object_Object, B_num_num);
+    expect(true, B_num_num, B_num_num);
+    expect(true, B_int_num, B_num_num);
+    expect(true, B_dynamic_dynamic, B_num_num);
+    expect(false, B_String_dynamic, B_num_num);
 
-  expect(false, B_Object_Object, B_int_num);
-  expect(false, B_num_num, B_int_num);
-  expect(true, B_int_num, B_int_num);
-  expect(true, B_dynamic_dynamic, B_int_num);
-  expect(false, B_String_dynamic, B_int_num);
+    expect(false, B_Object_Object, B_int_num);
+    expect(false, B_num_num, B_int_num);
+    expect(true, B_int_num, B_int_num);
+    expect(true, B_dynamic_dynamic, B_int_num);
+    expect(false, B_String_dynamic, B_int_num);
 
-  expect(true, B_Object_Object, B_dynamic_dynamic);
-  expect(true, B_num_num, B_dynamic_dynamic);
-  expect(true, B_int_num, B_dynamic_dynamic);
-  expect(true, B_dynamic_dynamic, B_dynamic_dynamic);
-  expect(true, B_String_dynamic, B_dynamic_dynamic);
+    expect(true, B_Object_Object, B_dynamic_dynamic);
+    expect(true, B_num_num, B_dynamic_dynamic);
+    expect(true, B_int_num, B_dynamic_dynamic);
+    expect(true, B_dynamic_dynamic, B_dynamic_dynamic);
+    expect(true, B_String_dynamic, B_dynamic_dynamic);
 
-  expect(false, B_Object_Object, B_String_dynamic);
-  expect(false, B_num_num, B_String_dynamic);
-  expect(false, B_int_num, B_String_dynamic);
-  expect(true, B_dynamic_dynamic, B_String_dynamic);
-  expect(true, B_String_dynamic, B_String_dynamic);
+    expect(false, B_Object_Object, B_String_dynamic);
+    expect(false, B_num_num, B_String_dynamic);
+    expect(false, B_int_num, B_String_dynamic);
+    expect(true, B_dynamic_dynamic, B_String_dynamic);
+    expect(true, B_String_dynamic, B_String_dynamic);
 
-  DartType C_Object_Object = instantiate(C, [Object_, Object_]);
-  DartType C_num_num = instantiate(C, [num_, num_]);
-  DartType C_int_String = instantiate(C, [int_, String_]);
-  DartType C_dynamic_dynamic = instantiate(C, [dynamic_, dynamic_]);
+    DartType C_Object_Object = instantiate(C, [Object_, Object_]);
+    DartType C_num_num = instantiate(C, [num_, num_]);
+    DartType C_int_String = instantiate(C, [int_, String_]);
+    DartType C_dynamic_dynamic = instantiate(C, [dynamic_, dynamic_]);
 
-  expect(true, C_Object_Object, B_Object_Object);
-  expect(false, C_Object_Object, B_num_num);
-  expect(false, C_Object_Object, B_int_num);
-  expect(true, C_Object_Object, B_dynamic_dynamic);
-  expect(false, C_Object_Object, B_String_dynamic);
+    expect(true, C_Object_Object, B_Object_Object);
+    expect(false, C_Object_Object, B_num_num);
+    expect(false, C_Object_Object, B_int_num);
+    expect(true, C_Object_Object, B_dynamic_dynamic);
+    expect(false, C_Object_Object, B_String_dynamic);
 
-  expect(true, C_num_num, B_Object_Object);
-  expect(true, C_num_num, B_num_num);
-  expect(false, C_num_num, B_int_num);
-  expect(true, C_num_num, B_dynamic_dynamic);
-  expect(false, C_num_num, B_String_dynamic);
+    expect(true, C_num_num, B_Object_Object);
+    expect(true, C_num_num, B_num_num);
+    expect(false, C_num_num, B_int_num);
+    expect(true, C_num_num, B_dynamic_dynamic);
+    expect(false, C_num_num, B_String_dynamic);
 
-  expect(true, C_int_String, B_Object_Object);
-  expect(false, C_int_String, B_num_num);
-  expect(false, C_int_String, B_int_num);
-  expect(true, C_int_String, B_dynamic_dynamic);
-  expect(true, C_int_String, B_String_dynamic);
+    expect(true, C_int_String, B_Object_Object);
+    expect(false, C_int_String, B_num_num);
+    expect(false, C_int_String, B_int_num);
+    expect(true, C_int_String, B_dynamic_dynamic);
+    expect(true, C_int_String, B_String_dynamic);
 
-  expect(true, C_dynamic_dynamic, B_Object_Object);
-  expect(true, C_dynamic_dynamic, B_num_num);
-  expect(true, C_dynamic_dynamic, B_int_num);
-  expect(true, C_dynamic_dynamic, B_dynamic_dynamic);
-  expect(true, C_dynamic_dynamic, B_String_dynamic);
+    expect(true, C_dynamic_dynamic, B_Object_Object);
+    expect(true, C_dynamic_dynamic, B_num_num);
+    expect(true, C_dynamic_dynamic, B_int_num);
+    expect(true, C_dynamic_dynamic, B_dynamic_dynamic);
+    expect(true, C_dynamic_dynamic, B_String_dynamic);
 
-  expect(false, C_int_String, A_int);
-  expect(true, C_int_String, A_String);
-  // TODO(johnniwinther): Inheritance with different type arguments is
-  // currently not supported by the implementation.
-  //expect(true, C_int_String, instantiate(A, [A_int]));
-  expect(false, C_int_String, instantiate(A, [A_String]));
+    expect(false, C_int_String, A_int);
+    expect(true, C_int_String, A_String);
+    // TODO(johnniwinther): Inheritance with different type arguments is
+    // currently not supported by the implementation.
+    //expect(true, C_int_String, instantiate(A, [A_int]));
+    expect(false, C_int_String, instantiate(A, [A_String]));
+  }));
 }
 
 void testCallableSubtype() {
-
-  var env = new TypeEnvironment(r"""
+  asyncTest(() => TypeEnvironment.create(r"""
       class U {}
       class V extends U {}
       class W extends V {}
@@ -239,31 +240,31 @@ void testCallableSubtype() {
         int m4(V v, U u);
         void m5(V v, int i);
       }
-      """);
+      """).then((env) {
+    void expect(bool value, DartType T, DartType S) {
+      Expect.equals(value, env.isSubtype(T, S), '$T <: $S');
+    }
 
-  void expect(bool value, DartType T, DartType S) {
-    Expect.equals(value, env.isSubtype(T, S), '$T <: $S');
-  }
+    ClassElement classA = env.getElement('A');
+    DartType A = classA.rawType;
+    DartType function = env['Function'];
+    DartType m1 = env.getMemberType(classA, 'm1');
+    DartType m2 = env.getMemberType(classA, 'm2');
+    DartType m3 = env.getMemberType(classA, 'm3');
+    DartType m4 = env.getMemberType(classA, 'm4');
+    DartType m5 = env.getMemberType(classA, 'm5');
 
-  ClassElement classA = env.getElement('A');
-  DartType A = classA.rawType;
-  DartType function = env['Function'];
-  DartType m1 = env.getMemberType(classA, 'm1');
-  DartType m2 = env.getMemberType(classA, 'm2');
-  DartType m3 = env.getMemberType(classA, 'm3');
-  DartType m4 = env.getMemberType(classA, 'm4');
-  DartType m5 = env.getMemberType(classA, 'm5');
-
-  expect(true, A, function);
-  expect(true, A, m1);
-  expect(true, A, m2);
-  expect(false, A, m3);
-  expect(false, A, m4);
-  expect(true, A, m5);
+    expect(true, A, function);
+    expect(true, A, m1);
+    expect(true, A, m2);
+    expect(false, A, m3);
+    expect(false, A, m4);
+    expect(true, A, m5);
+  }));
 }
 
 testFunctionSubtyping() {
-  var env = new TypeEnvironment(r"""
+  asyncTest(() => TypeEnvironment.create(r"""
       _() => null;
       void void_() {}
       void void_2() {}
@@ -280,12 +281,11 @@ testFunctionSubtyping() {
       int int__int_int(int i1, int i2) => 0;
       void inline_void_(void f()) {}
       void inline_void__int(void f(int i)) {}
-      """);
-  functionSubtypingHelper(env);
+      """).then(functionSubtypingHelper));
 }
 
 testTypedefSubtyping() {
-  var env = new TypeEnvironment(r"""
+  asyncTest(() => TypeEnvironment.create(r"""
       typedef _();
       typedef void void_();
       typedef void void_2();
@@ -302,8 +302,7 @@ testTypedefSubtyping() {
       typedef int int__int_int(int i1, int i2);
       typedef void inline_void_(void f());
       typedef void inline_void__int(void f(int i));
-      """);
-  functionSubtypingHelper(env);
+      """).then(functionSubtypingHelper));
 }
 
 functionSubtypingHelper(TypeEnvironment env) {
@@ -363,7 +362,7 @@ functionSubtypingHelper(TypeEnvironment env) {
 }
 
 testFunctionSubtypingOptional() {
-  var env = new TypeEnvironment(r"""
+  asyncTest(() => TypeEnvironment.create(r"""
       void void_() {}
       void void__int(int i) {}
       void void___int([int i]) {}
@@ -376,12 +375,11 @@ testFunctionSubtypingOptional() {
       void void___int_int([int i1, int i2]) {}
       void void___int_int_int([int i1, int i2, int i3]);
       void void___Object_int([Object o, int i]) {}
-      """);
-  functionSubtypingOptionalHelper(env);
+      """).then(functionSubtypingOptionalHelper));
 }
 
 testTypedefSubtypingOptional() {
-  var env = new TypeEnvironment(r"""
+  asyncTest(() => TypeEnvironment.create(r"""
       typedef void void_();
       typedef void void__int(int i);
       typedef void void___int([int i]);
@@ -394,8 +392,7 @@ testTypedefSubtypingOptional() {
       typedef void void___int_int([int i1, int i2]);
       typedef void void___int_int_int([int i1, int i2, int i3]);
       typedef void void___Object_int([Object o, int i]);
-      """);
-  functionSubtypingOptionalHelper(env);
+      """).then(functionSubtypingOptionalHelper));
 }
 
 functionSubtypingOptionalHelper(TypeEnvironment env) {
@@ -443,7 +440,7 @@ functionSubtypingOptionalHelper(TypeEnvironment env) {
 }
 
 testFunctionSubtypingNamed() {
-  var env = new TypeEnvironment(r"""
+  asyncTest(() => TypeEnvironment.create(r"""
       void void_() {}
       void void__int(int i) {}
       void void___a_int({int a}) {}
@@ -458,12 +455,11 @@ testFunctionSubtypingNamed() {
       void void___a_int_c_int({int a, int c}) {}
       void void___b_int_c_int({int b, int c}) {}
       void void___c_int({int c}) {}
-      """);
-  functionSubtypingNamedHelper(env);
+      """).then(functionSubtypingNamedHelper));
 }
 
 testTypedefSubtypingNamed() {
-  var env = new TypeEnvironment(r"""
+  asyncTest(() => TypeEnvironment.create(r"""
       typedef void void_();
       typedef void void__int(int i);
       typedef void void___a_int({int a});
@@ -478,8 +474,7 @@ testTypedefSubtypingNamed() {
       typedef void void___a_int_c_int({int a, int c});
       typedef void void___b_int_c_int({int b, int c});
       typedef void void___c_int({int c});
-      """);
-  functionSubtypingNamedHelper(env);
+      """).then(functionSubtypingNamedHelper));
 }
 
 functionSubtypingNamedHelper(TypeEnvironment env) {
@@ -521,7 +516,7 @@ functionSubtypingNamedHelper(TypeEnvironment env) {
 }
 
 void testTypeVariableSubtype() {
-  var env = new TypeEnvironment(r"""
+  asyncTest(() => TypeEnvironment.create(r"""
       class A<T> {}
       class B<T extends Object> {}
       class C<T extends num> {}
@@ -532,207 +527,207 @@ void testTypeVariableSubtype() {
       class H<T extends S, S extends T> {}
       class I<T extends S, S extends U, U extends T> {}
       class J<T extends S, S extends U, U extends S> {}
-      """);
+      """).then((env) {
+    void expect(bool value, DartType T, DartType S) {
+      Expect.equals(value, env.isSubtype(T, S), '$T <: $S');
+    }
 
-  void expect(bool value, DartType T, DartType S) {
-    Expect.equals(value, env.isSubtype(T, S), '$T <: $S');
-  }
+    ClassElement A = env.getElement('A');
+    TypeVariableType A_T = A.thisType.typeArguments.head;
+    ClassElement B = env.getElement('B');
+    TypeVariableType B_T = B.thisType.typeArguments.head;
+    ClassElement C = env.getElement('C');
+    TypeVariableType C_T = C.thisType.typeArguments.head;
+    ClassElement D = env.getElement('D');
+    TypeVariableType D_T = D.thisType.typeArguments.head;
+    ClassElement E = env.getElement('E');
+    TypeVariableType E_T = E.thisType.typeArguments.head;
+    TypeVariableType E_S = E.thisType.typeArguments.tail.head;
+    ClassElement F = env.getElement('F');
+    TypeVariableType F_T = F.thisType.typeArguments.head;
+    TypeVariableType F_S = F.thisType.typeArguments.tail.head;
+    ClassElement G = env.getElement('G');
+    TypeVariableType G_T = G.thisType.typeArguments.head;
+    ClassElement H = env.getElement('H');
+    TypeVariableType H_T = H.thisType.typeArguments.head;
+    TypeVariableType H_S = H.thisType.typeArguments.tail.head;
+    ClassElement I = env.getElement('I');
+    TypeVariableType I_T = I.thisType.typeArguments.head;
+    TypeVariableType I_S = I.thisType.typeArguments.tail.head;
+    TypeVariableType I_U = I.thisType.typeArguments.tail.tail.head;
+    ClassElement J = env.getElement('J');
+    TypeVariableType J_T = J.thisType.typeArguments.head;
+    TypeVariableType J_S = J.thisType.typeArguments.tail.head;
+    TypeVariableType J_U = J.thisType.typeArguments.tail.tail.head;
 
-  ClassElement A = env.getElement('A');
-  TypeVariableType A_T = A.thisType.typeArguments.head;
-  ClassElement B = env.getElement('B');
-  TypeVariableType B_T = B.thisType.typeArguments.head;
-  ClassElement C = env.getElement('C');
-  TypeVariableType C_T = C.thisType.typeArguments.head;
-  ClassElement D = env.getElement('D');
-  TypeVariableType D_T = D.thisType.typeArguments.head;
-  ClassElement E = env.getElement('E');
-  TypeVariableType E_T = E.thisType.typeArguments.head;
-  TypeVariableType E_S = E.thisType.typeArguments.tail.head;
-  ClassElement F = env.getElement('F');
-  TypeVariableType F_T = F.thisType.typeArguments.head;
-  TypeVariableType F_S = F.thisType.typeArguments.tail.head;
-  ClassElement G = env.getElement('G');
-  TypeVariableType G_T = G.thisType.typeArguments.head;
-  ClassElement H = env.getElement('H');
-  TypeVariableType H_T = H.thisType.typeArguments.head;
-  TypeVariableType H_S = H.thisType.typeArguments.tail.head;
-  ClassElement I = env.getElement('I');
-  TypeVariableType I_T = I.thisType.typeArguments.head;
-  TypeVariableType I_S = I.thisType.typeArguments.tail.head;
-  TypeVariableType I_U = I.thisType.typeArguments.tail.tail.head;
-  ClassElement J = env.getElement('J');
-  TypeVariableType J_T = J.thisType.typeArguments.head;
-  TypeVariableType J_S = J.thisType.typeArguments.tail.head;
-  TypeVariableType J_U = J.thisType.typeArguments.tail.tail.head;
+    DartType Object_ = env['Object'];
+    DartType num_ = env['num'];
+    DartType int_ = env['int'];
+    DartType String_ = env['String'];
+    DartType dynamic_ = env['dynamic'];
 
-  DartType Object_ = env['Object'];
-  DartType num_ = env['num'];
-  DartType int_ = env['int'];
-  DartType String_ = env['String'];
-  DartType dynamic_ = env['dynamic'];
+    // class A<T> {}
+    expect(true, A_T, Object_);
+    expect(false, A_T, num_);
+    expect(false, A_T, int_);
+    expect(false, A_T, String_);
+    expect(true, A_T, dynamic_);
+    expect(true, A_T, A_T);
+    expect(false, A_T, B_T);
 
-  // class A<T> {}
-  expect(true, A_T, Object_);
-  expect(false, A_T, num_);
-  expect(false, A_T, int_);
-  expect(false, A_T, String_);
-  expect(true, A_T, dynamic_);
-  expect(true, A_T, A_T);
-  expect(false, A_T, B_T);
+    // class B<T extends Object> {}
+    expect(true, B_T, Object_);
+    expect(false, B_T, num_);
+    expect(false, B_T, int_);
+    expect(false, B_T, String_);
+    expect(true, B_T, dynamic_);
+    expect(true, B_T, B_T);
+    expect(false, B_T, A_T);
 
-  // class B<T extends Object> {}
-  expect(true, B_T, Object_);
-  expect(false, B_T, num_);
-  expect(false, B_T, int_);
-  expect(false, B_T, String_);
-  expect(true, B_T, dynamic_);
-  expect(true, B_T, B_T);
-  expect(false, B_T, A_T);
+    // class C<T extends num> {}
+    expect(true, C_T, Object_);
+    expect(true, C_T, num_);
+    expect(false, C_T, int_);
+    expect(false, C_T, String_);
+    expect(true, C_T, dynamic_);
+    expect(true, C_T, C_T);
+    expect(false, C_T, A_T);
 
-  // class C<T extends num> {}
-  expect(true, C_T, Object_);
-  expect(true, C_T, num_);
-  expect(false, C_T, int_);
-  expect(false, C_T, String_);
-  expect(true, C_T, dynamic_);
-  expect(true, C_T, C_T);
-  expect(false, C_T, A_T);
+    // class D<T extends int> {}
+    expect(true, D_T, Object_);
+    expect(true, D_T, num_);
+    expect(true, D_T, int_);
+    expect(false, D_T, String_);
+    expect(true, D_T, dynamic_);
+    expect(true, D_T, D_T);
+    expect(false, D_T, A_T);
 
-  // class D<T extends int> {}
-  expect(true, D_T, Object_);
-  expect(true, D_T, num_);
-  expect(true, D_T, int_);
-  expect(false, D_T, String_);
-  expect(true, D_T, dynamic_);
-  expect(true, D_T, D_T);
-  expect(false, D_T, A_T);
+    // class E<T extends S, S extends num> {}
+    expect(true, E_T, Object_);
+    expect(true, E_T, num_);
+    expect(false, E_T, int_);
+    expect(false, E_T, String_);
+    expect(true, E_T, dynamic_);
+    expect(true, E_T, E_T);
+    expect(true, E_T, E_S);
+    expect(false, E_T, A_T);
 
-  // class E<T extends S, S extends num> {}
-  expect(true, E_T, Object_);
-  expect(true, E_T, num_);
-  expect(false, E_T, int_);
-  expect(false, E_T, String_);
-  expect(true, E_T, dynamic_);
-  expect(true, E_T, E_T);
-  expect(true, E_T, E_S);
-  expect(false, E_T, A_T);
+    expect(true, E_S, Object_);
+    expect(true, E_S, num_);
+    expect(false, E_S, int_);
+    expect(false, E_S, String_);
+    expect(true, E_S, dynamic_);
+    expect(false, E_S, E_T);
+    expect(true, E_S, E_S);
+    expect(false, E_S, A_T);
 
-  expect(true, E_S, Object_);
-  expect(true, E_S, num_);
-  expect(false, E_S, int_);
-  expect(false, E_S, String_);
-  expect(true, E_S, dynamic_);
-  expect(false, E_S, E_T);
-  expect(true, E_S, E_S);
-  expect(false, E_S, A_T);
+    // class F<T extends num, S extends T> {}
+    expect(true, F_T, Object_);
+    expect(true, F_T, num_);
+    expect(false, F_T, int_);
+    expect(false, F_T, String_);
+    expect(true, F_T, dynamic_);
+    expect(false, F_T, F_S);
+    expect(true, F_T, F_T);
+    expect(false, F_T, A_T);
 
-  // class F<T extends num, S extends T> {}
-  expect(true, F_T, Object_);
-  expect(true, F_T, num_);
-  expect(false, F_T, int_);
-  expect(false, F_T, String_);
-  expect(true, F_T, dynamic_);
-  expect(false, F_T, F_S);
-  expect(true, F_T, F_T);
-  expect(false, F_T, A_T);
+    expect(true, F_S, Object_);
+    expect(true, F_S, num_);
+    expect(false, F_S, int_);
+    expect(false, F_S, String_);
+    expect(true, F_S, dynamic_);
+    expect(true, F_S, F_S);
+    expect(true, F_S, F_T);
+    expect(false, F_S, A_T);
 
-  expect(true, F_S, Object_);
-  expect(true, F_S, num_);
-  expect(false, F_S, int_);
-  expect(false, F_S, String_);
-  expect(true, F_S, dynamic_);
-  expect(true, F_S, F_S);
-  expect(true, F_S, F_T);
-  expect(false, F_S, A_T);
+    // class G<T extends T> {}
+    expect(true, G_T, Object_);
+    expect(false, G_T, num_);
+    expect(false, G_T, int_);
+    expect(false, G_T, String_);
+    expect(true, G_T, dynamic_);
+    expect(true, G_T, G_T);
+    expect(false, G_T, A_T);
 
-  // class G<T extends T> {}
-  expect(true, G_T, Object_);
-  expect(false, G_T, num_);
-  expect(false, G_T, int_);
-  expect(false, G_T, String_);
-  expect(true, G_T, dynamic_);
-  expect(true, G_T, G_T);
-  expect(false, G_T, A_T);
+    // class H<T extends S, S extends T> {}
+    expect(true, H_T, Object_);
+    expect(false, H_T, num_);
+    expect(false, H_T, int_);
+    expect(false, H_T, String_);
+    expect(true, H_T, dynamic_);
+    expect(true, H_T, H_T);
+    expect(true, H_T, H_S);
+    expect(false, H_T, A_T);
 
-  // class H<T extends S, S extends T> {}
-  expect(true, H_T, Object_);
-  expect(false, H_T, num_);
-  expect(false, H_T, int_);
-  expect(false, H_T, String_);
-  expect(true, H_T, dynamic_);
-  expect(true, H_T, H_T);
-  expect(true, H_T, H_S);
-  expect(false, H_T, A_T);
+    expect(true, H_S, Object_);
+    expect(false, H_S, num_);
+    expect(false, H_S, int_);
+    expect(false, H_S, String_);
+    expect(true, H_S, dynamic_);
+    expect(true, H_S, H_T);
+    expect(true, H_S, H_S);
+    expect(false, H_S, A_T);
 
-  expect(true, H_S, Object_);
-  expect(false, H_S, num_);
-  expect(false, H_S, int_);
-  expect(false, H_S, String_);
-  expect(true, H_S, dynamic_);
-  expect(true, H_S, H_T);
-  expect(true, H_S, H_S);
-  expect(false, H_S, A_T);
+    // class I<T extends S, S extends U, U extends T> {}
+    expect(true, I_T, Object_);
+    expect(false, I_T, num_);
+    expect(false, I_T, int_);
+    expect(false, I_T, String_);
+    expect(true, I_T, dynamic_);
+    expect(true, I_T, I_T);
+    expect(true, I_T, I_S);
+    expect(true, I_T, I_U);
+    expect(false, I_T, A_T);
 
-  // class I<T extends S, S extends U, U extends T> {}
-  expect(true, I_T, Object_);
-  expect(false, I_T, num_);
-  expect(false, I_T, int_);
-  expect(false, I_T, String_);
-  expect(true, I_T, dynamic_);
-  expect(true, I_T, I_T);
-  expect(true, I_T, I_S);
-  expect(true, I_T, I_U);
-  expect(false, I_T, A_T);
+    expect(true, I_S, Object_);
+    expect(false, I_S, num_);
+    expect(false, I_S, int_);
+    expect(false, I_S, String_);
+    expect(true, I_S, dynamic_);
+    expect(true, I_S, I_T);
+    expect(true, I_S, I_S);
+    expect(true, I_S, I_U);
+    expect(false, I_S, A_T);
 
-  expect(true, I_S, Object_);
-  expect(false, I_S, num_);
-  expect(false, I_S, int_);
-  expect(false, I_S, String_);
-  expect(true, I_S, dynamic_);
-  expect(true, I_S, I_T);
-  expect(true, I_S, I_S);
-  expect(true, I_S, I_U);
-  expect(false, I_S, A_T);
+    expect(true, I_U, Object_);
+    expect(false, I_U, num_);
+    expect(false, I_U, int_);
+    expect(false, I_U, String_);
+    expect(true, I_U, dynamic_);
+    expect(true, I_U, I_T);
+    expect(true, I_U, I_S);
+    expect(true, I_U, I_U);
+    expect(false, I_U, A_T);
 
-  expect(true, I_U, Object_);
-  expect(false, I_U, num_);
-  expect(false, I_U, int_);
-  expect(false, I_U, String_);
-  expect(true, I_U, dynamic_);
-  expect(true, I_U, I_T);
-  expect(true, I_U, I_S);
-  expect(true, I_U, I_U);
-  expect(false, I_U, A_T);
+    // class J<T extends S, S extends U, U extends S> {}
+    expect(true, J_T, Object_);
+    expect(false, J_T, num_);
+    expect(false, J_T, int_);
+    expect(false, J_T, String_);
+    expect(true, J_T, dynamic_);
+    expect(true, J_T, J_T);
+    expect(true, J_T, J_S);
+    expect(true, J_T, J_U);
+    expect(false, J_T, A_T);
 
-  // class J<T extends S, S extends U, U extends S> {}
-  expect(true, J_T, Object_);
-  expect(false, J_T, num_);
-  expect(false, J_T, int_);
-  expect(false, J_T, String_);
-  expect(true, J_T, dynamic_);
-  expect(true, J_T, J_T);
-  expect(true, J_T, J_S);
-  expect(true, J_T, J_U);
-  expect(false, J_T, A_T);
+    expect(true, J_S, Object_);
+    expect(false, J_S, num_);
+    expect(false, J_S, int_);
+    expect(false, J_S, String_);
+    expect(true, J_S, dynamic_);
+    expect(false, J_S, J_T);
+    expect(true, J_S, J_S);
+    expect(true, J_S, J_U);
+    expect(false, J_S, A_T);
 
-  expect(true, J_S, Object_);
-  expect(false, J_S, num_);
-  expect(false, J_S, int_);
-  expect(false, J_S, String_);
-  expect(true, J_S, dynamic_);
-  expect(false, J_S, J_T);
-  expect(true, J_S, J_S);
-  expect(true, J_S, J_U);
-  expect(false, J_S, A_T);
-
-  expect(true, J_U, Object_);
-  expect(false, J_U, num_);
-  expect(false, J_U, int_);
-  expect(false, J_U, String_);
-  expect(true, J_U, dynamic_);
-  expect(false, J_U, J_T);
-  expect(true, J_U, J_S);
-  expect(true, J_U, J_U);
-  expect(false, J_U, A_T);
+    expect(true, J_U, Object_);
+    expect(false, J_U, num_);
+    expect(false, J_U, int_);
+    expect(false, J_U, String_);
+    expect(true, J_U, dynamic_);
+    expect(false, J_U, J_T);
+    expect(true, J_U, J_S);
+    expect(true, J_U, J_U);
+    expect(false, J_U, A_T);
+  }));
 }

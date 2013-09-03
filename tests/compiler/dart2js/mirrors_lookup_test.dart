@@ -5,6 +5,7 @@
 library dart2js.test.memory_source_file_helper;
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
@@ -33,9 +34,9 @@ class Subclass<B> extends Class<B> {
 };
 
 void main() {
-  mirrorSystemFor(MEMORY_SOURCE_FILES).then(
+  asyncTest(() => mirrorSystemFor(MEMORY_SOURCE_FILES).then(
       (MirrorSystem mirrors) => test(mirrors),
-      onError: (e) => Expect.fail('$e'));
+      onError: (e) => Expect.fail('$e')));
 }
 
 void test(MirrorSystem mirrors) {

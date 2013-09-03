@@ -114,6 +114,8 @@
 
 library patchparser;
 
+import 'dart:async';
+
 import "tree/tree.dart" as tree;
 import "dart2jslib.dart" as leg;  // CompilerTask, Compiler.
 import "../compiler.dart" as api;
@@ -131,28 +133,31 @@ class PatchParserTask extends leg.CompilerTask {
    * injections to the library, and returns a list of class
    * patches.
    */
-  void patchLibrary(leg.LibraryDependencyHandler handler,
+  Future patchLibrary(leg.LibraryDependencyHandler handler,
                     Uri patchUri, LibraryElement originLibrary) {
-
-    leg.Script script = compiler.readScript(patchUri, null);
-    var patchLibrary = new LibraryElementX(script, null, originLibrary);
-    compiler.withCurrentElement(patchLibrary, () {
-      handler.registerNewLibrary(patchLibrary);
-      LinkBuilder<tree.LibraryTag> imports = new LinkBuilder<tree.LibraryTag>();
-      compiler.withCurrentElement(patchLibrary.entryCompilationUnit, () {
-        // This patches the elements of the patch library into [library].
-        // Injected elements are added directly under the compilation unit.
-        // Patch elements are stored on the patched functions or classes.
-        scanLibraryElements(patchLibrary.entryCompilationUnit, imports);
+    return compiler.readScript(patchUri, null).then((leg.Script script) {
+      var patchLibrary = new LibraryElementX(script, null, originLibrary);
+      return compiler.withCurrentElement(patchLibrary, () {
+        handler.registerNewLibrary(patchLibrary);
+        var imports = new LinkBuilder<tree.LibraryTag>();
+        compiler.withCurrentElement(patchLibrary.entryCompilationUnit, () {
+          // This patches the elements of the patch library into [library].
+          // Injected elements are added directly under the compilation unit.
+          // Patch elements are stored on the patched functions or classes.
+          scanLibraryElements(patchLibrary.entryCompilationUnit, imports);
+        });
+        // After scanning declarations, we handle the import tags in the patch.
+        // TODO(lrn): These imports end up in the original library and are in
+        // scope for the original methods too. This should be fixed.
+        compiler.importHelperLibrary(originLibrary);
+        // TODO(rnystrom): Remove .toList() here if #11523 is fixed.
+        return Future.forEach(imports.toLink().toList(), (tag) {
+          return compiler.withCurrentElement(patchLibrary, () {
+            return compiler.libraryLoader.registerLibraryFromTag(
+                handler, patchLibrary, tag);
+          });
+        });
       });
-      // After scanning declarations, we handle the import tags in the patch.
-      // TODO(lrn): These imports end up in the original library and are in
-      // scope for the original methods too. This should be fixed.
-      compiler.importHelperLibrary(originLibrary);
-      for (tree.LibraryTag tag in imports.toLink()) {
-        compiler.libraryLoader.registerLibraryFromTag(
-            handler, patchLibrary, tag);
-      }
     });
   }
 

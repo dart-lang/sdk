@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
     show TypeMask;
 
@@ -166,32 +167,32 @@ main() {
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
-  compiler.runCompiler(uri);
-  var typesTask = compiler.typesTask;
-  var typesInferrer = typesTask.typesInferrer;
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    var typesTask = compiler.typesTask;
+    var typesInferrer = typesTask.typesInferrer;
 
-  checkReturn(String name, type) {
-    var element = findElement(compiler, name);
-    Expect.equals(type,
-        typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
-  }
+    checkReturn(String name, type) {
+      var element = findElement(compiler, name);
+      Expect.equals(type,
+          typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
+    }
 
-  checkReturn('returnInt1', typesTask.intType);
-  checkReturn('returnInt2', typesTask.intType);
-  checkReturn('returnInt3', typesTask.intType);
-  checkReturn('returnInt4', typesTask.intType);
-  checkReturn('returnInt5', typesTask.intType);
-  checkReturn('returnInt6',
-      new TypeMask.nonNullSubtype(compiler.intClass.rawType));
-  checkReturn('returnInt7', typesTask.intType);
+    checkReturn('returnInt1', typesTask.intType);
+    checkReturn('returnInt2', typesTask.intType);
+    checkReturn('returnInt3', typesTask.intType);
+    checkReturn('returnInt4', typesTask.intType);
+    checkReturn('returnInt5', typesTask.intType);
+    checkReturn('returnInt6',
+        new TypeMask.nonNullSubtype(compiler.intClass.rawType));
 
-  var subclassOfInterceptor =
-      findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
+    var subclassOfInterceptor =
+        findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
 
-  checkReturn('returnDyn1', subclassOfInterceptor);
-  checkReturn('returnDyn2', subclassOfInterceptor);
-  checkReturn('returnDyn3', subclassOfInterceptor);
-  checkReturn('returnDyn4', subclassOfInterceptor);
-  checkReturn('returnDyn5', subclassOfInterceptor);
-  checkReturn('returnDyn6', typesTask.dynamicType);
+    checkReturn('returnDyn1', subclassOfInterceptor);
+    checkReturn('returnDyn2', subclassOfInterceptor);
+    checkReturn('returnDyn3', subclassOfInterceptor);
+    checkReturn('returnDyn4', subclassOfInterceptor);
+    checkReturn('returnDyn5', subclassOfInterceptor);
+    checkReturn('returnDyn6', typesTask.dynamicType);
+  }));
 }

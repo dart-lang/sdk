@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 
@@ -32,14 +32,15 @@ main() {
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
-  compiler.runCompiler(uri);
-  var typesInferrer = compiler.typesTask.typesInferrer;
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    var typesInferrer = compiler.typesTask.typesInferrer;
 
-  checkReturnInClass(String className, String methodName, type) {
-    var cls = findElement(compiler, className);
-    var element = cls.lookupLocalMember(buildSourceString(methodName));
-    Expect.equals(type, typesInferrer.getReturnTypeOfElement(element));
-  }
+    checkReturnInClass(String className, String methodName, type) {
+      var cls = findElement(compiler, className);
+      var element = cls.lookupLocalMember(buildSourceString(methodName));
+      Expect.equals(type, typesInferrer.getReturnTypeOfElement(element));
+    }
 
-  checkReturnInClass('A', '+', compiler.typesTask.intType);
+    checkReturnInClass('A', '+', compiler.typesTask.intType);
+  }));
 }

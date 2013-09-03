@@ -2,21 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 
-void compileAndFind(String code, String name,
+Future compileAndFind(String code, String name,
                     check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(code, uri);
-  compiler.runCompiler(uri);
-  var element = findElement(compiler, name);
-  return check(compiler, element);
+  return compiler.runCompiler(uri).then((_) {
+    var element = findElement(compiler, name);
+    check(compiler, element);
+  });
 }
 
 void checkPrintType(String expression, checkType(compiler, type)) {
-  compileAndFind(
+  asyncTest(() => compileAndFind(
       'main() { print($expression); }',
       'print',
       (compiler, printElement) {
@@ -24,9 +27,9 @@ void checkPrintType(String expression, checkType(compiler, type)) {
           printElement.computeSignature(compiler).requiredParameters.head;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
         checkType(compiler, type);
-      });
+      }));
 
-  compileAndFind(
+  asyncTest(() => compileAndFind(
       'main() { var x = print; print($expression); }',
       'print',
       (compiler, printElement) {
@@ -36,9 +39,9 @@ void checkPrintType(String expression, checkType(compiler, type)) {
         var inferrer = compiler.typesTask.typesInferrer;
         Expect.identical(compiler.typesTask.dynamicType,
                          type.simplify(compiler));
-      });
+      }));
 
-  compileAndFind(
+  asyncTest(() => compileAndFind(
       'main() { print($expression); print($expression); }',
       'print',
       (compiler, printElement) {
@@ -46,7 +49,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
           printElement.computeSignature(compiler).requiredParameters.head;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
         checkType(compiler, type);
-      });
+      }));
 }
 
 void testBasicTypes() {

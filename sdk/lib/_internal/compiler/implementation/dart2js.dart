@@ -91,7 +91,7 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
   }
 }
 
-void compile(List<String> argv) {
+Future compile(List<String> argv) {
   bool isWindows = (Platform.operatingSystem == 'windows');
   stackTraceFilePrefix = '$currentDirectory';
   Uri libraryRoot = currentDirectory;
@@ -105,6 +105,7 @@ void compile(List<String> argv) {
   String outputLanguage = 'JavaScript';
   bool stripArgumentSet = false;
   bool analyzeOnly = false;
+  // TODO(johnniwinther): Measure time for reading files.
   SourceFileProvider inputProvider = new SourceFileProvider();
   FormattingDiagnosticHandler diagnosticHandler =
       new FormattingDiagnosticHandler(inputProvider);
@@ -287,11 +288,6 @@ void compile(List<String> argv) {
     helpAndFail('Error: Extra arguments: ${extra.join(" ")}');
   }
 
-  void handler(Uri uri, int begin, int end, String message,
-               api.Diagnostic kind) {
-    diagnosticHandler.diagnosticHandler(uri, begin, end, message, kind);
-  }
-
   Uri uri = currentDirectory.resolve(arguments[0]);
   if (packageRoot == null) {
     packageRoot = uri.resolve('./packages/');
@@ -386,10 +382,10 @@ void compile(List<String> argv) {
     return new EventSinkWrapper(writeStringSync, onDone);
   }
 
-  api.compile(uri, libraryRoot, packageRoot,
-              inputProvider.readStringFromUri, handler,
+  return api.compile(uri, libraryRoot, packageRoot,
+              inputProvider, diagnosticHandler,
               options, outputProvider)
-      .then(compilationDone);
+            .then(compilationDone);
 }
 
 class EventSinkWrapper extends EventSink<String> {
@@ -424,11 +420,11 @@ void fail(String message) {
   exit(1);
 }
 
-void compilerMain(Options options) {
+Future compilerMain(Options options) {
   var root = uriPathToNative("/$LIBRARY_ROOT");
   List<String> argv = ['--library-root=${options.script}$root'];
   argv.addAll(options.arguments);
-  compile(argv);
+  return compile(argv);
 }
 
 void help() {
@@ -566,20 +562,22 @@ void helpAndFail(String message) {
 }
 
 void mainWithErrorHandler(Options options) {
-  try {
-    compilerMain(options);
-  } catch (exception, trace) {
+  new Future.sync(() => compilerMain(options)).catchError((exception) {
     try {
       print('Internal error: $exception');
     } catch (ignored) {
       print('Internal error: error while printing exception');
     }
+
     try {
-      print(trace);
+      var trace = getAttachedStackTrace(exception);
+      if (trace != null) {
+        print(trace);
+      }
     } finally {
       exit(253); // 253 is recognized as a crash by our test scripts.
     }
-  }
+  });
 }
 
 void main() {

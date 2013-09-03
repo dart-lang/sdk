@@ -6,6 +6,7 @@
 // instruction gets removed from the graph when it's not used.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 
 String TEST = r'''
@@ -32,7 +33,6 @@ foo(a) {
 
 main() {
   String generated = compile(TEST, entry: 'foo');
-
   // Check that we only have one bailout call. The second bailout call
   // is dead code because we know [:a.length:] is an int.
   checkNumberOfMatches(new RegExp('bailout').allMatches(generated).iterator, 1);
@@ -49,20 +49,20 @@ main() {
     Expect.isTrue(!generated.contains('getInterceptor'));
   }
 
-  generated = compileAll(TEST);
-  
-  // Check that the foo bailout method is generated.
-  checkNumberOfMatches(
-      new RegExp('foo\\\$bailout').allMatches(generated).iterator, 2);
+  asyncTest(() => compileAll(TEST).then((generated) {
+    // Check that the foo bailout method is generated.
+    checkNumberOfMatches(
+        new RegExp('foo\\\$bailout').allMatches(generated).iterator, 2);
 
-  // Check that it's the only bailout method.
-  checkNumberOfMatches(new RegExp('bailout').allMatches(generated).iterator, 2);
+    // Check that it's the only bailout method.
+    checkNumberOfMatches(new RegExp('bailout').allMatches(generated).iterator, 2);
 
-  // Check that the bailout method has a case 2 for the state, which
-  // is the second bailout in foo.
-  Expect.isTrue(generated.contains('case 2:'));
+    // Check that the bailout method has a case 2 for the state, which
+    // is the second bailout in foo.
+    Expect.isTrue(generated.contains('case 2:'));
 
-  // Finally, make sure that the reason foo does not contain
-  // 'getInterceptor' is not because the compiler renamed it.
-  Expect.isTrue(generated.contains('getInterceptor'));
+    // Finally, make sure that the reason foo does not contain
+    // 'getInterceptor' is not because the compiler renamed it.
+    Expect.isTrue(generated.contains('getInterceptor'));
+  }));
 }

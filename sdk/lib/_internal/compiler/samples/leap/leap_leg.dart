@@ -125,6 +125,8 @@ class Runner {
 
   String init() {
     Stopwatch sw = new Stopwatch()..start();
+    // TODO(rnystrom): This is broken now that scanBuiltInLibraries is async.
+    // Delete this sample.
     compiler.scanBuiltinLibraries();
     sw.stop();
     return 'Scanned core libraries in ${sw.elapsedMilliseconds}ms';
@@ -221,10 +223,14 @@ class LeapCompiler extends Compiler {
 
   String get legDirectory => libDir;
 
+  // TODO(rnystrom): This is broken now that scanBuiltInLibraries is async.
+  // Delete this sample.
   LibraryElement scanBuiltinLibrary(String path) {
     Uri base = Uri.parse(html.window.location.toString());
     Uri libraryRoot = base.resolve(libDir);
     Uri resolved = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path]);
+    // TODO(rnystrom): This is broken now that scanBuiltInLibraries is async.
+    // Delete this sample.
     LibraryElement library = scanner.loadLibrary(resolved, null);
     return library;
   }
@@ -237,6 +243,8 @@ class LeapCompiler extends Compiler {
     return compilationUnit.script;
   }
 
+  // TODO(rnystrom): This is broken now that scanBuiltInLibraries is async.
+  // Delete this sample.
   Script readScript(Uri uri, [ScriptTag node]) {
     String text = "";
     try {

@@ -7,6 +7,7 @@ library analyze_api;
 import "package:expect/expect.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import 'analyze_helper.dart';
+import "package:async_helper/async_helper.dart";
 
 /**
  * Map of whitelisted warnings and errors.
@@ -25,5 +26,5 @@ const Map<String,List<String>> WHITE_LIST = const {
 void main() {
   var uri = currentDirectory.resolve(
       'sdk/lib/_internal/compiler/implementation/dart2js.dart');
-  analyze([uri], WHITE_LIST);
+  asyncTest(() => analyze([uri], WHITE_LIST));
 }

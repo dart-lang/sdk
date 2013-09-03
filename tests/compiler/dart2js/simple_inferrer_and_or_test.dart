@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 
 const String TEST = """
@@ -57,22 +58,23 @@ main() {
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
-  compiler.runCompiler(uri);
-  var typesInferrer = compiler.typesTask.typesInferrer;
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    var typesInferrer = compiler.typesTask.typesInferrer;
 
-  checkReturn(String name, type) {
-    var element = findElement(compiler, name);
-    Expect.equals(type,
-        typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
-  }
+    checkReturn(String name, type) {
+      var element = findElement(compiler, name);
+      Expect.equals(type,
+          typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
+    }
 
-  var subclassOfInterceptor =
-      findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
+    var subclassOfInterceptor =
+        findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
 
-  checkReturn('returnDyn1', subclassOfInterceptor);
-  checkReturn('returnDyn2', subclassOfInterceptor);
-  checkReturn('returnDyn3', subclassOfInterceptor);
-  checkReturn('returnDyn4', compiler.typesTask.dynamicType.nonNullable());
-  checkReturn('returnDyn5', compiler.typesTask.dynamicType.nonNullable());
-  checkReturn('returnDyn6', compiler.typesTask.dynamicType.nonNullable());
+    checkReturn('returnDyn1', subclassOfInterceptor);
+    checkReturn('returnDyn2', subclassOfInterceptor);
+    checkReturn('returnDyn3', subclassOfInterceptor);
+    checkReturn('returnDyn4', compiler.typesTask.dynamicType.nonNullable());
+    checkReturn('returnDyn5', compiler.typesTask.dynamicType.nonNullable());
+    checkReturn('returnDyn6', compiler.typesTask.dynamicType.nonNullable());
+  }));
 }

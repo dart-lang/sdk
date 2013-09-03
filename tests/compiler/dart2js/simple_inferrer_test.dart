@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import
     '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
     show TypeMask;
@@ -597,123 +598,125 @@ main() {
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
-  compiler.runCompiler(uri);
-  var typesTask = compiler.typesTask;
-  var typesInferrer = typesTask.typesInferrer;
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    var typesTask = compiler.typesTask;
+    var typesInferrer = typesTask.typesInferrer;
 
-  checkReturn(String name, type) {
-    var element = findElement(compiler, name);
-    Expect.equals(
-        type,
-        typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
-        name);
-  }
-  var interceptorType =
-      findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
+    checkReturn(String name, type) {
+      var element = findElement(compiler, name);
+      Expect.equals(
+          type,
+          typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
+          name);
+    }
+    var interceptorType =
+        findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
 
-  checkReturn('returnNum1', typesTask.numType);
-  checkReturn('returnNum2', typesTask.numType);
-  checkReturn('returnInt1', typesTask.intType);
-  checkReturn('returnInt2', typesTask.intType);
-  checkReturn('returnDouble', typesTask.doubleType);
-  checkReturn('returnGiveUp', interceptorType);
-  checkReturn('returnInt5', typesTask.intType);
-  checkReturn('returnInt6', typesTask.intType);
-  checkReturn('returnIntOrNull', typesTask.intType.nullable());
-  checkReturn('returnInt3', typesTask.intType);
-  checkReturn('returnDynamic', typesTask.dynamicType);
-  checkReturn('returnInt4', typesTask.intType);
-  checkReturn('returnInt7', typesTask.intType);
-  checkReturn('returnInt8', typesTask.intType);
-  checkReturn('returnDynamic1', typesTask.dynamicType);
-  checkReturn('returnDynamic2', typesTask.dynamicType);
-  TypeMask intType = new TypeMask.nonNullSubtype(compiler.intClass.rawType);
-  checkReturn('testIsCheck1', intType);
-  checkReturn('testIsCheck2', intType);
-  checkReturn('testIsCheck3', intType.nullable());
-  checkReturn('testIsCheck4', intType);
-  checkReturn('testIsCheck5', intType);
-  checkReturn('testIsCheck6', typesTask.dynamicType);
-  checkReturn('testIsCheck7', intType);
-  checkReturn('testIsCheck8', typesTask.dynamicType);
-  checkReturn('testIsCheck9', intType);
-  checkReturn('testIsCheck10', typesTask.dynamicType);
-  checkReturn('testIsCheck11', intType);
-  checkReturn('testIsCheck12', typesTask.dynamicType);
-  checkReturn('testIsCheck13', intType);
-  checkReturn('testIsCheck14', typesTask.dynamicType);
-  checkReturn('testIsCheck15', intType);
-  checkReturn('testIsCheck16', typesTask.dynamicType);
-  checkReturn('testIsCheck17', intType);
-  checkReturn('testIsCheck18', typesTask.dynamicType);
-  checkReturn('testIsCheck19', typesTask.dynamicType);
-  checkReturn('testIsCheck20', typesTask.dynamicType.nonNullable());
-  checkReturn('testIf1', typesTask.intType.nullable());
-  checkReturn('testIf2', typesTask.intType.nullable());
-  checkReturn('returnAsString',
-      new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
-  checkReturn('returnIntAsNum', typesTask.intType);
-  checkReturn('returnAsTypedef', typesTask.functionType.nullable());
-  checkReturn('returnTopLevelGetter', typesTask.intType);
-  checkReturn('testDeadCode', typesTask.intType);
-  checkReturn('testLabeledIf', typesTask.intType.nullable());
-  checkReturn('testSwitch1', typesTask.intType
-      .union(typesTask.doubleType, compiler).nullable().simplify(compiler));
-  checkReturn('testSwitch2', typesTask.intType);
-  checkReturn('testSwitch3', interceptorType.nullable());
-  checkReturn('testSwitch4', typesTask.intType);
-  checkReturn('testSwitch5', typesTask.intType);
-  checkReturn('testContinue1', interceptorType.nullable());
-  checkReturn('testBreak1', interceptorType.nullable());
-  checkReturn('testContinue2', interceptorType.nullable());
-  checkReturn('testBreak2', typesTask.intType.nullable());
-  checkReturn('testReturnElementOfConstList1', typesTask.intType);
-  checkReturn('testReturnElementOfConstList2', typesTask.intType);
-  checkReturn('testReturnItselfOrInt', typesTask.intType);
-  checkReturn('testReturnInvokeDynamicGetter', typesTask.dynamicType);
+    checkReturn('returnNum1', typesTask.numType);
+    checkReturn('returnNum2', typesTask.numType);
+    checkReturn('returnInt1', typesTask.intType);
+    checkReturn('returnInt2', typesTask.intType);
+    checkReturn('returnDouble', typesTask.doubleType);
+    checkReturn('returnGiveUp', interceptorType);
+    checkReturn('returnInt5', typesTask.intType);
+    checkReturn('returnInt6', typesTask.intType);
+    checkReturn('returnIntOrNull', typesTask.intType.nullable());
+    checkReturn('returnInt3', typesTask.intType);
+    checkReturn('returnDynamic', typesTask.dynamicType);
+    checkReturn('returnInt4', typesTask.intType);
+    checkReturn('returnInt7', typesTask.intType);
+    checkReturn('returnInt8', typesTask.intType);
+    checkReturn('returnDynamic1', typesTask.dynamicType);
+    checkReturn('returnDynamic2', typesTask.dynamicType);
+    TypeMask intType = new TypeMask.nonNullSubtype(compiler.intClass.rawType);
+    checkReturn('testIsCheck1', intType);
+    checkReturn('testIsCheck2', intType);
+    checkReturn('testIsCheck3', intType.nullable());
+    checkReturn('testIsCheck4', intType);
+    checkReturn('testIsCheck5', intType);
+    checkReturn('testIsCheck6', typesTask.dynamicType);
+    checkReturn('testIsCheck7', intType);
+    checkReturn('testIsCheck8', typesTask.dynamicType);
+    checkReturn('testIsCheck9', intType);
+    checkReturn('testIsCheck10', typesTask.dynamicType);
+    checkReturn('testIsCheck11', intType);
+    checkReturn('testIsCheck12', typesTask.dynamicType);
+    checkReturn('testIsCheck13', intType);
+    checkReturn('testIsCheck14', typesTask.dynamicType);
+    checkReturn('testIsCheck15', intType);
+    checkReturn('testIsCheck16', typesTask.dynamicType);
+    checkReturn('testIsCheck17', intType);
+    checkReturn('testIsCheck18', typesTask.dynamicType);
+    checkReturn('testIsCheck19', typesTask.dynamicType);
+    checkReturn('testIsCheck20', typesTask.dynamicType.nonNullable());
+    checkReturn('testIf1', typesTask.intType.nullable());
+    checkReturn('testIf2', typesTask.intType.nullable());
+    checkReturn('returnAsString',
+        new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
+    checkReturn('returnIntAsNum', typesTask.intType);
+    checkReturn('returnAsTypedef', typesTask.functionType.nullable());
+    checkReturn('returnTopLevelGetter', typesTask.intType);
+    checkReturn('testDeadCode', typesTask.intType);
+    checkReturn('testLabeledIf', typesTask.intType.nullable());
+    checkReturn('testSwitch1', typesTask.intType
+        .union(typesTask.doubleType, compiler)
+        .nullable().simplify(compiler));
+    checkReturn('testSwitch2', typesTask.intType);
+    checkReturn('testSwitch3', interceptorType.nullable());
+    checkReturn('testSwitch4', typesTask.intType);
+    checkReturn('testSwitch5', typesTask.intType);
+    checkReturn('testContinue1', interceptorType.nullable());
+    checkReturn('testBreak1', interceptorType.nullable());
+    checkReturn('testContinue2', interceptorType.nullable());
+    checkReturn('testBreak2', typesTask.intType.nullable());
+    checkReturn('testReturnElementOfConstList1', typesTask.intType);
+    checkReturn('testReturnElementOfConstList2', typesTask.intType);
+    checkReturn('testReturnItselfOrInt', typesTask.intType);
+    checkReturn('testReturnInvokeDynamicGetter', typesTask.dynamicType);
 
-  checkReturn('testDoWhile1', typesTask.stringType);
-  checkReturn('testDoWhile2', typesTask.nullType);
-  checkReturn('testDoWhile3', interceptorType);
-  checkReturn('testDoWhile4', typesTask.numType);
+    checkReturn('testDoWhile1', typesTask.stringType);
+    checkReturn('testDoWhile2', typesTask.nullType);
+    checkReturn('testDoWhile3', interceptorType);
+    checkReturn('testDoWhile4', typesTask.numType);
 
-  checkReturnInClass(String className, String methodName, type) {
-    var cls = findElement(compiler, className);
-    var element = cls.lookupLocalMember(buildSourceString(methodName));
-    Expect.equals(type,
-        typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
-  }
+    checkReturnInClass(String className, String methodName, type) {
+      var cls = findElement(compiler, className);
+      var element = cls.lookupLocalMember(buildSourceString(methodName));
+      Expect.equals(type,
+          typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
+    }
 
-  checkReturnInClass('A', 'returnInt1', typesTask.intType);
-  checkReturnInClass('A', 'returnInt2', typesTask.intType);
-  checkReturnInClass('A', 'returnInt3', typesTask.intType);
-  checkReturnInClass('A', 'returnInt4', typesTask.intType);
-  checkReturnInClass('A', 'returnInt5', typesTask.intType);
-  checkReturnInClass('A', 'returnInt6', typesTask.intType);
-  checkReturnInClass('A', '==', interceptorType);
+    checkReturnInClass('A', 'returnInt1', typesTask.intType);
+    checkReturnInClass('A', 'returnInt2', typesTask.intType);
+    checkReturnInClass('A', 'returnInt3', typesTask.intType);
+    checkReturnInClass('A', 'returnInt4', typesTask.intType);
+    checkReturnInClass('A', 'returnInt5', typesTask.intType);
+    checkReturnInClass('A', 'returnInt6', typesTask.intType);
+    checkReturnInClass('A', '==', interceptorType);
 
-  checkReturnInClass('B', 'returnInt1', typesTask.intType);
-  checkReturnInClass('B', 'returnInt2', typesTask.intType);
-  checkReturnInClass('B', 'returnInt3', typesTask.intType);
-  checkReturnInClass('B', 'returnInt4', typesTask.intType);
-  checkReturnInClass('B', 'returnInt5', typesTask.intType);
-  checkReturnInClass('B', 'returnInt6', typesTask.intType);
-  checkReturnInClass('B', 'returnInt7', typesTask.intType);
-  checkReturnInClass('B', 'returnInt8', typesTask.intType);
-  checkReturnInClass('B', 'returnInt9', typesTask.intType);
+    checkReturnInClass('B', 'returnInt1', typesTask.intType);
+    checkReturnInClass('B', 'returnInt2', typesTask.intType);
+    checkReturnInClass('B', 'returnInt3', typesTask.intType);
+    checkReturnInClass('B', 'returnInt4', typesTask.intType);
+    checkReturnInClass('B', 'returnInt5', typesTask.intType);
+    checkReturnInClass('B', 'returnInt6', typesTask.intType);
+    checkReturnInClass('B', 'returnInt7', typesTask.intType);
+    checkReturnInClass('B', 'returnInt8', typesTask.intType);
+    checkReturnInClass('B', 'returnInt9', typesTask.intType);
 
-  checkFactoryConstructor(String className, String factoryName) {
-    var cls = findElement(compiler, className);
-    var element = cls.localLookup(buildSourceString(factoryName));
-    Expect.equals(new TypeMask.nonNullExact(cls.rawType),
-                  typesInferrer.getReturnTypeOfElement(element));
-  }
-  checkFactoryConstructor('A', '');
+    checkFactoryConstructor(String className, String factoryName) {
+      var cls = findElement(compiler, className);
+      var element = cls.localLookup(buildSourceString(factoryName));
+      Expect.equals(new TypeMask.nonNullExact(cls.rawType),
+                    typesInferrer.getReturnTypeOfElement(element));
+    }
+    checkFactoryConstructor('A', '');
 
-  checkReturn('testCascade1', typesTask.growableListType);
-  checkReturn('testCascade2', new TypeMask.nonNullExact(
-      typesTask.rawTypeOf(findElement(compiler, 'CascadeHelper'))));
-  checkReturn('testSpecialization1', typesTask.numType);
-  checkReturn('testSpecialization2', typesTask.dynamicType);
-  checkReturn('testSpecialization3', typesTask.intType.nullable());
+    checkReturn('testCascade1', typesTask.growableListType);
+    checkReturn('testCascade2', new TypeMask.nonNullExact(
+        typesTask.rawTypeOf(findElement(compiler, 'CascadeHelper'))));
+    checkReturn('testSpecialization1', typesTask.numType);
+    checkReturn('testSpecialization2', typesTask.dynamicType);
+    checkReturn('testSpecialization3', typesTask.intType.nullable());
+  }));
 }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 
 const String TEST = r"""
@@ -28,8 +29,9 @@ baz(a) {
 """;
 
 main() {
-  String generated = compileAll(TEST);
-  RegExp regexp = new RegExp('foo\\\$1\\\$a: function');
-  Iterator<Match> matches = regexp.allMatches(generated).iterator;
-  checkNumberOfMatches(matches, 1);
+  asyncTest(() => compileAll(TEST).then((generated) {
+    RegExp regexp = new RegExp('foo\\\$1\\\$a: function');
+    Iterator<Match> matches = regexp.allMatches(generated).iterator;
+    checkNumberOfMatches(matches, 1);
+  }));
 }

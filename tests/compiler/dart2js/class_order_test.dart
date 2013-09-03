@@ -4,6 +4,7 @@
 // Test that parameters keep their names in the output.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 
 const String TEST_ONE = r"""
@@ -35,9 +36,11 @@ main() {
   // we just verify that their members are in the correct order.
   RegExp regexp = new RegExp(r"foo\$0?:(.|\n)*bar\$0:(.|\n)*gee\$0:");
 
-  String generated = compileAll(TEST_ONE);
-  Expect.isTrue(regexp.hasMatch(generated));
+  asyncTest(() => compileAll(TEST_ONE).then((generated) {
+    Expect.isTrue(regexp.hasMatch(generated));
+  }));
 
-  generated = compileAll(TEST_TWO);
-  Expect.isTrue(regexp.hasMatch(generated));
+  asyncTest(() => compileAll(TEST_TWO).then((generated) {
+    Expect.isTrue(regexp.hasMatch(generated));
+  }));
 }

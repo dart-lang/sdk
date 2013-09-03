@@ -8,6 +8,7 @@
 library dart2js.test.import;
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
@@ -30,17 +31,19 @@ main() {
 testMissingImports() {
   var collector = new DiagnosticCollector();
   var compiler = compilerFor(MEMORY_SOURCE_FILES, diagnosticHandler: collector);
-  compiler.run(Uri.parse('memory:main.dart'));
-  Expect.equals(4, collector.errors.length);
-  Expect.equals(1, collector.warnings.length);
+  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+    Expect.equals(4, collector.errors.length);
+    Expect.equals(1, collector.warnings.length);
+  }));
 }
 
 testMissingMain() {
   var collector = new DiagnosticCollector();
   var compiler = compilerFor({}, diagnosticHandler: collector);
-  compiler.run(Uri.parse('memory:missing.dart'));
-  Expect.equals(1, collector.errors.length);
-  Expect.equals(0, collector.warnings.length);
+  asyncTest(() => compiler.run(Uri.parse('memory:missing.dart')).then((_) {
+    Expect.equals(1, collector.errors.length);
+    Expect.equals(0, collector.warnings.length);
+  }));
 }
 
 void main() {

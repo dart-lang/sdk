@@ -5,6 +5,7 @@
 library dart2js.test.message_kind_helper;
 
 import 'package:expect/expect.dart';
+import 'dart:async';
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart' show
     Compiler,
@@ -14,7 +15,7 @@ import 'memory_compiler.dart';
 
 const String ESCAPE_REGEXP = r'[[\]{}()*+?.\\^$|]';
 
-Compiler check(MessageKind kind, Compiler cachedCompiler) {
+Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
   Expect.isNotNull(kind.howToFix);
   Expect.isFalse(kind.examples.isEmpty);
 
@@ -33,21 +34,22 @@ Compiler check(MessageKind kind, Compiler cachedCompiler) {
         options: ['--analyze-only'],
         cachedCompiler: cachedCompiler);
 
-    compiler.run(Uri.parse('memory:main.dart'));
+    return compiler.run(Uri.parse('memory:main.dart')).then((_) {
 
-    Expect.isFalse(messages.isEmpty, 'No messages in """$example"""');
+      Expect.isFalse(messages.isEmpty, 'No messages in """$example"""');
 
-    String expectedText = !kind.hasHowToFix
-        ? kind.template : '${kind.template}\n${kind.howToFix}';
-    String pattern = expectedText.replaceAllMapped(
-        new RegExp(ESCAPE_REGEXP), (m) => '\\${m[0]}');
-    pattern = pattern.replaceAll(new RegExp(r'#\\\{[^}]*\\\}'), '.*');
+      String expectedText = !kind.hasHowToFix
+          ? kind.template : '${kind.template}\n${kind.howToFix}';
+      String pattern = expectedText.replaceAllMapped(
+          new RegExp(ESCAPE_REGEXP), (m) => '\\${m[0]}');
+      pattern = pattern.replaceAll(new RegExp(r'#\\\{[^}]*\\\}'), '.*');
 
-    for (String message in messages) {
-      Expect.isTrue(new RegExp('^$pattern\$').hasMatch(message),
-                    '"$pattern" does not match "$message"');
-    }
-    cachedCompiler = compiler;
+      for (String message in messages) {
+        Expect.isTrue(new RegExp('^$pattern\$').hasMatch(message),
+                      '"$pattern" does not match "$message"');
+      }
+      return compiler;
+    });
   }
 
   return cachedCompiler;

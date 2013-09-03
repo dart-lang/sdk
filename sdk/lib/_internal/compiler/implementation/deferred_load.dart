@@ -47,8 +47,6 @@ class DeferredLoadTask extends CompilerTask {
   /// should become obsolete.
   final Set<Element> allDeferredElements = new LinkedHashSet<Element>();
 
-  ClassElement cachedDeferredLibraryClass;
-
   DeferredLoadTask(Compiler compiler) : super(compiler);
 
   String get name => 'Deferred Loading';

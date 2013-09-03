@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import "compiler_helper.dart";
 
 const String TEST = "main() => [];";
@@ -25,10 +26,12 @@ const String DEFAULT_CORELIB_WITH_LIST = r'''
 ''';
 
 main() {
-  String generated = compileAll(TEST, coreSource: DEFAULT_CORELIB_WITH_LIST);
-  MockCompiler compiler = new MockCompiler();
-  var backend = compiler.backend;
+  asyncTest(() => compileAll(TEST, coreSource: DEFAULT_CORELIB_WITH_LIST).
+      then((generated) {
+    MockCompiler compiler = new MockCompiler();
+    var backend = compiler.backend;
 
-  // Make sure no class is emitted.
-  Expect.isFalse(generated.contains(backend.emitter.finishClassesName));
+    // Make sure no class is emitted.
+    Expect.isFalse(generated.contains(backend.emitter.finishClassesName));
+  }));
 }

@@ -2,19 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import "package:expect/expect.dart";
-
+import "package:async_helper/async_helper.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
 import "mock_compiler.dart";
 import 'parser_helper.dart';
 
-CodeBuffer compileAll(SourceFile sourceFile) {
+Future<CodeBuffer> compileAll(SourceFile sourceFile) {
   MockCompiler compiler = new MockCompiler();
   Uri uri = new Uri(path: sourceFile.filename);
   compiler.sourceFiles[uri.toString()] = sourceFile;
-  compiler.runCompiler(uri);
-  return compiler.backend.emitter.mainBuffer;
+  return compiler.runCompiler(uri).then((_) {
+    return compiler.backend.emitter.mainBuffer;
+  });
 }
 
 void testSourceMapLocations(String codeWithMarkers) {
@@ -27,27 +29,27 @@ void testSourceMapLocations(String codeWithMarkers) {
   String code = codeWithMarkers.replaceAll('@', '');
 
   SourceFile sourceFile = new SourceFile('<test script>', code);
-  CodeBuffer buffer = compileAll(sourceFile);
+  asyncTest(() => compileAll(sourceFile).then((CodeBuffer buffer) {
+    Set<int> locations = new Set<int>();
+    buffer.forEachSourceLocation((int offset, var sourcePosition) {
+      if (sourcePosition != null && sourcePosition.sourceFile == sourceFile) {
+        locations.add(sourcePosition.token.charOffset);
+      }
+    });
 
-  Set<int> locations = new Set<int>();
-  buffer.forEachSourceLocation((int offset, var sourcePosition) {
-    if (sourcePosition != null && sourcePosition.sourceFile == sourceFile) {
-      locations.add(sourcePosition.token.charOffset);
+    for (int i = 0; i < expectedLocations.length; ++i) {
+      int expectedLocation = expectedLocations[i];
+      if (!locations.contains(expectedLocation)) {
+        int originalLocation = expectedLocation + i;
+        SourceFile sourceFileWithMarkers = new SourceFile('<test script>',
+                                                          codeWithMarkers);
+        String message = sourceFileWithMarkers.getLocationMessage(
+            'Missing location', originalLocation, originalLocation + 1, true,
+            (s) => s);
+        Expect.fail(message);
+      }
     }
-  });
-
-  for (int i = 0; i < expectedLocations.length; ++i) {
-    int expectedLocation = expectedLocations[i];
-    if (!locations.contains(expectedLocation)) {
-      int originalLocation = expectedLocation + i;
-      SourceFile sourceFileWithMarkers = new SourceFile('<test script>',
-                                                        codeWithMarkers);
-      String message = sourceFileWithMarkers.getLocationMessage(
-          'Missing location', originalLocation, originalLocation + 1, true,
-          (s) => s);
-      Expect.fail(message);
-    }
-  }
+  }));
 }
 
 String FUNCTIONS_TEST = '''

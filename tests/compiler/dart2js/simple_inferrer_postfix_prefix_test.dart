@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 
@@ -13,7 +14,7 @@ class A {
   set foo(value) {}
   operator[](index) => 'string';
   operator[]=(index, value) {}
-  
+
   returnDynamic1() => foo--;
   returnNum1() => --foo;
   returnNum2() => foo -= 42;
@@ -63,34 +64,35 @@ main() {
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
-  compiler.runCompiler(uri);
-  var typesTask = compiler.typesTask;
-  var typesInferrer = typesTask.typesInferrer;
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    var typesTask = compiler.typesTask;
+    var typesInferrer = typesTask.typesInferrer;
 
-  checkReturnInClass(String className, String methodName, type) {
-    var cls = findElement(compiler, className);
-    var element = cls.lookupLocalMember(buildSourceString(methodName));
-    Expect.equals(type,
-        typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
-  }
+    checkReturnInClass(String className, String methodName, type) {
+      var cls = findElement(compiler, className);
+      var element = cls.lookupLocalMember(buildSourceString(methodName));
+      Expect.equals(type,
+          typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
+    }
 
-  var subclassOfInterceptor =
-      findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
+    var subclassOfInterceptor =
+        findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
 
-  checkReturnInClass('A', 'returnNum1', typesTask.numType);
-  checkReturnInClass('A', 'returnNum2', typesTask.numType);
-  checkReturnInClass('A', 'returnNum3', typesTask.numType);
-  checkReturnInClass('A', 'returnNum4', typesTask.numType);
-  checkReturnInClass('A', 'returnNum5', typesTask.numType);
-  checkReturnInClass('A', 'returnNum6', typesTask.numType);
-  checkReturnInClass('A', 'returnDynamic1', subclassOfInterceptor);
-  checkReturnInClass('A', 'returnDynamic2', subclassOfInterceptor);
-  checkReturnInClass('A', 'returnDynamic3', typesTask.dynamicType);
+    checkReturnInClass('A', 'returnNum1', typesTask.numType);
+    checkReturnInClass('A', 'returnNum2', typesTask.numType);
+    checkReturnInClass('A', 'returnNum3', typesTask.numType);
+    checkReturnInClass('A', 'returnNum4', typesTask.numType);
+    checkReturnInClass('A', 'returnNum5', typesTask.numType);
+    checkReturnInClass('A', 'returnNum6', typesTask.numType);
+    checkReturnInClass('A', 'returnDynamic1', subclassOfInterceptor);
+    checkReturnInClass('A', 'returnDynamic2', subclassOfInterceptor);
+    checkReturnInClass('A', 'returnDynamic3', typesTask.dynamicType);
 
-  checkReturnInClass('B', 'returnString1', typesTask.stringType);
-  checkReturnInClass('B', 'returnString2', typesTask.stringType);
-  checkReturnInClass('B', 'returnDynamic1', typesTask.dynamicType);
-  checkReturnInClass('B', 'returnDynamic2', typesTask.dynamicType);
-  checkReturnInClass('B', 'returnDynamic3', typesTask.dynamicType);
-  checkReturnInClass('B', 'returnDynamic4', typesTask.dynamicType);
+    checkReturnInClass('B', 'returnString1', typesTask.stringType);
+    checkReturnInClass('B', 'returnString2', typesTask.stringType);
+    checkReturnInClass('B', 'returnDynamic1', typesTask.dynamicType);
+    checkReturnInClass('B', 'returnDynamic2', typesTask.dynamicType);
+    checkReturnInClass('B', 'returnDynamic3', typesTask.dynamicType);
+    checkReturnInClass('B', 'returnDynamic4', typesTask.dynamicType);
+  }));
 }

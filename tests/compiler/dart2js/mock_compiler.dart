@@ -5,6 +5,7 @@
 library mock_compiler;
 
 import "package:expect/expect.dart";
+import 'dart:async';
 import 'dart:collection';
 
 import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
@@ -238,13 +239,18 @@ class MockCompiler extends Compiler {
               analyzeOnly: analyzeOnly,
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments) {
-    coreLibrary = createLibrary("core", coreSource);
+    coreLibrary = deprecatedFutureValue(createLibrary("core", coreSource));
+
     // We need to set the assert method to avoid calls with a 'null'
     // target being interpreted as a call to assert.
-    jsHelperLibrary = createLibrary("helper", helperSource);
-    foreignLibrary = createLibrary("foreign", FOREIGN_LIBRARY);
-    interceptorsLibrary = createLibrary("interceptors", interceptorsSource);
-    isolateHelperLibrary = createLibrary("isolate_helper", isolateHelperSource);
+    jsHelperLibrary = deprecatedFutureValue(
+        createLibrary("helper", helperSource));
+    foreignLibrary = deprecatedFutureValue(
+        createLibrary("foreign", FOREIGN_LIBRARY));
+    interceptorsLibrary = deprecatedFutureValue(
+        createLibrary("interceptors", interceptorsSource));
+    isolateHelperLibrary = deprecatedFutureValue(
+        createLibrary("isolate_helper", isolateHelperSource));
 
     // Set up the library imports.
     importHelperLibrary(coreLibrary);
@@ -282,7 +288,7 @@ class MockCompiler extends Compiler {
    * Used internally to create a library from a source text. The created library
    * is fixed to export its top-level declarations.
    */
-  LibraryElement createLibrary(String name, String source) {
+  Future<LibraryElement> createLibrary(String name, String source) {
     Uri uri = new Uri(scheme: "dart", path: name);
     var script = new Script(uri, new MockFile(source));
     var library = new LibraryElementX(script);
@@ -291,7 +297,7 @@ class MockCompiler extends Compiler {
     library.setExports(library.localScope.values.toList());
     registerSource(uri, source);
     libraries.putIfAbsent(uri.toString(), () => library);
-    return library;
+    return new Future.value(library);
   }
 
   void reportWarning(Node node, var message) {
@@ -377,12 +383,14 @@ class MockCompiler extends Compiler {
     parseUnit(text, this, library, registerSource);
   }
 
-  void scanBuiltinLibraries() {
+  Future scanBuiltinLibraries() {
     // Do nothing. The mock core library is already handled in the constructor.
+    return new Future.value();
   }
 
-  LibraryElement scanBuiltinLibrary(String name) {
+  Future<LibraryElement> scanBuiltinLibrary(String name) {
     // Do nothing. The mock core library is already handled in the constructor.
+    return new Future.value();
   }
 
   Uri translateResolvedUri(LibraryElement importingLibrary,
@@ -391,10 +399,10 @@ class MockCompiler extends Compiler {
   // The mock library doesn't need any patches.
   Uri resolvePatchUri(String dartLibraryName) => null;
 
-  Script readScript(Uri uri, [Node node]) {
+  Future<Script> readScript(Uri uri, [Element element, Node node]) {
     SourceFile sourceFile = sourceFiles[uri.toString()];
     if (sourceFile == null) throw new ArgumentError(uri);
-    return new Script(uri, sourceFile);
+    return new Future.value(new Script(uri, sourceFile));
   }
 
   Element lookupElementIn(ScopeContainerElement container, name) {

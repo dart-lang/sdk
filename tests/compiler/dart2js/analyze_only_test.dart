@@ -7,6 +7,7 @@ library analyze_only;
 
 import "package:expect/expect.dart";
 import 'dart:async';
+import "package:async_helper/async_helper.dart";
 
 import '../../utils/dummy_compiler_test.dart' as dummy;
 import '../../../sdk/lib/_internal/compiler/compiler.dart';
@@ -34,6 +35,7 @@ runCompiler(String main, List<String> options,
   print('-----------------------------------------------');
   print('main source:\n$main');
   print('options: $options\n');
+  asyncStart();
   Future<String> result =
       compile(new Uri(scheme: 'main'),
               new Uri(scheme: 'lib', path: '/'),
@@ -43,7 +45,7 @@ runCompiler(String main, List<String> options,
     onValue(code, errors, warnings);
   }, onError: (e) {
       throw 'Compilation failed';
-  });
+  }).whenComplete(() => asyncEnd());
 }
 
 main() {

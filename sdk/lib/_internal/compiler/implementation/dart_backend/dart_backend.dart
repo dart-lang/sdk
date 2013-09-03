@@ -4,6 +4,7 @@
 
 library dart_backend;
 
+import 'dart:async' show Future;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show SynthesizedConstructorElementX;
 import '../dart2jslib.dart';

@@ -5,6 +5,7 @@
 // effects.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 
@@ -24,16 +25,17 @@ main() {
 main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
-  compiler.runCompiler(uri);
-  String generated = compiler.assembledCode;
-  RegExp regexp = new RegExp(r"get\$foo");
-  Iterator matches = regexp.allMatches(generated).iterator;
-  checkNumberOfMatches(matches, 1);
-  var cls = findElement(compiler, 'A');
-  Expect.isNotNull(cls);
-  SourceString name = buildSourceString('foo');
-  var element = cls.lookupLocalMember(name);
-  Expect.isNotNull(element);
-  Selector selector = new Selector.getter(name, null);
-  Expect.isFalse(compiler.world.hasAnyUserDefinedGetter(selector));
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    String generated = compiler.assembledCode;
+    RegExp regexp = new RegExp(r"get\$foo");
+    Iterator matches = regexp.allMatches(generated).iterator;
+    checkNumberOfMatches(matches, 1);
+    var cls = findElement(compiler, 'A');
+    Expect.isNotNull(cls);
+    SourceString name = buildSourceString('foo');
+    var element = cls.lookupLocalMember(name);
+    Expect.isNotNull(element);
+    Selector selector = new Selector.getter(name, null);
+    Expect.isFalse(compiler.world.hasAnyUserDefinedGetter(selector));
+  }));
 }

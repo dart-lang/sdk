@@ -5,6 +5,7 @@
 library subtype_test;
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart"
@@ -15,7 +16,7 @@ void main() {
 }
 
 void test() {
-  var env = new TypeEnvironment(r"""
+  asyncTest(() => TypeEnvironment.create(r"""
       class A<T> {
         T foo;
       }
@@ -28,49 +29,50 @@ void test() {
       class D<V> {
         V boz;
       }
-      """);
+      """).then((env) {
+    void expect(DartType receiverType, String memberName,
+                DartType expectedType) {
+      Member member = receiverType.lookupMember(env.sourceString(memberName));
+      Expect.isNotNull(member);
+      DartType memberType = member.computeType(env.compiler);
+      Expect.equals(expectedType, memberType,
+          'Wrong member type for $receiverType.$memberName.');
+    }
 
-  void expect(DartType receiverType, String memberName, DartType expectedType) {
-    Member member = receiverType.lookupMember(env.sourceString(memberName));
-    Expect.isNotNull(member);
-    DartType memberType = member.computeType(env.compiler);
-    Expect.equals(expectedType, memberType,
-        'Wrong member type for $receiverType.$memberName.');
-  }
+    DartType int_ = env['int'];
+    DartType String_ = env['String'];
 
-  DartType int_ = env['int'];
-  DartType String_ = env['String'];
+    ClassElement A = env.getElement('A');
+    DartType T = A.typeVariables.head;
+    DartType A_T = A.thisType;
+    expect(A_T, 'foo', T);
 
-  ClassElement A = env.getElement('A');
-  DartType T = A.typeVariables.head;
-  DartType A_T = A.thisType;
-  expect(A_T, 'foo', T);
+    DartType A_int = instantiate(A, [int_]);
+    expect(A_int, 'foo', int_);
 
-  DartType A_int = instantiate(A, [int_]);
-  expect(A_int, 'foo', int_);
+    ClassElement B = env.getElement('B');
+    DartType S = B.typeVariables.head;
+    DartType B_S = B.thisType;
+    expect(B_S, 'foo', instantiate(A, [S]));
+    expect(B_S, 'bar', S);
 
-  ClassElement B = env.getElement('B');
-  DartType S = B.typeVariables.head;
-  DartType B_S = B.thisType;
-  expect(B_S, 'foo', instantiate(A, [S]));
-  expect(B_S, 'bar', S);
+    DartType B_int = instantiate(B, [int_]);
+    expect(B_int, 'foo', A_int);
+    expect(B_int, 'bar', int_);
 
-  DartType B_int = instantiate(B, [int_]);
-  expect(B_int, 'foo', A_int);
-  expect(B_int, 'bar', int_);
+    ClassElement C = env.getElement('C');
+    DartType U = C.typeVariables.head;
+    DartType C_U = C.thisType;
+    expect(C_U, 'foo', instantiate(A, [String_]));
+    expect(C_U, 'bar', String_);
+    expect(C_U, 'baz', U);
+    expect(C_U, 'boz', instantiate(B, [U]));
 
-  ClassElement C = env.getElement('C');
-  DartType U = C.typeVariables.head;
-  DartType C_U = C.thisType;
-  expect(C_U, 'foo', instantiate(A, [String_]));
-  expect(C_U, 'bar', String_);
-  expect(C_U, 'baz', U);
-  expect(C_U, 'boz', instantiate(B, [U]));
-
-  DartType C_int = instantiate(C, [int_]);
-  expect(C_int, 'foo', instantiate(A, [String_]));
-  expect(C_int, 'bar', String_);
-  expect(C_int, 'baz', int_);
-  expect(C_int, 'boz', instantiate(B, [int_]));
+    DartType C_int = instantiate(C, [int_]);
+    expect(C_int, 'foo', instantiate(A, [String_]));
+    expect(C_int, 'bar', String_);
+    expect(C_int, 'baz', int_);
+    expect(C_int, 'boz', instantiate(B, [int_]));
+  }));
 }
 

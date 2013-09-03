@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 
@@ -20,16 +21,14 @@ void checkPosition(Spannable spannable, Node node, String source, compiler) {
 
 void checkAnnotation(String name, String declaration,
                      {bool isTopLevelOnly: false}) {
-  var source;
-
   // Ensure that a compile-time constant can be resolved from an
   // annotation.
-  source = """const native = 'xyz';
-              @native
-              $declaration
-              main() {}""";
+  var source1 = """const native = 'xyz';
+                   @native
+                   $declaration
+                   main() {}""";
 
-  compileAndCheck(source, name, (compiler, element) {
+  compileAndCheck(source1, name, (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(1, length(element.metadata));
     PartialMetadataAnnotation annotation = element.metadata.head;
@@ -37,17 +36,17 @@ void checkAnnotation(String name, String declaration,
     Constant value = annotation.value;
     Expect.stringEquals('xyz', value.value.slowToString());
 
-    checkPosition(annotation, annotation.cachedNode, source, compiler);
+    checkPosition(annotation, annotation.cachedNode, source1, compiler);
   });
 
   // Ensure that each repeated annotation has a unique instance of
   // [MetadataAnnotation].
-  source = """const native = 'xyz';
-              @native @native
-              $declaration
-              main() {}""";
+  var source2 = """const native = 'xyz';
+                   @native @native
+                   $declaration
+                   main() {}""";
 
-  compileAndCheck(source, name, (compiler, element) {
+  compileAndCheck(source2, name, (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(2, length(element.metadata));
     PartialMetadataAnnotation annotation1 = element.metadata.head;
@@ -63,22 +62,22 @@ void checkAnnotation(String name, String declaration,
     Expect.stringEquals('xyz', value1.value.slowToString());
     Expect.stringEquals('xyz', value2.value.slowToString());
 
-    checkPosition(annotation1, annotation1.cachedNode, source, compiler);
-    checkPosition(annotation2, annotation2.cachedNode, source, compiler);
+    checkPosition(annotation1, annotation1.cachedNode, source2, compiler);
+    checkPosition(annotation2, annotation2.cachedNode, source2, compiler);
   });
 
   if (isTopLevelOnly) return;
 
   // Ensure that a compile-time constant can be resolved from an
   // annotation.
-  source = """const native = 'xyz';
-              class Foo {
-                @native
-                $declaration
-              }
-              main() {}""";
+  var source3 = """const native = 'xyz';
+                   class Foo {
+                     @native
+                     $declaration
+                   }
+                   main() {}""";
 
-  compileAndCheck(source, 'Foo', (compiler, element) {
+  compileAndCheck(source3, 'Foo', (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(0, length(element.metadata));
     element.ensureResolved(compiler);
@@ -90,19 +89,19 @@ void checkAnnotation(String name, String declaration,
     Constant value = annotation.value;
     Expect.stringEquals('xyz', value.value.slowToString());
 
-    checkPosition(annotation, annotation.cachedNode, source, compiler);
+    checkPosition(annotation, annotation.cachedNode, source3, compiler);
   });
 
   // Ensure that each repeated annotation has a unique instance of
   // [MetadataAnnotation].
-  source = """const native = 'xyz';
-              class Foo {
-                @native @native
-                $declaration
-              }
-              main() {}""";
+  var source4 = """const native = 'xyz';
+                   class Foo {
+                     @native @native
+                     $declaration
+                   }
+                   main() {}""";
 
-  compileAndCheck(source, 'Foo', (compiler, element) {
+  compileAndCheck(source4, 'Foo', (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(0, length(element.metadata));
     element.ensureResolved(compiler);
@@ -122,8 +121,8 @@ void checkAnnotation(String name, String declaration,
     Expect.stringEquals('xyz', value1.value.slowToString());
     Expect.stringEquals('xyz', value2.value.slowToString());
 
-    checkPosition(annotation1, annotation1.cachedNode, source, compiler);
-    checkPosition(annotation1, annotation2.cachedNode, source, compiler);
+    checkPosition(annotation1, annotation1.cachedNode, source4, compiler);
+    checkPosition(annotation1, annotation2.cachedNode, source4, compiler);
   });
 }
 
@@ -156,21 +155,23 @@ void testLibraryTags() {
     var compiler = compilerFor(source, uri)
         ..registerSource(partUri, partSource)
         ..registerSource(libUri, libSource)
-        ..registerSource(async, 'class DeferredLibrary {}')
-        ..runCompiler(uri);
-    compiler.enqueuer.resolution.queueIsClosed = false;
-    LibraryElement element = compiler.libraries['$uri'];
-    Expect.isNotNull(element, 'Cannot find $uri');
+        ..registerSource(async, 'class DeferredLibrary {}');
 
-    Link<MetadataAnnotation> metadata = extractMetadata(element);
-    Expect.equals(1, length(metadata));
+    asyncTest(() => compiler.runCompiler(uri).then((_) {
+      compiler.enqueuer.resolution.queueIsClosed = false;
+      LibraryElement element = compiler.libraries['$uri'];
+      Expect.isNotNull(element, 'Cannot find $uri');
 
-    PartialMetadataAnnotation annotation = metadata.head;
-    annotation.ensureResolved(compiler);
-    Constant value = annotation.value;
-    Expect.stringEquals('xyz', value.value.slowToString());
+      Link<MetadataAnnotation> metadata = extractMetadata(element);
+      Expect.equals(1, length(metadata));
 
-    checkPosition(annotation, annotation.cachedNode, source, compiler);
+      PartialMetadataAnnotation annotation = metadata.head;
+      annotation.ensureResolved(compiler);
+      Constant value = annotation.value;
+      Expect.stringEquals('xyz', value.value.slowToString());
+
+      checkPosition(annotation, annotation.cachedNode, source, compiler);
+    }));
   }
 
   var source;

@@ -4,6 +4,7 @@
 // Test that parameters keep their names in the output.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 
@@ -20,8 +21,11 @@ main() { return x; }
 """;
 
 main() {
-  String generated = compileAll(TEST_NULL0);
-  Expect.isTrue(generated.contains("null"));
-  generated = compileAll(TEST_NULL1);
-  Expect.isTrue(generated.contains("null"));
+  asyncTest(() => compileAll(TEST_NULL0).then((generated) {
+    Expect.isTrue(generated.contains("null"));
+  }));
+
+  asyncTest(() => compileAll(TEST_NULL1).then((generated) {
+    Expect.isTrue(generated.contains("null"));
+  }));
 }

@@ -7,6 +7,7 @@
 library dart2js.test.package_root;
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'memory_source_file_helper.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
@@ -33,8 +34,7 @@ void runCompiler(Uri main) {
   Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
   Uri libraryRoot = script.resolve('../../../sdk/');
 
-  MemorySourceFileProvider.MEMORY_SOURCE_FILES = MEMORY_SOURCE_FILES;
-  var provider = new MemorySourceFileProvider();
+  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
   var handler = new FormattingDiagnosticHandler(provider);
   var errors = [];
 
@@ -52,18 +52,19 @@ void runCompiler(Uri main) {
     return new NullSink('$name.$extension');
   }
 
-  Compiler compiler = new Compiler(provider.readStringFromUri,
+  Compiler compiler = new Compiler(provider,
                                    outputProvider,
                                    diagnosticHandler,
                                    libraryRoot,
                                    null,
                                    []);
 
-  compiler.run(main);
-  Expect.equals(1, errors.length);
-  Expect.equals('Error: Cannot resolve "package:foo/foo.dart". '
-                'Package root has not been set.',
-                errors[0]);
+  asyncTest(() => compiler.run(main).then((_) {
+    Expect.equals(1, errors.length);
+    Expect.equals('Error: Cannot resolve "package:foo/foo.dart". '
+                  'Package root has not been set.',
+                  errors[0]);
+  }));
 }
 
 void main() {

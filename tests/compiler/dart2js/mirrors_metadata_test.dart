@@ -4,6 +4,7 @@
 
 import 'package:expect/expect.dart';
 import 'dart:async';
+import "package:async_helper/async_helper.dart";
 import 'dart:io';
 import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
@@ -14,15 +15,16 @@ import 'mock_compiler.dart';
 const String SOURCE = 'source';
 Uri SOURCE_URI = new Uri(scheme: SOURCE, path: SOURCE);
 
-MirrorSystem createMirrorSystem(String source) {
+Future<MirrorSystem> createMirrorSystem(String source) {
   MockCompiler compiler = new MockCompiler(
       analyzeOnly: true,
       analyzeAll: true,
       preserveComments: true);
-  compiler.registerSource(SOURCE_URI, source);
-  compiler.librariesToAnalyzeWhenRun = <Uri>[SOURCE_URI];
-  compiler.runCompiler(null);
-  return new Dart2JsMirrorSystem(compiler);
+    compiler.registerSource(SOURCE_URI, source);
+    compiler.librariesToAnalyzeWhenRun = <Uri>[SOURCE_URI];
+  return compiler.runCompiler(null).then((_) {
+    return new Dart2JsMirrorSystem(compiler);
+  });
 }
 
 void validateDeclarationComment(String code,
@@ -30,21 +32,22 @@ void validateDeclarationComment(String code,
                                 String trimmedText,
                                 bool isDocComment,
                                 List<String> declarationNames) {
-  MirrorSystem mirrors = createMirrorSystem(code);
-  LibraryMirror library = mirrors.libraries[SOURCE_URI];
-  Expect.isNotNull(library);
-  for (String declarationName in declarationNames) {
-    DeclarationMirror declaration = library.members[declarationName];
-    Expect.isNotNull(declaration);
-    List<InstanceMirror> metadata = declaration.metadata;
-    Expect.isNotNull(metadata);
-    Expect.equals(1, metadata.length);
-    Expect.isTrue(metadata[0] is CommentInstanceMirror);
-    CommentInstanceMirror commentMetadata = metadata[0];
-    Expect.equals(text, commentMetadata.text);
-    Expect.equals(trimmedText, commentMetadata.trimmedText);
-    Expect.equals(isDocComment, commentMetadata.isDocComment);
-  }
+  asyncTest(() => createMirrorSystem(code).then((mirrors) {
+    LibraryMirror library = mirrors.libraries[SOURCE_URI];
+    Expect.isNotNull(library);
+    for (String declarationName in declarationNames) {
+      DeclarationMirror declaration = library.members[declarationName];
+      Expect.isNotNull(declaration);
+      List<InstanceMirror> metadata = declaration.metadata;
+      Expect.isNotNull(metadata);
+      Expect.equals(1, metadata.length);
+      Expect.isTrue(metadata[0] is CommentInstanceMirror);
+      CommentInstanceMirror commentMetadata = metadata[0];
+      Expect.equals(text, commentMetadata.text);
+      Expect.equals(trimmedText, commentMetadata.trimmedText);
+      Expect.equals(isDocComment, commentMetadata.isDocComment);
+    }
+  }));
 }
 
 void testDeclarationComment(String declaration, List<String> declarationNames) {

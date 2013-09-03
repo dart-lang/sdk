@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import
     '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
     show TypeMask;
@@ -51,9 +52,10 @@ main() {
 """;
 
 void main() {
-  String generated = compileAll(TEST);
-  if (generated.contains(r'=== true')) {
-    print(generated);
-    Expect.fail("missing elision of '=== true'");
-  }
+  asyncTest(() => compileAll(TEST).then((generated) {
+    if (generated.contains(r'=== true')) {
+      print(generated);
+      Expect.fail("missing elision of '=== true'");
+    }
+  }));
 }

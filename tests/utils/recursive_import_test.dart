@@ -5,6 +5,7 @@
 // Test of "recursive" imports using the dart2js compiler API.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'dart:async';
 import '../../sdk/lib/_internal/compiler/compiler.dart';
 
@@ -90,7 +91,7 @@ main() {
         source = "library lib${uri.path.replaceAll('/', '.')};";
       }
     } else {
-     throw "unexpected URI $uri";
+     return new Future.error("unexpected URI $uri");
     }
     return new Future.value(source);
   }
@@ -111,6 +112,7 @@ main() {
     }
   }
 
+  asyncStart();
   Future<String> result =
       compile(new Uri(scheme: 'main'),
               new Uri(scheme: 'lib', path: '/'),
@@ -125,5 +127,5 @@ main() {
     Expect.equals(1, errorCount);
   }, onError: (e) {
       throw 'Compilation failed';
-  });
+  }).whenComplete(() => asyncEnd());
 }

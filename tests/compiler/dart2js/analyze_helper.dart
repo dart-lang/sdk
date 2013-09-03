@@ -5,6 +5,7 @@
 library analyze_helper;
 
 import "package:expect/expect.dart";
+import 'dart:async';
 import 'dart:io';
 import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
 import '../../../sdk/lib/_internal/compiler/implementation/apiimpl.dart';
@@ -122,7 +123,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   }
 }
 
-void analyze(List<Uri> uriList, Map<String, List<String>> whiteList) {
+Future analyze(List<Uri> uriList, Map<String, List<String>> whiteList) {
   var libraryRoot = currentDirectory.resolve('sdk/');
   var provider = new SourceFileProvider();
   var handler = new CollectingDiagnosticHandler(whiteList, provider);
@@ -134,6 +135,7 @@ void analyze(List<Uri> uriList, Map<String, List<String>> whiteList) {
       <String>['--analyze-only', '--analyze-all',
                '--categories=Client,Server']);
   compiler.librariesToAnalyzeWhenRun = uriList;
-  compiler.run(null);
-  handler.checkResults();
+  return compiler.run(null).then((_) {
+    handler.checkResults();
+  });
 }
