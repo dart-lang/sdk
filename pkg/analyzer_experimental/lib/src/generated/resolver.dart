@@ -5009,19 +5009,20 @@ class Library {
   Source get librarySource => _librarySource;
 
   /**
-   * Return the modification stamp associated with the given source.
+   * Return the modification time associated with the given source.
    *
-   * @param source the source representing the compilation unit whose AST is to be returned
-   * @return the AST structure associated with the given source
+   * @param source the source representing the compilation unit whose modification time is to be
+   *          returned
+   * @return the modification time associated with the given source
    * @throws AnalysisException if an AST structure could not be created for the compilation unit
    */
-  int getModificationStamp(Source source) {
+  int getModificationTime(Source source) {
     ResolvableCompilationUnit holder = _astMap[source];
     if (holder == null) {
       holder = _analysisContext.computeResolvableCompilationUnit(source);
       _astMap[source] = holder;
     }
-    return holder.modificationStamp;
+    return holder.modificationTime;
   }
 
   /**
@@ -11381,7 +11382,7 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
    * @param expression the expression to validate
    */
   void validateInitializerExpression(List<ParameterElement> parameterElements, Expression expression) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor_10(this, parameterElements));
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor_12(this, parameterElements));
     reportErrors(result, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
   }
 
@@ -11426,10 +11427,10 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
     }
   }
 }
-class ConstantVisitor_10 extends ConstantVisitor {
+class ConstantVisitor_12 extends ConstantVisitor {
   final ConstantVerifier ConstantVerifier_this;
   List<ParameterElement> parameterElements;
-  ConstantVisitor_10(this.ConstantVerifier_this, this.parameterElements) : super();
+  ConstantVisitor_12(this.ConstantVerifier_this, this.parameterElements) : super();
   EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
     for (ParameterElement parameterElement in parameterElements) {
@@ -15373,7 +15374,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
           break;
         }
       }
-      current.accept(new GeneralizingElementVisitor_11(target, toCheck));
+      current.accept(new GeneralizingElementVisitor_13(target, toCheck));
       javaSetAdd(checked, current);
     }
   }
@@ -15552,10 +15553,10 @@ class INIT_STATE extends Enum<INIT_STATE> {
       INIT_IN_INITIALIZERS];
   INIT_STATE(String name, int ordinal) : super(name, ordinal);
 }
-class GeneralizingElementVisitor_11 extends GeneralizingElementVisitor<Object> {
+class GeneralizingElementVisitor_13 extends GeneralizingElementVisitor<Object> {
   Element target;
   List<Element> toCheck;
-  GeneralizingElementVisitor_11(this.target, this.toCheck) : super();
+  GeneralizingElementVisitor_13(this.target, this.toCheck) : super();
   bool _inClass = false;
   Object visitClassElement(ClassElement element) {
     addTypeToCheck(element.supertype);

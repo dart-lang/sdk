@@ -152,6 +152,22 @@ class DirectoryBasedDartSdk implements DartSdk {
   }
 
   /**
+   * Return the default Dart SDK, or `null` if the directory containing the default SDK cannot
+   * be determined (or does not exist).
+   *
+   * Added in order to test AnalysisContextImpl2.
+   *
+   * @return the default Dart SDK
+   */
+  static DirectoryBasedDartSdk get defaultSdk2 {
+    JavaFile sdkDirectory = defaultSdkDirectory;
+    if (sdkDirectory == null) {
+      return null;
+    }
+    return new DirectoryBasedDartSdk.con1(sdkDirectory, true);
+  }
+
+  /**
    * Return the default directory for the Dart SDK, or `null` if the directory cannot be
    * determined (or does not exist). The default directory is provided by a [System] property
    * named `com.google.dart.sdk`, or, if the property is not defined, an environment variable
@@ -183,7 +199,32 @@ class DirectoryBasedDartSdk implements DartSdk {
     this._sdkDirectory = sdkDirectory.getAbsoluteFile();
     initializeSdk();
     initializeLibraryMap();
-    _analysisContext = new AnalysisContextImpl();
+    if (AnalysisEngine.instance.useExperimentalContext) {
+      _analysisContext = new AnalysisContextImpl2();
+    } else {
+      _analysisContext = new AnalysisContextImpl();
+    }
+    _analysisContext.sourceFactory = new SourceFactory.con2([new DartUriResolver(this)]);
+    List<String> uris = this.uris;
+    ChangeSet changeSet = new ChangeSet();
+    for (String uri in uris) {
+      changeSet.added(_analysisContext.sourceFactory.forUri(uri));
+    }
+    _analysisContext.applyChanges(changeSet);
+  }
+
+  /**
+   * Initialize a newly created SDK to represent the Dart SDK installed in the given directory.
+   *
+   * Added in order to test AnalysisContextImpl2.
+   *
+   * @param sdkDirectory the directory containing the SDK
+   */
+  DirectoryBasedDartSdk.con1(JavaFile sdkDirectory, bool ignored) {
+    this._sdkDirectory = sdkDirectory.getAbsoluteFile();
+    initializeSdk();
+    initializeLibraryMap();
+    _analysisContext = new AnalysisContextImpl2();
     _analysisContext.sourceFactory = new SourceFactory.con2([new DartUriResolver(this)]);
     List<String> uris = this.uris;
     ChangeSet changeSet = new ChangeSet();
