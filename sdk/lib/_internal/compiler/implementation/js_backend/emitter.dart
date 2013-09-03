@@ -1653,6 +1653,21 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
+  void generateReflectionDataForFieldGetterOrSetter(Element member,
+                                                    String name,
+                                                    ClassBuilder builder,
+                                                    {bool isGetter}) {
+    Selector selector = isGetter
+        ? new Selector.getter(member.name, member.getLibrary())
+        : new Selector.setter(member.name, member.getLibrary());
+    String reflectionName = getReflectionName(selector, name);
+    if (reflectionName != null) {
+      var reflectable =
+          js(backend.isAccessibleByReflection(member) ? '1' : '0');
+      builder.addProperty('+$reflectionName', reflectable);
+    }
+  }
+
   void generateGetter(Element member, String fieldName, String accessorName,
                       ClassBuilder builder) {
     String getterName = namer.getterNameFromAccessorName(accessorName);
@@ -1663,6 +1678,8 @@ class CodeEmitterTask extends CompilerTask {
         : [];
     builder.addProperty(getterName,
         js.fun(args, js.return_(js('$receiver.$fieldName'))));
+    generateReflectionDataForFieldGetterOrSetter(
+        member, getterName, builder, isGetter: true);
   }
 
   void generateSetter(Element member, String fieldName, String accessorName,
@@ -1675,6 +1692,8 @@ class CodeEmitterTask extends CompilerTask {
         : ['v'];
     builder.addProperty(setterName,
         js.fun(args, js('$receiver.$fieldName = v')));
+    generateReflectionDataForFieldGetterOrSetter(
+        member, setterName, builder, isGetter: false);
   }
 
   bool canGenerateCheckedSetter(VariableElement field) {
@@ -1720,6 +1739,8 @@ class CodeEmitterTask extends CompilerTask {
     builder.addProperty(setterName,
         js.fun(args,
             js('$receiver.$fieldName = #', js(helperName)(arguments))));
+    generateReflectionDataForFieldGetterOrSetter(
+        member, setterName, builder, isGetter: false);
   }
 
   void emitClassConstructor(ClassElement classElement, ClassBuilder builder) {
