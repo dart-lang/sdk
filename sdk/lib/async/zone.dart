@@ -139,9 +139,8 @@ class _ZoneBase implements _Zone {
   /// The parent zone. [null] if `this` is the default zone.
   final _Zone _parentZone;
 
-  /// The children of this zone. A child's [_parentZone] is `this`.
-  // TODO(floitsch): this should be a double-linked list.
-  final List<_Zone> _children = <_Zone>[];
+  /// The number of children of this zone. A child's [_parentZone] is `this`.
+  int _childCount = 0;
 
   /// The number of outstanding (asynchronous) callbacks. As long as the
   /// number is greater than 0 it means that the zone is not done yet.
@@ -196,7 +195,7 @@ class _ZoneBase implements _Zone {
    * outstanding-callback count, or when a child has been removed.
    */
   void _checkIfDone() {
-    if (!_isExecutingCallback && _openCallbacks == 0 && _children.isEmpty) {
+    if (!_isExecutingCallback && _openCallbacks == 0 && _childCount == 0) {
       _dispose();
     }
   }
@@ -288,30 +287,13 @@ class _ZoneBase implements _Zone {
   }
 
   void _addChild(_Zone child) {
-    // TODO(floitsch): the zone should just increment a counter, but not keep
-    // a reference to the child.
-    _children.add(child);
+    _childCount++;
   }
 
   void _removeChild(_Zone child) {
-    assert(!_children.isEmpty);
-    // Children are usually added and removed fifo or filo.
-    if (identical(_children.last, child)) {
-      _children.length--;
-      _checkIfDone();
-      return;
-    }
-    for (int i = 0; i < _children.length; i++) {
-      if (identical(_children[i], child)) {
-        _children[i] = _children[_children.length - 1];
-        _children.length--;
-        // No need to check for done, as otherwise _children.last above would
-        // have triggered.
-        assert(!_children.isEmpty);
-        return;
-      }
-    }
-    throw new ArgumentError(child);
+    assert(_childCount != 0);
+    _childCount--;
+    _checkIfDone();
   }
 }
 
