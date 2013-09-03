@@ -144,38 +144,37 @@ void testMultipleEvents() {
   int state = 0;
   var sub;
   sub = watcher.listen((event) {
-    switch (state) {
-      case 0:
-        Expect.isTrue(event is FileSystemCreateEvent);
-        state = 1;
+    int newState = 0;
+    switch (event.type) {
+      case FileSystemEvent.CREATE:
+        newState = 1;
         break;
 
-      case 1:
-        if (event is FileSystemCreateEvent) break;
-        Expect.isTrue(event is FileSystemModifyEvent);
-        state = 2;
+      case FileSystemEvent.MODIFY:
+        newState = 2;
         break;
 
-      case 2:
-        if (event is FileSystemModifyEvent) break;
-        Expect.isTrue(event is FileSystemMoveEvent);
-        state = 3;
+      case FileSystemEvent.MOVE:
+        newState = 3;
         break;
 
-      case 3:
-        if (event is FileSystemMoveEvent) break;
-        Expect.isTrue(event is FileSystemDeleteEvent);
+      case FileSystemEvent.DELETE:
+        newState = 4;
         sub.cancel();
         asyncEnd();
         dir.deleteSync();
         break;
     }
+    if (newState < state) throw "Bad state";
+    state = newState;
   });
 
-  file.createSync();
-  file.writeAsStringSync('a');
-  file.renameSync(file2.path);
-  file2.deleteSync();
+  runAsync(() {
+    file.createSync();
+    file.writeAsStringSync('a');
+    file.renameSync(file2.path);
+    file2.deleteSync();
+  });
 }
 
 
