@@ -153,9 +153,13 @@ void testConfigurations(List<Map> configurations) {
       }
     }
 
-    // If people use selenium they will have issues if we use more than one
-    // ie browser at a time.
-    if (conf['runtime'].startsWith('ie') && !conf['use_browser_controller']) {
+    if (conf['runtime'].startsWith('ie')) {
+      // NOTE: We've experienced random timeouts of tests on ie9/ie10. The
+      // underlying issue has not been determined yet. Our current hypothesis
+      // is that windows does not handle the IE processes independently.
+      // If we have more than one browser and kill a browser we are seeing
+      // issues with starting up a new browser just after killing the hanging
+      // browser.
       maxBrowserProcesses = 1;
     } else if (conf['runtime'].startsWith('safari') &&
                conf['use_browser_controller']) {
