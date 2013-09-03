@@ -29,7 +29,7 @@ void testWatchCreateFile() {
     throw e;
   });
 
-  file.createSync();
+  runAsync(file.createSync);
 }
 
 
@@ -54,7 +54,7 @@ void testWatchModifyFile() {
     throw e;
   });
 
-  file.writeAsStringSync('a');
+  runAsync(() => file.writeAsStringSync('a'));
 }
 
 
@@ -80,7 +80,7 @@ void testWatchMoveFile() {
     throw e;
   });
 
-  file.renameSync(dir.path + '/file2');
+  runAsync(() => file.renameSync(dir.path + '/file2'));
 }
 
 
@@ -105,7 +105,7 @@ void testWatchDeleteFile() {
     throw e;
   });
 
-  file.deleteSync();
+  runAsync(file.deleteSync);
 }
 
 
@@ -128,8 +128,10 @@ void testWatchOnlyModifyFile() {
     throw e;
   });
 
-  file.createSync();
-  file.writeAsStringSync('a');
+  runAsync(() {
+    file.createSync();
+    file.writeAsStringSync('a');
+  });
 }
 
 
@@ -203,7 +205,7 @@ void testWatchRecursive() {
     throw e;
   });
 
-  file.createSync();
+  runAsync(file.createSync());
 }
 
 
@@ -226,7 +228,7 @@ void testWatchNonRecursive() {
     throw e;
   });
 
-  file.createSync();
+  runAsync(file.createSync);
 
   new Timer(const Duration(milliseconds: 300), () {
     sub.cancel();
