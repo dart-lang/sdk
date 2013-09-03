@@ -983,7 +983,7 @@ abstract class HInstruction implements Spannable {
   // Change all uses of [oldInput] by [this] to [newInput]. Also
   // updates the [usedBy] of [oldInput] and [newInput].
   void changeUse(HInstruction oldInput, HInstruction newInput) {
-    assert(newInput != null);
+    assert(newInput != null && !identical(oldInput, newInput));
     for (int i = 0; i < inputs.length; i++) {
       if (identical(inputs[i], oldInput)) {
         inputs[i] = newInput;
