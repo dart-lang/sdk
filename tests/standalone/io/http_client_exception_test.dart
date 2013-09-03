@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-import "package:expect/expect.dart";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void testInvalidUrl() {
   HttpClient client = new HttpClient();
@@ -14,13 +15,13 @@ void testInvalidUrl() {
 }
 
 void testBadHostName() {
+  asyncStart();
   HttpClient client = new HttpClient();
-  ReceivePort port = new ReceivePort();
   client.get("some.bad.host.name.7654321", 0, "/")
     .then((request) {
       Expect.fail("Should not open a request on bad hostname");
     }).catchError((error) {
-      port.close();  // We expect onError to be called, due to bad host name.
+      asyncEnd();  // We expect onError to be called, due to bad host name.
     }, test: (error) => error is! String);
 }
 

@@ -6,11 +6,11 @@
 // VMOptions=--short_socket_read
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
-library ServerTest;
 
-import "package:expect/expect.dart";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.
@@ -61,8 +61,7 @@ bool compareFileContent(String fileName1,
 testFileToFilePipe1() {
   // Force test to timeout if one of the handlers is
   // not called.
-  ReceivePort donePort = new ReceivePort();
-  donePort.receive((message, ignore) { donePort.close(); });
+  asyncStart();
 
   String srcFileName =
       getDataFilename("tests/standalone/io/readline_test1.dat");
@@ -77,7 +76,7 @@ testFileToFilePipe1() {
     new File(dstFileName).deleteSync();
     tempDir.deleteSync();
     Expect.isTrue(result);
-    donePort.toSendPort().send(null);
+    asyncEnd();
   });
 }
 
@@ -87,8 +86,7 @@ testFileToFilePipe1() {
 testFileToFilePipe2() {
   // Force test to timeout if one of the handlers is
   // not called.
-  ReceivePort donePort = new ReceivePort();
-  donePort.receive((message, ignore) { donePort.close(); });
+  asyncStart();
 
   String srcFileName =
       getDataFilename("tests/standalone/io/readline_test1.dat");
@@ -120,7 +118,7 @@ testFileToFilePipe2() {
       dst.closeSync();
       dstFile.deleteSync();
       tempDir.deleteSync();
-      donePort.toSendPort().send(null);
+      asyncEnd();
     });
   });
 }
@@ -130,8 +128,7 @@ testFileToFilePipe2() {
 testFileToFilePipe3() {
   // Force test to timeout if one of the handlers is
   // not called.
-  ReceivePort donePort = new ReceivePort();
-  donePort.receive((message, ignore) { donePort.close(); });
+  asyncStart();
 
   String srcFileName =
       getDataFilename("tests/standalone/io/readline_test1.dat");
@@ -164,7 +161,7 @@ testFileToFilePipe3() {
         dst.closeSync();
         dstFile.deleteSync();
         tempDir.deleteSync();
-        donePort.toSendPort().send(null);
+        asyncEnd();
       });
     });
   });

@@ -7,10 +7,11 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void testCancelResubscribeServerSocket(int socketCount, int backlog) {
   var acceptCount = 0;
@@ -18,14 +19,14 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
   var errorCount = 0;
   var earlyErrorCount = 0;
 
-  ReceivePort port = new ReceivePort();
+  asyncStart();
 
   RawServerSocket.bind("127.0.0.1", 0, backlog: backlog).then((server) {
     Expect.isTrue(server.port > 0);
 
     void checkDone() {
       if (doneCount + errorCount + earlyErrorCount == socketCount) {
-        port.close();
+        asyncEnd();
         // Be sure to close as subscription.cancel may not be called, if
         // backlog prevents acceptCount to grow to socketCount / 2.
         server.close();

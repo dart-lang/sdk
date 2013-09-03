@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
-import "package:expect/expect.dart";
 import "dart:io";
-import "dart:isolate";
 
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 class FutureExpect {
   static Future isTrue(Future<bool> result) =>
@@ -224,7 +224,7 @@ Future testDirectoryListingBrokenLink() {
 main() {
   // Links on Windows are tested by windows_file_system_[async_]links_test.
   if (Platform.operatingSystem != 'windows') {
-    ReceivePort keepAlive = new ReceivePort();
+    asyncStart();
     testFileExistsCreate()
     .then((_) => testFileDelete())
     .then((_) => testFileWriteRead())
@@ -232,6 +232,6 @@ main() {
     .then((_) => testDirectoryDelete())
     .then((_) => testDirectoryListing())
     .then((_) => testDirectoryListingBrokenLink())
-    .then((_) => keepAlive.close());
+    .then((_) => asyncEnd());
   }
 }

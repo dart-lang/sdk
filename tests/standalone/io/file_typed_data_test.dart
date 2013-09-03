@@ -4,14 +4,15 @@
 //
 // Dart test program for testing file I/O.
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+
 void testWriteInt8ListAndView() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   const int LIST_LENGTH = 8;
   const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int8List.BYTES_PER_ELEMENT;
   const int VIEW_LENGTH = 4;
@@ -36,14 +37,14 @@ void testWriteInt8ListAndView() {
       var content = file.readAsBytesSync();
       Expect.listEquals(expected, content);
       temp.deleteSync(recursive: true);
-      port.close();
+      asyncEnd();
     });
   });
 }
 
 
 void testWriteUint8ListAndView() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   const int LIST_LENGTH = 8;
   const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint8List.BYTES_PER_ELEMENT;
   const int VIEW_LENGTH = 4;
@@ -68,14 +69,14 @@ void testWriteUint8ListAndView() {
       var content = file.readAsBytesSync();
       Expect.listEquals(expected, content);
       temp.deleteSync(recursive: true);
-      port.close();
+      asyncEnd();
     });
   });
 }
 
 
 void testWriteUint8ClampedListAndView() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   const int LIST_LENGTH = 8;
   const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint8ClampedList.BYTES_PER_ELEMENT;
   const int VIEW_LENGTH = 4;
@@ -100,14 +101,14 @@ void testWriteUint8ClampedListAndView() {
       var content = file.readAsBytesSync();
       Expect.listEquals(expected, content);
       temp.deleteSync(recursive: true);
-      port.close();
+      asyncEnd();
     });
   });
 }
 
 
 void testWriteInt16ListAndView() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   const int LIST_LENGTH = 8;
   const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int16List.BYTES_PER_ELEMENT;
   const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int16List.BYTES_PER_ELEMENT;
@@ -144,14 +145,14 @@ void testWriteInt16ListAndView() {
       }
       Expect.listEquals(expected, new Int16List.view(typed_data_content));
       temp.deleteSync(recursive: true);
-      port.close();
+      asyncEnd();
     });
   });
 }
 
 
 void testWriteUint16ListAndView() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   const int LIST_LENGTH = 8;
   const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Uint16List.BYTES_PER_ELEMENT;
   const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint16List.BYTES_PER_ELEMENT;
@@ -188,14 +189,14 @@ void testWriteUint16ListAndView() {
       }
       Expect.listEquals(expected, new Uint16List.view(typed_data_content));
       temp.deleteSync(recursive: true);
-      port.close();
+      asyncEnd();
     });
   });
 }
 
 
 void testWriteInt32ListAndView() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   const int LIST_LENGTH = 8;
   const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int32List.BYTES_PER_ELEMENT;
   const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int32List.BYTES_PER_ELEMENT;
@@ -232,14 +233,14 @@ void testWriteInt32ListAndView() {
       }
       Expect.listEquals(expected, new Int32List.view(typed_data_content));
       temp.deleteSync(recursive: true);
-      port.close();
+      asyncEnd();
     });
   });
 }
 
 
 void testWriteUint32ListAndView() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   const int LIST_LENGTH = 8;
   const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int32List.BYTES_PER_ELEMENT;
   const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int32List.BYTES_PER_ELEMENT;
@@ -276,14 +277,14 @@ void testWriteUint32ListAndView() {
       }
       Expect.listEquals(expected, new Uint32List.view(typed_data_content));
       temp.deleteSync(recursive: true);
-      port.close();
+      asyncEnd();
     });
   });
 }
 
 
 void testWriteInt64ListAndView() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   const int LIST_LENGTH = 8;
   const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int64List.BYTES_PER_ELEMENT;
   const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int64List.BYTES_PER_ELEMENT;
@@ -320,14 +321,14 @@ void testWriteInt64ListAndView() {
       }
       Expect.listEquals(expected, new Int64List.view(typed_data_content));
       temp.deleteSync(recursive: true);
-      port.close();
+      asyncEnd();
     });
   });
 }
 
 
 void testWriteUint64ListAndView() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   const int LIST_LENGTH = 8;
   const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Uint64List.BYTES_PER_ELEMENT;
   const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint64List.BYTES_PER_ELEMENT;
@@ -364,7 +365,7 @@ void testWriteUint64ListAndView() {
       }
       Expect.listEquals(expected, new Uint64List.view(typed_data_content));
       temp.deleteSync(recursive: true);
-      port.close();
+      asyncEnd();
     });
   });
 }

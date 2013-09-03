@@ -7,23 +7,24 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
 void testCloseOneEnd(String toClose) {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   Completer serverDone = new Completer();
   Completer serverEndDone = new Completer();
   Completer clientEndDone = new Completer();
   Future.wait([serverDone.future, serverEndDone.future, clientEndDone.future])
       .then((_) {
-        port.close();
+        asyncEnd();
       });
   SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
     server.listen((serverConnection) {
@@ -60,7 +61,7 @@ void testCloseOneEnd(String toClose) {
 }
 
 void testCloseBothEnds() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
     var clientEndFuture = SecureSocket.connect(HOST_NAME, server.port);
     server.listen((serverEnd) {
@@ -68,7 +69,7 @@ void testCloseBothEnds() {
         clientEnd.destroy();
         serverEnd.destroy();
         server.close();
-        port.close();
+        asyncEnd();
       });
     });
   });
@@ -79,7 +80,7 @@ testPauseServerSocket() {
   var acceptCount = 0;
   var resumed = false;
 
-  ReceivePort port = new ReceivePort();
+  asyncStart();
 
   SecureServerSocket.bind(HOST_NAME,
                           0,
@@ -92,7 +93,7 @@ testPauseServerSocket() {
       connection.close();
       if (++acceptCount == 2 * socketCount) {
         server.close();
-        port.close();
+        asyncEnd();
       }
     });
 
@@ -122,7 +123,7 @@ testPauseServerSocket() {
 testCloseServer() {
   const int socketCount = 3;
   var endCount = 0;
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   List ends = [];
 
   SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
@@ -133,7 +134,7 @@ testCloseServer() {
         end.destroy();
       }
       server.close();
-      port.close();
+      asyncEnd();
     }
 
     server.listen((connection) {

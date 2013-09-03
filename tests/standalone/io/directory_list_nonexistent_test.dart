@@ -7,24 +7,25 @@
 // TODO(7157): Merge this test into directory_test.dart testListNonExistent()
 // when it no longer crashes on Windows, when issue 7157 is resolved.
 
-import "package:expect/expect.dart";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void testListNonExistent() {
-  var keepAlive = new ReceivePort();
+  asyncStart();
   new Directory("").createTemp().then((d) {
     d.delete().then((ignore) {
       Expect.throws(() => d.listSync(), (e) => e is DirectoryException);
       Expect.throws(() => d.listSync(recursive: true),
                     (e) => e is DirectoryException);
-      keepAlive.close();
+      asyncEnd();
     });
   });
 }
 
 void testListTooLongName() {
-  var keepAlive = new ReceivePort();
+  asyncStart();
   new Directory("").createTemp().then((d) {
     var subDirName = 'subdir';
     var subDir = new Directory("${d.path}/$subDirName");
@@ -42,7 +43,7 @@ void testListTooLongName() {
       Expect.throws(() => long.listSync(recursive: true),
                     (e) => e is DirectoryException);
       d.deleteSync(recursive: true);
-      keepAlive.close();
+      asyncEnd();
     });
   });
 }

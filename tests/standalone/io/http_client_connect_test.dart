@@ -7,10 +7,11 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void testGetEmptyRequest() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
@@ -53,34 +54,35 @@ void testGetDataRequest() {
 }
 
 void testGetInvalidHost() {
-  var port = new ReceivePort();
+  asyncStart();
   var client = new HttpClient();
   client.get("__SOMETHING_INVALID__", 8888, "/")
     .catchError((error) {
-      port.close();
       client.close();
+      asyncEnd();
     });
 }
 
 void testGetServerClose() {
+  asyncStart();
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       server.close();
     });
 
-    var port = new ReceivePort();
     var client = new HttpClient();
     client.get("127.0.0.1", server.port, "/")
       .then((request) => request.close())
       .then((response) {
         Expect.fail("Request not expected");
       })
-        .catchError((error) => port.close(),
+        .catchError((error) => asyncEnd(),
                     test: (error) => error is HttpException);
   });
 }
 
 void testGetDataServerClose() {
+  asyncStart();
   var completer = new Completer();
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
@@ -90,7 +92,6 @@ void testGetDataServerClose() {
       completer.future.then((_) => server.close());
     });
 
-    var port = new ReceivePort();
     var client = new HttpClient();
     client.get("127.0.0.1", server.port, "/")
       .then((request) => request.close())
@@ -102,8 +103,8 @@ void testGetDataServerClose() {
           (data) {},
           onError: (error) => errors++,
           onDone: () {
-            port.close();
             Expect.equals(1, errors);
+            asyncEnd();
           });
       });
   });

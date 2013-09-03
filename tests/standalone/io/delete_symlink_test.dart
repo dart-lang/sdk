@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import 'dart:io';
-import 'dart:isolate';
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void main() {
   // temp/
@@ -33,7 +34,7 @@ void main() {
     args = ["/c", "mklink", "/j", "${d.path}\\b\\a_link", "${d.path}\\a"];
   }
 
-  var keepAlive = new ReceivePort();
+  asyncStart();
 
   Process.run(cmd, args).then((_) {
     // Delete the directory containing the junction.
@@ -46,6 +47,6 @@ void main() {
     d.deleteSync(recursive: true);
 
     // Terminate now that we are done with everything.
-    keepAlive.close();
+    asyncEnd();
   });
 }

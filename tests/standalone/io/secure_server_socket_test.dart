@@ -7,62 +7,63 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
 void testSimpleBind() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((s) {
     Expect.isTrue(s.port > 0);
     s.close();
-    port.close();
+    asyncEnd();
   });
 }
 
 void testInvalidBind() {
   int count = 0;
-  ReceivePort port = new ReceivePort();
-  port.receive((_, __) { count++; if (count == 3) port.close(); });
 
   // Bind to a unknown DNS name.
+  asyncStart();
   SecureServerSocket.bind("ko.faar.__hest__", 0, CERTIFICATE).then((_) {
     Expect.fail("Failure expected");
   }).catchError((error) {
     Expect.isTrue(error is SocketException);
-    port.toSendPort().send(1);
+    asyncEnd();
   });
 
   // Bind to an unavaliable IP-address.
+  asyncStart();
   SecureServerSocket.bind("8.8.8.8", 0, CERTIFICATE).then((_) {
     Expect.fail("Failure expected");
   }).catchError((error) {
     Expect.isTrue(error is SocketException);
-    port.toSendPort().send(1);
+    asyncEnd();
   });
 
   // Bind to a port already in use.
+  asyncStart();
   SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((s) {
     SecureServerSocket.bind(HOST_NAME,
                             s.port,
                             CERTIFICATE).then((t) {
       Expect.fail("Multiple listens on same port");
-      port.toSendPort().send(1);
     }).catchError((error) {
       Expect.isTrue(error is SocketException);
       s.close();
-      port.toSendPort().send(1);
+      asyncEnd();
     });
   });
 }
 
 void testSimpleConnect(String certificate) {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   SecureServerSocket.bind(HOST_NAME, 0, certificate).then((server) {
     var clientEndFuture = SecureSocket.connect(HOST_NAME, server.port);
     server.listen((serverEnd) {
@@ -70,14 +71,14 @@ void testSimpleConnect(String certificate) {
         clientEnd.close();
         serverEnd.close();
         server.close();
-        port.close();
+        asyncEnd();
       });
     });
   });
 }
 
 void testSimpleConnectFail(String certificate, bool cancelOnError) {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   SecureServerSocket.bind(HOST_NAME, 0, certificate).then((server) {
     var clientEndFuture = SecureSocket.connect(HOST_NAME, server.port)
       .then((clientEnd) {
@@ -94,7 +95,7 @@ void testSimpleConnectFail(String certificate, bool cancelOnError) {
       Expect.isTrue(error is CertificateException);
       clientEndFuture.then((_) {
         if (!cancelOnError) server.close();
-        port.close();
+        asyncEnd();
       });
     },
     cancelOnError: cancelOnError);
@@ -102,7 +103,7 @@ void testSimpleConnectFail(String certificate, bool cancelOnError) {
 }
 
 void testServerListenAfterConnect() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
     Expect.isTrue(server.port > 0);
     var clientEndFuture = SecureSocket.connect(HOST_NAME, server.port);
@@ -112,7 +113,7 @@ void testServerListenAfterConnect() {
           clientEnd.close();
           serverEnd.close();
           server.close();
-          port.close();
+          asyncEnd();
         });
       });
     });
@@ -124,7 +125,7 @@ void testSimpleReadWrite() {
   // writes and the server echos. When the server has finished its
   // echo it half-closes. When the client gets the close event is
   // closes fully.
-  ReceivePort port = new ReceivePort();
+  asyncStart();
 
   const messageSize = 1000;
 
@@ -181,13 +182,14 @@ void testSimpleReadWrite() {
         onDone: () {
           verifyTestData(dataReceived);
           socket.close();
-          port.close();
+          asyncEnd();
         });
     });
   });
 }
 
 main() {
+  asyncStart();
   String certificateDatabase = join(dirname(Platform.script), 'pkcert');
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart',
@@ -202,4 +204,5 @@ main() {
   testSimpleConnectFail("CN=notARealDistinguishedName", true);
   testServerListenAfterConnect();
   testSimpleReadWrite();
+  asyncEnd();
 }

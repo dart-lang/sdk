@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
-import 'package:expect/expect.dart';
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 
 class FutureExpect {
@@ -99,7 +100,7 @@ Future testJunctionTypeDelete() {
 main() {
   // Links on other platforms are tested by file_system_[async_]links_test.
   if (Platform.operatingSystem == 'windows') {
-    ReceivePort keepAlive = new ReceivePort();
-    testJunctionTypeDelete().then((_) => keepAlive.close());
+    asyncStart();
+    testJunctionTypeDelete().then((_) => asyncEnd());
   }
 }

@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "dart:convert";
 import "dart:math";
 import "dart:async";
 import "dart:collection";
 import "dart:typed_data";
 import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 part '../../../sdk/lib/io/common.dart';
 part "../../../sdk/lib/io/http.dart";
@@ -232,9 +234,9 @@ void testFragmentedMessages() {
 void testUnmaskedMessage() {
   var transformer = new _WebSocketProtocolTransformer(true);
   var controller = new StreamController(sync: true);
-  var port = new ReceivePort();
+  asyncStart();
   controller.stream.transform(transformer).listen((_) {}, onError: (e) {
-    port.close();
+    asyncEnd();
   });
   var message = new Uint8List(10);
   List<int> frame = createFrame(

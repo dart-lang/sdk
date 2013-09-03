@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 testWriteAsBytesSync(dir) {
   var f = new File('${dir.path}/bytes_sync.txt');
@@ -68,7 +69,7 @@ Future testWriteAsString(dir) {
 }
 
 main() {
-  var port = new ReceivePort();
+  asyncStart();
   var tempDir = new Directory('').createTempSync();
   testWriteAsBytesSync(tempDir);
   testWriteAsStringSync(tempDir);
@@ -76,6 +77,6 @@ main() {
     return testWriteAsString(tempDir);
   }).then((_) {
     tempDir.deleteSync(recursive: true);
-    port.close();
+    asyncEnd();
   });
 }

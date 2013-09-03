@@ -7,10 +7,11 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void testArguments() {
   Expect.throws(() => ServerSocket.bind("127.0.0.1", 65536));
@@ -19,35 +20,34 @@ void testArguments() {
 }
 
 void testSimpleBind() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((s) {
     Expect.isTrue(s.port > 0);
-    port.close();
+    asyncEnd();
   });
 }
 
 void testInvalidBind() {
-  int count = 0;
-  ReceivePort port = new ReceivePort();
-  port.receive((_, __) { count++; if (count == 3) port.close(); });
-
   // Bind to a unknown DNS name.
+  asyncStart();
   ServerSocket.bind("ko.faar.__hest__", 0)
       .then((_) { Expect.fail("Failure expected"); } )
       .catchError((error) {
         Expect.isTrue(error is SocketException);
-        port.toSendPort().send(1);
+        asyncEnd();
       });
 
   // Bind to an unavaliable IP-address.
+  asyncStart();
   ServerSocket.bind("8.8.8.8", 0)
       .then((_) { Expect.fail("Failure expected"); } )
       .catchError((error) {
         Expect.isTrue(error is SocketException);
-        port.toSendPort().send(1);
+        asyncEnd();
       });
 
   // Bind to a port already in use.
+  asyncStart();
   ServerSocket.bind("127.0.0.1", 0)
       .then((s) {
         ServerSocket.bind("127.0.0.1", s.port)
@@ -58,30 +58,30 @@ void testInvalidBind() {
             .catchError((error) {
               Expect.isTrue(error is SocketException);
               s.close();
-              port.toSendPort().send(1);
+              asyncEnd();
             });
       });
 }
 
 void testConnectNoDestroy() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((_) { });
     Socket.connect("127.0.0.1", server.port).then((_) {
       server.close();
-      port.close();
+      asyncEnd();
     });
   });
 }
 
 void testConnectImmediateDestroy() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((_) { });
     Socket.connect("127.0.0.1", server.port).then((socket) {
       socket.destroy();
       server.close();
-      port.close();
+      asyncEnd();
     });
   });
 }
@@ -89,7 +89,7 @@ void testConnectImmediateDestroy() {
 void testConnectConsumerClose() {
   // Connect socket then immediate close the consumer without
   // listening on the stream.
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((_) { });
     Socket.connect("127.0.0.1", server.port).then((socket) {
@@ -97,7 +97,7 @@ void testConnectConsumerClose() {
       socket.done.then((_) {
         socket.destroy();
         server.close();
-        port.close();
+        asyncEnd();
       });
     });
   });
@@ -106,7 +106,7 @@ void testConnectConsumerClose() {
 void testConnectConsumerWriteClose() {
   // Connect socket write some data immediate close the consumer
   // without listening on the stream.
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((_) { });
     Socket.connect("127.0.0.1", server.port).then((socket) {
@@ -115,7 +115,7 @@ void testConnectConsumerWriteClose() {
       socket.done.then((_) {
         socket.destroy();
         server.close();
-        port.close();
+        asyncEnd();
       });
     });
   });
@@ -124,7 +124,7 @@ void testConnectConsumerWriteClose() {
 void testConnectStreamClose() {
   // Connect socket and listen on the stream. The server closes
   // immediately so only a done event is received.
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((client) {
                     client.close();
@@ -138,7 +138,7 @@ void testConnectStreamClose() {
                         onDoneCalled = true;
                         socket.close();
                         server.close();
-                        port.close();
+                        asyncEnd();
                       });
     });
   });
@@ -148,7 +148,7 @@ void testConnectStreamDataClose(bool useDestroy) {
   // Connect socket and listen on the stream. The server sends data
   // and then closes so both data and a done event is received.
   List<int> sendData = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen(
         (client) {
@@ -171,7 +171,7 @@ void testConnectStreamDataClose(bool useDestroy) {
                         socket.add([0]);
                         socket.close();
                         server.close();
-                        port.close();
+                        asyncEnd();
                       });
     });
   });
@@ -179,7 +179,7 @@ void testConnectStreamDataClose(bool useDestroy) {
 
 void testConnectStreamDataCloseCancel(bool useDestroy) {
   List<int> sendData = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen(
         (client) {
@@ -204,7 +204,7 @@ void testConnectStreamDataCloseCancel(bool useDestroy) {
               subscription.cancel();
               socket.close();
               server.close();
-              port.close();
+              asyncEnd();
             },
             onDone: () { Expect.fail("Unexpected pipe completion"); });
     });
@@ -212,6 +212,7 @@ void testConnectStreamDataCloseCancel(bool useDestroy) {
 }
 
 main() {
+  asyncStart();
   testArguments();
   testSimpleBind();
   testInvalidBind();
@@ -224,4 +225,5 @@ main() {
   testConnectStreamDataClose(false);
   testConnectStreamDataCloseCancel(true);
   testConnectStreamDataCloseCancel(false);
+  asyncEnd();
 }

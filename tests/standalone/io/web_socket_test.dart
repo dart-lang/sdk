@@ -7,12 +7,13 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
 import "dart:typed_data";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 const String CERT_NAME = 'localhost_cert';
 const String HOST_NAME = 'localhost';
@@ -48,7 +49,9 @@ class SecurityConfiguration {
               Expect.equals(closeStatus == null
                             ? WebSocketStatus.NO_STATUS_RECEIVED
                             : closeStatus, webSocket.closeCode);
-              Expect.equals(closeReason == null ? "" : closeReason, webSocket.closeReason);
+              Expect.equals(
+                  closeReason == null ? ""
+                                      : closeReason, webSocket.closeReason);
             });
         });
 
@@ -248,11 +251,11 @@ class SecurityConfiguration {
 
   void testUsePOST() {
     createServer().then((server) {
-      var errorPort = new ReceivePort();
+      asyncStart();
       server.transform(new WebSocketTransformer()).listen((webSocket) {
         Expect.fail("No connection expected");
       }, onError: (e) {
-        errorPort.close();
+        asyncEnd();
       });
 
       HttpClient client = new HttpClient();

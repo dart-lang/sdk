@@ -4,10 +4,11 @@
 //
 // Tests socket exceptions.
 
-import "package:expect/expect.dart";
 import "dart:async";
-import "dart:isolate";
 import "dart:io";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 class SocketExceptionTest {
 
@@ -36,24 +37,24 @@ class SocketExceptionTest {
   }
 
   static void serverSocketCloseListenTest() {
-    var port = new ReceivePort();
+    asyncStart();
     ServerSocket.bind("127.0.0.1", 0).then((server) {
       Socket.connect("127.0.0.1", server.port).then((socket) {
         server.close();
         server.listen(
           (incoming) => Expect.fail("Unexpected socket"),
-          onDone: port.close);
+          onDone: asyncEnd);
       });
     });
   }
 
   static void serverSocketListenCloseTest() {
-    var port = new ReceivePort();
+    asyncStart();
     ServerSocket.bind("127.0.0.1", 0).then((server) {
       Socket.connect("127.0.0.1", server.port).then((socket) {
         server.listen(
           (incoming) => server.close(),
-          onDone: port.close);
+          onDone: asyncEnd);
       });
     });
   }
@@ -178,14 +179,14 @@ class SocketExceptionTest {
         client.add(new List.filled(SIZE, 0));
         // Destroy other socket now.
         completer.complete(null);
-        var port = new ReceivePort();
+        asyncStart();
         client.done.then(
             (_) {
               Expect.fail("Expected error");
             },
             onError: (error) {
               Expect.isTrue(error is SocketException);
-              port.close();
+              asyncEnd();
             });
       });
     });
@@ -212,13 +213,10 @@ class SocketExceptionTest {
   }
 
   static void unknownHostTest() {
-    // Port to verify that the test completes.
-    var port = new ReceivePort();
-    port.receive((message, replyTo) => null);
-
+    asyncStart();
     Socket.connect("hede.hule.hest", 1234)
         .then((socket) => Expect.fail("Connection completed"))
-        .catchError((e) => port.close(), test: (e) => e is SocketException);
+        .catchError((e) => asyncEnd(), test: (e) => e is SocketException);
 
   }
 
@@ -237,6 +235,8 @@ class SocketExceptionTest {
 }
 
 main() {
+  asyncStart();
   SocketExceptionTest.testMain();
+  asyncEnd();
 }
 

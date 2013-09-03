@@ -7,46 +7,48 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
 void testSimpleBind() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((s) {
     Expect.isTrue(s.port > 0);
     s.close();
-    port.close();
+    asyncEnd();
   });
 }
 
 void testInvalidBind() {
   int count = 0;
-  ReceivePort port = new ReceivePort();
-  port.receive((_, __) { count++; if (count == 3) port.close(); });
 
   // Bind to a unknown DNS name.
+  asyncStart();
   RawSecureServerSocket.bind("ko.faar.__hest__", 0, CERTIFICATE).then((_) {
     Expect.fail("Failure expected");
   }).catchError((error) {
     Expect.isTrue(error is SocketException);
-    port.toSendPort().send(1);
+    asyncEnd();
   });
 
   // Bind to an unavaliable IP-address.
+  asyncStart();
   RawSecureServerSocket.bind("8.8.8.8", 0, CERTIFICATE).then((_) {
     Expect.fail("Failure expected");
   }).catchError((error) {
     Expect.isTrue(error is SocketException);
-    port.toSendPort().send(1);
+    asyncEnd();
   });
 
   // Bind to a port already in use.
+  asyncStart();
   RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((s) {
     RawSecureServerSocket.bind(HOST_NAME,
                                s.port,
@@ -59,13 +61,13 @@ void testInvalidBind() {
     .catchError((error) {
       Expect.isTrue(error is SocketException);
       s.close();
-      port.toSendPort().send(1);
+    asyncEnd();
     });
   });
 }
 
 void testSimpleConnect(String certificate) {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   RawSecureServerSocket.bind(HOST_NAME, 0, certificate).then((server) {
     var clientEndFuture = RawSecureSocket.connect(HOST_NAME, server.port);
     server.listen((serverEnd) {
@@ -73,14 +75,14 @@ void testSimpleConnect(String certificate) {
         clientEnd.shutdown(SocketDirection.SEND);
         serverEnd.shutdown(SocketDirection.SEND);
         server.close();
-        port.close();
+        asyncEnd();
       });
     });
   });
 }
 
 void testSimpleConnectFail(String certificate, bool cancelOnError) {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   RawSecureServerSocket.bind(HOST_NAME, 0, certificate).then((server) {
     var clientEndFuture = RawSecureSocket.connect(HOST_NAME, server.port)
       .then((clientEnd) {
@@ -97,7 +99,7 @@ void testSimpleConnectFail(String certificate, bool cancelOnError) {
       Expect.isTrue(error is CertificateException);
       clientEndFuture.then((_) {
         if (!cancelOnError) server.close();
-        port.close();
+        asyncEnd();
       });
     },
     cancelOnError: cancelOnError);
@@ -105,7 +107,7 @@ void testSimpleConnectFail(String certificate, bool cancelOnError) {
 }
 
 void testServerListenAfterConnect() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
     Expect.isTrue(server.port > 0);
     var clientEndFuture = RawSecureSocket.connect(HOST_NAME, server.port);
@@ -115,7 +117,7 @@ void testServerListenAfterConnect() {
           clientEnd.shutdown(SocketDirection.SEND);
           serverEnd.shutdown(SocketDirection.SEND);
           server.close();
-          port.close();
+          asyncEnd();
         });
       });
     });
@@ -164,7 +166,7 @@ void testSimpleReadWrite({bool listenSecure,
     Expect.fail("Invalid arguments to testSimpleReadWrite");
   }
 
-  ReceivePort port = new ReceivePort();
+  asyncStart();
 
   const messageSize = 1000;
   const handshakeMessageSize = 100;
@@ -459,7 +461,7 @@ void testSimpleReadWrite({bool listenSecure,
 
     connectClient(server.port).then(runClient).then((socket) {
       socket.close();
-      port.close();
+      asyncEnd();
     });
   }
 

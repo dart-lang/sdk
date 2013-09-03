@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "dart:io";
-import "dart:isolate";
 
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 createLink(String dst, String link, void callback()) {
   new Link(link).create(dst).then((_) => callback());
@@ -153,7 +153,7 @@ testDirectoryDelete() {
 
 
 testDirectoryListing() {
-  var keepAlive = new ReceivePort();
+  asyncStart();
   var temp = new Directory('').createTempSync();
   var temp2 = new Directory('').createTempSync();
   var y = '${temp.path}${Platform.pathSeparator}y';
@@ -193,14 +193,14 @@ testDirectoryListing() {
           Expect.isTrue(dirs[0].endsWith(y));
           temp.deleteSync(recursive: true);
           temp2.deleteSync(recursive: true);
-          keepAlive.close();
+          asyncEnd();
         });
   });
 }
 
 
 testDirectoryListingBrokenLink() {
-  var keepAlive = new ReceivePort();
+  asyncStart();
   var temp = new Directory('').createTempSync();
   var x = '${temp.path}${Platform.pathSeparator}x';
   var link = '${temp.path}${Platform.pathSeparator}link';
@@ -232,7 +232,7 @@ testDirectoryListingBrokenLink() {
           Expect.equals(0, dirs.length);
           Expect.equals(0, errors.length);
           temp.deleteSync(recursive: true);
-          keepAlive.close();
+          asyncEnd();
         });
   });
 }

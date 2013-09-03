@@ -9,10 +9,12 @@
 //
 // Test socket close events.
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 const SERVERSHUTDOWN = -1;
 const ITERATIONS = 10;
@@ -20,7 +22,7 @@ const ITERATIONS = 10;
 
 class SocketClose {
 
-  SocketClose.start(this._mode, this._donePort)
+  SocketClose.start(this._mode, this._done)
       : _receivePort = new ReceivePort(),
         _sendPort = null,
         _readBytes = 0,
@@ -150,7 +152,7 @@ class SocketClose {
   void shutdown() {
     _sendPort.send(SERVERSHUTDOWN, _receivePort.toSendPort());
     _receivePort.receive((message, ignore) {
-      _donePort.send(null);
+      _done();
       _receivePort.close();
     });
 
@@ -191,7 +193,7 @@ class SocketClose {
   int _errorEvents;
   int _iterations;
   int _mode;
-  SendPort _donePort;
+  Function _done;
 }
 
 
@@ -376,12 +378,8 @@ main() {
   // 5: Client sends. Server responds and half closes.
   // 6: Client sends and half-closes. Server responds and half closes.
   var tests = 7;
-  var port = new ReceivePort();
-  var completed = 0;
-  port.receive((message, ignore) {
-    if (++completed == tests) port.close();
-  });
   for (var i = 0; i < tests; i++) {
-    new SocketClose.start(i, port.toSendPort());
+    asyncStart();
+    new SocketClose.start(i, asyncEnd);
   }
 }

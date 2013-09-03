@@ -6,12 +6,12 @@
 
 
 import "dart:io";
-import "dart:isolate";
 
+import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 testChangeDirectory() {
-  var port = new ReceivePort();
+  asyncStart();
   new Directory("").createTemp().then((temp) {
     var initialCurrent = Directory.current;
     Directory.current = temp;
@@ -28,7 +28,7 @@ testChangeDirectory() {
     Expect.isTrue(new File("222/333").existsSync());
     Directory.current = initialCurrent;
     temp.deleteSync(recursive: true);
-    port.close();
+    asyncEnd();
   });
 }
 

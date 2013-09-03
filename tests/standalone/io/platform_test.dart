@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 test() {
   Expect.isTrue(Platform.numberOfProcessors > 0);
@@ -60,7 +62,7 @@ void f() {
 }
 
 testIsolate() {
-  var port = new ReceivePort();
+  asyncStart();
   var sendPort = spawnFunction(f);
   Future.wait([sendPort.call("Platform.executable"),
                sendPort.call("Platform.script"),
@@ -77,7 +79,7 @@ testIsolate() {
     Expect.isTrue(uri.path.endsWith('tests/standalone/io/platform_test.dart'));
     Expect.equals(Platform.packageRoot, results[2]);
     Expect.listEquals(Platform.executableArguments, results[3]);
-    sendPort.call("close").then((_) => port.close());
+    sendPort.call("close").then((_) => asyncEnd());
   });
 }
 

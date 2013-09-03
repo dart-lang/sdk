@@ -7,11 +7,12 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
 import "dart:typed_data";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 testOutOfRange() {
   RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
@@ -88,7 +89,7 @@ void testSimpleReadWrite() {
   // writes and the server echos. When the server has finished its
   // echo it half-closes. When the client gets the close event is
   // closes fully.
-  ReceivePort port = new ReceivePort();
+  asyncStart();
 
   // The test data to send is 5 times 256 bytes and 4 times 128
   // bytes. This is all the legal byte values from the integer typed
@@ -205,7 +206,7 @@ void testSimpleReadWrite() {
           default: throw "Unexpected event $event";
         }
       },
-      onDone: () => port.close());
+      onDone: () => asyncEnd());
     });
   });
 }

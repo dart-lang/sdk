@@ -4,10 +4,11 @@
 //
 // Dart test program for testing error handling in file I/O.
 
-import "package:expect/expect.dart";
 import "dart:convert";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 Directory tempDir() {
   return new Directory('').createTempSync();
@@ -40,12 +41,8 @@ bool checkLengthNonExistentFileException(e) {
 
 
 void testOpenNonExistent() {
+  asyncStart();
   Directory temp = tempDir();
-  ReceivePort p = new ReceivePort();
-  p.receive((x, y) {
-    p.close();
-    temp.deleteSync(recursive: true);
-  });
   var file = new File("${temp.path}/nonExistentFile");
 
   // Non-existing file should throw exception.
@@ -56,18 +53,15 @@ void testOpenNonExistent() {
   openFuture.then((raf) => Expect.fail("Unreachable code"))
             .catchError((error) {
               checkOpenNonExistentFileException(error);
-              p.toSendPort().send(null);
+              temp.deleteSync(recursive: true);
+              asyncEnd();
             });
 }
 
 
 void testDeleteNonExistent() {
+  asyncStart();
   Directory temp = tempDir();
-  ReceivePort p = new ReceivePort();
-  p.receive((x, y) {
-    p.close();
-    temp.deleteSync(recursive: true);
-  });
   var file = new File("${temp.path}/nonExistentFile");
 
   // Non-existing file should throw exception.
@@ -78,18 +72,15 @@ void testDeleteNonExistent() {
   delete.then((ignore) => Expect.fail("Unreachable code"))
         .catchError((error) {
           checkDeleteNonExistentFileException(error);
-          p.toSendPort().send(null);
+          temp.deleteSync(recursive: true);
+          asyncEnd();
         });
 }
 
 
 void testLengthNonExistent() {
+  asyncStart();
   Directory temp = tempDir();
-  ReceivePort p = new ReceivePort();
-  p.receive((x, y) {
-    p.close();
-    temp.deleteSync(recursive: true);
-  });
   var file = new File("${temp.path}/nonExistentFile");
 
   // Non-existing file should throw exception.
@@ -100,7 +91,8 @@ void testLengthNonExistent() {
   lenFuture.then((len) => Expect.fail("Unreachable code"))
            .catchError((error) {
              checkLengthNonExistentFileException(error);
-             p.toSendPort().send(null);
+             temp.deleteSync(recursive: true);
+             asyncEnd();
            });
 }
 
@@ -121,12 +113,8 @@ bool checkCreateInNonExistentDirectoryException(e) {
 }
 
 void testCreateInNonExistentDirectory() {
+  asyncStart();
   Directory temp = tempDir();
-  ReceivePort p = new ReceivePort();
-  p.receive((x, y) {
-    p.close();
-    temp.deleteSync(recursive: true);
-  });
   var file = new File("${temp.path}/nonExistentDirectory/newFile");
 
   // Create in non-existent directory should throw exception.
@@ -137,7 +125,8 @@ void testCreateInNonExistentDirectory() {
   create.then((ignore) => Expect.fail("Unreachable code"))
   .catchError((error) {
     checkCreateInNonExistentDirectoryException(error);
-    p.toSendPort().send(null);
+    temp.deleteSync(recursive: true);
+    asyncEnd();
   });
 }
 
@@ -152,12 +141,8 @@ bool checkFullPathOnNonExistentDirectoryException(e) {
 }
 
 void testFullPathOnNonExistentDirectory() {
+  asyncStart();
   Directory temp = tempDir();
-  ReceivePort p = new ReceivePort();
-  p.receive((x, y) {
-    p.close();
-    temp.deleteSync(recursive: true);
-  });
   var file = new File("${temp.path}/nonExistentDirectory");
 
   // Full path non-existent directory should throw exception.
@@ -168,17 +153,14 @@ void testFullPathOnNonExistentDirectory() {
   fullPathFuture.then((path) => Expect.fail("Unreachable code $path"))
   .catchError((error) {
     checkFullPathOnNonExistentDirectoryException(error);
-    p.toSendPort().send(null);
+    temp.deleteSync(recursive: true);
+    asyncEnd();
   });
 }
 
 void testReadAsBytesNonExistent() {
+  asyncStart();
   Directory temp = tempDir();
-  ReceivePort p = new ReceivePort();
-  p.receive((x, y) {
-    p.close();
-    temp.deleteSync(recursive: true);
-  });
   var file = new File("${temp.path}/nonExistentFile3");
 
   // Non-existing file should throw exception.
@@ -189,17 +171,14 @@ void testReadAsBytesNonExistent() {
   readAsBytesFuture.then((data) => Expect.fail("Unreachable code"))
   .catchError((error) {
     checkOpenNonExistentFileException(error);
-    p.toSendPort().send(null);
+    temp.deleteSync(recursive: true);
+    asyncEnd();
   });
 }
 
 void testReadAsTextNonExistent() {
+  asyncStart();
   Directory temp = tempDir();
-  ReceivePort p = new ReceivePort();
-  p.receive((x, y) {
-    p.close();
-    temp.deleteSync(recursive: true);
-  });
   var file = new File("${temp.path}/nonExistentFile4");
 
   // Non-existing file should throw exception.
@@ -210,17 +189,14 @@ void testReadAsTextNonExistent() {
   readAsStringFuture.then((data) => Expect.fail("Unreachable code"))
   .catchError((error) {
     checkOpenNonExistentFileException(error);
-    p.toSendPort().send(null);
+    temp.deleteSync(recursive: true);
+    asyncEnd();
   });
 }
 
 testReadAsLinesNonExistent() {
+  asyncStart();
   Directory temp = tempDir();
-  ReceivePort p = new ReceivePort();
-  p.receive((x, y) {
-    p.close();
-    temp.deleteSync(recursive: true);
-  });
   var file = new File("${temp.path}/nonExistentFile5");
 
   // Non-existing file should throw exception.
@@ -231,7 +207,8 @@ testReadAsLinesNonExistent() {
   readAsLinesFuture.then((data) => Expect.fail("Unreachable code"))
   .catchError((error) {
     checkOpenNonExistentFileException(error);
-    p.toSendPort().send(null);
+    temp.deleteSync(recursive: true);
+    asyncEnd();
   });
 }
 
@@ -247,21 +224,19 @@ bool checkWriteReadOnlyFileException(e) {
 // when the temporary directory should be deleted. Pass the file and
 // the port to the callback argument.
 createTestFile(callback) {
+  asyncStart();
   Directory temp = tempDir();
-  ReceivePort p = new ReceivePort();
-  p.receive((x, y) {
-    p.close();
-    temp.deleteSync(recursive: true);
-  });
-
   var file = new File("${temp.path}/test_file");
   file.createSync();
-  callback(file, p.toSendPort());
+  callback(file, () {
+    temp.deleteSync(recursive: true);
+    asyncEnd();
+  });
 }
 
 
 testWriteByteToReadOnlyFile() {
-  createTestFile((file, port) {
+  createTestFile((file, done) {
     var openedFile = file.openSync(mode: FileMode.READ);
 
     // Writing to read only file should throw an exception.
@@ -271,13 +246,13 @@ testWriteByteToReadOnlyFile() {
     var writeByteFuture = openedFile.writeByte(0);
     writeByteFuture.catchError((error) {
       checkWriteReadOnlyFileException(error);
-      openedFile.close().then((ignore) => port.send(null));
+      openedFile.close().then((_) => done());
     });
   });
 }
 
 testWriteFromToReadOnlyFile() {
-  createTestFile((file, port) {
+  createTestFile((file, done) {
     var openedFile = file.openSync(mode: FileMode.READ);
 
     List data = [0, 1, 2, 3];
@@ -288,13 +263,13 @@ testWriteFromToReadOnlyFile() {
     var writeFromFuture = openedFile.writeFrom(data, 0, data.length);
     writeFromFuture.catchError((error) {
       checkWriteReadOnlyFileException(error);
-      openedFile.close().then((ignore) => port.send(null));
+      openedFile.close().then((_) => done());
     });
   });
 }
 
 testTruncateReadOnlyFile() {
-  createTestFile((file, port) {
+  createTestFile((file, done) {
     var openedFile = file.openSync(mode: FileMode.WRITE);
     openedFile.writeByteSync(0);
     openedFile.closeSync();
@@ -308,7 +283,7 @@ testTruncateReadOnlyFile() {
     truncateFuture.then((ignore) => Expect.fail("Unreachable code"))
     .catchError((error) {
       checkWriteReadOnlyFileException(error);
-      openedFile.close().then((ignore) => port.send(null));
+      openedFile.close().then((_) => done());
     });
   });
 }
@@ -321,7 +296,7 @@ bool checkFileClosedException(e) {
 }
 
 testOperateOnClosedFile() {
-  createTestFile((file, port) {
+  createTestFile((file, done) {
     var openedFile = file.openSync(mode: FileMode.READ);
     openedFile.closeSync();
 
@@ -352,7 +327,7 @@ testOperateOnClosedFile() {
     _errorHandler(error) {
       checkFileClosedException(error);
       if (--errorCount == 0) {
-        port.send(null);
+        done();
       }
     }
 
@@ -400,47 +375,47 @@ testOperateOnClosedFile() {
 }
 
 testRepeatedlyCloseFile() {
-  createTestFile((file, port) {
+  createTestFile((file, done) {
     var openedFile = file.openSync();
     openedFile.close().then((ignore) {
       var closeFuture = openedFile.close();
       closeFuture.then((ignore) => null)
       .catchError((error) {
         Expect.isTrue(error is FileException);
-        port.send(null);
+        done();
       });
     });
   });
 }
 
 testRepeatedlyCloseFileSync() {
-  createTestFile((file, port) {
+  createTestFile((file, done) {
     var openedFile = file.openSync();
     openedFile.closeSync();
     Expect.throws(openedFile.closeSync,
                   (e) => e is FileException);
-    port.send(null);
+    done();
   });
 }
 
 testReadSyncBigInt() {
-  createTestFile((file, port) {
+  createTestFile((file, done) {
     var bigint = 100000000000000000000000000000000000000000;
     var openedFile = file.openSync();
     Expect.throws(() => openedFile.readSync(bigint),
                   (e) => e is FileException);
     openedFile.closeSync();
-    port.send(null);
+    done();
   });
 }
 
 testReadSyncClosedFile() {
-  createTestFile((file, port) {
+  createTestFile((file, done) {
     var openedFile = file.openSync();
     openedFile.closeSync();
     Expect.throws(() => openedFile.readSync(1),
                   (e) => e is FileException);
-    port.send(null);
+    done();
   });
 }
 

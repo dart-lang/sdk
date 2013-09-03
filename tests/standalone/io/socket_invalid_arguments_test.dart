@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 class NotAnInteger {
   operator==(other) => other == 1;
@@ -18,13 +19,17 @@ class NotAList {
 }
 
 testSocketCreation(host, port) {
+  asyncStart();
   Socket.connect(host, port)
       .then((socket) => Expect.fail("Shouldn't get connected"))
-      .catchError((e) => null, test: (e) => e is SocketException)
-      .catchError((e) => null, test: (e) => e is ArgumentError);
+      .catchError((e) {
+        Expect.isTrue(e is ArgumentError || e is SocketException);
+        asyncEnd();
+      });
 }
 
 testAdd(buffer) {
+  asyncStart();
   ServerSocket.bind("127.0.0.1", 0).then((server) {
     server.listen((socket) => socket.destroy());
     Socket.connect("127.0.0.1", server.port).then((socket) {
@@ -39,6 +44,7 @@ testAdd(buffer) {
             Expect.equals(1, errors);
             socket.destroy();
             server.close();
+            asyncEnd();
           });
       socket.add(buffer);
     });
@@ -46,13 +52,14 @@ testAdd(buffer) {
 }
 
 testServerSocketCreation(address, port, backlog) {
+  asyncStart();
   var server;
-  var port = new ReceivePort();
   try {
     ServerSocket.bind(address, port, backlog: backlog)
-        .then((_) { Expect.fail("ServerSocket bound"); });
+        .then((_) { Expect.fail("ServerSocket bound"); })
+        .catchError((e) => asyncEnd());
   } catch (e) {
-    port.close();
+    asyncEnd();
   }
 }
 

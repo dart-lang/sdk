@@ -3,20 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing file input stream, VM-only, standalone test.
 
-import "package:expect/expect.dart";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void testOpenOutputStreamSync() {
   Directory tempDirectory = new Directory('').createTempSync();
 
-  // Create a port for waiting on the final result of this test.
-  ReceivePort done = new ReceivePort();
-  done.receive((message, replyTo) {
-    tempDirectory.deleteSync();
-    done.close();
-  });
-
+  asyncStart();
   String fileName = "${tempDirectory.path}/test";
   File file = new File(fileName);
   file.createSync();
@@ -27,7 +22,8 @@ void testOpenOutputStreamSync() {
   x.done.then((_) {
     Expect.listEquals(file.readAsBytesSync(), data);
     file.deleteSync();
-    done.toSendPort().send("done");
+    tempDirectory.deleteSync();
+    asyncEnd();
   });
 }
 

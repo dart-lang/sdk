@@ -7,11 +7,12 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
@@ -40,7 +41,7 @@ const CERTIFICATE = "localhost_cert";
 void test(bool hostnameInConnect,
           bool handshakeBeforeSecure,
           [bool postponeSecure = false]) {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
 
   const messageSize = 1000;
   const handshakeMessageSize = 100;
@@ -204,7 +205,7 @@ void test(bool hostnameInConnect,
     });
 
     connectClient(server.port).then(runClient).then((socket) {
-      port.close();
+      asyncEnd();
     });
   }
 

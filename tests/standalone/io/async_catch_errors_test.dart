@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import 'dart:async';
-import 'dart:isolate';
 import 'dart:io';
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 var events = [];
 
@@ -38,11 +39,11 @@ Future testFileException() {
 main() {
   // We keep a ReceivePort open until all tests are done. This way the VM will
   // hang if the callbacks are not invoked and the test will time out.
-  var timeOutPort = new ReceivePort();
+  asyncStart();
   testSocketException()
     .then((_) => testFileException())
     .then((_) {
-      timeOutPort.close();
+      asyncEnd();
       Expect.listEquals(["SocketException", "FileException"],
                         events);
     });

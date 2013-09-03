@@ -5,8 +5,8 @@
 
 import "dart:convert";
 import "dart:io";
-import "dart:isolate";
 
+import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 // Helper method to be able to run the test from the runtime
@@ -36,7 +36,7 @@ void testStringLineSplitter() {
 
 
 void testOpenStreamAsync() {
-  var keepAlive = new ReceivePort();
+  asyncStart();
   String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   var expected = "Hello Dart\nwassup!\n".codeUnits;
@@ -45,7 +45,7 @@ void testOpenStreamAsync() {
       (d) => byteCount += d.length,
       onDone: () {
         Expect.equals(expected.length, byteCount);
-        keepAlive.close();
+        asyncEnd();
       });
 }
 
@@ -66,7 +66,7 @@ int writeLongFileSync(File file) {
 
 
 void testInputStreamTruncate() {
-  var keepAlive = new ReceivePort();
+  asyncStart();
   var temp = new Directory('').createTempSync();
   var file = new File('${temp.path}/input_stream_truncate.txt');
   var originalLength = writeLongFileSync(file);
@@ -91,7 +91,7 @@ void testInputStreamTruncate() {
       },
       onDone: () {
         Expect.isTrue(streamedBytes > 0 && streamedBytes <= originalLength);
-        temp.delete(recursive: true).then((_) => keepAlive.close());
+        temp.delete(recursive: true).then((_) => asyncEnd());
       },
       onError: (e) {
         Expect.fail("Unexpected error");
@@ -99,7 +99,7 @@ void testInputStreamTruncate() {
 }
 
 void testInputStreamDelete() {
-  var keepAlive = new ReceivePort();
+  asyncStart();
   var temp = new Directory('').createTempSync();
   var file = new File('${temp.path}/input_stream_delete.txt');
   var originalLength = writeLongFileSync(file);
@@ -130,7 +130,7 @@ void testInputStreamDelete() {
       },
       onDone: () {
         Expect.equals(originalLength, streamedBytes);
-        temp.delete(recursive: true).then((_) => keepAlive.close());
+        temp.delete(recursive: true).then((_) => asyncEnd());
       },
       onError: (e) {
         Expect.fail("Unexpected error");
@@ -139,7 +139,7 @@ void testInputStreamDelete() {
 
 
 void testInputStreamAppend() {
-  var keepAlive = new ReceivePort();
+  asyncStart();
   var temp = new Directory('').createTempSync();
   var file = new File('${temp.path}/input_stream_append.txt');
   var originalLength = writeLongFileSync(file);
@@ -163,7 +163,7 @@ void testInputStreamAppend() {
       },
       onDone: () {
         Expect.equals(2 * originalLength, streamedBytes);
-        temp.delete(recursive: true).then((_) => keepAlive.close());
+        temp.delete(recursive: true).then((_) => asyncEnd());
       },
       onError: (e) {
         Expect.fail("Unexpected error");
@@ -173,7 +173,7 @@ void testInputStreamAppend() {
 
 void testInputStreamOffset() {
   void test(int start, int end, int expectedBytes) {
-    var keepAlive = new ReceivePort();
+    asyncStart();
     var temp = new Directory('').createTempSync();
     var file = new File('${temp.path}/input_stream_offset.txt');
     var originalLength = writeLongFileSync(file);
@@ -185,7 +185,7 @@ void testInputStreamOffset() {
         },
         onDone: () {
           Expect.equals(expectedBytes, streamedBytes);
-          temp.delete(recursive: true).then((_) => keepAlive.close());
+          temp.delete(recursive: true).then((_) => asyncEnd());
         },
         onError: (e) {
           Expect.fail("Unexpected error");
@@ -204,7 +204,7 @@ void testInputStreamOffset() {
 
 void testInputStreamBadOffset() {
   void test(int start, int end) {
-    var keepAlive = new ReceivePort();
+    asyncStart();
     var temp = new Directory('').createTempSync();
     var file = new File('${temp.path}/input_stream_bad_offset.txt');
     var originalLength = writeLongFileSync(file);
@@ -217,7 +217,7 @@ void testInputStreamBadOffset() {
           temp.delete(recursive: true);
         },
         onError: (e) {
-          keepAlive.close();
+          asyncEnd();
         });
   }
   test(-1, null);
