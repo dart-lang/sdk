@@ -3,8 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $runtime == vm ]
-Language/12_Expressions/01_Constants_A16_t04: fail # co19-roll r569: Please triage this failure
-Language/12_Expressions/01_Constants_A16_t05: fail # co19-roll r569: Please triage this failure
+Language/12_Expressions/01_Constants_A16_t04: fail # Issue 392
+Language/12_Expressions/01_Constants_A16_t05: fail # Issue 392
 
 [ $runtime == vm && $system == windows ]
 LibTest/core/Stopwatch/elapsed_A01_t01: Pass, Fail # Issue 11382.
