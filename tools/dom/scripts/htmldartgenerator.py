@@ -651,13 +651,22 @@ class HtmlDartGenerator(object):
         })
     self._members_emitter.Emit(template, E=element_name)
 
-  def SecureOutputType(self, type_name, is_dart_type=False):
+  def SecureOutputType(self, type_name, is_dart_type=False,
+      can_narrow_type=False):
     """ Converts the type name to the secure type name for return types.
+    Arguments:
+      can_narrow_type - True if the output type can be narrowed further than
+        what would be accepted for input, used to narrow num APIs down to double
+        or int.
     """
     if is_dart_type:
       dart_name = type_name
     else:
-      dart_name = self._DartType(type_name)
+      type_info = self._TypeInfo(type_name)
+      dart_name = type_info.dart_type()
+      if can_narrow_type and dart_name == 'num':
+        dart_name = type_info.native_type()
+
     # We only need to secure Window.  Only local History and Location are
     # returned in generated code.
     assert(dart_name != 'HistoryBase' and dart_name != 'LocationBase')
@@ -671,3 +680,6 @@ class HtmlDartGenerator(object):
 
   def _DartType(self, type_name):
     return self._type_registry.DartType(type_name)
+
+  def _TypeInfo(self, type_name):
+    return self._type_registry.TypeInfo(type_name)

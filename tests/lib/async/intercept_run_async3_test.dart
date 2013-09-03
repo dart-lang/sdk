@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'dart:isolate';
 
 var events = [];
 
@@ -23,9 +23,7 @@ handler(fun) {
 }
 
 main() {
-  // We keep a ReceivePort open until all tests are done. This way the VM will
-  // hang if the callbacks are not invoked and the test will time out.
-  var port = new ReceivePort();
+  asyncStart();
 
   // Test that runAsync inside the runAsync-handler goes to the parent zone.
   var result = runZonedExperimental(body, onRunAsync: handler);
@@ -34,6 +32,6 @@ main() {
     Expect.listEquals(
         ["body entry", "handler", "handler done", "after", "run async body"],
         events);
-    port.close();
+    asyncEnd();
   });
 }

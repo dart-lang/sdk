@@ -10,8 +10,8 @@ main() {
 }
 
 class A {
-  /* abstract */ foo();
-  /* abstract */ static bar(); /// 01: compile-time error
+  foo();  /// 00: static type warning
+  static bar();  /// 01: compile-time error
 }
 
 class B extends A {

@@ -48,7 +48,8 @@ class Parser {
   Token parseTopLevelDeclaration(Token token) {
     token = parseMetadataStar(token);
     final String value = token.stringValue;
-    if ((identical(value, 'abstract')) || (identical(value, 'class'))) {
+    if ((identical(value, 'abstract') && optional('class', token.next))
+        || identical(value, 'class')) {
       return parseClass(token);
     } else if (identical(value, 'typedef')) {
       return parseTypedef(token);
@@ -613,14 +614,8 @@ class Parser {
         identifiers = identifiers.tail;
       }
     }
-    parseModifierList(identifiers.reverse());
-    if (type == null) {
-      listener.handleNoType(token);
-    } else {
-      parseReturnTypeOpt(type);
-    }
-    token = parseIdentifier(name);
 
+    token = name.next;
     bool isField;
     while (true) {
       // Loop to allow the listener to rewrite the token stream for
@@ -645,29 +640,170 @@ class Parser {
         break;
       } else {
         token = listener.unexpected(token);
-        if (identical(token.kind, EOF_TOKEN)) {
-          // TODO(ahe): This is a hack. It would be better to tell the
-          // listener more explicitly that it must pop an identifier.
-          listener.endTopLevelFields(1, start, token);
-          return token;
-        }
+        if (identical(token.kind, EOF_TOKEN)) return token;
       }
     }
-    if (isField) {
-      int fieldCount = 1;
-      token = parseVariableInitializerOpt(token);
-      while (optional(',', token)) {
-        token = parseIdentifier(token.next);
-        token = parseVariableInitializerOpt(token);
-        ++fieldCount;
+    var modifiers = identifiers.reverse();
+    return isField
+        ? parseFields(start, modifiers, type, getOrSet, name, true)
+        : parseTopLevelMethod(start, modifiers, type, getOrSet, name);
+  }
+
+  bool isVarFinalOrConst(Token token) {
+    String value = token.stringValue;
+    return identical('var', value)
+        || identical('final', value)
+        || identical('const', value);
+  }
+
+  Token expectVarFinalOrConst(Link<Token> modifiers,
+                              bool hasType,
+                              bool allowStatic) {
+    int modifierCount = 0;
+    Token staticModifier;
+    if (allowStatic && !modifiers.isEmpty
+        && optional('static', modifiers.head)) {
+      staticModifier = modifiers.head;
+      modifierCount++;
+      parseModifier(staticModifier);
+      modifiers = modifiers.tail;
+    }
+    if (modifiers.isEmpty) {
+      listener.handleModifiers(modifierCount);
+      return null;
+    }
+    if (modifiers.tail.isEmpty) {
+      Token modifier = modifiers.head;
+      if (isVarFinalOrConst(modifier)) {
+        modifierCount++;
+        parseModifier(modifier);
+        listener.handleModifiers(modifierCount);
+        // TODO(ahe): The caller checks for "var Type name", perhaps we should
+        // check here instead.
+        return modifier;
       }
-      expectSemicolon(token);
+    }
+
+    // Slow case to report errors.
+    List<Token> modifierList = modifiers.toList();
+    Token varFinalOrConst =
+        modifierList.firstWhere(isVarFinalOrConst, orElse: () => null);
+    if (allowStatic && staticModifier == null) {
+      staticModifier =
+          modifierList.firstWhere(
+              (modifier) => optional('static', modifier), orElse: () => null);
+      if (staticModifier != null) {
+        modifierCount++;
+        parseModifier(staticModifier);
+        modifierList.remove(staticModifier);
+      }
+    }
+    bool hasTypeOrModifier = hasType;
+    if (varFinalOrConst != null) {
+      parseModifier(varFinalOrConst);
+      modifierCount++;
+      hasTypeOrModifier = true;
+      modifierList.remove(varFinalOrConst);
+    }
+    listener.handleModifiers(modifierCount);
+    var kind = hasTypeOrModifier
+        ? MessageKind.EXTRANEOUS_MODIFIER
+        : MessageKind.EXTRANEOUS_MODIFIER_REPLACE;
+    for (Token modifier in modifierList) {
+      listener.reportError(modifier, kind, {'modifier': modifier});
+    }
+    return null;
+  }
+
+  Token parseFields(Token start,
+                    Link<Token> modifiers,
+                    Token type,
+                    Token getOrSet,
+                    Token name,
+                    bool isTopLevel) {
+    bool hasType = type != null;
+    Token varFinalOrConst =
+        expectVarFinalOrConst(modifiers, hasType, !isTopLevel);
+    bool isVar = false;
+    bool hasModifier = false;
+    if (varFinalOrConst != null) {
+      hasModifier = true;
+      isVar = optional('var', varFinalOrConst);
+    }
+
+    if (getOrSet != null) {
+      var kind = (hasModifier || hasType)
+          ? MessageKind.EXTRANEOUS_MODIFIER
+          : MessageKind.EXTRANEOUS_MODIFIER_REPLACE;
+      listener.reportError(getOrSet, kind, {'modifier': getOrSet});
+    }
+
+    if (!hasType) {
+      listener.handleNoType(name);
+    } else if (optional('void', type)) {
+      listener.handleNoType(name);
+      // TODO(ahe): This error is reported twice, second time is from
+      // [parseVariablesDeclarationMaybeSemicolon] via
+      // [PartialFieldListElement.parseNode].
+      listener.reportError(type, MessageKind.VOID_NOT_ALLOWED);
+    } else {
+      parseType(type);
+      if (isVar) {
+        listener.reportError(
+            modifiers.head, MessageKind.EXTRANEOUS_MODIFIER,
+            {'modifier': modifiers.head});
+      }
+    }
+
+    Token token = parseIdentifier(name);
+
+    int fieldCount = 1;
+    token = parseVariableInitializerOpt(token);
+    while (optional(',', token)) {
+      token = parseIdentifier(token.next);
+      token = parseVariableInitializerOpt(token);
+      ++fieldCount;
+    }
+    expectSemicolon(token);
+    if (isTopLevel) {
       listener.endTopLevelFields(fieldCount, start, token);
     } else {
-      token = parseFormalParametersOpt(token);
-      token = parseFunctionBody(token, false);
-      listener.endTopLevelMethod(start, getOrSet, token);
+      listener.endFields(fieldCount, start, token);
     }
+    return token.next;
+  }
+
+  Token parseTopLevelMethod(Token start,
+                            Link<Token> modifiers,
+                            Token type,
+                            Token getOrSet,
+                            Token name) {
+    Token externalModifier;
+    for (Token modifier in modifiers) {
+      if (externalModifier == null && optional('external', modifier)) {
+        externalModifier = modifier;
+      } else {
+        listener.reportError(
+            modifier, MessageKind.EXTRANEOUS_MODIFIER, {'modifier': modifier});
+      }
+    }
+    if (externalModifier != null) {
+      parseModifier(externalModifier);
+      listener.handleModifiers(1);
+    } else {
+      listener.handleModifiers(0);
+    }
+
+    if (type == null) {
+      listener.handleNoType(name);
+    } else {
+      parseReturnTypeOpt(type);
+    }
+    Token token = parseIdentifier(name);
+
+    token = parseFormalParametersOpt(token);
+    token = parseFunctionBody(token, false, externalModifier != null);
+    listener.endTopLevelMethod(start, getOrSet, token);
     return token.next;
   }
 
@@ -877,6 +1013,7 @@ class Parser {
       return listener.unexpected(start);
     }
     Token name = identifiers.head;
+    Token afterName = name.next;
     identifiers = identifiers.tail;
     if (!identifiers.isEmpty) {
       if (optional('operator', identifiers.head)) {
@@ -898,18 +1035,8 @@ class Parser {
         identifiers = identifiers.tail;
       }
     }
-    parseModifierList(identifiers.reverse());
-    if (type == null) {
-      listener.handleNoType(token);
-    } else {
-      parseReturnTypeOpt(type);
-    }
 
-    if (optional('operator', name)) {
-      token = parseOperatorName(name);
-    } else {
-      token = parseIdentifier(name);
-    }
+    token = afterName;
     bool isField;
     while (true) {
       // Loop to allow the listener to rewrite the token stream for
@@ -941,38 +1068,96 @@ class Parser {
         }
       }
     }
-    if (isField) {
-      int fieldCount = 1;
-      token = parseVariableInitializerOpt(token);
-      if (getOrSet != null) {
-        listener.recoverableError("unexpected", token: getOrSet);
-      }
-      while (optional(',', token)) {
-        // TODO(ahe): Count these.
-        token = parseIdentifier(token.next);
-        token = parseVariableInitializerOpt(token);
-        ++fieldCount;
-      }
-      expectSemicolon(token);
-      listener.endFields(fieldCount, start, token);
-    } else {
-      token = parseQualifiedRestOpt(token);
-      token = parseFormalParametersOpt(token);
-      token = parseInitializersOpt(token);
-      if (optional('=', token)) {
-        token = parseRedirectingFactoryBody(token);
+
+    var modifiers = identifiers.reverse();
+    return isField
+        ? parseFields(start, modifiers, type, getOrSet, name, false)
+        : parseMethod(start, modifiers, type, getOrSet, name);
+
+  }
+
+  Token parseMethod(Token start,
+                    Link<Token> modifiers,
+                    Token type,
+                    Token getOrSet,
+                    Token name) {
+    Token externalModifier;
+    Token staticModifier;
+    Token constModifier;
+    int modifierCount = 0;
+    int allowedModifierCount = 1;
+    for (Token modifier in modifiers) {
+      if (externalModifier == null && optional('external', modifier)) {
+        modifierCount++;
+        externalModifier = modifier;
+        if (modifierCount != allowedModifierCount) {
+          listener.reportError(
+              modifier,
+              MessageKind.EXTRANEOUS_MODIFIER, {'modifier': modifier});
+        }
+        allowedModifierCount++;
+      } else if (staticModifier == null && optional('static', modifier)) {
+        modifierCount++;
+        staticModifier = modifier;
+        if (modifierCount != allowedModifierCount) {
+          listener.reportError(
+              modifier,
+              MessageKind.EXTRANEOUS_MODIFIER, {'modifier': modifier});
+        }
+      } else if (constModifier == null && optional('const', modifier)) {
+        modifierCount++;
+        constModifier = modifier;
+        if (modifierCount != allowedModifierCount) {
+          listener.reportError(
+              modifier,
+              MessageKind.EXTRANEOUS_MODIFIER, {'modifier': modifier});
+        }
       } else {
-        token = parseFunctionBody(token, false);
+        listener.reportError(
+            modifier, MessageKind.EXTRANEOUS_MODIFIER, {'modifier': modifier});
       }
-      listener.endMethod(getOrSet, start, token);
     }
+    parseModifierList(modifiers);
+
+    if (type == null) {
+      listener.handleNoType(name);
+    } else {
+      parseReturnTypeOpt(type);
+    }
+    Token token;
+    if (optional('operator', name)) {
+      token = parseOperatorName(name);
+      if (staticModifier != null) {
+        // TODO(ahe): Consider a more specific error message.
+        listener.reportError(
+            staticModifier, MessageKind.EXTRANEOUS_MODIFIER,
+            {'modifier': staticModifier});
+      }
+    } else {
+      token = parseIdentifier(name);
+    }
+
+    token = parseQualifiedRestOpt(token);
+    token = parseFormalParametersOpt(token);
+    token = parseInitializersOpt(token);
+    if (optional('=', token)) {
+      token = parseRedirectingFactoryBody(token);
+    } else {
+      token = parseFunctionBody(
+          token, false, staticModifier == null || externalModifier != null);
+    }
+    listener.endMethod(getOrSet, start, token);
     return token.next;
   }
 
   Token parseFactoryMethod(Token token) {
     assert(isFactoryDeclaration(token));
     Token start = token;
-    if (identical(token.stringValue, 'external')) token = token.next;
+    Token externalModifier;
+    if (identical(token.stringValue, 'external')) {
+      externalModifier = token;
+      token = token.next;
+    }
     Token constKeyword = null;
     if (optional('const', token)) {
       constKeyword = token;
@@ -986,7 +1171,7 @@ class Parser {
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
     } else {
-      token = parseFunctionBody(token, false);
+      token = parseFunctionBody(token, false, externalModifier != null);
     }
     listener.endFactoryMethod(start, token);
     return token.next;
@@ -1029,7 +1214,7 @@ class Parser {
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
     } else {
-      token = parseFunctionBody(token, false);
+      token = parseFunctionBody(token, false, true);
     }
     listener.endFunction(getOrSet, token);
     return token.next;
@@ -1039,7 +1224,7 @@ class Parser {
     listener.beginUnamedFunction(token);
     token = parseFormalParameters(token);
     bool isBlock = optional('{', token);
-    token = parseFunctionBody(token, true);
+    token = parseFunctionBody(token, true, false);
     listener.endUnamedFunction(token);
     return isBlock ? token.next : token;
   }
@@ -1061,7 +1246,7 @@ class Parser {
     token = parseFormalParameters(token);
     listener.handleNoInitializers();
     bool isBlock = optional('{', token);
-    token = parseFunctionBody(token, true);
+    token = parseFunctionBody(token, true, false);
     listener.endFunction(null, token);
     return isBlock ? token.next : token;
   }
@@ -1092,8 +1277,11 @@ class Parser {
     return token;
   }
 
-  Token parseFunctionBody(Token token, bool isExpression) {
+  Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     if (optional(';', token)) {
+      if (!allowAbstract) {
+        listener.reportError(token, MessageKind.BODY_EXPECTED);
+      }
       listener.endFunctionBody(0, null, token);
       return token;
     } else if (optional('=>', token)) {
@@ -1825,6 +2013,7 @@ class Parser {
   }
 
   Token parseVariablesDeclarationNoSemicolon(Token token) {
+    // Only called when parsing a for loop, so this is for parsing locals.
     return parseVariablesDeclarationMaybeSemicolon(token, false);
   }
 

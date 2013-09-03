@@ -4,18 +4,16 @@
 
 library future_delayed_error_test;
 
+import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'dart:isolate';
 
 testImmediateError() {
-  // An open ReceivePort keeps the VM running. If the error-handler below is not
-  // executed then the test will fail with a timeout.
-  var port = new ReceivePort();
+  asyncStart();
   var future = new Future.error("error");
   future.catchError((error) {
-    port.close();
     Expect.equals(error, "error");
+    asyncEnd();
   });
 }
 
@@ -26,10 +24,10 @@ Future get completedFuture {
 }
 
 testDelayedError() {
-  var port = new ReceivePort();
+  asyncStart();
   completedFuture.catchError((error) {
-    port.close();
     Expect.equals(error, "foobar");
+    asyncEnd();
   });
 }
 

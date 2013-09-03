@@ -28,13 +28,13 @@ import 'common.dart';
  * elements annotated with `@CustomTag`.
  */
 class ScriptCompactor extends Transformer {
-  Future<bool> isPrimary(Asset input) =>
-      new Future.value(input.id.extension == ".html");
+  /** Only run this transformer on .html files. */
+  final String allowedExtensions = ".html";
 
   Future apply(Transform transform) {
-    var id = transform.primaryId;
+    var id = transform.primaryInput.id;
     var logger = transform.logger;
-    return getPrimaryContent(transform).then((content) {
+    return transform.primaryInput.readAsString().then((content) {
       var document = parseHtml(content, id.path, logger);
       var libraries = [];
       bool changed = false;
@@ -79,8 +79,8 @@ class ScriptCompactor extends Transformer {
             '<script type="application/dart" src="$filename"></script>');
       if (dartLoaderTag == null) {
         document.body.nodes.add(bootstrapScript);
-        document.body.nodes.add(parseFragment('<script type="text/javascript" '
-            'src="packages/browser/dart.js"></script>'));
+        document.body.nodes.add(parseFragment(
+            '<script src="packages/browser/dart.js"></script>'));
       } else if (dartLoaderTag.parent != document.body) {
         document.body.nodes.add(bootstrapScript);
       } else {
@@ -111,7 +111,7 @@ class ScriptCompactor extends Transformer {
     if (id.path.startsWith('lib/')) {
       return 'package:${id.package}/${id.path.substring(4)}';
     }
-    
+
     // Use relative urls only if it's possible.
     if (id.package != sourceId.package) {
       logger.error("don't know how to import $id from $sourceId");

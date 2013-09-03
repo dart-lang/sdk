@@ -601,9 +601,8 @@ Note: currently only implemented for dart2js.''',
           suite = pattern.substring(0, slashLocation);
           pattern = pattern.substring(slashLocation + 1);
           pattern = pattern.replaceAll('*', '.*');
-          pattern = pattern.replaceAll('/', '.*');
         } else {
-          pattern = ".*";
+          pattern = ".?";
         }
         if (selectorMap.containsKey(suite)) {
           print("Error: '$suite/$pattern'.  Only one test selection"

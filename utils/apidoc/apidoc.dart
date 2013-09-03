@@ -15,8 +15,8 @@
 library apidoc;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 
 import 'html_diff.dart';
 
@@ -112,7 +112,7 @@ void main() {
 
   print('Parsing MDN data...');
   final mdnFile = new File(path.join(scriptDir, 'mdn', 'database.json'));
-  final mdn = json.parse(mdnFile.readAsStringSync());
+  final mdn = JSON.decode(mdnFile.readAsStringSync());
 
   print('Cross-referencing dart:html...');
   // TODO(amouravski): move HtmlDiff inside of the future chain below to re-use
@@ -163,14 +163,14 @@ void main() {
       var libPath = '../../$lib';
       if (new File(libPath).existsSync()) {
         apidocLibraries.add(path.toUri(libPath));
-        var libName = libPath.replaceAll('.dart', '');
+        var libName = path.basename(libPath).replaceAll('.dart', '');
         includedLibraries.add(libName);
       }
     }
 
     final apidoc = new Apidoc(mdn, outputDir, mode, generateAppCache,
                               excludedLibraries, version);
-    apidoc.dartdocPath = 
+    apidoc.dartdocPath =
         path.join(scriptDir, '..', '..', 'sdk', 'lib', '_internal', 'dartdoc');
     // Select the libraries to include in the produced documentation:
     apidoc.includeApi = true;

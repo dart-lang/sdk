@@ -16,8 +16,28 @@ set -e
 # set -x
 
 DIR=$( cd $( dirname "${BASH_SOURCE[0]}" ) && pwd )
+# Note: dartanalyzer and some tests needs to be run from the root directory
+pushd $DIR/.. > /dev/null
+
 export DART_FLAGS="--checked"
-TEST_PATTERN=$1
+
+# Search for the first argument that doesn't look like an option ('--foo')
+function first_non_option {
+  while [[ $# -gt 0 ]]; do
+    if [[ $1 != --* ]]; then # Note: --* is a regex
+      echo $1
+      return
+    fi
+    shift
+  done
+}
+
+TEST_PATTERN=$(first_non_option $@)
+
+SDK_DIR=$(cd ../../out/ReleaseIA32/dart-sdk/; pwd)
+package_root=$SDK_DIR/../packages
+dart="$SDK_DIR/bin/dart --package-root=$package_root"
+dartanalyzer="$SDK_DIR/bin/dartanalyzer --package-root=$package_root"
 
 function fail {
   return 1
@@ -51,15 +71,14 @@ function compare {
 }
 
 if [[ ($TEST_PATTERN == "") ]]; then
-  # Note: dartanalyzer needs to be run from the root directory for proper path
-  # canonicalization.
-  pushd $DIR/.. > /dev/null
+  echo Analyzing analyzer for warnings or type errors
+  $dartanalyzer --hints --fatal-warnings --fatal-type-errors lib/dwc.dart
 
-  echo Analyzing compiler for warnings or type errors
-  dartanalyzer --hints --fatal-warnings --fatal-type-errors bin/dwc.dart
+  echo Analyzing deploy-compiler for warnings or type errors
+  $dartanalyzer --hints --fatal-warnings --fatal-type-errors lib/deploy.dart
 
   echo -e "\nAnalyzing runtime for warnings or type errors"
-  dartanalyzer --hints --fatal-warnings --fatal-type-errors lib/polymer.dart
+  $dartanalyzer --hints --fatal-warnings --fatal-type-errors lib/polymer.dart
 
   popd > /dev/null
 fi
@@ -68,8 +87,7 @@ function compare_all {
 # TODO(jmesserly): bash and dart regexp might not be 100% the same. Ideally we
 # could do all the heavy lifting in Dart code, and keep this script as a thin
 # wrapper that sets `--enable-type-checks --enable-asserts`
-  for input in $DIR/../example/component/news/test/*_test.html \
-               $DIR/../../../samples/third_party/todomvc/test/*_test.html; do
+  for input in $DIR/../example/component/news/test/*_test.html; do
     if [[ ($TEST_PATTERN == "") || ($input =~ $TEST_PATTERN) ]]; then
       FILENAME=`basename $input`
       DIRNAME=`dirname $input`
@@ -77,7 +95,7 @@ function compare_all {
         DIRNAME=`dirname $DIRNAME`
       fi
       echo -e -n "Checking diff for $FILENAME "
-      DUMP="$DIRNAME/out/$FILENAME.txt"
+      DUMP="test/data/out/example/test/$FILENAME.txt"
       EXPECTATION="$DIRNAME/expected/$FILENAME.txt"
 
       compare $EXPECTATION $DUMP
@@ -87,47 +105,26 @@ function compare_all {
   fail
 }
 
-if [[ -e $DIR/data/input/example ]]; then
-  echo "WARNING: detected old data/input/example symlink."
-  echo "Removing it and rerunning pub install to fix broken example symlinks."
-  echo "See http://dartbug.com/9418 for more information."
-  echo "You should only see this message once."
-  if [[ -e $DIR/packages ]]; then
-    find . -name packages -type l | xargs rm
-  fi
-  rm $DIR/data/input/example
-  pushd $DIR/..
-  pub install
-  popd
-fi
-
-# TODO(jmesserly): dart:io fails if we run the Dart scripts with an absolute
-# path. So use pushd/popd to change the working directory.
 if [[ ($TEST_PATTERN == "") ]]; then
-  pushd $DIR/.. > /dev/null
   echo -e "\nTesting build.dart... "
-  dart $DART_FLAGS build.dart
+  $dart $DART_FLAGS build.dart
   # Run it the way the editor does. Hide stdout because it is in noisy machine
   # format. Show stderr in case something breaks.
   # NOTE: not using --checked because the editor doesn't use it, and to workaround
   # http://dartbug.com/9637
-  dart build.dart --machine --clean > /dev/null
-  dart build.dart --machine --full > /dev/null
-  dart build.dart --machine --changed ../../samples/third_party/todomvc/web/index.html > /dev/null
-  popd > /dev/null
+  $dart build.dart --machine --clean > /dev/null
+  $dart build.dart --machine --full > /dev/null
 fi
 
-pushd $DIR > /dev/null
 echo -e "\nRunning unit tests... "
-dart $DART_FLAGS run_all.dart $@ || compare_all
-popd > /dev/null
+$dart $DART_FLAGS test/run_all.dart $@ || compare_all
 
 # Run Dart analyzer to check that we're generating warning clean code.
-# It's a bit slow, so only do this for TodoMVC and html5_utils tests.
-OUT_PATTERN="$DIR/../../../third_party/samples/todomvc/test/out/test/*$TEST_PATTERN*_bootstrap.dart"
+# It's a bit slow, so only do this for one test.
+OUT_PATTERN="$DIR/../example/component/news/test/out/test/*$TEST_PATTERN*_bootstrap.dart"
 if [[ `ls $OUT_PATTERN 2>/dev/null` != "" ]]; then
   echo -e "\nAnalyzing generated code for warnings or type errors."
-  ls $OUT_PATTERN 2>/dev/null | dartanalyzer --package-root=packages \
+  ls $OUT_PATTERN 2>/dev/null | $dartanalyzer \
       --fatal-warnings --fatal-type-errors -batch
 fi
 

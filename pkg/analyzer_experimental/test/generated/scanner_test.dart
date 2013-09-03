@@ -2147,10 +2147,19 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   }
   Token scan(String source, GatheringErrorListener listener);
   void assertComment(TokenType commentType, String source) {
-    Token token = scan2("${source}\n");
+    Token token = scan2(source);
     JUnitTestCase.assertNotNull(token);
     JUnitTestCase.assertEquals(TokenType.EOF, token.type);
     Token comment = token.precedingComments;
+    JUnitTestCase.assertNotNull(comment);
+    JUnitTestCase.assertEquals(commentType, comment.type);
+    JUnitTestCase.assertEquals(0, comment.offset);
+    JUnitTestCase.assertEquals(source.length, comment.length);
+    JUnitTestCase.assertEquals(source, comment.lexeme);
+    token = scan2("${source}\n");
+    JUnitTestCase.assertNotNull(token);
+    JUnitTestCase.assertEquals(TokenType.EOF, token.type);
+    comment = token.precedingComments;
     JUnitTestCase.assertNotNull(comment);
     JUnitTestCase.assertEquals(commentType, comment.type);
     JUnitTestCase.assertEquals(0, comment.offset);

@@ -37,6 +37,22 @@ $if DART2JS
 
   @JSName('createTBody')
   TableSectionElement _nativeCreateTBody() native;
+
+  DocumentFragment createFragment(String html,
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    if (Range.supportsCreateContextualFragment) {
+      return super.createFragment(
+          html, validator: validator, treeSanitizer: treeSanitizer);
+    }
+    // IE9 workaround which does not support innerHTML on Table elements.
+    var contextualHtml = '<table>$html</table>';
+    var table = new Element.html(contextualHtml, validator: validator,
+        treeSanitizer: treeSanitizer);
+    var fragment = new DocumentFragment();
+    fragment.nodes.addAll(table.nodes);
+
+    return fragment;
+  }
 $endif
 
 $!MEMBERS}

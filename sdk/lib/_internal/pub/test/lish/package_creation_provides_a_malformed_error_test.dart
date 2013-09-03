@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:json' as json;
+import 'dart:convert';
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
@@ -27,12 +27,12 @@ main() {
     var body = {'error': 'Your package was too boring.'};
     server.handle('GET', '/create', (request) {
       request.response.statusCode = 400;
-      request.response.write(json.stringify(body));
+      request.response.write(JSON.encode(body));
       request.response.close();
     });
 
     expect(pub.nextErrLine(), completion(equals('Invalid server response:')));
-    expect(pub.nextErrLine(), completion(equals(json.stringify(body))));
+    expect(pub.nextErrLine(), completion(equals(JSON.encode(body))));
     pub.shouldExit(1);
   });
 }

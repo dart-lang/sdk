@@ -7,7 +7,7 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  factory $CLASSNAME() => document.$dom_createRange();
+  factory $CLASSNAME() => document.createRange();
 
   factory $CLASSNAME.fromPoint(Point point) =>
       document._caretRangeFromPoint(point.x, point.y);

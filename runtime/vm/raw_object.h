@@ -837,11 +837,10 @@ class RawCode : public RawObject {
   }
 
   intptr_t pointer_offsets_length_;
-  // These fields cannot be boolean because of alignment issues on x64
+  // Alive: If true, the embedded object pointers will be visited during GC.
+  // This field cannot be shorter because of alignment issues on x64
   // architectures.
-  intptr_t is_optimized_;
-  // If true, the embedded object pointers will be visited during GC.
-  intptr_t is_alive_;
+  intptr_t state_bits_;  // state, is_optimized, is_alive.
 
   // Variable length data follows here.
   int32_t data_[0];
@@ -943,8 +942,10 @@ class RawExceptionHandlers : public RawObject {
   // The index into the ExceptionHandlers table corresponds to
   // the try_index of the handler.
   struct HandlerInfo {
-    intptr_t outer_try_index;  // Try block index of enclosing try block.
     intptr_t handler_pc;       // PC value of handler.
+    int16_t outer_try_index;   // Try block index of enclosing try block.
+    int8_t needs_stacktrace;   // True if a stacktrace is needed.
+    int8_t has_catch_all;      // Catches all exceptions.
   };
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);

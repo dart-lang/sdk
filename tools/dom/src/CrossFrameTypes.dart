@@ -20,7 +20,7 @@ part of html;
  * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
  * * [Window](http://www.w3.org/TR/Window/) from the W3C.
  */
-abstract class WindowBase {
+abstract class WindowBase implements EventTarget {
   // Fields.
 
   /**

@@ -7,10 +7,11 @@
 // getter and convert this into an Observable.
 
 /** Helpers for exposing dart:html as observable data. */
-library polymer.observe_html;
+library observe.html;
 
 import 'dart:html';
-import 'package:observe/observe.dart';
+
+import 'observe.dart';
 
 /** An observable version of [window.location.hash]. */
 final ObservableLocationHash windowLocation = new ObservableLocationHash._();

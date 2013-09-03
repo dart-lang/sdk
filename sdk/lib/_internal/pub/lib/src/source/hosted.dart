@@ -6,7 +6,7 @@ library pub.source.hosted;
 
 import 'dart:async';
 import 'dart:io' as io;
-import 'dart:json' as json;
+import "dart:convert";
 
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
@@ -46,7 +46,7 @@ class HostedSource extends Source {
 
     log.io("Get versions from $url.");
     return httpClient.read(url, headers: PUB_API_HEADERS).then((body) {
-      var doc = json.parse(body);
+      var doc = JSON.decode(body);
       return doc['versions']
           .map((version) => new Version.parse(version['version']))
           .toList();
@@ -65,7 +65,7 @@ class HostedSource extends Source {
 
     log.io("Describe package at $url.");
     return httpClient.read(url, headers: PUB_API_HEADERS).then((version) {
-      version = json.parse(version);
+      version = JSON.decode(version);
 
       // TODO(rnystrom): After this is pulled down, we could place it in
       // a secondary cache of just pubspecs. This would let us have a

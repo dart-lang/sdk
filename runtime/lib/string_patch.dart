@@ -600,7 +600,7 @@ class _ExternalTwoByteString extends _StringBase implements String {
 
 class _StringMatch implements Match {
   const _StringMatch(int this.start,
-                     String this.str,
+                     String this.input,
                      String this.pattern);
 
   int get end => start + pattern.length;
@@ -622,8 +622,11 @@ class _StringMatch implements Match {
     return result;
   }
 
+  // TODO(12843): Remove when grace period is over.
+  String get str => input;
+
   final int start;
-  final String str;
+  final String input;
   final String pattern;
 }
 

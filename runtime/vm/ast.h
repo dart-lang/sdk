@@ -214,12 +214,11 @@ class ArgumentListNode : public AstNode {
   intptr_t length() const { return nodes_.length(); }
   AstNode* NodeAt(intptr_t index) const { return nodes_[index]; }
   void SetNodeAt(intptr_t index, AstNode* node) { nodes_[index] = node; }
-  const Array& names() const {
-    return names_;
-  }
+  const Array& names() const { return names_; }
   void set_names(const Array& names) {
     names_ = names.raw();
   }
+  const GrowableArray<AstNode*>& nodes() const { return nodes_; }
 
   DECLARE_COMMON_NODE_FUNCTIONS(ArgumentListNode);
 
@@ -1604,14 +1603,16 @@ class CatchClauseNode : public AstNode {
                   const LocalVariable* context_var,
                   const LocalVariable* exception_var,
                   const LocalVariable* stacktrace_var,
-                  intptr_t catch_handler_index)
+                  intptr_t catch_handler_index,
+                  bool needs_stacktrace)
       : AstNode(token_pos),
         catch_block_(catch_block),
         handler_types_(handler_types),
         context_var_(*context_var),
         exception_var_(*exception_var),
         stacktrace_var_(*stacktrace_var),
-        catch_handler_index_(catch_handler_index) {
+        catch_handler_index_(catch_handler_index),
+        needs_stacktrace_(needs_stacktrace) {
     ASSERT(catch_block_ != NULL);
     ASSERT(handler_types.IsZoneHandle());
     ASSERT(context_var != NULL);
@@ -1624,6 +1625,7 @@ class CatchClauseNode : public AstNode {
   const LocalVariable& exception_var() const { return exception_var_; }
   const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
   intptr_t catch_handler_index() const { return catch_handler_index_; }
+  bool needs_stacktrace() const { return needs_stacktrace_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     catch_block_->Visit(visitor);
@@ -1638,6 +1640,7 @@ class CatchClauseNode : public AstNode {
   const LocalVariable& exception_var_;
   const LocalVariable& stacktrace_var_;
   const intptr_t catch_handler_index_;
+  const bool needs_stacktrace_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchClauseNode);
 };

@@ -20,14 +20,17 @@ namespace dart {
 //   RSP : points to the arguments and return value array.
 //   RBX : address of the runtime function to call.
 //   R10 : number of arguments to the call.
-void RuntimeEntry::Call(Assembler* assembler) const {
-  if (!is_leaf()) {
-    __ movq(RBX, Immediate(GetEntryPoint()));
-    __ movq(R10, Immediate(argument_count()));
-    __ call(&StubCode::CallToRuntimeLabel());
-  } else {
+void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
+  if (is_leaf()) {
+    ASSERT(argument_count == this->argument_count());
     ExternalLabel label(name(), GetEntryPoint());
     __ call(&label);
+  } else {
+    // Argument count is not checked here, but in the runtime entry for a more
+    // informative error message.
+    __ movq(RBX, Immediate(GetEntryPoint()));
+    __ movq(R10, Immediate(argument_count));
+    __ call(&StubCode::CallToRuntimeLabel());
   }
 }
 

@@ -5,8 +5,6 @@ import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'source.dart';
-import 'error.dart';
-import 'instrumentation.dart';
 import 'element.dart' show HtmlElementImpl;
 import 'engine.dart' show AnalysisEngine;
 /**
@@ -287,7 +285,7 @@ abstract class XmlNode {
    *
    * @param visitor the visitor that will be used to visit the children of this node
    */
-  void visitChildren(XmlVisitor<Object> visitor);
+  void visitChildren(XmlVisitor visitor);
 
   /**
    * Make this node the parent of the given child nodes.
@@ -924,7 +922,7 @@ class ToSourceVisitor implements XmlVisitor<Object> {
  *
  * @coverage dart.engine.html
  */
-class TokenType implements Enum<TokenType> {
+class TokenType extends Enum<TokenType> {
 
   /**
    * The type of the token that marks the end of the input.
@@ -955,18 +953,12 @@ class TokenType implements Enum<TokenType> {
       TAG,
       TEXT];
 
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
-
   /**
    * The lexeme that defines this type of token, or `null` if there is more than one possible
    * lexeme for this type of token.
    */
   String _lexeme;
-  TokenType(this.name, this.ordinal, String lexeme) {
+  TokenType(String name, int ordinal, String lexeme) : super(name, ordinal) {
     this._lexeme = lexeme;
   }
 
@@ -977,9 +969,6 @@ class TokenType implements Enum<TokenType> {
    * @return the lexeme that defines this type of token
    */
   String get lexeme => _lexeme;
-  int compareTo(TokenType other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
 }
 class TokenType_EOF extends TokenType {
   TokenType_EOF(String name, int ordinal, String arg0) : super(name, ordinal, arg0);
@@ -1063,7 +1052,7 @@ class XmlAttributeNode extends XmlNode {
    * @return the value or `null` if this represents a badly formed attribute
    */
   Token get value => _value;
-  void visitChildren(XmlVisitor<Object> visitor) {
+  void visitChildren(XmlVisitor visitor) {
   }
 }
 /**
@@ -1626,7 +1615,7 @@ class XmlTagNode extends XmlNode {
    * @return the children (not `null`, contains no `null`s)
    */
   List<XmlTagNode> get tagNodes => _tagNodes;
-  void visitChildren(XmlVisitor<Object> visitor) {
+  void visitChildren(XmlVisitor visitor) {
     for (XmlAttributeNode node in _attributes) {
       node.accept(visitor);
     }
@@ -1755,7 +1744,7 @@ class HtmlUnit extends XmlNode {
   void set element(HtmlElementImpl element2) {
     this._element = element2;
   }
-  void visitChildren(XmlVisitor<Object> visitor) {
+  void visitChildren(XmlVisitor visitor) {
     for (XmlTagNode node in _tagNodes) {
       node.accept(visitor);
     }

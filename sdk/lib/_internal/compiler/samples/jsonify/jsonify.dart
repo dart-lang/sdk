@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:json';
+import 'dart:convert';
 
 // TODO(ahe): Should be dart:mirrors.
 import '../../implementation/mirrors/mirrors.dart';
@@ -92,7 +92,7 @@ jsonify(MirrorSystem mirrors) {
 library dart.sdk_sources;
 
 const Map<String, String> SDK_SOURCES = const <String, String>''');
-  output.writeStringSync(stringify(map).replaceAll(r'$', r'\$'));
+  output.writeStringSync(JSON.encode(map).replaceAll(r'$', r'\$'));
   output.writeStringSync(';\n');
   output.closeSync();
 }

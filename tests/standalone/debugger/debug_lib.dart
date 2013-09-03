@@ -10,7 +10,6 @@ import "dart:async";
 import "dart:convert";
 import "dart:io";
 import "dart:math";
-import "dart:json" as JSON;
 
 // Whether or not to print the debugger wire messages on the console.
 var verboseWire = false;
@@ -63,7 +62,7 @@ class JsonBuffer {
   // buffer, or 0 if there is only a partial message in the buffer.
   // The object value must start with '{' and continues to the
   // matching '}'. No attempt is made to otherwise validate the contents
-  // as JSON. If it is invalid, a later JSON.parse() will fail.
+  // as JSON. If it is invalid, a later JSON.decode() will fail.
   int objectLength() {
     int skipWhitespace(int index) {
       while (index < buffer.length) {
@@ -500,7 +499,7 @@ class Debugger {
         cleanup();
         return;
       }
-      var msgObj = JSON.parse(msg);
+      var msgObj = JSON.decode(msg);
       handleMessage(msgObj);
       if (errorsDetected) {
         error("Error while handling script entry");
@@ -525,7 +524,7 @@ class Debugger {
     if (msg["params"] != null && msg["params"]["isolateId"] != null) {
       msg["params"]["isolateId"] = isolateId;
     }
-    String jsonMsg = JSON.stringify(msg);
+    String jsonMsg = JSON.encode(msg);
     if (verboseWire) print("SEND: $jsonMsg");
     socket.write(jsonMsg);
   }

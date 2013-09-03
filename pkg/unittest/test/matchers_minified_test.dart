@@ -52,8 +52,9 @@ void main() {
     });
 
     test('throwsNoSuchMethodError', () {
-      shouldPass(() { throw new NoSuchMethodError(null, '', null, null); },
-          throwsNoSuchMethodError);
+      shouldPass(() {
+        throw new NoSuchMethodError(null, const Symbol(''), null, null);
+      }, throwsNoSuchMethodError);
       shouldFail(() { throw new Exception(); },
           throwsNoSuchMethodError,
           matches(

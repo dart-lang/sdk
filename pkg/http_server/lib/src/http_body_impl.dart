@@ -115,7 +115,7 @@ class _HttpBodyHandler {
             return asText(UTF8)
                 .then((body) => new _HttpBody(contentType,
                                               "json",
-                                              JSON.parse(body.body)));
+                                              JSON.decode(body.body)));
 
           case "x-www-form-urlencoded":
             return asText(ASCII)

@@ -287,6 +287,7 @@ class CodeEmitterTask extends CompilerTask {
   static const RANGE2_LAST = 0x7e;
   static const RANGE3_FIRST = 0x25;   //  %&'()*+  encodes 10..16
   static const RANGE3_LAST = 0x2b;
+  static const REFLECTION_MARKER = 0x2d;
 
   jsAst.FunctionDeclaration get generateAccessorFunction {
     const RANGE1_SIZE = RANGE1_LAST - RANGE1_FIRST + 1;
@@ -298,11 +299,19 @@ class CodeEmitterTask extends CompilerTask {
 
     String receiverParamName = compiler.enableMinification ? "r" : "receiver";
     String valueParamName = compiler.enableMinification ? "v" : "value";
+    String reflectableField = namer.reflectableField;
 
     // function generateAccessor(field, prototype) {
     jsAst.Fun fun = js.fun(['field', 'prototype'], [
       js('var len = field.length'),
       js('var code = field.charCodeAt(len - 1)'),
+      js('var reflectable = false'),
+      js.if_('code == $REFLECTION_MARKER', [
+          js('len--'),
+          js('code = field.charCodeAt(len - 1)'),
+          js('field = field.substring(0, len)'),
+          js('reflectable = true')
+      ]),
       js('code = ((code >= $RANGE1_FIRST) && (code <= $RANGE1_LAST))'
           '    ? code - $RANGE1_ADJUST'
           '    : ((code >= $RANGE2_FIRST) && (code <= $RANGE2_LAST))'
@@ -329,7 +338,10 @@ class CodeEmitterTask extends CompilerTask {
           js('var receiver = (getterCode & 1) ? "this" : "$receiverParamName"'),
           js('var body = "return " + receiver + "." + field'),
           js('prototype["${namer.getterPrefix}" + accessorName] = '
-                 'new Function(args, body)')
+                 'new Function(args, body)'),
+          js.if_('!reflectable', [
+                 js('prototype["${namer.getterPrefix}" + accessorName].'
+                    '$reflectableField = false')])
         ]),
 
         // if (needsSetter) {
@@ -340,7 +352,10 @@ class CodeEmitterTask extends CompilerTask {
           js('var receiver = (setterCode & 1) ? "this" : "$receiverParamName"'),
           js('var body = receiver + "." + field + "$_=$_$valueParamName"'),
           js('prototype["${namer.setterPrefix}" + accessorName] = '
-                 'new Function(args, body)')
+                 'new Function(args, body)'),
+          js.if_('!reflectable', [
+                 js('prototype["${namer.setterPrefix}" + accessorName].'
+                    '$reflectableField = false')])
         ]),
 
       ]),
@@ -570,7 +585,7 @@ class CodeEmitterTask extends CompilerTask {
     // Object class to catch noSuchMethod invocations.
     ClassElement objectClass = compiler.objectClass;
     String createInvocationMirror = namer.getName(
-        compiler.createInvocationMirrorElement);
+        backend.getCreateInvocationMirror());
     String noSuchMethodName = namer.publicInstanceMethodNameByArity(
         Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
     var type = 0;
@@ -857,8 +872,6 @@ class CodeEmitterTask extends CompilerTask {
     return js.fun('oldIsolate', [
       js('var isolateProperties = oldIsolate.${namer.isolatePropertiesName}'),
 
-      js(r'isolateProperties.$currentScript = null'),
-
       js('var isolatePrototype = oldIsolate.prototype'),
       js('var str = "{\\n"'),
       js('str += "var properties = '
@@ -1099,7 +1112,9 @@ class CodeEmitterTask extends CompilerTask {
 
     String reflectionName = getReflectionName(selector, invocationName);
     if (reflectionName != null) {
-      defineStub('+$reflectionName', js('0'));
+      var reflectable =
+          js(backend.isAccessibleByReflection(member) ? '1' : '0');
+      defineStub('+$reflectionName', reflectable);
     }
   }
 
@@ -1239,13 +1254,6 @@ class CodeEmitterTask extends CompilerTask {
     return field is ClosureFieldElement;
   }
 
-  String compiledFieldName(Element member) {
-    assert(member.isField());
-    return member.hasFixedBackendName()
-        ? member.fixedBackendName()
-        : namer.getName(member);
-  }
-
   /**
    * Documentation wanted -- johnniwinther
    *
@@ -1270,7 +1278,9 @@ class CodeEmitterTask extends CompilerTask {
       builder.addProperty(name, code);
       String reflectionName = getReflectionName(member, name);
       if (reflectionName != null) {
-        builder.addProperty('+$reflectionName', js('0'));
+        var reflectable =
+            js(backend.isAccessibleByReflection(member) ? '1' : '0');
+        builder.addProperty('+$reflectionName', reflectable);
       }
       code = backend.generatedBailoutCode[member];
       if (code != null) {
@@ -1325,7 +1335,10 @@ class CodeEmitterTask extends CompilerTask {
       String getter = '${namer.getterPrefix}$base';
       mangledFieldNames[getter] = name;
       recordedMangledNames.add(getter);
-      return null;
+      // TODO(karlklose,ahe): we do not actually need to store information
+      // about the name of this setter in the output, but it is needed for
+      // marking the function as invokable by reflection.
+      return '$name=';
     }
     if (elementOrSelector is Selector
         || elementOrSelector.isFunction()
@@ -1861,6 +1874,9 @@ class CodeEmitterTask extends CompilerTask {
               buffer.write(FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE]);
             }
           }
+          if (backend.isAccessibleByReflection(field)) {
+            buffer.write(new String.fromCharCode(REFLECTION_MARKER));
+          }
         }
       });
     }
@@ -2300,7 +2316,8 @@ class CodeEmitterTask extends CompilerTask {
       emitStaticFunction(buffer, name, code);
       String reflectionName = getReflectionName(element, name);
       if (reflectionName != null) {
-        buffer.write(',$n$n"+$reflectionName":${_}0');
+        var reflectable = backend.isAccessibleByReflection(element) ? 1 : 0;
+        buffer.write(',$n$n"+$reflectionName":${_}$reflectable');
       }
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       if (bailoutCode != null) {
@@ -2809,8 +2826,7 @@ class CodeEmitterTask extends CompilerTask {
     String noSuchMethodName = namer.publicInstanceMethodNameByArity(
         Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
 
-    Element createInvocationMirrorElement =
-        compiler.findHelper(const SourceString("createInvocationMirror"));
+    Element createInvocationMirrorElement = backend.getCreateInvocationMirror();
     String createInvocationMirrorName =
         namer.getName(createInvocationMirrorElement);
 
@@ -2871,7 +2887,7 @@ class CodeEmitterTask extends CompilerTask {
       }
 
       String createInvocationMirror = namer.getName(
-          compiler.createInvocationMirrorElement);
+          backend.getCreateInvocationMirror());
 
       assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
       jsAst.Expression expression = js('this.$noSuchMethodName')(
@@ -2907,18 +2923,15 @@ class CodeEmitterTask extends CompilerTask {
     return "${namer.isolateAccess(isolateMain)}($mainAccess)";
   }
 
-  String get nameOfDispatchPropertyInitializer => 'initializeDispatchProperty';
-
   jsAst.Expression generateDispatchPropertyInitialization() {
-    String ref(Element element) {
-      return '${namer.CURRENT_ISOLATE}.${namer.getName(element)}';
-    }
-
-    return js(ref(backend.initializeDispatchPropertyMethod))([
-        js.fun(['a'], [ js('${ref(backend.getDispatchPropertyMethod)} = a')]),
-        js.string(generateDispatchPropertyName(0)),
-        js('${ref(backend.jsPlainJavaScriptObjectClass)}.prototype')
-      ]);
+    return js('!#', js.fun([], [
+        js('var objectProto = Object.prototype'),
+        js.for_('var i = 0', null, 'i++', [
+            js('var property = "${generateDispatchPropertyName(0)}"'),
+            js.if_('i > 0', js('property = rootProperty + "_" + i')),
+            js.if_('!(property in  objectProto)',
+                   js.return_(
+                       js('init.dispatchPropertyName = property')))])])());
   }
 
   String generateDispatchPropertyName(int seed) {
@@ -2970,8 +2983,7 @@ class CodeEmitterTask extends CompilerTask {
     scripts[i].addEventListener("load", onLoad, false);
   }
 })(function(currentScript) {
-  ${namer.isolateName}.${namer.isolatePropertiesName}.\$currentScript =
-      currentScript;
+  init.currentScript = currentScript;
 
   if (typeof console !== "undefined" && typeof document !== "undefined" &&
       document.readyState == "loading") {
@@ -3380,6 +3392,10 @@ class CodeEmitterTask extends CompilerTask {
       //    }
       bool containsArray = classes.contains(backend.jsArrayClass);
       bool containsString = classes.contains(backend.jsStringClass);
+      bool containsJsIndexable = classes.any((cls) {
+        return compiler.world.isSubtype(
+            backend.jsIndexingBehaviorInterface, cls);
+      });
       // The index set operator requires a check on its set value in
       // checked mode, so we don't optimize the interceptor if the
       // compiler has type assertions enabled.
@@ -3393,26 +3409,42 @@ class CodeEmitterTask extends CompilerTask {
       jsAst.Expression isIntAndAboveZero = js('a0 >>> 0 === a0');
       jsAst.Expression belowLength = js('a0 < receiver.length');
       jsAst.Expression arrayCheck = js('receiver.constructor == Array');
+      jsAst.Expression indexableCheck =
+          backend.generateIsJsIndexableCall(js('receiver'), js('receiver'));
+
+      jsAst.Expression orExp(left, right) {
+        return left == null ? right : left.binary('||', right);
+      }
 
       if (selector.isIndex()) {
         jsAst.Expression stringCheck = js('typeof receiver == "string"');
         jsAst.Expression typeCheck;
         if (containsArray) {
-          if (containsString) {
-            typeCheck = arrayCheck.binary('||', stringCheck);
-          } else {
-            typeCheck = arrayCheck;
-          }
-        } else {
-          assert(containsString);
-          typeCheck = stringCheck;
+          typeCheck = arrayCheck;
+        }
+
+        if (containsString) {
+          typeCheck = orExp(typeCheck, stringCheck);
+        }
+
+        if (containsJsIndexable) {
+          typeCheck = orExp(typeCheck, indexableCheck);
         }
 
         return js.if_(typeCheck,
                       js.if_(isIntAndAboveZero.binary('&&', belowLength),
                              js.return_(js('receiver[a0]'))));
       } else {
-        jsAst.Expression isImmutableArray = arrayCheck.binary(
+        jsAst.Expression typeCheck;
+        if (containsArray) {
+          typeCheck = arrayCheck;
+        }
+
+        if (containsJsIndexable) {
+          typeCheck = orExp(typeCheck, indexableCheck);
+        }
+
+        jsAst.Expression isImmutableArray = typeCheck.binary(
             '&&', js(r'!receiver.immutable$list'));
         return js.if_(isImmutableArray.binary(
                       '&&', isIntAndAboveZero.binary('&&', belowLength)),
@@ -4030,6 +4062,7 @@ class CodeEmitterTask extends CompilerTask {
   // TODO(ahe): This code should be integrated in finishClasses.
   String getReflectionDataParser() {
     String metadataField = '"${namer.metadataField}"';
+    String reflectableField = namer.reflectableField;
     return '''
 (function (reflectionData) {
 '''
@@ -4078,7 +4111,9 @@ class CodeEmitterTask extends CompilerTask {
         var previousProperty;
         if (firstChar === "+") {
           mangledGlobalNames[previousProperty] = property.substring(1);
-          if (element && element.length) ''' // Breaking long line.
+          descriptor[previousProperty].''' // Break long line.
+'''$reflectableField = (descriptor[property] == 1);
+          if (element && element.length) ''' // Break long line.
 '''init.interfaces[previousProperty] = element;
         } else if (firstChar === "@") {
           property = property.substring(1);
@@ -4097,6 +4132,8 @@ class CodeEmitterTask extends CompilerTask {
               processStatics(init.statics[property] = element[prop]);
             } else if (firstChar === "+") {
               mangledNames[previousProp] = prop.substring(1);
+              element[previousProp].''' // Break long line.
+'''$reflectableField = (element[prop] == 1);
             } else if (firstChar === "@" && prop !== "@") {
               newDesc[prop.substring(1)][$metadataField] = element[prop];
             } else {

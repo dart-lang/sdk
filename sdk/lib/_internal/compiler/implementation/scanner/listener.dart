@@ -595,6 +595,22 @@ class Listener {
   void error(String message, Token token) {
     throw new ParserError("$message @ ${token.charOffset}");
   }
+
+  void reportError(Spannable spannable,
+                   MessageKind errorCode,
+                   [Map arguments = const {}]) {
+    String message = errorCode.error(arguments, true).toString();
+    Token token;
+    Node node;
+    if (spannable is Token) {
+      token = spannable;
+    } else if (spannable is Node) {
+      node = spannable;
+    } else {
+      throw new ParserError(message);
+    }
+    recoverableError(message, token: token, node: node);
+  }
 }
 
 class ParserError {
@@ -1121,6 +1137,12 @@ class ElementListener extends Listener {
       stringCount--;
     }
     pushNode(accumulator);
+  }
+
+  void reportError(Spannable spannable,
+                   MessageKind errorCode,
+                   [Map arguments = const {}]) {
+    listener.reportError(spannable, errorCode, arguments);
   }
 }
 

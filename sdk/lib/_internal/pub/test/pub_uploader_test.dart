@@ -4,8 +4,8 @@
 
 library pub_uploader_test;
 
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
@@ -65,7 +65,7 @@ main() {
 
         request.response.headers.contentType =
             new ContentType("application", "json");
-        request.response.write(json.stringify({
+        request.response.write(JSON.encode({
           'success': {'message': 'Good job!'}
         }));
         request.response.close();
@@ -84,7 +84,7 @@ main() {
     server.handle('DELETE', '/api/packages/pkg/uploaders/email', (request) {
       request.response.headers.contentType =
           new ContentType("application", "json");
-      request.response.write(json.stringify({
+      request.response.write(JSON.encode({
         'success': {'message': 'Good job!'}
       }));
       request.response.close();
@@ -104,7 +104,7 @@ main() {
     server.handle('POST', '/api/packages/test_pkg/uploaders', (request) {
       request.response.headers.contentType =
           new ContentType("application", "json");
-      request.response.write(json.stringify({
+      request.response.write(JSON.encode({
         'success': {'message': 'Good job!'}
       }));
       request.response.close();
@@ -123,7 +123,7 @@ main() {
       request.response.statusCode = 400;
       request.response.headers.contentType =
           new ContentType("application", "json");
-      request.response.write(json.stringify({
+      request.response.write(JSON.encode({
         'error': {'message': 'Bad job!'}
       }));
       request.response.close();
@@ -143,7 +143,7 @@ main() {
       request.response.statusCode = 400;
       request.response.headers.contentType =
           new ContentType("application", "json");
-      request.response.write(json.stringify({
+      request.response.write(JSON.encode({
         'error': {'message': 'Bad job!'}
       }));
       request.response.close();

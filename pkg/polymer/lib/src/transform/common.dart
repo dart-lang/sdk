@@ -13,15 +13,6 @@ import 'package:html5lib/parser.dart' show HtmlParser;
 import 'package:path/path.dart' as path;
 import 'package:source_maps/span.dart' show Span;
 
-// TODO(sigmund): delete this function (see dartbug.com/12515 and
-// dartbug.com/12516)
-Future<String> getPrimaryContent(Transform transform) =>
-  transform.primaryInput.then((asset) => asset.readAsString());
-
-// TODO(sigmund): delete this function (see dartbug.com/12515)
-Future<String> getContent(Transform transform, AssetId id) =>
-  transform.getInput(id).then((asset) => asset.readAsString());
-
 /**
  * Parses an HTML file [contents] and returns a DOM-like tree. Adds emitted
  * error/warning to [logger].

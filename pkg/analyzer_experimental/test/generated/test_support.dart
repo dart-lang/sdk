@@ -1,9 +1,7 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 library engine.test_support;
-import 'dart:collection';
 import 'package:analyzer_experimental/src/generated/java_core.dart';
-import 'package:analyzer_experimental/src/generated/java_engine.dart';
 import 'package:analyzer_experimental/src/generated/java_junit.dart';
 import 'package:analyzer_experimental/src/generated/source.dart';
 import 'package:analyzer_experimental/src/generated/error.dart';
@@ -506,7 +504,7 @@ class EngineTestCase extends JUnitTestCase {
    * @param expectedElements the expected elements
    * @throws AssertionFailedError if the list is `null` or does not have the expected elements
    */
-  static void assertExactElements(List<Object> list, List<Object> expectedElements) {
+  static void assertExactElements(List list, List<Object> expectedElements) {
     int expectedSize = expectedElements.length;
     if (list == null) {
       JUnitTestCase.fail("Expected list of size ${expectedSize}; found null");
@@ -555,7 +553,7 @@ class EngineTestCase extends JUnitTestCase {
    * @param expectedElements the expected elements
    * @throws AssertionFailedError if the list is `null` or does not have the expected elements
    */
-  static void assertExactElements3(Set<Object> set, List<Object> expectedElements) {
+  static void assertExactElements3(Set set, List<Object> expectedElements) {
     int expectedSize = expectedElements.length;
     if (set == null) {
       JUnitTestCase.fail("Expected list of size ${expectedSize}; found null");
@@ -629,7 +627,7 @@ class EngineTestCase extends JUnitTestCase {
    * @throws AssertionFailedError if the list is `null` or does not have the expected number
    *           of elements
    */
-  static void assertSize(int expectedSize, List<Object> list) {
+  static void assertSize(int expectedSize, List list) {
     if (list == null) {
       JUnitTestCase.fail("Expected list of size ${expectedSize}; found null");
     } else if (list.length != expectedSize) {
@@ -645,7 +643,7 @@ class EngineTestCase extends JUnitTestCase {
    * @throws AssertionFailedError if the map is `null` or does not have the expected number of
    *           elements
    */
-  static void assertSize2(int expectedSize, Map<Object, Object> map) {
+  static void assertSize2(int expectedSize, Map map) {
     if (map == null) {
       JUnitTestCase.fail("Expected map of size ${expectedSize}; found null");
     } else if (map.length != expectedSize) {
@@ -661,7 +659,7 @@ class EngineTestCase extends JUnitTestCase {
    * @throws AssertionFailedError if the set is `null` or does not have the expected number of
    *           elements
    */
-  static void assertSize3(int expectedSize, Set<Object> set) {
+  static void assertSize3(int expectedSize, Set set) {
     if (set == null) {
       JUnitTestCase.fail("Expected set of size ${expectedSize}; found null");
     } else if (set.length != expectedSize) {

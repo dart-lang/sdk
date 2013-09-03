@@ -51,7 +51,7 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
   __ PushObject(smi1);  // Push argument 1 smi1.
   __ PushObject(smi2);  // Push argument 2 smi2.
   ASSERT(kTestSmiSubRuntimeEntry.argument_count() == argc);
-  __ CallRuntime(kTestSmiSubRuntimeEntry);  // Call SmiSub runtime func.
+  __ CallRuntime(kTestSmiSubRuntimeEntry, argc);  // Call SmiSub runtime func.
   __ addiu(SP, SP, Immediate(argc * kWordSize));
   __ Pop(V0);  // Pop return value from return slot.
   __ LeaveDartFrameAndReturn();
@@ -85,7 +85,7 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
   __ ReserveAlignedFrameSpace(0);
   __ LoadObject(A0, smi1);  // Set up argument 1 smi1.
   __ LoadObject(A1, smi2);  // Set up argument 2 smi2.
-  __ CallRuntime(kTestLeafSmiAddRuntimeEntry);  // Call SmiAdd runtime func.
+  __ CallRuntime(kTestLeafSmiAddRuntimeEntry, 2);  // Call SmiAdd runtime func.
   __ LeaveDartFrameAndReturn();  // Return value is in V0.
 }
 

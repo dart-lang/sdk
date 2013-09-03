@@ -506,9 +506,13 @@ testPatchNonPatchableOrigin() {
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
   print('testPatchNonPatchableOrigin:${compiler.errors}');
-  Expect.equals(1, compiler.errors.length);
-  Expect.isTrue(
-      compiler.errors[0].message.kind == MessageKind.PATCH_NONPATCHABLE);
+  Expect.equals(2, compiler.errors.length);
+  Expect.equals(
+      MessageKind.EXTRANEOUS_MODIFIER, compiler.errors[0].message.kind);
+  Expect.equals(
+      // TODO(ahe): Eventually, this error should be removed as it will be
+      // handled by the regular parser.
+      MessageKind.PATCH_NONPATCHABLE, compiler.errors[1].message.kind);
 }
 
 testPatchNonExternalTopLevel() {

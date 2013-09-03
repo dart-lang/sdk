@@ -92,7 +92,7 @@ class AudioBuffer extends NativeFieldWrapperClass1 {
 
   @DomName('AudioBuffer.duration')
   @DocsEditable()
-  num get duration native "AudioBuffer_duration_Getter";
+  double get duration native "AudioBuffer_duration_Getter";
 
   @DomName('AudioBuffer.gain')
   @DocsEditable()
@@ -112,7 +112,7 @@ class AudioBuffer extends NativeFieldWrapperClass1 {
 
   @DomName('AudioBuffer.sampleRate')
   @DocsEditable()
-  num get sampleRate native "AudioBuffer_sampleRate_Getter";
+  double get sampleRate native "AudioBuffer_sampleRate_Getter";
 
   @DomName('AudioBuffer.getChannelData')
   @DocsEditable()
@@ -286,7 +286,7 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.currentTime')
   @DocsEditable()
-  num get currentTime native "AudioContext_currentTime_Getter";
+  double get currentTime native "AudioContext_currentTime_Getter";
 
   @DomName('AudioContext.destination')
   @DocsEditable()
@@ -298,7 +298,7 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.sampleRate')
   @DocsEditable()
-  num get sampleRate native "AudioContext_sampleRate_Getter";
+  double get sampleRate native "AudioContext_sampleRate_Getter";
 
   @DomName('AudioContext.createAnalyser')
   @DocsEditable()
@@ -642,15 +642,15 @@ class AudioParam extends NativeFieldWrapperClass1 {
 
   @DomName('AudioParam.defaultValue')
   @DocsEditable()
-  num get defaultValue native "AudioParam_defaultValue_Getter";
+  double get defaultValue native "AudioParam_defaultValue_Getter";
 
   @DomName('AudioParam.maxValue')
   @DocsEditable()
-  num get maxValue native "AudioParam_maxValue_Getter";
+  double get maxValue native "AudioParam_maxValue_Getter";
 
   @DomName('AudioParam.minValue')
   @DocsEditable()
-  num get minValue native "AudioParam_minValue_Getter";
+  double get minValue native "AudioParam_minValue_Getter";
 
   @DomName('AudioParam.name')
   @DocsEditable()

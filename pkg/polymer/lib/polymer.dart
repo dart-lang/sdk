@@ -21,12 +21,10 @@ import 'polymer_element.dart' show registerPolymerElement;
 
 export 'package:custom_element/custom_element.dart';
 export 'package:observe/observe.dart';
+export 'package:observe/html.dart';
 export 'package:observe/src/microtask.dart';
 
-export 'observe.dart';
-export 'observe_html.dart';
 export 'polymer_element.dart';
-export 'safe_html.dart';
 
 
 /** Annotation used to automatically register polymer elements. */

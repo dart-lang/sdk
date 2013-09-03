@@ -238,7 +238,7 @@ static RawInstance* CreateMethodMirror(const Function& func,
   args.SetAt(4, Bool::Get(func.is_abstract()));
   args.SetAt(5, Bool::Get(func.IsGetterFunction()));
   args.SetAt(6, Bool::Get(func.IsSetterFunction()));
-  args.SetAt(7, Bool::Get(func.IsConstructor()));
+  args.SetAt(7, Bool::Get(func.kind() == RawFunction::kConstructor));
   // TODO(mlippautz): Implement different constructor kinds.
   args.SetAt(8, Bool::False());
   args.SetAt(9, Bool::False());
@@ -299,12 +299,25 @@ static RawInstance* CreateClassMirror(const Class& cls,
   }
 
   const Bool& is_generic = Bool::Get(cls.NumTypeParameters() != 0);
+  const Bool& is_mixin_typedef = Bool::Get(cls.is_mixin_typedef());
 
-  const Array& args = Array::Handle(Array::New(4));
+  // If the class is not generic, the mirror must have a non-null runtime type.
+  // If the class is generic, the mirror will have a null runtime type if it
+  // represents the declaration or a non-null runtime type if it represents an
+  // instantiation.
+  ASSERT(!(cls.NumTypeParameters() == 0) || !type.IsNull());
+
+  const Array& args = Array::Handle(Array::New(5));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
   args.SetAt(1, type);
-  args.SetAt(2, String::Handle(cls.UserVisibleName()));
+  // We do not set the names of anonymous mixin applications because the mirrors
+  // use a different naming convention than the VM (lib.S with lib.M and S&M
+  // respectively).
+  if ((cls.mixin() == Type::null()) || cls.is_mixin_typedef()) {
+    args.SetAt(2, String::Handle(cls.UserVisibleName()));
+  }
   args.SetAt(3, is_generic);
+  args.SetAt(4, is_mixin_typedef);
   return CreateMirror(Symbols::_LocalClassMirrorImpl(), args);
 }
 
@@ -512,11 +525,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_library, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Class& klass = Class::Handle(ref.GetClassReferent());
   const Library& library = Library::Handle(klass.library());
-  // TODO(rmacnak): Revisit when we decide what to do about
-  // reflectClass(dynamic).
-  if (library.IsNull()) {
-    return Instance::null();
-  }
+  ASSERT(!library.IsNull());
   return CreateLibraryMirror(library);
 }
 
@@ -538,6 +547,13 @@ DEFINE_NATIVE_ENTRY(ClassMirror_interfaces, 1) {
   }
 
   return klass.interfaces();
+}
+
+
+DEFINE_NATIVE_ENTRY(ClassMirror_mixin, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Class& klass = Class::Handle(ref.GetClassReferent());
+  return klass.mixin();
 }
 
 
@@ -632,6 +648,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
   Object& entry = Object::Handle();
   DictionaryIterator entries(library);
 
+  AbstractType& type = AbstractType::Handle();
+
   while (entries.HasNext()) {
     entry = entries.GetNext();
     if (entry.IsClass()) {
@@ -641,9 +659,13 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
       if (!klass.IsCanonicalSignatureClass() &&
           !klass.IsDynamicClass() &&
           !RawObject::IsImplementationClassId(klass.id())) {
-        member_mirror = CreateClassMirror(klass,
-                                          AbstractType::Handle(),
-                                          owner_mirror);
+        if (klass.NumTypeParameters() == 0) {
+          // Include runtime type for non-generics only.
+          type = RawTypeOfClass(klass);
+        } else {
+          type = AbstractType::null();
+        }
+        member_mirror = CreateClassMirror(klass, type, owner_mirror);
         member_mirrors.Add(member_mirror);
       }
     } else if (entry.IsField()) {
@@ -713,7 +735,11 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
 
 DEFINE_NATIVE_ENTRY(TypeVariableMirror_owner, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
-  return CreateClassMirror(Class::Handle(param.parameterized_class()),
+  const Class& owner = Class::Handle(param.parameterized_class());
+  // The owner of a type variable must be a generic class: pass a null runtime
+  // type to get a mirror on the declaration.
+  ASSERT(owner.NumTypeParameters() != 0);
+  return CreateClassMirror(owner,
                            AbstractType::Handle(),
                            Instance::null_instance());
 }
@@ -1278,9 +1304,13 @@ DEFINE_NATIVE_ENTRY(MethodMirror_owner, 1) {
   if (owner.IsTopLevel()) {
     return CreateLibraryMirror(Library::Handle(owner.library()));
   }
-  return CreateClassMirror(owner,
-                           AbstractType::Handle(),
-                           Object::null_instance());
+
+  AbstractType& type = AbstractType::Handle();
+  if (owner.NumTypeParameters() == 0) {
+    // Include runtime type for non-generics only.
+    type = RawTypeOfClass(owner);
+  }
+  return CreateClassMirror(owner, type, Object::null_instance());
 }
 
 

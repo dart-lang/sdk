@@ -4,8 +4,8 @@
 
 library oauth2.utils;
 
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 
 import 'package:http/http.dart' as http;
 import 'package:scheduled_test/scheduled_process.dart';
@@ -45,7 +45,7 @@ void handleAccessTokenRequest(ScheduledServer server, String accessToken) {
 
       request.response.headers.contentType =
           new ContentType("application", "json");
-      request.response.write(json.stringify({
+      request.response.write(JSON.encode({
         "access_token": accessToken,
         "token_type": "bearer"
       }));

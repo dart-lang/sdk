@@ -4,7 +4,7 @@
 
 library handle_access_token_response_test;
 
-import 'dart:json' as JSON;
+import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:oauth2/oauth2.dart' as oauth2;
@@ -70,28 +70,28 @@ void main() {
     });
 
     test('with a non-string error_description causes a FormatException', () {
-      expect(() => handleError(body: JSON.stringify({
+      expect(() => handleError(body: JSON.encode({
         "error": "invalid_request",
         "error_description": 12
       })), throwsFormatException);
     });
 
     test('with a non-string error_uri causes a FormatException', () {
-      expect(() => handleError(body: JSON.stringify({
+      expect(() => handleError(body: JSON.encode({
         "error": "invalid_request",
         "error_uri": 12
       })), throwsFormatException);
     });
 
     test('with a string error_description causes a AuthorizationException', () {
-      expect(() => handleError(body: JSON.stringify({
+      expect(() => handleError(body: JSON.encode({
         "error": "invalid_request",
         "error_description": "description"
       })), throwsAuthorizationException);
     });
 
     test('with a string error_uri causes a AuthorizationException', () {
-      expect(() => handleError(body: JSON.stringify({
+      expect(() => handleError(body: JSON.encode({
         "error": "invalid_request",
         "error_uri": "http://example.com/error"
       })), throwsAuthorizationException);
@@ -106,7 +106,7 @@ void main() {
          expiresIn,
          refreshToken,
          scope}) {
-      return handle(new http.Response(JSON.stringify({
+      return handle(new http.Response(JSON.encode({
         'access_token': accessToken,
         'token_type': tokenType,
         'expires_in': expiresIn,

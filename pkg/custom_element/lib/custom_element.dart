@@ -471,28 +471,12 @@ class CustomElement implements Element {
 
   int get scrollWidth => host.scrollWidth;
 
-  String $dom_getAttribute(String name) =>
-      host.$dom_getAttribute(name);
-
-  String $dom_getAttributeNS(String namespaceUri, String localName) =>
-      host.$dom_getAttributeNS(namespaceUri, localName);
-
-  String $dom_setAttributeNS(
-      String namespaceUri, String localName, String value) {
-    host.$dom_setAttributeNS(namespaceUri, localName, value);
-  }
-
   Rect getBoundingClientRect() => host.getBoundingClientRect();
 
   List<Rect> getClientRects() => host.getClientRects();
 
   List<Node> getElementsByClassName(String name) =>
       host.getElementsByClassName(name);
-
-  void $dom_setAttribute(String name, String value) =>
-      host.$dom_setAttribute(name, value);
-
-  List<Node> get $dom_childNodes => host.$dom_childNodes;
 
   Node get firstChild => host.firstChild;
 

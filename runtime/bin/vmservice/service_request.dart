@@ -36,7 +36,7 @@ class ServiceRequest {
   }
 
   void setErrorResponse(String error) {
-    _response = JSON.stringify({
+    _response = JSON.encode({
         'type': 'error',
         'msg': error,
         'pathSegments': pathSegments,

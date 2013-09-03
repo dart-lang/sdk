@@ -58,6 +58,7 @@ FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
     last_used_block_id_(0),  // 0 is used for the graph entry.
     context_level_(0),
     try_index_(CatchClauseNode::kInvalidTryIndex),
+    catch_try_index_(CatchClauseNode::kInvalidTryIndex),
     loop_depth_(0),
     graph_entry_(NULL),
     args_pushed_(0),
@@ -2753,6 +2754,7 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
           node->token_pos(),
           node->cls(),
           getter_name,
+          NULL,  // No Arguments to getter.
           InvocationMirror::EncodeType(
               node->cls().IsTopLevel() ?
                   InvocationMirror::kTopLevel :
@@ -2802,10 +2804,13 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
           result_is_needed);  // Save last arg if result is needed.
     } else {
       // Throw a NoSuchMethodError.
+      ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
+      arguments->Add(node->value());
       call = BuildThrowNoSuchMethodError(
           node->token_pos(),
           node->cls(),
           setter_name,
+          arguments,  // Argument is the value passed to the setter.
           InvocationMirror::EncodeType(
             node->cls().IsTopLevel() ?
                 InvocationMirror::kTopLevel :
@@ -2875,16 +2880,21 @@ static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
 }
 
 
+static LoadLocalInstr* BuildLoadThisVar(LocalScope* scope) {
+  LocalVariable* receiver_var = scope->LookupVariable(Symbols::This(),
+                                                      true);  // Test only.
+  return new LoadLocalInstr(*receiver_var);
+}
+
+
 void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
   const Function& function = owner()->parsed_function()->function();
   if (!function.IsClosureFunction()) {
     MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
     switch (kind) {
-      case MethodRecognizer::kStringBaseLength: {
-        LocalVariable* receiver_var =
-            node->scope()->LookupVariable(Symbols::This(),
-                                          true);  // Test only.
-        Value* receiver = Bind(new LoadLocalInstr(*receiver_var));
+      case MethodRecognizer::kStringBaseLength:
+      case MethodRecognizer::kStringBaseIsEmpty: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
         // Treat length loads as mutable (i.e. affected by side effects) to
         // avoid hoisting them since we can't hoist the preceding class-check.
         // This is because of externalization of strings that affects their
@@ -2897,16 +2907,24 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
             is_immutable);
         load->set_result_cid(kSmiCid);
         load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
-        return ReturnDefinition(load);
+        if (kind == MethodRecognizer::kStringBaseLength) {
+          return ReturnDefinition(load);
+        }
+        ASSERT(kind == MethodRecognizer::kStringBaseIsEmpty);
+        Value* zero_val = Bind(new ConstantInstr(Smi::ZoneHandle(Smi::New(0))));
+        Value* load_val = Bind(load);
+        StrictCompareInstr* compare =
+            new StrictCompareInstr(node->token_pos(),
+                                   Token::kEQ_STRICT,
+                                   load_val,
+                                   zero_val);
+        return ReturnDefinition(compare);
       }
       case MethodRecognizer::kGrowableArrayLength:
       case MethodRecognizer::kObjectArrayLength:
       case MethodRecognizer::kImmutableArrayLength:
       case MethodRecognizer::kTypedDataLength: {
-        LocalVariable* receiver_var =
-            node->scope()->LookupVariable(Symbols::This(),
-                                          true);  // Test only.
-        Value* receiver = Bind(new LoadLocalInstr(*receiver_var));
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
         const bool is_immutable =
             (kind != MethodRecognizer::kGrowableArrayLength);
         LoadFieldInstr* load = new LoadFieldInstr(
@@ -2917,6 +2935,27 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         load->set_result_cid(kSmiCid);
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
+      }
+      case MethodRecognizer::kObjectCid: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        LoadClassIdInstr* load = new LoadClassIdInstr(receiver);
+        return ReturnDefinition(load);
+      }
+      case MethodRecognizer::kGrowableArrayCapacity: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        LoadFieldInstr* data_load = new LoadFieldInstr(
+            receiver,
+            Array::data_offset(),
+            Type::ZoneHandle(Type::DynamicType()));
+        data_load->set_result_cid(kArrayCid);
+        Value* data = Bind(data_load);
+        LoadFieldInstr* length_load = new LoadFieldInstr(
+            data,
+            Array::length_offset(),
+            Type::ZoneHandle(Type::SmiType()));
+        length_load->set_result_cid(kSmiCid);
+        length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
+        return ReturnDefinition(length_load);
       }
       default:
         break;
@@ -3428,7 +3467,7 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
 void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   InlineBailout("EffectGraphVisitor::VisitTryCatchNode (exception)");
   intptr_t original_handler_index = owner()->try_index();
-  intptr_t try_handler_index = node->try_index();
+  const intptr_t try_handler_index = node->try_index();
   ASSERT(try_handler_index != original_handler_index);
   owner()->set_try_index(try_handler_index);
 
@@ -3464,9 +3503,13 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
       ? original_handler_index
       : catch_block->catch_handler_index();
 
+  const intptr_t prev_catch_try_index = owner()->catch_try_index();
+
   owner()->set_try_index(catch_handler_index);
+  owner()->set_catch_try_index(try_handler_index);
   EffectGraphVisitor for_catch(owner(), temp_index());
   catch_block->Visit(&for_catch);
+  owner()->set_catch_try_index(prev_catch_try_index);
 
   // NOTE: The implicit variables ':saved_context', ':exception_var'
   // and ':stacktrace_var' can never be captured variables.
@@ -3479,7 +3522,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
                                catch_block->handler_types(),
                                try_handler_index,
                                catch_block->exception_var(),
-                               catch_block->stacktrace_var());
+                               catch_block->stacktrace_var(),
+                               catch_block->needs_stacktrace());
   owner()->AddCatchEntry(catch_entry);
   ASSERT(!for_catch.is_open());
   AppendFragment(catch_entry, for_catch);
@@ -3507,7 +3551,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
       Value* stacktrace = for_finally.Bind(
           for_finally.BuildLoadLocal(catch_block->stacktrace_var()));
       for_finally.PushArgument(stacktrace);
-      for_finally.AddInstruction(new ReThrowInstr(catch_block->token_pos()));
+      for_finally.AddInstruction(
+          new ReThrowInstr(catch_block->token_pos(), catch_handler_index));
       for_finally.CloseFragment();
     }
     ASSERT(!for_finally.is_open());
@@ -3520,7 +3565,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
                                  types,
                                  catch_handler_index,
                                  catch_block->exception_var(),
-                                 catch_block->stacktrace_var());
+                                 catch_block->stacktrace_var(),
+                                 catch_block->needs_stacktrace());
     owner()->AddCatchEntry(finally_entry);
     AppendFragment(finally_entry, for_finally);
   }
@@ -3571,6 +3617,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
     intptr_t token_pos,
     const Class& function_class,
     const String& function_name,
+    ArgumentListNode* function_arguments,
     int invocation_type) {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>();
@@ -3595,13 +3642,25 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
       Smi::ZoneHandle(Smi::New(invocation_type))));
   arguments->Add(PushArgument(invocation_type_value));
   // List arguments.
-  // TODO(regis): Pass arguments.
-  Value* arguments_value = Bind(new ConstantInstr(Array::ZoneHandle()));
-  arguments->Add(PushArgument(arguments_value));
+  if (function_arguments == NULL) {
+    Value* arguments_value = Bind(new ConstantInstr(Array::ZoneHandle()));
+    arguments->Add(PushArgument(arguments_value));
+  } else {
+    ValueGraphVisitor array_val(owner(), temp_index());
+    ArrayNode* array =
+        new ArrayNode(token_pos, Type::ZoneHandle(Type::ArrayType()),
+                      function_arguments->nodes());
+    array->Visit(&array_val);
+    Append(array_val);
+    arguments->Add(PushArgument(array_val.value()));
+  }
   // List argumentNames.
-  Value* argument_names_value =
-      Bind(new ConstantInstr(Array::ZoneHandle()));
+  ConstantInstr* cinstr = new ConstantInstr(
+      (function_arguments == NULL) ? Array::ZoneHandle()
+                                   : function_arguments->names());
+  Value* argument_names_value = Bind(cinstr);
   arguments->Add(PushArgument(argument_names_value));
+
   // List existingArgumentNames.
   Value* existing_argument_names_value =
       Bind(new ConstantInstr(Array::ZoneHandle()));
@@ -3639,7 +3698,7 @@ void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
     node->stacktrace()->Visit(&for_stack_trace);
     Append(for_stack_trace);
     PushArgument(for_stack_trace.value());
-    instr = new ReThrowInstr(node->token_pos());
+    instr = new ReThrowInstr(node->token_pos(), owner()->catch_try_index());
   }
   AddInstruction(instr);
 }

@@ -22,9 +22,6 @@ spawn_uri_negative_test: Fail
 spawn_uri_vm_negative_test: Fail
 unresolved_ports_negative_test: Fail
 
-[ $compiler == dart2analyzer ]
-isolate_import_negative_test: Fail
-
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests
 illegal_msg_stream_test: Fail # Issue 6750

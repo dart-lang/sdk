@@ -7,7 +7,7 @@ library test.invoke_test;
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
-import '../../async_helper.dart';
+import "package:async_helper/async_helper.dart";
 
 class C {
   var _field;

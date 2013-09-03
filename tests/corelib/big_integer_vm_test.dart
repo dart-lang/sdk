@@ -73,6 +73,17 @@ class BigIntegerTest {
     Expect.equals(20000000000000.0, b * a);
   }
 
+  static testBigintHugeMul() {
+    var block = 28 * 256;   // 28 bit chunks with 8 bit 'carry' in a DoubleChunk.
+    var bits = block * 32;  // plenty of blocks in longest column sum;
+    var a = 1 << bits;
+    var a1 = a - 1;      // all 1's
+    var p1 = a1 * a1;
+    var p2 = a * a - a - a + 1;
+    // Use isTrue instead of equals to avoid trying to print such big numbers.
+    Expect.isTrue(p1 == p2, 'products do not match');
+  }
+
   static testBigintTruncDiv() {
     var a = 12345678901234567890;
     var b = 10;
@@ -160,6 +171,7 @@ class BigIntegerTest {
     testBigintAdd();
     testBigintSub();
     testBigintMul();
+    testBigintHugeMul();
     testBigintModulo();
     testBigintTruncDiv();
     testBigintDiv();

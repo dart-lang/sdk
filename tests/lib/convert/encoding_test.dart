@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:convert';
 import 'unicode_tests.dart';
-import '../../async_helper.dart';
+import "package:async_helper/async_helper.dart";
 
 void runTest(List<int> bytes, expected) {
   var controller = new StreamController();

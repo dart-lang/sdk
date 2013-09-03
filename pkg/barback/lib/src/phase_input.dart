@@ -11,6 +11,7 @@ import 'asset.dart';
 import 'asset_forwarder.dart';
 import 'asset_node.dart';
 import 'errors.dart';
+import 'phase.dart';
 import 'stream_pool.dart';
 import 'transform_node.dart';
 import 'transformer.dart';

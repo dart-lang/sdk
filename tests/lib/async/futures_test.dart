@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library futures_test;
+import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'dart:isolate';
 
 Future testWaitEmpty() {
   List<Future> futures = new List<Future>();
@@ -114,11 +114,9 @@ main() {
   futures.add(testForEach());
   futures.add(testForEachWithException());
 
-  // Use a receive port for blocking the test.
-  // Note that if the test fails, the program will not end.
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   Future.wait(futures).then((List list) {
     Expect.equals(9, list.length);
-    port.close();
+    asyncEnd();
   });
 }

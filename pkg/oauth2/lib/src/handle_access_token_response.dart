@@ -5,7 +5,7 @@
 library handle_access_token_response;
 
 import 'dart:io';
-import 'dart:json' as JSON;
+import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
@@ -39,7 +39,7 @@ Credentials handleAccessTokenResponse(
 
   var parameters;
   try {
-    parameters = JSON.parse(response.body);
+    parameters = JSON.decode(response.body);
   } on FormatException catch (e) {
     validate(false, 'invalid JSON');
   }
@@ -108,7 +108,7 @@ void _handleErrorResponse(http.Response response, Uri tokenEndpoint) {
 
   var parameters;
   try {
-    parameters = JSON.parse(response.body);
+    parameters = JSON.decode(response.body);
   } on FormatException catch (e) {
     validate(false, 'invalid JSON');
   }

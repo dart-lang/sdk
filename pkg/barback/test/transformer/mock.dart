@@ -30,16 +30,19 @@ abstract class MockTransformer extends Transformer {
   /// The number of currently running transforms.
   int _runningTransforms = 0;
 
-  // A completer for pausing the transformer before it finishes running [apply].
+  /// A completer for pausing the transformer before it finishes running [apply].
   Completer _apply;
 
-  // Completers for pausing the transformer before it finishes running
-  // [isPrimary].
+  /// Completers for pausing the transformer before it finishes running
+  /// [isPrimary].
   final _isPrimary = new Map<AssetId, Completer>();
 
-  // Completers for pausing the transformer before it finishes getting inputs
-  // the [Transform].
+  /// Completers for pausing the transformer before it finishes getting inputs
+  /// the [Transform].
   final _getInput = new Map<AssetId, Completer>();
+
+  /// Completer for pausing the transformer before it accesses [primaryInput].
+  Completer _primaryInput;
 
   /// A completer that completes once this transformer begins running.
   ///
@@ -99,8 +102,8 @@ abstract class MockTransformer extends Transformer {
     }, "resume isPrimary($name) for $this");
   }
 
-  /// Causes the transformer to pause while loading the input with the given
-  /// [name]. This can be the primary input or a secondary input.
+  /// Causes the transformer to pause while loading the secondary input with
+  /// the given [name].
   ///
   /// This can be resumed by calling [resumeGetInput]. This operation is
   /// scheduled.
@@ -120,6 +123,27 @@ abstract class MockTransformer extends Transformer {
     }, "resume getInput($name) for $this");
   }
 
+  /// Causes the transformer to pause before accessing [primaryInput].
+  ///
+  /// This can be resumed by calling [resumeGetPrimary]. This operation is
+  /// scheduled.
+  void pausePrimaryInput() {
+    schedule(() {
+      _primaryInput = new Completer();
+    }, "pause primaryInput for $this");
+  }
+
+  /// Resumes the transformer's invocation of [primaryInput] after
+  /// [pauseGetPrimary] was called.
+  ///
+  /// This operation is scheduled.
+  void resumePrimaryInput() {
+    schedule(() {
+      _primaryInput.complete();
+      _primaryInput = null;
+    }, "resume getPrimary() for $this");
+  }
+
   /// Like [Transform.getInput], but respects [pauseGetInput].
   ///
   /// This is intended for use by subclasses of [MockTransformer].
@@ -129,11 +153,14 @@ abstract class MockTransformer extends Transformer {
     }).then((_) => transform.getInput(id));
   }
 
-  /// Like [Transform.primaryInput], but respects [pauseGetInput].
+  /// Like [Transform.primaryInput], but respects [pauseGetPrimary].
   ///
   /// This is intended for use by subclasses of [MockTransformer].
-  Future<Asset> getPrimary(Transform transform) =>
-      getInput(transform, transform.primaryId);
+  Future<Asset> getPrimary(Transform transform) {
+    return newFuture(() {
+      if (_primaryInput != null) return _primaryInput.future;
+    }).then((_) => transform.primaryInput);
+  }
 
   Future<bool> isPrimary(Asset asset) {
     return newFuture(() => doIsPrimary(asset)).then((result) {

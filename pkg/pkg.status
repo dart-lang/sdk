@@ -20,6 +20,9 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
 # Skip test not runnable via test.dart
 third_party/html5lib/test/dom_compat_test: Skip
+third_party/html5lib/test/browser/browser_test: Skip
+
+polymer_expressions/test/syntax_test: Skip # Issue 12954
 
 [ $compiler == dart2js && $runtime == d8 ]
 unmodifiable_collection/test/unmodifiable_collection_test: Pass, Fail # Issue 12429
@@ -56,6 +59,7 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 [ $runtime == ie9 ]
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
+sequence_zip/test/stream_test: Pass, Fail # Flaky, issue 12873
 
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
@@ -111,7 +115,7 @@ crypto/test/sha1_test: Slow, Pass
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/generated/resolver_test: Fail, OK # Uses dart:io.
-analyzer_experimental/test/options_test: Fail, OK # Uses dart:io.
+analyzer_experimental/test/options_test: Fail, OK, Pass # Uses dart:io.
 analyzer_experimental/test/services/formatter_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/parse_compilation_unit_test: Fail, OK # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
@@ -203,3 +207,13 @@ third_party/html5lib/test/browser/browser_test: Skip
 
 [ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
 docgen/test/single_library_test: Skip # Uses dart:io
+
+[ $browser || $runtime == vm ]
+unittest/test/missing_tick_test: Fail, OK # This test should fail, not time out.
+
+# Issue http://dartbug.com/12930
+[ $runtime == vm ]
+intl/test/message_extraction/message_extraction_test: Pass, Fail # Issue 12930
+
+[ $compiler == none && $runtime == drt && $arch == ia32 ]
+custom_element/test/custom_element_test: Fail, Pass # http://dartbug.com/12964

@@ -452,7 +452,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitFieldDeclaration(FieldDeclaration node) {
-    modifier(node.keyword);
+    modifier(node.staticKeyword);
     visit(node.fields);
     token(node.semicolon);
   }
@@ -671,7 +671,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitListLiteral(ListLiteral node) {
-    modifier(node.modifier);
+    modifier(node.constKeyword);
     visit(node.typeArguments);
     token(node.leftBracket);
     visitNodes(node.elements, separatedBy: commaSeperator);
@@ -679,7 +679,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitMapLiteral(MapLiteral node) {
-    modifier(node.modifier);
+    modifier(node.constKeyword);
     visitNode(node.typeArguments, followedBy: space);
     token(node.leftBracket);
     visitNodes(node.entries, separatedBy: commaSeperator);
@@ -906,7 +906,7 @@ class SourceVisitor implements ASTVisitor {
     visit(node.body);
     visitNodes(node.catchClauses, precededBy: space, separatedBy: space);
     token(node.finallyKeyword, precededBy: space, followedBy: space);
-    visit(node.finallyClause);
+    visit(node.finallyBlock);
   }
 
   visitTypeArgumentList(TypeArgumentList node) {

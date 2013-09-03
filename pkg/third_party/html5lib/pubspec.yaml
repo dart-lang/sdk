@@ -4,6 +4,7 @@ description: A library for working with HTML documents.
 homepage: https://github.com/dart-lang/html5lib
 dependencies:
   source_maps: any
+  utf: any
 dev_dependencies:
   browser: any
   path: any

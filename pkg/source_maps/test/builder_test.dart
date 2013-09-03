@@ -4,7 +4,7 @@
 
 library test.source_maps_test;
 
-import 'dart:json' as json;
+import 'dart:convert';
 import 'package:unittest/unittest.dart';
 import 'package:source_maps/source_maps.dart';
 import 'common.dart';
@@ -27,6 +27,6 @@ main() {
         ..addLocation(inputVar2.start, outputVar2.start, 'longVar2')
         ..addLocation(inputExpr.start, outputExpr.start, null))
         .toJson(output.url);
-    expect(str, json.stringify(EXPECTED_MAP));
+    expect(str, JSON.encode(EXPECTED_MAP));
   });
 }

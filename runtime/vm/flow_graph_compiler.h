@@ -285,6 +285,7 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateCallRuntime(intptr_t token_pos,
                            intptr_t deopt_id,
                            const RuntimeEntry& entry,
+                           intptr_t argument_count,
                            LocationSummary* locs);
 
   void GenerateCall(intptr_t token_pos,
@@ -401,7 +402,9 @@ class FlowGraphCompiler : public ValueObject {
   void AddExceptionHandler(intptr_t try_index,
                            intptr_t outer_try_index,
                            intptr_t pc_offset,
-                           const Array& handler_types);
+                           const Array& handler_types,
+                           bool needs_stacktrace);
+  void SetNeedsStacktrace(intptr_t try_index);
   void AddCurrentDescriptor(PcDescriptors::Kind kind,
                             intptr_t deopt_id,
                             intptr_t token_pos);

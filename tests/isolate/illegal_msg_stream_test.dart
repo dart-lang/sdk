@@ -6,7 +6,7 @@ library test;
 
 import 'package:expect/expect.dart';
 import 'dart:isolate';
-import '../async_helper.dart';
+import "package:async_helper/async_helper.dart";
 
 funcFoo(x) => x + 2;
 

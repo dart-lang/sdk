@@ -5,7 +5,7 @@
 library credentials;
 
 import 'dart:async';
-import 'dart:json' as JSON;
+import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
@@ -80,7 +80,7 @@ class Credentials {
 
     var parsed;
     try {
-      parsed = JSON.parse(json);
+      parsed = JSON.decode(json);
     } on FormatException catch (e) {
       validate(false, 'invalid JSON');
     }
@@ -125,7 +125,7 @@ class Credentials {
   /// Serializes a set of credentials to JSON. Nothing is guaranteed about the
   /// output except that it's valid JSON and compatible with
   /// [Credentials.toJson].
-  String toJson() => JSON.stringify({
+  String toJson() => JSON.encode({
     'accessToken': accessToken,
     'refreshToken': refreshToken,
     'tokenEndpoint': tokenEndpoint == null ? null : tokenEndpoint.toString(),

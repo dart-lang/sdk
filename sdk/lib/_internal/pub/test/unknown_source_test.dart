@@ -4,7 +4,7 @@
 
 library pub_tests;
 
-import 'dart:json' as json;
+import 'dart:convert';
 
 import 'descriptor.dart' as d;
 import 'test_pub.dart';
@@ -48,7 +48,7 @@ main() {
 
       // But lock it to a bad one.
       d.dir(appPath, [
-        d.file("pubspec.lock", json.stringify({
+        d.file("pubspec.lock", JSON.encode({
           'packages': {
             'foo': {
               'version': '0.0.0',

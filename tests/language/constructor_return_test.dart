@@ -8,10 +8,18 @@ import "package:expect/expect.dart";
 // statements in the form 'return;'.
 class A {
   int x;
-  A(this.x) { return; } // 'return;' is equivalent to 'return this;'
+  A(this.x) { return; }
+  A.test1(this.x) {
+    return this;  /// 01: compile-time error
+  }
+  A.test2(this.x) {
+    return null;  /// 02: compile-time error
+  }
   int foo(int y) => x + y;
 }
 
 main() {
   Expect.equals((new A(1)).foo(10), 11);
+  Expect.equals((new A.test1(1)).foo(10), 11);
+  Expect.equals((new A.test2(1)).foo(10), 11);
 }

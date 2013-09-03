@@ -21,7 +21,7 @@ namespace dart {
 //   SP : points to the arguments and return value array.
 //   S5 : address of the runtime function to call.
 //   S4 : number of arguments to the call.
-void RuntimeEntry::Call(Assembler* assembler) const {
+void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   // Compute the effective address. When running under the simulator,
   // this is a redirection address that forces the simulator to call
   // into the runtime system.
@@ -29,23 +29,26 @@ void RuntimeEntry::Call(Assembler* assembler) const {
 #if defined(USING_SIMULATOR)
   // Redirection to leaf runtime calls supports a maximum of 4 arguments passed
   // in registers (maximum 2 double arguments for leaf float runtime calls).
-  ASSERT(argument_count() >= 0);
+  ASSERT(argument_count >= 0);
   ASSERT(!is_leaf() ||
-         (!is_float() && (argument_count() <= 4)) ||
-         (argument_count() <= 2));
+         (!is_float() && (argument_count <= 4)) ||
+         (argument_count <= 2));
   Simulator::CallKind call_kind =
       is_leaf() ? (is_float() ? Simulator::kLeafFloatRuntimeCall
                               : Simulator::kLeafRuntimeCall)
                 : Simulator::kRuntimeCall;
   entry =
-      Simulator::RedirectExternalReference(entry, call_kind, argument_count());
+      Simulator::RedirectExternalReference(entry, call_kind, argument_count);
 #endif
   if (is_leaf()) {
+    ASSERT(argument_count == this->argument_count());
     ExternalLabel label(name(), entry);
     __ BranchLink(&label);
   } else {
+    // Argument count is not checked here, but in the runtime entry for a more
+    // informative error message.
     __ LoadImmediate(S5, entry);
-    __ LoadImmediate(S4, argument_count());
+    __ LoadImmediate(S4, argument_count);
     __ BranchLink(&StubCode::CallToRuntimeLabel());
   }
 }

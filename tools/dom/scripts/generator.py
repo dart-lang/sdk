@@ -21,6 +21,8 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'EventHandler',
     'MediaQueryListListener',
     'MutationCallback',
+    'NavigatorID',
+    'NavigatorOnLine',
     'ParentNode',
     'SVGExternalResourcesRequired',
     'SVGFilterPrimitiveStandardAttributes',
@@ -98,7 +100,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
         #                    IE                   Firefox
         'CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties',
 
-    'DOMApplicationCache':
+    'ApplicationCache':
         'ApplicationCache,DOMApplicationCache,OfflineResourceList',
 
     'HTMLTableCellElement':
@@ -109,7 +111,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'IDBOpenDBRequest':
         'IDBOpenDBRequest,IDBVersionChangeRequest',
 
-    'MouseEvent': 'MouseEvent,DragEvent',
+    'MouseEvent': 'MouseEvent,DragEvent,PointerEvent,MSPointerEvent',
 
     'MutationObserver': 'MutationObserver,WebKitMutationObserver',
 

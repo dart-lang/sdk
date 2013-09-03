@@ -83,6 +83,57 @@ class StackTraceTest {
   }
 }
 
+
+// Test that the full stack trace is generated for rethrow.
+class RethrowStacktraceTest {
+  var config = 0;
+
+  issue12940() {
+    throw "Progy";
+  }
+
+  b() {
+    issue12940();
+  }
+
+  c() {
+    if (config == 0) {
+      try {
+        b();
+      } catch (e) {
+        rethrow;
+      }
+    } else {
+      try {
+        b();
+      } catch (e, s) {
+        rethrow;
+      }
+    }
+  }
+
+  d() {
+    c();
+  }
+
+  testBoth() {
+    for (config = 0; config < 2; config++) {
+      try {
+        d();
+      } catch (e, s) {
+        Expect.isTrue(s.toString().contains("issue12940"));
+      }
+    }
+  }
+
+  static testMain() {
+    var test = new RethrowStacktraceTest();
+    test.testBoth();
+  }
+}
+
+
 main() {
   StackTraceTest.testMain();
+  RethrowStacktraceTest.testMain();
 }

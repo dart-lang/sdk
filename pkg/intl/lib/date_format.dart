@@ -252,7 +252,8 @@ class DateFormat {
 
   /**
    * Given user input, attempt to parse the [inputString] into the anticipated
-   * format, treating it as being in the local timezone.
+   * format, treating it as being in the local timezone. If [inputString] does
+   * not match our format, throws a [FormatException].
    */
   DateTime parse(String inputString, [utc = false]) {
     // TODO(alanknight): The Closure code refers to special parsing of numeric

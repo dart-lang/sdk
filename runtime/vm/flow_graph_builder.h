@@ -128,6 +128,10 @@ class FlowGraphBuilder: public ValueObject {
   void set_try_index(intptr_t value) { try_index_ = value; }
   intptr_t try_index() const { return try_index_; }
 
+  // Manage the currently active catch-handler try index.
+  void set_catch_try_index(intptr_t value) { catch_try_index_ = value; }
+  intptr_t catch_try_index() const { return catch_try_index_; }
+
   void AddCatchEntry(CatchBlockEntryInstr* entry);
 
   intptr_t num_copied_params() const {
@@ -169,6 +173,7 @@ class FlowGraphBuilder: public ValueObject {
   intptr_t last_used_block_id_;
   intptr_t context_level_;
   intptr_t try_index_;
+  intptr_t catch_try_index_;
   intptr_t loop_depth_;
   GraphEntryInstr* graph_entry_;
 
@@ -356,10 +361,12 @@ class EffectGraphVisitor : public AstNodeVisitor {
       ArgumentListNode* method_arguments,
       bool save_last_arg);
 
-  StaticCallInstr* BuildThrowNoSuchMethodError(intptr_t token_pos,
-                                               const Class& function_class,
-                                               const String& function_name,
-                                               int invocation_type);
+  StaticCallInstr* BuildThrowNoSuchMethodError(
+      intptr_t token_pos,
+      const Class& function_class,
+      const String& function_name,
+      ArgumentListNode* function_arguments,
+      int invocation_type);
 
   void BuildStaticSetter(StaticSetterNode* node, bool result_is_needed);
   Definition* BuildStoreStaticField(StoreStaticFieldNode* node,

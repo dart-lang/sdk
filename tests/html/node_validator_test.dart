@@ -87,6 +87,11 @@ main() {
         '<div><script></script><script></script></div>',
         '<div></div>');
 
+    testHtml('blocks inline styles',
+        validator,
+        '<div style="background: red"></div>',
+        '<div></div>');
+
     testHtml('blocks namespaced attributes',
         validator,
         '<div ns:foo="foo"></div>',
@@ -372,6 +377,34 @@ main() {
         '<svg xmlns="http://www.w3.org/2000/svg>'
           '<foreignobject width="100" height="150"></foreignobject>'
         '</svg>');
+    });
+
+    group('allowInlineStyles', () {
+      var validator = new NodeValidatorBuilder()
+          ..allowTextElements()
+          ..allowInlineStyles();
+
+      testHtml('allows inline styles',
+          validator,
+          '<span style="background-color:red">text</span>');
+
+      testHtml('blocks other attributes',
+          validator,
+          '<span class="red-span"></span>',
+          '<span></span>');
+
+      validator = new NodeValidatorBuilder()
+          ..allowTextElements()
+          ..allowInlineStyles(tagName: 'span');
+
+      testHtml('scoped allows inline styles on spans',
+          validator,
+          '<span style="background-color:red">text</span>');
+
+      testHtml('scoped blocks inline styles on LIs',
+          validator,
+          '<li style="background-color:red">text</li>',
+          '<li>text</li>');
     });
   });
 

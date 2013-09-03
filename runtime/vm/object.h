@@ -922,6 +922,11 @@ class Class : public Object {
   bool is_const() const { return ConstBit::decode(raw_ptr()->state_bits_); }
   void set_is_const() const;
 
+  bool is_mixin_typedef() const {
+    return MixinTypedefBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_mixin_typedef() const;
+
   int num_native_fields() const {
     return raw_ptr()->num_native_fields_;
   }
@@ -1017,6 +1022,7 @@ class Class : public Object {
     kStateTagBit = 6,
     kStateTagSize = 2,
     kMarkedForParsingBit = 8,
+    kMixinTypedefBit = 9,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
@@ -1027,6 +1033,7 @@ class Class : public Object {
   class StateBits : public BitField<RawClass::ClassState,
                                     kStateTagBit, kStateTagSize> {};  // NOLINT
   class MarkedForParsingBit : public BitField<bool, kMarkedForParsingBit, 1> {};
+  class MixinTypedefBit : public BitField<bool, kMixinTypedefBit, 1> {};
 
   void set_name(const String& value) const;
   void set_signature_function(const Function& value) const;
@@ -2343,6 +2350,8 @@ class Library : public Object {
 
   static RawLibrary* New(const String& url);
 
+  RawObject* Evaluate(const String& expr) const;
+
   // Library scope name dictionary.
   //
   // TODO(turnidge): The Lookup functions are not consistent in how
@@ -2816,13 +2825,17 @@ class ExceptionHandlers : public Object {
 
   intptr_t HandlerPC(intptr_t try_index) const;
   intptr_t OuterTryIndex(intptr_t try_index) const;
+  bool NeedsStacktrace(intptr_t try_index) const;
 
   void SetHandlerInfo(intptr_t try_index,
                       intptr_t outer_try_index,
-                      intptr_t handler_pc) const;
+                      intptr_t handler_pc,
+                      bool needs_stacktrace,
+                      bool has_catch_all) const;
 
   RawArray* GetHandledTypes(intptr_t try_index) const;
   void SetHandledTypes(intptr_t try_index, const Array& handled_types) const;
+  bool HasCatchAll(intptr_t try_index) const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawExceptionHandlers) == OFFSET_OF(RawExceptionHandlers,
@@ -2940,18 +2953,15 @@ class Code : public Object {
   intptr_t pointer_offsets_length() const {
     return raw_ptr()->pointer_offsets_length_;
   }
+
   bool is_optimized() const {
-    return (raw_ptr()->is_optimized_ == 1);
+    return OptimizedBit::decode(raw_ptr()->state_bits_);
   }
-  void set_is_optimized(bool value) const {
-    raw_ptr()->is_optimized_ = value ? 1 : 0;
-  }
+  void set_is_optimized(bool value) const;
   bool is_alive() const {
-    return (raw_ptr()->is_alive_ == 1);
+    return AliveBit::decode(raw_ptr()->state_bits_);
   }
-  void set_is_alive(bool value) const {
-    raw_ptr()->is_alive_ = value ? 1 : 0;
-  }
+  void set_is_alive(bool value) const;
 
   uword EntryPoint() const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -3123,6 +3133,17 @@ class Code : public Object {
   RawArray* ExtractTypeFeedbackArray() const;
 
  private:
+  void set_state_bits(intptr_t bits) const;
+
+  friend class RawCode;
+  enum {
+    kOptimizedBit = 0,
+    kAliveBit = 1,
+  };
+
+  class OptimizedBit : public BitField<bool, kOptimizedBit, 1> {};
+  class AliveBit : public BitField<bool, kAliveBit, 1> {};
+
   // An object finder visitor interface.
   class FindRawCodeVisitor : public FindObjectVisitor {
    public:

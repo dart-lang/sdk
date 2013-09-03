@@ -4,7 +4,7 @@
 
 library pub_tests;
 
-import 'dart:json' as json;
+import 'dart:convert';
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
@@ -26,7 +26,7 @@ main() {
           "foo": {"path": "../foo"}
         }
       }),
-      d.file("pubspec.lock", json.stringify({
+      d.file("pubspec.lock", JSON.encode({
         'packages': {}
       }))
     ]).create();

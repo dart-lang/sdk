@@ -231,10 +231,11 @@ abstract class List<E> implements Iterable<E> {
   void setAll(int index, Iterable<E> iterable);
 
   /**
-   * Removes [value] from this list.
+   * Removes the first occurence of [value] from this list.
    *
    * Returns true if [value] was in the list.
    * Returns false otherwise.
+   *
    * The method has no effect if [value] was not in the list.
    *
    * An [UnsupportedError] occurs if the list is fixed-length.

@@ -13,6 +13,7 @@ math/random_test: Fail
 mirrors/invoke_test: Fail # Issue 11954
 mirrors/class_mirror_type_variables_test: Fail # Issue 12087
 mirrors/invoke_private_test: Fail # Issue 12164
+mirrors/equality_test: Fail # Issue 12333, 12919
 mirrors/function_type_mirror_test: Fail # Issue 12166
 mirrors/generics_test: Fail # Issue 12333
 mirrors/hierarchy_invariants_test: Fail # Issue 11863
@@ -22,9 +23,9 @@ mirrors/method_mirror_properties_test: Fail # Issue 11861
 mirrors/method_mirror_returntype_test : Fail # Issue 11928
 mirrors/method_mirror_source_test : Fail # Issue 6490
 mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
+mirrors/mixin_test: Fail # Issue 12464
 mirrors/null_test : Fail # Issue 12129
 mirrors/parameter_test: Fail # Issue 6490
-mirrors/library_metadata_test: Fail # Issue 10905
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
 mirrors/reflected_type_test: Fail # Issue 12607
 mirrors/typedef_metadata_test: Fail # Issue 12785
@@ -34,6 +35,8 @@ async/run_async4_test: Pass, Fail # no global exception handler in isolates. htt
 async/run_async6_test: Fail # global error handling is not supported. http://dartbug.com/5958
 async/stream_controller_async_test: Fail, Pass # http://dartbug.com/11953
 
+[ $runtime == safari ]
+mirrors/return_type_test: Pass, Timeout # Issue 12858
 
 [ $csp ]
 mirrors/*: Skip # Issue 6490
@@ -74,6 +77,7 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 
 [ $compiler == dart2dart ]
 mirrors/*: Skip # http://dartbug.com/11511
+library_metadata2_test/01: Skip # http://dartbug.com/11511
 async/run_async6_test: Fail             # Issue 10957 - may be related to issue 10910
 
 [ $compiler == dart2dart && $minified ]
@@ -81,9 +85,9 @@ json/json_test: Fail                            # Issue 10961
 
 [ $runtime == ff ]
 # FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
-multiple_timer_test: Pass, Fail
-timer_isolate_test: Pass, Fail
-timer_test: Pass, Fail
+async/multiple_timer_test: Pass, Fail
+async/timer_isolate_test: Pass, Fail
+async/timer_test: Pass, Fail
 convert/chunked_conversion_utf88_test: Pass, Timeout  # Issue 12029
 convert/streamed_conversion_utf8_encode_test: Pass, Timeout  # Issue 12029
 convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
@@ -92,10 +96,9 @@ convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
 # IE9 doesn't support typed arrays.
 typed_data/*: Fail # Issue 11971
 convert/chunked_conversion_utf88_test: Pass, Slow, Timeout  # Issue 12029
-convert/streamed_conversion_utf8_encode_test: Pass, Timeout  # Issue 12029
 convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Issue 12029
-async/deferred/deferred_api_test: Pass, Timeout # Issue 12029
-async/run_zoned6_test/01: fail # http://dartbug.com/12817
+async/deferred/deferred_api_test: Pass, Timeout # http://dartbug.com/12635
+convert/streamed_conversion_utf8_decode_test: Pass, Timeout # http://dartbug.com/12768
 
 
 [ $runtime == opera ]
@@ -113,7 +116,7 @@ mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 
 [ $runtime == vm || ($compiler == none && $runtime == drt) ]
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
-mirrors/mixin_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
+mirrors/mixin_dart2js_test: Skip # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
 mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
 
 [ $compiler == none && $runtime == drt ]
@@ -136,5 +139,13 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
 convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12644.
 
 [ $compiler == none && $runtime == drt ]
-run_zoned6_test/01: fail # Issue 12756.
-run_zoned9_test/01: fail # Issue 12756.
+async/run_zoned6_test/01: fail # Issue 12756.
+async/run_zoned9_test/01: fail # Issue 12756.
+
+[ $compiler == dartanalyzer ]
+mirrors/library_metadata2_test/01: Fail # http://dartbug.com/12950
+library_metadata2_test/01: Fail # http://dartbug.com/12950
+
+[ $compiler == dart2analyzer ]
+mirrors/library_metadata2_test/01: Fail # http://dartbug.com/12950
+library_metadata2_test/01: Fail # http://dartbug.com/12950

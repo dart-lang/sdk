@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
@@ -27,7 +27,7 @@ main() {
       response.statusCode = 401;
       response.headers.set('www-authenticate', 'Bearer error="invalid_token",'
           ' error_description="your token sucks"');
-      response.write(json.stringify({
+      response.write(JSON.encode({
         'error': {'message': 'your token sucks'}
       }));
       response.close();

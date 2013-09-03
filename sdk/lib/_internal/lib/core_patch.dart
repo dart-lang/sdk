@@ -35,9 +35,9 @@ patch class Object {
   patch dynamic noSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError(
         this,
-        _symbolToString(invocation.memberName),
+        invocation.memberName,
         invocation.positionalArguments,
-        _symbolMapToStringMap(invocation.namedArguments));
+        invocation.namedArguments);
   }
 
   patch Type get runtimeType => getRuntimeType(this);
@@ -221,10 +221,10 @@ patch class String {
 }
 
 patch class RegExp {
-  patch factory RegExp(String pattern,
+  patch factory RegExp(String source,
                        {bool multiLine: false,
                         bool caseSensitive: true})
-    => new JSSyntaxRegExp(pattern,
+    => new JSSyntaxRegExp(source,
                           multiLine: multiLine,
                           caseSensitive: caseSensitive);
 }
@@ -276,11 +276,11 @@ patch class NoSuchMethodError {
       }
     }
     if (_namedArguments != null) {
-      _namedArguments.forEach((String key, var value) {
+      _namedArguments.forEach((Symbol key, var value) {
         if (i > 0) {
           sb.write(", ");
         }
-        sb.write(key);
+        sb.write(_symbolToString(key));
         sb.write(": ");
         sb.write(Error.safeToString(value));
         i++;

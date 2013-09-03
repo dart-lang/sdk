@@ -562,6 +562,10 @@ class MirrorUsageBuilder {
   Element findLocalMemberIn(Element element, SourceString name) {
     if (element is ScopeContainerElement) {
       ScopeContainerElement scope = element;
+      if (element.isClass()) {
+        ClassElement cls = element;
+        cls.ensureResolved(compiler);
+      }
       return scope.localLookup(name);
     }
     return null;

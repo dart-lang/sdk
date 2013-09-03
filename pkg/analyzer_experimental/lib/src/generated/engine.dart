@@ -800,6 +800,181 @@ class ChangeSet {
   }
 }
 /**
+ * Instances of the class `AnalysisCache` implement an LRU cache of information related to
+ * analysis.
+ */
+class AnalysisCache {
+
+  /**
+   * A table mapping the sources known to the context to the information known about the source.
+   */
+  Map<Source, SourceEntry> _sourceMap = new Map<Source, SourceEntry>();
+
+  /**
+   * The maximum number of sources for which AST structures should be kept in the cache.
+   */
+  int _maxCacheSize = 0;
+
+  /**
+   * A list containing the most recently accessed sources with the most recently used at the end of
+   * the list. When more sources are added than the maximum allowed then the least recently used
+   * source will be removed and will have it's cached AST structure flushed.
+   */
+  List<Source> _recentlyUsed;
+
+  /**
+   * An array containing sources for which data should not be flushed.
+   */
+  List<Source> _priorityOrder = Source.EMPTY_ARRAY;
+
+  /**
+   * The number of times that the flushing of information from the cache has been disabled without
+   * being re-enabled.
+   */
+  int _cacheRemovalCount = 0;
+
+  /**
+   * Initialize a newly created cache to maintain at most the given number of AST structures in the
+   * cache.
+   *
+   * @param maxCacheSize the maximum number of sources for which AST structures should be kept in
+   *          the cache
+   */
+  AnalysisCache(int maxCacheSize) {
+    this._maxCacheSize = maxCacheSize;
+    _recentlyUsed = new List<Source>();
+  }
+
+  /**
+   * Record that the given source was just accessed.
+   *
+   * @param source the source that was accessed
+   */
+  void accessed(Source source) {
+    if (_recentlyUsed.remove(source)) {
+      _recentlyUsed.add(source);
+      return;
+    }
+    if (_cacheRemovalCount == 0 && _recentlyUsed.length >= _maxCacheSize) {
+      flushAstFromCache();
+    }
+    _recentlyUsed.add(source);
+  }
+
+  /**
+   * Disable flushing information from the cache until [enableCacheRemoval] has been
+   * called.
+   */
+  void disableCacheRemoval() {
+    _cacheRemovalCount++;
+  }
+
+  /**
+   * Re-enable flushing information from the cache.
+   */
+  void enableCacheRemoval() {
+    if (_cacheRemovalCount > 0) {
+      _cacheRemovalCount--;
+    }
+    if (_cacheRemovalCount == 0) {
+      while (_recentlyUsed.length > _maxCacheSize) {
+        flushAstFromCache();
+      }
+    }
+  }
+
+  /**
+   * Return a set containing all of the map entries mapping sources to cache entries. Clients should
+   * not modify the returned set.
+   *
+   * @return a set containing all of the map entries mapping sources to cache entries
+   */
+  Set<MapEntry<Source, SourceEntry>> entrySet() => getMapEntrySet(_sourceMap);
+
+  /**
+   * Return the entry associated with the given source.
+   *
+   * @param source the source whose entry is to be returned
+   * @return the entry associated with the given source
+   */
+  SourceEntry get(Source source) => _sourceMap[source];
+
+  /**
+   * Return an array containing sources for which data should not be flushed.
+   *
+   * @return an array containing sources for which data should not be flushed
+   */
+  List<Source> get priorityOrder => _priorityOrder;
+
+  /**
+   * Associate the given entry with the given source.
+   *
+   * @param source the source with which the entry is to be associated
+   * @param entry the entry to be associated with the source
+   */
+  void put(Source source, SourceEntry entry) {
+    _sourceMap[source] = entry;
+  }
+
+  /**
+   * Set the sources for which data should not be flushed to the given array.
+   *
+   * @param sources the sources for which data should not be flushed
+   */
+  void set priorityOrder(List<Source> sources) {
+    _priorityOrder = sources;
+  }
+
+  /**
+   * Flush one AST structure from the cache.
+   */
+  void flushAstFromCache() {
+    Source removedSource = removeAstToFlush();
+    SourceEntry sourceEntry = _sourceMap[removedSource];
+    if (sourceEntry is HtmlEntry) {
+      HtmlEntryImpl htmlCopy = ((sourceEntry as HtmlEntry)).writableCopy;
+      htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.FLUSHED);
+      _sourceMap[removedSource] = htmlCopy;
+    } else if (sourceEntry is DartEntry) {
+      DartEntryImpl dartCopy = ((sourceEntry as DartEntry)).writableCopy;
+      dartCopy.flushAstStructures();
+      _sourceMap[removedSource] = dartCopy;
+    }
+  }
+
+  /**
+   * Return `true` if the given source is in the array of priority sources.
+   *
+   * @return `true` if the given source is in the array of priority sources
+   */
+  bool isPrioritySource(Source source) {
+    for (Source prioritySource in _priorityOrder) {
+      if (source == prioritySource) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Remove and return one source from the list of recently used sources whose AST structure can be
+   * flushed from the cache. The source that will be returned will be the source that has been
+   * unreferenced for the longest period of time but that is not a priority for analysis.
+   *
+   * @return the source that was removed
+   */
+  Source removeAstToFlush() {
+    for (int i = 0; i < _recentlyUsed.length; i++) {
+      Source source = _recentlyUsed[i];
+      if (!isPrioritySource(source)) {
+        return _recentlyUsed.removeAt(i);
+      }
+    }
+    AnalysisEngine.instance.logger.logError2("Internal error: The number of priority sources (${_priorityOrder.length}) is greater than the maximum cache size (${_maxCacheSize})", new JavaException());
+    return _recentlyUsed.removeAt(0);
+  }
+}
+/**
  * The interface `DartEntry` defines the behavior of objects that maintain the information
  * cached by an analysis context about an individual Dart file.
  *
@@ -912,7 +1087,7 @@ abstract class DartEntry implements SourceEntry {
    *          context for the data
    * @return the value of the data represented by the given descriptor and library
    */
-  CacheState getState2(DataDescriptor<Object> descriptor, Source librarySource);
+  CacheState getState2(DataDescriptor descriptor, Source librarySource);
 
   /**
    * Return the value of the data represented by the given descriptor in the context of the given
@@ -947,6 +1122,12 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * The state of the cached parsed compilation unit.
    */
   CacheState _parsedUnitState = CacheState.INVALID;
+
+  /**
+   * A flag indicating whether the parsed AST structure has been accessed since it was set. This is
+   * used to determine whether the structure needs to be copied before it is resolved.
+   */
+  bool _parsedUnitAccessed = false;
 
   /**
    * The parsed compilation unit, or `null` if the parsed compilation unit is not currently
@@ -1049,6 +1230,18 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * If the library is not "client code", then it is referenced as "server code".
    */
   static int _CLIENT_CODE = 1 << 2;
+
+  /**
+   * Flush any AST structures being maintained by this entry.
+   */
+  void flushAstStructures() {
+    if (identical(_parsedUnitState, CacheState.VALID)) {
+      _parsedUnitState = CacheState.FLUSHED;
+      _parsedUnitAccessed = false;
+      _parsedUnit = null;
+    }
+    _resolutionState.flushAstStructures();
+  }
   List<AnalysisError> get allErrors {
     List<AnalysisError> errors = new List<AnalysisError>();
     for (AnalysisError error in _parseErrors) {
@@ -1072,6 +1265,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
   CompilationUnit get anyParsedCompilationUnit {
     if (identical(_parsedUnitState, CacheState.VALID)) {
+      _parsedUnitAccessed = true;
       return _parsedUnit;
     }
     return anyResolvedCompilationUnit;
@@ -1088,7 +1282,35 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     return null;
   }
   SourceKind get kind => _sourceKind;
-  CacheState getState(DataDescriptor<Object> descriptor) {
+
+  /**
+   * Return a compilation unit that has not been accessed by any other client and can therefore
+   * safely be modified by the reconciler.
+   *
+   * @return a compilation unit that can be modified by the reconciler
+   */
+  CompilationUnit get resolvableCompilationUnit {
+    if (identical(_parsedUnitState, CacheState.VALID)) {
+      if (_parsedUnitAccessed) {
+        return _parsedUnit.accept(new ASTCloner()) as CompilationUnit;
+      }
+      CompilationUnit unit = _parsedUnit;
+      _parsedUnitState = CacheState.FLUSHED;
+      _parsedUnitAccessed = false;
+      _parsedUnit = null;
+      return unit;
+    }
+    DartEntryImpl_ResolutionState state = _resolutionState;
+    while (state != null) {
+      if (identical(state._resolvedUnitState, CacheState.VALID)) {
+        return state._resolvedUnit.accept(new ASTCloner()) as CompilationUnit;
+      }
+      state = state._nextState;
+    }
+    ;
+    return null;
+  }
+  CacheState getState(DataDescriptor descriptor) {
     if (identical(descriptor, DartEntry.ELEMENT)) {
       return _elementState;
     } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
@@ -1113,7 +1335,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return super.getState(descriptor);
     }
   }
-  CacheState getState2(DataDescriptor<Object> descriptor, Source librarySource2) {
+  CacheState getState2(DataDescriptor descriptor, Source librarySource2) {
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
       if (librarySource2 == state._librarySource) {
@@ -1152,6 +1374,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     } else if (identical(descriptor, DartEntry.PARSE_ERRORS)) {
       return _parseErrors as Object;
     } else if (identical(descriptor, DartEntry.PARSED_UNIT)) {
+      _parsedUnitAccessed = true;
       return _parsedUnit as Object;
     } else if (identical(descriptor, DartEntry.PUBLIC_NAMESPACE)) {
       return _publicNamespace as Object;
@@ -1201,6 +1424,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     _parseErrors = AnalysisError.NO_ERRORS;
     _parseErrorsState = CacheState.INVALID;
     _parsedUnit = null;
+    _parsedUnitAccessed = false;
     _parsedUnitState = CacheState.INVALID;
     invalidateAllResolutionInformation();
   }
@@ -1237,6 +1461,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     _parseErrors = AnalysisError.NO_ERRORS;
     _parseErrorsState = CacheState.ERROR;
     _parsedUnit = null;
+    _parsedUnitAccessed = false;
     _parsedUnitState = CacheState.ERROR;
     _exportedLibraries = Source.EMPTY_ARRAY;
     _exportedLibrariesState = CacheState.ERROR;
@@ -1336,6 +1561,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     if (_parsedUnitState != CacheState.VALID) {
       _parsedUnit = unit;
+      _parsedUnitAccessed = false;
       _parsedUnitState = CacheState.VALID;
     }
     if (_parseErrorsState != CacheState.VALID) {
@@ -1343,7 +1569,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       _parseErrorsState = CacheState.VALID;
     }
   }
-  void setState(DataDescriptor<Object> descriptor, CacheState state) {
+  void setState(DataDescriptor descriptor, CacheState state) {
     if (identical(descriptor, DartEntry.ELEMENT)) {
       _element = updatedValue(state, _element, null);
       _elementState = state;
@@ -1366,7 +1592,11 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       _parseErrors = updatedValue(state, _parseErrors, AnalysisError.NO_ERRORS);
       _parseErrorsState = state;
     } else if (identical(descriptor, DartEntry.PARSED_UNIT)) {
-      _parsedUnit = updatedValue(state, _parsedUnit, null);
+      CompilationUnit newUnit = updatedValue(state, _parsedUnit, null);
+      if (newUnit != _parsedUnit) {
+        _parsedUnitAccessed = false;
+      }
+      _parsedUnit = newUnit;
       _parsedUnitState = state;
     } else if (identical(descriptor, DartEntry.PUBLIC_NAMESPACE)) {
       _publicNamespace = updatedValue(state, _publicNamespace, null);
@@ -1388,7 +1618,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    *          context for the data
    * @param cacheState the new state of the data represented by the given descriptor
    */
-  void setState2(DataDescriptor<Object> descriptor, Source librarySource, CacheState cacheState) {
+  void setState2(DataDescriptor descriptor, Source librarySource, CacheState cacheState) {
     DartEntryImpl_ResolutionState state = getOrCreateResolutionState(librarySource);
     if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
       state._resolutionErrors = updatedValue(cacheState, state._resolutionErrors, AnalysisError.NO_ERRORS);
@@ -1435,6 +1665,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       _parseErrorsState = CacheState.VALID;
     } else if (identical(descriptor, DartEntry.PARSED_UNIT)) {
       _parsedUnit = value as CompilationUnit;
+      _parsedUnitAccessed = false;
       _parsedUnitState = CacheState.VALID;
     } else if (identical(descriptor, DartEntry.PUBLIC_NAMESPACE)) {
       _publicNamespace = value as Namespace;
@@ -1476,6 +1707,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     _sourceKind = other._sourceKind;
     _parsedUnitState = other._parsedUnitState;
     _parsedUnit = other._parsedUnit;
+    _parsedUnitAccessed = other._parsedUnitAccessed;
     _parseErrorsState = other._parseErrorsState;
     _parseErrors = other._parseErrors;
     _includedPartsState = other._includedPartsState;
@@ -1500,7 +1732,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     builder.append(_sourceKindState);
     builder.append("; parsedUnit = ");
     builder.append(_parsedUnitState);
-    builder.append("; parseErrors = ");
+    builder.append(" (");
+    builder.append(_parsedUnitAccessed ? "T" : "F");
+    builder.append("); parseErrors = ");
     builder.append(_parseErrorsState);
     builder.append("; exportedLibraries = ");
     builder.append(_exportedLibrariesState);
@@ -1629,6 +1863,19 @@ class DartEntryImpl_ResolutionState {
     if (other._nextState != null) {
       _nextState = new DartEntryImpl_ResolutionState();
       _nextState.copyFrom(other._nextState);
+    }
+  }
+
+  /**
+   * Flush any AST structures being maintained by this state.
+   */
+  void flushAstStructures() {
+    if (identical(_resolvedUnitState, CacheState.VALID)) {
+      _resolvedUnitState = CacheState.FLUSHED;
+      _resolvedUnit = null;
+    }
+    if (_nextState != null) {
+      _nextState.flushAstStructures();
     }
   }
 
@@ -1817,7 +2064,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     return new List.from(errors);
   }
   SourceKind get kind => SourceKind.HTML;
-  CacheState getState(DataDescriptor<Object> descriptor) {
+  CacheState getState(DataDescriptor descriptor) {
     if (identical(descriptor, HtmlEntry.ELEMENT)) {
       return _elementState;
     } else if (identical(descriptor, HtmlEntry.PARSED_UNIT)) {
@@ -1862,7 +2109,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     _hints = AnalysisError.NO_ERRORS;
     _hintsState = CacheState.INVALID;
   }
-  void setState(DataDescriptor<Object> descriptor, CacheState state) {
+  void setState(DataDescriptor descriptor, CacheState state) {
     if (identical(descriptor, HtmlEntry.ELEMENT)) {
       _element = updatedValue(state, _element, null);
       _elementState = state;
@@ -1966,7 +2213,7 @@ abstract class SourceEntry {
    * @param descriptor the descriptor representing the data whose state is to be returned
    * @return the state of the data represented by the given descriptor
    */
-  CacheState getState(DataDescriptor<Object> descriptor);
+  CacheState getState(DataDescriptor descriptor);
 
   /**
    * Return the value of the data represented by the given descriptor, or `null` if the data
@@ -2010,7 +2257,7 @@ abstract class SourceEntryImpl implements SourceEntry {
    */
   LineInfo _lineInfo;
   int get modificationTime => _modificationTime;
-  CacheState getState(DataDescriptor<Object> descriptor) {
+  CacheState getState(DataDescriptor descriptor) {
     if (identical(descriptor, SourceEntry.LINE_INFO)) {
       return _lineInfoState;
     } else {
@@ -2041,7 +2288,7 @@ abstract class SourceEntryImpl implements SourceEntry {
    * @param descriptor the descriptor representing the data whose state is to be set
    * @param the new state of the data represented by the given descriptor
    */
-  void setState(DataDescriptor<Object> descriptor, CacheState state) {
+  void setState(DataDescriptor descriptor, CacheState state) {
     if (identical(descriptor, SourceEntry.LINE_INFO)) {
       _lineInfo = updatedValue(state, _lineInfo, null);
       _lineInfoState = state;
@@ -2121,7 +2368,7 @@ class AnalysisContentStatisticsImpl implements AnalysisContentStatistics {
     Iterable<AnalysisContentStatistics_CacheRow> items = _dataMap.values;
     return new List.from(items);
   }
-  void putCacheItem(DataDescriptor<Object> rowDesc, CacheState state) {
+  void putCacheItem(DataDescriptor rowDesc, CacheState state) {
     String rowName = rowDesc.toString();
     AnalysisContentStatisticsImpl_CacheRowImpl row = _dataMap[rowName] as AnalysisContentStatisticsImpl_CacheRowImpl;
     if (row == null) {
@@ -2178,7 +2425,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Helper for [getStatistics], puts the library-specific state into the given statistics
    * object.
    */
-  static void putStatCacheItem(AnalysisContentStatisticsImpl statistics, DartEntry dartEntry, Source librarySource, DataDescriptor<Object> key) {
+  static void putStatCacheItem(AnalysisContentStatisticsImpl statistics, DartEntry dartEntry, Source librarySource, DataDescriptor key) {
     statistics.putCacheItem(key, dartEntry.getState2(key, librarySource));
   }
 
@@ -2186,7 +2433,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Helper for [getStatistics], puts the library independent state into the given
    * statistics object.
    */
-  static void putStatCacheItem2(AnalysisContentStatisticsImpl statistics, SourceEntry entry, DataDescriptor<Object> key) {
+  static void putStatCacheItem2(AnalysisContentStatisticsImpl statistics, SourceEntry entry, DataDescriptor key) {
     statistics.putCacheItem(key, entry.getState(key));
   }
 
@@ -2380,7 +2627,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return SourceKind.UNKNOWN;
     } else if (sourceEntry is DartEntry) {
       try {
-        return internalGetDartParseData(source, (sourceEntry as DartEntry), DartEntry.SOURCE_KIND);
+        return internalGetDartParseData(source, sourceEntry as DartEntry, DartEntry.SOURCE_KIND);
       } on AnalysisException catch (exception) {
         return SourceKind.UNKNOWN;
       }
@@ -2418,22 +2665,28 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return null;
   }
-  CompilationUnit computeResolvableCompilationUnit(Source source) {
-    DartEntry dartEntry = getReadableDartEntry(source);
-    if (dartEntry == null) {
-      return null;
-    }
-    CompilationUnit unit = dartEntry.anyParsedCompilationUnit;
-    if (unit == null) {
-      try {
-        unit = parseCompilationUnit(source);
-      } on AnalysisException catch (exception) {
-        return null;
+  ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) {
+    while (true) {
+      {
+        SourceEntry sourceEntry = getSourceEntry(source);
+        if (sourceEntry is! DartEntry) {
+          throw new AnalysisException.con1("computeResolvableCompilationUnit for non-Dart: ${source.fullName}");
+        }
+        DartEntry dartEntry = sourceEntry as DartEntry;
+        if (identical(dartEntry.getState(DartEntry.PARSED_UNIT), CacheState.ERROR)) {
+          throw new AnalysisException.con1("Internal error: computeResolvableCompilationUnit could not parse ${source.fullName}");
+        }
+        DartEntryImpl dartCopy = dartEntry.writableCopy;
+        CompilationUnit unit = dartCopy.resolvableCompilationUnit;
+        if (unit != null) {
+          _sourceMap[source] = dartCopy;
+          return new ResolvableCompilationUnit(dartCopy.modificationTime, unit);
+        }
       }
+      internalParseDart(source);
     }
-    return unit.accept(new ASTCloner()) as CompilationUnit;
   }
-  AnalysisContext extractContext(SourceContainer container) => extractContextInto(container, (AnalysisEngine.instance.createAnalysisContext() as InternalAnalysisContext));
+  AnalysisContext extractContext(SourceContainer container) => extractContextInto(container, AnalysisEngine.instance.createAnalysisContext() as InternalAnalysisContext);
   InternalAnalysisContext extractContextInto(SourceContainer container, InternalAnalysisContext newContext) {
     List<Source> sourcesToRemove = new List<Source>();
     {
@@ -2733,6 +2986,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return false;
   }
   void mergeContext(AnalysisContext context) {
+    if (context is InstrumentedAnalysisContextImpl) {
+      context = ((context as InstrumentedAnalysisContextImpl)).basis;
+    }
+    if (context is! AnalysisContextImpl) {
+      return;
+    }
     {
       for (MapEntry<Source, SourceEntry> entry in getMapEntrySet(((context as AnalysisContextImpl))._sourceMap)) {
         Source newSource = entry.getKey();
@@ -2812,7 +3071,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             Source coreLibrarySource = libraryElement.context.sourceFactory.forUri(DartSdk.DART_CORE);
             LibraryElement coreElement = computeLibraryElement(coreLibrarySource);
             TypeProvider typeProvider = new TypeProviderImpl(coreElement);
-            CompilationUnit unitAST = computeResolvableCompilationUnit(unitSource);
+            ResolvableCompilationUnit resolvableUnit = computeResolvableCompilationUnit(unitSource);
+            CompilationUnit unitAST = resolvableUnit.compilationUnit;
             new DeclarationResolver().resolve(unitAST, find(libraryElement, unitSource));
             RecordingErrorListener errorListener = new RecordingErrorListener();
             TypeResolverVisitor typeResolverVisitor = new TypeResolverVisitor.con2(libraryElement, unitSource, typeProvider, errorListener);
@@ -2820,6 +3080,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             InheritanceManager inheritanceManager = new InheritanceManager(libraryElement);
             ResolverVisitor resolverVisitor = new ResolverVisitor.con2(libraryElement, unitSource, typeProvider, inheritanceManager, errorListener);
             unitAST.accept(resolverVisitor);
+            for (ProxyConditionalAnalysisError conditionalCode in resolverVisitor.proxyConditionalAnalysisErrors) {
+              if (conditionalCode.shouldIncludeErrorCode()) {
+                resolverVisitor.reportError(conditionalCode.analysisError);
+              }
+            }
             ErrorReporter errorReporter = new ErrorReporter(errorListener, unitSource);
             ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, libraryElement, typeProvider, inheritanceManager);
             unitAST.accept(errorVerifier);
@@ -3332,8 +3597,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param descriptor the descriptor representing the data to be returned
    * @return a cache entry containing the required data
    */
-  bool hasHtmlParseDataCached(HtmlEntry htmlEntry, List<DataDescriptor<Object>> descriptors) {
-    for (DataDescriptor<Object> descriptor in descriptors) {
+  bool hasHtmlParseDataCached(HtmlEntry htmlEntry, List<DataDescriptor> descriptors) {
+    for (DataDescriptor descriptor in descriptors) {
       CacheState state = htmlEntry.getState(descriptor);
       if (state != CacheState.VALID && state != CacheState.ERROR) {
         return false;
@@ -3354,7 +3619,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @throws AnalysisException if data could not be returned because the source could not be
    *           resolved
    */
-  DartEntry internalCacheDartParseData(Source source, DartEntry dartEntry, DataDescriptor<Object> descriptor) {
+  DartEntry internalCacheDartParseData(Source source, DartEntry dartEntry, DataDescriptor descriptor) {
     CacheState state = dartEntry.getState(descriptor);
     while (state != CacheState.ERROR && state != CacheState.VALID) {
       dartEntry = internalParseDart(source);
@@ -3376,7 +3641,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @return the requested data about the given source
    * @throws AnalysisException if data could not be returned because the source could not be parsed
    */
-  DartEntry internalCacheDartResolutionData(Source unitSource, Source librarySource, DartEntry dartEntry, DataDescriptor<Object> descriptor) {
+  DartEntry internalCacheDartResolutionData(Source unitSource, Source librarySource, DartEntry dartEntry, DataDescriptor descriptor) {
     CacheState state = dartEntry.getState2(descriptor, librarySource);
     while (state != CacheState.ERROR && state != CacheState.VALID) {
       dartEntry = internalResolveDart(unitSource, librarySource);
@@ -3397,7 +3662,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @throws AnalysisException if data could not be returned because the source could not be
    *           resolved
    */
-  HtmlEntry internalCacheHtmlParseData(Source source, HtmlEntry htmlEntry, List<DataDescriptor<Object>> descriptors) {
+  HtmlEntry internalCacheHtmlParseData(Source source, HtmlEntry htmlEntry, List<DataDescriptor> descriptors) {
     while (!hasHtmlParseDataCached(htmlEntry, descriptors)) {
       htmlEntry = internalParseHtml(source);
     }
@@ -3537,19 +3802,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       Set<Source> includedSources = new Set<Source>();
       for (Directive directive in unit.directives) {
         if (directive is ExportDirective) {
-          Source exportSource = resolveSource(source, (directive as ExportDirective));
+          Source exportSource = resolveSource(source, directive as ExportDirective);
           if (exportSource != null) {
             javaSetAdd(exportedSources, exportSource);
           }
         } else if (directive is ImportDirective) {
-          Source importSource = resolveSource(source, (directive as ImportDirective));
+          Source importSource = resolveSource(source, directive as ImportDirective);
           if (importSource != null) {
             javaSetAdd(importedSources, importSource);
           }
         } else if (directive is LibraryDirective) {
           hasLibraryDirective = true;
         } else if (directive is PartDirective) {
-          Source partSource = resolveSource(source, (directive as PartDirective));
+          Source partSource = resolveSource(source, directive as PartDirective);
           if (partSource != null) {
             javaSetAdd(includedSources, partSource);
           }
@@ -3572,7 +3837,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       dartCopy.setValue(DartEntry.EXPORTED_LIBRARIES, toArray(exportedSources));
       dartCopy.setValue(DartEntry.IMPORTED_LIBRARIES, toArray(importedSources));
       dartCopy.setValue(DartEntry.INCLUDED_PARTS, toArray(includedSources));
-      return unit;
+      return dartCopy.getValue(DartEntry.PARSED_UNIT);
     } on AnalysisException catch (exception) {
       dartCopy.setState(SourceEntry.LINE_INFO, CacheState.ERROR);
       dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.ERROR);
@@ -3613,19 +3878,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       errors = errorListener.getErrors2(source);
       for (Directive directive in unit.directives) {
         if (directive is ExportDirective) {
-          Source exportSource = resolveSource(source, (directive as ExportDirective));
+          Source exportSource = resolveSource(source, directive as ExportDirective);
           if (exportSource != null) {
             javaSetAdd(exportedSources, exportSource);
           }
         } else if (directive is ImportDirective) {
-          Source importSource = resolveSource(source, (directive as ImportDirective));
+          Source importSource = resolveSource(source, directive as ImportDirective);
           if (importSource != null) {
             javaSetAdd(importedSources, importSource);
           }
         } else if (directive is LibraryDirective) {
           hasLibraryDirective = true;
         } else if (directive is PartDirective) {
-          Source partSource = resolveSource(source, (directive as PartDirective));
+          Source partSource = resolveSource(source, directive as PartDirective);
           if (partSource != null) {
             javaSetAdd(includedSources, partSource);
           }
@@ -3809,7 +4074,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       resultTime = htmlEntry.modificationTime;
       HtmlUnitBuilder builder = new HtmlUnitBuilder(this);
-      element = builder.buildHtmlElement2(source, unit);
+      element = builder.buildHtmlElement2(source, resultTime, unit);
       resolutionErrors = builder.errorListener.getErrors2(source);
     } on AnalysisException catch (exception) {
       thrownException = exception;
@@ -4124,7 +4389,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return null;
     }
     String uriContent = uriLiteral.stringValue.trim();
-    if (uriContent == null) {
+    if (uriContent == null || uriContent.isEmpty) {
       return null;
     }
     uriContent = Uri.encodeFull(uriContent);
@@ -4167,7 +4432,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       parseHtmlUnit(source);
     } on AnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not parse ${source.fullName}", exception);
+      if (exception.cause is! JavaIOException) {
+        AnalysisEngine.instance.logger.logError2("Could not parse ${source.fullName}", exception);
+      }
     }
   }
 
@@ -4515,21 +4782,25 @@ class RecursiveXmlVisitor_6 extends RecursiveXmlVisitor<Object> {
         if (javaStringEqualsIgnoreCase(attribute.name.lexeme, AnalysisContextImpl._ATTRIBUTE_SRC)) {
           scriptAttribute = attribute;
         } else if (javaStringEqualsIgnoreCase(attribute.name.lexeme, AnalysisContextImpl._ATTRIBUTE_TYPE)) {
-          if (javaStringEqualsIgnoreCase(attribute.text, AnalysisContextImpl._TYPE_DART)) {
+          String text = attribute.text;
+          if (text != null && javaStringEqualsIgnoreCase(text, AnalysisContextImpl._TYPE_DART)) {
             isDartScript = true;
           }
         }
       }
       if (isDartScript && scriptAttribute != null) {
-        try {
-          Uri uri = new Uri(path: scriptAttribute.text);
-          String fileName = uri.path;
-          Source librarySource = AnalysisContextImpl_this._sourceFactory.resolveUri(htmlSource, fileName);
-          if (librarySource.exists()) {
-            libraries.add(librarySource);
+        String text = scriptAttribute.text;
+        if (text != null) {
+          try {
+            Uri uri = new Uri(path: text);
+            String fileName = uri.path;
+            Source librarySource = AnalysisContextImpl_this._sourceFactory.resolveUri(htmlSource, fileName);
+            if (librarySource != null && librarySource.exists()) {
+              libraries.add(librarySource);
+            }
+          } catch (exception) {
+            AnalysisEngine.instance.logger.logInformation2("Invalid URI ('${text}') in script tag in '${htmlSource.fullName}'", exception);
           }
-        } catch (exception) {
-          AnalysisEngine.instance.logger.logInformation2("Invalid URL ('${scriptAttribute.text}') in script tag in '${htmlSource.fullName}'", exception);
         }
       }
     }
@@ -4606,7 +4877,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * A flag indicating whether analysis is to use strict mode. In strict mode, error reporting is
    * based exclusively on the static type information.
    */
-  bool _strictMode = false;
+  bool _strictMode = true;
 
   /**
    * A flag indicating whether analysis is to generate hint results (e.g. type inference based
@@ -4646,7 +4917,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 /**
  * The enumeration `CacheState` defines the possible states of cached data.
  */
-class CacheState implements Enum<CacheState> {
+class CacheState extends Enum<CacheState> {
 
   /**
    * The data is not in the cache and the last time an attempt was made to compute the data an
@@ -4703,16 +4974,7 @@ class CacheState implements Enum<CacheState> {
    */
   static final CacheState VALID = new CacheState('VALID', 4);
   static final List<CacheState> values = [ERROR, FLUSHED, IN_PROCESS, INVALID, VALID];
-
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
-  CacheState(this.name, this.ordinal);
-  int compareTo(CacheState other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
+  CacheState(String name, int ordinal) : super(name, ordinal);
 }
 /**
  * Instances of the class `ChangeNoticeImpl` represent a change to the analysis results
@@ -4883,7 +5145,7 @@ class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
       return super.computeLineInfo(source);
     }
   }
-  CompilationUnit computeResolvableCompilationUnit(Source source) {
+  ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) {
     if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.computeResolvableCompilationUnit(source);
     } else {
@@ -5196,7 +5458,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
       instrumentation.log();
     }
   }
-  CompilationUnit computeResolvableCompilationUnit(Source source) => _basis.computeResolvableCompilationUnit(source);
+  ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) => _basis.computeResolvableCompilationUnit(source);
   AnalysisContext extractContext(SourceContainer container) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-extractContext");
     try {
@@ -5599,7 +5861,7 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * @return the AST structure representing the content of the source
    * @throws AnalysisException if the analysis could not be performed
    */
-  CompilationUnit computeResolvableCompilationUnit(Source source);
+  ResolvableCompilationUnit computeResolvableCompilationUnit(Source source);
 
   /**
    * Initialize the specified context by removing the specified sources from the receiver and adding
@@ -5786,7 +6048,7 @@ class ResolutionEraser extends GeneralizingASTVisitor<Object> {
   }
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     node.staticElement = null;
-    node.element = null;
+    node.propagatedElement = null;
     return super.visitSimpleIdentifier(node);
   }
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
@@ -5794,6 +6056,48 @@ class ResolutionEraser extends GeneralizingASTVisitor<Object> {
     node.element = null;
     return super.visitSuperConstructorInvocation(node);
   }
+}
+/**
+ * Instances of the class `ResolvableCompilationUnit` represent a compilation unit that is not
+ * referenced by any other objects and for which we have modification stamp information. It is used
+ * by the [LibraryResolver] to resolve a library.
+ */
+class ResolvableCompilationUnit {
+
+  /**
+   * The modification time of the source from which the AST was created.
+   */
+  int _modificationStamp = 0;
+
+  /**
+   * The AST that was created from the source.
+   */
+  CompilationUnit _unit;
+
+  /**
+   * Initialize a newly created holder to hold the given values.
+   *
+   * @param modificationStamp the modification time of the source from which the AST was created
+   * @param unit the AST that was created from the source
+   */
+  ResolvableCompilationUnit(int modificationStamp, CompilationUnit unit) {
+    this._modificationStamp = modificationStamp;
+    this._unit = unit;
+  }
+
+  /**
+   * Return the AST that was created from the source.
+   *
+   * @return the AST that was created from the source
+   */
+  CompilationUnit get compilationUnit => _unit;
+
+  /**
+   * Return the modification time of the source from which the AST was created.
+   *
+   * @return the modification time of the source from which the AST was created
+   */
+  int get modificationStamp => _modificationStamp;
 }
 /**
  * The interface `Logger` defines the behavior of objects that can be used to receive

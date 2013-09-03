@@ -19,7 +19,7 @@ main() {
     element.onMouseWheel.listen(expectAsync1((e) {
       expect(e.screen.x, 100);
       expect(e.deltaX, 0);
-      expect(e.deltaY, 240);
+      expect(e.deltaY.toDouble(), 240.0);
       expect(e.deltaMode, isNotNull);
     }));
     var event = new WheelEvent(eventType,
@@ -36,7 +36,7 @@ main() {
     element.onMouseWheel.listen(expectAsync1((e) {
       expect(e.screen.x, 100);
       expect(e.deltaX, 0);
-      expect(e.deltaY, 240);
+      expect(e.deltaY.toDouble(), 240.0);
     }));
     var event = new WheelEvent(eventType,
       deltaX: 0,

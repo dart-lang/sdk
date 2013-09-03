@@ -156,9 +156,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool InlineUint32x4BinaryOp(InstanceCallInstr* call,
                               Token::Kind op_kind);
   void InlineImplicitInstanceGetter(InstanceCallInstr* call);
-  void InlineGrowableArrayCapacityGetter(InstanceCallInstr* call);
-  void InlineStringIsEmptyGetter(InstanceCallInstr* call);
-  void InlineObjectCid(InstanceCallInstr* call);
 
   RawBool* InstanceOfAsBool(const ICData& ic_data,
                             const AbstractType& type) const;

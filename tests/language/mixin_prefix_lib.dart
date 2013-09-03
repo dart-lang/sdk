@@ -4,8 +4,8 @@
 
 library mixin_prefix_lib;
 
-import 'dart:json' as json;
+import "dart:convert";
 
 class MixinClass {
-  String bar() => json.stringify({'a':1});
+  String bar() => JSON.encode({'a':1});
 }

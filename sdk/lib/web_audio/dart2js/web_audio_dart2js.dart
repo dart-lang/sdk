@@ -77,7 +77,7 @@ class AudioBuffer extends Interceptor native "AudioBuffer" {
 
   @DomName('AudioBuffer.duration')
   @DocsEditable()
-  final num duration;
+  final double duration;
 
   @DomName('AudioBuffer.gain')
   @DocsEditable()
@@ -93,7 +93,7 @@ class AudioBuffer extends Interceptor native "AudioBuffer" {
 
   @DomName('AudioBuffer.sampleRate')
   @DocsEditable()
-  final num sampleRate;
+  final double sampleRate;
 
   @DomName('AudioBuffer.getChannelData')
   @DocsEditable()
@@ -244,7 +244,7 @@ class AudioContext extends EventTarget native "AudioContext" {
 
   @DomName('AudioContext.currentTime')
   @DocsEditable()
-  final num currentTime;
+  final double currentTime;
 
   @DomName('AudioContext.destination')
   @DocsEditable()
@@ -256,7 +256,7 @@ class AudioContext extends EventTarget native "AudioContext" {
 
   @DomName('AudioContext.sampleRate')
   @DocsEditable()
-  final num sampleRate;
+  final double sampleRate;
 
   @DomName('AudioContext.createAnalyser')
   @DocsEditable()
@@ -505,15 +505,15 @@ class AudioParam extends Interceptor native "AudioParam" {
 
   @DomName('AudioParam.defaultValue')
   @DocsEditable()
-  final num defaultValue;
+  final double defaultValue;
 
   @DomName('AudioParam.maxValue')
   @DocsEditable()
-  final num maxValue;
+  final double maxValue;
 
   @DomName('AudioParam.minValue')
   @DocsEditable()
-  final num minValue;
+  final double minValue;
 
   @DomName('AudioParam.name')
   @DocsEditable()

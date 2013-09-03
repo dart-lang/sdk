@@ -1574,6 +1574,15 @@ TEST_CASE(Debug_EvaluateExpr) {
   EXPECT_VALID(elem);
   EXPECT(Dart_IsString(elem));
   EXPECT_STREQ("tab", ToCString(elem));
+
+  res = Dart_EvaluateExpr(script_lib, NewString("l..add(11)..add(-5)"));
+  EXPECT_VALID(res);
+  // List l now has 5 elements.
+
+  len = Dart_EvaluateExpr(script_lib, NewString("l.length + 1"));
+  EXPECT_VALID(len);
+  EXPECT(Dart_IsNumber(len));
+  EXPECT_EQ(6, ToInt64(len));
 }
 
 

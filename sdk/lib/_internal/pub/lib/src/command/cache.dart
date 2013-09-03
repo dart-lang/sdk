@@ -5,8 +5,8 @@
 library pub.command.cache;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 
 import '../command.dart';
 import '../exit_codes.dart' as exit_codes;
@@ -43,7 +43,7 @@ class CacheCommand extends PubCommand {
 
     // TODO(keertip): Add support for non-JSON format
     // and check for --format flag
-    log.message(json.stringify({'packages': packagesObj}));
+    log.message(JSON.encode({'packages': packagesObj}));
   }
 }
 

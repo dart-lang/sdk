@@ -6,7 +6,7 @@ part of _js_helper;
 
 class StringMatch implements Match {
   const StringMatch(int this.start,
-                    String this.str,
+                    String this.input,
                     String this.pattern);
 
   int get end => start + pattern.length;
@@ -28,8 +28,11 @@ class StringMatch implements Match {
     return result;
   }
 
+  // TODO(12843): Remove when grace period is over.
+  String get str => input;
+
   final int start;
-  final String str;
+  final String input;
   final String pattern;
 }
 

@@ -165,7 +165,7 @@ class Phase {
   }
 
   /// Remove all phases after this one.
-  Phase removeFollowing() {
+  void removeFollowing() {
     if (_next == null) return;
     _next.remove();
     _next = null;

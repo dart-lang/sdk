@@ -7,7 +7,6 @@ library vmservice_test_helper;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as JSON;
 import 'package:expect/expect.dart';
 
 abstract class VmServiceRequestHelper {
@@ -45,7 +44,7 @@ abstract class VmServiceRequestHelper {
     print('** Response: $replyAsString');
     var reply;
     try {
-      reply = JSON.parse(replyAsString);
+      reply = JSON.decode(replyAsString);
     } catch (e) {
       onRequestFailed(e);
       return;

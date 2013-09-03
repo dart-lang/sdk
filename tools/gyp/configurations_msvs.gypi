@@ -29,6 +29,10 @@
             ],
           },
         },
+        # C4351 warns MSVC follows the C++ specification regarding array
+        # initialization in member initializers.  Code that expects the
+        # specified behavior should silence this warning.
+        'msvs_disabled_warnings': [4351],
       },
 
       'Dart_Release': {
@@ -56,6 +60,10 @@
             ],
           },
         },
+        # C4351 warns MSVC follows the C++ specification regarding array
+        # initialization in member initializers.  Code that expects the
+        # specified behavior should silence this warning.
+        'msvs_disabled_warnings': [4351],
       },
     },
     'defines': [

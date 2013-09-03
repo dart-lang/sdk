@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library polymer.test.transform.script_compactor_test;
+library polymer.test.transform.all_phases_test;
 
 import 'package:polymer/src/transform.dart';
 import 'package:unittest/compact_vm_config.dart';
@@ -34,10 +34,11 @@ void main() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
+          '$SHADOW_DOM_TAG'
+          '$INTEROP_TAG'
           '<script type="application/dart" '
           'src="test.html_bootstrap.dart"></script>'
-          '<script type="text/javascript" '
-          'src="packages/browser/dart.js"></script>'
+          '<script src="packages/browser/dart.js"></script>'
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
@@ -65,10 +66,11 @@ void main() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
+          '$SHADOW_DOM_TAG'
+          '$INTEROP_TAG'
           '<script type="application/dart" '
           'src="test.html_bootstrap.dart"></script>'
-          '<script type="text/javascript" '
-          'src="packages/browser/dart.js"></script>'
+          '<script src="packages/browser/dart.js"></script>'
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
@@ -102,11 +104,13 @@ void main() {
       'a|web/a.dart': _sampleObservable('A', 'foo'),
     }, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body><div></div>'
+          '<!DOCTYPE html><html><head></head><body>'
+          '$SHADOW_DOM_TAG'
+          '$INTEROP_TAG'
+          '<div></div>'
           '<script type="application/dart" '
           'src="test.html_bootstrap.dart"></script>'
-          '<script type="text/javascript" '
-          'src="packages/browser/dart.js"></script>'
+          '<script src="packages/browser/dart.js"></script>'
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
@@ -144,19 +148,20 @@ void main() {
           '${_sampleObservable("C", "car")}</script>',
       'a|web/b.dart': _sampleObservable('B', 'bar'),
       'a|web/test2.html':
-          '<!DOCTYPE html><html><head>'
-          '</head><body><polymer-element>1'
+          '<!DOCTYPE html><html><head></head><body>'
+          '<polymer-element>1'
           '<script type="application/dart">'
           '${_sampleObservable("A", "foo")}</script>'
           '</polymer-element></html>',
     }, {
       'a|web/index.html':
           '<!DOCTYPE html><html><head></head><body>'
+          '$SHADOW_DOM_TAG'
+          '$INTEROP_TAG'
           '<polymer-element>1</polymer-element>'
           '<script type="application/dart" '
           'src="index.html_bootstrap.dart"></script>'
-          '<script type="text/javascript" '
-          'src="packages/browser/dart.js"></script>'
+          '<script src="packages/browser/dart.js"></script>'
           '</body></html>',
       'a|web/index.html_bootstrap.dart':
           '''library app_bootstrap;
@@ -183,6 +188,7 @@ void main() {
 }
 
 String _sampleObservable(String className, String fieldName) => '''
+library ${className}_$fieldName;
 import 'package:observe/observe.dart';
 
 class $className extends ObservableBase {
@@ -192,6 +198,7 @@ class $className extends ObservableBase {
 ''';
 
 String _sampleObservableOutput(String className, String fieldName) => '''
+library ${className}_$fieldName;
 import 'package:observe/observe.dart';
 
 class $className extends ChangeNotifierBase {

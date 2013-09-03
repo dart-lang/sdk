@@ -2,10 +2,9 @@ library tokenizer_test;
 
 // Note: mirrors used to match the getattr usage in the original test
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 import 'dart:mirrors';
-import 'dart:utf';
 import 'package:path/path.dart' as pathos;
 import 'package:unittest/unittest.dart';
 import 'package:html5lib/src/char_encodings.dart';
@@ -13,6 +12,7 @@ import 'package:html5lib/src/constants.dart' as constants;
 import 'package:html5lib/src/token.dart';
 import 'package:html5lib/src/tokenizer.dart';
 import 'package:html5lib/src/utils.dart';
+import 'package:utf/utf.dart';
 import 'support.dart';
 
 class TokenizerTestParser {
@@ -207,10 +207,10 @@ void runTokenizerTest(Map testInfo) {
 }
 
 Map unescape(Map testInfo) {
-  // TODO(sigmundch,jmesserly): we currently use json.parse to unescape the
+  // TODO(sigmundch,jmesserly): we currently use JSON.decode to unescape the
   // unicode characters in the string, we should use a decoding that works with
   // any control characters.
-  decode(inp) => inp == '\u0000' ? inp : json.parse('"$inp"');
+  decode(inp) => inp == '\u0000' ? inp : JSON.decode('"$inp"');
 
   testInfo["input"] = decode(testInfo["input"]);
   for (var token in testInfo["output"]) {
@@ -248,7 +248,7 @@ void main() {
     if (!path.endsWith('.test')) continue;
 
     var text = new File(path).readAsStringSync();
-    var tests = json.parse(text);
+    var tests = JSON.decode(text);
     var testName = pathos.basenameWithoutExtension(path);
     var testList = tests['tests'];
     if (testList == null) continue;

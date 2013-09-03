@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
@@ -36,7 +36,7 @@ main() {
         response.statusCode = 400;
         response.reasonPhrase = 'Bad request';
         response.headers.contentType = new ContentType("application", "json");
-        response.write(json.stringify({"error": "invalid_request"}));
+        response.write(JSON.encode({"error": "invalid_request"}));
         response.close();
       });
     });

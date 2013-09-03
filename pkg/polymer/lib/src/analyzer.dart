@@ -10,14 +10,11 @@ library analyzer;
 
 import 'package:html5lib/dom.dart';
 import 'package:html5lib/dom_parsing.dart';
-import 'package:source_maps/span.dart' hide SourceFile;
 
 import 'custom_tag_name.dart';
-import 'dart_parser.dart' show parseDartCode;
 import 'files.dart';
 import 'info.dart';
 import 'messages.dart';
-import 'summary.dart';
 
 /**
  * Finds custom elements in this file and the list of referenced files with
@@ -27,9 +24,8 @@ import 'summary.dart';
  * supplied.
  */
 FileInfo analyzeDefinitions(GlobalInfo global, UrlInfo inputUrl,
-    Document document, String packageRoot,
-    Messages messages, {bool isEntryPoint: false}) {
-  var result = new FileInfo(inputUrl, isEntryPoint);
+    Document document, String packageRoot, Messages messages) {
+  var result = new FileInfo(inputUrl);
   var loader = new _ElementLoader(global, result, packageRoot, messages);
   loader.visit(document);
   return result;
@@ -139,10 +135,6 @@ class _Analyzer extends TreeVisitor {
 
     _keepIndentationSpaces = keepSpaces;
     _currentInfo = lastInfo;
-
-    if (node.tagName == 'body' || node.parent == null) {
-      _fileInfo.body = node;
-    }
   }
 
   void _analyzeComponent(ComponentInfo component) {
@@ -154,10 +146,6 @@ class _Analyzer extends TreeVisitor {
           'custom element with tag name ${component.extendsTag} not found.',
           component.element.sourceSpan);
     }
-
-    // Now that the component's code has been loaded, we can validate that the
-    // class exists.
-    component.findClassDeclaration(_messages);
   }
 
   void _bindCustomElement(Element node) {
@@ -182,10 +170,6 @@ class _Analyzer extends TreeVisitor {
     }
 
     if (component != null) {
-      if (!component.hasConflict) {
-        _currentInfo.usedComponents[component] = true;
-      }
-
       var baseTag = component.baseExtendsTag;
       var nodeTag = node.tagName;
       var hasIsAttribute = node.attributes.containsKey('is');
@@ -271,15 +255,10 @@ class _Analyzer extends TreeVisitor {
    *   * we scan all [info.componentLinks] and import their
    *     [info.declaredComponents], using [files] to map the href to the file
    *     info. Names in [info] will shadow names from imported files.
-   *   * we fill [LibraryInfo.externalCode] on each component declared in
-   *     [info].
    */
   void _normalize(FileInfo info, Map<String, FileInfo> files) {
-    _attachExtenalScript(info, files);
-
     for (var component in info.declaredComponents) {
       _addComponent(info, component);
-      _attachExtenalScript(component, files);
     }
 
     for (var link in info.componentLinks) {
@@ -290,20 +269,8 @@ class _Analyzer extends TreeVisitor {
     }
   }
 
-  /**
-   * Stores a direct reference in [info] to a dart source file that was loaded
-   * in a script tag with the 'src' attribute.
-   */
-  void _attachExtenalScript(LibraryInfo info, Map<String, FileInfo> files) {
-    var externalFile = info.externalFile;
-    if (externalFile != null) {
-      info.externalCode = files[externalFile.resolvedPath];
-      if (info.externalCode != null) info.externalCode.htmlFile = info;
-    }
-  }
-
   /** Adds a component's tag name to the names in scope for [fileInfo]. */
-  void _addComponent(FileInfo fileInfo, ComponentSummary component) {
+  void _addComponent(FileInfo fileInfo, ComponentInfo component) {
     var existing = fileInfo.components[component.tagName];
     if (existing != null) {
       if (existing == component) {
@@ -439,7 +406,7 @@ class _ElementLoader extends TreeVisitor {
       return;
     }
 
-    var component = new ComponentInfo(node, _fileInfo, tagName, extendsTag);
+    var component = new ComponentInfo(node, tagName, extendsTag);
     _fileInfo.declaredComponents.add(component);
     _addComponent(component);
 
@@ -496,20 +463,7 @@ class _ElementLoader extends TreeVisitor {
       return;
     }
 
-    if (scriptType != 'application/dart') {
-      if (_currentInfo is ComponentInfo) {
-        // TODO(jmesserly): this warning should not be here, but our compiler
-        // does the wrong thing and it could cause surprising behavior, so let
-        // the user know! See issue #340 for more info.
-        // What we should be doing: leave JS component untouched by compiler.
-        _messages.warning('our custom element implementation does not support '
-            'JavaScript components yet. If this is affecting you please let us '
-            'know at https://github.com/dart-lang/web-ui/issues/340.',
-            node.sourceSpan);
-      }
-
-      return;
-    }
+    if (scriptType != 'application/dart') return;
 
     if (src != null) {
       if (!src.endsWith('.dart')) {
@@ -522,45 +476,6 @@ class _ElementLoader extends TreeVisitor {
         _messages.error('script tag has "src" attribute and also has script '
             'text.', node.sourceSpan);
       }
-
-      if (_currentInfo.codeAttached) {
-        _tooManyScriptsError(node);
-      } else {
-        _currentInfo.externalFile = UrlInfo.resolve(src, _fileInfo.inputUrl,
-            node.sourceSpan, _packageRoot, _messages);
-      }
-      return;
     }
-
-    if (node.nodes.length == 0) return;
-
-    // I don't think the html5 parser will emit a tree with more than
-    // one child of <script>
-    assert(node.nodes.length == 1);
-    Text text = node.nodes[0];
-
-    if (_currentInfo.codeAttached) {
-      _tooManyScriptsError(node);
-    } else if (_currentInfo == _fileInfo && !_fileInfo.isEntryPoint) {
-      _messages.warning('top-level dart code is ignored on '
-          ' HTML pages that define components, but are not the entry HTML '
-          'file.', node.sourceSpan);
-    } else {
-      _currentInfo.inlinedCode = parseDartCode(
-          _currentInfo.dartCodeUrl.resolvedPath, text.value,
-          text.sourceSpan.start);
-      if (_currentInfo.userCode.partOf != null) {
-        _messages.error('expected a library, not a part.',
-            node.sourceSpan);
-      }
-    }
-  }
-
-  void _tooManyScriptsError(Node node) {
-    var location = _currentInfo is ComponentInfo ?
-        'a custom element declaration' : 'the top-level HTML page';
-
-    _messages.error('there should be only one dart script tag in $location.',
-        node.sourceSpan);
   }
 }

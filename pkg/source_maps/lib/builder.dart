@@ -7,8 +7,8 @@ library source_maps.builder;
 
 // TODO(sigmund): add a builder for multi-section mappings.
 
-import 'dart:json' as json;
 import 'dart:collection';
+import 'dart:convert';
 
 import 'span.dart';
 import 'src/vlq.dart';
@@ -108,7 +108,7 @@ class SourceMapBuilder {
   }
 
   /// Encodes all mappings added to this builder as a json string.
-  String toJson(String fileUrl) => json.stringify(build(fileUrl));
+  String toJson(String fileUrl) => JSON.encode(build(fileUrl));
 
   /// Get the index of [value] in [map], or create one if it doesn't exist.
   int _indexOf(Map<String, int> map, String value) {

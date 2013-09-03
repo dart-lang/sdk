@@ -211,7 +211,8 @@ class JsObject implements Serializable<JsObject> {
     switch (result[0]) {
       case 'return': return _deserialize(result[1]);
       case 'throws': throw _deserialize(result[1]);
-      case 'none': throw new NoSuchMethodError(receiver, member, args, {});
+      case 'none':
+          throw new NoSuchMethodError(receiver, new Symbol(member), args, {});
       default: throw 'Invalid return value';
     }
   }

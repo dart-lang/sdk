@@ -514,6 +514,8 @@ DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target_in,
     return Api::NewHandle(isolate, Instance::Cast(target).Evaluate(expr));
   } else if (target.IsClass()) {
     return Api::NewHandle(isolate, Class::Cast(target).Evaluate(expr));
+  } else if (target.IsLibrary()) {
+    return Api::NewHandle(isolate, Library::Cast(target).Evaluate(expr));
   }
   return Api::NewError("%s: unsupported target type", CURRENT_FUNC);
 }
@@ -779,6 +781,19 @@ DART_EXPORT Dart_Handle Dart_GetLibraryIds() {
     library_id_list.SetAt(i, Smi::Handle(Smi::New(lib.index())));
   }
   return Api::NewHandle(isolate, library_id_list.raw());
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetLibraryFromId(intptr_t library_id) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  DARTSCOPE(isolate);
+  const Library& lib = Library::Handle(Library::GetLibrary(library_id));
+  if (lib.IsNull()) {
+    return Api::NewError("%s: %" Pd " is not a valid library id",
+                         CURRENT_FUNC, library_id);
+  }
+  return Api::NewHandle(isolate, lib.raw());
 }
 
 

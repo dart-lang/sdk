@@ -17,9 +17,9 @@
 library dartdoc;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:json' as json;
 import 'dart:math';
 
 import 'package:path/path.dart' as path;
@@ -778,7 +778,7 @@ class Dartdoc {
    */
   void docNavigationJson() {
     startFile('nav.json');
-    writeln(json.stringify(createNavigationInfo()));
+    writeln(JSON.encode(createNavigationInfo()));
     endFile();
   }
   /// Whether dartdoc is running from within the Dart SDK or the
@@ -802,7 +802,7 @@ class Dartdoc {
     if (!tmpDir.existsSync()) {
         tmpDir.createSync();
     }
-    String jsonString = json.stringify(createNavigationInfo());
+    String jsonString = JSON.encode(createNavigationInfo());
     String dartString = jsonString.replaceAll(r"$", r"\$");
     var filePath = path.join(tmpPath, 'client.dart');
 

@@ -154,36 +154,50 @@ class AbstractClassInstantiationError extends Error {
   String toString() => "Cannot instantiate abstract class: '$_className'";
 }
 
+
 /**
  * Error thrown by the default implementation of [:noSuchMethod:] on [Object].
  */
 class NoSuchMethodError extends Error {
   final Object _receiver;
-  final String _memberName;
+  final Symbol _memberName;
   final List _arguments;
-  final Map<String,dynamic> _namedArguments;
+  final Map<Symbol, dynamic> _namedArguments;
   final List _existingArgumentNames;
 
   /**
    * Create a [NoSuchMethodError] corresponding to a failed method call.
    *
-   * The first parameter to this constructor is the receiver of the method call.
+   * The [receiver] is the receiver of the method call.
    * That is, the object on which the method was attempted called.
-   * The second parameter is the name of the called method or accessor.
-   * The third parameter is a list of the positional arguments that the method
-   * was called with.
-   * The fourth parameter is a map from [String] names to the values of named
+   * If the receiver is `null`, it is interpreted as a call to a top-level
+   * function of a library.
+   *
+   * The [memberName] is a [Symbol] representing the name of the called method
+   * or accessor. It should not be `null`.
+   *
+   * The [positionalArguments] is a list of the positional arguments that the
+   * method was called with. If `null`, it is considered equivalent to the
+   * empty list.
+   *
+   * The [namedArguments] is a map from [Symbol]s to the values of named
    * arguments that the method was called with.
+   *
    * The optional [exisitingArgumentNames] is the expected parameters of a
    * method with the same name on the receiver, if available. This is
-   * the method that would have been called if the parameters had matched.
+   * the signature of the method that would have been called if the parameters
+   * had matched.
    */
-  NoSuchMethodError(Object this._receiver,
-                    String this._memberName,
-                    List this._arguments,
-                    Map<String,dynamic> this._namedArguments,
+  NoSuchMethodError(Object receiver,
+                    Symbol memberName,
+                    List positionalArguments,
+                    Map<Symbol ,dynamic> namedArguments,
                     [List existingArgumentNames = null])
-      : this._existingArgumentNames = existingArgumentNames;
+      : _receiver = receiver,
+        _memberName = memberName,
+        _arguments = positionalArguments,
+        _namedArguments = namedArguments,
+        _existingArgumentNames = existingArgumentNames;
 
   external String toString();
 }

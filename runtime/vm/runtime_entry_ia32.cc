@@ -23,14 +23,17 @@ namespace dart {
 //   EDX : number of arguments to the call.
 // For leaf calls the caller is responsible to setup the arguments
 // and look for return values based on the C calling convention.
-void RuntimeEntry::Call(Assembler* assembler) const {
-  if (!is_leaf()) {
-    __ movl(ECX, Immediate(GetEntryPoint()));
-    __ movl(EDX, Immediate(argument_count()));
-    __ call(&StubCode::CallToRuntimeLabel());
-  } else {
+void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
+  if (is_leaf()) {
+    ASSERT(argument_count == this->argument_count());
     ExternalLabel label(name(), GetEntryPoint());
     __ call(&label);
+  } else {
+    // Argument count is not checked here, but in the runtime entry for a more
+    // informative error message.
+    __ movl(ECX, Immediate(GetEntryPoint()));
+    __ movl(EDX, Immediate(argument_count));
+    __ call(&StubCode::CallToRuntimeLabel());
   }
 }
 

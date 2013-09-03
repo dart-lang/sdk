@@ -699,7 +699,7 @@ class Assembler : public ValueObject {
   void EnterCallRuntimeFrame(intptr_t frame_space);
   void LeaveCallRuntimeFrame();
 
-  void CallRuntime(const RuntimeEntry& entry);
+  void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
   // Set up a Dart frame on entry with a frame pointer and PC information to
   // enable easy access to the RawInstruction object of code corresponding

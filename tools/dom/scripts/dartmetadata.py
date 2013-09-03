@@ -384,7 +384,7 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   'Crypto': _webkit_experimental_annotations,
   'Database': _web_sql_annotations,
   'DatabaseSync': _web_sql_annotations,
-  'DOMApplicationCache': [
+  'ApplicationCache': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
     "@SupportedBrowser(SupportedBrowser.IE, '10')",

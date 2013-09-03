@@ -250,6 +250,13 @@ $if DART2JS
       completer.completeError(e);
     }, 1));
 
+    // IE9 RTM - XDomainRequest issued requests may abort if all event handlers
+    // not specified
+    // http://social.msdn.microsoft.com/Forums/ie/en-US/30ef3add-767c-4436-b8a9-f1ca19b4812e/ie9-rtm-xdomainrequest-issued-requests-may-abort-if-all-event-handlers-not-specified
+    JS('', '#.onprogress = {}', xhr);
+    JS('', '#.ontimeout = {}', xhr);
+    JS('', '#.timeout = Number.MAX_VALUE', xhr);
+
     if (sendData != null) {
       JS('', '#.send(#)', xhr, sendData);
     } else {

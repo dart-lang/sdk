@@ -603,7 +603,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     __ PushList((1 << R1) | (1 << R2));
     __ LoadObject(R0, test_cache);
     __ Push(R0);
-    GenerateCallRuntime(token_pos, deopt_id, kInstanceofRuntimeEntry, locs);
+    GenerateCallRuntime(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
     __ Drop(5);
@@ -685,6 +685,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
     GenerateCallRuntime(token_pos,
                         deopt_id,
                         kMalformedTypeErrorRuntimeEntry,
+                        3,
                         locs);
     // We should never return here.
     __ bkpt(0);
@@ -711,7 +712,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadObject(R0, test_cache);
   __ Push(R0);
-  GenerateCallRuntime(token_pos, deopt_id, kTypeCheckRuntimeEntry, locs);
+  GenerateCallRuntime(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ Drop(6);
@@ -1256,8 +1257,9 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
 void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
                                             intptr_t deopt_id,
                                             const RuntimeEntry& entry,
+                                            intptr_t argument_count,
                                             LocationSummary* locs) {
-  __ CallRuntime(entry);
+  __ CallRuntime(entry, argument_count);
   AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos);
   RecordSafepoint(locs);
   if (deopt_id != Isolate::kNoDeoptId) {

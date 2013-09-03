@@ -429,7 +429,7 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
 
   RawCode* obj = raw_obj->ptr();
   intptr_t length = obj->pointer_offsets_length_;
-  if (obj->is_alive_ == 1) {
+  if (Code::AliveBit::decode(obj->state_bits_)) {
     // Also visit all the embedded pointers in the corresponding instructions.
     uword entry_point = reinterpret_cast<uword>(obj->instructions_->ptr()) +
         Instructions::HeaderSize();

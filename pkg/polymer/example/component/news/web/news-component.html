@@ -1,49 +1,37 @@
-<!DOCTYPE html>
-<!--
-This example is from
-https://github.com/dglazkov/Web-Components-Polyfill/blob/master/samples/news
--->
-<html>
-<head>
-    <title>News Component</title>
-</head>
-<body>
 <polymer-element name="x-news" extends="ul">
-    <template>
-        <style scoped>
-            div.breaking {
-                color: Red;
-                font-size: 20px;
-                border: 1px dashed Purple;
-            }
-            div.other {
-                padding: 2px 0 0 0;
-                border: 1px solid Cyan;
-            }
-        </style>
-        <div class="breaking">
-            <h2>Breaking Stories</h2>
-            <ul>
-                <content select=".breaking"></content>
-            </ul>
-        </div>
-        <div class="other">
-            <h2>Other News</h2>
-            <ul>
-                <content></content>
-            </ul>
-        </div>
-    </template>
-    <script type="application/dart">
-      import 'package:polymer/polymer.dart';
-
-      class XNews extends PolymerElement {}
-
-      @initMethod
-      _init() {
-        registerPolymerElement('x-news', () => new XNews());
+  <template>
+    <style scoped>
+      div.breaking {
+          color: Red;
+          font-size: 20px;
+          border: 1px dashed Purple;
       }
-    </script>
+      div.other {
+          padding: 2px 0 0 0;
+          border: 1px solid Cyan;
+      }
+    </style>
+    <div class="breaking">
+      <h2>Breaking Stories</h2>
+      <ul>
+          <content select=".breaking"></content>
+      </ul>
+    </div>
+    <div class="other">
+      <h2>Other News</h2>
+      <ul>
+          <content></content>
+      </ul>
+    </div>
+  </template>
+  <script type="application/dart">
+    import 'package:polymer/polymer.dart';
+
+    class XNews extends PolymerElement {}
+
+    @initMethod
+    _init() {
+      registerPolymerElement('x-news', () => new XNews());
+    }
+  </script>
 </polymer-element>
-</body>
-</html>

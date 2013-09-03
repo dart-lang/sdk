@@ -1,8 +1,27 @@
-/// The Dart HTML library.
-///
-/// For examples, see
-/// [Dart HTML5 Samples](https://github.com/dart-lang/dart-html5-samples)
-/// on Github.
+/**
+ * HTML elements and other resources for web-based applications that need to
+ * interact with the browser and the DOM (Document Object Model).
+ *
+ * This library includes DOM element types, CSS styling, local storage,
+ * media, speech, events, and more.
+ * To get started,
+ * check out the [Element] class, the base class for many of the HTML
+ * DOM types.
+ *
+ * ## Other resources
+ *
+ * * If you've never written a web app before, try our
+ * tutorials&mdash;[A Game of Darts](http://dartlang.org/docs/tutorials).
+ * 
+ * * To see some web-based Dart apps in action and to play with the code,
+ * download
+ * [Dart Editor](http://www.dartlang.org/#get-started)
+ * and run its built-in examples.
+ *
+ * * For even more examples, see
+ * [Dart HTML5 Samples](https://github.com/dart-lang/dart-html5-samples)
+ * on Github.
+ */
 library dart.dom.html;
 
 import 'dart:async';
@@ -11,7 +30,7 @@ import 'dart:_collection-dev' hide Symbol, deprecated;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
-import 'dart:json' as json;
+import "dart:convert";
 import 'dart:math';
 import 'dart:mirrors';
 import 'dart:nativewrappers';
@@ -84,7 +103,7 @@ var _callPortLastResult = null;
 _callPortSync(num id, var message) {
   if (!_callPortInitialized) {
     window.on['js-result'].listen((event) {
-      _callPortLastResult = json.parse(_getPortSyncEventData(event));
+      _callPortLastResult = JSON.decode(_getPortSyncEventData(event));
     });
     _callPortInitialized = true;
   }
@@ -351,7 +370,7 @@ class AnimationEvent extends Event {
 
   @DomName('WebKitAnimationEvent.elapsedTime')
   @DocsEditable()
-  num get elapsedTime native "WebKitAnimationEvent_elapsedTime_Getter";
+  double get elapsedTime native "WebKitAnimationEvent_elapsedTime_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -362,7 +381,7 @@ class AnimationEvent extends Event {
 
 
 @DocsEditable()
-@DomName('DOMApplicationCache')
+@DomName('ApplicationCache')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
@@ -373,122 +392,122 @@ class ApplicationCache extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory ApplicationCache._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('DOMApplicationCache.cachedEvent')
+  @DomName('ApplicationCache.cachedEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> cachedEvent = const EventStreamProvider<Event>('cached');
 
-  @DomName('DOMApplicationCache.checkingEvent')
+  @DomName('ApplicationCache.checkingEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> checkingEvent = const EventStreamProvider<Event>('checking');
 
-  @DomName('DOMApplicationCache.downloadingEvent')
+  @DomName('ApplicationCache.downloadingEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> downloadingEvent = const EventStreamProvider<Event>('downloading');
 
-  @DomName('DOMApplicationCache.errorEvent')
+  @DomName('ApplicationCache.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DomName('DOMApplicationCache.noupdateEvent')
+  @DomName('ApplicationCache.noupdateEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> noUpdateEvent = const EventStreamProvider<Event>('noupdate');
 
-  @DomName('DOMApplicationCache.obsoleteEvent')
+  @DomName('ApplicationCache.obsoleteEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> obsoleteEvent = const EventStreamProvider<Event>('obsolete');
 
-  @DomName('DOMApplicationCache.progressEvent')
+  @DomName('ApplicationCache.progressEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
-  @DomName('DOMApplicationCache.updatereadyEvent')
+  @DomName('ApplicationCache.updatereadyEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-  @DomName('DOMApplicationCache.CHECKING')
+  @DomName('ApplicationCache.CHECKING')
   @DocsEditable()
   static const int CHECKING = 2;
 
-  @DomName('DOMApplicationCache.DOWNLOADING')
+  @DomName('ApplicationCache.DOWNLOADING')
   @DocsEditable()
   static const int DOWNLOADING = 3;
 
-  @DomName('DOMApplicationCache.IDLE')
+  @DomName('ApplicationCache.IDLE')
   @DocsEditable()
   static const int IDLE = 1;
 
-  @DomName('DOMApplicationCache.OBSOLETE')
+  @DomName('ApplicationCache.OBSOLETE')
   @DocsEditable()
   static const int OBSOLETE = 5;
 
-  @DomName('DOMApplicationCache.UNCACHED')
+  @DomName('ApplicationCache.UNCACHED')
   @DocsEditable()
   static const int UNCACHED = 0;
 
-  @DomName('DOMApplicationCache.UPDATEREADY')
+  @DomName('ApplicationCache.UPDATEREADY')
   @DocsEditable()
   static const int UPDATEREADY = 4;
 
-  @DomName('DOMApplicationCache.status')
+  @DomName('ApplicationCache.status')
   @DocsEditable()
-  int get status native "DOMApplicationCache_status_Getter";
+  int get status native "ApplicationCache_status_Getter";
 
-  @DomName('DOMApplicationCache.abort')
+  @DomName('ApplicationCache.abort')
   @DocsEditable()
-  void abort() native "DOMApplicationCache_abort_Callback";
+  void abort() native "ApplicationCache_abort_Callback";
 
-  @DomName('DOMApplicationCache.swapCache')
+  @DomName('ApplicationCache.swapCache')
   @DocsEditable()
-  void swapCache() native "DOMApplicationCache_swapCache_Callback";
+  void swapCache() native "ApplicationCache_swapCache_Callback";
 
-  @DomName('DOMApplicationCache.update')
+  @DomName('ApplicationCache.update')
   @DocsEditable()
-  void update() native "DOMApplicationCache_update_Callback";
+  void update() native "ApplicationCache_update_Callback";
 
-  @DomName('DOMApplicationCache.addEventListener')
+  @DomName('ApplicationCache.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_addEventListener_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "ApplicationCache_addEventListener_Callback";
 
-  @DomName('DOMApplicationCache.dispatchEvent')
+  @DomName('ApplicationCache.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event event) native "DOMApplicationCache_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) native "ApplicationCache_dispatchEvent_Callback";
 
-  @DomName('DOMApplicationCache.removeEventListener')
+  @DomName('ApplicationCache.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_removeEventListener_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "ApplicationCache_removeEventListener_Callback";
 
-  @DomName('DOMApplicationCache.oncached')
+  @DomName('ApplicationCache.oncached')
   @DocsEditable()
   Stream<Event> get onCached => cachedEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.onchecking')
+  @DomName('ApplicationCache.onchecking')
   @DocsEditable()
   Stream<Event> get onChecking => checkingEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.ondownloading')
+  @DomName('ApplicationCache.ondownloading')
   @DocsEditable()
   Stream<Event> get onDownloading => downloadingEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.onerror')
+  @DomName('ApplicationCache.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.onnoupdate')
+  @DomName('ApplicationCache.onnoupdate')
   @DocsEditable()
   Stream<Event> get onNoUpdate => noUpdateEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.onobsolete')
+  @DomName('ApplicationCache.onobsolete')
   @DocsEditable()
   Stream<Event> get onObsolete => obsoleteEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.onprogress')
+  @DomName('ApplicationCache.onprogress')
   @DocsEditable()
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.onupdateready')
+  @DomName('ApplicationCache.onupdateready')
   @DocsEditable()
   Stream<Event> get onUpdateReady => updateReadyEvent.forTarget(this);
 
@@ -1473,7 +1492,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  num get backingStorePixelRatio native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
+  double get backingStorePixelRatio native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
 
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable()
@@ -2204,106 +2223,132 @@ class CompositionEvent extends UIEvent {
 
 @DocsEditable()
 @DomName('Console')
-class Console extends NativeFieldWrapperClass1 {
+class Console extends ConsoleBase {
+  // To suppress missing implicit constructor warnings.
+  factory Console._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Console.memory')
   @DocsEditable()
   @Experimental()
   MemoryInfo get memory native "Console_memory_Getter";
 
-  @DomName('Console.assertCondition')
-  @DocsEditable()
-  @Experimental()
-  void assertCondition(bool condition, Object arg) native "Console_assertCondition_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-  @DomName('Console.clear')
-  @DocsEditable()
-  @Experimental()
-  void clear(Object arg) native "Console_clear_Callback";
+// WARNING: Do not edit - generated code.
 
-  @DomName('Console.count')
-  @DocsEditable()
-  @Experimental()
-  void count(Object arg) native "Console_count_Callback";
 
-  @DomName('Console.debug')
-  @DocsEditable()
-  @deprecated // deprecated
-  void debug(Object arg) native "Console_debug_Callback";
+@DocsEditable()
+@DomName('ConsoleBase')
+@Experimental() // untriaged
+class ConsoleBase extends NativeFieldWrapperClass1 {
 
-  @DomName('Console.dir')
+  @DomName('ConsoleBase.assertCondition')
   @DocsEditable()
-  void dir(Object arg) native "Console_dir_Callback";
+  @Experimental() // untriaged
+  void assertCondition(bool condition, Object arg) native "ConsoleBase_assertCondition_Callback";
 
-  @DomName('Console.dirxml')
+  @DomName('ConsoleBase.clear')
   @DocsEditable()
-  @Experimental()
-  void dirxml(Object arg) native "Console_dirxml_Callback";
+  @Experimental() // untriaged
+  void clear(Object arg) native "ConsoleBase_clear_Callback";
 
-  @DomName('Console.error')
+  @DomName('ConsoleBase.count')
   @DocsEditable()
-  void error(Object arg) native "Console_error_Callback";
+  @Experimental() // untriaged
+  void count(Object arg) native "ConsoleBase_count_Callback";
 
-  @DomName('Console.group')
+  @DomName('ConsoleBase.debug')
   @DocsEditable()
-  void group(Object arg) native "Console_group_Callback";
+  @Experimental() // untriaged
+  void debug(Object arg) native "ConsoleBase_debug_Callback";
 
-  @DomName('Console.groupCollapsed')
+  @DomName('ConsoleBase.dir')
   @DocsEditable()
-  void groupCollapsed(Object arg) native "Console_groupCollapsed_Callback";
+  @Experimental() // untriaged
+  void dir(Object arg) native "ConsoleBase_dir_Callback";
 
-  @DomName('Console.groupEnd')
+  @DomName('ConsoleBase.dirxml')
   @DocsEditable()
-  void groupEnd() native "Console_groupEnd_Callback";
+  @Experimental() // untriaged
+  void dirxml(Object arg) native "ConsoleBase_dirxml_Callback";
 
-  @DomName('Console.info')
+  @DomName('ConsoleBase.error')
   @DocsEditable()
-  void info(Object arg) native "Console_info_Callback";
+  @Experimental() // untriaged
+  void error(Object arg) native "ConsoleBase_error_Callback";
 
-  @DomName('Console.log')
+  @DomName('ConsoleBase.group')
   @DocsEditable()
-  void log(Object arg) native "Console_log_Callback";
+  @Experimental() // untriaged
+  void group(Object arg) native "ConsoleBase_group_Callback";
 
-  @DomName('Console.markTimeline')
+  @DomName('ConsoleBase.groupCollapsed')
   @DocsEditable()
-  @Experimental()
-  void markTimeline(Object arg) native "Console_markTimeline_Callback";
+  @Experimental() // untriaged
+  void groupCollapsed(Object arg) native "ConsoleBase_groupCollapsed_Callback";
 
-  @DomName('Console.profile')
+  @DomName('ConsoleBase.groupEnd')
   @DocsEditable()
-  @Experimental()
-  void profile(String title) native "Console_profile_Callback";
+  @Experimental() // untriaged
+  void groupEnd() native "ConsoleBase_groupEnd_Callback";
 
-  @DomName('Console.profileEnd')
+  @DomName('ConsoleBase.info')
   @DocsEditable()
-  @Experimental()
-  void profileEnd(String title) native "Console_profileEnd_Callback";
+  @Experimental() // untriaged
+  void info(Object arg) native "ConsoleBase_info_Callback";
 
-  @DomName('Console.table')
+  @DomName('ConsoleBase.log')
   @DocsEditable()
-  @Experimental()
-  void table(Object arg) native "Console_table_Callback";
+  @Experimental() // untriaged
+  void log(Object arg) native "ConsoleBase_log_Callback";
 
-  @DomName('Console.time')
+  @DomName('ConsoleBase.markTimeline')
   @DocsEditable()
-  void time(String title) native "Console_time_Callback";
+  @Experimental() // untriaged
+  void markTimeline(Object arg) native "ConsoleBase_markTimeline_Callback";
 
-  @DomName('Console.timeEnd')
+  @DomName('ConsoleBase.profile')
   @DocsEditable()
-  void timeEnd(String title) native "Console_timeEnd_Callback";
+  @Experimental() // untriaged
+  void profile(String title) native "ConsoleBase_profile_Callback";
 
-  @DomName('Console.timeStamp')
+  @DomName('ConsoleBase.profileEnd')
   @DocsEditable()
-  @Experimental()
-  void timeStamp(Object arg) native "Console_timeStamp_Callback";
+  @Experimental() // untriaged
+  void profileEnd(String title) native "ConsoleBase_profileEnd_Callback";
 
-  @DomName('Console.trace')
+  @DomName('ConsoleBase.table')
   @DocsEditable()
-  void trace(Object arg) native "Console_trace_Callback";
+  @Experimental() // untriaged
+  void table(Object arg) native "ConsoleBase_table_Callback";
 
-  @DomName('Console.warn')
+  @DomName('ConsoleBase.time')
   @DocsEditable()
-  void warn(Object arg) native "Console_warn_Callback";
+  @Experimental() // untriaged
+  void time(String title) native "ConsoleBase_time_Callback";
+
+  @DomName('ConsoleBase.timeEnd')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void timeEnd(String title) native "ConsoleBase_timeEnd_Callback";
+
+  @DomName('ConsoleBase.timeStamp')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void timeStamp(Object arg) native "ConsoleBase_timeStamp_Callback";
+
+  @DomName('ConsoleBase.trace')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void trace(Object arg) native "ConsoleBase_trace_Callback";
+
+  @DomName('ConsoleBase.warn')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void warn(Object arg) native "ConsoleBase_warn_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2363,31 +2408,31 @@ class Coordinates extends NativeFieldWrapperClass1 {
 
   @DomName('Coordinates.accuracy')
   @DocsEditable()
-  num get accuracy native "Coordinates_accuracy_Getter";
+  double get accuracy native "Coordinates_accuracy_Getter";
 
   @DomName('Coordinates.altitude')
   @DocsEditable()
-  num get altitude native "Coordinates_altitude_Getter";
+  double get altitude native "Coordinates_altitude_Getter";
 
   @DomName('Coordinates.altitudeAccuracy')
   @DocsEditable()
-  num get altitudeAccuracy native "Coordinates_altitudeAccuracy_Getter";
+  double get altitudeAccuracy native "Coordinates_altitudeAccuracy_Getter";
 
   @DomName('Coordinates.heading')
   @DocsEditable()
-  num get heading native "Coordinates_heading_Getter";
+  double get heading native "Coordinates_heading_Getter";
 
   @DomName('Coordinates.latitude')
   @DocsEditable()
-  num get latitude native "Coordinates_latitude_Getter";
+  double get latitude native "Coordinates_latitude_Getter";
 
   @DomName('Coordinates.longitude')
   @DocsEditable()
-  num get longitude native "Coordinates_longitude_Getter";
+  double get longitude native "Coordinates_longitude_Getter";
 
   @DomName('Coordinates.speed')
   @DocsEditable()
-  num get speed native "Coordinates_speed_Getter";
+  double get speed native "Coordinates_speed_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2449,44 +2494,6 @@ class CryptoKey extends NativeFieldWrapperClass1 {
   @DocsEditable()
   @Experimental() // untriaged
   List<String> get usages native "Key_usages_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('CryptoOperation')
-@Experimental() // untriaged
-class CryptoOperation extends NativeFieldWrapperClass1 {
-
-  @DomName('CryptoOperation.algorithm')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Algorithm get algorithm native "CryptoOperation_algorithm_Getter";
-
-  @DomName('CryptoOperation.abort')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object abort() native "CryptoOperation_abort_Callback";
-
-  @DomName('CryptoOperation.finish')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object finish() native "CryptoOperation_finish_Callback";
-
-  @DomName('CryptoOperation.processByteBuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  CryptoOperation processByteBuffer(ByteBuffer data) native "CryptoOperation_processByteBuffer_Callback";
-
-  @DomName('CryptoOperation.processTypedData')
-  @DocsEditable()
-  @Experimental() // untriaged
-  CryptoOperation processTypedData(TypedData data) native "CryptoOperation_processTypedData_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2737,71 +2744,76 @@ class CssImportRule extends CssRule {
 
 
 @DocsEditable()
-@DomName('WebKitCSSKeyframeRule')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-// http://www.w3.org/TR/css3-animations/#CSSKeyframeRule-interface
+@DomName('CSSKeyframeRule')
+@Experimental() // untriaged
 class CssKeyframeRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssKeyframeRule._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('WebKitCSSKeyframeRule.keyText')
+  @DomName('CSSKeyframeRule.keyText')
   @DocsEditable()
-  String get keyText native "WebKitCSSKeyframeRule_keyText_Getter";
+  @Experimental() // untriaged
+  String get keyText native "CSSKeyframeRule_keyText_Getter";
 
-  @DomName('WebKitCSSKeyframeRule.keyText')
+  @DomName('CSSKeyframeRule.keyText')
   @DocsEditable()
-  void set keyText(String value) native "WebKitCSSKeyframeRule_keyText_Setter";
+  @Experimental() // untriaged
+  void set keyText(String value) native "CSSKeyframeRule_keyText_Setter";
 
-  @DomName('WebKitCSSKeyframeRule.style')
+  @DomName('CSSKeyframeRule.style')
   @DocsEditable()
-  CssStyleDeclaration get style native "WebKitCSSKeyframeRule_style_Getter";
+  @Experimental() // untriaged
+  CssStyleDeclaration get style native "CSSKeyframeRule_style_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
 
 @DocsEditable()
-@DomName('WebKitCSSKeyframesRule')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-// http://www.w3.org/TR/css3-animations/#csskeyframesrule
+@DomName('CSSKeyframesRule')
+@Experimental() // untriaged
 class CssKeyframesRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssKeyframesRule._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('WebKitCSSKeyframesRule.cssRules')
+  @DomName('CSSKeyframesRule.cssRules')
   @DocsEditable()
-  List<CssRule> get cssRules native "WebKitCSSKeyframesRule_cssRules_Getter";
+  @Experimental() // untriaged
+  List<CssRule> get cssRules native "CSSKeyframesRule_cssRules_Getter";
 
-  @DomName('WebKitCSSKeyframesRule.name')
+  @DomName('CSSKeyframesRule.name')
   @DocsEditable()
-  String get name native "WebKitCSSKeyframesRule_name_Getter";
+  @Experimental() // untriaged
+  String get name native "CSSKeyframesRule_name_Getter";
 
-  @DomName('WebKitCSSKeyframesRule.name')
+  @DomName('CSSKeyframesRule.name')
   @DocsEditable()
-  void set name(String value) native "WebKitCSSKeyframesRule_name_Setter";
+  @Experimental() // untriaged
+  void set name(String value) native "CSSKeyframesRule_name_Setter";
 
-  @DomName('WebKitCSSKeyframesRule.__getter__')
+  @DomName('CSSKeyframesRule.__getter__')
   @DocsEditable()
-  CssKeyframeRule __getter__(int index) native "WebKitCSSKeyframesRule___getter___Callback";
+  @Experimental() // untriaged
+  CssKeyframeRule __getter__(int index) native "CSSKeyframesRule___getter___Callback";
 
-  @DomName('WebKitCSSKeyframesRule.deleteRule')
+  @DomName('CSSKeyframesRule.deleteRule')
   @DocsEditable()
-  void deleteRule(String key) native "WebKitCSSKeyframesRule_deleteRule_Callback";
+  @Experimental() // untriaged
+  void deleteRule(String key) native "CSSKeyframesRule_deleteRule_Callback";
 
-  @DomName('WebKitCSSKeyframesRule.findRule')
+  @DomName('CSSKeyframesRule.findRule')
   @DocsEditable()
-  CssKeyframeRule findRule(String key) native "WebKitCSSKeyframesRule_findRule_Callback";
+  @Experimental() // untriaged
+  CssKeyframeRule findRule(String key) native "CSSKeyframesRule_findRule_Callback";
 
-  @DomName('WebKitCSSKeyframesRule.insertRule')
+  @DomName('CSSKeyframesRule.insertRule')
   @DocsEditable()
-  void appendRule(String rule) native "WebKitCSSKeyframesRule_insertRule_Callback";
-
+  @Experimental() // untriaged
+  void insertRule(String rule) native "CSSKeyframesRule_insertRule_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3174,6 +3186,16 @@ class CssRule extends NativeFieldWrapperClass1 {
   @DomName('CSSRule.IMPORT_RULE')
   @DocsEditable()
   static const int IMPORT_RULE = 3;
+
+  @DomName('CSSRule.KEYFRAMES_RULE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int KEYFRAMES_RULE = 7;
+
+  @DomName('CSSRule.KEYFRAME_RULE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int KEYFRAME_RULE = 8;
 
   @DomName('CSSRule.MEDIA_RULE')
   @DocsEditable()
@@ -7027,37 +7049,41 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
   @DocsEditable()
   int get length native "DataTransferItemList_length_Getter";
 
-  void add(data_OR_file, [String type]) {
+  @DomName('DataTransferItemList.__getter__')
+  @DocsEditable()
+  @Experimental() // untriaged
+  DataTransferItem __getter__(int index) native "DataTransferItemList___getter___Callback";
+
+  DataTransferItem add(data_OR_file, [String type]) {
     if ((data_OR_file is File || data_OR_file == null) && type == null) {
-      _add_1(data_OR_file);
-      return;
+      return _add_1(data_OR_file);
     }
     if ((type is String || type == null) && (data_OR_file is String || data_OR_file == null)) {
-      _add_2(data_OR_file, type);
-      return;
+      return _add_2(data_OR_file, type);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void _add_1(data_OR_file) native "DataTransferItemList__add_1_Callback";
+  DataTransferItem _add_1(data_OR_file) native "DataTransferItemList__add_1_Callback";
 
-  void _add_2(data_OR_file, type) native "DataTransferItemList__add_2_Callback";
+  DataTransferItem _add_2(data_OR_file, type) native "DataTransferItemList__add_2_Callback";
 
   @DomName('DataTransferItemList.addData')
   @DocsEditable()
-  void addData(String data, String type) native "DataTransferItemList_addData_Callback";
+  DataTransferItem addData(String data, String type) native "DataTransferItemList_addData_Callback";
 
   @DomName('DataTransferItemList.addFile')
   @DocsEditable()
-  void addFile(File file) native "DataTransferItemList_addFile_Callback";
+  DataTransferItem addFile(File file) native "DataTransferItemList_addFile_Callback";
 
   @DomName('DataTransferItemList.clear')
   @DocsEditable()
   void clear() native "DataTransferItemList_clear_Callback";
 
-  @DomName('DataTransferItemList.item')
+  @DomName('DataTransferItemList.remove')
   @DocsEditable()
-  DataTransferItem item(int index) native "DataTransferItemList_item_Callback";
+  @Experimental() // untriaged
+  void remove(int index) native "DataTransferItemList_remove_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7148,15 +7174,15 @@ class DeviceAcceleration extends NativeFieldWrapperClass1 {
 
   @DomName('DeviceAcceleration.x')
   @DocsEditable()
-  num get x native "DeviceAcceleration_x_Getter";
+  double get x native "DeviceAcceleration_x_Getter";
 
   @DomName('DeviceAcceleration.y')
   @DocsEditable()
-  num get y native "DeviceAcceleration_y_Getter";
+  double get y native "DeviceAcceleration_y_Getter";
 
   @DomName('DeviceAcceleration.z')
   @DocsEditable()
-  num get z native "DeviceAcceleration_z_Getter";
+  double get z native "DeviceAcceleration_z_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7184,7 +7210,7 @@ class DeviceMotionEvent extends Event {
 
   @DomName('DeviceMotionEvent.interval')
   @DocsEditable()
-  num get interval native "DeviceMotionEvent_interval_Getter";
+  double get interval native "DeviceMotionEvent_interval_Getter";
 
   @DomName('DeviceMotionEvent.rotationRate')
   @DocsEditable()
@@ -7218,15 +7244,15 @@ class DeviceOrientationEvent extends Event {
 
   @DomName('DeviceOrientationEvent.alpha')
   @DocsEditable()
-  num get alpha native "DeviceOrientationEvent_alpha_Getter";
+  double get alpha native "DeviceOrientationEvent_alpha_Getter";
 
   @DomName('DeviceOrientationEvent.beta')
   @DocsEditable()
-  num get beta native "DeviceOrientationEvent_beta_Getter";
+  double get beta native "DeviceOrientationEvent_beta_Getter";
 
   @DomName('DeviceOrientationEvent.gamma')
   @DocsEditable()
-  num get gamma native "DeviceOrientationEvent_gamma_Getter";
+  double get gamma native "DeviceOrientationEvent_gamma_Getter";
 
   @DomName('DeviceOrientationEvent.initDeviceOrientationEvent')
   @DocsEditable()
@@ -7248,15 +7274,15 @@ class DeviceRotationRate extends NativeFieldWrapperClass1 {
 
   @DomName('DeviceRotationRate.alpha')
   @DocsEditable()
-  num get alpha native "DeviceRotationRate_alpha_Getter";
+  double get alpha native "DeviceRotationRate_alpha_Getter";
 
   @DomName('DeviceRotationRate.beta')
   @DocsEditable()
-  num get beta native "DeviceRotationRate_beta_Getter";
+  double get beta native "DeviceRotationRate_beta_Getter";
 
   @DomName('DeviceRotationRate.gamma')
   @DocsEditable()
-  num get gamma native "DeviceRotationRate_gamma_Getter";
+  double get gamma native "DeviceRotationRate_gamma_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7734,7 +7760,7 @@ class Document extends Node
 
   @DomName('Document.createRange')
   @DocsEditable()
-  Range $dom_createRange() native "Document_createRange_Callback";
+  Range createRange() native "Document_createRange_Callback";
 
   @DomName('Document.createTextNode')
   @DocsEditable()
@@ -10085,7 +10111,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
     }
     var fragment;
     if (Range.supportsCreateContextualFragment) {
-      var range = _parseDocument.$dom_createRange();
+      var range = _parseDocument.createRange();
       range.selectNodeContents(contextElement);
       fragment = range.createContextualFragment(html);
     } else {
@@ -10460,6 +10486,16 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   void set id(String value) native "Element_id_Setter";
 
+  @DomName('Element.localName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get _localName native "Element_localName_Getter";
+
+  @DomName('Element.namespaceURI')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get _namespaceUri native "Element_namespaceURI_Getter";
+
   @DomName('Element.offsetHeight')
   @DocsEditable()
   int get offsetHeight native "Element_offsetHeight_Getter";
@@ -10553,11 +10589,11 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.getAttribute')
   @DocsEditable()
-  String $dom_getAttribute(String name) native "Element_getAttribute_Callback";
+  String _getAttribute(String name) native "Element_getAttribute_Callback";
 
   @DomName('Element.getAttributeNS')
   @DocsEditable()
-  String $dom_getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
+  String _getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
 
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
@@ -10657,11 +10693,11 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.setAttribute')
   @DocsEditable()
-  void $dom_setAttribute(String name, String value) native "Element_setAttribute_Callback";
+  void _setAttribute(String name, String value) native "Element_setAttribute_Callback";
 
   @DomName('Element.setAttributeNS')
   @DocsEditable()
-  void $dom_setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
+  void _setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
 
   @DomName('Element.webkitGetRegionFlowRanges')
   @DocsEditable()
@@ -11814,7 +11850,9 @@ class FileEntry extends Entry {
 @DomName('FileError')
 // http://dev.w3.org/2009/dap/file-system/pub/FileSystem/
 @Experimental()
-class FileError extends NativeFieldWrapperClass1 {
+class FileError extends DomError {
+  // To suppress missing implicit constructor warnings.
+  factory FileError._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('FileError.ABORT_ERR')
   @DocsEditable()
@@ -12867,6 +12905,31 @@ class History extends NativeFieldWrapperClass1 implements HistoryBase {
 
 
 @DocsEditable()
+@DomName('HmacKeyParams')
+@Experimental() // untriaged
+class HmacKeyParams extends Algorithm {
+  // To suppress missing implicit constructor warnings.
+  factory HmacKeyParams._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('HmacKeyParams.hash')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Algorithm get hash native "HmacKeyParams_hash_Getter";
+
+  @DomName('HmacKeyParams.length')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get length native "HmacKeyParams_length_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('HmacParams')
 @Experimental() // untriaged
 class HmacParams extends Algorithm {
@@ -13446,7 +13509,7 @@ class HtmlOptionsCollection extends HtmlCollection {
  * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
 @DomName('XMLHttpRequest')
-class HttpRequest extends EventTarget {
+class HttpRequest extends XmlHttpRequestEventTarget {
 
   /**
    * Creates a URL get request for the specified [url].
@@ -13635,30 +13698,6 @@ class HttpRequest extends EventTarget {
 
   // To suppress missing implicit constructor warnings.
   factory HttpRequest._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('XMLHttpRequest.abortEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
-
-  @DomName('XMLHttpRequest.errorEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
-
-  @DomName('XMLHttpRequest.loadEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
-
-  @DomName('XMLHttpRequest.loadendEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
-
-  @DomName('XMLHttpRequest.loadstartEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
-
-  @DomName('XMLHttpRequest.progressEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
   @DomName('XMLHttpRequest.readystatechangeEvent')
   @DocsEditable()
@@ -13940,77 +13979,6 @@ class HttpRequest extends EventTarget {
   @DocsEditable()
   void setRequestHeader(String header, String value) native "XMLHttpRequest_setRequestHeader_Callback";
 
-  @DomName('XMLHttpRequest.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_addEventListener_Callback";
-
-  @DomName('XMLHttpRequest.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native "XMLHttpRequest_dispatchEvent_Callback";
-
-  @DomName('XMLHttpRequest.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_removeEventListener_Callback";
-
-  /**
-   * Event listeners to be notified when request has been aborted,
-   * generally due to calling `httpRequest.abort()`.
-   */
-  @DomName('XMLHttpRequest.onabort')
-  @DocsEditable()
-  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
-
-  /**
-   * Event listeners to be notified when a request has failed, such as when a
-   * cross-domain error occurred or the file wasn't found on the server.
-   */
-  @DomName('XMLHttpRequest.onerror')
-  @DocsEditable()
-  Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
-
-  /**
-   * Event listeners to be notified once the request has completed
-   * *successfully*.
-   */
-  @DomName('XMLHttpRequest.onload')
-  @DocsEditable()
-  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
-
-  /**
-   * Event listeners to be notified once the request has completed (on
-   * either success or failure).
-   */
-  @DomName('XMLHttpRequest.onloadend')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
-
-  /**
-   * Event listeners to be notified when the request starts, once
-   * `httpRequest.send()` has been called.
-   */
-  @DomName('XMLHttpRequest.onloadstart')
-  @DocsEditable()
-  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
-
-  /**
-   * Event listeners to be notified when data for the request
-   * is being sent or loaded.
-   *
-   * Progress events are fired every 50ms or for every byte transmitted,
-   * whichever is less frequent.
-   */
-  @DomName('XMLHttpRequest.onprogress')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
-
   /**
    * Event listeners to be notified every time the [HttpRequest]
    * object's `readyState` changes values.
@@ -14060,69 +14028,9 @@ class HttpRequestProgressEvent extends ProgressEvent {
 @DomName('XMLHttpRequestUpload')
 // http://xhr.spec.whatwg.org/#xmlhttprequestupload
 @Experimental()
-class HttpRequestUpload extends EventTarget {
+class HttpRequestUpload extends XmlHttpRequestEventTarget {
   // To suppress missing implicit constructor warnings.
   factory HttpRequestUpload._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('XMLHttpRequestUpload.abortEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
-
-  @DomName('XMLHttpRequestUpload.errorEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
-
-  @DomName('XMLHttpRequestUpload.loadEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
-
-  @DomName('XMLHttpRequestUpload.loadendEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
-
-  @DomName('XMLHttpRequestUpload.loadstartEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
-
-  @DomName('XMLHttpRequestUpload.progressEvent')
-  @DocsEditable()
-  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
-
-  @DomName('XMLHttpRequestUpload.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_addEventListener_Callback";
-
-  @DomName('XMLHttpRequestUpload.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native "XMLHttpRequestUpload_dispatchEvent_Callback";
-
-  @DomName('XMLHttpRequestUpload.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_removeEventListener_Callback";
-
-  @DomName('XMLHttpRequestUpload.onabort')
-  @DocsEditable()
-  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestUpload.onerror')
-  @DocsEditable()
-  Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestUpload.onload')
-  @DocsEditable()
-  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestUpload.onloadend')
-  @DocsEditable()
-  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestUpload.onloadstart')
-  @DocsEditable()
-  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestUpload.onprogress')
-  @DocsEditable()
-  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16076,7 +15984,7 @@ class MediaController extends EventTarget {
 
   @DomName('MediaController.duration')
   @DocsEditable()
-  num get duration native "MediaController_duration_Getter";
+  double get duration native "MediaController_duration_Getter";
 
   @DomName('MediaController.muted')
   @DocsEditable()
@@ -16369,7 +16277,7 @@ class MediaElement extends HtmlElement {
 
   @DomName('HTMLMediaElement.duration')
   @DocsEditable()
-  num get duration native "HTMLMediaElement_duration_Getter";
+  double get duration native "HTMLMediaElement_duration_Getter";
 
   @DomName('HTMLMediaElement.ended')
   @DocsEditable()
@@ -16383,7 +16291,7 @@ class MediaElement extends HtmlElement {
   @DocsEditable()
   // http://www.w3.org/TR/2011/WD-html5-20110113/video.html#dom-media-initialtime
   @Experimental()
-  num get initialTime native "HTMLMediaElement_initialTime_Getter";
+  double get initialTime native "HTMLMediaElement_initialTime_Getter";
 
   @DomName('HTMLMediaElement.loop')
   @DocsEditable()
@@ -16472,7 +16380,7 @@ class MediaElement extends HtmlElement {
   @DomName('HTMLMediaElement.startTime')
   @DocsEditable()
   @Experimental() // non-standard
-  num get startTime native "HTMLMediaElement_startTime_Getter";
+  double get startTime native "HTMLMediaElement_startTime_Getter";
 
   @DomName('HTMLMediaElement.textTracks')
   @DocsEditable()
@@ -17489,13 +17397,6 @@ class MenuElement extends HtmlElement {
 @Unstable()
 class MessageChannel extends NativeFieldWrapperClass1 {
 
-  @DomName('MessageChannel.MessageChannel')
-  @DocsEditable()
-  factory MessageChannel() => _create();
-
-  @DocsEditable()
-  static MessageChannel _create() native "MessageChannel_constructorCallback";
-
   @DomName('MessageChannel.port1')
   @DocsEditable()
   MessagePort get port1 native "MessageChannel_port1_Getter";
@@ -17549,7 +17450,7 @@ class MessageEvent extends Event {
 
   @DomName('MessageEvent.source')
   @DocsEditable()
-  WindowBase get source native "MessageEvent_source_Getter";
+  EventTarget get source native "MessageEvent_source_Getter";
 
   @DomName('MessageEvent.initMessageEvent')
   @DocsEditable()
@@ -17891,7 +17792,7 @@ class MidiMessageEvent extends Event {
 
   @DomName('MIDIMessageEvent.receivedTime')
   @DocsEditable()
-  num get receivedTime native "MIDIMessageEvent_receivedTime_Getter";
+  double get receivedTime native "MIDIMessageEvent_receivedTime_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18562,7 +18463,7 @@ class NamedFlowCollection extends NativeFieldWrapperClass1 {
 
 
 @DomName('Navigator')
-class Navigator extends NativeFieldWrapperClass1 {
+class Navigator extends NativeFieldWrapperClass1 implements NavigatorOnLine, NavigatorID {
 
 
   /**
@@ -18626,14 +18527,6 @@ class Navigator extends NativeFieldWrapperClass1 {
   @Experimental() // non-standard
   String get appCodeName native "Navigator_appCodeName_Getter";
 
-  @DomName('Navigator.appName')
-  @DocsEditable()
-  String get appName native "Navigator_appName_Getter";
-
-  @DomName('Navigator.appVersion')
-  @DocsEditable()
-  String get appVersion native "Navigator_appVersion_Getter";
-
   @DomName('Navigator.cookieEnabled')
   @DocsEditable()
   @Unstable()
@@ -18659,15 +18552,6 @@ class Navigator extends NativeFieldWrapperClass1 {
   @Experimental() // nonstandard
   MimeTypeArray get mimeTypes native "Navigator_mimeTypes_Getter";
 
-  @DomName('Navigator.onLine')
-  @DocsEditable()
-  @Unstable()
-  bool get onLine native "Navigator_onLine_Getter";
-
-  @DomName('Navigator.platform')
-  @DocsEditable()
-  String get platform native "Navigator_platform_Getter";
-
   @DomName('Navigator.plugins')
   @DocsEditable()
   @deprecated // nonstandard
@@ -18682,10 +18566,6 @@ class Navigator extends NativeFieldWrapperClass1 {
   @DocsEditable()
   @Unstable()
   String get productSub native "Navigator_productSub_Getter";
-
-  @DomName('Navigator.userAgent')
-  @DocsEditable()
-  String get userAgent native "Navigator_userAgent_Getter";
 
   @DomName('Navigator.vendor')
   @DocsEditable()
@@ -18747,6 +18627,78 @@ class Navigator extends NativeFieldWrapperClass1 {
   // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#navigatorusermedia
   @Experimental()
   void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, [_NavigatorUserMediaErrorCallback errorCallback]) native "Navigator_webkitGetUserMedia_Callback";
+
+  @DomName('Navigator.appName')
+  @DocsEditable()
+  String get appName native "Navigator_appName_Getter";
+
+  @DomName('Navigator.appVersion')
+  @DocsEditable()
+  String get appVersion native "Navigator_appVersion_Getter";
+
+  @DomName('Navigator.platform')
+  @DocsEditable()
+  String get platform native "Navigator_platform_Getter";
+
+  @DomName('Navigator.userAgent')
+  @DocsEditable()
+  String get userAgent native "Navigator_userAgent_Getter";
+
+  @DomName('Navigator.onLine')
+  @DocsEditable()
+  @Unstable()
+  bool get onLine native "Navigator_onLine_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('NavigatorID')
+@Experimental() // untriaged
+abstract class NavigatorID extends NativeFieldWrapperClass1 {
+
+  @DomName('NavigatorID.appName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get appName native "NavigatorID_appName_Getter";
+
+  @DomName('NavigatorID.appVersion')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get appVersion native "NavigatorID_appVersion_Getter";
+
+  @DomName('NavigatorID.platform')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get platform native "NavigatorID_platform_Getter";
+
+  @DomName('NavigatorID.userAgent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get userAgent native "NavigatorID_userAgent_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('NavigatorOnLine')
+@Experimental() // untriaged
+abstract class NavigatorOnLine extends NativeFieldWrapperClass1 {
+
+  @DomName('NavigatorOnLine.onLine')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get onLine native "NavigatorOnLine_onLine_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18924,7 +18876,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
     _this._replaceChild(value, this[index]);
   }
 
-  Iterator<Node> get iterator => _this.$dom_childNodes.iterator;
+  Iterator<Node> get iterator => _this._childNodes.iterator;
 
   // From List<Node>:
 
@@ -18946,15 +18898,15 @@ class _ChildNodeListLazy extends ListBase<Node> {
   // -- end List<Node> mixins.
 
   // TODO(jacobr): benchmark whether this is more efficient or whether caching
-  // a local copy of $dom_childNodes is more efficient.
-  int get length => _this.$dom_childNodes.length;
+  // a local copy of _childNodes is more efficient.
+  int get length => _this._childNodes.length;
 
   void set length(int value) {
     throw new UnsupportedError(
         "Cannot set length on immutable List.");
   }
 
-  Node operator[](int index) => _this.$dom_childNodes[index];
+  Node operator[](int index) => _this._childNodes[index];
 }
 
 /** Information about the instantiated template. */
@@ -19150,7 +19102,7 @@ class Node extends EventTarget {
 
   @DomName('Node.childNodes')
   @DocsEditable()
-  List<Node> get $dom_childNodes native "Node_childNodes_Getter";
+  List<Node> get _childNodes native "Node_childNodes_Getter";
 
   @DomName('Node.firstChild')
   @DocsEditable()
@@ -20312,7 +20264,7 @@ class Performance extends EventTarget {
 
   @DomName('Performance.now')
   @DocsEditable()
-  num now() native "Performance_now_Callback";
+  double now() native "Performance_now_Callback";
 
   @DomName('Performance.webkitClearResourceTimings')
   @DocsEditable()
@@ -20361,7 +20313,7 @@ class PerformanceEntry extends NativeFieldWrapperClass1 {
 
   @DomName('PerformanceEntry.duration')
   @DocsEditable()
-  num get duration native "PerformanceEntry_duration_Getter";
+  double get duration native "PerformanceEntry_duration_Getter";
 
   @DomName('PerformanceEntry.entryType')
   @DocsEditable()
@@ -20373,7 +20325,7 @@ class PerformanceEntry extends NativeFieldWrapperClass1 {
 
   @DomName('PerformanceEntry.startTime')
   @DocsEditable()
-  num get startTime native "PerformanceEntry_startTime_Getter";
+  double get startTime native "PerformanceEntry_startTime_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20462,23 +20414,23 @@ class PerformanceResourceTiming extends PerformanceEntry {
 
   @DomName('PerformanceResourceTiming.connectEnd')
   @DocsEditable()
-  num get connectEnd native "PerformanceResourceTiming_connectEnd_Getter";
+  double get connectEnd native "PerformanceResourceTiming_connectEnd_Getter";
 
   @DomName('PerformanceResourceTiming.connectStart')
   @DocsEditable()
-  num get connectStart native "PerformanceResourceTiming_connectStart_Getter";
+  double get connectStart native "PerformanceResourceTiming_connectStart_Getter";
 
   @DomName('PerformanceResourceTiming.domainLookupEnd')
   @DocsEditable()
-  num get domainLookupEnd native "PerformanceResourceTiming_domainLookupEnd_Getter";
+  double get domainLookupEnd native "PerformanceResourceTiming_domainLookupEnd_Getter";
 
   @DomName('PerformanceResourceTiming.domainLookupStart')
   @DocsEditable()
-  num get domainLookupStart native "PerformanceResourceTiming_domainLookupStart_Getter";
+  double get domainLookupStart native "PerformanceResourceTiming_domainLookupStart_Getter";
 
   @DomName('PerformanceResourceTiming.fetchStart')
   @DocsEditable()
-  num get fetchStart native "PerformanceResourceTiming_fetchStart_Getter";
+  double get fetchStart native "PerformanceResourceTiming_fetchStart_Getter";
 
   @DomName('PerformanceResourceTiming.initiatorType')
   @DocsEditable()
@@ -20486,30 +20438,30 @@ class PerformanceResourceTiming extends PerformanceEntry {
 
   @DomName('PerformanceResourceTiming.redirectEnd')
   @DocsEditable()
-  num get redirectEnd native "PerformanceResourceTiming_redirectEnd_Getter";
+  double get redirectEnd native "PerformanceResourceTiming_redirectEnd_Getter";
 
   @DomName('PerformanceResourceTiming.redirectStart')
   @DocsEditable()
-  num get redirectStart native "PerformanceResourceTiming_redirectStart_Getter";
+  double get redirectStart native "PerformanceResourceTiming_redirectStart_Getter";
 
   @DomName('PerformanceResourceTiming.requestStart')
   @DocsEditable()
   @Experimental() // nonstandard
-  num get requestStart native "PerformanceResourceTiming_requestStart_Getter";
+  double get requestStart native "PerformanceResourceTiming_requestStart_Getter";
 
   @DomName('PerformanceResourceTiming.responseEnd')
   @DocsEditable()
   @Experimental() // nonstandard
-  num get responseEnd native "PerformanceResourceTiming_responseEnd_Getter";
+  double get responseEnd native "PerformanceResourceTiming_responseEnd_Getter";
 
   @DomName('PerformanceResourceTiming.responseStart')
   @DocsEditable()
   @Experimental() // nonstandard
-  num get responseStart native "PerformanceResourceTiming_responseStart_Getter";
+  double get responseStart native "PerformanceResourceTiming_responseStart_Getter";
 
   @DomName('PerformanceResourceTiming.secureConnectionStart')
   @DocsEditable()
-  num get secureConnectionStart native "PerformanceResourceTiming_secureConnectionStart_Getter";
+  double get secureConnectionStart native "PerformanceResourceTiming_secureConnectionStart_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20841,19 +20793,9 @@ class PreElement extends HtmlElement {
 @DocsEditable()
 @DomName('ProcessingInstruction')
 @Unstable()
-class ProcessingInstruction extends Node {
+class ProcessingInstruction extends CharacterData {
   // To suppress missing implicit constructor warnings.
   factory ProcessingInstruction._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('ProcessingInstruction.data')
-  @DocsEditable()
-  @Experimental() // non-standard
-  String get data native "ProcessingInstruction_data_Getter";
-
-  @DomName('ProcessingInstruction.data')
-  @DocsEditable()
-  @Experimental() // non-standard
-  void set data(String value) native "ProcessingInstruction_data_Setter";
 
   @DomName('ProcessingInstruction.sheet')
   @DocsEditable()
@@ -20904,7 +20846,7 @@ class ProgressElement extends HtmlElement {
 
   @DomName('HTMLProgressElement.position')
   @DocsEditable()
-  num get position native "HTMLProgressElement_position_Getter";
+  double get position native "HTMLProgressElement_position_Getter";
 
   @DomName('HTMLProgressElement.value')
   @DocsEditable()
@@ -21081,7 +21023,7 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 @DomName('Range')
 @Unstable()
 class Range extends NativeFieldWrapperClass1 {
-  factory Range() => document.$dom_createRange();
+  factory Range() => document.createRange();
 
   factory Range.fromPoint(Point point) =>
       document._caretRangeFromPoint(point.x, point.y);
@@ -23112,7 +23054,7 @@ class SpeechInputResult extends NativeFieldWrapperClass1 {
 
   @DomName('SpeechInputResult.confidence')
   @DocsEditable()
-  num get confidence native "SpeechInputResult_confidence_Getter";
+  double get confidence native "SpeechInputResult_confidence_Getter";
 
   @DomName('SpeechInputResult.utterance')
   @DocsEditable()
@@ -23316,7 +23258,7 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
 
   @DomName('SpeechRecognitionAlternative.confidence')
   @DocsEditable()
-  num get confidence native "SpeechRecognitionAlternative_confidence_Getter";
+  double get confidence native "SpeechRecognitionAlternative_confidence_Getter";
 
   @DomName('SpeechRecognitionAlternative.transcript')
   @DocsEditable()
@@ -23475,7 +23417,7 @@ class SpeechSynthesisEvent extends Event {
 
   @DomName('SpeechSynthesisEvent.elapsedTime')
   @DocsEditable()
-  num get elapsedTime native "SpeechSynthesisEvent_elapsedTime_Getter";
+  double get elapsedTime native "SpeechSynthesisEvent_elapsedTime_Getter";
 
   @DomName('SpeechSynthesisEvent.name')
   @DocsEditable()
@@ -24116,17 +24058,17 @@ class SubtleCrypto extends NativeFieldWrapperClass1 {
   @DomName('SubtleCrypto.decrypt')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation decrypt(Map algorithm, CryptoKey key) native "SubtleCrypto_decrypt_Callback";
+  Object decrypt(Map algorithm, CryptoKey key, TypedData data) native "SubtleCrypto_decrypt_Callback";
 
   @DomName('SubtleCrypto.digest')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation digest(Map algorithm) native "SubtleCrypto_digest_Callback";
+  Object digest(Map algorithm, TypedData data) native "SubtleCrypto_digest_Callback";
 
   @DomName('SubtleCrypto.encrypt')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation encrypt(Map algorithm, CryptoKey key) native "SubtleCrypto_encrypt_Callback";
+  Object encrypt(Map algorithm, CryptoKey key, TypedData data) native "SubtleCrypto_encrypt_Callback";
 
   @DomName('SubtleCrypto.generateKey')
   @DocsEditable()
@@ -24141,12 +24083,12 @@ class SubtleCrypto extends NativeFieldWrapperClass1 {
   @DomName('SubtleCrypto.sign')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation sign(Map algorithm, CryptoKey key) native "SubtleCrypto_sign_Callback";
+  Object sign(Map algorithm, CryptoKey key, TypedData data) native "SubtleCrypto_sign_Callback";
 
   @DomName('SubtleCrypto.verify')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation verify(Map algorithm, CryptoKey key, TypedData signature) native "SubtleCrypto_verify_Callback";
+  Object verify(Map algorithm, CryptoKey key, TypedData signature, TypedData data) native "SubtleCrypto_verify_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24373,6 +24315,7 @@ class TableRowElement extends HtmlElement {
 
   TableCellElement insertCell(int index) => _insertCell(index);
 
+
   // To suppress missing implicit constructor warnings.
   factory TableRowElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -24418,6 +24361,7 @@ class TableSectionElement extends HtmlElement {
   }
 
   TableRowElement insertRow(int index) => _insertRow(index);
+
 
   // To suppress missing implicit constructor warnings.
   factory TableSectionElement._() { throw new UnsupportedError("Not supported"); }
@@ -25065,7 +25009,7 @@ class TextMetrics extends NativeFieldWrapperClass1 {
 
   @DomName('TextMetrics.width')
   @DocsEditable()
-  num get width native "TextMetrics_width_Getter";
+  double get width native "TextMetrics_width_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25482,11 +25426,11 @@ class TimeRanges extends NativeFieldWrapperClass1 {
 
   @DomName('TimeRanges.end')
   @DocsEditable()
-  num end(int index) native "TimeRanges_end_Callback";
+  double end(int index) native "TimeRanges_end_Callback";
 
   @DomName('TimeRanges.start')
   @DocsEditable()
-  num start(int index) native "TimeRanges_start_Callback";
+  double start(int index) native "TimeRanges_start_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25564,7 +25508,7 @@ class Touch extends NativeFieldWrapperClass1 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  num get force native "Touch_webkitForce_Getter";
+  double get force native "Touch_webkitForce_Getter";
 
   @DomName('Touch.webkitRadiusX')
   @DocsEditable()
@@ -25585,7 +25529,7 @@ class Touch extends NativeFieldWrapperClass1 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  num get rotationAngle native "Touch_webkitRotationAngle_Getter";
+  double get rotationAngle native "Touch_webkitRotationAngle_Getter";
 
 
   @DomName('Touch.clientX')
@@ -25870,7 +25814,7 @@ class TransitionEvent extends Event {
 
   @DomName('TransitionEvent.elapsedTime')
   @DocsEditable()
-  num get elapsedTime native "TransitionEvent_elapsedTime_Getter";
+  double get elapsedTime native "TransitionEvent_elapsedTime_Getter";
 
   @DomName('TransitionEvent.propertyName')
   @DocsEditable()
@@ -26553,16 +26497,16 @@ class WheelEvent extends MouseEvent {
       eventType = 'MouseScrollEvents';
     }
     final event = document._createEvent(eventType);
-    // Dartium always needs these flipped because we're essentially always
-    // polyfilling (see similar dart2js code as well)
+    // Dartium always needs these flipped because we're using the legacy
+    // _initWebKitWheelEvent instead of the more modern WheelEvent constructor
+    // which isn't yet properly exposed by the Dartium bindings.
     deltaX = -deltaX;
     deltaY = -deltaY;
       // Fallthrough for Dartium.
       event._initMouseEvent(type, canBubble, cancelable, view, detail,
           screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey, button, relatedTarget);
-      event._initWebKitWheelEvent(deltaX,
-          deltaY ~/ 120, // Chrome does an auto-convert to pixels.
+      event._initWebKitWheelEvent(deltaX, deltaY,
           view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey);
 
@@ -26588,6 +26532,21 @@ class WheelEvent extends MouseEvent {
   @DocsEditable()
   int get deltaMode native "WheelEvent_deltaMode_Getter";
 
+  @DomName('WheelEvent.deltaX')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get _deltaX native "WheelEvent_deltaX_Getter";
+
+  @DomName('WheelEvent.deltaY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get _deltaY native "WheelEvent_deltaY_Getter";
+
+  @DomName('WheelEvent.deltaZ')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get deltaZ native "WheelEvent_deltaZ_Getter";
+
   @DomName('WheelEvent.webkitDirectionInvertedFromDevice')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -26598,12 +26557,12 @@ class WheelEvent extends MouseEvent {
   @DomName('WheelEvent.wheelDeltaX')
   @DocsEditable()
   @Experimental() // non-standard
-  int get _wheelDeltaX native "WheelEvent_wheelDeltaX_Getter";
+  int get wheelDeltaX native "WheelEvent_wheelDeltaX_Getter";
 
   @DomName('WheelEvent.wheelDeltaY')
   @DocsEditable()
   @Experimental() // non-standard
-  int get _wheelDeltaY native "WheelEvent_wheelDeltaY_Getter";
+  int get wheelDeltaY native "WheelEvent_wheelDeltaY_Getter";
 
   @DomName('WheelEvent.initWebKitWheelEvent')
   @DocsEditable()
@@ -26620,7 +26579,7 @@ class WheelEvent extends MouseEvent {
    * * [WheelEvent.deltaX](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaX) from the W3C.
    */
   @DomName('WheelEvent.deltaX')
-  num get deltaX => -_wheelDeltaX;
+  num get deltaX => _deltaX;
 
   /**
    * The amount that is expected to scroll vertically, in units determined by
@@ -26631,7 +26590,7 @@ class WheelEvent extends MouseEvent {
    * * [WheelEvent.deltaY](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY) from the W3C.
    */
   @DomName('WheelEvent.deltaY')
-  num get deltaY => -_wheelDeltaY;
+  num get deltaY => _deltaY;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26663,7 +26622,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
     if (portStr == null) {
       return null;
     }
-    var port = json.parse(portStr);
+    var port = JSON.decode(portStr);
     return _deserialize(port);
   }
 
@@ -26675,7 +26634,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   void registerPort(String name, var port) {
     var serialized = _serialize(port);
     document.documentElement.attributes['dart-port:$name'] =
-        json.stringify(serialized);
+        JSON.encode(serialized);
   }
 
   /**
@@ -26891,7 +26850,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DocsEditable()
   // http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html
   @Experimental() // non-standard
-  num get devicePixelRatio native "Window_devicePixelRatio_Getter";
+  double get devicePixelRatio native "Window_devicePixelRatio_Getter";
 
   @DomName('Window.document')
   @DocsEditable()
@@ -27121,6 +27080,50 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DomName('Window.confirm')
   @DocsEditable()
   bool confirm(String message) native "Window_confirm_Callback";
+
+  Object _createImageBitmap(canvas_OR_context_OR_image_OR_video, [int sx, int sy, int sw, int sh]) {
+    if ((canvas_OR_context_OR_image_OR_video is ImageElement || canvas_OR_context_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      return _createImageBitmap_1(canvas_OR_context_OR_image_OR_video);
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (canvas_OR_context_OR_image_OR_video is ImageElement || canvas_OR_context_OR_image_OR_video == null)) {
+      return _createImageBitmap_2(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh);
+    }
+    if ((canvas_OR_context_OR_image_OR_video is CanvasRenderingContext2D || canvas_OR_context_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      return _createImageBitmap_3(canvas_OR_context_OR_image_OR_video);
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (canvas_OR_context_OR_image_OR_video is CanvasElement || canvas_OR_context_OR_image_OR_video == null)) {
+      return _createImageBitmap_4(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh);
+    }
+    if ((canvas_OR_context_OR_image_OR_video is CanvasElement || canvas_OR_context_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      return _createImageBitmap_5(canvas_OR_context_OR_image_OR_video);
+    }
+    if ((canvas_OR_context_OR_image_OR_video is VideoElement || canvas_OR_context_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      return _createImageBitmap_6(canvas_OR_context_OR_image_OR_video);
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (canvas_OR_context_OR_image_OR_video is VideoElement || canvas_OR_context_OR_image_OR_video == null)) {
+      return _createImageBitmap_7(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh);
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (canvas_OR_context_OR_image_OR_video is CanvasRenderingContext2D || canvas_OR_context_OR_image_OR_video == null)) {
+      return _createImageBitmap_8(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  Object _createImageBitmap_1(canvas_OR_context_OR_image_OR_video) native "Window__createImageBitmap_1_Callback";
+
+  Object _createImageBitmap_2(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh) native "Window__createImageBitmap_2_Callback";
+
+  Object _createImageBitmap_3(canvas_OR_context_OR_image_OR_video) native "Window__createImageBitmap_3_Callback";
+
+  Object _createImageBitmap_4(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh) native "Window__createImageBitmap_4_Callback";
+
+  Object _createImageBitmap_5(canvas_OR_context_OR_image_OR_video) native "Window__createImageBitmap_5_Callback";
+
+  Object _createImageBitmap_6(canvas_OR_context_OR_image_OR_video) native "Window__createImageBitmap_6_Callback";
+
+  Object _createImageBitmap_7(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh) native "Window__createImageBitmap_7_Callback";
+
+  Object _createImageBitmap_8(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh) native "Window__createImageBitmap_8_Callback";
 
   @DomName('Window.find')
   @DocsEditable()
@@ -27738,6 +27741,21 @@ class Worker extends EventTarget implements AbstractWorker {
 
 
 @DocsEditable()
+@DomName('WorkerConsole')
+@Experimental() // untriaged
+class WorkerConsole extends ConsoleBase {
+  // To suppress missing implicit constructor warnings.
+  factory WorkerConsole._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('WorkerCrypto')
 @Experimental() // untriaged
 class WorkerCrypto extends NativeFieldWrapperClass1 {
@@ -27776,6 +27794,11 @@ class WorkerGlobalScope extends EventTarget implements WindowTimers, WindowBase6
   @DocsEditable()
   @Experimental() // untriaged
   static const int TEMPORARY = 0;
+
+  @DomName('WorkerGlobalScope.console')
+  @DocsEditable()
+  @Experimental() // untriaged
+  WorkerConsole get console native "WorkerGlobalScope_console_Getter";
 
   @DomName('WorkerGlobalScope.crypto')
   @DocsEditable()
@@ -27819,11 +27842,6 @@ class WorkerGlobalScope extends EventTarget implements WindowTimers, WindowBase6
   @DocsEditable()
   @Experimental() // untriaged
   void close() native "WorkerGlobalScope_close_Callback";
-
-  @DomName('WorkerGlobalScope.importScripts')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void importScripts() native "WorkerGlobalScope_importScripts_Callback";
 
   @DomName('WorkerGlobalScope.openDatabase')
   @DocsEditable()
@@ -27943,7 +27961,7 @@ class WorkerPerformance extends NativeFieldWrapperClass1 {
   @DomName('WorkerPerformance.now')
   @DocsEditable()
   @Experimental() // untriaged
-  num now() native "WorkerPerformance_now_Callback";
+  double now() native "WorkerPerformance_now_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28080,7 +28098,7 @@ class XPathResult extends NativeFieldWrapperClass1 {
 
   @DomName('XPathResult.numberValue')
   @DocsEditable()
-  num get numberValue native "XPathResult_numberValue_Getter";
+  double get numberValue native "XPathResult_numberValue_Getter";
 
   @DomName('XPathResult.resultType')
   @DocsEditable()
@@ -28105,6 +28123,96 @@ class XPathResult extends NativeFieldWrapperClass1 {
   @DomName('XPathResult.snapshotItem')
   @DocsEditable()
   Node snapshotItem(int index) native "XPathResult_snapshotItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('XMLHttpRequestEventTarget')
+@Experimental() // untriaged
+class XmlHttpRequestEventTarget extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory XmlHttpRequestEventTarget._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('XMLHttpRequestEventTarget.abortEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
+
+  @DomName('XMLHttpRequestEventTarget.errorEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
+
+  @DomName('XMLHttpRequestEventTarget.loadEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
+
+  @DomName('XMLHttpRequestEventTarget.loadendEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
+
+  @DomName('XMLHttpRequestEventTarget.loadstartEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
+
+  @DomName('XMLHttpRequestEventTarget.progressEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
+
+  @DomName('XMLHttpRequestEventTarget.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestEventTarget_addEventListener_Callback";
+
+  @DomName('XMLHttpRequestEventTarget.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native "XMLHttpRequestEventTarget_dispatchEvent_Callback";
+
+  @DomName('XMLHttpRequestEventTarget.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestEventTarget_removeEventListener_Callback";
+
+  @DomName('XMLHttpRequestEventTarget.onabort')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onerror')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onload')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onloadend')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onloadstart')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onprogress')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28211,9 +28319,19 @@ class _Attr extends Node {
   @DocsEditable()
   bool get isId native "Attr_isId_Getter";
 
+  @DomName('Attr.localName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get _localName native "Attr_localName_Getter";
+
   @DomName('Attr.name')
   @DocsEditable()
   String get name native "Attr_name_Getter";
+
+  @DomName('Attr.namespaceURI')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get _namespaceUri native "Attr_namespaceURI_Getter";
 
   @DomName('Attr.ownerElement')
   @DocsEditable()
@@ -28370,27 +28488,27 @@ class _ClientRect extends NativeFieldWrapperClass1 implements Rect {
 
   @DomName('ClientRect.bottom')
   @DocsEditable()
-  num get bottom native "ClientRect_bottom_Getter";
+  double get bottom native "ClientRect_bottom_Getter";
 
   @DomName('ClientRect.height')
   @DocsEditable()
-  num get height native "ClientRect_height_Getter";
+  double get height native "ClientRect_height_Getter";
 
   @DomName('ClientRect.left')
   @DocsEditable()
-  num get left native "ClientRect_left_Getter";
+  double get left native "ClientRect_left_Getter";
 
   @DomName('ClientRect.right')
   @DocsEditable()
-  num get right native "ClientRect_right_Getter";
+  double get right native "ClientRect_right_Getter";
 
   @DomName('ClientRect.top')
   @DocsEditable()
-  num get top native "ClientRect_top_Getter";
+  double get top native "ClientRect_top_Getter";
 
   @DomName('ClientRect.width')
   @DocsEditable()
-  num get width native "ClientRect_width_Getter";
+  double get width native "ClientRect_width_Getter";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29440,7 +29558,7 @@ abstract class _WorkerLocation extends NativeFieldWrapperClass1 {
 @DomName('WorkerNavigator')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workernavigator
 @Experimental()
-abstract class _WorkerNavigator extends NativeFieldWrapperClass1 {
+abstract class _WorkerNavigator extends NativeFieldWrapperClass1 implements NavigatorOnLine, NavigatorID {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29536,15 +29654,15 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   String operator [](String key) {
-    return _element.$dom_getAttribute(key);
+    return _element._getAttribute(key);
   }
 
   void operator []=(String key, String value) {
-    _element.$dom_setAttribute(key, value);
+    _element._setAttribute(key, value);
   }
 
   String remove(String key) {
-    String value = _element.$dom_getAttribute(key);
+    String value = _element._getAttribute(key);
     _element._removeAttribute(key);
     return value;
   }
@@ -29573,11 +29691,11 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   String operator [](String key) {
-    return _element.$dom_getAttributeNS(_namespace, key);
+    return _element._getAttributeNS(_namespace, key);
   }
 
   void operator []=(String key, String value) {
-    _element.$dom_setAttributeNS(_namespace, key, value);
+    _element._setAttributeNS(_namespace, key, value);
   }
 
   String remove(String key) {
@@ -29727,7 +29845,7 @@ abstract class CanvasImageSource {}
  * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
  * * [Window](http://www.w3.org/TR/Window/) from the W3C.
  */
-abstract class WindowBase {
+abstract class WindowBase implements EventTarget {
   // Fields.
 
   /**
@@ -31297,7 +31415,7 @@ class _RemoteSendPortSync implements SendPortSync {
     var source = '$target-result';
     var result = null;
     window.on[source].first.then((Event e) {
-      result = json.parse(_getPortSyncEventData(e));
+      result = JSON.decode(_getPortSyncEventData(e));
     });
     _dispatchEvent(target, [source, message]);
     return result;
@@ -31381,7 +31499,7 @@ class ReceivePortSync {
     _callback = callback;
     if (_portSubscription == null) {
       _portSubscription = window.on[_listenerName].listen((Event e) {
-        var data = json.parse(_getPortSyncEventData(e));
+        var data = JSON.decode(_getPortSyncEventData(e));
         var replyTo = data[0];
         var message = _deserialize(data[1]);
         var result = _callback(message);
@@ -31412,7 +31530,7 @@ get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
   var event = new CustomEvent(receiver, canBubble: false, cancelable:false,
-    detail: json.stringify(message));
+    detail: JSON.encode(message));
   window.dispatchEvent(event);
 }
 
@@ -32853,6 +32971,21 @@ class NodeValidatorBuilder implements NodeValidator {
   }
 
   /**
+   * Allow inline styles on elements.
+   *
+   * If [tagName] is not specified then this allows inline styles on all
+   * elements. Otherwise tagName limits the styles to the specified elements.
+   */
+  void allowInlineStyles({String tagName}) {
+    if (tagName == null) {
+      tagName = '*';
+    } else {
+      tagName = tagName.toUpperCase();
+    }
+    add(new _SimpleNodeValidator(null, allowedAttributes: ['$tagName::style']));
+  }
+
+  /**
    * Allow common safe HTML5 elements and attributes.
    *
    * This list is based off of the Caja whitelists at:
@@ -33792,6 +33925,8 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
         Element element = node;
         var attrs = element.attributes;
         if (!validator.allowsElement(element)) {
+          window.console.warn(
+              'Removing disallowed element <${element.tagName}>');
           element.remove();
           break;
         }
@@ -33799,6 +33934,8 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
         var isAttr = attrs['is'];
         if (isAttr != null) {
           if (!validator.allowsAttribute(element, 'is', isAttr)) {
+            window.console.warn('Removing disallowed type extension '
+                '<${element.tagName} is="$isAttr">');
             element.remove();
             break;
           }
@@ -33811,6 +33948,8 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
           var name = keys[i];
           if (!validator.allowsAttribute(element, name.toLowerCase(),
               attrs[name])) {
+            window.console.warn('Removing disallowed attribute '
+                '<${element.tagName} $name="${attrs[name]}">');
             attrs.remove(name);
           }
         }

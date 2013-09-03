@@ -107,7 +107,7 @@ END_LEAF_RUNTIME_ENTRY
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
   __ EnterCallRuntimeFrame(1 * kWordSize);
   __ movl(Address(ESP, 0), EAX);
-  __ CallRuntime(kPrintStopMessageRuntimeEntry);
+  __ CallRuntime(kPrintStopMessageRuntimeEntry, 1);
   __ LeaveCallRuntimeFrame();
   __ ret();
 }
@@ -263,7 +263,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(raw_null);  // Setup space on stack for return value.
-  __ CallRuntime(kPatchStaticCallRuntimeEntry);
+  __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
   __ popl(EAX);  // Get Code object result.
   __ popl(EDX);  // Restore arguments descriptor array.
   // Remove the stub frame as we are about to jump to the dart function.
@@ -286,7 +286,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(raw_null);  // Setup space on stack for return value.
-  __ CallRuntime(kFixCallersTargetRuntimeEntry);
+  __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   __ popl(EAX);  // Get Code object.
   __ popl(EDX);  // Restore arguments descriptor array.
   __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
@@ -357,7 +357,7 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   __ movl(EDX, EDI);  // Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
 
-  __ CallRuntime(kInstanceFunctionLookupRuntimeEntry);
+  __ CallRuntime(kInstanceFunctionLookupRuntimeEntry, 4);
 
   // Remove arguments.
   __ Drop(4);
@@ -422,7 +422,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ movl(ECX, ESP);  // Preserve saved registers block.
   __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ movl(Address(ESP, 0), ECX);  // Start of register block.
-  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
+  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 1);
   // Result (EAX) is stack-size (FP - SP) in bytes.
 
   if (preserve_result) {
@@ -443,7 +443,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
   __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ movl(Address(ESP, 0), EBP);  // Pass last FP as parameter on stack.
-  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);
+  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
   if (preserve_result) {
     // Restore result into EBX.
     __ movl(EBX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
@@ -459,7 +459,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ pushl(EBX);  // Preserve result, it will be GC-d here.
   }
   __ pushl(Immediate(Smi::RawValue(0)));  // Space for the result.
-  __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry);
+  __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry, 0);
   // Result tells stub how many bytes to remove from the expression stack
   // of the bottom-most frame. They were used as materialization arguments.
   __ popl(EBX);
@@ -511,7 +511,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ pushl(EAX);  // Pass receiver.
   __ pushl(ECX);  // Pass IC data.
   __ pushl(EDX);  // Pass arguments descriptor.
-  __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry);
+  __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry, 3);
   // Discard arguments.
   __ popl(EAX);
   __ popl(EAX);
@@ -662,7 +662,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ pushl(EDX);  // Array length as Smi.
   __ pushl(ECX);  // Element type.
-  __ CallRuntime(kAllocateArrayRuntimeEntry);
+  __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
   __ popl(EAX);  // Pop element type argument.
   __ popl(EDX);  // Pop array length argument.
   __ popl(EAX);  // Pop return value from return slot.
@@ -719,7 +719,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(ECX);  // Preserve read-only function object argument.
-  __ CallRuntime(kCompileFunctionRuntimeEntry);
+  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
   __ popl(ECX);  // Restore read-only function object argument in ECX.
   __ popl(EDX);  // Restore arguments descriptor array.
   // Restore EAX.
@@ -755,7 +755,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ movl(EDX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   PushArgumentsArray(assembler);
 
-  __ CallRuntime(kInvokeNonClosureRuntimeEntry);
+  __ CallRuntime(kInvokeNonClosureRuntimeEntry, 2);
   // Remove arguments.
   __ Drop(2);
   __ popl(EAX);  // Get result into EAX.
@@ -1004,7 +1004,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ SmiTag(EDX);
   __ pushl(EDX);
-  __ CallRuntime(kAllocateContextRuntimeEntry);  // Allocate context.
+  __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
   __ popl(EAX);  // Pop number of context variables argument.
   __ popl(EAX);  // Pop the new context object.
   // EAX: new object
@@ -1075,7 +1075,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ EnterCallRuntimeFrame(1 * kWordSize);
   __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
   __ movl(Address(ESP, 0), EAX);  // Push the isolate as the only argument.
-  __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry);
+  __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();
   __ ret();
@@ -1245,7 +1245,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ pushl(raw_null);  // Push null type arguments.
     __ pushl(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
   }
-  __ CallRuntime(kAllocateObjectRuntimeEntry);  // Allocate object.
+  __ CallRuntime(kAllocateObjectRuntimeEntry, 3);  // Allocate object.
   __ popl(EAX);  // Pop argument (instantiator).
   __ popl(EAX);  // Pop argument (type arguments of object).
   __ popl(EAX);  // Pop argument (class of object).
@@ -1379,12 +1379,12 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ pushl(raw_null);  // Push null type arguments.
   }
   if (is_implicit_instance_closure) {
-    __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry);
+    __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry, 3);
     __ popl(EAX);  // Pop argument (type arguments of object).
     __ popl(EAX);  // Pop receiver.
   } else {
     ASSERT(func.IsNonImplicitClosureFunction());
-    __ CallRuntime(kAllocateClosureRuntimeEntry);
+    __ CallRuntime(kAllocateClosureRuntimeEntry, 2);
     __ popl(EAX);  // Pop argument (type arguments of object).
   }
   __ popl(EAX);  // Pop function object.
@@ -1423,7 +1423,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // EDX: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
 
-  __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry);
+  __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry, 4);
 
   // Remove arguments.
   __ Drop(4);
@@ -1446,7 +1446,7 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
     __ pushl(ic_reg);       // Preserve.
     __ pushl(ic_reg);       // Argument.
     __ pushl(func_reg);     // Argument.
-    __ CallRuntime(kTraceICCallRuntimeEntry);
+    __ CallRuntime(kTraceICCallRuntimeEntry, 2);
     __ popl(EAX);          // Discard argument;
     __ popl(EAX);          // Discard argument;
     __ popl(ic_reg);       // Restore.
@@ -1504,7 +1504,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   __ EnterStubFrame();
   __ pushl(ECX);
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ popl(ECX);
   __ LeaveFrame();
   __ Bind(&not_stepping);
@@ -1583,7 +1583,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ pushl(EBX);
   }
   __ pushl(ECX);  // Pass IC data object.
-  __ CallRuntime(handle_ic_miss);
+  __ CallRuntime(handle_ic_miss, num_args + 1);
   // Remove the call arguments pushed earlier, including the IC data object.
   for (intptr_t i = 0; i < num_args + 1; i++) {
     __ popl(EAX);
@@ -1740,7 +1740,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   __ EnterStubFrame();
   __ pushl(ECX);
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ popl(ECX);
   __ LeaveFrame();
   __ Bind(&not_stepping);
@@ -1772,7 +1772,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ pushl(EDI);  // Preserve target function.
   __ pushl(ECX);  // Preserve IC data object.
   __ pushl(EDI);  // Pass function.
-  __ CallRuntime(kCompileFunctionRuntimeEntry);
+  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
   __ popl(EAX);  // Discard argument.
   __ popl(ECX);  // Restore IC data object.
   __ popl(EDI);  // Restore target function.
@@ -1807,7 +1807,7 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ pushl(raw_null);  // Room for result.
-  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry);
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ popl(EAX);  // Address of original stub.
   __ popl(EDX);  // Restore arguments.
   __ popl(ECX);
@@ -1826,7 +1826,7 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ pushl(raw_null);  // Room for result.
-  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
+  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry, 0);
   __ popl(EAX);  // Code object.
   __ popl(ECX);  // Restore ICData.
   __ LeaveFrame();
@@ -1850,7 +1850,7 @@ void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   __ pushl(EAX);
-  __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry);
+  __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry, 0);
   __ popl(EAX);
   __ LeaveFrame();
 
@@ -1870,7 +1870,7 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   __ pushl(ECX);
-  __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);
+  __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry, 0);
   __ popl(ECX);
   __ LeaveFrame();
 
@@ -2123,7 +2123,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ pushl(EAX);  // arg 1
   __ PushObject(Symbols::EqualOperator());  // Target's name.
   __ pushl(ECX);  // ICData
-  __ CallRuntime(kUpdateICDataTwoArgsRuntimeEntry);
+  __ CallRuntime(kUpdateICDataTwoArgsRuntimeEntry, 4);
   __ Drop(4);
   __ LeaveFrame();
 
@@ -2141,7 +2141,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ pushl(EDX);
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ pushl(EDI);
-  __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
+  __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ popl(EAX);  // Discard argument.
   __ popl(EAX);  // Get Code object
   __ popl(EDX);  // Restore argument descriptor.
@@ -2211,7 +2211,7 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ ReserveAlignedFrameSpace(2 * kWordSize);
   __ movl(Address(ESP, 1 * kWordSize), left);
   __ movl(Address(ESP, 0 * kWordSize), right);
-  __ CallRuntime(kBigintCompareRuntimeEntry);
+  __ CallRuntime(kBigintCompareRuntimeEntry, 2);
   // Result in EAX, 0 means equal.
   __ LeaveFrame();
   __ cmpl(EAX, Immediate(0));
@@ -2238,7 +2238,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   __ j(EQUAL, &not_stepping, Assembler::kNearJump);
 
   __ EnterStubFrame();
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ LeaveFrame();
   __ Bind(&not_stepping);
 

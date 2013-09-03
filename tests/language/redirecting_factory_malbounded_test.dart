@@ -6,7 +6,7 @@ class Foo<T> extends Bar<T> {
 
   factory Foo() = Bar;
 
-  Foo.create() : super.create() { }  // Super call required due to issue 5838.
+  Foo.create() : super.create() { }
 }
 
 class Bar<T

@@ -4,7 +4,7 @@
 
 library test.parser_test;
 
-import 'dart:json' as json;
+import 'dart:convert';
 import 'package:unittest/unittest.dart';
 import 'package:source_maps/source_maps.dart';
 import 'common.dart';
@@ -19,7 +19,7 @@ main() {
   });
 
   test('parse + json', () {
-    var mapping = parse(json.stringify(EXPECTED_MAP));
+    var mapping = parse(JSON.encode(EXPECTED_MAP));
     check(outputVar1, mapping, inputVar1, false);
     check(outputVar2, mapping, inputVar2, false);
     check(outputFunction, mapping, inputFunction, false);

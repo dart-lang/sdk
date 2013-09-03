@@ -4,7 +4,7 @@
 
 library test.printer_test;
 
-import 'dart:json' as json;
+import 'dart:convert';
 import 'package:unittest/unittest.dart';
 import 'package:source_maps/printer.dart';
 import 'package:source_maps/span.dart';
@@ -23,7 +23,7 @@ main() {
            ..mark(inputExpr)
            ..add('x + y;\n');
     expect(printer.text, OUTPUT);
-    expect(printer.map, json.stringify(EXPECTED_MAP));
+    expect(printer.map, JSON.encode(EXPECTED_MAP));
   });
 
   test('printer projecting marks', () {
@@ -90,7 +90,7 @@ main() {
              ..add('x + y;\n', span: inputExpr)
              ..build('output.dart');
       expect(printer.text, OUTPUT);
-      expect(printer.map, json.stringify(EXPECTED_MAP));
+      expect(printer.map, JSON.encode(EXPECTED_MAP));
     });
 
     test('nested use', () {
@@ -102,7 +102,7 @@ main() {
              ..add('x + y;\n', span: inputExpr)
              ..build('output.dart');
       expect(printer.text, OUTPUT);
-      expect(printer.map, json.stringify(EXPECTED_MAP));
+      expect(printer.map, JSON.encode(EXPECTED_MAP));
     });
 
     test('add indentation', () {

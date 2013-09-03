@@ -4,8 +4,8 @@
 
 library prettyPrint;
 
+import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 import 'util.dart';
 
 String orEmpty(String str) {
@@ -51,7 +51,7 @@ int addMissing(StringBuffer sb, String type, Map members) {
 
 void main() {
   // Database of code documentation.
-  final Map<String, Map> database = json.parse(
+  final Map<String, Map> database = JSON.decode(
       new File('output/database.filtered.json').readAsStringSync());
 
   // Types we have documentation for.

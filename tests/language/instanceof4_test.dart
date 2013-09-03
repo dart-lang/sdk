@@ -22,23 +22,23 @@ testFooString() {
   Expect.isTrue(!o.isNotT());
   Expect.isTrue(o.isListT());
   Expect.isTrue(!o.isNotListT());
-  Expect.isTrue(!o.isAlsoListT());
-  Expect.isTrue(o.isNeitherListT());
+  Expect.isTrue(!o.isAlsoListT());  /// 01: ok
+  Expect.isTrue(o.isNeitherListT());  /// 01: ok
   for (var i = 0; i < 20; i++) {
     // Make sure methods are optimized.
     o.isT();
     o.isNotT();
     o.isListT();
     o.isNotListT();
-    o.isAlsoListT();
-    o.isNeitherListT();
+    o.isAlsoListT();  /// 01: ok
+    o.isNeitherListT();  /// 01: ok
   }
-  Expect.isTrue(o.isT());
-  Expect.isTrue(!o.isNotT());
-  Expect.isTrue(o.isListT());
-  Expect.isTrue(!o.isNotListT());
-  Expect.isTrue(!o.isAlsoListT());
-  Expect.isTrue(o.isNeitherListT());
+  Expect.isTrue(o.isT(), "1");
+  Expect.isTrue(!o.isNotT(), "2");
+  Expect.isTrue(o.isListT(), "3");
+  Expect.isTrue(!o.isNotListT(), "4");
+  Expect.isTrue(!o.isAlsoListT(), "5");  /// 01: ok
+  Expect.isTrue(o.isNeitherListT(), "6");  /// 01: ok
 }
 
 testFooInt() {

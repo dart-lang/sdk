@@ -5,6 +5,7 @@
 library barback.transform;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'asset.dart';
 import 'asset_id.dart';
@@ -13,6 +14,7 @@ import 'asset_set.dart';
 import 'errors.dart';
 import 'transform_logger.dart';
 import 'transform_node.dart';
+import 'utils.dart';
 
 /// Creates a [Transform] by forwarding to the private constructor.
 ///
@@ -34,7 +36,10 @@ class Transform {
 
   final AssetSet _outputs;
 
-  /// Gets the ID of the primary input for this transformation.
+  /// A logger so that the [Transformer] can report build details.
+  TransformLogger get logger => _logger;
+
+  /// Gets the primary input asset.
   ///
   /// While a transformation can use multiple input assets, one must be a
   /// special "primary" asset. This will be the "entrypoint" or "main" input
@@ -43,13 +48,19 @@ class Transform {
   /// For example, with a dart2js transform, the primary input would be the
   /// entrypoint Dart file. All of the other Dart files that that imports
   /// would be secondary inputs.
-  AssetId get primaryId => _node.primary.id;
+  ///
+  /// This method may fail at runtime if called asynchronously after the
+  /// transform begins running. The primary input may become unavailable while
+  /// this transformer is running due to asset changes earlier in the graph.
+  /// You can ignore the error if this happens: the transformer will be re-run
+  /// automatically for you.
+  Asset get primaryInput {
+    if (_node.primary.state != AssetState.AVAILABLE) {
+      throw new AssetNotFoundException(_node.primary.id);
+    }
 
-  /// A logger so that the [Transformer] can report build details.
-  TransformLogger get logger => _logger;
-
-  /// Gets the asset for the primary input.
-  Future<Asset> get primaryInput => getInput(primaryId);
+    return _node.primary.asset;
+  }
 
   Transform._(this._node, this._outputs);
 
@@ -58,6 +69,26 @@ class Transform {
   /// If an input with that ID cannot be found, throws an
   /// [AssetNotFoundException].
   Future<Asset> getInput(AssetId id) => _node.getInput(id);
+
+  /// A convenience method to the contents of the input with [id] as a string.
+  ///
+  /// This is equivalent to calling `getInput()` followed by `readAsString()`.
+  ///
+  /// If the asset was created from a [String] the original string is always
+  /// returned and [encoding] is ignored. Otherwise, the binary data of the
+  /// asset is decoded using [encoding], which defaults to [UTF8].
+  Future<String> readInputAsString(AssetId id, {Encoding encoding}) {
+    if (encoding == null) encoding = UTF8;
+    return getInput(id).then((input) => input.readAsString(encoding: encoding));
+  }
+
+  /// A convenience method to the contents of the input with [id].
+  ///
+  /// This is equivalent to calling `getInput()` followed by `read()`.
+  ///
+  /// If the asset was created from a [String], this returns its UTF-8 encoding.
+  Stream<List<int>> readInput(AssetId id) =>
+      futureStream(getInput(id).then((input) => input.read()));
 
   /// Stores [output] as the output created by this transformation.
   ///

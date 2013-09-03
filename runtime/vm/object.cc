@@ -146,7 +146,7 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 
 
 // The following functions are marked as invisible, meaning they will be hidden
-// in the stack trace.
+// in the stack trace and will be hidden from reflective access.
 // (Library, class name, method name)
 #define INVISIBLE_LIST(V)                                                      \
   V(CoreLibrary, Object, _noSuchMethod)                                        \
@@ -157,10 +157,10 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, TypeError, _throwNew)                                         \
   V(CoreLibrary, FallThroughError, _throwNew)                                  \
   V(CoreLibrary, AbstractClassInstantiationError, _throwNew)                   \
-  V(CoreLibrary, NoSuchMethodError, _throwNew)                                 \
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
   V(CoreLibrary, StackTrace, _setupFullStackTrace)                             \
+  V(CoreLibrary, _OneByteString, _setAt)                                       \
 
 
 static void MarkFunctionAsInvisible(const Library& lib,
@@ -2346,6 +2346,11 @@ void Class::set_is_synthesized_class() const {
 
 void Class::set_is_const() const {
   set_state_bits(ConstBit::update(true, raw_ptr()->state_bits_));
+}
+
+
+void Class::set_is_mixin_typedef() const {
+  set_state_bits(MixinTypedefBit::update(true, raw_ptr()->state_bits_));
 }
 
 
@@ -6714,15 +6719,19 @@ void Library::AddObject(const Object& obj, const String& name) const {
 RawObject* Library::LookupExport(const String& name) const {
   if (HasExports()) {
     const Array& exports = Array::Handle(this->exports());
+    // Break potential export cycle while looking up name.
+    StorePointer(&raw_ptr()->exports_, Object::empty_array().raw());
     Namespace& ns = Namespace::Handle();
     Object& obj = Object::Handle();
     for (int i = 0; i < exports.Length(); i++) {
       ns ^= exports.At(i);
       obj = ns.Lookup(name);
       if (!obj.IsNull()) {
-        return obj.raw();
+        break;
       }
     }
+    StorePointer(&raw_ptr()->exports_, exports.raw());
+    return obj.raw();
   }
   return Object::null();
 }
@@ -7234,6 +7243,20 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   // isolates so setting their library pointers would be wrong.
   const Class& cls = Class::Handle(Object::dynamic_class());
   core_lib.AddObject(cls, String::Handle(cls.Name()));
+}
+
+
+RawObject* Library::Evaluate(const String& expr) const {
+  // Make a fake top-level class and evaluate the expression
+  // as a static function of the class.
+  Script& script = Script::Handle();
+  script = Script::New(Symbols::Empty(),
+                       Symbols::Empty(),
+                       RawScript::kSourceTag);
+  Class& temp_class =
+      Class::Handle(Class::New(Symbols::TopLevel(), script, 0));
+  temp_class.set_library(*this);
+  return temp_class.Evaluate(expr);
 }
 
 
@@ -8117,8 +8140,7 @@ RawStackmap* Stackmap::New(intptr_t pc_offset,
   intptr_t payload_size =
       Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
   if ((payload_size < 0) ||
-      (payload_size >
-           (kSmiMax - static_cast<intptr_t>(sizeof(RawStackmap))))) {
+      (payload_size > kMaxLengthInBytes)) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in Stackmap::New: invalid length %" Pd "\n",
            length);
@@ -8284,21 +8306,23 @@ intptr_t ExceptionHandlers::Length() const {
 
 void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        intptr_t outer_try_index,
-                                       intptr_t handler_pc) const {
+                                       intptr_t handler_pc,
+                                       bool needs_stacktrace,
+                                       bool has_catch_all) const {
   ASSERT((try_index >= 0) && (try_index < Length()));
   RawExceptionHandlers::HandlerInfo* info = &raw_ptr()->data_[try_index];
   info->outer_try_index = outer_try_index;
   info->handler_pc = handler_pc;
+  info->needs_stacktrace = needs_stacktrace;
+  info->has_catch_all = has_catch_all;
 }
 
 void ExceptionHandlers::GetHandlerInfo(
-                            intptr_t try_index,
-                            RawExceptionHandlers::HandlerInfo* info) const {
+    intptr_t try_index,
+    RawExceptionHandlers::HandlerInfo* info) const {
   ASSERT((try_index >= 0) && (try_index < Length()));
   ASSERT(info != NULL);
-  RawExceptionHandlers::HandlerInfo* data = &raw_ptr()->data_[try_index];
-  info->outer_try_index = data->outer_try_index;
-  info->handler_pc = data->handler_pc;
+  *info = raw_ptr()->data_[try_index];
 }
 
 
@@ -8311,6 +8335,18 @@ intptr_t ExceptionHandlers::HandlerPC(intptr_t try_index) const {
 intptr_t ExceptionHandlers::OuterTryIndex(intptr_t try_index) const {
   ASSERT((try_index >= 0) && (try_index < Length()));
   return raw_ptr()->data_[try_index].outer_try_index;
+}
+
+
+bool ExceptionHandlers::NeedsStacktrace(intptr_t try_index) const {
+  ASSERT((try_index >= 0) && (try_index < Length()));
+  return raw_ptr()->data_[try_index].needs_stacktrace;
+}
+
+
+bool ExceptionHandlers::HasCatchAll(intptr_t try_index) const {
+  ASSERT((try_index >= 0) && (try_index < Length()));
+  return raw_ptr()->data_[try_index].has_catch_all;
 }
 
 
@@ -8338,7 +8374,7 @@ void ExceptionHandlers::set_handled_types_data(const Array& value) const {
 
 RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
   ASSERT(Object::exception_handlers_class() != Class::null());
-  if (num_handlers < 0 || num_handlers >= kMaxHandlers) {
+  if ((num_handlers < 0) || (num_handlers >= kMaxHandlers)) {
     FATAL1("Fatal error in ExceptionHandlers::New(): "
            "invalid num_handlers %" Pd "\n",
            num_handlers);
@@ -8521,6 +8557,10 @@ void DeoptInfo::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 RawDeoptInfo* DeoptInfo::New(intptr_t num_commands) {
   ASSERT(Object::deopt_info_class() != Class::null());
+  if ((num_commands < 0) || (num_commands > kMaxElements)) {
+    FATAL1("Fatal error in DeoptInfo::New(): invalid num_commands %" Pd "\n",
+           num_commands);
+  }
   DeoptInfo& result = DeoptInfo::Handle();
   {
     uword size = DeoptInfo::InstanceSize(num_commands);
@@ -8600,6 +8640,21 @@ void Code::Comments::SetCommentAt(intptr_t idx, const String& comment) {
 
 Code::Comments::Comments(const Array& comments)
     : comments_(comments) {
+}
+
+
+void Code::set_state_bits(intptr_t bits) const {
+  raw_ptr()->state_bits_ = bits;
+}
+
+
+void Code::set_is_optimized(bool value) const {
+  set_state_bits(OptimizedBit::update(value, raw_ptr()->state_bits_));
+}
+
+
+void Code::set_is_alive(bool value) const {
+  set_state_bits(AliveBit::update(value, raw_ptr()->state_bits_));
 }
 
 
@@ -14320,13 +14375,11 @@ const intptr_t TypedData::element_size[] = {
 RawTypedData* TypedData::New(intptr_t class_id,
                              intptr_t len,
                              Heap::Space space) {
-  // TODO(asiva): Add a check for maximum elements.
+  if (len < 0 || len > TypedData::MaxElements(class_id)) {
+    FATAL1("Fatal error in TypedData::New: invalid len %" Pd "\n", len);
+  }
   TypedData& result = TypedData::Handle();
   {
-    // The len field has already been checked by the caller, we only assert
-    // here that it is within a valid range.
-    ASSERT((len >= 0) &&
-           (len < (kSmiMax / TypedData::ElementSizeInBytes(class_id))));
     intptr_t lengthInBytes = len * ElementSizeInBytes(class_id);
     RawObject* raw = Object::Allocate(class_id,
                                       TypedData::InstanceSize(lengthInBytes),

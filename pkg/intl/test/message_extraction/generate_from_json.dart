@@ -15,11 +15,11 @@
  */
 library generate_from_json;
 
+import 'dart:convert';
 import 'dart:io';
 import 'package:intl/extract_messages.dart';
 import 'package:intl/src/intl_message.dart';
 import 'package:intl/generate_localized.dart';
-import 'dart:json' as json;
 import 'package:path/path.dart' as path;
 import 'package:args/args.dart';
 import 'package:serialization/serialization.dart';
@@ -91,7 +91,7 @@ recreateIntlObjects(key, value) {
  */
 void generateLocaleFile(File file, String targetDir) {
   var src = file.readAsStringSync();
-  var data = json.parse(src);
+  var data = JSON.decode(src);
   data.forEach((k, v) => data[k] = recreateIntlObjects(k, v));
   var locale = data["_locale"].string;
   allLocales.add(locale);

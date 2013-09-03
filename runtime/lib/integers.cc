@@ -216,9 +216,6 @@ DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
     return Integer::New(temp);
   }
 
-  const Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, value);
-  Exceptions::ThrowByType(Exceptions::kFormat, args);
   return Object::null();
 }
 

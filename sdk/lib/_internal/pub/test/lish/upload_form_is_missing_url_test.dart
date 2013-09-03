@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:json' as json;
+import 'dart:convert';
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
@@ -31,7 +31,7 @@ main() {
 
     handleUploadForm(server, body);
     expect(pub.nextErrLine(), completion(equals('Invalid server response:')));
-    expect(pub.nextErrLine(), completion(equals(json.stringify(body))));
+    expect(pub.nextErrLine(), completion(equals(JSON.encode(body))));
     pub.shouldExit(1);
   });
 }

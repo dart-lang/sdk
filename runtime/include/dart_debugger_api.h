@@ -598,6 +598,16 @@ DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle target);
 
 
 /**
+ * Returns a handle to the library \library_id.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A library handle if the id is valid.
+ */
+DART_EXPORT Dart_Handle Dart_GetLibraryFromId(intptr_t library_id);
+
+
+/**
  * Returns an array containing all variable names and values of
  * the given library \library_id.
  *

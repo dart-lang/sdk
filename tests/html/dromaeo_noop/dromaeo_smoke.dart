@@ -5,7 +5,7 @@
 library dromaeo;
 import 'dart:async';
 import 'dart:html';
-import 'dart:json' as json;
+import "dart:convert";
 import '../../../samples/third_party/dromaeo/common/common.dart';
 import 'dart:math' as Math;
 import '../../../pkg/unittest/lib/unittest.dart';

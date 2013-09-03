@@ -429,25 +429,19 @@ class NativeEmitter {
     jsAst.Expression receiver;
     List<jsAst.Expression> arguments;
 
-    if (!nativeMethods.contains(member)) {
-      // When calling a method that has a native body, we call it with our
-      // calling conventions.
-      target = backend.namer.getName(member);
-      arguments = argumentsBuffer;
-    } else {
-      // When calling a JS method, we call it with the native name, and only the
-      // arguments up until the last one provided.
-      target = member.fixedBackendName();
+    assert(invariant(member, nativeMethods.contains(member)));
+    // When calling a JS method, we call it with the native name, and only the
+    // arguments up until the last one provided.
+    target = member.fixedBackendName();
 
-      if (isInterceptedMethod) {
-        receiver = argumentsBuffer[0];
-        arguments = argumentsBuffer.sublist(1,
-            indexOfLastOptionalArgumentInParameters + 1);
-      } else {
-        receiver = js('this');
-        arguments = argumentsBuffer.sublist(0,
-            indexOfLastOptionalArgumentInParameters + 1);
-      }
+    if (isInterceptedMethod) {
+      receiver = argumentsBuffer[0];
+      arguments = argumentsBuffer.sublist(1,
+          indexOfLastOptionalArgumentInParameters + 1);
+    } else {
+      receiver = js('this');
+      arguments = argumentsBuffer.sublist(0,
+          indexOfLastOptionalArgumentInParameters + 1);
     }
     statements.add(new jsAst.Return(receiver[target](arguments)));
 

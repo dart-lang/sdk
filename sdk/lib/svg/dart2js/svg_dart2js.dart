@@ -5,7 +5,7 @@ import 'dart:collection';
 import 'dart:_collection-dev' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
-import 'dart:_js_helper' show Creates, Returns, JavaScriptIndexingBehavior, JSName;
+import 'dart:_js_helper' show Creates, Returns, JSName;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor;
 // DO NOT EDIT - unless you are editing documentation as per:
@@ -336,7 +336,7 @@ class AnimatedNumber extends Interceptor native "SVGAnimatedNumber" {
 
   @DomName('SVGAnimatedNumber.animVal')
   @DocsEditable()
-  final num animVal;
+  final double animVal;
 
   @DomName('SVGAnimatedNumber.baseVal')
   @DocsEditable()
@@ -470,15 +470,15 @@ class AnimationElement extends SvgElement implements ExternalResourcesRequired, 
 
   @DomName('SVGAnimationElement.getCurrentTime')
   @DocsEditable()
-  num getCurrentTime() native;
+  double getCurrentTime() native;
 
   @DomName('SVGAnimationElement.getSimpleDuration')
   @DocsEditable()
-  num getSimpleDuration() native;
+  double getSimpleDuration() native;
 
   @DomName('SVGAnimationElement.getStartTime')
   @DocsEditable()
-  num getStartTime() native;
+  double getStartTime() native;
 
   // From SVGExternalResourcesRequired
 
@@ -2759,7 +2759,7 @@ class Length extends Interceptor native "SVGLength" {
 @DocsEditable()
 @DomName('SVGLengthList')
 @Unstable()
-class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<Length> implements JavaScriptIndexingBehavior, List<Length> native "SVGLengthList" {
+class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<Length> implements List<Length> native "SVGLengthList" {
 
   @DomName('SVGLengthList.numberOfItems')
   @DocsEditable()
@@ -3177,7 +3177,7 @@ class Number extends Interceptor native "SVGNumber" {
 @DocsEditable()
 @DomName('SVGNumberList')
 @Unstable()
-class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<Number> implements JavaScriptIndexingBehavior, List<Number> native "SVGNumberList" {
+class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<Number> implements List<Number> native "SVGNumberList" {
 
   @DomName('SVGNumberList.numberOfItems')
   @DocsEditable()
@@ -3398,7 +3398,7 @@ class PathElement extends GraphicsElement implements ExternalResourcesRequired n
 
   @DomName('SVGPathElement.getTotalLength')
   @DocsEditable()
-  num getTotalLength() native;
+  double getTotalLength() native;
 
   // From SVGExternalResourcesRequired
 
@@ -3932,7 +3932,7 @@ class PathSegLinetoVerticalRel extends PathSeg native "SVGPathSegLinetoVerticalR
 @DocsEditable()
 @DomName('SVGPathSegList')
 @Unstable()
-class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements JavaScriptIndexingBehavior, List<PathSeg> native "SVGPathSegList" {
+class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List<PathSeg> native "SVGPathSegList" {
 
   @DomName('SVGPathSegList.numberOfItems')
   @DocsEditable()
@@ -4563,7 +4563,7 @@ class StopElement extends SvgElement native "SVGStopElement" {
 @DocsEditable()
 @DomName('SVGStringList')
 @Unstable()
-class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List<String> native "SVGStringList" {
+class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements List<String> native "SVGStringList" {
 
   @DomName('SVGStringList.numberOfItems')
   @DocsEditable()
@@ -4923,19 +4923,19 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ExternalRes
 
   @DomName('SVGSVGElement.pixelUnitToMillimeterX')
   @DocsEditable()
-  final num pixelUnitToMillimeterX;
+  final double pixelUnitToMillimeterX;
 
   @DomName('SVGSVGElement.pixelUnitToMillimeterY')
   @DocsEditable()
-  final num pixelUnitToMillimeterY;
+  final double pixelUnitToMillimeterY;
 
   @DomName('SVGSVGElement.screenPixelToMillimeterX')
   @DocsEditable()
-  final num screenPixelToMillimeterX;
+  final double screenPixelToMillimeterX;
 
   @DomName('SVGSVGElement.screenPixelToMillimeterY')
   @DocsEditable()
-  final num screenPixelToMillimeterY;
+  final double screenPixelToMillimeterY;
 
   @DomName('SVGSVGElement.useCurrentView')
   @DocsEditable()
@@ -5019,7 +5019,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ExternalRes
 
   @DomName('SVGSVGElement.getCurrentTime')
   @DocsEditable()
-  num getCurrentTime() native;
+  double getCurrentTime() native;
 
   @DomName('SVGSVGElement.getElementById')
   @DocsEditable()
@@ -5210,7 +5210,7 @@ class TextContentElement extends GraphicsElement implements ExternalResourcesReq
 
   @DomName('SVGTextContentElement.getComputedTextLength')
   @DocsEditable()
-  num getComputedTextLength() native;
+  double getComputedTextLength() native;
 
   @DomName('SVGTextContentElement.getEndPositionOfChar')
   @DocsEditable()
@@ -5226,7 +5226,7 @@ class TextContentElement extends GraphicsElement implements ExternalResourcesReq
 
   @DomName('SVGTextContentElement.getRotationOfChar')
   @DocsEditable()
-  num getRotationOfChar(int offset) native;
+  double getRotationOfChar(int offset) native;
 
   @DomName('SVGTextContentElement.getStartPositionOfChar')
   @DocsEditable()
@@ -5234,7 +5234,7 @@ class TextContentElement extends GraphicsElement implements ExternalResourcesReq
 
   @DomName('SVGTextContentElement.getSubStringLength')
   @DocsEditable()
-  num getSubStringLength(int offset, int length) native;
+  double getSubStringLength(int offset, int length) native;
 
   @DomName('SVGTextContentElement.selectSubString')
   @DocsEditable()
@@ -5404,7 +5404,7 @@ class Transform extends Interceptor native "SVGTransform" {
 
   @DomName('SVGTransform.angle')
   @DocsEditable()
-  final num angle;
+  final double angle;
 
   @DomName('SVGTransform.matrix')
   @DocsEditable()
@@ -5446,7 +5446,7 @@ class Transform extends Interceptor native "SVGTransform" {
 @DocsEditable()
 @DomName('SVGTransformList')
 @Unstable()
-class TransformList extends Interceptor with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform>, JavaScriptIndexingBehavior native "SVGTransformList" {
+class TransformList extends Interceptor with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform> native "SVGTransformList" {
 
   @DomName('SVGTransformList.numberOfItems')
   @DocsEditable()
@@ -5770,7 +5770,7 @@ class ZoomEvent extends UIEvent native "SVGZoomEvent" {
 
   @DomName('SVGZoomEvent.newScale')
   @DocsEditable()
-  final num newScale;
+  final double newScale;
 
   @DomName('SVGZoomEvent.newTranslate')
   @DocsEditable()
@@ -5778,7 +5778,7 @@ class ZoomEvent extends UIEvent native "SVGZoomEvent" {
 
   @DomName('SVGZoomEvent.previousScale')
   @DocsEditable()
-  final num previousScale;
+  final double previousScale;
 
   @DomName('SVGZoomEvent.previousTranslate')
   @DocsEditable()
@@ -5796,7 +5796,7 @@ class ZoomEvent extends UIEvent native "SVGZoomEvent" {
 @DocsEditable()
 @DomName('SVGElementInstanceList')
 @Unstable()
-class _ElementInstanceList extends Interceptor with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements JavaScriptIndexingBehavior, List<ElementInstance> native "SVGElementInstanceList" {
+class _ElementInstanceList extends Interceptor with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List<ElementInstance> native "SVGElementInstanceList" {
 
   @DomName('SVGElementInstanceList.length')
   @DocsEditable()

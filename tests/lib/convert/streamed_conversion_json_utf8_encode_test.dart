@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:convert';
 import 'json_unicode_tests.dart';
-import '../../async_helper.dart';
+import "package:async_helper/async_helper.dart";
 
 final JSON_UTF8 = JSON.fuse(UTF8);
 

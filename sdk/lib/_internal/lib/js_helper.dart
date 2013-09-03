@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -86,6 +86,11 @@ createUnmangledInvocationMirror(Symbol symbol, internalName, kind, arguments,
                                 argumentNames);
 }
 
+void throwInvalidReflectionError(Symbol memberName) {
+  throw new UnsupportedError('invalid reflective use of ${memberName}, '
+      'which is not included by a @MirrorsUsed annotation');
+}
+
 class JSInvocationMirror implements Invocation {
   static const METHOD = 0;
   static const GETTER = 1;
@@ -99,7 +104,7 @@ class JSInvocationMirror implements Invocation {
   final List _arguments;
   final List _namedArgumentNames;
   /** Map from argument name to index in _arguments. */
-  Map<String,dynamic> _namedIndices = null;
+  Map<String, dynamic> _namedIndices = null;
 
   JSInvocationMirror(this._memberName,
                      this._internalName,
@@ -135,7 +140,7 @@ class JSInvocationMirror implements Invocation {
     return makeLiteralListConst(list);
   }
 
-  Map<Symbol,dynamic> get namedArguments {
+  Map<Symbol, dynamic> get namedArguments {
     // TODO: Make maps const (issue 10471)
     if (isAccessor) return <Symbol, dynamic>{};
     int namedArgumentCount = _namedArgumentNames.length;
@@ -170,6 +175,9 @@ class JSInvocationMirror implements Invocation {
     }
     var method = JS('var', '#[#]', receiver, name);
     if (JS('String', 'typeof #', method) == 'function') {
+      if (JS('bool', '#[#] == false', method, JS_GET_NAME("REFLECTABLE"))) {
+        throwInvalidReflectionError(memberName);
+      }
       return new CachedInvocation(method, isIntercepted, interceptor);
     } else {
       // In this case, receiver doesn't implement name.  So we should
@@ -346,10 +354,9 @@ class Primitives {
         }
         if (radix < 10 || match[decimalIndex] == null) {
           // We know that the characters must be ASCII as otherwise the
-          // regexp wouldn't have matched. Calling toLowerCase is thus
-          // guaranteed to be a safe operation. If it wasn't ASCII, then
-          // "İ" would become "i", and we would accept it for radices greater
-          // than 18.
+          // regexp wouldn't have matched. Lowercasing by doing `| 0x20` is thus
+          // guaranteed to be a safe operation, since it preserves digits
+          // and lower-cases ASCII letters.
           int maxCharCode;
           if (radix <= 10) {
             // Allow all digits less than the radix. For example 0, 1, 2 for
@@ -357,15 +364,16 @@ class Primitives {
             // "0".codeUnitAt(0) + radix - 1;
             maxCharCode = 0x30 + radix - 1;
           } else {
-            // Characters are located after the digits in ASCII. Therefore we
+            // Letters are located after the digits in ASCII. Therefore we
             // only check for the character code. The regexp above made already
             // sure that the string does not contain anything but digits or
-            // characters.
-            // "0".codeUnitAt(0) + radix - 1;
+            // letters.
+            // "a".codeUnitAt(0) + (radix - 10) - 1;
             maxCharCode = 0x61 + radix - 10 - 1;
           }
-          String digitsPart = match[digitsIndex].toLowerCase();
+          String digitsPart = match[digitsIndex];
           for (int i = 0; i < digitsPart.length; i++) {
+            int characterCode = digitsPart.codeUnitAt(0) | 0x20;
             if (digitsPart.codeUnitAt(i) > maxCharCode) {
               return handleError(source);
             }
@@ -1923,7 +1931,9 @@ void assertHelper(condition) {
  * resolved cannot be found.
  */
 void throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {
-  throw new NoSuchMethodError(obj, name, arguments, const {},
+  Symbol memberName = new _symbol_dev.Symbol.unvalidated(name);
+  throw new NoSuchMethodError(obj, memberName, arguments,
+                              new Map<Symbol, dynamic>(),
                               expectedArgumentNames);
 }
 

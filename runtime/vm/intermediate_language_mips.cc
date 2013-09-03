@@ -252,6 +252,7 @@ static void EmitAssertBoolean(Register reg,
   compiler->GenerateCallRuntime(token_pos,
                                 deopt_id,
                                 kConditionTypeErrorRuntimeEntry,
+                                1,
                                 locs);
   // We should never return here.
   __ break_(0);
@@ -1869,7 +1870,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ addiu(SP, SP, Immediate(-2 * kWordSize));
     __ sw(field_reg, Address(SP, 1 * kWordSize));
     __ sw(value_reg, Address(SP, 0 * kWordSize));
-    __ CallRuntime(kUpdateFieldCidRuntimeEntry);
+    __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
     __ Drop(2);  // Drop the field and the value.
   }
 
@@ -2025,6 +2026,7 @@ void AllocateObjectWithBoundsCheckInstr::EmitNativeCode(
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
                                 kAllocateObjectWithBoundsCheckRuntimeEntry,
+                                3,
                                 locs());
   __ Drop(3);
   ASSERT(locs()->out().reg() == V0);
@@ -2077,6 +2079,7 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
                                 kInstantiateTypeRuntimeEntry,
+                                2,
                                 locs());
   // Pop instantiated type.
   __ lw(result_reg, Address(SP, 2 * kWordSize));
@@ -2130,6 +2133,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
                                 kInstantiateTypeArgumentsRuntimeEntry,
+                                2,
                                 locs());
   // Pop instantiated type arguments.
   __ lw(result_reg, Address(SP, 2 * kWordSize));
@@ -2272,6 +2276,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
                                 kCloneContextRuntimeEntry,
+                                1,
                                 locs());
   __ lw(result, Address(SP, 1 * kWordSize));  // Get result (cloned context).
   __ addiu(SP, SP, Immediate(2 * kWordSize));
@@ -2289,7 +2294,8 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddExceptionHandler(catch_try_index(),
                                 try_index(),
                                 compiler->assembler()->CodeSize(),
-                                catch_handler_types_);
+                                catch_handler_types_,
+                                needs_stacktrace());
   // Restore pool pointer.
   __ GetNextPC(CMPRES, TMP);
   const intptr_t object_pool_pc_dist =
@@ -2346,6 +2352,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
     compiler->GenerateCallRuntime(instruction_->token_pos(),
                                   instruction_->deopt_id(),
                                   kStackOverflowRuntimeEntry,
+                                  0,
                                   instruction_->locs());
 
     if (FLAG_use_osr && !compiler->is_optimizing() && instruction_->in_loop()) {
@@ -3578,7 +3585,7 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ Bind(&do_call);
   // double values are passed and returned in vfp registers.
-  __ CallRuntime(TargetFunction());
+  __ CallRuntime(TargetFunction(), InputCount());
   __ Bind(&skip_call);
 }
 
@@ -3829,6 +3836,7 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
                                 kThrowRuntimeEntry,
+                                1,
                                 locs());
   __ break_(0);
 }
@@ -3840,9 +3848,11 @@ LocationSummary* ReThrowInstr::MakeLocationSummary() const {
 
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  compiler->SetNeedsStacktrace(catch_try_index());
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
                                 kReThrowRuntimeEntry,
+                                2,
                                 locs());
   __ break_(0);
 }

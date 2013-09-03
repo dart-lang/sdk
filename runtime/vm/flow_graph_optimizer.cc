@@ -1408,29 +1408,6 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
 }
 
 
-void FlowGraphOptimizer::InlineGrowableArrayCapacityGetter(
-    InstanceCallInstr* call) {
-  AddReceiverCheck(call);
-
-  // TODO(srdjan): type of load should be GrowableObjectArrayType.
-  LoadFieldInstr* data_load = new LoadFieldInstr(
-      new Value(call->ArgumentAt(0)),
-      Array::data_offset(),
-      Type::ZoneHandle(Type::DynamicType()));
-  data_load->set_result_cid(kArrayCid);
-  InsertBefore(call, data_load, NULL, Definition::kValue);
-
-  LoadFieldInstr* length_load = new LoadFieldInstr(
-      new Value(data_load),
-      Array::length_offset(),
-      Type::ZoneHandle(Type::SmiType()));
-  length_load->set_result_cid(kSmiCid);
-  length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
-
-  ReplaceCall(call, length_load);
-}
-
-
 static LoadFieldInstr* BuildLoadStringLength(Definition* str) {
   // Treat length loads as mutable (i.e. affected by side effects) to avoid
   // hoisting them since we can't hoist the preceding class-check. This
@@ -1444,28 +1421,6 @@ static LoadFieldInstr* BuildLoadStringLength(Definition* str) {
   load->set_result_cid(kSmiCid);
   load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
   return load;
-}
-
-
-void FlowGraphOptimizer::InlineStringIsEmptyGetter(InstanceCallInstr* call) {
-  AddReceiverCheck(call);
-
-  LoadFieldInstr* load = BuildLoadStringLength(call->ArgumentAt(0));
-  InsertBefore(call, load, NULL, Definition::kValue);
-
-  ConstantInstr* zero = flow_graph()->GetConstant(Smi::Handle(Smi::New(0)));
-  StrictCompareInstr* compare =
-      new StrictCompareInstr(call->token_pos(),
-                             Token::kEQ_STRICT,
-                             new Value(load),
-                             new Value(zero));
-  ReplaceCall(call, compare);
-}
-
-
-void FlowGraphOptimizer::InlineObjectCid(InstanceCallInstr* call) {
-  LoadClassIdInstr* load = new LoadClassIdInstr(new Value(call->ArgumentAt(0)));
-  ReplaceCall(call, load);
 }
 
 
@@ -1649,20 +1604,6 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 
   // VM objects length getter.
   switch (recognized_kind) {
-    case MethodRecognizer::kObjectCid: {
-      InlineObjectCid(call);
-      return true;
-    }
-    case MethodRecognizer::kGrowableArrayCapacity:
-      InlineGrowableArrayCapacityGetter(call);
-      return true;
-    case MethodRecognizer::kStringBaseIsEmpty:
-      if (!ic_data.HasOneTarget()) {
-        // Target is not only StringBase_get_isEmpty.
-        return false;
-      }
-      InlineStringIsEmptyGetter(call);
-      return true;
     case MethodRecognizer::kFloat32x4ShuffleX:
     case MethodRecognizer::kFloat32x4ShuffleY:
     case MethodRecognizer::kFloat32x4ShuffleZ:

@@ -47,6 +47,9 @@ io/directory_non_ascii_sync_test: Pass, Fail
 io/directory_non_ascii_test: Pass, Fail
 io/process_non_ascii_test: Pass, Fail
 
+[ $runtime == vm && $system == windows ]
+io/http_server_early_client_close_test: Crash, Pass # Issue 12982
+
 [ $compiler == none && $runtime == drt ]
 typed_data_isolate_test: Skip # This test uses dart:io
 io/*: Skip # Don't run tests using dart:io in the browser
@@ -134,6 +137,7 @@ io/options_test: Fail, OK # Cannot pass options to d8.
 [ $compiler == dart2js && $runtime == none ]
 io/options_test: Fail
 medium_integer_test: Pass # The test only fails at runtime, not at compilation.
+oom_error_stacktrace_test: Pass # The test only fails at runtime.
 
 [ $compiler == dart2js && $browser ]
 *: Skip
@@ -151,7 +155,6 @@ io/internet_address_test: Fail  # localhost is an Unknown name?
 [ $arch == simarm ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
-io/web_socket_ping_test: Skip # TODO(ajohnsen): Timeout issue
 io/test_runner_test: Pass, Fail # Issue 12413
 
 [ $arch == simmips || $arch == mips ]
@@ -160,7 +163,6 @@ io/web_socket_test: Pass, Slow
 io/http_server_response_test: Pass, Slow
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
-io/web_socket_ping_test: Skip # TODO(ajohnsen): Timeout issue
 
 [ $arch == mips ]
 io/test_extension_test: Fail

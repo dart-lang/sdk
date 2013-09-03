@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:convert';
 import 'unicode_tests.dart';
-import '../../async_helper.dart';
+import "package:async_helper/async_helper.dart";
 
 Stream<List<int>> encode(String string, int chunkSize) {
   var controller;

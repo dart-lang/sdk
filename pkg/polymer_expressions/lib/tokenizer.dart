@@ -132,11 +132,11 @@ bool isGrouper(int next) => _GROUPERS.contains(next);
 
 int escape(int c) {
   switch (c) {
-    case _f: return _FF; break;
-    case _n: return _LF; break;
-    case _r: return _CR; break;
-    case _t: return _TAB; break;
-    case _v: return _VTAB; break;
+    case _f: return _FF;
+    case _n: return _LF;
+    case _r: return _CR;
+    case _t: return _TAB;
+    case _v: return _VTAB;
     default: return c;
   }
 }

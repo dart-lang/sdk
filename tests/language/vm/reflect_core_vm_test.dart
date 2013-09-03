@@ -10,11 +10,6 @@ import "dart:mirrors";
 main() {
   var s = "string";
   var im = reflect(s);
-  try {
-    im.invoke(const Symbol("_setAt"), [0, 65]);
-    Expect.isTrue(false);  // Unreachable.
-  } catch (e) {
-    Expect.equals(true, e is NoSuchMethodError);
-  }
+  Expect.throws(() => im.invoke(const Symbol("_setAt"), [0, 65]), (e) => e is NoSuchMethodError);
 }
 

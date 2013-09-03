@@ -7,7 +7,6 @@
 
 import "dart:convert";
 import "dart:io";
-import "dart:json" as json;
 import "dart:async";
 
 
@@ -40,6 +39,7 @@ void printHelp() {
   po <id> Print object info for given id
   eval obj <id> <expr> Evaluate expr on object id
   eval cls <id> <expr> Evaluate expr on class id
+  eval lib <id> <expr> Evaluate expr in toplevel of library id
   pl <id> <idx> [<len>] Print list element/slice
   pc <id> Print class info for given id
   ll  List loaded libraries
@@ -69,9 +69,9 @@ Future sendCmd(Map<String, dynamic> cmd) {
   int id = cmd["id"];
   outstandingCommands[id] = completer;
   if (verbose) {
-    print("sending: '${json.stringify(cmd)}'");
+    print("sending: '${JSON.encode(cmd)}'");
   }
-  vmSock.write(json.stringify(cmd));
+  vmSock.write(JSON.encode(cmd));
   return completer.future;
 }
 
@@ -139,6 +139,8 @@ void processCommand(String cmdLine) {
       target = "objectId";
     } else if (target == "cls") {
       target = "classId";
+    } else if (target == "lib") {
+      target = "libraryId";
     } else {
       huh();
       return;
@@ -462,7 +464,7 @@ void handlePausedEvent(msg) {
 
 
 void processVmMessage(String jsonString) {
-  var msg = json.parse(jsonString);
+  var msg = JSON.decode(jsonString);
   if (msg == null) {
     return;
   }

@@ -639,11 +639,12 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
     var stream = asBroadcast ? c.stream.asBroadcastStream() : c.stream;
     var actual = new Events();
     var sub;
+    var pauseIsDone = false;
     sub = stream.listen(
         (v) {
           if (v == 3) {
             sub.pause(new Future.delayed(const Duration(milliseconds: 15),
-                                         () => null));
+                                         () { pauseIsDone = true; }));
           }
           actual.add(v);
         },
@@ -663,7 +664,15 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
             // the done event to the asBroadcastStream controller, which is
             // before the final listener gets the event.
             // Wait for the pause to end before testing the events.
-            return new Future.delayed(const Duration(milliseconds: 50), () {
+            dynamic executeWhenPauseIsDone(Function f) {
+              if (!pauseIsDone) {
+                return new Future.delayed(const Duration(milliseconds: 50), () {
+                  return executeWhenPauseIsDone(f);
+                });
+              }
+              return f();
+            }
+            return executeWhenPauseIsDone(() {
               Expect.listEquals(expected.events, actual.events);
               done();
             });

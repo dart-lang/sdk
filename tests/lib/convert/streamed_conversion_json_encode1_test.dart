@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:convert';
-import '../../async_helper.dart';
+import "package:async_helper/async_helper.dart";
 
 final TESTS = [
     [ 5, '5' ],

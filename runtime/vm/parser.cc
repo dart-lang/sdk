@@ -762,19 +762,6 @@ void Parser::ParseClass(const Class& cls) {
 }
 
 
-static bool IsInvisible(const Function& func) {
-  if (!Library::IsPrivate(String::Handle(func.name()))) return false;
-  // Check for private function in the core libraries.
-  const Class& cls = Class::Handle(func.Owner());
-  const Library& library = Library::Handle(cls.library());
-  if (library.raw() == Library::CoreLibrary()) return true;
-  if (library.raw() == Library::CollectionLibrary()) return true;
-  if (library.raw() == Library::TypedDataLibrary()) return true;
-  if (library.raw() == Library::MathLibrary()) return true;
-  return false;
-}
-
-
 RawObject* Parser::ParseFunctionParameters(const Function& func) {
   ASSERT(!func.IsNull());
   Isolate* isolate = Isolate::Current();
@@ -823,8 +810,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
-  // Mark private core library functions as invisible by default.
-  if (IsInvisible(func)) func.set_is_visible(false);
   const Script& script = Script::Handle(isolate, func.script());
   Parser parser(script, parsed_function, func.token_pos());
   SequenceNode* node_sequence = NULL;
@@ -2818,6 +2803,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
         ThrowNoSuchMethodError(TokenPos(),
                                current_class(),
                                function_name,
+                               NULL,   // No arguments.
                                func.is_static() ?
                                    InvocationMirror::kStatic :
                                    InvocationMirror::kDynamic,
@@ -3883,6 +3869,7 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   }
   const Class& mixin_application =
       Class::Handle(Class::New(class_name, script_, classname_pos));
+  mixin_application.set_is_mixin_typedef();
   library_.AddClass(mixin_application);
   set_current_class(mixin_application);
   ParseTypeParameters(mixin_application);
@@ -3909,8 +3896,9 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   }
   type = ParseMixins(type);
 
-  // TODO(hausner): treat the mixin application as an alias, not as a base
-  // class whose super class is the mixin application!
+  // TODO(12773): Treat the mixin application as an alias, not as a base
+  // class whose super class is the mixin application! This is difficult because
+  // of issues involving subsitution of type parameters
   mixin_application.set_super_type(type);
   mixin_application.set_is_synthesized_class();
 
@@ -3918,6 +3906,9 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   // too early to call 'AddImplicitConstructor(mixin_application)' here,
   // because this class should be lazily compiled.
   if (CurrentToken() == Token::kIMPLEMENTS) {
+    // At this point, the mixin_application alias already has an interface, but
+    // ParseInterfaceList will add to the list and not lose the one already
+    // there.
     ParseInterfaceList(mixin_application);
   }
   ExpectSemicolon();
@@ -6554,6 +6545,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   current_block_->scope->AddLabel(end_catch_label);
   const GrowableObjectArray& handler_types =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
+  bool needs_stacktrace = false;
   while ((CurrentToken() == Token::kCATCH) || IsLiteral("on")) {
     const intptr_t catch_pos = TokenPos();
     CatchParamDesc exception_param;
@@ -6614,6 +6606,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       // A stack trace variable is specified in this block, so generate code
       // to load the stack trace object (:stacktrace_var) into the stack trace
       // variable specified in this block.
+      needs_stacktrace = true;
       ArgumentListNode* no_args = new ArgumentListNode(catch_pos);
       LocalVariable* trace = LookupLocalScope(*stack_trace_param.var);
       ASSERT(catch_trace_var != NULL);
@@ -6679,9 +6672,9 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   }
   catch_handler_list = CloseBlock();
   TryBlocks* inner_try_block = PopTryBlock();
-  intptr_t try_index = inner_try_block->try_index();
+  const intptr_t try_index = inner_try_block->try_index();
   TryBlocks* outer_try_block = try_blocks_list_;
-  intptr_t outer_try_index = (outer_try_block != NULL)
+  const intptr_t outer_try_index = (outer_try_block != NULL)
       ? outer_try_block->try_index()
       : CatchClauseNode::kInvalidTryIndex;
 
@@ -6730,7 +6723,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
                           catch_trace_var,
                           (finally_block != NULL)
                               ? AllocateTryIndex()
-                              : CatchClauseNode::kInvalidTryIndex);
+                              : CatchClauseNode::kInvalidTryIndex,
+                          needs_stacktrace);
 
   // Now create the try/catch ast node and return it. If there is a label
   // on the try/catch, close the block that's embedding the try statement
@@ -7200,13 +7194,10 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
 }
 
 
-// TODO(regis): Providing the argument values is not always feasible, since
-// evaluating them could throw an error.
-// Should NoSuchMethodError reflect the argument count and names instead of
-// argument values? Or should the spec specify a different evaluation order?
 AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
                                         const Class& cls,
                                         const String& function_name,
+                                        ArgumentListNode* function_arguments,
                                         InvocationMirror::Call im_call,
                                         InvocationMirror::Type im_type) {
   ArgumentListNode* arguments = new ArgumentListNode(call_pos);
@@ -7230,15 +7221,25 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
   arguments->Add(new LiteralNode(call_pos, Smi::ZoneHandle(
       Smi::New(InvocationMirror::EncodeType(im_call, im_type)))));
   // List arguments.
-  arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
+  if (function_arguments == NULL) {
+    arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
+  } else {
+    ArrayNode* array = new ArrayNode(call_pos,
+                                     Type::ZoneHandle(Type::ArrayType()),
+                                     function_arguments->nodes());
+    arguments->Add(array);
+  }
   // List argumentNames.
-  arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
+  if (function_arguments == NULL) {
+    arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
+  } else {
+    arguments->Add(new LiteralNode(call_pos, function_arguments->names()));
+  }
   // List existingArgumentNames.
   // Check if there exists a function with the same name.
   Function& function =
      Function::Handle(cls.LookupStaticFunction(function_name));
   if (function.IsNull()) {
-    // TODO(srdjan): Store argument values into the argument list.
     arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
   } else {
     const int total_num_parameters = function.NumParameters();
@@ -7538,6 +7539,7 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
     result = ThrowNoSuchMethodError(original->token_pos(),
                                     current_class(),
                                     name,
+                                    NULL,  // No arguments.
                                     InvocationMirror::kStatic,
                                     InvocationMirror::kSetter);
   } else if (result->IsStoreIndexedNode() ||
@@ -7742,7 +7744,7 @@ ArgumentListNode* Parser::ParseActualParameters(
     arguments = implicit_arguments;
   }
   const GrowableObjectArray& names =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
+      GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld));
   bool named_argument_seen = false;
   if (LookaheadToken(1) != Token::kRPAREN) {
     String& arg_name = String::Handle();
@@ -7831,6 +7833,7 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
     return ThrowNoSuchMethodError(ident_pos,
                                   cls,
                                   func_name,
+                                  arguments,
                                   InvocationMirror::kStatic,
                                   InvocationMirror::kMethod);
   } else if (cls.IsTopLevel() &&
@@ -7931,6 +7934,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
         return ThrowNoSuchMethodError(ident_pos,
                                       cls,
                                       field_name,
+                                      NULL,  // No arguments.
                                       InvocationMirror::kStatic,
                                       InvocationMirror::kField);
       }
@@ -7975,6 +7979,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
           return ThrowNoSuchMethodError(ident_pos,
                                         cls,
                                         field_name,
+                                        NULL,  // No arguments.
                                         InvocationMirror::kStatic,
                                         InvocationMirror::kGetter);
         }
@@ -8014,6 +8019,7 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
       return ThrowNoSuchMethodError(primary->token_pos(),
                                     current_class(),
                                     name,
+                                    NULL,  // No arguments.
                                     InvocationMirror::kStatic,
                                     InvocationMirror::kField);
     } else {
@@ -8185,6 +8191,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
             selector = ThrowNoSuchMethodError(primary->token_pos(),
                                               current_class(),
                                               name,
+                                              NULL,  // No arguments.
                                               InvocationMirror::kStatic,
                                               InvocationMirror::kMethod);
           } else {
@@ -8198,6 +8205,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           selector = ThrowNoSuchMethodError(primary->token_pos(),
                                             current_class(),
                                             name,
+                                            NULL,  // No arguments.
                                             InvocationMirror::kStatic,
                                             InvocationMirror::kMethod);
         } else if (primary->primary().IsClass()) {
@@ -9096,6 +9104,7 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
         resolved = ThrowNoSuchMethodError(ident_pos,
                                           current_class(),
                                           ident,
+                                          NULL,  // No arguments.
                                           InvocationMirror::kStatic,
                                           InvocationMirror::kField);
       } else {
@@ -9753,6 +9762,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       return ThrowNoSuchMethodError(call_pos,
                                     type_class,
                                     external_constructor_name,
+                                    arguments,
                                     InvocationMirror::kConstructor,
                                     InvocationMirror::kMethod);
     } else if (constructor.IsRedirectingFactory()) {
@@ -9820,6 +9830,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     return ThrowNoSuchMethodError(call_pos,
                                   type_class,
                                   external_constructor_name,
+                                  arguments,
                                   InvocationMirror::kConstructor,
                                   InvocationMirror::kMethod);
   }

@@ -397,7 +397,7 @@ js_support_checks = dict({
     'Crypto':
         "JS('bool', '!!(window.crypto && window.crypto.getRandomValues)')",
     'Database': "JS('bool', '!!(window.openDatabase)')",
-    'DOMApplicationCache': "JS('bool', '!!(window.applicationCache)')",
+    'ApplicationCache': "JS('bool', '!!(window.applicationCache)')",
     'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
     'FormData': "JS('bool', '!!(window.FormData)')",
     'HashChangeEvent': "Device.isEventTypeSupported('HashChangeEvent')",
@@ -651,7 +651,7 @@ class Dart2JSBackend(HtmlDartGenerator):
 
   def AdditionalImplementedInterfaces(self):
     implements = super(Dart2JSBackend, self).AdditionalImplementedInterfaces()
-    if self._interface_type_info.list_item_type():
+    if self._interface_type_info.list_item_type() and self.HasIndexedGetter():
       implements.append('JavaScriptIndexingBehavior')
     return implements
 
@@ -718,6 +718,15 @@ class Dart2JSBackend(HtmlDartGenerator):
       self._current_secondary_parent = interface
       self._members_emitter.Emit('\n  // From $WHERE\n', WHERE=interface.id)
 
+  def HasIndexedGetter(self):
+    ext_attrs = self._interface.ext_attrs
+    has_indexed_getter = 'CustomIndexedGetter' in ext_attrs
+    for operation in self._interface.operations:
+      if operation.id == 'item' and 'getter' in operation.specials:
+        has_indexed_getter = True
+        break
+    return has_indexed_getter
+
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
     # We would like to simply inherit the implementation of everything except
@@ -738,12 +747,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     #   class YImpl extends ListBase<T> { copies of transitive XImpl methods; }
     #
 
-    ext_attrs = self._interface.ext_attrs
-    has_indexed_getter = 'CustomIndexedGetter' in ext_attrs
-    for operation in self._interface.operations:
-      if operation.id == 'item' and 'getter' in operation.specials:
-        has_indexed_getter = True
-        break
+    has_indexed_getter = self.HasIndexedGetter()
 
     if has_indexed_getter:
       indexed_getter = ('JS("%s", "#[#]", this, index)' %
@@ -763,7 +767,7 @@ class Dart2JSBackend(HtmlDartGenerator):
           '    return $INDEXED_GETTER;\n'
           '  }',
           INDEXED_GETTER=indexed_getter,
-          TYPE=self.SecureOutputType(element_type))
+          TYPE=self.SecureOutputType(element_type, False, True))
 
     if 'CustomIndexedSetter' in self._interface.ext_attrs:
       self._members_emitter.Emit(
@@ -808,7 +812,7 @@ class Dart2JSBackend(HtmlDartGenerator):
               '  // final $TYPE $NAME;\n',
               SUPER=super_attribute_interface,
               NAME=html_name,
-              TYPE=self.SecureOutputType(attribute.type.id))
+              TYPE=self.SecureOutputType(attribute.type.id, False, read_only))
           return
       self._members_emitter.Emit('\n  // Shadowing definition.')
       self._AddAttributeUsingProperties(attribute, html_name, read_only)
@@ -821,7 +825,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       self._AddAttributeUsingProperties(attribute, html_name, read_only)
       return
 
-    output_type = self.SecureOutputType(attribute.type.id)
+    output_type = self.SecureOutputType(attribute.type.id, False, read_only)
     input_type = self._NarrowInputType(attribute.type.id)
     metadata = self._Metadata(attribute.type.id, attribute.id, output_type)
     rename = self._RenamingAnnotation(attribute.id, html_name)
@@ -954,7 +958,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         METADATA=self._Metadata(info.type_name, info.declared_name,
             self.SecureOutputType(info.type_name)),
         MODIFIERS='static ' if info.IsStatic() else '',
-        TYPE=self.SecureOutputType(info.type_name),
+        TYPE=self.SecureOutputType(info.type_name, False, True),
         NAME=html_name,
         PARAMS=info.ParametersDeclaration(self._NarrowInputType))
 
@@ -1059,7 +1063,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._members_emitter.Emit(
         '\n'
         '  $TYPE $NAME($PARAMS);\n',
-        TYPE=self.SecureOutputType(info.type_name),
+        TYPE=self.SecureOutputType(info.type_name, False, True),
         NAME=info.name,
         PARAMS=info.ParametersDeclaration(self._NarrowInputType))
 
@@ -1156,9 +1160,6 @@ class Dart2JSBackend(HtmlDartGenerator):
       return (None, None)
 
     return FindInParent(self._interface) if attr else (None, None)
-
-  def _DartType(self, type_name):
-    return self._type_registry.DartType(type_name)
 
 # ------------------------------------------------------------------------------
 

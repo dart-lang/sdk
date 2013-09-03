@@ -10,8 +10,8 @@
 library json_serializer;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:mirrors';
-import 'dart:json' as json;
 
 String serialize(Object o) {
   var printer = new JsonPrinter();
@@ -207,7 +207,7 @@ class JsonPrinter {
     } else {
       // Convenient hack to remove the pretty printing this serializer adds by
       // default.
-      return json.stringify(json.parse(_sb.toString()));
+      return JSON.encode(JSON.decode(_sb.toString()));
     }
   }
 

@@ -11,6 +11,8 @@ library sample;
 
 import "package:intl/intl.dart";
 import "foo_messages_all.dart";
+import "print_to_list.dart";
+import "dart:async";
 
 part 'part_of_sample_with_messages.dart';
 
@@ -125,50 +127,50 @@ printStuff(Intl locale) {
       args: [a, b, c]);
   var messageVariable = message3;
 
-  print("-------------------------------------------");
-  print("Printing messages for ${locale.locale}");
+  printOut("-------------------------------------------");
+  printOut("Printing messages for ${locale.locale}");
   Intl.withLocale(locale.locale, () {
-    print(message1());
-    print(message2("hello"));
-    print(messageVariable(1,2,3));
-    print(multiLine());
-    print(types(1, "b", ["c", "d"]));
-    print(leadingQuotes());
-    print(alwaysTranslated());
-    print(trickyInterpolation("this"));
+    printOut(message1());
+    printOut(message2("hello"));
+    printOut(messageVariable(1,2,3));
+    printOut(multiLine());
+    printOut(types(1, "b", ["c", "d"]));
+    printOut(leadingQuotes());
+    printOut(alwaysTranslated());
+    printOut(trickyInterpolation("this"));
     var thing = new YouveGotMessages();
-    print(thing.method());
-    print(thing.nonLambda());
+    printOut(thing.method());
+    printOut(thing.nonLambda());
     var x = YouveGotMessages.staticMessage();
-    print(YouveGotMessages.staticMessage());
-    print(notAlwaysTranslated());
-    print(originalNotInBMP());
-    print(escapable());
+    printOut(YouveGotMessages.staticMessage());
+    printOut(notAlwaysTranslated());
+    printOut(originalNotInBMP());
+    printOut(escapable());
 
-    print(thing.plurals(0));
-    print(thing.plurals(1));
-    print(thing.plurals(2));
+    printOut(thing.plurals(0));
+    printOut(thing.plurals(1));
+    printOut(thing.plurals(2));
     var alice = new Person("Alice", "female");
     var bob = new Person("Bob", "male");
     var cat = new Person("cat", null);
-    print(thing.whereTheyWent(alice, "house"));
-    print(thing.whereTheyWent(bob, "house"));
-    print(thing.whereTheyWent(cat, "litter box"));
-    print(thing.nested([alice, bob], "magasin"));
-    print(thing.nested([alice], "magasin"));
-    print(thing.nested([], "magasin"));
-    print(thing.nested([bob, bob], "magasin"));
-    print(thing.nested([alice, alice], "magasin"));
+    printOut(thing.whereTheyWent(alice, "house"));
+    printOut(thing.whereTheyWent(bob, "house"));
+    printOut(thing.whereTheyWent(cat, "litter box"));
+    printOut(thing.nested([alice, bob], "magasin"));
+    printOut(thing.nested([alice], "magasin"));
+    printOut(thing.nested([], "magasin"));
+    printOut(thing.nested([bob, bob], "magasin"));
+    printOut(thing.nested([alice, alice], "magasin"));
 
-    print(outerPlural(0));
-    print(outerPlural(1));
-    print(outerGender("male"));
-    print(outerGender("female"));
-    print(nestedOuter(7, "male"));
-    print(outerSelect("CDN", 7));
-    print(outerSelect("EUR", 5));
-    print(nestedSelect("CDN", 1));
-    print(nestedSelect("CDN", 2));
+    printOut(outerPlural(0));
+    printOut(outerPlural(1));
+    printOut(outerGender("male"));
+    printOut(outerGender("female"));
+    printOut(nestedOuter(7, "male"));
+    printOut(outerSelect("CDN", 7));
+    printOut(outerSelect("EUR", 5));
+    printOut(nestedSelect("CDN", 1));
+    printOut(nestedSelect("CDN", 2));
   });
 }
 
@@ -180,7 +182,8 @@ main() {
   var de = new Intl("de_DE");
   // Throw in an initialize of a null locale to make sure it doesn't throw.
   initializeMessages(null);
-  initializeMessages(fr.locale).then((_) => printStuff(fr));
-  initializeMessages(de.locale).then((_) => printStuff(de));
+  var f1 = initializeMessages(fr.locale).then((_) => printStuff(fr));
+  var f2 = initializeMessages(de.locale).then((_) => printStuff(de));
   printStuff(english);
+  return Future.wait([f1, f2]);
 }

@@ -67,6 +67,11 @@ compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 generic_test: Fail, OK
+named_parameters_type_test/01: Fail, OK
+named_parameters_type_test/02: Fail, OK
+named_parameters_type_test/03: Fail, OK
+positional_parameters_type_test/01: Fail, OK
+positional_parameters_type_test/02: Fail, OK
 
 [ $compiler == dart2js && $minified ]
 f_bounded_quantification4_test: Fail # Issue 12605.
@@ -111,15 +116,12 @@ constructor_named_arguments_test/01: Fail # Issue 5519
 getter_no_setter_test/01: Fail # Issue 5519
 not_enough_positional_arguments_test/01: Fail # Issue 12838
 not_enough_positional_arguments_test/02: Fail # Issue 12838
-not_enough_positional_arguments_test/04: Fail # Issue 12838
 not_enough_positional_arguments_test/05: Fail # Issue 12838
 dynamic_test: Fail # Issue 12398
 dynamic_prefix_core_test: Fail # Issue 12398
 metadata_test: Fail # Issue 5841
 infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # Issue 12795
-named_parameters_type_test: Fail
-positional_parameters_type_test: Fail
 
 # Compilation errors.
 const_var_test: Fail # Issue 12793
@@ -128,11 +130,6 @@ function_type_alias5_test/00: Fail # Issue 12754
 function_type_alias5_test/01: Fail # Issue 12754
 function_type_alias5_test/02: Fail # Issue 12754
 function_type_alias7_test/00: Fail # Issue 12801
-get_set_syntax_test/00: Fail # Issue 12805
-get_set_syntax_test/01: Fail # Issue 12805
-get_set_syntax_test/02: Fail # Issue 12805
-get_set_syntax_test/03: Fail # Issue 12805
-get_set_syntax_test/04: Fail # Issue 12805
 method_binding_test: Fail # Issue 12807
 method_override_test: Fail # Issue 12808
 method_override5_test: Fail # Issue 12809
@@ -140,45 +137,33 @@ parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters_aggregated_test/01: Fail # Issue 12801
 named_parameters_aggregated_test/03: Fail # Issue 12812
 pseudo_kw_test: Fail # Unexpected token '('
-super_implicit_closure_test: Fail # internal error: super property read not implemented
-
-# Missing compilation error for wrong number of type arguments.
-mixin_type_parameters_errors_test/01: Fail
-mixin_type_parameters_errors_test/02: Fail
-mixin_type_parameters_errors_test/05: Fail
-
-# External tests.
-external_test/01: Fail
-external_test/02: Fail
-external_test/11: Fail
-external_test/12: Fail
-external_test/13: Skip  # Runtime error (missing patch).
-external_test/14: Fail
-external_test/20: Skip  # Runtime error (missing patch).
-external_test/21: Fail
-external_test/22: Fail
-external_test/23: Fail
-external_test/30: Fail
-external_test/31: Fail
-
-
-# Implementation errors (library or generated code).
-instanceof4_test: Fail # Expect.isTrue(false) fails.
-list_literal4_test: Fail # Illegal argument(s): 0 -- checked mode test.
-map_literal4_test: Fail # Attempt to modify an immutable object -- checked mode test.
-
-class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
-interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
-
+super_implicit_closure_test: Fail # Issue 12884
+mixin_type_parameters_errors_test/01: Fail # Issue 12885
+mixin_type_parameters_errors_test/02: Fail # Issue 12885
+mixin_type_parameters_errors_test/05: Fail # Issue 12885
+external_test/11: Fail # Issue 12887
+external_test/12: Fail # Issue 12887
+external_test/13: Fail # Issue 12887
+external_test/21: Fail # Issue 12887
+external_test/22: Fail # Issue 12887
+external_test/23: Fail # Issue 12887
+external_test/30: Fail # Issue 12887
+external_test/31: Fail # Issue 12887
+instanceof4_test/01: Fail # Issue 12889
+list_literal4_test: Fail # Issue 12890
+map_literal4_test: Fail # Issue 12891
 
 #
 # The following tests are all negative tests that should be fixed.
 #
-abstract_syntax_test/01: Fail # Negative language test.
-const_constructor_syntax_test/04: Fail # Negative language test.
-const_syntax_test/04: Fail # Negative language test.
-constructor2_negative_test: Fail # Negative language test.
-constructor_return_negative_test: Fail # Negative language test.
+const_constructor_syntax_test/04: Fail # Issue 12900
+const_syntax_test/01: Fail # Issue 12932
+const_syntax_test/02: Fail # Issue 12932
+const_syntax_test/03: Fail # Issue 12932
+const_syntax_test/04: Fail # Issue 12932
+constructor9_test/01: Fail # Issue 12934
+constructor_return_test/01: Fail # Issue 12937
+constructor_return_test/02: Fail # Issue 12937
 constructor_return_with_arrow_negative_test: Fail # Negative language test.
 constructor_return_with_init_and_arrow_negative_test: Fail # Negative language test.
 constructor_return_with_init_negative_test: Fail # Negative language test.
@@ -186,22 +171,12 @@ duplicate_implements_test/01: Fail # Negative language test.
 duplicate_implements_test/02: Fail # Negative language test.
 duplicate_implements_test/03: Fail # Negative language test.
 duplicate_implements_test/04: Fail # Negative language test.
-field3_negative_test: Fail # Negative language test.
 instantiate_type_variable_negative_test: Pass  # For the wrong reason.
 list_literal1_negative_test: Fail # Negative language test.
 map_literal1_negative_test: Fail # Negative language test.
 number_identifier_negative_test: Fail # Negative language test.
-operator1_negative_test: Fail # Negative language test.
 scope_negative_test: Fail # Negative language test.
 static_final_field_negative_test: Fail # Negative language test.
-static_top_level_test/00: Fail # Negative language test.
-static_top_level_test/01: Fail # Negative language test.
-static_top_level_test/02: Fail # Negative language test.
-static_top_level_test/03: Fail # Negative language test.
-static_top_level_test/04: Fail # Negative language test.
-static_top_level_test/05: Fail # Negative language test.
-static_top_level_test/06: Fail # Negative language test.
-static_top_level_test/07: Fail # Negative language test.
 throw7_negative_test: Fail # Negative language test.
 
 numbers_test: Fail, OK # (unintended?) VM specific test.
@@ -210,9 +185,6 @@ final_syntax_test/01: Fail # Missing error for uninitialized final field.
 final_syntax_test/02: Fail # Missing error for uninitialized final field.
 final_syntax_test/03: Fail # Missing error for uninitialized final field.
 final_syntax_test/04: Fail # Missing error for uninitialized final field.
-const_syntax_test/01: Fail # Missing error for uninitialized final field.
-const_syntax_test/02: Fail # Missing error for uninitialized final field.
-const_syntax_test/03: Fail # Missing error for uninitialized final field.
 
 canonical_const2_test: Fail, OK # Dart2js only has doubles.
 
@@ -247,7 +219,6 @@ double_to_string_as_precision3_test: Fail # Issue 12750
 expect_test: Fail
 stack_overflow_test: Fail
 stack_overflow_stacktrace_test: Fail
-licm2_test: Pass, Timeout # Issue: 11848
 
 
 [ $runtime == opera ]
@@ -279,8 +250,9 @@ overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test de
 
 on_catch_malformed_type_test: Fail # Issue 8601
 
-# False positive compile-time error is masking expected compile-time error
-mixin_type_parameters_errors_test/*: Skip
+mixin_type_parameters_errors_test/01: Fail # Issue 12886
+mixin_type_parameters_errors_test/02: Fail # Issue 12886
+mixin_type_parameters_errors_test/05: Fail # Issue 12886
 
 # Mixins fail on the VM.
 mixin_mixin_test: Fail # Issue 9683
@@ -325,16 +297,19 @@ compile_time_constant_arguments_test/02: Fail # Issue 5519
 compile_time_constant_arguments_test/03: Fail # Issue 5519
 compile_time_constant_arguments_test/05: Fail # Issue 5519
 compile_time_constant_arguments_test/06: Fail # Issue 5519
-const_constructor_syntax_test/04: Fail # Issue 5519
-const_syntax_test/01: Fail # Issue 5519
-const_syntax_test/02: Fail # Issue 5519
-const_syntax_test/03: Fail # Issue 5519
-const_syntax_test/04: Fail # Issue 5519
-const_syntax_test/05: Fail # Issue 5519
-const_syntax_test/06: Fail # Issue 5519
-const_syntax_test/07: Fail # Issue 5519
-const_syntax_test/08: Fail # Issue 5519
-const_syntax_test/10: Fail # Issue 5519
+const_constructor_syntax_test/04: Fail # Issue 12901
+const_syntax_test/01: Fail # Issue 12933
+const_syntax_test/02: Fail # Issue 12933
+const_syntax_test/03: Fail # Issue 12933
+const_syntax_test/04: Fail # Issue 12933
+const_syntax_test/05: Fail # Issue 12933
+const_syntax_test/06: Fail # Issue 12933
+const_syntax_test/07: Fail # Issue 12933
+const_syntax_test/08: Fail # Issue 12933
+const_syntax_test/10: Fail # Issue 12933
+constructor9_test/01: Fail # Issue 12935
+constructor_return_test/01: Fail # Issue 12938
+constructor_return_test/02: Fail # Issue 12938
 constructor_named_arguments_test/01: Fail # Issue 5519
 final_syntax_test/01: Fail # Issue 5519
 final_syntax_test/02: Fail # Issue 5519
@@ -345,21 +320,23 @@ named_parameters_aggregated_test/01: Fail # Issue 12802
 named_parameters_aggregated_test/03: Fail # Issue 12813
 not_enough_positional_arguments_test/01: Fail # Issue 12839
 not_enough_positional_arguments_test/02: Fail # Issue 12839
-not_enough_positional_arguments_test/04: Fail # Issue 12839
 not_enough_positional_arguments_test/05: Fail # Issue 12839
 
 metadata_test: Fail # Issue 12762
 const_var_test: Pass, Fail # Issue 12794
 map_literal3_test: Fail # Issue 12794
-class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
-interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # Common problems with dart2js.  In illegal family, invalid
 # declarations are simply not parsed.  In pseudo kw dart2js
 # chokes on things like typedef(x) => "typedef $x" and alike.
-abstract_syntax_test/01: Fail
 pseudo_kw_test: Fail
-# external keyword is not yet supported by dart2js/dart2dart.
-external_test/*: Skip
+external_test/11: Fail # Issue 12888
+external_test/12: Fail # Issue 12888
+external_test/13: Fail # Issue 12888
+external_test/21: Fail # Issue 12888
+external_test/22: Fail # Issue 12888
+external_test/23: Fail # Issue 12888
+external_test/30: Fail # Issue 12888
+external_test/31: Fail # Issue 12888
 lazy_static3_test: Fail # Issue 12593
 # dart2js frontend doesn't even analyse problematic classes.
 duplicate_implements_test/01: Fail
@@ -368,16 +345,7 @@ duplicate_implements_test/03: Fail
 duplicate_implements_test/04: Fail
 method_override4_test: Fail # Issue 12810
 method_override5_test: Fail # Issue 12810
-operator1_negative_test: Fail
 static_final_field_negative_test: Fail
-static_top_level_test/00: Fail
-static_top_level_test/01: Fail
-static_top_level_test/02: Fail
-static_top_level_test/03: Fail
-static_top_level_test/04: Fail
-static_top_level_test/05: Fail
-static_top_level_test/06: Fail
-static_top_level_test/07: Fail
 # Bug in dart2js parser: it happily parses 1is int; variable declaration.
 number_identifier_negative_test: Fail
 # Common with language_dart2js.
@@ -392,6 +360,7 @@ function_type_alias5_test/01: Fail # Issue 12755
 function_type_alias5_test/02: Fail # Issue 12755
 function_type_alias7_test/00: Fail # Issue 12802
 parameter_initializer6_negative_test: Fail # Issue 3502
+
 # DartVM problem.
 constructor5_test: Fail
 constructor6_test: Fail
@@ -403,12 +372,6 @@ no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("fo
 
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
-
-get_set_syntax_test/00: Fail # Issue 12806
-get_set_syntax_test/01: Fail # Issue 12806
-get_set_syntax_test/02: Fail # Issue 12806
-get_set_syntax_test/03: Fail # Issue 12806
-get_set_syntax_test/04: Fail # Issue 12806
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
@@ -426,7 +389,6 @@ compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
-positional_parameters_type_test: Fail # Triage this.
 final_is_not_const_test/01: Fail # Issue 12692
 
 [ $compiler == dart2dart && $minified ]
@@ -441,3 +403,9 @@ import_core_prefix_test: Pass
 prefix22_test: Pass
 invocation_mirror_test: Fail, OK # Issue 12706 (hardcoded names).
 super_call4_test: Fail, OK # hardcoded names.
+
+[ $minified ]
+stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
+
+[ $runtime == ie9 ]
+stack_trace_test: Fail, OK # Stack traces not available in IE9.

@@ -15,26 +15,31 @@ class StringSource implements Source {
   StringSource(this._contents, this.fullName)
       : modificationStamp = new DateTime.now().millisecondsSinceEpoch;
 
-  bool operator==(Object object) => object is StringSource &&
-      object._contents == _contents && object._name == _name;
+  bool operator==(Object object) {
+    if (object is StringSource) {
+      StringSource ssObject = object;
+      return ssObject._contents == _contents && ssObject.fullName == fullName;
+    }
+    return false;
+  }
 
   bool exists() => true;
 
   void getContents(Source_ContentReceiver receiver) =>
       receiver.accept2(_contents, modificationStamp);
 
-  String get encoding => throw UnsupportedError("StringSource doesn't support "
+  String get encoding => throw new UnsupportedError("StringSource doesn't support "
       "encoding.");
 
   String get shortName => fullName;
 
-  String get uriKind => throw UnsupportedError("StringSource doesn't support "
+  UriKind get uriKind => throw new UnsupportedError("StringSource doesn't support "
       "uriKind.");
 
-  int get hashCode => _contents.hashCode ^ _name.hashCode;
+  int get hashCode => _contents.hashCode ^ fullName.hashCode;
 
   bool get isInSystemLibrary => false;
 
-  Source resolveRelative(Uri relativeUri) => throw UnsupportedError(
+  Source resolveRelative(Uri relativeUri) => throw new UnsupportedError(
       "StringSource doesn't support resolveRelative.");
 }

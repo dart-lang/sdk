@@ -2,10 +2,8 @@
 // significant change. Please see the README file for more information.
 library engine.source.io;
 import 'source.dart';
-import 'dart:io';
 import 'java_core.dart';
 import 'java_io.dart';
-import 'sdk.dart' show DartSdk;
 import 'engine.dart' show AnalysisContext, AnalysisEngine;
 export 'source.dart';
 /**

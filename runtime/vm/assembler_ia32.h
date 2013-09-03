@@ -670,7 +670,7 @@ class Assembler : public ValueObject {
   void EnterCallRuntimeFrame(intptr_t frame_space);
   void LeaveCallRuntimeFrame();
 
-  void CallRuntime(const RuntimeEntry& entry);
+  void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
   /*
    * Loading and comparing classes of objects.

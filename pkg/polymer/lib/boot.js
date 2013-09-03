@@ -82,7 +82,11 @@
     if (!seen) seen = {};
     var links = content.querySelectorAll('link[rel="import"]');
     for (var i = 0; i < links.length; i++) {
-      var link = links[i].import;
+      var link = links[i];
+      // TODO(jmesserly): figure out why ".import" fails in content_shell but
+      // works in Dartium.
+      if (link.import && link.import.href) link = link.import;
+
       if (seen[link.href]) continue;
       seen[link.href] = link;
       inlinePolymerElements(link.content, ref, seen);

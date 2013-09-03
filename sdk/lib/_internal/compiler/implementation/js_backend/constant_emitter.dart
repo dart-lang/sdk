@@ -299,6 +299,12 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
   }
 
   jsAst.Expression visitConstructed(ConstructedConstant constant) {
+    Element element = constant.type.element;
+    if (element.isForeign(compiler)
+        && element.name == const SourceString('JS_CONST')) {
+      StringConstant str = constant.fields[0];
+      return new jsAst.LiteralExpression(str.value.slowToString());
+    }
     jsAst.New instantiation = new jsAst.New(
         new jsAst.VariableUse(getJsConstructor(constant.type.element)),
         _array(constant.fields));

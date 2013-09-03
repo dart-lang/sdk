@@ -19,7 +19,7 @@ library unittest_interactive_html_config;
 
 import 'dart:html';
 import 'dart:async';
-import 'dart:json' as json;
+import 'dart:convert';
 
 import 'package:stack_trace/stack_trace.dart';
 
@@ -164,7 +164,7 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
     DateTime end = new DateTime.now();
     int elapsed = end.difference(_testStarts[testCase.id]).inMilliseconds;
     if (testCase.stackTrace != null) {
-      var message = json.stringify(testCase.stackTrace.frames.map((frame) {
+      var message = JSON.encode(testCase.stackTrace.frames.map((frame) {
         return <String, dynamic>{
           "uri": frame.uri.toString(),
           "line": frame.line,
@@ -244,7 +244,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
     if (msg.messageType == _Message.LOG) {
       logMessage(e.data);
     } else if (msg.messageType == _Message.STACK) {
-      _stack = new Trace(json.parse(msg.body).map((frame) {
+      _stack = new Trace(JSON.decode(msg.body).map((frame) {
         return new Frame(
             Uri.parse(frame['uri']),
             frame['line'],

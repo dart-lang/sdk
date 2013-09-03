@@ -490,7 +490,10 @@ class _PeriodicZoneTimer implements Timer {
  * by the callback.
  *
  * The [onDone] handler (if non-null) is invoked when the zone has no more
- * outstanding callbacks.
+ * outstanding callbacks. *Deprecated*: this method is less useful than it
+ * seems, because it assumes that every registered callback is always invoked.
+ * There are, however, many *valid* reasons not to complete futures or to abort
+ * a future-chain. In general it is a bad idea to rely on `onDone`.
  *
  * The [onRunAsync] handler (if non-null) is invoked when the [body] executes
  * [runAsync].  The handler is invoked in the outer zone and can therefore

@@ -4,6 +4,7 @@
 
 library run_async_test;
 
+import 'package:async_helper/async_helper.dart';
 import 'dart:async';
 import 'dart:isolate';
 
@@ -28,10 +29,15 @@ bool globalErrorHandler(IsolateUnhandledException e) {
 }
 
 main() {
+  asyncStart();
   var port = new ReceivePort();
   var timer;
   SendPort otherIsolate = spawnFunction(runTest, globalErrorHandler);
   otherIsolate.send(port.toSendPort());
-  port.receive((msg, replyPort) { port.close(); timer.cancel(); });
+  port.receive((msg, replyPort) {
+    port.close();
+    timer.cancel();
+    asyncEnd();
+  });
   timer = new Timer(const Duration(seconds: 2), () { throw "failed"; });
 }

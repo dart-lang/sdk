@@ -36,12 +36,12 @@ class ManyToOneTransformer extends MockTransformer {
         if (path.contains("|")) {
           id = new AssetId.parse(path);
         } else {
-          id = new AssetId(transform.primaryId.package, path);
+          id = new AssetId(transform.primaryInput.id.package, path);
         }
         return getInput(transform, id).then((input) => input.readAsString());
       }));
     }).then((outputs) {
-      var id = transform.primaryId.changeExtension(".out");
+      var id = transform.primaryInput.id.changeExtension(".out");
       transform.addOutput(new Asset.fromString(id, outputs.join()));
     });
   }

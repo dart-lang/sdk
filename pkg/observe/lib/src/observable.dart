@@ -192,6 +192,15 @@ abstract class ObservableMixin implements Observable {
   }
 }
 
+/**
+ * Notify the property change. Shorthand for:
+ *
+ *     target.notifyChange(new PropertyChangeRecord(targetName));
+ */
+void notifyProperty(Observable target, Symbol targetName) {
+  target.notifyChange(new PropertyChangeRecord(targetName));
+}
+
 // TODO(jmesserly): remove the instance method and make this top-level method
 // public instead?
 _notifyPropertyChange(Observable obj, Symbol field, Object oldValue,

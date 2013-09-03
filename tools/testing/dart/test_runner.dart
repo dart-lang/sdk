@@ -1823,12 +1823,24 @@ class CommandExecutorImpl implements CommandExecutor {
       BrowserTestCommand browserCommand, int timeout) {
     var completer = new Completer<CommandOutput>();
 
-    var callback = (var output, var duration) {
+    var callback = (output, delayUntilTestStarted, duration) {
+      bool timedOut = output == "TIMEOUT";
+      String stderr = "";
+      if (timedOut) {
+        if (delayUntilTestStarted != null) {
+          stderr = "This test timed out. The delay until the test was actually "
+                   "started was: $delayUntilTestStarted.";
+        } else {
+          stderr = "This test has not notified test.py that it started running."
+                   " This could be a bug in test.py! "
+                   "Please contact ricow/kustermann";
+        }
+      }
       var commandOutput = createCommandOutput(browserCommand,
                           0,
-                          output == "TIMEOUT",
+                          timedOut,
                           encodeUtf8(output),
-                          [],
+                          encodeUtf8(stderr),
                           duration,
                           false);
       completer.complete(commandOutput);

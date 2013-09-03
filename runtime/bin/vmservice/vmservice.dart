@@ -5,7 +5,7 @@
 library vmservice;
 
 import 'dart:async';
-import 'dart:json' as JSON;
+import "dart:convert";
 import 'dart:isolate';
 import 'dart:typed_data';
 

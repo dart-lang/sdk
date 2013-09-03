@@ -14,7 +14,7 @@ import "dart:io";
 void testSimpleDeadline(int connections) {
   HttpServer.bind('localhost', 0).then((server) {
     server.listen((request) {
-      request.response.deadline = const Duration(seconds: 10);
+      request.response.deadline = const Duration(seconds: 1000);
       request.response.write("stuff");
       request.response.close();
     });

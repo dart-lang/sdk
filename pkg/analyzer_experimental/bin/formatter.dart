@@ -4,16 +4,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:path/path.dart' as path;
 
 import 'package:analyzer_experimental/src/services/formatter_impl.dart';
 
 
 const BINARY_NAME = 'dartfmt';
+final dartFileRegExp = new RegExp(r'^[^.].*\.dart$', caseSensitive: false);
 final argParser = _initArgParser();
+
+bool overwriteFileContents;
 
 void main() {
   var options = argParser.parse(new Options().arguments);
@@ -21,28 +24,54 @@ void main() {
     _printUsage();
     return;
   }
+  overwriteFileContents = options['write'];
+  
   if (options.rest.isEmpty) {
     _formatStdin(options);
   } else {
-    _formatFiles(options.rest);
+    _formatPaths(options.rest);
   }
 }
 
-_formatFiles(files) {
-  for (var file in files) {
-    _formatFile(file);
+_formatPaths(paths) {
+  paths.forEach((path) {
+    if (FileSystemEntity.isDirectorySync(path)) {
+      _formatDirectory(new Directory(path));
+    } else {
+      _formatFile(new File(path));
+    }
+  });
+}
+
+_formatResource(resource) {
+  if (resource is Directory) {
+    _formatDirectory(resource);
+  } else if (resource is File) {
+    _formatFile(resource);
   }
 }
 
-_formatFile(path) {
-  var buffer = new StringBuffer();
-  var file = new File(path);
-  file.openRead()
-      .transform(UTF8.decoder)
-      .listen((data) =>  buffer.write(data),
-        onError: (error) => print('Error, could not open "$path"'),
-        onDone: () => print(_formatCU(buffer.toString())));
+_formatDirectory(dir) => 
+    dir.listSync().forEach((resource) => _formatResource(resource));
+
+void _formatFile(file) {
+  if (_isDartFile(file)) {
+    try {
+      var buffer = new StringBuffer();
+      var rawSource = file.readAsStringSync();
+      var formatted = _formatCU(rawSource);
+      if (overwriteFileContents) {
+        file.writeAsStringSync(formatted);
+      } else {
+        print(formatted);
+      }
+    } catch (e) {
+      _log('Error formatting "${file.path}": $e');
+    }
+  }
 }
+
+_isDartFile(file) => dartFileRegExp.hasMatch(path.basename(file.path));
 
 _formatStdin(options) {
   _log('not supported yet!');

@@ -46,6 +46,18 @@ main() {
     _testInitializers('this.a, [this.b]', '(a, [b]) : __\$a = a, __\$b = b');
     _testInitializers('this.a, {this.b}', '(a, {b}) : __\$a = a, __\$b = b');
   });
+
+  group('test full text', () {
+    test('with changes', () {
+      return _transform(_sampleObservable('A', 'foo'))
+        .then((output) => expect(output, _sampleObservableOutput('A', 'foo')));
+    });
+
+    test('no changes', () {
+      var input = 'class A {/*@observable annotation to trigger transform */;}';
+      return _transform(input).then((output) => expect(output, input));
+    });
+  });
 }
 
 _testClause(String clauses, String expected) {
@@ -105,13 +117,12 @@ Future<String> _transform(String code) {
 class _MockTransform implements Transform {
   List<Asset> outs = [];
   Asset _asset;
-  AssetId get primaryId => _asset.id;
   TransformLogger logger = new TransformLogger(false);
-  Future<Asset> get primaryInput => new Future.value(_asset);
+  Asset get primaryInput => _asset;
 
   _MockTransform(this._asset);
   Future<Asset> getInput(Asset id) {
-    if (id == primaryId) return primaryInput;
+    if (id == primaryInput.id) return new Future.value(primaryInput);
     fail();
   }
 
@@ -119,3 +130,28 @@ class _MockTransform implements Transform {
     outs.add(output);
   }
 }
+
+String _sampleObservable(String className, String fieldName) => '''
+library ${className}_$fieldName;
+import 'package:observe/observe.dart';
+
+class $className extends ObservableBase {
+  @observable int $fieldName;
+  $className(this.$fieldName);
+}
+''';
+
+String _sampleObservableOutput(String className, String fieldName) => '''
+library ${className}_$fieldName;
+import 'package:observe/observe.dart';
+
+class $className extends ChangeNotifierBase {
+  int __\$$fieldName;
+  int get $fieldName => __\$$fieldName;
+  set $fieldName(int value) {
+    __\$$fieldName = notifyPropertyChange(const Symbol('$fieldName'), __\$$fieldName, value);
+  }
+  
+  $className($fieldName) : __\$$fieldName = $fieldName;
+}
+''';

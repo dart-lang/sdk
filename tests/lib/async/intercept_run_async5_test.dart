@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'dart:isolate';
 
 var events = [];
 
@@ -32,9 +32,7 @@ handler2(fun) {
 }
 
 main() {
-  // We keep a ReceivePort open until all tests are done. This way the VM will
-  // hang if the callbacks are not invoked and the test will time out.
-  var port = new ReceivePort();
+  asyncStart();
 
   // Test that nested runZonedExperimental go to the next outer zone.
   var result = runZonedExperimental(
@@ -50,6 +48,6 @@ main() {
          "handler2", "handler", "handler done", "handler2 done",
          "run nested body"],
         events);
-    port.close();
+    asyncEnd();
  });
 }

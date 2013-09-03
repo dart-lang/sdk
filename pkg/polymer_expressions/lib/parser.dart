@@ -134,22 +134,16 @@ class Parser {
           return _astFactory.identifier('this');
         } else if (keyword == 'in') {
           return null;
-        } else {
-          throw new ArgumentError('unrecognized keyword: $keyword');
         }
-        break;
+        throw new ArgumentError('unrecognized keyword: $keyword');
       case IDENTIFIER_TOKEN:
         return _parseInvokeOrIdentifier();
-        break;
       case STRING_TOKEN:
         return _parseString();
-        break;
       case INTEGER_TOKEN:
         return _parseInteger();
-        break;
       case DECIMAL_TOKEN:
         return _parseDecimal();
-        break;
       case GROUPER_TOKEN:
         if (_token.value == '(') {
           return _parseParenthesized();
@@ -157,7 +151,6 @@ class Parser {
           return _parseMapLiteral();
         }
         return null;
-        break;
       default:
         return null;
     }

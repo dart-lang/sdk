@@ -11,7 +11,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
-import 'package:polymer/dwc.dart' as dwc;
+import 'package:polymer/deploy.dart' as deploy;
 
 
 /**
@@ -20,17 +20,17 @@ import 'package:polymer/dwc.dart' as dwc;
  */
 void endToEndTests(String inputDir, String outDir, {List<String> arguments}) {
   _testHelper(new _TestOptions(inputDir, inputDir, null, outDir,
-        arguments: arguments));
+      arguments: arguments));
 }
 
 /**
  * Compiles [testFile] with the web-ui compiler, and then runs the output as a
  * render test in content_shell.
  */
-void renderTests(String baseDir, String inputDir, String expectedDir,
+void renderTests(String webDir, String inputDir, String expectedDir,
     String outDir, {List<String> arguments, String script, String pattern,
     bool deleteDir: true}) {
-  _testHelper(new _TestOptions(baseDir, inputDir, expectedDir, outDir,
+  _testHelper(new _TestOptions(webDir, inputDir, expectedDir, outDir,
       arguments: arguments, script: script, pattern: pattern,
       deleteDir: deleteDir));
 }
@@ -51,18 +51,12 @@ void _testHelper(_TestOptions options) {
     print('Cleaning old output for ${path.normalize(options.outDir)}');
     dir.deleteSync(recursive: true);
   }
-  dir.createSync();
+  dir.createSync(recursive: true);
 
   for (var filePath in paths) {
     var filename = path.basename(filePath);
     test('compile $filename', () {
-      var testArgs = ['-o', options.outDir, '--basedir', options.baseDir,
-          '--deploy']
-          ..addAll(options.compilerArgs)
-          ..add(filePath);
-      expect(dwc.run(testArgs, printTime: false).then((res) {
-        expect(res.messages.length, 0, reason: res.messages.join('\n'));
-      }), completes);
+      return deploy.runForTest(options.webDir, options.outDir);
     });
   }
 
@@ -70,26 +64,29 @@ void _testHelper(_TestOptions options) {
   // Sort files to match the order in which run.sh runs diff.
   filenames.sort();
 
-  // Get the path from "input" relative to "baseDir"
-  var relativeToBase = path.relative(options.inputDir, from: options.baseDir);
-  var finalOutDir = path.join(options.outDir, relativeToBase);
+  var finalOutDir = path.join(options.outDir, options.inputDir);
+  var outBaseDir = path.join(options.outDir, options.webDir);
 
   runTests(String search) {
     var output;
 
     for (var filename in filenames) {
       test('content_shell run $filename$search', () {
-        var args = ['--dump-render-tree',
-            'file://$finalOutDir/$filename$search'];
-        var env = {'DART_FLAGS': '--checked'};
-        expect(Process.run('content_shell', args, environment: env).then((res) {
-          expect(res.exitCode, 0, reason: 'content_shell exit code: '
-              '${res.exitCode}. Contents of stderr: \n${res.stderr}');
-          var outs = res.stdout.split('#EOF\n')
-            .where((s) => !s.trim().isEmpty).toList();
-          expect(outs.length, 1);
-          output = outs.first;
-        }), completes);
+        var lnArgs = ['-s', '$outBaseDir/packages', '$finalOutDir/packages'];
+        return Process.run('ln', lnArgs).then((_) {
+          var args = ['--dump-render-tree',
+              'file://$finalOutDir/$filename$search'];
+          var env = {'DART_FLAGS': '--checked'};
+          return Process.run('content_shell', args, environment: env)
+              .then((res) {
+                expect(res.exitCode, 0, reason: 'content_shell exit code: '
+                    '${res.exitCode}. Contents of stderr: \n${res.stderr}');
+                var outs = res.stdout.split('#EOF\n')
+                  .where((s) => !s.trim().isEmpty).toList();
+                expect(outs.length, 1);
+                output = outs.first;
+              });
+        });
       });
 
       test('verify $filename $search', () {
@@ -150,7 +147,7 @@ void _testHelper(_TestOptions options) {
 }
 
 class _TestOptions {
-  final String baseDir;
+  final String webDir;
   final String inputDir;
 
   final String expectedDir;
@@ -166,7 +163,7 @@ class _TestOptions {
   final List<String> compilerArgs;
   final RegExp pattern;
 
-  factory _TestOptions(String baseDir, String inputDir, String expectedDir,
+  factory _TestOptions(String webDir, String inputDir, String expectedDir,
       String outDir, {List<String> arguments, String script, String pattern,
       bool deleteDir: true}) {
     if (arguments == null) arguments = new Options().arguments;
@@ -186,19 +183,19 @@ class _TestOptions {
     }
 
     var scriptDir = path.absolute(path.dirname(script));
-    baseDir = path.join(scriptDir, baseDir);
-    inputDir = path.join(scriptDir, inputDir);
+    webDir = path.relative(path.join(scriptDir, webDir));
+    inputDir = path.relative(path.join(scriptDir, inputDir));
     outDir = path.join(scriptDir, outDir);
     if (expectedDir != null) {
       expectedDir = path.join(scriptDir, expectedDir);
     }
 
-    return new _TestOptions._(baseDir, inputDir, expectedDir, outDir, deleteDir,
+    return new _TestOptions._(webDir, inputDir, expectedDir, outDir, deleteDir,
         args['dart'] == true, args['js'] == true, args['shadowdom'] == true,
         compilerArgs, filePattern);
   }
 
-  _TestOptions._(this.baseDir, this.inputDir, this.expectedDir, this.outDir,
+  _TestOptions._(this.webDir, this.inputDir, this.expectedDir, this.outDir,
       this.deleteDir, this.runAsDart, this.runAsJs,
       this.forcePolyfillShadowDom, this.compilerArgs, this.pattern);
 }

@@ -379,7 +379,7 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
     if (!node.isConst) {
       return error(node, null);
     }
-    ConstructorElement constructor = node.element;
+    ConstructorElement constructor = node.staticElement;
     if (constructor != null && constructor.isConst) {
       node.argumentList.accept(this);
       return ValidResult.RESULT_OBJECT;
@@ -393,7 +393,7 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
   }
   EvaluationResultImpl visitInterpolationString(InterpolationString node) => new ValidResult(node.value);
   EvaluationResultImpl visitListLiteral(ListLiteral node) {
-    if (node.modifier == null) {
+    if (node.constKeyword == null) {
       return new ErrorResult.con1(node, CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL);
     }
     ErrorResult result = null;
@@ -406,7 +406,7 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
     return ValidResult.RESULT_OBJECT;
   }
   EvaluationResultImpl visitMapLiteral(MapLiteral node) {
-    if (node.modifier == null) {
+    if (node.constKeyword == null) {
       return new ErrorResult.con1(node, CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL);
     }
     ErrorResult result = null;
@@ -420,7 +420,7 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
     return ValidResult.RESULT_OBJECT;
   }
   EvaluationResultImpl visitMethodInvocation(MethodInvocation node) {
-    Element element = node.methodName.element;
+    Element element = node.methodName.staticElement;
     if (element is FunctionElement) {
       FunctionElement function = element as FunctionElement;
       if (function.name == "identical") {
@@ -440,19 +440,20 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
     }
     return error(node, null);
   }
+  EvaluationResultImpl visitNamedExpression(NamedExpression node) => node.expression.accept(this);
   EvaluationResultImpl visitNode(ASTNode node) => error(node, null);
   EvaluationResultImpl visitNullLiteral(NullLiteral node) => ValidResult.RESULT_NULL;
   EvaluationResultImpl visitParenthesizedExpression(ParenthesizedExpression node) => node.expression.accept(this);
   EvaluationResultImpl visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefixNode = node.prefix;
-    Element prefixElement = prefixNode.element;
+    Element prefixElement = prefixNode.staticElement;
     if (prefixElement is! PrefixElement) {
       EvaluationResultImpl prefixResult = prefixNode.accept(this);
       if (prefixResult is! ValidResult) {
         return error(node, null);
       }
     }
-    return getConstantValue(node, node.element);
+    return getConstantValue(node, node.staticElement);
   }
   EvaluationResultImpl visitPrefixExpression(PrefixExpression node) {
     EvaluationResultImpl operand = node.operand.accept(this);
@@ -471,8 +472,8 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
     }
     return error(node, null);
   }
-  EvaluationResultImpl visitPropertyAccess(PropertyAccess node) => getConstantValue(node, node.propertyName.element);
-  EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) => getConstantValue(node, node.element);
+  EvaluationResultImpl visitPropertyAccess(PropertyAccess node) => getConstantValue(node, node.propertyName.staticElement);
+  EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) => getConstantValue(node, node.staticElement);
   EvaluationResultImpl visitSimpleStringLiteral(SimpleStringLiteral node) => new ValidResult(node.value);
   EvaluationResultImpl visitStringInterpolation(StringInterpolation node) {
     EvaluationResultImpl result = null;
@@ -534,7 +535,7 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
   ErrorResult union(ErrorResult leftResult, EvaluationResultImpl rightResult) {
     if (rightResult is ErrorResult) {
       if (leftResult != null) {
-        return new ErrorResult.con2(leftResult, (rightResult as ErrorResult));
+        return new ErrorResult.con2(leftResult, rightResult as ErrorResult);
       } else {
         return rightResult as ErrorResult;
       }
@@ -939,7 +940,7 @@ class ReferenceFinder extends RecursiveASTVisitor<Object> {
     this._referenceGraph = referenceGraph;
   }
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.element;
+    Element element = node.staticElement;
     if (element is PropertyAccessorElement) {
       element = ((element as PropertyAccessorElement)).variable;
     }
@@ -1104,7 +1105,9 @@ class ValidResult extends EvaluationResultImpl {
     if (!isAnyNum || !leftOperand2.isAnyNum) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
     }
-    if (isSomeNum || leftOperand2.isSomeNum) {
+    if (isSomeInt || leftOperand2.isSomeInt) {
+      return RESULT_INT;
+    } else if (isSomeNum || leftOperand2.isSomeNum) {
       return RESULT_NUM;
     }
     Object leftValue = leftOperand2.value;
@@ -1254,19 +1257,19 @@ class ValidResult extends EvaluationResultImpl {
       return valueOf2(_value == null);
     } else if (leftValue is bool) {
       if (_value is bool) {
-        return valueOf2(identical(((leftValue as bool)), ((_value as bool))));
+        return valueOf2(identical(leftValue as bool, _value as bool));
       }
       return RESULT_FALSE;
     } else if (leftValue is int) {
       if (_value is int) {
         return valueOf2(((leftValue as int)) == _value);
       } else if (_value is double) {
-        return valueOf2(toDouble((leftValue as int)) == _value);
+        return valueOf2(toDouble(leftValue as int) == _value);
       }
       return RESULT_FALSE;
     } else if (leftValue is double) {
       if (_value is int) {
-        return valueOf2(((leftValue as double)) == toDouble((_value as int)));
+        return valueOf2(((leftValue as double)) == toDouble(_value as int));
       } else if (_value is double) {
         return valueOf2(((leftValue as double)) == _value);
       }
@@ -1295,7 +1298,7 @@ class ValidResult extends EvaluationResultImpl {
       return error(node.rightOperand);
     } else if (leftValue is int) {
       if (_value is int) {
-        return valueOf2(((leftValue as int)).compareTo((_value as int)) >= 0);
+        return valueOf2(((leftValue as int)).compareTo(_value as int) >= 0);
       } else if (_value is double) {
         return valueOf2(((leftValue as int)).toDouble() >= ((_value as double)));
       }
@@ -1322,7 +1325,7 @@ class ValidResult extends EvaluationResultImpl {
       return error(node.rightOperand);
     } else if (leftValue is int) {
       if (_value is int) {
-        return valueOf2(((leftValue as int)).compareTo((_value as int)) > 0);
+        return valueOf2(((leftValue as int)).compareTo(_value as int) > 0);
       } else if (_value is double) {
         return valueOf2(((leftValue as int)).toDouble() > ((_value as double)));
       }
@@ -1385,7 +1388,7 @@ class ValidResult extends EvaluationResultImpl {
       return error(node.rightOperand);
     } else if (leftValue is int) {
       if (_value is int) {
-        return valueOf2(((leftValue as int)).compareTo((_value as int)) <= 0);
+        return valueOf2(((leftValue as int)).compareTo(_value as int) <= 0);
       } else if (_value is double) {
         return valueOf2(((leftValue as int)).toDouble() <= ((_value as double)));
       }
@@ -1412,7 +1415,7 @@ class ValidResult extends EvaluationResultImpl {
       return error(node.rightOperand);
     } else if (leftValue is int) {
       if (_value is int) {
-        return valueOf2(((leftValue as int)).compareTo((_value as int)) < 0);
+        return valueOf2(((leftValue as int)).compareTo(_value as int) < 0);
       } else if (_value is double) {
         return valueOf2(((leftValue as int)).toDouble() < ((_value as double)));
       }
@@ -1461,7 +1464,9 @@ class ValidResult extends EvaluationResultImpl {
     if (!isAnyNum || !leftOperand2.isAnyNum) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
     }
-    if (isSomeNum || leftOperand2.isSomeNum) {
+    if (isSomeInt || leftOperand2.isSomeInt) {
+      return RESULT_INT;
+    } else if (isSomeNum || leftOperand2.isSomeNum) {
       return RESULT_NUM;
     }
     Object leftValue = leftOperand2.value;
@@ -1501,12 +1506,12 @@ class ValidResult extends EvaluationResultImpl {
       if (_value is int) {
         return valueOf2(((leftValue as int)) != _value);
       } else if (_value is double) {
-        return valueOf2(toDouble((leftValue as int)) != _value);
+        return valueOf2(toDouble(leftValue as int) != _value);
       }
       return RESULT_TRUE;
     } else if (leftValue is double) {
       if (_value is int) {
-        return valueOf2(((leftValue as double)) != toDouble((_value as int)));
+        return valueOf2(((leftValue as double)) != toDouble(_value as int));
       } else if (_value is double) {
         return valueOf2(((leftValue as double)) != _value);
       }
@@ -1524,7 +1529,9 @@ class ValidResult extends EvaluationResultImpl {
     if (!isAnyNum || !leftOperand2.isAnyNum) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
     }
-    if (isSomeNum || leftOperand2.isSomeNum) {
+    if (isSomeInt || leftOperand2.isSomeInt) {
+      return RESULT_INT;
+    } else if (isSomeNum || leftOperand2.isSomeNum) {
       return RESULT_NUM;
     }
     Object leftValue = leftOperand2.value;
@@ -1537,7 +1544,7 @@ class ValidResult extends EvaluationResultImpl {
         if (((_value as int)) == 0) {
           return valueOf3(((leftValue as int)).toDouble() % ((_value as int)).toDouble());
         }
-        return valueOf(((leftValue as int)).remainder((_value as int)));
+        return valueOf(((leftValue as int)).remainder(_value as int));
       } else if (_value is double) {
         return valueOf3(((leftValue as int)).toDouble() % ((_value as double)));
       }
@@ -1603,7 +1610,9 @@ class ValidResult extends EvaluationResultImpl {
     if (!isAnyNum || !leftOperand2.isAnyNum) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
     }
-    if (isSomeNum || leftOperand2.isSomeNum) {
+    if (isSomeInt || leftOperand2.isSomeInt) {
+      return RESULT_INT;
+    } else if (isSomeNum || leftOperand2.isSomeNum) {
       return RESULT_NUM;
     }
     Object leftValue = leftOperand2.value;

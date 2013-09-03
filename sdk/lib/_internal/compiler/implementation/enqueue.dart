@@ -653,11 +653,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
     Selector selector = compiler.noSuchMethodSelector;
     compiler.enabledNoSuchMethod = true;
-    registerInvocation(selector);
-
-    compiler.createInvocationMirrorElement =
-        compiler.findHelper(Compiler.CREATE_INVOCATION_MIRROR);
-    addToWorkList(compiler.createInvocationMirrorElement);
+    compiler.backend.enableNoSuchMethod(this);
   }
 
   void forEach(f(WorkItem work)) {

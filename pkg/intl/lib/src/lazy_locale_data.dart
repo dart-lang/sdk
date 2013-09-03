@@ -10,8 +10,8 @@
 
 library lazy_locale_data;
 import 'dart:async';
+import 'dart:convert';
 import 'intl_helpers.dart';
-import 'dart:json' as json;
 
 /**
  * This implements the very basic map-type operations which are used
@@ -108,6 +108,6 @@ class LazyLocaleData {
    * return another future that parses the JSON into a usable format.
    */
   Future jsonData(Future input) {
-    return input.then( (response) => json.parse(response));
+    return input.then( (response) => JSON.decode(response));
   }
 }

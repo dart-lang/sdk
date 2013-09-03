@@ -6,9 +6,9 @@
 
 library slow_consumer2_test;
 
+import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'dart:isolate';
 
 const int KB = 1024;
 const int MB = KB * KB;
@@ -105,7 +105,7 @@ class DataProvider {
 }
 
 main() {
-  var port = new ReceivePort();
+  asyncStart();
   // The data provider can deliver 800MB/s of data. It sends 100MB of data to
   // the slower consumer who can only read 200MB/s. The data is sent in 1MB
   // chunks. The consumer has a buffer of 5MB. That is, it can accept a few
@@ -118,7 +118,7 @@ main() {
   new DataProvider(800 * MB, 100 * MB, 1 * MB).stream
     .pipe(new SlowConsumer(200 * MB, 5 * MB))
     .then((count) {
-      port.close();
       Expect.equals(100 * MB, count);
+      asyncEnd();
     });
 }

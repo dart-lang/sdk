@@ -5,6 +5,7 @@
 #ifndef VM_CODE_DESCRIPTORS_H_
 #define VM_CODE_DESCRIPTORS_H_
 
+#include "vm/ast.h"
 #include "vm/code_generator.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
@@ -101,6 +102,7 @@ class ExceptionHandlerList : public ZoneAllocated {
     intptr_t outer_try_index;  // Try block in which this try block is nested.
     intptr_t pc_offset;        // Handler PC offset value.
     const Array* handler_types;   // Catch clause guards.
+    bool needs_stacktrace;
   };
 
   ExceptionHandlerList() : list_() {}
@@ -114,13 +116,15 @@ class ExceptionHandlerList : public ZoneAllocated {
     data.outer_try_index = -1;
     data.pc_offset = -1;
     data.handler_types = NULL;
+    data.needs_stacktrace = false;
     list_.Add(data);
   }
 
   void AddHandler(intptr_t try_index,
                   intptr_t outer_try_index,
                   intptr_t pc_offset,
-                  const Array& handler_types) {
+                  const Array& handler_types,
+                  bool needs_stacktrace) {
     ASSERT(try_index >= 0);
     while (Length() <= try_index) {
       AddPlaceHolder();
@@ -129,7 +133,30 @@ class ExceptionHandlerList : public ZoneAllocated {
     list_[try_index].pc_offset = pc_offset;
     ASSERT(handler_types.IsZoneHandle());
     list_[try_index].handler_types = &handler_types;
+    list_[try_index].needs_stacktrace = needs_stacktrace;
   }
+
+
+  // Called by rethrows, to mark their enclosing handlers.
+  void SetNeedsStacktrace(intptr_t try_index) {
+    // Rethrows can be generated outside a try by the compiler.
+    if (try_index == CatchClauseNode::kInvalidTryIndex) {
+      return;
+    }
+    ASSERT((0 <= try_index) && (try_index < Length()));
+    list_[try_index].needs_stacktrace = true;
+  }
+
+
+  static bool ContainsDynamic(const Array& array) {
+    for (intptr_t i = 0; i < array.Length(); i++) {
+      if (array.At(i) == Type::DynamicType()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 
   RawExceptionHandlers* FinalizeExceptionHandlers(uword entry_point) {
     intptr_t num_handlers = Length();
@@ -138,9 +165,12 @@ class ExceptionHandlerList : public ZoneAllocated {
     for (intptr_t i = 0; i < num_handlers; i++) {
       // Assert that every element in the array has been initialized.
       ASSERT(list_[i].handler_types != NULL);
+      bool has_catch_all = ContainsDynamic(*list_[i].handler_types);
       handlers.SetHandlerInfo(i,
                               list_[i].outer_try_index,
-                              (entry_point + list_[i].pc_offset));
+                              (entry_point + list_[i].pc_offset),
+                              list_[i].needs_stacktrace,
+                              has_catch_all);
       handlers.SetHandledTypes(i, *list_[i].handler_types);
     }
     return handlers.raw();

@@ -152,6 +152,7 @@ RawBigint* BigintOperations::FromHexCString(const char* hex_string,
 
 RawBigint* BigintOperations::FromDecimalCString(const char* str,
                                                 Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
   // Read 8 digits a time. 10^8 < 2^27.
   const int kDigitsPerIteration = 8;
   const Chunk kTenMultiplier = 100000000;
@@ -178,6 +179,7 @@ RawBigint* BigintOperations::FromDecimalCString(const char* str,
   // 'increment' to the new result.
   const Bigint& increment = Bigint::Handle(Bigint::Allocate(1));
   while (str_pos < str_length - 1) {
+    HANDLESCOPE(isolate);
     Chunk digit = 0;
     for (intptr_t i = 0; i < kDigitsPerIteration; i++) {
       char c = str[str_pos++];
@@ -329,10 +331,10 @@ const char* BigintOperations::ToDecimalCString(
       (kIntptrMax - 10) / kLog2Dividend / kDigitBitSize * kLog2Divisor;
 
   intptr_t length = bigint.Length();
+  Isolate* isolate = Isolate::Current();
   if (length >= kMaxAllowedDigitLength) {
     // Use the preallocated out of memory exception to avoid calling
     // into dart code or allocating any code.
-    Isolate* isolate = Isolate::Current();
     const Instance& exception =
         Instance::Handle(isolate->object_store()->out_of_memory());
     Exceptions::Throw(exception);
@@ -370,6 +372,7 @@ const char* BigintOperations::ToDecimalCString(
   Bigint& quotient = Bigint::Handle();
   Bigint& remainder = Bigint::Handle();
   while (!rest.IsZero()) {
+    HANDLESCOPE(isolate);
     DivideRemainder(rest, divisor, &quotient, &remainder);
     ASSERT(remainder.Length() <= 1);
     intptr_t part = (remainder.Length() == 1)
@@ -718,32 +721,55 @@ RawBigint* BigintOperations::Multiply(const Bigint& a, const Bigint& b) {
   //        1000  * (a2b1 + a1b2) +
   //        10000 * a2b2
   //
-  // Each column will be accumulated in an integer of type DoubleChunk. We
-  // must guarantee that the column-sum will not overflow.
+  // Each column will be accumulated in an integer of type DoubleChunk. We must
+  // guarantee that the column-sum will not overflow.  We achieve this by
+  // 'blocking' the sum into overflow-free sums followed by propagating the
+  // overflow.
   //
-  // In the worst case we have to accumulate k = Min(a.length, b.length)
-  // products plus the carry from the previous round.
-  // Each bigint-digit is smaller than beta = 2^kDigitBitSize.
-  // Each product is at most (beta - 1)^2.
-  // If we want to use Comba multiplication the following condition must hold:
-  // k * (beta - 1)^2 + (2^(kDoubleChunkBitSize - kDigitBitSize) - 1) <
-  //        2^kDoubleChunkBitSize.
-  const DoubleChunk square =
-      static_cast<DoubleChunk>(kDigitMaxValue) * kDigitMaxValue;
-  const DoubleChunk kDoubleChunkMaxValue = static_cast<DoubleChunk>(-1);
-  const DoubleChunk left_over_carry = kDoubleChunkMaxValue >> kDigitBitSize;
-  const intptr_t kMaxDigits = (kDoubleChunkMaxValue - left_over_carry) / square;
-  if (Utils::Minimum(a_length, b_length) > kMaxDigits) {
-    // Use the preallocated out of memory exception to avoid calling
-    // into dart code or allocating any code.
-    Isolate* isolate = Isolate::Current();
-    const Instance& exception =
-        Instance::Handle(isolate->object_store()->out_of_memory());
-    Exceptions::Throw(exception);
-    UNREACHABLE();
-  }
+  // Each bigint digit fits in kDigitBitSize bits.
+  // Each product fits in 2*kDigitBitSize bits.
+  // The accumulator is 8 * sizeof(DoubleChunk) == 2*kDigitBitSize + kCarryBits.
+  //
+  // Each time we add a product to the accumulator it could carry one bit into
+  // the carry bits, supporting kBlockSize = 2^kCarryBits - 1 addition
+  // operations before the DoubleChunk overflows.
+  //
+  // At the end of the column sum and after each batch of kBlockSize additions
+  // the high kCarryBits+kDigitBitSize of accumulator are flushed to
+  // accumulator_overflow.
+  //
+  // Diagramatically, using one char per 4 bits:
+  //
+  //  0aaaaaaa * 0bbbbbbb  ->  00pppppppppppppp   product of 2 digits
+  //                                   |
+  //                                   +          ...added to
+  //                                   v
+  //                           ccSSSSSSSsssssss   accumulator
+  //                                              ...flushed to
+  //                           000000000sssssss   accumulator
+  //                    vvvvvvvvvVVVVVVV          accumulator_overflow
+  //
+  //  'sssssss' becomes the column sum an overflow is carried to next column:
+  //
+  //                           000000000VVVVVVV   accumulator
+  //                    0000000vvvvvvvvv          accumulator_overflow
+  //
+  // accumulator_overflow supports 2^(kDigitBitSize + kCarryBits) additions of
+  // products.
+  //
+  // Since the bottom (kDigitBitSize + kCarryBits) bits of accumulator_overflow
+  // are initialized from the previous column, that uses up the capacity to
+  // absorb 2^kCarryBits additions.  The accumulator_overflow can overflow if
+  // the column has more than 2^(kDigitBitSize + kCarryBits) - 2^kCarryBits
+  // elements With current configuration that is 2^36-2^8 elements.  That is too
+  // high to happen in practice.  Comba multiplication is O(N^2) so overflow
+  // won't happen during a human lifespan.
+
+  const intptr_t kCarryBits = 8 * sizeof(DoubleChunk) - 2 * kDigitBitSize;
+  const intptr_t kBlockSize = (1 << kCarryBits) - 1;
 
   DoubleChunk accumulator = 0;  // Accumulates the result of one column.
+  DoubleChunk accumulator_overflow = 0;
   for (intptr_t i = 0; i < result_length; i++) {
     // Example: r = a2a1a0 * b2b1b0.
     //   For i == 0, compute a0b0.
@@ -758,17 +784,29 @@ RawBigint* BigintOperations::Multiply(const Bigint& a, const Bigint& b) {
     // Instead of testing for a_index >= 0 && b_index < b_length we compute the
     // number of iterations first.
     intptr_t iterations = Utils::Minimum(b_length - b_index, a_index + 1);
-    for (intptr_t j = 0; j < iterations; j++) {
-      DoubleChunk chunk_a = a.GetChunkAt(a_index);
-      DoubleChunk chunk_b = b.GetChunkAt(b_index);
-      accumulator += chunk_a * chunk_b;
-      a_index--;
-      b_index++;
+
+    // For large products we need extra bit for the overflow.  The sum is broken
+    // into blocks to avoid dealing with the overflow on each iteration.
+    for (intptr_t j_block = 0; j_block < iterations; j_block += kBlockSize) {
+      intptr_t j_end = Utils::Minimum(j_block + kBlockSize, iterations);
+      for (intptr_t j = j_block; j < j_end; j++) {
+        DoubleChunk chunk_a = a.GetChunkAt(a_index);
+        DoubleChunk chunk_b = b.GetChunkAt(b_index);
+        accumulator += chunk_a * chunk_b;
+        a_index--;
+        b_index++;
+      }
+      accumulator_overflow += (accumulator >> kDigitBitSize);
+      accumulator &= kDigitMask;
     }
-    result.SetChunkAt(i, static_cast<Chunk>(accumulator & kDigitMask));
-    accumulator >>= kDigitBitSize;
+    result.SetChunkAt(i, static_cast<Chunk>(accumulator));
+    // Overflow becomes the initial accumulator for the next column.
+    accumulator = accumulator_overflow & kDigitMask;
+    // And the overflow from the overflow becomes the new overflow.
+    accumulator_overflow = (accumulator_overflow >> kDigitBitSize);
   }
   ASSERT(accumulator == 0);
+  ASSERT(accumulator_overflow == 0);
 
   Clamp(result);
   return result.raw();
@@ -1537,7 +1575,9 @@ void BigintOperations::DivideRemainder(
   Bigint& shifted_divisor =
       Bigint::Handle(DigitsShiftLeft(divisor, divisor_shift_amount));
   Chunk first_quotient_digit = 0;
+  Isolate* isolate = Isolate::Current();
   while (UnsignedCompare(dividend, shifted_divisor) >= 0) {
+    HANDLESCOPE(isolate);
     first_quotient_digit++;
     dividend = Subtract(dividend, shifted_divisor);
   }
@@ -1566,6 +1606,7 @@ void BigintOperations::DivideRemainder(
     //     dividend: 56822123, and divisor: 563  (with t == 5) is bad.
     //     dividend:  6822123, and divisor: 563  (with t == 5) is ok.
 
+    HANDLESCOPE(isolate);
     // The dividend has changed. So recompute its length.
     dividend_length = dividend.Length();
     Chunk dividend_digit;
@@ -1611,6 +1652,7 @@ void BigintOperations::DivideRemainder(
     target.SetChunkAt(1, ((i - 1) < 0) ? 0 : dividend.GetChunkAt(i - 1));
     target.SetChunkAt(2, dividend_digit);
     do {
+      HANDLESCOPE(isolate);
       quotient_digit = (quotient_digit - 1) & kDigitMask;
       estimation_product = MultiplyWithDigit(short_divisor, quotient_digit);
     } while (UnsignedCompareNonClamped(estimation_product, target) > 0);

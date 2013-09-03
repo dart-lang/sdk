@@ -221,9 +221,6 @@ class JavaScriptBackend extends Backend {
   Element dispatchPropertyName;
   Element getNativeInterceptorMethod;
   Element defineNativeMethodsFinishMethod;
-  Element getDispatchPropertyMethod;
-  Element setDispatchPropertyMethod;
-  Element initializeDispatchPropertyMethod;
   bool needToInitializeDispatchProperty = false;
 
   bool seenAnyClass = false;
@@ -369,9 +366,12 @@ class JavaScriptBackend extends Backend {
     if (element.isParameter()
         || element.isFieldParameter()
         || element.isField()) {
-      element = element.enclosingElement;
+      if (!canBeUsedForGlobalOptimizations(element.enclosingElement)) {
+        return false;
+      }
     }
-    return !helpersUsed.contains(element.declaration);
+    element = element.declaration;
+    return !isNeededForReflection(element) && !helpersUsed.contains(element);
   }
 
   bool isInterceptorClass(ClassElement element) {
@@ -478,22 +478,13 @@ class JavaScriptBackend extends Backend {
         compiler.findInterceptor(const SourceString('mapTypeToInterceptor'));
     dispatchPropertyName =
         compiler.findInterceptor(const SourceString('dispatchPropertyName'));
-    getDispatchPropertyMethod =
-        compiler.findInterceptor(const SourceString('getDispatchProperty'));
-    setDispatchPropertyMethod =
-        compiler.findInterceptor(const SourceString('setDispatchProperty'));
     getNativeInterceptorMethod =
         compiler.findInterceptor(const SourceString('getNativeInterceptor'));
-    initializeDispatchPropertyMethod =
-        compiler.findInterceptor(
-            new SourceString(emitter.nameOfDispatchPropertyInitializer));
     defineNativeMethodsFinishMethod =
         compiler.findHelper(const SourceString('defineNativeMethodsFinish'));
 
     // These methods are overwritten with generated versions.
     inlineCache.markAsNonInlinable(getInterceptorMethod, insideLoop: true);
-    inlineCache.markAsNonInlinable(getDispatchPropertyMethod, insideLoop: true);
-    inlineCache.markAsNonInlinable(setDispatchPropertyMethod, insideLoop: true);
 
     List<ClassElement> classes = [
       jsInterceptorClass =
@@ -565,6 +556,9 @@ class JavaScriptBackend extends Backend {
 
     objectEquals = compiler.lookupElementIn(
         compiler.objectClass, const SourceString('=='));
+
+    jsIndexingBehaviorInterface =
+        compiler.findHelper(const SourceString('JavaScriptIndexingBehavior'));
 
     specialOperatorEqClasses
         ..add(compiler.objectClass)
@@ -667,7 +661,6 @@ class JavaScriptBackend extends Backend {
         // native classes.
         enqueue(enqueuer, getNativeInterceptorMethod, elements);
         enqueue(enqueuer, defineNativeMethodsFinishMethod, elements);
-        enqueue(enqueuer, initializeDispatchPropertyMethod, elements);
         enqueueClass(enqueuer, jsInterceptorClass, compiler.globalDependencies);
       }
     }
@@ -737,6 +730,18 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsUnknownJavaScriptObjectClass, enqueuer, elements);
     } else if (Elements.isNativeOrExtendsNative(cls)) {
       addInterceptorsForNativeClassMembers(cls, enqueuer);
+    } else if (cls == jsIndexingBehaviorInterface) {
+      // These two helpers are used by the emitter and the codegen.
+      // Because we cannot enqueue elements at the time of emission,
+      // we make sure they are always generated.
+      enqueue(
+          enqueuer,
+          compiler.findHelper(const SourceString('isJsIndexable')),
+          elements);
+      enqueue(
+          enqueuer,
+          compiler.findInterceptor(const SourceString('dispatchPropertyName')),
+          elements);
     }
   }
 
@@ -746,7 +751,6 @@ class JavaScriptBackend extends Backend {
     TreeElements elements = compiler.globalDependencies;
     enqueue(enqueuer, getNativeInterceptorMethod, elements);
     enqueue(enqueuer, defineNativeMethodsFinishMethod, elements);
-    enqueue(enqueuer, initializeDispatchPropertyMethod, elements);
     enqueueClass(enqueuer, jsPlainJavaScriptObjectClass, elements);
     needToInitializeDispatchProperty = true;
   }
@@ -756,21 +760,11 @@ class JavaScriptBackend extends Backend {
   }
 
   void enqueueHelpers(ResolutionEnqueuer world, TreeElements elements) {
-    jsIndexingBehaviorInterface =
-        compiler.findHelper(const SourceString('JavaScriptIndexingBehavior'));
-    if (jsIndexingBehaviorInterface != null) {
-      world.registerIsCheck(jsIndexingBehaviorInterface.computeType(compiler),
-                            elements);
-      enqueue(
-          world,
-          compiler.findHelper(const SourceString('isJsIndexable')),
-          elements);
-      enqueue(
-          world,
-          compiler.findInterceptor(const SourceString('dispatchPropertyName')),
-          elements);
-    }
-
+    // TODO(ngeoffray): Not enqueuing those two classes currently make
+    // the compiler potentially crash. However, any reasonable program
+    // will instantiate those two classes.
+    addInterceptors(jsBoolClass, world, elements);
+    addInterceptors(jsNullClass, world, elements);
     if (compiler.enableTypeAssertions) {
       // Unconditionally register the helper that checks if the
       // expression in an if/while/for is a boolean.
@@ -946,6 +940,11 @@ class JavaScriptBackend extends Backend {
 
   void registerFallThroughError(TreeElements elements) {
     enqueueInResolution(getFallThroughError(), elements);
+  }
+
+  void enableNoSuchMethod(Enqueuer world) {
+    enqueue(world, getCreateInvocationMirror(), compiler.globalDependencies);
+    world.registerInvocation(compiler.noSuchMethodSelector);
   }
 
   void registerSuperNoSuchMethod(TreeElements elements) {
@@ -1438,13 +1437,7 @@ class JavaScriptBackend extends Backend {
       if (mustRetainMetadata) return;
       compiler.log('Retaining metadata.');
       mustRetainMetadata = true;
-      for (LibraryElement library in compiler.libraries.values) {
-        if (retainMetadataOf(library)) {
-          for (Link link = library.metadata; !link.isEmpty; link = link.tail) {
-            link.head.ensureResolved(compiler);
-          }
-        }
-      }
+      compiler.libraries.values.forEach(retainMetadataOf);
       for (Dependency dependency in metadataInstantiatedTypes) {
         registerMetadataInstantiatedType(dependency.type, dependency.user);
       }
@@ -1488,7 +1481,8 @@ class JavaScriptBackend extends Backend {
     if (mustRetainMetadata) hasRetainedMetadata = true;
     if (mustRetainMetadata && isNeededForReflection(element)) {
       for (MetadataAnnotation metadata in element.metadata) {
-        metadata.value.accept(new ConstantCopier(compiler.constantHandler));
+        metadata.ensureResolved(compiler)
+            .value.accept(new ConstantCopier(compiler.constantHandler));
       }
       return true;
     }
@@ -1555,6 +1549,25 @@ class JavaScriptBackend extends Backend {
     if (metaTargets != null) metaTargetsUsed.addAll(metaTargets);
   }
 
+  /**
+   * Returns `true` if [element] can be accessed through reflection, that is,
+   * is in the set of elements covered by a `MirrorsUsed` annotation.
+   *
+   * This property is used to tag emitted elements with a marker which is
+   * checked by the runtime system to throw an exception if an element is
+   * accessed (invoked, get, set) that is not accessible for the reflective
+   * system.
+   */
+  bool isAccessibleByReflection(Element element) {
+    if (hasInsufficientMirrorsUsed) return true;
+    return isNeededForReflection(element);
+  }
+
+  /**
+   * Returns `true` if the emitter must emit the element even though there
+   * is no direct use in the program, but because the reflective system may
+   * need to access it.
+   */
   bool isNeededForReflection(Element element) {
     if (hasInsufficientMirrorsUsed) return isTreeShakingDisabled;
     /// Record the name of [element] in [symbolsUsed]. Return true for
@@ -1590,6 +1603,34 @@ class JavaScriptBackend extends Backend {
     }
 
     return false;
+  }
+
+  jsAst.Call generateIsJsIndexableCall(jsAst.Expression use1,
+                                       jsAst.Expression use2) {
+    Element dispatchProperty =
+        compiler.findInterceptor(const SourceString('dispatchPropertyName'));
+    String dispatchPropertyName = namer.isolateAccess(dispatchProperty);
+
+    // We pass the dispatch property record to the isJsIndexable
+    // helper rather than reading it inside the helper to increase the
+    // chance of making the dispatch record access monomorphic.
+    jsAst.PropertyAccess record = new jsAst.PropertyAccess(
+        use2, new jsAst.VariableUse(dispatchPropertyName));
+
+    List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
+    FunctionElement helper =
+        compiler.findHelper(const SourceString('isJsIndexable'));
+    String helperName = namer.isolateAccess(helper);
+    return new jsAst.Call(new jsAst.VariableUse(helperName), arguments);
+  }
+
+  bool isTypedArray(TypeMask mask) {
+    // Just checking for [:TypedData:] is not sufficient, as it is an
+    // abstract class any user-defined class can implement. So we also
+    // check for the interface [JavaScriptIndexingBehavior].
+    return compiler.typedDataClass != null
+        && mask.satisfies(compiler.typedDataClass, compiler)
+        && mask.satisfies(jsIndexingBehaviorInterface, compiler);
   }
 }
 

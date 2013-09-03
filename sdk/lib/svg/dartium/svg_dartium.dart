@@ -397,7 +397,7 @@ class AnimatedNumber extends NativeFieldWrapperClass1 {
 
   @DomName('SVGAnimatedNumber.animVal')
   @DocsEditable()
-  num get animVal native "SVGAnimatedNumber_animVal_Getter";
+  double get animVal native "SVGAnimatedNumber_animVal_Getter";
 
   @DomName('SVGAnimatedNumber.baseVal')
   @DocsEditable()
@@ -557,15 +557,15 @@ class AnimationElement extends SvgElement implements ExternalResourcesRequired, 
 
   @DomName('SVGAnimationElement.getCurrentTime')
   @DocsEditable()
-  num getCurrentTime() native "SVGAnimationElement_getCurrentTime_Callback";
+  double getCurrentTime() native "SVGAnimationElement_getCurrentTime_Callback";
 
   @DomName('SVGAnimationElement.getSimpleDuration')
   @DocsEditable()
-  num getSimpleDuration() native "SVGAnimationElement_getSimpleDuration_Callback";
+  double getSimpleDuration() native "SVGAnimationElement_getSimpleDuration_Callback";
 
   @DomName('SVGAnimationElement.getStartTime')
   @DocsEditable()
-  num getStartTime() native "SVGAnimationElement_getStartTime_Callback";
+  double getStartTime() native "SVGAnimationElement_getStartTime_Callback";
 
   @DomName('SVGAnimationElement.externalResourcesRequired')
   @DocsEditable()
@@ -3608,7 +3608,7 @@ class PathElement extends GraphicsElement implements ExternalResourcesRequired {
 
   @DomName('SVGPathElement.getTotalLength')
   @DocsEditable()
-  num getTotalLength() native "SVGPathElement_getTotalLength_Callback";
+  double getTotalLength() native "SVGPathElement_getTotalLength_Callback";
 
   @DomName('SVGPathElement.externalResourcesRequired')
   @DocsEditable()
@@ -5538,19 +5538,19 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ExternalRes
 
   @DomName('SVGSVGElement.pixelUnitToMillimeterX')
   @DocsEditable()
-  num get pixelUnitToMillimeterX native "SVGSVGElement_pixelUnitToMillimeterX_Getter";
+  double get pixelUnitToMillimeterX native "SVGSVGElement_pixelUnitToMillimeterX_Getter";
 
   @DomName('SVGSVGElement.pixelUnitToMillimeterY')
   @DocsEditable()
-  num get pixelUnitToMillimeterY native "SVGSVGElement_pixelUnitToMillimeterY_Getter";
+  double get pixelUnitToMillimeterY native "SVGSVGElement_pixelUnitToMillimeterY_Getter";
 
   @DomName('SVGSVGElement.screenPixelToMillimeterX')
   @DocsEditable()
-  num get screenPixelToMillimeterX native "SVGSVGElement_screenPixelToMillimeterX_Getter";
+  double get screenPixelToMillimeterX native "SVGSVGElement_screenPixelToMillimeterX_Getter";
 
   @DomName('SVGSVGElement.screenPixelToMillimeterY')
   @DocsEditable()
-  num get screenPixelToMillimeterY native "SVGSVGElement_screenPixelToMillimeterY_Getter";
+  double get screenPixelToMillimeterY native "SVGSVGElement_screenPixelToMillimeterY_Getter";
 
   @DomName('SVGSVGElement.useCurrentView')
   @DocsEditable()
@@ -5626,7 +5626,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ExternalRes
 
   @DomName('SVGSVGElement.getCurrentTime')
   @DocsEditable()
-  num getCurrentTime() native "SVGSVGElement_getCurrentTime_Callback";
+  double getCurrentTime() native "SVGSVGElement_getCurrentTime_Callback";
 
   @DomName('SVGSVGElement.getElementById')
   @DocsEditable()
@@ -5827,7 +5827,7 @@ class TextContentElement extends GraphicsElement implements ExternalResourcesReq
 
   @DomName('SVGTextContentElement.getComputedTextLength')
   @DocsEditable()
-  num getComputedTextLength() native "SVGTextContentElement_getComputedTextLength_Callback";
+  double getComputedTextLength() native "SVGTextContentElement_getComputedTextLength_Callback";
 
   @DomName('SVGTextContentElement.getEndPositionOfChar')
   @DocsEditable()
@@ -5843,7 +5843,7 @@ class TextContentElement extends GraphicsElement implements ExternalResourcesReq
 
   @DomName('SVGTextContentElement.getRotationOfChar')
   @DocsEditable()
-  num getRotationOfChar(int offset) native "SVGTextContentElement_getRotationOfChar_Callback";
+  double getRotationOfChar(int offset) native "SVGTextContentElement_getRotationOfChar_Callback";
 
   @DomName('SVGTextContentElement.getStartPositionOfChar')
   @DocsEditable()
@@ -5851,7 +5851,7 @@ class TextContentElement extends GraphicsElement implements ExternalResourcesReq
 
   @DomName('SVGTextContentElement.getSubStringLength')
   @DocsEditable()
-  num getSubStringLength(int offset, int length) native "SVGTextContentElement_getSubStringLength_Callback";
+  double getSubStringLength(int offset, int length) native "SVGTextContentElement_getSubStringLength_Callback";
 
   @DomName('SVGTextContentElement.selectSubString')
   @DocsEditable()
@@ -6032,7 +6032,7 @@ class Transform extends NativeFieldWrapperClass1 {
 
   @DomName('SVGTransform.angle')
   @DocsEditable()
-  num get angle native "SVGTransform_angle_Getter";
+  double get angle native "SVGTransform_angle_Getter";
 
   @DomName('SVGTransform.matrix')
   @DocsEditable()
@@ -6424,7 +6424,7 @@ class ZoomEvent extends UIEvent {
 
   @DomName('SVGZoomEvent.newScale')
   @DocsEditable()
-  num get newScale native "SVGZoomEvent_newScale_Getter";
+  double get newScale native "SVGZoomEvent_newScale_Getter";
 
   @DomName('SVGZoomEvent.newTranslate')
   @DocsEditable()
@@ -6432,7 +6432,7 @@ class ZoomEvent extends UIEvent {
 
   @DomName('SVGZoomEvent.previousScale')
   @DocsEditable()
-  num get previousScale native "SVGZoomEvent_previousScale_Getter";
+  double get previousScale native "SVGZoomEvent_previousScale_Getter";
 
   @DomName('SVGZoomEvent.previousTranslate')
   @DocsEditable()

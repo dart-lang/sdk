@@ -36,7 +36,7 @@ abstract class Map<K, V> {
    * If no values are specified for [key] and [value] the default is the
    * identity function.
    */
-  factory Map.fromIterable(Iterable<K> iterable,
+  factory Map.fromIterable(Iterable iterable,
       {K key(element), V value(element)}) = LinkedHashMap<K, V>.fromIterable;
 
   /**

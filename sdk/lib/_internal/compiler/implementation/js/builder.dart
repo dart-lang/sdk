@@ -114,7 +114,9 @@ class JsBuilder {
   }
 
   Expression toExpression(expression) {
-    if (expression is Expression) {
+    if (expression == null) {
+      return null;
+    } else if (expression is Expression) {
       return expression;
     } else if (expression is String) {
       return this(expression);

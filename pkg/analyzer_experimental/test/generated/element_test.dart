@@ -1,22 +1,16 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 library engine.element_test;
-import 'dart:collection';
-import 'dart:io';
 import 'package:analyzer_experimental/src/generated/java_core.dart';
-import 'package:analyzer_experimental/src/generated/java_engine.dart';
 import 'package:analyzer_experimental/src/generated/java_engine_io.dart';
 import 'package:analyzer_experimental/src/generated/java_junit.dart';
 import 'package:analyzer_experimental/src/generated/source_io.dart';
-import 'package:analyzer_experimental/src/generated/error.dart';
-import 'package:analyzer_experimental/src/generated/scanner.dart';
 import 'package:analyzer_experimental/src/generated/utilities_dart.dart';
 import 'package:analyzer_experimental/src/generated/ast.dart';
 import 'package:analyzer_experimental/src/generated/element.dart';
 import 'package:analyzer_experimental/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl;
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
-import 'scanner_test.dart' show TokenFactory;
 import 'ast_test.dart' show ASTFactory;
 import 'resolver_test.dart' show TestTypeProvider;
 class ElementLocationImplTest extends EngineTestCase {
@@ -1619,6 +1613,16 @@ class InterfaceTypeImplTest extends EngineTestCase {
   }
 }
 class TypeVariableTypeImplTest extends EngineTestCase {
+  void fail_isMoreSpecificThan_typeArguments_object() {
+    TypeVariableElementImpl element = new TypeVariableElementImpl(ASTFactory.identifier3("E"));
+    TypeVariableTypeImpl type = new TypeVariableTypeImpl(element);
+    JUnitTestCase.assertTrue(type.isMoreSpecificThan(ElementFactory.object.type));
+  }
+  void fail_isMoreSpecificThan_typeArguments_self() {
+    TypeVariableElementImpl element = new TypeVariableElementImpl(ASTFactory.identifier3("E"));
+    TypeVariableTypeImpl type = new TypeVariableTypeImpl(element);
+    JUnitTestCase.assertTrue(type.isMoreSpecificThan(type));
+  }
   void test_creation() {
     JUnitTestCase.assertNotNull(new TypeVariableTypeImpl(new TypeVariableElementImpl(ASTFactory.identifier3("E"))));
   }
@@ -1626,6 +1630,13 @@ class TypeVariableTypeImplTest extends EngineTestCase {
     TypeVariableElementImpl element = new TypeVariableElementImpl(ASTFactory.identifier3("E"));
     TypeVariableTypeImpl type = new TypeVariableTypeImpl(element);
     JUnitTestCase.assertEquals(element, type.element);
+  }
+  void test_isMoreSpecificThan_typeArguments_upperBound() {
+    ClassElementImpl classS = ElementFactory.classElement2("A", []);
+    TypeVariableElementImpl typeVarT = new TypeVariableElementImpl(ASTFactory.identifier3("T"));
+    typeVarT.bound = classS.type;
+    TypeVariableTypeImpl typeVarTypeT = new TypeVariableTypeImpl(typeVarT);
+    JUnitTestCase.assertTrue(typeVarTypeT.isMoreSpecificThan(classS.type));
   }
   void test_substitute_equal() {
     TypeVariableElementImpl element = new TypeVariableElementImpl(ASTFactory.identifier3("E"));
@@ -1649,6 +1660,10 @@ class TypeVariableTypeImplTest extends EngineTestCase {
       _ut.test('test_getElement', () {
         final __test = new TypeVariableTypeImplTest();
         runJUnitTest(__test, __test.test_getElement);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_upperBound', () {
+        final __test = new TypeVariableTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_upperBound);
       });
       _ut.test('test_substitute_equal', () {
         final __test = new TypeVariableTypeImplTest();
@@ -1803,7 +1818,7 @@ class ElementFactory {
   static FunctionElementImpl functionElement7(String functionName, List<ClassElement> normalParameters, List<String> names, List<ClassElement> namedParameters) => functionElement4(functionName, null, normalParameters, names, namedParameters);
   static ClassElementImpl get object {
     if (_objectElement == null) {
-      _objectElement = classElement("Object", (null as InterfaceType), []);
+      _objectElement = classElement("Object", null as InterfaceType, []);
     }
     return _objectElement;
   }
@@ -2353,8 +2368,17 @@ class FunctionTypeImplTest extends EngineTestCase {
     type.hashCode;
   }
   void test_hashCode_noElement() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1((null as ExecutableElement));
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(null as ExecutableElement);
     type.hashCode;
+  }
+  void test_isAssignableTo_normalAndPositionalArgs() {
+    ClassElement a = ElementFactory.classElement2("A", []);
+    FunctionType t = ElementFactory.functionElement6("t", null, <ClassElement> [a]).type;
+    FunctionType s = ElementFactory.functionElement5("s", <ClassElement> [a]).type;
+    JUnitTestCase.assertTrue(t.isSubtypeOf(s));
+    JUnitTestCase.assertFalse(s.isSubtypeOf(t));
+    JUnitTestCase.assertTrue(t.isAssignableTo(s));
+    JUnitTestCase.assertFalse(s.isAssignableTo(t));
   }
   void test_isSubtypeOf_baseCase_classFunction() {
     ClassElementImpl functionElement = ElementFactory.classElement2("Function", []);
@@ -2678,6 +2702,10 @@ class FunctionTypeImplTest extends EngineTestCase {
       _ut.test('test_hashCode_noElement', () {
         final __test = new FunctionTypeImplTest();
         runJUnitTest(__test, __test.test_hashCode_noElement);
+      });
+      _ut.test('test_isAssignableTo_normalAndPositionalArgs', () {
+        final __test = new FunctionTypeImplTest();
+        runJUnitTest(__test, __test.test_isAssignableTo_normalAndPositionalArgs);
       });
       _ut.test('test_isSubtypeOf_Object', () {
         final __test = new FunctionTypeImplTest();

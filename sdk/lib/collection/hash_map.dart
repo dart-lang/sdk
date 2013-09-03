@@ -38,7 +38,7 @@ class HashMap<K, V> implements Map<K, V> {
    * If no values are specified for [key] and [value] the default is the
    * identity function.
    */
-  factory HashMap.fromIterable(Iterable<K> iterable,
+  factory HashMap.fromIterable(Iterable iterable,
       {K key(element), V value(element)}) {
     HashMap<K, V> map = new HashMap<K, V>();
     Maps._fillMapWithMappedIterable(map, iterable, key, value);

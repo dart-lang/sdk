@@ -219,11 +219,15 @@ abstract class DeclarationMirror implements Mirror {
    * computed by [simpleName].
    * The fully qualified name of *r* is the
    * concatenation of *p*, '.', and *s*.
+   *
+   * Because an isolate can contain more than one library with the same name (at
+   * different URIs), a fully-qualified name does not uniquely identify any
+   * language entity.
    */
   Symbol get qualifiedName;
 
   /**
-   * A mirror on the owner of this function.  This is the declaration
+   * A mirror on the owner of this Dart language entity. This is the declaration
    * immediately surrounding the reflectee.
    *
    * For a library, the owner is [:null:].

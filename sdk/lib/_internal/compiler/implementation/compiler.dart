@@ -211,6 +211,14 @@ abstract class Backend {
    */
   void registerRuntimeType(Enqueuer enqueuer, TreeElements elements) {}
 
+  /**
+   * Call this method to enable [noSuchMethod] handling in the
+   * backend.
+   */
+  void enableNoSuchMethod(Enqueuer enqueuer) {
+    enqueuer.registerInvocation(compiler.noSuchMethodSelector);
+  }
+
   void registerRequiredType(DartType type, Element enclosingElement) {}
   void registerClassUsingVariableExpression(ClassElement cls) {}
 
@@ -398,6 +406,9 @@ abstract class Compiler implements DiagnosticListener {
   /// Initialized when dart:mirrors is loaded.
   LibraryElement mirrorsLibrary;
 
+  /// Initialized when dart:typed_data is loaded.
+  LibraryElement typedDataLibrary;
+
   ClassElement objectClass;
   ClassElement closureClass;
   ClassElement boundClosureClass;
@@ -414,6 +425,7 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement mapClass;
   ClassElement symbolClass;
   ClassElement stackTraceClass;
+  ClassElement typedDataClass;
 
   // Initialized after mirrorSystemClass has been resolved.
   FunctionElement symbolConstructor;
@@ -446,7 +458,6 @@ abstract class Compiler implements DiagnosticListener {
   Element identicalFunction;
   Element functionApplyMethod;
   Element invokeOnMethod;
-  Element createInvocationMirrorElement;
 
   Element get currentElement => _currentElement;
 
@@ -633,9 +644,7 @@ abstract class Compiler implements DiagnosticListener {
 
   bool get compileAll => false;
 
-  bool get disableTypeInference {
-    return disableTypeInferenceFlag || disableTypeInferenceForMirrors;
-  }
+  bool get disableTypeInference => disableTypeInferenceFlag;
 
   int getNextFreeClassId() => nextFreeClassId++;
 
@@ -711,7 +720,8 @@ abstract class Compiler implements DiagnosticListener {
       return spanFromElement(node);
     } else if (node is MetadataAnnotation) {
       MetadataAnnotation annotation = node;
-      return spanFromTokens(annotation.beginToken, annotation.endToken);
+      uri = annotation.annotatedElement.getCompilationUnit().script.uri;
+      return spanFromTokens(annotation.beginToken, annotation.endToken, uri);
     } else {
       throw 'No error location.';
     }
@@ -769,6 +779,10 @@ abstract class Compiler implements DiagnosticListener {
           findRequiredElement(library, const SourceString('MirrorSystem'));
       mirrorsUsedClass =
           findRequiredElement(library, const SourceString('MirrorsUsed'));
+    } else if (uri == new Uri(scheme: 'dart', path: 'typed_data')) {
+      typedDataLibrary = library;
+      typedDataClass =
+          findRequiredElement(library, const SourceString('TypedData'));
     } else if (uri == new Uri(scheme: 'dart', path: '_collection-dev')) {
       symbolImplementationClass =
           findRequiredElement(library, const SourceString('Symbol'));
@@ -1029,8 +1043,7 @@ abstract class Compiler implements DiagnosticListener {
       enqueuer.codegen.registerGetOfStaticFunction(mainApp.find(MAIN));
     }
     if (enabledNoSuchMethod) {
-      enqueuer.codegen.registerInvocation(noSuchMethodSelector);
-      enqueuer.codegen.addToWorkList(createInvocationMirrorElement);
+      backend.enableNoSuchMethod(enqueuer.codegen);
     }
     if (compileAll) {
       libraries.forEach((_, lib) => fullyEnqueueLibrary(lib, enqueuer.codegen));

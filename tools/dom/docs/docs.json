@@ -326,45 +326,6 @@
           "   * for a list of common response headers.",
           "   */"
         ],
-        "onabort": [
-          "/**",
-          "   * Event listeners to be notified when request has been aborted,",
-          "   * generally due to calling `httpRequest.abort()`.",
-          "   */"
-        ],
-        "onerror": [
-          "/**",
-          "   * Event listeners to be notified when a request has failed, such as when a",
-          "   * cross-domain error occurred or the file wasn't found on the server.",
-          "   */"
-        ],
-        "onload": [
-          "/**",
-          "   * Event listeners to be notified once the request has completed",
-          "   * *successfully*.",
-          "   */"
-        ],
-        "onloadend": [
-          "/**",
-          "   * Event listeners to be notified once the request has completed (on",
-          "   * either success or failure).",
-          "   */"
-        ],
-        "onloadstart": [
-          "/**",
-          "   * Event listeners to be notified when the request starts, once",
-          "   * `httpRequest.send()` has been called.",
-          "   */"
-        ],
-        "onprogress": [
-          "/**",
-          "   * Event listeners to be notified when data for the request",
-          "   * is being sent or loaded.",
-          "   *",
-          "   * Progress events are fired every 50ms or for every byte transmitted,",
-          "   * whichever is less frequent.",
-          "   */"
-        ],
         "onreadystatechange": [
           "/**",
           "   * Event listeners to be notified every time the [HttpRequest]",

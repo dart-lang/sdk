@@ -11,7 +11,6 @@ library test_pub;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:json' as json;
 import 'dart:math';
 
 import 'package:http/testing.dart';
@@ -198,14 +197,14 @@ void servePackages(List<Map> pubspecs) {
       _servedPackageDir.contents.clear();
       for (var name in _servedPackages.keys) {
         _servedApiPackageDir.contents.addAll([
-          d.file('$name', json.stringify({
+          d.file('$name', JSON.encode({
             'name': name,
             'uploaders': ['nweiz@google.com'],
             'versions': _servedPackages[name].map(packageVersionApiMap).toList()
           })),
           d.dir(name, [
             d.dir('versions', _servedPackages[name].map((pubspec) {
-              return d.file(pubspec['version'], json.stringify(
+              return d.file(pubspec['version'], JSON.encode(
                   packageVersionApiMap(pubspec, full: true)));
             }))
           ])
@@ -215,7 +214,7 @@ void servePackages(List<Map> pubspecs) {
           d.dir('versions', _servedPackages[name].map((pubspec) {
             var version = pubspec['version'];
             return d.tar('$version.tar.gz', [
-              d.file('pubspec.yaml', json.stringify(pubspec)),
+              d.file('pubspec.yaml', JSON.encode(pubspec)),
               d.libDir(name, '$name $version')
             ]);
           }))
@@ -226,7 +225,7 @@ void servePackages(List<Map> pubspecs) {
 }
 
 /// Converts [value] into a YAML string.
-String yaml(value) => json.stringify(value);
+String yaml(value) => JSON.encode(value);
 
 /// The full path to the created sandbox directory for an integration test.
 String get sandboxDir => _sandboxDir;
@@ -425,7 +424,8 @@ ScheduledProcess startPublish(ScheduledServer server, {List args}) {
 void confirmPublish(ScheduledProcess pub) {
   // TODO(rnystrom): This is overly specific and inflexible regarding different
   // test packages. Should validate this a little more loosely.
-  expect(pub.nextLine(), completion(equals('Publishing "test_pkg" 1.0.0:')));
+  expect(pub.nextLine(), completion(startsWith(
+      'Publishing "test_pkg" 1.0.0 to ')));
   expect(pub.nextLine(), completion(equals("|-- LICENSE")));
   expect(pub.nextLine(), completion(equals("|-- lib")));
   expect(pub.nextLine(), completion(equals("|   '-- test_pkg.dart")));
@@ -741,7 +741,7 @@ void _validateOutputJson(List<String> failures, String pipe,
                          expected, String actualText) {
   var actual;
   try {
-    actual = json.parse(actualText);
+    actual = JSON.decode(actualText);
   } on FormatException catch(error) {
     failures.add('Expected $pipe JSON:');
     failures.add(expected);

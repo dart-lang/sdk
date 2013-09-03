@@ -31,7 +31,7 @@ class RewriteTransformer extends MockTransformer {
   Future doApply(Transform transform) {
     return getPrimary(transform).then((input) {
       return Future.wait(to.split(" ").map((extension) {
-        var id = transform.primaryId.changeExtension(".$extension");
+        var id = input.id.changeExtension(".$extension");
         return input.readAsString().then((content) {
           transform.addOutput(new Asset.fromString(id, "$content.$extension"));
         });

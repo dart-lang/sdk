@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:json' as json;
+import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -40,7 +40,7 @@ setUpDependency(Map dep, {List<String> hostedVersions}) {
     if (hostedVersions == null) {
       return new Future.value(new http.Response("not found", 404));
     } else {
-      return new Future.value(new http.Response(json.stringify({
+      return new Future.value(new http.Response(JSON.encode({
         "name": "foo",
         "uploaders": ["nweiz@google.com"],
         "versions": hostedVersions.map((version) =>
@@ -170,7 +170,7 @@ main() {
             d.libPubspec("test_pkg", "1.0.0", deps: {
               "foo": "any"
             }),
-            d.file("pubspec.lock", json.stringify({
+            d.file("pubspec.lock", JSON.encode({
               'packages': {
                 'bar': {
                   'version': '1.2.3',
@@ -196,7 +196,7 @@ main() {
             d.libPubspec("test_pkg", "1.0.0", deps: {
               "foo": "any"
             }),
-            d.file("pubspec.lock", json.stringify({
+            d.file("pubspec.lock", JSON.encode({
               'packages': {
                 'foo': {
                   'version': '1.2.3',
@@ -219,7 +219,7 @@ main() {
             d.libPubspec("test_pkg", "1.0.0", deps: {
               "foo": "any"
             }),
-            d.file("pubspec.lock", json.stringify({
+            d.file("pubspec.lock", JSON.encode({
               'packages': {
                 'foo': {
                   'version': '0.1.2',

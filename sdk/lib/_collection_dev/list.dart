@@ -40,16 +40,6 @@ abstract class FixedLengthListMixin<E>  {
         "Cannot remove from a fixed-length list");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot remove from a fixed-length list");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot remove from a fixed-length list");
-  }
-
   void removeWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove from a fixed-length list");
@@ -93,7 +83,7 @@ abstract class FixedLengthListMixin<E>  {
  * This mixin is intended to be mixed in on top of [ListMixin] on
  * unmodifiable lists.
  */
-abstract class UnmodifiableListMixin<E> {
+abstract class UnmodifiableListMixin<E> implements List<E> {
 
   void operator []=(int index, E value) {
     throw new UnsupportedError(
@@ -131,16 +121,6 @@ abstract class UnmodifiableListMixin<E> {
   }
 
   bool remove(Object element) {
-    throw new UnsupportedError(
-        "Cannot remove from an unmodifiable list");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot remove from an unmodifiable list");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError(
         "Cannot remove from an unmodifiable list");
   }

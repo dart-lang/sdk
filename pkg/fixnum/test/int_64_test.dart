@@ -562,6 +562,13 @@ void main() {
       // Overflow during parsing.
       check("9223372036854775808", 10, "-9223372036854775808");
     });
+
+    test("parseRadixN", () {
+      check(String s, int r) {
+        expect(Int64.parseRadix(s, r).toRadixString(r), s);
+      }
+      check("2ppp111222333", 33);  // This value & radix requires three chunks.
+    });
   });
 
   group("string representation", () {
