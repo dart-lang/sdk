@@ -366,6 +366,7 @@ class JavaScriptBackend extends Backend {
     if (element.isParameter()
         || element.isFieldParameter()
         || element.isField()) {
+      if (hasInsufficientMirrorsUsed && compiler.enabledInvokeOn) return false;
       if (!canBeUsedForGlobalOptimizations(element.enclosingElement)) {
         return false;
       }

@@ -339,9 +339,9 @@ class CodeEmitterTask extends CompilerTask {
           js('var body = "return " + receiver + "." + field'),
           js('prototype["${namer.getterPrefix}" + accessorName] = '
                  'new Function(args, body)'),
-          js.if_('!reflectable', [
+          js.if_('reflectable', [
                  js('prototype["${namer.getterPrefix}" + accessorName].'
-                    '$reflectableField = false')])
+                    '$reflectableField = 1')])
         ]),
 
         // if (needsSetter) {
@@ -353,9 +353,9 @@ class CodeEmitterTask extends CompilerTask {
           js('var body = receiver + "." + field + "$_=$_$valueParamName"'),
           js('prototype["${namer.setterPrefix}" + accessorName] = '
                  'new Function(args, body)'),
-          js.if_('!reflectable', [
+          js.if_('reflectable', [
                  js('prototype["${namer.setterPrefix}" + accessorName].'
-                    '$reflectableField = false')])
+                    '$reflectableField = 1')])
         ]),
 
       ]),
@@ -2880,8 +2880,10 @@ class CodeEmitterTask extends CompilerTask {
 
       String methodName = selector.invocationMirrorMemberName;
       String internalName = namer.invocationMirrorInternalName(selector);
+      String reflectionName = getReflectionName(selector, internalName);
       if (!haveVeryFewNoSuchMemberHandlers &&
-          isTrivialNsmHandler(type, argNames, selector, internalName)) {
+          isTrivialNsmHandler(type, argNames, selector, internalName) &&
+          reflectionName == null) {
         trivialNsmHandlers.add(selector);
         return null;
       }
@@ -2909,7 +2911,15 @@ class CodeEmitterTask extends CompilerTask {
     for (String jsName in addedJsNames.keys.toList()..sort()) {
       Selector selector = addedJsNames[jsName];
       jsAst.Expression method = generateMethod(jsName, selector);
-      if (method != null) defineStub(jsName, method);
+      if (method != null) {
+        defineStub(jsName, method);
+        String reflectionName = getReflectionName(selector, jsName);
+        if (reflectionName != null) {
+          bool accessible = compiler.world.allFunctions.filter(selector).any(
+              (Element e) => backend.isAccessibleByReflection(e));
+          defineStub('+$reflectionName', js(accessible ? '1' : '0'));
+        }
+      }
     }
   }
 
@@ -4111,8 +4121,8 @@ class CodeEmitterTask extends CompilerTask {
         var previousProperty;
         if (firstChar === "+") {
           mangledGlobalNames[previousProperty] = property.substring(1);
-          descriptor[previousProperty].''' // Break long line.
-'''$reflectableField = (descriptor[property] == 1);
+          if (descriptor[property] == 1) ''' // Break long line.
+'''descriptor[previousProperty].$reflectableField = 1;
           if (element && element.length) ''' // Break long line.
 '''init.interfaces[previousProperty] = element;
         } else if (firstChar === "@") {
@@ -4132,8 +4142,8 @@ class CodeEmitterTask extends CompilerTask {
               processStatics(init.statics[property] = element[prop]);
             } else if (firstChar === "+") {
               mangledNames[previousProp] = prop.substring(1);
-              element[previousProp].''' // Break long line.
-'''$reflectableField = (element[prop] == 1);
+              if (element[prop] == 1) ''' // Break long line.
+'''element[previousProp].$reflectableField = 1;
             } else if (firstChar === "@" && prop !== "@") {
               newDesc[prop.substring(1)][$metadataField] = element[prop];
             } else {

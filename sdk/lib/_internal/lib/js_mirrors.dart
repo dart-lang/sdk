@@ -26,6 +26,7 @@ import 'dart:_js_helper' show
     createUnmangledInvocationMirror,
     getMangledTypeName,
     throwInvalidReflectionError,
+    hasReflectableProperty,
     runtimeTypeToString;
 import 'dart:_interceptors' show
     Interceptor,
@@ -1273,7 +1274,7 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
   }
 
   bool canInvokeReflectively() {
-    return JS('bool', '#[#] != false', _jsFunction, JS_GET_NAME("REFLECTABLE"));
+    return hasReflectableProperty(_jsFunction);
   }
 
   DeclarationMirror get owner => _owner;

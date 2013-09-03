@@ -91,6 +91,10 @@ void throwInvalidReflectionError(Symbol memberName) {
       'which is not included by a @MirrorsUsed annotation');
 }
 
+bool hasReflectableProperty(var jsFunction) {
+  return JS('bool', '# in #', JS_GET_NAME("REFLECTABLE"), jsFunction);
+}
+
 class JSInvocationMirror implements Invocation {
   static const METHOD = 0;
   static const GETTER = 1;
@@ -175,7 +179,7 @@ class JSInvocationMirror implements Invocation {
     }
     var method = JS('var', '#[#]', receiver, name);
     if (JS('String', 'typeof #', method) == 'function') {
-      if (JS('bool', '#[#] == false', method, JS_GET_NAME("REFLECTABLE"))) {
+      if (!hasReflectableProperty(method)) {
         throwInvalidReflectionError(memberName);
       }
       return new CachedInvocation(method, isIntercepted, interceptor);

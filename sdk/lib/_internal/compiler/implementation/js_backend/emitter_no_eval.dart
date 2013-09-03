@@ -34,13 +34,13 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
   }
 
 
-  bool emitFields(ClassElement classElement,
+  bool emitFields(Element element,
                   ClassBuilder builder,
                   String superName,
                   { bool classIsNative: false,
                     bool emitStatics: false,
                     bool onlyForRti: false }) {
-    // Class fields are dynamically generated so they have to be
+    // Class and library fields are dynamically generated so they have to be
     // emitted using getters and setters instead.
     return false;
   }
