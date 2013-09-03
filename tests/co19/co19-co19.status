@@ -8,6 +8,25 @@
 
 ### GENERAL FAILURES ###
 
+[ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
+LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getFloat32_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getFloat64_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getInt16_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getInt32_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getInt64_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getUint16_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getUint32_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getUint64_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setFloat32_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setFloat64_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setInt16_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setInt32_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setInt64_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setUint16_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setUint32_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setUint64_A02_t02: fail # co19-roll r569: Please triage this failure
+
 [ $runtime == vm || $compiler == dart2js ]
 Language/13_Statements/11_Try_A02_t03: fail # co19 issue 552
 Language/13_Statements/11_Try_A03_t03: fail # co19 issue 552
@@ -15,7 +34,6 @@ Language/13_Statements/11_Try_A04_t03: fail # co19 issue 552
 Language/13_Statements/11_Try_A07_t03: fail # co19 issue 553
 
 Language/07_Classes/6_Constructors_A02_t01: SKIP # co19 issue 415.
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: FAIL, OK # co19 issue 426
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: FAIL, OK # co19 issue 547
 
 LibTest/math/acos_A01_t01: PASS, FAIL, OK # co19 issue 44
@@ -26,8 +44,6 @@ LibTest/math/exp_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/max_A01_t03: FAIL, OK # co19 issue 467
 LibTest/math/min_A01_t03: FAIL, OK # co19 issue 467
 LibTest/math/pow_A01_t01: FAIL, OK # co19 issue 44
-LibTest/math/pow_A11_t01: FAIL, OK # co19 issue 512
-LibTest/math/pow_A13_t01: FAIL, OK # co19 issue 507
 LibTest/math/sin_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/tan_A01_t01: PASS, FAIL, OK  # co19 issue 44
 
@@ -65,262 +81,6 @@ LibTest/async/EventTransformStream/listen_A04_t01: Pass, Timeout # co19 issue 54
 LibTest/async/EventTransformStream/elementAt_A03_t01: FAIL # co19 issue 545
 LibTest/async/Stream/elementAt_A03_t01: FAIL # co19 issue 545
 
-LibTest/typed_data/Float32x4/wwww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwwx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwwy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwwz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wwzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxwx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxwy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxwz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wxzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wyww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wywx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wywy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wywz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wyxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wyxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wyxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wyxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wyyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wyyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wyyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wyyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wyzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wyzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wyzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wyzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzwx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzwy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzwz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/wzzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwwx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwwy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwwz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xwzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxwx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxwy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxwz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xxzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xyww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xywx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xywy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xywz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xyxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xyxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xyxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xyxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xyyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xyyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xyyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xyyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xyzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xyzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xyzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xyzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzwx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzwy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzwz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/xzzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywwx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywwy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywwz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/ywzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxwx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxwy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxwz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yxzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yyww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yywx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yywy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yywz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yyxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yyxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yyxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yyxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yyyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yyyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yyyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yyyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yyzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yyzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yyzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yyzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzwx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzwy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzwz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/yzzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwwx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwwy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwwz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zwzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxwx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxwy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxwz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zxzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zyww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zywx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zywy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zywz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zyxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zyxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zyxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zyxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zyyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zyyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zyyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zyyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zyzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zyzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zyzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zyzz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzww_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzwx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzwy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzwz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzxw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzxx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzxy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzxz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzyw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzyx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzyy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzyz_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzzw_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzzx_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzzy_A01_t01: FAIL, OK # co19 issue 546
-LibTest/typed_data/Float32x4/zzzz_A01_t01: FAIL, OK # co19 issue 546
 LibTest/typed_data/Int8List/Int8List.fromList_A01_t02: Fail # co19-roll r559: Please triage this failure
 
 LibTest/typed_data/Float32List/removeAll_A01_t01: Fail  # co19 issue 548
@@ -348,62 +108,14 @@ LibTest/typed_data/Uint8ClampedList/retainAll_A01_t01: Fail  # co19 issue 548
 LibTest/typed_data/Uint8List/removeAll_A01_t01: Fail  # co19 issue 548
 LibTest/typed_data/Uint8List/retainAll_A01_t01: Fail  # co19 issue 548
 
-
 ### CHECKED MODE FAILURES ###
 
 [ ($runtime == vm || $compiler == dart2js) && $checked]
 Language/13_Statements/09_Switch_A05_t01: FAIL, OK # co19 issue 498
 Language/14_Libraries_and_Scripts/1_Imports_A03_t26: FAIL, OK  # co19 issue 498
 Language/15_Types/1_Static_Types_A03_t01: Fail # co19-roll r559: Please triage this failure
-Language/15_Types/1_Static_Types_A03_t03: FAIL, OK  # co19 issue 498
-Language/15_Types/1_Static_Types_A03_t04: FAIL, OK  # co19 issue 498
 LibTest/async/EventTransformStream/contains_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/contains_A02_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/distinct_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/drain_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/first_A03_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/firstWhere_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/firstWhere_A02_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/fold_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/fold_A01_t02: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/forEach_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/forEach_A02_t02: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/handleError_A02_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/isBroadcast_A01_t02: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/lastWhere_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/lastWhere_A02_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/listen_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/listen_A02_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/listen_A03_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/map_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/reduce_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/reduce_A01_t02: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/singleWhere_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/skip_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/take_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/take_A01_t02: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/toList_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/toSet_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/transform_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/where_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/EventTransformStream/where_A01_t02: FAIL, OK  # co19 issue 498
-LibTest/async/Stream/drain_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/StreamEventTransformer/bind_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/Stream/firstWhere_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/Stream/firstWhere_A02_t01: FAIL, OK  # co19 issue 498
-LibTest/async/Stream/fold_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/Stream/fold_A01_t02: FAIL, OK  # co19 issue 498
-LibTest/async/Stream/lastWhere_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/Stream/lastWhere_A02_t01: FAIL, OK  # co19 issue 498
-LibTest/async/Stream/reduce_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/Stream/reduce_A01_t02: FAIL, OK  # co19 issue 498
-LibTest/async/Stream/singleWhere_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/Stream/take_A01_t02: FAIL, OK  # co19 issue 498
-LibTest/async/Stream/transform_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/Stream/where_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/async/Stream/where_A01_t02: FAIL, OK  # co19 issue 498
 LibTest/core/DateTime/compareTo_A02_t01: FAIL, OK  # co19 issue 498
-LibTest/core/List/join_A01_t01: FAIL, OK  # co19 issue 498
 LibTest/core/List/removeAt_A02_t01: FAIL, OK  # co19 issue 498
 LibTest/core/TypeError/column_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/dstName_A01_t01: FAIL, OK # co19 issue 510

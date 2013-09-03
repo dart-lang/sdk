@@ -18,7 +18,6 @@ LibTest/isolate/isolate_api/spawnUri_A02_t03: Pass, Fail # Issue 8920
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
 [ $compiler == dart2js ]
-
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(ahe): Please triage this failure.
@@ -26,6 +25,8 @@ LibTest/core/List/List_A03_t01: Fail # TODO(kasperl): Please triage this failure
 LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/List/sort_A01_t04: Pass, Slow # http://dartbug.com/11846
+LibTest/math/pow_A13_t01: FAIL, OK # co19 issue 507
+LibTest/math/pow_A18_t01: FAIL, OK # co19 issue 507
 
 
 [ $compiler == dart2js && $runtime == jsshell ]
@@ -149,8 +150,6 @@ Language/03_Overview/2_Privacy_A01_t11: Pass, OK # co19 issue 316
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t14: Fail, OK # co19 issue 210
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t15: Fail, OK # co19 issue 210
 Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # http://dartbug.com/5021
-LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # FallThroughError is no longer const. Issue 459
-LibTest/core/FallThroughError/toString_A01_t01: Fail # FallThroughError is no longer const. Issue 459
 LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 308
 LibTest/core/Set/isSubsetOf_A01_t01: fail # Issue 400
 LibTest/core/Set/isSubsetOf_A01_t02: fail # Issue 400
@@ -160,7 +159,63 @@ LibTest/typed_data/Int64List/*: Fail # co19-roll r559: Please triage this failur
 LibTest/typed_data/Int64List/Int64List_A02_t01: pass # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint64List/*: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint64List/Uint64List_A02_t01: pass # co19-roll r559: Please triage this failure
+LibTest/typed_data/ByteData/*Uint64*: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/*Int64*: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/ByteData.view_A03_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/ByteData.view_A01_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/ByteData.view_A01_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/ByteData_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/ByteData.view_A04_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/ByteData.view_A04_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/ByteData_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/ByteData.view_A03_t01: fail # co19-roll r569: Please triage this failure
 
+LibTest/typed_data/ByteData/ByteData.view_A05_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/ByteData.view_A05_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/ByteData.view_A05_t02: fail # Issue 12989
+LibTest/typed_data/ByteData/ByteData.view_A05_t02: fail # Issue 12989
+LibTest/typed_data/ByteData/ByteData.view_A05_t03: fail # Issue 12989
+LibTest/typed_data/ByteData/ByteData.view_A05_t03: fail # Issue 12989
+LibTest/typed_data/ByteData/getFloat32_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getFloat32_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getFloat64_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getFloat64_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getInt16_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getInt16_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getInt32_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getInt32_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getInt8_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getInt8_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getInt8_A02_t02: fail # Issue 12989
+LibTest/typed_data/ByteData/getInt8_A02_t02: fail # Issue 12989
+LibTest/typed_data/ByteData/getUint16_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getUint16_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getUint32_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getUint32_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getUint8_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getUint8_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/getUint8_A02_t02: fail # Issue 12989
+LibTest/typed_data/ByteData/getUint8_A02_t02: fail # Issue 12989
+LibTest/typed_data/ByteData/setFloat32_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setFloat32_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setFloat64_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setFloat64_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setInt16_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setInt16_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setInt32_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setInt32_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setInt8_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setInt8_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setInt8_A02_t02: fail # Issue 12989
+LibTest/typed_data/ByteData/setInt8_A02_t02: fail # Issue 12989
+LibTest/typed_data/ByteData/setUint16_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setUint16_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setUint32_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setUint32_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setUint8_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setUint8_A02_t01: fail # Issue 12989
+LibTest/typed_data/ByteData/setUint8_A02_t02: fail # Issue 12989
+LibTest/typed_data/ByteData/setUint8_A02_t02: fail # Issue 12989
 
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
@@ -292,8 +347,6 @@ Language/07_Classes/3_Setters_A04_t05: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t06: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t07: Fail # http://dartbug.com/5023
 
-Language/07_Classes/07_Classes_A03_t10: Fail # http://dartbug.com/6687
-
 
 [ $compiler == dart2js && $runtime == ie9 ]
 # These are most likey due to the fact that IE9 doesn't support typed data
@@ -348,9 +401,6 @@ Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: fail # co1
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/01_Constants_A03_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A11_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A12_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A13_t06: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t06: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t09: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/05_Strings_A20_t01: fail # co19-roll r546: Please triage this failure
@@ -370,7 +420,6 @@ Language/12_Expressions/12_Instance_Creation/1_New_A02_t06: fail # co19-roll r54
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t07: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/22_Equality_A01_t01: fail # co19-roll r546: Please triage this failure
@@ -519,13 +568,11 @@ Language/12_Expressions/20_Logical_Boolean_Expressions_A03_t01: fail # co19-roll
 Language/12_Expressions/27_Unary_Expressions_A02_t03: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/06_For/1_For_Loop_A01_t08: fail # co19-roll r546: Please triage this failure
 LibTest/core/Set/intersection_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/typed_data/Float32x4List/operator_subscripted_assignment_A02_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/reduce_A01_t01: Fail # co19-roll r559: Please triage this failure
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/typed_data/Float32List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4/toUint32x4_A01_t02: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int16List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
@@ -578,4 +625,8 @@ LibTest/typed_data/Uint16List/runtimeType_A01_t01: fail # co19-roll r559: Please
 LibTest/typed_data/Uint32List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
+
+[ $compiler == dart2js || $compiler == dart2dart ]
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t08: fail # co19-roll r569: Please triage this failure
+
 

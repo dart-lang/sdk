@@ -2,17 +2,15 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $runtime == vm ]
+Language/12_Expressions/01_Constants_A16_t04: fail # co19-roll r569: Please triage this failure
+Language/12_Expressions/01_Constants_A16_t05: fail # co19-roll r569: Please triage this failure
+
 [ $runtime == vm && $system == windows ]
 LibTest/core/Stopwatch/elapsed_A01_t01: Pass, Fail # Issue 11382.
 LibTest/core/Stopwatch/elapsed_A01_t03: Pass, Fail # Issue 12383.
 
 [ $compiler == none && $runtime == vm ]
-# The following tests fail because they contain number literals with a + prefix (co19 issue 428)
-LibTest/core/double/floor_A01_t05: Fail # co19 issue 428
-LibTest/core/double/ceil_A01_t05: Fail # co19 issue 428
-
-LibTest/math/pow_A18_t01: Fail # co19 issue 507
-
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Dart issue 5802
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Dart issue 5894
 
@@ -35,17 +33,11 @@ LibTest/isolate/ReceivePort/receive_A01_t02: Fail # VM triage, check spec.
 LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail # VM triage, check spec.
 LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail # VM triage, check spec.
 
-
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail $ co19 issue 494
-
 LibTest/core/Set/isSubsetOf_A01_t01: fail # Issue 400
 LibTest/core/Set/isSubsetOf_A01_t02: fail # Issue 400
 
 LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
 LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
-
-LibTest/core/FallThroughError/toString_A01_t01: Fail # FallThroughError is no longer const. Issue 459
-LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # FallThroughError is no longer const. Issue 459
 
 Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 463
 
@@ -99,26 +91,18 @@ Language/07_Classes/3_Setters_A08_t01: fail # co19 issue 520
 Language/07_Classes/3_Setters_A08_t02: fail # co19 issue 520
 Language/07_Classes/3_Setters_A08_t03: fail # co19 issue 520
 Language/07_Classes/3_Setters_A08_t04: fail # co19 issue 520
-Language/07_Classes/3_Setters_A08_t05: fail # co19 issue 520
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail # Dart issue 12543
-Language/12_Expressions/01_Constants_A01_t01: fail # co19 issue 522
 Language/12_Expressions/01_Constants_A16_t01: fail # co19 issue 525
 Language/12_Expressions/01_Constants_A16_t02: fail # co19 issue 525
 Language/12_Expressions/03_Numbers_A01_t01: fail # co19 issue 522
-Language/12_Expressions/03_Numbers_A01_t02: fail # co19 issue 522
-Language/12_Expressions/03_Numbers_A01_t03: fail # co19 issue 522
-Language/12_Expressions/03_Numbers_A01_t04: fail # co19 issue 522
 Language/12_Expressions/03_Numbers_A01_t08: fail # co19 issue 522
-Language/12_Expressions/03_Numbers_A01_t10: fail # co19 issue 522
 Language/12_Expressions/05_Strings_A02_t46: fail # Dart issue 12547
 Language/12_Expressions/05_Strings_A02_t48: fail # Dart issue 12547
 Language/12_Expressions/05_Strings_A20_t01: fail # Dart issue 12518
-Language/12_Expressions/07_Maps_A01_t01: fail # co19 issue 522
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # Dart issue 12549
 Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: fail # Dart issue 1372
 Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19 issue 525
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: fail # Dart issue 12550
-Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: fail # co19 issue 533
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: fail # Dart issue 12549
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail # Dart issue 12549
 Language/12_Expressions/30_Identifier_Reference_A05_t02: fail # Dart issue 12551
@@ -128,7 +112,6 @@ Language/12_Expressions/32_Type_Test_A04_t03: fail # co19 issue 534
 Language/12_Expressions/32_Type_Test_A04_t04: fail # co19 issue 534
 Language/12_Expressions/33_Type_Cast_A03_t02: fail # co19 issue 534
 Language/12_Expressions/33_Type_Cast_A03_t03: fail # co19 issue 534
-Language/13_Statements/02_Expression_Statements_A01_t06: fail # co19 issue 517
 Language/13_Statements/03_Variable_Declaration_A04_t07: fail # co19 issue 535
 Language/13_Statements/03_Variable_Declaration_A04_t08: fail # co19 issue 535
 Language/13_Statements/06_For_A01_t11: fail # Dart issue 5675
@@ -172,15 +155,6 @@ LibTest/isolate/isolate_api/streamSpawnFunction_A02_t03: fail, pass # co19-roll 
 LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
 
 [ $compiler == none && $runtime == vm && $checked ]
-Language/12_Expressions/12_Instance_Creation_A01_t08: FAIL, OK  # co19 issue 498
-LibTest/core/double/truncate_A01_t01: Fail # co19 issue 554
-LibTest/core/double/truncate_A01_t05: Fail #  co19 issue 554
-LibTest/core/int/ceilToDouble_A01_t01: fail  # co19 issue 498
-LibTest/core/int/floorToDouble_A01_t01: fail  # co19 issue 498
-LibTest/core/int/roundToDouble_A01_t01: fail  # co19 issue 498
-LibTest/core/int/truncateToDouble_A01_t01: fail  # co19 issue 498
-LibTest/typed_data/Float32List/operator_subscripted_assignment_A02_t01: Fail # co19 issue 555
-LibTest/typed_data/Float64List/operator_subscripted_assignment_A02_t01: Fail # co19 issue 555
 LibTest/typed_data/Float32x4List/elementAt_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/fillRange_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/first_A01_t01: Fail # Dart issue 12861
@@ -196,7 +170,6 @@ LibTest/typed_data/Float32x4List/map_A02_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/map_A03_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/operator_subscript_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/operator_subscripted_assignment_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/operator_subscripted_assignment_A02_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/reduce_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/reversed_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/single_A01_t01: Fail # Dart issue 12861
