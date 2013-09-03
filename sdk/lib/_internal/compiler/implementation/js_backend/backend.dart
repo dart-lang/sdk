@@ -1463,6 +1463,13 @@ class JavaScriptBackend extends Backend {
   void registerNewSymbol(TreeElements elements) {
   }
 
+  /// Called when resolving the `Symbol` constructor.
+  void registerSymbolConstructor(TreeElements elements) {
+    // Make sure that collection_dev.Symbol.validated is registered.
+    assert(compiler.symbolValidatedConstructor != null);
+    enqueueInResolution(compiler.symbolValidatedConstructor, elements);
+  }
+
   /// Should [element] (a getter) be retained for reflection?
   bool shouldRetainGetter(Element element) => isNeededForReflection(element);
 

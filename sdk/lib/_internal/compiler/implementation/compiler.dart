@@ -218,6 +218,9 @@ abstract class Backend {
 
   void registerConstSymbol(String name, TreeElements elements) {}
   void registerNewSymbol(TreeElements elements) {}
+  /// Called when resolving the `Symbol` constructor.
+  void registerSymbolConstructor(TreeElements elements);
+
 
   bool isNullImplementation(ClassElement cls) {
     return cls == compiler.nullClass;

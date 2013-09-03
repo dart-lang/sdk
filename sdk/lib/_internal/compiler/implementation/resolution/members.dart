@@ -2575,9 +2575,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     world.registerInstantiatedClass(
         redirectionTarget.enclosingElement.declaration, mapping);
     if (isSymbolConstructor) {
-      // Make sure that collection_dev.Symbol.validated is registered.
-      assert(invariant(node, compiler.symbolValidatedConstructor != null));
-      world.registerStaticUse(compiler.symbolValidatedConstructor);
+      compiler.backend.registerSymbolConstructor(mapping);
     }
   }
 
