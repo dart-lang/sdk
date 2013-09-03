@@ -2027,8 +2027,8 @@ class CodeEmitterTask extends CompilerTask {
     }
     buffer.write('$className:$_');
     buffer.write(jsAst.prettyPrint(builder.toObjectInitializer(), compiler));
-    if (backend.shouldRetainName(classElement.name)) {
-      String reflectionName = getReflectionName(classElement, className);
+    String reflectionName = getReflectionName(classElement, className);
+    if (reflectionName != null) {
       List<int> interfaces = <int>[];
       for (DartType interface in classElement.interfaces) {
         interfaces.add(reifyType(interface));

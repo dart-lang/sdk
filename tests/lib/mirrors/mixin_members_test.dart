@@ -4,8 +4,6 @@
 
 library mixin_members_test;
 
-// TODO(ahe): Don't add mirrors used, the test doesn't work without it.
-@MirrorsUsed(targets: 'mixin_members_test', override: '*')
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
