@@ -62,7 +62,7 @@ void asyncEnd() {
   }
 }
 
-void asyncTest(Future f()) {
+void asyncTest(f()) {
   asyncStart();
   f().whenComplete(() => asyncEnd());
 }
