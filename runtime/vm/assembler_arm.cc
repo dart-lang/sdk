@@ -2482,7 +2482,7 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
   // the C++ world.
   AddImmediate(SP, -frame_space);
-  if (OS::ActivationFrameAlignment() > 0) {
+  if (OS::ActivationFrameAlignment() > 1) {
     bic(SP, SP, ShifterOperand(OS::ActivationFrameAlignment() - 1));
   }
 }

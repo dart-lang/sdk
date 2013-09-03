@@ -60,7 +60,7 @@ class OS {
   // Frees a pointer returned from AlignedAllocate.
   static void AlignedFree(void* ptr);
 
-  // Returns the activation frame alignment constraint or zero if
+  // Returns the activation frame alignment constraint or one if
   // the platform doesn't care. Guaranteed to be a power of two.
   static word ActivationFrameAlignment();
 

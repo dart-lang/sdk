@@ -29,8 +29,7 @@ class Simulator;
 #if defined(USING_SIMULATOR)
 #define CHECK_STACK_ALIGNMENT {                                                \
   uword current_sp = Simulator::Current()->get_register(SPREG);                \
-  ASSERT((OS::ActivationFrameAlignment() == 0) ||                              \
-         (Utils::IsAligned(current_sp, OS::ActivationFrameAlignment())));      \
+  ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));        \
 }
 #elif defined(TARGET_OS_WINDOWS)
 // The compiler may dynamically align the stack on Windows, so do not check.
@@ -40,8 +39,7 @@ class Simulator;
   uword (*func)() =                                                            \
       reinterpret_cast<uword (*)()>(StubCode::GetStackPointerEntryPoint());    \
   uword current_sp = func();                                                   \
-  ASSERT((OS::ActivationFrameAlignment() == 0) ||                              \
-         (Utils::IsAligned(current_sp, OS::ActivationFrameAlignment())));      \
+  ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));        \
 }
 #endif
 

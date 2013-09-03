@@ -59,7 +59,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Reserve space for arguments and align frame before entering C++ world.
   __ AddImmediate(ESP, Immediate(-sizeof(NativeArguments)));
-  if (OS::ActivationFrameAlignment() > 0) {
+  if (OS::ActivationFrameAlignment() > 1) {
     __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
 
@@ -151,7 +151,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // (pointer to the native arguments structure, the C function entry point)
   // and align frame before entering the C++ world.
   __ AddImmediate(ESP, Immediate(-sizeof(NativeArguments) - (2 * kWordSize)));
-  if (OS::ActivationFrameAlignment() > 0) {
+  if (OS::ActivationFrameAlignment() > 1) {
     __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
 
@@ -222,7 +222,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // (pointer to the native arguments structure) and align frame before
   // entering the C++ world.
   __ AddImmediate(ESP, Immediate(-sizeof(NativeArguments) - kWordSize));
-  if (OS::ActivationFrameAlignment() > 0) {
+  if (OS::ActivationFrameAlignment() > 1) {
     __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
 
