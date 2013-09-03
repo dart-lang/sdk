@@ -6,7 +6,9 @@
 
 class Foo<T> {
   Foo() {}
-  T make() { return new T(); }
+  T make() {
+    return new T();  /// 01: compile-time error
+  }
 }
 
 main() {

@@ -164,16 +164,15 @@ const_syntax_test/04: Fail # Issue 12932
 constructor9_test/01: Fail # Issue 12934
 constructor_return_test/01: Fail # Issue 12937
 constructor_return_test/02: Fail # Issue 12937
-constructor_return_with_arrow_negative_test: Fail # Negative language test.
-constructor_return_with_init_and_arrow_negative_test: Fail # Negative language test.
-constructor_return_with_init_negative_test: Fail # Negative language test.
-duplicate_implements_test/01: Fail # Negative language test.
-duplicate_implements_test/02: Fail # Negative language test.
-duplicate_implements_test/03: Fail # Negative language test.
-duplicate_implements_test/04: Fail # Negative language test.
-instantiate_type_variable_negative_test: Pass  # For the wrong reason.
-list_literal1_negative_test: Fail # Negative language test.
-map_literal1_negative_test: Fail # Negative language test.
+constructor_return_test/03: Fail # Issue 12937
+constructor_return_test/04: Fail # Issue 12938
+constructor_return_test/05: Fail # Issue 12938
+duplicate_implements_test/01: Fail # Issue 12991
+duplicate_implements_test/02: Fail # Issue 12991
+duplicate_implements_test/03: Fail # Issue 12991
+duplicate_implements_test/04: Fail # Issue 12991
+list_literal1_test/01: Fail # Issue 12993
+map_literal1_test/01: Fail # Issue 12993
 number_identifier_negative_test: Fail # Negative language test.
 scope_negative_test: Fail # Negative language test.
 static_final_field_negative_test: Fail # Negative language test.
@@ -310,6 +309,9 @@ const_syntax_test/10: Fail # Issue 12933
 constructor9_test/01: Fail # Issue 12935
 constructor_return_test/01: Fail # Issue 12938
 constructor_return_test/02: Fail # Issue 12938
+constructor_return_test/03: Fail # Issue 12938
+constructor_return_test/04: Fail # Issue 12938
+constructor_return_test/05: Fail # Issue 12938
 constructor_named_arguments_test/01: Fail # Issue 5519
 final_syntax_test/01: Fail # Issue 5519
 final_syntax_test/02: Fail # Issue 5519
@@ -339,10 +341,12 @@ external_test/30: Fail # Issue 12888
 external_test/31: Fail # Issue 12888
 lazy_static3_test: Fail # Issue 12593
 # dart2js frontend doesn't even analyse problematic classes.
-duplicate_implements_test/01: Fail
-duplicate_implements_test/02: Fail
-duplicate_implements_test/03: Fail
-duplicate_implements_test/04: Fail
+duplicate_implements_test/01: Fail # Issue 12992
+duplicate_implements_test/02: Fail # Issue 12992
+duplicate_implements_test/03: Fail # Issue 12992
+duplicate_implements_test/04: Fail # Issue 12992
+list_literal1_test/01: Fail # Issue 12993
+map_literal1_test/01: Fail # Issue 12993
 method_override4_test: Fail # Issue 12810
 method_override5_test: Fail # Issue 12810
 static_final_field_negative_test: Fail

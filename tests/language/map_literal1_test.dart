@@ -6,11 +6,9 @@
 // When type checks are enabled, a type mismatch in a map literal is a compile-time error
 
 main() {
-  try {
-    var m = const <String, String>{"a": 0};  // 0 is not a String.
-  } on TypeError catch (error) {
-    // not a catchable error
-  }
+  var m = const
+      <String, String>  /// 01: compile-time error
+      {"a": 0};
 }
 
 

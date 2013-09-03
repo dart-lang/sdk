@@ -18,8 +18,25 @@ class A {
   int foo(int y) => x + y;
 }
 
+class B {
+  B() => null;  /// 03: compile-time error
+}
+
+class C {
+  int value;
+  C() : value = 1 { return null; }  /// 04: compile-time error
+}
+
+class D {
+  int value;
+  D(): value = 1 => null;  /// 05: compile-time error
+}
+
 main() {
   Expect.equals((new A(1)).foo(10), 11);
   Expect.equals((new A.test1(1)).foo(10), 11);
   Expect.equals((new A.test2(1)).foo(10), 11);
+  new B();
+  new C();
+  new D();
 }

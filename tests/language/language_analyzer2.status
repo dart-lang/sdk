@@ -132,8 +132,7 @@ first_class_types_constants_test: fail
 import_combinators_negative_test: fail
 interface_static_non_final_fields_negative_test: fail
 
-# test issue 11595, It is static warning to create instance (new) of the malformed type
-instantiate_type_variable_negative_test: fail
+instantiate_type_variable_test/01: fail # Issue 11595
 
 mixin_type_parameters_errors_test/01: fail # Issue 11598
 mixin_type_parameters_errors_test/02: fail # Issue 11598
