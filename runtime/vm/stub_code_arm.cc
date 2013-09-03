@@ -782,9 +782,14 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ EnterStubFrame();
 
   // Save new context and C++ ABI callee-saved registers.
-  const intptr_t kNewContextOffset =
+  const intptr_t kNewContextOffsetFromFp =
       -(1 + kAbiPreservedCpuRegCount) * kWordSize;
   __ PushList((1 << R3) | kAbiPreservedCpuRegs);
+
+  const DRegister firstd = EvenDRegisterOf(kAbiFirstPreservedFpuReg);
+  ASSERT(2 * kAbiPreservedFpuRegCount < 16);
+  // Save FPU registers. 2 D registers per Q register.
+  __ vstmd(DB_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
 
   // The new Context structure contains a pointer to the current Isolate
   // structure. Cache the Context pointer in the CTX register so that it is
@@ -813,12 +818,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // The constants kSavedContextSlotFromEntryFp and
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -9);
-  ASSERT(kSavedContextSlotFromEntryFp == -10);
+  ASSERT(kExitLinkSlotFromEntryFp == -25);
+  ASSERT(kSavedContextSlotFromEntryFp == -26);
   __ PushList((1 << R4) | (1 << R5));
-
-  // The stack pointer is restored after the call to this location.
-  const intptr_t kSavedContextSlotFromEntryFp = -10 * kWordSize;
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
   __ ldr(R4, Address(R1, VMHandles::kOffsetOfRawPtrInHandle));
@@ -850,11 +852,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ blx(R0);  // R4 is the arguments descriptor array.
 
   // Read the saved new Context pointer.
-  __ ldr(CTX, Address(FP, kNewContextOffset));
+  __ ldr(CTX, Address(FP, kNewContextOffsetFromFp));
   __ ldr(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
 
   // Get rid of arguments pushed on the stack.
-  __ AddImmediate(SP, FP, kSavedContextSlotFromEntryFp);
+  __ AddImmediate(SP, FP, kSavedContextSlotFromEntryFp * kWordSize);
 
   // Load Isolate pointer from Context structure into CTX. Drop Context.
   __ ldr(CTX, FieldAddress(CTX, Context::isolate_offset()));
@@ -868,6 +870,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ StoreToOffset(kWord, R5, CTX, Isolate::top_exit_frame_info_offset());
 
   // Restore C++ ABI callee-saved registers.
+  // Restore FPU registers. 2 D registers per Q register.
+  __ vldmd(IA_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
+  // Restore CPU registers.
   __ PopList((1 << R3) | kAbiPreservedCpuRegs);  // Ignore restored R3.
 
   // Restore the frame pointer and return.

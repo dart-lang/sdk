@@ -2513,13 +2513,13 @@ void Assembler::LeaveCallRuntimeFrame() {
   // We need to restore it before restoring registers.
   const intptr_t kPushedRegistersSize =
       kDartVolatileCpuRegCount * kWordSize +
-      kDartVolatileFpuRegCount * 2 * kWordSize;
+      kDartVolatileFpuRegCount * kFpuRegisterSize;
   AddImmediate(SP, FP, -kPushedRegistersSize);
 
   // Restore all volatile FPU registers.
   DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
   DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
-  if ((lastv - firstv + 1) > 16) {
+  if ((lastv - firstv + 1) >= 16) {
     DRegister mid = static_cast<DRegister>(firstv + 16);
     vldmd(IA_W, SP, firstv, 16);
     vldmd(IA_W, SP, mid, lastv - mid + 1);

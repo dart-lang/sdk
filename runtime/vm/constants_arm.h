@@ -221,8 +221,8 @@ const RegList kAbiPreservedCpuRegs =
     (1 << R8) | (1 << R9) | (1 << R10);
 const int kAbiPreservedCpuRegCount = 7;
 const QRegister kAbiFirstPreservedFpuReg = Q4;
-const QRegister kAbiLastPreservedFpuReg =
-    static_cast<QRegister>(kNumberOfQRegisters - 1);
+const QRegister kAbiLastPreservedFpuReg = Q7;
+const int kAbiPreservedFpuRegCount = 4;
 
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
