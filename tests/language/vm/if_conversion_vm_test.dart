@@ -40,6 +40,8 @@ cse(i) {
 f17(b) => b ? 0 : 11;
 f18(b) => b ? 2 : 0;
 
+f19(i) => i == 0 ? 0 : 0;
+
 main() {
   for (var i = 0; i < 20; i++) {
     f1(i);
@@ -62,6 +64,7 @@ main() {
     bigPower(i);
     f17(true);
     f18(true);
+    f19(i);
   }
 
   Expect.equals(0, f1(0));
@@ -111,4 +114,7 @@ main() {
 
   Expect.equals(0, f18(false));
   Expect.equals(2, f18(true));
+
+  Expect.equals(0, f19(0));
+  Expect.equals(0, f19(1));
 }

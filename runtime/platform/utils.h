@@ -30,7 +30,7 @@ class Utils {
 
   template<typename T>
   static inline bool IsPowerOfTwo(T x) {
-    return (x & (x - 1)) == 0;
+    return ((x & (x - 1)) == 0) && (x != 0);
   }
 
   template<typename T>

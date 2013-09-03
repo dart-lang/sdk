@@ -39,7 +39,7 @@ UNIT_TEST_CASE(Maximum) {
 
 
 UNIT_TEST_CASE(IsPowerOfTwo) {
-  EXPECT(Utils::IsPowerOfTwo(0));
+  EXPECT(!Utils::IsPowerOfTwo(0));
   EXPECT(Utils::IsPowerOfTwo(1));
   EXPECT(Utils::IsPowerOfTwo(2));
   EXPECT(!Utils::IsPowerOfTwo(3));
@@ -59,7 +59,6 @@ UNIT_TEST_CASE(ShiftForPowerOfTwo) {
 
 
 UNIT_TEST_CASE(IsAligned) {
-  EXPECT(Utils::IsAligned(0, 0));
   EXPECT(Utils::IsAligned(0, 1));
   EXPECT(Utils::IsAligned(1, 1));
 
@@ -74,7 +73,6 @@ UNIT_TEST_CASE(IsAligned) {
 
 
 UNIT_TEST_CASE(RoundDown) {
-  EXPECT_EQ(0, Utils::RoundDown(0, 0));
   EXPECT_EQ(0, Utils::RoundDown(22, 32));
   EXPECT_EQ(32, Utils::RoundDown(33, 32));
   EXPECT_EQ(32, Utils::RoundDown(63, 32));
@@ -85,8 +83,6 @@ UNIT_TEST_CASE(RoundDown) {
 
 
 UNIT_TEST_CASE(RoundUp) {
-  EXPECT_EQ(0, Utils::RoundUp(0, 0));
-  EXPECT_EQ(0, Utils::RoundUp(1, 0));
   EXPECT_EQ(32, Utils::RoundUp(22, 32));
   EXPECT_EQ(64, Utils::RoundUp(33, 32));
   EXPECT_EQ(64, Utils::RoundUp(63, 32));

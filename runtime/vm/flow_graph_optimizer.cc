@@ -1230,7 +1230,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     const Object& obj = right->AsConstant()->value();
     if (!obj.IsSmi()) return false;
     const intptr_t value = Smi::Cast(obj).Value();
-    if ((value <= 0) || !Utils::IsPowerOfTwo(value)) return false;
+    if (!Utils::IsPowerOfTwo(value)) return false;
 
     // Insert smi check and attach a copy of the original environment
     // because the smi operation can still deoptimize.

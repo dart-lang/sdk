@@ -2623,7 +2623,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ subu(result, ZR, left);
           break;
         }
-        ASSERT((value != 0) && Utils::IsPowerOfTwo(Utils::Abs(value)));
+        ASSERT(Utils::IsPowerOfTwo(Utils::Abs(value)));
         const intptr_t shift_count =
             Utils::ShiftForPowerOfTwo(Utils::Abs(value)) + kSmiTagSize;
         ASSERT(kSmiTagSize == 1);
