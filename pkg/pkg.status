@@ -24,9 +24,6 @@ third_party/html5lib/test/browser/browser_test: Skip
 
 polymer_expressions/test/syntax_test: Skip # Issue 12954
 
-[ $compiler == dart2js && $runtime == d8 ]
-unmodifiable_collection/test/unmodifiable_collection_test: Pass, Fail # Issue 12429
-
 [ $compiler == dart2js ]
 analyzer_experimental/test/generated/ast_test: Fail #Issue 12341
 
