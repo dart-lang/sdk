@@ -529,22 +529,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return (combinedType == value.instructionType) ? value : node;
   }
 
-  HInstruction visitIf(HIf node) {
-    HInstruction condition = node.condition;
-    bool isNegated = condition is HNot;
-    if (isNegated) condition = condition.inputs[0];
-
-    condition.dominatedUsers(node.thenBlock.first).forEach((user) {
-      HInstruction newCondition = graph.addConstantBool(!isNegated, compiler);
-      user.changeUse(condition, newCondition);
-    });
-    condition.dominatedUsers(node.elseBlock.first).forEach((user) {
-      HInstruction newCondition = graph.addConstantBool(isNegated, compiler);
-      user.changeUse(condition, newCondition);
-    });
-    return node;
-  }
-
   HInstruction visitIs(HIs node) {
     DartType type = node.typeExpression;
     Element element = type.element;
