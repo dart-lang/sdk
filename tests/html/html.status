@@ -147,6 +147,7 @@ xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
 
 [ $runtime == ie9 ]
+isolates_test: Timeout # Issue 13027
 blob_constructor_test: Fail
 document_test/document: Pass, Fail # BUG(9654) need per-instance patching
 dom_constructors_test: Fail
