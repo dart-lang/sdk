@@ -12864,27 +12864,48 @@ class HtmlOptionsCollection extends HtmlCollection native "HTMLOptionsCollection
 
 
 /**
- * A utility for retrieving data from a URL.
+ * A client-side XHR request for getting data from a URL,
+ * formally known as XMLHttpRequest.
  *
- * HttpRequest can be used to obtain data from http, ftp, and file
- * protocols.
+ * HttpRequest can be used to obtain data from HTTP and FTP protocols,
+ * and is useful for AJAX-style page updates.
  *
- * For example, suppose we're developing these API docs, and we
- * wish to retrieve the HTML of the top-level page and print it out.
- * The easiest way to do that would be:
+ * The simplest way to get the contents of a text file, such as a
+ * JSON-formatted file, is with [getString].
+ * For example, the following code gets the contents of a JSON file
+ * and prints its length:
  *
- *     HttpRequest.getString('http://api.dartlang.org').then((response) {
- *       print(response);
- *     });
+ *     var path = 'myData.json';
+ *     HttpRequest.getString(path)
+ *         .then((String fileContents) {
+ *           print(fileContents.length);
+ *         })
+ *         .catchError((Error error) {
+ *           print(error.toString());
+ *         });
  *
- * **Important**: With the default behavior of this class, your
- * code making the request should be served from the same origin (domain name,
- * port, and application layer protocol) as the URL you are trying to access
- * with HttpRequest. However, there are ways to
- * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#note-on-jsonp).
+ * ## Fetching data from other servers
  *
- * See also:
+ * For security reasons, browsers impose restrictions on requests
+ * made by embedded apps.
+ * With the default behavior of this class,
+ * the code making the request must be served from the same origin
+ * (domain name, port, and application layer protocol)
+ * as the requested resource.
+ * In the example above, the myData.json file must be co-located with the
+ * app that uses it.
+ * You might be able to
+ * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#a-note-on-cors-and-httprequest)
+ * by using CORS headers or JSONP.
  *
+ * ## Other documentation
+ *
+ * * [Fetch Data Dynamically](https://www.dartlang.org/docs/tutorials/fetchdata/),
+ * a tutorial from _A Game of Darts_,
+ * shows two different ways to use HttpRequest to get a JSON file.
+ * * [Get Input from a Form](https://www.dartlang.org/docs/tutorials/forms/),
+ * another tutorial from _A Game of Darts_,
+ * shows using HttpRequest with a custom server.
  * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
  * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
  * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
@@ -12893,7 +12914,7 @@ class HtmlOptionsCollection extends HtmlCollection native "HTMLOptionsCollection
 class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
 
   /**
-   * Creates a URL get request for the specified [url].
+   * Creates a GET request for the specified [url].
    *
    * The server response must be a `text/` mime type for this request to
    * succeed.
