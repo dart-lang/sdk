@@ -2488,6 +2488,16 @@ class ResolverVisitor extends MappingVisitor<Element> {
     world.registerInstantiatedClass(compiler.nullClass, mapping);
   }
 
+  visitLiteralSymbol(LiteralSymbol node) {
+    world.registerInstantiatedClass(compiler.symbolClass, mapping);
+    world.registerStaticUse(compiler.symbolConstructor.declaration);
+    world.registerConstSymbol(node.slowNameString, mapping);
+    if (!validateSymbol(node, node.slowNameString, reportError: false)) {
+      compiler.reportError(node, MessageKind.UNSUPPORTED_LITERAL_SYMBOL,
+                           {'value': node.slowNameString});
+    }
+  }
+
   visitStringJuxtaposition(StringJuxtaposition node) {
     world.registerInstantiatedClass(compiler.stringClass, mapping);
     node.visitChildren(this);
@@ -2677,16 +2687,20 @@ class ResolverVisitor extends MappingVisitor<Element> {
     return null;
   }
 
-  bool validateSymbol(Node node, String name) {
+  bool validateSymbol(Node node, String name, {bool reportError: true}) {
     if (name.isEmpty) return true;
     if (name.startsWith('_')) {
-      compiler.reportError(node, MessageKind.PRIVATE_IDENTIFIER,
-                               {'value': name});
+      if (reportError) {
+        compiler.reportError(node, MessageKind.PRIVATE_IDENTIFIER,
+                             {'value': name});
+      }
       return false;
     }
     if (!symbolValidationPattern.hasMatch(name)) {
-      compiler.reportError(node, MessageKind.INVALID_SYMBOL,
-                               {'value': name});
+      if (reportError) {
+        compiler.reportError(node, MessageKind.INVALID_SYMBOL,
+                             {'value': name});
+      }
       return false;
     }
     return true;

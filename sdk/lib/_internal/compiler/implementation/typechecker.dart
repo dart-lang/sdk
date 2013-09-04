@@ -966,6 +966,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return types.dynamicType;
   }
 
+  DartType visitLiteralSymbol(LiteralSymbol node) {
+    return compiler.symbolClass.computeType(compiler);
+  }
+
   DartType computeConstructorType(Element constructor, DartType type) {
     if (Elements.isUnresolved(constructor)) return types.dynamicType;
     DartType constructorType = constructor.computeType(compiler);

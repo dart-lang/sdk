@@ -76,6 +76,7 @@ abstract class Visitor<R> {
   }
   R visitSwitchCase(SwitchCase node) => visitNode(node);
   R visitSwitchStatement(SwitchStatement node) => visitStatement(node);
+  R visitLiteralSymbol(LiteralSymbol node) => visitExpression(node);
   R visitThrow(Throw node) => visitExpression(node);
   R visitTryStatement(TryStatement node) => visitStatement(node);
   R visitTypeAnnotation(TypeAnnotation node) => visitNode(node);
@@ -945,6 +946,27 @@ class LiteralList extends Expression {
   }
 
   Token getEndToken() => elements.getEndToken();
+}
+
+class LiteralSymbol extends Expression {
+  final Token hashToken;
+  final NodeList identifiers;
+
+  LiteralSymbol(this.hashToken, this.identifiers);
+
+  LiteralSymbol asLiteralSymbol() => this;
+
+  void visitChildren(Visitor visitor) {
+    if (identifiers != null) identifiers.accept(visitor);
+  }
+
+  accept(Visitor visitor) => visitor.visitLiteralSymbol(this);
+
+  Token getBeginToken() => hashToken;
+
+  Token getEndToken() => identifiers.getEndToken();
+
+  String get slowNameString => '${identifiers}';
 }
 
 class Identifier extends Expression {

@@ -4074,6 +4074,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     stack.add(graph.addConstantString(node.dartString, node, compiler));
   }
 
+  void visitLiteralSymbol(LiteralSymbol node) {
+    ConstantHandler handler = compiler.constantHandler;
+    ConstructedConstant constant =
+        handler.compileNodeWithDefinitions(node, elements);
+    stack.add(graph.addConstant(constant, compiler));
+    compiler.enqueuer.codegen.registerConstSymbol(node.slowNameString, elements);
+  }
+
   void visitStringJuxtaposition(StringJuxtaposition node) {
     if (!node.isInterpolation) {
       // This is a simple string with no interpolations.

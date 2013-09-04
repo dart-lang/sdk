@@ -1672,6 +1672,8 @@ class Parser {
       return parseLiteralDouble(token);
     } else if (identical(kind, STRING_TOKEN)) {
       return parseLiteralString(token);
+    } else if (identical(kind, HASH_TOKEN)) {
+      return parseLiteralSymbol(token);
     } else if (identical(kind, KEYWORD_TOKEN)) {
       final value = token.stringValue;
       if ((identical(value, 'true')) || (identical(value, 'false'))) {
@@ -1890,6 +1892,26 @@ class Parser {
       listener.handleStringJuxtaposition(count);
     }
     return token;
+  }
+
+  Token parseLiteralSymbol(Token token) {
+    Token hashToken = token;
+    listener.beginLiteralSymbol(hashToken);
+    token = token.next;
+    if (isUserDefinableOperator(token.stringValue)) {
+      listener.handleOperator(token);
+      listener.endLiteralSymbol(hashToken, 1);
+      return token.next;
+    } else {
+      int count = 1;
+      token = parseIdentifier(token);
+      while (identical(token.stringValue, '.')) {
+        count++;
+        token = parseIdentifier(token.next);
+      }
+      listener.endLiteralSymbol(hashToken, count);
+      return token;
+    }
   }
 
   /**

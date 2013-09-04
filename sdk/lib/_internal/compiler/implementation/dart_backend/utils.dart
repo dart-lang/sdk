@@ -193,6 +193,9 @@ class CloningVisitor implements Visitor<Node> {
       visit(node.parenthesizedExpression), visit(node.cases),
       node.switchKeyword);
 
+  visitLiteralSymbol(LiteralSymbol node) => new LiteralSymbol(
+      node.hashToken, visit(node.identifiers));
+
   visitThrow(Throw node) => new Throw(
       visit(node.expression), node.throwToken, node.endToken);
 

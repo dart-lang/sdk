@@ -238,6 +238,7 @@ mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631
 function_type_alias6_test/00: Fail # Issue 11986
 function_type_alias9_test/00: Crash # Issue 11986
+symbol_literal_test: Fail # Issue 12171
 
 built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test: Fail # VM issue

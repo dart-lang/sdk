@@ -475,6 +475,16 @@ class CompileTimeConstantEvaluator extends Visitor {
     return constantSystem.createString(accumulator, node);
   }
 
+  Constant visitLiteralSymbol(LiteralSymbol node) {
+    InterfaceType type = compiler.symbolClass.computeType(compiler);
+    List<Constant> createArguments(_) {
+      return [constantSystem.createString(
+        new DartString.literal(node.slowNameString), node)];
+    }
+    return makeConstructedConstant(
+        node, type, compiler.symbolConstructor, createArguments);
+  }
+
   Constant makeTypeConstant(Element element) {
     DartType elementType = element.computeType(compiler).asRaw();
     compiler.backend.registerTypeLiteral(element, elements);
@@ -687,6 +697,17 @@ class CompileTimeConstantEvaluator extends Visitor {
     compiler.analyzeElement(constructor.declaration);
 
     InterfaceType type = elements.getType(node);
+    List<Constant> evaluateArguments(FunctionElement constructor) {
+      Selector selector = elements.getSelector(send);
+      return evaluateArgumentsToConstructor(
+          node, selector, send.arguments, constructor);
+    }
+    return makeConstructedConstant(node, type, constructor, evaluateArguments);
+  }
+
+  Constant makeConstructedConstant(
+      Node node, InterfaceType type, FunctionElement constructor,
+      List<Constant> getArguments(FunctionElement constructor)) {
     if (constructor.isRedirectingFactory) {
       type = constructor.computeTargetType(compiler, type);
     }
@@ -698,9 +719,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     constructor = constructor.implementation;
     assert(invariant(node, constructor.isImplementation));
 
-    Selector selector = elements.getSelector(send);
-    List<Constant> arguments = evaluateArgumentsToConstructor(
-        node, selector, send.arguments, constructor);
+    List<Constant> arguments = getArguments(constructor);
     ConstructorEvaluator evaluator =
         new ConstructorEvaluator(constructor, handler, compiler);
     evaluator.evaluateConstructorFieldValues(arguments);

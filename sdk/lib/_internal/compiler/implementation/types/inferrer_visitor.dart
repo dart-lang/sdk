@@ -644,6 +644,10 @@ abstract class InferrerVisitor
     return types.nullType;
   }
 
+  T visitLiteralSymbol(LiteralSymbol node) {
+    return types.nonNullExact(compiler.symbolClass.rawType);
+  }
+
   T visitTypeReferenceSend(Send node) {
     return types.typeType;
   }

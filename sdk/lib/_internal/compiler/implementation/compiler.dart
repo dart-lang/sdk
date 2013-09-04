@@ -425,7 +425,7 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement stackTraceClass;
   ClassElement typedDataClass;
 
-  // Initialized after mirrorSystemClass has been resolved.
+  // Initialized after symbolClass has been resolved.
   FunctionElement symbolConstructor;
 
   // Initialized when dart:mirrors is loaded.

@@ -615,6 +615,9 @@ Use "const #{name}" if possible.''');
       'Error: "#{value}" is not a valid Symbol name because it starts with '
       '"_".');
 
+  static const MessageKind UNSUPPORTED_LITERAL_SYMBOL = const MessageKind(
+      'Internal Error: Symbol literal "##{value}" is currently unsupported.');
+
   static const MessageKind INVALID_SYMBOL = const MessageKind('''
 Error: "#{value}" is not a valid Symbol name because is not:
  * an empty String,

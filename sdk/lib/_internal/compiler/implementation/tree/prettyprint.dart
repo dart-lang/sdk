@@ -367,6 +367,12 @@ class PrettyPrinter implements Visitor {
     visitNodeWithChildren(node, "SwitchStatement");
   }
 
+  visitLiteralSymbol(LiteralSymbol node) {
+    openNode(node, "LiteralSymbol");
+    visitChildNode(node.identifiers, "identifiers");
+    closeNode();
+  }
+
   visitThrow(Throw node) {
     visitNodeWithChildren(node, "Throw");
   }
