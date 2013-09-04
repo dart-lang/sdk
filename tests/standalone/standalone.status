@@ -157,6 +157,9 @@ out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 io/test_runner_test: Pass, Fail # Issue 12413
 
+[ $arch == simmips ]
+io/test_runner_test: Pass, Fail # Issue 12413
+
 [ $arch == simmips || $arch == mips ]
 io/file_fuzz_test: Pass, Timeout
 io/web_socket_test: Pass, Slow
