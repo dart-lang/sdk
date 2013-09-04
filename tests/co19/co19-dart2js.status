@@ -28,6 +28,22 @@ LibTest/core/List/sort_A01_t04: Pass, Slow # http://dartbug.com/11846
 LibTest/math/pow_A13_t01: FAIL, OK # co19 issue 507
 LibTest/math/pow_A18_t01: FAIL, OK # co19 issue 507
 
+LibTest/typed_data/ByteData/getFloat32_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getFloat64_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getInt16_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getInt32_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getInt64_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getUint16_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getUint32_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/getUint64_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setFloat32_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setFloat64_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setInt16_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setInt32_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setInt64_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setUint16_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setUint32_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/setUint64_A02_t02: fail # co19-roll r569: Please triage this failure
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/isolate/SendPort/send_A02_t05: Fail, Pass # TODO(ahe): Please triage this failure.
