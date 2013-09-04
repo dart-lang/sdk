@@ -421,14 +421,14 @@ abstract class InferrerEngine<T> implements MinimalInferrerEngine<T> {
    *
    * [inLoop] tells whether the call happens in a loop.
    */
-  void registerCalledElement(Spannable node,
-                             Selector selector,
-                             Element caller,
-                             Element callee,
-                             ArgumentsTypes<T> arguments,
-                             CallSite constraint,
-                             SideEffects sideEffects,
-                             bool inLoop);
+  T registerCalledElement(Spannable node,
+                          Selector selector,
+                          Element caller,
+                          Element callee,
+                          ArgumentsTypes<T> arguments,
+                          CallSite constraint,
+                          SideEffects sideEffects,
+                          bool inLoop);
 
   /**
    * Registers that [caller] calls [selector] with [receiverType] as
@@ -1263,20 +1263,20 @@ class InternalSimpleTypesInferrer
    * [arguments]. [constraint] is a setter constraint (see
    * [setterConstraints] documentation).
    */
-  void registerCalledElement(Spannable node,
-                             Selector selector,
-                             Element caller,
-                             Element callee,
-                             ArgumentsTypes arguments,
-                             CallSite constraint,
-                             SideEffects sideEffects,
-                             bool inLoop) {
+  TypeMask registerCalledElement(Spannable node,
+                                 Selector selector,
+                                 Element caller,
+                                 Element callee,
+                                 ArgumentsTypes arguments,
+                                 CallSite constraint,
+                                 SideEffects sideEffects,
+                                 bool inLoop) {
     updateSideEffects(sideEffects, selector, callee);
 
     // Bailout for closure calls. We're not tracking types of
     // arguments for closures.
     if (callee.isInstanceMember() && selector.isClosureCall()) {
-      return;
+      return types.dynamicType;
     }
     if (inLoop) {
       // For instance methods, we only register a selector called in a
@@ -1301,29 +1301,32 @@ class InternalSimpleTypesInferrer
           callee,
           arguments.positional[0],
           constraint);
-      return;
+      return arguments.positional[0];
     } else if (selector != null && selector.isGetter()) {
       assert(arguments == null);
       if (callee.isFunction()) {
         FunctionTypeInformation functionInfo = typeInformationOf(callee);
         functionInfo.canBeClosurized = true;
+        return types.functionType;
       }
-      return;
-    } else if (callee.isField()) {
+      return callee.isGetter()
+          ? returnTypeOfElement(callee)
+          : typeOfElement(callee);
+    } else if (callee.isField() || callee.isGetter()) {
       // We're not tracking closure calls.
-      return;
-    } else if (callee.isGetter()) {
-      // Getters don't have arguments.
-      return;
+      return types.dynamicType;
     }
     FunctionElement function = callee;
-    if (function.computeSignature(compiler).parameterCount == 0) return;
+    if (function.computeSignature(compiler).parameterCount == 0) {
+      return returnTypeOfElement(callee);
+    }
 
     assert(arguments != null);
     bool isUseful = addArguments(node, callee, arguments);
     if (hasAnalyzedAll && isUseful) {
       enqueueAgain(callee);
     }
+    return returnTypeOfElement(callee);
   }
 
   void unregisterCalledElement(Node node,
@@ -1333,7 +1336,8 @@ class InternalSimpleTypesInferrer
     typeInformationOf(callee).removeCall(caller);
     if (callee.isField()) {
       if (selector.isSetter()) {
-        Map<Spannable, TypeMask> assignments = typeInformationOf(callee).assignments;
+        Map<Spannable, TypeMask> assignments =
+            typeInformationOf(callee).assignments;
         if (assignments == null || !assignments.containsKey(node)) return;
         assignments.remove(node);
         if (hasAnalyzedAll) updateNonFinalFieldType(callee);
@@ -1423,7 +1427,9 @@ class InternalSimpleTypesInferrer
         registerCalledElement(
             node, selector, caller, element, arguments,
             constraint, sideEffects, inLoop);
-
+        // We cannot use the type returned by [registerCalledElement]
+        // here because it does not handle [noSuchMethod]
+        // targets, unlike [typeOfElementWithSelector].
         if (!selector.isSetter()) {
           TypeMask type = handleIntrisifiedSelector(selector, arguments);
           if (type == null) type = typeOfElementWithSelector(element, selector);
@@ -1925,8 +1931,7 @@ class SimpleTypeInferrerVisitor<T>
       if (Elements.isStaticOrTopLevelField(element)) {
         Element getterElement = elements[node.selector];
         getterType =
-            inferrer.typeOfElementWithSelector(getterElement, getterSelector);
-        handleStaticSend(node, getterSelector, getterElement, null);
+            handleStaticSend(node, getterSelector, getterElement, null);
         newType = handleDynamicSend(
             node, operatorSelector, getterType, operatorArguments);
         handleStaticSend(
@@ -2022,13 +2027,11 @@ class SimpleTypeInferrerVisitor<T>
     // are calling does not expose this.
     isThisExposed = true;
     if (node.isPropertyAccess) {
-      handleStaticSend(node, selector, element, null);
-      return inferrer.typeOfElementWithSelector(element, selector);
+      return handleStaticSend(node, selector, element, null);
     } else if (element.isFunction()) {
       if (!selector.applies(element, compiler)) return types.dynamicType;
       ArgumentsTypes arguments = analyzeArguments(node.arguments);
-      handleStaticSend(node, selector, element, arguments);
-      return inferrer.returnTypeOfElement(element);
+      return handleStaticSend(node, selector, element, arguments);
     } else {
       analyzeArguments(node.arguments);
       // Closure call on a getter. We don't have function types yet,
@@ -2049,7 +2052,7 @@ class SimpleTypeInferrerVisitor<T>
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     if (!selector.applies(element, compiler)) return types.dynamicType;
 
-    handleStaticSend(node, selector, element, arguments);
+    T returnType = handleStaticSend(node, selector, element, arguments);
     if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
       return inferrer.concreteTypes.putIfAbsent(
           node, () => types.allocateContainer(
@@ -2060,7 +2063,7 @@ class SimpleTypeInferrerVisitor<T>
           node, () => types.allocateContainer(
               types.fixedListType, node, outermostElement));
     } else if (element.isFunction() || element.isConstructor()) {
-      return inferrer.returnTypeOfElement(element);
+      return returnType;
     } else {
       assert(element.isField() || element.isGetter());
       // Closure call.
@@ -2110,8 +2113,7 @@ class SimpleTypeInferrerVisitor<T>
     Element element = elements[node];
     Selector selector = elements.getSelector(node);
     if (Elements.isStaticOrTopLevelField(element)) {
-      handleStaticSend(node, selector, element, null);
-      return inferrer.typeOfElementWithSelector(element, selector);
+      return handleStaticSend(node, selector, element, null);
     } else if (Elements.isInstanceSend(node, elements)) {
       return visitDynamicSend(node);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
@@ -2145,12 +2147,12 @@ class SimpleTypeInferrerVisitor<T>
     return types.dynamicType;
   }
 
-  void handleStaticSend(Node node,
-                        Selector selector,
-                        Element element,
-                        ArgumentsTypes arguments) {
-    if (Elements.isUnresolved(element)) return;
-    inferrer.registerCalledElement(
+  T handleStaticSend(Node node,
+                     Selector selector,
+                     Element element,
+                     ArgumentsTypes arguments) {
+    if (Elements.isUnresolved(element)) return types.dynamicType;
+    return inferrer.registerCalledElement(
         node, selector, outermostElement, element, arguments, null,
         sideEffects, inLoop);
   }
