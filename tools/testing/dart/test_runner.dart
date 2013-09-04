@@ -547,9 +547,9 @@ class TestCase extends UniqueObject {
       }
 
       var flags = new Set.from(expectedOutcomes);
-      flags..remove(TIMEOUT)
+      flags..remove(OK)
            ..remove(SLOW);
-      return flags.contains(PASS) && flags.length > 1;
+      return flags.length > 1;
   }
 
   bool get isFinished {
