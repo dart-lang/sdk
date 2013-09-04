@@ -1065,6 +1065,12 @@ class ConcreteTypesInferrer extends TypesInferrer {
     return result == const DynamicTypeMask() ? null : result;
   }
 
+  void clear() {}
+
+  Iterable<Element> getCallersOf(Element element) {
+    throw "Don't use me";
+  }
+
   // --- analysis ---
 
   /**
