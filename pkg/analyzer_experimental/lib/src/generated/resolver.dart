@@ -8125,30 +8125,54 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
    */
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefixedIdentifier = node.identifier;
-    Element element = prefixedIdentifier.staticElement;
+    Element staticElement = prefixedIdentifier.staticElement;
     Type2 staticType = _dynamicType;
-    if (element is ClassElement) {
+    if (staticElement is ClassElement) {
       if (isNotTypeLiteral(node)) {
-        staticType = ((element as ClassElement)).type;
+        staticType = ((staticElement as ClassElement)).type;
       } else {
         staticType = _typeProvider.typeType;
       }
-    } else if (element is FunctionTypeAliasElement) {
-      staticType = ((element as FunctionTypeAliasElement)).type;
-    } else if (element is MethodElement) {
-      staticType = ((element as MethodElement)).type;
-    } else if (element is PropertyAccessorElement) {
-      staticType = getType(element as PropertyAccessorElement, node.prefix.staticType);
-    } else if (element is ExecutableElement) {
-      staticType = ((element as ExecutableElement)).type;
-    } else if (element is TypeVariableElement) {
-      staticType = ((element as TypeVariableElement)).type;
-    } else if (element is VariableElement) {
-      staticType = ((element as VariableElement)).type;
+    } else if (staticElement is FunctionTypeAliasElement) {
+      staticType = ((staticElement as FunctionTypeAliasElement)).type;
+    } else if (staticElement is MethodElement) {
+      staticType = ((staticElement as MethodElement)).type;
+    } else if (staticElement is PropertyAccessorElement) {
+      staticType = getType(staticElement as PropertyAccessorElement, node.prefix.staticType);
+    } else if (staticElement is ExecutableElement) {
+      staticType = ((staticElement as ExecutableElement)).type;
+    } else if (staticElement is TypeVariableElement) {
+      staticType = ((staticElement as TypeVariableElement)).type;
+    } else if (staticElement is VariableElement) {
+      staticType = ((staticElement as VariableElement)).type;
     }
     recordStaticType(prefixedIdentifier, staticType);
     recordStaticType(node, staticType);
-    Type2 propagatedType = _overrideManager.getType(element);
+    Element propagatedElement = prefixedIdentifier.propagatedElement;
+    Type2 propagatedType = null;
+    if (propagatedElement is ClassElement) {
+      if (isNotTypeLiteral(node)) {
+        propagatedType = ((propagatedElement as ClassElement)).type;
+      } else {
+        propagatedType = _typeProvider.typeType;
+      }
+    } else if (propagatedElement is FunctionTypeAliasElement) {
+      propagatedType = ((propagatedElement as FunctionTypeAliasElement)).type;
+    } else if (propagatedElement is MethodElement) {
+      propagatedType = ((propagatedElement as MethodElement)).type;
+    } else if (propagatedElement is PropertyAccessorElement) {
+      propagatedType = getType(propagatedElement as PropertyAccessorElement, node.prefix.staticType);
+    } else if (propagatedElement is ExecutableElement) {
+      propagatedType = ((propagatedElement as ExecutableElement)).type;
+    } else if (propagatedElement is TypeVariableElement) {
+      propagatedType = ((propagatedElement as TypeVariableElement)).type;
+    } else if (propagatedElement is VariableElement) {
+      propagatedType = ((propagatedElement as VariableElement)).type;
+    }
+    Type2 overriddenType = _overrideManager.getType(propagatedElement);
+    if (propagatedType == null || (overriddenType != null && overriddenType.isMoreSpecificThan(propagatedType))) {
+      propagatedType = overriddenType;
+    }
     if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
       recordPropagatedType2(prefixedIdentifier, propagatedType);
       recordPropagatedType2(node, propagatedType);

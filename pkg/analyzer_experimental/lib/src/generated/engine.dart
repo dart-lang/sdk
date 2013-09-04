@@ -977,6 +977,68 @@ class AnalysisCache {
   }
 }
 /**
+ * The enumeration `CacheState` defines the possible states of cached data.
+ */
+class CacheState extends Enum<CacheState> {
+
+  /**
+   * The data is not in the cache and the last time an attempt was made to compute the data an
+   * exception occurred, making it pointless to attempt.
+   *
+   * Valid Transitions:
+   *
+   * * [INVALID] if a source was modified that might cause the data to be computable
+   *
+   */
+  static final CacheState ERROR = new CacheState('ERROR', 0);
+
+  /**
+   * The data is not in the cache because it was flushed from the cache in order to control memory
+   * usage. If the data is recomputed, results do not need to be reported.
+   *
+   * Valid Transitions:
+   *
+   * * [IN_PROCESS] if the data is being recomputed
+   * * [INVALID] if a source was modified that causes the data to need to be recomputed
+   *
+   */
+  static final CacheState FLUSHED = new CacheState('FLUSHED', 1);
+
+  /**
+   * The data might or might not be in the cache but is in the process of being recomputed.
+   *
+   * Valid Transitions:
+   *
+   * * [ERROR] if an exception occurred while trying to compute the data
+   * * [VALID] if the data was successfully computed and stored in the cache
+   *
+   */
+  static final CacheState IN_PROCESS = new CacheState('IN_PROCESS', 2);
+
+  /**
+   * The data is not in the cache and needs to be recomputed so that results can be reported.
+   *
+   * Valid Transitions:
+   *
+   * * [IN_PROCESS] if an attempt is being made to recompute the data
+   *
+   */
+  static final CacheState INVALID = new CacheState('INVALID', 3);
+
+  /**
+   * The data is in the cache and up-to-date.
+   *
+   * Valid Transitions:
+   *
+   * * [FLUSHED] if the data is removed in order to manage memory usage
+   * * [INVALID] if a source was modified in such a way as to invalidate the previous data
+   *
+   */
+  static final CacheState VALID = new CacheState('VALID', 4);
+  static final List<CacheState> values = [ERROR, FLUSHED, IN_PROCESS, INVALID, VALID];
+  CacheState(String name, int ordinal) : super(name, ordinal);
+}
+/**
  * The interface `DartEntry` defines the behavior of objects that maintain the information
  * cached by an analysis context about an individual Dart file.
  *
@@ -6776,68 +6838,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   void set strictMode(bool isStrict) {
     _strictMode = isStrict;
   }
-}
-/**
- * The enumeration `CacheState` defines the possible states of cached data.
- */
-class CacheState extends Enum<CacheState> {
-
-  /**
-   * The data is not in the cache and the last time an attempt was made to compute the data an
-   * exception occurred, making it pointless to attempt.
-   *
-   * Valid Transitions:
-   *
-   * * [INVALID] if a source was modified that might cause the data to be computable
-   *
-   */
-  static final CacheState ERROR = new CacheState('ERROR', 0);
-
-  /**
-   * The data is not in the cache because it was flushed from the cache in order to control memory
-   * usage. If the data is recomputed, results do not need to be reported.
-   *
-   * Valid Transitions:
-   *
-   * * [IN_PROCESS] if the data is being recomputed
-   * * [INVALID] if a source was modified that causes the data to need to be recomputed
-   *
-   */
-  static final CacheState FLUSHED = new CacheState('FLUSHED', 1);
-
-  /**
-   * The data might or might not be in the cache but is in the process of being recomputed.
-   *
-   * Valid Transitions:
-   *
-   * * [ERROR] if an exception occurred while trying to compute the data
-   * * [VALID] if the data was successfully computed and stored in the cache
-   *
-   */
-  static final CacheState IN_PROCESS = new CacheState('IN_PROCESS', 2);
-
-  /**
-   * The data is not in the cache and needs to be recomputed so that results can be reported.
-   *
-   * Valid Transitions:
-   *
-   * * [IN_PROCESS] if an attempt is being made to recompute the data
-   *
-   */
-  static final CacheState INVALID = new CacheState('INVALID', 3);
-
-  /**
-   * The data is in the cache and up-to-date.
-   *
-   * Valid Transitions:
-   *
-   * * [FLUSHED] if the data is removed in order to manage memory usage
-   * * [INVALID] if a source was modified in such a way as to invalidate the previous data
-   *
-   */
-  static final CacheState VALID = new CacheState('VALID', 4);
-  static final List<CacheState> values = [ERROR, FLUSHED, IN_PROCESS, INVALID, VALID];
-  CacheState(String name, int ordinal) : super(name, ordinal);
 }
 /**
  * Instances of the class `ChangeNoticeImpl` represent a change to the analysis results
