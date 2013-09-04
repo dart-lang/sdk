@@ -1616,9 +1616,7 @@ class JavaScriptBackend extends Backend {
 
   jsAst.Call generateIsJsIndexableCall(jsAst.Expression use1,
                                        jsAst.Expression use2) {
-    Element dispatchProperty =
-        compiler.findInterceptor(const SourceString('dispatchPropertyName'));
-    String dispatchPropertyName = namer.isolateAccess(dispatchProperty);
+    String dispatchPropertyName = 'init.dispatchPropertyName';
 
     // We pass the dispatch property record to the isJsIndexable
     // helper rather than reading it inside the helper to increase the
