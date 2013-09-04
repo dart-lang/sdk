@@ -529,20 +529,37 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return (combinedType == value.instructionType) ? value : node;
   }
 
+  void simplifyCondition(HBasicBlock block,
+                         HInstruction condition,
+                         bool value) {
+    condition.dominatedUsers(block.first).forEach((user) {
+      HInstruction newCondition = graph.addConstantBool(value, compiler);
+      user.changeUse(condition, newCondition);
+    });
+  }
+
   HInstruction visitIf(HIf node) {
     HInstruction condition = node.condition;
     if (condition.isConstant()) return node;
     bool isNegated = condition is HNot;
-    if (isNegated) condition = condition.inputs[0];
 
-    condition.dominatedUsers(node.thenBlock.first).forEach((user) {
-      HInstruction newCondition = graph.addConstantBool(!isNegated, compiler);
-      user.changeUse(condition, newCondition);
-    });
-    condition.dominatedUsers(node.elseBlock.first).forEach((user) {
-      HInstruction newCondition = graph.addConstantBool(isNegated, compiler);
-      user.changeUse(condition, newCondition);
-    });
+    if (isNegated) {
+      condition = condition.inputs[0];
+    } else {
+      // It is possible for LICM to move a negated version of the
+      // condition out of the loop where it used. We still want to
+      // simplify the nested use of the condition in that case, so
+      // we look for all dominating negated conditions and replace
+      // nested uses of them with true or false.
+      Iterable<HInstruction> dominating = condition.usedBy.where((user) =>
+          user is HNot && user.dominates(node));
+      dominating.forEach((hoisted) {
+        simplifyCondition(node.thenBlock, hoisted, false);
+        simplifyCondition(node.elseBlock, hoisted, true);
+      });
+    }
+    simplifyCondition(node.thenBlock, condition, !isNegated);
+    simplifyCondition(node.elseBlock, condition, isNegated);
     return node;
   }
 
@@ -891,6 +908,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   final String name = "SsaDeadCodeEliminator";
 
+  Set<HBasicBlock> liveBlocks;
   SsaDeadCodeEliminator();
 
   bool isDeadCode(HInstruction instruction) {
@@ -899,16 +917,39 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
            && instruction.usedBy.isEmpty
            && instruction is !HTypeGuard
            && instruction is !HParameterValue
-           && instruction is !HLocalSet
-           && !instruction.isControlFlow();
+           && instruction is !HLocalSet;
   }
 
   void visitGraph(HGraph graph) {
+    liveBlocks = computeLiveBlocks(graph);
     visitPostDominatorTree(graph);
   }
 
+  static Set<HBasicBlock> computeLiveBlocks(HGraph graph) {
+    Set<HBasicBlock> live = new Set<HBasicBlock>();
+    List<HBasicBlock> worklist = <HBasicBlock>[];
+    void process(HBasicBlock block) {
+      if (!live.contains(block)) {
+        worklist.add(block);
+        live.add(block);
+      }
+    }
+
+    process(graph.entry);
+    while (!worklist.isEmpty) {
+      HBasicBlock current = worklist.removeLast();
+      current.successors.forEach(process);
+    }
+    return live;
+  }
+
   void visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.last;
+    // TODO(kasperl): Use the dead block information to
+    // remove entire dead blocks of code.
+    bool isDeadBlock = !liveBlocks.contains(block);
+    // Start from the last non-control flow instruction in
+    // the block.
+    HInstruction instruction = block.last.previous;
     while (instruction != null) {
       var previous = instruction.previous;
       if (isDeadCode(instruction)) block.remove(instruction);
