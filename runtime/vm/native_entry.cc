@@ -11,7 +11,8 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_natives, false, "Trace invocation of natives");
+DEFINE_FLAG(bool, trace_natives, false,
+            "Trace invocation of natives (debug mode only)");
 
 
 static ExternalLabel native_call_label(
@@ -53,6 +54,7 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
   ASSERT(state != NULL);
   ApiLocalScope* current_top_scope = state->top_scope();
   ApiLocalScope* scope = state->reusable_scope();
+  TRACE_NATIVE_CALL("0x%" Px "", reinterpret_cast<uintptr_t>(func));
   if (scope == NULL) {
     scope = new ApiLocalScope(current_top_scope,
                               isolate->top_exit_frame_info());
