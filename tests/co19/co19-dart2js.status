@@ -633,7 +633,7 @@ LibTest/typed_data/Uint32List/toList_A01_t01: fail, timeout # co19-roll r559: Pl
 LibTest/typed_data/Uint8ClampedList/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint8List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint8List/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
 
 # Could this be dart issue 7728?
 [ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
