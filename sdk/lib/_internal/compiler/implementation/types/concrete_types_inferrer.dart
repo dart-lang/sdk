@@ -561,7 +561,7 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  bool willHit(Selector selector, Compiler compiler) {
+  bool understands(Selector selector, Compiler compiler) {
     throw new UnsupportedError("");
   }
 

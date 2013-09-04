@@ -100,6 +100,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   }
   abstract class JSIndexable {
     get length;
+    operator[](index);
   }
   abstract class JSMutableIndexable extends JSIndexable {}
   class JSArray extends Interceptor implements List, JSIndexable {

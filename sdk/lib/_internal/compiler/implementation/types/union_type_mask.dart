@@ -231,12 +231,8 @@ class UnionTypeMask implements TypeMask {
         (TypeMask mask) => mask.containedClasses(compiler));
   }
 
-  /**
-   * Returns whether a [selector] call will hit a method at runtime,
-   * and not go through [noSuchMethod].
-   */
-  bool willHit(Selector selector, Compiler compiler) {
-    return disjointMasks.every((e) => e.willHit(selector, compiler));
+  bool understands(Selector selector, Compiler compiler) {
+    return disjointMasks.any((e) => e.understands(selector, compiler));
   }
 
   bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {

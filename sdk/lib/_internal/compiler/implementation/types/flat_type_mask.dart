@@ -461,11 +461,10 @@ class FlatTypeMask implements TypeMask {
   }
 
   /**
-   * Returns whether a [selector] call will hit a method at runtime,
-   * and not go through [noSuchMethod].
+   * Returns whether this [TypeMask] understands [selector].
    */
-  bool willHit(Selector selector, Compiler compiler) {
-    Element cls;
+  bool understands(Selector selector, Compiler compiler) {
+    ClassElement cls;
     if (isEmpty) {
       if (!isNullable) return false;
       cls = compiler.backend.nullImplementation;
@@ -473,26 +472,9 @@ class FlatTypeMask implements TypeMask {
       cls = base.element;
     }
 
-    if (!cls.isAbstract(compiler)) {
-      return hasConcreteMatch(cls, selector, compiler);
-    }
-
-    Set<ClassElement> subtypesToCheck;
-    if (isExact) {
-      return false;
-    } else if (isSubtype) {
-      subtypesToCheck = compiler.world.subtypesOf(cls);
-    } else {
-      assert(isSubclass);
-      subtypesToCheck = compiler.world.subclassesOf(cls);
-    }
-
-    return subtypesToCheck != null
-        && subtypesToCheck.every((ClassElement cls) {
-              return cls.isAbstract(compiler)
-                ? true
-                : hasConcreteMatch(cls, selector, compiler);
-           });
+    // Use [lookupMember] because finding abstract members is okay.
+    Element element = cls.implementation.lookupMember(selector.name);
+    return element != null && selector.appliesUntyped(element, compiler);
   }
 
   bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {

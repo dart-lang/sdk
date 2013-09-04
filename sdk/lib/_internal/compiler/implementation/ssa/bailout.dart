@@ -123,7 +123,7 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
         return true;
       } else if (user.selector != null
                  && user.getDartReceiver(compiler) == instruction
-                 && !speculativeType.computeMask(compiler).willHit(
+                 && !speculativeType.computeMask(compiler).understands(
                         user.selector, compiler)) {
         return true;
       }
