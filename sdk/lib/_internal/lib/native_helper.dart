@@ -167,7 +167,7 @@ Function getBaseFunctionForTypeNameOf() {
     return typeNameInChrome;
   } else if (contains(userAgent, 'Firefox')) {
     return typeNameInFirefox;
-  } else if (contains(userAgent, 'MSIE')) {
+  } else if (contains(userAgent, 'Trident/')) {
     return typeNameInIE;
   } else if (contains(userAgent, 'Opera')) {
     return typeNameInOpera;
