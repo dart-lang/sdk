@@ -40,12 +40,12 @@ class ErrorSeverity extends Enum<ErrorSeverity> {
   /**
    * The name of the severity used when producing machine output.
    */
-  String _machineCode;
+  String machineCode;
 
   /**
    * The name of the severity used when producing readable output.
    */
-  String _displayName;
+  String displayName;
 
   /**
    * Initialize a newly created severity with the given names.
@@ -54,23 +54,9 @@ class ErrorSeverity extends Enum<ErrorSeverity> {
    * @param displayName the name of the severity used when producing readable output
    */
   ErrorSeverity(String name, int ordinal, String machineCode, String displayName) : super(name, ordinal) {
-    this._machineCode = machineCode;
-    this._displayName = displayName;
+    this.machineCode = machineCode;
+    this.displayName = displayName;
   }
-
-  /**
-   * Return the name of the severity used when producing readable output.
-   *
-   * @return the name of the severity used when producing readable output
-   */
-  String get displayName => _displayName;
-
-  /**
-   * Return the name of the severity used when producing machine output.
-   *
-   * @return the name of the severity used when producing machine output
-   */
-  String get machineCode => _machineCode;
 
   /**
    * Return the severity constant that represents the greatest severity.
@@ -266,40 +252,40 @@ class AnalysisError {
   /**
    * The error code associated with the error.
    */
-  ErrorCode _errorCode;
+  ErrorCode errorCode;
 
   /**
    * The localized error message.
    */
-  String _message;
+  String message;
 
   /**
    * The correction to be displayed for this error, or `null` if there is no correction
    * information for this error.
    */
-  String _correction;
+  String correction;
 
   /**
    * The source in which the error occurred, or `null` if unknown.
    */
-  Source _source;
+  Source source;
 
   /**
    * The character offset from the beginning of the source (zero based) where the error occurred.
    */
-  int _offset = 0;
+  int offset = 0;
 
   /**
    * The number of characters from the offset to the end of the source which encompasses the
    * compilation error.
    */
-  int _length = 0;
+  int length = 0;
 
   /**
    * A flag indicating whether this error can be shown to be a non-issue because of the result of
    * type propagation.
    */
-  bool _isStaticOnly2 = false;
+  bool isStaticOnly = false;
 
   /**
    * Initialize a newly created analysis error for the specified source. The error has no location
@@ -310,9 +296,9 @@ class AnalysisError {
    * @param arguments the arguments used to build the error message
    */
   AnalysisError.con1(Source source, ErrorCode errorCode, List<Object> arguments) {
-    this._source = source;
-    this._errorCode = errorCode;
-    this._message = JavaString.format(errorCode.message, arguments);
+    this.source = source;
+    this.errorCode = errorCode;
+    this.message = JavaString.format(errorCode.message, arguments);
   }
 
   /**
@@ -325,55 +311,16 @@ class AnalysisError {
    * @param arguments the arguments used to build the error message
    */
   AnalysisError.con2(Source source, int offset, int length, ErrorCode errorCode, List<Object> arguments) {
-    this._source = source;
-    this._offset = offset;
-    this._length = length;
-    this._errorCode = errorCode;
-    this._message = JavaString.format(errorCode.message, arguments);
+    this.source = source;
+    this.offset = offset;
+    this.length = length;
+    this.errorCode = errorCode;
+    this.message = JavaString.format(errorCode.message, arguments);
     String correctionTemplate = errorCode.correction;
     if (correctionTemplate != null) {
-      this._correction = JavaString.format(correctionTemplate, arguments);
+      this.correction = JavaString.format(correctionTemplate, arguments);
     }
   }
-
-  /**
-   * Return the correction to be displayed for this error, or `null` if there is no correction
-   * information for this error. The correction should indicate how the user can fix the error.
-   *
-   * @return the template used to create the correction to be displayed for this error
-   */
-  String get correction => _correction;
-
-  /**
-   * Return the error code associated with the error.
-   *
-   * @return the error code associated with the error
-   */
-  ErrorCode get errorCode => _errorCode;
-
-  /**
-   * Return the number of characters from the offset to the end of the source which encompasses the
-   * compilation error.
-   *
-   * @return the length of the error location
-   */
-  int get length => _length;
-
-  /**
-   * Return the message to be displayed for this error. The message should indicate what is wrong
-   * and why it is wrong.
-   *
-   * @return the message to be displayed for this error
-   */
-  String get message => _message;
-
-  /**
-   * Return the character offset from the beginning of the source (zero based) where the error
-   * occurred.
-   *
-   * @return the offset to the start of the error location
-   */
-  int get offset => _offset;
 
   /**
    * Return the value of the given property, or `null` if the given property is not defined
@@ -383,55 +330,21 @@ class AnalysisError {
    * @return the value of the given property
    */
   Object getProperty(ErrorProperty property) => null;
-
-  /**
-   * Return the source in which the error occurred, or `null` if unknown.
-   *
-   * @return the source in which the error occurred
-   */
-  Source get source => _source;
   int get hashCode {
-    int hashCode = _offset;
-    hashCode ^= (_message != null) ? _message.hashCode : 0;
-    hashCode ^= (_source != null) ? _source.hashCode : 0;
+    int hashCode = offset;
+    hashCode ^= (message != null) ? message.hashCode : 0;
+    hashCode ^= (source != null) ? source.hashCode : 0;
     return hashCode;
-  }
-
-  /**
-   * Return `true` if this error can be shown to be a non-issue because of the result of type
-   * propagation.
-   *
-   * @return `true` if this error can be shown to be a non-issue
-   */
-  bool get isStaticOnly => _isStaticOnly2;
-
-  /**
-   * Set whether this error can be shown to be a non-issue because of the result of type propagation
-   * to the given value.
-   *
-   * @param isStaticOnly `true` if this error can be shown to be a non-issue
-   */
-  void set isStaticOnly(bool isStaticOnly2) {
-    this._isStaticOnly2 = isStaticOnly2;
-  }
-
-  /**
-   * Set the source in which the error occurred to the given source.
-   *
-   * @param source the source in which the error occurred
-   */
-  void set source(Source source2) {
-    this._source = source2;
   }
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append((_source != null) ? _source.fullName : "<unknown source>");
+    builder.append((source != null) ? source.fullName : "<unknown source>");
     builder.append("(");
-    builder.append(_offset);
+    builder.append(offset);
     builder.append("..");
-    builder.append(_offset + _length - 1);
+    builder.append(offset + length - 1);
     builder.append("): ");
-    builder.append(_message);
+    builder.append(message);
     return builder.toString();
   }
 }
@@ -616,7 +529,7 @@ class ErrorType extends Enum<ErrorType> {
   /**
    * The severity of this type of error.
    */
-  ErrorSeverity _severity;
+  ErrorSeverity severity;
 
   /**
    * Initialize a newly created error type to have the given severity.
@@ -624,15 +537,8 @@ class ErrorType extends Enum<ErrorType> {
    * @param severity the severity of this type of error
    */
   ErrorType(String name, int ordinal, ErrorSeverity severity) : super(name, ordinal) {
-    this._severity = severity;
+    this.severity = severity;
   }
-
-  /**
-   * Return the severity of this type of error.
-   *
-   * @return the severity of this type of error
-   */
-  ErrorSeverity get severity => _severity;
 }
 /**
  * The enumeration `CompileTimeErrorCode` defines the error codes used for compile time

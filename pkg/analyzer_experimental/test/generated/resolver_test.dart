@@ -6005,12 +6005,12 @@ class ResolverTestCase extends EngineTestCase {
   /**
    * The source factory used to create [Source].
    */
-  SourceFactory _sourceFactory;
+  SourceFactory sourceFactory;
 
   /**
    * The analysis context used to parse the compilation units being resolved.
    */
-  AnalysisContextImpl _analysisContext;
+  AnalysisContextImpl analysisContext;
   void setUp() {
     reset();
   }
@@ -6034,7 +6034,7 @@ class ResolverTestCase extends EngineTestCase {
     Source source = cacheSource(filePath, contents);
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
-    _analysisContext.applyChanges(changeSet);
+    analysisContext.applyChanges(changeSet);
     return source;
   }
 
@@ -6049,7 +6049,7 @@ class ResolverTestCase extends EngineTestCase {
    */
   void assertErrors(List<ErrorCode> expectedErrorCodes) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    for (ChangeNotice notice in _analysisContext.performAnalysisTask()) {
+    for (ChangeNotice notice in analysisContext.performAnalysisTask()) {
       for (AnalysisError error in notice.errors) {
         errorListener.onError(error);
       }
@@ -6064,7 +6064,7 @@ class ResolverTestCase extends EngineTestCase {
    */
   void assertNoErrors() {
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    for (ChangeNotice notice in _analysisContext.performAnalysisTask()) {
+    for (ChangeNotice notice in analysisContext.performAnalysisTask()) {
       for (AnalysisError error in notice.errors) {
         errorListener.onError(error);
       }
@@ -6081,8 +6081,8 @@ class ResolverTestCase extends EngineTestCase {
    * @return the source object representing the cached file
    */
   Source cacheSource(String filePath, String contents) {
-    Source source = new FileBasedSource.con1(_sourceFactory.contentCache, FileUtilities2.createFile(filePath));
-    _sourceFactory.setContents(source, contents);
+    Source source = new FileBasedSource.con1(sourceFactory.contentCache, FileUtilities2.createFile(filePath));
+    sourceFactory.setContents(source, contents);
     return source;
   }
 
@@ -6121,8 +6121,6 @@ class ResolverTestCase extends EngineTestCase {
     library.parts = sourcedCompilationUnits;
     return library;
   }
-  AnalysisContext get analysisContext => _analysisContext;
-  SourceFactory get sourceFactory => _sourceFactory;
 
   /**
    * Return a type provider that can be used to test the results of resolution.
@@ -6130,8 +6128,8 @@ class ResolverTestCase extends EngineTestCase {
    * @return a type provider
    */
   TypeProvider get typeProvider {
-    Source coreSource = _analysisContext.sourceFactory.forUri(DartSdk.DART_CORE);
-    LibraryElement coreElement = _analysisContext.getLibraryElement(coreSource);
+    Source coreSource = analysisContext.sourceFactory.forUri(DartSdk.DART_CORE);
+    LibraryElement coreElement = analysisContext.getLibraryElement(coreSource);
     return new TypeProviderImpl(coreElement);
   }
 
@@ -6140,8 +6138,8 @@ class ResolverTestCase extends EngineTestCase {
    * reset test instance to reuse it.
    */
   void reset() {
-    _analysisContext = AnalysisContextFactory.contextWithCore();
-    _sourceFactory = _analysisContext.sourceFactory;
+    analysisContext = AnalysisContextFactory.contextWithCore();
+    sourceFactory = analysisContext.sourceFactory;
   }
 
   /**
@@ -6153,7 +6151,7 @@ class ResolverTestCase extends EngineTestCase {
    * @return the element representing the resolved library
    * @throws AnalysisException if the analysis could not be performed
    */
-  LibraryElement resolve(Source librarySource) => _analysisContext.computeLibraryElement(librarySource);
+  LibraryElement resolve(Source librarySource) => analysisContext.computeLibraryElement(librarySource);
 
   /**
    * Return the resolved compilation unit corresponding to the given source in the given library.
@@ -6163,7 +6161,7 @@ class ResolverTestCase extends EngineTestCase {
    * @return the resolved compilation unit
    * @throws Exception if the compilation unit could not be resolved
    */
-  CompilationUnit resolveCompilationUnit(Source source, LibraryElement library) => _analysisContext.resolveCompilationUnit(source, library);
+  CompilationUnit resolveCompilationUnit(Source source, LibraryElement library) => analysisContext.resolveCompilationUnit(source, library);
 
   /**
    * Verify that all of the identifiers in the compilation units associated with the given sources
@@ -6177,7 +6175,7 @@ class ResolverTestCase extends EngineTestCase {
   void verify(List<Source> sources) {
     ResolutionVerifier verifier = new ResolutionVerifier();
     for (Source source in sources) {
-      _analysisContext.parseCompilationUnit(source).accept(verifier);
+      analysisContext.parseCompilationUnit(source).accept(verifier);
     }
     verifier.assertResolved();
   }
@@ -6189,8 +6187,8 @@ class ResolverTestCase extends EngineTestCase {
    * @return the source that was created
    */
   FileBasedSource createSource2(String fileName) {
-    FileBasedSource source = new FileBasedSource.con1(_sourceFactory.contentCache, FileUtilities2.createFile(fileName));
-    _sourceFactory.setContents(source, "");
+    FileBasedSource source = new FileBasedSource.con1(sourceFactory.contentCache, FileUtilities2.createFile(fileName));
+    sourceFactory.setContents(source, "");
     return source;
   }
   static dartSuite() {

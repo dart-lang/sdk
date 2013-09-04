@@ -640,7 +640,7 @@ class ElementKind extends Enum<ElementKind> {
   /**
    * The name displayed in the UI for this kind of element.
    */
-  String _displayName;
+  String displayName;
 
   /**
    * Initialize a newly created element kind to have the given display name.
@@ -648,15 +648,8 @@ class ElementKind extends Enum<ElementKind> {
    * @param displayName the name displayed in the UI for this kind of element
    */
   ElementKind(String name, int ordinal, String displayName) : super(name, ordinal) {
-    this._displayName = displayName;
+    this.displayName = displayName;
   }
-
-  /**
-   * Return the name displayed in the UI for this kind of element.
-   *
-   * @return the name of this [ElementKind] to display in UI.
-   */
-  String get displayName => _displayName;
 }
 /**
  * The interface `ElementLocation` defines the behavior of objects that represent the location
@@ -1722,13 +1715,13 @@ class AuxiliaryElements {
    * The element based on propagated type information, or `null` if the AST structure has not
    * been resolved or if this identifier could not be resolved.
    */
-  ExecutableElement _propagatedElement;
+  ExecutableElement propagatedElement;
 
   /**
    * The element associated with this identifier based on static type information, or `null`
    * if the AST structure has not been resolved or if this identifier could not be resolved.
    */
-  ExecutableElement _staticElement;
+  ExecutableElement staticElement;
 
   /**
    * Create the [AuxiliaryElements] with a static and propagated [ExecutableElement].
@@ -1737,19 +1730,9 @@ class AuxiliaryElements {
    * @param propagatedElement the propagated element
    */
   AuxiliaryElements(ExecutableElement staticElement, ExecutableElement propagatedElement) {
-    this._staticElement = staticElement;
-    this._propagatedElement = propagatedElement;
+    this.staticElement = staticElement;
+    this.propagatedElement = propagatedElement;
   }
-
-  /**
-   * Get the propagated element.
-   */
-  ExecutableElement get propagatedElement => _propagatedElement;
-
-  /**
-   * Get the static element.
-   */
-  ExecutableElement get staticElement => _staticElement;
 }
 /**
  * Instances of the class `ClassElementImpl` implement a `ClassElement`.
@@ -2631,7 +2614,7 @@ class DynamicElementImpl extends ElementImpl {
   /**
    * The type defined by this element.
    */
-  DynamicTypeImpl _type;
+  DynamicTypeImpl type;
 
   /**
    * Initialize a newly created instance of this class. Instances of this class should <b>not</b> be
@@ -2643,22 +2626,6 @@ class DynamicElementImpl extends ElementImpl {
   }
   accept(ElementVisitor visitor) => null;
   ElementKind get kind => ElementKind.DYNAMIC;
-
-  /**
-   * Return the type defined by this element.
-   *
-   * @return the type defined by this element
-   */
-  DynamicTypeImpl get type => _type;
-
-  /**
-   * Set the type defined by this element to the given type.
-   *
-   * @param type the type defined by this element
-   */
-  void set type(DynamicTypeImpl type2) {
-    this._type = type2;
-  }
 }
 /**
  * Instances of the class `ElementAnnotationImpl` implement an [ElementAnnotation].
@@ -2927,7 +2894,7 @@ class ElementLocationImpl implements ElementLocation {
   /**
    * The path to the element whose location is represented by this object.
    */
-  List<String> _components;
+  List<String> components;
 
   /**
    * The character used to separate components in the encoded form.
@@ -2946,7 +2913,7 @@ class ElementLocationImpl implements ElementLocation {
       components.insert(0, ((ancestor as ElementImpl)).identifier);
       ancestor = ancestor.enclosingElement;
     }
-    this._components = new List.from(components);
+    this.components = new List.from(components);
   }
 
   /**
@@ -2955,53 +2922,46 @@ class ElementLocationImpl implements ElementLocation {
    * @param encoding the encoded form of a location
    */
   ElementLocationImpl.con2(String encoding) {
-    this._components = decode(encoding);
+    this.components = decode(encoding);
   }
   bool operator ==(Object object) {
     if (object is! ElementLocationImpl) {
       return false;
     }
     ElementLocationImpl location = object as ElementLocationImpl;
-    List<String> otherComponents = location._components;
-    int length = _components.length;
+    List<String> otherComponents = location.components;
+    int length = components.length;
     if (otherComponents.length != length) {
       return false;
     }
-    if (length > 0 && !equalSourceComponents(_components[0], otherComponents[0])) {
+    if (length > 0 && !equalSourceComponents(components[0], otherComponents[0])) {
       return false;
     }
-    if (length > 1 && !equalSourceComponents(_components[1], otherComponents[1])) {
+    if (length > 1 && !equalSourceComponents(components[1], otherComponents[1])) {
       return false;
     }
     for (int i = 2; i < length; i++) {
-      if (_components[i] != otherComponents[i]) {
+      if (components[i] != otherComponents[i]) {
         return false;
       }
     }
     return true;
   }
-
-  /**
-   * Return the path to the element whose location is represented by this object.
-   *
-   * @return the path to the element whose location is represented by this object
-   */
-  List<String> get components => _components;
   String get encoding {
     JavaStringBuilder builder = new JavaStringBuilder();
-    int length = _components.length;
+    int length = components.length;
     for (int i = 0; i < length; i++) {
       if (i > 0) {
         builder.appendChar(_SEPARATOR_CHAR);
       }
-      encode(builder, _components[i]);
+      encode(builder, components[i]);
     }
     return builder.toString();
   }
   int get hashCode {
     int result = 1;
-    for (int i = 0; i < _components.length; i++) {
-      String component = _components[i];
+    for (int i = 0; i < components.length; i++) {
+      String component = components[i];
       int componentHash;
       if (i <= 1) {
         componentHash = hashSourceComponent(component);
@@ -3948,13 +3908,13 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   /**
    * A flag indicating whether this label is associated with a `switch` statement.
    */
-  bool _onSwitchStatement = false;
+  bool isOnSwitchStatement = false;
 
   /**
    * A flag indicating whether this label is associated with a `switch` member (`case`
    * or `default`).
    */
-  bool _onSwitchMember = false;
+  bool isOnSwitchMember = false;
 
   /**
    * An empty array of label elements.
@@ -3970,27 +3930,12 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
    * @param onSwitchMember `true` if this label is associated with a `switch` member
    */
   LabelElementImpl(Identifier name, bool onSwitchStatement, bool onSwitchMember) : super.con1(name) {
-    this._onSwitchStatement = onSwitchStatement;
-    this._onSwitchMember = onSwitchMember;
+    this.isOnSwitchStatement = onSwitchStatement;
+    this.isOnSwitchMember = onSwitchMember;
   }
   accept(ElementVisitor visitor) => visitor.visitLabelElement(this);
   ExecutableElement get enclosingElement => super.enclosingElement as ExecutableElement;
   ElementKind get kind => ElementKind.LABEL;
-
-  /**
-   * Return `true` if this label is associated with a `switch` member (`case` or
-   * `default`).
-   *
-   * @return `true` if this label is associated with a `switch` member
-   */
-  bool get isOnSwitchMember => _onSwitchMember;
-
-  /**
-   * Return `true` if this label is associated with a `switch` statement.
-   *
-   * @return `true` if this label is associated with a `switch` statement
-   */
-  bool get isOnSwitchStatement => _onSwitchStatement;
 }
 /**
  * Instances of the class `LibraryElementImpl` implement a `LibraryElement`.
@@ -5705,14 +5650,7 @@ class BottomTypeImpl extends TypeImpl {
   /**
    * The unique instance of this class.
    */
-  static BottomTypeImpl _INSTANCE = new BottomTypeImpl();
-
-  /**
-   * Return the unique instance of this class.
-   *
-   * @return the unique instance of this class
-   */
-  static BottomTypeImpl get instance => _INSTANCE;
+  static final BottomTypeImpl instance = new BottomTypeImpl();
 
   /**
    * Prevent the creation of instances of this class.
@@ -5734,14 +5672,7 @@ class DynamicTypeImpl extends TypeImpl {
   /**
    * The unique instance of this class.
    */
-  static DynamicTypeImpl _INSTANCE = new DynamicTypeImpl();
-
-  /**
-   * Return the unique instance of this class.
-   *
-   * @return the unique instance of this class
-   */
-  static DynamicTypeImpl get instance => _INSTANCE;
+  static final DynamicTypeImpl instance = new DynamicTypeImpl();
 
   /**
    * Prevent the creation of instances of this class.
@@ -6937,14 +6868,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   /**
    * The unique instance of this class.
    */
-  static VoidTypeImpl _INSTANCE = new VoidTypeImpl();
-
-  /**
-   * Return the unique instance of this class.
-   *
-   * @return the unique instance of this class
-   */
-  static VoidTypeImpl get instance => _INSTANCE;
+  static final VoidTypeImpl instance = new VoidTypeImpl();
 
   /**
    * Prevent the creation of instances of this class.

@@ -320,13 +320,13 @@ class Keyword extends Enum<Keyword> {
   /**
    * The lexeme for the keyword.
    */
-  String _syntax;
+  String syntax;
 
   /**
    * A flag indicating whether the keyword is a pseudo-keyword. Pseudo keywords can be used as
    * identifiers.
    */
-  bool _isPseudoKeyword2 = false;
+  bool isPseudoKeyword = false;
 
   /**
    * A table mapping the lexemes of keywords to the corresponding keyword.
@@ -341,7 +341,7 @@ class Keyword extends Enum<Keyword> {
   static Map<String, Keyword> createKeywordMap() {
     LinkedHashMap<String, Keyword> result = new LinkedHashMap<String, Keyword>();
     for (Keyword keyword in values) {
-      result[keyword._syntax] = keyword;
+      result[keyword.syntax] = keyword;
     }
     return result;
   }
@@ -362,24 +362,9 @@ class Keyword extends Enum<Keyword> {
    * @param isPseudoKeyword `true` if this keyword is a pseudo-keyword
    */
   Keyword.con2(String name, int ordinal, String syntax, bool isPseudoKeyword) : super(name, ordinal) {
-    this._syntax = syntax;
-    this._isPseudoKeyword2 = isPseudoKeyword;
+    this.syntax = syntax;
+    this.isPseudoKeyword = isPseudoKeyword;
   }
-
-  /**
-   * Return the lexeme for the keyword.
-   *
-   * @return the lexeme for the keyword
-   */
-  String get syntax => _syntax;
-
-  /**
-   * Return `true` if this keyword is a pseudo-keyword. Pseudo keywords can be used as
-   * identifiers.
-   *
-   * @return `true` if this keyword is a pseudo-keyword
-   */
-  bool get isPseudoKeyword => _isPseudoKeyword2;
 }
 /**
  * The abstract class `AbstractScanner` implements a scanner for Dart code. Subclasses are
@@ -398,7 +383,7 @@ abstract class AbstractScanner {
   /**
    * The source being scanned.
    */
-  Source _source;
+  Source source;
 
   /**
    * The error listener that will be informed of any errors that are found during the scan.
@@ -453,7 +438,7 @@ abstract class AbstractScanner {
    * @param errorListener the error listener that will be informed of any errors that are found
    */
   AbstractScanner(Source source, AnalysisErrorListener errorListener) {
-    this._source = source;
+    this.source = source;
     this._errorListener = errorListener;
     _tokens = new Token(TokenType.EOF, -1);
     _tokens.setNext(_tokens);
@@ -803,13 +788,6 @@ abstract class AbstractScanner {
     return null;
   }
   Token firstToken() => _tokens.next;
-
-  /**
-   * Return the source being scanned.
-   *
-   * @return the source being scanned
-   */
-  Source get source => _source;
 
   /**
    * Report an error at the current offset.
@@ -1456,22 +1434,22 @@ class Token {
   /**
    * The type of the token.
    */
-  TokenType _type;
+  TokenType type;
 
   /**
    * The offset from the beginning of the file to the first character in the token.
    */
-  int _offset = 0;
+  int offset = 0;
 
   /**
    * The previous token in the token stream.
    */
-  Token _previous;
+  Token previous;
 
   /**
    * The next token in the token stream.
    */
-  Token _next;
+  Token next;
 
   /**
    * Initialize a newly created token to have the given type and offset.
@@ -1480,8 +1458,8 @@ class Token {
    * @param offset the offset from the beginning of the file to the first character in the token
    */
   Token(TokenType type, int offset) {
-    this._type = type;
-    this._offset = offset;
+    this.type = type;
+    this.offset = offset;
   }
 
   /**
@@ -1491,7 +1469,7 @@ class Token {
    * @return the offset from the beginning of the file to the first character after last character
    *         of the token
    */
-  int get end => _offset + length;
+  int get end => offset + length;
 
   /**
    * Return the number of characters in the node's source range.
@@ -1505,21 +1483,7 @@ class Token {
    *
    * @return the lexeme that represents this token
    */
-  String get lexeme => _type.lexeme;
-
-  /**
-   * Return the next token in the token stream.
-   *
-   * @return the next token in the token stream
-   */
-  Token get next => _next;
-
-  /**
-   * Return the offset from the beginning of the file to the first character in the token.
-   *
-   * @return the offset from the beginning of the file to the first character in the token
-   */
-  int get offset => _offset;
+  String get lexeme => type.lexeme;
 
   /**
    * Return the first comment in the list of comments that precede this token, or `null` if
@@ -1531,25 +1495,11 @@ class Token {
   Token get precedingComments => null;
 
   /**
-   * Return the previous token in the token stream.
-   *
-   * @return the previous token in the token stream
-   */
-  Token get previous => _previous;
-
-  /**
-   * Return the type of the token.
-   *
-   * @return the type of the token
-   */
-  TokenType get type => _type;
-
-  /**
    * Return `true` if this token represents an operator.
    *
    * @return `true` if this token represents an operator
    */
-  bool get isOperator => _type.isOperator;
+  bool get isOperator => type.isOperator;
 
   /**
    * Return `true` if this token is a synthetic token. A synthetic token is a token that was
@@ -1565,7 +1515,7 @@ class Token {
    *
    * @return `true` if this token represents an operator that can be defined by users
    */
-  bool get isUserDefinableOperator => _type.isUserDefinableOperator;
+  bool get isUserDefinableOperator => type.isUserDefinableOperator;
 
   /**
    * Set the next token in the token stream to the given token. This has the side-effect of setting
@@ -1575,7 +1525,7 @@ class Token {
    * @return the token that was passed in
    */
   Token setNext(Token token) {
-    _next = token;
+    next = token;
     token.previous = this;
     return token;
   }
@@ -1588,18 +1538,8 @@ class Token {
    * @return the token that was passed in
    */
   Token setNextWithoutSettingPrevious(Token token) {
-    _next = token;
+    next = token;
     return token;
-  }
-
-  /**
-   * Set the offset from the beginning of the file to the first character in the token to the given
-   * offset.
-   *
-   * @param offset the offset from the beginning of the file to the first character in the token
-   */
-  void set offset(int offset2) {
-    this._offset = offset2;
   }
   String toString() => lexeme;
 
@@ -1609,16 +1549,7 @@ class Token {
    *
    * @return the value of this token
    */
-  Object value() => _type.lexeme;
-
-  /**
-   * Set the previous token in the token stream to the given token.
-   *
-   * @param previous the previous token in the token stream
-   */
-  void set previous(Token previous2) {
-    this._previous = previous2;
-  }
+  Object value() => type.lexeme;
 }
 /**
  * Instances of the class `StringScanner` implement a scanner that reads from a string. The
@@ -1738,7 +1669,7 @@ class KeywordToken extends Token {
   /**
    * The keyword being represented by this token.
    */
-  Keyword _keyword;
+  Keyword keyword;
 
   /**
    * Initialize a newly created token to represent the given keyword.
@@ -1747,17 +1678,10 @@ class KeywordToken extends Token {
    * @param offset the offset from the beginning of the file to the first character in the token
    */
   KeywordToken(Keyword keyword, int offset) : super(TokenType.KEYWORD, offset) {
-    this._keyword = keyword;
+    this.keyword = keyword;
   }
-
-  /**
-   * Return the keyword being represented by this token.
-   *
-   * @return the keyword being represented by this token
-   */
-  Keyword get keyword => _keyword;
-  String get lexeme => _keyword.syntax;
-  Keyword value() => _keyword;
+  String get lexeme => keyword.syntax;
+  Keyword value() => keyword;
 }
 /**
  * Instances of the class `BeginToken` represent the opening half of a grouping pair of
@@ -1770,7 +1694,7 @@ class BeginToken extends Token {
   /**
    * The token that corresponds to this token.
    */
-  Token _endToken;
+  Token endToken;
 
   /**
    * Initialize a newly created token representing the opening half of a grouping pair of tokens.
@@ -1780,22 +1704,6 @@ class BeginToken extends Token {
    */
   BeginToken(TokenType type, int offset) : super(type, offset) {
     assert((identical(type, TokenType.OPEN_CURLY_BRACKET) || identical(type, TokenType.OPEN_PAREN) || identical(type, TokenType.OPEN_SQUARE_BRACKET) || identical(type, TokenType.STRING_INTERPOLATION_EXPRESSION)));
-  }
-
-  /**
-   * Return the token that corresponds to this token.
-   *
-   * @return the token that corresponds to this token
-   */
-  Token get endToken => _endToken;
-
-  /**
-   * Set the token that corresponds to this token to the given token.
-   *
-   * @param token the token that corresponds to this token
-   */
-  void set endToken(Token token) {
-    this._endToken = token;
   }
 }
 /**
@@ -1906,19 +1814,11 @@ class TokenClass extends Enum<TokenClass> {
    * The precedence of tokens of this class, or `0` if the such tokens do not represent an
    * operator.
    */
-  int _precedence = 0;
+  int precedence = 0;
   TokenClass.con1(String name, int ordinal) : this.con2(name, ordinal, 0);
   TokenClass.con2(String name, int ordinal, int precedence) : super(name, ordinal) {
-    this._precedence = precedence;
+    this.precedence = precedence;
   }
-
-  /**
-   * Return the precedence of tokens of this class, or `0` if the such tokens do not represent
-   * an operator.
-   *
-   * @return the precedence of tokens of this class
-   */
-  int get precedence => _precedence;
 }
 /**
  * Instances of the class `KeywordTokenWithComment` implement a keyword token that is preceded
@@ -2104,20 +2004,12 @@ class TokenType extends Enum<TokenType> {
    * The lexeme that defines this type of token, or `null` if there is more than one possible
    * lexeme for this type of token.
    */
-  String _lexeme;
+  String lexeme;
   TokenType.con1(String name, int ordinal) : this.con2(name, ordinal, TokenClass.NO_CLASS, null);
   TokenType.con2(String name, int ordinal, TokenClass tokenClass, String lexeme) : super(name, ordinal) {
     this._tokenClass = tokenClass == null ? TokenClass.NO_CLASS : tokenClass;
-    this._lexeme = lexeme;
+    this.lexeme = lexeme;
   }
-
-  /**
-   * Return the lexeme that defines this type of token, or `null` if there is more than one
-   * possible lexeme for this type of token.
-   *
-   * @return the lexeme that defines this type of token
-   */
-  String get lexeme => _lexeme;
 
   /**
    * Return the precedence of the token, or `0` if the token does not represent an operator.
@@ -2166,7 +2058,7 @@ class TokenType extends Enum<TokenType> {
    *
    * @return `true` if this type of token represents an increment operator
    */
-  bool get isIncrementOperator => identical(_lexeme, "++") || identical(_lexeme, "--");
+  bool get isIncrementOperator => identical(lexeme, "++") || identical(lexeme, "--");
 
   /**
    * Return `true` if this type of token represents a multiplicative operator.
@@ -2215,7 +2107,7 @@ class TokenType extends Enum<TokenType> {
    *
    * @return `true` if this token type represents an operator that can be defined by users
    */
-  bool get isUserDefinableOperator => identical(_lexeme, "==") || identical(_lexeme, "~") || identical(_lexeme, "[]") || identical(_lexeme, "[]=") || identical(_lexeme, "*") || identical(_lexeme, "/") || identical(_lexeme, "%") || identical(_lexeme, "~/") || identical(_lexeme, "+") || identical(_lexeme, "-") || identical(_lexeme, "<<") || identical(_lexeme, ">>") || identical(_lexeme, ">=") || identical(_lexeme, ">") || identical(_lexeme, "<=") || identical(_lexeme, "<") || identical(_lexeme, "&") || identical(_lexeme, "^") || identical(_lexeme, "|");
+  bool get isUserDefinableOperator => identical(lexeme, "==") || identical(lexeme, "~") || identical(lexeme, "[]") || identical(lexeme, "[]=") || identical(lexeme, "*") || identical(lexeme, "/") || identical(lexeme, "%") || identical(lexeme, "~/") || identical(lexeme, "+") || identical(lexeme, "-") || identical(lexeme, "<<") || identical(lexeme, ">>") || identical(lexeme, ">=") || identical(lexeme, ">") || identical(lexeme, "<=") || identical(lexeme, "<") || identical(lexeme, "&") || identical(lexeme, "^") || identical(lexeme, "|");
 }
 class TokenType_EOF extends TokenType {
   TokenType_EOF(String name, int ordinal, TokenClass arg0, String arg1) : super.con2(name, ordinal, arg0, arg1);

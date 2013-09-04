@@ -30,7 +30,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /**
    * A list containing the errors that were collected.
    */
-  List<AnalysisError> _errors = new List<AnalysisError>();
+  final List<AnalysisError> errors = new List<AnalysisError>();
 
   /**
    * A table mapping sources to the line information for the source.
@@ -76,14 +76,14 @@ class GatheringErrorListener implements AnalysisErrorListener {
    *           expected or if they do not have the same codes and locations
    */
   void assertErrors(List<AnalysisError> expectedErrors) {
-    if (_errors.length != expectedErrors.length) {
+    if (errors.length != expectedErrors.length) {
       fail(expectedErrors);
     }
     List<AnalysisError> remainingErrors = new List<AnalysisError>();
     for (AnalysisError error in expectedErrors) {
       remainingErrors.add(error);
     }
-    for (AnalysisError error in _errors) {
+    for (AnalysisError error in errors) {
       if (!foundAndRemoved(remainingErrors, error)) {
         fail(expectedErrors);
       }
@@ -115,7 +115,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
       expectedCounts[code] = count;
     }
     Map<ErrorCode, List<AnalysisError>> errorsByCode = new Map<ErrorCode, List<AnalysisError>>();
-    for (AnalysisError error in _errors) {
+    for (AnalysisError error in errors) {
       ErrorCode code = error.errorCode;
       List<AnalysisError> list = errorsByCode[code];
       if (list == null) {
@@ -196,7 +196,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     }
     int actualErrorCount = 0;
     int actualWarningCount = 0;
-    for (AnalysisError error in _errors) {
+    for (AnalysisError error in errors) {
       if (identical(error.errorCode.errorSeverity, ErrorSeverity.ERROR)) {
         actualErrorCount++;
       } else {
@@ -218,13 +218,6 @@ class GatheringErrorListener implements AnalysisErrorListener {
   }
 
   /**
-   * Return the errors that were collected.
-   *
-   * @return the errors that were collected
-   */
-  List<AnalysisError> get errors => _errors;
-
-  /**
    * Return the line information associated with the given source, or `null` if no line
    * information has been associated with the source.
    *
@@ -240,7 +233,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @return `true` if an error with the given error code has been gathered
    */
   bool hasError(ErrorCode errorCode2) {
-    for (AnalysisError error in _errors) {
+    for (AnalysisError error in errors) {
       if (identical(error.errorCode, errorCode2)) {
         return true;
       }
@@ -253,14 +246,14 @@ class GatheringErrorListener implements AnalysisErrorListener {
    *
    * @return `true` if at least one error has been gathered
    */
-  bool hasErrors() => _errors.length > 0;
+  bool hasErrors() => errors.length > 0;
   void onError(AnalysisError error) {
     if (_rawSource != null) {
       int left = error.offset;
       int right = left + error.length - 1;
       _markedSource = "${_rawSource.substring(0, left)}^${_rawSource.substring(left, right)}^${_rawSource.substring(right)}";
     }
-    _errors.add(error);
+    errors.add(error);
   }
 
   /**
@@ -344,9 +337,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
     }
     writer.newLine();
     writer.print("found ");
-    writer.print(_errors.length);
+    writer.print(errors.length);
     writer.print(" errors:");
-    for (AnalysisError error in _errors) {
+    for (AnalysisError error in errors) {
       Source source = error.source;
       LineInfo lineInfo = _lineInfoMap[source];
       writer.newLine();

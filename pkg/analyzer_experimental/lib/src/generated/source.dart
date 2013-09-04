@@ -15,7 +15,7 @@ class SourceFactory {
   /**
    * The analysis context that this source factory is associated with.
    */
-  AnalysisContext _context;
+  AnalysisContext context;
 
   /**
    * The resolvers used to resolve absolute URI's.
@@ -25,7 +25,7 @@ class SourceFactory {
   /**
    * A cache of content used to override the default content of a source.
    */
-  ContentCache _contentCache;
+  ContentCache contentCache;
 
   /**
    * Initialize a newly created source factory.
@@ -34,7 +34,7 @@ class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   SourceFactory.con1(ContentCache contentCache, List<UriResolver> resolvers) {
-    this._contentCache = contentCache;
+    this.contentCache = contentCache;
     this._resolvers = resolvers;
   }
 
@@ -82,7 +82,7 @@ class SourceFactory {
     try {
       Uri uri = parseUriWithException(encoding.substring(1));
       for (UriResolver resolver in _resolvers) {
-        Source result = resolver.fromEncoding(_contentCache, kind, uri);
+        Source result = resolver.fromEncoding(contentCache, kind, uri);
         if (result != null) {
           return result;
         }
@@ -92,20 +92,6 @@ class SourceFactory {
       throw new IllegalArgumentException("Invalid URI in encoding");
     }
   }
-
-  /**
-   * Return a cache of content used to override the default content of a source.
-   *
-   * @return a cache of content used to override the default content of a source
-   */
-  ContentCache get contentCache => _contentCache;
-
-  /**
-   * Return the analysis context that this source factory is associated with.
-   *
-   * @return the analysis context that this source factory is associated with
-   */
-  AnalysisContext get context => _context;
 
   /**
    * Return the [DartSdk] associated with this [SourceFactory], or `null` if there
@@ -170,20 +156,7 @@ class SourceFactory {
    * @param contents the new contents of the source
    * @return `true` if the new cached contents are different from the old, else `false`
    */
-  bool setContents(Source source, String contents) => _contentCache.setContents(source, contents);
-
-  /**
-   * Set the analysis context that this source factory is associated with to the given context.
-   *
-   * <b>Note:</b> This method should only be invoked by
-   * [AnalysisContextImpl#setSourceFactory] and is only public out of
-   * necessity.
-   *
-   * @param context the analysis context that this source factory is associated with
-   */
-  void set context(AnalysisContext context2) {
-    this._context = context2;
-  }
+  bool setContents(Source source, String contents) => contentCache.setContents(source, contents);
 
   /**
    * Return the contents of the given source, or `null` if this factory does not override the
@@ -195,7 +168,7 @@ class SourceFactory {
    * @param source the source whose content is to be returned
    * @return the contents of the given source
    */
-  String getContents(Source source) => _contentCache.getContents(source);
+  String getContents(Source source) => contentCache.getContents(source);
 
   /**
    * Return the modification stamp of the given source, or `null` if this factory does not
@@ -207,7 +180,7 @@ class SourceFactory {
    * @param source the source whose modification stamp is to be returned
    * @return the modification stamp of the given source
    */
-  int getModificationStamp(Source source) => _contentCache.getModificationStamp(source);
+  int getModificationStamp(Source source) => contentCache.getModificationStamp(source);
 
   /**
    * Return a source object representing the URI that results from resolving the given (possibly
@@ -222,7 +195,7 @@ class SourceFactory {
   Source resolveUri2(Source containingSource, Uri containedUri) {
     if (containedUri.isAbsolute) {
       for (UriResolver resolver in _resolvers) {
-        Source result = resolver.resolveAbsolute(_contentCache, containedUri);
+        Source result = resolver.resolveAbsolute(contentCache, containedUri);
         if (result != null) {
           return result;
         }
@@ -476,7 +449,7 @@ class UriKind extends Enum<UriKind> {
   /**
    * The single character encoding used to identify this kind of URI.
    */
-  int _encoding = 0;
+  int encoding = 0;
 
   /**
    * Initialize a newly created URI kind to have the given encoding.
@@ -484,7 +457,7 @@ class UriKind extends Enum<UriKind> {
    * @param encoding the single character encoding used to identify this kind of URI.
    */
   UriKind(String name, int ordinal, int encoding) : super(name, ordinal) {
-    this._encoding = encoding;
+    this.encoding = encoding;
   }
 
   /**
@@ -507,13 +480,6 @@ class UriKind extends Enum<UriKind> {
     }
     return null;
   }
-
-  /**
-   * Return the single character encoding used to identify this kind of URI.
-   *
-   * @return the single character encoding used to identify this kind of URI
-   */
-  int get encoding => _encoding;
 }
 /**
  * A source range defines an [Element]'s source coordinates relative to its [Source].
@@ -526,13 +492,13 @@ class SourceRange {
    * The 0-based index of the first character of the source code for this element, relative to the
    * source buffer in which this element is contained.
    */
-  int _offset = 0;
+  int offset = 0;
 
   /**
    * The number of characters of the source code for this element, relative to the source buffer in
    * which this element is contained.
    */
-  int _length = 0;
+  int length = 0;
 
   /**
    * Initialize a newly created source range using the given offset and the given length.
@@ -541,19 +507,19 @@ class SourceRange {
    * @param length the given length
    */
   SourceRange(int offset, int length) {
-    this._offset = offset;
-    this._length = length;
+    this.offset = offset;
+    this.length = length;
   }
 
   /**
    * @return `true` if <code>x</code> is in [offset, offset + length) interval.
    */
-  bool contains(int x) => _offset <= x && x < _offset + _length;
+  bool contains(int x) => offset <= x && x < offset + length;
 
   /**
    * @return `true` if <code>x</code> is in (offset, offset + length) interval.
    */
-  bool containsExclusive(int x) => _offset < x && x < _offset + _length;
+  bool containsExclusive(int x) => offset < x && x < offset + length;
 
   /**
    * @return `true` if <code>otherRange</code> covers this [SourceRange].
@@ -577,48 +543,30 @@ class SourceRange {
       return false;
     }
     SourceRange sourceRange = obj as SourceRange;
-    return sourceRange.offset == _offset && sourceRange.length == _length;
+    return sourceRange.offset == offset && sourceRange.length == length;
   }
 
   /**
    * @return the 0-based index of the after-last character of the source code for this element,
    *         relative to the source buffer in which this element is contained.
    */
-  int get end => _offset + _length;
+  int get end => offset + length;
 
   /**
    * @return the expanded instance of [SourceRange], which has the same center.
    */
-  SourceRange getExpanded(int delta) => new SourceRange(_offset - delta, delta + _length + delta);
-
-  /**
-   * Returns the number of characters of the source code for this element, relative to the source
-   * buffer in which this element is contained.
-   *
-   * @return the number of characters of the source code for this element, relative to the source
-   *         buffer in which this element is contained
-   */
-  int get length => _length;
+  SourceRange getExpanded(int delta) => new SourceRange(offset - delta, delta + length + delta);
 
   /**
    * @return the instance of [SourceRange] with end moved on "delta".
    */
-  SourceRange getMoveEnd(int delta) => new SourceRange(_offset, _length + delta);
-
-  /**
-   * Returns the 0-based index of the first character of the source code for this element, relative
-   * to the source buffer in which this element is contained.
-   *
-   * @return the 0-based index of the first character of the source code for this element, relative
-   *         to the source buffer in which this element is contained
-   */
-  int get offset => _offset;
+  SourceRange getMoveEnd(int delta) => new SourceRange(offset, length + delta);
 
   /**
    * @return the expanded translated of [SourceRange], with moved start and the same length.
    */
-  SourceRange getTranslated(int delta) => new SourceRange(_offset + delta, _length);
-  int get hashCode => 31 * _offset + _length;
+  SourceRange getTranslated(int delta) => new SourceRange(offset + delta, length);
+  int get hashCode => 31 * offset + length;
 
   /**
    * @return `true` if this [SourceRange] intersects with given.
@@ -639,13 +587,13 @@ class SourceRange {
   /**
    * @return `true` if this [SourceRange] starts in <code>otherRange</code>.
    */
-  bool startsIn(SourceRange otherRange) => otherRange.contains(_offset);
+  bool startsIn(SourceRange otherRange) => otherRange.contains(offset);
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
     builder.append("[offset=");
-    builder.append(_offset);
+    builder.append(offset);
     builder.append(", length=");
-    builder.append(_length);
+    builder.append(length);
     builder.append("]");
     return builder.toString();
   }
@@ -680,7 +628,7 @@ class DartUriResolver extends UriResolver {
   /**
    * The Dart SDK against which URI's are to be resolved.
    */
-  DartSdk _sdk;
+  DartSdk dartSdk;
 
   /**
    * The name of the `dart` scheme.
@@ -702,26 +650,19 @@ class DartUriResolver extends UriResolver {
    * @param sdk the Dart SDK against which URI's are to be resolved
    */
   DartUriResolver(DartSdk sdk) {
-    this._sdk = sdk;
+    this.dartSdk = sdk;
   }
   Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) {
     if (identical(kind, UriKind.DART_URI)) {
-      return _sdk.fromEncoding(contentCache, kind, uri);
+      return dartSdk.fromEncoding(contentCache, kind, uri);
     }
     return null;
   }
-
-  /**
-   * Return the [DartSdk] against which URIs are to be resolved.
-   *
-   * @return the [DartSdk] against which URIs are to be resolved.
-   */
-  DartSdk get dartSdk => _sdk;
   Source resolveAbsolute(ContentCache contentCache, Uri uri) {
     if (!isDartUri(uri)) {
       return null;
     }
-    return _sdk.mapDartUri(uri.toString());
+    return dartSdk.mapDartUri(uri.toString());
   }
 }
 /**
@@ -777,12 +718,12 @@ class LineInfo_Location {
   /**
    * The one-based index of the line containing the character.
    */
-  int _lineNumber = 0;
+  int lineNumber = 0;
 
   /**
    * The one-based index of the column containing the character.
    */
-  int _columnNumber = 0;
+  int columnNumber = 0;
 
   /**
    * Initialize a newly created location to represent the location of the character at the given
@@ -792,23 +733,9 @@ class LineInfo_Location {
    * @param columnNumber the one-based index of the column containing the character
    */
   LineInfo_Location(int lineNumber, int columnNumber) {
-    this._lineNumber = lineNumber;
-    this._columnNumber = columnNumber;
+    this.lineNumber = lineNumber;
+    this.columnNumber = columnNumber;
   }
-
-  /**
-   * Return the one-based index of the column containing the character.
-   *
-   * @return the one-based index of the column containing the character
-   */
-  int get columnNumber => _columnNumber;
-
-  /**
-   * Return the one-based index of the line containing the character.
-   *
-   * @return the one-based index of the line containing the character
-   */
-  int get lineNumber => _lineNumber;
 }
 /**
  * Instances of class `ContentCache` hold content used to override the default content of a

@@ -40,14 +40,7 @@ class AnalysisEngine {
   /**
    * The unique instance of this class.
    */
-  static AnalysisEngine _UniqueInstance = new AnalysisEngine();
-
-  /**
-   * Return the unique instance of this class.
-   *
-   * @return the unique instance of this class
-   */
-  static AnalysisEngine get instance => _UniqueInstance;
+  static final AnalysisEngine instance = new AnalysisEngine();
 
   /**
    * Return `true` if the given file name is assumed to contain Dart source code.
@@ -733,22 +726,22 @@ class ChangeSet {
   /**
    * A list containing the sources that have been added.
    */
-  List<Source> _added2 = new List<Source>();
+  final List<Source> added3 = new List<Source>();
 
   /**
    * A list containing the sources that have been changed.
    */
-  List<Source> _changed2 = new List<Source>();
+  final List<Source> changed3 = new List<Source>();
 
   /**
    * A list containing the sources that have been removed.
    */
-  List<Source> _removed2 = new List<Source>();
+  final List<Source> removed3 = new List<Source>();
 
   /**
    * A list containing the source containers specifying additional sources that have been removed.
    */
-  List<SourceContainer> _removedContainers = new List<SourceContainer>();
+  final List<SourceContainer> removedContainers = new List<SourceContainer>();
 
   /**
    * Record that the specified source has been added and that it's content is the default contents
@@ -757,7 +750,7 @@ class ChangeSet {
    * @param source the source that was added
    */
   void added(Source source) {
-    _added2.add(source);
+    added3.add(source);
   }
 
   /**
@@ -767,52 +760,24 @@ class ChangeSet {
    * @param source the source that was changed
    */
   void changed(Source source) {
-    _changed2.add(source);
+    changed3.add(source);
   }
-
-  /**
-   * Return a collection of the sources that have been added.
-   *
-   * @return a collection of the sources that have been added
-   */
-  List<Source> get added3 => _added2;
-
-  /**
-   * Return a collection of sources that have been changed.
-   *
-   * @return a collection of sources that have been changed
-   */
-  List<Source> get changed3 => _changed2;
-
-  /**
-   * Return a list containing the sources that were removed.
-   *
-   * @return a list containing the sources that were removed
-   */
-  List<Source> get removed => _removed2;
-
-  /**
-   * Return a list containing the source containers that were removed.
-   *
-   * @return a list containing the source containers that were removed
-   */
-  List<SourceContainer> get removedContainers => _removedContainers;
 
   /**
    * Return `true` if this change set does not contain any changes.
    *
    * @return `true` if this change set does not contain any changes
    */
-  bool get isEmpty => _added2.isEmpty && _changed2.isEmpty && _removed2.isEmpty && _removedContainers.isEmpty;
+  bool get isEmpty => added3.isEmpty && changed3.isEmpty && removed3.isEmpty && removedContainers.isEmpty;
 
   /**
    * Record that the specified source has been removed.
    *
    * @param source the source that was removed
    */
-  void removed3(Source source) {
+  void removed(Source source) {
     if (source != null) {
-      _removed2.add(source);
+      removed3.add(source);
     }
   }
 
@@ -823,7 +788,7 @@ class ChangeSet {
    */
   void removedContainer(SourceContainer container) {
     if (container != null) {
-      _removedContainers.add(container);
+      removedContainers.add(container);
     }
   }
 }
@@ -2663,7 +2628,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return;
     }
     {
-      List<Source> removedSources = new List<Source>.from(changeSet.removed);
+      List<Source> removedSources = new List<Source>.from(changeSet.removed3);
       for (SourceContainer container in changeSet.removedContainers) {
         addSourcesInContainer(removedSources, container);
       }
@@ -4902,7 +4867,7 @@ class AnalysisContextImpl_ScanResult {
   /**
    * The time at which the contents of the source were last modified.
    */
-  int _modificationTime = 0;
+  int modificationTime = 0;
 
   /**
    * The first token in the token stream.
@@ -4913,13 +4878,6 @@ class AnalysisContextImpl_ScanResult {
    * The line start information that was produced.
    */
   List<int> _lineStarts;
-
-  /**
-   * Return the time at which the contents of the source were last modified.
-   *
-   * @return the time at which the contents of the source were last modified
-   */
-  int get modificationTime => _modificationTime;
 }
 class RecursiveXmlVisitor_6 extends RecursiveXmlVisitor<Object> {
   final AnalysisContextImpl AnalysisContextImpl_this;
@@ -4966,13 +4924,13 @@ class Source_ContentReceiver_7 implements Source_ContentReceiver {
   Source_ContentReceiver_7(this.source, this.errorListener, this.result);
   void accept(CharBuffer contents, int modificationTime2) {
     CharBufferScanner scanner = new CharBufferScanner(source, contents, errorListener);
-    result._modificationTime = modificationTime2;
+    result.modificationTime = modificationTime2;
     result._token = scanner.tokenize();
     result._lineStarts = scanner.lineStarts;
   }
   void accept2(String contents, int modificationTime2) {
     StringScanner scanner = new StringScanner(source, contents, errorListener);
-    result._modificationTime = modificationTime2;
+    result.modificationTime = modificationTime2;
     result._token = scanner.tokenize();
     result._lineStarts = scanner.lineStarts;
   }
@@ -5049,7 +5007,7 @@ class AnalysisContextImpl2 implements InternalAnalysisContext {
       return;
     }
     {
-      List<Source> removedSources = new List<Source>.from(changeSet.removed);
+      List<Source> removedSources = new List<Source>.from(changeSet.removed3);
       for (SourceContainer container in changeSet.removedContainers) {
         addSourcesInContainer(removedSources, container);
       }
@@ -7498,7 +7456,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   /**
    * The analysis context to which all of the non-instrumentation work is delegated.
    */
-  InternalAnalysisContext _basis;
+  InternalAnalysisContext basis;
 
   /**
    * Create a new [InstrumentedAnalysisContextImpl] which wraps a new
@@ -7513,16 +7471,16 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
    * @param context some [InstrumentedAnalysisContext] to wrap and instrument
    */
   InstrumentedAnalysisContextImpl.con1(InternalAnalysisContext context) {
-    _basis = context;
+    basis = context;
   }
   void addSourceInfo(Source source, SourceEntry info) {
-    _basis.addSourceInfo(source, info);
+    basis.addSourceInfo(source, info);
   }
   void applyChanges(ChangeSet changeSet) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-applyChanges");
     try {
       instrumentation.metric3("contextId", _contextId);
-      _basis.applyChanges(changeSet);
+      basis.applyChanges(changeSet);
     } finally {
       instrumentation.log();
     }
@@ -7531,7 +7489,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-computeDocumentationComment");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.computeDocumentationComment(element);
+      return basis.computeDocumentationComment(element);
     } finally {
       instrumentation.log();
     }
@@ -7540,7 +7498,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-computeErrors");
     try {
       instrumentation.metric3("contextId", _contextId);
-      List<AnalysisError> errors = _basis.computeErrors(source);
+      List<AnalysisError> errors = basis.computeErrors(source);
       instrumentation.metric2("Errors-count", errors.length);
       return errors;
     } finally {
@@ -7551,7 +7509,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-computeExportedLibraries");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.computeExportedLibraries(source);
+      return basis.computeExportedLibraries(source);
     } finally {
       instrumentation.log();
     }
@@ -7560,7 +7518,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-computeHtmlElement");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.computeHtmlElement(source);
+      return basis.computeHtmlElement(source);
     } on AnalysisException catch (e) {
       recordAnalysisException(instrumentation, e);
       throw e;
@@ -7572,7 +7530,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-computeImportedLibraries");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.computeImportedLibraries(source);
+      return basis.computeImportedLibraries(source);
     } finally {
       instrumentation.log();
     }
@@ -7581,7 +7539,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-computeKindOf");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.computeKindOf(source);
+      return basis.computeKindOf(source);
     } finally {
       instrumentation.log();
     }
@@ -7590,7 +7548,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-computeLibraryElement");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.computeLibraryElement(source);
+      return basis.computeLibraryElement(source);
     } on AnalysisException catch (e) {
       recordAnalysisException(instrumentation, e);
       throw e;
@@ -7602,7 +7560,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-computeLineInfo");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.computeLineInfo(source);
+      return basis.computeLineInfo(source);
     } on AnalysisException catch (e) {
       recordAnalysisException(instrumentation, e);
       throw e;
@@ -7610,39 +7568,34 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
       instrumentation.log();
     }
   }
-  ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) => _basis.computeResolvableCompilationUnit(source);
-  ResolvableHtmlUnit computeResolvableHtmlUnit(Source source) => _basis.computeResolvableHtmlUnit(source);
+  ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) => basis.computeResolvableCompilationUnit(source);
+  ResolvableHtmlUnit computeResolvableHtmlUnit(Source source) => basis.computeResolvableHtmlUnit(source);
   AnalysisContext extractContext(SourceContainer container) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-extractContext");
     try {
       instrumentation.metric3("contextId", _contextId);
       InstrumentedAnalysisContextImpl newContext = new InstrumentedAnalysisContextImpl();
-      _basis.extractContextInto(container, newContext._basis);
+      basis.extractContextInto(container, newContext.basis);
       return newContext;
     } finally {
       instrumentation.log();
     }
   }
-  InternalAnalysisContext extractContextInto(SourceContainer container, InternalAnalysisContext newContext) => _basis.extractContextInto(container, newContext);
+  InternalAnalysisContext extractContextInto(SourceContainer container, InternalAnalysisContext newContext) => basis.extractContextInto(container, newContext);
   AnalysisOptions get analysisOptions {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getAnalysisOptions");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.analysisOptions;
+      return basis.analysisOptions;
     } finally {
       instrumentation.log();
     }
   }
-
-  /**
-   * @return the underlying [AnalysisContext].
-   */
-  AnalysisContext get basis => _basis;
   Element getElement(ElementLocation location) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getElement");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.getElement(location);
+      return basis.getElement(location);
     } finally {
       instrumentation.log();
     }
@@ -7651,7 +7604,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getErrors");
     try {
       instrumentation.metric3("contextId", _contextId);
-      AnalysisErrorInfo ret = _basis.getErrors(source);
+      AnalysisErrorInfo ret = basis.getErrors(source);
       if (ret != null) {
         instrumentation.metric2("Errors-count", ret.errors.length);
       }
@@ -7664,7 +7617,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getHtmlElement");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.getHtmlElement(source);
+      return basis.getHtmlElement(source);
     } finally {
       instrumentation.log();
     }
@@ -7673,7 +7626,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getHtmlFilesReferencing");
     try {
       instrumentation.metric3("contextId", _contextId);
-      List<Source> ret = _basis.getHtmlFilesReferencing(source);
+      List<Source> ret = basis.getHtmlFilesReferencing(source);
       if (ret != null) {
         instrumentation.metric2("Source-count", ret.length);
       }
@@ -7686,7 +7639,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getHtmlSources");
     try {
       instrumentation.metric3("contextId", _contextId);
-      List<Source> ret = _basis.htmlSources;
+      List<Source> ret = basis.htmlSources;
       if (ret != null) {
         instrumentation.metric2("Source-count", ret.length);
       }
@@ -7699,7 +7652,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getKindOf");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.getKindOf(source);
+      return basis.getKindOf(source);
     } finally {
       instrumentation.log();
     }
@@ -7708,7 +7661,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLaunchableClientLibrarySources");
     try {
       instrumentation.metric3("contextId", _contextId);
-      List<Source> ret = _basis.launchableClientLibrarySources;
+      List<Source> ret = basis.launchableClientLibrarySources;
       if (ret != null) {
         instrumentation.metric2("Source-count", ret.length);
       }
@@ -7721,7 +7674,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLaunchableServerLibrarySources");
     try {
       instrumentation.metric3("contextId", _contextId);
-      List<Source> ret = _basis.launchableServerLibrarySources;
+      List<Source> ret = basis.launchableServerLibrarySources;
       if (ret != null) {
         instrumentation.metric2("Source-count", ret.length);
       }
@@ -7734,7 +7687,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLibrariesContaining");
     try {
       instrumentation.metric3("contextId", _contextId);
-      List<Source> ret = _basis.getLibrariesContaining(source);
+      List<Source> ret = basis.getLibrariesContaining(source);
       if (ret != null) {
         instrumentation.metric2("Source-count", ret.length);
       }
@@ -7747,7 +7700,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLibrariesDependingOn");
     try {
       instrumentation.metric3("contextId", _contextId);
-      List<Source> ret = _basis.getLibrariesDependingOn(librarySource);
+      List<Source> ret = basis.getLibrariesDependingOn(librarySource);
       if (ret != null) {
         instrumentation.metric2("Source-count", ret.length);
       }
@@ -7760,7 +7713,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLibraryElement");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.getLibraryElement(source);
+      return basis.getLibraryElement(source);
     } finally {
       instrumentation.log();
     }
@@ -7769,7 +7722,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLibrarySources");
     try {
       instrumentation.metric3("contextId", _contextId);
-      List<Source> ret = _basis.librarySources;
+      List<Source> ret = basis.librarySources;
       if (ret != null) {
         instrumentation.metric2("Source-count", ret.length);
       }
@@ -7782,18 +7735,18 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLineInfo");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.getLineInfo(source);
+      return basis.getLineInfo(source);
     } finally {
       instrumentation.log();
     }
   }
-  Namespace getPublicNamespace(LibraryElement library) => _basis.getPublicNamespace(library);
-  Namespace getPublicNamespace2(Source source) => _basis.getPublicNamespace2(source);
+  Namespace getPublicNamespace(LibraryElement library) => basis.getPublicNamespace(library);
+  Namespace getPublicNamespace2(Source source) => basis.getPublicNamespace2(source);
   CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getResolvedCompilationUnit");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.getResolvedCompilationUnit(unitSource, library);
+      return basis.getResolvedCompilationUnit(unitSource, library);
     } finally {
       instrumentation.log();
     }
@@ -7802,7 +7755,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getResolvedCompilationUnit");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.getResolvedCompilationUnit2(unitSource, librarySource);
+      return basis.getResolvedCompilationUnit2(unitSource, librarySource);
     } finally {
       instrumentation.log2(2);
     }
@@ -7811,17 +7764,17 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getSourceFactory");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.sourceFactory;
+      return basis.sourceFactory;
     } finally {
       instrumentation.log2(2);
     }
   }
-  AnalysisContentStatistics get statistics => _basis.statistics;
+  AnalysisContentStatistics get statistics => basis.statistics;
   bool isClientLibrary(Source librarySource) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-isClientLibrary");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.isClientLibrary(librarySource);
+      return basis.isClientLibrary(librarySource);
     } finally {
       instrumentation.log();
     }
@@ -7830,7 +7783,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-isServerLibrary");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.isServerLibrary(librarySource);
+      return basis.isServerLibrary(librarySource);
     } finally {
       instrumentation.log();
     }
@@ -7840,9 +7793,9 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     try {
       instrumentation.metric3("contextId", _contextId);
       if (context is InstrumentedAnalysisContextImpl) {
-        context = ((context as InstrumentedAnalysisContextImpl))._basis;
+        context = ((context as InstrumentedAnalysisContextImpl)).basis;
       }
-      _basis.mergeContext(context);
+      basis.mergeContext(context);
     } finally {
       instrumentation.log();
     }
@@ -7851,7 +7804,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-parseCompilationUnit");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.parseCompilationUnit(source);
+      return basis.parseCompilationUnit(source);
     } on AnalysisException catch (e) {
       recordAnalysisException(instrumentation, e);
       throw e;
@@ -7863,7 +7816,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-parseHtmlUnit");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.parseHtmlUnit(source);
+      return basis.parseHtmlUnit(source);
     } on AnalysisException catch (e) {
       recordAnalysisException(instrumentation, e);
       throw e;
@@ -7875,7 +7828,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-performAnalysisTask");
     try {
       instrumentation.metric3("contextId", _contextId);
-      List<ChangeNotice> ret = _basis.performAnalysisTask();
+      List<ChangeNotice> ret = basis.performAnalysisTask();
       if (ret != null) {
         instrumentation.metric2("ChangeNotice-count", ret.length);
       }
@@ -7885,13 +7838,13 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     }
   }
   void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
-    _basis.recordLibraryElements(elementMap);
+    basis.recordLibraryElements(elementMap);
   }
   CompilationUnit resolveCompilationUnit(Source unitSource, LibraryElement library) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-resolveCompilationUnit");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.resolveCompilationUnit(unitSource, library);
+      return basis.resolveCompilationUnit(unitSource, library);
     } on AnalysisException catch (e) {
       recordAnalysisException(instrumentation, e);
       throw e;
@@ -7903,7 +7856,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-resolveCompilationUnit");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.resolveCompilationUnit2(unitSource, librarySource);
+      return basis.resolveCompilationUnit2(unitSource, librarySource);
     } on AnalysisException catch (e) {
       recordAnalysisException(instrumentation, e);
       throw e;
@@ -7915,7 +7868,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-resolveHtmlUnit");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.resolveHtmlUnit(htmlSource);
+      return basis.resolveHtmlUnit(htmlSource);
     } on AnalysisException catch (e) {
       recordAnalysisException(instrumentation, e);
       throw e;
@@ -7927,7 +7880,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-setAnalysisOptions");
     try {
       instrumentation.metric3("contextId", _contextId);
-      _basis.analysisOptions = options;
+      basis.analysisOptions = options;
     } finally {
       instrumentation.log();
     }
@@ -7936,7 +7889,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-setAnalysisPriorityOrder");
     try {
       instrumentation.metric3("contextId", _contextId);
-      _basis.analysisPriorityOrder = sources;
+      basis.analysisPriorityOrder = sources;
     } finally {
       instrumentation.log();
     }
@@ -7945,7 +7898,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-setContents");
     try {
       instrumentation.metric3("contextId", _contextId);
-      _basis.setContents(source, contents);
+      basis.setContents(source, contents);
     } finally {
       instrumentation.log();
     }
@@ -7954,7 +7907,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-setSourceFactory");
     try {
       instrumentation.metric3("contextId", _contextId);
-      _basis.sourceFactory = factory;
+      basis.sourceFactory = factory;
     } finally {
       instrumentation.log();
     }
@@ -7963,7 +7916,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-sourcesToResolve");
     try {
       instrumentation.metric3("contextId", _contextId);
-      return _basis.sourcesToResolve(changedSources);
+      return basis.sourcesToResolve(changedSources);
     } finally {
       instrumentation.log();
     }
@@ -8230,12 +8183,12 @@ class ResolvableCompilationUnit {
   /**
    * The modification time of the source from which the AST was created.
    */
-  int _modificationTime = 0;
+  int modificationTime = 0;
 
   /**
    * The AST that was created from the source.
    */
-  CompilationUnit _unit;
+  CompilationUnit compilationUnit;
 
   /**
    * Initialize a newly created holder to hold the given values.
@@ -8244,23 +8197,9 @@ class ResolvableCompilationUnit {
    * @param unit the AST that was created from the source
    */
   ResolvableCompilationUnit(int modificationTime, CompilationUnit unit) {
-    this._modificationTime = modificationTime;
-    this._unit = unit;
+    this.modificationTime = modificationTime;
+    this.compilationUnit = unit;
   }
-
-  /**
-   * Return the AST that was created from the source.
-   *
-   * @return the AST that was created from the source
-   */
-  CompilationUnit get compilationUnit => _unit;
-
-  /**
-   * Return the modification time of the source from which the AST was created.
-   *
-   * @return the modification time of the source from which the AST was created
-   */
-  int get modificationTime => _modificationTime;
 }
 /**
  * Instances of the class `ResolvableHtmlUnit` represent an HTML unit that is not referenced
@@ -8272,12 +8211,12 @@ class ResolvableHtmlUnit {
   /**
    * The modification time of the source from which the AST was created.
    */
-  int _modificationTime = 0;
+  int modificationTime = 0;
 
   /**
    * The AST that was created from the source.
    */
-  HtmlUnit _unit;
+  HtmlUnit compilationUnit;
 
   /**
    * Initialize a newly created holder to hold the given values.
@@ -8286,23 +8225,9 @@ class ResolvableHtmlUnit {
    * @param unit the AST that was created from the source
    */
   ResolvableHtmlUnit(int modificationTime, HtmlUnit unit) {
-    this._modificationTime = modificationTime;
-    this._unit = unit;
+    this.modificationTime = modificationTime;
+    this.compilationUnit = unit;
   }
-
-  /**
-   * Return the AST that was created from the source.
-   *
-   * @return the AST that was created from the source
-   */
-  HtmlUnit get compilationUnit => _unit;
-
-  /**
-   * Return the modification time of the source from which the AST was created.
-   *
-   * @return the modification time of the source from which the AST was created
-   */
-  int get modificationTime => _modificationTime;
 }
 /**
  * The abstract class `AnalysisTask` defines the behavior of objects used to perform an
@@ -8313,13 +8238,13 @@ abstract class AnalysisTask {
   /**
    * The context in which the task is to be performed.
    */
-  InternalAnalysisContext _context;
+  InternalAnalysisContext context;
 
   /**
    * The exception that was thrown while performing this task, or `null` if the task completed
    * successfully.
    */
-  AnalysisException _thrownException;
+  AnalysisException exception;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -8327,7 +8252,7 @@ abstract class AnalysisTask {
    * @param context the context in which the task is to be performed
    */
   AnalysisTask(InternalAnalysisContext context) {
-    this._context = context;
+    this.context = context;
   }
 
   /**
@@ -8340,14 +8265,6 @@ abstract class AnalysisTask {
   accept(AnalysisTaskVisitor visitor);
 
   /**
-   * Return the exception that was thrown while performing this task, or `null` if the task
-   * completed successfully.
-   *
-   * @return the exception that was thrown while performing this task
-   */
-  AnalysisException get exception => _thrownException;
-
-  /**
    * Perform this analysis task and use the given visitor to visit this task after it has completed.
    *
    * @param visitor the visitor used to visit this task after it has completed
@@ -8358,19 +8275,12 @@ abstract class AnalysisTask {
     try {
       safelyPerform();
     } on AnalysisException catch (exception) {
-      _thrownException = exception;
+      exception = exception;
       AnalysisEngine.instance.logger.logInformation2("Task failed: ${taskDescription}", exception);
     }
     return accept(visitor);
   }
   String toString() => taskDescription;
-
-  /**
-   * Return the context in which the task is to be performed.
-   *
-   * @return the context in which the task is to be performed
-   */
-  InternalAnalysisContext get context => _context;
 
   /**
    * Return a textual description of this task.
@@ -8462,27 +8372,27 @@ class ParseDartTask extends AnalysisTask {
   /**
    * The source to be parsed.
    */
-  Source _source;
+  Source source;
 
   /**
    * The time at which the contents of the source were last modified.
    */
-  int _modificationTime = -1;
+  int modificationTime = -1;
 
   /**
    * The line information that was produced.
    */
-  LineInfo _lineInfo;
+  LineInfo lineInfo;
 
   /**
    * The compilation unit that was produced by parsing the source.
    */
-  CompilationUnit _unit;
+  CompilationUnit compilationUnit;
 
   /**
    * The errors that were produced by scanning and parsing the source.
    */
-  List<AnalysisError> _errors = AnalysisError.NO_ERRORS;
+  List<AnalysisError> errors = AnalysisError.NO_ERRORS;
 
   /**
    * A flag indicating whether the source contains a 'part of' directive.
@@ -8516,25 +8426,9 @@ class ParseDartTask extends AnalysisTask {
    * @param source the source to be parsed
    */
   ParseDartTask(InternalAnalysisContext context, Source source) : super(context) {
-    this._source = source;
+    this.source = source;
   }
   accept(AnalysisTaskVisitor visitor) => visitor.visitParseDartTask(this);
-
-  /**
-   * Return the compilation unit that was produced by parsing the source, or `null` if the
-   * task has not yet been performed or if an exception occurred.
-   *
-   * @return the compilation unit that was produced by parsing the source
-   */
-  CompilationUnit get compilationUnit => _unit;
-
-  /**
-   * Return the errors that were produced by scanning and parsing the source, or `null` if the
-   * task has not yet been performed or if an exception occurred.
-   *
-   * @return the errors that were produced by scanning and parsing the source
-   */
-  List<AnalysisError> get errors => _errors;
 
   /**
    * Return an array containing the sources referenced by 'export' directives, or an empty array if
@@ -8561,29 +8455,6 @@ class ParseDartTask extends AnalysisTask {
   List<Source> get includedSources => toArray(_includedSources);
 
   /**
-   * Return the line information that was produced, or `null` if the task has not yet been
-   * performed or if an exception occurred.
-   *
-   * @return the line information that was produced
-   */
-  LineInfo get lineInfo => _lineInfo;
-
-  /**
-   * Return the time at which the contents of the source that was parsed were last modified, or a
-   * negative value if the task has not yet been performed or if an exception occurred.
-   *
-   * @return the time at which the contents of the source that was parsed were last modified
-   */
-  int get modificationTime => _modificationTime;
-
-  /**
-   * Return the source that is to be parsed.
-   *
-   * @return the source to be parsed
-   */
-  Source get source => _source;
-
-  /**
    * Return `true` if the source contains a 'library' directive, or `false` if the task
    * has not yet been performed or if an exception occurred.
    *
@@ -8598,35 +8469,35 @@ class ParseDartTask extends AnalysisTask {
    * @return `true` if the source contains a 'part of' directive
    */
   bool hasPartOfDirective() => _hasPartOfDirective2;
-  String get taskDescription => "parse as dart ${_source.fullName}";
+  String get taskDescription => "parse as dart ${source.fullName}";
   void internalPerform() {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     List<Token> token = [null];
     Source_ContentReceiver receiver = new Source_ContentReceiver_10(this, errorListener, token);
     try {
-      _source.getContents(receiver);
+      source.getContents(receiver);
     } catch (exception) {
-      _modificationTime = _source.modificationStamp;
+      modificationTime = source.modificationStamp;
       throw new AnalysisException.con3(exception);
     }
-    Parser parser = new Parser(_source, errorListener);
-    _unit = parser.parseCompilationUnit(token[0]);
-    _errors = errorListener.getErrors2(_source);
-    for (Directive directive in _unit.directives) {
+    Parser parser = new Parser(source, errorListener);
+    compilationUnit = parser.parseCompilationUnit(token[0]);
+    errors = errorListener.getErrors2(source);
+    for (Directive directive in compilationUnit.directives) {
       if (directive is ExportDirective) {
-        Source exportSource = resolveSource(_source, directive as ExportDirective);
+        Source exportSource = resolveSource(source, directive as ExportDirective);
         if (exportSource != null) {
           javaSetAdd(_exportedSources, exportSource);
         }
       } else if (directive is ImportDirective) {
-        Source importSource = resolveSource(_source, directive as ImportDirective);
+        Source importSource = resolveSource(source, directive as ImportDirective);
         if (importSource != null) {
           javaSetAdd(_importedSources, importSource);
         }
       } else if (directive is LibraryDirective) {
         _hasLibraryDirective2 = true;
       } else if (directive is PartDirective) {
-        Source partSource = resolveSource(_source, directive as PartDirective);
+        Source partSource = resolveSource(source, directive as PartDirective);
         if (partSource != null) {
           javaSetAdd(_includedSources, partSource);
         }
@@ -8634,8 +8505,8 @@ class ParseDartTask extends AnalysisTask {
         _hasPartOfDirective2 = true;
       }
     }
-    _unit.parsingErrors = _errors;
-    _unit.lineInfo = _lineInfo;
+    compilationUnit.parsingErrors = errors;
+    compilationUnit.lineInfo = lineInfo;
   }
 
   /**
@@ -8684,16 +8555,16 @@ class Source_ContentReceiver_10 implements Source_ContentReceiver {
   List<Token> token;
   Source_ContentReceiver_10(this.ParseDartTask_this, this.errorListener, this.token);
   void accept(CharBuffer contents, int modificationTime2) {
-    ParseDartTask_this._modificationTime = modificationTime2;
-    CharBufferScanner scanner = new CharBufferScanner(ParseDartTask_this._source, contents, errorListener);
+    ParseDartTask_this.modificationTime = modificationTime2;
+    CharBufferScanner scanner = new CharBufferScanner(ParseDartTask_this.source, contents, errorListener);
     token[0] = scanner.tokenize();
-    ParseDartTask_this._lineInfo = new LineInfo(scanner.lineStarts);
+    ParseDartTask_this.lineInfo = new LineInfo(scanner.lineStarts);
   }
   void accept2(String contents, int modificationTime2) {
-    ParseDartTask_this._modificationTime = modificationTime2;
-    StringScanner scanner = new StringScanner(ParseDartTask_this._source, contents, errorListener);
+    ParseDartTask_this.modificationTime = modificationTime2;
+    StringScanner scanner = new StringScanner(ParseDartTask_this.source, contents, errorListener);
     token[0] = scanner.tokenize();
-    ParseDartTask_this._lineInfo = new LineInfo(scanner.lineStarts);
+    ParseDartTask_this.lineInfo = new LineInfo(scanner.lineStarts);
   }
 }
 /**
@@ -8704,27 +8575,27 @@ class ParseHtmlTask extends AnalysisTask {
   /**
    * The source to be parsed.
    */
-  Source _source;
+  Source source;
 
   /**
    * The time at which the contents of the source were last modified.
    */
-  int _modificationTime = -1;
+  int modificationTime = -1;
 
   /**
    * The line information that was produced.
    */
-  LineInfo _lineInfo;
+  LineInfo lineInfo;
 
   /**
    * The HTML unit that was produced by parsing the source.
    */
-  HtmlUnit _unit;
+  HtmlUnit htmlUnit;
 
   /**
    * An array containing the sources of the libraries that are referenced within the HTML.
    */
-  List<Source> _referencedLibraries = Source.EMPTY_ARRAY;
+  List<Source> referencedLibraries = Source.EMPTY_ARRAY;
 
   /**
    * The name of the 'src' attribute in a HTML tag.
@@ -8754,60 +8625,23 @@ class ParseHtmlTask extends AnalysisTask {
    * @param source the source to be parsed
    */
   ParseHtmlTask(InternalAnalysisContext context, Source source) : super(context) {
-    this._source = source;
+    this.source = source;
   }
   accept(AnalysisTaskVisitor visitor) => visitor.visitParseHtmlTask(this);
-
-  /**
-   * Return the HTML unit that was produced by parsing the source.
-   *
-   * @return the HTML unit that was produced by parsing the source
-   */
-  HtmlUnit get htmlUnit => _unit;
-
-  /**
-   * Return the line information that was produced, or `null` if the task has not yet been
-   * performed or if an exception occurred.
-   *
-   * @return the line information that was produced
-   */
-  LineInfo get lineInfo => _lineInfo;
-
-  /**
-   * Return the time at which the contents of the source that was parsed were last modified, or a
-   * negative value if the task has not yet been performed or if an exception occurred.
-   *
-   * @return the time at which the contents of the source that was parsed were last modified
-   */
-  int get modificationTime => _modificationTime;
-
-  /**
-   * Return an array containing the sources of the libraries that are referenced within the HTML.
-   *
-   * @return the sources of the libraries that are referenced within the HTML
-   */
-  List<Source> get referencedLibraries => _referencedLibraries;
-
-  /**
-   * Return the source that was or is to be parsed.
-   *
-   * @return the source was or is to be parsed
-   */
-  Source get source => _source;
-  String get taskDescription => "parse as html ${_source.fullName}";
+  String get taskDescription => "parse as html ${source.fullName}";
   void internalPerform() {
-    HtmlScanner scanner = new HtmlScanner(_source);
+    HtmlScanner scanner = new HtmlScanner(source);
     try {
-      _source.getContents(scanner);
+      source.getContents(scanner);
     } catch (exception) {
       throw new AnalysisException.con3(exception);
     }
     HtmlScanResult scannerResult = scanner.result;
-    _modificationTime = scannerResult.modificationTime;
-    _lineInfo = new LineInfo(scannerResult.lineStarts);
-    HtmlParseResult result = new HtmlParser(_source).parse(scannerResult);
-    _unit = result.htmlUnit;
-    _referencedLibraries = librarySources;
+    modificationTime = scannerResult.modificationTime;
+    lineInfo = new LineInfo(scannerResult.lineStarts);
+    HtmlParseResult result = new HtmlParser(source).parse(scannerResult);
+    htmlUnit = result.htmlUnit;
+    referencedLibraries = librarySources;
   }
 
   /**
@@ -8817,7 +8651,7 @@ class ParseHtmlTask extends AnalysisTask {
    */
   List<Source> get librarySources {
     List<Source> libraries = new List<Source>();
-    _unit.accept(new RecursiveXmlVisitor_11(this, libraries));
+    htmlUnit.accept(new RecursiveXmlVisitor_11(this, libraries));
     if (libraries.isEmpty) {
       return Source.EMPTY_ARRAY;
     }
@@ -8845,12 +8679,12 @@ class RecursiveXmlVisitor_11 extends RecursiveXmlVisitor<Object> {
         try {
           Uri uri = new Uri(path: scriptAttribute.text);
           String fileName = uri.path;
-          Source librarySource = ParseHtmlTask_this.context.sourceFactory.resolveUri(ParseHtmlTask_this._source, fileName);
+          Source librarySource = ParseHtmlTask_this.context.sourceFactory.resolveUri(ParseHtmlTask_this.source, fileName);
           if (librarySource.exists()) {
             libraries.add(librarySource);
           }
         } catch (exception) {
-          AnalysisEngine.instance.logger.logInformation2("Invalid URL ('${scriptAttribute.text}') in script tag in '${ParseHtmlTask_this._source.fullName}'", exception);
+          AnalysisEngine.instance.logger.logInformation2("Invalid URL ('${scriptAttribute.text}') in script tag in '${ParseHtmlTask_this.source.fullName}'", exception);
         }
       }
     }
@@ -8865,17 +8699,17 @@ class ResolveDartLibraryTask extends AnalysisTask {
   /**
    * The source representing the file whose compilation unit is to be returned.
    */
-  Source _unitSource;
+  Source unitSource;
 
   /**
    * The source representing the library to be resolved.
    */
-  Source _librarySource;
+  Source librarySource;
 
   /**
    * The library resolver holding information about the libraries that were resolved.
    */
-  LibraryResolver _resolver;
+  LibraryResolver libraryResolver;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -8885,35 +8719,14 @@ class ResolveDartLibraryTask extends AnalysisTask {
    * @param librarySource the source representing the library to be resolved
    */
   ResolveDartLibraryTask(InternalAnalysisContext context, Source unitSource, Source librarySource) : super(context) {
-    this._unitSource = unitSource;
-    this._librarySource = librarySource;
+    this.unitSource = unitSource;
+    this.librarySource = librarySource;
   }
   accept(AnalysisTaskVisitor visitor) => visitor.visitResolveDartLibraryTask(this);
-
-  /**
-   * Return the library resolver holding information about the libraries that were resolved.
-   *
-   * @return the library resolver holding information about the libraries that were resolved
-   */
-  LibraryResolver get libraryResolver => _resolver;
-
-  /**
-   * Return the source representing the library to be resolved.
-   *
-   * @return the source representing the library to be resolved
-   */
-  Source get librarySource => _librarySource;
-
-  /**
-   * Return the source representing the file whose compilation unit is to be returned.
-   *
-   * @return the source representing the file whose compilation unit is to be returned
-   */
-  Source get unitSource => _unitSource;
-  String get taskDescription => "resolve library ${_librarySource.fullName}";
+  String get taskDescription => "resolve library ${librarySource.fullName}";
   void internalPerform() {
-    _resolver = new LibraryResolver(context);
-    _resolver.resolveLibrary(_librarySource, true);
+    libraryResolver = new LibraryResolver(context);
+    libraryResolver.resolveLibrary(librarySource, true);
   }
 }
 /**
@@ -8925,7 +8738,7 @@ class ResolveDartUnitTask extends AnalysisTask {
   /**
    * The source that is to be resolved.
    */
-  Source _source;
+  Source source;
 
   /**
    * The element model for the library containing the source.
@@ -8935,12 +8748,12 @@ class ResolveDartUnitTask extends AnalysisTask {
   /**
    * The time at which the contents of the source were last modified.
    */
-  int _modificationTime = -1;
+  int modificationTime = -1;
 
   /**
    * The compilation unit that was resolved by this task.
    */
-  CompilationUnit _resolvedUnit;
+  CompilationUnit resolvedUnit;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -8950,7 +8763,7 @@ class ResolveDartUnitTask extends AnalysisTask {
    * @param libraryElement the element model for the library containing the source
    */
   ResolveDartUnitTask(InternalAnalysisContext context, Source source, LibraryElement libraryElement) : super(context) {
-    this._source = source;
+    this.source = source;
     this._libraryElement = libraryElement;
   }
   accept(AnalysisTaskVisitor visitor) => visitor.visitResolveDartUnitTask(this);
@@ -8961,58 +8774,36 @@ class ResolveDartUnitTask extends AnalysisTask {
    * @return the source for the library containing the source that is to be resolved
    */
   Source get librarySource => _libraryElement.source;
-
-  /**
-   * Return the time at which the contents of the source that was parsed were last modified, or a
-   * negative value if the task has not yet been performed or if an exception occurred.
-   *
-   * @return the time at which the contents of the source that was parsed were last modified
-   */
-  int get modificationTime => _modificationTime;
-
-  /**
-   * Return the compilation unit that was resolved by this task.
-   *
-   * @return the compilation unit that was resolved by this task
-   */
-  CompilationUnit get resolvedUnit => _resolvedUnit;
-
-  /**
-   * Return the source that is to be resolved.
-   *
-   * @return the source to be resolved
-   */
-  Source get source => _source;
   String get taskDescription => "resolve unit ${_libraryElement.source.fullName}";
   void internalPerform() {
     Source coreLibrarySource = _libraryElement.context.sourceFactory.forUri(DartSdk.DART_CORE);
     LibraryElement coreElement = context.computeLibraryElement(coreLibrarySource);
     TypeProvider typeProvider = new TypeProviderImpl(coreElement);
-    ResolvableCompilationUnit resolvableUnit = context.computeResolvableCompilationUnit(_source);
-    _modificationTime = resolvableUnit.modificationTime;
+    ResolvableCompilationUnit resolvableUnit = context.computeResolvableCompilationUnit(source);
+    modificationTime = resolvableUnit.modificationTime;
     CompilationUnit unit = resolvableUnit.compilationUnit;
     if (unit == null) {
       throw new AnalysisException.con1("Internal error: computeResolvableCompilationUnit returned a value without a parsed Dart unit");
     }
-    new DeclarationResolver().resolve(unit, find(_libraryElement, _source));
+    new DeclarationResolver().resolve(unit, find(_libraryElement, source));
     RecordingErrorListener errorListener = new RecordingErrorListener();
-    TypeResolverVisitor typeResolverVisitor = new TypeResolverVisitor.con2(_libraryElement, _source, typeProvider, errorListener);
+    TypeResolverVisitor typeResolverVisitor = new TypeResolverVisitor.con2(_libraryElement, source, typeProvider, errorListener);
     unit.accept(typeResolverVisitor);
     InheritanceManager inheritanceManager = new InheritanceManager(_libraryElement);
-    ResolverVisitor resolverVisitor = new ResolverVisitor.con2(_libraryElement, _source, typeProvider, inheritanceManager, errorListener);
+    ResolverVisitor resolverVisitor = new ResolverVisitor.con2(_libraryElement, source, typeProvider, inheritanceManager, errorListener);
     unit.accept(resolverVisitor);
     for (ProxyConditionalAnalysisError conditionalCode in resolverVisitor.proxyConditionalAnalysisErrors) {
       if (conditionalCode.shouldIncludeErrorCode()) {
         resolverVisitor.reportError(conditionalCode.analysisError);
       }
     }
-    ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
+    ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
     ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, _libraryElement, typeProvider, inheritanceManager);
     unit.accept(errorVerifier);
     ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
     unit.accept(constantVerifier);
     unit.resolutionErrors = errorListener.errors;
-    _resolvedUnit = unit;
+    resolvedUnit = unit;
   }
 
   /**
@@ -9045,22 +8836,22 @@ class ResolveHtmlTask extends AnalysisTask {
   /**
    * The source to be resolved.
    */
-  Source _source;
+  Source source;
 
   /**
    * The time at which the contents of the source were last modified.
    */
-  int _modificationTime = -1;
+  int modificationTime = -1;
 
   /**
    * The element produced by resolving the source.
    */
-  HtmlElement _element = null;
+  HtmlElement element = null;
 
   /**
    * The resolution errors that were discovered while resolving the source.
    */
-  List<AnalysisError> _resolutionErrors = AnalysisError.NO_ERRORS;
+  List<AnalysisError> resolutionErrors = AnalysisError.NO_ERRORS;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -9069,37 +8860,20 @@ class ResolveHtmlTask extends AnalysisTask {
    * @param source the source to be resolved
    */
   ResolveHtmlTask(InternalAnalysisContext context, Source source) : super(context) {
-    this._source = source;
+    this.source = source;
   }
   accept(AnalysisTaskVisitor visitor) => visitor.visitResolveHtmlTask(this);
-  HtmlElement get element => _element;
-
-  /**
-   * Return the time at which the contents of the source that was parsed were last modified, or a
-   * negative value if the task has not yet been performed or if an exception occurred.
-   *
-   * @return the time at which the contents of the source that was parsed were last modified
-   */
-  int get modificationTime => _modificationTime;
-  List<AnalysisError> get resolutionErrors => _resolutionErrors;
-
-  /**
-   * Return the source that was or is to be resolved.
-   *
-   * @return the source was or is to be resolved
-   */
-  Source get source => _source;
-  String get taskDescription => "resolve as html ${_source.fullName}";
+  String get taskDescription => "resolve as html ${source.fullName}";
   void internalPerform() {
-    ResolvableHtmlUnit resolvableHtmlUnit = context.computeResolvableHtmlUnit(_source);
+    ResolvableHtmlUnit resolvableHtmlUnit = context.computeResolvableHtmlUnit(source);
     HtmlUnit unit = resolvableHtmlUnit.compilationUnit;
     if (unit == null) {
       throw new AnalysisException.con1("Internal error: computeResolvableHtmlUnit returned a value without a parsed HTML unit");
     }
-    _modificationTime = resolvableHtmlUnit.modificationTime;
+    modificationTime = resolvableHtmlUnit.modificationTime;
     HtmlUnitBuilder builder = new HtmlUnitBuilder(context);
-    _element = builder.buildHtmlElement2(_source, _modificationTime, unit);
-    _resolutionErrors = builder.errorListener.getErrors2(_source);
+    element = builder.buildHtmlElement2(source, modificationTime, unit);
+    resolutionErrors = builder.errorListener.getErrors2(source);
   }
 }
 /**

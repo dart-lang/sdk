@@ -21,12 +21,12 @@ class CommentAndMetadata {
   /**
    * The documentation comment that was parsed, or `null` if none was given.
    */
-  Comment _comment;
+  Comment comment;
 
   /**
    * The metadata that was parsed.
    */
-  List<Annotation> _metadata;
+  List<Annotation> metadata;
 
   /**
    * Initialize a newly created holder with the given data.
@@ -35,23 +35,9 @@ class CommentAndMetadata {
    * @param metadata the metadata that was parsed
    */
   CommentAndMetadata(Comment comment, List<Annotation> metadata) {
-    this._comment = comment;
-    this._metadata = metadata;
+    this.comment = comment;
+    this.metadata = metadata;
   }
-
-  /**
-   * Return the documentation comment that was parsed, or `null` if none was given.
-   *
-   * @return the documentation comment that was parsed
-   */
-  Comment get comment => _comment;
-
-  /**
-   * Return the metadata that was parsed. If there was no metadata, then the list will be empty.
-   *
-   * @return the metadata that was parsed
-   */
-  List<Annotation> get metadata => _metadata;
 }
 /**
  * Instances of the class `FinalConstVarOrType` implement a simple data-holder for a method
@@ -64,12 +50,12 @@ class FinalConstVarOrType {
   /**
    * The 'final', 'const' or 'var' keyword, or `null` if none was given.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The type, of `null` if no type was specified.
    */
-  TypeName _type;
+  TypeName type;
 
   /**
    * Initialize a newly created holder with the given data.
@@ -78,23 +64,9 @@ class FinalConstVarOrType {
    * @param type the type
    */
   FinalConstVarOrType(Token keyword, TypeName type) {
-    this._keyword = keyword;
-    this._type = type;
+    this.keyword = keyword;
+    this.type = type;
   }
-
-  /**
-   * Return the 'final', 'const' or 'var' keyword, or `null` if none was given.
-   *
-   * @return the 'final', 'const' or 'var' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Return the type, of `null` if no type was specified.
-   *
-   * @return the type
-   */
-  TypeName get type => _type;
 }
 /**
  * Instances of the class `Modifiers` implement a simple data-holder for a method that needs
@@ -107,164 +79,46 @@ class Modifiers {
   /**
    * The token representing the keyword 'abstract', or `null` if the keyword was not found.
    */
-  Token _abstractKeyword;
+  Token abstractKeyword;
 
   /**
    * The token representing the keyword 'const', or `null` if the keyword was not found.
    */
-  Token _constKeyword;
+  Token constKeyword;
 
   /**
    * The token representing the keyword 'external', or `null` if the keyword was not found.
    */
-  Token _externalKeyword;
+  Token externalKeyword;
 
   /**
    * The token representing the keyword 'factory', or `null` if the keyword was not found.
    */
-  Token _factoryKeyword;
+  Token factoryKeyword;
 
   /**
    * The token representing the keyword 'final', or `null` if the keyword was not found.
    */
-  Token _finalKeyword;
+  Token finalKeyword;
 
   /**
    * The token representing the keyword 'static', or `null` if the keyword was not found.
    */
-  Token _staticKeyword;
+  Token staticKeyword;
 
   /**
    * The token representing the keyword 'var', or `null` if the keyword was not found.
    */
-  Token _varKeyword;
-
-  /**
-   * Return the token representing the keyword 'abstract', or `null` if the keyword was not
-   * found.
-   *
-   * @return the token representing the keyword 'abstract'
-   */
-  Token get abstractKeyword => _abstractKeyword;
-
-  /**
-   * Return the token representing the keyword 'const', or `null` if the keyword was not
-   * found.
-   *
-   * @return the token representing the keyword 'const'
-   */
-  Token get constKeyword => _constKeyword;
-
-  /**
-   * Return the token representing the keyword 'external', or `null` if the keyword was not
-   * found.
-   *
-   * @return the token representing the keyword 'external'
-   */
-  Token get externalKeyword => _externalKeyword;
-
-  /**
-   * Return the token representing the keyword 'factory', or `null` if the keyword was not
-   * found.
-   *
-   * @return the token representing the keyword 'factory'
-   */
-  Token get factoryKeyword => _factoryKeyword;
-
-  /**
-   * Return the token representing the keyword 'final', or `null` if the keyword was not
-   * found.
-   *
-   * @return the token representing the keyword 'final'
-   */
-  Token get finalKeyword => _finalKeyword;
-
-  /**
-   * Return the token representing the keyword 'static', or `null` if the keyword was not
-   * found.
-   *
-   * @return the token representing the keyword 'static'
-   */
-  Token get staticKeyword => _staticKeyword;
-
-  /**
-   * Return the token representing the keyword 'var', or `null` if the keyword was not found.
-   *
-   * @return the token representing the keyword 'var'
-   */
-  Token get varKeyword => _varKeyword;
-
-  /**
-   * Set the token representing the keyword 'abstract' to the given token.
-   *
-   * @param abstractKeyword the token representing the keyword 'abstract'
-   */
-  void set abstractKeyword(Token abstractKeyword2) {
-    this._abstractKeyword = abstractKeyword2;
-  }
-
-  /**
-   * Set the token representing the keyword 'const' to the given token.
-   *
-   * @param constKeyword the token representing the keyword 'const'
-   */
-  void set constKeyword(Token constKeyword2) {
-    this._constKeyword = constKeyword2;
-  }
-
-  /**
-   * Set the token representing the keyword 'external' to the given token.
-   *
-   * @param externalKeyword the token representing the keyword 'external'
-   */
-  void set externalKeyword(Token externalKeyword2) {
-    this._externalKeyword = externalKeyword2;
-  }
-
-  /**
-   * Set the token representing the keyword 'factory' to the given token.
-   *
-   * @param factoryKeyword the token representing the keyword 'factory'
-   */
-  void set factoryKeyword(Token factoryKeyword2) {
-    this._factoryKeyword = factoryKeyword2;
-  }
-
-  /**
-   * Set the token representing the keyword 'final' to the given token.
-   *
-   * @param finalKeyword the token representing the keyword 'final'
-   */
-  void set finalKeyword(Token finalKeyword2) {
-    this._finalKeyword = finalKeyword2;
-  }
-
-  /**
-   * Set the token representing the keyword 'static' to the given token.
-   *
-   * @param staticKeyword the token representing the keyword 'static'
-   */
-  void set staticKeyword(Token staticKeyword2) {
-    this._staticKeyword = staticKeyword2;
-  }
-
-  /**
-   * Set the token representing the keyword 'var' to the given token.
-   *
-   * @param varKeyword the token representing the keyword 'var'
-   */
-  void set varKeyword(Token varKeyword2) {
-    this._varKeyword = varKeyword2;
-  }
+  Token varKeyword;
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
-    bool needsSpace = appendKeyword(builder, false, _abstractKeyword);
-    needsSpace = appendKeyword(builder, needsSpace, _constKeyword);
-    needsSpace = appendKeyword(builder, needsSpace, _externalKeyword);
-    needsSpace = appendKeyword(builder, needsSpace, _factoryKeyword);
-    needsSpace = appendKeyword(builder, needsSpace, _finalKeyword);
-    needsSpace = appendKeyword(builder, needsSpace, _staticKeyword);
-    appendKeyword(builder, needsSpace, _varKeyword);
+    bool needsSpace = appendKeyword(builder, false, abstractKeyword);
+    needsSpace = appendKeyword(builder, needsSpace, constKeyword);
+    needsSpace = appendKeyword(builder, needsSpace, externalKeyword);
+    needsSpace = appendKeyword(builder, needsSpace, factoryKeyword);
+    needsSpace = appendKeyword(builder, needsSpace, finalKeyword);
+    needsSpace = appendKeyword(builder, needsSpace, staticKeyword);
+    appendKeyword(builder, needsSpace, varKeyword);
     return builder.toString();
   }
 

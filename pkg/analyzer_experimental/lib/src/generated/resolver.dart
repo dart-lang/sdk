@@ -1028,7 +1028,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
   /**
    * The error listener to which errors will be reported.
    */
-  RecordingErrorListener _errorListener;
+  RecordingErrorListener errorListener;
 
   /**
    * The modification time of the source for which an element is being built.
@@ -1059,7 +1059,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
   /**
    * A set of the libraries that were resolved while resolving the HTML unit.
    */
-  Set<Library> _resolvedLibraries = new Set<Library>();
+  final Set<Library> resolvedLibraries = new Set<Library>();
 
   /**
    * Initialize a newly created HTML unit builder.
@@ -1068,7 +1068,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
    */
   HtmlUnitBuilder(InternalAnalysisContext context) {
     this._context = context;
-    this._errorListener = new RecordingErrorListener();
+    this.errorListener = new RecordingErrorListener();
   }
 
   /**
@@ -1100,20 +1100,6 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
     unit.element = result;
     return result;
   }
-
-  /**
-   * Return the listener to which analysis errors will be reported.
-   *
-   * @return the listener to which analysis errors will be reported
-   */
-  RecordingErrorListener get errorListener => _errorListener;
-
-  /**
-   * Return an array containing information about all of the libraries that were resolved.
-   *
-   * @return an array containing the libraries that were resolved
-   */
-  Set<Library> get resolvedLibraries => _resolvedLibraries;
   Object visitHtmlUnit(ht.HtmlUnit node) {
     _parentNodes = new List<ht.XmlTagNode>();
     _scripts = new List<HtmlScriptElement>();
@@ -1161,19 +1147,19 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
           String contents = node.content;
           int attributeEnd = node.attributeEnd.end;
           LineInfo_Location location = _lineInfo.getLocation(attributeEnd);
-          sc.StringScanner scanner = new sc.StringScanner(htmlSource, contents, _errorListener);
+          sc.StringScanner scanner = new sc.StringScanner(htmlSource, contents, errorListener);
           scanner.setSourceStart(location.lineNumber, location.columnNumber, attributeEnd);
           sc.Token firstToken = scanner.tokenize();
           List<int> lineStarts = scanner.lineStarts;
-          Parser parser = new Parser(htmlSource, _errorListener);
+          Parser parser = new Parser(htmlSource, errorListener);
           CompilationUnit unit = parser.parseCompilationUnit(firstToken);
           unit.lineInfo = new LineInfo(lineStarts);
           try {
             LibraryResolver resolver = new LibraryResolver(_context);
             LibraryElementImpl library = resolver.resolveEmbeddedLibrary(htmlSource, _modificationStamp, unit, true) as LibraryElementImpl;
             script.scriptLibrary = library;
-            _resolvedLibraries.addAll(resolver.resolvedLibraries);
-            _errorListener.addAll(resolver.errorListener);
+            resolvedLibraries.addAll(resolver.resolvedLibraries);
+            errorListener.addAll(resolver.errorListener);
           } on AnalysisException catch (exception) {
             AnalysisEngine.instance.logger.logError3(exception);
           }
@@ -1253,7 +1239,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
    * @param arguments the arguments used to compose the error message
    */
   void reportError(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
-    _errorListener.onError(new AnalysisError.con2(_htmlElement.source, offset, length, errorCode, arguments));
+    errorListener.onError(new AnalysisError.con2(_htmlElement.source, offset, length, errorCode, arguments));
   }
 
   /**
@@ -4815,7 +4801,7 @@ class Library {
   /**
    * The source specifying the defining compilation unit of this library.
    */
-  Source _librarySource;
+  Source librarySource;
 
   /**
    * The library element representing this library.
@@ -4825,7 +4811,7 @@ class Library {
   /**
    * A list containing all of the libraries that are imported into this library.
    */
-  List<Library> _importedLibraries = _EMPTY_ARRAY;
+  List<Library> imports = _EMPTY_ARRAY;
 
   /**
    * A table mapping URI-based directive to the actual URI value.
@@ -4835,12 +4821,12 @@ class Library {
   /**
    * A flag indicating whether this library explicitly imports core.
    */
-  bool _explicitlyImportsCore = false;
+  bool explicitlyImportsCore = false;
 
   /**
    * A list containing all of the libraries that are exported from this library.
    */
-  List<Library> _exportedLibraries = _EMPTY_ARRAY;
+  List<Library> exports = _EMPTY_ARRAY;
 
   /**
    * A table mapping the sources for the compilation units in this library to their corresponding
@@ -4868,7 +4854,7 @@ class Library {
   Library(InternalAnalysisContext analysisContext, AnalysisErrorListener errorListener, Source librarySource) {
     this._analysisContext = analysisContext;
     this._errorListener = errorListener;
-    this._librarySource = librarySource;
+    this.librarySource = librarySource;
     this._libraryElement = analysisContext.getLibraryElement(librarySource) as LibraryElementImpl;
   }
 
@@ -4899,7 +4885,7 @@ class Library {
     List<CompilationUnit> unitArrayList = new List<CompilationUnit>();
     unitArrayList.add(definingCompilationUnit);
     for (Source source in _astMap.keys.toSet()) {
-      if (_librarySource != source) {
+      if (librarySource != source) {
         unitArrayList.add(getAST(source));
       }
     }
@@ -4921,28 +4907,7 @@ class Library {
    * @throws AnalysisException if an AST structure could not be created for the defining compilation
    *           unit
    */
-  CompilationUnit get definingCompilationUnit => getAST(_librarySource);
-
-  /**
-   * Return `true` if this library explicitly imports core.
-   *
-   * @return `true` if this library explicitly imports core
-   */
-  bool get explicitlyImportsCore => _explicitlyImportsCore;
-
-  /**
-   * Return an array containing the libraries that are exported from this library.
-   *
-   * @return an array containing the libraries that are exported from this library
-   */
-  List<Library> get exports => _exportedLibraries;
-
-  /**
-   * Return an array containing the libraries that are imported into this library.
-   *
-   * @return an array containing the libraries that are imported into this library
-   */
-  List<Library> get imports => _importedLibraries;
+  CompilationUnit get definingCompilationUnit => getAST(librarySource);
 
   /**
    * Return an array containing the libraries that are either imported or exported from this
@@ -4952,10 +4917,10 @@ class Library {
    */
   List<Library> get importsAndExports {
     Set<Library> libraries = new Set<Library>();
-    for (Library library in _importedLibraries) {
+    for (Library library in imports) {
       javaSetAdd(libraries, library);
     }
-    for (Library library in _exportedLibraries) {
+    for (Library library in exports) {
       javaSetAdd(libraries, library);
     }
     return new List.from(libraries);
@@ -4981,9 +4946,9 @@ class Library {
   LibraryElementImpl get libraryElement {
     if (_libraryElement == null) {
       try {
-        _libraryElement = _analysisContext.computeLibraryElement(_librarySource) as LibraryElementImpl;
+        _libraryElement = _analysisContext.computeLibraryElement(librarySource) as LibraryElementImpl;
       } on AnalysisException catch (exception) {
-        AnalysisEngine.instance.logger.logError2("Could not compute ilbrary element for ${_librarySource.fullName}", exception);
+        AnalysisEngine.instance.logger.logError2("Could not compute ilbrary element for ${librarySource.fullName}", exception);
       }
     }
     return _libraryElement;
@@ -5000,13 +4965,6 @@ class Library {
     }
     return _libraryScope;
   }
-
-  /**
-   * Return the source specifying the defining compilation unit of this library.
-   *
-   * @return the source specifying the defining compilation unit of this library
-   */
-  Source get librarySource => _librarySource;
 
   /**
    * Return the modification time associated with the given source.
@@ -5035,7 +4993,7 @@ class Library {
   Source getSource(UriBasedDirective directive) {
     StringLiteral uriLiteral = directive.uri;
     if (uriLiteral is StringInterpolation) {
-      _errorListener.onError(new AnalysisError.con2(_librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION, []));
+      _errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION, []));
       return null;
     }
     String uriContent = uriLiteral.stringValue.trim();
@@ -5043,13 +5001,13 @@ class Library {
     uriContent = Uri.encodeFull(uriContent);
     try {
       parseUriWithException(uriContent);
-      Source source = _analysisContext.sourceFactory.resolveUri(_librarySource, uriContent);
+      Source source = _analysisContext.sourceFactory.resolveUri(librarySource, uriContent);
       if (source == null || !source.exists()) {
-        _errorListener.onError(new AnalysisError.con2(_librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_DOES_NOT_EXIST, [uriContent]));
+        _errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_DOES_NOT_EXIST, [uriContent]));
       }
       return source;
     } on URISyntaxException catch (exception) {
-      _errorListener.onError(new AnalysisError.con2(_librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
+      _errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
     }
     return null;
   }
@@ -5068,16 +5026,7 @@ class Library {
    * @param unit the AST structure associated with the defining compilation unit for this library
    */
   void setDefiningCompilationUnit(int modificationStamp, CompilationUnit unit) {
-    _astMap[_librarySource] = new ResolvableCompilationUnit(modificationStamp, unit);
-  }
-
-  /**
-   * Set whether this library explicitly imports core to match the given value.
-   *
-   * @param explicitlyImportsCore `true` if this library explicitly imports core
-   */
-  void set explicitlyImportsCore(bool explicitlyImportsCore2) {
-    this._explicitlyImportsCore = explicitlyImportsCore2;
+    _astMap[librarySource] = new ResolvableCompilationUnit(modificationStamp, unit);
   }
 
   /**
@@ -5086,7 +5035,7 @@ class Library {
    * @param exportedLibraries the libraries that are exported by this library
    */
   void set exportedLibraries(List<Library> exportedLibraries2) {
-    this._exportedLibraries = exportedLibraries2;
+    this.exports = exportedLibraries2;
   }
 
   /**
@@ -5095,7 +5044,7 @@ class Library {
    * @param importedLibraries the libraries that are imported into this library
    */
   void set importedLibraries(List<Library> importedLibraries2) {
-    this._importedLibraries = importedLibraries2;
+    this.imports = importedLibraries2;
   }
 
   /**
@@ -5109,7 +5058,7 @@ class Library {
       _inheritanceManager.libraryElement = libraryElement2;
     }
   }
-  String toString() => _librarySource.shortName;
+  String toString() => librarySource.shortName;
 }
 /**
  * Instances of the class `LibraryElementBuilder` build an element model for a single library.
@@ -5310,7 +5259,7 @@ class LibraryResolver {
   /**
    * The analysis context in which the libraries are being analyzed.
    */
-  InternalAnalysisContext _analysisContext;
+  InternalAnalysisContext analysisContext;
 
   /**
    * A flag indicating whether analysis is to generate hint results (e.g. type inference based
@@ -5323,7 +5272,7 @@ class LibraryResolver {
    * references [recordingErrorListener], or it unions the passed
    * [AnalysisErrorListener] with the [recordingErrorListener].
    */
-  RecordingErrorListener _errorListener;
+  RecordingErrorListener errorListener;
 
   /**
    * A source object representing the core library (dart:core).
@@ -5348,7 +5297,7 @@ class LibraryResolver {
   /**
    * A collection containing the libraries that are being resolved together.
    */
-  Set<Library> _librariesInCycles;
+  Set<Library> resolvedLibraries;
 
   /**
    * Initialize a newly created library resolver to resolve libraries within the given context.
@@ -5356,32 +5305,11 @@ class LibraryResolver {
    * @param analysisContext the analysis context in which the library is being analyzed
    */
   LibraryResolver(InternalAnalysisContext analysisContext) {
-    this._analysisContext = analysisContext;
-    this._errorListener = new RecordingErrorListener();
+    this.analysisContext = analysisContext;
+    this.errorListener = new RecordingErrorListener();
     _coreLibrarySource = analysisContext.sourceFactory.forUri(DartSdk.DART_CORE);
     _enableHints = analysisContext.analysisOptions.hint;
   }
-
-  /**
-   * Return the analysis context in which the libraries are being analyzed.
-   *
-   * @return the analysis context in which the libraries are being analyzed
-   */
-  InternalAnalysisContext get analysisContext => _analysisContext;
-
-  /**
-   * Return the listener to which analysis errors will be reported.
-   *
-   * @return the listener to which analysis errors will be reported
-   */
-  RecordingErrorListener get errorListener => _errorListener;
-
-  /**
-   * Return an array containing information about all of the libraries that were resolved.
-   *
-   * @return an array containing the libraries that were resolved
-   */
-  Set<Library> get resolvedLibraries => _librariesInCycles;
 
   /**
    * Resolve the library specified by the given source in the given context. The library is assumed
@@ -5408,7 +5336,7 @@ class LibraryResolver {
       }
       instrumentation.metric3("createLibrary", "complete");
       computeLibraryDependencies2(targetLibrary, unit);
-      _librariesInCycles = computeLibrariesInCycles(targetLibrary);
+      resolvedLibraries = computeLibrariesInCycles(targetLibrary);
       buildElementModels();
       instrumentation.metric3("buildElementModels", "complete");
       LibraryElement coreElement = _coreLibrary.libraryElement;
@@ -5459,7 +5387,7 @@ class LibraryResolver {
       }
       instrumentation.metric3("createLibrary", "complete");
       computeLibraryDependencies(targetLibrary);
-      _librariesInCycles = computeLibrariesInCycles(targetLibrary);
+      resolvedLibraries = computeLibrariesInCycles(targetLibrary);
       buildElementModels();
       instrumentation.metric3("buildElementModels", "complete");
       LibraryElement coreElement = _coreLibrary.libraryElement;
@@ -5479,8 +5407,8 @@ class LibraryResolver {
         runAdditionalAnalyses();
         instrumentation.metric3("runAdditionalAnalyses", "complete");
       }
-      instrumentation.metric2("librariesInCycles", _librariesInCycles.length);
-      for (Library lib in _librariesInCycles) {
+      instrumentation.metric2("librariesInCycles", resolvedLibraries.length);
+      for (Library lib in resolvedLibraries) {
         instrumentation.metric2("librariesInCycles-CompilationUnitSources-Size", lib.compilationUnitSources.length);
       }
       return targetLibrary.libraryElement;
@@ -5577,7 +5505,7 @@ class LibraryResolver {
    *           be accessed
    */
   void buildDirectiveModels() {
-    for (Library library in _librariesInCycles) {
+    for (Library library in resolvedLibraries) {
       Map<String, PrefixElementImpl> nameToPrefixMap = new Map<String, PrefixElementImpl>();
       List<ImportElement> imports = new List<ImportElement>();
       List<ExportElement> exports = new List<ExportElement>();
@@ -5610,7 +5538,7 @@ class LibraryResolver {
               imports.add(importElement);
               if (doesCompilationUnitHavePartOfDirective(importedLibrary.getAST(importedSource))) {
                 StringLiteral uriLiteral = importDirective.uri;
-                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
+                errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
               }
             }
           }
@@ -5631,7 +5559,7 @@ class LibraryResolver {
               exports.add(exportElement);
               if (doesCompilationUnitHavePartOfDirective(exportedLibrary.getAST(exportedSource))) {
                 StringLiteral uriLiteral = exportDirective.uri;
-                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
+                errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
               }
             }
           }
@@ -5656,7 +5584,7 @@ class LibraryResolver {
    * @throws AnalysisException if any of the element models cannot be built
    */
   void buildElementModels() {
-    for (Library library in _librariesInCycles) {
+    for (Library library in resolvedLibraries) {
       LibraryElementBuilder builder = new LibraryElementBuilder(this);
       LibraryElementImpl libraryElement = builder.buildLibrary(library);
       library.libraryElement = libraryElement;
@@ -5670,7 +5598,7 @@ class LibraryResolver {
    * @throws AnalysisException if any of the type hierarchies could not be resolved
    */
   void buildTypeHierarchies() {
-    for (Library library in _librariesInCycles) {
+    for (Library library in resolvedLibraries) {
       for (Source source in library.compilationUnitSources) {
         TypeResolverVisitor visitor = new TypeResolverVisitor.con1(library, source, _typeProvider);
         library.getAST(source).accept(visitor);
@@ -5719,7 +5647,7 @@ class LibraryResolver {
    */
   void computeLibraryDependencies(Library library) {
     Source librarySource = library.librarySource;
-    computeLibraryDependencies3(library, _analysisContext.computeImportedLibraries(librarySource), _analysisContext.computeExportedLibraries(librarySource));
+    computeLibraryDependencies3(library, analysisContext.computeImportedLibraries(librarySource), analysisContext.computeExportedLibraries(librarySource));
   }
 
   /**
@@ -5812,7 +5740,7 @@ class LibraryResolver {
    * @throws AnalysisException if the library source is not valid
    */
   Library createLibrary(Source librarySource) {
-    Library library = new Library(_analysisContext, _errorListener, librarySource);
+    Library library = new Library(analysisContext, errorListener, librarySource);
     library.definingCompilationUnit;
     _libraryMap[librarySource] = library;
     return library;
@@ -5830,7 +5758,7 @@ class LibraryResolver {
    * @throws AnalysisException if the library source is not valid
    */
   Library createLibrary2(Source librarySource, int modificationStamp, CompilationUnit unit) {
-    Library library = new Library(_analysisContext, _errorListener, librarySource);
+    Library library = new Library(analysisContext, errorListener, librarySource);
     library.setDefiningCompilationUnit(modificationStamp, unit);
     _libraryMap[librarySource] = library;
     return library;
@@ -5848,7 +5776,7 @@ class LibraryResolver {
     if (!librarySource.exists()) {
       return null;
     }
-    Library library = new Library(_analysisContext, _errorListener, librarySource);
+    Library library = new Library(analysisContext, errorListener, librarySource);
     _libraryMap[librarySource] = library;
     return library;
   }
@@ -5889,7 +5817,7 @@ class LibraryResolver {
    */
   void performConstantEvaluation() {
     ConstantValueComputer computer = new ConstantValueComputer();
-    for (Library library in _librariesInCycles) {
+    for (Library library in resolvedLibraries) {
       for (Source source in library.compilationUnitSources) {
         try {
           CompilationUnit unit = library.getAST(source);
@@ -5911,7 +5839,7 @@ class LibraryResolver {
    *           libraries could not have their types analyzed
    */
   void resolveReferencesAndTypes() {
-    for (Library library in _librariesInCycles) {
+    for (Library library in resolvedLibraries) {
       resolveReferencesAndTypes2(library);
     }
   }
@@ -5953,7 +5881,7 @@ class LibraryResolver {
       return null;
     }
     uriContent = Uri.encodeFull(uriContent);
-    return _analysisContext.sourceFactory.resolveUri(librarySource, uriContent);
+    return analysisContext.sourceFactory.resolveUri(librarySource, uriContent);
   }
 
   /**
@@ -5964,7 +5892,7 @@ class LibraryResolver {
    *           the library cannot be analyzed
    */
   void runAdditionalAnalyses() {
-    for (Library library in _librariesInCycles) {
+    for (Library library in resolvedLibraries) {
       runAdditionalAnalyses2(library);
     }
   }
@@ -5979,7 +5907,7 @@ class LibraryResolver {
    */
   void runAdditionalAnalyses2(Library library) {
     for (Source source in library.compilationUnitSources) {
-      ErrorReporter errorReporter = new ErrorReporter(_errorListener, source);
+      ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       CompilationUnit unit = library.getAST(source);
       ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, _typeProvider);
       unit.accept(constantVerifier);
@@ -5987,7 +5915,7 @@ class LibraryResolver {
       unit.accept(errorVerifier);
     }
     if (_enableHints) {
-      HintGenerator hintGenerator = new HintGenerator(library.compilationUnits, _analysisContext, _errorListener);
+      HintGenerator hintGenerator = new HintGenerator(library.compilationUnits, analysisContext, errorListener);
       hintGenerator.generateForLibrary();
     }
   }
@@ -6045,7 +5973,7 @@ class ProxyConditionalAnalysisError {
   /**
    * The conditional analysis error.
    */
-  AnalysisError _analysisError;
+  AnalysisError analysisError;
 
   /**
    * Instantiate a new ProxyConditionalErrorCode with some enclosing element and the conditional
@@ -6056,15 +5984,8 @@ class ProxyConditionalAnalysisError {
    */
   ProxyConditionalAnalysisError(Element enclosingElement, AnalysisError analysisError) {
     this._enclosingElement = enclosingElement;
-    this._analysisError = analysisError;
+    this.analysisError = analysisError;
   }
-
-  /**
-   * Return the analysis error.
-   *
-   * @return the analysis error
-   */
-  AnalysisError get analysisError => _analysisError;
 
   /**
    * Return `true` iff the enclosing class has the proxy annotation.
@@ -6100,23 +6021,23 @@ class ResolverVisitor extends ScopedVisitor {
    * The class element representing the class containing the current node, or `null` if the
    * current node is not contained in a class.
    */
-  ClassElement _enclosingClass = null;
+  ClassElement enclosingClass = null;
 
   /**
    * The element representing the function containing the current node, or `null` if the
    * current node is not contained in a function.
    */
-  ExecutableElement _enclosingFunction = null;
+  ExecutableElement enclosingFunction = null;
 
   /**
    * The object keeping track of which elements have had their types overridden.
    */
-  TypeOverrideManager _overrideManager = new TypeOverrideManager();
+  final TypeOverrideManager overrideManager = new TypeOverrideManager();
 
   /**
    * Proxy conditional error codes.
    */
-  List<ProxyConditionalAnalysisError> _proxyConditionalAnalysisErrors = new List<ProxyConditionalAnalysisError>();
+  final List<ProxyConditionalAnalysisError> proxyConditionalAnalysisErrors = new List<ProxyConditionalAnalysisError>();
 
   /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
@@ -6146,14 +6067,6 @@ class ResolverVisitor extends ScopedVisitor {
     this._elementResolver = new ElementResolver(this);
     this._typeAnalyzer = new StaticTypeAnalyzer(this);
   }
-
-  /**
-   * Return the object keeping track of which elements have had their types overridden.
-   *
-   * @return the object keeping track of which elements have had their types overridden
-   */
-  TypeOverrideManager get overrideManager => _overrideManager;
-  List<ProxyConditionalAnalysisError> get proxyConditionalAnalysisErrors => _proxyConditionalAnalysisErrors;
   Object visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
     override(node.expression, node.type.type);
@@ -6172,22 +6085,22 @@ class ResolverVisitor extends ScopedVisitor {
       safelyVisit(leftOperand);
       if (rightOperand != null) {
         try {
-          _overrideManager.enterScope();
+          overrideManager.enterScope();
           propagateTrueState(leftOperand);
           rightOperand.accept(this);
         } finally {
-          _overrideManager.exitScope();
+          overrideManager.exitScope();
         }
       }
     } else if (identical(operatorType, sc.TokenType.BAR_BAR)) {
       safelyVisit(leftOperand);
       if (rightOperand != null) {
         try {
-          _overrideManager.enterScope();
+          overrideManager.enterScope();
           propagateFalseState(leftOperand);
           rightOperand.accept(this);
         } finally {
-          _overrideManager.exitScope();
+          overrideManager.exitScope();
         }
       }
     } else {
@@ -6204,14 +6117,14 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
   Object visitClassDeclaration(ClassDeclaration node) {
-    ClassElement outerType = _enclosingClass;
+    ClassElement outerType = enclosingClass;
     try {
-      _enclosingClass = node.element;
-      _typeAnalyzer.thisType = _enclosingClass == null ? null : _enclosingClass.type;
+      enclosingClass = node.element;
+      _typeAnalyzer.thisType = enclosingClass == null ? null : enclosingClass.type;
       super.visitClassDeclaration(node);
     } finally {
       _typeAnalyzer.thisType = outerType == null ? null : outerType.type;
-      _enclosingClass = outerType;
+      enclosingClass = outerType;
     }
     return null;
   }
@@ -6222,7 +6135,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
   Object visitCompilationUnit(CompilationUnit node) {
     try {
-      _overrideManager.enterScope();
+      overrideManager.enterScope();
       for (Directive directive in node.directives) {
         directive.accept(this);
       }
@@ -6238,7 +6151,7 @@ class ResolverVisitor extends ScopedVisitor {
         declaration.accept(this);
       }
     } finally {
-      _overrideManager.exitScope();
+      overrideManager.exitScope();
     }
     node.accept(_elementResolver);
     node.accept(_typeAnalyzer);
@@ -6250,21 +6163,21 @@ class ResolverVisitor extends ScopedVisitor {
     Expression thenExpression = node.thenExpression;
     if (thenExpression != null) {
       try {
-        _overrideManager.enterScope();
+        overrideManager.enterScope();
         propagateTrueState(condition);
         thenExpression.accept(this);
       } finally {
-        _overrideManager.exitScope();
+        overrideManager.exitScope();
       }
     }
     Expression elseExpression = node.elseExpression;
     if (elseExpression != null) {
       try {
-        _overrideManager.enterScope();
+        overrideManager.enterScope();
         propagateFalseState(condition);
         elseExpression.accept(this);
       } finally {
-        _overrideManager.exitScope();
+        overrideManager.exitScope();
       }
     }
     node.accept(_elementResolver);
@@ -6281,12 +6194,12 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    ExecutableElement outerFunction = _enclosingFunction;
+    ExecutableElement outerFunction = enclosingFunction;
     try {
-      _enclosingFunction = node.element;
+      enclosingFunction = node.element;
       super.visitConstructorDeclaration(node);
     } finally {
-      _enclosingFunction = outerFunction;
+      enclosingFunction = outerFunction;
     }
     return null;
   }
@@ -6308,71 +6221,71 @@ class ResolverVisitor extends ScopedVisitor {
   }
   Object visitDoStatement(DoStatement node) {
     try {
-      _overrideManager.enterScope();
+      overrideManager.enterScope();
       super.visitDoStatement(node);
     } finally {
-      _overrideManager.exitScope();
+      overrideManager.exitScope();
     }
     return null;
   }
   Object visitFieldDeclaration(FieldDeclaration node) {
     try {
-      _overrideManager.enterScope();
+      overrideManager.enterScope();
       super.visitFieldDeclaration(node);
     } finally {
-      Map<Element, Type2> overrides = _overrideManager.captureOverrides(node.fields);
-      _overrideManager.exitScope();
-      _overrideManager.applyOverrides(overrides);
+      Map<Element, Type2> overrides = overrideManager.captureOverrides(node.fields);
+      overrideManager.exitScope();
+      overrideManager.applyOverrides(overrides);
     }
     return null;
   }
   Object visitForEachStatement(ForEachStatement node) {
     try {
-      _overrideManager.enterScope();
+      overrideManager.enterScope();
       super.visitForEachStatement(node);
     } finally {
-      _overrideManager.exitScope();
+      overrideManager.exitScope();
     }
     return null;
   }
   Object visitForStatement(ForStatement node) {
     try {
-      _overrideManager.enterScope();
+      overrideManager.enterScope();
       super.visitForStatement(node);
     } finally {
-      _overrideManager.exitScope();
+      overrideManager.exitScope();
     }
     return null;
   }
   Object visitFunctionBody(FunctionBody node) {
     try {
-      _overrideManager.enterScope();
+      overrideManager.enterScope();
       super.visitFunctionBody(node);
     } finally {
-      _overrideManager.exitScope();
+      overrideManager.exitScope();
     }
     return null;
   }
   Object visitFunctionDeclaration(FunctionDeclaration node) {
-    ExecutableElement outerFunction = _enclosingFunction;
+    ExecutableElement outerFunction = enclosingFunction;
     try {
       SimpleIdentifier functionName = node.name;
-      _enclosingFunction = functionName.staticElement as ExecutableElement;
+      enclosingFunction = functionName.staticElement as ExecutableElement;
       super.visitFunctionDeclaration(node);
     } finally {
-      _enclosingFunction = outerFunction;
+      enclosingFunction = outerFunction;
     }
     return null;
   }
   Object visitFunctionExpression(FunctionExpression node) {
-    ExecutableElement outerFunction = _enclosingFunction;
+    ExecutableElement outerFunction = enclosingFunction;
     try {
-      _enclosingFunction = node.element;
-      _overrideManager.enterScope();
+      enclosingFunction = node.element;
+      overrideManager.enterScope();
       super.visitFunctionExpression(node);
     } finally {
-      _overrideManager.exitScope();
-      _enclosingFunction = outerFunction;
+      overrideManager.exitScope();
+      enclosingFunction = outerFunction;
     }
     return null;
   }
@@ -6392,24 +6305,24 @@ class ResolverVisitor extends ScopedVisitor {
     Statement thenStatement = node.thenStatement;
     if (thenStatement != null) {
       try {
-        _overrideManager.enterScope();
+        overrideManager.enterScope();
         propagateTrueState(condition);
         visitStatementInScope(thenStatement);
       } finally {
-        thenOverrides = _overrideManager.captureLocalOverrides();
-        _overrideManager.exitScope();
+        thenOverrides = overrideManager.captureLocalOverrides();
+        overrideManager.exitScope();
       }
     }
     Map<Element, Type2> elseOverrides = null;
     Statement elseStatement = node.elseStatement;
     if (elseStatement != null) {
       try {
-        _overrideManager.enterScope();
+        overrideManager.enterScope();
         propagateFalseState(condition);
         visitStatementInScope(elseStatement);
       } finally {
-        elseOverrides = _overrideManager.captureLocalOverrides();
-        _overrideManager.exitScope();
+        elseOverrides = overrideManager.captureLocalOverrides();
+        overrideManager.exitScope();
       }
     }
     node.accept(_elementResolver);
@@ -6419,12 +6332,12 @@ class ResolverVisitor extends ScopedVisitor {
     if (elseIsAbrupt && !thenIsAbrupt) {
       propagateTrueState(condition);
       if (thenOverrides != null) {
-        _overrideManager.applyOverrides(thenOverrides);
+        overrideManager.applyOverrides(thenOverrides);
       }
     } else if (thenIsAbrupt && !elseIsAbrupt) {
       propagateFalseState(condition);
       if (elseOverrides != null) {
-        _overrideManager.applyOverrides(elseOverrides);
+        overrideManager.applyOverrides(elseOverrides);
       }
     }
     return null;
@@ -6432,12 +6345,12 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitLabel(Label node) => null;
   Object visitLibraryIdentifier(LibraryIdentifier node) => null;
   Object visitMethodDeclaration(MethodDeclaration node) {
-    ExecutableElement outerFunction = _enclosingFunction;
+    ExecutableElement outerFunction = enclosingFunction;
     try {
-      _enclosingFunction = node.element;
+      enclosingFunction = node.element;
       super.visitMethodDeclaration(node);
     } finally {
-      _enclosingFunction = outerFunction;
+      enclosingFunction = outerFunction;
     }
     return null;
   }
@@ -6482,30 +6395,30 @@ class ResolverVisitor extends ScopedVisitor {
   }
   Object visitSwitchCase(SwitchCase node) {
     try {
-      _overrideManager.enterScope();
+      overrideManager.enterScope();
       super.visitSwitchCase(node);
     } finally {
-      _overrideManager.exitScope();
+      overrideManager.exitScope();
     }
     return null;
   }
   Object visitSwitchDefault(SwitchDefault node) {
     try {
-      _overrideManager.enterScope();
+      overrideManager.enterScope();
       super.visitSwitchDefault(node);
     } finally {
-      _overrideManager.exitScope();
+      overrideManager.exitScope();
     }
     return null;
   }
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     try {
-      _overrideManager.enterScope();
+      overrideManager.enterScope();
       super.visitTopLevelVariableDeclaration(node);
     } finally {
-      Map<Element, Type2> overrides = _overrideManager.captureOverrides(node.variables);
-      _overrideManager.exitScope();
-      _overrideManager.applyOverrides(overrides);
+      Map<Element, Type2> overrides = overrideManager.captureOverrides(node.variables);
+      overrideManager.exitScope();
+      overrideManager.applyOverrides(overrides);
     }
     return null;
   }
@@ -6516,33 +6429,17 @@ class ResolverVisitor extends ScopedVisitor {
     Statement body = node.body;
     if (body != null) {
       try {
-        _overrideManager.enterScope();
+        overrideManager.enterScope();
         propagateTrueState(condition);
         visitStatementInScope(body);
       } finally {
-        _overrideManager.exitScope();
+        overrideManager.exitScope();
       }
     }
     node.accept(_elementResolver);
     node.accept(_typeAnalyzer);
     return null;
   }
-
-  /**
-   * Return the class element representing the class containing the current node, or `null` if
-   * the current node is not contained in a class.
-   *
-   * @return the class element representing the class containing the current node
-   */
-  ClassElement get enclosingClass => _enclosingClass;
-
-  /**
-   * Return the element representing the function containing the current node, or `null` if
-   * the current node is not contained in a function.
-   *
-   * @return the element representing the function containing the current node
-   */
-  ExecutableElement get enclosingFunction => _enclosingFunction;
 
   /**
    * Return the propagated element associated with the given expression whose type can be
@@ -6628,7 +6525,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
     Type2 currentType = getBestType(element);
     if (currentType == null || !currentType.isMoreSpecificThan(potentialType)) {
-      _overrideManager.setType(element, potentialType);
+      overrideManager.setType(element, potentialType);
     }
   }
 
@@ -6641,7 +6538,7 @@ class ResolverVisitor extends ScopedVisitor {
    * @param arguments the arguments to the error, used to compose the error message
    */
   void reportErrorProxyConditionalAnalysisError(Element enclosingElement, ErrorCode errorCode, ASTNode node, List<Object> arguments) {
-    _proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, node.offset, node.length, errorCode, arguments)));
+    proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, node.offset, node.length, errorCode, arguments)));
   }
 
   /**
@@ -6654,7 +6551,7 @@ class ResolverVisitor extends ScopedVisitor {
    * @param arguments the arguments to the error, used to compose the error message
    */
   void reportErrorProxyConditionalAnalysisError2(Element enclosingElement, ErrorCode errorCode, int offset, int length, List<Object> arguments) {
-    _proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, offset, length, errorCode, arguments)));
+    proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, offset, length, errorCode, arguments)));
   }
 
   /**
@@ -6666,7 +6563,7 @@ class ResolverVisitor extends ScopedVisitor {
    * @param arguments the arguments to the error, used to compose the error message
    */
   void reportErrorProxyConditionalAnalysisError3(Element enclosingElement, ErrorCode errorCode, sc.Token token, List<Object> arguments) {
-    _proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, token.offset, token.length, errorCode, arguments)));
+    proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, token.offset, token.length, errorCode, arguments)));
   }
   void visitForEachStatementInScope(ForEachStatement node) {
     Expression iterator = node.iterator;
@@ -6676,7 +6573,7 @@ class ResolverVisitor extends ScopedVisitor {
     Statement body = node.body;
     if (body != null) {
       try {
-        _overrideManager.enterScope();
+        overrideManager.enterScope();
         if (loopVariable != null && iterator != null) {
           LocalVariableElement loopElement = loopVariable.element;
           if (loopElement != null) {
@@ -6687,7 +6584,7 @@ class ResolverVisitor extends ScopedVisitor {
         }
         visitStatementInScope(body);
       } finally {
-        _overrideManager.exitScope();
+        overrideManager.exitScope();
       }
     }
     node.accept(_elementResolver);
@@ -6697,13 +6594,13 @@ class ResolverVisitor extends ScopedVisitor {
     safelyVisit(node.variables);
     safelyVisit(node.initialization);
     safelyVisit(node.condition);
-    _overrideManager.enterScope();
+    overrideManager.enterScope();
     try {
       propagateTrueState(node.condition);
       visitStatementInScope(node.body);
       node.updaters.accept(this);
     } finally {
-      _overrideManager.exitScope();
+      overrideManager.exitScope();
     }
   }
 
@@ -6715,7 +6612,7 @@ class ResolverVisitor extends ScopedVisitor {
    * @return the best type information available for the given element
    */
   Type2 getBestType(Element element) {
-    Type2 bestType = _overrideManager.getType(element);
+    Type2 bestType = overrideManager.getType(element);
     if (bestType == null) {
       if (element is LocalVariableElement) {
         bestType = ((element as LocalVariableElement)).type;
@@ -6777,7 +6674,7 @@ class ResolverVisitor extends ScopedVisitor {
       Type2 currentType = getBestType(element);
       Type2 expectedType = expectedParameters[i].type;
       if (currentType == null || expectedType.isMoreSpecificThan(currentType)) {
-        _overrideManager.setType(element, expectedType);
+        overrideManager.setType(element, expectedType);
       }
     }
   }
@@ -6912,14 +6809,14 @@ class ResolverVisitor extends ScopedVisitor {
   }
   get elementResolver_J2DAccessor => _elementResolver;
   set elementResolver_J2DAccessor(__v) => _elementResolver = __v;
-  get labelScope_J2DAccessor => _labelScope;
-  set labelScope_J2DAccessor(__v) => _labelScope = __v;
-  get nameScope_J2DAccessor => _nameScope;
-  set nameScope_J2DAccessor(__v) => _nameScope = __v;
+  get labelScope_J2DAccessor => labelScope;
+  set labelScope_J2DAccessor(__v) => labelScope = __v;
+  get nameScope_J2DAccessor => nameScope;
+  set nameScope_J2DAccessor(__v) => nameScope = __v;
   get typeAnalyzer_J2DAccessor => _typeAnalyzer;
   set typeAnalyzer_J2DAccessor(__v) => _typeAnalyzer = __v;
-  get enclosingClass_J2DAccessor => _enclosingClass;
-  set enclosingClass_J2DAccessor(__v) => _enclosingClass = __v;
+  get enclosingClass_J2DAccessor => enclosingClass;
+  set enclosingClass_J2DAccessor(__v) => enclosingClass = __v;
 }
 /**
  * The abstract class `ScopedVisitor` maintains name and label scopes as an AST structure is
@@ -6932,12 +6829,12 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
   /**
    * The element for the library containing the compilation unit being visited.
    */
-  LibraryElement _definingLibrary;
+  LibraryElement definingLibrary;
 
   /**
    * The source representing the compilation unit being visited.
    */
-  Source _source;
+  Source source;
 
   /**
    * The error listener that will be informed of any errors that are found during resolution.
@@ -6947,18 +6844,18 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
   /**
    * The scope used to resolve identifiers.
    */
-  Scope _nameScope;
+  Scope nameScope;
 
   /**
    * The object used to access the types from the core library.
    */
-  TypeProvider _typeProvider;
+  TypeProvider typeProvider;
 
   /**
    * The scope used to resolve labels for `break` and `continue` statements, or
    * `null` if no labels have been defined in the current context.
    */
-  LabelScope _labelScope;
+  LabelScope labelScope;
 
   /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
@@ -6968,12 +6865,12 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
    * @param typeProvider the object used to access the types from the core library
    */
   ScopedVisitor.con1(Library library, Source source, TypeProvider typeProvider) {
-    this._definingLibrary = library.libraryElement;
-    this._source = source;
+    this.definingLibrary = library.libraryElement;
+    this.source = source;
     LibraryScope libraryScope = library.libraryScope;
     this._errorListener = libraryScope.errorListener;
-    this._nameScope = libraryScope;
-    this._typeProvider = typeProvider;
+    this.nameScope = libraryScope;
+    this.typeProvider = typeProvider;
   }
 
   /**
@@ -6987,26 +6884,12 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
    *          during resolution
    */
   ScopedVisitor.con2(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, AnalysisErrorListener errorListener) {
-    this._definingLibrary = definingLibrary;
-    this._source = source;
+    this.definingLibrary = definingLibrary;
+    this.source = source;
     this._errorListener = errorListener;
-    this._nameScope = new LibraryScope(definingLibrary, errorListener);
-    this._typeProvider = typeProvider;
+    this.nameScope = new LibraryScope(definingLibrary, errorListener);
+    this.typeProvider = typeProvider;
   }
-
-  /**
-   * Return the library element for the library containing the compilation unit being resolved.
-   *
-   * @return the library element for the library containing the compilation unit being resolved
-   */
-  LibraryElement get definingLibrary => _definingLibrary;
-
-  /**
-   * Return the object used to access the types from the core library.
-   *
-   * @return the object used to access the types from the core library
-   */
-  TypeProvider get typeProvider => _typeProvider;
 
   /**
    * Report an error with the given analysis error.
@@ -7017,31 +6900,31 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
     _errorListener.onError(analysisError);
   }
   Object visitBlock(Block node) {
-    Scope outerScope = _nameScope;
+    Scope outerScope = nameScope;
     try {
-      EnclosedScope enclosedScope = new EnclosedScope(_nameScope);
+      EnclosedScope enclosedScope = new EnclosedScope(nameScope);
       hideNamesDefinedInBlock(enclosedScope, node);
-      _nameScope = enclosedScope;
+      nameScope = enclosedScope;
       super.visitBlock(node);
     } finally {
-      _nameScope = outerScope;
+      nameScope = outerScope;
     }
     return null;
   }
   Object visitCatchClause(CatchClause node) {
     SimpleIdentifier exception = node.exceptionParameter;
     if (exception != null) {
-      Scope outerScope = _nameScope;
+      Scope outerScope = nameScope;
       try {
-        _nameScope = new EnclosedScope(_nameScope);
-        _nameScope.define(exception.staticElement);
+        nameScope = new EnclosedScope(nameScope);
+        nameScope.define(exception.staticElement);
         SimpleIdentifier stackTrace = node.stackTraceParameter;
         if (stackTrace != null) {
-          _nameScope.define(stackTrace.staticElement);
+          nameScope.define(stackTrace.staticElement);
         }
         super.visitCatchClause(node);
       } finally {
-        _nameScope = outerScope;
+        nameScope = outerScope;
       }
     } else {
       super.visitCatchClause(node);
@@ -7049,91 +6932,91 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
     return null;
   }
   Object visitClassDeclaration(ClassDeclaration node) {
-    Scope outerScope = _nameScope;
+    Scope outerScope = nameScope;
     try {
-      _nameScope = new ClassScope(_nameScope, node.element);
+      nameScope = new ClassScope(nameScope, node.element);
       super.visitClassDeclaration(node);
     } finally {
-      _nameScope = outerScope;
+      nameScope = outerScope;
     }
     return null;
   }
   Object visitClassTypeAlias(ClassTypeAlias node) {
-    Scope outerScope = _nameScope;
+    Scope outerScope = nameScope;
     try {
-      _nameScope = new ClassScope(_nameScope, node.element);
+      nameScope = new ClassScope(nameScope, node.element);
       super.visitClassTypeAlias(node);
     } finally {
-      _nameScope = outerScope;
+      nameScope = outerScope;
     }
     return null;
   }
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    Scope outerScope = _nameScope;
+    Scope outerScope = nameScope;
     try {
-      _nameScope = new FunctionScope(_nameScope, node.element);
+      nameScope = new FunctionScope(nameScope, node.element);
       super.visitConstructorDeclaration(node);
     } finally {
-      _nameScope = outerScope;
+      nameScope = outerScope;
     }
     return null;
   }
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     VariableElement element = node.element;
     if (element != null) {
-      _nameScope.define(element);
+      nameScope.define(element);
     }
     super.visitDeclaredIdentifier(node);
     return null;
   }
   Object visitDoStatement(DoStatement node) {
-    LabelScope outerLabelScope = _labelScope;
+    LabelScope outerLabelScope = labelScope;
     try {
-      _labelScope = new LabelScope.con1(_labelScope, false, false);
+      labelScope = new LabelScope.con1(labelScope, false, false);
       visitStatementInScope(node.body);
       safelyVisit(node.condition);
     } finally {
-      _labelScope = outerLabelScope;
+      labelScope = outerLabelScope;
     }
     return null;
   }
   Object visitForEachStatement(ForEachStatement node) {
-    Scope outerNameScope = _nameScope;
-    LabelScope outerLabelScope = _labelScope;
+    Scope outerNameScope = nameScope;
+    LabelScope outerLabelScope = labelScope;
     try {
-      _nameScope = new EnclosedScope(_nameScope);
-      _labelScope = new LabelScope.con1(outerLabelScope, false, false);
+      nameScope = new EnclosedScope(nameScope);
+      labelScope = new LabelScope.con1(outerLabelScope, false, false);
       visitForEachStatementInScope(node);
     } finally {
-      _labelScope = outerLabelScope;
-      _nameScope = outerNameScope;
+      labelScope = outerLabelScope;
+      nameScope = outerNameScope;
     }
     return null;
   }
   Object visitForStatement(ForStatement node) {
-    Scope outerNameScope = _nameScope;
-    LabelScope outerLabelScope = _labelScope;
+    Scope outerNameScope = nameScope;
+    LabelScope outerLabelScope = labelScope;
     try {
-      _nameScope = new EnclosedScope(_nameScope);
-      _labelScope = new LabelScope.con1(outerLabelScope, false, false);
+      nameScope = new EnclosedScope(nameScope);
+      labelScope = new LabelScope.con1(outerLabelScope, false, false);
       visitForStatementInScope(node);
     } finally {
-      _labelScope = outerLabelScope;
-      _nameScope = outerNameScope;
+      labelScope = outerLabelScope;
+      nameScope = outerNameScope;
     }
     return null;
   }
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement function = node.element;
-    Scope outerScope = _nameScope;
+    Scope outerScope = nameScope;
     try {
-      _nameScope = new FunctionScope(_nameScope, function);
+      nameScope = new FunctionScope(nameScope, function);
       super.visitFunctionDeclaration(node);
     } finally {
-      _nameScope = outerScope;
+      nameScope = outerScope;
     }
     if (function.enclosingElement is! CompilationUnitElement) {
-      _nameScope.define(function);
+      nameScope.define(function);
     }
     return null;
   }
@@ -7141,27 +7024,27 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
     if (node.parent is FunctionDeclaration) {
       super.visitFunctionExpression(node);
     } else {
-      Scope outerScope = _nameScope;
+      Scope outerScope = nameScope;
       try {
         ExecutableElement functionElement = node.element;
         if (functionElement == null) {
         } else {
-          _nameScope = new FunctionScope(_nameScope, functionElement);
+          nameScope = new FunctionScope(nameScope, functionElement);
         }
         super.visitFunctionExpression(node);
       } finally {
-        _nameScope = outerScope;
+        nameScope = outerScope;
       }
     }
     return null;
   }
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
-    Scope outerScope = _nameScope;
+    Scope outerScope = nameScope;
     try {
-      _nameScope = new FunctionTypeScope(_nameScope, node.element);
+      nameScope = new FunctionTypeScope(nameScope, node.element);
       super.visitFunctionTypeAlias(node);
     } finally {
-      _nameScope = outerScope;
+      nameScope = outerScope;
     }
     return null;
   }
@@ -7176,55 +7059,55 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
     try {
       super.visitLabeledStatement(node);
     } finally {
-      _labelScope = outerScope;
+      labelScope = outerScope;
     }
     return null;
   }
   Object visitMethodDeclaration(MethodDeclaration node) {
-    Scope outerScope = _nameScope;
+    Scope outerScope = nameScope;
     try {
-      _nameScope = new FunctionScope(_nameScope, node.element);
+      nameScope = new FunctionScope(nameScope, node.element);
       super.visitMethodDeclaration(node);
     } finally {
-      _nameScope = outerScope;
+      nameScope = outerScope;
     }
     return null;
   }
   Object visitSwitchCase(SwitchCase node) {
     node.expression.accept(this);
-    Scope outerNameScope = _nameScope;
+    Scope outerNameScope = nameScope;
     try {
-      _nameScope = new EnclosedScope(_nameScope);
+      nameScope = new EnclosedScope(nameScope);
       node.statements.accept(this);
     } finally {
-      _nameScope = outerNameScope;
+      nameScope = outerNameScope;
     }
     return null;
   }
   Object visitSwitchDefault(SwitchDefault node) {
-    Scope outerNameScope = _nameScope;
+    Scope outerNameScope = nameScope;
     try {
-      _nameScope = new EnclosedScope(_nameScope);
+      nameScope = new EnclosedScope(nameScope);
       node.statements.accept(this);
     } finally {
-      _nameScope = outerNameScope;
+      nameScope = outerNameScope;
     }
     return null;
   }
   Object visitSwitchStatement(SwitchStatement node) {
-    LabelScope outerScope = _labelScope;
+    LabelScope outerScope = labelScope;
     try {
-      _labelScope = new LabelScope.con1(outerScope, true, false);
+      labelScope = new LabelScope.con1(outerScope, true, false);
       for (SwitchMember member in node.members) {
         for (Label label in member.labels) {
           SimpleIdentifier labelName = label.label;
           LabelElement labelElement = labelName.staticElement as LabelElement;
-          _labelScope = new LabelScope.con2(_labelScope, labelName.name, labelElement);
+          labelScope = new LabelScope.con2(labelScope, labelName.name, labelElement);
         }
       }
       super.visitSwitchStatement(node);
     } finally {
-      _labelScope = outerScope;
+      labelScope = outerScope;
     }
     return null;
   }
@@ -7232,44 +7115,23 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
     if (node.parent.parent is! TopLevelVariableDeclaration && node.parent.parent is! FieldDeclaration) {
       VariableElement element = node.element;
       if (element != null) {
-        _nameScope.define(element);
+        nameScope.define(element);
       }
     }
     super.visitVariableDeclaration(node);
     return null;
   }
   Object visitWhileStatement(WhileStatement node) {
-    LabelScope outerScope = _labelScope;
+    LabelScope outerScope = labelScope;
     try {
-      _labelScope = new LabelScope.con1(outerScope, false, false);
+      labelScope = new LabelScope.con1(outerScope, false, false);
       safelyVisit(node.condition);
       visitStatementInScope(node.body);
     } finally {
-      _labelScope = outerScope;
+      labelScope = outerScope;
     }
     return null;
   }
-
-  /**
-   * Return the label scope in which the current node is being resolved.
-   *
-   * @return the label scope in which the current node is being resolved
-   */
-  LabelScope get labelScope => _labelScope;
-
-  /**
-   * Return the name scope in which the current node is being resolved.
-   *
-   * @return the name scope in which the current node is being resolved
-   */
-  Scope get nameScope => _nameScope;
-
-  /**
-   * Return the source.
-   *
-   * @return the source
-   */
-  Source get source => _source;
 
   /**
    * Report an error with the given error code and arguments.
@@ -7279,7 +7141,7 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
    * @param arguments the arguments to the error, used to compose the error message
    */
   void reportError5(ErrorCode errorCode, ASTNode node, List<Object> arguments) {
-    _errorListener.onError(new AnalysisError.con2(_source, node.offset, node.length, errorCode, arguments));
+    _errorListener.onError(new AnalysisError.con2(source, node.offset, node.length, errorCode, arguments));
   }
 
   /**
@@ -7291,7 +7153,7 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
    * @param arguments the arguments to the error, used to compose the error message
    */
   void reportError6(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
-    _errorListener.onError(new AnalysisError.con2(_source, offset, length, errorCode, arguments));
+    _errorListener.onError(new AnalysisError.con2(source, offset, length, errorCode, arguments));
   }
 
   /**
@@ -7302,7 +7164,7 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
    * @param arguments the arguments to the error, used to compose the error message
    */
   void reportError7(ErrorCode errorCode, sc.Token token, List<Object> arguments) {
-    _errorListener.onError(new AnalysisError.con2(_source, token.offset, token.length, errorCode, arguments));
+    _errorListener.onError(new AnalysisError.con2(source, token.offset, token.length, errorCode, arguments));
   }
 
   /**
@@ -7354,12 +7216,12 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
     if (node is Block) {
       visitBlock(node as Block);
     } else if (node != null) {
-      Scope outerNameScope = _nameScope;
+      Scope outerNameScope = nameScope;
       try {
-        _nameScope = new EnclosedScope(_nameScope);
+        nameScope = new EnclosedScope(nameScope);
         node.accept(this);
       } finally {
-        _nameScope = outerNameScope;
+        nameScope = outerNameScope;
       }
     }
   }
@@ -7371,12 +7233,12 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
    * @return the scope that was in effect before the new scopes were added
    */
   LabelScope addScopesFor(NodeList<Label> labels) {
-    LabelScope outerScope = _labelScope;
+    LabelScope outerScope = labelScope;
     for (Label label in labels) {
       SimpleIdentifier labelNameNode = label.label;
       String labelName = labelNameNode.name;
       LabelElement labelElement = labelNameNode.staticElement as LabelElement;
-      _labelScope = new LabelScope.con2(_labelScope, labelName, labelElement);
+      labelScope = new LabelScope.con2(labelScope, labelName, labelElement);
     }
     return outerScope;
   }
@@ -10307,7 +10169,7 @@ class EnclosedScope extends Scope {
   /**
    * The scope in which this scope is lexically enclosed.
    */
-  Scope _enclosingScope;
+  Scope enclosingScope;
 
   /**
    * A set of names that will be defined in this scope, but right now are not defined. However
@@ -10322,10 +10184,10 @@ class EnclosedScope extends Scope {
    * @param enclosingScope the scope in which this scope is lexically enclosed
    */
   EnclosedScope(Scope enclosingScope) {
-    this._enclosingScope = enclosingScope;
+    this.enclosingScope = enclosingScope;
   }
-  LibraryElement get definingLibrary => _enclosingScope.definingLibrary;
-  AnalysisErrorListener get errorListener => _enclosingScope.errorListener;
+  LibraryElement get definingLibrary => enclosingScope.definingLibrary;
+  AnalysisErrorListener get errorListener => enclosingScope.errorListener;
 
   /**
    * Hides the name of the given element in this scope. If there is already an element with the
@@ -10341,13 +10203,6 @@ class EnclosedScope extends Scope {
       }
     }
   }
-
-  /**
-   * Return the scope in which this scope is lexically enclosed.
-   *
-   * @return the scope in which this scope is lexically enclosed
-   */
-  Scope get enclosingScope => _enclosingScope;
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) {
     Element element = localLookup(name, referencingLibrary);
     if (element != null) {
@@ -10356,7 +10211,7 @@ class EnclosedScope extends Scope {
     if (_hiddenNames.contains(name)) {
       return null;
     }
-    return _enclosingScope.lookup3(identifier, name, referencingLibrary);
+    return enclosingScope.lookup3(identifier, name, referencingLibrary);
   }
 }
 /**
