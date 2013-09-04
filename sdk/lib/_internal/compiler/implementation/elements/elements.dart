@@ -495,6 +495,7 @@ class Elements {
   /// A `compareTo` function that places [Element]s in a consistent order based
   /// on the source code order.
   static int compareByPosition(Element a, Element b) {
+    if (identical(a, b)) return 0;
     int r = a.getLibrary().compareTo(b.getLibrary());
     if (r != 0) return r;
     r = a.getCompilationUnit().compareTo(b.getCompilationUnit());
