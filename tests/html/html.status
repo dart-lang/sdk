@@ -92,7 +92,7 @@ audiobuffersourcenode_test: Pass, Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 history_test/history: Pass, Fail # issue 8183
-indexeddb_1_test/functional: Fail # Issue 9269 + 12893
+indexeddb_1_test/functional: Fail # Issue 12893
 microtask_test: Fail, Pass # Appears to be flaky
 native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 serialized_script_value_test: Fail
