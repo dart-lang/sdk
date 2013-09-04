@@ -779,21 +779,23 @@ static RawObject* ReflectivelyInvokeDynamicFunction(
     const Function& function,
     const String& target_name,
     const Array& args,
-    const Array& args_descriptor) {
+    const Array& args_descriptor_array) {
   // Note "args" is already the internal arguments with the receiver as the
   // first element.
   Object& result = Object::Handle();
+
+  ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (function.IsNull() ||
       !function.is_visible() ||
-      !function.AreValidArguments(ArgumentsDescriptor(args_descriptor), NULL)) {
+      !function.AreValidArguments(args_descriptor, NULL)) {
     result = DartEntry::InvokeNoSuchMethod(receiver,
                                            target_name,
                                            args,
-                                           args_descriptor);
+                                           args_descriptor_array);
   } else {
     result = DartEntry::InvokeFunction(function,
                                        args,
-                                       args_descriptor);
+                                       args_descriptor_array);
   }
 
   if (result.IsError()) {
@@ -961,14 +963,16 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
 
-  const Array& args_descriptor =
+  const Array& args_descriptor_array =
       Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
 
   const Function& function = Function::Handle(
       klass.LookupStaticFunctionAllowPrivate(function_name));
 
+
+  ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (function.IsNull() ||
-      !function.AreValidArguments(ArgumentsDescriptor(args_descriptor), NULL) ||
+      !function.AreValidArguments(args_descriptor, NULL) ||
       !function.is_visible()) {
     ThrowNoSuchMethod(AbstractType::Handle(RawTypeOfClass(klass)),
                       function_name,
@@ -979,7 +983,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
   }
 
   Object& result = Object::Handle(
-      DartEntry::InvokeFunction(function, args, args_descriptor));
+      DartEntry::InvokeFunction(function, args, args_descriptor_array));
   if (result.IsError()) {
     ThrowInvokeError(Error::Cast(result));
     UNREACHABLE();
@@ -1140,12 +1144,12 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 4) {
     args.SetAt(i + num_implicit_args, explicit_argument);
   }
 
-  const Array& args_descriptor =
+  const Array& args_descriptor_array =
       Array::Handle(ArgumentsDescriptor::New(args.Length(),
                                              arg_names));
 
-  if (!redirected_constructor.AreValidArguments(
-          ArgumentsDescriptor(args_descriptor), NULL) ||
+  ArgumentsDescriptor args_descriptor(args_descriptor_array);
+  if (!redirected_constructor.AreValidArguments(args_descriptor, NULL) ||
       !redirected_constructor.is_visible()) {
     // Pretend we didn't find the constructor at all when the arity is wrong
     // so as to produce the same NoSuchMethodError as the non-reflective case.
@@ -1177,7 +1181,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 4) {
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(redirected_constructor,
                                                args,
-                                               args_descriptor));
+                                               args_descriptor_array));
   if (result.IsError()) {
     return result.raw();
   }
@@ -1204,7 +1208,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
 
-  const Array& args_descriptor =
+  const Array& args_descriptor_array =
       Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
 
   String& ambiguity_error_msg = String::Handle(isolate);
@@ -1216,8 +1220,9 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
     UNREACHABLE();
   }
 
+  ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (function.IsNull() ||
-      !function.AreValidArguments(ArgumentsDescriptor(args_descriptor), NULL) ||
+      !function.AreValidArguments(args_descriptor, NULL) ||
       !function.is_visible()) {
     ThrowNoSuchMethod(Instance::null_instance(),
                       function_name,
@@ -1228,7 +1233,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
   }
 
   const Object& result = Object::Handle(
-      DartEntry::InvokeFunction(function, args, args_descriptor));
+      DartEntry::InvokeFunction(function, args, args_descriptor_array));
   if (result.IsError()) {
     ThrowInvokeError(Error::Cast(result));
     UNREACHABLE();
