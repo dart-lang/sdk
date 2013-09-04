@@ -446,7 +446,7 @@ class _AsBroadcastStreamController<T>
   Future close() {
     if (!isClosed && _isFiring) {
       _addPendingEvent(const _DelayedDone());
-      _state |= _STATE_CLOSED;
+      _state |= _BroadcastStreamController._STATE_CLOSED;
       return super.done;
     }
     Future result = super.close();
