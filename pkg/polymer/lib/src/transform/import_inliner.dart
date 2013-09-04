@@ -18,19 +18,19 @@ import 'common.dart';
 // than polymer-element (see dartbug.com/12613).
 class ImportedElementInliner extends Transformer {
   /** Only run on entry point .html files. */
-  Future<bool> isPrimary(Asset input) => isPrimaryHtml(input.id);
+  Future<bool> isPrimary(Asset input) =>
+      new Future.value(isPrimaryHtml(input.id));
 
   Future apply(Transform transform) {
     var seen = new Set<AssetId>();
     var elements = [];
     var id = transform.primaryInput.id;
     seen.add(id);
-    return transform.primaryInput.readAsString().then((content) {
-      var document = parseHtml(content, id.path, transform.logger);
+    return readPrimaryAsHtml(transform).then((document) {
       var future = _visitImports(document, id, transform, seen, elements);
       return future.then((importsFound) {
         if (!importsFound) {
-          transform.addOutput(new Asset.fromString(id, content));
+          transform.addOutput(transform.primaryInput);
           return;
         }
 
@@ -82,9 +82,7 @@ class ImportedElementInliner extends Transformer {
    */
   Future _collectPolymerElements(AssetId id, Transform transform,
       Set<AssetId> seen, List elements) {
-    return transform.readInputAsString(id).then((content) {
-      var document = parseHtml(content, id.path, transform.logger,
-          checkDocType: false);
+    return readAsHtml(id, transform).then((document) {
       return _visitImports(document, id, transform, seen, elements).then((_) {
         var normalizer = new _UrlNormalizer(transform, id);
         for (var element in document.queryAll('polymer-element')) {

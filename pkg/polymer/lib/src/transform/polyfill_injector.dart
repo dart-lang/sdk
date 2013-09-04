@@ -23,13 +23,11 @@ import 'common.dart';
  */
 class PolyfillInjector extends Transformer {
   /** Only run on entry point .html files. */
-  Future<bool> isPrimary(Asset input) => isPrimaryHtml(input.id);
+  Future<bool> isPrimary(Asset input) =>
+      new Future.value(isPrimaryHtml(input.id));
 
   Future apply(Transform transform) {
-    var id = transform.primaryInput.id;
-    return transform.primaryInput.readAsString().then((content) {
-      var document = parseHtml(content, id.path, transform.logger,
-          checkDocType: false);
+    return readPrimaryAsHtml(transform).then((document) {
       bool shadowDomFound = false;
       bool jsInteropFound = false;
       bool dartScriptTags = false;
@@ -52,7 +50,7 @@ class PolyfillInjector extends Transformer {
 
       if (!dartScriptTags) {
         // This HTML has no Dart code, there is nothing to do here.
-        transform.addOutput(new Asset.fromString(id, content));
+        transform.addOutput(transform.primaryInput);
         return;
       }
 
@@ -69,7 +67,8 @@ class PolyfillInjector extends Transformer {
             '<script src="packages/shadow_dom/shadow_dom.min.js"></script>\n'));
       }
 
-      transform.addOutput(new Asset.fromString(id, document.outerHtml));
+      transform.addOutput(
+          new Asset.fromString(transform.primaryInput.id, document.outerHtml));
     });
   }
 }

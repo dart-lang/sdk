@@ -25,10 +25,9 @@ class InlineCodeExtractor extends Transformer {
   final String allowedExtensions = ".html";
 
   Future apply(Transform transform) {
-    var inputId = transform.primaryInput.id;
-    return transform.primaryInput.readAsString().then((content) {
-      var document = parseHtml(content, inputId.path, transform.logger,
-          checkDocType: false);
+    var input = transform.primaryInput;
+    var id = transform.primaryInput.id;
+    return readPrimaryAsHtml(transform).then((document) {
       int count = 0;
       bool htmlChanged = false;
       for (var tag in document.queryAll('script')) {
@@ -45,23 +44,23 @@ class InlineCodeExtractor extends Transformer {
           continue;
         }
 
-        var filename = path.url.basename(inputId.path);
+        var filename = path.url.basename(id.path);
         // TODO(sigmund): ensure this filename is unique (dartbug.com/12618).
         tag.attributes['src'] = '$filename.$count.dart';
         var textContent = tag.nodes.first;
         var code = textContent.value;
-        var id = inputId.addExtension('.$count.dart');
+        var newId = id.addExtension('.$count.dart');
         if (!_hasLibraryDirective(code)) {
-          var libname = path.withoutExtension(id.path)
+          var libname = path.withoutExtension(newId.path)
               .replaceAll(new RegExp('[-./]'), '_');
           code = "library $libname;\n$code";
         }
-        transform.addOutput(new Asset.fromString(id, code));
+        transform.addOutput(new Asset.fromString(newId, code));
         textContent.remove();
         count++;
       }
-      transform.addOutput(new Asset.fromString(inputId,
-          htmlChanged ? document.outerHtml : content));
+      transform.addOutput(
+          htmlChanged ? new Asset.fromString(id, document.outerHtml) : input);
     });
   }
 }

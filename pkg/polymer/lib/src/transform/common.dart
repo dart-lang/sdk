@@ -17,7 +17,7 @@ import 'package:source_maps/span.dart' show Span;
  * Parses an HTML file [contents] and returns a DOM-like tree. Adds emitted
  * error/warning to [logger].
  */
-Document parseHtml(String contents, String sourcePath, TransformLogger logger,
+Document _parseHtml(String contents, String sourcePath, TransformLogger logger,
     {bool checkDocType: true}) {
   // TODO(jmesserly): make HTTP encoding configurable
   var parser = new HtmlParser(contents, encoding: 'utf8', generateSpans: true,
@@ -32,6 +32,25 @@ Document parseHtml(String contents, String sourcePath, TransformLogger logger,
     }
   }
   return document;
+}
+
+Future<Document> readPrimaryAsHtml(Transform transform) {
+  var asset = transform.primaryInput;
+  var id = asset.id;
+  return asset.readAsString().then((content) {
+    return _parseHtml(content, id.path, transform.logger,
+      checkDocType: isPrimaryHtml(id));
+  });
+}
+
+Future<Document> readAsHtml(AssetId id, Transform transform) {
+  var primaryId = transform.primaryInput.id;
+  var url = (id.package == primaryId.package) ? id.path
+      : assetUrlFor(id, primaryId, transform.logger, allowAssetUrl: true);
+  return transform.readInputAsString(id).then((content) {
+    return _parseHtml(content, url, transform.logger,
+      checkDocType: isPrimaryHtml(id));
+  });
 }
 
 /** Create an [AssetId] for a [url] seen in the [source] asset. */
@@ -74,7 +93,38 @@ AssetId resolve(AssetId source, String url, TransformLogger logger, Span span) {
 }
 
 /** Whether an asset with [id] is considered a primary entry point HTML file. */
-Future<bool> isPrimaryHtml(AssetId id) =>
-    new Future.value(id.extension == '.html' &&
-        // Note: [id.path] is a relative path from the root of a package.
-        (id.path.startsWith('web/') || id.path.startsWith('test/')));
+bool isPrimaryHtml(AssetId id) => id.extension == '.html' &&
+    // Note: [id.path] is a relative path from the root of a package.
+    (id.path.startsWith('web/') || id.path.startsWith('test/'));
+
+/**
+ * Generate the import url for a file described by [id], referenced by a file
+ * with [sourceId].
+ */
+// TODO(sigmund): this should also be in barback (dartbug.com/12610)
+String assetUrlFor(AssetId id, AssetId sourceId, TransformLogger logger,
+    {bool allowAssetUrl: false}) {
+  // use package: and asset: urls if possible
+  if (id.path.startsWith('lib/')) {
+    return 'package:${id.package}/${id.path.substring(4)}';
+  }
+
+  if (id.path.startsWith('asset/')) {
+    if (!allowAssetUrl) {
+      logger.error("asset urls not allowed. "
+          "Don't know how to refer to $id from $sourceId");
+      return null;
+    }
+    return 'asset:${id.package}/${id.path.substring(6)}';
+  }
+
+  // Use relative urls only if it's possible.
+  if (id.package != sourceId.package) {
+    logger.error("don't know how to refer to $id from $sourceId");
+    return null;
+  }
+
+  var builder = path.url;
+  return builder.relative(builder.join('/', id.path),
+      from: builder.join('/', builder.dirname(sourceId.path)));
+}
