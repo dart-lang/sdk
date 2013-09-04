@@ -175,7 +175,7 @@ list_literal1_test/01: Fail # Issue 12993
 map_literal1_test/01: Fail # Issue 12993
 number_identifier_test/01: Fail # Issue 13014
 number_identifier_test/02: Fail # Issue 13014
-scope_negative_test: Fail # Negative language test.
+scope_variable_test/01: Fail # Issue 13016
 static_final_field_negative_test: Fail # Negative language test.
 throw7_negative_test: Fail # Negative language test.
 
@@ -354,6 +354,7 @@ method_override5_test: Fail # Issue 12810
 static_final_field_negative_test: Fail
 number_identifier_test/01: Fail # Issue 13014
 number_identifier_test/02: Fail # Issue 13014
+scope_variable_test/01: Fail # Issue 13016
 # Common with language_dart2js.
 factory_redirection_test/01: Fail # Issue 12753
 factory_redirection_test/02: Crash # Issue 12753

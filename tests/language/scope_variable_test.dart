@@ -4,38 +4,44 @@
 
 import "package:expect/expect.dart";
 
-class ScopeVariableTest {
-
-  static void testSimpleScope() {
-    {
-      var a = "Test";
-      int b = 1;
-    }
-    {
-      var c;
-      int d;
-      Expect.equals(true, c == null);
-      Expect.equals(true, d == null);
-    }
-  }
-
-  static void testShadowingScope() {
+void testSimpleScope() {
+  {
     var a = "Test";
-    {
-      var a;
-      Expect.equals(true, a == null);
-      a = "a";
-      Expect.equals(true, a == "a");
-    }
-    Expect.equals(true, a == "Test");
+    int b = 1;
   }
+  {
+    var c;
+    int d;
+    Expect.isNull(c);
+    Expect.isNull(d);
+  }
+}
 
-  static void testMain() {
-    testSimpleScope();
-    testShadowingScope();
+void testShadowingScope() {
+  var a = "Test";
+  {
+    var a;
+    Expect.equals(true, a == null);
+    a = "a";
+    Expect.equals(true, a == "a");
+  }
+  Expect.equals(true, a == "Test");
+}
+
+int testShadowingAfterUse() {
+  var a = 1;
+  {
+    var b = 2;
+    var c = a;  // Use of 'a' prior to its shadow declaration below.
+    var d = b + c;
+    // Shadow declaration of 'a'.
+    var a = 5;  /// 01: compile-time error
+    return d + a;
   }
 }
 
 main() {
-  ScopeVariableTest.testMain();
+  testSimpleScope();
+  testShadowingScope();
+  testShadowingAfterUse();
 }

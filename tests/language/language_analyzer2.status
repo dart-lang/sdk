@@ -203,8 +203,7 @@ type_error_test: fail # Issue 12289
 issue11724_test: fail # Issue 12381
 call_nonexistent_static_test/08: fail # Issue 12381
 
-# test issue 12397; it is static warning, not error to use variable before declaration (or hidden)
-scope_negative_test: fail # Issue 12397
+scope_variable_test/01: fail # Issue 12397
 
 # test issue 12539, rules for finals were loosened, contradiction in spec was fixed
 const_syntax_test/09: fail # Issue 12539
