@@ -10,14 +10,16 @@ typed_data/byte_data_test: Pass, Fail # v8 bug: Issue 12293
 math/double_pow_test: Fail
 math/low_test: Fail
 math/random_test: Fail
-mirrors/invoke_test: Fail # Issue 11954
 mirrors/class_mirror_type_variables_test: Fail # Issue 12087
-mirrors/invoke_private_test: Fail # Issue 12164
 mirrors/equality_test: Fail # Issue 12333
+mirrors/fake_function_test: Fail # Issue 11612
 mirrors/function_type_mirror_test: Fail # Issue 12166
 mirrors/generics_test: Fail # Issue 12333
 mirrors/hierarchy_invariants_test: Fail # Issue 11863
-mirrors/fake_function_test: Fail # Issue 11612
+mirrors/invoke_test: Fail # Issue 11954
+mirrors/invoke_named_test: Fail # Issue 10471, 12863
+mirrors/invoke_private_test: Fail # Issue 12164
+mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
 mirrors/method_mirror_name_test: Fail # Issue 6335
 mirrors/method_mirror_properties_test: Fail # Issue 11861
 mirrors/method_mirror_returntype_test : Fail # Issue 11928
@@ -27,7 +29,6 @@ mirrors/mixin_test/none: Fail # Issue 12464
 mirrors/null_test : Fail # Issue 12129
 mirrors/parameter_test: Fail # Issue 6490
 mirrors/parameter_metadata_test: Fail # Issue 10905
-mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
 mirrors/reflected_type_test: Fail # Issue 12607
 mirrors/typedef_metadata_test: Fail # Issue 12785
 mirrors/unnamed_library_test: Fail # Issue 10580

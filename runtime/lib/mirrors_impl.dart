@@ -81,7 +81,7 @@ List _metadata(reflectee)
 
 // This will verify the argument types, unwrap them, and ensure we have a fixed
 // array.
-List _unwarpAsyncPositionals(wrappedArgs){
+List _unwarpAsyncPositionals(wrappedArgs) {
   List unwrappedArgs = new List(wrappedArgs.length);
   for(int i = 0; i < wrappedArgs.length; i++){
     var wrappedArg = wrappedArgs[i];
@@ -89,10 +89,26 @@ List _unwarpAsyncPositionals(wrappedArgs){
       unwrappedArgs[i] = wrappedArg;
     } else if(wrappedArg is InstanceMirror) {
       unwrappedArgs[i] = wrappedArg._reflectee;
-    } else { 
-      throw "positional argument $i ($arg) was not a simple value or InstanceMirror";
+    } else {
+      throw "positional argument $i ($wrappedArg) was "
+            "not a simple value or InstanceMirror";
     }
   }
+  return unwrappedArgs;
+}
+Map _unwarpAsyncNamed(wrappedArgs) {
+  if (wrappedArgs==null) return null;
+  Map unwrappedArgs = new Map();
+  wrappedArgs.forEach((name, wrappedArg){
+    if(_isSimpleValue(wrappedArg)) {
+      unwrappedArgs[name] = wrappedArg;
+    } else if(wrappedArg is InstanceMirror) {
+      unwrappedArgs[name] = wrappedArg._reflectee;
+    } else {
+      throw "named argument ${_n(name)} ($wrappedArg) was "
+            "not a simple value or InstanceMirror";
+    }
+  });
   return unwrappedArgs;
 }
 
@@ -155,13 +171,26 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
                         [Map<Symbol, dynamic> namedArguments]) {
-    if (namedArguments != null) {
-      throw new UnimplementedError(
-          'named argument support is not implemented');
+
+    int numPositionalArguments = positionalArguments.length;
+    int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
+    int numArguments = numPositionalArguments + numNamedArguments;
+    List arguments = new List(numArguments);
+    arguments.setRange(0, numPositionalArguments, positionalArguments);
+    List names = new List(numNamedArguments);
+    int argumentIndex = numPositionalArguments;
+    int nameIndex = 0;
+    if (numNamedArguments > 0) {
+      namedArguments.forEach((name, value) {
+        arguments[argumentIndex++] = value;
+        names[nameIndex++] = _n(name);
+      });
     }
+
     return reflect(this._invoke(_reflectee,
                                 _n(memberName),
-                                positionalArguments.toList(growable:false))); 
+                                arguments,
+                                names));
   }
 
   InstanceMirror getField(Symbol memberName) {
@@ -179,19 +208,11 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
   Future<InstanceMirror> invokeAsync(Symbol memberName,
                                      List positionalArguments,
                                      [Map<Symbol, dynamic> namedArguments]) {
-    if (namedArguments != null) {
-      throw new UnimplementedError(
-          'named argument support is not implemented');
-    }
-
-    try {
-      var result = this._invoke(_reflectee,
-                                _n(memberName),
-                                _unwarpAsyncPositionals(positionalArguments));
-      return new Future.value(reflect(result)); 
-    } catch(e) {
-      return new Future.error(e);
-    }
+    return new Future(() {
+      return this.invoke(memberName,
+                         _unwarpAsyncPositionals(positionalArguments),
+                         _unwarpAsyncNamed(namedArguments));
+    });
   }
 
   Future<InstanceMirror> getFieldAsync(Symbol memberName) {
@@ -299,7 +320,34 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
   static _identityHash(reflectee)
       native "InstanceMirror_identityHash";
 
-  _invoke(reflectee, functionName, positionalArguments)
+  // Override to include the receiver in the arguments.
+  InstanceMirror invoke(Symbol memberName,
+                        List positionalArguments,
+                        [Map<Symbol, dynamic> namedArguments]) {
+
+    int numPositionalArguments = positionalArguments.length + 1;  // Receiver.
+    int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
+    int numArguments = numPositionalArguments + numNamedArguments;
+    List arguments = new List(numArguments);
+    arguments[0] = _reflectee;  // Receiver.
+    arguments.setRange(1, numPositionalArguments, positionalArguments);
+    List names = new List(numNamedArguments);
+    int argumentIndex = numPositionalArguments;
+    int nameIndex = 0;
+    if (numNamedArguments > 0) {
+      namedArguments.forEach((name, value) {
+        arguments[argumentIndex++] = value;
+        names[nameIndex++] = _n(name);
+      });
+    }
+
+    return reflect(this._invoke(_reflectee,
+                                _n(memberName),
+                                arguments,
+                                names));
+  }
+
+  _invoke(reflectee, functionName, arguments, argumentNames)
       native 'InstanceMirror_invoke';
 
   _invokeGetter(reflectee, getterName)
@@ -331,30 +379,38 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
 
   InstanceMirror apply(List<Object> positionalArguments,
                        [Map<Symbol, Object> namedArguments]) {
-    if (namedArguments != null) {
-      throw new UnimplementedError(
-          'named argument support is not implemented');
+    // TODO(iposva): When closures get an ordinary call method, this can be
+    // replaced with
+    //   return this.invoke(#call, positionalArguments, namedArguments);
+    // and the native ClosureMirror_apply can be removed.
+    
+    int numPositionalArguments = positionalArguments.length + 1;  // Receiver.
+    int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
+    int numArguments = numPositionalArguments + numNamedArguments;
+    List arguments = new List(numArguments);
+    arguments[0] = _reflectee;  // Receiver.
+    arguments.setRange(1, numPositionalArguments, positionalArguments);
+    List names = new List(numNamedArguments);
+    int argumentIndex = numPositionalArguments;
+    int nameIndex = 0;
+    if (numNamedArguments > 0) {
+      namedArguments.forEach((name, value) {
+        arguments[argumentIndex++] = value;
+        names[nameIndex++] = _n(name);
+      });
     }
+
     // It is tempting to implement this in terms of Function.apply, but then
     // lazy compilation errors would be fatal.
-    return reflect(_apply(_reflectee,
-                          positionalArguments.toList(growable:false)));
+    return reflect(_apply(_reflectee, arguments, names));
   }
 
   Future<InstanceMirror> applyAsync(List positionalArguments,
                                     [Map<Symbol, dynamic> namedArguments]) {
-    if (namedArguments != null) {
-      throw new UnimplementedError(
-          'named argument support is not implemented');
-    }
-
-    try {
-      var result = _apply(_reflectee,
-                          _unwarpAsyncPositionals(positionalArguments));
-      return new Future.value(reflect(result)); 
-    } on MirroredError catch(e) {
-      return new Future.error(e);
-    }
+    return new Future(() {
+      return this.apply(_unwarpAsyncPositionals(positionalArguments),
+                        _unwarpAsyncNamed(namedArguments));
+    });
   }
 
   Future<InstanceMirror> findInContext(Symbol name) {
@@ -364,7 +420,7 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
 
   String toString() => "ClosureMirror on '${Error.safeToString(_reflectee)}'";
 
-  static _apply(reflectee, positionalArguments)
+  static _apply(reflectee, arguments, argumentNames)
       native 'ClosureMirror_apply';
 
   static _computeFunction(reflectee)
@@ -607,31 +663,37 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
                              [Map<Symbol, dynamic> namedArguments]) {
-    if (namedArguments != null) {
-      throw new UnimplementedError(
-          'named argument support is not implemented');
+    // Native code will add the 1 or 2 implicit arguments depending on whether
+    // we end up invoking a factory or constructor respectively.
+    int numPositionalArguments = positionalArguments.length;
+    int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
+    int numArguments = numPositionalArguments + numNamedArguments;
+    List arguments = new List(numArguments);
+    arguments.setRange(0, numPositionalArguments, positionalArguments);
+    List names = new List(numNamedArguments);
+    int argumentIndex = numPositionalArguments;
+    int nameIndex = 0;
+    if (numNamedArguments > 0) {
+      namedArguments.forEach((name, value) {
+        arguments[argumentIndex++] = value;
+        names[nameIndex++] = _n(name);
+      });
     }
+
     return reflect(_invokeConstructor(_reflectee,
                                       _n(constructorName),
-                                      positionalArguments.toList(growable:false)));
+                                      arguments,
+                                      names));
   }
 
   Future<InstanceMirror> newInstanceAsync(Symbol constructorName,
                                           List positionalArguments,
                                           [Map<Symbol, dynamic> namedArguments]) {
-    if (namedArguments != null) {
-      throw new UnimplementedError(
-          'named argument support is not implemented');
-    }
-
-    try {
-      var result = _invokeConstructor(_reflectee,
-                                      _n(constructorName),
-                                      _unwarpAsyncPositionals(positionalArguments));
-      return new Future.value(reflect(result)); 
-    } catch(e) {
-      return new Future.error(e);
-    }
+    return new Future(() {
+      return this.newInstance(constructorName,
+                              _unwarpAsyncPositionals(positionalArguments),
+                              _unwarpAsyncNamed(namedArguments));
+    });
   }
 
   List<InstanceMirror> get metadata {
@@ -669,7 +731,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   _computeConstructors(reflectee)
       native "ClassMirror_constructors";
 
-  _invoke(reflectee, memberName, positionalArguments)
+  _invoke(reflectee, memberName, arguments, argumentNames)
       native 'ClassMirror_invoke';
 
   _invokeGetter(reflectee, getterName)
@@ -678,7 +740,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   _invokeSetter(reflectee, setterName, value)
       native 'ClassMirror_invokeSetter';
 
-  static _invokeConstructor(reflectee, constructorName, positionalArguments)
+  static _invokeConstructor(reflectee, constructorName, arguments, argumentNames)
       native 'ClassMirror_invokeConstructor';
 
   static _ClassMirror_type_variables(reflectee)
@@ -968,7 +1030,7 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
 
   int get hashCode => simpleName.hashCode;
 
-  _invoke(reflectee, memberName, positionalArguments)
+  _invoke(reflectee, memberName, arguments, argumentNames)
       native 'LibraryMirror_invoke';
 
   _invokeGetter(reflectee, getterName)

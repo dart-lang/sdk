@@ -254,11 +254,11 @@ namespace dart {
   V(Mirrors_makeLocalMirrorSystem, 0)                                          \
   V(MirrorReference_equals, 2)                                                 \
   V(InstanceMirror_identityHash, 1)                                            \
-  V(InstanceMirror_invoke, 4)                                                  \
+  V(InstanceMirror_invoke, 5)                                                  \
   V(InstanceMirror_invokeGetter, 3)                                            \
   V(InstanceMirror_invokeSetter, 4)                                            \
   V(ClosureMirror_function, 1)                                                 \
-  V(ClosureMirror_apply, 2)                                                    \
+  V(ClosureMirror_apply, 3)                                                    \
   V(ClassMirror_name, 1)                                                       \
   V(ClassMirror_library, 1)                                                    \
   V(ClassMirror_supertype, 1)                                                  \
@@ -267,13 +267,13 @@ namespace dart {
   V(ClassMirror_members, 2)                                                    \
   V(ClassMirror_constructors, 2)                                               \
   V(LibraryMirror_members, 2)                                                  \
-  V(ClassMirror_invoke, 4)                                                     \
+  V(ClassMirror_invoke, 5)                                                     \
   V(ClassMirror_invokeGetter, 3)                                               \
   V(ClassMirror_invokeSetter, 4)                                               \
-  V(ClassMirror_invokeConstructor, 3)                                          \
+  V(ClassMirror_invokeConstructor, 4)                                          \
   V(ClassMirror_type_variables, 1)                                             \
   V(ClassMirror_type_arguments, 1)                                             \
-  V(LibraryMirror_invoke, 4)                                                   \
+  V(LibraryMirror_invoke, 5)                                                   \
   V(LibraryMirror_invokeGetter, 3)                                             \
   V(LibraryMirror_invokeSetter, 4)                                             \
   V(TypeVariableMirror_owner, 1)                                               \
