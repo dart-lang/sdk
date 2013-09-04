@@ -45,10 +45,9 @@ main() {
 > dart.core.Object
 ''', stringifyHierarchy(reflect(new Bar()..foo()..bar()..qux())));
 
-  // TODO(ahe): Using wrong mixin syntax, see http://dartbug.com/12464.
   Expect.stringEquals('''
 > hierarchy_test.Baz
-> hierarchy_test.FooMixin(hierarchy_test.Qux)
+> hierarchy_test.Qux with hierarchy_test.FooMixin
   + hierarchy_test.FooMixin
 > hierarchy_test.Qux
 > dart.core.Object

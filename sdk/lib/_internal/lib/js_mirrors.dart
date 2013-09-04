@@ -491,6 +491,7 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
     implements ClassMirror {
   final ClassMirror superclass;
   final ClassMirror mixin;
+  Symbol _cachedSimpleName;
 
   JsMixinApplication(ClassMirror superclass, ClassMirror mixin,
                      String mangledName)
@@ -501,7 +502,11 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
   String get _prettyName => 'ClassMirror';
 
   Symbol get simpleName {
-    return s('${n(mixin.qualifiedName)}(${n(superclass.qualifiedName)})');
+    if (_cachedSimpleName != null) return _cachedSimpleName;
+    String superName = n(superclass.qualifiedName);
+    return _cachedSimpleName = (superName.contains(' with '))
+        ? s('$superName, ${n(mixin.qualifiedName)}')
+        : s('$superName with ${n(mixin.qualifiedName)}');
   }
 
   Symbol get qualifiedName => simpleName;
