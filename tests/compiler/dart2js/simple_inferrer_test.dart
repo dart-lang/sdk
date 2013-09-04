@@ -676,7 +676,7 @@ void main() {
 
     checkReturn('testDoWhile1', typesTask.stringType);
     checkReturn('testDoWhile2', typesTask.nullType);
-    checkReturn('testDoWhile3', interceptorType);
+    checkReturn('testDoWhile3', typesTask.intType);
     checkReturn('testDoWhile4', typesTask.numType);
 
     checkReturnInClass(String className, String methodName, type) {

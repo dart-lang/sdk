@@ -35,7 +35,6 @@ abstract class TypeSystem<T> {
   T nonNullSubclass(DartType type);
   T nonNullExact(DartType type);
   T nonNullEmpty();
-  T nullable(T type);
   Selector newTypedSelector(T receiver, Selector selector);
 
   T allocateContainer(T type,
@@ -248,6 +247,11 @@ class ArgumentsTypes<T> {
   bool hasOnePositionalArgumentWithType(T type) {
     return named.isEmpty && positional.length == 1 && positional[0] == type;
   }
+
+  void forEach(void f(T type)) {
+    positional.forEach(f);
+    named.values.forEach(f);
+  }
 }
 
 class CallSite {
@@ -347,9 +351,11 @@ class LocalsHandler<T> {
       // of the try block so that, at exit of the try block, we get
       // the right phi for it.
       T existing = tryBlock.locals.parent[local];
-      T phiType = types.allocatePhi(tryBlock.locals.block, local, existing);
-      T inputType = types.addPhiInput(local, phiType, type);
-      tryBlock.locals.parent[local] = inputType;
+      if (existing != null) {
+        T phiType = types.allocatePhi(tryBlock.locals.block, local, existing);
+        T inputType = types.addPhiInput(local, phiType, type);
+        tryBlock.locals.parent[local] = inputType;
+      }
       // Update the current handler unconditionnally with the new
       // type.
       locals[local] = type;
@@ -414,8 +420,7 @@ class LocalsHandler<T> {
   }
 
   /**
-   * Merge all [LocalsHandler] in [handlers] into [:this:]. Returns
-   * whether a local in [:this:] has changed.
+   * Merge all [LocalsHandler] in [handlers] into [:this:].
    *
    * If [keepOwnLocals] is true, the types of locals in this
    * [LocalsHandler] are being used in the merge. [keepOwnLocals]
@@ -433,30 +438,16 @@ class LocalsHandler<T> {
    * types of locals at entry of the switch have to take part to the
    * merge.
    */
-  bool mergeAll(List<LocalsHandler<T>> handlers,
-                {bool keepOwnLocals: true}) {
-    bool changed = false;
+  void mergeAfterBreaks(List<LocalsHandler<T>> handlers,
+                        {bool keepOwnLocals: true}) {
     Node level = locals.block;
-
-    void mergeHandler(LocalsHandler<T> other) {
-      if (other.seenReturnOrThrow) return;
-      other.locals.forEachLocalUntilNode(level, (local, otherType) {
-        T myType = locals[local];
-        if (myType == null) return;
-        T newType = types.addPhiInput(local, myType, otherType);
-        if (newType != myType) {
-          changed = true;
-          locals[local] = newType;
-        }
-      });
-    }
-
+    LocalsHandler<T> startWith;
+    int index = 0;
     if (keepOwnLocals && !seenReturnOrThrow) {
-      handlers.forEach(mergeHandler);
+      startWith = this;
+      index--;
     } else {
       // Find the first handler that does not abort.
-      int index = 0;
-      LocalsHandler<T> startWith;
       while (index < handlers.length
              && (startWith = handlers[index]).seenReturnOrThrow) {
         index++;
@@ -465,24 +456,62 @@ class LocalsHandler<T> {
         // If we haven't found a handler that does not abort, we know
         // this handler aborts.
         seenReturnOrThrow = true;
+        return;
       } else {
         // Otherwise, this handler does not abort.
         seenReturnOrThrow = false;
-        // Use [startWith] to initialize the types of locals.
-        startWith.locals.forEachLocalUntilNode(level, (local, otherType) {
-          T myType = locals[local];
-          if (myType == null) return;
-          if (myType != otherType) {
-            changed = true;
-            locals[local] = otherType;
-          }
-        });
-        // Merge all other handlers.
-        for (int i = index + 1; i < handlers.length; i++) {
-          mergeHandler(handlers[i]);
-        }
       }
     }
+    // Use [startWith] to initialize the types of locals.
+    locals.forEachLocal((local, myType) {
+      T otherType = startWith.locals[local];
+      T newType = types.allocatePhi(level, local, otherType);
+      if (myType != newType) {
+        locals[local] = newType;
+      }
+    });
+    // Merge all other handlers.
+    for (int i = index + 1; i < handlers.length; i++) {
+      mergeHandler(handlers[i]);
+    }
+
+    locals.forEachLocal((Element element, T type) {
+      T newType = types.simplifyPhi(level, element, type);
+      if (newType != type) {
+        locals[element] = newType;
+      }
+    });
+  }
+
+  /**
+   * Merge [other] into this handler. Returns whether a local in this
+   * has changed.
+   */
+  bool mergeHandler(LocalsHandler<T> other) {
+    if (other.seenReturnOrThrow) return false;
+    bool changed = false;
+    other.locals.forEachLocalUntilNode(locals.block, (local, otherType) {
+      T myType = locals[local];
+      if (myType == null) return;
+      T newType = types.addPhiInput(local, myType, otherType);
+      if (newType != myType) {
+        changed = true;
+        locals[local] = newType;
+      }
+    });
+    return changed;
+  }
+
+  /**
+   * Merge all [LocalsHandler] in [handlers] into this handler.
+   * Returns whether a local in this handler has changed.
+   */
+  bool mergeAll(List<LocalsHandler<T>> handlers) {
+    bool changed = false;
+    assert(!seenReturnOrThrow);
+    handlers.forEach((other) {
+      changed = mergeHandler(other) || changed;
+    });
     return changed;
   }
 
@@ -490,7 +519,7 @@ class LocalsHandler<T> {
     locals.forEachLocal((Element element, T type) {
       T newType = types.allocatePhi(loop, element, type);
       if (newType != type) {
-        locals[element] = type;
+        locals[element] = newType;
       }
     });
   }
@@ -499,7 +528,7 @@ class LocalsHandler<T> {
     locals.forEachLocal((Element element, T type) {
       T newType = types.simplifyPhi(loop, element, type);
       if (newType != type) {
-        locals[element] = type;
+        locals[element] = newType;
       }
     });
   }
@@ -864,28 +893,22 @@ abstract class InferrerVisitor
     loopLevel++;
     bool changed = false;
     TargetElement target = elements[node];
-    locals.startLoop(node);
-    LocalsHandler<T> saved;
-    bool keepOwnLocals = node.asDoWhile() == null;
+    LocalsHandler<T> saved = locals;
+    saved.startLoop(node);
     do {
       // Setup (and clear in case of multiple iterations of the loop)
       // the lists of breaks and continues seen in the loop.
       setupBreaksAndContinues(target);
-      saved = locals;
-      locals = new LocalsHandler<T>.from(locals, node);
+      locals = new LocalsHandler<T>.from(saved, node);
       logic();
-      changed = saved.mergeAll(getLoopBackEdges(target),
-                               keepOwnLocals: keepOwnLocals);
-      // Now that we have done the initial merge, following merges to
-      // reach a fixed point must use the previously computed types of
-      // locals at entry of the loop.
-      keepOwnLocals = true;
-      locals = saved;
+      changed = saved.mergeAll(getLoopBackEdges(target));
     } while (changed);
     loopLevel--;
-    saved.mergeAll(getBreaks(target));
+    saved.endLoop(node);
+    bool keepOwnLocals = node.asDoWhile() == null;
+    saved.mergeAfterBreaks(
+        getBreaks(target), keepOwnLocals: keepOwnLocals);
     locals = saved;
-    locals.endLoop(node);
     clearBreaksAndContinues(target);
   }
 
@@ -981,7 +1004,7 @@ abstract class InferrerVisitor
       TargetElement targetElement = elements[body];
       setupBreaksAndContinues(targetElement);
       visit(body);
-      locals.mergeAll(getBreaks(targetElement));
+      locals.mergeAfterBreaks(getBreaks(targetElement));
       clearBreaksAndContinues(targetElement);
     }
   }
@@ -1060,7 +1083,7 @@ abstract class InferrerVisitor
         visit(switchCase);
         localsToMerge.add(locals);
       }
-      saved.mergeAll(localsToMerge, keepOwnLocals: !hasDefaultCase);
+      saved.mergeAfterBreaks(localsToMerge, keepOwnLocals: !hasDefaultCase);
       locals = saved;
     }
     clearBreaksAndContinues(elements[node]);

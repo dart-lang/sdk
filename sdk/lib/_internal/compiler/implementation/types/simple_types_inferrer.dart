@@ -93,10 +93,6 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask nonNullExact(DartType type) => new TypeMask.nonNullExact(type);
   TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
 
-  TypeMask nullable(TypeMask type) {
-    return type.nullable();
-  }
-
   TypeMask allocateContainer(TypeMask type,
                              Node node,
                              Element enclosing,
@@ -2305,10 +2301,6 @@ class SimpleTypeInferrerVisitor<T>
                       iteratorType, new ArgumentsTypes<T>([], null));
     T currentType =
         handleDynamicSend(node, currentSelector, iteratorType, null);
-
-    // We nullify the type in case there is no element in the
-    // iterable.
-    currentType = types.nullable(currentType);
 
     if (node.expression.isThis()) {
       // Any reasonable implementation of an iterator would expose
