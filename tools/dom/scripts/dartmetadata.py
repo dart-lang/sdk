@@ -202,11 +202,16 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('int|String|Null')",
     ],
 
-    'MessageEvent.ports': ["@Creates('JSExtendableArray')"],
-
     'MessageEvent.data': [
       "@annotation_Creates_SerializedScriptValue",
       "@annotation_Returns_SerializedScriptValue",
+    ],
+
+    'MessageEvent.ports': ["@Creates('JSExtendableArray')"],
+
+    'MessageEvent.source': [
+      "@Creates('Null')",
+      "@Returns('EventTarget|=Object')",
     ],
 
     'Metadata.modificationTime': [

@@ -16138,6 +16138,8 @@ class MessageEvent extends Event native "MessageEvent" {
   @JSName('source')
   @DomName('MessageEvent.source')
   @DocsEditable()
+  @Creates('Null')
+  @Returns('EventTarget|=Object')
   final dynamic _get_source;
 
   @JSName('initMessageEvent')
