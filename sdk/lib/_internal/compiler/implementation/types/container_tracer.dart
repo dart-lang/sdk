@@ -10,7 +10,7 @@ import '../tree/tree.dart';
 import '../universe/universe.dart';
 import '../util/util.dart' show Link;
 import 'simple_types_inferrer.dart'
-    show InferrerEngine, InferrerVisitor, LocalsHandler;
+    show InferrerEngine, InferrerVisitor, LocalsHandler, TypeMaskSystem;
 import 'types.dart';
 import 'inferrer_visitor.dart';
 
@@ -136,6 +136,38 @@ Set<String> doNotChangeLengthSelectorsSet = new Set<String>.from(
 
 bool _VERBOSE = false;
 
+class InferrerEngineForContainerTracer
+    implements MinimalInferrerEngine<TypeMask> {
+  final Compiler compiler;
+
+  InferrerEngineForContainerTracer(this.compiler);
+
+  TypeMask typeOfElement(Element element) {
+    return compiler.typesTask.getGuaranteedTypeOfElement(element);
+  }
+
+  TypeMask returnTypeOfElement(Element element) {
+    return compiler.typesTask.getGuaranteedReturnTypeOfElement(element);
+  }
+
+  TypeMask returnTypeOfSelector(Selector selector) {
+    return compiler.typesTask.getGuaranteedTypeOfSelector(selector);
+  }
+
+  TypeMask typeOfNode(Node node) {
+    return compiler.typesTask.getGuaranteedTypeOfNode(null, node);
+  }
+
+  Iterable<Element> getCallersOf(Element element) {
+    return compiler.typesTask.typesInferrer.getCallersOf(element);
+  }
+
+  void recordTypeOfNonFinalField(Node node,
+                                 Element field,
+                                 TypeMask type,
+                                 CallSite constraint) {}
+}
+
 /**
  * Global analysis phase that traces container instantiations in order to
  * find their element type.
@@ -147,13 +179,15 @@ class ContainerTracer extends CompilerTask {
 
   bool analyze() {
     measure(() {
-      InferrerEngine<TypeMask> inferrer =
-          compiler.typesTask.typesInferrer.internal;
+      TypesInferrer inferrer = compiler.typesTask.typesInferrer;
+      InferrerEngineForContainerTracer engine =
+          new InferrerEngineForContainerTracer(compiler);
+
       // Walk over all created [ContainerTypeMask].
-      inferrer.concreteTypes.values.forEach((ContainerTypeMask mask) {
+      inferrer.containerTypes.forEach((ContainerTypeMask mask) {
         // The element type has already been set for const containers.
         if (mask.elementType != null) return;
-        new TracerForConcreteContainer(mask, this, compiler, inferrer).run();
+        new TracerForConcreteContainer(mask, this, compiler, engine).run();
       });
     });
   }
@@ -165,7 +199,7 @@ class ContainerTracer extends CompilerTask {
 class TracerForConcreteContainer {
   final Compiler compiler;
   final ContainerTracer tracer;
-  final InferrerEngine<TypeMask> inferrer;
+  final InferrerEngineForContainerTracer inferrer;
   final ContainerTypeMask mask;
 
   final Node analyzedNode;
@@ -337,13 +371,13 @@ class TracerForConcreteContainer {
 }
 
 class ContainerTracerVisitor
-    extends InferrerVisitor<TypeMask, InferrerEngine<TypeMask>> {
+    extends InferrerVisitor<TypeMask, InferrerEngineForContainerTracer> {
   final Element analyzedElement;
   final TracerForConcreteContainer tracer;
   final bool visitingClosure;
 
   ContainerTracerVisitor(element, tracer, [LocalsHandler<TypeMask> locals])
-      : super(element, tracer.inferrer, tracer.inferrer.types,
+      : super(element, tracer.inferrer, new TypeMaskSystem(tracer.compiler),
               tracer.compiler, locals),
         this.analyzedElement = element,
         this.tracer = tracer,
@@ -444,7 +478,7 @@ class ContainerTracerVisitor
 
   TypeMask visitLiteralList(LiteralList node) {
     if (node.isConst()) {
-      return inferrer.concreteTypes[node];
+      return inferrer.typeOfNode(node);
     }
     if (tracer.couldBeTheList(node)) {
       escaping = true;
@@ -620,7 +654,7 @@ class ContainerTracerVisitor
       if (tracer.couldBeTheList(node)) {
         escaping = true;
       }
-      return inferrer.concreteTypes[node];
+      return inferrer.typeOfNode(node);
     } else if (Elements.isFixedListConstructorCall(element, node, compiler)) {
       visitArguments(node.arguments, element);
       if (tracer.couldBeTheList(node)) {
@@ -631,7 +665,7 @@ class ContainerTracerVisitor
           tracer.setPotentialLength(length.value);
         }
       }
-      return inferrer.concreteTypes[node];
+      return inferrer.typeOfNode(node);
     } else if (Elements.isFilledListConstructorCall(element, node, compiler)) {
       if (tracer.couldBeTheList(node)) {
         escaping = true;
@@ -645,7 +679,7 @@ class ContainerTracerVisitor
       } else {
         visitArguments(node.arguments, element);
       }
-      return inferrer.concreteTypes[node];
+      return inferrer.typeOfNode(node);
     }
 
     bool isEscaping = visitArguments(node.arguments, element);

@@ -293,22 +293,28 @@ class SimpleTypesInferrer extends TypesInferrer {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return internal.getReturnTypeOfElement(element.implementation);
   }
+
   TypeMask getTypeOfElement(Element element) {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return internal.getTypeOfElement(element.implementation);
   }
+
   TypeMask getTypeOfNode(Element owner, Node node) {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return internal.getTypeOfNode(owner, node);
   }
+
   TypeMask getTypeOfSelector(Selector selector) {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return internal.getTypeOfSelector(selector);
   }
+
   Iterable<Element> getCallersOf(Element element) {
     if (compiler.disableTypeInference) throw "Don't use me";
     return internal.getCallersOf(element.implementation);
   }
+
+  Iterable<TypeMask> get containerTypes => internal.containerTypes;
 
   bool analyzeMain(Element element) {
     if (compiler.disableTypeInference) return true;
@@ -610,6 +616,8 @@ class InternalSimpleTypesInferrer
    * types of lists.
    */
   final Map<Node, TypeMask> concreteTypes = new Map<Node, TypeMask>();
+
+  Iterable<TypeMask> get containerTypes => concreteTypes.values;
 
   /**
    * A map of constraints on a setter. When computing the type

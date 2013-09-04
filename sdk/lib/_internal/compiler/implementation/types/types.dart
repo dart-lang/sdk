@@ -25,11 +25,14 @@ part 'union_type_mask.dart';
  * Common super class for our type inferrers.
  */
 abstract class TypesInferrer {
-  analyzeMain(Element element);
+  void analyzeMain(Element element);
   TypeMask getReturnTypeOfElement(Element element);
   TypeMask getTypeOfElement(Element element);
   TypeMask getTypeOfNode(Element owner, Node node);
   TypeMask getTypeOfSelector(Selector selector);
+  Iterable<TypeMask> containerTypes;
+  void clear();
+  Iterable<Element> getCallersOf(Element element);
 }
 
 /**
