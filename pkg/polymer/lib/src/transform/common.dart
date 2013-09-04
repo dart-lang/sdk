@@ -72,3 +72,9 @@ AssetId resolve(AssetId source, String url, TransformLogger logger, Span span) {
   }
   return new AssetId(package, targetPath);
 }
+
+/** Whether an asset with [id] is considered a primary entry point HTML file. */
+Future<bool> isPrimaryHtml(AssetId id) =>
+    new Future.value(id.extension == '.html' &&
+        // Note: [id.path] is a relative path from the root of a package.
+        (id.path.startsWith('web/') || id.path.startsWith('test/')));

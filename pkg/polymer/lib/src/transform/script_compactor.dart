@@ -28,14 +28,15 @@ import 'common.dart';
  * elements annotated with `@CustomTag`.
  */
 class ScriptCompactor extends Transformer {
-  /** Only run this transformer on .html files. */
-  final String allowedExtensions = ".html";
+  /** Only run on entry point .html files. */
+  Future<bool> isPrimary(Asset input) => isPrimaryHtml(input.id);
 
   Future apply(Transform transform) {
     var id = transform.primaryInput.id;
     var logger = transform.logger;
     return transform.primaryInput.readAsString().then((content) {
-      var document = parseHtml(content, id.path, logger);
+      var document = parseHtml(content, id.path, logger,
+          checkDocType: false);
       var libraries = [];
       bool changed = false;
       var dartLoaderTag = null;

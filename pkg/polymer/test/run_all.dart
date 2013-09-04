@@ -44,7 +44,7 @@ main() {
       polyfill_injector_test.main);
   addGroup('transform/all_phases_test.dart', all_phases_test.main);
 
-  endToEndTests('data/unit/', 'data/out');
+  endToEndTests('data/unit/web', 'data/out');
 
   // Note: if you're adding more render test suites, make sure to update run.sh
   // as well for convenient baseline diff/updating.

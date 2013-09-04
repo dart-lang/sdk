@@ -13,60 +13,76 @@ void main() {
   useCompactVMConfiguration();
 
   testPhases('no changes', [[new InlineCodeExtractor()]], {
-      'a|test.html': '<!DOCTYPE html><html></html>',
+      'a|web/test.html': '<!DOCTYPE html><html></html>',
     }, {
-      'a|test.html': '<!DOCTYPE html><html></html>',
+      'a|web/test.html': '<!DOCTYPE html><html></html>',
     });
 
-  testPhases('single script, no lib', [[new InlineCodeExtractor()]], {
-      'a|test.html':
+  testPhases('single script, no library in script',
+      [[new InlineCodeExtractor()]], {
+      'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart">main() { }</script>',
     }, {
-      'a|test.html':
+      'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart" src="test.html.0.dart"></script>'
           '</head><body></body></html>',
 
-      'a|test.html.0.dart':
-          'library test_html_0;\nmain() { }',
+      'a|web/test.html.0.dart':
+          'library web_test_html_0;\nmain() { }',
     });
 
-  testPhases('single script, with lib', [[new InlineCodeExtractor()]], {
-      'a|test.html':
+  testPhases('single script, with library', [[new InlineCodeExtractor()]], {
+      'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart">library f;\nmain() { }</script>',
     }, {
-      'a|test.html':
+      'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart" src="test.html.0.dart"></script>'
           '</head><body></body></html>',
 
-      'a|test.html.0.dart':
+      'a|web/test.html.0.dart':
+          'library f;\nmain() { }',
+    });
+
+  testPhases('under lib/ directory also transformed',
+      [[new InlineCodeExtractor()]], {
+      'a|lib/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<script type="application/dart">library f;\nmain() { }</script>',
+    }, {
+      'a|lib/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<script type="application/dart" src="test.html.0.dart"></script>'
+          '</head><body></body></html>',
+
+      'a|lib/test.html.0.dart':
           'library f;\nmain() { }',
     });
 
   testPhases('multiple scripts', [[new InlineCodeExtractor()]], {
-      'a|test.html':
+      'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart">library a1;\nmain1() { }</script>'
           '<script type="application/dart">library a2;\nmain2() { }</script>',
     }, {
-      'a|test.html':
+      'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart" src="test.html.0.dart"></script>'
           '<script type="application/dart" src="test.html.1.dart"></script>'
           '</head><body></body></html>',
 
-      'a|test.html.0.dart':
+      'a|web/test.html.0.dart':
           'library a1;\nmain1() { }',
 
-      'a|test.html.1.dart':
+      'a|web/test.html.1.dart':
           'library a2;\nmain2() { }',
     });
 
   testPhases('multiple deeper scripts', [[new InlineCodeExtractor()]], {
-      'a|test.html':
+      'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart">main1() { }</script>'
           '</head><body><div>'
@@ -75,7 +91,7 @@ void main() {
           '<script type="application/dart">main3() { }</script>'
           '</div></div>'
     }, {
-      'a|test.html':
+      'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart" src="test.html.0.dart"></script>'
           '</head><body><div>'
@@ -84,13 +100,13 @@ void main() {
           '<script type="application/dart" src="test.html.2.dart"></script>'
           '</div></div></body></html>',
 
-      'a|test.html.0.dart':
-          'library test_html_0;\nmain1() { }',
+      'a|web/test.html.0.dart':
+          'library web_test_html_0;\nmain1() { }',
 
-      'a|test.html.1.dart':
-          'library test_html_1;\nmain2() { }',
+      'a|web/test.html.1.dart':
+          'library web_test_html_1;\nmain2() { }',
 
-      'a|test.html.2.dart':
-          'library test_html_2;\nmain3() { }',
+      'a|web/test.html.2.dart':
+          'library web_test_html_2;\nmain3() { }',
     });
 }

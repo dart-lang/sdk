@@ -17,8 +17,8 @@ import 'common.dart';
 // TODO(sigmund): make sure we match semantics of html-imports for tags other
 // than polymer-element (see dartbug.com/12613).
 class ImportedElementInliner extends Transformer {
-  /** Only run this transformer on .html files. */
-  final String allowedExtensions = ".html";
+  /** Only run on entry point .html files. */
+  Future<bool> isPrimary(Asset input) => isPrimaryHtml(input.id);
 
   Future apply(Transform transform) {
     var seen = new Set<AssetId>();
@@ -83,8 +83,8 @@ class ImportedElementInliner extends Transformer {
   Future _collectPolymerElements(AssetId id, Transform transform,
       Set<AssetId> seen, List elements) {
     return transform.readInputAsString(id).then((content) {
-      var document = parseHtml(
-          content, id.path, transform.logger, checkDocType: false);
+      var document = parseHtml(content, id.path, transform.logger,
+          checkDocType: false);
       return _visitImports(document, id, transform, seen, elements).then((_) {
         var normalizer = new _UrlNormalizer(transform, id);
         for (var element in document.queryAll('polymer-element')) {

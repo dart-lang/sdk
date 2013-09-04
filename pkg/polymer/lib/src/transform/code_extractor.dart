@@ -24,11 +24,11 @@ class InlineCodeExtractor extends Transformer {
   /** Only run this transformer on .html files. */
   final String allowedExtensions = ".html";
 
-
   Future apply(Transform transform) {
     var inputId = transform.primaryInput.id;
     return transform.primaryInput.readAsString().then((content) {
-      var document = parseHtml(content, inputId.path, transform.logger);
+      var document = parseHtml(content, inputId.path, transform.logger,
+          checkDocType: false);
       int count = 0;
       bool htmlChanged = false;
       for (var tag in document.queryAll('script')) {

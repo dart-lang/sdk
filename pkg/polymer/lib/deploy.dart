@@ -4,13 +4,18 @@
 
 /**
  * Temporary deploy command used to create a version of the app that can be
- * compiled with dart2js and deployed. This library should go away once `pub
- * deploy` can be configured to run barback transformers.
+ * compiled with dart2js and deployed. Following pub layout conventions, this
+ * script will treat any HTML file under a package 'web/' and 'test/'
+ * directories as entry points.
  *
- * From an application package you can run this program by calling dart with a
- * 'package:' url to this file:
+ * From an application package you can run deploy by creating a small program
+ * as follows:
  *
- *    dart package:polymer/deploy.dart
+ *    import "package:polymer/deploy.dart" as deploy;
+ *    main() => deploy.main();
+ *
+ * This library should go away once `pub deploy` can be configured to run
+ * barback transformers.
  */
 library polymer.deploy;
 

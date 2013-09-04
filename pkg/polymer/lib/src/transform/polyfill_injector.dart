@@ -22,13 +22,14 @@ import 'common.dart';
  * css shimming).
  */
 class PolyfillInjector extends Transformer {
-  /** Only run this transformer on .html files. */
-  final String allowedExtensions = ".html";
+  /** Only run on entry point .html files. */
+  Future<bool> isPrimary(Asset input) => isPrimaryHtml(input.id);
 
   Future apply(Transform transform) {
     var id = transform.primaryInput.id;
     return transform.primaryInput.readAsString().then((content) {
-      var document = parseHtml(content, id.path, transform.logger);
+      var document = parseHtml(content, id.path, transform.logger,
+          checkDocType: false);
       bool shadowDomFound = false;
       bool jsInteropFound = false;
       bool dartScriptTags = false;

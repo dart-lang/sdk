@@ -18,6 +18,16 @@ void main() {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     });
 
+  testPhases('no changes under lib ', [[new PolyfillInjector()]], {
+      'a|lib/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<script type="application/dart" src="a.dart"></script>',
+    }, {
+      'a|lib/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<script type="application/dart" src="a.dart"></script>',
+    });
+
   testPhases('with some script', [[new PolyfillInjector()]], {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
