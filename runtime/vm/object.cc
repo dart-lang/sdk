@@ -7654,6 +7654,17 @@ void Namespace::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 
 bool Namespace::HidesName(const String& name) const {
+  // Quick check for common case with no combinators.
+  if (hide_names() == show_names()) {
+    ASSERT(hide_names() == Array::null());
+    return false;
+  }
+  const String* plain_name = &name;
+  if (Field::IsGetterName(name)) {
+    plain_name = &String::Handle(Field::NameFromGetter(name));
+  } else if (Field::IsSetterName(name)) {
+    plain_name = &String::Handle(Field::NameFromSetter(name));
+  }
   // Check whether the name is in the list of explicitly hidden names.
   if (hide_names() != Array::null()) {
     const Array& names = Array::Handle(hide_names());
@@ -7661,7 +7672,7 @@ bool Namespace::HidesName(const String& name) const {
     intptr_t num_names = names.Length();
     for (intptr_t i = 0; i < num_names; i++) {
       hidden ^= names.At(i);
-      if (name.Equals(hidden)) {
+      if (plain_name->Equals(hidden)) {
         return true;
       }
     }
@@ -7674,7 +7685,7 @@ bool Namespace::HidesName(const String& name) const {
     intptr_t num_names = names.Length();
     for (intptr_t i = 0; i < num_names; i++) {
       shown ^= names.At(i);
-      if (name.Equals(shown)) {
+      if (plain_name->Equals(shown)) {
         return false;
       }
     }
