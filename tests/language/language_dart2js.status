@@ -176,15 +176,15 @@ map_literal1_test/01: Fail # Issue 12993
 number_identifier_test/01: Fail # Issue 13014
 number_identifier_test/02: Fail # Issue 13014
 scope_variable_test/01: Fail # Issue 13016
-static_final_field_negative_test: Fail # Negative language test.
-throw7_negative_test: Fail # Negative language test.
+static_final_field2_test/02: Fail # Issue 13017
+throw7_test/01: Fail # Issue 13019
 
 numbers_test: Fail, OK # (unintended?) VM specific test.
 
-final_syntax_test/01: Fail # Missing error for uninitialized final field.
-final_syntax_test/02: Fail # Missing error for uninitialized final field.
-final_syntax_test/03: Fail # Missing error for uninitialized final field.
-final_syntax_test/04: Fail # Missing error for uninitialized final field.
+final_syntax_test/01: Fail # Issue 13020
+final_syntax_test/02: Fail # Issue 13020
+final_syntax_test/03: Fail # Issue 13020
+final_syntax_test/04: Fail # Issue 13020
 
 canonical_const2_test: Fail, OK # Dart2js only has doubles.
 
@@ -315,10 +315,10 @@ constructor_return_test/03: Fail # Issue 12938
 constructor_return_test/04: Fail # Issue 12938
 constructor_return_test/05: Fail # Issue 12938
 constructor_named_arguments_test/01: Fail # Issue 5519
-final_syntax_test/01: Fail # Issue 5519
-final_syntax_test/02: Fail # Issue 5519
-final_syntax_test/03: Fail # Issue 5519
-final_syntax_test/04: Fail # Issue 5519
+final_syntax_test/01: Fail # Issue 13020
+final_syntax_test/02: Fail # Issue 13020
+final_syntax_test/03: Fail # Issue 13020
+final_syntax_test/04: Fail # Issue 13020
 getter_no_setter_test/01: Fail # Issue 5519
 named_parameters_aggregated_test/01: Fail # Issue 12802
 named_parameters_aggregated_test/03: Fail # Issue 12813
@@ -348,7 +348,8 @@ list_literal1_test/01: Fail # Issue 12993
 map_literal1_test/01: Fail # Issue 12993
 method_override4_test: Fail # Issue 12810
 method_override5_test: Fail # Issue 12810
-static_final_field_negative_test: Fail
+static_final_field2_test/02: Fail # Issue 13017
+throw7_test/01: Fail # Issue 13019
 number_identifier_test/01: Fail # Issue 13014
 number_identifier_test/02: Fail # Issue 13014
 scope_variable_test/01: Fail # Issue 13016

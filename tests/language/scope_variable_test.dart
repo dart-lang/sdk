@@ -21,11 +21,11 @@ void testShadowingScope() {
   var a = "Test";
   {
     var a;
-    Expect.equals(true, a == null);
+    Expect.isNull(a);
     a = "a";
-    Expect.equals(true, a == "a");
+    Expect.equals(a, "a");
   }
-  Expect.equals(true, a == "Test");
+  Expect.equals(a, "Test");
 }
 
 int testShadowingAfterUse() {
