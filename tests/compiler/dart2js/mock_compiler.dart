@@ -24,8 +24,6 @@ import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart'
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
     hide TreeElementMapping;
 
-import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
-
 import '../../../sdk/lib/_internal/compiler/implementation/deferred_load.dart'
     show DeferredLoadTask;
 
@@ -239,18 +237,14 @@ class MockCompiler extends Compiler {
               analyzeOnly: analyzeOnly,
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments) {
-    coreLibrary = deprecatedFutureValue(createLibrary("core", coreSource));
+    coreLibrary = createLibrary("core", coreSource);
 
     // We need to set the assert method to avoid calls with a 'null'
     // target being interpreted as a call to assert.
-    jsHelperLibrary = deprecatedFutureValue(
-        createLibrary("helper", helperSource));
-    foreignLibrary = deprecatedFutureValue(
-        createLibrary("foreign", FOREIGN_LIBRARY));
-    interceptorsLibrary = deprecatedFutureValue(
-        createLibrary("interceptors", interceptorsSource));
-    isolateHelperLibrary = deprecatedFutureValue(
-        createLibrary("isolate_helper", isolateHelperSource));
+    jsHelperLibrary = createLibrary("helper", helperSource);
+    foreignLibrary = createLibrary("foreign", FOREIGN_LIBRARY);
+    interceptorsLibrary = createLibrary("interceptors", interceptorsSource);
+    isolateHelperLibrary = createLibrary("isolate_helper", isolateHelperSource);
 
     // Set up the library imports.
     importHelperLibrary(coreLibrary);
@@ -288,7 +282,7 @@ class MockCompiler extends Compiler {
    * Used internally to create a library from a source text. The created library
    * is fixed to export its top-level declarations.
    */
-  Future<LibraryElement> createLibrary(String name, String source) {
+  LibraryElement createLibrary(String name, String source) {
     Uri uri = new Uri(scheme: "dart", path: name);
     var script = new Script(uri, new MockFile(source));
     var library = new LibraryElementX(script);
@@ -297,7 +291,7 @@ class MockCompiler extends Compiler {
     library.setExports(library.localScope.values.toList());
     registerSource(uri, source);
     libraries.putIfAbsent(uri.toString(), () => library);
-    return new Future.value(library);
+    return library;
   }
 
   void reportWarning(Node node, var message) {
