@@ -2,13 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class NumberIdentifierNegativeTest {
-
-  static void testMain() {
-    1is int;  // Number literals must not be followed by an identifier or keyword.
-  }
-
-}
 main() {
-  NumberIdentifierNegativeTest.testMain();
+  1is int;  /// 01: compile-time error
+  1as int;  /// 02: compile-time error
 }

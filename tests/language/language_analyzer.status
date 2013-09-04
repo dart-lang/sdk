@@ -37,8 +37,8 @@ list_literal_syntax_test/02: fail # Issue 12103
 list_literal_syntax_test/03: fail # Issue 12103
 malformed_test/none: fail # Issue 12696
 
-# TBF: 1is int; invalid character in number
-number_identifier_negative_test: fail
+number_identifier_test/01: Fail # Issue 13015
+number_identifier_test/02: Fail # Issue 13015
 
 # TBF: we should check conflicts not only for methods, but for accessors too
 override_field_test/02: fail

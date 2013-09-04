@@ -173,7 +173,8 @@ duplicate_implements_test/03: Fail # Issue 12991
 duplicate_implements_test/04: Fail # Issue 12991
 list_literal1_test/01: Fail # Issue 12993
 map_literal1_test/01: Fail # Issue 12993
-number_identifier_negative_test: Fail # Negative language test.
+number_identifier_test/01: Fail # Issue 13014
+number_identifier_test/02: Fail # Issue 13014
 scope_negative_test: Fail # Negative language test.
 static_final_field_negative_test: Fail # Negative language test.
 throw7_negative_test: Fail # Negative language test.
@@ -351,8 +352,8 @@ map_literal1_test/01: Fail # Issue 12993
 method_override4_test: Fail # Issue 12810
 method_override5_test: Fail # Issue 12810
 static_final_field_negative_test: Fail
-# Bug in dart2js parser: it happily parses 1is int; variable declaration.
-number_identifier_negative_test: Fail
+number_identifier_test/01: Fail # Issue 13014
+number_identifier_test/02: Fail # Issue 13014
 # Common with language_dart2js.
 factory_redirection_test/01: Fail # Issue 12753
 factory_redirection_test/02: Crash # Issue 12753
