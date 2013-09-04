@@ -93,7 +93,6 @@ dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 history_test/history: Pass, Fail # issue 8183
 indexeddb_1_test/functional: Fail # Issue 9269 + 12893
-isolates_test: Skip
 microtask_test: Fail, Pass # Appears to be flaky
 native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 serialized_script_value_test: Fail
@@ -154,7 +153,6 @@ dom_constructors_test: Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 form_element_test: Fail # Issue 4793.
-isolates_test: Skip         # BUG(4016)
 localstorage_test: Fail
 microtask_test: Pass, Fail # http://dartbug.com/8300
 postmessage_structured_test: Skip   # BUG(5685): times out.
@@ -361,7 +359,6 @@ touchevent_test/supported: Fail
 websql_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
 
-
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
 [ $runtime == vm ]
@@ -369,9 +366,6 @@ xhr_test/supported_HttpRequestProgressEvent: Fail
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.
-
-[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff || $runtime == safari) ]
-isolates_test: Skip   # Timeout because leg does not support web workers.
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 # Note: these tests are all injecting scripts by design.  This is not allowed under CSP.
