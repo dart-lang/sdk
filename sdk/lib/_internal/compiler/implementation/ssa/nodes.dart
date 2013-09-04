@@ -50,7 +50,7 @@ abstract class HVisitor<R> {
   R visitMultiply(HMultiply node);
   R visitNegate(HNegate node);
   R visitNot(HNot node);
-  R visitOneShotInterceptor(HOneShotInterceptor);
+  R visitOneShotInterceptor(HOneShotInterceptor node);
   R visitParameterValue(HParameterValue node);
   R visitPhi(HPhi node);
   R visitRangeConversion(HRangeConversion node);
@@ -967,17 +967,24 @@ abstract class HInstruction implements Spannable {
     }
   }
 
-  /** Removes all occurrences of [user] from [usedBy]. */
-  void removeUser(HInstruction user) {
-    List<HInstruction> users = usedBy;
-    int length = users.length;
-    for (int i = 0; i < length; i++) {
-      if (identical(users[i], user)) {
-        users[i] = users[length - 1];
+  /** Removes all occurrences of [instruction] from [list]. */
+  void removeFromList(List<HInstruction> list, HInstruction instruction) {
+    int length = list.length;
+    int i = 0;
+    while (i < length) {
+      if (instruction == list[i]) {
+        list[i] = list[length - 1];
         length--;
+      } else {
+        i++;
       }
     }
-    users.length = length;
+    list.length = length;
+  }
+
+  /** Removes all occurrences of [user] from [usedBy]. */
+  void removeUser(HInstruction user) {
+    removeFromList(usedBy, user);
   }
 
   // Change all uses of [oldInput] by [this] to [newInput]. Also
@@ -990,16 +997,7 @@ abstract class HInstruction implements Spannable {
         newInput.usedBy.add(this);
       }
     }
-    List<HInstruction> oldInputUsers = oldInput.usedBy;
-    int i = 0;
-    while (i < oldInputUsers.length) {
-      if (oldInputUsers[i] == this) {
-        oldInputUsers[i] = oldInputUsers[oldInput.usedBy.length - 1];
-        oldInputUsers.length--;
-      } else {
-        i++;
-      }
-    }
+    removeFromList(oldInput.usedBy, this);
   }
 
   // Compute the set of users of this instruction that is dominated by

@@ -49,7 +49,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaNonSpeculativeTypePropagator(compiler),
           // Run a dead code eliminator before LICM because dead
           // interceptors are often in the way of LICM'able instructions.
-          new SsaDeadCodeEliminator(),
+          new SsaDeadCodeEliminator(compiler),
           new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
           new SsaValueRangeAnalyzer(compiler, constantSystem, work),
@@ -57,7 +57,7 @@ class SsaOptimizerTask extends CompilerTask {
           // opportunities for instruction simplification.
           new SsaInstructionSimplifier(constantSystem, backend, work),
           new SsaSimplifyInterceptors(compiler, constantSystem, work),
-          new SsaDeadCodeEliminator()];
+          new SsaDeadCodeEliminator(compiler)];
       runPhases(graph, phases);
     });
   }
@@ -908,8 +908,9 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   final String name = "SsaDeadCodeEliminator";
 
-  Set<HBasicBlock> liveBlocks;
-  SsaDeadCodeEliminator();
+  final Compiler compiler;
+  SsaLiveBlockAnalyzer analyzer;
+  SsaDeadCodeEliminator(this.compiler);
 
   bool isDeadCode(HInstruction instruction) {
     return !instruction.sideEffects.hasSideEffects()
@@ -921,39 +922,69 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   }
 
   void visitGraph(HGraph graph) {
-    liveBlocks = computeLiveBlocks(graph);
+    analyzer = new SsaLiveBlockAnalyzer(graph);
+    analyzer.analyze();
     visitPostDominatorTree(graph);
   }
 
-  static Set<HBasicBlock> computeLiveBlocks(HGraph graph) {
-    Set<HBasicBlock> live = new Set<HBasicBlock>();
-    List<HBasicBlock> worklist = <HBasicBlock>[];
-    void process(HBasicBlock block) {
-      if (!live.contains(block)) {
-        worklist.add(block);
-        live.add(block);
-      }
-    }
-
-    process(graph.entry);
-    while (!worklist.isEmpty) {
-      HBasicBlock current = worklist.removeLast();
-      current.successors.forEach(process);
-    }
-    return live;
-  }
-
   void visitBasicBlock(HBasicBlock block) {
-    // TODO(kasperl): Use the dead block information to
-    // remove entire dead blocks of code.
-    bool isDeadBlock = !liveBlocks.contains(block);
-    // Start from the last non-control flow instruction in
-    // the block.
+    bool isDeadBlock = analyzer.isDeadBlock(block);
+    // Start from the last non-control flow instruction in the block.
     HInstruction instruction = block.last.previous;
     while (instruction != null) {
       var previous = instruction.previous;
-      if (isDeadCode(instruction)) block.remove(instruction);
+      if (isDeadBlock && instruction.usedBy.isEmpty) {
+        // TODO(kasperl): Instructions in dead blocks may still
+        // be used by control flow instructions in those blocks
+        // and phis. We should rewrite the inputs of the control
+        // flow instructions to use some sort of dummy value and
+        // try to get rid of the phis.
+        block.remove(instruction);
+      } else if (isDeadCode(instruction)) {
+        block.remove(instruction);
+      }
       instruction = previous;
+    }
+  }
+}
+
+class SsaLiveBlockAnalyzer extends HBaseVisitor {
+  final HGraph graph;
+  final Set<HBasicBlock> live = new Set<HBasicBlock>();
+  final List<HBasicBlock> worklist = <HBasicBlock>[];
+  SsaLiveBlockAnalyzer(this.graph);
+
+  bool isDeadBlock(HBasicBlock block) => !live.contains(block);
+
+  void analyze() {
+    markBlockLive(graph.entry);
+    while (!worklist.isEmpty) {
+      HBasicBlock live = worklist.removeLast();
+      live.last.accept(this);
+    }
+  }
+
+  void markBlockLive(HBasicBlock block) {
+    if (!live.contains(block)) {
+      worklist.add(block);
+      live.add(block);
+    }
+  }
+
+  void visitControlFlow(HControlFlow instruction) {
+    instruction.block.successors.forEach(markBlockLive);
+  }
+
+  void visitIf(HIf instruction) {
+    HInstruction condition = instruction.condition;
+    if (condition.isConstant()) {
+      if (condition.isConstantTrue()) {
+        markBlockLive(instruction.thenBlock);
+      } else {
+        markBlockLive(instruction.elseBlock);
+      }
+    } else {
+      visitControlFlow(instruction);
     }
   }
 }
