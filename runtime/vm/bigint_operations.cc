@@ -1500,13 +1500,26 @@ RawBigint* BigintOperations::UnsignedSubtract(const Bigint& a,
 
 RawBigint* BigintOperations::MultiplyWithDigit(
     const Bigint& bigint, Chunk digit) {
-  // TODO(floitsch): implement MultiplyWithDigit.
   ASSERT(digit <= kDigitMaxValue);
   if (digit == 0) return Zero();
+  if (bigint.IsZero()) return Zero();
 
-  Bigint& tmp = Bigint::Handle(Bigint::Allocate(1));
-  tmp.SetChunkAt(0, digit);
-  return Multiply(bigint, tmp);
+  intptr_t length = bigint.Length();
+  intptr_t result_length = length + 1;
+  const Bigint& result = Bigint::Handle(Bigint::Allocate(result_length));
+
+  Chunk carry = 0;
+  for (intptr_t i = 0; i < length; i++) {
+    Chunk chunk = bigint.GetChunkAt(i);
+    DoubleChunk product = (static_cast<DoubleChunk>(chunk) * digit) + carry;
+    result.SetChunkAt(i, static_cast<Chunk>(product & kDigitMask));
+    carry = static_cast<Chunk>(product >> kDigitBitSize);
+  }
+  result.SetChunkAt(length, carry);
+
+  result.SetSign(bigint.IsNegative());
+  Clamp(result);
+  return result.raw();
 }
 
 
