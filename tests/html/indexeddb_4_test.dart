@@ -81,14 +81,13 @@ main() {
   // Support is tested in indexeddb_1_test
   if (IdbFactory.supported) {
     var db;
-    test('prepare', () {
-      return setupDb().then((result) {
-          db = result;
-        });
+    setUp(() {
+      if (db == null) {
+        return setupDb().then((result) {
+            db = result;
+          });
+      }
     });
-
-    test('only1', () => testRange(db, new KeyRange.only(55), 55, 55));
-
     test('only1', () => testRange(db, new KeyRange.only(55), 55, 55));
     test('only2', () => testRange(db, new KeyRange.only(100), null, null));
     test('only3', () => testRange(db, new KeyRange.only(-1), null, null));
