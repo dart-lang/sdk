@@ -616,7 +616,7 @@ LibTest/typed_data/Float32x4List/reduce_A01_t01: Fail # co19-roll r559: Please t
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/typed_data/Float32List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
+LibTest/typed_data/Float32List/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int16List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
