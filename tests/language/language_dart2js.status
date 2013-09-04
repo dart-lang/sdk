@@ -162,11 +162,6 @@ const_syntax_test/02: Fail # Issue 12932
 const_syntax_test/03: Fail # Issue 12932
 const_syntax_test/04: Fail # Issue 12932
 constructor9_test/01: Fail # Issue 12934
-constructor_return_test/01: Fail # Issue 12937
-constructor_return_test/02: Fail # Issue 12937
-constructor_return_test/03: Fail # Issue 12937
-constructor_return_test/04: Fail # Issue 12938
-constructor_return_test/05: Fail # Issue 12938
 duplicate_implements_test/01: Fail # Issue 12991
 duplicate_implements_test/02: Fail # Issue 12991
 duplicate_implements_test/03: Fail # Issue 12991
@@ -309,11 +304,6 @@ const_syntax_test/07: Fail # Issue 12933
 const_syntax_test/08: Fail # Issue 12933
 const_syntax_test/10: Fail # Issue 12933
 constructor9_test/01: Fail # Issue 12935
-constructor_return_test/01: Fail # Issue 12938
-constructor_return_test/02: Fail # Issue 12938
-constructor_return_test/03: Fail # Issue 12938
-constructor_return_test/04: Fail # Issue 12938
-constructor_return_test/05: Fail # Issue 12938
 constructor_named_arguments_test/01: Fail # Issue 5519
 final_syntax_test/01: Fail # Issue 13020
 final_syntax_test/02: Fail # Issue 13020

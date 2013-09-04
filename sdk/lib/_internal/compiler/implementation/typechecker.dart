@@ -1051,7 +1051,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     // immediately enclosing function.
     if (expression != null) {
       final expressionType = analyze(expression);
-      if (isVoidFunction
+      Element element = elements.currentElement;
+      if (element != null && element.isGenerativeConstructor()) {
+        // The resolver already emitted an error for this expression.
+      } else if (isVoidFunction
           && !types.isAssignable(expressionType, types.voidType)) {
         reportTypeWarning(expression, MessageKind.RETURN_VALUE_IN_VOID);
       } else {

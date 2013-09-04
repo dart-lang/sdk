@@ -2523,6 +2523,15 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (node.isRedirectingFactoryBody) {
       handleRedirectingFactoryBody(node);
     } else {
+      Node expression = node.expression;
+      if (expression != null &&
+          enclosingElement.isGenerativeConstructor()) {
+        // It is a compile-time error if a return statement of the form
+        // `return e;` appears in a generative constructor.  (Dart Language
+        // Specification 13.12.)
+        compiler.reportError(expression,
+                             MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR);
+      }
       visit(node.expression);
     }
   }

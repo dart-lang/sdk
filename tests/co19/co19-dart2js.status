@@ -325,9 +325,6 @@ Language/13_Statements/03_Variable_Declaration_A04_t05: Fail # Checks that a var
 Language/13_Statements/03_Variable_Declaration_A04_t06: Fail # Checks that a variable declaration statement final T e = e; causes a compile-time error.
 Language/13_Statements/03_Variable_Declaration_A04_t07: Fail # Checks that a variable declaration statement var e = e; causes a compile-time error. A top-level variable with the same name is declared.
 Language/13_Statements/03_Variable_Declaration_A04_t08: Fail # Checks that it is a compile-time error if the initializing expression of a local variable v refers to the name v= even when a top-level variable  with the same name is declared.
-Language/13_Statements/11_Return_A05_t01: Fail # Checks that a compile-time error occurs if a return statement  of the form return e; appears in a generative constructor.
-Language/13_Statements/11_Return_A05_t02: Fail # Checks that a compile-time error occurs if a return statement  of the form return e; appears in a named generative constructor.
-Language/13_Statements/11_Return_A05_t03: Fail # Checks that a compile-time error occurs if a return statement  of the form return e; appears in a generative constructor.
 Language/14_Libraries_and_Scripts/5_URIs_A01_t24: Fail # Checks that it is a compile-time error when the URI in a part directive consists of two adjacent string literals instead of one.
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: Fail # Checks that it is a compile-time error when the URI in a part directive consists of two adjacent multi-line string literals  instead of one.
 Language/15_Types/3_Type_Declarations/1_Typedef_A06_t01: Fail # Checks that a compile error is produced when a null default value is specified for a required argument in a function type alias.

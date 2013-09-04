@@ -262,9 +262,6 @@ Language/13_Statements/03_Variable_Declaration_A04_t08: fail # co19-roll r546: P
 Language/13_Statements/06_For_A01_t11: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/09_Switch_A01_t02: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/09_Switch_A04_t01: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/11_Return_A05_t01: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/11_Return_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/11_Return_A05_t03: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/11_Try_A02_t03: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/11_Try_A03_t03: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/11_Try_A04_t03: fail # co19-roll r546: Please triage this failure

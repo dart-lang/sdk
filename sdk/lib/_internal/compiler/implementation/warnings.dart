@@ -500,6 +500,18 @@ class MessageKind {
   static const MessageKind CONSTRUCTOR_WITH_RETURN_TYPE = const MessageKind(
       'Error: Cannot have return type for constructor.');
 
+  static const MessageKind CANNOT_RETURN_FROM_CONSTRUCTOR = const MessageKind(
+      "Error: Cannot return a value from a constructor.",
+      howToFix: "Remove the return statement or use a factory constructor.",
+      examples: const ["""
+class C {
+  C() {
+    return 1;
+  }
+}
+
+main() => new C();"""]);
+
   static const MessageKind ILLEGAL_FINAL_METHOD_MODIFIER = const MessageKind(
       'Error: Cannot have final modifier on method.');
 
