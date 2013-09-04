@@ -6,9 +6,11 @@
 library pub.dart;
 
 import 'dart:async';
+import 'dart:isolate';
 
 import 'package:analyzer_experimental/analyzer.dart';
 import 'package:path/path.dart' as path;
+import 'package:stack_trace/stack_trace.dart';
 import '../../../compiler/compiler.dart' as compiler;
 import '../../../compiler/implementation/source_file_provider.dart'
     show FormattingDiagnosticHandler, SourceFileProvider;
@@ -62,4 +64,85 @@ bool isEntrypoint(CompilationUnit dart) {
     return node is FunctionDeclaration && node.name.name == "main" &&
         node.functionExpression.parameters.parameters.isEmpty;
   });
+}
+
+/// Runs [code] in an isolate.
+///
+/// [code] should be the contents of a Dart entrypoint. It may contain imports;
+/// they will be resolved in the same context as the host isolate.
+///
+/// Returns a Future that will resolve to a [SendPort] that will communicate to
+/// the spawned isolate once it's spawned. If the isolate fails to spawn, the
+/// Future will complete with an error.
+Future<SendPort> runInIsolate(String code) {
+  return withTempDir((dir) {
+    var dartPath = path.join(dir, 'runInIsolate.dart');
+    writeTextFile(dartPath, code, dontLogContents: true);
+    var bufferPort = spawnFunction(_isolateBuffer);
+    return bufferPort.call(path.toUri(dartPath).toString()).then((response) {
+      if (response.first == 'error') {
+        return new Future.error(
+            new CrossIsolateException.deserialize(response.last));
+      }
+
+      return response.last;
+    });
+  });
+}
+
+// TODO(nweiz): remove this when issue 12617 is fixed.
+/// A function used as a buffer between the host isolate and [spawnUri].
+///
+/// [spawnUri] synchronously loads the file and its imports, which can deadlock
+/// the host isolate if there's an HTTP import pointing at a server in the host.
+/// Adding an additional isolate in the middle works around this.
+void _isolateBuffer() {
+  port.receive((uri, replyTo) {
+    try {
+      replyTo.send(['success', spawnUri(uri)]);
+    } catch (e, stack) {
+      replyTo.send(['error', CrossIsolateException.serialize(e, stack)]);
+    }
+  });
+}
+
+/// An exception that was originally raised in another isolate.
+///
+/// Exception objects can't cross isolate boundaries in general, so this class
+/// wraps as much information as can be consistently serialized.
+class CrossIsolateException implements Exception {
+  /// The name of the type of exception thrown.
+  ///
+  /// This is the return value of [error.runtimeType.toString()]. Keep in mind
+  /// that objects in different libraries may have the same type name.
+  final String type;
+
+  /// The exception's message, or its [toString] if it didn't expose a `message`
+  /// property.
+  final String message;
+
+  /// The exception's stack trace, or `null` if no stack trace was available.
+  final Trace stackTrace;
+
+  /// Loads a [CrossIsolateException] from a serialized representation.
+  ///
+  /// [error] should be the result of [CrossIsolateException.serialize].
+  CrossIsolateException.deserialize(Object error)
+      : type = error['type'],
+        message = error['message'],
+        stackTrace = error['stack'] == null ? null :
+            new Trace.parse(error['stack']);
+
+  /// Serializes [error] to an object that can safely be passed across isolate
+  /// boundaries.
+  static Object serialize(error, [StackTrace stack]) {
+    if (stack == null) stack = getAttachedStackTrace(error);
+    return {
+      'type': error.runtimeType.toString(),
+      'message': getErrorMessage(error),
+      'stack': stack == null ? null : stack.toString()
+    };
+  }
+
+  String toString() => "$message\n$stackTrace";
 }

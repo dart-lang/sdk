@@ -4,6 +4,7 @@
 
 library pub.pubspec;
 
+import 'package:barback/barback.dart';
 import 'package:yaml/yaml.dart';
 import 'package:path/path.dart' as path;
 
@@ -27,6 +28,10 @@ class Pubspec {
 
   /// The packages this package depends on when it is the root package.
   final List<PackageDep> devDependencies;
+
+  /// The ids of the libraries containing the transformers to use for this
+  /// package.
+  final List<Set<AssetId>> transformers;
 
   /// The environment-related metadata.
   final PubspecEnvironment environment;
@@ -59,7 +64,7 @@ class Pubspec {
   }
 
   Pubspec(this.name, this.version, this.dependencies, this.devDependencies,
-          this.environment, [Map<String, Object> fields])
+          this.environment, this.transformers, [Map<String, Object> fields])
     : this.fields = fields == null ? {} : fields;
 
   Pubspec.empty()
@@ -68,6 +73,7 @@ class Pubspec {
       dependencies = <PackageDep>[],
       devDependencies = <PackageDep>[],
       environment = new PubspecEnvironment(),
+      transformers = <Set<AssetId>>[],
       fields = {};
 
   /// Whether or not the pubspec has no contents.
@@ -173,6 +179,42 @@ Pubspec _parseMap(String filePath, Map map, SourceRegistry sources) {
         '"dev_dependencies".');
   }
 
+  var transformers = map['transformers'];
+  if (transformers != null) {
+    if (transformers is! List) {
+      throw new FormatException('"transformers" field must be a list, but was '
+          '"$transformers".');
+    }
+
+    transformers = transformers.map((phase) {
+      if (phase is! List) phase = [phase];
+      return phase.map((transformer) {
+        if (transformer is! String) {
+          throw new FormatException(
+              'Transformer "$transformer" must be a string.');
+        }
+
+        // Convert the concise asset name in the pubspec (of the form "package"
+        // or "package/library") to an AssetId that points to an actual dart
+        // file ("package/lib/package.dart" or "package/lib/library.dart",
+        // respectively).
+        var parts = split1(transformer, "/");
+        if (parts.length == 1) parts.add(parts.single);
+        var id = new AssetId(parts.first, 'lib/' + parts.last + '.dart');
+
+        if (id.package != name &&
+            !dependencies.any((ref) => ref.name == id.package)) {
+          throw new FormatException('Could not find package for transformer '
+              '"$transformer".');
+        }
+
+        return id;
+      }).toSet();
+    }).toList();
+  } else {
+    transformers = [];
+  }
+
   var environmentYaml = map['environment'];
   var sdkConstraint = VersionConstraint.any;
   if (environmentYaml != null) {
@@ -232,7 +274,7 @@ Pubspec _parseMap(String filePath, Map map, SourceRegistry sources) {
   }
 
   return new Pubspec(name, version, dependencies, devDependencies,
-      environment, map);
+      environment, transformers, map);
 }
 
 /// Parses [yaml] to a [Version] or throws a [FormatException] with the result

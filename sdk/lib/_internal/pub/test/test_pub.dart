@@ -19,6 +19,7 @@ import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:unittest/compact_vm_config.dart';
+import 'package:yaml/yaml.dart';
 
 import '../lib/src/entrypoint.dart';
 // TODO(rnystrom): Using "gitlib" as the prefix here is ugly, but "git" collides
@@ -27,11 +28,14 @@ import '../lib/src/entrypoint.dart';
 import '../lib/src/git.dart' as gitlib;
 import '../lib/src/http.dart';
 import '../lib/src/io.dart';
+import '../lib/src/lock_file.dart';
 import '../lib/src/log.dart' as log;
+import '../lib/src/package.dart';
 import '../lib/src/safe_http_server.dart';
 import '../lib/src/system_cache.dart';
 import '../lib/src/utils.dart';
 import '../lib/src/validator.dart';
+import '../lib/src/version.dart';
 import 'descriptor.dart' as d;
 
 /// This should be called at the top of a test file to set up an appropriate
@@ -599,6 +603,44 @@ void ensureGit() {
       currentSchedule.abort();
     });
   }, 'ensuring that Git is installed');
+}
+
+/// Create a lock file for [package] without running `pub install`.
+///
+/// This creates a lock file with only path dependencies. [dependencies] is a
+/// map of dependency names to paths. [pkg] is a list of packages in the Dart
+/// repo's "pkg" directory; each package listed here and all its dependencies
+/// will be linked to the version in the Dart repo.
+void createLockFile(String package, Map<String, String> dependencies,
+    {Iterable<String> pkg}) {
+  if (pkg != null) {
+    var pkgDir = path.absolute(path.join(
+        path.dirname(Platform.executable),
+        '..', '..', '..', '..', 'pkg'));
+
+    _addPackage(String package) {
+      if (dependencies.containsKey(package)) return;
+      var packagePath = path.join(pkgDir, package);
+      dependencies[package] = packagePath;
+      var pubspec = loadYaml(
+          readTextFile(path.join(packagePath, 'pubspec.yaml')));
+      var packageDeps = pubspec['dependencies'];
+      if (packageDeps == null) return;
+      packageDeps.keys.forEach(_addPackage);
+    }
+
+    pkg.forEach(_addPackage);
+  }
+
+  var lockFile = new LockFile.empty();
+  dependencies.forEach((name, dependencyPath) {
+    var id = new PackageId(name, 'path', new Version(0, 0, 0), {
+      'path': dependencyPath,
+      'relative': path.isRelative(dependencyPath)
+    });
+    lockFile.packages[name] = id;
+  });
+  d.file(path.join(package, 'pubspec.lock'), lockFile.serialize()).create();
 }
 
 /// Use [client] as the mock HTTP client for this test.

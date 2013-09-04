@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
+import 'package:stack_trace/stack_trace.dart';
 
 import 'command/cache.dart';
 import 'command/deploy.dart';
@@ -90,26 +91,13 @@ abstract class PubCommand {
       // spew a stack trace on our users.
       var message;
 
-      try {
-        // Most exception types have a "message" property. We prefer this since
-        // it skips the "Exception:", "HttpException:", etc. prefix that calling
-        // toString() adds. But, alas, "message" isn't actually defined in the
-        // base Exception type so there's no easy way to know if it's available
-        // short of a giant pile of type tests for each known exception type.
-        //
-        // So just try it. If it throws, default to toString().
-        message = error.message;
-      } on NoSuchMethodError catch (_) {
-        message = error.toString();
-      }
-
-      log.error(message);
+      log.error(getErrorMessage(error));
 
       if (trace != null) {
         if (options['trace'] || !isUserFacingException(error)) {
-          log.error(trace);
+          log.error(new Trace.from(trace).terse);
         } else {
-          log.fine(trace);
+          log.fine(new Trace.from(trace).terse);
         }
       }
 

@@ -10,8 +10,11 @@ import 'dart:io';
 import "dart:convert";
 import 'dart:mirrors';
 
+import "package:analyzer_experimental/analyzer.dart";
 import "package:crypto/crypto.dart";
 import 'package:path/path.dart' as path;
+
+import 'dart.dart';
 
 /// A pair of values.
 class Pair<E, F> {
@@ -69,14 +72,6 @@ class FutureGroup<T> {
   }
 
   Future<List> get future => _completer.future;
-}
-
-/// Returns [posix] on POSIX machines and [windows] on Windows.
-///
-/// If [windows] is omitted, returns `""` on Windows.
-String getPlatformString(String posix, [String windows]) {
-  if (windows == null) windows = "";
-  return Platform.operatingSystem == "windows" ? windows : posix;
 }
 
 /// Like [new Future], but avoids around issue 11911 by using [new Future.value]
@@ -377,6 +372,10 @@ String mapToQuery(Map<String, String> map) {
   }).join("&");
 }
 
+/// Returns the union of all elements in each set in [sets].
+Set unionAll(Iterable<Set> sets) =>
+  sets.fold(new Set(), (union, set) => union.union(set));
+
 // TODO(nweiz): remove this when issue 9068 has been fixed.
 /// Whether [uri1] and [uri2] are equal. This consider HTTP URIs to default to
 /// port 80, and HTTPs URIs to default to port 443.
@@ -431,6 +430,20 @@ String getSpecial(String color, [String onWindows = '']) {
   // No ANSI escapes on windows or when running tests.
   if (runningAsTest || Platform.operatingSystem == 'windows') return onWindows;
   return color;
+}
+
+/// Prepends each line in [text] with [prefix]. If [firstPrefix] is passed, the
+/// first line is prefixed with that instead.
+String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
+  var lines = text.split('\n');
+  if (firstPrefix == null) {
+    return lines.map((line) => '$prefix$line').join('\n');
+  }
+
+  var firstLine = "$firstPrefix${lines.first}";
+  lines = lines.skip(1).map((line) => '$prefix$line').toList();
+  lines.insert(0, firstLine);
+  return lines.join('\n');
 }
 
 /// Whether pub is running as a subprocess in an integration test.
@@ -524,6 +537,23 @@ String yamlToString(data) {
   return buffer.toString();
 }
 
+// Get a string description of an exception.
+//
+// Most exception types have a "message" property. We prefer this since
+// it skips the "Exception:", "HttpException:", etc. prefix that calling
+// toString() adds. But, alas, "message" isn't actually defined in the
+// base Exception type so there's no easy way to know if it's available
+// short of a giant pile of type tests for each known exception type.
+//
+// So just try it. If it throws, default to toString().
+String getErrorMessage(error) {
+  try {
+    return error.message;
+  } on NoSuchMethodError catch (_) {
+    return error.toString();
+  }
+}
+
 /// An exception class for exceptions that are intended to be seen by the user.
 /// These exceptions won't have any debugging information printed when they're
 /// thrown.
@@ -540,11 +570,34 @@ void fail(String message) {
   throw new ApplicationException(message);
 }
 
+/// All the names of user-facing exceptions.
+final _userFacingExceptions = new Set<String>.from([
+  'ApplicationException',
+  // Errors coming from the Dart analyzer are probably caused by syntax errors
+  // in user code, so they're user-facing.
+  'AnalyzerError', 'AnalyzerErrorGroup',
+  // An error spawning an isolate probably indicates a transformer with an
+  // invalid import.
+  'IsolateSpawnException',
+  // TODO(nweiz): clean up the dart:io errors when issue 9955 is fixed.
+  'DirectoryException', 'FileException', 'HttpException', 'HttpException',
+  'LinkException', 'OSError', 'ProcessException', 'SocketException',
+  'WebSocketException'
+]);
+
 /// Returns whether [error] is a user-facing error object. This includes both
 /// [ApplicationException] and any dart:io errors.
 bool isUserFacingException(error) {
+  if (error is CrossIsolateException) {
+    return _userFacingExceptions.contains(error.type);
+  }
+
+  // TODO(nweiz): unify this list with _userFacingExceptions when issue 5897 is
+  // fixed.
   return error is ApplicationException ||
-    // TODO(nweiz): clean up this branch when issue 9955 is fixed.
+    error is AnalyzerError ||
+    error is AnalyzerErrorGroup ||
+    error is IsolateSpawnException ||
     error is DirectoryException ||
     error is FileException ||
     error is HttpException ||

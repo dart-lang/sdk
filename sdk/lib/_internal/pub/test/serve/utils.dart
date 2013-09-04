@@ -18,10 +18,33 @@ ScheduledProcess _pubServer;
 /// The ephemeral port assigned to the running server.
 int _port;
 
+/// The code for a transformer that renames ".txt" files to ".out" and adds a
+/// ".out" suffix.
+const REWRITE_TRANSFORMER = """
+import 'dart:async';
+
+import 'package:barback/barback.dart';
+
+class RewriteTransformer extends Transformer {
+  RewriteTransformer();
+
+  String get allowedExtensions => '.txt';
+
+  Future apply(Transform transform) {
+    return transform.primaryInput.readAsString().then((contents) {
+      var id = transform.primaryInput.id.changeExtension(".out");
+      transform.addOutput(new Asset.fromString(id, "\$contents.out"));
+    });
+  }
+}
+""";
+
 /// Schedules starting the "pub serve" process.
 ///
 /// If [shouldInstallFirst] is `true`, validates that pub install is run first.
-void startPubServe({bool shouldInstallFirst: false}) {
+///
+/// Returns the `pub serve` process.
+ScheduledProcess startPubServe({bool shouldInstallFirst: false}) {
   // Use port 0 to get an ephemeral port.
   _pubServer = startPub(args: ["serve", "--port=0"]);
 
@@ -35,6 +58,7 @@ void startPubServe({bool shouldInstallFirst: false}) {
   }
 
   expect(_pubServer.nextLine().then(_parsePort), completes);
+  return _pubServer;
 }
 
 /// Parses the port number from the "Serving blah on localhost:1234" line
@@ -65,6 +89,16 @@ void requestShould404(String urlPath) {
   schedule(() {
     return http.get("http://localhost:$_port/$urlPath").then((response) {
       expect(response.statusCode, equals(404));
+    });
+  }, "request $urlPath");
+}
+
+/// Schedules an HTTP POST to the running pub server with [urlPath] and verifies
+/// that it responds with a 405.
+void postShould405(String urlPath) {
+  schedule(() {
+    return http.post("http://localhost:$_port/$urlPath").then((response) {
+      expect(response.statusCode, equals(405));
     });
   }, "request $urlPath");
 }
