@@ -59,9 +59,6 @@ LibTest/core/double/toInt_A01_t01: Fail
 [ $compiler == none && $runtime == vm && $arch == arm ]
 LibTest/typed_data/Float32List/Float32List.view_A01_t02: Crash  # Issue 12868
 LibTest/typed_data/Float64List/Float64List.view_A01_t02: Crash  # Issue 12868
-LibTest/typed_data/ByteData/getFloat32_A02_t02: Crash  # Issue 12880
-LibTest/typed_data/ByteData/getFloat64_A02_t02: Crash  # Issue 12880
-LibTest/typed_data/ByteData/setFloat32_A02_t02: Crash  # Issue 12880
 
 [ $compiler == none && $runtime == vm ]
 Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
