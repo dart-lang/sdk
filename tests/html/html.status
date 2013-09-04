@@ -25,7 +25,6 @@ postmessage_structured_test/typed_arrays: Fail
 xhr_test: Pass, Fail # Issue 12648
 custom/attribute_changed_callback_test: Fail # 12643
 custom/created_callback_test: Fail # Issue 12642
-indexeddb_4_test: Fail # Issue 12948
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
