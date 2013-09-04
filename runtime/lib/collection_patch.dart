@@ -3,40 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class HashMap<K, V> {
-  /* patch */ factory HashMap({ bool equals(K key1, K key2),
-                                int hashCode(K key) }) {
-    if (hashCode == null) {
-      if (equals == null) {
-        return new _HashMapImpl<K, V>();
-      }
-      if (identical(identical, equals)) {
-        return new _IdentityHashMap<K, V>();
-      }
-      hashCode = _defaultHashCode;
-    } else if (equals == null) {
-      equals = _defaultEquals;
-    }
-    return new _CustomHashMap<K, V>(equals, hashCode);
-  }
-}
-
-const int _MODIFICATION_COUNT_MASK = 0x3fffffff;
-
-class _HashMapImpl<K, V> implements HashMap<K, V> {
   static const int _INITIAL_CAPACITY = 8;
+  static const int _MODIFICATION_COUNT_MASK = 0x3fffffff;
 
   int _elementCount = 0;
   List<_HashMapEntry> _buckets = new List(_INITIAL_CAPACITY);
   int _modificationCount = 0;
 
-  int get length => _elementCount;
-  bool get isEmpty => _elementCount == 0;
-  bool get isNotEmpty => _elementCount != 0;
+  /* patch */ HashMap._internal();
 
-  Iterable<K> get keys => new _HashMapKeyIterable<K>(this);
-  Iterable<V> get values => new _HashMapValueIterable<V>(this);
+  /* patch */ int get length => _elementCount;
+  /* patch */ bool get isEmpty => _elementCount == 0;
+  /* patch */ bool get isNotEmpty => _elementCount != 0;
 
-  bool containsKey(Object key) {
+  /* patch */ Iterable<K> get keys => new _HashMapKeyIterable<K>(this);
+  /* patch */ Iterable<V> get values => new _HashMapValueIterable<V>(this);
+
+  /* patch */ bool containsKey(Object key) {
     int hashCode = key.hashCode;
     List buckets = _buckets;
     int index = hashCode & (buckets.length - 1);
@@ -48,7 +31,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     return false;
   }
 
-  bool containsValue(Object value) {
+  /* patch */ bool containsValue(Object value) {
     List buckets = _buckets;
     int length = buckets.length;
     for (int i = 0; i < length; i++) {
@@ -61,7 +44,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     return false;
   }
 
-  V operator[](Object key) {
+  /* patch */ V operator[](Object key) {
     int hashCode = key.hashCode;
     List buckets = _buckets;
     int index = hashCode & (buckets.length - 1);
@@ -75,7 +58,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     return null;
   }
 
-  void operator []=(K key, V value) {
+  /* patch */ void operator []=(K key, V value) {
     int hashCode = key.hashCode;
     List buckets = _buckets;
     int length = buckets.length;
@@ -91,7 +74,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     _addEntry(buckets, index, length, key, value, hashCode);
   }
 
-  V putIfAbsent(K key, V ifAbsent()) {
+  /* patch */ V putIfAbsent(K key, V ifAbsent()) {
     int hashCode = key.hashCode;
     List buckets = _buckets;
     int length = buckets.length;
@@ -113,13 +96,13 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     return value;
   }
 
-  void addAll(Map<K, V> other) {
+  /* patch */ void addAll(Map<K, V> other) {
     other.forEach((K key, V value) {
       this[key] = value;
     });
   }
 
-  void forEach(void action(K key, V value)) {
+  /* patch */ void forEach(void action(K key, V value)) {
     int stamp = _modificationCount;
     List buckets = _buckets;
     int length = buckets.length;
@@ -135,7 +118,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     }
   }
 
-  V remove(Object key) {
+  /* patch */ V remove(Object key) {
     int hashCode = key.hashCode;
     List buckets = _buckets;
     int index = hashCode & (buckets.length - 1);
@@ -160,7 +143,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     return null;
   }
 
-  void clear() {
+  /* patch */ void clear() {
     _elementCount = 0;
     _buckets = new List(_INITIAL_CAPACITY);
     _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
@@ -198,193 +181,6 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     _buckets = newBuckets;
   }
 }
-
-class _CustomHashMap<K, V> extends _HashMapImpl<K, V> {
-  final Function _equals;
-  final Function _hashCode;
-  _CustomHashMap(this._equals, this._hashCode);
-
-  bool containsKey(Object key) {
-    int hashCode = _hashCode(key);
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
-    while (entry != null) {
-      if (hashCode == entry.hashCode && _equals(entry.key, key)) return true;
-      entry = entry.next;
-    }
-    return false;
-  }
-
-  V operator[](Object key) {
-    int hashCode = _hashCode(key);
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
-    while (entry != null) {
-      if (hashCode == entry.hashCode && _equals(entry.key, key)) {
-        return entry.value;
-      }
-      entry = entry.next;
-    }
-    return null;
-  }
-
-  void operator []=(K key, V value) {
-    int hashCode = _hashCode(key);
-    List buckets = _buckets;
-    int length = buckets.length;
-    int index = hashCode & (length - 1);
-    _HashMapEntry entry = buckets[index];
-    while (entry != null) {
-      if (hashCode == entry.hashCode && _equals(entry.key, key)) {
-        entry.value = value;
-        return;
-      }
-      entry = entry.next;
-    }
-    _addEntry(buckets, index, length, key, value, hashCode);
-  }
-
-  V putIfAbsent(K key, V ifAbsent()) {
-    int hashCode = _hashCode(key);
-    List buckets = _buckets;
-    int length = buckets.length;
-    int index = hashCode & (length - 1);
-    _HashMapEntry entry = buckets[index];
-    while (entry != null) {
-      if (hashCode == entry.hashCode && _equals(entry.key, key)) {
-        return entry.value;
-      }
-      entry = entry.next;
-    }
-    int stamp = _modificationCount;
-    V value = ifAbsent();
-    if (stamp == _modificationCount) {
-      _addEntry(buckets, index, length, key, value, hashCode);
-    } else {
-      this[key] = value;
-    }
-    return value;
-  }
-
-  V remove(Object key) {
-    int hashCode = _hashCode(key);
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
-    _HashMapEntry previous = null;
-    while (entry != null) {
-      _HashMapEntry next = entry.next;
-      if (hashCode == entry.hashCode && _equals(entry.key, key)) {
-        if (previous == null) {
-          buckets[index] = next;
-        } else {
-          previous.next = next;
-        }
-        _elementCount--;
-        _modificationCount =
-            (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
-        return entry.value;
-      }
-      previous = entry;
-      entry = next;
-    }
-    return null;
-  }
-}
-
-class _IdentityHashMap<K, V> extends _HashMapImpl<K, V> {
-  bool containsKey(Object key) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
-    while (entry != null) {
-      if (hashCode == entry.hashCode && identical(entry.key, key)) return true;
-      entry = entry.next;
-    }
-    return false;
-  }
-
-  V operator[](Object key) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
-    while (entry != null) {
-      if (hashCode == entry.hashCode && identical(entry.key, key)) {
-        return entry.value;
-      }
-      entry = entry.next;
-    }
-    return null;
-  }
-
-  void operator []=(K key, V value) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int length = buckets.length;
-    int index = hashCode & (length - 1);
-    _HashMapEntry entry = buckets[index];
-    while (entry != null) {
-      if (hashCode == entry.hashCode && identical(entry.key, key)) {
-        entry.value = value;
-        return;
-      }
-      entry = entry.next;
-    }
-    _addEntry(buckets, index, length, key, value, hashCode);
-  }
-
-  V putIfAbsent(K key, V ifAbsent()) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int length = buckets.length;
-    int index = hashCode & (length - 1);
-    _HashMapEntry entry = buckets[index];
-    while (entry != null) {
-      if (hashCode == entry.hashCode && identical(entry.key, key)) {
-        return entry.value;
-      }
-      entry = entry.next;
-    }
-    int stamp = _modificationCount;
-    V value = ifAbsent();
-    if (stamp == _modificationCount) {
-      _addEntry(buckets, index, length, key, value, hashCode);
-    } else {
-      this[key] = value;
-    }
-    return value;
-  }
-
-  V remove(Object key) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
-    _HashMapEntry previous = null;
-    while (entry != null) {
-      _HashMapEntry next = entry.next;
-      if (hashCode == entry.hashCode && identical(entry.key, key)) {
-        if (previous == null) {
-          buckets[index] = next;
-        } else {
-          previous.next = next;
-        }
-        _elementCount--;
-        _modificationCount =
-            (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
-        return entry.value;
-      }
-      previous = entry;
-      entry = next;
-    }
-    return null;
-  }
-}
-
 
 class _HashMapEntry {
   final key;
