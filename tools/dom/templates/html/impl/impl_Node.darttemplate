@@ -145,7 +145,7 @@ $endif
     _this._replaceChild(value, this[index]);
   }
 
-  Iterator<Node> get iterator => _this._childNodes.iterator;
+  Iterator<Node> get iterator => _this.childNodes.iterator;
 
   // From List<Node>:
 
@@ -167,15 +167,15 @@ $endif
   // -- end List<Node> mixins.
 
   // TODO(jacobr): benchmark whether this is more efficient or whether caching
-  // a local copy of _childNodes is more efficient.
-  int get length => _this._childNodes.length;
+  // a local copy of childNodes is more efficient.
+  int get length => _this.childNodes.length;
 
   void set length(int value) {
     throw new UnsupportedError(
         "Cannot set length on immutable List.");
   }
 
-  Node operator[](int index) => _this._childNodes[index];
+  Node operator[](int index) => _this.childNodes[index];
 }
 
 /** Information about the instantiated template. */

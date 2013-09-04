@@ -10589,11 +10589,13 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.getAttribute')
   @DocsEditable()
-  String _getAttribute(String name) native "Element_getAttribute_Callback";
+  @deprecated
+  String getAttribute(String name) native "Element_getAttribute_Callback";
 
   @DomName('Element.getAttributeNS')
   @DocsEditable()
-  String _getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
+  @deprecated
+  String getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
 
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
@@ -10693,11 +10695,13 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.setAttribute')
   @DocsEditable()
-  void _setAttribute(String name, String value) native "Element_setAttribute_Callback";
+  @deprecated
+  void setAttribute(String name, String value) native "Element_setAttribute_Callback";
 
   @DomName('Element.setAttributeNS')
   @DocsEditable()
-  void _setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
+  @deprecated
+  void setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
 
   @DomName('Element.webkitGetRegionFlowRanges')
   @DocsEditable()
@@ -18876,7 +18880,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
     _this._replaceChild(value, this[index]);
   }
 
-  Iterator<Node> get iterator => _this._childNodes.iterator;
+  Iterator<Node> get iterator => _this.childNodes.iterator;
 
   // From List<Node>:
 
@@ -18898,15 +18902,15 @@ class _ChildNodeListLazy extends ListBase<Node> {
   // -- end List<Node> mixins.
 
   // TODO(jacobr): benchmark whether this is more efficient or whether caching
-  // a local copy of _childNodes is more efficient.
-  int get length => _this._childNodes.length;
+  // a local copy of childNodes is more efficient.
+  int get length => _this.childNodes.length;
 
   void set length(int value) {
     throw new UnsupportedError(
         "Cannot set length on immutable List.");
   }
 
-  Node operator[](int index) => _this._childNodes[index];
+  Node operator[](int index) => _this.childNodes[index];
 }
 
 /** Information about the instantiated template. */
@@ -19102,7 +19106,8 @@ class Node extends EventTarget {
 
   @DomName('Node.childNodes')
   @DocsEditable()
-  List<Node> get _childNodes native "Node_childNodes_Getter";
+  @deprecated
+  List<Node> get childNodes native "Node_childNodes_Getter";
 
   @DomName('Node.firstChild')
   @DocsEditable()
@@ -29661,15 +29666,15 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   String operator [](String key) {
-    return _element._getAttribute(key);
+    return _element.getAttribute(key);
   }
 
   void operator []=(String key, String value) {
-    _element._setAttribute(key, value);
+    _element.setAttribute(key, value);
   }
 
   String remove(String key) {
-    String value = _element._getAttribute(key);
+    String value = _element.getAttribute(key);
     _element._removeAttribute(key);
     return value;
   }
@@ -29698,11 +29703,11 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   String operator [](String key) {
-    return _element._getAttributeNS(_namespace, key);
+    return _element.getAttributeNS(_namespace, key);
   }
 
   void operator []=(String key, String value) {
-    _element._setAttributeNS(_namespace, key, value);
+    _element.setAttributeNS(_namespace, key, value);
   }
 
   String remove(String key) {

@@ -2065,8 +2065,12 @@
       },
       "firstElementChild": {},
       "focus": {},
-      "getAttribute": {},
-      "getAttributeNS": {},
+      "getAttribute": {
+        "support_level": "deprecated"
+      },
+      "getAttributeNS": {
+        "support_level": "deprecated"
+      },
       "getAttributeNode": {
         "comment": "http://dom.spec.whatwg.org/#dom-element-getattributenode",
         "dart_action": "suppress",
@@ -2265,8 +2269,12 @@
       "scrollLeft": {},
       "scrollTop": {},
       "scrollWidth": {},
-      "setAttribute": {},
-      "setAttributeNS": {},
+      "setAttribute": {
+        "support_level": "deprecated"
+      },
+      "setAttributeNS": {
+        "support_level": "deprecated"
+      },
       "setAttributeNode": {
         "comment": "http://dom.spec.whatwg.org/#dom-element-setattributenode",
         "dart_action": "suppress",
@@ -5976,7 +5984,9 @@
       "addEventListener": {},
       "appendChild": {},
       "baseURI": {},
-      "childNodes": {},
+      "childNodes": {
+        "support_level": "deprecated"
+      },
       "cloneNode": {},
       "compareDocumentPosition": {},
       "contains": {},

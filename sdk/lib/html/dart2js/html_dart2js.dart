@@ -10157,15 +10157,15 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DocsEditable()
   void focus() native;
 
-  @JSName('getAttribute')
   @DomName('Element.getAttribute')
   @DocsEditable()
-  String _getAttribute(String name) native;
+  @deprecated
+  String getAttribute(String name) native;
 
-  @JSName('getAttributeNS')
   @DomName('Element.getAttributeNS')
   @DocsEditable()
-  String _getAttributeNS(String namespaceURI, String localName) native;
+  @deprecated
+  String getAttributeNS(String namespaceURI, String localName) native;
 
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
@@ -10266,15 +10266,15 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @Experimental() // non-standard
   void _scrollIntoViewIfNeeded([bool centerIfNeeded]) native;
 
-  @JSName('setAttribute')
   @DomName('Element.setAttribute')
   @DocsEditable()
-  void _setAttribute(String name, String value) native;
+  @deprecated
+  void setAttribute(String name, String value) native;
 
-  @JSName('setAttributeNS')
   @DomName('Element.setAttributeNS')
   @DocsEditable()
-  void _setAttributeNS(String namespaceURI, String qualifiedName, String value) native;
+  @deprecated
+  void setAttributeNS(String namespaceURI, String qualifiedName, String value) native;
 
   @JSName('webkitGetRegionFlowRanges')
   @DomName('Element.webkitGetRegionFlowRanges')
@@ -12768,48 +12768,27 @@ class HtmlOptionsCollection extends HtmlCollection native "HTMLOptionsCollection
 
 
 /**
- * A client-side XHR request for getting data from a URL,
- * formally known as XMLHttpRequest.
+ * A utility for retrieving data from a URL.
  *
- * HttpRequest can be used to obtain data from HTTP and FTP protocols,
- * and is useful for AJAX-style page updates.
+ * HttpRequest can be used to obtain data from http, ftp, and file
+ * protocols.
  *
- * The simplest way to get the contents of a text file, such as a
- * JSON-formatted file, is with [getString].
- * For example, the following code gets the contents of a JSON file
- * and prints its length:
+ * For example, suppose we're developing these API docs, and we
+ * wish to retrieve the HTML of the top-level page and print it out.
+ * The easiest way to do that would be:
  *
- *     var path = 'myData.json';
- *     HttpRequest.getString(path)
- *         .then((String fileContents) {
- *           print(fileContents.length);
- *         })
- *         .catchError((Error error) {
- *           print(error.toString());
- *         });
+ *     HttpRequest.getString('http://api.dartlang.org').then((response) {
+ *       print(response);
+ *     });
  *
- * ## Fetching data from other servers
+ * **Important**: With the default behavior of this class, your
+ * code making the request should be served from the same origin (domain name,
+ * port, and application layer protocol) as the URL you are trying to access
+ * with HttpRequest. However, there are ways to
+ * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#note-on-jsonp).
  *
- * For security reasons, browsers impose restrictions on requests
- * made by embedded apps.
- * With the default behavior of this class,
- * the code making the request must be served from the same origin
- * (domain name, port, and application layer protocol)
- * as the requested resource.
- * In the example above, the myData.json file must be co-located with the
- * app that uses it.
- * You might be able to
- * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#a-note-on-cors-and-httprequest)
- * by using CORS headers or JSONP.
+ * See also:
  *
- * ## Other documentation
- *
- * * [Fetch Data Dynamically](https://www.dartlang.org/docs/tutorials/fetchdata/),
- * a tutorial from _A Game of Darts_,
- * shows two different ways to use HttpRequest to get a JSON file.
- * * [Get Input from a Form](https://www.dartlang.org/docs/tutorials/forms/),
- * another tutorial from _A Game of Darts_,
- * shows using HttpRequest with a custom server.
  * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
  * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
  * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
@@ -12818,7 +12797,7 @@ class HtmlOptionsCollection extends HtmlCollection native "HTMLOptionsCollection
 class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
 
   /**
-   * Creates a GET request for the specified [url].
+   * Creates a URL get request for the specified [url].
    *
    * The server response must be a `text/` mime type for this request to
    * succeed.
@@ -17504,7 +17483,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
     _this._replaceChild(value, this[index]);
   }
 
-  Iterator<Node> get iterator => _this._childNodes.iterator;
+  Iterator<Node> get iterator => _this.childNodes.iterator;
 
   // From List<Node>:
 
@@ -17526,15 +17505,15 @@ class _ChildNodeListLazy extends ListBase<Node> {
   // -- end List<Node> mixins.
 
   // TODO(jacobr): benchmark whether this is more efficient or whether caching
-  // a local copy of _childNodes is more efficient.
-  int get length => _this._childNodes.length;
+  // a local copy of childNodes is more efficient.
+  int get length => _this.childNodes.length;
 
   void set length(int value) {
     throw new UnsupportedError(
         "Cannot set length on immutable List.");
   }
 
-  Node operator[](int index) => _this._childNodes[index];
+  Node operator[](int index) => _this.childNodes[index];
 }
 
 /** Information about the instantiated template. */
@@ -17728,12 +17707,12 @@ class Node extends EventTarget native "Node" {
   @DocsEditable()
   static const int TEXT_NODE = 3;
 
-  @JSName('childNodes')
   @DomName('Node.childNodes')
   @DocsEditable()
+  @deprecated
   @Returns('NodeList')
   @Creates('NodeList')
-  final List<Node> _childNodes;
+  final List<Node> childNodes;
 
   @DomName('Node.firstChild')
   @DocsEditable()
@@ -27499,15 +27478,15 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   String operator [](String key) {
-    return _element._getAttribute(key);
+    return _element.getAttribute(key);
   }
 
   void operator []=(String key, String value) {
-    _element._setAttribute(key, value);
+    _element.setAttribute(key, value);
   }
 
   String remove(String key) {
-    String value = _element._getAttribute(key);
+    String value = _element.getAttribute(key);
     _element._removeAttribute(key);
     return value;
   }
@@ -27536,11 +27515,11 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   String operator [](String key) {
-    return _element._getAttributeNS(_namespace, key);
+    return _element.getAttributeNS(_namespace, key);
   }
 
   void operator []=(String key, String value) {
-    _element._setAttributeNS(_namespace, key, value);
+    _element.setAttributeNS(_namespace, key, value);
   }
 
   String remove(String key) {

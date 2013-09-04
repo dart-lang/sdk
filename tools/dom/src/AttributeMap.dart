@@ -92,15 +92,15 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   String operator [](String key) {
-    return _element._getAttribute(key);
+    return _element.getAttribute(key);
   }
 
   void operator []=(String key, String value) {
-    _element._setAttribute(key, value);
+    _element.setAttribute(key, value);
   }
 
   String remove(String key) {
-    String value = _element._getAttribute(key);
+    String value = _element.getAttribute(key);
     _element._removeAttribute(key);
     return value;
   }
@@ -129,11 +129,11 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   String operator [](String key) {
-    return _element._getAttributeNS(_namespace, key);
+    return _element.getAttributeNS(_namespace, key);
   }
 
   void operator []=(String key, String value) {
-    _element._setAttributeNS(_namespace, key, value);
+    _element.setAttributeNS(_namespace, key, value);
   }
 
   String remove(String key) {
