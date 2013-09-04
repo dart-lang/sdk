@@ -5,11 +5,7 @@
 [ $compiler == dart2dart ]
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, Fail # Issue 12562.
 
-LibTest/math/max_A01_t03: Fail # co19 issue 467
-LibTest/math/min_A01_t03: Fail # co19 issue 467
-
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t03: Fail # TODO(dart2dart-team): Please triage this failure.
-LibTest/collection/Queue/iterator_current_A01_t02: Fail # co19 issue 475
 LibTest/core/int/toStringAsExponential_A02_t01: Fail # co19 issue 477
 
 Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/7202
@@ -88,7 +84,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail, OK # co19 issue 294
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # co19 issue 294
-LibTest/core/double/toRadixString_A01_t01: Fail # inherited from VM
 LibTest/core/int/operator_left_shift_A01_t02: Fail, OK # co19 issue 129
 LibTest/core/int/toRadixString_A01_t01: Fail # inherited from VM
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
@@ -102,11 +97,6 @@ LibTest/math/exp_A01_t01: Fail # Issue co19 - 44
 LibTest/math/pow_A01_t01: Fail # Inherited from VM.
 LibTest/math/sin_A01_t01: Fail # Inherited from VM.
 LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
-
-
-
-LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
-LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
 
 
 [ $compiler == dart2dart && $system == windows ]
@@ -129,11 +119,6 @@ LibTest/core/double/floor_A01_t03: Fail # truncate/ceil/floor/round returns ints
 LibTest/core/double/floor_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/truncate_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/truncate_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
-
-LibTest/core/Set/isSubsetOf_A01_t01: Fail # Issue 400
-LibTest/core/Set/isSubsetOf_A01_t02: Fail # Issue 400
 
 # co19-roll r546 (11.08.2013) caused these failures
 [ $compiler == dart2dart ]
@@ -157,7 +142,6 @@ Language/07_Classes/1_Instance_Methods_A01_t05: Fail # co19-roll r559: Please tr
 Language/07_Classes/1_Instance_Methods_A01_t06: Fail # co19-roll r559: Please triage this failure
 Language/07_Classes/3_Setters_A08_t01: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/3_Setters_A08_t02: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t03: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/3_Setters_A08_t04: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t01: Fail # co19-roll r559: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t02: Fail # co19-roll r559: Please triage this failure
@@ -211,8 +195,6 @@ Language/12_Expressions/01_Constants_A19_t03: fail # co19-roll r546: Please tria
 Language/12_Expressions/01_Constants_A19_t04: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/01_Constants_A20_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/01_Constants_A20_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t08: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t09: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/05_Strings_A02_t46: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/05_Strings_A02_t48: fail # co19-roll r546: Please triage this failure
@@ -229,9 +211,6 @@ Language/12_Expressions/07_Maps_A12_t04: fail # co19-roll r546: Please triage th
 Language/12_Expressions/07_Maps_A12_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/07_Maps_A12_t06: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/07_Maps_A12_t07: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/08_Throw_A05_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/08_Throw_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/08_Throw_A05_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t06: fail # co19-roll r546: Please triage this failure

@@ -61,7 +61,6 @@ LibTest/async/Completer/completeError_A02_t01: Pass, Fail # Issue 8920
 LibTest/async/Stream/listen_A04_t01: Pass, Timeout # Issue: 8920
 LibTest/core/DateTime/timeZoneName_A01_t01: Fail # Issue: 8920
 LibTest/core/double/round_A01_t01: Fail # Issue: 8920
-LibTest/core/double/toRadixString_A01_t01: Fail # Issue: 8920
 LibTest/core/double/toStringAsExponential_A01_t04: Fail # Issue: 8920
 LibTest/core/double/toStringAsPrecision_A01_t04: Fail # Issue: 8920
 LibTest/core/int/compareTo_A01_t01: Fail # Issue: 8920
@@ -151,10 +150,6 @@ Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t14: Fail, OK #
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t15: Fail, OK # co19 issue 210
 Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # http://dartbug.com/5021
 LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 308
-LibTest/core/Set/isSubsetOf_A01_t01: fail # Issue 400
-LibTest/core/Set/isSubsetOf_A01_t02: fail # Issue 400
-LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
-LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
 LibTest/typed_data/Int64List/*: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int64List/Int64List_A02_t01: pass # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint64List/*: Fail # co19-roll r559: Please triage this failure
@@ -223,7 +218,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: F
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail, OK # This is not rejected by V8.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail, OK # co19 issue 92.
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Bad test, use Match.regexp, not Match.pattern.
-LibTest/core/double/toRadixString_A01_t01: Fail, OK # Unimplemented test stub.
 LibTest/core/int/compareTo_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 testing missing assertion.
 LibTest/core/int/isEven_A01_t01: Fail, OK # Not in API.
@@ -428,7 +422,6 @@ Language/07_Classes/1_Instance_Methods_A01_t05: fail # co19-roll r559: Please tr
 Language/07_Classes/1_Instance_Methods_A01_t06: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/3_Setters_A08_t01: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/3_Setters_A08_t02: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t03: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/3_Setters_A08_t04: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t01: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t02: fail # co19-roll r559: Please triage this failure
@@ -451,9 +444,6 @@ Language/12_Expressions/07_Maps_A12_t04: fail # co19-roll r546: Please triage th
 Language/12_Expressions/07_Maps_A12_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/07_Maps_A12_t06: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/07_Maps_A12_t07: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/08_Throw_A05_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/08_Throw_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/08_Throw_A05_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t06: fail # co19-roll r546: Please triage this failure
@@ -519,7 +509,6 @@ LibTest/isolate/isolate_api/spawnUri_A02_t03: fail # co19-roll r546: Please tria
 LibTest/isolate/isolate_api/streamSpawnFunction_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/isolate_api/streamSpawnFunction_A02_t03: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/add_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/add_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
@@ -607,7 +596,6 @@ Language/12_Expressions/19_Conditional_A04_t03: fail # co19-roll r546: Please tr
 Language/12_Expressions/20_Logical_Boolean_Expressions_A03_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/27_Unary_Expressions_A02_t03: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/06_For/1_For_Loop_A01_t08: fail # co19-roll r546: Please triage this failure
-LibTest/core/Set/intersection_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/typed_data/Float32x4List/reduce_A01_t01: Fail # co19-roll r559: Please triage this failure
 
 [ $compiler == dart2js && $runtime == jsshell ]

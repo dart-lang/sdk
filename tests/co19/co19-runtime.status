@@ -26,14 +26,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 
 LibTest/core/Match/operator_subscript_A01_t01: Fail # Issue 12508
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # Issue 12508
-LibTest/core/double/toRadixString_A01_t01: Fail # co19 issue 491
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
-
-LibTest/core/Set/isSubsetOf_A01_t01: fail # Issue 400
-LibTest/core/Set/isSubsetOf_A01_t02: fail # Issue 400
-
-LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
-LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
 
 Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 463
 
@@ -85,11 +78,8 @@ Language/07_Classes/07_Classes_A11_t02: fail # Dart issue 12545
 Language/07_Classes/07_Classes_A11_t04: fail # Dart issue 12545
 Language/07_Classes/3_Setters_A08_t01: fail # co19 issue 520
 Language/07_Classes/3_Setters_A08_t02: fail # co19 issue 520
-Language/07_Classes/3_Setters_A08_t03: fail # co19 issue 520
 Language/07_Classes/3_Setters_A08_t04: fail # co19 issue 520
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail # Dart issue 12543
-Language/12_Expressions/03_Numbers_A01_t01: fail # co19 issue 522
-Language/12_Expressions/03_Numbers_A01_t08: fail # co19 issue 522
 Language/12_Expressions/05_Strings_A02_t46: fail # Dart issue 12547
 Language/12_Expressions/05_Strings_A02_t48: fail # Dart issue 12547
 Language/12_Expressions/05_Strings_A20_t01: fail # Dart issue 12518
@@ -147,7 +137,6 @@ LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please tria
 LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/contains_A02_t01: fail, pass # co19-roll r546: Please triage this failure
-LibTest/isolate/isolate_api/streamSpawnFunction_A02_t03: fail, pass # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # VM triage, check spec.
 LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail # VM triage, check spec.

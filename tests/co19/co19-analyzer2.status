@@ -41,8 +41,6 @@ LibTest/core/String/String_class_A01_t01: fail, OK
 LibTest/core/String/concat_A01_t01: fail, OK
 LibTest/core/String/concat_A02_t01: fail, OK
 LibTest/core/String/hashCode_A01_t01: fail, OK
-LibTest/core/Set/isSubsetOf_A01_t01: fail, OK
-LibTest/core/Set/isSubsetOf_A01_t02: fail, OK
 
 # co19 issue #424, Uninitialized finals are warnings not errors
 Language/05_Variables/05_Variables_A07_t05: fail, OK
@@ -66,7 +64,6 @@ Language/15_Types/4_Interface_Types_A08_t03: fail, OK
 # co19 issue #448, Collection was removed
 LibTest/collection/Queue/Queue.from_A01_t01: fail, OK
 LibTest/collection/Queue/Queue.from_A01_t02: fail, OK
-LibTest/core/Set/intersection_A01_t02: fail, OK
 
 # co19 issue 452, more method in Iterable
 LibTest/core/Set/Set.from_A01_t02: fail, OK
@@ -86,17 +83,11 @@ Language/05_Variables/05_Variables_A05_t03: fail, OK
 # co19 issue #515, it is a compile-time error if there is more than one entity with the same name declared in the same scope
 Language/07_Classes/3_Setters_A08_t01: fail, OK
 Language/07_Classes/3_Setters_A08_t02: fail, OK
-Language/07_Classes/3_Setters_A08_t03: fail, OK
 Language/07_Classes/3_Setters_A08_t04: fail, OK
 
 # co19 issue #438, Static variables are initialized lazily, need not be constants
 Language/12_Expressions/01_Constants_A16_t01: fail, OK
 Language/12_Expressions/01_Constants_A16_t02: fail, OK
-
-# co19 issue #420, "throw" requires expression, "rethrow" should be used instead
-Language/12_Expressions/08_Throw_A05_t01: fail, OK
-Language/12_Expressions/08_Throw_A05_t02: fail, OK
-Language/12_Expressions/08_Throw_A05_t03: fail, OK
 
 # co19 issue #454 (wrongly closed)
 Language/12_Expressions/12_Instance_Creation/1_New_A01_t04: fail, OK
@@ -178,7 +169,6 @@ LibTest/async/Stream/Stream.fromFuture_A02_t01: fail # co19-roll r546: Please tr
 LibTest/async/Stream/Stream.fromFuture_A02_t02: fail # co19-roll r546: Please triage this failure
 LibTest/async/Stream/Stream.fromIterable_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/async/Timer/cancel_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/DateTime/compareTo_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/subtract_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/Duration/operator_div_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/Duration/operator_eq_A01_t01: fail # co19-roll r546: Please triage this failure
