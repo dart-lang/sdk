@@ -54,9 +54,7 @@ private_member1_negative_test: fail
 private_member2_negative_test: fail
 private_member3_negative_test: fail
 
-# TBF
-pseudo_kw_test: fail
-
+built_in_identifier_test/none: Fail # Issue 13023
 
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
 block_scope_test: fail

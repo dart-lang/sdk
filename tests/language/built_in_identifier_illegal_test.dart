@@ -5,9 +5,10 @@
 
 // Pseudo keywords are not allowed to be used as class names.
 class abstract { }    /// 01: compile-time error
-class assert { }      /// 02: compile-time error
+class as { }          /// 19: compile-time error
 class dynamic { }     /// 04: compile-time error
 class export { }      /// 17: compile-time error
+class external { }    /// 20: compile-time error
 class factory { }     /// 05: compile-time error
 class get { }         /// 06: compile-time error
 class implements { }  /// 07: compile-time error
@@ -18,5 +19,6 @@ class part { }        /// 18: compile-time error
 class set { }         /// 13: compile-time error
 class static { }      /// 15: compile-time error
 class typedef { }     /// 16: compile-time error
+
 
 main() { }

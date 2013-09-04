@@ -32,6 +32,7 @@ mixin_illegal_object_test/02: Crash # Issue 10952
 mixin_forwarding_constructor2_test: Fail # Issue 11888
 mixin_typedef_constructor_test: Fail # Issue 11888
 mixin_type_parameter2_test: Fail # Issue 11888
+built_in_identifier_illegal_test/19: Fail # Issue 13021
 
 [ $compiler == none && $unchecked ]
 # Only checked mode reports an error on type assignment
