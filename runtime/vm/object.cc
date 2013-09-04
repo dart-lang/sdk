@@ -1640,14 +1640,6 @@ void Class::set_signature_function(const Function& value) const {
 }
 
 
-void Class::set_class_state(RawClass::ClassState state) const {
-  ASSERT((state == RawClass::kAllocated) ||
-         (state == RawClass::kPreFinalized) ||
-         (state == RawClass::kFinalized));
-  set_state_bits(StateBits::update(state, raw_ptr()->state_bits_));
-}
-
-
 void Class::set_state_bits(intptr_t bits) const {
   raw_ptr()->state_bits_ = static_cast<uint16_t>(bits);
 }
@@ -1664,6 +1656,9 @@ void Class::set_type_parameters(const TypeArguments& value) const {
 
 
 intptr_t Class::NumTypeParameters() const {
+  if (IsMixinApplication() && !is_mixin_type_applied()) {
+    ClassFinalizer::ApplyMixinType(*this);
+  }
   if (type_parameters() == TypeArguments::null()) {
     return 0;
   }
@@ -1674,7 +1669,8 @@ intptr_t Class::NumTypeParameters() const {
 
 intptr_t Class::NumTypeArguments() const {
   // To work properly, this call requires the super class of this class to be
-  // resolved, which is checked by the SuperClass() call.
+  // resolved, which is checked by the type_class() call on the super type.
+  // Note that calling type_class() on a MixinAppType fails.
   Isolate* isolate = Isolate::Current();
   ReusableHandleScope reused_handles(isolate);
   Class& cls = reused_handles.ClassHandle();
@@ -1692,7 +1688,9 @@ intptr_t Class::NumTypeArguments() const {
         cls = signature_fun.Owner();
       }
     }
-    if (cls.type_parameters() != TypeArguments::null()) {
+    // Calling NumTypeParameters() on a mixin application class will setup the
+    // type parameters if not already done.
+    if (cls.NumTypeParameters() > 0) {
       type_params ^= cls.type_parameters();
       num_type_args += type_params.Length();
     }
@@ -2354,17 +2352,22 @@ void Class::set_is_mixin_typedef() const {
 }
 
 
+void Class::set_is_mixin_type_applied() const {
+  set_state_bits(MixinTypeAppliedBit::update(true, raw_ptr()->state_bits_));
+}
+
+
 void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
-  set_state_bits(StateBits::update(RawClass::kFinalized,
-                                   raw_ptr()->state_bits_));
+  set_state_bits(ClassFinalizedBits::update(RawClass::kFinalized,
+                                            raw_ptr()->state_bits_));
 }
 
 
 void Class::set_is_prefinalized() const {
   ASSERT(!is_finalized());
-  set_state_bits(StateBits::update(RawClass::kPreFinalized,
-                                   raw_ptr()->state_bits_));
+  set_state_bits(ClassFinalizedBits::update(RawClass::kPreFinalized,
+                                            raw_ptr()->state_bits_));
 }
 
 
@@ -2389,6 +2392,11 @@ void Class::set_mixin(const Type& value) const {
   // Resolution and application of mixin type occurs in finalizer.
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->mixin_, value.raw());
+}
+
+
+bool Class::IsMixinApplication() const {
+  return mixin() != Type::null();
 }
 
 

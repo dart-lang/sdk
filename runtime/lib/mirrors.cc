@@ -322,7 +322,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
   // We do not set the names of anonymous mixin applications because the mirrors
   // use a different naming convention than the VM (lib.S with lib.M and S&M
   // respectively).
-  if ((cls.mixin() == Type::null()) || cls.is_mixin_typedef()) {
+  if (!cls.IsMixinApplication() || cls.is_mixin_typedef()) {
     args.SetAt(2, String::Handle(cls.UserVisibleName()));
   }
   args.SetAt(3, is_generic);

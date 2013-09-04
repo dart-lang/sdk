@@ -2400,7 +2400,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   // expressions and then calls the respective super constructor with
   // the same name and number of parameters.
   ArgumentListNode* forwarding_args = NULL;
-  if (current_class().mixin() != Type::null()) {
+  if (current_class().IsMixinApplication()) {
     // At this point we don't support forwarding constructors
     // that have optional parameters because we don't know the default
     // values of the optional parameters. We would have to compile the super
@@ -2911,7 +2911,7 @@ void Parser::ParseQualIdent(QualIdent* qual_ident) {
                                   *(qual_ident->ident),
                                   NULL)) {
       LibraryPrefix& lib_prefix = LibraryPrefix::ZoneHandle();
-      if (current_class().mixin() == Type::null()) {
+      if (!current_class().IsMixinApplication()) {
         lib_prefix = current_class().LookupLibraryPrefix(*(qual_ident->ident));
       } else {
         // TODO(hausner): Should we resolve the prefix via the library scope
@@ -8714,7 +8714,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   // If the current class is the result of a mixin application, we must
   // use the class scope of the class from which the function originates.
   Class& cls = Class::Handle(isolate());
-  if (current_class().mixin() == Type::null()) {
+  if (!current_class().IsMixinApplication()) {
     cls = current_class().raw();
   } else {
     cls = parsed_function()->function().origin();
@@ -10137,12 +10137,12 @@ AstNode* Parser::ParsePrimary() {
       ErrorMsg("class '%s' does not have a superclass",
                String::Handle(current_class().Name()).ToCString());
     }
-    if (current_class().mixin() != Type::null()) {
+    if (current_class().IsMixinApplication()) {
       const Type& mixin_type = Type::Handle(current_class().mixin());
       if (mixin_type.type_class() == current_function().origin()) {
-        ErrorMsg("class '%s' may not use super "
-                 "because it is used as mixin class",
-                 String::Handle(current_class().Name()).ToCString());
+        ErrorMsg("method of mixin class '%s' may not refer to 'super'",
+                 String::Handle(Class::Handle(
+                     current_function().origin()).Name()).ToCString());
       }
     }
     ConsumeToken();

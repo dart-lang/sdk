@@ -767,6 +767,8 @@ class Class : public Object {
   RawType* mixin() const { return raw_ptr()->mixin_; }
   void set_mixin(const Type& value) const;
 
+  bool IsMixinApplication() const;
+
   RawClass* patch_class() const {
     return raw_ptr()->patch_class_;
   }
@@ -903,12 +905,14 @@ class Class : public Object {
   void set_is_synthesized_class() const;
 
   bool is_finalized() const {
-    return StateBits::decode(raw_ptr()->state_bits_) == RawClass::kFinalized;
+    return ClassFinalizedBits::decode(raw_ptr()->state_bits_)
+        == RawClass::kFinalized;
   }
   void set_is_finalized() const;
 
   bool is_prefinalized() const {
-    return StateBits::decode(raw_ptr()->state_bits_) == RawClass::kPreFinalized;
+    return ClassFinalizedBits::decode(raw_ptr()->state_bits_)
+        == RawClass::kPreFinalized;
   }
 
   void set_is_prefinalized() const;
@@ -926,6 +930,11 @@ class Class : public Object {
     return MixinTypedefBit::decode(raw_ptr()->state_bits_);
   }
   void set_is_mixin_typedef() const;
+
+  bool is_mixin_type_applied() const {
+    return MixinTypeAppliedBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_mixin_type_applied() const;
 
   int num_native_fields() const {
     return raw_ptr()->num_native_fields_;
@@ -1019,10 +1028,11 @@ class Class : public Object {
     kPatchBit = 3,
     kSynthesizedClassBit = 4,
     kTypeFinalizedBit = 5,
-    kStateTagBit = 6,
-    kStateTagSize = 2,
+    kClassFinalizedBits = 6,
+    kClassFinalizedSize = 2,
     kMarkedForParsingBit = 8,
     kMixinTypedefBit = 9,
+    kMixinTypeAppliedBit = 10,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
@@ -1030,15 +1040,15 @@ class Class : public Object {
   class PatchBit : public BitField<bool, kPatchBit, 1> {};
   class SynthesizedClassBit : public BitField<bool, kSynthesizedClassBit, 1> {};
   class TypeFinalizedBit : public BitField<bool, kTypeFinalizedBit, 1> {};
-  class StateBits : public BitField<RawClass::ClassState,
-                                    kStateTagBit, kStateTagSize> {};  // NOLINT
+  class ClassFinalizedBits : public BitField<RawClass::ClassFinalizedState,
+      kClassFinalizedBits, kClassFinalizedSize> {};  // NOLINT
   class MarkedForParsingBit : public BitField<bool, kMarkedForParsingBit, 1> {};
   class MixinTypedefBit : public BitField<bool, kMixinTypedefBit, 1> {};
+  class MixinTypeAppliedBit : public BitField<bool, kMixinTypeAppliedBit, 1> {};
 
   void set_name(const String& value) const;
   void set_signature_function(const Function& value) const;
   void set_signature_type(const AbstractType& value) const;
-  void set_class_state(RawClass::ClassState state) const;
   void set_state_bits(intptr_t bits) const;
 
   void set_constants(const Array& value) const;

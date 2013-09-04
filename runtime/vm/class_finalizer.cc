@@ -511,6 +511,10 @@ void ClassFinalizer::ResolveType(const Class& cls,
 
 
 void ClassFinalizer::FinalizeTypeParameters(const Class& cls) {
+  if (cls.IsMixinApplication()) {
+    // Copy the type parameters to the mixin application.
+    ApplyMixinType(cls);
+  }
   // The type parameter bounds are not finalized here.
   const TypeArguments& type_parameters =
       TypeArguments::Handle(cls.type_parameters());
@@ -1310,14 +1314,14 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
 // mixin application class. Change type arguments of super type and of
 // interfaces to refer to the respective type parameters of the mixin
 // application class.
-void ClassFinalizer::CloneTypeParameters(const Class& mixapp_class) {
-  ASSERT(mixapp_class.NumTypeParameters() == 0);
+void ClassFinalizer::CloneTypeParameters(const Class& mixin_app_class) {
+  ASSERT(mixin_app_class.type_parameters() == AbstractTypeArguments::null());
 
   const AbstractType& super_type =
-      AbstractType::Handle(mixapp_class.super_type());
+      AbstractType::Handle(mixin_app_class.super_type());
   ASSERT(super_type.IsResolved());
   const Class& super_class = Class::Handle(super_type.type_class());
-  const Type& mixin_type = Type::Handle(mixapp_class.mixin());
+  const Type& mixin_type = Type::Handle(mixin_app_class.mixin());
   const Class& mixin_class = Class::Handle(mixin_type.type_class());
   const int num_super_parameters = super_class.NumTypeParameters();
   const int num_mixin_parameters = mixin_class.NumTypeParameters();
@@ -1346,7 +1350,7 @@ void ClassFinalizer::CloneTypeParameters(const Class& mixapp_class) {
       param_bound = param.bound();
       // TODO(hausner): handle type bounds.
       if (!param_bound.IsObjectType()) {
-        const Script& script = Script::Handle(mixapp_class.script());
+        const Script& script = Script::Handle(mixin_app_class.script());
         ReportError(Error::Handle(),  // No previous error.
                     script, param.token_pos(),
                     "type parameter '%s': type bounds not yet"
@@ -1355,7 +1359,7 @@ void ClassFinalizer::CloneTypeParameters(const Class& mixapp_class) {
       }
       param_name = String::Concat(param_name, Symbols::Backtick());
       param_name = Symbols::New(param_name);
-      cloned_param = TypeParameter::New(mixapp_class,
+      cloned_param = TypeParameter::New(mixin_app_class,
                                         cloned_index,
                                         param_name,
                                         param_bound,
@@ -1389,14 +1393,14 @@ void ClassFinalizer::CloneTypeParameters(const Class& mixapp_class) {
 
       // TODO(hausner): handle type bounds.
       if (!param_bound.IsObjectType()) {
-        const Script& script = Script::Handle(mixapp_class.script());
+        const Script& script = Script::Handle(mixin_app_class.script());
         ReportError(Error::Handle(),  // No previous error.
                     script, param.token_pos(),
                     "type parameter '%s': type bounds not yet"
                     " implemented for mixins\n",
                     param_name.ToCString());
       }
-      cloned_param = TypeParameter::New(mixapp_class,
+      cloned_param = TypeParameter::New(mixin_app_class,
                                         cloned_index,
                                         param_name,
                                         param_bound,
@@ -1408,7 +1412,7 @@ void ClassFinalizer::CloneTypeParameters(const Class& mixapp_class) {
 
     // Lastly, change the type arguments of the single interface type to
     // refer to the cloned type parameters of the mixin application class.
-    Array& interface_types = Array::Handle(mixapp_class.interfaces());
+    Array& interface_types = Array::Handle(mixin_app_class.interfaces());
     ASSERT(interface_types.Length() == 1);
     AbstractType& interface_type = AbstractType::Handle();
     interface_type ^= interface_types.At(0);
@@ -1418,21 +1422,24 @@ void ClassFinalizer::CloneTypeParameters(const Class& mixapp_class) {
     Type::Cast(interface_type).set_arguments(interface_type_args);
     ASSERT(!interface_type.IsFinalized());
   }
-  mixapp_class.set_type_parameters(cloned_type_params);
+  mixin_app_class.set_type_parameters(cloned_type_params);
 }
 
 
-void ClassFinalizer::ApplyMixinTypes(const Class& cls) {
-  const Type& mixin_type = Type::Handle(cls.mixin());
+void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class) {
+  if (mixin_app_class.is_mixin_type_applied()) {
+    return;
+  }
+  const Type& mixin_type = Type::Handle(mixin_app_class.mixin());
   ASSERT(!mixin_type.IsNull());
   ASSERT(mixin_type.HasResolvedTypeClass());
   const Class& mixin_cls = Class::Handle(mixin_type.type_class());
 
   if (FLAG_trace_class_finalization) {
-    OS::Print("Applying mixin type '%s' to '%s' at pos %" Pd "\n",
+    OS::Print("Applying mixin type '%s' to %s at pos %" Pd "\n",
               String::Handle(mixin_type.Name()).ToCString(),
-              cls.ToCString(),
-              cls.token_pos());
+              mixin_app_class.ToCString(),
+              mixin_app_class.token_pos());
   }
 
   // Check that the super class of the mixin class is extending
@@ -1440,24 +1447,26 @@ void ClassFinalizer::ApplyMixinTypes(const Class& cls) {
   const AbstractType& mixin_super_type =
       AbstractType::Handle(mixin_cls.super_type());
   if (!mixin_super_type.IsObjectType()) {
-    const Script& script = Script::Handle(cls.script());
+    const Script& script = Script::Handle(mixin_app_class.script());
     const String& class_name = String::Handle(mixin_cls.Name());
     ReportError(Error::Handle(),  // No previous error.
-                script, cls.token_pos(),
-                "mixin class %s must extend class Object",
+                script, mixin_app_class.token_pos(),
+                "mixin class '%s' must extend class Object",
                 class_name.ToCString());
   }
 
   // Copy type parameters to mixin application class.
-  CloneTypeParameters(cls);
+  CloneTypeParameters(mixin_app_class);
 
   if (FLAG_trace_class_finalization) {
-    OS::Print("Done applying mixin type '%s' to class %s %s extending '%s'\n",
+    OS::Print("Done applying mixin type '%s' to class '%s' %s extending '%s'\n",
               String::Handle(mixin_type.Name()).ToCString(),
-              String::Handle(cls.Name()).ToCString(),
-              TypeArguments::Handle(cls.type_parameters()).ToCString(),
-              AbstractType::Handle(cls.super_type()).ToCString());
+              String::Handle(mixin_app_class.Name()).ToCString(),
+              TypeArguments::Handle(
+                  mixin_app_class.type_parameters()).ToCString(),
+              AbstractType::Handle(mixin_app_class.super_type()).ToCString());
   }
+  mixin_app_class.set_is_mixin_type_applied();
 }
 
 
@@ -1514,7 +1523,7 @@ void ClassFinalizer::CreateForwardingConstructors(
 }
 
 
-void ClassFinalizer::ApplyMixin(const Class& cls) {
+void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   Isolate* isolate = Isolate::Current();
   const Type& mixin_type = Type::Handle(isolate, cls.mixin());
   ASSERT(!mixin_type.IsNull());
@@ -1523,8 +1532,8 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
   mixin_cls.EnsureIsFinalized(isolate);
 
   if (FLAG_trace_class_finalization) {
-    OS::Print("Applying mixin '%s' to '%s' at pos %" Pd "\n",
-              String::Handle(mixin_cls.Name()).ToCString(),
+    OS::Print("Applying mixin members of %s to %s at pos %" Pd "\n",
+              mixin_cls.ToCString(),
               cls.ToCString(),
               cls.token_pos());
   }
@@ -1549,7 +1558,7 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
         const Script& script = Script::Handle(isolate, cls.script());
         ReportError(Error::Handle(),  // No previous error.
                     script, cls.token_pos(),
-                    "mixin class %s must not have constructors\n",
+                    "mixin class '%s' must not have constructors\n",
                     String::Handle(isolate, mixin_cls.Name()).ToCString());
       }
       continue;  // Skip the implicit constructor.
@@ -1581,10 +1590,9 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
   cls.SetFields(fields);
 
   if (FLAG_trace_class_finalization) {
-    OS::Print("done mixin appl '%s' '%s' extending '%s'\n",
-              String::Handle(cls.Name()).ToCString(),
-              TypeArguments::Handle(cls.type_parameters()).ToCString(),
-              AbstractType::Handle(cls.super_type()).ToCString());
+    OS::Print("done applying mixin members of %s to %s\n",
+              mixin_cls.ToCString(),
+              cls.ToCString());
   }
 }
 
@@ -1609,10 +1617,6 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   const Class& super_class = Class::Handle(cls.SuperClass());
   if (!super_class.IsNull()) {
     FinalizeTypesInClass(super_class);
-  }
-  if (cls.mixin() != Type::null()) {
-    // Copy the type parameters to the mixin application.
-    ApplyMixinTypes(cls);
   }
   // Finalize type parameters before finalizing the super type.
   FinalizeTypeParameters(cls);
@@ -1724,11 +1728,11 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (FLAG_trace_class_finalization) {
     OS::Print("Finalize %s\n", cls.ToCString());
   }
-  if (cls.mixin() != Type::null()) {
+  if (cls.IsMixinApplication()) {
     // Copy instance methods and fields from the mixin class.
     // This has to happen before the check whether the methods of
     // the class conflict with inherited methods.
-    ApplyMixin(cls);
+    ApplyMixinMembers(cls);
   }
   // Ensure super class is finalized.
   const Class& super = Class::Handle(cls.SuperClass());
@@ -1860,6 +1864,7 @@ void ClassFinalizer::CollectTypeArguments(
     if (num_type_arguments != num_type_parameters) {
       const Script& script = Script::Handle(cls.script());
       const String& type_class_name = String::Handle(type_class.Name());
+      // TODO(regis): This should not be a compile time error anymore.
       ReportError(Error::Handle(),  // No previous error.
                   script, type.token_pos(),
                   "wrong number of type arguments for class '%s'",

@@ -463,10 +463,10 @@ class RawObject {
 
 class RawClass : public RawObject {
  public:
-  enum ClassState {
+  enum ClassFinalizedState {
     kAllocated = 0,  // Initial state.
     kPreFinalized,  // VM classes: size precomputed, but no checks done.
-    kFinalized,     // Class parsed, finalized and ready for use.
+    kFinalized,  // Class parsed, finalized and ready for use.
   };
 
  private:
@@ -501,7 +501,7 @@ class RawClass : public RawObject {
   intptr_t next_field_offset_in_words_;  // Offset of the next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
   intptr_t token_pos_;
-  uint16_t state_bits_;  // state, is_[const|implemented|synthesized|abstract].
+  uint16_t state_bits_;
 
   friend class Instance;
   friend class Object;
