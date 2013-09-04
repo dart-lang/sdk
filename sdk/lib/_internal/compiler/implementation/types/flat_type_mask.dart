@@ -496,8 +496,9 @@ class FlatTypeMask implements TypeMask {
   }
 
   bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {
-    // A call on an empty type mask is dead code.
-    if (isEmpty && !isNullable) return false;
+    // A call on an empty type mask is either dead code, or a call on
+    // `null`.
+    if (isEmpty) return false;
     // A call on an exact mask for an abstract class is dead code.
     if (isExact && base.element.isAbstract(compiler)) return false;
     // If the receiver is guaranteed to have a member that
@@ -541,7 +542,25 @@ class FlatTypeMask implements TypeMask {
     // If we're calling bar on an object of type A we do need the
     // handler because we may have to call B.noSuchMethod since B
     // does not implement bar.
-    return !willHit(selector, compiler);
+
+    Element cls = base.element;
+    bool hasMatch = hasConcreteMatch(cls, selector, compiler);
+    if (isExact) return !hasMatch;
+    if (!cls.isAbstract(compiler) && !hasMatch) return true;
+
+    Set<ClassElement> subtypesToCheck;
+    if (isSubtype) {
+      subtypesToCheck = compiler.world.subtypesOf(cls);
+    } else {
+      assert(isSubclass);
+      subtypesToCheck = compiler.world.subclassesOf(cls);
+    }
+
+    return subtypesToCheck != null
+        && subtypesToCheck.any((ClassElement cls) {
+              return !cls.isAbstract(compiler)
+                  && !hasConcreteMatch(cls, selector, compiler);
+           });
   }
 
   Element locateSingleElement(Selector selector, Compiler compiler) {
