@@ -55,7 +55,8 @@ DEFINE_NATIVE_ENTRY(Stacktrace_setupFullStacktrace, 1) {
       if (code.is_optimized()) {
         // For optimized frames, extract all the inlined functions if any
         // into the stack trace.
-        for (InlinedFunctionsIterator it(frame); !it.Done(); it.Advance()) {
+        for (InlinedFunctionsIterator it(code, frame->pc());
+              !it.Done(); it.Advance()) {
           func = it.function();
           code = it.code();
           uword pc = it.pc();

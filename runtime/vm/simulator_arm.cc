@@ -322,7 +322,7 @@ void SimulatorDebugger::PrintBacktrace() {
       if (code.is_optimized()) {
         // For optimized frames, extract all the inlined functions if any
         // into the stack trace.
-        InlinedFunctionsIterator it(frame);
+        InlinedFunctionsIterator it(code, frame->pc());
         while (!it.Done()) {
           // Print each inlined frame with its pc in the corresponding
           // unoptimized frame.
