@@ -18,7 +18,6 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'DOMStringMap',
     'ChildNode',
     'EventListener',
-    'EventHandler',
     'MediaQueryListListener',
     'MutationCallback',
     'NavigatorID',
@@ -137,10 +136,10 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'WebGLLoseContext': 'WebGLLoseContext,WebGLExtensionLoseContext',
 
-    'WebKitCSSKeyframeRule':
+    'CSSKeyframeRule':
         'CSSKeyframeRule,MozCSSKeyframeRule,WebKitCSSKeyframeRule',
 
-    'WebKitCSSKeyframesRule':
+    'CSSKeyframesRule':
         'CSSKeyframesRule,MozCSSKeyframesRule,WebKitCSSKeyframesRule',
 
     'WheelEvent': 'WheelEvent,MouseWheelEvent,MouseScrollEvent',
@@ -1063,10 +1062,6 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'PluginArray': TypeData(clazz='Interface', item_type='Plugin'),
     'DOMStringList': TypeData(clazz='Interface', item_type='DOMString',
         dart_type='List<String>', custom_to_native=True),
-    'EntryArray': TypeData(clazz='Interface', item_type='Entry',
-        suppress_interface=True),
-    'EntryArraySync': TypeData(clazz='Interface', item_type='EntrySync',
-        suppress_interface=True),
     'FileList': TypeData(clazz='Interface', item_type='File',
         dart_type='List<File>'),
     'Future': TypeData(clazz='Interface', dart_type='Future'),

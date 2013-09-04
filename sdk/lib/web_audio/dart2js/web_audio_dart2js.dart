@@ -1074,16 +1074,27 @@ class PannerNode extends AudioNode native "PannerNode,AudioPannerNode" {
 @Experimental() // untriaged
 class PeriodicWave extends Interceptor native "PeriodicWave" {
 }
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable()
 @DomName('ScriptProcessorNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ScriptProcessorNode
 @Experimental()
 class ScriptProcessorNode extends AudioNode native "ScriptProcessorNode,JavaScriptAudioNode" {
-  Stream<AudioProcessingEvent> _eventStream;
+  // To suppress missing implicit constructor warnings.
+  factory ScriptProcessorNode._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('ScriptProcessorNode.audioprocessEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<AudioProcessingEvent> audioProcessEvent = const EventStreamProvider<AudioProcessingEvent>('audioprocess');
+
+  @DomName('ScriptProcessorNode.bufferSize')
+  @DocsEditable()
+  final int bufferSize;
 
   /**
    * Get a Stream that fires events when AudioProcessingEvents occur.
@@ -1092,36 +1103,10 @@ class ScriptProcessorNode extends AudioNode native "ScriptProcessorNode,JavaScri
    * the soft-real-time properties which which these events are fired and can
    * be processed.
    */
-  Stream<AudioProcessingEvent> get onAudioProcess {
-    if (_eventStream == null) {
-      var controller = new StreamController(sync: true);
-      var callback = (audioData) {
-          if (controller.hasListener) {
-            // This stream is a strange combination of broadcast and single
-            // subscriber streams. We only allow one listener, but if there is
-            // no listener, we don't queue up events, we just drop them on the
-            // floor.
-            controller.add(audioData);
-          }
-        };
-      _setEventListener(callback);
-      _eventStream = controller.stream;
-    }
-    return _eventStream;
-  }
-
-    _setEventListener(callback) {
-      JS('void', '#.onaudioprocess = #', this,
-          convertDartClosureToJS(callback, 1));
-    }
-
-  // To suppress missing implicit constructor warnings.
-  factory ScriptProcessorNode._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('ScriptProcessorNode.bufferSize')
+  @DomName('ScriptProcessorNode.onaudioprocess')
   @DocsEditable()
-  final int bufferSize;
-
+  @Experimental() // untriaged
+  Stream<AudioProcessingEvent> get onAudioProcess => audioProcessEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

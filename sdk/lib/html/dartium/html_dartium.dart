@@ -2456,7 +2456,7 @@ class Crypto extends NativeFieldWrapperClass1 {
   @DomName('Crypto.subtle')
   @DocsEditable()
   @Experimental() // untriaged
-  SubtleCrypto get subtle native "Crypto_subtle_Getter";
+  _SubtleCrypto get subtle native "Crypto_subtle_Getter";
 
   @DomName('Crypto.getRandomValues')
   @DocsEditable()
@@ -2813,7 +2813,7 @@ class CssKeyframesRule extends CssRule {
   @DomName('CSSKeyframesRule.insertRule')
   @DocsEditable()
   @Experimental() // untriaged
-  void insertRule(String rule) native "CSSKeyframesRule_insertRule_Callback";
+  void appendRule(String rule) native "CSSKeyframesRule_insertRule_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20204,6 +20204,14 @@ class Performance extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory Performance._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('Performance.webkitresourcetimingbufferfullEvent')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
+  static const EventStreamProvider<Event> resourceTimingBufferFullEvent = const EventStreamProvider<Event>('webkitresourcetimingbufferfull');
+
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -20296,6 +20304,12 @@ class Performance extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Performance_removeEventListener_Callback";
+
+  @DomName('Performance.onwebkitresourcetimingbufferfull')
+  @DocsEditable()
+  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
+  @Experimental()
+  Stream<Event> get onResourceTimingBufferFull => resourceTimingBufferFullEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22611,10 +22625,20 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
   // To suppress missing implicit constructor warnings.
   factory SharedWorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('SharedWorkerGlobalScope.connectEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
+
   @DomName('SharedWorkerGlobalScope.name')
   @DocsEditable()
   @Experimental() // untriaged
   String get name native "SharedWorkerGlobalScope_name_Getter";
+
+  @DomName('SharedWorkerGlobalScope.onconnect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onConnect => connectEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24041,54 +24065,6 @@ class StyleSheet extends NativeFieldWrapperClass1 {
   @DomName('StyleSheet.type')
   @DocsEditable()
   String get type native "StyleSheet_type_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SubtleCrypto')
-@Experimental() // untriaged
-class SubtleCrypto extends NativeFieldWrapperClass1 {
-
-  @DomName('SubtleCrypto.decrypt')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object decrypt(Map algorithm, CryptoKey key, TypedData data) native "SubtleCrypto_decrypt_Callback";
-
-  @DomName('SubtleCrypto.digest')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object digest(Map algorithm, TypedData data) native "SubtleCrypto_digest_Callback";
-
-  @DomName('SubtleCrypto.encrypt')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object encrypt(Map algorithm, CryptoKey key, TypedData data) native "SubtleCrypto_encrypt_Callback";
-
-  @DomName('SubtleCrypto.generateKey')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object generateKey(Map algorithm, bool extractable, List<String> keyUsages) native "SubtleCrypto_generateKey_Callback";
-
-  @DomName('SubtleCrypto.importKey')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object importKey(String format, TypedData keyData, Map algorithm, bool extractable, List<String> keyUsages) native "SubtleCrypto_importKey_Callback";
-
-  @DomName('SubtleCrypto.sign')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object sign(Map algorithm, CryptoKey key, TypedData data) native "SubtleCrypto_sign_Callback";
-
-  @DomName('SubtleCrypto.verify')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object verify(Map algorithm, CryptoKey key, TypedData signature, TypedData data) native "SubtleCrypto_verify_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26042,13 +26018,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -28169,6 +28145,11 @@ class XmlHttpRequestEventTarget extends EventTarget {
   @Experimental() // untriaged
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
+  @DomName('XMLHttpRequestEventTarget.timeoutEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> timeoutEvent = const EventStreamProvider<ProgressEvent>('timeout');
+
   @DomName('XMLHttpRequestEventTarget.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
@@ -28201,6 +28182,10 @@ class XmlHttpRequestEventTarget extends EventTarget {
 
   @DomName('XMLHttpRequestEventTarget.onloadend')
   @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental() // untriaged
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
@@ -28211,8 +28196,17 @@ class XmlHttpRequestEventTarget extends EventTarget {
 
   @DomName('XMLHttpRequestEventTarget.onprogress')
   @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental() // untriaged
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.ontimeout')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onTimeout => timeoutEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29474,6 +29468,19 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
   @DomName('StyleSheetList.item')
   @DocsEditable()
   StyleSheet item(int index) native "StyleSheetList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('SubtleCrypto')
+@Experimental() // untriaged
+abstract class _SubtleCrypto extends NativeFieldWrapperClass1 {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

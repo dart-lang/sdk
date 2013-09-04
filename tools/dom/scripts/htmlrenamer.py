@@ -115,6 +115,7 @@ _removed_html_interfaces = [
   'SVGTRefElement',
   'SVGVKernElement',
   'SharedWorker', # Workers
+  'SubtleCrypto',
   'WebKitMediaSource',
   'WebKitSourceBuffer',
   'WebKitSourceBufferList',
@@ -330,7 +331,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
-    'WebKitCSSKeyframesRule.insertRule': 'appendRule',
+    'CSSKeyframesRule.insertRule': 'appendRule',
     'DirectoryEntry.getDirectory': '_getDirectory',
     'DirectoryEntry.getFile': '_getFile',
     'Document.createCDATASection': 'createCDataSection',
@@ -369,8 +370,6 @@ renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
   'CSS.supports(DOMString conditionText)': 'supportsCondition',
   'CanvasRenderingContext2D.createPattern(HTMLImageElement image, '
       'DOMString repetitionType)': 'createPatternFromImage',
-  'CryptoOperation.process(ArrayBuffer data)': 'processByteBuffer',
-  'CryptoOperation.process(ArrayBufferView data)': 'processTypedData',
   'DataTransferItemList.add(File file)': 'addFile',
   'DataTransferItemList.add(DOMString data, DOMString type)': 'addData',
   'FormData.append(DOMString name, Blob value, DOMString filename)':
@@ -495,6 +494,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Window.get:frames',
     'Window.get:length',
     'Window.on:beforeUnload',
+    'Window.on:webkitTransitionEnd',
     'Window.pagePopupController',
     'Window.prompt',
     'Window.webkitCancelAnimationFrame',
@@ -536,13 +536,13 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Document.images',
     'Document.linkColor',
     'Document.location',
+    'Document.on:wheel',
     'Document.open',
     'Document.register',
     'Document.set:domain',
     'Document.vlinkColor',
     'Document.webkitCurrentFullScreenElement',
     'Document.webkitFullScreenKeyboardInputAllowed',
-    'Document.webkitRegister',
     'Document.write',
     'Document.writeln',
     'Document.xmlStandalone',
@@ -582,6 +582,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Element.getAttributeNodeNS',
     'Element.getElementsByTagNameNS',
     'Element.innerText',
+    'Element.on:wheel',
     'Element.outerText',
     'Element.removeAttributeNode',
     'Element.set:outerHTML',
@@ -734,8 +735,9 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Performance.webkitMeasure',
     'ShadowRoot.getElementsByTagNameNS',
     'SVGElement.getPresentationAttribute',
-    'SVGStyledElement.getPresentationAttribute',
+    'SVGElementInstance.on:wheel',
     'WheelEvent.wheelDelta',
+    'Window.on:wheel',
     'WorkerGlobalScope.webkitIndexedDB',
 # TODO(jacobr): should these be removed?
     'Document.close',

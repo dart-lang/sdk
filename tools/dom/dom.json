@@ -1841,6 +1841,9 @@
         "comment": "https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockerror",
         "support_level": "experimental"
       },
+      "onwheel": {
+        "support_level": "untriaged"
+      },
       "preferredStylesheetSet": {
         "comment": "http://dev.w3.org/csswg/cssom/#widl-Document-preferredStyleSheetSet"
       },
@@ -2223,6 +2226,9 @@
       "onwebkitfullscreenerror": {
         "comment": "https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html",
         "support_level": "experimental"
+      },
+      "onwheel": {
+        "support_level": "untriaged"
       },
       "outerHTML": {
         "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
@@ -7692,6 +7698,9 @@
       "onselectstart": {},
       "onsubmit": {},
       "onunload": {},
+      "onwheel": {
+        "support_level": "untriaged"
+      },
       "parentNode": {},
       "previousSibling": {},
       "removeEventListener": {
@@ -10212,7 +10221,10 @@
       "_setEventListener": {
         "support_level": "nonstandard"
       },
-      "bufferSize": {}
+      "bufferSize": {},
+      "onaudioprocess": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "experimental"
   },
@@ -10347,6 +10359,9 @@
   "SharedWorkerGlobalScope": {
     "members": {
       "name": {
+        "support_level": "untriaged"
+      },
+      "onconnect": {
         "support_level": "untriaged"
       }
     },
@@ -12237,6 +12252,9 @@
       "onwebkittransitionend": {
         "support_level": "deprecated"
       },
+      "onwheel": {
+        "support_level": "untriaged"
+      },
       "open": {},
       "openDatabase": {
         "comment": "http://www.w3.org/TR/webdatabase/",
@@ -12723,6 +12741,9 @@
         "support_level": "untriaged"
       },
       "onprogress": {
+        "support_level": "untriaged"
+      },
+      "ontimeout": {
         "support_level": "untriaged"
       },
       "removeEventListener": {

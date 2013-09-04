@@ -58,13 +58,11 @@
  * Other options for client-side data storage include:
  *
  * * [Window.localStorage]&mdash;a
- * basic mechanism in which data is stored as a [Map].
+ * basic mechanism that stores data as a [Map],
+ * and where both the keys and the values are strings.
  *
  * * [dart:web_sql]&mdash;a database that can be queried with SQL.
  * 
- * * The [Lawndart](http://pub.dartlang.org/packages/lawndart) package,
- * which helps you deal with the wide array of client-side storage options.
- *
  * For a tutorial about using the indexed_db library with Dart,
  * check out
  * [Use IndexedDB](http://www.dartlang.org/docs/tutorials/indexeddb/).

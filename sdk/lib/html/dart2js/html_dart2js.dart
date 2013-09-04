@@ -1866,6 +1866,10 @@ class Console {
   void assertCondition(bool condition, Object arg) => _isConsoleDefined ?
       JS('void', 'console.assertCondition(#, #)', condition, arg) : null;
 
+  @DomName('Console.clear')
+  void clear(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.clear(#)', arg) : null;
+
   @DomName('Console.count')
   void count(Object arg) => _isConsoleDefined ?
       JS('void', 'console.count(#)', arg) : null;
@@ -1918,6 +1922,10 @@ class Console {
   void profileEnd(String title) => _isConsoleDefined ?
       JS('void', 'console.profileEnd(#)', title) : null;
 
+  @DomName('Console.table')
+  void table(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.table(#)', arg) : null;
+
   @DomName('Console.time')
   void time(String title) => _isConsoleDefined ?
       JS('void', 'console.time(#)', title) : null;
@@ -1950,111 +1958,6 @@ class Console {
 @DomName('ConsoleBase')
 @Experimental() // untriaged
 class ConsoleBase extends Interceptor native "ConsoleBase" {
-
-  @DomName('ConsoleBase.assertCondition')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void assertCondition(bool condition, Object arg) native;
-
-  @DomName('ConsoleBase.clear')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void clear(Object arg) native;
-
-  @DomName('ConsoleBase.count')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void count(Object arg) native;
-
-  @DomName('ConsoleBase.debug')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void debug(Object arg) native;
-
-  @DomName('ConsoleBase.dir')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void dir(Object arg) native;
-
-  @DomName('ConsoleBase.dirxml')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void dirxml(Object arg) native;
-
-  @DomName('ConsoleBase.error')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void error(Object arg) native;
-
-  @DomName('ConsoleBase.group')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void group(Object arg) native;
-
-  @DomName('ConsoleBase.groupCollapsed')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void groupCollapsed(Object arg) native;
-
-  @DomName('ConsoleBase.groupEnd')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void groupEnd() native;
-
-  @DomName('ConsoleBase.info')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void info(Object arg) native;
-
-  @DomName('ConsoleBase.log')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void log(Object arg) native;
-
-  @DomName('ConsoleBase.markTimeline')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void markTimeline(Object arg) native;
-
-  @DomName('ConsoleBase.profile')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void profile(String title) native;
-
-  @DomName('ConsoleBase.profileEnd')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void profileEnd(String title) native;
-
-  @DomName('ConsoleBase.table')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void table(Object arg) native;
-
-  @DomName('ConsoleBase.time')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void time(String title) native;
-
-  @DomName('ConsoleBase.timeEnd')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void timeEnd(String title) native;
-
-  @DomName('ConsoleBase.timeStamp')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void timeStamp(Object arg) native;
-
-  @DomName('ConsoleBase.trace')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void trace(Object arg) native;
-
-  @DomName('ConsoleBase.warn')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void warn(Object arg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2147,7 +2050,7 @@ class Crypto extends Interceptor native "Crypto" {
   @DomName('Crypto.subtle')
   @DocsEditable()
   @Experimental() // untriaged
-  final SubtleCrypto subtle;
+  final _SubtleCrypto subtle;
 
   @DomName('Crypto.getRandomValues')
   @DocsEditable()
@@ -2408,7 +2311,7 @@ class CssImportRule extends CssRule native "CSSImportRule" {
 @DocsEditable()
 @DomName('CSSKeyframeRule')
 @Experimental() // untriaged
-class CssKeyframeRule extends CssRule native "CSSKeyframeRule" {
+class CssKeyframeRule extends CssRule native "CSSKeyframeRule,MozCSSKeyframeRule,WebKitCSSKeyframeRule" {
   // To suppress missing implicit constructor warnings.
   factory CssKeyframeRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -2430,7 +2333,7 @@ class CssKeyframeRule extends CssRule native "CSSKeyframeRule" {
 @DocsEditable()
 @DomName('CSSKeyframesRule')
 @Experimental() // untriaged
-class CssKeyframesRule extends CssRule native "CSSKeyframesRule" {
+class CssKeyframesRule extends CssRule native "CSSKeyframesRule,MozCSSKeyframesRule,WebKitCSSKeyframesRule" {
   // To suppress missing implicit constructor warnings.
   factory CssKeyframesRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -2461,10 +2364,11 @@ class CssKeyframesRule extends CssRule native "CSSKeyframesRule" {
   @Experimental() // untriaged
   CssKeyframeRule findRule(String key) native;
 
+  @JSName('insertRule')
   @DomName('CSSKeyframesRule.insertRule')
   @DocsEditable()
   @Experimental() // untriaged
-  void insertRule(String rule) native;
+  void appendRule(String rule) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18770,6 +18674,14 @@ class Performance extends EventTarget native "Performance" {
   // To suppress missing implicit constructor warnings.
   factory Performance._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('Performance.webkitresourcetimingbufferfullEvent')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
+  static const EventStreamProvider<Event> resourceTimingBufferFullEvent = const EventStreamProvider<Event>('webkitresourcetimingbufferfull');
+
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.performance)');
 
@@ -18849,6 +18761,12 @@ class Performance extends EventTarget native "Performance" {
   @Experimental()
   // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
   void setResourceTimingBufferSize(int maxSize) native;
+
+  @DomName('Performance.onwebkitresourcetimingbufferfull')
+  @DocsEditable()
+  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
+  @Experimental()
+  Stream<Event> get onResourceTimingBufferFull => resourceTimingBufferFullEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21007,10 +20925,20 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope native "SharedWorkerGlob
   // To suppress missing implicit constructor warnings.
   factory SharedWorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('SharedWorkerGlobalScope.connectEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
+
   @DomName('SharedWorkerGlobalScope.name')
   @DocsEditable()
   @Experimental() // untriaged
   final String name;
+
+  @DomName('SharedWorkerGlobalScope.onconnect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onConnect => connectEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22179,107 +22107,6 @@ class StyleSheet extends Interceptor native "StyleSheet" {
   @DomName('StyleSheet.type')
   @DocsEditable()
   final String type;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('SubtleCrypto')
-@Experimental() // untriaged
-class SubtleCrypto extends Interceptor native "SubtleCrypto" {
-
-  @DomName('SubtleCrypto.decrypt')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object decrypt(Map algorithm, CryptoKey key, TypedData data) {
-    var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _decrypt_1(algorithm_1, key, data);
-  }
-  @JSName('decrypt')
-  @DomName('SubtleCrypto.decrypt')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object _decrypt_1(algorithm, CryptoKey key, TypedData data) native;
-
-  @DomName('SubtleCrypto.digest')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object digest(Map algorithm, TypedData data) {
-    var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _digest_1(algorithm_1, data);
-  }
-  @JSName('digest')
-  @DomName('SubtleCrypto.digest')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object _digest_1(algorithm, TypedData data) native;
-
-  @DomName('SubtleCrypto.encrypt')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object encrypt(Map algorithm, CryptoKey key, TypedData data) {
-    var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _encrypt_1(algorithm_1, key, data);
-  }
-  @JSName('encrypt')
-  @DomName('SubtleCrypto.encrypt')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object _encrypt_1(algorithm, CryptoKey key, TypedData data) native;
-
-  @DomName('SubtleCrypto.generateKey')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object generateKey(Map algorithm, bool extractable, List<String> keyUsages) {
-    var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _generateKey_1(algorithm_1, extractable, keyUsages);
-  }
-  @JSName('generateKey')
-  @DomName('SubtleCrypto.generateKey')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object _generateKey_1(algorithm, extractable, List<String> keyUsages) native;
-
-  @DomName('SubtleCrypto.importKey')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object importKey(String format, TypedData keyData, Map algorithm, bool extractable, List<String> keyUsages) {
-    var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _importKey_1(format, keyData, algorithm_1, extractable, keyUsages);
-  }
-  @JSName('importKey')
-  @DomName('SubtleCrypto.importKey')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object _importKey_1(format, TypedData keyData, algorithm, extractable, List<String> keyUsages) native;
-
-  @DomName('SubtleCrypto.sign')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object sign(Map algorithm, CryptoKey key, TypedData data) {
-    var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _sign_1(algorithm_1, key, data);
-  }
-  @JSName('sign')
-  @DomName('SubtleCrypto.sign')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object _sign_1(algorithm, CryptoKey key, TypedData data) native;
-
-  @DomName('SubtleCrypto.verify')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object verify(Map algorithm, CryptoKey key, TypedData signature, TypedData data) {
-    var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _verify_1(algorithm_1, key, signature, data);
-  }
-  @JSName('verify')
-  @DomName('SubtleCrypto.verify')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object _verify_1(algorithm, CryptoKey key, TypedData signature, TypedData data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26322,6 +26149,11 @@ class XmlHttpRequestEventTarget extends EventTarget native "XMLHttpRequestEventT
   @Experimental() // untriaged
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
+  @DomName('XMLHttpRequestEventTarget.timeoutEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> timeoutEvent = const EventStreamProvider<ProgressEvent>('timeout');
+
   @DomName('XMLHttpRequestEventTarget.onabort')
   @DocsEditable()
   @Experimental() // untriaged
@@ -26339,6 +26171,10 @@ class XmlHttpRequestEventTarget extends EventTarget native "XMLHttpRequestEventT
 
   @DomName('XMLHttpRequestEventTarget.onloadend')
   @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental() // untriaged
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
@@ -26349,8 +26185,17 @@ class XmlHttpRequestEventTarget extends EventTarget native "XMLHttpRequestEventT
 
   @DomName('XMLHttpRequestEventTarget.onprogress')
   @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental() // untriaged
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.ontimeout')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onTimeout => timeoutEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27477,6 +27322,16 @@ class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableL
   @DomName('StyleSheetList.item')
   @DocsEditable()
   StyleSheet item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('SubtleCrypto')
+@Experimental() // untriaged
+abstract class _SubtleCrypto extends Interceptor native "SubtleCrypto" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
