@@ -28,10 +28,13 @@ LibTest/typed_data/ByteData/setUint32_A02_t02: fail # co19-roll r569: Please tri
 LibTest/typed_data/ByteData/setUint64_A02_t02: fail # co19-roll r569: Please triage this failure
 
 [ $runtime == vm || $compiler == dart2js ]
-Language/13_Statements/11_Try_A02_t03: fail # co19 issue 552
-Language/13_Statements/11_Try_A03_t03: fail # co19 issue 552
-Language/13_Statements/11_Try_A04_t03: fail # co19 issue 552
-Language/13_Statements/11_Try_A07_t03: fail # co19 issue 553
+Language/12_Expressions/01_Constants_A16_t01: FAIL, OK # co19 issue 525
+Language/12_Expressions/01_Constants_A16_t02: FAIL, OK # co19 issue 525
+
+Language/13_Statements/11_Try_A02_t03: FAIL, OK # co19 issue 552
+Language/13_Statements/11_Try_A03_t03: FAIL, OK # co19 issue 552
+Language/13_Statements/11_Try_A04_t03: FAIL, OK # co19 issue 552
+Language/13_Statements/11_Try_A07_t03: FAIL, OK # co19 issue 553
 
 Language/07_Classes/6_Constructors_A02_t01: SKIP # co19 issue 415.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: FAIL, OK # co19 issue 547

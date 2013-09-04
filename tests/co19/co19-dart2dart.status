@@ -202,8 +202,6 @@ Language/12_Expressions/01_Constants_A15_t18: fail # co19-roll r546: Please tria
 Language/12_Expressions/01_Constants_A15_t20: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/01_Constants_A15_t21: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/01_Constants_A15_t31: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A16_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A16_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/01_Constants_A16_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/01_Constants_A17_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/01_Constants_A17_t02: fail # co19-roll r546: Please triage this failure
