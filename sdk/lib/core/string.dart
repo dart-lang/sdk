@@ -219,18 +219,37 @@ abstract class String implements Comparable<String>, Pattern {
   String replaceFirst(Pattern from, String to);
 
   /**
-   * Returns a new string where all occurences of [from] in this string
-   * are replaced with [replace].
+   * Replaces all substrings matching [from] with [replace].
+   *
+   * Returns a new string where the non-overlapping substrings that match
+   * [from] (the ones iterated by `from.allMatches(thisString)`) are replaced
+   * by the literal string [replace].
+   *
+   * Notice that the [replace] string is not interpreted. If the replacement
+   * depends on the match (for example on a [RegExp]'s capture groups), use
+   * the [replaceAllMapped] method instead.
    */
-  String replaceAll(Pattern from, var replace);
+  String replaceAll(Pattern from, String replace);
 
   /**
-   * Returns a new string where all occurences of [from] in this string
-   * are replaced with a [String] depending on [replace].
+   * Replace all substrings matching [from] by a string computed from the match.
    *
+   * Returns a new string where the non-overlapping substrings that match
+   * [from] (the ones iterated by `from.allMatches(thisString)`) are replaced
+   * by the result of calling [replace] on the corresponding [Match] object.
    *
-   * The [replace] function is called with the [Match] generated
-   * by the pattern, and its result is used as replacement.
+   * This can be used to replace matches with new content that depends on the
+   * match, unlike [replaceAll] where the replacement string is always the same.
+   *
+   * Example (simplified pig latin):
+   *     pigLatin(String words) => words.replaceAllMapped(
+   *         new RegExp(r"\b(\w*?)([aeiou]\w*)", caseSensitive: false),
+   *         (Match m) => "${m[2]}${m[1]}${m[1].isEmpty ? 'way' : 'ay'}");
+   *
+   * This would convert each word of a text to "pig-latin", so for example
+   *   `pigLatin("I have a secret now!")`
+   * returns
+   *   `"Iway avehay away ecretsay ownay!"`
    */
   String replaceAllMapped(Pattern from, String replace(Match match));
 
