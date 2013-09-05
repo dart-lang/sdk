@@ -361,11 +361,17 @@ class ResolverTask extends CompilerTask {
           error(tree, MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
           return;
         }
-        if (isConstructor) {
+        if (isConstructor || element.isFactoryConstructor()) {
           if (tree.returnType != null) {
             error(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
           }
+          if (element.modifiers.isConst() &&
+              tree.hasBody() &&
+              !tree.isRedirectingFactory) {
+            compiler.reportError(tree, MessageKind.CONST_CONSTRUCTOR_HAS_BODY);
+          }
         }
+
         ResolverVisitor visitor = visitorFor(element);
         visitor.useElement(tree, element);
         visitor.setupFunction(tree, element);
@@ -1238,8 +1244,10 @@ class InitializerResolver {
           resolveSuperOrThisForSend(constructor, functionNode, call);
           resolvedSuper = true;
         } else if (Initializers.isConstructorRedirect(call)) {
-          // Check that there is no body (Language specification 7.5.1).
-          if (functionNode.hasBody()) {
+          // Check that there is no body (Language specification 7.5.1).  If the
+          // constructor is also const, we already reported an error in
+          // [resolveMethodElement].
+          if (functionNode.hasBody() && !constructor.modifiers.isConst()) {
             error(functionNode, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY);
           }
           // Check that there are no other initializers.

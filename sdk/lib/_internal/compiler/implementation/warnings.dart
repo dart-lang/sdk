@@ -241,7 +241,17 @@ class MessageKind {
       'Error: Cyclic constructor redirection.');
 
   static const MessageKind REDIRECTING_CONSTRUCTOR_HAS_BODY = const MessageKind(
-      'Error: Redirecting constructor cannot have a body.');
+      "Error: Redirecting constructor can't have a body.");
+
+  static const MessageKind CONST_CONSTRUCTOR_HAS_BODY = const MessageKind(
+      "Error: Const constructor or factory can't have a body.",
+      howToFix: "Remove the 'const' keyword or the body",
+      examples: const ["""
+class C {
+  const C() {}
+}
+
+main() => new C();"""]);
 
   static const MessageKind REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER =
       const MessageKind(
@@ -501,7 +511,7 @@ class MessageKind {
       'Error: Cannot have return type for constructor.');
 
   static const MessageKind CANNOT_RETURN_FROM_CONSTRUCTOR = const MessageKind(
-      "Error: Cannot return a value from a constructor.",
+      "Error: Constructors can't return values.",
       howToFix: "Remove the return statement or use a factory constructor.",
       examples: const ["""
 class C {

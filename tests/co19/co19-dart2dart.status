@@ -50,8 +50,6 @@ Language/06_Functions/2_Formal_Parameters_A03_t04: Fail # http://dartbug.com/551
 Language/06_Functions/2_Formal_Parameters_A03_t05: Fail # http://dartbug.com/5519
 Language/06_Functions/2_Formal_Parameters_A03_t06: Fail # http://dartbug.com/5519
 Language/06_Functions/4_External_Functions_A01_t01: Fail # inherited from VM
-Language/07_Classes/07_Classes_A02_t02: Fail # http://dartbug.com/5519
-Language/07_Classes/07_Classes_A02_t04: Fail # http://dartbug.com/5519
 Language/07_Classes/07_Classes_A02_t11: Fail # http://dartbug.com/5519
 Language/07_Classes/3_Setters_A04_t01: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t02: Fail # inherited from VM

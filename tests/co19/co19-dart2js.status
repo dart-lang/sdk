@@ -298,8 +298,6 @@ Language/06_Functions/2_Formal_Parameters_A03_t04: Fail # TODO(ahe): Enforce opt
 Language/06_Functions/2_Formal_Parameters_A03_t05: Fail # Checks that it is a compile-time error if an optional named parameter is declared as a constant typed variable.
 Language/06_Functions/2_Formal_Parameters_A03_t05: Fail # Checks that it is a compile-time error if an optional positional parameter is declared as a constant variable.
 Language/06_Functions/2_Formal_Parameters_A03_t06: Fail # TODO(ahe): Enforce optional parameter semantics.
-Language/07_Classes/07_Classes_A02_t02: Fail # Checks that it is a compile-time error if a constant constructor declaration includes a body.
-Language/07_Classes/07_Classes_A02_t04: Fail # Checks that it is a compile-time error if a constant constructor declaration with initializers includes a body.
 Language/07_Classes/07_Classes_A02_t11: Fail # Checks that it is a compile-time error if a static final variable declaration does not include explicit initializer.
 Language/07_Classes/07_Classes_A11_t01: Fail # Checks that a class name cannot be used as a name of a member variable.
 Language/07_Classes/07_Classes_A11_t03: Fail # Checks that a class name cannot be used as a name of a static variable.
