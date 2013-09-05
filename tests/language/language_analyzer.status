@@ -181,9 +181,6 @@ type_variable_bounds2_test/06: fail # Issue 12162
 unresolved_in_factory_negative_test: fail # Issue 12163
 unresolved_top_level_var_negative_test: fail # Issue 12163
 
-# test issue 12181, uses argument definition test
-constructor_initializer_test: fail # Issue 12181
-
 # test issue 12191, ambiguous import is always warning now
 prefix3_negative_test: fail # Issue 12191
 library_ambiguous_test/00: fail # Issue 12191

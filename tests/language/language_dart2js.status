@@ -3,17 +3,12 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js || $compiler == dart2dart ]
-compile_time_constant_c_test/none: Fail # Map literal with int key.
-constructor_initializer_test: Fail, OK # Depends on ?parameter check.
+compile_time_constant_c_test/none: Fail # Issue 11583
 null_test/03: Fail # Issue 12445.
-
 black_listed_test/none: Fail # Issue 12446.
-
-# Issues related to undeclared prefix resolution.
 malformed_test/none: Fail # Issue 12695
 malformed_test/05: Fail # Issue 12695
 malformed_test/06: Fail # Issue 12695
-
 full_stacktrace1_test: Pass, Fail # Issue 12698
 full_stacktrace2_test: Pass, Fail # Issue 12698
 full_stacktrace3_test: Pass, Fail # Issue 12698
@@ -44,15 +39,10 @@ redirecting_factory_malbounded_test/01: Fail # Issue 12825
 [ $compiler == dart2js && $unchecked ]
 factory_redirection_test/14: Fail # Issue 10959
 type_checks_in_factory_method_test: Fail # Issue 12746
-
 assertion_test: Fail # Issue 12748
-
 double_to_string_as_exponential2_test: Fail # Issue 12749
 double_to_string_as_fixed2_test: Fail # Issue 12749
 double_to_string_as_precision2_test: Fail # Issue 12749
-
-# Only checked mode reports an error on type assignment
-# problems in compile time constants.
 compile_time_constant_checked_test/02: Fail, OK
 compile_time_constant_checked2_test/01: Fail, OK
 compile_time_constant_checked2_test/02: Fail, OK
@@ -153,9 +143,6 @@ list_literal4_test: Fail # Issue 12890
 map_literal4_test: Fail # Issue 12891
 built_in_identifier_test/01: Fail # Issue 13022
 
-#
-# The following tests are all negative tests that should be fixed.
-#
 const_constructor_syntax_test/04: Fail # Issue 12900
 const_syntax_test/01: Fail # Issue 12932
 const_syntax_test/02: Fail # Issue 12932
@@ -173,22 +160,19 @@ scope_variable_test/01: Fail # Issue 13016
 static_final_field2_test/02: Fail # Issue 13017
 throw7_test/01: Fail # Issue 13019
 
-numbers_test: Fail, OK # (unintended?) VM specific test.
+numbers_test: Fail, OK # Issue 1533
+canonical_const2_test: Fail, OK # Issue 1533
+bit_operations_test: Fail, OK # Issue 1533
+expect_test: Fail, OK # Issue 13080
 
 final_syntax_test/01: Fail # Issue 13020
 final_syntax_test/02: Fail # Issue 13020
 final_syntax_test/03: Fail # Issue 13020
 final_syntax_test/04: Fail # Issue 13020
 
-canonical_const2_test: Fail, OK # Dart2js only has doubles.
-
-bit_operations_test: Fail, OK # Tests bit operations outside the 32 bit range.
-optimization_test: Fail, OK # Expects negative results of bit-operations.
-expect_test: Fail, OK # JavaScript canonicalizes all strings. This test assumes that string-concatenation returns a new string.
-
 const_factory_with_body_test/01: Fail # Issue 13028
 
-assign_top_method_test: Fail
+assign_top_method_test: Fail # Issue 13075
 null_test/none: Fail  # Issue 12482
 
 
@@ -204,7 +188,7 @@ round_test: Fail, OK # Common JavaScript engine Math.round bug.
 double_to_string_as_exponential3_test: Fail # Issue 12750
 double_to_string_as_fixed_test: Fail # Issue 12750
 double_to_string_as_precision3_test: Fail # Issue 12750
-expect_test: Fail
+expect_test: Fail # Issue 13080
 stack_overflow_test: Fail
 stack_overflow_stacktrace_test: Fail
 
@@ -230,7 +214,7 @@ function_type_alias9_test/00: Crash # Issue 11986
 symbol_literal_test: Fail # Issue 12171
 
 built_in_identifier_prefix_test: Fail # Issue 6972
-constructor_initializer_test: Fail # VM issue
+constructor_initializer_test/none: Fail # Issue 12633
 factory3_test: Fail
 type_checks_in_factory_method_test: Fail # Issue 12747
 
