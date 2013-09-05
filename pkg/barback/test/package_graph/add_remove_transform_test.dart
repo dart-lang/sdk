@@ -252,4 +252,31 @@ main() {
     expectAsset("pkg1|foo.out", "foo.inc");
     buildShouldSucceed();
   });
+
+  // Regression test.
+  test("a phase is added, then an input is removed and re-added", () {
+    var rewrite = new RewriteTransformer("txt", "mid");
+    initGraph(["app|foo.txt"], {
+      "app": [[rewrite]]
+    });
+
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.mid", "foo.mid");
+    buildShouldSucceed();
+
+    updateTransformers("app", [
+      [rewrite],
+      [new RewriteTransformer("mid", "out")]
+    ]);
+    expectAsset("app|foo.out", "foo.mid.out");
+    buildShouldSucceed();
+
+    removeSources(["app|foo.txt"]);
+    expectNoAsset("app|foo.out");
+    buildShouldSucceed();
+
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.out", "foo.mid.out");
+    buildShouldSucceed();
+  });
 }
