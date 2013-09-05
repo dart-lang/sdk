@@ -33,6 +33,7 @@ class SsaOptimizerTask extends CompilerTask {
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     JavaScriptItemCompilationContext context = work.compilationContext;
     measure(() {
+      SsaDeadCodeEliminator dce;
       List<OptimizationPhase> phases = <OptimizationPhase>[
           // Run trivial instruction simplification first to optimize
           // some patterns useful for type conversion.
@@ -55,6 +56,15 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaValueRangeAnalyzer(compiler, constantSystem, work),
           // Previous optimizations may have generated new
           // opportunities for instruction simplification.
+          new SsaInstructionSimplifier(constantSystem, backend, work),
+          new SsaSimplifyInterceptors(compiler, constantSystem, work),
+          dce = new SsaDeadCodeEliminator(compiler)];
+      runPhases(graph, phases);
+      if (!dce.eliminatedSideEffects) return;
+      phases = <OptimizationPhase>[
+          new SsaGlobalValueNumberer(compiler),
+          new SsaCodeMotion(),
+          new SsaValueRangeAnalyzer(compiler, constantSystem, work),
           new SsaInstructionSimplifier(constantSystem, backend, work),
           new SsaSimplifyInterceptors(compiler, constantSystem, work),
           new SsaDeadCodeEliminator(compiler)];
@@ -910,6 +920,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
   final Compiler compiler;
   SsaLiveBlockAnalyzer analyzer;
+  bool eliminatedSideEffects = false;
   SsaDeadCodeEliminator(this.compiler);
 
   bool isDeadCode(HInstruction instruction) {
@@ -939,6 +950,8 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
         // and phis. We should rewrite the inputs of the control
         // flow instructions to use some sort of dummy value and
         // try to get rid of the phis.
+        eliminatedSideEffects = eliminatedSideEffects ||
+            instruction.sideEffects.hasSideEffects();
         block.remove(instruction);
       } else if (isDeadCode(instruction)) {
         block.remove(instruction);
