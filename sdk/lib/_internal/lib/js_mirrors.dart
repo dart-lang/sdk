@@ -1506,8 +1506,8 @@ class JsFunctionTypeMirror implements FunctionTypeMirror {
     var sep = '';
     if (_hasArguments) {
       for (var argument in _arguments) {
-        s += runtimeTypeToString(argument);
         s += sep;
+        s += runtimeTypeToString(argument);
         sep = ', ';
       }
     }
@@ -1515,8 +1515,8 @@ class JsFunctionTypeMirror implements FunctionTypeMirror {
       s += '$sep[';
       sep = '';
       for (var argument in _optionalArguments) {
-        s += runtimeTypeToString(argument);
         s += sep;
+        s += runtimeTypeToString(argument);
         sep = ', ';
       }
       s += ']';
@@ -1525,9 +1525,9 @@ class JsFunctionTypeMirror implements FunctionTypeMirror {
       s += '$sep{';
       sep = '';
       for (var name in extractKeys(_namedArguments)) {
+        s += sep;
         s += '$name: ';
         s += runtimeTypeToString(JS('', '#[#]', _namedArguments, name));
-        s += sep;
         sep = ', ';
       }
       s += '}';

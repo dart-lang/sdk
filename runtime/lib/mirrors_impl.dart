@@ -49,24 +49,37 @@ Map<Symbol, dynamic> _convertStringToSymbolMap(Map<String, dynamic> map) {
 String _makeSignatureString(TypeMirror returnType,
                             List<ParameterMirror> parameters) {
   StringBuffer buf = new StringBuffer();
-  buf.write(_n(returnType.qualifiedName));
-  buf.write(' (');
-  bool found_optional_param = false;
+  buf.write('(');
+  bool found_optional_positional = false;
+  bool found_optional_named = false;
+
   for (int i = 0; i < parameters.length; i++) {
     var param = parameters[i];
-    if (param.isOptional && !found_optional_param) {
+    if (param.isOptional && param.isNamed && !found_optional_named) {
+      buf.write('{');
+      found_optional_named = true;
+    }
+    if (param.isOptional && !param.isNamed && !found_optional_positional) {
       buf.write('[');
-      found_optional_param = true;
+      found_optional_positional = true;
+    }
+    if (param.isNamed) {
+      buf.write(_n(param.simpleName));
+      buf.write(': ');
     }
     buf.write(_n(param.type.qualifiedName));
     if (i < (parameters.length - 1)) {
       buf.write(', ');
     }
   }
-  if (found_optional_param) {
+  if (found_optional_named) {
+    buf.write('}');
+  }
+  if (found_optional_positional) {
     buf.write(']');
   }
-  buf.write(')');
+  buf.write(') -> ');
+  buf.write(_n(returnType.qualifiedName));
   return buf.toString();
 }
 
@@ -1265,6 +1278,8 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
     }
     return _type;
   }
+
+  String toString() => "ParameterMirror on '${_n(simpleName)}'";
 
   static Type _ParameterMirror_type(_reflectee, _position)
       native "ParameterMirror_type";

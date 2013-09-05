@@ -124,7 +124,6 @@ mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
 mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
 mirrors/mixin_test/01: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
-mirrors/typedef_test/none: Fail # http://dartbug.com/13079
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 
 [ $compiler == none && $runtime == drt ]

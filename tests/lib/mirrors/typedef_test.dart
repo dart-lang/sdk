@@ -18,6 +18,9 @@ typedef void Void();
 typedef String Foo(int x);
 typedef String Bar(int x, [num y]);
 typedef String Baz(int x, {num y});
+typedef String Foo2(int x, num y);
+typedef String Bar2(int x, [num y, num z]);
+typedef String Baz2(int x, {num y, num z});
 
 check(t) {
   var sb = new StringBuffer();
@@ -40,9 +43,6 @@ check(t) {
 
 // Return "$args -> $ret".
 ft(args, ret) {
-  // The VM doesn't use function type notation from the specification:
-  // (argumentTypes) -> returnType
-  return '$ret $args'; /// 02: ok
   return '$args -> $ret'
       // TODO(ahe): dart2js doesn't fully qualify type names.
       .replaceAll('dart.core.', '') /// 01: ok
@@ -50,12 +50,13 @@ ft(args, ret) {
 }
 
 void main() {
-  String parameterMirror = 'ParameterMirror';
-  parameterMirror = 'VariableMirror'; /// 02: ok
   String x = 'x';
   String y = 'y';
+  String z = 'z';
   x = 'argument0'; /// 01: ok
   y = 'argument1'; /// 01: ok
+  z = 'argument2'; /// 01: ok
+
   Expect.stringEquals(
       """
 TypedefMirror on 'Func'
@@ -77,37 +78,80 @@ TypeMirror on 'void'
 TypedefMirror on 'Foo'
 FunctionTypeMirror on '${ft('(dart.core.int)', 'dart.core.String')}'
 ClassMirror on 'String'
-[$parameterMirror on '$x']
+[ParameterMirror on '$x']
 Symbol(\"$x\")
 ClassMirror on 'int'
 """,
       check(reflectClass(Foo)));
-  String type = ft('(dart.core.int, [dart.core.num])', 'dart.core.String');
+  String type = ft('(dart.core.int, dart.core.num)', 'dart.core.String');
+  Expect.stringEquals(
+      """
+TypedefMirror on 'Foo2'
+FunctionTypeMirror on '$type'
+ClassMirror on 'String'
+[ParameterMirror on '$x', ParameterMirror on '$y']
+Symbol(\"$x\")
+ClassMirror on 'int'
+Symbol(\"$y\")
+ClassMirror on 'num'
+""",
+      check(reflectClass(Foo2)));
+  type = ft('(dart.core.int, [dart.core.num])', 'dart.core.String');
   Expect.stringEquals(
       """
 TypedefMirror on 'Bar'
 FunctionTypeMirror on '$type'
 ClassMirror on 'String'
-[$parameterMirror on '$x', $parameterMirror on '$y']
+[ParameterMirror on '$x', ParameterMirror on '$y']
 Symbol(\"$x\")
 ClassMirror on 'int'
 Symbol(\"$y\")
 ClassMirror on 'num'
 """,
       check(reflectClass(Bar)));
-  String namedArgument = '{y: dart.core.num}';
-  namedArgument = '[dart.core.num]'; /// 02: ok
-  type = ft('(dart.core.int, $namedArgument)', 'dart.core.String');
+  type = ft('(dart.core.int, [dart.core.num, dart.core.num])',
+            'dart.core.String');
+  Expect.stringEquals(
+      """
+TypedefMirror on 'Bar2'
+FunctionTypeMirror on '$type'
+ClassMirror on 'String'
+[ParameterMirror on '$x', ParameterMirror on '$y', ParameterMirror on '$z']
+Symbol(\"$x\")
+ClassMirror on 'int'
+Symbol(\"$y\")
+ClassMirror on 'num'
+Symbol(\"$z\")
+ClassMirror on 'num'
+""",
+      check(reflectClass(Bar2)));
+  type = ft('(dart.core.int, {y: dart.core.num})', 'dart.core.String');
   Expect.stringEquals(
       """
 TypedefMirror on 'Baz'
 FunctionTypeMirror on '$type'
 ClassMirror on 'String'
-[$parameterMirror on '$x', $parameterMirror on 'y']
+[ParameterMirror on '$x', ParameterMirror on 'y']
 Symbol(\"$x\")
 ClassMirror on 'int'
 Symbol(\"y\")
 ClassMirror on 'num'
 """,
       check(reflectClass(Baz)));
+  type = ft('(dart.core.int, {y: dart.core.num, z: dart.core.num})',
+            'dart.core.String');
+  Expect.stringEquals(
+      """
+TypedefMirror on 'Baz2'
+FunctionTypeMirror on '$type'
+ClassMirror on 'String'
+[ParameterMirror on '$x', ParameterMirror on 'y', ParameterMirror on 'z']
+Symbol(\"$x\")
+ClassMirror on 'int'
+Symbol(\"y\")
+ClassMirror on 'num'
+Symbol(\"z\")
+ClassMirror on 'num'
+""",
+      check(reflectClass(Baz2)));
 }
