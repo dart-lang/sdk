@@ -671,9 +671,8 @@ ASSEMBLER_TEST_RUN(Exchange, test) {
 
 
 static int ComputeStackSpaceReservation(int needed, int fixed) {
-  static const int kFrameAlignment = OS::ActivationFrameAlignment();
-  return (kFrameAlignment > 1)
-      ? Utils::RoundUp(needed + fixed, kFrameAlignment) - fixed
+  return (OS::ActivationFrameAlignment() > 1)
+      ? Utils::RoundUp(needed + fixed, OS::ActivationFrameAlignment()) - fixed
       : needed;
 }
 

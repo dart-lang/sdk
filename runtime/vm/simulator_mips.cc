@@ -2113,9 +2113,9 @@ int64_t Simulator::Call(int32_t entry,
 
   // Make sure the activation frames are properly aligned.
   int32_t stack_pointer = sp_before_call;
-  static const int kFrameAlignment = OS::ActivationFrameAlignment();
-  if (kFrameAlignment > 1) {
-    stack_pointer = Utils::RoundDown(stack_pointer, kFrameAlignment);
+  if (OS::ActivationFrameAlignment() > 1) {
+    stack_pointer =
+        Utils::RoundDown(stack_pointer, OS::ActivationFrameAlignment());
   }
   set_register(SP, stack_pointer);
 
