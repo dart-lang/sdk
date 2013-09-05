@@ -197,8 +197,7 @@ import 'src/schedule.dart';
 import 'src/schedule_error.dart';
 
 export 'package:unittest/unittest.dart' hide
-    test, solo_test, group, setUp, tearDown, unittestConfiguration,
-    currentTestCase, completes, completion;
+    test, solo_test, group, setUp, tearDown, completes, completion;
 
 export 'src/schedule.dart';
 export 'src/schedule_error.dart';
@@ -376,13 +375,3 @@ Future wrapFuture(Future future, [String description]) {
 
   return currentSchedule.wrapFuture(future, description);
 }
-
-// TODO(nweiz): re-export these once issue 9535 is fixed.
-unittest.Configuration get unittestConfiguration =>
-  unittest.unittestConfiguration;
-void set unittestConfiguration(unittest.Configuration value) {
-  unittest.unittestConfiguration = value;
-}
-
-// TODO(nweiz): re-export these once issue 9535 is fixed.
-unittest.TestCase get currentTestCase => unittest.currentTestCase;
