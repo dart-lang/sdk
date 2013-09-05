@@ -923,6 +923,13 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   bool eliminatedSideEffects = false;
   SsaDeadCodeEliminator(this.compiler);
 
+  HInstruction zapInstructionCache;
+  HInstruction get zapInstruction {
+    return (zapInstructionCache == null)
+        ? zapInstructionCache = analyzer.graph.addConstantInt(0, compiler)
+        : zapInstructionCache;
+  }
+
   bool isDeadCode(HInstruction instruction) {
     return !instruction.sideEffects.hasSideEffects()
            && !instruction.canThrow()
@@ -936,27 +943,68 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     analyzer = new SsaLiveBlockAnalyzer(graph);
     analyzer.analyze();
     visitPostDominatorTree(graph);
+    cleanPhis(graph);
   }
 
   void visitBasicBlock(HBasicBlock block) {
     bool isDeadBlock = analyzer.isDeadBlock(block);
+    block.isLive = !isDeadBlock;
     // Start from the last non-control flow instruction in the block.
     HInstruction instruction = block.last.previous;
     while (instruction != null) {
       var previous = instruction.previous;
-      if (isDeadBlock && instruction.usedBy.isEmpty) {
-        // TODO(kasperl): Instructions in dead blocks may still
-        // be used by control flow instructions in those blocks
-        // and phis. We should rewrite the inputs of the control
-        // flow instructions to use some sort of dummy value and
-        // try to get rid of the phis.
+      if (isDeadBlock) {
         eliminatedSideEffects = eliminatedSideEffects ||
             instruction.sideEffects.hasSideEffects();
+        removeUsers(instruction);
         block.remove(instruction);
       } else if (isDeadCode(instruction)) {
         block.remove(instruction);
       }
       instruction = previous;
+    }
+  }
+
+  void cleanPhis(HGraph graph) {
+    L: for (HBasicBlock block in graph.blocks) {
+      List<HBasicBlock> predecessors = block.predecessors;
+      if (predecessors.length < 2) continue L;
+      // Find the index of the single live predecessor if it exists.
+      int indexOfLive = -1;
+      for (int i = 0; i < predecessors.length; i++) {
+        if (predecessors[i].isLive) {
+          if (indexOfLive >= 0) continue L;
+          indexOfLive = i;
+        }
+      }
+      // Run through the phis of the block and replace them with their input
+      // that comes from the only live predecessor if that dominates the phi.
+      block.forEachPhi((HPhi phi) {
+        HInstruction replacement = (indexOfLive >= 0)
+            ? phi.inputs[indexOfLive] : zapInstruction;
+        if (replacement.dominates(phi)) {
+          block.rewrite(phi, replacement);
+          block.removePhi(phi);
+        }
+      });
+    }
+  }
+
+  void removeUsers(HInstruction instruction) {
+    instruction.usedBy.forEach((user) {
+      removeInput(user, instruction);
+    });
+    instruction.usedBy.clear();
+  }
+
+  void removeInput(HInstruction user, HInstruction input) {
+    List<HInstruction> inputs = user.inputs;
+    for (int i = 0, length = inputs.length; i < length; i++) {
+      if (input == inputs[i]) {
+        HInstruction zap = zapInstruction;
+        inputs[i] = zap;
+        zap.usedBy.add(user);
+      }
     }
   }
 }
