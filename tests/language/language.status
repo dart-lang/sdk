@@ -34,9 +34,6 @@ mixin_typedef_constructor_test: Fail # Issue 11888
 mixin_type_parameter2_test: Fail # Issue 11888
 built_in_identifier_illegal_test/19: Fail # Issue 13021
 
-number_identifier_test/05: Fail # Issue 13072
-number_identifier_test/none: Fail # Issue 13072
-
 [ $compiler == none && $unchecked ]
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.

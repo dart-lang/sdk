@@ -311,7 +311,6 @@ method_override4_test: Fail # Issue 12810
 method_override5_test: Fail # Issue 12810
 static_final_field2_test/02: Fail # Issue 13017
 throw7_test/01: Fail # Issue 13019
-number_identifier_test/05: Fail # Issue 13070
 scope_variable_test/01: Fail # Issue 13016
 const_factory_with_body_test/01: Fail # Issue 13028
 factory_redirection_test/01: Fail # Issue 12753

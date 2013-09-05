@@ -377,9 +377,6 @@ void Scanner::ScanNumber(bool dec_point_seen) {
       while (IsDecimalDigit(c0_)) {
         ReadChar();
       }
-    } else if (IsIdentStartChar(c0_)) {
-      ErrorMsg("illegal character in number");
-      return;
     }
   }
   if (current_token_.kind != Token::kILLEGAL) {
