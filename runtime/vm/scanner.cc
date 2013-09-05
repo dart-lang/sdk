@@ -365,7 +365,10 @@ void Scanner::ScanNumber(bool dec_point_seen) {
         ReadChar();
       }
     }
-    if ((c0_ == 'e') || (c0_ == 'E')) {
+    if (((c0_ == 'e') || (c0_ == 'E')) &&
+        (IsDecimalDigit(LookaheadChar(1)) ||
+         (LookaheadChar(1) == '-') ||
+         (LookaheadChar(1) == '+'))) {
       Recognize(Token::kDOUBLE);
       if ((c0_ == '-') || (c0_ == '+')) {
         ReadChar();
