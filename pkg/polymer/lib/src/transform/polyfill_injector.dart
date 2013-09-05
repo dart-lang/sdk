@@ -30,6 +30,7 @@ class PolyfillInjector extends Transformer {
     return readPrimaryAsHtml(transform).then((document) {
       bool shadowDomFound = false;
       bool jsInteropFound = false;
+      bool pkgJsInteropFound = false;
       bool dartScriptTags = false;
 
       for (var tag in document.queryAll('script')) {
@@ -38,6 +39,8 @@ class PolyfillInjector extends Transformer {
           var last = src.split('/').last;
           if (last == 'interop.js') {
             jsInteropFound = true;
+          } else if (last == 'dart_interop.js') {
+            pkgJsInteropFound = true;
           } else if (_shadowDomJS.hasMatch(last)) {
             shadowDomFound = true;
           }
@@ -54,6 +57,12 @@ class PolyfillInjector extends Transformer {
         return;
       }
 
+      if (!pkgJsInteropFound) {
+        // JS interop code is required for Polymer CSS shimming.
+        document.body.nodes.insert(0, parseFragment(
+            '<script src="packages/js/dart_interop.js"></script>\n'));
+      }
+
       if (!jsInteropFound) {
         // JS interop code is required for Polymer CSS shimming.
         document.body.nodes.insert(0, parseFragment(
@@ -63,8 +72,9 @@ class PolyfillInjector extends Transformer {
       if (!shadowDomFound) {
         // Insert at the beginning (this polyfill needs to run as early as
         // possible).
+        // TODO(jmesserly): this is .debug to workaround issue 13046.
         document.body.nodes.insert(0, parseFragment(
-            '<script src="packages/shadow_dom/shadow_dom.min.js"></script>\n'));
+            '<script src="packages/shadow_dom/shadow_dom.debug.js"></script>\n'));
       }
 
       transform.addOutput(

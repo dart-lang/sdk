@@ -33,10 +33,45 @@ import 'package:args/args.dart';
 main() {
   var args = _parseArgs(new Options().arguments);
   if (args == null) return;
+
+  var test = args['test'];
+  if (test != null) {
+    _initForTest(test);
+  }
+
   print('polymer/deploy.dart: creating a deploy target for "$_currentPackage"');
   var outDir = args['out'];
-  _run(args['webdir'], outDir).then(
+  _run(outDir, test != null).then(
       (_) => print('Done! All files written to "$outDir"'));
+}
+
+// TODO(jmesserly): the current deploy/barback architecture is very unfriendly
+// to deploying a single test. We need to fix it somehow but it isn't clear yet.
+void _initForTest(String testFile) {
+  var testDir = path.normalize(path.dirname(testFile));
+
+  // A test must be allowed to import things in the package.
+  // So we must find its package root, given the entry point. We can do this
+  // by walking up to find pubspec.yaml.
+  var pubspecDir = _findDirWithFile(path.absolute(testDir), 'pubspec.yaml');
+  if (pubspecDir == null) {
+    print('error: pubspec.yaml file not found, please run this script from '
+        'your package root directory or a subdirectory.');
+    exit(1);
+  }
+
+  _currentPackage = '_test';
+  _packageDirs = {'_test' : pubspecDir};
+}
+
+String _findDirWithFile(String dir, String filename) {
+  while (!new File(path.join(dir, filename)).existsSync()) {
+    var parentDir = path.dirname(dir);
+    // If we reached root and failed to find it, bail.
+    if (parentDir == dir) return null;
+    dir = parentDir;
+  }
+  return dir;
 }
 
 /**
@@ -48,46 +83,49 @@ Future runForTest(String webDir, String outDir) {
 
   // associate package dirs with their location in the repo:
   _packageDirs = {'test' : '.'};
-  addPackages(String dir) {
-    for (var packageDir in new Directory(dir).listSync().map((d) => d.path)) {
-      _packageDirs[path.basename(packageDir)] = packageDir;
-    }
-  }
-  addPackages('..');
-  addPackages('../third_party');
-  addPackages('../../third_party/pkg');
+  _addPackages('..');
+  _addPackages('../third_party');
+  _addPackages('../../third_party/pkg');
   return _run(webDir, outDir);
 }
 
-Future _run(String webDir, String outDir) {
+_addPackages(String dir) {
+  for (var packageDir in new Directory(dir).listSync().map((d) => d.path)) {
+    _packageDirs[path.basename(packageDir)] = packageDir;
+  }
+}
+
+Future _run(String outDir, bool includeTests) {
   var barback = new Barback(new _PolymerDeployProvider());
-  _initializeBarback(barback, webDir);
+  _initializeBarback(barback, includeTests);
   _attachListeners(barback);
-  return _emitAllFiles(barback, webDir, outDir);
+  return _emitAllFiles(barback, 'web', outDir).then(
+      (_) => includeTests ? _emitAllFiles(barback, 'test', outDir) : null);
 }
 
 /** Tell barback which transformers to use and which assets to process. */
-void _initializeBarback(Barback barback, String webDir) {
+void _initializeBarback(Barback barback, bool includeTests) {
   var assets = [];
+  void addAssets(String package, String subDir) {
+    for (var filepath in _listDir(package, subDir)) {
+      assets.add(new AssetId(package, filepath));
+    }
+  }
+
   for (var package in _packageDirs.keys) {
     // Do not process packages like 'polymer' where there is nothing to do.
     if (_ignoredPackages.contains(package)) continue;
     barback.updateTransformers(package, phases);
 
     // notify barback to process anything under 'lib' and 'asset'
-    for (var filepath in _listDir(package, 'lib')) {
-      assets.add(new AssetId(package, filepath));
-    }
-
-    for (var filepath in _listDir(package, 'asset')) {
-      assets.add(new AssetId(package, filepath));
-    }
+    addAssets(package, 'lib');
+    addAssets(package, 'asset');
   }
 
   // In case of the current package, include also 'web'.
-  for (var filepath in _listDir(_currentPackage, webDir)) {
-    assets.add(new AssetId(_currentPackage, filepath));
-  }
+  addAssets(_currentPackage, 'web');
+  if (includeTests) addAssets(_currentPackage, 'test');
+
   barback.updateSources(assets);
 }
 
@@ -235,12 +273,13 @@ final Set<String> _ignoredPackages =
 
 ArgResults _parseArgs(arguments) {
   var parser = new ArgParser()
-      ..addFlag('help', abbr: 'h', help: 'Displays this help message',
+      ..addFlag('help', abbr: 'h', help: 'Displays this help message.',
           defaultsTo: false, negatable: false)
-      ..addOption('webdir', help: 'Directory containing the application',
-          defaultsTo: 'web')
-      ..addOption('out', abbr: 'o', help: 'Directory where to generated files',
-          defaultsTo: 'out');
+      ..addOption('out', abbr: 'o', help: 'Directory where to generated files.',
+          defaultsTo: 'out')
+      ..addOption('test', help: 'Deploy the test at the given path.\n'
+          'Note: currently this will deploy all tests in its directory,\n'
+          'but it will eventually deploy only the specified test.');
   try {
     var results = parser.parse(arguments);
     if (results['help']) {

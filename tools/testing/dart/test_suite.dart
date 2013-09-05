@@ -969,33 +969,56 @@ class StandardTestSuite extends TestSuite {
       String dartWrapperFilename = '$tempDir/test.dart';
       String compiledDartWrapperFilename = '$tempDir/test.js';
 
-      String htmlPath = '$tempDir/test.html';
-      if (isWrappingRequired && !isWebTest) {
-        // test.dart will import the dart test.
-        _createWrapperFile(dartWrapperFilename, filePath);
-      } else {
-        dartWrapperFilename = filename;
-      }
-      String scriptPath = (compiler == 'none') ?
-          dartWrapperFilename : compiledDartWrapperFilename;
-      scriptPath = _createUrlPathFromFile(new Path(scriptPath));
-
-      // Create the HTML file for the test.
-      RandomAccessFile htmlTest =
-          new File(htmlPath).openSync(mode: FileMode.WRITE);
       String content = null;
       Path dir = filePath.directoryPath;
       String nameNoExt = filePath.filenameWithoutExtension;
 
       Path pngPath = dir.append('$nameNoExt.png');
       Path txtPath = dir.append('$nameNoExt.txt');
-      Path customHtmlPath = dir.append('$nameNoExt.html');
+      String customHtmlPath = dir.append('$nameNoExt.html').toNativePath();
+      File customHtml = new File(customHtmlPath);
       Path expectedOutput = null;
 
-      if (new File(customHtmlPath.toNativePath()).existsSync()) {
-        // Use existing HTML document if available.
-        htmlPath = customHtmlPath.toNativePath();
+      // Construct the command(s) that compile all the inputs needed by the
+      // browser test. For running Dart in DRT, this will be noop commands.
+      List<Command> commands = [];
+
+      // Use existing HTML document if available.
+      String htmlPath;
+      if (customHtml.existsSync()) {
+
+        // If necessary, run the Polymer deploy steps.
+        // TODO(jmesserly): this should be generalized for any tests that
+        // require Pub deploy, not just polymer.
+        if (compiler != 'none' &&
+            customHtml.readAsStringSync().contains('polymer/boot.js')) {
+
+          commands.add(_polymerDeployCommand(
+              customHtmlPath, tempDir, optionsFromFile));
+
+          htmlPath = '$tempDir/test/$nameNoExt.html';
+          dartWrapperFilename = '${htmlPath}_bootstrap.dart';
+          compiledDartWrapperFilename = '$dartWrapperFilename.js';
+        } else {
+          htmlPath = customHtmlPath;
+        }
       } else {
+        htmlPath = '$tempDir/test.html';
+        if (isWrappingRequired && !isWebTest) {
+          // test.dart will import the dart test.
+          _createWrapperFile(dartWrapperFilename, filePath);
+        } else {
+          dartWrapperFilename = filename;
+        }
+
+        // Create the HTML file for the test.
+        RandomAccessFile htmlTest =
+            new File(htmlPath).openSync(mode: FileMode.WRITE);
+
+        String scriptPath = (compiler == 'none') ?
+            dartWrapperFilename : compiledDartWrapperFilename;
+        scriptPath = _createUrlPathFromFile(new Path(scriptPath));
+
         if (new File(pngPath.toNativePath()).existsSync()) {
           expectedOutput = pngPath;
           content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
@@ -1010,9 +1033,6 @@ class StandardTestSuite extends TestSuite {
         htmlTest.closeSync();
       }
 
-      // Construct the command(s) that compile all the inputs needed by the
-      // browser test. For running Dart in DRT, this will be noop commands.
-      List<Command> commands = [];
       if (compiler != 'none') {
         commands.add(_compileCommand(
             dartWrapperFilename, compiledDartWrapperFilename,
@@ -1150,6 +1170,20 @@ class StandardTestSuite extends TestSuite {
     return CommandBuilder.instance.getCompilationCommand(
         compiler, outputFile, !useSdk,
         dart2JsBootstrapDependencies, compilerPath, args, configurationDir);
+  }
+
+  /** Helper to create a Polymer deploy command for a single HTML file. */
+  Command _polymerDeployCommand(String inputFile, String outputDir,
+      optionsFromFile) {
+    List<String> args = [];
+    String packageRoot = packageRootArgument(optionsFromFile['packageRoot']);
+    if (packageRoot != null) args.add(packageRoot);
+    args..add('package:polymer/deploy.dart')
+        ..add('--test')..add(inputFile)
+        ..add('--out')..add(outputDir);
+
+    return CommandBuilder.instance.getCommand(
+        'polymer_deploy', vmFileName, args, configurationDir);
   }
 
   /**

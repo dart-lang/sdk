@@ -23,7 +23,7 @@ AssetId idFromString(String s) {
 class TestHelper implements PackageProvider {
   /**
    * Maps from an asset string identifier of the form 'package|path' to the
-   * file contents. 
+   * file contents.
    */
   final Map<String, String> files;
   final Iterable<String> packages;
@@ -95,7 +95,11 @@ testPhases(String testName, List<List<Transformer>> phases,
   });
 }
 
+// TODO(jmesserly): this is .debug to workaround issue 13046.
 const SHADOW_DOM_TAG =
-    '<script src="packages/shadow_dom/shadow_dom.min.js"></script>\n';
+    '<script src="packages/shadow_dom/shadow_dom.debug.js"></script>\n';
 
 const INTEROP_TAG = '<script src="packages/browser/interop.js"></script>\n';
+
+const PKG_JS_INTEROP_TAG =
+    '<script src="packages/js/dart_interop.js"></script>\n';

@@ -36,6 +36,7 @@ void main() {
           '<!DOCTYPE html><html><head></head><body>'
           '$SHADOW_DOM_TAG'
           '$INTEROP_TAG'
+          '$PKG_JS_INTEROP_TAG'
           '<script type="application/dart" '
           'src="test.html_bootstrap.dart"></script>'
           '<script src="packages/browser/dart.js"></script>'
@@ -68,6 +69,7 @@ void main() {
           '<!DOCTYPE html><html><head></head><body>'
           '$SHADOW_DOM_TAG'
           '$INTEROP_TAG'
+          '$PKG_JS_INTEROP_TAG'
           '<script type="application/dart" '
           'src="test.html_bootstrap.dart"></script>'
           '<script src="packages/browser/dart.js"></script>'
@@ -107,6 +109,7 @@ void main() {
           '<!DOCTYPE html><html><head></head><body>'
           '$SHADOW_DOM_TAG'
           '$INTEROP_TAG'
+          '$PKG_JS_INTEROP_TAG'
           '<div></div>'
           '<script type="application/dart" '
           'src="test.html_bootstrap.dart"></script>'
@@ -158,6 +161,7 @@ void main() {
           '<!DOCTYPE html><html><head></head><body>'
           '$SHADOW_DOM_TAG'
           '$INTEROP_TAG'
+          '$PKG_JS_INTEROP_TAG'
           '<polymer-element>1</polymer-element>'
           '<script type="application/dart" '
           'src="index.html_bootstrap.dart"></script>'
@@ -207,7 +211,7 @@ class $className extends ChangeNotifierBase {
   set $fieldName(int value) {
     __\$$fieldName = notifyPropertyChange(const Symbol('$fieldName'), __\$$fieldName, value);
   }
-  
+
   $className($fieldName) : __\$$fieldName = $fieldName;
 }
 ''';
