@@ -70,7 +70,9 @@ void testWatchMoveFile() {
   sub = watcher.listen((event) {
     if (event is FileSystemMoveEvent) {
       Expect.isTrue(event.path.endsWith('file'));
-      Expect.isTrue(event.destination.endsWith('file2'));
+      if (event.destination != null) {
+        Expect.isTrue(event.destination.endsWith('file2'));
+      }
       sub.cancel();
       asyncEnd();
       dir.deleteSync(recursive: true);
@@ -167,7 +169,9 @@ void testMultipleEvents() {
         dir.deleteSync();
         break;
     }
-    if (newState < state) throw "Bad state";
+    if (!Platform.isMacOS) {
+      if (newState < state) throw "Bad state";
+    }
     state = newState;
   });
 
