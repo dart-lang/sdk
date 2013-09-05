@@ -75,7 +75,7 @@ const Map<String, LibraryInfo> LIBRARIES = const {
 
   "isolate": const LibraryInfo(
       "isolate/isolate.dart",
-      maturity: Maturity.STABLE,
+      maturity: Maturity.UNSTABLE,
       dart2jsPatchPath: "_internal/lib/isolate_patch.dart"),
 
   "js": const LibraryInfo(
