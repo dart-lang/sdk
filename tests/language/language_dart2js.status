@@ -213,11 +213,8 @@ symbol_literal_test: Fail # Issue 12171
 
 built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test/none: Fail # Issue 12633
-factory3_test: Fail
+factory3_test: Fail # Issue 13077
 type_checks_in_factory_method_test: Fail # Issue 12747
-
-many_overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
-overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
 
 on_catch_malformed_type_test: Fail # Issue 8601
 
@@ -235,12 +232,12 @@ mixin_type_parameter2_test: Fail # Issue 11888
 mixin_with_two_implicit_constructors_test: Fail # Issue 11889
 
 # Malformed types not handled as unresolved:
-import_core_prefix_test: Fail
-prefix16_test: Fail
-prefix22_test: Fail
+import_core_prefix_test: Fail # Issue 13081
+prefix16_test: Fail # Issue 13081
+prefix22_test: Fail # Issue 13081
 
 # Calling unresolved class constructor:
-call_nonexistent_constructor_test: Fail
+call_nonexistent_constructor_test: Fail # Issue 13082
 
 bad_override_test/01: Fail # Issue 11496
 bad_override_test/02: Fail # Issue 11496
@@ -304,7 +301,6 @@ external_test/30: Fail # Issue 12888
 external_test/31: Fail # Issue 12888
 built_in_identifier_test/01: Fail # Issue 13022
 lazy_static3_test: Fail # Issue 12593
-# dart2js frontend doesn't even analyse problematic classes.
 duplicate_implements_test/01: Fail # Issue 12992
 duplicate_implements_test/02: Fail # Issue 12992
 duplicate_implements_test/03: Fail # Issue 12992
@@ -317,7 +313,7 @@ static_final_field2_test/02: Fail # Issue 13017
 throw7_test/01: Fail # Issue 13019
 number_identifier_test/05: Fail # Issue 13070
 scope_variable_test/01: Fail # Issue 13016
-# Common with language_dart2js.
+const_factory_with_body_test/01: Fail # Issue 13028
 factory_redirection_test/01: Fail # Issue 12753
 factory_redirection_test/02: Crash # Issue 12753
 factory_redirection_test/03: Crash # Issue 12753
@@ -336,8 +332,6 @@ constructor6_test: Fail
 closure_in_initializer_test: Fail
 super_first_constructor_test: Fail
 # Minified mode failures.
-# TODO(antonm): proper support in test framework.
-no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("foo").
 
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
@@ -364,6 +358,9 @@ final_is_not_const_test/01: Fail # Issue 12692
 super_getter_setter_test: Fail # Issue 11065.
 f_bounded_quantification4_test: Fail # Issue 12605.
 f_bounded_quantification5_test: Fail # Issue 12605.
+many_overridden_no_such_method_test: Fail # Issue 13078
+overridden_no_such_method_test: Fail # Issue 13078
+no_such_method_test: Fail # Issue 13078
 
 # TODO(tball): Assign proper bug numbers.
 class_literal_test: Fail
