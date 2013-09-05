@@ -25,31 +25,34 @@
   window.dartExperimentalFixupGetTag = function(originalGetTag) {
     var NodeList = ShadowDOMPolyfill.wrappers.NodeList;
     var ShadowRoot = ShadowDOMPolyfill.wrappers.ShadowRoot;
-    var isWrapper = ShadowDOMPolyfill.isWrapper;
-    var unwrap = ShadowDOMPolyfill.unwrap;
+    var unwrapIfNeeded = ShadowDOMPolyfill.unwrapIfNeeded;
     function getTag(obj) {
+      // TODO(jmesserly): do we still need these?
       if (obj instanceof NodeList) return 'NodeList';
       if (obj instanceof ShadowRoot) return 'ShadowRoot';
       if (obj instanceof MutationRecord) return 'MutationRecord';
       if (obj instanceof MutationObserver) return 'MutationObserver';
 
-      if (isWrapper(obj)) {
-        obj = unwrap(obj);
-
-        // Fix up class names for Firefox. For some of them like
-        // HTMLFormElement and HTMLInputElement, the "constructor" property of
-        // the unwrapped nodes points at the wrapper for some reason.
-        // TODO(jmesserly): figure out why this is happening.
+      var unwrapped = unwrapIfNeeded(obj);
+      if (obj !== unwrapped) {
+        // Fix up class names for Firefox.
+        // For some of them (like HTMLFormElement and HTMLInputElement),
+        // the "constructor" property of the unwrapped nodes points at the
+        // wrapper.
+        // Note: it is safe to check for the GeneratedWrapper string because
+        // we know it is some kind of Shadow DOM wrapper object.
         var ctor = obj.constructor;
-        if (ctor && ctor._ShadowDOMPolyfill$isGeneratedWrapper) {
+        if (ctor && ctor.name == 'GeneratedWrapper') {
           var name = ctor._ShadowDOMPolyfill$cacheTag_;
           if (!name) {
-            name = Object.prototype.toString.call(obj);
+            name = Object.prototype.toString.call(unwrapped);
             name = name.substring(8, name.length - 1);
             ctor._ShadowDOMPolyfill$cacheTag_ = name;
           }
           return name;
         }
+
+        obj = unwrapped;
       }
       return originalGetTag(obj);
     }
