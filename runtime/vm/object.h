@@ -5856,26 +5856,22 @@ class Stacktrace : public Instance {
   intptr_t Length() const;
 
   RawFunction* FunctionAtFrame(intptr_t frame_index) const;
-  void SetFunctionAtFrame(intptr_t frame_index, const Function& func) const;
 
   RawCode* CodeAtFrame(intptr_t frame_index) const;
   void SetCodeAtFrame(intptr_t frame_index, const Code& code) const;
 
   RawSmi* PcOffsetAtFrame(intptr_t frame_index) const;
   void SetPcOffsetAtFrame(intptr_t frame_index, const Smi& pc_offset) const;
-  void SetCatchStacktrace(const Array& func_array,
-                          const Array& code_array,
+  void SetCatchStacktrace(const Array& code_array,
                           const Array& pc_offset_array) const;
+  void set_expand_inlined(bool value) const;
 
-  void Append(const Array& func_list,
-              const Array& code_list,
-              const Array& pc_offset_list) const;
+  void Append(const Array& code_list, const Array& pc_offset_list) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawStacktrace));
   }
-  static RawStacktrace* New(const Array& func_array,
-                            const Array& code_array,
+  static RawStacktrace* New(const Array& code_array,
                             const Array& pc_offset_array,
                             Heap::Space space = Heap::kNew);
 
@@ -5883,12 +5879,11 @@ class Stacktrace : public Instance {
   const char* ToCStringInternal(intptr_t frame_index) const;
 
  private:
-  void set_function_array(const Array& function_array) const;
   void set_code_array(const Array& code_array) const;
   void set_pc_offset_array(const Array& pc_offset_array) const;
-  void set_catch_func_array(const Array& function_array) const;
   void set_catch_code_array(const Array& code_array) const;
   void set_catch_pc_offset_array(const Array& pc_offset_array) const;
+  bool expand_inlined() const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Stacktrace, Instance);
   friend class Class;

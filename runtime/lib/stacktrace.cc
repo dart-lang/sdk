@@ -30,53 +30,27 @@ DEFINE_NATIVE_ENTRY(Stacktrace_getStacktrace, 1) {
 }
 
 
-static void iterateFrames(const GrowableObjectArray& func_list,
-                          const GrowableObjectArray& code_list,
+static void IterateFrames(const GrowableObjectArray& code_list,
                           const GrowableObjectArray& pc_offset_list) {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
-  Function& func = Function::Handle();
   Code& code = Code::Handle();
   Smi& offset = Smi::Handle();
   bool catch_frame_skipped = false;  // Tracks if catch frame has been skipped.
   while (frame != NULL) {
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
-      if (code.is_optimized()) {
-        // For optimized frames, extract all the inlined functions if any
-        // into the stack trace.
-        for (InlinedFunctionsIterator it(code, frame->pc());
-              !it.Done(); it.Advance()) {
-          func = it.function();
-          code = it.code();
-          uword pc = it.pc();
-          ASSERT(pc != 0);
-          ASSERT(code.EntryPoint() <= pc);
-          ASSERT(pc < (code.EntryPoint() + code.Size()));
-          if (func.is_visible()) {
-            if (!catch_frame_skipped) {
-              catch_frame_skipped = true;
-            } else {
-              offset = Smi::New(pc - code.EntryPoint());
-              func_list.Add(func);
-              code_list.Add(code);
-              pc_offset_list.Add(offset);
-            }
-          }
+      offset = Smi::New(frame->pc() - code.EntryPoint());
+      if (!catch_frame_skipped) {
+        const Function& func = Function::Handle(code.function());
+        // Skip over hidden native, and mark first visible frame as catch frame.
+        if (func.is_visible()) {
+          catch_frame_skipped = true;
         }
       } else {
-        offset = Smi::New(frame->pc() - code.EntryPoint());
-        func = code.function();
-        if (func.is_visible()) {
-          if (!catch_frame_skipped) {
-            catch_frame_skipped = true;
-          } else {
-            func_list.Add(func);
-            code_list.Add(code);
-            pc_offset_list.Add(offset);
-          }
-        }
+        code_list.Add(code);
+        pc_offset_list.Add(offset);
       }
     }
     frame = frames.NextFrame();
@@ -90,18 +64,15 @@ static void iterateFrames(const GrowableObjectArray& func_list,
 DEFINE_NATIVE_ENTRY(Stacktrace_setupFullStacktrace, 1) {
   const Stacktrace& trace =
       Stacktrace::CheckedHandle(arguments->NativeArgAt(0));
-  const GrowableObjectArray& func_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
   const GrowableObjectArray& code_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   const GrowableObjectArray& pc_offset_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
-  iterateFrames(func_list, code_list, pc_offset_list);
-  const Array& func_array = Array::Handle(Array::MakeArray(func_list));
+  IterateFrames(code_list, pc_offset_list);
   const Array& code_array = Array::Handle(Array::MakeArray(code_list));
   const Array& pc_offset_array =
       Array::Handle(Array::MakeArray(pc_offset_list));
-  trace.SetCatchStacktrace(func_array, code_array, pc_offset_array);
+  trace.SetCatchStacktrace(code_array, pc_offset_array);
   return Object::null();
 }
 
@@ -112,19 +83,16 @@ DEFINE_NATIVE_ENTRY(Stacktrace_setupFullStacktrace, 1) {
 // set in dart code and control is got inside 'gdb' without going through
 // the runtime or native transition stub.
 void _printCurrentStacktrace() {
-  const GrowableObjectArray& func_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
   const GrowableObjectArray& code_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   const GrowableObjectArray& pc_offset_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
-  iterateFrames(func_list, code_list, pc_offset_list);
-  const Array& func_array = Array::Handle(Array::MakeArray(func_list));
+  IterateFrames(code_list, pc_offset_list);
   const Array& code_array = Array::Handle(Array::MakeArray(code_list));
   const Array& pc_offset_array =
       Array::Handle(Array::MakeArray(pc_offset_list));
   const Stacktrace& stacktrace = Stacktrace::Handle(
-      Stacktrace::New(func_array, code_array, pc_offset_array));
+      Stacktrace::New(code_array, pc_offset_array));
   OS::Print("%s\n", stacktrace.ToCString());
 }
 

@@ -44,25 +44,26 @@
 
 namespace dart {
 
+DEFINE_FLAG(int, huge_method_cutoff_in_code_size, 200000,
+    "Huge method cutoff in unoptimized code size (in bytes).");
+DEFINE_FLAG(int, huge_method_cutoff_in_tokens, 20000,
+    "Huge method cutoff in tokens: Disables optimizations for huge methods.");
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
 DEFINE_FLAG(bool, trace_disabling_optimized_code, false,
     "Trace disabling optimized code.");
-DEFINE_FLAG(int, huge_method_cutoff_in_tokens, 20000,
-    "Huge method cutoff in tokens: Disables optimizations for huge methods.");
-DEFINE_FLAG(int, huge_method_cutoff_in_code_size, 200000,
-    "Huge method cutoff in unoptimized code size (in bytes).");
 DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
     "Throw an exception when the result of an integer calculation will not "
     "fit into a javascript integer.");
-DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, error_on_bad_override);
+DECLARE_FLAG(bool, error_on_bad_type);
+DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
-DECLARE_FLAG(bool, error_on_bad_type);
-DECLARE_FLAG(bool, error_on_bad_override);
+DECLARE_FLAG(bool, verbose_stacktrace);
 
 static const char* kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -14505,15 +14506,8 @@ intptr_t Stacktrace::Length() const {
 
 
 RawFunction* Stacktrace::FunctionAtFrame(intptr_t frame_index) const {
-  const Array& function_array = Array::Handle(raw_ptr()->function_array_);
-  return reinterpret_cast<RawFunction*>(function_array.At(frame_index));
-}
-
-
-void Stacktrace::SetFunctionAtFrame(intptr_t frame_index,
-                                    const Function& func) const {
-  const Array& function_array = Array::Handle(raw_ptr()->function_array_);
-  function_array.SetAt(frame_index, func);
+  const Code& code = Code::Handle(CodeAtFrame(frame_index));
+  return code.IsNull() ? Function::null() : code.function();
 }
 
 
@@ -14543,11 +14537,6 @@ void Stacktrace::SetPcOffsetAtFrame(intptr_t frame_index,
 }
 
 
-void Stacktrace::set_function_array(const Array& function_array) const {
-  StorePointer(&raw_ptr()->function_array_, function_array.raw());
-}
-
-
 void Stacktrace::set_code_array(const Array& code_array) const {
   StorePointer(&raw_ptr()->code_array_, code_array.raw());
 }
@@ -14555,11 +14544,6 @@ void Stacktrace::set_code_array(const Array& code_array) const {
 
 void Stacktrace::set_pc_offset_array(const Array& pc_offset_array) const {
   StorePointer(&raw_ptr()->pc_offset_array_, pc_offset_array.raw());
-}
-
-
-void Stacktrace::set_catch_func_array(const Array& function_array) const {
-  StorePointer(&raw_ptr()->catch_func_array_, function_array.raw());
 }
 
 
@@ -14573,8 +14557,17 @@ void Stacktrace::set_catch_pc_offset_array(const Array& pc_offset_array) const {
 }
 
 
-RawStacktrace* Stacktrace::New(const Array& func_array,
-                               const Array& code_array,
+void Stacktrace::set_expand_inlined(bool value) const {
+  raw_ptr()->expand_inlined_ = value;
+}
+
+
+bool Stacktrace::expand_inlined() const {
+  return raw_ptr()->expand_inlined_;
+}
+
+
+RawStacktrace* Stacktrace::New(const Array& code_array,
                                const Array& pc_offset_array,
                                Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->stacktrace_class() !=
@@ -14587,41 +14580,33 @@ RawStacktrace* Stacktrace::New(const Array& func_array,
     NoGCScope no_gc;
     result ^= raw;
   }
-  result.set_function_array(func_array);
   result.set_code_array(code_array);
   result.set_pc_offset_array(pc_offset_array);
   result.SetCatchStacktrace(Object::empty_array(),
-                            Object::empty_array(),
                             Object::empty_array());
+  result.set_expand_inlined(true);  // default.
   return result.raw();
 }
 
 
-void Stacktrace::Append(const Array& func_list,
-                        const Array& code_list,
+void Stacktrace::Append(const Array& code_list,
                         const Array& pc_offset_list) const {
   intptr_t old_length = Length();
   intptr_t new_length = old_length + pc_offset_list.Length();
-  ASSERT(pc_offset_list.Length() == func_list.Length());
   ASSERT(pc_offset_list.Length() == code_list.Length());
 
   // Grow the arrays for function, code and pc_offset triplet to accommodate
   // the new stack frames.
-  Array& function_array = Array::Handle(raw_ptr()->function_array_);
   Array& code_array = Array::Handle(raw_ptr()->code_array_);
   Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
-  function_array = Array::Grow(function_array, new_length);
   code_array = Array::Grow(code_array, new_length);
   pc_offset_array = Array::Grow(pc_offset_array, new_length);
-  set_function_array(function_array);
   set_code_array(code_array);
   set_pc_offset_array(pc_offset_array);
   // Now append the new function and code list to the existing arrays.
   intptr_t j = 0;
   Object& obj = Object::Handle();
   for (intptr_t i = old_length; i < new_length; i++, j++) {
-    obj = func_list.At(j);
-    function_array.SetAt(i, obj);
     obj = code_list.At(j);
     code_array.SetAt(i, obj);
     obj = pc_offset_list.At(j);
@@ -14630,23 +14615,20 @@ void Stacktrace::Append(const Array& func_list,
 }
 
 
-void Stacktrace::SetCatchStacktrace(const Array& func_array,
-                                    const Array& code_array,
+void Stacktrace::SetCatchStacktrace(const Array& code_array,
                                     const Array& pc_offset_array) const {
-  StorePointer(&raw_ptr()->catch_func_array_, func_array.raw());
   StorePointer(&raw_ptr()->catch_code_array_, code_array.raw());
   StorePointer(&raw_ptr()->catch_pc_offset_array_, pc_offset_array.raw());
 }
 
 
 RawString* Stacktrace::FullStacktrace() const {
-  const Array& func_array = Array::Handle(raw_ptr()->catch_func_array_);
-  if (!func_array.IsNull() && (func_array.Length() > 0)) {
-    const Array& code_array = Array::Handle(raw_ptr()->catch_code_array_);
+  const Array& code_array = Array::Handle(raw_ptr()->catch_code_array_);
+  if (!code_array.IsNull() && (code_array.Length() > 0)) {
     const Array& pc_offset_array =
         Array::Handle(raw_ptr()->catch_pc_offset_array_);
     const Stacktrace& catch_trace = Stacktrace::Handle(
-        Stacktrace::New(func_array, code_array, pc_offset_array));
+        Stacktrace::New(code_array, pc_offset_array));
     intptr_t idx = Length();
     const String& trace =
         String::Handle(String::New(catch_trace.ToCStringInternal(idx)));
@@ -14670,20 +14652,48 @@ void Stacktrace::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
+static intptr_t PrintOneStacktrace(Isolate* isolate,
+                                   GrowableArray<char*>* frame_strings,
+                                   uword pc,
+                                   const Function& function,
+                                   const Code& code,
+                                   intptr_t frame_index) {
+  const char* kFormat = "#%-6d %s (%s:%d:%d)\n";
+  const intptr_t token_pos = code.GetTokenIndexOfPC(pc);
+  const Script& script = Script::Handle(isolate, function.script());
+  const String& function_name =
+      String::Handle(isolate, function.QualifiedUserVisibleName());
+  const String& url = String::Handle(isolate, script.url());
+  intptr_t line = -1;
+  intptr_t column = -1;
+  if (token_pos >= 0) {
+    script.GetTokenLocation(token_pos, &line, &column);
+  }
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat,
+                             frame_index,
+                             function_name.ToCString(),
+                             url.ToCString(),
+                             line, column);
+  char* chars = isolate->current_zone()->Alloc<char>(len + 1);
+  OS::SNPrint(chars, (len + 1), kFormat,
+              frame_index,
+              function_name.ToCString(),
+              url.ToCString(),
+              line, column);
+  frame_strings->Add(chars);
+  return len;
+}
+
+
 const char* Stacktrace::ToCStringInternal(intptr_t frame_index) const {
   Isolate* isolate = Isolate::Current();
   Function& function = Function::Handle();
   Code& code = Code::Handle();
-  Script& script = Script::Handle();
-  String& function_name = String::Handle();
-  String& url = String::Handle();
-
   // Iterate through the stack frames and create C string description
   // for each frame.
   intptr_t total_len = 0;
-  const char* kFormat = "#%-6d %s (%s:%d:%d)\n";
   GrowableArray<char*> frame_strings;
-  char* chars;
+  intptr_t current_frame_index = frame_index;
   for (intptr_t i = 0; i < Length(); i++) {
     function = FunctionAtFrame(i);
     if (function.IsNull()) {
@@ -14692,40 +14702,38 @@ const char* Stacktrace::ToCStringInternal(intptr_t frame_index) const {
           (FunctionAtFrame(i + 1) != Function::null())) {
         const char* kTruncated = "...\n...\n";
         intptr_t truncated_len = strlen(kTruncated) + 1;
-        chars = isolate->current_zone()->Alloc<char>(truncated_len);
+        char* chars = isolate->current_zone()->Alloc<char>(truncated_len);
         OS::SNPrint(chars, truncated_len, "%s", kTruncated);
         frame_strings.Add(chars);
       }
-      continue;
+    } else if (function.is_visible() || FLAG_verbose_stacktrace) {
+      code = CodeAtFrame(i);
+      ASSERT(function.raw() == code.function());
+      uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
+      if (code.is_optimized() && expand_inlined()) {
+        // Traverse inlined frames.
+        for (InlinedFunctionsIterator it(code, pc); !it.Done(); it.Advance()) {
+          function = it.function();
+          code = it.code();
+          ASSERT(function.raw() == code.function());
+          uword pc = it.pc();
+          ASSERT(pc != 0);
+          ASSERT(code.EntryPoint() <= pc);
+          ASSERT(pc < (code.EntryPoint() + code.Size()));
+          total_len += PrintOneStacktrace(
+              isolate, &frame_strings, pc, function, code, current_frame_index);
+          current_frame_index++;  // To account for inlined frames.
+        }
+      } else {
+        total_len += PrintOneStacktrace(
+            isolate, &frame_strings, pc, function, code, current_frame_index);
+        current_frame_index++;
+      }
     }
-    code = CodeAtFrame(i);
-    uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
-    intptr_t token_pos = code.GetTokenIndexOfPC(pc);
-    script = function.script();
-    function_name = function.QualifiedUserVisibleName();
-    url = script.url();
-    intptr_t line = -1;
-    intptr_t column = -1;
-    if (token_pos >= 0) {
-      script.GetTokenLocation(token_pos, &line, &column);
-    }
-    intptr_t len = OS::SNPrint(NULL, 0, kFormat,
-                               (frame_index + i),
-                               function_name.ToCString(),
-                               url.ToCString(),
-                               line, column);
-    total_len += len;
-    chars = isolate->current_zone()->Alloc<char>(len + 1);
-    OS::SNPrint(chars, (len + 1), kFormat,
-                (frame_index + i),
-                function_name.ToCString(),
-                url.ToCString(),
-                line, column);
-    frame_strings.Add(chars);
   }
 
   // Now concatenate the frame descriptions into a single C string.
-  chars = isolate->current_zone()->Alloc<char>(total_len + 1);
+  char* chars = isolate->current_zone()->Alloc<char>(total_len + 1);
   intptr_t index = 0;
   for (intptr_t i = 0; i < frame_strings.length(); i++) {
     index += OS::SNPrint((chars + index),

@@ -44,8 +44,7 @@ class StacktraceBuilder : public ValueObject {
   StacktraceBuilder() { }
   virtual ~StacktraceBuilder() { }
 
-  virtual void AddFrame(const Function& func,
-                        const Code& code,
+  virtual void AddFrame(const Code& code,
                         const Smi& offset,
                         bool is_catch_frame) = 0;
 
@@ -56,14 +55,9 @@ class StacktraceBuilder : public ValueObject {
 class RegularStacktraceBuilder : public StacktraceBuilder {
  public:
   explicit RegularStacktraceBuilder(bool full_stacktrace)
-      : func_list_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
-        code_list_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
+      : code_list_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
         pc_offset_list_(
             GrowableObjectArray::Handle(GrowableObjectArray::New())),
-        catch_func_list_(
-            full_stacktrace ?
-                GrowableObjectArray::Handle(GrowableObjectArray::New()) :
-                GrowableObjectArray::Handle()),
         catch_code_list_(
             full_stacktrace ?
                 GrowableObjectArray::Handle(GrowableObjectArray::New()) :
@@ -75,12 +69,8 @@ class RegularStacktraceBuilder : public StacktraceBuilder {
         full_stacktrace_(full_stacktrace) { }
   ~RegularStacktraceBuilder() { }
 
-  const GrowableObjectArray& func_list() const { return func_list_; }
   const GrowableObjectArray& code_list() const { return code_list_; }
   const GrowableObjectArray& pc_offset_list() const { return pc_offset_list_; }
-  const GrowableObjectArray& catch_func_list() const {
-    return catch_func_list_;
-  }
   const GrowableObjectArray& catch_code_list() const {
     return catch_code_list_;
   }
@@ -89,26 +79,21 @@ class RegularStacktraceBuilder : public StacktraceBuilder {
   }
   virtual bool FullStacktrace() const { return full_stacktrace_; }
 
-  virtual void AddFrame(const Function& func,
-                        const Code& code,
+  virtual void AddFrame(const Code& code,
                         const Smi& offset,
                         bool is_catch_frame) {
     if (is_catch_frame) {
-      catch_func_list_.Add(func);
       catch_code_list_.Add(code);
       catch_pc_offset_list_.Add(offset);
     } else {
-      func_list_.Add(func);
       code_list_.Add(code);
       pc_offset_list_.Add(offset);
     }
   }
 
  private:
-  const GrowableObjectArray& func_list_;
   const GrowableObjectArray& code_list_;
   const GrowableObjectArray& pc_offset_list_;
-  const GrowableObjectArray& catch_func_list_;
   const GrowableObjectArray& catch_code_list_;
   const GrowableObjectArray& catch_pc_offset_list_;
   bool full_stacktrace_;
@@ -127,8 +112,7 @@ class PreallocatedStacktraceBuilder : public StacktraceBuilder {
   }
   ~PreallocatedStacktraceBuilder() { }
 
-  virtual void AddFrame(const Function& func,
-                        const Code& code,
+  virtual void AddFrame(const Code& code,
                         const Smi& offset,
                         bool is_catch_frame);
 
@@ -144,13 +128,11 @@ class PreallocatedStacktraceBuilder : public StacktraceBuilder {
 };
 
 
-void PreallocatedStacktraceBuilder::AddFrame(const Function& func,
-                                             const Code& code,
+void PreallocatedStacktraceBuilder::AddFrame(const Code& code,
                                              const Smi& offset,
                                              bool is_catch_frame) {
   if (cur_index_ >= Stacktrace::kPreallocatedStackdepth) {
     // The number of frames is overflowing the preallocated stack trace object.
-    Function& frame_func = Function::Handle();
     Code& frame_code = Code::Handle();
     Smi& frame_offset = Smi::Handle();
     intptr_t start = Stacktrace::kPreallocatedStackdepth - (kNumTopframes - 1);
@@ -158,33 +140,21 @@ void PreallocatedStacktraceBuilder::AddFrame(const Function& func,
     // Add an empty slot to indicate the overflow so that the toString
     // method can account for the overflow.
     if (stacktrace_.FunctionAtFrame(null_slot) != Function::null()) {
-      stacktrace_.SetFunctionAtFrame(null_slot, frame_func);
       stacktrace_.SetCodeAtFrame(null_slot, frame_code);
     }
     // Move frames one slot down so that we can accomodate the new frame.
     for (intptr_t i = start; i < Stacktrace::kPreallocatedStackdepth; i++) {
       intptr_t prev = (i - 1);
-      frame_func = stacktrace_.FunctionAtFrame(i);
       frame_code = stacktrace_.CodeAtFrame(i);
       frame_offset = stacktrace_.PcOffsetAtFrame(i);
-      stacktrace_.SetFunctionAtFrame(prev, frame_func);
       stacktrace_.SetCodeAtFrame(prev, frame_code);
       stacktrace_.SetPcOffsetAtFrame(prev, frame_offset);
     }
     cur_index_ = (Stacktrace::kPreallocatedStackdepth - 1);
   }
-  stacktrace_.SetFunctionAtFrame(cur_index_, func);
   stacktrace_.SetCodeAtFrame(cur_index_, code);
   stacktrace_.SetPcOffsetAtFrame(cur_index_, offset);
   cur_index_ += 1;
-}
-
-
-static bool ShouldShowFunction(const Function& function) {
-  if (FLAG_verbose_stacktrace) {
-    return true;
-  }
-  return function.is_visible();
 }
 
 
@@ -192,7 +162,6 @@ static void BuildStackTrace(StacktraceBuilder* builder) {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
-  Function& func = Function::Handle();
   Code& code = Code::Handle();
   Smi& offset = Smi::Handle();
   bool dart_handler_found = false;
@@ -201,29 +170,8 @@ static void BuildStackTrace(StacktraceBuilder* builder) {
     while (!frame->IsEntryFrame()) {
       if (frame->IsDartFrame()) {
         code = frame->LookupDartCode();
-        if (code.is_optimized()) {
-          // For optimized frames, extract all the inlined functions if any
-          // into the stack trace.
-          for (InlinedFunctionsIterator it(code, frame->pc());
-                !it.Done(); it.Advance()) {
-            func = it.function();
-            code = it.code();
-            uword pc = it.pc();
-            ASSERT(pc != 0);
-            ASSERT(code.EntryPoint() <= pc);
-            ASSERT(pc < (code.EntryPoint() + code.Size()));
-            if (ShouldShowFunction(func)) {
-              offset = Smi::New(pc - code.EntryPoint());
-              builder->AddFrame(func, code, offset, dart_handler_found);
-            }
-          }
-        } else {
-          offset = Smi::New(frame->pc() - code.EntryPoint());
-          func = code.function();
-          if (ShouldShowFunction(func)) {
-            builder->AddFrame(func, code, offset, dart_handler_found);
-          }
-        }
+        offset = Smi::New(frame->pc() - code.EntryPoint());
+        builder->AddFrame(code, offset, dart_handler_found);
         bool needs_stacktrace = false;
         bool is_catch_all = false;
         uword handler_pc = kUwordMax;
@@ -432,7 +380,6 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
                                           &handler_sp,
                                           &handler_fp,
                                           &handler_needs_stacktrace);
-    Array& func_array = Array::Handle(isolate, Object::empty_array().raw());
     Array& code_array = Array::Handle(isolate, Object::empty_array().raw());
     Array& pc_offset_array =
         Array::Handle(isolate, Object::empty_array().raw());
@@ -441,22 +388,18 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
       BuildStackTrace(&frame_builder);
 
       // Create arrays for function, code and pc_offset triplet of each frame.
-      func_array = Array::MakeArray(frame_builder.func_list());
       code_array = Array::MakeArray(frame_builder.code_list());
       pc_offset_array = Array::MakeArray(frame_builder.pc_offset_list());
       if (!stacktrace_field.IsNull()) {
         // This is an error object and we need to capture the full stack trace
         // here implicitly, so we set up the stack trace. The stack trace field
         // is set only once, it is not overriden.
-        const Array& catch_func_array = Array::Handle(isolate,
-            Array::MakeArray(frame_builder.catch_func_list()));
         const Array& catch_code_array = Array::Handle(isolate,
             Array::MakeArray(frame_builder.catch_code_list()));
         const Array& catch_pc_offset_array = Array::Handle(isolate,
             Array::MakeArray(frame_builder.catch_pc_offset_list()));
-        stacktrace = Stacktrace::New(func_array, code_array, pc_offset_array);
-        stacktrace.SetCatchStacktrace(catch_func_array,
-                                      catch_code_array,
+        stacktrace = Stacktrace::New(code_array, pc_offset_array);
+        stacktrace.SetCatchStacktrace(catch_code_array,
                                       catch_pc_offset_array);
         if (exception.GetField(stacktrace_field) == Object::null()) {
           exception.SetField(stacktrace_field, stacktrace);
@@ -464,17 +407,16 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
       }  // if stacktrace needed.
     }
     if (existing_stacktrace.IsNull()) {
-      stacktrace = Stacktrace::New(func_array, code_array, pc_offset_array);
+      stacktrace = Stacktrace::New(code_array, pc_offset_array);
     } else {
       stacktrace ^= existing_stacktrace.raw();
       if (pc_offset_array.Length() != 0) {
-        stacktrace.Append(func_array, code_array, pc_offset_array);
+        stacktrace.Append(code_array, pc_offset_array);
       }
       // Since we are re throwing and appending to the existing stack trace
       // we clear out the catch trace collected in the existing stack trace
       // as that trace will not be valid anymore.
       stacktrace.SetCatchStacktrace(Object::empty_array(),
-                                    Object::empty_array(),
                                     Object::empty_array());
     }
   }

@@ -1473,17 +1473,17 @@ class RawStacktrace : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Stacktrace);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->function_array_);
+    return reinterpret_cast<RawObject**>(&ptr()->code_array_);
   }
-  RawArray* function_array_;  // Function for each frame in the stack trace.
   RawArray* code_array_;  // Code object for each frame in the stack trace.
   RawArray* pc_offset_array_;  // Offset of PC for each frame.
-  RawArray* catch_func_array_;  // Func for each frame in catch stack trace.
   RawArray* catch_code_array_;  // Code for each frame in catch stack trace.
   RawArray* catch_pc_offset_array_;  // Offset of PC for each catch stack frame.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->catch_pc_offset_array_);
   }
+  // False for pre-allocated stack trace (used in OOM and Stack overflow).
+  bool expand_inlined_;
 };
 
 

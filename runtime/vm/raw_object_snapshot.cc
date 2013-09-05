@@ -2489,14 +2489,10 @@ RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,
     // Read all the object pointer fields.
     Array& array = Array::Handle(reader->isolate());
     array ^= reader->ReadObjectRef();
-    result.set_function_array(array);
-    array ^= reader->ReadObjectRef();
     result.set_code_array(array);
     array ^= reader->ReadObjectRef();
     result.set_pc_offset_array(array);
 
-    array ^= reader->ReadObjectRef();
-    result.set_catch_func_array(array);
     array ^= reader->ReadObjectRef();
     result.set_catch_code_array(array);
     array ^= reader->ReadObjectRef();

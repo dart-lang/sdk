@@ -129,17 +129,18 @@ bool ObjectStore::PreallocateObjects() {
     return false;
   }
   set_out_of_memory(Instance::Cast(result));
-  const Array& func_array = Array::Handle(
-      isolate,
-      Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));
   const Array& code_array = Array::Handle(
       isolate,
       Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));
   const Array& pc_offset_array = Array::Handle(
       isolate,
       Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));
-  result = Stacktrace::New(func_array, code_array, pc_offset_array);
-  set_preallocated_stack_trace(Stacktrace::Cast(result));
+  const Stacktrace& stack_trace =
+      Stacktrace::Handle(Stacktrace::New(code_array, pc_offset_array));
+  // Expansion of inlined functions requires additional memory at run time,
+  // avoid it.
+  stack_trace.set_expand_inlined(false);
+  set_preallocated_stack_trace(stack_trace);
 
   return true;
 }
