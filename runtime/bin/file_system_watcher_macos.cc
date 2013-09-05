@@ -114,7 +114,9 @@ class FSEventsWatcher {
     watcher->run_loop_ = CFRunLoopGetCurrent();
 
     // Notify, as the run-loop is set.
+    watcher_monitor->Enter();
     watcher_monitor->Notify();
+    watcher_monitor->Exit();
 
     CFRunLoopTimerRef timer = CFRunLoopTimerCreate(
         NULL,
@@ -132,8 +134,8 @@ class FSEventsWatcher {
 
   static void Increment() {
     if (watcher == NULL) {
-      watcher = new FSEventsWatcher();
       watcher_monitor->Enter();
+      watcher = new FSEventsWatcher();
       watcher_monitor->Wait(Monitor::kNoTimeout);
       watcher_monitor->Exit();
     }
