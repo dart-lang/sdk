@@ -66,6 +66,7 @@ positional_parameters_type_test/02: Fail, OK
 [ $compiler == dart2js && $minified ]
 f_bounded_quantification4_test: Fail # Issue 12605.
 f_bounded_quantification5_test: Fail # Issue 12605.
+mixin_mixin2_test: Fail # Issue 12605.
 
 [ $compiler == dart2js ]
 function_type_alias6_test/00: Crash # Issue 9792
@@ -112,6 +113,7 @@ dynamic_prefix_core_test: Fail # Issue 12398
 metadata_test: Fail # Issue 5841
 infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # Issue 12795
+mixin_mixin2_test: Fail # Issue 13109.
 
 # Compilation errors.
 const_var_test: Fail # Issue 12793
@@ -224,6 +226,7 @@ mixin_type_parameters_errors_test/05: Fail # Issue 12886
 
 # Mixins fail on the VM.
 mixin_mixin_test: Fail # Issue 9683
+mixin_mixin2_test: Fail # Issue 9683
 mixin_issue10216_2_test: Fail # Issue 9683
 mixin_forwarding_constructor2_test: Fail # Issue 11888
 mixin_typedef_constructor_test: Fail # Issue 11888
