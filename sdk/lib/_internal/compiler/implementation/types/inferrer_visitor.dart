@@ -759,10 +759,11 @@ abstract class InferrerVisitor
       return types.boolType;
     } else if (const SourceString("||") == op.source) {
       conditionIsSimple = false;
-      visit(node.receiver);
+      List<Send> tests = <Send>[];
+      handleCondition(node.receiver, tests);
       LocalsHandler<T> saved = locals;
       locals = new LocalsHandler<T>.from(locals, node);
-      updateIsChecks(isChecks, usePositive: false);
+      updateIsChecks(tests, usePositive: false);
       bool oldAccumulateIsChecks = accumulateIsChecks;
       accumulateIsChecks = false;
       visit(node.arguments.head);

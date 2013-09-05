@@ -234,6 +234,18 @@ testIsCheck20() {
   }
 }
 
+testIsCheck21(a) {
+  if (a is int || a is List) {
+    return a;
+  } else {
+    return 42;
+  }
+}
+
+testIsCheck22(a) {
+  return (a is int || a is List) ? a : 42;
+}
+
 testIf1(a) {
   var c = null;
   if (a) {
@@ -545,6 +557,8 @@ main() {
   testIsCheck18(topLevelGetter());
   testIsCheck19(topLevelGetter());
   testIsCheck20();
+  testIsCheck21(topLevelGetter());
+  testIsCheck22(topLevelGetter());
   testIf1(topLevelGetter());
   testIf2(topLevelGetter());
   returnAsString();
@@ -649,6 +663,8 @@ void main() {
     checkReturn('testIsCheck18', typesTask.dynamicType);
     checkReturn('testIsCheck19', typesTask.dynamicType);
     checkReturn('testIsCheck20', typesTask.dynamicType.nonNullable());
+    checkReturn('testIsCheck21', typesTask.dynamicType);
+    checkReturn('testIsCheck22', typesTask.dynamicType);
     checkReturn('testIf1', typesTask.intType.nullable());
     checkReturn('testIf2', typesTask.intType.nullable());
     checkReturn('returnAsString',
