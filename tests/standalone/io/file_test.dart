@@ -1263,28 +1263,20 @@ class FileTest {
     testRead();
     testReadSync();
     testReadStream();
-    testLength();
     testLengthSync();
-    testPosition();
     testPositionSync();
     testOpenDirectoryAsFile();
     testOpenDirectoryAsFileSync();
     testOpenFile();
-    testReadAsBytes();
-    testReadAsBytesEmptyFile();
     testReadAsBytesSync();
     testReadAsBytesSyncEmptyFile();
-    testReadAsText();
-    testReadAsTextEmptyFile();
     testReadAsTextSync();
     testReadAsTextSyncEmptyFile();
-    testReadAsLines();
     testReadAsLinesSync();
-    testReadAsErrors();
-    testLastModified();
     testLastModifiedSync();
 
     createTempDirectory(() {
+      testLength();
       testReadWrite();
       testReadWriteSync();
       testReadWriteNoArgsSync();
@@ -1292,6 +1284,13 @@ class FileTest {
       testReadEmptyFileSync();
       testReadEmptyFile();
       testReadWriteStreamLargeFile();
+      testReadAsBytes();
+      testReadAsBytesEmptyFile();
+      testReadAsText();
+      testReadAsTextEmptyFile();
+      testReadAsLines();
+      testReadAsErrors();
+      testPosition();
       testTruncate();
       testTruncateSync();
       testCloseException();
@@ -1309,6 +1308,7 @@ class FileTest {
       testWriteStringUtf8Sync();
       testRename();
       testRenameSync();
+      testLastModified();
     });
   }
 }
