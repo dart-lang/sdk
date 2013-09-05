@@ -465,7 +465,6 @@ class HBasicBlock extends HInstructionList {
   HBlockFlow blockFlow = null;
   HBasicBlock parentLoopHeader = null;
   List<HBailoutTarget> bailoutTargets;
-  bool isLive = true;
 
   final List<HBasicBlock> predecessors;
   List<HBasicBlock> successors;
