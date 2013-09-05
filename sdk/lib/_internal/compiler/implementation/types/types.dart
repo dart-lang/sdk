@@ -30,7 +30,7 @@ abstract class TypesInferrer {
   TypeMask getTypeOfElement(Element element);
   TypeMask getTypeOfNode(Element owner, Node node);
   TypeMask getTypeOfSelector(Selector selector);
-  Iterable<TypeMask> containerTypes;
+  Iterable<TypeMask> get containerTypes;
   void clear();
   Iterable<Element> getCallersOf(Element element);
 }

@@ -540,6 +540,10 @@ class FlatTypeMask implements TypeMask {
 
     return subtypesToCheck != null
         && subtypesToCheck.any((ClassElement cls) {
+              // We can just skip abstract classes because we know no
+              // instance of them will be created at runtime, and
+              // therefore there is no instance that will require
+              // [noSuchMethod] handling.
               return !cls.isAbstract(compiler)
                   && !hasConcreteMatch(cls, selector, compiler);
            });
