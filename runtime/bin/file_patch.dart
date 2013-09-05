@@ -12,8 +12,8 @@ patch class _File {
   /* patch */ static _createLink(String path, String target)
       native "File_CreateLink";
   /* patch */ static _linkTarget(String path) native "File_LinkTarget";
-  /* patch */ static _delete(String path) native "File_Delete";
-  /* patch */ static _deleteLink(String path) native "File_DeleteLink";
+  /* patch */ static _deleteNative(String path) native "File_Delete";
+  /* patch */ static _deleteLinkNative(String path) native "File_DeleteLink";
   /* patch */ static _rename(String oldPath, String newPath)
       native "File_Rename";
   /* patch */ static _renameLink(String oldPath, String newPath)

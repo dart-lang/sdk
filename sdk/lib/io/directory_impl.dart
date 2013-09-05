@@ -29,7 +29,7 @@ class _Directory extends FileSystemEntity implements Directory {
   external static _createTemp(String template);
   external static int _exists(String path);
   external static _create(String path);
-  external static _delete(String path, bool recursive);
+  external static _deleteNative(String path, bool recursive);
   external static _rename(String path, String newPath);
   external static List _list(String path, bool recursive, bool followLinks);
   external static SendPort _newServicePort();
@@ -183,7 +183,7 @@ class _Directory extends FileSystemEntity implements Directory {
     return new Directory(result);
   }
 
-  Future<Directory> delete({recursive: false}) {
+  Future<Directory> _delete({recursive: false}) {
     _ensureDirectoryService();
     List request = new List(3);
     request[0] = DELETE_REQUEST;
@@ -197,8 +197,8 @@ class _Directory extends FileSystemEntity implements Directory {
     });
   }
 
-  void deleteSync({recursive: false}) {
-    var result = _delete(path, recursive);
+  void _deleteSync({recursive: false}) {
+    var result = _deleteNative(path, recursive);
     if (result is OSError) {
       throw new DirectoryException("Deletion failed", path, result);
     }

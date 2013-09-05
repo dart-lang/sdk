@@ -295,7 +295,10 @@ class _File extends FileSystemEntity implements File {
     throwIfError(result, "Cannot create file", path);
   }
 
-  Future<File> delete() {
+  Future<File> _delete({bool recursive: false}) {
+    if (recursive) {
+      return new Directory(path).delete(recursive: true).then((_) => this);
+    }
     _ensureFileService();
     List request = new List(2);
     request[0] = _DELETE_REQUEST;
@@ -308,12 +311,15 @@ class _File extends FileSystemEntity implements File {
     });
   }
 
-  external static _delete(String path);
+  external static _deleteNative(String path);
 
-  external static _deleteLink(String path);
+  external static _deleteLinkNative(String path);
 
-  void deleteSync() {
-    var result = _delete(path);
+  void _deleteSync({bool recursive: false}) {
+    if (recursive) {
+      return new Directory(path).deleteSync(recursive: true);
+    }
+    var result = _deleteNative(path);
     throwIfError(result, "Cannot delete file", path);
   }
 
