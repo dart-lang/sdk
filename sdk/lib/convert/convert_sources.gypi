@@ -13,6 +13,7 @@
     'codec.dart',
     'converter.dart',
     'encoding.dart',
+    'html_escape.dart',
     'json.dart',
     'latin1.dart',
     'line_splitter.dart',

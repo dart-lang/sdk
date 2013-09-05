@@ -17,6 +17,7 @@ part 'chunked_conversion.dart';
 part 'codec.dart';
 part 'converter.dart';
 part 'encoding.dart';
+part 'html_escape.dart';
 part 'json.dart';
 part 'latin1.dart';
 part 'line_splitter.dart';

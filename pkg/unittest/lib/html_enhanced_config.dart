@@ -12,6 +12,7 @@ library unittest_html_enhanced_config;
 
 import 'dart:async';
 import 'dart:collection' show LinkedHashMap;
+import 'dart:convert';
 import 'dart:html';
 import 'unittest.dart';
 
@@ -235,14 +236,6 @@ class HtmlEnhancedConfiguration extends SimpleConfiguration {
     var background = 'unittest-row-${test_.id % 2 == 0 ? "even" : "odd"}';
     var display = '${isVisible ? "unittest-row" : "unittest-row-hidden"}';
 
-    // TODO (prujohn@gmail.com) I had to borrow this from html_print.dart
-    // Probably should put it in some more common location.
-    String _htmlEscape(String string) {
-      return string.replaceAll('&', '&amp;')
-                   .replaceAll('<','&lt;')
-                   .replaceAll('>','&gt;');
-    }
-
     addRowElement(id, status, description){
       te.children.add(
         new Element.html(
@@ -267,11 +260,11 @@ class HtmlEnhancedConfiguration extends SimpleConfiguration {
     }
 
     addRowElement('${test_.id}', '${test_.result.toUpperCase()}',
-        '${test_.description}. ${_htmlEscape(test_.message)}');
+        '${test_.description}. ${HTML_ESCAPE.convert(test_.message)}');
 
     if (test_.stackTrace != null) {
       addRowElement('', '',
-          '<pre>${_htmlEscape(test_.stackTrace.toString())}</pre>');
+          '<pre>${HTML_ESCAPE.convert(test_.stackTrace.toString())}</pre>');
     }
   }
 

@@ -8,6 +8,7 @@
 library unittest_html_config;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html';
 import 'unittest.dart';
 
@@ -76,23 +77,16 @@ String _toHtml(TestCase test_) {
       <tr>
         <td>${test_.id}</td>
         <td class="unittest-${test_.result}">${test_.result.toUpperCase()}</td>
-        <td>Expectation: <a href="#testFilter=${test_.description}">${test_.description}</a>. ${_htmlEscape(test_.message)}</td>
+        <td>Expectation: <a href="#testFilter=${test_.description}">${test_.description}</a>. ${HTML_ESCAPE.convert(test_.message)}</td>
       </tr>''';
 
   if (test_.stackTrace != null) {
     html = '$html<tr><td></td><td colspan="2"><pre>' +
-        _htmlEscape(test_.stackTrace.toString()) +
+        HTML_ESCAPE.convert(test_.stackTrace.toString()) +
         '</pre></td></tr>';
   }
 
   return html;
-}
-
-//TODO(pquitslund): Move to a common lib
-String _htmlEscape(String string) {
-  return string.replaceAll('&', '&amp;')
-               .replaceAll('<','&lt;')
-               .replaceAll('>','&gt;');
 }
 
 class HtmlConfiguration extends SimpleConfiguration {
