@@ -13268,9 +13268,10 @@ class HtmlDocument extends Document {
   Element get pointerLockElement =>
       _webkitPointerLockElement;
 
-  @DomName('Document.webkitVisibilityState')
+  @DomName('Document.visibilityState')
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
   @Experimental()
   String get visibilityState => _webkitVisibilityState;
 
@@ -13281,6 +13282,26 @@ class HtmlDocument extends Document {
 
   // Note: used to polyfill <template>
   Document _templateContentsOwner;
+
+  @DomName('Document.visibilityChange')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @Experimental()
+  static const EventStreamProvider<Event> visibilityChangeEvent =
+      const _CustomEventStreamProvider<Event>(
+        _determineVisibilityChangeEventType);
+
+  static String _determineVisibilityChangeEventType(EventTarget e) {
+    return 'webkitvisibilitychange';
+  }
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @Experimental()
+  Stream<Event> get onVisibilityChange =>
+      visibilityChangeEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

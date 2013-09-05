@@ -12706,11 +12706,14 @@ class HtmlDocument extends Document native "HTMLDocument" {
   Element get pointerLockElement =>
       _webkitPointerLockElement;
 
-  @DomName('Document.webkitVisibilityState')
+  @DomName('Document.visibilityState')
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
   @Experimental()
-  String get visibilityState => _webkitVisibilityState;
+  String get visibilityState => JS('String',
+    '(#.visibilityState || #.mozVisibilityState || #.msVisibilityState ||'
+      '#.webkitVisibilityState)', this, this, this, this);
 
   @Experimental
   void register(String tag, Type customElementClass) {
@@ -12720,6 +12723,36 @@ class HtmlDocument extends Document native "HTMLDocument" {
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
   // Note: used to polyfill <template>
   Document _templateContentsOwner;
+
+  @DomName('Document.visibilityChange')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @Experimental()
+  static const EventStreamProvider<Event> visibilityChangeEvent =
+      const _CustomEventStreamProvider<Event>(
+        _determineVisibilityChangeEventType);
+
+  static String _determineVisibilityChangeEventType(EventTarget e) {
+    if (JS('bool', '(typeof #.hidden !== "undefined")', e)) {
+      // Opera 12.10 and Firefox 18 and later support
+      return 'visibilitychange';
+    } else if (JS('bool', '(typeof #.mozHidden !== "undefined")', e)) {
+      return 'mozvisibilitychange';
+    } else if (JS('bool', '(typeof #.msHidden !== "undefined")', e)) {
+      return 'msvisibilitychange';
+    } else if (JS('bool', '(typeof #.webkitHidden !== "undefined")', e)) {
+      return 'webkitvisibilitychange';
+    }
+    return 'visibilitychange';
+  }
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @Experimental()
+  Stream<Event> get onVisibilityChange =>
+      visibilityChangeEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
