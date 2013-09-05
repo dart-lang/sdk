@@ -9388,6 +9388,12 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
       this, this, this);
   }
 
+  @DomName('Element.shadowRoot')
+  @SupportedBrowser(SupportedBrowser.CHROME, '25')
+  @Experimental()
+  ShadowRoot get shadowRoot =>
+      JS('ShadowRoot', '#.shadowRoot || #.webkitShadowRoot', this, this);
+
 
   /**
    * Gets the template this node refers to.
@@ -10125,12 +10131,6 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DomName('Element.scrollWidth')
   @DocsEditable()
   final int scrollWidth;
-
-  @DomName('Element.shadowRoot')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-aware-create-shadow-root
-  @Experimental()
-  final ShadowRoot shadowRoot;
 
   @DomName('Element.style')
   @DocsEditable()

@@ -939,6 +939,12 @@ $if DART2JS
       '(#.createShadowRoot || #.webkitCreateShadowRoot).call(#)',
       this, this, this);
   }
+
+  @DomName('Element.shadowRoot')
+  @SupportedBrowser(SupportedBrowser.CHROME, '25')
+  @Experimental()
+  ShadowRoot get shadowRoot =>
+      JS('ShadowRoot', '#.shadowRoot || #.webkitShadowRoot', this, this);
 $endif
 
 
