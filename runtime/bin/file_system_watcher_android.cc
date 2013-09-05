@@ -10,6 +10,8 @@
 #include <errno.h>  // NOLINT
 #include <sys/inotify.h>  // NOLINT
 
+#include "bin/fdutils.h"
+
 
 namespace dart {
 namespace bin {
@@ -22,8 +24,10 @@ bool FileSystemWatcher::IsSupported() {
 intptr_t FileSystemWatcher::WatchPath(const char* path,
                                       int events,
                                       bool recursive) {
-  int fd = TEMP_FAILURE_RETRY(inotify_init1(IN_NONBLOCK | IN_CLOEXEC));
-  if (fd < 0) return -1;
+  int fd = TEMP_FAILURE_RETRY(inotify_init());
+  if (fd < 0 || !FDUtils::SetNonBlocking(fd) || !FDUtils::SetCloseOnExec(fd)) {
+    return -1;
+  }
   int list_events = 0;
   if (events & kCreate) list_events |= IN_CREATE;
   if (events & kModifyContent) list_events |= IN_MODIFY | IN_ATTRIB;
@@ -90,4 +94,3 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_ANDROID)
-
