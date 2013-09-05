@@ -211,7 +211,7 @@ class $className extends ChangeNotifierBase {
   set $fieldName(int value) {
     __\$$fieldName = notifyPropertyChange(const Symbol('$fieldName'), __\$$fieldName, value);
   }
-
+  
   $className($fieldName) : __\$$fieldName = $fieldName;
 }
 ''';
