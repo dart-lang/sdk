@@ -4,9 +4,6 @@
 
 part of dart.async;
 
-deprecatedFutureValue(_FutureImpl future) =>
-  future._isComplete ? future._resultOrListeners : null;
-
 abstract class _Completer<T> implements Completer<T> {
   final Future<T> future;
   bool _isComplete = false;
