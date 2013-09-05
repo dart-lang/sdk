@@ -279,6 +279,7 @@ class FileTest {
 
   // Test for file read and write functionality.
   static void testReadWrite() {
+    asyncTestStarted();
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
     final File file = new File(inFilename);
@@ -330,7 +331,6 @@ class FileTest {
         });
       });
     });
-    asyncTestStarted();
   }
 
   static void testWriteAppend() {
@@ -358,6 +358,7 @@ class FileTest {
   }
 
   static void testOutputStreamWriteAppend() {
+    asyncTestStarted();
     String content = "foobar";
     String filename = tempDirectory.path + "/outstream_write_append";
     File file = new File(filename);
@@ -385,11 +386,11 @@ class FileTest {
         });
       });
     });
-    asyncTestStarted();
   }
 
   // Test for file read and write functionality.
   static void testOutputStreamWriteString() {
+    asyncTestStarted();
     String content = "foobar";
     String filename = tempDirectory.path + "/outstream_write_string";
     File file = new File(filename);
@@ -413,7 +414,6 @@ class FileTest {
         asyncTestDone("testOutputStreamWriteString");
       });
     });
-    asyncTestStarted();
   }
 
 
@@ -660,6 +660,7 @@ class FileTest {
   }
 
   static void testTruncate() {
+    asyncTestStarted();
     File file = new File(tempDirectory.path + "/out_truncate");
     List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
     file.open(mode: WRITE).then((RandomAccessFile openedFile) {
@@ -682,7 +683,6 @@ class FileTest {
         });
       });
     });
-    asyncTestStarted();
   }
 
   static void testTruncateSync() {
@@ -1101,6 +1101,7 @@ class FileTest {
   // Test that opens the same file for writing then for appending to test
   // that the file is not truncated when opened for appending.
   static void testAppend() {
+    asyncTestStarted();
     var file = new File('${tempDirectory.path}/out_append');
     file.open(mode: WRITE).then((openedFile) {
       openedFile.writeString("asdf").then((ignore) {
@@ -1126,7 +1127,6 @@ class FileTest {
         });
       });
     });
-    asyncTestStarted();
   }
 
   static void testAppendSync() {
@@ -1145,6 +1145,7 @@ class FileTest {
   }
 
   static void testWriteStringUtf8() {
+    asyncTestStarted();
     var file = new File('${tempDirectory.path}/out_write_string');
     var string = new String.fromCharCodes([0x192]);
     file.open(mode: WRITE).then((openedFile) {
@@ -1176,7 +1177,6 @@ class FileTest {
         });
       });
     });
-    asyncTestStarted();
   }
 
   static void testWriteStringUtf8Sync() {
@@ -1200,6 +1200,7 @@ class FileTest {
   // Test that opens the same file for writing then for appending to test
   // that the file is not truncated when opened for appending.
   static void testRename() {
+    asyncTestStarted();
     var file = new File('${tempDirectory.path}/rename_name');
     file.create().then((file) {
       file.rename("${tempDirectory.path}/rename_newname").then((newfile) {
@@ -1232,7 +1233,6 @@ class FileTest {
         });
       });
     });
-    asyncTestStarted();
   }
 
   static void testRenameSync() {
@@ -1260,6 +1260,8 @@ class FileTest {
 
   // Main test entrypoint.
   static testMain() {
+    asyncStart();
+
     testRead();
     testReadSync();
     testReadStream();
@@ -1309,6 +1311,7 @@ class FileTest {
       testRename();
       testRenameSync();
       testLastModified();
+      asyncEnd();
     });
   }
 }
