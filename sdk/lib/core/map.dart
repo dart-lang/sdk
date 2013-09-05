@@ -8,8 +8,7 @@ part of dart.core;
  * An unordered collection of key-value pairs,
  * from which you retrieve a value by using its associated key.
  *
- * Each key must be unique.
- * Null values are supported, but null keys are not.
+ * Each key can occur at most once in a map.
  */
 abstract class Map<K, V> {
   /**

@@ -9,6 +9,11 @@ bool _defaultEquals(a, b) => a == b;
 /** Default function for hash-code computation in customized HashMaps */
 int _defaultHashCode(a) => a.hashCode;
 
+/** Type of custom equality function */
+typedef bool _Equality<K>(K a, K b);
+/** Type of custom hash code function. */
+typedef int _Hasher<K>(K object);
+
 /**
  * A hash-table based implementation of [Map].
  *
@@ -20,7 +25,7 @@ int _defaultHashCode(a) => a.hashCode;
  *
  * The map allows `null` as a key.
  */
-class HashMap<K, V> implements Map<K, V> {
+abstract class HashMap<K, V> implements Map<K, V> {
   /**
    * Creates a hash-table based [Map].
    *
@@ -40,22 +45,12 @@ class HashMap<K, V> implements Map<K, V> {
    * so that if `equals(a, b)` then `hashCode(a) == hashCode(b)`. The hash
    * of an object, or what it compares equal to, should not change while the
    * object is in the table. If it does change, the result is unpredictable.
+   *
+   * It is generally the case that if you supply one of [equals] and [hashCode],
+   * you also want to supply the other. The only common exception is to pass
+   * [identical] as the equality and use the default hash code.
    */
-  factory HashMap({bool equals(K key1, K key2), int hashCode(K key)}) {
-    if (equals != null || hashCode != null) {
-      if (equals == null) {
-        equals = _defaultEquals;
-      } else if (hashCode == null) {
-        hashCode = _defaultHashCode;
-      }
-      // Create new CustomHashMap<K, V>(equals, hashCode).
-      throw new UnimplementedError("Not implemented yet");
-    }
-    return new HashMap<K, V>._internal();
-  }
-
-  /** Creates an empty `HashMap` with the default equals and hashCode. */
-  external HashMap._internal();
+  external factory HashMap({bool equals(K key1, K key2), int hashCode(K key)});
 
   /**
    * Creates a [HashMap] that contains all key value pairs of [other].
@@ -100,28 +95,4 @@ class HashMap<K, V> implements Map<K, V> {
     Maps._fillMapWithIterables(map, keys, values);
     return map;
   }
-
-  external int get length;
-  external bool get isEmpty;
-  external bool get isNotEmpty;
-
-  external Iterable<K> get keys;
-  external Iterable<V> get values;
-
-  external bool containsKey(Object key);
-  external bool containsValue(Object value);
-
-  external void addAll(Map<K, V> other);
-
-  external V operator [](Object key);
-  external void operator []=(K key, V value);
-
-  external V putIfAbsent(K key, V ifAbsent());
-
-  external V remove(Object key);
-  external void clear();
-
-  external void forEach(void action(K key, V value));
-
-  String toString() => Maps.mapToString(this);
 }

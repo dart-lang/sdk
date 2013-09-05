@@ -6,6 +6,23 @@
 import 'dart:_foreign_helper' show JS;
 
 patch class HashMap<K, V> {
+  patch factory HashMap({ bool equals(K key1, K key2), int hashCode(K key) }) {
+    if (hashCode == null) {
+      if (equals == null) {
+        return new _HashMapImpl<K, V>();
+      }
+      if (identical(identical, equals)) {
+        return new _IdentityHashMap<K, V>();
+      }
+      hashCode = _defaultHashCode;
+    } else if (equals == null) {
+      equals = _defaultEquals;
+    }
+    return new _CustomHashMap<K, V>(equals, hashCode);
+  }
+}
+
+class _HashMapImpl<K, V> implements HashMap<K, V> {
   int _length = 0;
 
   // The hash map contents are divided into three parts: one part for
@@ -26,21 +43,21 @@ patch class HashMap<K, V> {
   // guard against concurrent modifications.
   List _keys;
 
-  patch HashMap._internal();
+  _HashMapImpl();
 
-  patch int get length => _length;
-  patch bool get isEmpty => _length == 0;
-  patch bool get isNotEmpty => !isEmpty;
+  int get length => _length;
+  bool get isEmpty => _length == 0;
+  bool get isNotEmpty => !isEmpty;
 
-  patch Iterable<K> get keys {
+  Iterable<K> get keys {
     return new HashMapKeyIterable<K>(this);
   }
 
-  patch Iterable<V> get values {
+  Iterable<V> get values {
     return keys.map((each) => this[each]);
   }
 
-  patch bool containsKey(Object key) {
+  bool containsKey(Object key) {
     if (_isStringKey(key)) {
       var strings = _strings;
       return (strings == null) ? false : _hasTableEntry(strings, key);
@@ -55,17 +72,17 @@ patch class HashMap<K, V> {
     }
   }
 
-  patch bool containsValue(Object value) {
+  bool containsValue(Object value) {
     return _computeKeys().any((each) => this[each] == value);
   }
 
-  patch void addAll(Map<K, V> other) {
+  void addAll(Map<K, V> other) {
     other.forEach((K key, V value) {
       this[key] = value;
     });
   }
 
-  patch V operator[](Object key) {
+  V operator[](Object key) {
     if (_isStringKey(key)) {
       var strings = _strings;
       return (strings == null) ? null : _getTableEntry(strings, key);
@@ -81,7 +98,7 @@ patch class HashMap<K, V> {
     }
   }
 
-  patch void operator[]=(K key, V value) {
+  void operator[]=(K key, V value) {
     if (_isStringKey(key)) {
       var strings = _strings;
       if (strings == null) _strings = strings = _newHashTable();
@@ -112,14 +129,14 @@ patch class HashMap<K, V> {
     }
   }
 
-  patch V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V ifAbsent()) {
     if (containsKey(key)) return this[key];
     V value = ifAbsent();
     this[key] = value;
     return value;
   }
 
-  patch V remove(Object key) {
+  V remove(Object key) {
     if (_isStringKey(key)) {
       return _removeHashTableEntry(_strings, key);
     } else if (_isNumericKey(key)) {
@@ -140,14 +157,14 @@ patch class HashMap<K, V> {
     }
   }
 
-  patch void clear() {
+  void clear() {
     if (_length > 0) {
       _strings = _nums = _rest = _keys = null;
       _length = 0;
     }
   }
 
-  patch void forEach(void action(K key, V value)) {
+  void forEach(void action(K key, V value)) {
     List keys = _computeKeys();
     for (int i = 0, length = keys.length; i < length; i++) {
       var key = JS('var', '#[#]', keys, i);
@@ -240,7 +257,7 @@ patch class HashMap<K, V> {
     return key is num && JS('bool', '(# & 0x3ffffff) === #', key, key);
   }
 
-  static int _computeHashCode(var key) {
+  int _computeHashCode(var key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
@@ -280,12 +297,12 @@ patch class HashMap<K, V> {
     JS('void', 'delete #[#]', table, key);
   }
 
-  static List _getBucket(var table, var key) {
+  List _getBucket(var table, var key) {
     var hash = _computeHashCode(key);
     return JS('var', '#[#]', table, hash);
   }
 
-  static int _findBucketIndex(var bucket, var key) {
+  int _findBucketIndex(var bucket, var key) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i += 2) {
@@ -306,6 +323,41 @@ patch class HashMap<K, V> {
     _deleteTableEntry(table, temporaryKey);
     return table;
   }
+}
+
+class _IdentityHashMap<K, V> extends _HashMapImpl<K, V> {
+  int _findBucketIndex(var bucket, var key) {
+    if (bucket == null) return -1;
+    int length = JS('int', '#.length', bucket);
+    for (int i = 0; i < length; i += 2) {
+      if (identical(JS('var', '#[#]', bucket, i), key)) return i;
+    }
+    return -1;
+  }
+}
+
+class _CustomHashMap<K, V> extends _HashMapImpl<K, V> {
+  final _Equality<K> _equals;
+  final _Hasher<K> _hashCode;
+  _CustomHashMap(this._equals, this._hashCode);
+
+  int _computeHashCode(var key) {
+    // We force the hash codes to be unsigned 30-bit integers to avoid
+    // issues with problematic keys like '__proto__'. Another option
+    // would be to throw an exception if the hash code isn't a number.
+    return JS('int', '# & 0x3ffffff', _hashCode(key));
+  }
+
+  int _findBucketIndex(var bucket, var key) {
+    if (bucket == null) return -1;
+    int length = JS('int', '#.length', bucket);
+    for (int i = 0; i < length; i += 2) {
+      if (_equals(JS('var', '#[#]', bucket, i), key)) return i;
+    }
+    return -1;
+  }
+
+  String toString() => Maps.mapToString(this);
 }
 
 class HashMapKeyIterable<E> extends IterableBase<E> {
