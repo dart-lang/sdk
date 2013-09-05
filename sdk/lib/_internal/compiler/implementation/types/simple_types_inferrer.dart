@@ -1827,6 +1827,16 @@ class SimpleTypeInferrerVisitor<T>
     });
   }
 
+  bool get inInstanceContext {
+    return (outermostElement.isInstanceMember() && !outermostElement.isField())
+        || outermostElement.isGenerativeConstructor();
+  }
+
+  bool treatAsInstanceMember(Element element) {
+    return (Elements.isUnresolved(element) && inInstanceContext)
+        || (element != null && element.isInstanceMember());
+  }
+
   T visitSendSet(SendSet node) {
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType()) {
@@ -1845,14 +1855,14 @@ class SimpleTypeInferrerVisitor<T>
 
     T receiverType;
     bool isCallOnThis = false;
-    if (node.receiver == null
-        && element != null
-        && element.isInstanceMember()) {
-      receiverType = thisType;
-      isCallOnThis = true;
+    if (node.receiver == null) {
+      if (treatAsInstanceMember(element)) {
+        receiverType = thisType;
+        isCallOnThis = true;
+      }
     } else {
       receiverType = visit(node.receiver);
-      isCallOnThis = node.receiver != null && isThisOrSuper(node.receiver);
+      isCallOnThis = isThisOrSuper(node.receiver);
     }
 
     T rhsType;
@@ -1878,6 +1888,10 @@ class SimpleTypeInferrerVisitor<T>
       if (!isThisExposed && isCallOnThis) {
         checkIfExposesThis(
             types.newTypedSelector(receiverType, setterSelector));
+        if (getterSelector != null) {
+          checkIfExposesThis(
+              types.newTypedSelector(receiverType, getterSelector));
+        }
       }
     }
 
@@ -1928,7 +1942,10 @@ class SimpleTypeInferrerVisitor<T>
       }
       T getterType;
       T newType;
-      if (Elements.isStaticOrTopLevelField(element)) {
+      if (Elements.isErroneousElement(element)) {
+        getterType = types.dynamicType;
+        newType = types.dynamicType;
+      } else if (Elements.isStaticOrTopLevelField(element)) {
         Element getterElement = elements[node.selector];
         getterType =
             handleStaticSend(node, getterSelector, getterElement, null);
@@ -1990,7 +2007,9 @@ class SimpleTypeInferrerVisitor<T>
       }
     }
     ArgumentsTypes arguments = new ArgumentsTypes<T>([rhsType], null);
-    if (Elements.isStaticOrTopLevelField(element)) {
+    if (Elements.isErroneousElement(element)) {
+      // Code will always throw.
+    } else if (Elements.isStaticOrTopLevelField(element)) {
       handleStaticSend(node, setterSelector, element, arguments);
     } else if (Elements.isUnresolved(element) || element.isSetter()) {
       handleDynamicSend(
@@ -2187,6 +2206,7 @@ class SimpleTypeInferrerVisitor<T>
                       T receiverType,
                       ArgumentsTypes arguments,
                       [CallSite constraint]) {
+    assert(receiverType != null);
     if (selector.mask != receiverType) {
       selector = (receiverType == types.dynamicType)
           ? selector.asUntyped
@@ -2218,8 +2238,10 @@ class SimpleTypeInferrerVisitor<T>
     T receiverType;
     bool isCallOnThis = false;
     if (node.receiver == null) {
-      isCallOnThis = true;
-      receiverType = thisType;
+      if (treatAsInstanceMember(element)) {
+        isCallOnThis = true;
+        receiverType = thisType;
+      }
     } else {
       Node receiver = node.receiver;
       isCallOnThis = isThisOrSuper(receiver);
