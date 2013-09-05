@@ -341,6 +341,9 @@ class JavaScriptBackend extends Backend {
   /// List of elements that the backend may use.
   final Set<Element> helpersUsed = new Set<Element>();
 
+  /// Set of typedefs that are used as type literals.
+  final Set<TypedefElement> typedefTypeLiterals = new Set<TypedefElement>();
+
   JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
@@ -810,6 +813,9 @@ class JavaScriptBackend extends Backend {
     // TODO(ahe): Might want to register [element] as an instantiated class
     // when reflection is used.  However, as long as we disable tree-shaking
     // eagerly it doesn't matter.
+    if (element.isTypedef()) {
+      typedefTypeLiterals.add(element);
+    }
   }
 
   void registerStackTraceInCatch(TreeElements elements) {

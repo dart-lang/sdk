@@ -3692,7 +3692,19 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitMetadata(CodeBuffer buffer) {
-    buffer.write('init.metadata$_=$_[');
+    var literals = backend.typedefTypeLiterals.toList();
+    Elements.sortedByPosition(literals);
+    var properties = [];
+    for (TypedefElement literal in literals) {
+      var key = namer.getName(literal);
+      var value = js.toExpression(reifyType(literal.rawType));
+      properties.add(new jsAst.Property(js.string(key), value));
+    }
+    var map = new jsAst.ObjectInitializer(properties);
+    buffer.write(
+        jsAst.prettyPrint(
+            js('init.functionAliases = #', map).toStatement(), compiler));
+    buffer.write('${N}init.metadata$_=$_[');
     for (var metadata in globalMetadata) {
       if (metadata is String) {
         if (metadata != 'null') {
