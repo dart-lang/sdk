@@ -178,12 +178,6 @@ class _FutureImpl<T> implements Future<T> {
   static const int _VALUE = 8;
   /// The future has been completed with an error result.
   static const int _ERROR = 12;
-  /// Extra bit set when the future has been completed with an error result.
-  /// but no listener has been scheduled to receive the error.
-  /// If the bit is still set when a [runAsync] call triggers, the error will
-  /// be reported to the top-level handler.
-  /// Assigning a listener before that time will clear the bit.
-  static const int _UNHANDLED_ERROR = 16;
 
   /** Whether the future is complete, and as what. */
   int _state = _INCOMPLETE;
@@ -196,11 +190,6 @@ class _FutureImpl<T> implements Future<T> {
   bool get _mayComplete => _state == _INCOMPLETE;
   bool get _hasValue => _state == _VALUE;
   bool get _hasError => _state >= _ERROR;
-  bool get _hasUnhandledError => _state >= _UNHANDLED_ERROR;
-
-  void _clearUnhandledError() {
-    _state &= ~_UNHANDLED_ERROR;
-  }
 
   /**
    * Either the result, a list of listeners or another future.
@@ -235,7 +224,7 @@ class _FutureImpl<T> implements Future<T> {
       // Force stack trace onto error, even if it had already one.
       _attachStackTrace(error, stackTrace);
     }
-    _setError(error);
+    _asyncSetError(error);
   }
 
   factory _FutureImpl.wait(Iterable<Future> futures) {
@@ -329,7 +318,9 @@ class _FutureImpl<T> implements Future<T> {
     _resultOrListeners = error;
 
     if (!hasListeners) {
-      _scheduleUnhandledError();
+      // TODO(floitsch): Hook this into unhandled error handling.
+      var error = _resultOrListeners;
+      _zone.handleUncaughtError(error);
       return;
     }
     while (listeners != null) {
@@ -352,22 +343,6 @@ class _FutureImpl<T> implements Future<T> {
     runAsync(() { _setErrorUnchecked(error); });
   }
 
-  void _scheduleUnhandledError() {
-    assert(_state == _ERROR);
-    _state = _ERROR | _UNHANDLED_ERROR;
-    // Wait for the rest of the current event's duration to see
-    // if a subscriber is added to handle the error.
-    runAsync(() {
-      if (_hasUnhandledError) {
-        // No error handler has been added since the error was set.
-        _clearUnhandledError();
-        // TODO(floitsch): Hook this into unhandled error handling.
-        var error = _resultOrListeners;
-        _zone.handleUncaughtError(error);
-      }
-    });
-  }
-
   void _addListener(_FutureListener listener) {
     assert(listener._nextListener == null);
     if (!listener._inSameErrorZone(_zone)) {
@@ -380,7 +355,6 @@ class _FutureImpl<T> implements Future<T> {
       return;
     }
     if (_isComplete) {
-      _clearUnhandledError();
       // Handle late listeners asynchronously.
       runAsync(() {
         if (_hasValue) {
@@ -428,7 +402,6 @@ class _FutureImpl<T> implements Future<T> {
       future._setValue(_resultOrListeners);
     } else {
       assert(_hasError);
-      _clearUnhandledError();
       future._setError(_resultOrListeners);
     }
   }
