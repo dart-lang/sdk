@@ -899,11 +899,14 @@ class Dart2JSBackend(HtmlDartGenerator):
 
   def _AddConvertingGetter(self, attr, html_name, conversion):
     self._members_emitter.Emit(
-        '\n  $RETURN_TYPE get $HTML_NAME => $CONVERT(this._get_$(HTML_NAME));'
+        '\n  $(METADATA)$RETURN_TYPE get $HTML_NAME => '
+        '$CONVERT(this._get_$(HTML_NAME));'
         "\n  @JSName('$NAME')"
-        '\n  $(METADATA)final $NATIVE_TYPE _get_$HTML_NAME;'
+        '\n  $(JS_METADATA)final $NATIVE_TYPE _get_$HTML_NAME;'
         '\n',
-        METADATA=self._Metadata(attr.type.id, html_name, conversion.input_type),
+        METADATA=self._metadata.GetFormattedMetadata(
+            self._library_name, self._interface, html_name, '  '),
+        JS_METADATA=self._Metadata(attr.type.id, html_name, conversion.input_type),
         CONVERT=conversion.function_name,
         HTML_NAME=html_name,
         NAME=attr.id,

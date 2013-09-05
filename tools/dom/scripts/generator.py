@@ -588,6 +588,10 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
 
     # Should be either a DOMString, an Array of DOMStrings or null.
     'IDBAny get IDBObjectStore.keyPath': None,
+
+    '* get XMLHttpRequest.response':
+      Conversion('_convertNativeToDart_XHR_Response',
+                 'dynamic', 'dynamic'),
 }, dart2jsOnly=True)
 
 def FindConversion(idl_type, direction, interface, member):

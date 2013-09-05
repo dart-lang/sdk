@@ -42,3 +42,10 @@ EventTarget _convertDartToNative_EventTarget(e) {
     return e;
   }
 }
+
+_convertNativeToDart_XHR_Response(o) {
+  if (o is Document) {
+    return o;
+  }
+  return convertNativeToDart_SerializedScriptValue(o);
+}

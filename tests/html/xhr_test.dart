@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library XHRTest;
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html';
-import "dart:convert";
 import 'dart:typed_data';
+import 'package:unittest/html_individual_config.dart';
+import 'package:unittest/unittest.dart';
 
 void fail(message) {
   guardAsync(() {
@@ -225,7 +225,6 @@ main() {
           expect(xhr.responseText, encodedData);
         });
     });
-
   });
 
   group('xhr_requestBlob', () {
@@ -239,6 +238,27 @@ main() {
             expect(blob, isNotNull);
           });
       }
+    });
+  });
+
+  group('json', () {
+    test('xhr responseType json', () {
+      var url = '${window.location.protocol}//${window.location.host}/echo';
+      var data = {
+        'key': 'value',
+        'a': 'b',
+        'one': 2,
+      };
+
+      HttpRequest.request(url,
+          method: 'POST',
+          sendData: JSON.encode(data),
+          responseType: 'json').then(
+          expectAsync1((xhr) {
+            expect(xhr.status, equals(200));
+            var json = xhr.response;
+            expect(json, equals(data));
+          }));
     });
   });
 }

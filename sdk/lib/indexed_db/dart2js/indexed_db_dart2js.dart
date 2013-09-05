@@ -292,6 +292,8 @@ class CursorWithValue extends Cursor native "IDBCursorWithValue" {
   // To suppress missing implicit constructor warnings.
   factory CursorWithValue._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('IDBCursorWithValue.value')
+  @DocsEditable()
   dynamic get value => _convertNativeToDart_IDBAny(this._get_value);
   @JSName('value')
   @DomName('IDBCursorWithValue.value')
@@ -1193,6 +1195,8 @@ class Request extends EventTarget native "IDBRequest" {
   @DocsEditable()
   final String readyState;
 
+  @DomName('IDBRequest.result')
+  @DocsEditable()
   dynamic get result => _convertNativeToDart_IDBAny(this._get_result);
   @JSName('result')
   @DomName('IDBRequest.result')

@@ -6289,6 +6289,8 @@ class CustomEvent extends Event native "CustomEvent" {
   // To suppress missing implicit constructor warnings.
   factory CustomEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('CustomEvent.detail')
+  @DocsEditable()
   dynamic get detail => convertNativeToDart_SerializedScriptValue(this._get_detail);
   @JSName('detail')
   @DomName('CustomEvent.detail')
@@ -7011,6 +7013,9 @@ class Document extends Node  native "Document"
   @Experimental() // untriaged
   final ScriptElement currentScript;
 
+  @DomName('Document.window')
+  @DocsEditable()
+  @Experimental() // untriaged
   WindowBase get window => _convertNativeToDart_Window(this._get_window);
   @JSName('defaultView')
   @DomName('Document.window')
@@ -11014,6 +11019,8 @@ class Event extends Interceptor native "Event" {
   @Experimental() // nonstandard
   final DataTransfer clipboardData;
 
+  @DomName('Event.currentTarget')
+  @DocsEditable()
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._get_currentTarget);
   @JSName('currentTarget')
   @DomName('Event.currentTarget')
@@ -11038,6 +11045,8 @@ class Event extends Interceptor native "Event" {
   @Creates('NodeList')
   final List<Node> path;
 
+  @DomName('Event.target')
+  @DocsEditable()
   EventTarget get target => _convertNativeToDart_EventTarget(this._get_target);
   @JSName('target')
   @DomName('Event.target')
@@ -11306,6 +11315,8 @@ class File extends Blob native "File" {
   // To suppress missing implicit constructor warnings.
   factory File._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('File.lastModifiedDate')
+  @DocsEditable()
   DateTime get lastModifiedDate => convertNativeToDart_DateTime(this._get_lastModifiedDate);
   @JSName('lastModifiedDate')
   @DomName('File.lastModifiedDate')
@@ -11798,6 +11809,8 @@ class FocusEvent extends UIEvent native "FocusEvent" {
   // To suppress missing implicit constructor warnings.
   factory FocusEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('FocusEvent.relatedTarget')
+  @DocsEditable()
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._get_relatedTarget);
   @JSName('relatedTarget')
   @DomName('FocusEvent.relatedTarget')
@@ -12319,6 +12332,8 @@ class History extends Interceptor implements HistoryBase native "History" {
   @DocsEditable()
   final int length;
 
+  @DomName('History.state')
+  @DocsEditable()
   dynamic get state => convertNativeToDart_SerializedScriptValue(this._get_state);
   @JSName('state')
   @DomName('History.state')
@@ -13145,8 +13160,23 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
+  dynamic get response => _convertNativeToDart_XHR_Response(this._get_response);
+  @JSName('response')
+  /**
+   * The data received as a reponse from the request.
+   *
+   * The data could be in the
+   * form of a [String], [ByteBuffer], [Document], [Blob], or json (also a
+   * [String]). `null` indicates request failure.
+   */
+  @DomName('XMLHttpRequest.response')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   @Creates('ByteBuffer|Blob|Document|=Object|JSExtendableArray|String|num')
-  final Object response;
+  final dynamic _get_response;
 
   /**
    * The response in string form or `null on failure.
@@ -13365,6 +13395,8 @@ class IFrameElement extends HtmlElement native "HTMLIFrameElement" {
   @DocsEditable()
   factory IFrameElement() => document.$dom_createElement("iframe");
 
+  @DomName('HTMLIFrameElement.contentWindow')
+  @DocsEditable()
   WindowBase get contentWindow => _convertNativeToDart_Window(this._get_contentWindow);
   @JSName('contentWindow')
   @DomName('HTMLIFrameElement.contentWindow')
@@ -13752,6 +13784,8 @@ class InputElement extends HtmlElement implements
   @DocsEditable()
   String value;
 
+  @DomName('HTMLInputElement.valueAsDate')
+  @DocsEditable()
   DateTime get valueAsDate => convertNativeToDart_DateTime(this._get_valueAsDate);
   @JSName('valueAsDate')
   @DomName('HTMLInputElement.valueAsDate')
@@ -16144,6 +16178,8 @@ class MessageEvent extends Event native "MessageEvent" {
   // To suppress missing implicit constructor warnings.
   factory MessageEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('MessageEvent.data')
+  @DocsEditable()
   dynamic get data => convertNativeToDart_SerializedScriptValue(this._get_data);
   @JSName('data')
   @DomName('MessageEvent.data')
@@ -16167,6 +16203,8 @@ class MessageEvent extends Event native "MessageEvent" {
   @Creates('JSExtendableArray')
   final List<MessagePort> ports;
 
+  @DomName('MessageEvent.source')
+  @DocsEditable()
   EventTarget get source => _convertNativeToDart_EventTarget(this._get_source);
   @JSName('source')
   @DomName('MessageEvent.source')
@@ -16268,6 +16306,8 @@ class MetaElement extends HtmlElement native "HTMLMetaElement" {
 @Experimental()
 class Metadata extends Interceptor native "Metadata" {
 
+  @DomName('Metadata.modificationTime')
+  @DocsEditable()
   DateTime get modificationTime => convertNativeToDart_DateTime(this._get_modificationTime);
   @JSName('modificationTime')
   @DomName('Metadata.modificationTime')
@@ -16689,6 +16729,8 @@ class MouseEvent extends UIEvent native "MouseEvent,DragEvent,PointerEvent,MSPoi
   @DocsEditable()
   final bool metaKey;
 
+  @DomName('MouseEvent.relatedTarget')
+  @DocsEditable()
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._get_relatedTarget);
   @JSName('relatedTarget')
   @DomName('MouseEvent.relatedTarget')
@@ -19154,6 +19196,8 @@ class PopStateEvent extends Event native "PopStateEvent" {
   // To suppress missing implicit constructor warnings.
   factory PopStateEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('PopStateEvent.state')
+  @DocsEditable()
   dynamic get state => convertNativeToDart_SerializedScriptValue(this._get_state);
   @JSName('state')
   @DomName('PopStateEvent.state')
@@ -20306,6 +20350,8 @@ class RtcStatsReport extends Interceptor native "RTCStatsReport" {
   @DocsEditable()
   final RtcStatsReport remote;
 
+  @DomName('RTCStatsReport.timestamp')
+  @DocsEditable()
   DateTime get timestamp => convertNativeToDart_DateTime(this._get_timestamp);
   @JSName('timestamp')
   @DomName('RTCStatsReport.timestamp')
@@ -23351,6 +23397,8 @@ class Touch extends Interceptor native "Touch" {
   @DocsEditable()
   final int _screenY;
 
+  @DomName('Touch.target')
+  @DocsEditable()
   EventTarget get target => _convertNativeToDart_EventTarget(this._get_target);
   @JSName('target')
   @DomName('Touch.target')
@@ -23793,6 +23841,8 @@ class UIEvent extends Event native "UIEvent" {
   @Experimental() // nonstandard
   final int _pageY;
 
+  @DomName('UIEvent.view')
+  @DocsEditable()
   WindowBase get view => _convertNativeToDart_Window(this._get_view);
   @JSName('view')
   @DomName('UIEvent.view')
@@ -24958,6 +25008,8 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @Experimental() // non-standard
   final bool offscreenBuffering;
 
+  @DomName('Window.opener')
+  @DocsEditable()
   WindowBase get opener => _convertNativeToDart_Window(this._get_opener);
   @JSName('opener')
   @DomName('Window.opener')
@@ -24982,6 +25034,8 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DocsEditable()
   final int pageYOffset;
 
+  @DomName('Window.parent')
+  @DocsEditable()
   WindowBase get parent => _convertNativeToDart_Window(this._get_parent);
   @JSName('parent')
   @DomName('Window.parent')
@@ -25027,6 +25081,8 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DocsEditable()
   final BarProp scrollbars;
 
+  @DomName('Window.self')
+  @DocsEditable()
   WindowBase get self => _convertNativeToDart_Window(this._get_self);
   @JSName('self')
   @DomName('Window.self')
@@ -25063,6 +25119,8 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DocsEditable()
   final BarProp toolbar;
 
+  @DomName('Window.top')
+  @DocsEditable()
   WindowBase get top => _convertNativeToDart_Window(this._get_top);
   @JSName('top')
   @DomName('Window.top')
@@ -25091,6 +25149,8 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @deprecated // deprecated
   final StorageInfo storageInfo;
 
+  @DomName('Window.window')
+  @DocsEditable()
   WindowBase get window => _convertNativeToDart_Window(this._get_window);
   @JSName('window')
   @DomName('Window.window')
@@ -31871,6 +31931,13 @@ EventTarget _convertDartToNative_EventTarget(e) {
   } else {
     return e;
   }
+}
+
+_convertNativeToDart_XHR_Response(o) {
+  if (o is Document) {
+    return o;
+  }
+  return convertNativeToDart_SerializedScriptValue(o);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
