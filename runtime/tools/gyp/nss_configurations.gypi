@@ -19,14 +19,7 @@
   },
   'target_defaults': {
     'cflags': [
-      '-Wno-unused-variable',
-      '-Wno-unused-but-set-variable',
-      '-Wno-missing-field-initializers',
-      '-Wno-uninitialized',
-      '-Wno-sign-compare',
-      '-Wno-empty-body',
-      '-Wno-type-limits',
-      '-Wno-pointer-to-int-cast',
+      '-w',
       '-UHAVE_CVAR_BUILT_ON_SEM',
     ],
     # Removes these flags from the list cflags.
@@ -46,6 +39,9 @@
     'configurations': {
       'Dart_Base': {
         'xcode_settings': {
+          'WARNING_CFLAGS': [
+            '-w',
+          ],
           'WARNING_CFLAGS!': [
             '-Wall',
             '-Wextra',
