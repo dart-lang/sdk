@@ -1300,6 +1300,8 @@ ASSEMBLER_TEST_RUN(VstmsVldms1, test) {
 // Make sure we can store the D registers using vstmd and
 // load them into a different set using vldmd
 ASSEMBLER_TEST_GENERATE(VstmdVldmd_off, assembler) {
+  // Save used callee-saved FPU registers.
+  __ vstmd(DB_W, SP, D8, 3);
   __ LoadDImmediate(D0, 0.0, R0);
   __ LoadDImmediate(D1, 1.0, R0);
   __ LoadDImmediate(D2, 2.0, R0);
@@ -1343,6 +1345,8 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd_off, assembler) {
   __ vmstat();
   __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
 
+  // Restore used callee-saved FPU registers.
+  __ vldmd(IA_W, SP, D8, 3);
   __ bx(LR);
 }
 

@@ -60,21 +60,6 @@ abstract class File implements FileSystemEntity {
   void createSync();
 
   /**
-   * Delete the file. Returns a [:Future<File>:] that completes with
-   * the file when it has been deleted. Only a file or a link to a file
-   * can be deleted with this method, not a directory or a broken link.
-   */
-  Future<File> delete();
-
-  /**
-   * Synchronously delete the file. Only a file or a link to a file
-   * can be deleted with this method, not a directory or a broken link.
-   *
-   * Throws a [FileException] if the operation fails.
-   */
-  void deleteSync();
-
-  /**
    * Renames this file. Returns a `Future<File>` that completes
    * with a [File] instance for the renamed file.
    *

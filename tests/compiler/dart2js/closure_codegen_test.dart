@@ -4,6 +4,7 @@
 // Test that parameters keep their names in the output.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 
@@ -52,10 +53,11 @@ closureInvocation() {
 // Make sure that the bailout version does not introduce a second version of
 // the closure.
 closureBailout() {
-  String generated = compileAll(TEST_BAILOUT);
-  RegExp regexp = new RegExp(r'call\$0: function');
-  Iterator<Match> matches = regexp.allMatches(generated).iterator;
-  checkNumberOfMatches(matches, 1);
+  asyncTest(() => compileAll(TEST_BAILOUT).then((generated) {
+    RegExp regexp = new RegExp(r'call\$0: function');
+    Iterator<Match> matches = regexp.allMatches(generated).iterator;
+    checkNumberOfMatches(matches, 1);
+  }));
 }
 
 main() {

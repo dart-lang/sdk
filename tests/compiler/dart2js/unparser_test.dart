@@ -341,6 +341,28 @@ testParameters() {
        ]);
 }
 
+testSymbolLiterals() {
+  testUnparse("#+;");  
+  testUnparse("#-;");
+  testUnparse("#*;");
+  testUnparse("#/;");
+  testUnparse("#~/;");
+  testUnparse("#%;");
+  testUnparse("#<;");
+  testUnparse("#<=;");
+  testUnparse("#>;");
+  testUnparse("#>=;");
+  testUnparse("#==;");
+  testUnparse("#&;");
+  testUnparse("#|;");
+  testUnparse("#^;");
+  
+  testUnparse("#a;");
+  testUnparse("#a.b;");
+  testUnparse("#a.b.c;");
+  testUnparse("#aa.bb.cc.dd;");
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -362,4 +384,5 @@ main() {
   testClassDeclarations();
   testMixinApplications();
   testParameters();
+  testSymbolLiterals();
 }

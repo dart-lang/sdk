@@ -5,6 +5,7 @@
 library mock_compiler;
 
 import "package:expect/expect.dart";
+import 'dart:async';
 import 'dart:collection';
 
 import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
@@ -22,8 +23,6 @@ import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart'
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
     hide TreeElementMapping;
-
-import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/deferred_load.dart'
     show DeferredLoadTask;
@@ -101,6 +100,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   }
   abstract class JSIndexable {
     get length;
+    operator[](index);
   }
   abstract class JSMutableIndexable extends JSIndexable {}
   class JSArray extends Interceptor implements List, JSIndexable {
@@ -123,13 +123,13 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   }
   class JSNumber extends Interceptor implements num {
     // All these methods return a number to please type inferencing.
-    operator-() => (this is JSInt) ? 42 : 42.0;
-    operator +(other) => (this is JSInt) ? 42 : 42.0;
-    operator -(other) => (this is JSInt) ? 42 : 42.0;
+    operator-() => (this is JSInt) ? 42 : 42.2;
+    operator +(other) => (this is JSInt) ? 42 : 42.2;
+    operator -(other) => (this is JSInt) ? 42 : 42.2;
     operator ~/(other) => 42;
-    operator /(other) => (this is JSInt) ? 42 : 42.0;
-    operator *(other) => (this is JSInt) ? 42 : 42.0;
-    operator %(other) => (this is JSInt) ? 42 : 42.0;
+    operator /(other) => (this is JSInt) ? 42 : 42.2;
+    operator *(other) => (this is JSInt) ? 42 : 42.2;
+    operator %(other) => (this is JSInt) ? 42 : 42.2;
     operator <<(other) => 42;
     operator >>(other) => 42;
     operator |(other) => 42;
@@ -143,8 +143,8 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator ==(other) => true;
     get hashCode => throw "JSNumber.hashCode not implemented.";
 
-    abs() => (this is JSInt) ? 42 : 42.0;
-    remainder(other) => (this is JSInt) ? 42 : 42.0;
+    abs() => (this is JSInt) ? 42 : 42.2;
+    remainder(other) => (this is JSInt) ? 42 : 42.2;
     truncate() => 42;
   }
   class JSInt extends JSNumber implements int {
@@ -239,6 +239,7 @@ class MockCompiler extends Compiler {
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments) {
     coreLibrary = createLibrary("core", coreSource);
+
     // We need to set the assert method to avoid calls with a 'null'
     // target being interpreted as a call to assert.
     jsHelperLibrary = createLibrary("helper", helperSource);
@@ -377,12 +378,14 @@ class MockCompiler extends Compiler {
     parseUnit(text, this, library, registerSource);
   }
 
-  void scanBuiltinLibraries() {
+  Future scanBuiltinLibraries() {
     // Do nothing. The mock core library is already handled in the constructor.
+    return new Future.value();
   }
 
-  LibraryElement scanBuiltinLibrary(String name) {
+  Future<LibraryElement> scanBuiltinLibrary(String name) {
     // Do nothing. The mock core library is already handled in the constructor.
+    return new Future.value();
   }
 
   Uri translateResolvedUri(LibraryElement importingLibrary,
@@ -391,10 +394,10 @@ class MockCompiler extends Compiler {
   // The mock library doesn't need any patches.
   Uri resolvePatchUri(String dartLibraryName) => null;
 
-  Script readScript(Uri uri, [Node node]) {
+  Future<Script> readScript(Uri uri, [Element element, Node node]) {
     SourceFile sourceFile = sourceFiles[uri.toString()];
     if (sourceFile == null) throw new ArgumentError(uri);
-    return new Script(uri, sourceFile);
+    return new Future.value(new Script(uri, sourceFile));
   }
 
   Element lookupElementIn(ScopeContainerElement container, name) {
@@ -466,4 +469,20 @@ class MockDeferredLoadTask extends DeferredLoadTask {
   void registerMainApp(LibraryElement mainApp) {
     // Do nothing.
   }
+}
+
+api.DiagnosticHandler createHandler(MockCompiler compiler, String text) {
+  return (uri, int begin, int end, String message, kind) {
+    SourceFile sourceFile;
+    if (uri == null) {
+      sourceFile = new SourceFile('analysis', text);
+    } else {
+      sourceFile = compiler.sourceFiles[uri.toString()];
+    }
+    if (sourceFile != null && begin != null && end != null) {
+      print(sourceFile.getLocationMessage(message, begin, end, true, (x) => x));
+    } else {
+      print(message);
+    }
+  };
 }

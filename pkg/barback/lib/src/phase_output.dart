@@ -52,6 +52,7 @@ class PhaseOutput {
   /// Adds an asset node as an output with this id.
   void add(AssetNode node) {
     assert(node.id == output.id);
+    assert(!output.state.isRemoved);
     _assets.add(node);
     _watchAsset(node);
   }

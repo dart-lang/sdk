@@ -11,6 +11,12 @@ import 'package:expect/expect.dart';
 class A<T> {}
 class B extends A<int> {}
 
+class BadEqualityHash {
+  int count = 0;
+  bool operator ==(other) => true;
+  int get hashCode => count++;
+}
+
 checkEquality(List<Map> equivalenceClasses) {
   for (var equivalenceClass in equivalenceClasses) {
     equivalenceClass.forEach((name, member) {
@@ -45,8 +51,11 @@ main() {
       .findLibrary(const Symbol('test.class_equality_test'))
       .single;
 
-  Object o1 = new Object();
-  Object o2 = new Object();
+  var o1 = new Object();
+  var o2 = new Object();
+
+  var badEqualityHash1 = new BadEqualityHash();
+  var badEqualityHash2 = new BadEqualityHash();
 
   checkEquality([
     {'reflect(o1)' : reflect(o1),
@@ -55,8 +64,29 @@ main() {
     {'reflect(o2)' : reflect(o2),
      'reflect(o2), again' : reflect(o2)},
 
+    {'reflect(badEqualityHash1)' : reflect(badEqualityHash1),
+     'reflect(badEqualityHash1), again' : reflect(badEqualityHash1)},
+
+    {'reflect(badEqualityHash2)' : reflect(badEqualityHash2),
+     'reflect(badEqualityHash2), again' : reflect(badEqualityHash2)},
+
+    {'reflect(true)' : reflect(true),
+     'reflect(true), again' : reflect(true)},
+
+    {'reflect(false)' : reflect(false),
+     'reflect(false), again' : reflect(false)},
+
+    {'reflect(null)' : reflect(null),
+     'reflect(null), again' : reflect(null)},
+
+    {'reflect(3.5+4.5)' : reflect(3.5+4.5),
+     'reflect(6.5+1.5)' : reflect(6.5+1.5)},
+
     {'reflect(3+4)' : reflect(3+4),
      'reflect(6+1)' : reflect(6+1)},
+
+    {'reflect("foo")' : reflect("foo"),
+     'reflect("foo"), again' : reflect("foo")},
 
     {'currentMirrorSystem().voidType' : currentMirrorSystem().voidType,
      'thisLibrary.functions[#subroutine].returnType' :

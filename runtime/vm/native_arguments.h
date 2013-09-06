@@ -29,8 +29,7 @@ class Simulator;
 #if defined(USING_SIMULATOR)
 #define CHECK_STACK_ALIGNMENT {                                                \
   uword current_sp = Simulator::Current()->get_register(SPREG);                \
-  ASSERT((OS::ActivationFrameAlignment() == 0) ||                              \
-         (Utils::IsAligned(current_sp, OS::ActivationFrameAlignment())));      \
+  ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));        \
 }
 #elif defined(TARGET_OS_WINDOWS)
 // The compiler may dynamically align the stack on Windows, so do not check.
@@ -40,8 +39,7 @@ class Simulator;
   uword (*func)() =                                                            \
       reinterpret_cast<uword (*)()>(StubCode::GetStackPointerEntryPoint());    \
   uword current_sp = func();                                                   \
-  ASSERT((OS::ActivationFrameAlignment() == 0) ||                              \
-         (Utils::IsAligned(current_sp, OS::ActivationFrameAlignment())));      \
+  ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));        \
 }
 #endif
 
@@ -50,9 +48,9 @@ class Simulator;
     VerifyPointersVisitor::VerifyPointers();                                   \
     Isolate::Current()->heap()->Verify();                                      \
   }
-#define TRACE_NATIVES(name)                                                    \
+#define TRACE_NATIVE_CALL(format, name)                                        \
   if (FLAG_trace_natives) {                                                    \
-    OS::Print("Calling native: %s\n", name);                                   \
+    OS::Print("Calling native: " format "\n", name);                           \
   }
 #define DEOPTIMIZE_ALOT                                                        \
   if (FLAG_deoptimize_alot) {                                                  \
@@ -63,7 +61,7 @@ class Simulator;
 
 #define CHECK_STACK_ALIGNMENT { }
 #define VERIFY_ON_TRANSITION { }
-#define TRACE_NATIVES(name) { }
+#define TRACE_NATIVE_CALL(format, name) { }
 #define DEOPTIMIZE_ALOT { }
 
 #endif

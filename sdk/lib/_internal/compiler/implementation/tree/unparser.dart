@@ -222,6 +222,11 @@ class Unparser implements Visitor {
     add(node.token.value);
   }
 
+  visitLiteralSymbol(LiteralSymbol node) {
+    add(node.hashToken.value);
+    visit(node.identifiers);
+  }
+
   visitNewExpression(NewExpression node) {
     addToken(node.newToken);
     visit(node.send);

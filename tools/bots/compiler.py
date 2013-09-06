@@ -254,7 +254,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set, arch):
     TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags, arch)
 
     # TODO(kasperl): Consider running peg and css tests too.
-    extras = ['dart2js_extra', 'dart2js_native', 'dart2js_foreign']
+    extras = ['dart2js_extra', 'dart2js_native']
     extras_flags = flags
     if (system == 'linux'
         and runtime == 'd8'

@@ -37,7 +37,7 @@ class Device {
    */
   static bool get isIE {
     if (_isIE == null) {
-      _isIE = !isOpera && userAgent.contains("MSIE", 0);
+      _isIE = !isOpera && userAgent.contains("Trident/", 0);
     }
     return _isIE;
   }

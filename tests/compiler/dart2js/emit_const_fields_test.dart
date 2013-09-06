@@ -4,6 +4,7 @@
 // Test that unused static consts are not emitted.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 
 const String TEST_GUIDE = r"""
@@ -18,8 +19,9 @@ main() {
 """;
 
 main() {
-  String generated = compileAll(TEST_GUIDE);
-  Expect.isTrue(generated.contains("42"));
-  Expect.isFalse(generated.contains("TITLE"));
+  asyncTest(() => compileAll(TEST_GUIDE).then((generated) {
+    Expect.isTrue(generated.contains("42"));
+    Expect.isFalse(generated.contains("TITLE"));
+  }));
 }
 

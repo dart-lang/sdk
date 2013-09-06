@@ -83,8 +83,8 @@ line3""";
 void testReadLine1() {
   var controller = new StreamController(sync: true);
   var stream = controller.stream
-      .transform(new Utf8Decoder())
-      .transform(new LineSplitter());
+      .transform(UTF8.decoder)
+      .transform(const LineSplitter());
 
   var stage = 0;
   var done = false;
@@ -114,8 +114,8 @@ void testReadLine2() {
   var controller = new StreamController(sync: true);
 
   var stream = controller.stream
-    .transform(new Utf8Decoder())
-    .transform(new LineSplitter());
+    .transform(UTF8.decoder)
+    .transform(const LineSplitter());
 
   var expectedLines = ['Line1', 'Line2','Line3', 'Line4',
                        '', '', '', '', '', '',

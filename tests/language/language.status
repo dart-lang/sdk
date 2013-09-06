@@ -12,9 +12,10 @@ built_in_identifier_prefix_test: Fail # Issue 6970
 library_juxtaposition_test: Fail # Issue 6877
 switch_int_double_test/01: Fail # Issue 7307
 switch_int_double_test/02: Fail # Issue 7307
+symbol_literal_test: Fail # Issue 12171
 
 # These bugs refer currently ongoing language discussions.
-constructor_initializer_test: Fail # Issue 12633
+constructor_initializer_test/none: Fail # Issue 12633
 constructor5_test: Fail # Issue 6422
 constructor6_test: Fail # Issue 6422
 closure_in_initializer_test: Fail # Issue 6422
@@ -25,12 +26,14 @@ lazy_static3_test: Fail # Issue 12593
 duplicate_export_negative_test: Fail # Issue 6134
 on_catch_malformed_type_test: Fail # Issue 8601
 mixin_mixin_test: Fail # Issue 9683
+mixin_mixin2_test: Fail # Issue 9683
 mixin_issue10216_2_test: Fail # Issue 9683
 mixin_illegal_object_test/01: Crash # Issue 10952
 mixin_illegal_object_test/02: Crash # Issue 10952
 mixin_forwarding_constructor2_test: Fail # Issue 11888
 mixin_typedef_constructor_test: Fail # Issue 11888
 mixin_type_parameter2_test: Fail # Issue 11888
+built_in_identifier_illegal_test/19: Fail # Issue 13021
 
 [ $compiler == none && $unchecked ]
 # Only checked mode reports an error on type assignment

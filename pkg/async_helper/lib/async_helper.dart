@@ -61,3 +61,8 @@ void asyncEnd() {
     print('unittest-suite-success');
   }
 }
+
+void asyncTest(f()) {
+  asyncStart();
+  f().whenComplete(() => asyncEnd());
+}

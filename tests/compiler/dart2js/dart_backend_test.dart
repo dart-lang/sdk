@@ -4,6 +4,7 @@
 
 import "package:expect/expect.dart";
 import 'dart:async';
+import "package:async_helper/async_helper.dart";
 import 'parser_helper.dart';
 import 'mock_compiler.dart';
 import '../../../sdk/lib/_internal/compiler/compiler.dart';
@@ -129,13 +130,13 @@ testDart2DartWithLibrary(
   if (minify) options.add('--minify');
   if (stripTypes) options.add('--force-strip=types');
 
-  compile(
+  asyncTest(() => compile(
       scriptUri,
       fileUri('libraryRoot/'),
       fileUri('packageRoot/'),
       provider,
       handler,
-      options).then(continuation);
+      options).then(continuation));
 }
 
 testSimpleFileUnparse() {

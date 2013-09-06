@@ -4,10 +4,11 @@
 //
 // Directory listing test.
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 class DirectoryTest {
   static void testListing() {
@@ -51,7 +52,7 @@ class DirectoryTest {
     testSyncListing(false);
     Expect.equals(f.fullPathSync(), fLong.fullPathSync());
 
-    var listingDonePort = new ReceivePort();
+    asyncStart();
     directory.list(recursive: true).listen(
         (FileSystemEntity entity) {
           if (entity is File) {
@@ -75,7 +76,7 @@ class DirectoryTest {
             f.exists().then((exists) => Expect.isFalse(exists));
             directory.exists().then((exists) => Expect.isFalse(exists));
             subDirectory.exists().then((exists) => Expect.isFalse(exists));
-            listingDonePort.close();
+            asyncEnd();
           });
         });
 
@@ -122,7 +123,7 @@ class DirectoryTest {
   static void testListTooLongName() {
     new Directory("").createTemp().then((d) {
       var errors = 0;
-      var port = new ReceivePort();
+      asyncStart();
       setupListHandlers(Stream<FileSystemEntity> stream) {
         stream.listen(
           (_) => Expect.fail("Listing of non-existing directory should fail"),
@@ -130,7 +131,7 @@ class DirectoryTest {
             Expect.isTrue(error is DirectoryException);
             if (++errors == 2) {
               d.delete(recursive: true).then((_) {
-                port.close();
+                asyncEnd();
               });
             }
           });
@@ -171,7 +172,7 @@ class DirectoryTest {
   }
 
   static void testDeleteTooLongName() {
-    var port = new ReceivePort();
+    asyncStart();
     new Directory("").createTemp().then((d) {
       var subDirName = 'subdir';
       var subDir = new Directory("${d.path}/$subDirName");
@@ -188,7 +189,7 @@ class DirectoryTest {
           onError(error) {
             Expect.isTrue(error is DirectoryException);
             if (++errors == 2) {
-              d.delete(recursive: true).then((ignore) => port.close());
+              d.delete(recursive: true).then((_) => asyncEnd());
             }
             return true;
           }
@@ -354,7 +355,7 @@ class DirectoryTest {
   }
 
   static void testCreateTemp([String template = ""]) {
-    var port = new ReceivePort();
+    asyncStart();
     Directory dir = new Directory(template);
     Future.wait([dir.createTemp(), dir.createTemp()])
       .then((tempDirs) {
@@ -364,7 +365,7 @@ class DirectoryTest {
           t.deleteSync();
           Expect.isFalse(t.existsSync());
         }
-        port.close();
+        asyncEnd();
       });
   }
 
@@ -500,9 +501,9 @@ testCreateTempError() {
   var location = illegalTempDirectoryLocation();
   if (location == null) return;
 
-  var port = new ReceivePort();
+  asyncStart();
   var future = new Directory(location).createTemp();
-  future.catchError((e) => port.close());
+  future.catchError((_) => asyncEnd());
 }
 
 
@@ -522,7 +523,7 @@ testCreateExistingSync() {
 
 testCreateExisting() {
   // Test that creating an existing directory succeeds.
-  var port = new ReceivePort();
+  asyncStart();
   var d = new Directory('');
   d.createTemp().then((temp) {
     var subDir = new Directory('${temp.path}/flaf');
@@ -535,7 +536,7 @@ testCreateExisting() {
             subDir.exists().then((dirExists) {
               Expect.isTrue(dirExists);
               temp.delete(recursive: true).then((_) {
-                port.close();
+                asyncEnd();
               });
             });
           });
@@ -562,7 +563,7 @@ testCreateDirExistingFileSync() {
 
 testCreateDirExistingFile() {
   // Test that creating an existing directory succeeds.
-  var port = new ReceivePort();
+  asyncStart();
   var d = new Directory('');
   d.createTemp().then((temp) {
     var path = '${temp.path}/flaf';
@@ -574,7 +575,7 @@ testCreateDirExistingFile() {
         .catchError((error) {
           Expect.isTrue(error is DirectoryException);
           temp.delete(recursive: true).then((_) {
-            port.close();
+            asyncEnd();
           });
         });
     });
@@ -594,7 +595,7 @@ testCreateRecursiveSync() {
 
 
 testCreateRecursive() {
-  var port = new ReceivePort();
+  asyncStart();
   new Directory('').createTemp().then((temp) {
     var d = new Directory('${temp.path}/a/b/c');
     d.create(recursive: true).then((_) {
@@ -602,7 +603,7 @@ testCreateRecursive() {
       Expect.isTrue(new Directory('${temp.path}/a/b').existsSync());
       Expect.isTrue(new Directory('${temp.path}/a/b/c').existsSync());
       temp.deleteSync(recursive: true);
-      port.close();
+      asyncEnd();
     });
   });
 }

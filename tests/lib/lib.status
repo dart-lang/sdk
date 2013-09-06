@@ -10,23 +10,25 @@ typed_data/byte_data_test: Pass, Fail # v8 bug: Issue 12293
 math/double_pow_test: Fail
 math/low_test: Fail
 math/random_test: Fail
-mirrors/invoke_test: Fail # Issue 11954
 mirrors/class_mirror_type_variables_test: Fail # Issue 12087
-mirrors/invoke_private_test: Fail # Issue 12164
-mirrors/equality_test: Fail # Issue 12333, 12919
+mirrors/equality_test: Fail # Issue 12333
+mirrors/fake_function_test: Fail # Issue 11612
 mirrors/function_type_mirror_test: Fail # Issue 12166
 mirrors/generics_test: Fail # Issue 12333
 mirrors/hierarchy_invariants_test: Fail # Issue 11863
-mirrors/fake_function_test: Fail # Issue 11612
+mirrors/invoke_test: Fail # Issue 11954
+mirrors/invoke_named_test: Fail # Issue 10471, 12863
+mirrors/invoke_private_test: Fail # Issue 12164
+mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
 mirrors/method_mirror_name_test: Fail # Issue 6335
 mirrors/method_mirror_properties_test: Fail # Issue 11861
 mirrors/method_mirror_returntype_test : Fail # Issue 11928
 mirrors/method_mirror_source_test : Fail # Issue 6490
 mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
-mirrors/mixin_test: Fail # Issue 12464
+mirrors/mixin_test/none: Fail # Issue 12464
 mirrors/null_test : Fail # Issue 12129
 mirrors/parameter_test: Fail # Issue 6490
-mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
+mirrors/parameter_metadata_test: Fail # Issue 10905
 mirrors/reflected_type_test: Fail # Issue 12607
 mirrors/typedef_metadata_test: Fail # Issue 12785
 mirrors/unnamed_library_test: Fail # Issue 10580
@@ -34,6 +36,8 @@ async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
 async/run_async6_test: Fail # global error handling is not supported. http://dartbug.com/5958
 async/stream_controller_async_test: Fail, Pass # http://dartbug.com/11953
+mirrors/typedef_test/none: Fail # http://dartbug.com/6490
+mirrors/typedef_test/02: Fail, OK # Incorrect VM behavior.
 
 [ $runtime == safari ]
 mirrors/return_type_test: Pass, Timeout # Issue 12858
@@ -77,11 +81,13 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 
 [ $compiler == dart2dart ]
 mirrors/*: Skip # http://dartbug.com/11511
-library_metadata2_test/01: Skip # http://dartbug.com/11511
 async/run_async6_test: Fail             # Issue 10957 - may be related to issue 10910
 
 [ $compiler == dart2dart && $minified ]
 json/json_test: Fail                            # Issue 10961
+
+[ $compiler == dart2js && $minified ]
+mirrors/typedef_test/01: Fail # http://dartbug.com/6490
 
 [ $runtime == ff ]
 # FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
@@ -116,8 +122,9 @@ mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 
 [ $runtime == vm || ($compiler == none && $runtime == drt) ]
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
-mirrors/mixin_dart2js_test: Skip # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
 mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
+mirrors/mixin_test/01: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
+mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 
 [ $compiler == none && $runtime == drt ]
 async/timer_isolate_test: Skip # See Issue 4997
@@ -144,8 +151,7 @@ async/run_zoned9_test/01: fail # Issue 12756.
 
 [ $compiler == dartanalyzer ]
 mirrors/library_metadata2_test/01: Fail # http://dartbug.com/12950
-library_metadata2_test/01: Fail # http://dartbug.com/12950
+mirrors/typedef_test/none: Fail # Issue 13093
 
 [ $compiler == dart2analyzer ]
 mirrors/library_metadata2_test/01: Fail # http://dartbug.com/12950
-library_metadata2_test/01: Fail # http://dartbug.com/12950

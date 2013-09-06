@@ -33,6 +33,7 @@ class SsaOptimizerTask extends CompilerTask {
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     JavaScriptItemCompilationContext context = work.compilationContext;
     measure(() {
+      SsaDeadCodeEliminator dce;
       List<OptimizationPhase> phases = <OptimizationPhase>[
           // Run trivial instruction simplification first to optimize
           // some patterns useful for type conversion.
@@ -49,7 +50,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaNonSpeculativeTypePropagator(compiler),
           // Run a dead code eliminator before LICM because dead
           // interceptors are often in the way of LICM'able instructions.
-          new SsaDeadCodeEliminator(),
+          new SsaDeadCodeEliminator(compiler),
           new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
           new SsaValueRangeAnalyzer(compiler, constantSystem, work),
@@ -57,7 +58,16 @@ class SsaOptimizerTask extends CompilerTask {
           // opportunities for instruction simplification.
           new SsaInstructionSimplifier(constantSystem, backend, work),
           new SsaSimplifyInterceptors(compiler, constantSystem, work),
-          new SsaDeadCodeEliminator()];
+          dce = new SsaDeadCodeEliminator(compiler)];
+      runPhases(graph, phases);
+      if (!dce.eliminatedSideEffects) return;
+      phases = <OptimizationPhase>[
+          new SsaGlobalValueNumberer(compiler),
+          new SsaCodeMotion(),
+          new SsaValueRangeAnalyzer(compiler, constantSystem, work),
+          new SsaInstructionSimplifier(constantSystem, backend, work),
+          new SsaSimplifyInterceptors(compiler, constantSystem, work),
+          new SsaDeadCodeEliminator(compiler)];
       runPhases(graph, phases);
     });
   }
@@ -529,6 +539,40 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return (combinedType == value.instructionType) ? value : node;
   }
 
+  void simplifyCondition(HBasicBlock block,
+                         HInstruction condition,
+                         bool value) {
+    condition.dominatedUsers(block.first).forEach((user) {
+      HInstruction newCondition = graph.addConstantBool(value, compiler);
+      user.changeUse(condition, newCondition);
+    });
+  }
+
+  HInstruction visitIf(HIf node) {
+    HInstruction condition = node.condition;
+    if (condition.isConstant()) return node;
+    bool isNegated = condition is HNot;
+
+    if (isNegated) {
+      condition = condition.inputs[0];
+    } else {
+      // It is possible for LICM to move a negated version of the
+      // condition out of the loop where it used. We still want to
+      // simplify the nested use of the condition in that case, so
+      // we look for all dominating negated conditions and replace
+      // nested uses of them with true or false.
+      Iterable<HInstruction> dominating = condition.usedBy.where((user) =>
+          user is HNot && user.dominates(node));
+      dominating.forEach((hoisted) {
+        simplifyCondition(node.thenBlock, hoisted, false);
+        simplifyCondition(node.elseBlock, hoisted, true);
+      });
+    }
+    simplifyCondition(node.thenBlock, condition, !isNegated);
+    simplifyCondition(node.elseBlock, condition, isNegated);
+    return node;
+  }
+
   HInstruction visitIs(HIs node) {
     DartType type = node.typeExpression;
     Element element = type.element;
@@ -578,6 +622,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // We cannot just return false, because the expression may be of
         // type int or double.
       }
+    } else if (expressionType.canBePrimitiveNumber(compiler)
+               && identical(element, compiler.intClass)) {
+      // We let the JS semantics decide for that check.
+      return node;
     // We need the [:hasTypeArguments:] check because we don't have
     // the notion of generics in the backend. For example, [:this:] in
     // a class [:A<T>:], is currently always considered to have the
@@ -870,7 +918,17 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   final String name = "SsaDeadCodeEliminator";
 
-  SsaDeadCodeEliminator();
+  final Compiler compiler;
+  SsaLiveBlockAnalyzer analyzer;
+  bool eliminatedSideEffects = false;
+  SsaDeadCodeEliminator(this.compiler);
+
+  HInstruction zapInstructionCache;
+  HInstruction get zapInstruction {
+    return (zapInstructionCache == null)
+        ? zapInstructionCache = analyzer.graph.addConstantInt(0, compiler)
+        : zapInstructionCache;
+  }
 
   bool isDeadCode(HInstruction instruction) {
     return !instruction.sideEffects.hasSideEffects()
@@ -878,20 +936,116 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
            && instruction.usedBy.isEmpty
            && instruction is !HTypeGuard
            && instruction is !HParameterValue
-           && instruction is !HLocalSet
-           && !instruction.isControlFlow();
+           && instruction is !HLocalSet;
   }
 
   void visitGraph(HGraph graph) {
+    analyzer = new SsaLiveBlockAnalyzer(graph);
+    analyzer.analyze();
     visitPostDominatorTree(graph);
+    cleanPhis(graph);
   }
 
   void visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.last;
+    bool isDeadBlock = analyzer.isDeadBlock(block);
+    block.isLive = !isDeadBlock;
+    // Start from the last non-control flow instruction in the block.
+    HInstruction instruction = block.last.previous;
     while (instruction != null) {
       var previous = instruction.previous;
-      if (isDeadCode(instruction)) block.remove(instruction);
+      if (isDeadBlock) {
+        eliminatedSideEffects = eliminatedSideEffects ||
+            instruction.sideEffects.hasSideEffects();
+        removeUsers(instruction);
+        block.remove(instruction);
+      } else if (isDeadCode(instruction)) {
+        block.remove(instruction);
+      }
       instruction = previous;
+    }
+  }
+
+  void cleanPhis(HGraph graph) {
+    L: for (HBasicBlock block in graph.blocks) {
+      List<HBasicBlock> predecessors = block.predecessors;
+      if (predecessors.length < 2) continue L;
+      // Find the index of the single live predecessor if it exists.
+      int indexOfLive = -1;
+      for (int i = 0; i < predecessors.length; i++) {
+        if (predecessors[i].isLive) {
+          if (indexOfLive >= 0) continue L;
+          indexOfLive = i;
+        }
+      }
+      // Run through the phis of the block and replace them with their input
+      // that comes from the only live predecessor if that dominates the phi.
+      block.forEachPhi((HPhi phi) {
+        HInstruction replacement = (indexOfLive >= 0)
+            ? phi.inputs[indexOfLive] : zapInstruction;
+        if (replacement.dominates(phi)) {
+          block.rewrite(phi, replacement);
+          block.removePhi(phi);
+        }
+      });
+    }
+  }
+
+  void removeUsers(HInstruction instruction) {
+    instruction.usedBy.forEach((user) {
+      removeInput(user, instruction);
+    });
+    instruction.usedBy.clear();
+  }
+
+  void removeInput(HInstruction user, HInstruction input) {
+    List<HInstruction> inputs = user.inputs;
+    for (int i = 0, length = inputs.length; i < length; i++) {
+      if (input == inputs[i]) {
+        HInstruction zap = zapInstruction;
+        inputs[i] = zap;
+        zap.usedBy.add(user);
+      }
+    }
+  }
+}
+
+class SsaLiveBlockAnalyzer extends HBaseVisitor {
+  final HGraph graph;
+  final Set<HBasicBlock> live = new Set<HBasicBlock>();
+  final List<HBasicBlock> worklist = <HBasicBlock>[];
+  SsaLiveBlockAnalyzer(this.graph);
+
+  bool isDeadBlock(HBasicBlock block) => !live.contains(block);
+
+  void analyze() {
+    markBlockLive(graph.entry);
+    while (!worklist.isEmpty) {
+      HBasicBlock live = worklist.removeLast();
+      live.last.accept(this);
+    }
+  }
+
+  void markBlockLive(HBasicBlock block) {
+    if (!live.contains(block)) {
+      worklist.add(block);
+      live.add(block);
+    }
+  }
+
+  void visitControlFlow(HControlFlow instruction) {
+    instruction.block.successors.forEach(markBlockLive);
+  }
+
+  void visitIf(HIf instruction) {
+    HInstruction condition = instruction.condition;
+    if (condition.isConstant()) {
+      if (condition.isConstantTrue()) {
+        markBlockLive(instruction.thenBlock);
+      } else {
+        markBlockLive(instruction.elseBlock);
+      }
+    } else {
+      visitControlFlow(instruction);
     }
   }
 }

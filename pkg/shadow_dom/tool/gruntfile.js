@@ -4,53 +4,25 @@
  * license that can be found in the LICENSE file.
  */
 module.exports = function(grunt) {
-  ShadowDOMPolyfill = [
-    'sidetable.js',
-    'wrappers.js',
-    'wrappers/events.js',
-    'wrappers/NodeList.js',
-    'wrappers/Node.js',
-    'querySelector.js',
-    'wrappers/node-interfaces.js',
-    'wrappers/CharacterData.js',
-    'wrappers/Element.js',
-    'wrappers/HTMLElement.js',
-    'wrappers/HTMLContentElement.js',
-    'wrappers/HTMLShadowElement.js',
-    'wrappers/HTMLTemplateElement.js',
-    'wrappers/HTMLUnknownElement.js',
-    'wrappers/generic.js',
-    'wrappers/ShadowRoot.js',
-    'ShadowRenderer.js',
-    'wrappers/Document.js',
-    'wrappers/Window.js',
-    'wrappers/MutationObserver.js',
-    'wrappers/override-constructors.js'
-  ];
-  ShadowDOMPolyfill = ShadowDOMPolyfill.map(function(p) {
-    return '../../../third_party/polymer/ShadowDOM/src/' + p;
-  });
+  // Recursive module builder:
+  var path = require('path');
+  function readManifest(filename, modules) {
+    modules = modules || [];
+    var lines = grunt.file.readJSON(filename);
+    var dir = path.dirname(filename);
+    lines.forEach(function(line) {
+      var fullpath = path.join(dir, line);
+      if (line.slice(-5) == '.json') {
+        // recurse
+        readManifest(fullpath, modules);
+      } else {
+        modules.push(fullpath);
+      }
+    });
+    return modules;
+  }
 
-  // Apply partial patch from Polymer/Platform, dart2js, CSS
-  // polyfill from platform and dart2js CSS patches:
-  ShadowDOMPolyfill.unshift(
-    '../lib/src/platform/patches-shadowdom-polyfill-before.js'
-    );
-  ShadowDOMPolyfill.push(
-    '../lib/src/platform/patches-shadowdom-polyfill.js',
-    '../lib/src/platform/platform-init.js',
-    '../lib/src/platform/ShadowCSS.js',
-    '../lib/src/platform/patches-shadow-css.js'
-    );
-
-  // Only load polyfill if not natively present.
-  ConditionalShadowDOM = [].concat(
-    'build/if-poly.js',
-    ShadowDOMPolyfill,
-    'build/end-if.js'
-  );
-
-  // karma setup
+  // Karma setup:
   var browsers;
   (function() {
     try {
@@ -87,7 +59,7 @@ module.exports = function(grunt) {
     },
     concat: {
       ShadowDOM: {
-        src: ConditionalShadowDOM,
+        src: readManifest('build.json'),
         dest: '../lib/shadow_dom.debug.js',
         nonull: true
       }
@@ -140,4 +112,3 @@ module.exports = function(grunt) {
   grunt.registerTask('test', ['karma:ShadowDOM']);
   grunt.registerTask('test-buildbot', ['karma:buildbot']);
 };
-

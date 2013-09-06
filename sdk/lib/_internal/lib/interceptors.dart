@@ -57,14 +57,6 @@ getInterceptor(object) {
   return JS('', 'void 0');
 }
 
-/**
- * The name of the property used on native classes and `Object.prototype` to get
- * the interceptor for a native class instance.  The value is initialized on
- * isolate startup to ensure no two Dart programs in the same page use the same
- * property.
- */
-var dispatchPropertyName = null;
-
 getDispatchProperty(object) {
   return JS('', '#[#]', object, JS('String', 'init.dispatchPropertyName'));
 }

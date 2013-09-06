@@ -5,6 +5,7 @@
 // field is being gvn'ed.
 
 import 'compiler_helper.dart';
+import "package:async_helper/async_helper.dart";
 
 const String TEST = r"""
 class A {
@@ -25,11 +26,12 @@ main() {
 """;
 
 main() {
-  String generated = compileAll(TEST);
-  RegExp regexp = new RegExp('foo\\\$0\\\$bailout');
-  Iterator matches = regexp.allMatches(generated).iterator;
+  asyncTest(() => compileAll(TEST).then((generated) {
+    RegExp regexp = new RegExp('foo\\\$0\\\$bailout');
+    Iterator matches = regexp.allMatches(generated).iterator;
 
-  // We check that there is only one call to the bailout method.
-  // One match for the call, one for the definition.
-  checkNumberOfMatches(matches, 2);
+    // We check that there is only one call to the bailout method.
+    // One match for the call, one for the definition.
+    checkNumberOfMatches(matches, 2);
+  }));
 }

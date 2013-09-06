@@ -3,17 +3,12 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js || $compiler == dart2dart ]
-compile_time_constant_c_test/none: Fail # Map literal with int key.
-constructor_initializer_test: Fail, OK # Depends on ?parameter check.
+compile_time_constant_c_test/none: Fail # Issue 11583
 null_test/03: Fail # Issue 12445.
-
 black_listed_test/none: Fail # Issue 12446.
-
-# Issues related to undeclared prefix resolution.
 malformed_test/none: Fail # Issue 12695
 malformed_test/05: Fail # Issue 12695
 malformed_test/06: Fail # Issue 12695
-
 full_stacktrace1_test: Pass, Fail # Issue 12698
 full_stacktrace2_test: Pass, Fail # Issue 12698
 full_stacktrace3_test: Pass, Fail # Issue 12698
@@ -44,15 +39,10 @@ redirecting_factory_malbounded_test/01: Fail # Issue 12825
 [ $compiler == dart2js && $unchecked ]
 factory_redirection_test/14: Fail # Issue 10959
 type_checks_in_factory_method_test: Fail # Issue 12746
-
 assertion_test: Fail # Issue 12748
-
 double_to_string_as_exponential2_test: Fail # Issue 12749
 double_to_string_as_fixed2_test: Fail # Issue 12749
 double_to_string_as_precision2_test: Fail # Issue 12749
-
-# Only checked mode reports an error on type assignment
-# problems in compile time constants.
 compile_time_constant_checked_test/02: Fail, OK
 compile_time_constant_checked2_test/01: Fail, OK
 compile_time_constant_checked2_test/02: Fail, OK
@@ -76,6 +66,7 @@ positional_parameters_type_test/02: Fail, OK
 [ $compiler == dart2js && $minified ]
 f_bounded_quantification4_test: Fail # Issue 12605.
 f_bounded_quantification5_test: Fail # Issue 12605.
+mixin_mixin2_test: Fail # Issue 12605.
 
 [ $compiler == dart2js ]
 function_type_alias6_test/00: Crash # Issue 9792
@@ -122,6 +113,7 @@ dynamic_prefix_core_test: Fail # Issue 12398
 metadata_test: Fail # Issue 5841
 infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # Issue 12795
+mixin_mixin2_test: Fail # Issue 13109.
 
 # Compilation errors.
 const_var_test: Fail # Issue 12793
@@ -136,7 +128,6 @@ method_override5_test: Fail # Issue 12809
 parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters_aggregated_test/01: Fail # Issue 12801
 named_parameters_aggregated_test/03: Fail # Issue 12812
-pseudo_kw_test: Fail # Unexpected token '('
 super_implicit_closure_test: Fail # Issue 12884
 mixin_type_parameters_errors_test/01: Fail # Issue 12885
 mixin_type_parameters_errors_test/02: Fail # Issue 12885
@@ -152,55 +143,35 @@ external_test/31: Fail # Issue 12887
 instanceof4_test/01: Fail # Issue 12889
 list_literal4_test: Fail # Issue 12890
 map_literal4_test: Fail # Issue 12891
+built_in_identifier_test/01: Fail # Issue 13022
 
-#
-# The following tests are all negative tests that should be fixed.
-#
-const_constructor_syntax_test/04: Fail # Issue 12900
 const_syntax_test/01: Fail # Issue 12932
 const_syntax_test/02: Fail # Issue 12932
 const_syntax_test/03: Fail # Issue 12932
 const_syntax_test/04: Fail # Issue 12932
 constructor9_test/01: Fail # Issue 12934
-constructor_return_test/01: Fail # Issue 12937
-constructor_return_test/02: Fail # Issue 12937
-constructor_return_with_arrow_negative_test: Fail # Negative language test.
-constructor_return_with_init_and_arrow_negative_test: Fail # Negative language test.
-constructor_return_with_init_negative_test: Fail # Negative language test.
-duplicate_implements_test/01: Fail # Negative language test.
-duplicate_implements_test/02: Fail # Negative language test.
-duplicate_implements_test/03: Fail # Negative language test.
-duplicate_implements_test/04: Fail # Negative language test.
-instantiate_type_variable_negative_test: Pass  # For the wrong reason.
-list_literal1_negative_test: Fail # Negative language test.
-map_literal1_negative_test: Fail # Negative language test.
-number_identifier_negative_test: Fail # Negative language test.
-scope_negative_test: Fail # Negative language test.
-static_final_field_negative_test: Fail # Negative language test.
-throw7_negative_test: Fail # Negative language test.
+duplicate_implements_test/01: Fail # Issue 12991
+duplicate_implements_test/02: Fail # Issue 12991
+duplicate_implements_test/03: Fail # Issue 12991
+duplicate_implements_test/04: Fail # Issue 12991
+list_literal1_test/01: Fail # Issue 12993
+map_literal1_test/01: Fail # Issue 12993
+number_identifier_test/05: Fail # Issue 13070
+scope_variable_test/01: Fail # Issue 13016
+static_final_field2_test/02: Fail # Issue 13017
+throw7_test/01: Fail # Issue 13019
 
-numbers_test: Fail, OK # (unintended?) VM specific test.
+numbers_test: Fail, OK # Issue 1533
+canonical_const2_test: Fail, OK # Issue 1533
+bit_operations_test: Fail, OK # Issue 1533
+expect_test: Fail, OK # Issue 13080
 
-final_syntax_test/01: Fail # Missing error for uninitialized final field.
-final_syntax_test/02: Fail # Missing error for uninitialized final field.
-final_syntax_test/03: Fail # Missing error for uninitialized final field.
-final_syntax_test/04: Fail # Missing error for uninitialized final field.
+final_syntax_test/01: Fail # Issue 13020
+final_syntax_test/02: Fail # Issue 13020
+final_syntax_test/03: Fail # Issue 13020
+final_syntax_test/04: Fail # Issue 13020
 
-canonical_const2_test: Fail, OK # Dart2js only has doubles.
-
-bit_operations_test: Fail, OK # Tests bit operations outside the 32 bit range.
-# The following test will start to fail again once dart2js implements the
-# runtime semantics for numbers.
-# Should be: Fail, OK # Expects negative results of bit-operations.
-optimization_test: Fail, OK # Expects negative results of bit-operations.
-
-expect_test: Fail, OK # JavaScript canonicalizes all strings. This test assumes that string-concatenation returns a new string.
-
-# Partially implemented redirecting constructors makes this throw instead
-# of failing.
-const_factory_negative_test: Crash, Fail
-
-assign_top_method_test: Fail
+assign_top_method_test: Fail # Issue 13075
 null_test/none: Fail  # Issue 12482
 
 
@@ -216,7 +187,7 @@ round_test: Fail, OK # Common JavaScript engine Math.round bug.
 double_to_string_as_exponential3_test: Fail # Issue 12750
 double_to_string_as_fixed_test: Fail # Issue 12750
 double_to_string_as_precision3_test: Fail # Issue 12750
-expect_test: Fail
+expect_test: Fail # Issue 13080
 stack_overflow_test: Fail
 stack_overflow_stacktrace_test: Fail
 
@@ -239,14 +210,12 @@ mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631
 function_type_alias6_test/00: Fail # Issue 11986
 function_type_alias9_test/00: Crash # Issue 11986
+symbol_literal_test: Fail # Issue 12171
 
 built_in_identifier_prefix_test: Fail # Issue 6972
-constructor_initializer_test: Fail # VM issue
-factory3_test: Fail
+constructor_initializer_test/none: Fail # Issue 12633
+factory3_test: Fail # Issue 13077
 type_checks_in_factory_method_test: Fail # Issue 12747
-
-many_overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
-overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
 
 on_catch_malformed_type_test: Fail # Issue 8601
 
@@ -256,6 +225,7 @@ mixin_type_parameters_errors_test/05: Fail # Issue 12886
 
 # Mixins fail on the VM.
 mixin_mixin_test: Fail # Issue 9683
+mixin_mixin2_test: Fail # Issue 9683
 mixin_issue10216_2_test: Fail # Issue 9683
 mixin_forwarding_constructor2_test: Fail # Issue 11888
 mixin_typedef_constructor_test: Fail # Issue 11888
@@ -264,12 +234,12 @@ mixin_type_parameter2_test: Fail # Issue 11888
 mixin_with_two_implicit_constructors_test: Fail # Issue 11889
 
 # Malformed types not handled as unresolved:
-import_core_prefix_test: Fail
-prefix16_test: Fail
-prefix22_test: Fail
+import_core_prefix_test: Fail # Issue 13081
+prefix16_test: Fail # Issue 13081
+prefix22_test: Fail # Issue 13081
 
 # Calling unresolved class constructor:
-call_nonexistent_constructor_test: Fail
+call_nonexistent_constructor_test: Fail # Issue 13082
 
 bad_override_test/01: Fail # Issue 11496
 bad_override_test/02: Fail # Issue 11496
@@ -297,7 +267,6 @@ compile_time_constant_arguments_test/02: Fail # Issue 5519
 compile_time_constant_arguments_test/03: Fail # Issue 5519
 compile_time_constant_arguments_test/05: Fail # Issue 5519
 compile_time_constant_arguments_test/06: Fail # Issue 5519
-const_constructor_syntax_test/04: Fail # Issue 12901
 const_syntax_test/01: Fail # Issue 12933
 const_syntax_test/02: Fail # Issue 12933
 const_syntax_test/03: Fail # Issue 12933
@@ -308,13 +277,11 @@ const_syntax_test/07: Fail # Issue 12933
 const_syntax_test/08: Fail # Issue 12933
 const_syntax_test/10: Fail # Issue 12933
 constructor9_test/01: Fail # Issue 12935
-constructor_return_test/01: Fail # Issue 12938
-constructor_return_test/02: Fail # Issue 12938
 constructor_named_arguments_test/01: Fail # Issue 5519
-final_syntax_test/01: Fail # Issue 5519
-final_syntax_test/02: Fail # Issue 5519
-final_syntax_test/03: Fail # Issue 5519
-final_syntax_test/04: Fail # Issue 5519
+final_syntax_test/01: Fail # Issue 13020
+final_syntax_test/02: Fail # Issue 13020
+final_syntax_test/03: Fail # Issue 13020
+final_syntax_test/04: Fail # Issue 13020
 getter_no_setter_test/01: Fail # Issue 5519
 named_parameters_aggregated_test/01: Fail # Issue 12802
 named_parameters_aggregated_test/03: Fail # Issue 12813
@@ -325,10 +292,6 @@ not_enough_positional_arguments_test/05: Fail # Issue 12839
 metadata_test: Fail # Issue 12762
 const_var_test: Pass, Fail # Issue 12794
 map_literal3_test: Fail # Issue 12794
-# Common problems with dart2js.  In illegal family, invalid
-# declarations are simply not parsed.  In pseudo kw dart2js
-# chokes on things like typedef(x) => "typedef $x" and alike.
-pseudo_kw_test: Fail
 external_test/11: Fail # Issue 12888
 external_test/12: Fail # Issue 12888
 external_test/13: Fail # Issue 12888
@@ -337,18 +300,19 @@ external_test/22: Fail # Issue 12888
 external_test/23: Fail # Issue 12888
 external_test/30: Fail # Issue 12888
 external_test/31: Fail # Issue 12888
+built_in_identifier_test/01: Fail # Issue 13022
 lazy_static3_test: Fail # Issue 12593
-# dart2js frontend doesn't even analyse problematic classes.
-duplicate_implements_test/01: Fail
-duplicate_implements_test/02: Fail
-duplicate_implements_test/03: Fail
-duplicate_implements_test/04: Fail
+duplicate_implements_test/01: Fail # Issue 12992
+duplicate_implements_test/02: Fail # Issue 12992
+duplicate_implements_test/03: Fail # Issue 12992
+duplicate_implements_test/04: Fail # Issue 12992
+list_literal1_test/01: Fail # Issue 12993
+map_literal1_test/01: Fail # Issue 12993
 method_override4_test: Fail # Issue 12810
 method_override5_test: Fail # Issue 12810
-static_final_field_negative_test: Fail
-# Bug in dart2js parser: it happily parses 1is int; variable declaration.
-number_identifier_negative_test: Fail
-# Common with language_dart2js.
+static_final_field2_test/02: Fail # Issue 13017
+throw7_test/01: Fail # Issue 13019
+scope_variable_test/01: Fail # Issue 13016
 factory_redirection_test/01: Fail # Issue 12753
 factory_redirection_test/02: Crash # Issue 12753
 factory_redirection_test/03: Crash # Issue 12753
@@ -367,8 +331,6 @@ constructor6_test: Fail
 closure_in_initializer_test: Fail
 super_first_constructor_test: Fail
 # Minified mode failures.
-# TODO(antonm): proper support in test framework.
-no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("foo").
 
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
@@ -395,6 +357,9 @@ final_is_not_const_test/01: Fail # Issue 12692
 super_getter_setter_test: Fail # Issue 11065.
 f_bounded_quantification4_test: Fail # Issue 12605.
 f_bounded_quantification5_test: Fail # Issue 12605.
+many_overridden_no_such_method_test: Fail # Issue 13078
+overridden_no_such_method_test: Fail # Issue 13078
+no_such_method_test: Fail # Issue 13078
 
 # TODO(tball): Assign proper bug numbers.
 class_literal_test: Fail

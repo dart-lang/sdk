@@ -1172,7 +1172,7 @@ Package mockPackage(String description, String version,
   var name = description.replaceFirst(new RegExp(r"-[^-]+$"), "");
   var pubspec = new Pubspec(
       name, new Version.parse(version), dependencies, devDependencies,
-      new PubspecEnvironment(sdkConstraint));
+      new PubspecEnvironment(sdkConstraint), []);
   return new Package.inMemory(pubspec);
 }
 

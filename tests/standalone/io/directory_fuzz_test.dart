@@ -7,7 +7,8 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
+
+import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 import 'fuzz_support.dart';
@@ -37,7 +38,7 @@ fuzzSyncMethods() {
 }
 
 fuzzAsyncMethods() {
-  var port = new ReceivePort();
+  asyncStart();
   var futures = [];
   typeMapping.forEach((k, v) {
     if (v is! String) {
@@ -67,7 +68,7 @@ fuzzAsyncMethods() {
       }));
     });
   });
-  Future.wait(futures).then((ignore) => port.close());
+  Future.wait(futures).then((_) => asyncEnd());
 }
 
 main() {

@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import 'dart:io';
-import 'dart:isolate';
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 main() {
-  var port = new ReceivePort();
+  asyncStart();
   var executable = new File(Platform.executable).fullPathSync();
   var tempDir = new Directory('').createTempSync();
   var nonAsciiDir = new Directory('${tempDir.path}/æøå');
@@ -30,6 +31,6 @@ main() {
       .then((result) {
         Expect.equals(0, result.exitCode);
         tempDir.deleteSync(recursive: true);
-        port.close();
+        asyncEnd();
       });
 }

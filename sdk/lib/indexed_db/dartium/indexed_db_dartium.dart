@@ -441,7 +441,12 @@ class Index extends NativeFieldWrapperClass1 {
     } else {
       key_OR_range = range;
     }
-    var request = _openCursor(key_OR_range, direction);
+    var request;
+    if (direction == null) {
+      request = _openCursor(key_OR_range);
+    } else {
+      request = _openCursor(key_OR_range, direction);
+    }
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
 
@@ -463,7 +468,12 @@ class Index extends NativeFieldWrapperClass1 {
     } else {
       key_OR_range = range;
     }
-    var request = _openKeyCursor(key_OR_range, direction);
+    var request;
+    if (direction == null) {
+      request = _openKeyCursor(key_OR_range);
+    } else {
+      request = _openKeyCursor(key_OR_range, direction);
+    }
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
 
@@ -502,11 +512,11 @@ class Index extends NativeFieldWrapperClass1 {
 
   @DomName('IDBIndex.openCursor')
   @DocsEditable()
-  Request _openCursor(Object key, String direction) native "IDBIndex_openCursor_Callback";
+  Request _openCursor(Object key, [String direction]) native "IDBIndex_openCursor_Callback";
 
   @DomName('IDBIndex.openKeyCursor')
   @DocsEditable()
-  Request _openKeyCursor(Object key, String direction) native "IDBIndex_openKeyCursor_Callback";
+  Request _openKeyCursor(Object key, [String direction]) native "IDBIndex_openKeyCursor_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

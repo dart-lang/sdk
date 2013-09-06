@@ -26,6 +26,7 @@ import 'dart:_js_helper' show
     createUnmangledInvocationMirror,
     getMangledTypeName,
     throwInvalidReflectionError,
+    hasReflectableProperty,
     runtimeTypeToString;
 import 'dart:_interceptors' show
     Interceptor,
@@ -430,6 +431,13 @@ ClassMirror reflectClassByName(Symbol symbol, String mangledName) {
   var constructorOrInterceptor =
       Primitives.getConstructorOrInterceptor(mangledName);
   if (constructorOrInterceptor == null) {
+    int index = JS('int|Null', 'init.functionAliases[#]', mangledName);
+    if (index != null) {
+      mirror = new JsTypedefMirror(
+          symbol, mangledName, JS('=Object', 'init.metadata[#]', index));
+      JsCache.update(classMirrors, mangledName, mirror);
+      return mirror;
+    }
     // Probably an intercepted class.
     // TODO(ahe): How to handle intercepted classes?
     throw new UnsupportedError('Cannot find class for: ${n(symbol)}');
@@ -490,6 +498,7 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
     implements ClassMirror {
   final ClassMirror superclass;
   final ClassMirror mixin;
+  Symbol _cachedSimpleName;
 
   JsMixinApplication(ClassMirror superclass, ClassMirror mixin,
                      String mangledName)
@@ -500,7 +509,11 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
   String get _prettyName => 'ClassMirror';
 
   Symbol get simpleName {
-    return s('${n(mixin.qualifiedName)}(${n(superclass.qualifiedName)})');
+    if (_cachedSimpleName != null) return _cachedSimpleName;
+    String superName = n(superclass.qualifiedName);
+    return _cachedSimpleName = (superName.contains(' with '))
+        ? s('$superName, ${n(mixin.qualifiedName)}')
+        : s('$superName with ${n(mixin.qualifiedName)}');
   }
 
   Symbol get qualifiedName => simpleName;
@@ -674,6 +687,26 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
   delegate(Invocation invocation) {
     return JSInvocationMirror.invokeFromMirror(invocation, reflectee);
+  }
+
+  operator ==(other) {
+    return other is JsInstanceMirror &&
+           identical(reflectee, other.reflectee);
+  }
+
+  int get hashCode {
+    // If the reflectee is a built-in type, use the base-level hashCode to
+    // preserve the illusion that, e.g. doubles, with the same value are
+    // identical. Otherwise, use the primitive identity hash to maintain
+    // correctness even if a user-defined hashCode returns different values for
+    // successive invocations.
+    var h = ((JS('bool', 'typeof # != "object"', reflectee)) || 
+             (reflectee == null))
+        ? reflectee.hashCode
+        : Primitives.objectHashCode(reflectee);
+    // Avoid hash collisions with the reflectee. This constant is in Smi range
+    // and happens to be the inner padding from RFC 2104.
+    return h ^ 0x36363636;
   }
 
   String toString() => 'InstanceMirror on ${Error.safeToString(reflectee)}';
@@ -1273,7 +1306,7 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
   }
 
   bool canInvokeReflectively() {
-    return JS('bool', '#[#] != false', _jsFunction, JS_GET_NAME("REFLECTABLE"));
+    return hasReflectableProperty(_jsFunction);
   }
 
   DeclarationMirror get owner => _owner;
@@ -1365,7 +1398,7 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
 }
 
 class JsParameterMirror extends JsDeclarationMirror implements ParameterMirror {
-  final JsMethodMirror owner;
+  final DeclarationMirror owner;
   // A JS object representing the type.
   final _type;
 
@@ -1376,7 +1409,8 @@ class JsParameterMirror extends JsDeclarationMirror implements ParameterMirror {
 
   TypeMirror get type => typeMirrorFromRuntimeTypeRepresentation(_type);
 
-  bool get isStatic => owner.isStatic;
+  // Only true for static fields, never for a parameter.
+  bool get isStatic => false;
 
   // TODO(ahe): Implement this.
   bool get isFinal => false;
@@ -1395,6 +1429,119 @@ class JsParameterMirror extends JsDeclarationMirror implements ParameterMirror {
 
   // TODO(ahe): Implement this.
   List<InstanceMirror> get metadata => throw new UnimplementedError();
+}
+
+class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
+  final String _mangledName;
+  final JsFunctionTypeMirror referent;
+
+  JsTypedefMirror(Symbol simpleName,  this._mangledName, _typeData)
+      : referent = new JsFunctionTypeMirror(_typeData),
+        super(simpleName);
+
+  JsFunctionTypeMirror get value => referent;
+
+  String get _prettyName => 'TypedefMirror';
+}
+
+class JsFunctionTypeMirror implements FunctionTypeMirror {
+  final _typeData;
+  String _cachedToString;
+  TypeMirror _cachedReturnType;
+  UnmodifiableListView<ParameterMirror> _cachedParameters;
+
+  JsFunctionTypeMirror(this._typeData);
+
+  bool get _hasReturnType => JS('bool', '"ret" in #', _typeData);
+  get _returnType => JS('', '#.ret', _typeData);
+
+  bool get _isVoid => JS('bool', '!!#.void', _typeData);
+
+  bool get _hasArguments => JS('bool', '"args" in #', _typeData);
+  List get _arguments => JS('JSExtendableArray', '#.args', _typeData);
+
+  bool get _hasOptionalArguments => JS('bool', '"opt" in #', _typeData);
+  List get _optionalArguments => JS('JSExtendableArray', '#.opt', _typeData);
+
+  bool get _hasNamedArguments => JS('bool', '"named" in #', _typeData);
+  get _namedArguments => JS('=Object', '#.named', _typeData);
+
+  TypeMirror get returnType {
+    if (_cachedReturnType != null) return _cachedReturnType;
+    if (_isVoid) return _cachedReturnType = JsMirrorSystem._voidType;
+    if (!_hasReturnType) return _cachedReturnType = JsMirrorSystem._dynamicType;
+    return _cachedReturnType =
+        typeMirrorFromRuntimeTypeRepresentation(_returnType);
+  }
+
+  List<ParameterMirror> get parameters {
+    if (_cachedParameters != null) return _cachedParameters;
+    List result = [];
+    int parameterCount = 0;
+    if (_hasArguments) {
+      for (var type in _arguments) {
+        result.add(
+            new JsParameterMirror('argument${parameterCount++}', this, type));
+      }
+    }
+    if (_hasOptionalArguments) {
+      for (var type in _optionalArguments) {
+        result.add(
+            new JsParameterMirror('argument${parameterCount++}', this, type));
+      }
+    }
+    if (_hasNamedArguments) {
+      for (var name in extractKeys(_namedArguments)) {
+        var type = JS('', '#[#]', _namedArguments, name);
+        result.add(new JsParameterMirror(name, this, type));
+      }
+    }
+    return _cachedParameters = new UnmodifiableListView<ParameterMirror>(
+        result);
+  }
+
+  String toString() {
+    if (_cachedToString != null) return _cachedToString;
+    var s = "FunctionTypeMirror on '(";
+    var sep = '';
+    if (_hasArguments) {
+      for (var argument in _arguments) {
+        s += sep;
+        s += runtimeTypeToString(argument);
+        sep = ', ';
+      }
+    }
+    if (_hasOptionalArguments) {
+      s += '$sep[';
+      sep = '';
+      for (var argument in _optionalArguments) {
+        s += sep;
+        s += runtimeTypeToString(argument);
+        sep = ', ';
+      }
+      s += ']';
+    }
+    if (_hasNamedArguments) {
+      s += '$sep{';
+      sep = '';
+      for (var name in extractKeys(_namedArguments)) {
+        s += sep;
+        s += '$name: ';
+        s += runtimeTypeToString(JS('', '#[#]', _namedArguments, name));
+        sep = ', ';
+      }
+      s += '}';
+    }
+    s += ') -> ';
+    if (_isVoid) {
+      s += 'void';
+    } else if (_hasReturnType) {
+      s += runtimeTypeToString(_returnType);
+    } else {
+      s += 'dynamic';
+    }
+    return _cachedToString = "$s'";
+  }
 }
 
 TypeMirror typeMirrorFromRuntimeTypeRepresentation(type) {

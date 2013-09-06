@@ -361,11 +361,17 @@ class ResolverTask extends CompilerTask {
           error(tree, MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
           return;
         }
-        if (isConstructor) {
+        if (isConstructor || element.isFactoryConstructor()) {
           if (tree.returnType != null) {
             error(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
           }
+          if (element.modifiers.isConst() &&
+              tree.hasBody() &&
+              !tree.isRedirectingFactory) {
+            compiler.reportError(tree, MessageKind.CONST_CONSTRUCTOR_HAS_BODY);
+          }
         }
+
         ResolverVisitor visitor = visitorFor(element);
         visitor.useElement(tree, element);
         visitor.setupFunction(tree, element);
@@ -662,6 +668,8 @@ class ResolverTask extends CompilerTask {
     if (cls.isObject(compiler)) return;
     // TODO(johnniwinther): Should this be done on the implementation element as
     // well?
+    List<Element> constConstructors = <Element>[];
+    List<Element> nonFinalInstanceFields = <Element>[];
     cls.forEachMember((holder, member) {
       compiler.withCurrentElement(member, () {
         // Perform various checks as side effect of "computing" the type.
@@ -684,12 +692,38 @@ class ResolverTask extends CompilerTask {
                 MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS,
                 {'modifiers': mismatchedFlags});
           }
+          if (member.modifiers.isConst()) {
+            constConstructors.add(member);
+          }
+        }
+        if (member.isField()) {
+          if (!member.modifiers.isStatic() &&
+              !member.modifiers.isFinal()) {
+            nonFinalInstanceFields.add(member);
+          }
         }
         checkAbstractField(member);
         checkValidOverride(member, cls.lookupSuperMember(member.name));
         checkUserDefinableOperator(member);
       });
     });
+    if (!constConstructors.isEmpty && !nonFinalInstanceFields.isEmpty) {
+      Spannable span = constConstructors.length > 1
+          ? cls : constConstructors[0];
+      compiler.reportError(span,
+          MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS,
+          {'className': cls.name});
+      if (constConstructors.length > 1) {
+        for (Element constructor in constConstructors) {
+          compiler.reportInfo(constructor,
+              MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR);
+        }
+      }
+      for (Element field in nonFinalInstanceFields) {
+        compiler.reportInfo(field,
+            MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD);
+      }
+    }
   }
 
   void checkAbstractField(Element member) {
@@ -1238,8 +1272,10 @@ class InitializerResolver {
           resolveSuperOrThisForSend(constructor, functionNode, call);
           resolvedSuper = true;
         } else if (Initializers.isConstructorRedirect(call)) {
-          // Check that there is no body (Language specification 7.5.1).
-          if (functionNode.hasBody()) {
+          // Check that there is no body (Language specification 7.5.1).  If the
+          // constructor is also const, we already reported an error in
+          // [resolveMethodElement].
+          if (functionNode.hasBody() && !constructor.modifiers.isConst()) {
             error(functionNode, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY);
           }
           // Check that there are no other initializers.
@@ -2488,6 +2524,16 @@ class ResolverVisitor extends MappingVisitor<Element> {
     world.registerInstantiatedClass(compiler.nullClass, mapping);
   }
 
+  visitLiteralSymbol(LiteralSymbol node) {
+    world.registerInstantiatedClass(compiler.symbolClass, mapping);
+    world.registerStaticUse(compiler.symbolConstructor.declaration);
+    world.registerConstSymbol(node.slowNameString, mapping);
+    if (!validateSymbol(node, node.slowNameString, reportError: false)) {
+      compiler.reportError(node, MessageKind.UNSUPPORTED_LITERAL_SYMBOL,
+                           {'value': node.slowNameString});
+    }
+  }
+
   visitStringJuxtaposition(StringJuxtaposition node) {
     world.registerInstantiatedClass(compiler.stringClass, mapping);
     node.visitChildren(this);
@@ -2513,6 +2559,15 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (node.isRedirectingFactoryBody) {
       handleRedirectingFactoryBody(node);
     } else {
+      Node expression = node.expression;
+      if (expression != null &&
+          enclosingElement.isGenerativeConstructor()) {
+        // It is a compile-time error if a return statement of the form
+        // `return e;` appears in a generative constructor.  (Dart Language
+        // Specification 13.12.)
+        compiler.reportError(expression,
+                             MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR);
+      }
       visit(node.expression);
     }
   }
@@ -2575,9 +2630,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     world.registerInstantiatedClass(
         redirectionTarget.enclosingElement.declaration, mapping);
     if (isSymbolConstructor) {
-      // Make sure that collection_dev.Symbol.validated is registered.
-      assert(invariant(node, compiler.symbolValidatedConstructor != null));
-      world.registerStaticUse(compiler.symbolValidatedConstructor);
+      compiler.backend.registerSymbolConstructor(mapping);
     }
   }
 
@@ -2679,21 +2732,24 @@ class ResolverVisitor extends MappingVisitor<Element> {
     return null;
   }
 
-  bool validateSymbol(Node node, String name) {
+  bool validateSymbol(Node node, String name, {bool reportError: true}) {
     if (name.isEmpty) return true;
     if (name.startsWith('_')) {
-      compiler.reportError(node, MessageKind.PRIVATE_IDENTIFIER,
-                               {'value': name});
+      if (reportError) {
+        compiler.reportError(node, MessageKind.PRIVATE_IDENTIFIER,
+                             {'value': name});
+      }
       return false;
     }
     if (!symbolValidationPattern.hasMatch(name)) {
-      compiler.reportError(node, MessageKind.INVALID_SYMBOL,
-                               {'value': name});
+      if (reportError) {
+        compiler.reportError(node, MessageKind.INVALID_SYMBOL,
+                             {'value': name});
+      }
       return false;
     }
     return true;
   }
-
 
   /**
    * Try to resolve the constructor that is referred to by [node].

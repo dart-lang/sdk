@@ -343,6 +343,49 @@ void FileHandle::DoClose() {
 }
 
 
+void DirectoryWatchHandle::EnsureInitialized(
+    EventHandlerImplementation* event_handler) {
+  ScopedLock lock(this);
+  event_handler_ = event_handler;
+  if (completion_port_ == INVALID_HANDLE_VALUE) {
+    CreateCompletionPort(event_handler_->completion_port());
+  }
+}
+
+
+bool DirectoryWatchHandle::IsClosed() {
+  return IsClosing() && pending_read_ == NULL;
+}
+
+
+void DirectoryWatchHandle::DoClose() {
+  Handle::DoClose();
+}
+
+bool DirectoryWatchHandle::IssueRead() {
+  ScopedLock lock(this);
+  OverlappedBuffer* buffer = OverlappedBuffer::AllocateReadBuffer(kBufferSize);
+
+  ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
+
+  BOOL ok = ReadDirectoryChangesW(handle_,
+                                  buffer->GetBufferStart(),
+                                  buffer->GetBufferSize(),
+                                  recursive_,
+                                  events_,
+                                  NULL,
+                                  buffer->GetCleanOverlapped(),
+                                  NULL);
+  if (ok || GetLastError() == ERROR_IO_PENDING) {
+    // Completing asynchronously.
+    pending_read_ = buffer;
+    return true;
+  }
+  OverlappedBuffer::DisposeBuffer(buffer);
+  return false;
+}
+
+
 void SocketHandle::HandleIssueError() {
   int error = WSAGetLastError();
   if (error == WSAECONNRESET) {

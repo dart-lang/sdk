@@ -142,13 +142,6 @@ class DartEntry : public AllStatic {
                                        const String& target_name,
                                        const Array& arguments,
                                        const Array& arguments_descriptor);
-
-  // Invokes a generative constructor, redirecting constructor, factory or
-  // redirecting factory. On success, returns a RawInstance. On failure,
-  // a RawError.
-  static RawObject* InvokeConstructor(const Class& klass,
-                                      const Function &constructor,
-                                      const Array& arguments);
 };
 
 

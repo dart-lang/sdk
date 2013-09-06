@@ -7,23 +7,24 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
 void testCloseOneEnd(String toClose) {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   Completer serverDone = new Completer();
   Completer serverEndDone = new Completer();
   Completer clientEndDone = new Completer();
   Future.wait([serverDone.future, serverEndDone.future, clientEndDone.future])
       .then((_) {
-        port.close();
+        asyncEnd();
       });
   RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
     server.listen((serverConnection) {
@@ -54,7 +55,7 @@ void testCloseOneEnd(String toClose) {
 }
 
 void testCloseBothEnds() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
     var clientEndFuture = RawSecureSocket.connect(HOST_NAME, server.port);
     server.listen((serverEnd) {
@@ -62,7 +63,7 @@ void testCloseBothEnds() {
         clientEnd.close();
         serverEnd.close();
         server.close();
-        port.close();
+        asyncEnd();
       });
     });
   });
@@ -73,7 +74,7 @@ testPauseServerSocket() {
   var acceptCount = 0;
   var resumed = false;
 
-  ReceivePort port = new ReceivePort();
+  asyncStart();
 
   RawSecureServerSocket.bind(HOST_NAME,
                              0,
@@ -86,7 +87,7 @@ testPauseServerSocket() {
       connection.shutdown(SocketDirection.SEND);
       if (++acceptCount == 2 * socketCount) {
         server.close();
-        port.close();
+        asyncEnd();
       }
     });
 
@@ -114,7 +115,7 @@ testPauseServerSocket() {
 
 testCloseServer() {
   const int socketCount = 3;
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   List ends = [];
 
   RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
@@ -125,7 +126,7 @@ testCloseServer() {
         end.close();
       }
       server.close();
-      port.close();
+      asyncEnd();
     }
 
     server.listen((connection) {

@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
     show TypeMask;
 
@@ -16,11 +18,12 @@ void compileAndFind(String code,
                     check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(code, uri);
-  compiler.runCompiler(uri);
-  compiler.disableInlining = disableInlining;
-  var cls = findElement(compiler, className);
-  var member = cls.lookupMember(buildSourceString(memberName));
-  return check(compiler, member);
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    compiler.disableInlining = disableInlining;
+    var cls = findElement(compiler, className);
+    var member = cls.lookupMember(buildSourceString(memberName));
+    check(compiler, member);
+  }));
 }
 
 const String TEST_1 = r"""

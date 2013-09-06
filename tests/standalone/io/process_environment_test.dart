@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+
 import "process_test_util.dart";
 
 runEnvironmentProcess(Map environment, name, includeParent, callback) {
@@ -24,7 +26,7 @@ runEnvironmentProcess(Map environment, name, includeParent, callback) {
 }
 
 testEnvironment() {
-  var donePort = new ReceivePort();
+  asyncStart();
   Map env = Platform.environment;
   Expect.isFalse(env.isEmpty);
   // Check that some value in the environment stays the same when passed
@@ -42,7 +44,7 @@ testEnvironment() {
       copy[name] = 'value';
       runEnvironmentProcess(copy, name, true, (output) {
         Expect.isTrue(output.startsWith('value'));
-        donePort.close();
+        asyncEnd();
       });
     });
     // Only check one value to not spin up too many processes testing the
@@ -52,13 +54,13 @@ testEnvironment() {
 }
 
 testNoIncludeEnvironment() {
-  var donePort = new ReceivePort();
+  asyncStart();
   var env = Platform.environment;
   Expect.isTrue(env.containsKey('PATH'));
   env.remove('PATH');
   runEnvironmentProcess(env, "PATH", false, (output) {
-    donePort.close();
     Expect.isTrue(output.startsWith("null"));
+    asyncEnd();
   });
 }
 

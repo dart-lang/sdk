@@ -183,9 +183,9 @@ interface IDBCursor {
 };
 [Supplemental]
 interface IDBIndex {
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor([Default=Undefined] optional any key, [Default=NullString] optional DOMString direction);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor([Default=Undefined] optional any key, [ForceOptional] optional DOMString direction);
 
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openKeyCursor([Default=Undefined] optional any key, [Default=NullString] optional DOMString direction);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openKeyCursor([Default=Undefined] optional any key, [ForceOptional] optional DOMString direction);
 
     [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count([Default=Undefined] optional any key);
 };

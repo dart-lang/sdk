@@ -4,13 +4,14 @@
 //
 // Process test program to test process communication.
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 main() {
-  var port = new ReceivePort();
+  asyncStart();
   Expect.isTrue(pid > 0);
   var futures = [];
   futures.add(Process.start(Platform.executable,['--version']));
@@ -21,7 +22,7 @@ main() {
     Expect.equals(0, results[1].exitCode);
     results[0].exitCode.then((exitCode) {
       Expect.equals(0, exitCode);
-      port.close();
+      asyncEnd();
     });
   });
 }

@@ -4,7 +4,7 @@
 
 part of dart.io;
 
-class _Directory implements Directory {
+class _Directory extends FileSystemEntity implements Directory {
   static const CREATE_REQUEST = 0;
   static const DELETE_REQUEST = 1;
   static const EXISTS_REQUEST = 2;
@@ -29,7 +29,7 @@ class _Directory implements Directory {
   external static _createTemp(String template);
   external static int _exists(String path);
   external static _create(String path);
-  external static _delete(String path, bool recursive);
+  external static _deleteNative(String path, bool recursive);
   external static _rename(String path, String newPath);
   external static List _list(String path, bool recursive, bool followLinks);
   external static SendPort _newServicePort();
@@ -183,7 +183,7 @@ class _Directory implements Directory {
     return new Directory(result);
   }
 
-  Future<Directory> delete({recursive: false}) {
+  Future<Directory> _delete({recursive: false}) {
     _ensureDirectoryService();
     List request = new List(3);
     request[0] = DELETE_REQUEST;
@@ -197,8 +197,8 @@ class _Directory implements Directory {
     });
   }
 
-  void deleteSync({recursive: false}) {
-    var result = _delete(path, recursive);
+  void _deleteSync({recursive: false}) {
+    var result = _deleteNative(path, recursive);
     if (result is OSError) {
       throw new DirectoryException("Deletion failed", path, result);
     }
@@ -229,35 +229,22 @@ class _Directory implements Directory {
     return new Directory(newPath);
   }
 
-  static String _trimTrailingPathSeparators(String path) {
-    // Don't handle argument errors here.
-    if (path is! String) return path;
-    if (Platform.operatingSystem == 'windows') {
-      while (path.length > 1 &&
-             (path.endsWith(Platform.pathSeparator) ||
-              path.endsWith('/'))) {
-        path = path.substring(0, path.length - 1);
-      }
-    } else {
-      while (path.length > 1 && path.endsWith(Platform.pathSeparator)) {
-        path = path.substring(0, path.length - 1);
-      }
-    }
-    return path;
-  }
-
   Stream<FileSystemEntity> list({bool recursive: false,
                                  bool followLinks: true}) {
-    return new _AsyncDirectoryLister(_trimTrailingPathSeparators(path),
-                                     recursive,
-                                     followLinks).stream;
+    return new _AsyncDirectoryLister(
+        FileSystemEntity._trimTrailingPathSeparators(path),
+        recursive,
+        followLinks).stream;
   }
 
   List listSync({bool recursive: false, bool followLinks: true}) {
     if (recursive is! bool || followLinks is! bool) {
       throw new ArgumentError();
     }
-    return _list(_trimTrailingPathSeparators(path), recursive, followLinks);
+    return _list(
+        FileSystemEntity._trimTrailingPathSeparators(path),
+        recursive,
+        followLinks);
   }
 
   String toString() => "Directory: '$path'";

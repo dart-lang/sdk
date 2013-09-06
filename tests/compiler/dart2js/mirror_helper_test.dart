@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import 'dart:async';
+import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart' show compilerFor;
 import '../../../sdk/lib/_internal/compiler/implementation/apiimpl.dart' show
     Compiler;
@@ -35,7 +37,7 @@ main() {
   testWithoutMirrorRenaming(minify: false);
 }
 
-Compiler runCompiler({useMirrorHelperLibrary: false, minify: false}) {
+Future<Compiler> runCompiler({useMirrorHelperLibrary: false, minify: false}) {
   List<String> options = ['--output-type=dart'];
   if (minify) {
     options.add('--minify');
@@ -43,42 +45,45 @@ Compiler runCompiler({useMirrorHelperLibrary: false, minify: false}) {
   Compiler compiler = compilerFor(MEMORY_SOURCE_FILES, options: options);
   DartBackend backend = compiler.backend;
   backend.useMirrorHelperLibrary = useMirrorHelperLibrary;
-  compiler.runCompiler(Uri.parse('memory:main.dart'));
-  return compiler;
+  return
+      compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) => compiler);
 }
 
 void testWithMirrorRenaming({bool minify}) {
-  Compiler compiler = runCompiler(useMirrorHelperLibrary: true, minify: minify);
+  asyncTest(() => runCompiler(useMirrorHelperLibrary: true, minify: minify).
+      then((Compiler compiler) {
 
-  DartBackend backend = compiler.backend;
-  MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
-  Map<Node, String> renames = backend.renames;
-  Map<LibraryElement, String> imports = backend.imports;
+    DartBackend backend = compiler.backend;
+    MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
+    Map<Node, String> renames = backend.renames;
+    Map<LibraryElement, String> imports = backend.imports;
 
-  Node getNameFunctionNode =
-      backend.memberNodes.values.first.first.body.statements.nodes.head;
+    Node getNameFunctionNode =
+        backend.memberNodes.values.first.first.body.statements.nodes.head;
 
-  Expect.equals(renames[mirrorRenamer.mirrorHelperGetNameFunctionNode.name],
-                renames[getNameFunctionNode.expression.selector]);
-  Expect.equals("",
-                renames[getNameFunctionNode.expression.receiver]);
-  Expect.equals(1, imports.keys.length);
+    Expect.equals(renames[mirrorRenamer.mirrorHelperGetNameFunctionNode.name],
+                  renames[getNameFunctionNode.expression.selector]);
+    Expect.equals("",
+                  renames[getNameFunctionNode.expression.receiver]);
+    Expect.equals(1, imports.keys.length);
+  }));
 }
 
 void testWithoutMirrorRenaming({bool minify}) {
-  Compiler compiler =
-      runCompiler(useMirrorHelperLibrary: false, minify: minify);
+  asyncTest(() => runCompiler(useMirrorHelperLibrary: false, minify: minify).
+      then((Compiler compiler) {
 
-  DartBackend backend = compiler.backend;
-  Map<Node, String> renames = backend.renames;
-  Map<LibraryElement, String> imports = backend.imports;
+    DartBackend backend = compiler.backend;
+    Map<Node, String> renames = backend.renames;
+    Map<LibraryElement, String> imports = backend.imports;
 
-  Node getNameFunctionNode =
-      backend.memberNodes.values.first.first.body.statements.nodes.head;
+    Node getNameFunctionNode =
+        backend.memberNodes.values.first.first.body.statements.nodes.head;
 
-  Expect.isFalse(renames.containsKey(getNameFunctionNode.expression.selector));
-  Expect.isFalse(renames.containsKey(getNameFunctionNode.expression.receiver));
-  Expect.equals(1, imports.keys.length);
+    Expect.isFalse(renames.containsKey(getNameFunctionNode.expression.selector));
+    Expect.isFalse(renames.containsKey(getNameFunctionNode.expression.receiver));
+    Expect.equals(1, imports.keys.length);
+  }));
 }
 
 const MEMORY_SOURCE_FILES = const <String, String> {

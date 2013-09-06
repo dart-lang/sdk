@@ -463,10 +463,10 @@ class RawObject {
 
 class RawClass : public RawObject {
  public:
-  enum ClassState {
+  enum ClassFinalizedState {
     kAllocated = 0,  // Initial state.
     kPreFinalized,  // VM classes: size precomputed, but no checks done.
-    kFinalized,     // Class parsed, finalized and ready for use.
+    kFinalized,  // Class parsed, finalized and ready for use.
   };
 
  private:
@@ -501,7 +501,7 @@ class RawClass : public RawObject {
   intptr_t next_field_offset_in_words_;  // Offset of the next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
   intptr_t token_pos_;
-  uint16_t state_bits_;  // state, is_[const|implemented|synthesized|abstract].
+  uint16_t state_bits_;
 
   friend class Instance;
   friend class Object;
@@ -1473,17 +1473,17 @@ class RawStacktrace : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Stacktrace);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->function_array_);
+    return reinterpret_cast<RawObject**>(&ptr()->code_array_);
   }
-  RawArray* function_array_;  // Function for each frame in the stack trace.
   RawArray* code_array_;  // Code object for each frame in the stack trace.
   RawArray* pc_offset_array_;  // Offset of PC for each frame.
-  RawArray* catch_func_array_;  // Func for each frame in catch stack trace.
   RawArray* catch_code_array_;  // Code for each frame in catch stack trace.
   RawArray* catch_pc_offset_array_;  // Offset of PC for each catch stack frame.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->catch_pc_offset_array_);
   }
+  // False for pre-allocated stack trace (used in OOM and Stack overflow).
+  bool expand_inlined_;
 };
 
 

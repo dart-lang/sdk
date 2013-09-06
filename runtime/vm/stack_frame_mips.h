@@ -36,8 +36,8 @@ static const int kParamEndSlotFromFp = 2;  // One slot past last parameter.
 static const int kCallerSpSlotFromFp = 3;
 
 // Entry and exit frame layout.
-static const int kSavedContextSlotFromEntryFp = -11;
-static const int kExitLinkSlotFromEntryFp = -10;
+static const int kSavedContextSlotFromEntryFp = -23;
+static const int kExitLinkSlotFromEntryFp = -22;
 
 }  // namespace dart
 

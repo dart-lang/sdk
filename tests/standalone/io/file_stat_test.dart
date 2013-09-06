@@ -4,11 +4,12 @@
 //
 // Dart test program for testing dart:io FileSystemEntity.Stat().
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 void testStat() {
   Directory directory = new Directory("").createTempSync();
@@ -119,7 +120,7 @@ Future testStatAsync() {
 
 
 void main() {
-  ReceivePort keepAlive = new ReceivePort();
+  asyncStart();
   testStat();
-  testStatAsync().then((_) => keepAlive.close());
+  testStatAsync().then((_) => asyncEnd());
 }

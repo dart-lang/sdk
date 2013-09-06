@@ -7,6 +7,7 @@
 // much be included in the initial download (loaded eagerly).
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'memory_source_file_helper.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
@@ -17,8 +18,7 @@ void main() {
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
-  MemorySourceFileProvider.MEMORY_SOURCE_FILES = MEMORY_SOURCE_FILES;
-  var provider = new MemorySourceFileProvider();
+  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
   var handler = new FormattingDiagnosticHandler(provider);
 
   Compiler compiler = new Compiler(provider.readStringFromUri,
@@ -27,26 +27,27 @@ void main() {
                                    libraryRoot,
                                    packageRoot,
                                    ['--analyze-only']);
-  compiler.run(Uri.parse('memory:main.dart'));
-  var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
-  Expect.isNotNull(main, 'Could not find "main"');
-  compiler.deferredLoadTask.onResolutionComplete(main);
+  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+    var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
+    Expect.isNotNull(main, 'Could not find "main"');
+    compiler.deferredLoadTask.onResolutionComplete(main);
 
-  var deferredClasses =
-      compiler.deferredLoadTask.allDeferredElements.where((e) => e.isClass())
-      .toSet();
+    var deferredClasses =
+        compiler.deferredLoadTask.allDeferredElements.where((e) => e.isClass())
+        .toSet();
 
-  var dateTime =
-      deferredClasses
-          .where((e) => e.name.slowToString() == 'DateTime').single;
+    var dateTime =
+        deferredClasses
+            .where((e) => e.name.slowToString() == 'DateTime').single;
 
-  var myClass =
-      deferredClasses.where((e) => e.name.slowToString() == 'MyClass').single;
+    var myClass =
+        deferredClasses.where((e) => e.name.slowToString() == 'MyClass').single;
 
-  var deferredLibrary = compiler.libraries['memory:deferred.dart'];
+    var deferredLibrary = compiler.libraries['memory:deferred.dart'];
 
-  Expect.equals(deferredLibrary, myClass.getLibrary());
-  Expect.equals(compiler.coreLibrary, dateTime.declaration.getLibrary());
+    Expect.equals(deferredLibrary, myClass.getLibrary());
+    Expect.equals(compiler.coreLibrary, dateTime.declaration.getLibrary());
+  }));
 }
 
 const Map MEMORY_SOURCE_FILES = const {

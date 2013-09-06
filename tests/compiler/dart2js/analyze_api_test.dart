@@ -6,6 +6,7 @@ library analyze_api;
 
 import '../../../sdk/lib/_internal/libraries.dart';
 import 'analyze_helper.dart';
+import "package:async_helper/async_helper.dart";
 
 /**
  * Map of white-listed warnings and errors.
@@ -28,5 +29,5 @@ void main() {
       uriList.add(new Uri(scheme: 'dart', path: name));
     }
   });
-  analyze(uriList, WHITE_LIST);
+  asyncTest(() => analyze(uriList, WHITE_LIST));
 }

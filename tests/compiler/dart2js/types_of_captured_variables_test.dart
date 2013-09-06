@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 
 const String TEST1 = r"""
@@ -35,15 +36,18 @@ main() {
 
 main() {
   // Test that we know the type of captured, non-mutated variables.
-  String generated = compileAll(TEST1);
-  Expect.isTrue(generated.contains('+ 3'));
+  asyncTest(() => compileAll(TEST1).then((generated) {
+    Expect.isTrue(generated.contains('+ 3'));
+  }));
 
   // Test that we know the type of captured, mutated variables.
-  generated = compileAll(TEST2);
-  Expect.isTrue(generated.contains('+ 3'));
+  asyncTest(() => compileAll(TEST2).then((generated) {
+    Expect.isTrue(generated.contains('+ 3'));
+  }));
 
   // Test that we know when types of a captured, mutated variable
   // conflict.
-  generated = compileAll(TEST3);
-  Expect.isFalse(generated.contains('+ 3'));
+  asyncTest(() => compileAll(TEST3).then((generated) {
+    Expect.isFalse(generated.contains('+ 3'));
+  }));
 }

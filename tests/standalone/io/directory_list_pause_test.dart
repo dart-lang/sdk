@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 
 void testPauseList() {
-  var keepAlive = new ReceivePort();
+  asyncStart();
   // TOTAL should be bigger the our directory listing buffer.
   const int TOTAL = 128;
   new Directory("").createTemp().then((d) {
@@ -37,7 +38,7 @@ void testPauseList() {
     }, onDone: () {
       Expect.notEquals(TOTAL, count);
       Expect.isTrue(count > 0);
-      d.delete(recursive: true).then((ignore) => keepAlive.close());
+      d.delete(recursive: true).then((ignore) => asyncEnd());
     });
   });
 }

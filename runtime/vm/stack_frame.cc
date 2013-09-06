@@ -343,26 +343,24 @@ EntryFrame* StackFrameIterator::NextEntryFrame() {
 }
 
 
-InlinedFunctionsIterator::InlinedFunctionsIterator(StackFrame* frame)
+InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
   : index_(0),
-    code_(Code::Handle()),
+    code_(Code::Handle(code.raw())),
     deopt_info_(DeoptInfo::Handle()),
     function_(Function::Handle()),
-    pc_(0),
+    pc_(pc),
     deopt_instructions_(),
     object_table_(Array::Handle()) {
-  ASSERT(frame != NULL);
-  code_ = frame->LookupDartCode();
   ASSERT(code_.is_optimized());
+  ASSERT(pc_ != 0);
+  ASSERT(code.ContainsInstructionAt(pc));
   intptr_t deopt_reason = kDeoptUnknown;
-  deopt_info_ = code_.GetDeoptInfoAtPc(frame->pc(), &deopt_reason);
+  deopt_info_ = code_.GetDeoptInfoAtPc(pc, &deopt_reason);
   if (deopt_info_.IsNull()) {
     // This is the case when a call without deopt info in optimized code
     // throws an exception. (e.g. in the parameter copying prologue).
     // In that case there won't be any inlined frames.
     function_ = code_.function();
-    pc_ = frame->pc();
-    ASSERT(pc_ != 0);
   } else {
     // Unpack deopt info into instructions (translate away suffixes).
     const Array& deopt_table = Array::Handle(code_.deopt_info_array());

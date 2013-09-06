@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import 'dart:async';
+import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart' show compilerFor;
 import '../../../sdk/lib/_internal/compiler/implementation/apiimpl.dart' show
     Compiler;
@@ -20,7 +22,7 @@ main() {
   testNoUniqueMinification();
 }
 
-Compiler runCompiler({useMirrorHelperLibrary: false, minify: false}) {
+Future<Compiler> runCompiler({useMirrorHelperLibrary: false, minify: false}) {
   List<String> options = ['--output-type=dart'];
   if (minify) {
     options.add('--minify');
@@ -28,41 +30,46 @@ Compiler runCompiler({useMirrorHelperLibrary: false, minify: false}) {
   Compiler compiler = compilerFor(MEMORY_SOURCE_FILES, options: options);
   DartBackend backend = compiler.backend;
   backend.useMirrorHelperLibrary = useMirrorHelperLibrary;
-  compiler.runCompiler(Uri.parse('memory:main.dart'));
-  return compiler;
+  return
+      compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) => compiler);
 }
 
 void testUniqueMinification() {
-  Compiler compiler = runCompiler(useMirrorHelperLibrary: true, minify: true);
-  DartBackend backend = compiler.backend;
-  MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
-  Map<Node, String> renames = backend.renames;
-  Map<String, SourceString> symbols = mirrorRenamer.symbols;
+  asyncTest(() => runCompiler(useMirrorHelperLibrary: true, minify: true).
+      then((Compiler compiler) {
+    DartBackend backend = compiler.backend;
+    MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
+    Map<Node, String> renames = backend.renames;
+    Map<String, SourceString> symbols = mirrorRenamer.symbols;
 
-  // Check that no two different source code names get the same mangled name,
-  // with the exception of MirrorSystem.getName that gets renamed to the same
-  // mangled name as the getNameHelper from _mirror_helper.dart.
-  for (Node node in renames.keys) {
-    Identifier identifier = node.asIdentifier();
-    if (identifier != null) {
-      SourceString source = identifier.source;
-      if (mirrorRenamer.mirrorSystemGetNameNodes.first.selector == node)
-        continue;
-      if (symbols.containsKey(renames[node])) {
-        print(node);
-        Expect.equals(source, symbols[renames[node]]);
+    // Check that no two different source code names get the same mangled name,
+    // with the exception of MirrorSystem.getName that gets renamed to the same
+    // mangled name as the getNameHelper from _mirror_helper.dart.
+    for (Node node in renames.keys) {
+      Identifier identifier = node.asIdentifier();
+      if (identifier != null) {
+        SourceString source = identifier.source;
+        if (mirrorRenamer.mirrorSystemGetNameNodes.first.selector == node)
+          continue;
+        if (symbols.containsKey(renames[node])) {
+          print(node);
+          Expect.equals(source, symbols[renames[node]]);
+        }
       }
     }
-  }
+  }));
 }
 
 void testNoUniqueMinification() {
-  Compiler compiler = runCompiler(useMirrorHelperLibrary: false, minify: true);
-  DartBackend backend = compiler.backend;
-  Map<Node, String> renames = backend.renames;
+  asyncTest(() => runCompiler(useMirrorHelperLibrary: false, minify: true).
+      then((Compiler compiler) {
+    DartBackend backend = compiler.backend;
+    Map<Node, String> renames = backend.renames;
 
-  // 'Foo' appears twice and 'invocation' and 'hest' get the same mangled name.
-  Expect.equals(renames.values.toSet().length, renames.values.length - 2);
+    // 'Foo' appears twice and 'invocation' and 'hest' get the same mangled
+    // name.
+    Expect.equals(renames.values.toSet().length, renames.values.length - 2);
+  }));
 }
 
 const MEMORY_SOURCE_FILES = const <String, String> {

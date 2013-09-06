@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import
     '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
     show ContainerTypeMask, TypeMask;
@@ -189,43 +190,44 @@ void main() {
 void doTest(String allocation, {bool nullify}) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri);
-  compiler.runCompiler(uri);
-  var typesTask = compiler.typesTask;
-  var typesInferrer = typesTask.typesInferrer;
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    var typesTask = compiler.typesTask;
+    var typesInferrer = typesTask.typesInferrer;
 
-  checkType(String name, type) {
-    var element = findElement(compiler, name);
-    ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
-    if (nullify) type = type.nullable();
-    Expect.equals(type, mask.elementType.simplify(compiler), name);
-  }
+    checkType(String name, type) {
+      var element = findElement(compiler, name);
+      ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
+      if (nullify) type = type.nullable();
+      Expect.equals(type, mask.elementType.simplify(compiler), name);
+    }
 
-  checkType('listInField', typesTask.numType);
-  checkType('listPassedToMethod', typesTask.numType);
-  checkType('listReturnedFromMethod', typesTask.numType);
-  checkType('listUsedWithCascade', typesTask.numType);
-  checkType('listUsedInClosure', typesTask.numType);
-  checkType('listPassedToSelector', typesTask.numType);
-  checkType('listReturnedFromSelector', typesTask.numType);
-  checkType('listUsedWithAddAndInsert', typesTask.numType);
-  checkType('listUsedWithConstraint', typesTask.numType);
-  checkType('listEscapingFromSetter', typesTask.numType);
-  checkType('listUsedInLocal', typesTask.numType);
-  checkType('listEscapingInSetterValue', typesTask.numType);
-  checkType('listEscapingInIndex', typesTask.numType);
-  checkType('listEscapingInIndexSet', typesTask.intType);
-  checkType('listEscapingTwiceInIndexSet', typesTask.numType);
-  checkType('listSetInNonFinalField', typesTask.numType);
-  checkType('listWithChangedLength', typesTask.intType.nullable());
+    checkType('listInField', typesTask.numType);
+    checkType('listPassedToMethod', typesTask.numType);
+    checkType('listReturnedFromMethod', typesTask.numType);
+    checkType('listUsedWithCascade', typesTask.numType);
+    checkType('listUsedInClosure', typesTask.numType);
+    checkType('listPassedToSelector', typesTask.numType);
+    checkType('listReturnedFromSelector', typesTask.numType);
+    checkType('listUsedWithAddAndInsert', typesTask.numType);
+    checkType('listUsedWithConstraint', typesTask.numType);
+    checkType('listEscapingFromSetter', typesTask.numType);
+    checkType('listUsedInLocal', typesTask.numType);
+    checkType('listEscapingInSetterValue', typesTask.numType);
+    checkType('listEscapingInIndex', typesTask.numType);
+    checkType('listEscapingInIndexSet', typesTask.intType);
+    checkType('listEscapingTwiceInIndexSet', typesTask.numType);
+    checkType('listSetInNonFinalField', typesTask.numType);
+    checkType('listWithChangedLength', typesTask.intType.nullable());
 
-  checkType('listPassedToClosure', typesTask.dynamicType);
-  checkType('listReturnedFromClosure', typesTask.dynamicType);
-  checkType('listUsedWithNonOkSelector', typesTask.dynamicType);
-  checkType('listPassedAsOptionalParameter', typesTask.dynamicType);
-  checkType('listPassedAsNamedParameter', typesTask.dynamicType);
+    checkType('listPassedToClosure', typesTask.dynamicType);
+    checkType('listReturnedFromClosure', typesTask.dynamicType);
+    checkType('listUsedWithNonOkSelector', typesTask.dynamicType);
+    checkType('listPassedAsOptionalParameter', typesTask.dynamicType);
+    checkType('listPassedAsNamedParameter', typesTask.dynamicType);
 
-  if (!allocation.contains('filled')) {
-    checkType('listUnset', new TypeMask.nonNullEmpty());
-    checkType('listOnlySetWithConstraint', new TypeMask.nonNullEmpty());
-  }
+    if (!allocation.contains('filled')) {
+      checkType('listUnset', new TypeMask.nonNullEmpty());
+      checkType('listOnlySetWithConstraint', new TypeMask.nonNullEmpty());
+    }
+  }));
 }

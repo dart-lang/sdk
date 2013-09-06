@@ -469,9 +469,6 @@ void RelationalOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(", ");
   right()->PrintTo(f);
-  if (HasICData()) {
-    PrintICData(f, *ic_data());
-  }
 }
 
 

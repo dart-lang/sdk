@@ -18,8 +18,8 @@ patch class _Directory {
   patch static _create(String path) {
     throw new UnsupportedError("Directory._create");
   }
-  patch static _delete(String path, bool recursive) {
-    throw new UnsupportedError("Directory._delete");
+  patch static _deleteNative(String path, bool recursive) {
+    throw new UnsupportedError("Directory._deleteNative");
   }
   patch static _rename(String path, String newPath) {
     throw new UnsupportedError("Directory._rename");
@@ -74,11 +74,11 @@ patch class _File {
   patch static _linkTarget(String path) {
     throw new UnsupportedError("File._linkTarget");
   }
-  patch static _delete(String path) {
-    throw new UnsupportedError("File._delete");
+  patch static _deleteNative(String path) {
+    throw new UnsupportedError("File._deleteNative");
   }
-  patch static _deleteLink(String path) {
-    throw new UnsupportedError("File._deleteLink");
+  patch static _deleteLinkNative(String path) {
+    throw new UnsupportedError("File._deleteLinkNative");
   }
   patch static _rename(String oldPath, String newPath) {
     throw new UnsupportedError("File._rename");
@@ -347,5 +347,14 @@ patch class Stdin {
   }
   patch void set lineMode(bool enabled) {
     throw new UnsupportedError("Stdin.lineMode");
+  }
+}
+
+patch class _FileSystemWatcher {
+  patch factory _FileSystemWatcher(String path, int events, bool recursive) {
+    throw new UnsupportedError("_FileSystemWatcher._FileSystemWatcher");
+  }
+  patch static bool get isSupported {
+    throw new UnsupportedError("_FileSystemWatcher.isSupported");
   }
 }

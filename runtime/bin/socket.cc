@@ -285,6 +285,15 @@ void FUNCTION_NAME(Socket_GetStdioHandle)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Socket_SetSocketId)(Dart_NativeArguments args) {
+  Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
+  intptr_t id =
+      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
+  Dart_Handle err = Socket::SetSocketIdNativeField(socket_obj, id);
+  if (Dart_IsError(err)) Dart_PropagateError(err);
+}
+
+
 void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
   Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
   Dart_Handle host_obj = Dart_GetNativeArgument(args, 1);

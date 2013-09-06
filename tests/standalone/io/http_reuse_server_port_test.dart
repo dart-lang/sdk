@@ -7,10 +7,11 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 Future<int> runServer(int port, int connections, bool clean) {
   var completer = new Completer();
@@ -43,26 +44,26 @@ Future<int> runServer(int port, int connections, bool clean) {
 
 
 void testReusePort() {
-  var keepAlive = new ReceivePort();
+  asyncStart();
   runServer(0, 10, true).then((int port) {
     // Stress test the port reusing it 10 times.
     Future.forEach(new List(10), (_) {
       return runServer(port, 10, true);
     }).then((_) {
-      keepAlive.close();
+      asyncEnd();
     });
   });
 }
 
 
 void testUncleanReusePort() {
-  var keepAlive = new ReceivePort();
+  asyncStart();
   runServer(0, 10, false).then((int port) {
     // Stress test the port reusing it 10 times.
     Future.forEach(new List(10), (_) {
       return runServer(port, 10, false);
     }).then((_) {
-      keepAlive.close();
+      asyncEnd();
     });
   });
 }

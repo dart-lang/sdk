@@ -365,7 +365,10 @@ void Scanner::ScanNumber(bool dec_point_seen) {
         ReadChar();
       }
     }
-    if ((c0_ == 'e') || (c0_ == 'E')) {
+    if (((c0_ == 'e') || (c0_ == 'E')) &&
+        (IsDecimalDigit(LookaheadChar(1)) ||
+         (LookaheadChar(1) == '-') ||
+         (LookaheadChar(1) == '+'))) {
       Recognize(Token::kDOUBLE);
       if ((c0_ == '-') || (c0_ == '+')) {
         ReadChar();
@@ -377,9 +380,6 @@ void Scanner::ScanNumber(bool dec_point_seen) {
       while (IsDecimalDigit(c0_)) {
         ReadChar();
       }
-    } else if (IsIdentStartChar(c0_)) {
-      ErrorMsg("illegal character in number");
-      return;
     }
   }
   if (current_token_.kind != Token::kILLEGAL) {

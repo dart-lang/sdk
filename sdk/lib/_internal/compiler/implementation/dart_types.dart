@@ -1193,6 +1193,150 @@ class Types {
     if (typeVariable == null) return null;
     return typeVariable.element.enclosingElement;
   }
+
+  /**
+   * A `compareTo` function that globally orders types using
+   * [Elements.compareByPosition] to order types defined by a declaration.
+   *
+   * The order is:
+   * * void
+   * * dynamic
+   * * interface, typedef, type variables ordered by element order
+   *   - interface and typedef of the same element are ordered by
+   *     the order of their type arguments
+   * * function types, ordered by
+   *   - return type
+   *   - required parameter types
+   *   - optional parameter types
+   *   - named parameter names
+   *   - named parameter types
+   * * malformed types
+   * * statement types
+   */
+  static int compare(DartType a, DartType b) {
+    if (a == b) return 0;
+    if (a.kind == TypeKind.VOID) {
+      // [b] is not void => a < b.
+      return -1;
+    } else if (b.kind == TypeKind.VOID) {
+      // [a] is not void => a > b.
+      return 1;
+    }
+    if (a.isDynamic) {
+      // [b] is not dynamic => a < b.
+      return -1;
+    } else if (b.isDynamic) {
+      // [a] is not dynamic => a > b.
+      return 1;
+    }
+    bool isDefinedByDeclaration(DartType type) {
+      return type.kind == TypeKind.INTERFACE ||
+             type.kind == TypeKind.TYPEDEF ||
+             type.kind == TypeKind.TYPE_VARIABLE;
+    }
+
+    if (isDefinedByDeclaration(a)) {
+      if (isDefinedByDeclaration(b)) {
+        int result = Elements.compareByPosition(a.element, b.element);
+        if (result != 0) return result;
+        if (a.kind == TypeKind.TYPE_VARIABLE) {
+          return b.kind == TypeKind.TYPE_VARIABLE
+              ? 0
+              : 1; // [b] is not a type variable => a > b.
+        } else {
+          if (b.kind == TypeKind.TYPE_VARIABLE) {
+            // [a] is not a type variable => a < b.
+            return -1;
+          } else {
+            return compareList((a as GenericType).typeArguments,
+                               (b as GenericType).typeArguments);
+          }
+        }
+      } else {
+        // [b] is neither an interface, typedef, type variable, dynamic,
+        // nor void => a < b.
+        return -1;
+      }
+    } else if (isDefinedByDeclaration(b)) {
+      // [a] is neither an interface, typedef, type variable, dynamic,
+      // nor void => a > b.
+      return 1;
+    }
+    if (a.kind == TypeKind.FUNCTION) {
+      if (b.kind == TypeKind.FUNCTION) {
+        FunctionType aFunc = a;
+        FunctionType bFunc = b;
+        int result = compare(aFunc.returnType, bFunc.returnType);
+        if (result != 0) return result;
+        result = compareList(aFunc.parameterTypes, bFunc.parameterTypes);
+        if (result != 0) return result;
+        result = compareList(aFunc.optionalParameterTypes,
+                             bFunc.optionalParameterTypes);
+        if (result != 0) return result;
+        Link<SourceString> aNames = aFunc.namedParameters;
+        Link<SourceString> bNames = bFunc.namedParameters;
+        while (!aNames.isEmpty && !bNames.isEmpty) {
+          int result = aNames.head.slowToString().compareTo(
+                       bNames.head.slowToString());
+          if (result != 0) return result;
+          aNames = aNames.tail;
+          bNames = bNames.tail;
+        }
+        if (!aNames.isEmpty) {
+          // [aNames] is longer that [bNames] => a > b.
+          return 1;
+        } else if (!bNames.isEmpty) {
+          // [bNames] is longer that [aNames] => a < b.
+          return -1;
+        }
+        return compareList(aFunc.namedParameterTypes,
+                           bFunc.namedParameterTypes);
+      } else {
+        // [b] is a malformed or statement type => a < b.
+        return -1;
+      }
+    } else if (b.kind == TypeKind.FUNCTION) {
+      // [b] is a malformed or statement type => a > b.
+      return 1;
+    }
+    if (a.kind == TypeKind.STATEMENT) {
+      if (b.kind == TypeKind.STATEMENT) {
+        return (a as StatementType).stringName.compareTo(
+               (b as StatementType).stringName);
+      } else {
+        // [b] is a malformed type => a > b.
+        return 1;
+      }
+    } else if (b.kind == TypeKind.STATEMENT) {
+      // [a] is a malformed type => a < b.
+      return -1;
+    }
+    assert (a.kind == TypeKind.MALFORMED_TYPE);
+    assert (b.kind == TypeKind.MALFORMED_TYPE);
+    // TODO(johnniwinther): Can we do this better?
+    return Elements.compareByPosition(a.element, b.element);
+  }
+
+  static int compareList(Link<DartType> a, Link<DartType> b) {
+    while (!a.isEmpty && !b.isEmpty) {
+      int result = compare(a.head, b.head);
+      if (result != 0) return result;
+      a = a.tail;
+      b = b.tail;
+    }
+    if (!a.isEmpty) {
+      // [a] is longer than [b] => a > b.
+      return 1;
+    } else if (!b.isEmpty) {
+      // [b] is longer than [a] => a < b.
+      return -1;
+    }
+    return 0;
+  }
+
+  static List<DartType> sorted(Iterable<DartType> types) {
+    return types.toList()..sort(compare);
+  }
 }
 
 /**

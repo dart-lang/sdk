@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/types/concrete_types_inferrer.dart';
@@ -145,7 +147,7 @@ class AnalysisResult {
 
 const String CORELIB = r'''
   print(var obj) {}
-  abstract class num { 
+  abstract class num {
     num operator +(num x);
     num operator *(num x);
     num operator -(num x);
@@ -174,7 +176,7 @@ const String CORELIB = r'''
   class Dynamic_ {}
   bool identical(Object a, Object b) {}''';
 
-AnalysisResult analyze(String code, {int maxConcreteTypeSize: 1000}) {
+Future<AnalysisResult> analyze(String code, {int maxConcreteTypeSize: 1000}) {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = new MockCompiler(
       coreSource: CORELIB,
@@ -182,8 +184,9 @@ AnalysisResult analyze(String code, {int maxConcreteTypeSize: 1000}) {
       maxConcreteTypeSize: maxConcreteTypeSize);
   compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
   compiler.typesTask.concreteTypesInferrer.testMode = true;
-  compiler.runCompiler(uri);
-  return new AnalysisResult(compiler);
+  return compiler.runCompiler(uri).then((_) {
+    return new AnalysisResult(compiler);
+  });
 }
 
 testDynamicBackDoor() {
@@ -193,8 +196,9 @@ testDynamicBackDoor() {
       x;
     }
     """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasUnknownType('x');
+  return analyze(source).then((result) {
+    result.checkNodeHasUnknownType('x');
+  });
 }
 
 testVariableDeclaration() {
@@ -206,9 +210,10 @@ testVariableDeclaration() {
         v1; v2;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('v1', [result.nullType]);
-  result.checkNodeHasType('v2', [result.int]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('v1', [result.nullType]);
+    result.checkNodeHasType('v2', [result.int]);
+  });
 }
 
 testLiterals() {
@@ -222,12 +227,13 @@ testLiterals() {
         v1; v2; v3; v4; v5;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('v1', [result.int]);
-  result.checkNodeHasType('v2', [result.double]);
-  result.checkNodeHasType('v3', [result.string]);
-  result.checkNodeHasType('v4', [result.bool]);
-  result.checkNodeHasType('v5', [result.nullType]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('v1', [result.int]);
+    result.checkNodeHasType('v2', [result.double]);
+    result.checkNodeHasType('v3', [result.string]);
+    result.checkNodeHasType('v4', [result.bool]);
+    result.checkNodeHasType('v5', [result.nullType]);
+  });
 }
 
 testRedefinition() {
@@ -238,8 +244,9 @@ testRedefinition() {
         foo;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('foo', [result.string]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.string]);
+  });
 }
 
 testIfThenElse() {
@@ -254,8 +261,9 @@ testIfThenElse() {
         foo;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('foo', [result.string, result.bool]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.string, result.bool]);
+  });
 }
 
 testTernaryIf() {
@@ -266,8 +274,9 @@ testTernaryIf() {
         foo;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('foo', [result.string, result.bool]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.string, result.bool]);
+  });
 }
 
 testWhile() {
@@ -284,12 +293,13 @@ testWhile() {
         foo; bar;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType(
-      'foo',
-      [result.base('A'), result.base('B'), result.base('C')]);
-  // Check that the condition is evaluated.
-  result.checkNodeHasType('bar', [result.int]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType(
+        'foo',
+        [result.base('A'), result.base('B'), result.base('C')]);
+    // Check that the condition is evaluated.
+    result.checkNodeHasType('bar', [result.int]);
+  });
 }
 
 testDoWhile() {
@@ -306,12 +316,13 @@ testDoWhile() {
         foo; bar;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType(
-      'foo',
-      [result.base('A'), result.base('B'), result.base('C')]);
-  // Check that the condition is evaluated.
-  result.checkNodeHasType('bar', [result.int]);
+  return analyze(source).then((AnalysisResult result) {
+    result.checkNodeHasType(
+        'foo',
+        [result.base('A'), result.base('B'), result.base('C')]);
+    // Check that the condition is evaluated.
+    result.checkNodeHasType('bar', [result.int]);
+  });
 }
 
 testFor1() {
@@ -327,10 +338,11 @@ testFor1() {
         foo;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType(
-      'foo',
-      [result.base('A'), result.base('B'), result.base('C')]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType(
+        'foo',
+        [result.base('A'), result.base('B'), result.base('C')]);
+  });
 }
 
 testFor2() {
@@ -346,10 +358,11 @@ testFor2() {
         foo; bar;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('foo', [result.base('A'), result.base('B')]);
-  // Check that the condition is evaluated.
-  result.checkNodeHasType('bar', [result.int]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.base('A'), result.base('B')]);
+    // Check that the condition is evaluated.
+    result.checkNodeHasType('bar', [result.int]);
+  });
 }
 
 testFor3() {
@@ -363,8 +376,9 @@ testFor3() {
         i;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('i', [result.int]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('i', [result.int]);
+  });
 }
 
 testForIn() {
@@ -399,8 +413,10 @@ testForIn() {
         res;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('res', [result.int, result.string, result.nullType]);
+  return analyze(source).then((AnalysisResult result) {
+    result.checkNodeHasType('res',
+        [result.int, result.string, result.nullType]);
+  });
 }
 
 testToplevelVariable() {
@@ -409,15 +425,16 @@ testToplevelVariable() {
       class A {
          f() => top;
       }
-      main() { 
+      main() {
         var foo = top;
         var bar = new A().f();
         foo; bar;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('foo', [result.string]);
-  result.checkNodeHasType('bar', [result.string]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.string]);
+    result.checkNodeHasType('bar', [result.string]);
+  });
 }
 
 testNonRecusiveFunction() {
@@ -425,8 +442,9 @@ testNonRecusiveFunction() {
       f(x, y) => true ? x : y;
       main() { var foo = f(42, "abc"); foo; }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('foo', [result.int, result.string]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int, result.string]);
+  });
 }
 
 testRecusiveFunction() {
@@ -437,18 +455,20 @@ testRecusiveFunction() {
       }
       main() { var foo = f(42); foo; }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('foo', [result.int, result.string]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int, result.string]);
+  });
 }
 
 testMutuallyRecusiveFunction() {
   final String source = r"""
       f() => true ? 42 : g();
-      g() => true ? "abc" : f(); 
+      g() => true ? "abc" : f();
       main() { var foo = f(); foo; }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('foo', [result.int, result.string]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int, result.string]);
+  });
 }
 
 testSimpleSend() {
@@ -463,7 +483,7 @@ testSimpleSend() {
         f(x) => 3.14;
       }
       class D {
-        var f;  // we check that this field is ignored in calls to dynamic.f() 
+        var f;  // we check that this field is ignored in calls to dynamic.f()
         D(this.f);
       }
       main() {
@@ -473,9 +493,10 @@ testSimpleSend() {
         foo; bar;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('foo', [result.int]);
-  result.checkNodeHasType('bar', [result.int, result.string]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int]);
+    result.checkNodeHasType('bar', [result.int, result.string]);
+  });
 }
 
 testSendToClosureField() {
@@ -490,8 +511,9 @@ testSendToClosureField() {
         foo;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('foo', [result.int]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int]);
+  });
 }
 
 testSendToThis1() {
@@ -506,8 +528,9 @@ testSendToThis1() {
         foo;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('foo', [result.int]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int]);
+  });
 }
 
 testSendToThis2() {
@@ -523,8 +546,9 @@ testSendToThis2() {
         x;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', [result.base('B')]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('x', [result.base('B')]);
+  });
 }
 
 testSendToThis3() {
@@ -541,8 +565,9 @@ testSendToThis3() {
         x;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', [result.string]);
+  return analyze(source).then((AnalysisResult result) {
+    result.checkNodeHasType('x', [result.string]);
+  });
 }
 
 testConstructor() {
@@ -556,11 +581,12 @@ testConstructor() {
         new A(true, null);
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkFieldHasType('A', 'x', [result.int, result.bool]);
-  result.checkFieldHasType('A', 'y', [result.string, result.nullType]);
-  // TODO(polux): we can be smarter and infer {string} for z
-  result.checkFieldHasType('A', 'z', [result.string, result.nullType]);
+  return analyze(source).then((result) {
+    result.checkFieldHasType('A', 'x', [result.int, result.bool]);
+    result.checkFieldHasType('A', 'y', [result.string, result.nullType]);
+    // TODO(polux): we can be smarter and infer {string} for z
+    result.checkFieldHasType('A', 'z', [result.string, result.nullType]);
+  });
 }
 
 testGetters() {
@@ -586,12 +612,13 @@ testGetters() {
         foo; bar; baz; qux; quux;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('foo', [result.int]);
-  result.checkNodeHasType('bar', [result.int]);
-  result.checkNodeHasType('baz', [result.int]);
-  result.checkNodeHasType('qux', []);
-  result.checkNodeHasType('quux', [result.int, result.string]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int]);
+    result.checkNodeHasType('bar', [result.int]);
+    result.checkNodeHasType('baz', [result.int]);
+    result.checkNodeHasType('qux', []);
+    result.checkNodeHasType('quux', [result.int, result.string]);
+  });
 }
 
 testSetters() {
@@ -617,20 +644,21 @@ testSetters() {
         "__dynamic_for_test".y = 3.14;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkFieldHasType('B', 'x',
-                           [result.int,         // new B(42)
-                            result.nullType]);  // dynamic.x = null
-  result.checkFieldHasType('A', 'x',
-                           [result.int,       // new A(42, ...)
-                            result.string,    // a.x = 'abc'
-                            result.bool,      // a.y = true
-                            result.nullType,  // dynamic.x = null
-                            result.double]);  // dynamic.y = 3.14
-  result.checkFieldHasType('A', 'w',
-                           [result.int,       // new A(..., 42)
-                            result.bool,      // a.y = true
-                            result.double]);  // dynamic.y = double
+  return analyze(source).then((result) {
+    result.checkFieldHasType('B', 'x',
+                             [result.int,         // new B(42)
+                              result.nullType]);  // dynamic.x = null
+    result.checkFieldHasType('A', 'x',
+                             [result.int,       // new A(42, ...)
+                              result.string,    // a.x = 'abc'
+                              result.bool,      // a.y = true
+                              result.nullType,  // dynamic.x = null
+                              result.double]);  // dynamic.y = 3.14
+    result.checkFieldHasType('A', 'w',
+                             [result.int,       // new A(..., 42)
+                              result.bool,      // a.y = true
+                              result.double]);  // dynamic.y = double
+  });
 }
 
 testOptionalNamedParameters() {
@@ -695,29 +723,30 @@ testOptionalNamedParameters() {
         test.f3(1, z: 2);  // non-existing named parameter
       }
       """;
-  AnalysisResult result = analyze(source);
+  return analyze(source).then((result) {
 
-  final foo = result.base('Foo');
-  final nil = result.nullType;
+    final foo = result.base('Foo');
+    final nil = result.nullType;
 
-  result.checkFieldHasType('A', 'x', [result.int, result.string]);
-  result.checkFieldHasType('A', 'y', [nil]);
-  result.checkFieldHasType('A', 'z', [nil, result.double]);
-  result.checkFieldHasType('A', 'w', [nil, result.bool]);
-  result.checkFieldHasType('Test', 'a', [foo, result.int, result.string]);
-  result.checkFieldHasType('Test', 'b', [foo, nil]);
-  result.checkFieldHasType('Test', 'c', [foo, nil, result.double]);
-  result.checkFieldHasType('Test', 'd', [foo, nil, result.bool]);
+    result.checkFieldHasType('A', 'x', [result.int, result.string]);
+    result.checkFieldHasType('A', 'y', [nil]);
+    result.checkFieldHasType('A', 'z', [nil, result.double]);
+    result.checkFieldHasType('A', 'w', [nil, result.bool]);
+    result.checkFieldHasType('Test', 'a', [foo, result.int, result.string]);
+    result.checkFieldHasType('Test', 'b', [foo, nil]);
+    result.checkFieldHasType('Test', 'c', [foo, nil, result.double]);
+    result.checkFieldHasType('Test', 'd', [foo, nil, result.bool]);
 
-  result.checkFieldHasType('B', 'x', [result.string]);
-  result.checkFieldHasType('B', 'y', [result.bool]);
-  result.checkFieldHasType('Test', 'e', [foo, result.string]);
-  result.checkFieldHasType('Test', 'f', [foo, result.bool]);
+    result.checkFieldHasType('B', 'x', [result.string]);
+    result.checkFieldHasType('B', 'y', [result.bool]);
+    result.checkFieldHasType('Test', 'e', [foo, result.string]);
+    result.checkFieldHasType('Test', 'f', [foo, result.bool]);
 
-  result.checkFieldHasType('C', 'x', [result.string]);
-  result.checkFieldHasType('C', 'y', [result.bool]);
-  result.checkFieldHasType('Test', 'g', [foo, result.string]);
-  result.checkFieldHasType('Test', 'h', [foo, result.bool]);
+    result.checkFieldHasType('C', 'x', [result.string]);
+    result.checkFieldHasType('C', 'y', [result.bool]);
+    result.checkFieldHasType('Test', 'g', [foo, result.string]);
+    result.checkFieldHasType('Test', 'h', [foo, result.bool]);
+  });
 }
 
 testOptionalPositionalParameters() {
@@ -767,24 +796,25 @@ testOptionalPositionalParameters() {
       test.f2(1, 2, 3);  // too many arguments
     }
   """;
-  AnalysisResult result = analyze(source);
+  return analyze(source).then((result) {
 
-  final foo = result.base('Foo');
-  final nil = result.nullType;
+    final foo = result.base('Foo');
+    final nil = result.nullType;
 
-  result.checkFieldHasType('A', 'x', [result.int, result.string]);
-  result.checkFieldHasType('A', 'y', [nil, result.bool]);
-  result.checkFieldHasType('A', 'z', [nil, result.double]);
-  result.checkFieldHasType('A', 'w', [nil]);
-  result.checkFieldHasType('Test', 'a', [foo, result.int, result.string]);
-  result.checkFieldHasType('Test', 'b', [foo, nil, result.bool]);
-  result.checkFieldHasType('Test', 'c', [foo, nil, result.double]);
-  result.checkFieldHasType('Test', 'd', [foo, nil]);
+    result.checkFieldHasType('A', 'x', [result.int, result.string]);
+    result.checkFieldHasType('A', 'y', [nil, result.bool]);
+    result.checkFieldHasType('A', 'z', [nil, result.double]);
+    result.checkFieldHasType('A', 'w', [nil]);
+    result.checkFieldHasType('Test', 'a', [foo, result.int, result.string]);
+    result.checkFieldHasType('Test', 'b', [foo, nil, result.bool]);
+    result.checkFieldHasType('Test', 'c', [foo, nil, result.double]);
+    result.checkFieldHasType('Test', 'd', [foo, nil]);
 
-  result.checkFieldHasType('B', 'x', [result.string]);
-  result.checkFieldHasType('B', 'y', [result.bool]);
-  result.checkFieldHasType('Test', 'e', [foo, result.string]);
-  result.checkFieldHasType('Test', 'f', [foo, result.bool]);
+    result.checkFieldHasType('B', 'x', [result.string]);
+    result.checkFieldHasType('B', 'y', [result.bool]);
+    result.checkFieldHasType('Test', 'e', [foo, result.string]);
+    result.checkFieldHasType('Test', 'f', [foo, result.bool]);
+  });
 }
 
 testListLiterals() {
@@ -799,10 +829,11 @@ testListLiterals() {
         x; y;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', [result.growableList]);
-  result.checkNodeHasType('y', [result.growableList]);
-  result.checkFieldHasType('A', 'x', [result.int]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('x', [result.growableList]);
+    result.checkNodeHasType('y', [result.growableList]);
+    result.checkFieldHasType('A', 'x', [result.int]);
+  });
 }
 
 testMapLiterals() {
@@ -817,10 +848,11 @@ testMapLiterals() {
         x; y;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', [result.map]);
-  result.checkNodeHasType('y', [result.map]);
-  result.checkFieldHasType('A', 'x', [result.int]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('x', [result.map]);
+    result.checkNodeHasType('y', [result.map]);
+    result.checkFieldHasType('A', 'x', [result.int]);
+  });
 }
 
 testReturn() {
@@ -833,9 +865,10 @@ testReturn() {
         x; y;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', [result.int, result.string]);
-  result.checkNodeHasType('y', [result.nullType]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('x', [result.int, result.string]);
+    result.checkNodeHasType('y', [result.nullType]);
+  });
 }
 
 testNoReturn() {
@@ -848,9 +881,10 @@ testNoReturn() {
         x; y;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', [result.int, result.nullType]);
-  result.checkNodeHasType('y', [result.nullType]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('x', [result.int, result.nullType]);
+    result.checkNodeHasType('y', [result.nullType]);
+  });
 }
 
 testArithmeticOperators() {
@@ -872,21 +906,22 @@ testArithmeticOperators() {
           a; b; c; d; e; f; g; h; i; j; k; l;
         }""";
   }
-  for (String op in ['+', '*', '-']) {
-    AnalysisResult result = analyze(source(op));
-    result.checkNodeHasType('a', [result.int]);
-    result.checkNodeHasType('b', [result.num]);
-    result.checkNodeHasType('c', [result.num]);
-    result.checkNodeHasType('d', [result.double]);
-    result.checkNodeHasType('e', [result.num]);
-    result.checkNodeHasType('f', [result.num]);
-    result.checkNodeHasType('g', [result.num]);
-    result.checkNodeHasType('h', [result.num]);
-    result.checkNodeHasType('i', [result.int]);
-    result.checkNodeHasType('j', [result.int]);
-    result.checkNodeHasType('k', [result.double]);
-    result.checkNodeHasType('l', [result.double]);
-  }
+  return Future.forEach(['+', '*', '-'], (String op) {
+    return analyze(source(op)).then((result) {
+      result.checkNodeHasType('a', [result.int]);
+      result.checkNodeHasType('b', [result.num]);
+      result.checkNodeHasType('c', [result.num]);
+      result.checkNodeHasType('d', [result.double]);
+      result.checkNodeHasType('e', [result.num]);
+      result.checkNodeHasType('f', [result.num]);
+      result.checkNodeHasType('g', [result.num]);
+      result.checkNodeHasType('h', [result.num]);
+      result.checkNodeHasType('i', [result.int]);
+      result.checkNodeHasType('j', [result.int]);
+      result.checkNodeHasType('k', [result.double]);
+      result.checkNodeHasType('l', [result.double]);
+    });
+  });
 }
 
 testBooleanOperators() {
@@ -900,13 +935,14 @@ testBooleanOperators() {
           a; b; c; d;
         }""";
   }
-  for (String op in ['&&', '||']) {
-    AnalysisResult result = analyze(source(op));
-    result.checkNodeHasType('a', [result.bool]);
-    result.checkNodeHasType('b', [result.bool]);
-    result.checkNodeHasType('c', [result.bool]);
-    result.checkNodeHasType('d', [result.bool]);
-  }
+  return Future.forEach(['&&', '||'], (String op) {
+    return analyze(source(op)).then((result) {
+      result.checkNodeHasType('a', [result.bool]);
+      result.checkNodeHasType('b', [result.bool]);
+      result.checkNodeHasType('c', [result.bool]);
+      result.checkNodeHasType('d', [result.bool]);
+    });
+  });
 }
 
 testBooleanOperatorsShortCirtcuit() {
@@ -918,10 +954,11 @@ testBooleanOperatorsShortCirtcuit() {
           x;
         }""";
   }
-  for (String op in ['&&', '||']) {
-    AnalysisResult result = analyze(source(op));
-    result.checkNodeHasType('x', [result.nullType, result.int]);
-  }
+  return Future.forEach(['&&', '||'], (String op) {
+    return analyze(source(op)).then((AnalysisResult result) {
+      result.checkNodeHasType('x', [result.nullType, result.int]);
+    });
+  });
 }
 
 testOperators() {
@@ -936,9 +973,10 @@ testOperators() {
         x; y;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', [result.int]);
-  result.checkNodeHasType('y', [result.string]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('x', [result.int]);
+    result.checkNodeHasType('y', [result.string]);
+  });
 }
 
 testSetIndexOperator() {
@@ -953,10 +991,11 @@ testSetIndexOperator() {
         x;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', [result.string]);
-  result.checkFieldHasType('A', 'witness1', [result.int, result.nullType]);
-  result.checkFieldHasType('A', 'witness2', [result.string, result.nullType]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('x', [result.string]);
+    result.checkFieldHasType('A', 'witness1', [result.int, result.nullType]);
+    result.checkFieldHasType('A', 'witness2', [result.string, result.nullType]);
+  });
 }
 
 testCompoundOperators1() {
@@ -981,13 +1020,14 @@ testCompoundOperators1() {
         x1; x2; x3; x4; x5; x6;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x1', [result.int]);
-  result.checkNodeHasType('x2', [result.int]);
-  result.checkNodeHasType('x3', [result.int]);
-  result.checkNodeHasType('x4', [result.string]);
-  result.checkNodeHasType('x5', [result.string]);
-  result.checkNodeHasType('x6', [result.string]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('x1', [result.int]);
+    result.checkNodeHasType('x2', [result.int]);
+    result.checkNodeHasType('x3', [result.int]);
+    result.checkNodeHasType('x4', [result.string]);
+    result.checkNodeHasType('x5', [result.string]);
+    result.checkNodeHasType('x6', [result.string]);
+  });
 }
 
 
@@ -1010,16 +1050,17 @@ testCompoundOperators2() {
     main () {
       var a = new A(1, 1);
       a.x++;
-      a.y++; 
+      a.y++;
     }
     """;
-  AnalysisResult result = analyze(source);
-  result.checkFieldHasType('A', 'xx', [result.int]);
-  result.checkFieldHasType('A', 'yy', [result.int]);
-  result.checkFieldHasType('A', 'witness1', [result.string, result.nullType]);
-  result.checkFieldHasType('A', 'witness2', [result.string, result.nullType]);
-  result.checkFieldHasType('A', 'witness3', [result.string, result.nullType]);
-  result.checkFieldHasType('A', 'witness4', [result.string, result.nullType]);
+  return analyze(source).then((result) {
+    result.checkFieldHasType('A', 'xx', [result.int]);
+    result.checkFieldHasType('A', 'yy', [result.int]);
+    result.checkFieldHasType('A', 'witness1', [result.string, result.nullType]);
+    result.checkFieldHasType('A', 'witness2', [result.string, result.nullType]);
+    result.checkFieldHasType('A', 'witness3', [result.string, result.nullType]);
+    result.checkFieldHasType('A', 'witness4', [result.string, result.nullType]);
+  });
 }
 
 testInequality() {
@@ -1038,11 +1079,12 @@ testInequality() {
         foo; bar; baz;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('foo', [result.bool]);
-  result.checkNodeHasType('bar', [result.bool]);
-  result.checkNodeHasType('baz', []);
-  result.checkFieldHasType('A', 'witness', [result.string, result.nullType]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.bool]);
+    result.checkNodeHasType('bar', [result.bool]);
+    result.checkNodeHasType('baz', []);
+    result.checkFieldHasType('A', 'witness', [result.string, result.nullType]);
+  });
 }
 
 testFieldInitialization1() {
@@ -1058,10 +1100,11 @@ testFieldInitialization1() {
       new B();
     }
     """;
-  AnalysisResult result = analyze(source);
-  result.checkFieldHasType('A', 'x', [result.nullType]);
-  result.checkFieldHasType('A', 'y', [result.int]);
-  result.checkFieldHasType('B', 'z', [result.string]);
+  return analyze(source).then((result) {
+    result.checkFieldHasType('A', 'x', [result.nullType]);
+    result.checkFieldHasType('A', 'y', [result.int]);
+    result.checkFieldHasType('B', 'z', [result.string]);
+  });
 }
 
 testFieldInitialization2() {
@@ -1074,8 +1117,9 @@ testFieldInitialization2() {
       new A();
     }
     """;
-  AnalysisResult result = analyze(source);
-  result.checkFieldHasType('A', 'x', [result.int]);
+  return analyze(source).then((result) {
+    result.checkFieldHasType('A', 'x', [result.int]);
+  });
 }
 
 testFieldInitialization3() {
@@ -1095,15 +1139,16 @@ testFieldInitialization3() {
       foo; bar;
     }
     """;
-  AnalysisResult result = analyze(source);
-  // checks that B.B is set as a reader of A.x
-  result.checkFieldHasType('B', 'x', [result.nullType, result.string]);
-  // checks that B.B is set as a caller of f
-  result.checkFieldHasType('B', 'y', [result.nullType, result.string]);
-  // checks that readers of x are notified by changes in x's type
-  result.checkNodeHasType('foo', [result.nullType, result.string]);
-  // checks that readers of y are notified by changes in y's type
-  result.checkNodeHasType('bar', [result.nullType, result.string]);
+  return analyze(source).then((result) {
+    // checks that B.B is set as a reader of A.x
+    result.checkFieldHasType('B', 'x', [result.nullType, result.string]);
+    // checks that B.B is set as a caller of f
+    result.checkFieldHasType('B', 'y', [result.nullType, result.string]);
+    // checks that readers of x are notified by changes in x's type
+    result.checkNodeHasType('foo', [result.nullType, result.string]);
+    // checks that readers of y are notified by changes in y's type
+    result.checkNodeHasType('bar', [result.nullType, result.string]);
+  });
 }
 
 testLists() {
@@ -1135,16 +1180,17 @@ testLists() {
       var x8 = l2.removeLast();
       x1; x2; x3; x4; x5; x6; x7; x8;
     }""";
-  AnalysisResult result = analyze(source);
-  final expectedTypes = ['A', 'C', 'D', 'F', 'G'].map(result.base).toList();
-  result.checkNodeHasType('x1', expectedTypes);
-  result.checkNodeHasType('x2', expectedTypes);
-  result.checkNodeHasType('x3', []);
-  result.checkNodeHasType('x4', expectedTypes);
-  result.checkNodeHasType('x5', expectedTypes);
-  result.checkNodeHasType('x6', []);
-  result.checkNodeHasType('x7', expectedTypes);
-  result.checkNodeHasType('x8', expectedTypes);
+  return analyze(source).then((result) {
+    final expectedTypes = ['A', 'C', 'D', 'F', 'G'].map(result.base).toList();
+    result.checkNodeHasType('x1', expectedTypes);
+    result.checkNodeHasType('x2', expectedTypes);
+    result.checkNodeHasType('x3', []);
+    result.checkNodeHasType('x4', expectedTypes);
+    result.checkNodeHasType('x5', expectedTypes);
+    result.checkNodeHasType('x6', []);
+    result.checkNodeHasType('x7', expectedTypes);
+    result.checkNodeHasType('x8', expectedTypes);
+  });
 }
 
 testListWithCapacity() {
@@ -1154,8 +1200,9 @@ testListWithCapacity() {
       var x = [][0];
       x;
     }""";
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', [result.nullType]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('x', [result.nullType]);
+  });
 }
 
 testEmptyList() {
@@ -1165,8 +1212,9 @@ testEmptyList() {
       var x = l[0];
       x;
     }""";
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', []);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('x', []);
+  });
 }
 
 testSendWithWrongArity() {
@@ -1181,11 +1229,12 @@ testSendWithWrongArity() {
       x; y; z; w;
     }
     """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', []);
-  result.checkNodeHasType('y', []);
-  result.checkNodeHasType('z', []);
-  result.checkNodeHasType('w', []);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('x', []);
+    result.checkNodeHasType('y', []);
+    result.checkNodeHasType('z', []);
+    result.checkNodeHasType('w', []);
+  });
 }
 
 testBigTypesWidening1() {
@@ -1198,9 +1247,10 @@ testBigTypesWidening1() {
       x; y;
     }
     """;
-  AnalysisResult result = analyze(source, maxConcreteTypeSize: 2);
-  result.checkNodeHasType('x', [result.int, result.string]);
-  result.checkNodeHasUnknownType('y');
+  return analyze(source, maxConcreteTypeSize: 2).then((result) {
+    result.checkNodeHasType('x', [result.int, result.string]);
+    result.checkNodeHasUnknownType('y');
+  });
 }
 
 testBigTypesWidening2() {
@@ -1216,9 +1266,10 @@ testBigTypesWidening2() {
       a.y = true;
     }
     """;
-  AnalysisResult result = analyze(source, maxConcreteTypeSize: 2);
-  result.checkFieldHasType('A', 'x', [result.int, result.string]);
-  result.checkFieldHasUknownType('A', 'y');
+  return analyze(source, maxConcreteTypeSize: 2).then((result) {
+    result.checkFieldHasType('A', 'x', [result.int, result.string]);
+    result.checkFieldHasUknownType('A', 'y');
+  });
 }
 
 testDynamicIsAbsorbing() {
@@ -1233,8 +1284,9 @@ testDynamicIsAbsorbing() {
       x;
     }
     """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasUnknownType('x');
+  return analyze(source).then((result) {
+    result.checkNodeHasUnknownType('x');
+  });
 }
 
 testJsCall() {
@@ -1279,34 +1331,35 @@ testJsCall() {
       iNull; j;
     }
     """;
-  AnalysisResult result = analyze(source);
-  List maybe(List types) => new List.from(types)..add(result.nullType);
-  result.checkNodeHasUnknownType('a');
-  result.checkNodeHasUnknownType('b');
-  final expectedCType = [result.growableList];
-  result.checkNodeHasType('c', expectedCType);
-  result.checkNodeHasType('cNull', maybe(expectedCType));
-  final expectedDType = [result.string];
-  result.checkNodeHasType('d', expectedDType);
-  result.checkNodeHasType('dNull', maybe(expectedDType));
-  final expectedEType = [result.int];
-  result.checkNodeHasType('e', expectedEType);
-  result.checkNodeHasType('eNull', maybe(expectedEType));
-  final expectedFType = [result.double];
-  result.checkNodeHasType('f', expectedFType);
-  result.checkNodeHasType('fNull', maybe(expectedFType));
-  final expectedGType = [result.num];
-  result.checkNodeHasType('g', expectedGType);
-  result.checkNodeHasType('gNull', maybe(expectedGType));
-  final expectedHType = [result.bool];
-  result.checkNodeHasType('h', expectedHType);
-  result.checkNodeHasType('hNull', maybe(expectedHType));
-  final expectedIType = [result.base('A'), result.base('B'),
-                         result.base('BB'), result.base('C'),
-                         result.base('D')];
-  result.checkNodeHasType('i', expectedIType);
-  result.checkNodeHasType('iNull', maybe(expectedIType));
-  result.checkNodeHasType('j', []);
+  return analyze(source).then((result) {
+    List maybe(List types) => new List.from(types)..add(result.nullType);
+    result.checkNodeHasUnknownType('a');
+    result.checkNodeHasUnknownType('b');
+    final expectedCType = [result.growableList];
+    result.checkNodeHasType('c', expectedCType);
+    result.checkNodeHasType('cNull', maybe(expectedCType));
+    final expectedDType = [result.string];
+    result.checkNodeHasType('d', expectedDType);
+    result.checkNodeHasType('dNull', maybe(expectedDType));
+    final expectedEType = [result.int];
+    result.checkNodeHasType('e', expectedEType);
+    result.checkNodeHasType('eNull', maybe(expectedEType));
+    final expectedFType = [result.double];
+    result.checkNodeHasType('f', expectedFType);
+    result.checkNodeHasType('fNull', maybe(expectedFType));
+    final expectedGType = [result.num];
+    result.checkNodeHasType('g', expectedGType);
+    result.checkNodeHasType('gNull', maybe(expectedGType));
+    final expectedHType = [result.bool];
+    result.checkNodeHasType('h', expectedHType);
+    result.checkNodeHasType('hNull', maybe(expectedHType));
+    final expectedIType = [result.base('A'), result.base('B'),
+                           result.base('BB'), result.base('C'),
+                           result.base('D')];
+    result.checkNodeHasType('i', expectedIType);
+    result.checkNodeHasType('iNull', maybe(expectedIType));
+    result.checkNodeHasType('j', []);
+  });
 }
 
 testJsCallAugmentsSeenClasses() {
@@ -1316,20 +1369,23 @@ testJsCallAugmentsSeenClasses() {
       x;
     }
     """;
-  AnalysisResult result1 = analyze(source1);
-  result1.checkNodeHasType('x', []);
+  return analyze(source1).then((AnalysisResult result) {
+    result.checkNodeHasType('x', []);
+  }).whenComplete(() {
 
-  final String source2 = r"""
-    import 'dart:foreign';
-
-    main () {
-      var x = "__dynamic_for_test".truncate();
-      JS('double', 'foo');
-      x;
-    }
-    """;
-  AnalysisResult result2 = analyze(source2);
-  result2.checkNodeHasType('x', [result2.int]);
+    final String source2 = r"""
+      import 'dart:foreign';
+  
+      main () {
+        var x = "__dynamic_for_test".truncate();
+        JS('double', 'foo');
+        x;
+      }
+      """;
+    return analyze(source2).then((AnalysisResult result) {
+      result.checkNodeHasType('x', [result.int]);
+    });
+  });
 }
 
 testIsCheck() {
@@ -1339,8 +1395,9 @@ testIsCheck() {
       x;
     }
     """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', [result.bool]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('x', [result.bool]);
+  });
 }
 
 testSeenClasses() {
@@ -1366,8 +1423,9 @@ testSeenClasses() {
         foo;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('foo', [result.int]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int]);
+  });
 }
 
 testIntDoubleNum() {
@@ -1379,10 +1437,11 @@ testIntDoubleNum() {
         a; b; c;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('a', [result.int]);
-  result.checkNodeHasType('b', [result.double]);
-  result.checkNodeHasType('c', [result.num]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('a', [result.int]);
+    result.checkNodeHasType('b', [result.double]);
+    result.checkNodeHasType('c', [result.num]);
+  });
 }
 
 testConcreteTypeToTypeMask() {
@@ -1398,46 +1457,48 @@ testConcreteTypeToTypeMask() {
         new D();
       }
       """;
-  AnalysisResult result = analyze(source);
+  return analyze(source).then((result) {
 
-  convert(ConcreteType type) {
-    return result.compiler.typesTask.concreteTypesInferrer
-        .concreteTypeToTypeMask(type);
-  }
+    convert(ConcreteType type) {
+      return result.compiler.typesTask.concreteTypesInferrer
+          .concreteTypeToTypeMask(type);
+    }
 
-  final nullSingleton =
-      result.compiler.typesTask.concreteTypesInferrer.singletonConcreteType(
-          new NullBaseType());
+    final nullSingleton =
+        result.compiler.typesTask.concreteTypesInferrer.singletonConcreteType(
+            new NullBaseType());
 
-  singleton(ClassElement element) {
-    return result.compiler.typesTask.concreteTypesInferrer
-        .singletonConcreteType(new ClassBaseType(element));
-  }
+    singleton(ClassElement element) {
+      return result.compiler.typesTask.concreteTypesInferrer
+          .singletonConcreteType(new ClassBaseType(element));
+    }
 
-  ClassElement a = findElement(result.compiler, 'A');
-  ClassElement b = findElement(result.compiler, 'B');
-  ClassElement c = findElement(result.compiler, 'C');
-  ClassElement d = findElement(result.compiler, 'D');
+    ClassElement a = findElement(result.compiler, 'A');
+    ClassElement b = findElement(result.compiler, 'B');
+    ClassElement c = findElement(result.compiler, 'C');
+    ClassElement d = findElement(result.compiler, 'D');
 
-  for (ClassElement cls in [a, b, c, d]) {
-    Expect.equals(convert(singleton(cls)),
-                  new TypeMask.nonNullExact(cls.rawType));
-  }
+    for (ClassElement cls in [a, b, c, d]) {
+      Expect.equals(convert(singleton(cls)),
+                    new TypeMask.nonNullExact(cls.rawType));
+    }
 
-  for (ClassElement cls in [a, b, c, d]) {
-    Expect.equals(convert(singleton(cls).union(nullSingleton)),
-                  new TypeMask.exact(cls.rawType));
-  }
+    for (ClassElement cls in [a, b, c, d]) {
+      Expect.equals(convert(singleton(cls).union(nullSingleton)),
+                    new TypeMask.exact(cls.rawType));
+    }
 
-  Expect.equals(convert(singleton(a).union(singleton(b))),
-                new TypeMask.nonNullSubclass(a.rawType));
+    Expect.equals(convert(singleton(a).union(singleton(b))),
+                  new TypeMask.nonNullSubclass(a.rawType));
 
-  Expect.equals(convert(singleton(a).union(singleton(b)).union(nullSingleton)),
-                new TypeMask.subclass(a.rawType));
+    Expect.equals(
+        convert(singleton(a).union(singleton(b)).union(nullSingleton)),
+                  new TypeMask.subclass(a.rawType));
 
-  Expect.equals(
-      convert(singleton(b).union(singleton(d))).simplify(result.compiler),
-      new TypeMask.nonNullSubtype(a.rawType));
+    Expect.equals(
+        convert(singleton(b).union(singleton(d))).simplify(result.compiler),
+        new TypeMask.nonNullSubtype(a.rawType));
+  });
 }
 
 testSelectors() {
@@ -1463,45 +1524,46 @@ testSelectors() {
         new Z().foo();
       }
       """;
-  AnalysisResult result = analyze(source);
+  return analyze(source).then((result) {
 
-  inferredType(Selector selector) {
-    return result.compiler.typesTask.concreteTypesInferrer
-        .getTypeOfSelector(selector);
-  }
+    inferredType(Selector selector) {
+      return result.compiler.typesTask.concreteTypesInferrer
+          .getTypeOfSelector(selector);
+    }
 
-  ClassElement abc = findElement(result.compiler, 'ABC');
-  ClassElement bc = findElement(result.compiler, 'BC');
-  ClassElement a = findElement(result.compiler, 'A');
-  ClassElement b = findElement(result.compiler, 'B');
-  ClassElement c = findElement(result.compiler, 'C');
-  ClassElement xy = findElement(result.compiler, 'XY');
-  ClassElement x = findElement(result.compiler, 'X');
-  ClassElement y = findElement(result.compiler, 'Y');
-  ClassElement z = findElement(result.compiler, 'Z');
+    ClassElement abc = findElement(result.compiler, 'ABC');
+    ClassElement bc = findElement(result.compiler, 'BC');
+    ClassElement a = findElement(result.compiler, 'A');
+    ClassElement b = findElement(result.compiler, 'B');
+    ClassElement c = findElement(result.compiler, 'C');
+    ClassElement xy = findElement(result.compiler, 'XY');
+    ClassElement x = findElement(result.compiler, 'X');
+    ClassElement y = findElement(result.compiler, 'Y');
+    ClassElement z = findElement(result.compiler, 'Z');
 
-  Selector foo = new Selector.call(buildSourceString("foo"), null, 0);
+    Selector foo = new Selector.call(buildSourceString("foo"), null, 0);
 
-  Expect.equals(
-      inferredType(foo).simplify(result.compiler),
-      new TypeMask.nonNullSubclass(abc.rawType));
-  Expect.equals(
-      inferredType(new TypedSelector.subclass(x.rawType, foo)),
-      new TypeMask.nonNullExact(b.rawType));
-  Expect.equals(
-      inferredType(new TypedSelector.subclass(y.rawType, foo)),
-      new TypeMask.nonNullExact(c.rawType));
-  Expect.equals(
-      inferredType(new TypedSelector.subclass(z.rawType, foo)),
-      new TypeMask.nonNullExact(a.rawType));
-  Expect.equals(
-      inferredType(new TypedSelector.subclass(
-          xy.rawType, foo)).simplify(result.compiler),
-      new TypeMask.nonNullSubclass(bc.rawType));
+    Expect.equals(
+        inferredType(foo).simplify(result.compiler),
+        new TypeMask.nonNullSubclass(abc.rawType));
+    Expect.equals(
+        inferredType(new TypedSelector.subclass(x.rawType, foo)),
+        new TypeMask.nonNullExact(b.rawType));
+    Expect.equals(
+        inferredType(new TypedSelector.subclass(y.rawType, foo)),
+        new TypeMask.nonNullExact(c.rawType));
+    Expect.equals(
+        inferredType(new TypedSelector.subclass(z.rawType, foo)),
+        new TypeMask.nonNullExact(a.rawType));
+    Expect.equals(
+        inferredType(new TypedSelector.subclass(
+            xy.rawType, foo)).simplify(result.compiler),
+        new TypeMask.nonNullSubclass(bc.rawType));
 
-  Selector bar = new Selector.call(buildSourceString("bar"), null, 0);
+    Selector bar = new Selector.call(buildSourceString("bar"), null, 0);
 
-  Expect.isNull(inferredType(bar));
+    Expect.isNull(inferredType(bar));
+  });
 }
 
 testMixins() {
@@ -1523,11 +1585,12 @@ testMixins() {
         x; y; z; w;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', [result.string]);
-  result.checkNodeHasType('y', [result.string]);
-  result.checkNodeHasType('z', [result.int]);
-  result.checkNodeHasType('w', [result.int]);
+  return analyze(source).then((result) {
+    result.checkNodeHasType('x', [result.string]);
+    result.checkNodeHasType('y', [result.string]);
+    result.checkNodeHasType('z', [result.int]);
+    result.checkNodeHasType('w', [result.int]);
+  });
 }
 
 testClosures() {
@@ -1549,10 +1612,11 @@ testClosures() {
         a; b; f;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('a', [result.int, result.string]);
-  result.checkNodeHasType('f', [result.functionType]);
-  result.checkNodeHasUnknownType('b');
+  return analyze(source).then((AnalysisResult result) {
+    result.checkNodeHasType('a', [result.int, result.string]);
+    result.checkNodeHasType('f', [result.functionType]);
+    result.checkNodeHasUnknownType('b');
+  });
 }
 
 testNestedFunctions() {
@@ -1574,69 +1638,72 @@ testNestedFunctions() {
         a; b; f;
       }
       """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('a', [result.int, result.string]);
-  result.checkNodeHasType('f', [result.functionType]);
-  result.checkNodeHasUnknownType('b');
+  return analyze(source).then((AnalysisResult result) {
+    result.checkNodeHasType('a', [result.int, result.string]);
+    result.checkNodeHasType('f', [result.functionType]);
+    result.checkNodeHasUnknownType('b');
+  });
 }
 
 void main() {
-  testDynamicBackDoor();
-  testVariableDeclaration();
-  testLiterals();
-  testRedefinition();
-  testIfThenElse();
-  testTernaryIf();
-  testWhile();
-  testDoWhile();
-  testFor1();
-  testFor2();
-  testFor3();
-  testForIn();
-  testToplevelVariable();
-  testNonRecusiveFunction();
-  testRecusiveFunction();
-  testMutuallyRecusiveFunction();
-  testSimpleSend();
-  // testSendToClosureField();  // closures are not yet supported
-  testSendToThis1();
-  testSendToThis2();
-  testSendToThis3();
-  testConstructor();
-  testGetters();
-  testSetters();
-  testOptionalNamedParameters();
-  testOptionalPositionalParameters();
-  testListLiterals();
-  testMapLiterals();
-  testReturn();
-  // testNoReturn(); // right now we infer the empty type instead of null
-  testArithmeticOperators();
-  testBooleanOperators();
-  testBooleanOperatorsShortCirtcuit();
-  testOperators();
-  testCompoundOperators1();
-  testCompoundOperators2();
-  testSetIndexOperator();
-  testInequality();
-  testFieldInitialization1();
-  testFieldInitialization2();
-  testFieldInitialization3();
-  testSendWithWrongArity();
-  testBigTypesWidening1();
-  testBigTypesWidening2();
-  testDynamicIsAbsorbing();
-  testLists();
-  testListWithCapacity();
-  testEmptyList();
-  testJsCall();
-  testJsCallAugmentsSeenClasses();
-  testIsCheck();
-  testSeenClasses();
-  testIntDoubleNum();
-  testConcreteTypeToTypeMask();
-  testSelectors();
-  testMixins();
-  testClosures();
-  testNestedFunctions();
+  asyncTest(() => Future.forEach([
+    testDynamicBackDoor,
+    testVariableDeclaration,
+    testLiterals,
+    testRedefinition,
+    testIfThenElse,
+    testTernaryIf,
+    testWhile,
+    testDoWhile,
+    testFor1,
+    testFor2,
+    testFor3,
+    testForIn,
+    testToplevelVariable,
+    testNonRecusiveFunction,
+    testRecusiveFunction,
+    testMutuallyRecusiveFunction,
+    testSimpleSend,
+    // testSendToClosureField,  // closures are not yet supported
+    testSendToThis1,
+    testSendToThis2,
+    testSendToThis3,
+    testConstructor,
+    testGetters,
+    testSetters,
+    testOptionalNamedParameters,
+    testOptionalPositionalParameters,
+    testListLiterals,
+    testMapLiterals,
+    testReturn,
+    // testNoReturn, // right now we infer the empty type instead of null
+    testArithmeticOperators,
+    testBooleanOperators,
+    testBooleanOperatorsShortCirtcuit,
+    testOperators,
+    testCompoundOperators1,
+    testCompoundOperators2,
+    testSetIndexOperator,
+    testInequality,
+    testFieldInitialization1,
+    testFieldInitialization2,
+    testFieldInitialization3,
+    testSendWithWrongArity,
+    testBigTypesWidening1,
+    testBigTypesWidening2,
+    testDynamicIsAbsorbing,
+    testLists,
+    testListWithCapacity,
+    testEmptyList,
+    testJsCall,
+    testJsCallAugmentsSeenClasses,
+    testIsCheck,
+    testSeenClasses,
+    testIntDoubleNum,
+    testConcreteTypeToTypeMask,
+    testSelectors,
+    testMixins,
+    testClosures,
+    testNestedFunctions,
+  ], (f) => f()));
 }

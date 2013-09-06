@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/expect.dart';
+import 'dart:async';
+import "package:async_helper/async_helper.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart' show
     DualKind,
     MessageKind;
@@ -43,10 +46,14 @@ main() {
     }
   };
   var cachedCompiler;
-  for (String name in examples) {
+  asyncTest(() => Future.forEach(examples, (String name) {
     Stopwatch sw = new Stopwatch()..start();
-    cachedCompiler = check(kinds[name], cachedCompiler);
-    sw.stop();
-    print("Checked '$name' in ${sw.elapsedMilliseconds}ms.");
-  }
+    return check(kinds[name], cachedCompiler).
+        then((var compiler) {
+          cachedCompiler = compiler;
+          sw.stop();
+          print("Checked '$name' in ${sw.elapsedMilliseconds}ms.");
+        });
+    }
+  ));
 }

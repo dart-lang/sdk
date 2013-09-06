@@ -76,6 +76,10 @@ main() {
           '//comment two\n\n'
       );
       expectCUFormatsTo(
+          'var x;   //x\n',
+          'var x; //x\n'
+      );
+      expectCUFormatsTo(
           'library foo;\n'
           '\n'
           '//comment one\n'
@@ -329,7 +333,8 @@ main() {
           '}\n',
           '/** Old school class comment */\n'
           'class C {\n'
-          '  /** Foo! */ int foo() => 42;\n'
+          '  /** Foo! */\n'
+          '  int foo() => 42;\n'
           '}\n'
       );
       expectCUFormatsTo(
@@ -404,6 +409,130 @@ main() {
           'class C {\n'
           '}\n'
       );
+    });
+    
+    test('CU - mixed comments', () {
+      expectCUFormatsTo(
+          'library foo;\n'
+          '\n'
+          '\n'
+          '/* Comment 1 */\n'
+          '\n'
+          '// Comment 2\n'
+          '\n'
+          '/* Comment 3 */',
+          'library foo;\n'
+          '\n'
+          '\n'
+          '/* Comment 1 */\n'
+          '\n'
+          '// Comment 2\n'
+          '\n'
+          '/* Comment 3 */'
+        );
+    });
+    
+    test('CU - comments (EOF)', () {
+      expectCUFormatsTo(
+          'library foo; //zamm',
+          'library foo; //zamm\n' //<-- note extra NEWLINE
+        );
+    });  
+    
+    test('CU - comments (0)', () {
+      expectCUFormatsTo(
+          'library foo; //zamm\n'
+          '\n'
+          'class A {\n'
+          '}\n',
+          'library foo; //zamm\n'
+          '\n'
+          'class A {\n'
+          '}\n'
+        );
+    });
+
+    test('CU - comments (1)', () {
+      expectCUFormatsTo(
+          '/* foo */ /* bar */\n',
+          '/* foo */ /* bar */\n'
+      );
+    });
+    
+    test('CU - comments (2)', () {
+      expectCUFormatsTo(
+          '/** foo */ /** bar */\n',
+          '/** foo */\n' 
+          '/** bar */\n'
+      );
+    });
+
+    test('CU - comments (3)', () {
+      expectCUFormatsTo(
+          'var x;   //x\n',
+          'var x; //x\n'
+      );
+    });
+
+    test('CU - comments (4)', () {
+      expectCUFormatsTo(
+          'class X { //X!\n'
+          '}',
+          'class X { //X!\n'
+          '}'
+      );
+    });
+    
+    test('CU - comments (5)', () {
+      expectCUFormatsTo(
+          '//comment one\n\n'
+          '//comment two\n\n',
+          '//comment one\n\n'
+          '//comment two\n\n'
+      );
+    });    
+    
+    test('CU - comments (6)', () {
+      expectCUFormatsTo(
+          'var x;   //x\n',
+          'var x; //x\n'
+      );
+    });    
+
+    test('CU - comments (6)', () {
+      expectCUFormatsTo(
+          'var /* int */ x; //x\n',
+          'var /* int */ x; //x\n'
+      );
+    });    
+    
+    test('CU - comments (7)', () {
+      expectCUFormatsTo(
+          'library foo;\n'
+          '\n'
+          '/// Docs\n'
+          '/// spanning\n'
+          '/// lines.\n'
+          'class A {\n'
+          '}\n'
+          '\n'
+          '/// ... and\n'
+          '\n'
+          '/// Dangling ones too\n'
+          'int x;\n',
+          'library foo;\n'
+          '\n'
+          '/// Docs\n'
+          '/// spanning\n'
+          '/// lines.\n'
+          'class A {\n'
+          '}\n'
+          '\n'
+          '/// ... and\n'
+          '\n'
+          '/// Dangling ones too\n'
+          'int x;\n'
+        );
     });
     
     

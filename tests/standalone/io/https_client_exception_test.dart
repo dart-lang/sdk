@@ -2,19 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void testBadHostName() {
+  asyncStart();
   HttpClient client = new HttpClient();
-  ReceivePort port = new ReceivePort();
   client.getUrl(Uri.parse("https://some.bad.host.name.7654321/"))
       .then((HttpClientRequest request) {
         Expect.fail("Should not open a request on bad hostname");
       })
       .catchError((error) {
-        port.close();  // Should throw an error on bad hostname.
+        asyncEnd();  // Should throw an error on bad hostname.
       });
 }
 

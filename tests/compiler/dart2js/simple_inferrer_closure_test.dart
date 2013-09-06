@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 
 const String TEST = """
@@ -97,22 +98,23 @@ main() {
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
-  compiler.runCompiler(uri);
-  var typesInferrer = compiler.typesTask.typesInferrer;
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    var typesInferrer = compiler.typesTask.typesInferrer;
 
-  checkReturn(String name, type) {
-    var element = findElement(compiler, name);
-    Expect.equals(type,
-        typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
-  }
+    checkReturn(String name, type) {
+      var element = findElement(compiler, name);
+      Expect.equals(type,
+          typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
+    }
 
-  checkReturn('returnInt1', compiler.typesTask.intType);
-  checkReturn('returnInt2', compiler.typesTask.intType.nullable());
-  checkReturn('returnInt3', compiler.typesTask.intType);
-  checkReturn('returnInt4', compiler.typesTask.intType);
+    checkReturn('returnInt1', compiler.typesTask.intType);
+    checkReturn('returnInt2', compiler.typesTask.intType.nullable());
+    checkReturn('returnInt3', compiler.typesTask.intType);
+    checkReturn('returnInt4', compiler.typesTask.intType);
 
-  checkReturn('returnDyn1', compiler.typesTask.dynamicType);
-  checkReturn('returnDyn2', compiler.typesTask.dynamicType);
-  checkReturn('returnDyn3', compiler.typesTask.dynamicType);
-  checkReturn('returnNum1', compiler.typesTask.numType);
+    checkReturn('returnDyn1', compiler.typesTask.dynamicType);
+    checkReturn('returnDyn2', compiler.typesTask.dynamicType);
+    checkReturn('returnDyn3', compiler.typesTask.dynamicType);
+    checkReturn('returnNum1', compiler.typesTask.numType);
+  }));
 }

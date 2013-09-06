@@ -355,4 +355,18 @@ void runDateTests(Function subsetFunc) {
     var symbols = emptyFormat.dateSymbols;
     expect(symbols.NARROWWEEKDAYS, ['S', 'M', 'T', 'W', 'T', 'F', 'S']);
   });
+
+  test('Quarter calculation', () {
+    var quarters = ['Q1', 'Q1', 'Q1',
+                    'Q2', 'Q2', 'Q2',
+                    'Q3', 'Q3', 'Q3',
+                    'Q4', 'Q4', 'Q4'];
+    var quarterFormat = new DateFormat.QQQ();
+    for (int i = 0; i < 12; i++) {
+        var month = i + 1;
+        var aDate = new DateTime(2012, month, 27, 13, 58, 59, 012);
+        var formatted = quarterFormat.format(aDate);
+        expect(formatted, quarters[i]);
+    }
+  });
 }

@@ -51,7 +51,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
-  virtual void VisitRelationalOp(RelationalOpInstr* instr);
   virtual void VisitEqualityCompare(EqualityCompareInstr* instr);
   virtual void VisitBranch(BranchInstr* instr);
   virtual void VisitStrictCompare(StrictCompareInstr* instr);
@@ -81,6 +80,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithUnaryOp(InstanceCallInstr* call, Token::Kind op_kind);
+
+  bool TryReplaceWithRelationalOp(InstanceCallInstr* call, Token::Kind op_kind);
 
   bool TryInlineInstanceGetter(InstanceCallInstr* call);
   bool TryInlineInstanceSetter(InstanceCallInstr* call,
@@ -162,12 +163,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void ReplaceWithMathCFunction(InstanceCallInstr* call,
                                 MethodRecognizer::Kind recognized_kind);
-
-  void HandleComparison(ComparisonInstr* comp,
-                        const ICData& ic_data,
-                        Instruction* current_instruction);
-
-  void HandleRelationalOp(RelationalOpInstr* comp);
 
   // Visit an equality compare.  The current instruction can be the
   // comparison itself or a branch on the comparison.

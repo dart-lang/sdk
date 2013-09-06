@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import "compiler_helper.dart";
 import "parser_helper.dart";
@@ -87,30 +88,30 @@ void main() {
       """,
       uri,
       analyzeAll: true, analyzeOnly: true);
-  compiler.runCompiler(uri);
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    test(compiler, "void1", "void2", expect: true);
+    test(compiler, "int1", "int2", expect: true);
+    test(compiler, "String1", "String2", expect: true);
+    test(compiler, "ListInt1", "ListInt2", expect: true);
+    test(compiler, "ListString1", "ListString2", expect: true);
+    test(compiler, "MapIntString1", "MapIntString2", expect: true);
+    test(compiler, "TypeVar1", "TypeVar2", expect: true);
+    test(compiler, "Function1a", "Function2a", expect: true);
+    test(compiler, "Function1b", "Function2b", expect: true);
+    test(compiler, "Typedef1a", "Typedef2a", expect: true);
+    test(compiler, "Typedef1b", "Typedef2b", expect: true);
+    test(compiler, "Typedef1c", "Typedef2c", expect: true);
 
-  test(compiler, "void1", "void2", expect: true);
-  test(compiler, "int1", "int2", expect: true);
-  test(compiler, "String1", "String2", expect: true);
-  test(compiler, "ListInt1", "ListInt2", expect: true);
-  test(compiler, "ListString1", "ListString2", expect: true);
-  test(compiler, "MapIntString1", "MapIntString2", expect: true);
-  test(compiler, "TypeVar1", "TypeVar2", expect: true);
-  test(compiler, "Function1a", "Function2a", expect: true);
-  test(compiler, "Function1b", "Function2b", expect: true);
-  test(compiler, "Typedef1a", "Typedef2a", expect: true);
-  test(compiler, "Typedef1b", "Typedef2b", expect: true);
-  test(compiler, "Typedef1c", "Typedef2c", expect: true);
-
-  test(compiler, "void1", "int1", expect: false);
-  test(compiler, "int1", "String1", expect: false);
-  test(compiler, "String1", "ListInt1", expect: false);
-  test(compiler, "ListInt1", "ListString1", expect: false);
-  test(compiler, "ListString1", "MapIntString1", expect: false);
-  test(compiler, "MapIntString1", "TypeVar1", expect: false);
-  test(compiler, "TypeVar1", "Function1a", expect: false);
-  test(compiler, "Function1a", "Function1b", expect: false);
-  test(compiler, "Function1b", "Typedef1a", expect: false);
-  test(compiler, "Typedef1a", "Typedef1b", expect: false);
-  test(compiler, "Typedef1b", "Typedef1c", expect: false);
+    test(compiler, "void1", "int1", expect: false);
+    test(compiler, "int1", "String1", expect: false);
+    test(compiler, "String1", "ListInt1", expect: false);
+    test(compiler, "ListInt1", "ListString1", expect: false);
+    test(compiler, "ListString1", "MapIntString1", expect: false);
+    test(compiler, "MapIntString1", "TypeVar1", expect: false);
+    test(compiler, "TypeVar1", "Function1a", expect: false);
+    test(compiler, "Function1a", "Function1b", expect: false);
+    test(compiler, "Function1b", "Typedef1a", expect: false);
+    test(compiler, "Typedef1a", "Typedef1b", expect: false);
+    test(compiler, "Typedef1b", "Typedef1c", expect: false);
+  }));
 }

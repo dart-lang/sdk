@@ -89,43 +89,6 @@ abstract class Directory implements FileSystemEntity {
   Directory createTempSync();
 
   /**
-   * Deletes this directory.
-   *
-   * If [recursive] is false, the directory must be empty.  Only directories
-   * and links to directories will be deleted.
-   *
-   * If [recursive] is true, this directory and all sub-directories
-   * and files in the directories are deleted. Links are not followed
-   * when deleting recursively. Only the link is deleted, not its target.
-   *
-   * If [recursive] is true, the target is deleted even if it is a file, or
-   * a link to a file, not only if it is a directory.  This behavior allows
-   * [delete] to be used to unconditionally delete any file system object.
-   *
-   * Returns a [:Future<Directory>:] that completes with this
-   * directory when the deletion is done. If the directory cannot be
-   * deleted, the future completes with an exception.
-   */
-  Future<Directory> delete({recursive: false});
-
-  /**
-   * Synchronously deletes this directory.
-   *
-   * If [recursive] is false, the directory must be empty.
-   *
-   * If [recursive] is true, this directory and all sub-directories
-   * and files in the directories are deleted. Links are not followed
-   * when deleting recursively. Only the link is deleted, not its target.
-   *
-   * If [recursive] is true, the target is deleted even if it is a file, or
-   * a link to a file, not only if it is a directory.  This behavior allows
-   * [delete] to be used to unconditionally delete any file system object.
-   *
-   * Throws an exception if the directory cannot be deleted.
-   */
-  void deleteSync({recursive: false});
-
-  /**
    * Renames this directory. Returns a [:Future<Directory>:] that completes
    * with a [Directory] instance for the renamed directory.
    *

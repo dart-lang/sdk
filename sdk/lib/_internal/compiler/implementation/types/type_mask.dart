@@ -97,10 +97,9 @@ abstract class TypeMask {
   TypeMask intersection(TypeMask other, Compiler compiler);
 
   /**
-   * Returns whether a [selector] call will hit a method at runtime,
-   * and not go through [noSuchMethod].
+   * Returns whether this [TypeMask] understands [selector].
    */
-  bool willHit(Selector selector, Compiler compiler);
+  bool understands(Selector selector, Compiler compiler);
 
   /**
    * Returns whether this [TypeMask] applied to [selector] can hit a

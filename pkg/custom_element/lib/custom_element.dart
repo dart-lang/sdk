@@ -197,6 +197,29 @@ class CustomElement implements Element {
   BindingDelegate get bindingDelegate => host.bindingDelegate;
   set bindingDelegate(BindingDelegate value) { host.bindingDelegate = value; }
 
+  // TODO(efortuna): Update these when we decide what to do with these
+  // properties.
+  @deprecated
+  String getAttribute(String name) =>
+      host.getAttribute(name);
+
+  @deprecated
+  String getAttributeNS(String namespaceUri, String localName) =>
+      host.getAttributeNS(namespaceUri, localName);
+
+  @deprecated
+  String setAttributeNS(
+      String namespaceUri, String localName, String value) {
+    host.setAttributeNS(namespaceUri, localName, value);
+  }
+
+  @deprecated
+  void setAttribute(String name, String value) =>
+      host.setAttribute(name, value);
+
+  @deprecated
+  List<Node> get childNodes => host.childNodes;
+
   // TODO(jmesserly): this forwarding is temporary until Dart supports
   // subclassing Elements.
   // TODO(jmesserly): we were missing the setter for title, are other things

@@ -93,6 +93,9 @@ class ClassFinalizer : public AllStatic {
   static void ResolveRedirectingFactory(const Class& cls,
                                         const Function& factory);
 
+  // Apply the mixin type to the mixin application class.
+  static void ApplyMixinType(const Class& mixin_app_class);
+
  private:
   static bool IsSuperCycleFree(const Class& cls);
   static bool IsParameterTypeCycleFree(const Class& cls,
@@ -108,9 +111,8 @@ class ClassFinalizer : public AllStatic {
       const Class& cls,
       const Function& factory,
       const GrowableObjectArray& visited_factories);
-  static void CloneTypeParameters(const Class& mixapp_class);
-  static void ApplyMixinTypes(const Class& cls);
-  static void ApplyMixin(const Class& cls);
+  static void CloneTypeParameters(const Class& mixin_app_class);
+  static void ApplyMixinMembers(const Class& cls);
   static void CreateForwardingConstructors(
       const Class& mixin_app,
       const GrowableObjectArray& cloned_funcs);

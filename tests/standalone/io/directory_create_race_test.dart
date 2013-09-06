@@ -7,13 +7,14 @@
 // issue https://code.google.com/p/dart/issues/detail?id=7679 in revisions
 // without the fix for this issue.
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void testCreateRecursiveRace() {
-  var keepAlive = new ReceivePort();
+  asyncStart();
   var temp = new Directory('').createTempSync();
   var d = new Directory('${temp.path}/a/b/c/d/e');
   Future.wait([
@@ -33,7 +34,7 @@ void testCreateRecursiveRace() {
     Expect.isTrue(new Directory('${temp.path}/a/b/c/d').existsSync());
     Expect.isTrue(new Directory('${temp.path}/a/b/c/d/e').existsSync());
     temp.delete(recursive: true).then((_) {
-      keepAlive.close();
+      asyncEnd();
     });
   });
 }

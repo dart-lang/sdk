@@ -774,7 +774,7 @@ class BreadthFirstVisitorTest extends ParserTestCase {
         "}"]);
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(source, []);
     List<ASTNode> nodes = new List<ASTNode>();
-    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_16(nodes);
+    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_18(nodes);
     visitor.visitAllNodes(unit);
     EngineTestCase.assertSize(59, nodes);
     EngineTestCase.assertInstanceOf(CompilationUnit, nodes[0]);
@@ -792,9 +792,9 @@ class BreadthFirstVisitorTest extends ParserTestCase {
     });
   }
 }
-class BreadthFirstVisitor_16 extends BreadthFirstVisitor<Object> {
+class BreadthFirstVisitor_18 extends BreadthFirstVisitor<Object> {
   List<ASTNode> nodes;
-  BreadthFirstVisitor_16(this.nodes) : super();
+  BreadthFirstVisitor_18(this.nodes) : super();
   Object visitNode(ASTNode node) {
     nodes.add(node);
     return super.visitNode(node);

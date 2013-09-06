@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'compiler_helper.dart';
+import "compiler_helper.dart";
+import "package:async_helper/async_helper.dart";
 
 const String SOURCE = """
 class Foo {
@@ -28,24 +29,29 @@ main() {
 
 main() {
   Uri uri = Uri.parse('test:code');
-  var compiler = compilerFor(SOURCE, uri, analyzeAll: false);
-  compiler.runCompiler(uri);
-  Expect.isFalse(compiler.compilationFailed);
-  print(compiler.warnings);
-  Expect.isTrue(compiler.warnings.isEmpty, 'unexpected warnings');
-  Expect.isTrue(compiler.errors.isEmpty, 'unexpected errors');
-  compiler = compilerFor(SOURCE, uri, analyzeAll: true);
-  compiler.runCompiler(uri);
-  Expect.isTrue(compiler.compilationFailed);
-  Expect.isTrue(compiler.warnings.isEmpty, 'unexpected warnings');
-  Expect.equals(2, compiler.errors.length,
-                'expected exactly two errors, but got ${compiler.errors}');
+  asyncStart();
+  var compiler1 = compilerFor(SOURCE, uri, analyzeAll: false);
+  compiler1.runCompiler(uri).then((_) {
+    Expect.isFalse(compiler1.compilationFailed);
+    print(compiler1.warnings);
+    Expect.isTrue(compiler1.warnings.isEmpty, 'unexpected warnings');
+    Expect.isTrue(compiler1.errors.isEmpty, 'unexpected errors');
+  }).whenComplete(() => asyncEnd());
 
-  Expect.equals(MessageKind.CONSTRUCTOR_IS_NOT_CONST,
-                compiler.errors[0].message.kind);
-  Expect.equals("Foo", compiler.errors[0].node.toString());
+  asyncStart();
+  var compiler2 = compilerFor(SOURCE, uri, analyzeAll: true);
+  compiler2.runCompiler(uri).then((_) {
+    Expect.isTrue(compiler2.compilationFailed);
+    Expect.isTrue(compiler2.warnings.isEmpty, 'unexpected warnings');
+    Expect.equals(2, compiler2.errors.length,
+                  'expected exactly two errors, but got ${compiler2.errors}');
 
-  Expect.equals(MessageKind.CONSTRUCTOR_IS_NOT_CONST,
-                compiler.errors[1].message.kind);
-  Expect.equals("Foo", compiler.errors[1].node.toString());
+    Expect.equals(MessageKind.CONSTRUCTOR_IS_NOT_CONST,
+                  compiler2.errors[0].message.kind);
+    Expect.equals("Foo", compiler2.errors[0].node.toString());
+
+    Expect.equals(MessageKind.CONSTRUCTOR_IS_NOT_CONST,
+                  compiler2.errors[1].message.kind);
+    Expect.equals("Foo", compiler2.errors[1].node.toString());
+  }).whenComplete(() => asyncEnd());
 }

@@ -2456,7 +2456,7 @@ class Crypto extends NativeFieldWrapperClass1 {
   @DomName('Crypto.subtle')
   @DocsEditable()
   @Experimental() // untriaged
-  SubtleCrypto get subtle native "Crypto_subtle_Getter";
+  _SubtleCrypto get subtle native "Crypto_subtle_Getter";
 
   @DomName('Crypto.getRandomValues')
   @DocsEditable()
@@ -2813,7 +2813,7 @@ class CssKeyframesRule extends CssRule {
   @DomName('CSSKeyframesRule.insertRule')
   @DocsEditable()
   @Experimental() // untriaged
-  void insertRule(String rule) native "CSSKeyframesRule_insertRule_Callback";
+  void appendRule(String rule) native "CSSKeyframesRule_insertRule_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10589,11 +10589,13 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.getAttribute')
   @DocsEditable()
-  String _getAttribute(String name) native "Element_getAttribute_Callback";
+  @deprecated
+  String getAttribute(String name) native "Element_getAttribute_Callback";
 
   @DomName('Element.getAttributeNS')
   @DocsEditable()
-  String _getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
+  @deprecated
+  String getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
 
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
@@ -10693,11 +10695,13 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.setAttribute')
   @DocsEditable()
-  void _setAttribute(String name, String value) native "Element_setAttribute_Callback";
+  @deprecated
+  void setAttribute(String name, String value) native "Element_setAttribute_Callback";
 
   @DomName('Element.setAttributeNS')
   @DocsEditable()
-  void _setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
+  @deprecated
+  void setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
 
   @DomName('Element.webkitGetRegionFlowRanges')
   @DocsEditable()
@@ -13264,9 +13268,10 @@ class HtmlDocument extends Document {
   Element get pointerLockElement =>
       _webkitPointerLockElement;
 
-  @DomName('Document.webkitVisibilityState')
+  @DomName('Document.visibilityState')
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
   @Experimental()
   String get visibilityState => _webkitVisibilityState;
 
@@ -13277,6 +13282,26 @@ class HtmlDocument extends Document {
 
   // Note: used to polyfill <template>
   Document _templateContentsOwner;
+
+  @DomName('Document.visibilityChange')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @Experimental()
+  static const EventStreamProvider<Event> visibilityChangeEvent =
+      const _CustomEventStreamProvider<Event>(
+        _determineVisibilityChangeEventType);
+
+  static String _determineVisibilityChangeEventType(EventTarget e) {
+    return 'webkitvisibilitychange';
+  }
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @Experimental()
+  Stream<Event> get onVisibilityChange =>
+      visibilityChangeEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18876,7 +18901,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
     _this._replaceChild(value, this[index]);
   }
 
-  Iterator<Node> get iterator => _this._childNodes.iterator;
+  Iterator<Node> get iterator => _this.childNodes.iterator;
 
   // From List<Node>:
 
@@ -18898,15 +18923,15 @@ class _ChildNodeListLazy extends ListBase<Node> {
   // -- end List<Node> mixins.
 
   // TODO(jacobr): benchmark whether this is more efficient or whether caching
-  // a local copy of _childNodes is more efficient.
-  int get length => _this._childNodes.length;
+  // a local copy of childNodes is more efficient.
+  int get length => _this.childNodes.length;
 
   void set length(int value) {
     throw new UnsupportedError(
         "Cannot set length on immutable List.");
   }
 
-  Node operator[](int index) => _this._childNodes[index];
+  Node operator[](int index) => _this.childNodes[index];
 }
 
 /** Information about the instantiated template. */
@@ -19102,7 +19127,8 @@ class Node extends EventTarget {
 
   @DomName('Node.childNodes')
   @DocsEditable()
-  List<Node> get _childNodes native "Node_childNodes_Getter";
+  @deprecated
+  List<Node> get childNodes native "Node_childNodes_Getter";
 
   @DomName('Node.firstChild')
   @DocsEditable()
@@ -20204,6 +20230,14 @@ class Performance extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory Performance._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('Performance.webkitresourcetimingbufferfullEvent')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
+  static const EventStreamProvider<Event> resourceTimingBufferFullEvent = const EventStreamProvider<Event>('webkitresourcetimingbufferfull');
+
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -20296,6 +20330,12 @@ class Performance extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Performance_removeEventListener_Callback";
+
+  @DomName('Performance.onwebkitresourcetimingbufferfull')
+  @DocsEditable()
+  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
+  @Experimental()
+  Stream<Event> get onResourceTimingBufferFull => resourceTimingBufferFullEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22611,10 +22651,20 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
   // To suppress missing implicit constructor warnings.
   factory SharedWorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('SharedWorkerGlobalScope.connectEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
+
   @DomName('SharedWorkerGlobalScope.name')
   @DocsEditable()
   @Experimental() // untriaged
   String get name native "SharedWorkerGlobalScope_name_Getter";
+
+  @DomName('SharedWorkerGlobalScope.onconnect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onConnect => connectEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24041,54 +24091,6 @@ class StyleSheet extends NativeFieldWrapperClass1 {
   @DomName('StyleSheet.type')
   @DocsEditable()
   String get type native "StyleSheet_type_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SubtleCrypto')
-@Experimental() // untriaged
-class SubtleCrypto extends NativeFieldWrapperClass1 {
-
-  @DomName('SubtleCrypto.decrypt')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object decrypt(Map algorithm, CryptoKey key, TypedData data) native "SubtleCrypto_decrypt_Callback";
-
-  @DomName('SubtleCrypto.digest')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object digest(Map algorithm, TypedData data) native "SubtleCrypto_digest_Callback";
-
-  @DomName('SubtleCrypto.encrypt')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object encrypt(Map algorithm, CryptoKey key, TypedData data) native "SubtleCrypto_encrypt_Callback";
-
-  @DomName('SubtleCrypto.generateKey')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object generateKey(Map algorithm, bool extractable, List<String> keyUsages) native "SubtleCrypto_generateKey_Callback";
-
-  @DomName('SubtleCrypto.importKey')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object importKey(String format, TypedData keyData, Map algorithm, bool extractable, List<String> keyUsages) native "SubtleCrypto_importKey_Callback";
-
-  @DomName('SubtleCrypto.sign')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object sign(Map algorithm, CryptoKey key, TypedData data) native "SubtleCrypto_sign_Callback";
-
-  @DomName('SubtleCrypto.verify')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object verify(Map algorithm, CryptoKey key, TypedData signature, TypedData data) native "SubtleCrypto_verify_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28169,6 +28171,11 @@ class XmlHttpRequestEventTarget extends EventTarget {
   @Experimental() // untriaged
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
+  @DomName('XMLHttpRequestEventTarget.timeoutEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> timeoutEvent = const EventStreamProvider<ProgressEvent>('timeout');
+
   @DomName('XMLHttpRequestEventTarget.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
@@ -28201,6 +28208,10 @@ class XmlHttpRequestEventTarget extends EventTarget {
 
   @DomName('XMLHttpRequestEventTarget.onloadend')
   @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental() // untriaged
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
@@ -28211,8 +28222,17 @@ class XmlHttpRequestEventTarget extends EventTarget {
 
   @DomName('XMLHttpRequestEventTarget.onprogress')
   @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental() // untriaged
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.ontimeout')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onTimeout => timeoutEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29484,6 +29504,19 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
 
 
 @DocsEditable()
+@DomName('SubtleCrypto')
+@Experimental() // untriaged
+abstract class _SubtleCrypto extends NativeFieldWrapperClass1 {
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('WebKitMediaSource')
 @Experimental() // untriaged
 abstract class _WebKitMediaSource extends EventTarget {
@@ -29654,15 +29687,15 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   String operator [](String key) {
-    return _element._getAttribute(key);
+    return _element.getAttribute(key);
   }
 
   void operator []=(String key, String value) {
-    _element._setAttribute(key, value);
+    _element.setAttribute(key, value);
   }
 
   String remove(String key) {
-    String value = _element._getAttribute(key);
+    String value = _element.getAttribute(key);
     _element._removeAttribute(key);
     return value;
   }
@@ -29691,11 +29724,11 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   String operator [](String key) {
-    return _element._getAttributeNS(_namespace, key);
+    return _element.getAttributeNS(_namespace, key);
   }
 
   void operator []=(String key, String value) {
-    _element._setAttributeNS(_namespace, key, value);
+    _element.setAttributeNS(_namespace, key, value);
   }
 
   String remove(String key) {

@@ -561,7 +561,7 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  bool willHit(Selector selector, Compiler compiler) {
+  bool understands(Selector selector, Compiler compiler) {
     throw new UnsupportedError("");
   }
 
@@ -1063,6 +1063,12 @@ class ConcreteTypesInferrer extends TypesInferrer {
       });
     }
     return result == const DynamicTypeMask() ? null : result;
+  }
+
+  void clear() {}
+
+  Iterable<Element> getCallersOf(Element element) {
+    throw "Don't use me";
   }
 
   // --- analysis ---

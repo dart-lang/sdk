@@ -5,6 +5,7 @@
 // Test that tree-shaking hasn't been turned off.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'memory_source_file_helper.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
@@ -20,8 +21,7 @@ main() {
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
-  MemorySourceFileProvider.MEMORY_SOURCE_FILES = MEMORY_SOURCE_FILES;
-  var provider = new MemorySourceFileProvider();
+  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
   void diagnosticHandler(Uri uri, int begin, int end,
                          String message, Diagnostic kind) {
     if (kind == Diagnostic.VERBOSE_INFO
@@ -42,12 +42,13 @@ main() {
                                    libraryRoot,
                                    packageRoot,
                                    []);
-  compiler.run(Uri.parse('memory:main.dart'));
-  Expect.isFalse(compiler.compilationFailed);
-  Expect.isFalse(compiler.enqueuer.resolution.hasEnqueuedEverything);
-  Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedEverything);
-  Expect.isFalse(compiler.disableTypeInference);
-  Expect.isFalse(compiler.backend.hasRetainedMetadata);
+  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+    Expect.isFalse(compiler.compilationFailed);
+    Expect.isFalse(compiler.enqueuer.resolution.hasEnqueuedEverything);
+    Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedEverything);
+    Expect.isFalse(compiler.disableTypeInference);
+    Expect.isFalse(compiler.backend.hasRetainedMetadata);
+  }));
 }
 
 const Map MEMORY_SOURCE_FILES = const {

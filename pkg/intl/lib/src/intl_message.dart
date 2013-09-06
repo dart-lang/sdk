@@ -233,14 +233,22 @@ class LiteralString extends Message {
 
 /**
  * Represents an interpolation of a variable value in a message. We expect
- * this to be specified as an [index] into the list of variables, and we will
- * compute the variable name for the interpolation based on that.
+ * this to be specified as an [index] into the list of variables, or else
+ * as the name of a variable that exists in [arguments] and we will
+ * compute the variable name or the index based on the value of the other.
  */
 class VariableSubstitution extends Message {
-  VariableSubstitution(this.index, Message parent) : super(parent);
+  VariableSubstitution(this._index, Message parent) : super(parent);
+  VariableSubstitution.named(this._variableName, Message parent)
+      : super(parent);
 
   /** The index in the list of parameters of the containing function. */
-  int index;
+  int _index;
+  int get index {
+    if (_index != null) return _index;
+    if (arguments.isEmpty) return null;
+    return _index = arguments.indexOf(_variableName);
+  }
 
   /**
    * The name of the variable in the parameter list of the containing function.

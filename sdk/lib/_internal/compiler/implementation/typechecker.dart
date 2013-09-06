@@ -966,6 +966,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return types.dynamicType;
   }
 
+  DartType visitLiteralSymbol(LiteralSymbol node) {
+    return compiler.symbolClass.computeType(compiler);
+  }
+
   DartType computeConstructorType(Element constructor, DartType type) {
     if (Elements.isUnresolved(constructor)) return types.dynamicType;
     DartType constructorType = constructor.computeType(compiler);
@@ -1047,7 +1051,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     // immediately enclosing function.
     if (expression != null) {
       final expressionType = analyze(expression);
-      if (isVoidFunction
+      Element element = elements.currentElement;
+      if (element != null && element.isGenerativeConstructor()) {
+        // The resolver already emitted an error for this expression.
+      } else if (isVoidFunction
           && !types.isAssignable(expressionType, types.voidType)) {
         reportTypeWarning(expression, MessageKind.RETURN_VALUE_IN_VOID);
       } else {

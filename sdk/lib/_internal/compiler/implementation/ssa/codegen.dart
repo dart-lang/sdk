@@ -917,13 +917,20 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           use(condition.conditionExpression);
         }
         js.Expression jsCondition = pop();
-        if (hasPhiUpdates) {
-          updateBody.statements.add(new js.Continue(null));
-          body.statements.add(
-              new js.If(jsCondition, updateBody, new js.Break(null)));
-          jsCondition = newLiteralBool(true);
+        if (jsCondition == null) {
+          // If the condition is dead code, we turn the do-while into
+          // a simpler while because we will never reach the condition
+          // at the end of the loop anyway.
+          loop = new js.While(newLiteralBool(true), unwrapStatement(body));
+        } else {
+          if (hasPhiUpdates) {
+            updateBody.statements.add(new js.Continue(null));
+            body.statements.add(
+                new js.If(jsCondition, updateBody, new js.Break(null)));
+            jsCondition = newLiteralBool(true);
+          }
+          loop = new js.Do(unwrapStatement(body), jsCondition);
         }
-        loop = new js.Do(unwrapStatement(body), jsCondition);
         currentContainer = oldContainer;
         break;
       default:
@@ -1068,6 +1075,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitBasicBlock(HBasicBlock node) {
+    if (!node.isLive) return;
+
     // Abort traversal if we are leaving the currently active sub-graph.
     if (!subGraph.contains(node)) return;
 
@@ -2450,7 +2459,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression arrayTest = pop();
       checkImmutableArray(input);
       js.Binary notArrayOrImmutable = new js.Binary('||', arrayTest, pop());
-      
+
       js.Binary notIndexing = checkIndexingBehavior(input, negative: true)
           ? new js.Binary('&&', notArrayOrImmutable, pop())
           : notArrayOrImmutable;
@@ -2462,7 +2471,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression objectTest = pop();
       checkArray(input, '!==');
       js.Expression arrayTest = pop();
-      
+
       js.Expression notIndexing = checkIndexingBehavior(input, negative: true)
           ? new js.Binary('&&', arrayTest, pop())
           : arrayTest;
@@ -2477,7 +2486,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression objectTest = pop();
       checkArray(input, '!==');
       js.Expression arrayTest = pop();
-      
+
       js.Binary notIndexingTest = checkIndexingBehavior(input, negative: true)
           ? new js.Binary('&&', arrayTest, pop())
           : arrayTest;

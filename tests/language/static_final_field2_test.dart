@@ -7,6 +7,15 @@ class A {
   static const x = 1;
 }
 
+class B {
+  const B() : n = 5;
+  final n;
+  static const a;  /// 02: compile-time error
+  static const b = 3 + 5;
+  static const c;  /// 02: continued
+}
+
 main() {
   A.x = 2;  /// 01: static type warning, runtime error
+  new B();
 }

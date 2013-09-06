@@ -18,6 +18,7 @@ package/invalid_uri_test: Fail, OK # Fails intentionally
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
 
+
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK
@@ -155,6 +156,9 @@ io/internet_address_test: Fail  # localhost is an Unknown name?
 [ $arch == simarm ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
+io/test_runner_test: Pass, Fail # Issue 12413
+
+[ $arch == simmips ]
 io/test_runner_test: Pass, Fail # Issue 12413
 
 [ $arch == simmips || $arch == mips ]

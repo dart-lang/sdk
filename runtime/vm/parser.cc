@@ -432,12 +432,14 @@ struct ParamDesc {
         name_pos(0),
         name(NULL),
         default_value(NULL),
+        metadata(NULL),
         is_final(false),
         is_field_initializer(false) { }
   const AbstractType* type;
   intptr_t name_pos;
   const String* name;
   const Object* default_value;  // NULL if not an optional parameter.
+  const Object* metadata;  // NULL if no metadata or metadata not evaluated.
   bool is_final;
   bool is_field_initializer;
 };
@@ -778,17 +780,25 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
     parser.set_current_class(owner);
     parser.SkipFunctionPreamble();
     ParamList params;
-    parser.ParseFormalParameterList(true, &params);
+    parser.ParseFormalParameterList(true, true, &params);
     ParamDesc* param = params.parameters->data();
     const int param_cnt = params.num_fixed_parameters +
                           params.num_optional_parameters;
-    Array& param_descriptor = Array::Handle(isolate, Array::New(param_cnt * 2));
-    for (int i = 0, j = 0; i < param_cnt; i++, j += 2) {
-      param_descriptor.SetAt(j, param[i].is_final ? Bool::True() :
-                                                    Bool::False());
-      param_descriptor.SetAt(j + 1,
+    const Array& param_descriptor =
+        Array::Handle(Array::New(param_cnt * kParameterEntrySize));
+    for (int i = 0, j = 0; i < param_cnt; i++, j += kParameterEntrySize) {
+      param_descriptor.SetAt(j + kParameterIsFinalOffset,
+                             param[i].is_final ? Bool::True() : Bool::False());
+      param_descriptor.SetAt(j + kParameterDefaultValueOffset,
           (param[i].default_value == NULL) ? Object::null_instance() :
                                              *(param[i].default_value));
+      const Object* metadata = param[i].metadata;
+      if ((metadata != NULL) && (*metadata).IsError()) {
+        return (*metadata).raw();  // Error evaluating the metadata.
+      }
+      param_descriptor.SetAt(j + kParameterMetadataOffset,
+          (param[i].metadata == NULL) ? Object::null_instance() :
+                                        *(param[i].metadata));
     }
     isolate->set_long_jump_base(base);
     return param_descriptor.raw();
@@ -1366,13 +1376,19 @@ void Parser::SkipBlock() {
 
 
 void Parser::ParseFormalParameter(bool allow_explicit_default_value,
+                                  bool evaluate_metadata,
                                   ParamList* params) {
   TRACE_PARSER("ParseFormalParameter");
   ParamDesc parameter;
   bool var_seen = false;
   bool this_seen = false;
 
-  SkipMetadata();
+  if (evaluate_metadata && (CurrentToken() == Token::kAT)) {
+    parameter.metadata = &Array::ZoneHandle(EvaluateMetadata());
+  } else {
+    SkipMetadata();
+  }
+
   if (CurrentToken() == Token::kFINAL) {
     ConsumeToken();
     parameter.is_final = true;
@@ -1472,7 +1488,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
           &Type::ZoneHandle(Type::DynamicType()));
 
       const bool no_explicit_default_values = false;
-      ParseFormalParameterList(no_explicit_default_values, &func_params);
+      ParseFormalParameterList(no_explicit_default_values, false, &func_params);
 
       // The field 'is_static' has no meaning for signature functions.
       const Function& signature_function = Function::Handle(
@@ -1556,6 +1572,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
 
 // Parses a sequence of normal or optional formal parameters.
 void Parser::ParseFormalParameters(bool allow_explicit_default_values,
+                                   bool evaluate_metadata,
                                    ParamList* params) {
   TRACE_PARSER("ParseFormalParameters");
   do {
@@ -1574,23 +1591,30 @@ void Parser::ParseFormalParameters(bool allow_explicit_default_values,
       params->has_optional_named_parameters = true;
       return;
     }
-    ParseFormalParameter(allow_explicit_default_values, params);
+    ParseFormalParameter(allow_explicit_default_values,
+                         evaluate_metadata,
+                         params);
   } while (CurrentToken() == Token::kCOMMA);
 }
 
 
 void Parser::ParseFormalParameterList(bool allow_explicit_default_values,
+                                      bool evaluate_metadata,
                                       ParamList* params) {
   TRACE_PARSER("ParseFormalParameterList");
   ASSERT(CurrentToken() == Token::kLPAREN);
 
   if (LookaheadToken(1) != Token::kRPAREN) {
     // Parse fixed parameters.
-    ParseFormalParameters(allow_explicit_default_values, params);
+    ParseFormalParameters(allow_explicit_default_values,
+                          evaluate_metadata,
+                          params);
     if (params->has_optional_positional_parameters ||
         params->has_optional_named_parameters) {
       // Parse optional parameters.
-      ParseFormalParameters(allow_explicit_default_values, params);
+      ParseFormalParameters(allow_explicit_default_values,
+                            evaluate_metadata,
+                            params);
       if (params->has_optional_positional_parameters) {
         if (CurrentToken() != Token::kRBRACK) {
           ErrorMsg("',' or ']' expected");
@@ -2376,7 +2400,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   // expressions and then calls the respective super constructor with
   // the same name and number of parameters.
   ArgumentListNode* forwarding_args = NULL;
-  if (current_class().mixin() != Type::null()) {
+  if (current_class().IsMixinApplication()) {
     // At this point we don't support forwarding constructors
     // that have optional parameters because we don't know the default
     // values of the optional parameters. We would have to compile the super
@@ -2481,7 +2505,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   if (func.is_const()) {
     params.SetImplicitlyFinal();
   }
-  ParseFormalParameterList(allow_explicit_default_values, &params);
+  ParseFormalParameterList(allow_explicit_default_values, false, &params);
 
   SetupDefaultsForOptionalParams(&params, default_parameter_values);
   ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
@@ -2737,7 +2761,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     // we are compiling a getter this will at most populate the receiver.
     AddFormalParamsToScope(&params, current_block_->scope);
   } else {
-    ParseFormalParameterList(allow_explicit_default_values, &params);
+    ParseFormalParameterList(allow_explicit_default_values, false, &params);
 
     // The number of parameters and their type are not yet set in local
     // functions, since they are not 'top-level' parsed.
@@ -2887,7 +2911,7 @@ void Parser::ParseQualIdent(QualIdent* qual_ident) {
                                   *(qual_ident->ident),
                                   NULL)) {
       LibraryPrefix& lib_prefix = LibraryPrefix::ZoneHandle();
-      if (current_class().mixin() == Type::null()) {
+      if (!current_class().IsMixinApplication()) {
         lib_prefix = current_class().LookupLibraryPrefix(*(qual_ident->ident));
       } else {
         // TODO(hausner): Should we resolve the prefix via the library scope
@@ -2968,7 +2992,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     method->params.SetImplicitlyFinal();
   }
   if (!method->IsGetter()) {
-    ParseFormalParameterList(allow_explicit_default_values, &method->params);
+    ParseFormalParameterList(allow_explicit_default_values,
+                             false,
+                             &method->params);
   }
 
   // Now that we know the parameter list, we can distinguish between the
@@ -4025,7 +4051,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
       &Type::ZoneHandle(Type::DynamicType()));
 
   const bool no_explicit_default_values = false;
-  ParseFormalParameterList(no_explicit_default_values, &func_params);
+  ParseFormalParameterList(no_explicit_default_values, false, &func_params);
   ExpectSemicolon();
   // The field 'is_static' has no meaning for signature functions.
   Function& signature_function = Function::Handle(
@@ -4474,7 +4500,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   const intptr_t function_pos = TokenPos();
   ParamList params;
   const bool allow_explicit_default_values = true;
-  ParseFormalParameterList(allow_explicit_default_values, &params);
+  ParseFormalParameterList(allow_explicit_default_values, false, &params);
 
   intptr_t function_end_pos = function_pos;
   if (is_external) {
@@ -4563,7 +4589,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
 
   if (!is_getter) {
     const bool allow_explicit_default_values = true;
-    ParseFormalParameterList(allow_explicit_default_values, &params);
+    ParseFormalParameterList(allow_explicit_default_values, false, &params);
   }
   String& accessor_name = String::ZoneHandle();
   int expected_num_parameters = -1;
@@ -8688,7 +8714,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   // If the current class is the result of a mixin application, we must
   // use the class scope of the class from which the function originates.
   Class& cls = Class::Handle(isolate());
-  if (current_class().mixin() == Type::null()) {
+  if (!current_class().IsMixinApplication()) {
     cls = current_class().raw();
   } else {
     cls = parsed_function()->function().origin();
@@ -10111,12 +10137,12 @@ AstNode* Parser::ParsePrimary() {
       ErrorMsg("class '%s' does not have a superclass",
                String::Handle(current_class().Name()).ToCString());
     }
-    if (current_class().mixin() != Type::null()) {
+    if (current_class().IsMixinApplication()) {
       const Type& mixin_type = Type::Handle(current_class().mixin());
       if (mixin_type.type_class() == current_function().origin()) {
-        ErrorMsg("class '%s' may not use super "
-                 "because it is used as mixin class",
-                 String::Handle(current_class().Name()).ToCString());
+        ErrorMsg("method of mixin class '%s' may not refer to 'super'",
+                 String::Handle(Class::Handle(
+                     current_function().origin()).Name()).ToCString());
       }
     }
     ConsumeToken();
@@ -10185,7 +10211,7 @@ void Parser::SkipFunctionLiteral() {
     const bool allow_explicit_default_values = true;
     ParamList params;
     params.skipped = true;
-    ParseFormalParameterList(allow_explicit_default_values, &params);
+    ParseFormalParameterList(allow_explicit_default_values, false, &params);
   }
   if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();

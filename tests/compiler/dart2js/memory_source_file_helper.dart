@@ -24,14 +24,17 @@ export '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.
        show SourceFileProvider, FormattingDiagnosticHandler;
 
 class MemorySourceFileProvider extends SourceFileProvider {
-  static Map MEMORY_SOURCE_FILES;
+  final Map<String, String> memorySourceFiles;
+
+  MemorySourceFileProvider(Map<String, String> this.memorySourceFiles);
+
   Future<String> readStringFromUri(Uri resourceUri) {
     if (resourceUri.scheme != 'memory') {
       return super.readStringFromUri(resourceUri);
     }
-    String source = MEMORY_SOURCE_FILES[resourceUri.path];
+    String source = memorySourceFiles[resourceUri.path];
     // TODO(ahe): Return new Future.error(...) ?
-    if (source == null) throw 'No such file $resourceUri';
+    if (source == null) return new Future.error('No such file $resourceUri');
     String resourceName = '$resourceUri';
     this.sourceFiles[resourceName] = new SourceFile(resourceName, source);
     return new Future.value(source);

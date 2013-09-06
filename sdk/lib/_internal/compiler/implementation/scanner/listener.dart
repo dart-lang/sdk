@@ -311,6 +311,12 @@ class Listener {
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
   }
 
+  void beginLiteralSymbol(Token token) {
+  }
+
+  void endLiteralSymbol(Token hashToken, int identifierCount) {
+  }
+
   void beginThrowExpression(Token token) {
   }
 
@@ -484,6 +490,9 @@ class Listener {
   }
 
   void handleNoTypeVariables(Token token) {
+  }
+
+  void handleOperator(Token token) {
   }
 
   void handleOperatorName(Token operatorKeyword, Token token) {
@@ -1351,6 +1360,11 @@ class NodeListener extends ElementListener {
     pushNode(new LiteralNull(token));
   }
 
+  void endLiteralSymbol(Token hashToken, int identifierCount) {
+    NodeList identifiers = makeNodeList(identifierCount, null, null, '.');
+    pushNode(new LiteralSymbol(hashToken, identifiers));
+  }
+
   void handleBinaryExpression(Token token) {
     Node argument = popNode();
     Node receiver = popNode();
@@ -1640,6 +1654,10 @@ class NodeListener extends ElementListener {
   void handleConstExpression(Token token) {
     // [token] carries the 'const' information.
     handleNewExpression(token);
+  }
+
+  void handleOperator(Token token) {
+    pushNode(new Operator(token));
   }
 
   void handleOperatorName(Token operatorKeyword, Token token) {

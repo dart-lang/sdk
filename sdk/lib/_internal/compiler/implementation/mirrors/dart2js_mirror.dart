@@ -227,12 +227,13 @@ Future<MirrorSystem> analyze(List<Uri> libraries,
                                            internalDiagnosticHandler,
                                            libraryRoot, packageRoot, options);
   compiler.librariesToAnalyzeWhenRun = libraries;
-  bool success = compiler.run(null);
-  if (success && !compilationFailed) {
-    return new Future<MirrorSystem>.value(new Dart2JsMirrorSystem(compiler));
-  } else {
-    return new Future<MirrorSystem>.error('Failed to create mirror system.');
-  }
+  return compiler.run(null).then((bool success) {
+    if (success && !compilationFailed) {
+      return new Dart2JsMirrorSystem(compiler);
+    } else {
+      throw new StateError('Failed to create mirror system.');
+    }
+  });
 }
 
 //------------------------------------------------------------------------------
@@ -382,7 +383,7 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
       // Lookup [: prefix.id :].
       String prefix = name.substring(0, index);
       String id = name.substring(index+1);
-      result = scope.lookup(new SourceString(prefix)); 
+      result = scope.lookup(new SourceString(prefix));
       if (result != null && result.isPrefix()) {
         PrefixElement prefix = result;
         result = prefix.lookupLocalMember(new SourceString(id));

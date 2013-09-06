@@ -22,15 +22,15 @@ import 'common.dart';
  * css shimming).
  */
 class PolyfillInjector extends Transformer {
-  /** Only run this transformer on .html files. */
-  final String allowedExtensions = ".html";
+  /** Only run on entry point .html files. */
+  Future<bool> isPrimary(Asset input) =>
+      new Future.value(isPrimaryHtml(input.id));
 
   Future apply(Transform transform) {
-    var id = transform.primaryInput.id;
-    return transform.primaryInput.readAsString().then((content) {
-      var document = parseHtml(content, id.path, transform.logger);
+    return readPrimaryAsHtml(transform).then((document) {
       bool shadowDomFound = false;
       bool jsInteropFound = false;
+      bool pkgJsInteropFound = false;
       bool dartScriptTags = false;
 
       for (var tag in document.queryAll('script')) {
@@ -39,6 +39,8 @@ class PolyfillInjector extends Transformer {
           var last = src.split('/').last;
           if (last == 'interop.js') {
             jsInteropFound = true;
+          } else if (last == 'dart_interop.js') {
+            pkgJsInteropFound = true;
           } else if (_shadowDomJS.hasMatch(last)) {
             shadowDomFound = true;
           }
@@ -51,8 +53,14 @@ class PolyfillInjector extends Transformer {
 
       if (!dartScriptTags) {
         // This HTML has no Dart code, there is nothing to do here.
-        transform.addOutput(new Asset.fromString(id, content));
+        transform.addOutput(transform.primaryInput);
         return;
+      }
+
+      if (!pkgJsInteropFound) {
+        // JS interop code is required for Polymer CSS shimming.
+        document.body.nodes.insert(0, parseFragment(
+            '<script src="packages/js/dart_interop.js"></script>\n'));
       }
 
       if (!jsInteropFound) {
@@ -64,11 +72,13 @@ class PolyfillInjector extends Transformer {
       if (!shadowDomFound) {
         // Insert at the beginning (this polyfill needs to run as early as
         // possible).
+        // TODO(jmesserly): this is .debug to workaround issue 13046.
         document.body.nodes.insert(0, parseFragment(
-            '<script src="packages/shadow_dom/shadow_dom.min.js"></script>\n'));
+            '<script src="packages/shadow_dom/shadow_dom.debug.js"></script>\n'));
       }
 
-      transform.addOutput(new Asset.fromString(id, document.outerHtml));
+      transform.addOutput(
+          new Asset.fromString(transform.primaryInput.id, document.outerHtml));
     });
   }
 }

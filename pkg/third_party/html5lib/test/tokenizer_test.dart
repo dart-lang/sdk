@@ -33,8 +33,8 @@ class TokenizerTestParser {
     // Note: we can't get a closure of the state method. However, we can
     // create a new closure to invoke it via mirrors.
     var mtok = reflect(tokenizer);
-    tokenizer.state = () => deprecatedFutureValue(
-        mtok.invokeAsync(new Symbol(_state), const [])).reflectee;
+    tokenizer.state = () =>
+        mtok.invoke(new Symbol(_state), const []).reflectee;
 
     if (_lastStartTag != null) {
       tokenizer.currentToken = new StartTagToken(_lastStartTag);

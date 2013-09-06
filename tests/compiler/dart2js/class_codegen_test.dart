@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that parameters keep their names in the output.
 
+import 'dart:async';
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 
@@ -64,9 +66,10 @@ main() {
 """;
 
 twoClasses() {
-  String generated = compileAll(TEST_ONE);
-  Expect.isTrue(generated.contains('A: {"": "Object;"'));
-  Expect.isTrue(generated.contains('B: {"": "Object;"'));
+  asyncTest(() => compileAll(TEST_ONE).then((generated) {
+    Expect.isTrue(generated.contains('A: {"": "Object;"'));
+    Expect.isTrue(generated.contains('B: {"": "Object;"'));
+  }));
 }
 
 subClass() {
@@ -75,18 +78,20 @@ subClass() {
     Expect.isTrue(generated.contains('B: {"": "A;"'));
   }
 
-  checkOutput(compileAll(TEST_TWO));
-  checkOutput(compileAll(TEST_THREE));
+  asyncTest(() => compileAll(TEST_TWO).then(checkOutput));
+  asyncTest(() => compileAll(TEST_THREE).then(checkOutput));
 }
 
 fieldTest() {
-  String generated = compileAll(TEST_FOUR);
-  Expect.isTrue(generated.contains(r"""B: {"": "A;y,z,x", static:"""));
+  asyncTest(() => compileAll(TEST_FOUR).then((generated) {
+    Expect.isTrue(generated.contains(r"""B: {"": "A;y,z,x", static:"""));
+  }));
 }
 
 constructor1() {
-  String generated = compileAll(TEST_FIVE);
-  Expect.isTrue(generated.contains(new RegExp(r"new [$a-z]+\.A\(a\);")));
+  asyncTest(() => compileAll(TEST_FIVE).then((generated) {
+    Expect.isTrue(generated.contains(new RegExp(r"new [$a-z]+\.A\(a\);")));
+  }));
 }
 
 main() {

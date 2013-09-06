@@ -50,7 +50,7 @@ def GetOptions():
 def GetPidsPosix(process_name):
   # This is to have only one posix command, on linux we could just do:
   # pidof process_name
-  cmd = 'ps -e -o pid=,comm='
+  cmd = 'ps -e -o pid= -o comm='
   # Sample output:
   # 1 /sbin/launchd
   # 80943 /Applications/Safari.app/Contents/MacOS/Safari
@@ -166,7 +166,8 @@ def Main():
     status += KillDart();
   if (options.kill_browsers):
     status += KillBrowsers()
-  return status
+  # Investigating hanging firefox, see issue 13121
+  return 0
 
 if __name__ == '__main__':
   sys.exit(Main())

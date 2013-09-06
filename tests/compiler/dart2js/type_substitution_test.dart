@@ -5,6 +5,7 @@
 library type_substitution_test;
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import "compiler_helper.dart";
 import "parser_helper.dart";
@@ -48,43 +49,46 @@ void main() {
 }
 
 void testAsInstanceOf() {
-  var env = new TypeEnvironment('''
+  asyncTest(() => TypeEnvironment.create('''
       class A<T> {}
       class B<T> {}
       class C<T> extends A<T> {}
       class D<T> extends A<int> {}
       class E<T> extends A<A<T>> {}
-      class F<T, U> extends B<F<T, String>> implements A<F<B<U>, int>> {}''');
-  var compiler = env.compiler;
+      class F<T, U> extends B<F<T, String>> implements A<F<B<U>, int>> {}
+      ''').then((env) {
+    var compiler = env.compiler;
 
-  ClassElement A = env.getElement("A");
-  ClassElement B = env.getElement("B");
-  ClassElement C = env.getElement("C");
-  ClassElement D = env.getElement("D");
-  ClassElement E = env.getElement("E");
-  ClassElement F = env.getElement("F");
+    ClassElement A = env.getElement("A");
+    ClassElement B = env.getElement("B");
+    ClassElement C = env.getElement("C");
+    ClassElement D = env.getElement("D");
+    ClassElement E = env.getElement("E");
+    ClassElement F = env.getElement("F");
 
-  DartType numType = env['num'];
-  DartType intType = env['int'];
-  DartType stringType = env['String'];
+    DartType numType = env['num'];
+    DartType intType = env['int'];
+    DartType stringType = env['String'];
 
-  InterfaceType C_int = instantiate(C, [intType]);
-  Expect.equals(instantiate(C, [intType]), C_int);
-  Expect.equals(instantiate(A, [intType]), C_int.asInstanceOf(A));
+    InterfaceType C_int = instantiate(C, [intType]);
+    Expect.equals(instantiate(C, [intType]), C_int);
+    Expect.equals(instantiate(A, [intType]), C_int.asInstanceOf(A));
 
-  InterfaceType D_int = instantiate(D, [stringType]);
-  Expect.equals(instantiate(A, [intType]), D_int.asInstanceOf(A));
+    InterfaceType D_int = instantiate(D, [stringType]);
+    Expect.equals(instantiate(A, [intType]), D_int.asInstanceOf(A));
 
-  InterfaceType E_int = instantiate(E, [intType]);
-  Expect.equals(instantiate(A, [instantiate(A, [intType])]),
-                E_int.asInstanceOf(A));
+    InterfaceType E_int = instantiate(E, [intType]);
+    Expect.equals(instantiate(A, [instantiate(A, [intType])]),
+                  E_int.asInstanceOf(A));
 
-  InterfaceType F_int_string = instantiate(F, [intType, stringType]);
-  Expect.equals(instantiate(B, [instantiate(F, [intType, stringType])]),
-                F_int_string.asInstanceOf(B));
-  Expect.equals(instantiate(A, [instantiate(F, [instantiate(B, [stringType]),
-						intType])]),
-                F_int_string.asInstanceOf(A));
+    InterfaceType F_int_string = instantiate(F, [intType, stringType]);
+    Expect.equals(instantiate(B, [instantiate(F, [intType, stringType])]),
+                  F_int_string.asInstanceOf(B));
+    Expect.equals(instantiate(A, [instantiate(F, [instantiate(B, [stringType]),
+                  intType])]),
+                  F_int_string.asInstanceOf(A));
+
+  }));
 }
 
 /**
@@ -101,7 +105,7 @@ bool testSubstitution(compiler, arguments, parameters,
 }
 
 void testTypeSubstitution() {
-  var env = new TypeEnvironment(r"""
+  asyncTest(() => TypeEnvironment.create(r"""
       typedef void Typedef1<X,Y>(X x1, Y y2);
       typedef void Typedef2<Z>(Z z1);
 
@@ -153,78 +157,79 @@ void testTypeSubstitution() {
         void Typedef1e(Typedef2<S> a) {}
         void Typedef2e(Typedef2<String> b) {}
       }
-      """);
-  var compiler = env.compiler;
+      """).then((env) {
+    var compiler = env.compiler;
 
-  InterfaceType Class_T_S = env["Class"];
-  Expect.isNotNull(Class_T_S);
-  Expect.identical(Class_T_S.kind, TypeKind.INTERFACE);
-  Expect.equals(2, length(Class_T_S.typeArguments));
+    InterfaceType Class_T_S = env["Class"];
+    Expect.isNotNull(Class_T_S);
+    Expect.identical(Class_T_S.kind, TypeKind.INTERFACE);
+    Expect.equals(2, length(Class_T_S.typeArguments));
 
-  DartType T = Class_T_S.typeArguments.head;
-  Expect.isNotNull(T);
-  Expect.identical(T.kind, TypeKind.TYPE_VARIABLE);
+    DartType T = Class_T_S.typeArguments.head;
+    Expect.isNotNull(T);
+    Expect.identical(T.kind, TypeKind.TYPE_VARIABLE);
 
-  DartType S = Class_T_S.typeArguments.tail.head;
-  Expect.isNotNull(S);
-  Expect.identical(S.kind, TypeKind.TYPE_VARIABLE);
+    DartType S = Class_T_S.typeArguments.tail.head;
+    Expect.isNotNull(S);
+    Expect.identical(S.kind, TypeKind.TYPE_VARIABLE);
 
-  DartType intType = env['int'];//getType(compiler, "int1");
-  Expect.isNotNull(intType);
-  Expect.identical(intType.kind, TypeKind.INTERFACE);
+    DartType intType = env['int'];//getType(compiler, "int1");
+    Expect.isNotNull(intType);
+    Expect.identical(intType.kind, TypeKind.INTERFACE);
 
-  DartType StringType = env['String'];//getType(compiler, "String1");
-  Expect.isNotNull(StringType);
-  Expect.identical(StringType.kind, TypeKind.INTERFACE);
+    DartType StringType = env['String'];//getType(compiler, "String1");
+    Expect.isNotNull(StringType);
+    Expect.identical(StringType.kind, TypeKind.INTERFACE);
 
-  var parameters = new Link<DartType>.fromList(<DartType>[T, S]);
-  var arguments = new Link<DartType>.fromList(<DartType>[intType, StringType]);
+    var parameters = new Link<DartType>.fromList(<DartType>[T, S]);
+    var arguments = new Link<DartType>.fromList(<DartType>[intType, StringType]);
 
-  // TODO(johnniwinther): Create types directly from strings to improve test
-  // readability.
+    // TODO(johnniwinther): Create types directly from strings to improve test
+    // readability.
 
-  testSubstitution(compiler, arguments, parameters, "void1", "void2");
-  testSubstitution(compiler, arguments, parameters, "dynamic1", "dynamic2");
-  testSubstitution(compiler, arguments, parameters, "int1", "int2");
-  testSubstitution(compiler, arguments, parameters, "String1", "String2");
-  testSubstitution(compiler, arguments, parameters, "ListInt1", "ListInt2");
-  testSubstitution(compiler, arguments, parameters, "ListT1", "ListT2");
-  testSubstitution(compiler, arguments, parameters, "ListS1", "ListS2");
-  testSubstitution(compiler, arguments, parameters, "ListListT1", "ListListT2");
-  testSubstitution(compiler, arguments, parameters, "ListRaw1", "ListRaw2");
-  testSubstitution(compiler, arguments, parameters,
-                    "ListDynamic1", "ListDynamic2");
-  testSubstitution(compiler, arguments, parameters,
-                   "MapIntString1", "MapIntString2");
-  testSubstitution(compiler, arguments, parameters,
-                   "MapTString1", "MapTString2");
-  testSubstitution(compiler, arguments, parameters,
-                   "MapDynamicString1", "MapDynamicString2");
-  testSubstitution(compiler, arguments, parameters, "TypeVarT1", "TypeVarT2");
-  testSubstitution(compiler, arguments, parameters, "TypeVarS1", "TypeVarS2");
-  testSubstitution(compiler, arguments, parameters, "Function1a", "Function2a");
-  testSubstitution(compiler, arguments, parameters, "Function1b", "Function2b");
-  testSubstitution(compiler, arguments, parameters, "Function1c", "Function2c");
-  testSubstitution(compiler, arguments, parameters, "Typedef1a", "Typedef2a");
-  testSubstitution(compiler, arguments, parameters, "Typedef1b", "Typedef2b");
-  testSubstitution(compiler, arguments, parameters, "Typedef1c", "Typedef2c");
-  testSubstitution(compiler, arguments, parameters, "Typedef1d", "Typedef2d");
-  testSubstitution(compiler, arguments, parameters, "Typedef1e", "Typedef2e");
+    testSubstitution(compiler, arguments, parameters, "void1", "void2");
+    testSubstitution(compiler, arguments, parameters, "dynamic1", "dynamic2");
+    testSubstitution(compiler, arguments, parameters, "int1", "int2");
+    testSubstitution(compiler, arguments, parameters, "String1", "String2");
+    testSubstitution(compiler, arguments, parameters, "ListInt1", "ListInt2");
+    testSubstitution(compiler, arguments, parameters, "ListT1", "ListT2");
+    testSubstitution(compiler, arguments, parameters, "ListS1", "ListS2");
+    testSubstitution(compiler, arguments, parameters, "ListListT1", "ListListT2");
+    testSubstitution(compiler, arguments, parameters, "ListRaw1", "ListRaw2");
+    testSubstitution(compiler, arguments, parameters,
+                      "ListDynamic1", "ListDynamic2");
+    testSubstitution(compiler, arguments, parameters,
+                     "MapIntString1", "MapIntString2");
+    testSubstitution(compiler, arguments, parameters,
+                     "MapTString1", "MapTString2");
+    testSubstitution(compiler, arguments, parameters,
+                     "MapDynamicString1", "MapDynamicString2");
+    testSubstitution(compiler, arguments, parameters, "TypeVarT1", "TypeVarT2");
+    testSubstitution(compiler, arguments, parameters, "TypeVarS1", "TypeVarS2");
+    testSubstitution(compiler, arguments, parameters, "Function1a", "Function2a");
+    testSubstitution(compiler, arguments, parameters, "Function1b", "Function2b");
+    testSubstitution(compiler, arguments, parameters, "Function1c", "Function2c");
+    testSubstitution(compiler, arguments, parameters, "Typedef1a", "Typedef2a");
+    testSubstitution(compiler, arguments, parameters, "Typedef1b", "Typedef2b");
+    testSubstitution(compiler, arguments, parameters, "Typedef1c", "Typedef2c");
+    testSubstitution(compiler, arguments, parameters, "Typedef1d", "Typedef2d");
+    testSubstitution(compiler, arguments, parameters, "Typedef1e", "Typedef2e");
 
-  // Substitution in unalias.
-  DartType Typedef2_int_String = getType(compiler, "Typedef2a");
-  Expect.isNotNull(Typedef2_int_String);
-  DartType Function_int_String = getType(compiler, "Function2b");
-  Expect.isNotNull(Function_int_String);
-  DartType unalias1 = Typedef2_int_String.unalias(compiler);
-  Expect.equals(Function_int_String, unalias1,
-      '$Typedef2_int_String.unalias=$unalias1 != $Function_int_String');
+    // Substitution in unalias.
+    DartType Typedef2_int_String = getType(compiler, "Typedef2a");
+    Expect.isNotNull(Typedef2_int_String);
+    DartType Function_int_String = getType(compiler, "Function2b");
+    Expect.isNotNull(Function_int_String);
+    DartType unalias1 = Typedef2_int_String.unalias(compiler);
+    Expect.equals(Function_int_String, unalias1,
+        '$Typedef2_int_String.unalias=$unalias1 != $Function_int_String');
 
-  DartType Typedef1 = getType(compiler, "Typedef1c");
-  Expect.isNotNull(Typedef1);
-  DartType Function_dynamic_dynamic = getType(compiler, "Function1c");
-  Expect.isNotNull(Function_dynamic_dynamic);
-  DartType unalias2 = Typedef1.unalias(compiler);
-  Expect.equals(Function_dynamic_dynamic, unalias2,
-      '$Typedef1.unalias=$unalias2 != $Function_dynamic_dynamic');
+    DartType Typedef1 = getType(compiler, "Typedef1c");
+    Expect.isNotNull(Typedef1);
+    DartType Function_dynamic_dynamic = getType(compiler, "Function1c");
+    Expect.isNotNull(Function_dynamic_dynamic);
+    DartType unalias2 = Typedef1.unalias(compiler);
+    Expect.equals(Function_dynamic_dynamic, unalias2,
+        '$Typedef1.unalias=$unalias2 != $Function_dynamic_dynamic');
+  }));
 }

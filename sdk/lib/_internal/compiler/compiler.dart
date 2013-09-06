@@ -92,19 +92,21 @@ Future<String> compile(Uri script,
                                    libraryRoot,
                                    packageRoot,
                                    options);
-  compiler.run(script);
-  String code = compiler.assembledCode;
-  if (code != null && outputProvider != null) {
-    String outputType = 'js';
-    if (options.contains('--output-type=dart')) {
-      outputType = 'dart';
+  // TODO(ahe): Use the value of the future (which signals success or failure).
+  return compiler.run(script).then((_) {
+    String code = compiler.assembledCode;
+    if (code != null && outputProvider != null) {
+      String outputType = 'js';
+      if (options.contains('--output-type=dart')) {
+        outputType = 'dart';
+      }
+      outputProvider('', outputType)
+          ..add(code)
+          ..close();
+      code = ''; // Non-null signals success.
     }
-    outputProvider('', outputType)
-        ..add(code)
-        ..close();
-    code = ''; // Non-null signals success.
-  }
-  return new Future.value(code);
+    return code;
+  });
 }
 
 /**

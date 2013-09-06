@@ -686,7 +686,7 @@ void TestGraphVisitor::ReturnValue(Value* value) {
 
 
 void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
-  ControlInstruction* branch;
+  BranchInstr* branch;
   if (Token::IsStrictEqualityOperator(comp->kind())) {
     branch = new BranchInstr(new StrictCompareInstr(comp->token_pos(),
                                                     comp->kind(),
@@ -1420,17 +1420,30 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
     return;
   }
 
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(2);
+
   ValueGraphVisitor for_left_value(owner(), temp_index());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
+  PushArgumentInstr* push_left = PushArgument(for_left_value.value());
+  arguments->Add(push_left);
+
   ValueGraphVisitor for_right_value(owner(), temp_index());
   node->right()->Visit(&for_right_value);
   Append(for_right_value);
-  RelationalOpInstr* comp = new RelationalOpInstr(node->token_pos(),
-                                                  node->kind(),
-                                                  for_left_value.value(),
-                                                  for_right_value.value(),
-                                                  owner()->ic_data_array());
+  PushArgumentInstr* push_right = PushArgument(for_right_value.value());
+  arguments->Add(push_right);
+
+  ASSERT(Token::IsRelationalOperator(node->kind()));
+  InstanceCallInstr* comp =
+      new InstanceCallInstr(node->token_pos(),
+                            String::ZoneHandle(Symbols::New(node->Name())),
+                            node->kind(),
+                            arguments,
+                            Object::null_array(),
+                            2,
+                            owner()->ic_data_array());
   ReturnDefinition(comp);
 }
 
@@ -1460,8 +1473,7 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   arguments->Add(push_value);
   InstanceCallInstr* call =
       new InstanceCallInstr(node->token_pos(),
-                            String::ZoneHandle(
-                                Symbols::New(Token::Str(node->kind()))),
+                            String::ZoneHandle(Symbols::New(node->Name())),
                             node->kind(),
                             arguments,
                             Object::null_array(),

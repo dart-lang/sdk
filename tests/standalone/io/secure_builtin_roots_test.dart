@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:io";
+import "dart:async";
+
+import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:path/path.dart";
-import "dart:io";
-import "dart:isolate";
-import "dart:async";
 
 void main() {
   var args = new Options().arguments;
@@ -80,10 +81,10 @@ void runAllTestsInChildProcesses() {
     });
   }
 
-  ReceivePort keepAlive = new ReceivePort();
+  asyncStart();
   Future.wait([runChild(['--child']),
                runChild(['--child', '--database']),
                runChild(['--child', '--builtin-roots']),
                runChild(['--child', '--builtin-roots', '--database'])])
-      .then((_) => keepAlive.close());
+      .then((_) => asyncEnd());
   }

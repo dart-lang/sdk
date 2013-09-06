@@ -5,6 +5,7 @@
 
 library compiler_helper;
 
+import 'dart:async';
 import "package:expect/expect.dart";
 
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'
@@ -90,40 +91,42 @@ MockCompiler compilerFor(String code, Uri uri,
   return compiler;
 }
 
-String compileAll(String code, {String coreSource: DEFAULT_CORELIB}) {
+Future<String> compileAll(String code, {String coreSource: DEFAULT_CORELIB}) {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(code, uri, coreSource: coreSource);
-  compiler.runCompiler(uri);
-  Expect.isFalse(compiler.compilationFailed,
-                 'Unexpected compilation error');
-  return compiler.assembledCode;
+  return compiler.runCompiler(uri).then((_) {
+    Expect.isFalse(compiler.compilationFailed,
+                   'Unexpected compilation error');
+    return compiler.assembledCode;
+  });
 }
 
-dynamic compileAndCheck(String code,
-                        String name,
-                        check(MockCompiler compiler, lego.Element element)) {
+Future compileAndCheck(String code,
+                       String name,
+                       check(MockCompiler compiler, lego.Element element)) {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(code, uri);
-  compiler.runCompiler(uri);
-  lego.Element element = findElement(compiler, name);
-  return check(compiler, element);
+  return compiler.runCompiler(uri).then((_) {
+    lego.Element element = findElement(compiler, name);
+    return check(compiler, element);
+  });
 }
 
-compileSources(Map<String, String> sources,
+Future compileSources(Map<String, String> sources,
                check(MockCompiler compiler)) {
   Uri base = new Uri(scheme: 'source');
   Uri mainUri = base.resolve('main.dart');
   String mainCode = sources['main.dart'];
   Expect.isNotNull(mainCode, 'No source code found for "main.dart"');
   MockCompiler compiler = compilerFor(mainCode, mainUri);
-
   sources.forEach((String path, String code) {
     if (path == 'main.dart') return;
     compiler.registerSource(base.resolve(path), code);
   });
 
-  compiler.runCompiler(mainUri);
-  return check(compiler);
+  return compiler.runCompiler(mainUri).then((_) {
+    return check(compiler);
+  });
 }
 
 lego.Element findElement(compiler, String name) {

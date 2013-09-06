@@ -102,7 +102,7 @@ class EvaluationResult {
   /**
    * The value of the expression.
    */
-  Object _value;
+  Object value;
 
   /**
    * The errors that should be reported for the expression(s) that were evaluated.
@@ -117,7 +117,7 @@ class EvaluationResult {
    * @param errors the errors that should be reported for the expression(s) that were evaluated
    */
   EvaluationResult(Object value, List<AnalysisError> errors) {
-    this._value = value;
+    this.value = value;
     this._errors = errors;
   }
 
@@ -128,15 +128,6 @@ class EvaluationResult {
    * other parts of the analysis engine.
    */
   List<AnalysisError> get errors => _errors == null ? AnalysisError.NO_ERRORS : _errors;
-
-  /**
-   * Return the value of the expression, or `null` if the expression evaluated to `null`
-   * or if the expression could not be evaluated, either because it was not a compile-time constant
-   * expression or because it would throw an exception when evaluated.
-   *
-   * @return the value of the expression
-   */
-  Object get value => _value;
 
   /**
    * Return `true` if the expression is a compile-time constant expression that would not
@@ -156,21 +147,14 @@ class ConstantFinder extends RecursiveASTVisitor<Object> {
   /**
    * A table mapping constant variable elements to the declarations of those variables.
    */
-  Map<VariableElement, VariableDeclaration> _variableMap = new Map<VariableElement, VariableDeclaration>();
-
-  /**
-   * Return a table mapping constant variable elements to the declarations of those variables.
-   *
-   * @return a table mapping constant variable elements to the declarations of those variables
-   */
-  Map<VariableElement, VariableDeclaration> get variableMap => _variableMap;
+  final Map<VariableElement, VariableDeclaration> variableMap = new Map<VariableElement, VariableDeclaration>();
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     Expression initializer = node.initializer;
     if (initializer != null && node.isConst) {
       VariableElement element = node.element;
       if (element != null) {
-        _variableMap[element] = node;
+        variableMap[element] = node;
       }
     }
     return null;
@@ -710,7 +694,7 @@ class ErrorResult extends EvaluationResultImpl {
   /**
    * The errors that prevent the expression from being a valid compile time constant.
    */
-  List<ErrorResult_ErrorData> _errors = new List<ErrorResult_ErrorData>();
+  final List<ErrorResult_ErrorData> errorData = new List<ErrorResult_ErrorData>();
 
   /**
    * Initialize a newly created result representing the error with the given code reported against
@@ -720,7 +704,7 @@ class ErrorResult extends EvaluationResultImpl {
    * @param errorCode the error code for the error to be generated
    */
   ErrorResult.con1(ASTNode node, ErrorCode errorCode) {
-    _errors.add(new ErrorResult_ErrorData(node, errorCode));
+    errorData.add(new ErrorResult_ErrorData(node, errorCode));
   }
 
   /**
@@ -731,8 +715,8 @@ class ErrorResult extends EvaluationResultImpl {
    * @param secondResult the second set of results being merged
    */
   ErrorResult.con2(ErrorResult firstResult, ErrorResult secondResult) {
-    _errors.addAll(firstResult._errors);
-    _errors.addAll(secondResult._errors);
+    errorData.addAll(firstResult.errorData);
+    errorData.addAll(secondResult.errorData);
   }
   EvaluationResultImpl add(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToError(node, this);
   EvaluationResultImpl bitAnd(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitAndError(node, this);
@@ -743,7 +727,6 @@ class ErrorResult extends EvaluationResultImpl {
   EvaluationResultImpl divide(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.divideError(node, this);
   EvaluationResultImpl equalEqual(Expression node, EvaluationResultImpl rightOperand) => rightOperand.equalEqualError(node, this);
   bool equalValues(EvaluationResultImpl result) => false;
-  List<ErrorResult_ErrorData> get errorData => _errors;
   EvaluationResultImpl greaterThan(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanError(node, this);
   EvaluationResultImpl greaterThanOrEqual(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanOrEqualError(node, this);
   EvaluationResultImpl integerDivide(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.integerDivideError(node, this);
@@ -806,12 +789,12 @@ class ErrorResult_ErrorData {
   /**
    * The node against which the error should be reported.
    */
-  ASTNode _node;
+  ASTNode node;
 
   /**
    * The error code for the error to be generated.
    */
-  ErrorCode _errorCode;
+  ErrorCode errorCode;
 
   /**
    * Initialize a newly created data holder to represent the error with the given code reported
@@ -821,23 +804,9 @@ class ErrorResult_ErrorData {
    * @param errorCode the error code for the error to be generated
    */
   ErrorResult_ErrorData(ASTNode node, ErrorCode errorCode) {
-    this._node = node;
-    this._errorCode = errorCode;
+    this.node = node;
+    this.errorCode = errorCode;
   }
-
-  /**
-   * Return the error code for the error to be generated.
-   *
-   * @return the error code for the error to be generated
-   */
-  ErrorCode get errorCode => _errorCode;
-
-  /**
-   * Return the node against which the error should be reported.
-   *
-   * @return the node against which the error should be reported
-   */
-  ASTNode get node => _node;
 }
 /**
  * Instances of the class `InternalResult` represent the result of attempting to evaluate a
@@ -1013,7 +982,7 @@ class ValidResult extends EvaluationResultImpl {
   /**
    * The value of the expression.
    */
-  Object _value;
+  Object value;
 
   /**
    * Initialize a newly created result to represent the given value.
@@ -1021,7 +990,7 @@ class ValidResult extends EvaluationResultImpl {
    * @param value the value of the expression
    */
   ValidResult(Object value) {
-    this._value = value;
+    this.value = value;
   }
   EvaluationResultImpl add(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToValid(node, this);
   EvaluationResultImpl bitAnd(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitAndValid(node, this);
@@ -1029,10 +998,10 @@ class ValidResult extends EvaluationResultImpl {
     if (isSomeInt) {
       return RESULT_INT;
     }
-    if (_value == null) {
+    if (value == null) {
       return error(node);
-    } else if (_value is int) {
-      return valueOf(~((_value as int)));
+    } else if (value is int) {
+      return valueOf(~((value as int)));
     }
     return error(node);
   }
@@ -1042,7 +1011,6 @@ class ValidResult extends EvaluationResultImpl {
   EvaluationResultImpl divide(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.divideValid(node, this);
   EvaluationResultImpl equalEqual(Expression node, EvaluationResultImpl rightOperand) => rightOperand.equalEqualValid(node, this);
   bool equalValues(EvaluationResultImpl result) => identical(equalEqual(null, result), RESULT_TRUE);
-  Object get value => _value;
   EvaluationResultImpl greaterThan(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanValid(node, this);
   EvaluationResultImpl greaterThanOrEqual(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanOrEqualValid(node, this);
   EvaluationResultImpl integerDivide(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.integerDivideValid(node, this);
@@ -1053,10 +1021,10 @@ class ValidResult extends EvaluationResultImpl {
     if (isSomeBool) {
       return RESULT_BOOL;
     }
-    if (_value == null) {
+    if (value == null) {
       return RESULT_TRUE;
-    } else if (_value is bool) {
-      return ((_value as bool)) ? RESULT_FALSE : RESULT_TRUE;
+    } else if (value is bool) {
+      return ((value as bool)) ? RESULT_FALSE : RESULT_TRUE;
     }
     return error(node);
   }
@@ -1066,26 +1034,26 @@ class ValidResult extends EvaluationResultImpl {
     if (isSomeNum) {
       return RESULT_INT;
     }
-    if (_value == null) {
+    if (value == null) {
       return error(node);
-    } else if (_value is int) {
-      return valueOf(-((_value as int)));
-    } else if (_value is double) {
-      return valueOf3(-((_value as double)));
+    } else if (value is int) {
+      return valueOf(-((value as int)));
+    } else if (value is double) {
+      return valueOf3(-((value as double)));
     }
     return error(node);
   }
   EvaluationResultImpl notEqual(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.notEqualValid(node, this);
   EvaluationResultImpl performToString(ASTNode node) {
-    if (_value == null) {
+    if (value == null) {
       return valueOf4("null");
-    } else if (_value is bool) {
-      return valueOf4(((_value as bool)).toString());
-    } else if (_value is int) {
-      return valueOf4(((_value as int)).toString());
-    } else if (_value is double) {
-      return valueOf4(((_value as double)).toString());
-    } else if (_value is String) {
+    } else if (value is bool) {
+      return valueOf4(((value as bool)).toString());
+    } else if (value is int) {
+      return valueOf4(((value as int)).toString());
+    } else if (value is double) {
+      return valueOf4(((value as double)).toString());
+    } else if (value is String) {
       return this;
     }
     return error(node);
@@ -1095,10 +1063,10 @@ class ValidResult extends EvaluationResultImpl {
   EvaluationResultImpl shiftRight(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftRightValid(node, this);
   EvaluationResultImpl times(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.timesValid(node, this);
   String toString() {
-    if (_value == null) {
+    if (value == null) {
       return "null";
     }
-    return _value.toString();
+    return value.toString();
   }
   EvaluationResultImpl addToError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl addToValid(BinaryExpression node, ValidResult leftOperand2) {
@@ -1113,23 +1081,23 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        return valueOf(((leftValue as int)) + (_value as int));
-      } else if (_value is double) {
-        return valueOf3(((leftValue as int)).toDouble() + ((_value as double)));
+      if (value is int) {
+        return valueOf(((leftValue as int)) + (value as int));
+      } else if (value is double) {
+        return valueOf3(((leftValue as int)).toDouble() + ((value as double)));
       }
     } else if (leftValue is double) {
-      if (_value is int) {
-        return valueOf3(((leftValue as double)) + ((_value as int)).toDouble());
-      } else if (_value is double) {
-        return valueOf3(((leftValue as double)) + ((_value as double)));
+      if (value is int) {
+        return valueOf3(((leftValue as double)) + ((value as int)).toDouble());
+      } else if (value is double) {
+        return valueOf3(((leftValue as double)) + ((value as double)));
       }
     } else if (leftValue is String) {
-      if (_value is String) {
-        return valueOf4("${((leftValue as String))}${((_value as String))}");
+      if (value is String) {
+        return valueOf4("${((leftValue as String))}${((value as String))}");
       }
     }
     return error(node);
@@ -1145,15 +1113,15 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        return valueOf(((leftValue as int)) & (_value as int));
+      if (value is int) {
+        return valueOf(((leftValue as int)) & (value as int));
       }
       return error(node.leftOperand);
     }
-    if (_value is int) {
+    if (value is int) {
       return error(node.rightOperand);
     }
     return union(error(node.leftOperand), error(node.rightOperand));
@@ -1169,15 +1137,15 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        return valueOf(((leftValue as int)) | (_value as int));
+      if (value is int) {
+        return valueOf(((leftValue as int)) | (value as int));
       }
       return error(node.leftOperand);
     }
-    if (_value is int) {
+    if (value is int) {
       return error(node.rightOperand);
     }
     return union(error(node.leftOperand), error(node.rightOperand));
@@ -1193,15 +1161,15 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        return valueOf(((leftValue as int)) ^ (_value as int));
+      if (value is int) {
+        return valueOf(((leftValue as int)) ^ (value as int));
       }
       return error(node.leftOperand);
     }
-    if (_value is int) {
+    if (value is int) {
       return error(node.rightOperand);
     }
     return union(error(node.leftOperand), error(node.rightOperand));
@@ -1209,8 +1177,8 @@ class ValidResult extends EvaluationResultImpl {
   EvaluationResultImpl concatenateError(Expression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl concatenateValid(Expression node, ValidResult leftOperand) {
     Object leftValue = leftOperand.value;
-    if (leftValue is String && _value is String) {
-      return valueOf4("${((leftValue as String))}${((_value as String))}");
+    if (leftValue is String && value is String) {
+      return valueOf4("${((leftValue as String))}${((value as String))}");
     }
     return error(node);
   }
@@ -1225,22 +1193,22 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        if (((_value as int)) == 0) {
-          return valueOf3(((leftValue as int)).toDouble() / ((_value as int)).toDouble());
+      if (value is int) {
+        if (((value as int)) == 0) {
+          return valueOf3(((leftValue as int)).toDouble() / ((value as int)).toDouble());
         }
-        return valueOf(((leftValue as int)) ~/ (_value as int));
-      } else if (_value is double) {
-        return valueOf3(((leftValue as int)).toDouble() / ((_value as double)));
+        return valueOf(((leftValue as int)) ~/ (value as int));
+      } else if (value is double) {
+        return valueOf3(((leftValue as int)).toDouble() / ((value as double)));
       }
     } else if (leftValue is double) {
-      if (_value is int) {
-        return valueOf3(((leftValue as double)) / ((_value as int)).toDouble());
-      } else if (_value is double) {
-        return valueOf3(((leftValue as double)) / ((_value as double)));
+      if (value is int) {
+        return valueOf3(((leftValue as double)) / ((value as int)).toDouble());
+      } else if (value is double) {
+        return valueOf3(((leftValue as double)) / ((value as double)));
       }
     }
     return error(node);
@@ -1254,29 +1222,29 @@ class ValidResult extends EvaluationResultImpl {
     }
     Object leftValue = leftOperand.value;
     if (leftValue == null) {
-      return valueOf2(_value == null);
+      return valueOf2(value == null);
     } else if (leftValue is bool) {
-      if (_value is bool) {
-        return valueOf2(identical(leftValue as bool, _value as bool));
+      if (value is bool) {
+        return valueOf2(identical(leftValue as bool, value as bool));
       }
       return RESULT_FALSE;
     } else if (leftValue is int) {
-      if (_value is int) {
-        return valueOf2(((leftValue as int)) == _value);
-      } else if (_value is double) {
-        return valueOf2(toDouble(leftValue as int) == _value);
+      if (value is int) {
+        return valueOf2(((leftValue as int)) == value);
+      } else if (value is double) {
+        return valueOf2(toDouble(leftValue as int) == value);
       }
       return RESULT_FALSE;
     } else if (leftValue is double) {
-      if (_value is int) {
-        return valueOf2(((leftValue as double)) == toDouble(_value as int));
-      } else if (_value is double) {
-        return valueOf2(((leftValue as double)) == _value);
+      if (value is int) {
+        return valueOf2(((leftValue as double)) == toDouble(value as int));
+      } else if (value is double) {
+        return valueOf2(((leftValue as double)) == value);
       }
       return RESULT_FALSE;
     } else if (leftValue is String) {
-      if (_value is String) {
-        return valueOf2(((leftValue as String)) == _value);
+      if (value is String) {
+        return valueOf2(((leftValue as String)) == value);
       }
       return RESULT_FALSE;
     }
@@ -1294,19 +1262,19 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        return valueOf2(((leftValue as int)).compareTo(_value as int) >= 0);
-      } else if (_value is double) {
-        return valueOf2(((leftValue as int)).toDouble() >= ((_value as double)));
+      if (value is int) {
+        return valueOf2(((leftValue as int)).compareTo(value as int) >= 0);
+      } else if (value is double) {
+        return valueOf2(((leftValue as int)).toDouble() >= ((value as double)));
       }
     } else if (leftValue is double) {
-      if (_value is int) {
-        return valueOf2(((leftValue as double)) >= ((_value as int)).toDouble());
-      } else if (_value is double) {
-        return valueOf2(((leftValue as double)) >= ((_value as double)));
+      if (value is int) {
+        return valueOf2(((leftValue as double)) >= ((value as int)).toDouble());
+      } else if (value is double) {
+        return valueOf2(((leftValue as double)) >= ((value as double)));
       }
     }
     return error(node);
@@ -1321,19 +1289,19 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        return valueOf2(((leftValue as int)).compareTo(_value as int) > 0);
-      } else if (_value is double) {
-        return valueOf2(((leftValue as int)).toDouble() > ((_value as double)));
+      if (value is int) {
+        return valueOf2(((leftValue as int)).compareTo(value as int) > 0);
+      } else if (value is double) {
+        return valueOf2(((leftValue as int)).toDouble() > ((value as double)));
       }
     } else if (leftValue is double) {
-      if (_value is int) {
-        return valueOf2(((leftValue as double)) > ((_value as int)).toDouble());
-      } else if (_value is double) {
-        return valueOf2(((leftValue as double)) > ((_value as double)));
+      if (value is int) {
+        return valueOf2(((leftValue as double)) > ((value as int)).toDouble());
+      } else if (value is double) {
+        return valueOf2(((leftValue as double)) > ((value as double)));
       }
     }
     return error(node);
@@ -1349,24 +1317,24 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        if (((_value as int)) == 0) {
+      if (value is int) {
+        if (((value as int)) == 0) {
           return error2(node, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
         }
-        return valueOf(((leftValue as int)) ~/ (_value as int));
-      } else if (_value is double) {
-        double result = ((leftValue as int)).toDouble() / ((_value as double));
+        return valueOf(((leftValue as int)) ~/ (value as int));
+      } else if (value is double) {
+        double result = ((leftValue as int)).toDouble() / ((value as double));
         return valueOf(result.toInt());
       }
     } else if (leftValue is double) {
-      if (_value is int) {
-        double result = ((leftValue as double)) / ((_value as int)).toDouble();
+      if (value is int) {
+        double result = ((leftValue as double)) / ((value as int)).toDouble();
         return valueOf(result.toInt());
-      } else if (_value is double) {
-        double result = ((leftValue as double)) / ((_value as double));
+      } else if (value is double) {
+        double result = ((leftValue as double)) / ((value as double));
         return valueOf(result.toInt());
       }
     }
@@ -1384,19 +1352,19 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        return valueOf2(((leftValue as int)).compareTo(_value as int) <= 0);
-      } else if (_value is double) {
-        return valueOf2(((leftValue as int)).toDouble() <= ((_value as double)));
+      if (value is int) {
+        return valueOf2(((leftValue as int)).compareTo(value as int) <= 0);
+      } else if (value is double) {
+        return valueOf2(((leftValue as int)).toDouble() <= ((value as double)));
       }
     } else if (leftValue is double) {
-      if (_value is int) {
-        return valueOf2(((leftValue as double)) <= ((_value as int)).toDouble());
-      } else if (_value is double) {
-        return valueOf2(((leftValue as double)) <= ((_value as double)));
+      if (value is int) {
+        return valueOf2(((leftValue as double)) <= ((value as int)).toDouble());
+      } else if (value is double) {
+        return valueOf2(((leftValue as double)) <= ((value as double)));
       }
     }
     return error(node);
@@ -1411,19 +1379,19 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        return valueOf2(((leftValue as int)).compareTo(_value as int) < 0);
-      } else if (_value is double) {
-        return valueOf2(((leftValue as int)).toDouble() < ((_value as double)));
+      if (value is int) {
+        return valueOf2(((leftValue as int)).compareTo(value as int) < 0);
+      } else if (value is double) {
+        return valueOf2(((leftValue as int)).toDouble() < ((value as double)));
       }
     } else if (leftValue is double) {
-      if (_value is int) {
-        return valueOf2(((leftValue as double)) < ((_value as int)).toDouble());
-      } else if (_value is double) {
-        return valueOf2(((leftValue as double)) < ((_value as double)));
+      if (value is int) {
+        return valueOf2(((leftValue as double)) < ((value as int)).toDouble());
+      } else if (value is double) {
+        return valueOf2(((leftValue as double)) < ((value as double)));
       }
     }
     return error(node);
@@ -1439,7 +1407,7 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand.value;
     if (leftValue is bool) {
       if (((leftValue as bool))) {
-        return booleanConversion(node.rightOperand, _value);
+        return booleanConversion(node.rightOperand, value);
       }
       return RESULT_FALSE;
     }
@@ -1457,7 +1425,7 @@ class ValidResult extends EvaluationResultImpl {
     if (leftValue is bool && ((leftValue as bool))) {
       return RESULT_TRUE;
     }
-    return booleanConversion(node.rightOperand, _value);
+    return booleanConversion(node.rightOperand, value);
   }
   EvaluationResultImpl minusError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl minusValid(BinaryExpression node, ValidResult leftOperand2) {
@@ -1472,19 +1440,19 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        return valueOf(((leftValue as int)) - (_value as int));
-      } else if (_value is double) {
-        return valueOf3(((leftValue as int)).toDouble() - ((_value as double)));
+      if (value is int) {
+        return valueOf(((leftValue as int)) - (value as int));
+      } else if (value is double) {
+        return valueOf3(((leftValue as int)).toDouble() - ((value as double)));
       }
     } else if (leftValue is double) {
-      if (_value is int) {
-        return valueOf3(((leftValue as double)) - ((_value as int)).toDouble());
-      } else if (_value is double) {
-        return valueOf3(((leftValue as double)) - ((_value as double)));
+      if (value is int) {
+        return valueOf3(((leftValue as double)) - ((value as int)).toDouble());
+      } else if (value is double) {
+        return valueOf3(((leftValue as double)) - ((value as double)));
       }
     }
     return error(node);
@@ -1496,29 +1464,29 @@ class ValidResult extends EvaluationResultImpl {
     }
     Object leftValue = leftOperand.value;
     if (leftValue == null) {
-      return valueOf2(_value != null);
+      return valueOf2(value != null);
     } else if (leftValue is bool) {
-      if (_value is bool) {
-        return valueOf2(((leftValue as bool)) != ((_value as bool)));
+      if (value is bool) {
+        return valueOf2(((leftValue as bool)) != ((value as bool)));
       }
       return RESULT_TRUE;
     } else if (leftValue is int) {
-      if (_value is int) {
-        return valueOf2(((leftValue as int)) != _value);
-      } else if (_value is double) {
-        return valueOf2(toDouble(leftValue as int) != _value);
+      if (value is int) {
+        return valueOf2(((leftValue as int)) != value);
+      } else if (value is double) {
+        return valueOf2(toDouble(leftValue as int) != value);
       }
       return RESULT_TRUE;
     } else if (leftValue is double) {
-      if (_value is int) {
-        return valueOf2(((leftValue as double)) != toDouble(_value as int));
-      } else if (_value is double) {
-        return valueOf2(((leftValue as double)) != _value);
+      if (value is int) {
+        return valueOf2(((leftValue as double)) != toDouble(value as int));
+      } else if (value is double) {
+        return valueOf2(((leftValue as double)) != value);
       }
       return RESULT_TRUE;
     } else if (leftValue is String) {
-      if (_value is String) {
-        return valueOf2(((leftValue as String)) != _value);
+      if (value is String) {
+        return valueOf2(((leftValue as String)) != value);
       }
       return RESULT_TRUE;
     }
@@ -1537,22 +1505,22 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        if (((_value as int)) == 0) {
-          return valueOf3(((leftValue as int)).toDouble() % ((_value as int)).toDouble());
+      if (value is int) {
+        if (((value as int)) == 0) {
+          return valueOf3(((leftValue as int)).toDouble() % ((value as int)).toDouble());
         }
-        return valueOf(((leftValue as int)).remainder(_value as int));
-      } else if (_value is double) {
-        return valueOf3(((leftValue as int)).toDouble() % ((_value as double)));
+        return valueOf(((leftValue as int)).remainder(value as int));
+      } else if (value is double) {
+        return valueOf3(((leftValue as int)).toDouble() % ((value as double)));
       }
     } else if (leftValue is double) {
-      if (_value is int) {
-        return valueOf3(((leftValue as double)) % ((_value as int)).toDouble());
-      } else if (_value is double) {
-        return valueOf3(((leftValue as double)) % ((_value as double)));
+      if (value is int) {
+        return valueOf3(((leftValue as double)) % ((value as int)).toDouble());
+      } else if (value is double) {
+        return valueOf3(((leftValue as double)) % ((value as double)));
       }
     }
     return error(node);
@@ -1568,15 +1536,15 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        return valueOf(((leftValue as int)) << ((_value as int)));
+      if (value is int) {
+        return valueOf(((leftValue as int)) << ((value as int)));
       }
       return error(node.rightOperand);
     }
-    if (_value is int) {
+    if (value is int) {
       return error(node.leftOperand);
     }
     return union(error(node.leftOperand), error(node.rightOperand));
@@ -1592,15 +1560,15 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        return valueOf(((leftValue as int)) >> ((_value as int)));
+      if (value is int) {
+        return valueOf(((leftValue as int)) >> ((value as int)));
       }
       return error(node.rightOperand);
     }
-    if (_value is int) {
+    if (value is int) {
       return error(node.leftOperand);
     }
     return union(error(node.leftOperand), error(node.rightOperand));
@@ -1618,19 +1586,19 @@ class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
-    } else if (_value == null) {
+    } else if (value == null) {
       return error(node.rightOperand);
     } else if (leftValue is int) {
-      if (_value is int) {
-        return valueOf(((leftValue as int)) * (_value as int));
-      } else if (_value is double) {
-        return valueOf3(((leftValue as int)).toDouble() * ((_value as double)));
+      if (value is int) {
+        return valueOf(((leftValue as int)) * (value as int));
+      } else if (value is double) {
+        return valueOf3(((leftValue as int)).toDouble() * ((value as double)));
       }
     } else if (leftValue is double) {
-      if (_value is int) {
-        return valueOf3(((leftValue as double)) * ((_value as int)).toDouble());
-      } else if (_value is double) {
-        return valueOf3(((leftValue as double)) * ((_value as double)));
+      if (value is int) {
+        return valueOf3(((leftValue as double)) * ((value as int)).toDouble());
+      } else if (value is double) {
+        return valueOf3(((leftValue as double)) * ((value as double)));
       }
     }
     return error(node);
@@ -1673,17 +1641,17 @@ class ValidResult extends EvaluationResultImpl {
   /**
    * Checks if this result has type "int", with known or unknown value.
    */
-  bool get isAnyInt => identical(this, RESULT_INT) || _value is int;
+  bool get isAnyInt => identical(this, RESULT_INT) || value is int;
 
   /**
    * Checks if this result has one of the types - "bool", "num" or "string"; or may be `null`.
    */
-  bool get isAnyNullBoolNumString => isNull || isAnyBool || isAnyNum || _value is String;
+  bool get isAnyNullBoolNumString => isNull || isAnyBool || isAnyNum || value is String;
 
   /**
    * Checks if this result has type "num", with known or unknown value.
    */
-  bool get isAnyNum => isSomeNum || _value is num;
+  bool get isAnyNum => isSomeNum || value is num;
 
   /**
    * Checks if this result has type "bool", exact value of which we don't know.

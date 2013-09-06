@@ -274,8 +274,9 @@ class Math {
   static num min(num a, num b) => math.min(a, b);
 }
 
-class RuntimeException implements Exception {
-  String toString() => "RuntimeException";
+class RuntimeException extends JavaException {
+  RuntimeException([String message = "", Exception cause = null]) :
+    super(message, cause);
 }
 
 class JavaException implements Exception {
@@ -283,7 +284,7 @@ class JavaException implements Exception {
   final Exception cause;
   JavaException([this.message = "", this.cause = null]);
   JavaException.withCause(this.cause) : message = null;
-  String toString() => "JavaException: $message $cause";
+  String toString() => "${runtimeType}: $message $cause";
 }
 
 class JavaIOException extends JavaException {

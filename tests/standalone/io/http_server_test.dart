@@ -2,20 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void testListenOn() {
   ServerSocket socket;
   HttpServer server;
 
   void test(void onDone()) {
-
     Expect.equals(socket.port, server.port);
 
-    ReceivePort clientPort = new ReceivePort();
     HttpClient client = new HttpClient();
     client.get("127.0.0.1", socket.port, "/")
       .then((request) {
@@ -26,7 +25,6 @@ void testListenOn() {
           (_) {},
           onDone: () {
             client.close();
-            clientPort.close();
             onDone();
           });
       })
@@ -39,17 +37,14 @@ void testListenOn() {
   }
 
   // Test two connection after each other.
+  asyncStart();
   ServerSocket.bind("127.0.0.1", 0).then((s) {
     socket = s;
     server = new HttpServer.listenOn(socket);
-    ReceivePort serverPort = new ReceivePort();
     server.listen((HttpRequest request) {
       request.listen(
         (_) {},
-        onDone: () {
-          request.response.close();
-          serverPort.close();
-        });
+        onDone: () => request.response.close());
     });
 
     test(() {
@@ -57,6 +52,7 @@ void testListenOn() {
         server.close();
         Expect.throws(() => server.port);
         socket.close();
+        asyncEnd();
       });
     });
   });

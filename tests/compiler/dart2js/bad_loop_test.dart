@@ -4,6 +4,7 @@
 
 import 'package:expect/expect.dart';
 import 'memory_source_file_helper.dart';
+import "package:async_helper/async_helper.dart";
 
 import '../../../sdk/lib/_internal/compiler/compiler.dart'
        show Diagnostic;
@@ -13,8 +14,7 @@ main() {
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
-  MemorySourceFileProvider.MEMORY_SOURCE_FILES = MEMORY_SOURCE_FILES;
-  var provider = new MemorySourceFileProvider();
+  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
   int warningCount = 0;
   int errorCount = 0;
   void diagnosticHandler(Uri uri, int begin, int end,
@@ -37,10 +37,12 @@ main() {
                                    libraryRoot,
                                    packageRoot,
                                    ['--analyze-only']);
-  compiler.run(Uri.parse('memory:main.dart'));
-  Expect.isTrue(compiler.compilationFailed);
-  Expect.equals(5, errorCount);
-  Expect.equals(1, warningCount);
+  asyncStart();
+  compiler.run(Uri.parse('memory:main.dart')).then((_) {
+    Expect.isTrue(compiler.compilationFailed);
+    Expect.equals(5, errorCount);
+    Expect.equals(1, warningCount);
+  }).whenComplete(() => asyncEnd());
 }
 
 const Map MEMORY_SOURCE_FILES = const {

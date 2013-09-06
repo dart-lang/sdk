@@ -36,6 +36,8 @@ main() {
                          "after inner",
                          "main exit",
                          "i catch error",
+                         // We guarantee the order of one stream but not any
+                         // global order.
                          "o inner throw",
                          "i future error",
                          "i future error2",

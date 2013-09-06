@@ -43,7 +43,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
     VERIFY_ON_TRANSITION;                                                      \
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);     \
     ASSERT(arguments->NativeArgCount() == argument_count);                     \
-    TRACE_NATIVES(""#name);                                                    \
+    TRACE_NATIVE_CALL("%s", ""#name);                                          \
     {                                                                          \
       StackZone zone(arguments->isolate());                                    \
       SET_NATIVE_RETVAL(arguments,                                             \

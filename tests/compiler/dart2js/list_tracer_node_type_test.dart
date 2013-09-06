@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 
 const String TEST1 = r"""
@@ -57,28 +58,34 @@ main() {
 
 
 main() {
-  String generated = compileAll(TEST1);
-  // Check that we only do a null check on the receiver for
-  // [: a[0] + 42 :]. We can do a null check because we inferred that
-  // the list is of type int or null.
-  Expect.isFalse(generated.contains('if (typeof t1'));
-  Expect.isTrue(generated.contains('if (t1 == null)'));
+  asyncTest(() => compileAll(TEST1).then((generated) {
+    // Check that we only do a null check on the receiver for
+    // [: a[0] + 42 :]. We can do a null check because we inferred that
+    // the list is of type int or null.
+    Expect.isFalse(generated.contains('if (typeof t1'));
+    Expect.isTrue(generated.contains('if (t1 == null)'));
+  }));
 
-  generated = compileAll(TEST2);
-  Expect.isFalse(generated.contains('if (typeof t1'));
-  Expect.isTrue(generated.contains('if (t1 == null)'));
+  asyncTest(() => compileAll(TEST2).then((generated) {
+    Expect.isFalse(generated.contains('if (typeof t1'));
+    Expect.isTrue(generated.contains('if (t1 == null)'));
+  }));
 
-  generated = compileAll(TEST3);
-  Expect.isFalse(generated.contains('if (typeof t1'));
-  Expect.isTrue(generated.contains('if (t1 == null)'));
+  asyncTest(() => compileAll(TEST3).then((generated) {
+    Expect.isFalse(generated.contains('if (typeof t1'));
+    Expect.isTrue(generated.contains('if (t1 == null)'));
+  }));
 
-  generated = compileAll(TEST4);
-  Expect.isFalse(generated.contains('if (typeof t1'));
-  Expect.isTrue(generated.contains('if (t1 == null)'));
+  asyncTest(() => compileAll(TEST4).then((generated) {
+    Expect.isFalse(generated.contains('if (typeof t1'));
+    Expect.isTrue(generated.contains('if (t1 == null)'));
+  }));
 
-  generated = compileAll(TEST5);
-  Expect.isFalse(generated.contains('iae'));
+  asyncTest(() => compileAll(TEST5).then((generated) {
+    Expect.isFalse(generated.contains('iae'));
+  }));
 
-  generated = compileAll(TEST6);
-  Expect.isFalse(generated.contains('iae'));
+  asyncTest(() => compileAll(TEST6).then((generated) {
+    Expect.isFalse(generated.contains('iae'));
+  }));
 }

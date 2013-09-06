@@ -20,6 +20,10 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class Console {
   void assertCondition(bool condition, Object arg) => _isConsoleDefined ?
       JS('void', 'console.assertCondition(#, #)', condition, arg) : null;
 
+  @DomName('Console.clear')
+  void clear(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.clear(#)', arg) : null;
+
   @DomName('Console.count')
   void count(Object arg) => _isConsoleDefined ?
       JS('void', 'console.count(#)', arg) : null;
@@ -71,6 +75,10 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class Console {
   @DomName('Console.profileEnd')
   void profileEnd(String title) => _isConsoleDefined ?
       JS('void', 'console.profileEnd(#)', title) : null;
+
+  @DomName('Console.table')
+  void table(Object arg) => _isConsoleDefined ?
+      JS('void', 'console.table(#)', arg) : null;
 
   @DomName('Console.time')
   void time(String title) => _isConsoleDefined ?

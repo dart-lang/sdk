@@ -266,6 +266,6 @@ void JS_EFFECT(Function code) { code(null); }
  * $.JS_CONST_1 = typeof window != "undefined";
  */
 class JS_CONST {
-  String code;
+  final String code;
   const JS_CONST(this.code);
 }

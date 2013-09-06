@@ -5,13 +5,16 @@
 // Regression test for http://dartbug.com/10231.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'codegen_helper.dart';
 
 void main() {
-  var code = generate(SOURCE)['test'];
-  Expect.isNotNull(code);
-  Expect.equals(0, new RegExp('add').allMatches(code).length);
-  Expect.equals(3, new RegExp('\\+').allMatches(code).length);
+  asyncTest(() => generate(SOURCE).then((result) {
+    var code = result['test'];
+    Expect.isNotNull(code);
+    Expect.equals(0, new RegExp('add').allMatches(code).length);
+    Expect.equals(3, new RegExp('\\+').allMatches(code).length);
+  }));
 }
 
 const String SOURCE = """

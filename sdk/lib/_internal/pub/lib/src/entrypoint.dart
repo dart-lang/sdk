@@ -13,6 +13,7 @@ import 'io.dart';
 import 'lock_file.dart';
 import 'log.dart' as log;
 import 'package.dart';
+import 'package_graph.dart';
 import 'system_cache.dart';
 import 'utils.dart';
 import 'solver/version_solver.dart';
@@ -184,6 +185,23 @@ class Entrypoint {
     if (!root.devDependencies.every(checkDependency)) return false;
 
     return true;
+  }
+
+  /// Loads the package graph for the application and all of its transitive
+  /// dependencies.
+  Future<PackageGraph> loadPackageGraph() {
+    return Future.wait(loadLockFile().packages.values.map((id) {
+      var source = cache.sources[id.source];
+      return source.getDirectory(id)
+          .then((dir) => new Package.load(id.name, dir, cache.sources));
+    })).then((packages) {
+      var packageMap = <String, Package>{};
+      for (var package in packages) {
+        packageMap[package.name] = package;
+      }
+      packageMap[root.name] = root;
+      return new PackageGraph(this, packageMap);
+    });
   }
 
   /// Saves a list of concrete package versions to the `pubspec.lock` file.

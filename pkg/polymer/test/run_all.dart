@@ -13,14 +13,15 @@ import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 import 'package:polymer/testing/content_shell_test.dart';
 
-import 'css_test.dart' as css_test;
 import 'compiler_test.dart' as compiler_test;
-import 'utils_test.dart' as utils_test;
+import 'css_test.dart' as css_test;
 import 'transform/all_phases_test.dart' as all_phases_test;
 import 'transform/code_extractor_test.dart' as code_extractor_test;
 import 'transform/import_inliner_test.dart' as import_inliner_test;
 import 'transform/polyfill_injector_test.dart' as polyfill_injector_test;
 import 'transform/script_compactor_test.dart' as script_compactor_test;
+import 'utils_test.dart' as utils_test;
+import 'linter_test.dart' as linter_test;
 
 main() {
   var args = new Options().arguments;
@@ -34,6 +35,7 @@ main() {
     }
   }
 
+  addGroup('linter_test.dart', linter_test.main);
   addGroup('compiler_test.dart', compiler_test.main);
   addGroup('css_test.dart', css_test.main);
   addGroup('utils_test.dart', utils_test.main);
@@ -44,7 +46,7 @@ main() {
       polyfill_injector_test.main);
   addGroup('transform/all_phases_test.dart', all_phases_test.main);
 
-  endToEndTests('data/unit/', 'data/out');
+  endToEndTests('data/unit/web', 'data/out');
 
   // Note: if you're adding more render test suites, make sure to update run.sh
   // as well for convenient baseline diff/updating.

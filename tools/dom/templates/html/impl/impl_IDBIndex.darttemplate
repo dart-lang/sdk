@@ -55,7 +55,12 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     } else {
       key_OR_range = range;
     }
-    var request = _openCursor(key_OR_range, direction);
+    var request;
+    if (direction == null) {
+      request = _openCursor(key_OR_range);
+    } else {
+      request = _openCursor(key_OR_range, direction);
+    }
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
 
@@ -77,7 +82,12 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     } else {
       key_OR_range = range;
     }
-    var request = _openKeyCursor(key_OR_range, direction);
+    var request;
+    if (direction == null) {
+      request = _openKeyCursor(key_OR_range);
+    } else {
+      request = _openKeyCursor(key_OR_range, direction);
+    }
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
 

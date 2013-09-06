@@ -38,6 +38,8 @@ namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
+DEFINE_FLAG(bool, trace_api, false,
+            "Trace invocation of API calls (debug mode only)");
 
 ThreadLocalKey Api::api_native_key_ = Thread::kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
@@ -279,26 +281,31 @@ void Api::SetWeakHandleReturnValue(NativeArguments* args,
 // --- Handles ---
 
 DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return RawObject::IsErrorClassId(Api::ClassId(handle));
 }
 
 
 DART_EXPORT bool Dart_IsApiError(Dart_Handle object) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return Api::ClassId(object) == kApiErrorCid;
 }
 
 
 DART_EXPORT bool Dart_IsUnhandledExceptionError(Dart_Handle object) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return Api::ClassId(object) == kUnhandledExceptionCid;
 }
 
 
 DART_EXPORT bool Dart_IsCompilationError(Dart_Handle object) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return Api::ClassId(object) == kLanguageErrorCid;
 }
 
 
 DART_EXPORT bool Dart_IsFatalError(Dart_Handle object) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return Api::ClassId(object) == kUnwindErrorCid;
 }
 
@@ -793,6 +800,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
                                             const uint8_t* snapshot,
                                             void* callback_data,
                                             char** error) {
+  TRACE_API_CALL(CURRENT_FUNC);
   char* isolate_name = BuildIsolateName(script_uri, main);
   Isolate* isolate = Dart::CreateIsolate(isolate_name);
   free(isolate_name);
@@ -921,6 +929,7 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
 
 
 DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
+  TRACE_API_CALL(CURRENT_FUNC);
   if (isolate == NULL) {
     FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
   }
@@ -1230,42 +1239,50 @@ DART_EXPORT bool Dart_IsInstance(Dart_Handle object) {
 
 
 DART_EXPORT bool Dart_IsNumber(Dart_Handle object) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return RawObject::IsNumberClassId(Api::ClassId(object));
 }
 
 
 DART_EXPORT bool Dart_IsInteger(Dart_Handle object) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return RawObject::IsIntegerClassId(Api::ClassId(object));
 }
 
 
 DART_EXPORT bool Dart_IsDouble(Dart_Handle object) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return Api::ClassId(object) == kDoubleCid;
 }
 
 
 DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return Api::ClassId(object) == kBoolCid;
 }
 
 
 DART_EXPORT bool Dart_IsString(Dart_Handle object) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return RawObject::IsStringClassId(Api::ClassId(object));
 }
 
 
 DART_EXPORT bool Dart_IsStringLatin1(Dart_Handle object) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return RawObject::IsOneByteStringClassId(Api::ClassId(object));
 }
 
 
 DART_EXPORT bool Dart_IsExternalString(Dart_Handle object) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return RawObject::IsExternalStringClassId(Api::ClassId(object));
 }
 
 
 DART_EXPORT bool Dart_IsList(Dart_Handle object) {
   if (RawObject::IsBuiltinListClassId(Api::ClassId(object))) {
+    TRACE_API_CALL(CURRENT_FUNC);
     return true;
   }
 
@@ -1277,11 +1294,13 @@ DART_EXPORT bool Dart_IsList(Dart_Handle object) {
 
 
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return Api::ClassId(object) == kLibraryCid;
 }
 
 
 DART_EXPORT bool Dart_IsType(Dart_Handle handle) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return Api::ClassId(handle) == kTypeCid;
 }
 
@@ -1295,16 +1314,19 @@ DART_EXPORT bool Dart_IsClass(Dart_Handle handle) {
 
 
 DART_EXPORT bool Dart_IsFunction(Dart_Handle handle) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return Api::ClassId(handle) == kFunctionCid;
 }
 
 
 DART_EXPORT bool Dart_IsVariable(Dart_Handle handle) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return Api::ClassId(handle) == kFieldCid;
 }
 
 
 DART_EXPORT bool Dart_IsTypeVariable(Dart_Handle handle) {
+  TRACE_API_CALL(CURRENT_FUNC);
   return Api::ClassId(handle) == kTypeParameterCid;
 }
 
@@ -2437,6 +2459,7 @@ static Dart_TypedData_Type GetType(intptr_t class_id) {
 
 
 DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {
+  TRACE_API_CALL(CURRENT_FUNC);
   intptr_t class_id = Api::ClassId(object);
   if (RawObject::IsTypedDataClassId(class_id) ||
       RawObject::IsTypedDataViewClassId(class_id)) {
@@ -2448,6 +2471,7 @@ DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {
 
 DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfExternalTypedData(
     Dart_Handle object) {
+  TRACE_API_CALL(CURRENT_FUNC);
   intptr_t class_id = Api::ClassId(object);
   if (RawObject::IsExternalTypedDataClassId(class_id) ||
       RawObject::IsTypedDataViewClassId(class_id)) {
@@ -3589,6 +3613,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
 
 DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
                                                int index) {
+  TRACE_API_CALL(CURRENT_FUNC);
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
@@ -3600,6 +3625,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
 
 
 DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
+  TRACE_API_CALL(CURRENT_FUNC);
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   return arguments->NativeArgCount();
 }
@@ -3692,6 +3718,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeStringArgument(Dart_NativeArguments args,
 DART_EXPORT Dart_Handle Dart_GetNativeIntegerArgument(Dart_NativeArguments args,
                                                       int index,
                                                       int64_t* value) {
+  TRACE_API_CALL(CURRENT_FUNC);
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
@@ -3730,6 +3757,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeIntegerArgument(Dart_NativeArguments args,
 DART_EXPORT Dart_Handle Dart_GetNativeBooleanArgument(Dart_NativeArguments args,
                                                       int index,
                                                       bool* value) {
+  TRACE_API_CALL(CURRENT_FUNC);
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
@@ -3758,6 +3786,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeBooleanArgument(Dart_NativeArguments args,
 DART_EXPORT Dart_Handle Dart_GetNativeDoubleArgument(Dart_NativeArguments args,
                                                      int index,
                                                      double* value) {
+  TRACE_API_CALL(CURRENT_FUNC);
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
@@ -3820,6 +3849,7 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
 
 DART_EXPORT void Dart_SetBooleanReturnValue(Dart_NativeArguments args,
                                             bool retval) {
+  TRACE_API_CALL(CURRENT_FUNC);
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(Bool::Get(retval));
 }

@@ -231,12 +231,8 @@ class UnionTypeMask implements TypeMask {
         (TypeMask mask) => mask.containedClasses(compiler));
   }
 
-  /**
-   * Returns whether a [selector] call will hit a method at runtime,
-   * and not go through [noSuchMethod].
-   */
-  bool willHit(Selector selector, Compiler compiler) {
-    return disjointMasks.every((e) => e.willHit(selector, compiler));
+  bool understands(Selector selector, Compiler compiler) {
+    return disjointMasks.any((e) => e.understands(selector, compiler));
   }
 
   bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {
@@ -267,15 +263,26 @@ class UnionTypeMask implements TypeMask {
 
   bool operator==(other) {
     if (identical(this, other)) return true;
+
+    bool containsAll() {
+      return other.disjointMasks.every((e) {
+        var map = disjointMasks.map((e) => e.nonNullable());
+        return map.contains(e.nonNullable());
+      });
+    }
+
     return other is UnionTypeMask
+        && other.isNullable == isNullable
         && other.disjointMasks.length == disjointMasks.length
-        && other.disjointMasks.every((e) => disjointMasks.contains(e));
+        && containsAll();
   }
 
   int get hashCode {
-    int hashCode = 43;
+    int hashCode = isNullable ? 86 : 43;
+    // The order of the masks in [disjointMasks] must not affect the
+    // hashCode.
     for (var mask in disjointMasks) {
-      hashCode = (hashCode ^ mask.hashCode) & 0x3fffffff;
+      hashCode = (hashCode ^ mask.nonNullable().hashCode) & 0x3fffffff;
     }
     return hashCode;
   }

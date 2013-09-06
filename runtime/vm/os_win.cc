@@ -136,7 +136,7 @@ word OS::ActivationFrameAlignment() {
   return 16;
 #else
   // No requirements on Win32.
-  return 0;
+  return 1;
 #endif
 }
 

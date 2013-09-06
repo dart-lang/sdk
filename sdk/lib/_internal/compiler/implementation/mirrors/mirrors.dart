@@ -60,7 +60,7 @@ abstract class DeclarationMirror implements Mirror {
    * the simple name of the setter is 'foo='. For operators the simple name is
    * the operator itself, for example '+' for [:operator +:].
    *
-   * The simple name for the unary minus operator is [UNARY_MINUS].
+   * The simple name for the unary minus operator is [Mirror.UNARY_MINUS].
    */
   String get simpleName;
 

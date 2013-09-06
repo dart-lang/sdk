@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
-import "package:expect/expect.dart";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void testReadInvalidArgs(arg) {
   String filename = getFilename("tests/vm/data/fixed_length_file");
@@ -78,7 +79,7 @@ void testFileSystemEntity() {
   Expect.throws(() => ((x) => FileSystemEntity.isFileSync(x))(52));
   Expect.throws(() => ((x) => FileSystemEntity.isDirectorySync(x))(52));
 
-  ReceivePort keepAlive = new ReceivePort();
+  asyncStart();
   futureThrows(((x) => FileSystemEntity.type(x))([1,2,3]))
   .then((_) => futureThrows(((x, y) =>
        FileSystemEntity.type(x, followLinks: y))(".", "why not?")))
@@ -89,7 +90,7 @@ void testFileSystemEntity() {
   .then((_) => futureThrows(((x) => FileSystemEntity.isLink(x))(52)))
   .then((_) => futureThrows(((x) => FileSystemEntity.isFile(x))(52)))
   .then((_) => futureThrows(((x) => FileSystemEntity.isDirectory(x))(52)))
-  .then((_) => keepAlive.close());
+  .then((_) => asyncEnd());
 }
 
 String getFilename(String path) {

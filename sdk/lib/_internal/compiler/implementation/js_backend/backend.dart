@@ -341,6 +341,9 @@ class JavaScriptBackend extends Backend {
   /// List of elements that the backend may use.
   final Set<Element> helpersUsed = new Set<Element>();
 
+  /// Set of typedefs that are used as type literals.
+  final Set<TypedefElement> typedefTypeLiterals = new Set<TypedefElement>();
+
   JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
@@ -366,6 +369,7 @@ class JavaScriptBackend extends Backend {
     if (element.isParameter()
         || element.isFieldParameter()
         || element.isField()) {
+      if (hasInsufficientMirrorsUsed && compiler.enabledInvokeOn) return false;
       if (!canBeUsedForGlobalOptimizations(element.enclosingElement)) {
         return false;
       }
@@ -809,6 +813,9 @@ class JavaScriptBackend extends Backend {
     // TODO(ahe): Might want to register [element] as an instantiated class
     // when reflection is used.  However, as long as we disable tree-shaking
     // eagerly it doesn't matter.
+    if (element.isTypedef()) {
+      typedefTypeLiterals.add(element);
+    }
   }
 
   void registerStackTraceInCatch(TreeElements elements) {
@@ -1462,6 +1469,13 @@ class JavaScriptBackend extends Backend {
   void registerNewSymbol(TreeElements elements) {
   }
 
+  /// Called when resolving the `Symbol` constructor.
+  void registerSymbolConstructor(TreeElements elements) {
+    // Make sure that collection_dev.Symbol.validated is registered.
+    assert(compiler.symbolValidatedConstructor != null);
+    enqueueInResolution(compiler.symbolValidatedConstructor, elements);
+  }
+
   /// Should [element] (a getter) be retained for reflection?
   bool shouldRetainGetter(Element element) => isNeededForReflection(element);
 
@@ -1489,7 +1503,7 @@ class JavaScriptBackend extends Backend {
     return false;
   }
 
-  void onLibraryLoaded(LibraryElement library, Uri uri) {
+  Future onLibraryLoaded(LibraryElement library, Uri uri) {
     if (uri == Uri.parse('dart:_js_mirrors')) {
       disableTreeShakingMarker =
           library.find(const SourceString('disableTreeShaking'));
@@ -1499,6 +1513,7 @@ class JavaScriptBackend extends Backend {
       preserveNamesMarker =
           library.find(const SourceString('preserveNames'));
     }
+    return new Future.value();
   }
 
   void registerMetadataInstantiatedType(DartType type, TreeElements elements) {
@@ -1607,9 +1622,7 @@ class JavaScriptBackend extends Backend {
 
   jsAst.Call generateIsJsIndexableCall(jsAst.Expression use1,
                                        jsAst.Expression use2) {
-    Element dispatchProperty =
-        compiler.findInterceptor(const SourceString('dispatchPropertyName'));
-    String dispatchPropertyName = namer.isolateAccess(dispatchProperty);
+    String dispatchPropertyName = 'init.dispatchPropertyName';
 
     // We pass the dispatch property record to the isJsIndexable
     // helper rather than reading it inside the helper to increase the

@@ -10,11 +10,13 @@
 // closed which will make this test hang.
 
 import 'dart:io';
-import 'dart:isolate';
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 import 'package:path/path.dart';
 
 main() {
-  var port = new ReceivePort();
+  asyncStart();
   var executable = Platform.executable;
   var script = join(dirname(Platform.script), 'regress_7191_script.dart');
   Process.start(executable, [script]).then((process) {
@@ -23,7 +25,7 @@ main() {
                            onDone: () { process.stdin.add([0]); });
     process.stderr.listen((_) { });
     process.exitCode.then((exitCode) {
-      port.close();
+      asyncEnd();
       if (exitCode != 0) throw "Bad exit code";
     });
   });

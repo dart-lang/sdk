@@ -65,23 +65,6 @@ abstract class Link implements FileSystemEntity {
   Future<Link> update(String target);
 
   /**
-   * Deletes the link. Returns a [:Future<Link>:] that completes with
-   * the link when it has been deleted. This does not delete, or otherwise
-   * affect, the target of the link. It also works on broken links, but if
-   * the link does not exist or is not actually a link, it completes the
-   * future with a LinkException.
-   */
-  Future<Link> delete();
-
-  /**
-   * Synchronously deletes the link. This does not delete, or otherwise
-   * affect, the target of the link.  It also works on broken links, but if
-   * the link does not exist or is not actually a link, it throws a
-   * LinkException.
-   */
-  void deleteSync();
-
-  /**
    * Renames this link. Returns a `Future<Link>` that completes
    * with a [Link] instance for the renamed link.
    *
@@ -213,7 +196,10 @@ class _Link extends FileSystemEntity implements Link {
     return delete().then((_) => create(target));
   }
 
-  Future<Link> delete() {
+  Future<Link> _delete({bool recursive: false}) {
+    if (recursive) {
+      return new Directory(path).delete(recursive: true).then((_) => this);
+    }
     _ensureFileService();
     List request = new List(2);
     request[0] = _DELETE_LINK_REQUEST;
@@ -226,8 +212,11 @@ class _Link extends FileSystemEntity implements Link {
     });
   }
 
-  void deleteSync() {
-    var result = _File._deleteLink(path);
+  void _deleteSync({bool recursive: false}) {
+    if (recursive) {
+      return new Directory(path).deleteSync(recursive: true);
+    }
+    var result = _File._deleteLinkNative(path);
     throwIfError(result, "Cannot delete link", path);
   }
 

@@ -261,7 +261,7 @@ class DartFrameIterator : public ValueObject {
 // other functions).
 class InlinedFunctionsIterator : public ValueObject {
  public:
-  explicit InlinedFunctionsIterator(StackFrame* frame);
+  InlinedFunctionsIterator(const Code& code, uword pc);
   bool Done() const { return index_ == -1; }
   void Advance();
 

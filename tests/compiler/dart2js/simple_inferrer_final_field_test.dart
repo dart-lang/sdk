@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 
@@ -28,20 +29,21 @@ main() {
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
-  compiler.runCompiler(uri);
-  var typesInferrer = compiler.typesTask.typesInferrer;
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    var typesInferrer = compiler.typesTask.typesInferrer;
 
-  checkFieldTypeInClass(String className, String fieldName, type) {
-    var cls = findElement(compiler, className);
-    var element = cls.lookupLocalMember(buildSourceString(fieldName));
-    Expect.equals(type,
-        typesInferrer.getTypeOfElement(element).simplify(compiler));
-  }
+    checkFieldTypeInClass(String className, String fieldName, type) {
+      var cls = findElement(compiler, className);
+      var element = cls.lookupLocalMember(buildSourceString(fieldName));
+      Expect.equals(type,
+          typesInferrer.getTypeOfElement(element).simplify(compiler));
+    }
 
-  checkFieldTypeInClass('A', 'intField', compiler.typesTask.intType);
-  checkFieldTypeInClass('A', 'giveUpField1',
-      findTypeMask(compiler, 'Interceptor', 'nonNullSubclass'));
-  checkFieldTypeInClass('A', 'giveUpField2',
-      compiler.typesTask.dynamicType.nonNullable());
-  checkFieldTypeInClass('A', 'fieldParameter', compiler.typesTask.intType);
+    checkFieldTypeInClass('A', 'intField', compiler.typesTask.intType);
+    checkFieldTypeInClass('A', 'giveUpField1',
+        findTypeMask(compiler, 'Interceptor', 'nonNullSubclass'));
+    checkFieldTypeInClass('A', 'giveUpField2',
+        compiler.typesTask.dynamicType.nonNullable());
+    checkFieldTypeInClass('A', 'fieldParameter', compiler.typesTask.intType);
+  }));
 }

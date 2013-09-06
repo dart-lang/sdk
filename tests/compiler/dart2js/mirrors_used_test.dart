@@ -7,6 +7,7 @@
 library dart2js.test.mirrors_used_test;
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 
 import 'memory_compiler.dart' show
     compilerFor;
@@ -35,87 +36,88 @@ void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
 void main() {
   Compiler compiler = compilerFor(
       MEMORY_SOURCE_FILES, diagnosticHandler: expectOnlyVerboseInfo);
-  compiler.runCompiler(Uri.parse('memory:main.dart'));
+  asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
+    print('');
+    List generatedCode =
+        Elements.sortedByPosition(compiler.enqueuer.codegen.generatedCode.keys);
+    for (var element in generatedCode) {
+      print(element);
+    }
+    print('');
 
-  print('');
-  List generatedCode =
-      Elements.sortedByPosition(compiler.enqueuer.codegen.generatedCode.keys);
-  for (var element in generatedCode) {
-    print(element);
-  }
-  print('');
+    // This assertion can fail for two reasons:
+    // 1. Too many elements retained for reflection.
+    // 2. Some code was refactored, and there are more methods.
+    // Either situation could be problematic, but in situation 2, it is often
+    // acceptable to increase [expectedMethodCount] a little.
+    int expectedMethodCount = 322;
+    Expect.isTrue(
+        generatedCode.length <= expectedMethodCount,
+        'Too many compiled methods: '
+        '${generatedCode.length} > $expectedMethodCount');
 
-  // This assertion can fail for two reasons:
-  // 1. Too many elements retained for reflection.
-  // 2. Some code was refactored, and there are more methods.
-  // Either situation could be problematic, but in situation 2, it is often
-  // acceptable to increase [expectedMethodCount] a little.
-  int expectedMethodCount = 322;
-  Expect.isTrue(
-      generatedCode.length <= expectedMethodCount,
-      'Too many compiled methods: '
-      '${generatedCode.length} > $expectedMethodCount');
+    // The following names should be retained:
+    List expectedNames = [
+        'Foo', // The name of class Foo.
+        r'Foo$', // The name of class Foo's constructor.
+        'Foo_staticMethod', // The name of Foo.staticMethod.
+        r'get$field', // The (getter) name of Foo.field.
+        r'instanceMethod$0']; // The name of Foo.instanceMethod.
+    Set recordedNames = new Set()
+        ..addAll(compiler.backend.emitter.recordedMangledNames)
+        ..addAll(compiler.backend.emitter.mangledFieldNames.keys)
+        ..addAll(compiler.backend.emitter.mangledGlobalFieldNames.keys);
+    Expect.setEquals(new Set.from(expectedNames), recordedNames);
 
-  // The following names should be retained:
-  List expectedNames = [
-      'Foo', // The name of class Foo.
-      r'Foo$', // The name of class Foo's constructor.
-      'Foo_staticMethod', // The name of Foo.staticMethod.
-      r'get$field', // The (getter) name of Foo.field.
-      r'instanceMethod$0']; // The name of Foo.instanceMethod.
-  Set recordedNames = new Set()
-      ..addAll(compiler.backend.emitter.recordedMangledNames)
-      ..addAll(compiler.backend.emitter.mangledFieldNames.keys)
-      ..addAll(compiler.backend.emitter.mangledGlobalFieldNames.keys);
-  Expect.setEquals(new Set.from(expectedNames), recordedNames);
-
-  for (var library in compiler.libraries.values) {
-    library.forEachLocalMember((member) {
-      if (library == compiler.mainApp
-          && member.name == const SourceString('Foo')) {
-        Expect.isTrue(
-            compiler.backend.isNeededForReflection(member), '$member');
-        member.forEachLocalMember((classMember) {
+    for (var library in compiler.libraries.values) {
+      library.forEachLocalMember((member) {
+        if (library == compiler.mainApp
+            && member.name == const SourceString('Foo')) {
           Expect.isTrue(
-              compiler.backend.isNeededForReflection(classMember),
-              '$classMember');
-        });
-      } else {
-        Expect.isFalse(
-            compiler.backend.isNeededForReflection(member), '$member');
+              compiler.backend.isNeededForReflection(member), '$member');
+          member.forEachLocalMember((classMember) {
+            Expect.isTrue(
+                compiler.backend.isNeededForReflection(classMember),
+                '$classMember');
+          });
+        } else {
+          Expect.isFalse(
+              compiler.backend.isNeededForReflection(member), '$member');
+        }
+      });
+    }
+
+    // There should at least be three metadata constants:
+    // 1. The type literal 'Foo'.
+    // 2. The list 'const [Foo]'.
+    // 3. The constructed constant for 'MirrorsUsed'.
+    Expect.isTrue(compiler.metadataHandler.compiledConstants.length >= 3);
+
+    // Make sure that most of the metadata constants aren't included in the
+    // generated code.
+    for (Constant constant in compiler.metadataHandler.compiledConstants) {
+      if (constant is TypeConstant && '${constant.representedType}' == 'Foo') {
+        // The type literal 'Foo' is retained as a constant because it is being
+        // passed to reflectClass.
+        continue;
       }
-    });
-  }
-
-  // There should at least be three metadata constants:
-  // 1. The type literal 'Foo'.
-  // 2. The list 'const [Foo]'.
-  // 3. The constructed constant for 'MirrorsUsed'.
-  Expect.isTrue(compiler.metadataHandler.compiledConstants.length >= 3);
-
-  // Make sure that most of the metadata constants aren't included in the
-  // generated code.
-  for (Constant constant in compiler.metadataHandler.compiledConstants) {
-    if (constant is TypeConstant && '${constant.representedType}' == 'Foo') {
-      // The type literal 'Foo' is retained as a constant because it is being
-      // passed to reflectClass.
-      continue;
+      Expect.isFalse(
+          compiler.constantHandler.compiledConstants.contains(constant),
+          '$constant');
     }
-    Expect.isFalse(
-        compiler.constantHandler.compiledConstants.contains(constant),
-        '$constant');
-  }
 
-  // The type literal 'Foo' is both used as metadata, and as a plain value in
-  // the program. Make sure that it isn't duplicated.
-  int fooConstantCount = 0;
-  for (Constant constant in compiler.metadataHandler.compiledConstants) {
-    if (constant is TypeConstant && '${constant.representedType}' == 'Foo') {
-      fooConstantCount++;
+    // The type literal 'Foo' is both used as metadata, and as a plain value in
+    // the program. Make sure that it isn't duplicated.
+    int fooConstantCount = 0;
+    for (Constant constant in compiler.metadataHandler.compiledConstants) {
+      if (constant is TypeConstant && '${constant.representedType}' == 'Foo') {
+        fooConstantCount++;
+      }
     }
-  }
-  Expect.equals(
-      1, fooConstantCount, "The type literal 'Foo' is duplicated or missing.");
+    Expect.equals(
+        1, fooConstantCount,
+        "The type literal 'Foo' is duplicated or missing.");
+  }));
 }
 
 const MEMORY_SOURCE_FILES = const <String, String> {

@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void testZLibDeflate() {
   test(int level, List<int> expected) {
-    var port = new ReceivePort();
+    asyncStart();
     var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     var controller = new StreamController(sync: true);
     controller.stream.transform(new ZLibEncoder(gzip: false, level: level))
@@ -19,7 +20,7 @@ void testZLibDeflate() {
         })
         .then((data) {
           Expect.listEquals(expected, data);
-          port.close();
+          asyncEnd();
         });
     controller.add(data);
     controller.close();
@@ -30,7 +31,7 @@ void testZLibDeflate() {
 
 
 void testZLibDeflateEmpty() {
-  var port = new ReceivePort();
+  asyncStart();
   var controller = new StreamController(sync: true);
   controller.stream.transform(new ZLibEncoder(gzip: false, level: 6))
       .fold([], (buffer, data) {
@@ -39,14 +40,14 @@ void testZLibDeflateEmpty() {
       })
       .then((data) {
         Expect.listEquals([120, 156, 3, 0, 0, 0, 0, 1], data);
-        port.close();
+        asyncEnd();
       });
   controller.close();
 }
 
 
 void testZLibDeflateGZip() {
-  var port = new ReceivePort();
+  asyncStart();
   var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   var controller = new StreamController(sync: true);
   controller.stream.transform(new ZLibEncoder(gzip: true))
@@ -60,7 +61,7 @@ void testZLibDeflateGZip() {
                            70, 215, 108, 69, 10, 0, 0, 0],
                           // Skip header, as it can change.
                           data.sublist(10));
-        port.close();
+        asyncEnd();
       });
   controller.add(data);
   controller.close();
@@ -68,11 +69,10 @@ void testZLibDeflateGZip() {
 
 void testZLibDeflateInvalidLevel() {
   test2(gzip, level) {
-    var port = new ReceivePort();
     try {
       new ZLibEncoder(gzip: gzip, level: level).startChunkedConversion(null);
+      Expect.fail("No exception thrown");
     } catch (e) {
-      port.close();
     }
   }
   test(level) {
@@ -90,7 +90,7 @@ void testZLibDeflateInvalidLevel() {
 
 void testZLibInflate() {
   test2(bool gzip, int level) {
-    var port = new ReceivePort();
+    asyncStart();
     var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     var controller = new StreamController(sync: true);
     controller.stream
@@ -102,7 +102,7 @@ void testZLibInflate() {
         })
         .then((inflated) {
           Expect.listEquals(data, inflated);
-          port.close();
+          asyncEnd();
         });
     controller.add(data);
     controller.close();
@@ -133,10 +133,12 @@ void testZLibInflateSync() {
 }
 
 void main() {
+  asyncStart();
   testZLibDeflate();
   testZLibDeflateEmpty();
   testZLibDeflateGZip();
   testZLibDeflateInvalidLevel();
   testZLibInflate();
   testZLibInflateSync();
+  asyncEnd();
 }

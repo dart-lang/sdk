@@ -89,7 +89,7 @@ main() {
     new Timer(const Duration(milliseconds: 10), expectAsync0(() {
       element.style.textDecoration = 'underline';
       var style = element.getComputedStyle();
-      expect(style.textDecoration, equals('underline'));
+      expect(style.textDecoration, contains('underline'));
     }));
   });
 

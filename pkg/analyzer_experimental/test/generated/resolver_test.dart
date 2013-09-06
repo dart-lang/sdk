@@ -6005,12 +6005,12 @@ class ResolverTestCase extends EngineTestCase {
   /**
    * The source factory used to create [Source].
    */
-  SourceFactory _sourceFactory;
+  SourceFactory sourceFactory;
 
   /**
    * The analysis context used to parse the compilation units being resolved.
    */
-  AnalysisContextImpl _analysisContext;
+  AnalysisContextImpl analysisContext;
   void setUp() {
     reset();
   }
@@ -6034,7 +6034,7 @@ class ResolverTestCase extends EngineTestCase {
     Source source = cacheSource(filePath, contents);
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
-    _analysisContext.applyChanges(changeSet);
+    analysisContext.applyChanges(changeSet);
     return source;
   }
 
@@ -6049,7 +6049,7 @@ class ResolverTestCase extends EngineTestCase {
    */
   void assertErrors(List<ErrorCode> expectedErrorCodes) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    for (ChangeNotice notice in _analysisContext.performAnalysisTask()) {
+    for (ChangeNotice notice in analysisContext.performAnalysisTask()) {
       for (AnalysisError error in notice.errors) {
         errorListener.onError(error);
       }
@@ -6064,7 +6064,7 @@ class ResolverTestCase extends EngineTestCase {
    */
   void assertNoErrors() {
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    for (ChangeNotice notice in _analysisContext.performAnalysisTask()) {
+    for (ChangeNotice notice in analysisContext.performAnalysisTask()) {
       for (AnalysisError error in notice.errors) {
         errorListener.onError(error);
       }
@@ -6081,8 +6081,8 @@ class ResolverTestCase extends EngineTestCase {
    * @return the source object representing the cached file
    */
   Source cacheSource(String filePath, String contents) {
-    Source source = new FileBasedSource.con1(_sourceFactory.contentCache, FileUtilities2.createFile(filePath));
-    _sourceFactory.setContents(source, contents);
+    Source source = new FileBasedSource.con1(sourceFactory.contentCache, FileUtilities2.createFile(filePath));
+    sourceFactory.setContents(source, contents);
     return source;
   }
 
@@ -6121,8 +6121,6 @@ class ResolverTestCase extends EngineTestCase {
     library.parts = sourcedCompilationUnits;
     return library;
   }
-  AnalysisContext get analysisContext => _analysisContext;
-  SourceFactory get sourceFactory => _sourceFactory;
 
   /**
    * Return a type provider that can be used to test the results of resolution.
@@ -6130,8 +6128,8 @@ class ResolverTestCase extends EngineTestCase {
    * @return a type provider
    */
   TypeProvider get typeProvider {
-    Source coreSource = _analysisContext.sourceFactory.forUri(DartSdk.DART_CORE);
-    LibraryElement coreElement = _analysisContext.getLibraryElement(coreSource);
+    Source coreSource = analysisContext.sourceFactory.forUri(DartSdk.DART_CORE);
+    LibraryElement coreElement = analysisContext.getLibraryElement(coreSource);
     return new TypeProviderImpl(coreElement);
   }
 
@@ -6140,8 +6138,8 @@ class ResolverTestCase extends EngineTestCase {
    * reset test instance to reuse it.
    */
   void reset() {
-    _analysisContext = AnalysisContextFactory.contextWithCore();
-    _sourceFactory = _analysisContext.sourceFactory;
+    analysisContext = AnalysisContextFactory.contextWithCore();
+    sourceFactory = analysisContext.sourceFactory;
   }
 
   /**
@@ -6153,7 +6151,7 @@ class ResolverTestCase extends EngineTestCase {
    * @return the element representing the resolved library
    * @throws AnalysisException if the analysis could not be performed
    */
-  LibraryElement resolve(Source librarySource) => _analysisContext.computeLibraryElement(librarySource);
+  LibraryElement resolve(Source librarySource) => analysisContext.computeLibraryElement(librarySource);
 
   /**
    * Return the resolved compilation unit corresponding to the given source in the given library.
@@ -6163,7 +6161,7 @@ class ResolverTestCase extends EngineTestCase {
    * @return the resolved compilation unit
    * @throws Exception if the compilation unit could not be resolved
    */
-  CompilationUnit resolveCompilationUnit(Source source, LibraryElement library) => _analysisContext.resolveCompilationUnit(source, library);
+  CompilationUnit resolveCompilationUnit(Source source, LibraryElement library) => analysisContext.resolveCompilationUnit(source, library);
 
   /**
    * Verify that all of the identifiers in the compilation units associated with the given sources
@@ -6177,7 +6175,7 @@ class ResolverTestCase extends EngineTestCase {
   void verify(List<Source> sources) {
     ResolutionVerifier verifier = new ResolutionVerifier();
     for (Source source in sources) {
-      _analysisContext.parseCompilationUnit(source).accept(verifier);
+      analysisContext.parseCompilationUnit(source).accept(verifier);
     }
     verifier.assertResolved();
   }
@@ -6189,8 +6187,8 @@ class ResolverTestCase extends EngineTestCase {
    * @return the source that was created
    */
   FileBasedSource createSource2(String fileName) {
-    FileBasedSource source = new FileBasedSource.con1(_sourceFactory.contentCache, FileUtilities2.createFile(fileName));
-    _sourceFactory.setContents(source, "");
+    FileBasedSource source = new FileBasedSource.con1(sourceFactory.contentCache, FileUtilities2.createFile(fileName));
+    sourceFactory.setContents(source, "");
     return source;
   }
   static dartSuite() {
@@ -14902,6 +14900,73 @@ class AnalysisContextFactory {
   /**
    * Create an analysis context that has a fake core library already resolved.
    *
+   * Added in order to test AnalysisContextImpl2.
+   *
+   * @return the analysis context that was created
+   */
+  static AnalysisContextImpl2 context2WithCore() {
+    AnalysisContextImpl2 sdkContext = DirectoryBasedDartSdk.defaultSdk2.context as AnalysisContextImpl2;
+    SourceFactory sourceFactory = sdkContext.sourceFactory;
+    TestTypeProvider provider = new TestTypeProvider();
+    CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl("core.dart");
+    Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
+    sdkContext.setContents(coreSource, "");
+    coreUnit.source = coreSource;
+    coreUnit.types = <ClassElement> [
+        provider.boolType.element,
+        provider.doubleType.element,
+        provider.functionType.element,
+        provider.intType.element,
+        provider.listType.element,
+        provider.mapType.element,
+        provider.nullType.element,
+        provider.numType.element,
+        provider.objectType.element,
+        provider.stackTraceType.element,
+        provider.stringType.element,
+        provider.typeType.element];
+    LibraryElementImpl coreLibrary = new LibraryElementImpl(sdkContext, ASTFactory.libraryIdentifier2(["dart", "core"]));
+    coreLibrary.definingCompilationUnit = coreUnit;
+    CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl("html_dartium.dart");
+    Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
+    sdkContext.setContents(htmlSource, "");
+    htmlUnit.source = htmlSource;
+    ClassElementImpl elementElement = ElementFactory.classElement2("Element", []);
+    InterfaceType elementType = elementElement.type;
+    ClassElementImpl documentElement = ElementFactory.classElement("Document", elementType, []);
+    ClassElementImpl htmlDocumentElement = ElementFactory.classElement("HtmlDocument", documentElement.type, []);
+    htmlDocumentElement.methods = <MethodElement> [ElementFactory.methodElement("query", elementType, <Type2> [provider.stringType])];
+    htmlUnit.types = <ClassElement> [
+        ElementFactory.classElement("AnchorElement", elementType, []),
+        ElementFactory.classElement("BodyElement", elementType, []),
+        ElementFactory.classElement("ButtonElement", elementType, []),
+        ElementFactory.classElement("DivElement", elementType, []),
+        documentElement,
+        elementElement,
+        htmlDocumentElement,
+        ElementFactory.classElement("InputElement", elementType, []),
+        ElementFactory.classElement("SelectElement", elementType, [])];
+    htmlUnit.functions = <FunctionElement> [ElementFactory.functionElement3("query", elementElement, <ClassElement> [provider.stringType.element], ClassElementImpl.EMPTY_ARRAY)];
+    TopLevelVariableElementImpl document = ElementFactory.topLevelVariableElement3("document", true, htmlDocumentElement.type);
+    htmlUnit.topLevelVariables = <TopLevelVariableElement> [document];
+    htmlUnit.accessors = <PropertyAccessorElement> [document.getter];
+    LibraryElementImpl htmlLibrary = new LibraryElementImpl(sdkContext, ASTFactory.libraryIdentifier2(["dart", "dom", "html"]));
+    htmlLibrary.definingCompilationUnit = htmlUnit;
+    Map<Source, LibraryElement> elementMap = new Map<Source, LibraryElement>();
+    elementMap[coreSource] = coreLibrary;
+    elementMap[htmlSource] = htmlLibrary;
+    sdkContext.recordLibraryElements(elementMap);
+    AnalysisContextImpl2 context = new DelegatingAnalysisContextImpl2();
+    sourceFactory = new SourceFactory.con2([
+        new DartUriResolver(sdkContext.sourceFactory.dartSdk),
+        new FileUriResolver()]);
+    context.sourceFactory = sourceFactory;
+    return context;
+  }
+
+  /**
+   * Create an analysis context that has a fake core library already resolved.
+   *
    * @return the analysis context that was created
    */
   static AnalysisContextImpl contextWithCore() {
@@ -16491,7 +16556,7 @@ class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     LibraryElement definingLibrary2 = createTestLibrary();
     GatheringErrorListener errorListener2 = new GatheringErrorListener();
-    Scope rootScope = new Scope_19(definingLibrary2, errorListener2);
+    Scope rootScope = new Scope_23(definingLibrary2, errorListener2);
     EnclosedScope scope = new EnclosedScope(rootScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
     VariableElement element2 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -16502,7 +16567,7 @@ class EnclosedScopeTest extends ResolverTestCase {
   void test_define_normal() {
     LibraryElement definingLibrary3 = createTestLibrary();
     GatheringErrorListener errorListener3 = new GatheringErrorListener();
-    Scope rootScope = new Scope_20(definingLibrary3, errorListener3);
+    Scope rootScope = new Scope_24(definingLibrary3, errorListener3);
     EnclosedScope outerScope = new EnclosedScope(rootScope);
     EnclosedScope innerScope = new EnclosedScope(outerScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -16524,18 +16589,18 @@ class EnclosedScopeTest extends ResolverTestCase {
     });
   }
 }
-class Scope_19 extends Scope {
+class Scope_23 extends Scope {
   LibraryElement definingLibrary2;
   GatheringErrorListener errorListener2;
-  Scope_19(this.definingLibrary2, this.errorListener2) : super();
+  Scope_23(this.definingLibrary2, this.errorListener2) : super();
   LibraryElement get definingLibrary => definingLibrary2;
   AnalysisErrorListener get errorListener => errorListener2;
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) => null;
 }
-class Scope_20 extends Scope {
+class Scope_24 extends Scope {
   LibraryElement definingLibrary3;
   GatheringErrorListener errorListener3;
-  Scope_20(this.definingLibrary3, this.errorListener3) : super();
+  Scope_24(this.definingLibrary3, this.errorListener3) : super();
   LibraryElement get definingLibrary => definingLibrary3;
   AnalysisErrorListener get errorListener => errorListener3;
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) => null;

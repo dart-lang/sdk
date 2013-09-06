@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 const HOST_NAME = "localhost";
 
 
 Function test() {
-  var keepAlive = new ReceivePort();
+  asyncStart();
   HttpServer.bindSecure(HOST_NAME,
                         0,
                         backlog: 5,
@@ -39,7 +40,7 @@ Function test() {
           Expect.equals(received, "Hello");
           client.close();
           server.close();
-          keepAlive.close();
+          asyncEnd();
         });
   });
 }

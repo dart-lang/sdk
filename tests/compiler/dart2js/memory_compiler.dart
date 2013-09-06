@@ -83,8 +83,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
-  MemorySourceFileProvider.MEMORY_SOURCE_FILES = memorySourceFiles;
-  var provider = new MemorySourceFileProvider();
+  var provider = new MemorySourceFileProvider(memorySourceFiles);
   var handler =
       createDiagnosticHandler(diagnosticHandler, provider, showDiagnostics);
 
@@ -93,7 +92,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
     return new NullSink('$name.$extension');
   }
 
-  Compiler compiler = new Compiler(provider,
+  Compiler compiler = new Compiler(provider.readStringFromUri,
                                    outputProvider,
                                    handler,
                                    libraryRoot,
@@ -141,8 +140,7 @@ Future<MirrorSystem> mirrorSystemFor(Map<String,String> memorySourceFiles,
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
-  MemorySourceFileProvider.MEMORY_SOURCE_FILES = memorySourceFiles;
-  var provider = new MemorySourceFileProvider();
+  var provider = new MemorySourceFileProvider(memorySourceFiles);
   var handler =
       createDiagnosticHandler(diagnosticHandler, provider, showDiagnostics);
 

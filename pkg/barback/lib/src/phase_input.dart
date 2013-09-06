@@ -136,7 +136,7 @@ class PhaseInput {
     if (brandNewTransformers.isEmpty) return;
 
     brandNewTransformers.forEach(_transformers.add);
-    _adjustTransformers();
+    if (_adjustTransformersFuture == null) _adjustTransformers();
   }
 
   /// Asynchronously determines which transformers can consume [input] as a

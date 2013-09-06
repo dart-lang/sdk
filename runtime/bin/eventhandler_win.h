@@ -130,7 +130,12 @@ class OverlappedBuffer {
 // sockets.
 class Handle {
  public:
-  enum Type { kFile, kClientSocket, kListenSocket };
+  enum Type {
+    kFile,
+    kDirectoryWatch,
+    kClientSocket,
+    kListenSocket
+  };
 
   class ScopedLock {
    public:
@@ -246,13 +251,34 @@ class Handle {
 class FileHandle : public Handle {
  public:
   explicit FileHandle(HANDLE handle)
-      : Handle(reinterpret_cast<HANDLE>(handle)) { type_ = kFile; }
+      : Handle(handle) { type_ = kFile; }
   FileHandle(HANDLE handle, Dart_Port port)
-      : Handle(reinterpret_cast<HANDLE>(handle), port) { type_ = kFile; }
+      : Handle(handle, port) { type_ = kFile; }
 
   virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
   virtual bool IsClosed();
   virtual void DoClose();
+};
+
+
+class DirectoryWatchHandle : public Handle {
+ public:
+  DirectoryWatchHandle(HANDLE handle, int events, bool recursive)
+      : Handle(handle),
+        events_(events),
+        recursive_(recursive) {
+    type_ = kDirectoryWatch;
+  }
+
+  virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
+  virtual bool IsClosed();
+  virtual void DoClose();
+
+  virtual bool IssueRead();
+
+ private:
+  int events_;
+  bool recursive_;
 };
 
 

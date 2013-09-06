@@ -68,6 +68,7 @@ namespace bin {
   V(Socket_NewServicePort, 0)                                                  \
   V(Socket_GetType, 1)                                                         \
   V(Socket_SetOption, 3)                                                       \
+  V(Socket_SetSocketId, 2)                                                     \
   V(Stdin_ReadByte, 1)                                                         \
   V(Stdin_SetEchoMode, 2)                                                      \
   V(Stdin_SetLineMode, 2)                                                      \

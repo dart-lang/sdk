@@ -4,6 +4,7 @@
 
 import 'package:expect/expect.dart';
 
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 
@@ -95,11 +96,8 @@ main() {
 main() {
   Uri uri = new Uri(scheme: 'source');
 
-  var compiler = compilerFor(TEST1, uri);
-  compiler.runCompiler(uri);
-  var typesInferrer = compiler.typesTask.typesInferrer;
-
-  checkReturn(String name, type) {
+  checkReturn(MockCompiler compiler, String name, type) {
+    var typesInferrer = compiler.typesTask.typesInferrer;
     var element = findElement(compiler, name);
     Expect.equals(
         type,
@@ -107,27 +105,33 @@ main() {
         name);
   }
 
-  checkReturn('test1', compiler.typesTask.intType);
-  checkReturn('test2', compiler.typesTask.dynamicType.nonNullable());
-  checkReturn('test3', compiler.typesTask.intType);
-  checkReturn('test4', compiler.typesTask.mapType);
-  checkReturn('test5', compiler.typesTask.dynamicType.nonNullable());
-  checkReturn('test6', compiler.typesTask.dynamicType.nonNullable());
+  var compiler1 = compilerFor(TEST1, uri);
+  asyncTest(() => compiler1.runCompiler(uri).then((_) {
+    checkReturn(compiler1, 'test1', compiler1.typesTask.intType);
+    checkReturn(compiler1, 'test2',
+        compiler1.typesTask.dynamicType.nonNullable());
+    checkReturn(compiler1, 'test3', compiler1.typesTask.intType);
+    checkReturn(compiler1, 'test4', compiler1.typesTask.mapType);
+    checkReturn(compiler1, 'test5',
+        compiler1.typesTask.dynamicType.nonNullable());
+    checkReturn(compiler1, 'test6',
+        compiler1.typesTask.dynamicType.nonNullable());
+  }));
 
-  compiler = compilerFor(TEST2, uri);
-  compiler.runCompiler(uri);
-  typesInferrer = compiler.typesTask.typesInferrer;
+  var compiler2 = compilerFor(TEST2, uri);
+  asyncTest(() => compiler2.runCompiler(uri).then((_) {
+    checkReturn(compiler2, 'test1',
+        compiler2.typesTask.dynamicType.nonNullable());
+    checkReturn(compiler2, 'test2', compiler2.typesTask.mapType);
+    checkReturn(compiler2, 'test3', compiler2.typesTask.mapType);
+    checkReturn(compiler2, 'test4', compiler2.typesTask.mapType);
+    checkReturn(compiler2, 'test5', compiler2.typesTask.mapType);
 
-  checkReturn('test1', compiler.typesTask.dynamicType.nonNullable());
-  checkReturn('test2', compiler.typesTask.mapType);
-  checkReturn('test3', compiler.typesTask.mapType);
-  checkReturn('test4', compiler.typesTask.mapType);
-  checkReturn('test5', compiler.typesTask.mapType);
-
-  checkReturn('test6', compiler.typesTask.numType);
-  checkReturn('test7', compiler.typesTask.intType);
-  checkReturn('test8', compiler.typesTask.intType);
-  checkReturn('test9', compiler.typesTask.intType);
-  checkReturn('test10', compiler.typesTask.numType);
-  checkReturn('test11', compiler.typesTask.doubleType);
+    checkReturn(compiler2, 'test6', compiler2.typesTask.numType);
+    checkReturn(compiler2, 'test7', compiler2.typesTask.intType);
+    checkReturn(compiler2, 'test8', compiler2.typesTask.intType);
+    checkReturn(compiler2, 'test9', compiler2.typesTask.intType);
+    checkReturn(compiler2, 'test10', compiler2.typesTask.numType);
+    checkReturn(compiler2, 'test11', compiler2.typesTask.doubleType);
+  }));
 }

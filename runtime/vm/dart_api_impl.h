@@ -11,6 +11,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, trace_api);
+
 class ApiLocalScope;
 class ApiState;
 class FinalizablePersistentHandle;
@@ -21,9 +23,20 @@ const char* CanonicalFunction(const char* func);
 
 #define CURRENT_FUNC CanonicalFunction(__FUNCTION__)
 
+#if defined(DEBUG)
+#define TRACE_API_CALL(name)                                                   \
+  if (FLAG_trace_api) {                                                        \
+    OS::Print("Calling API func: %s\n", name);                                 \
+  }
+#else
+#define TRACE_API_CALL(name)
+#endif
+
+
 // Checks that the current isolate is not NULL.
 #define CHECK_ISOLATE(isolate)                                                 \
   do {                                                                         \
+    TRACE_API_CALL(CURRENT_FUNC);                                              \
     if ((isolate) == NULL) {                                                   \
       FATAL1("%s expects there to be a current isolate. Did you "              \
              "forget to call Dart_CreateIsolate or Dart_EnterIsolate?",        \
@@ -34,6 +47,7 @@ const char* CanonicalFunction(const char* func);
 // Checks that the current isolate is NULL.
 #define CHECK_NO_ISOLATE(isolate)                                              \
   do {                                                                         \
+    TRACE_API_CALL(CURRENT_FUNC);                                              \
     if ((isolate) != NULL) {                                                   \
       FATAL1("%s expects there to be no current isolate. Did you "             \
              "forget to call Dart_ExitIsolate?", CURRENT_FUNC);                \

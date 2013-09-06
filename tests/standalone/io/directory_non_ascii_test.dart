@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import 'dart:io';
-import 'dart:isolate';
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 main() {
-  var port = new ReceivePort();
+  asyncStart();
 
   // On MacOS you get the decomposed utf8 form of file and directory
   // names from the system. Therefore, we have to check for both here.
@@ -28,7 +29,7 @@ main() {
               tempDir.delete(recursive: true).then((_) {
                 Expect.isFalse(temp.existsSync());
                 Expect.isFalse(nonAsciiDir.existsSync());
-                port.close();
+                asyncEnd();
               });
             });
           });

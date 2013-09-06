@@ -31,8 +31,7 @@ if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 
 } else {
   (function() {
     var defineProperty = Object.defineProperty;
-    var hasOwnProperty = Object.hasOwnProperty;
-    var counter = new Date().getTime() % 1e9;
+    var counter = Date.now() % 1e9;
 
     SideTable = function() {
       this.name = '__st' + (Math.random() * 1e9 >>> 0) + (counter++ + '__');
@@ -40,10 +39,16 @@ if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 
 
     SideTable.prototype = {
       set: function(key, value) {
-        defineProperty(key, this.name, {value: value, writable: true});
+        var entry = key[this.name];
+        if (entry && entry[0] === key)
+          entry[1] = value;
+        else
+          defineProperty(key, this.name, {value: [key, value], writable: true});
       },
       get: function(key) {
-        return hasOwnProperty.call(key, this.name) ? key[this.name] : undefined;
+        var entry;
+        return (entry = key[this.name]) && entry[0] === key ?
+            entry[1] : undefined;
       },
       delete: function(key) {
         this.set(key, undefined);
@@ -63,6 +68,7 @@ var ShadowDOMPolyfill = {};
 
   var wrapperTable = new SideTable();
   var constructorTable = new SideTable();
+  var nativePrototypeTable = new SideTable();
   var wrappers = Object.create(null);
 
   function assert(b) {
@@ -94,6 +100,13 @@ var ShadowDOMPolyfill = {};
     });
     return to;
   };
+
+  function oneOf(object, propertyNames) {
+    for (var i = 0; i < propertyNames.length; i++) {
+      if (propertyNames[i] in object)
+        return propertyNames[i];
+    }
+  }
 
   // Mozilla's old DOM bindings are bretty busted:
   // https://bugzilla.mozilla.org/show_bug.cgi?id=855844
@@ -133,6 +146,10 @@ var ShadowDOMPolyfill = {};
     enumerable: true
   };
 
+  function isEventHandlerName(name) {
+    return /^on[a-z]+$/.test(name);
+  }
+
   function installProperty(source, target, allowMethod) {
     Object.getOwnPropertyNames(source).forEach(function(name) {
       if (name in target)
@@ -146,8 +163,8 @@ var ShadowDOMPolyfill = {};
       try {
         descriptor = Object.getOwnPropertyDescriptor(source, name);
       } catch (ex) {
-        // JSC and V8 both use data properties instead accessors which can cause
-        // getting the property desciptor throw an exception.
+        // JSC and V8 both use data properties instead of accessors which can
+        // cause getting the property desciptor to throw an exception.
         // https://bugs.webkit.org/show_bug.cgi?id=49739
         descriptor = dummyDescriptor;
       }
@@ -159,14 +176,23 @@ var ShadowDOMPolyfill = {};
         return;
       }
 
-      getter = function() {
-        return this.impl[name];
-      };
+      var isEvent = isEventHandlerName(name);
+      if (isEvent) {
+        getter = scope.getEventHandlerGetter(name);
+      } else {
+        getter = function() {
+          return this.impl[name];
+        };
+      }
 
       if (descriptor.writable || descriptor.set) {
-        setter = function(value) {
-          this.impl[name] = value;
-        };
+        if (isEvent) {
+          setter = scope.getEventHandlerSetter(name);
+        } else {
+          setter = function(value) {
+            this.impl[name] = value;
+          };
+        }
       }
 
       Object.defineProperty(target, name, {
@@ -181,9 +207,8 @@ var ShadowDOMPolyfill = {};
   /**
    * @param {Function} nativeConstructor
    * @param {Function} wrapperConstructor
-   * @param {string|Object=} opt_instance If present, this is used to extract
-   *     properties from an instance object. If this is a string
-   *     |document.createElement| is used to create an instance.
+   * @param {Object=} opt_instance If present, this is used to extract
+   *     properties from an instance object.
    */
   function register(nativeConstructor, wrapperConstructor, opt_instance) {
     var nativePrototype = nativeConstructor.prototype;
@@ -194,7 +219,10 @@ var ShadowDOMPolyfill = {};
   function registerInternal(nativePrototype, wrapperConstructor, opt_instance) {
     var wrapperPrototype = wrapperConstructor.prototype;
     assert(constructorTable.get(nativePrototype) === undefined);
+
     constructorTable.set(nativePrototype, wrapperConstructor);
+    nativePrototypeTable.set(wrapperPrototype, nativePrototype);
+
     addForwardingProperties(nativePrototype, wrapperPrototype);
     if (opt_instance)
       registerInstanceProperties(wrapperPrototype, opt_instance);
@@ -232,10 +260,6 @@ var ShadowDOMPolyfill = {};
     GeneratedWrapper.prototype =
         Object.create(superWrapperConstructor.prototype);
     GeneratedWrapper.prototype.constructor = GeneratedWrapper;
-    // We add this property to work around a Firefox bug where HTMLFormElement
-    // and HTMLInputElements sometimes have their constructor incorrectly
-    // attached to GeneratedWrapper. See lib/patches-shadowdom-polyfill.js
-    GeneratedWrapper._ShadowDOMPolyfill$isGeneratedWrapper = true;
 
     return GeneratedWrapper;
   }
@@ -244,10 +268,12 @@ var ShadowDOMPolyfill = {};
   var OriginalEvent = Event;
   var OriginalNode = Node;
   var OriginalWindow = Window;
+  var OriginalRange = Range;
 
   function isWrapper(object) {
     return object instanceof wrappers.EventTarget ||
            object instanceof wrappers.Event ||
+           object instanceof wrappers.Range ||
            object instanceof wrappers.DOMImplementation;
   }
 
@@ -255,6 +281,7 @@ var ShadowDOMPolyfill = {};
     return object instanceof OriginalNode ||
            object instanceof OriginalEvent ||
            object instanceof OriginalWindow ||
+           object instanceof OriginalRange ||
            object instanceof OriginalDOMImplementation;
   }
 
@@ -270,11 +297,8 @@ var ShadowDOMPolyfill = {};
 
     assert(isNative(impl));
     var wrapper = wrapperTable.get(impl);
-    if (!wrapper) {
-      var wrapperConstructor = getWrapperConstructor(impl);
-      wrapper = new wrapperConstructor(impl);
-      wrapperTable.set(impl, wrapper);
-    }
+    if (!wrapper)
+      wrapperTable.set(impl, wrapper = new (getWrapperConstructor(impl))(impl));
     return wrapper;
   }
 
@@ -347,7 +371,7 @@ var ShadowDOMPolyfill = {};
     constructors.forEach(function(constructor) {
       names.forEach(function(name) {
         constructor.prototype[name] = function() {
-          var w = wrap(this);
+          var w = wrapIfNeeded(this);
           return w[name].apply(w, arguments);
         };
       });
@@ -355,12 +379,14 @@ var ShadowDOMPolyfill = {};
   }
 
   scope.assert = assert;
+  scope.constructorTable = constructorTable;
   scope.defineGetter = defineGetter;
   scope.defineWrapGetter = defineWrapGetter;
   scope.forwardMethodsToWrapper = forwardMethodsToWrapper;
-  scope.isWrapper = isWrapper;
   scope.isWrapperFor = isWrapperFor;
   scope.mixin = mixin;
+  scope.nativePrototypeTable = nativePrototypeTable;
+  scope.oneOf = oneOf;
   scope.registerObject = registerObject;
   scope.registerWrapper = register;
   scope.rewrap = rewrap;
@@ -371,7 +397,6 @@ var ShadowDOMPolyfill = {};
   scope.wrappers = wrappers;
 
 })(this.ShadowDOMPolyfill);
-
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -395,6 +420,8 @@ var ShadowDOMPolyfill = {};
   var eventPhaseTable = new SideTable();
   var stopPropagationTable = new SideTable();
   var stopImmediatePropagationTable = new SideTable();
+  var eventHandlersTable = new SideTable();
+  var eventPathTable = new SideTable();
 
   function isShadowRoot(node) {
     return node instanceof wrappers.ShadowRoot;
@@ -421,7 +448,7 @@ var ShadowDOMPolyfill = {};
 
     // 1.
     if (isShadowRoot(node))
-      return node.insertionParent || scope.getHostForShadowRoot(node);
+      return getInsertionParent(node) || scope.getHostForShadowRoot(node);
 
     // 2.
     var eventParents = scope.eventParentsTable.get(node);
@@ -438,7 +465,7 @@ var ShadowDOMPolyfill = {};
       var parentNode = node.parentNode;
       if (parentNode && isShadowHost(parentNode)) {
         var trees = scope.getShadowTrees(parentNode);
-        var p = context.insertionParent;
+        var p = getInsertionParent(context);
         for (var i = 0; i < trees.length; i++) {
           if (trees[i].contains(p))
             return p;
@@ -523,8 +550,12 @@ var ShadowDOMPolyfill = {};
     }
   }
 
+  function getInsertionParent(node) {
+    return scope.insertionParentTable.get(node);
+  }
+
   function isDistributed(node) {
-    return node.insertionParent;
+    return getInsertionParent(node);
   }
 
   function rootOfNode(node) {
@@ -537,6 +568,17 @@ var ShadowDOMPolyfill = {};
 
   function inSameTree(a, b) {
     return rootOfNode(a) === rootOfNode(b);
+  }
+
+  function enclosedBy(a, b) {
+    if (a === b)
+      return true;
+    if (a instanceof wrappers.ShadowRoot) {
+      var host = scope.getHostForShadowRoot(a);
+      return enclosedBy(rootOfNode(host), b);
+    }
+    return false;
+
   }
 
   function isMutationEvent(type) {
@@ -580,12 +622,14 @@ var ShadowDOMPolyfill = {};
     //
     // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#the-end
     //
-    // TODO(arv): Find a loess hacky way to do this.
+    // TODO(arv): Find a less hacky way to do this.
     if (event.type === 'load' &&
         eventPath.length === 2 &&
         eventPath[0].target instanceof wrappers.Document) {
       eventPath.shift();
     }
+
+    eventPathTable.set(event, eventPath);
 
     if (dispatchCapturing(event, eventPath)) {
       if (dispatchAtTarget(event, eventPath)) {
@@ -750,6 +794,27 @@ var ShadowDOMPolyfill = {};
     get eventPhase() {
       return eventPhaseTable.get(this);
     },
+    get path() {
+      var nodeList = new wrappers.NodeList();
+      var eventPath = eventPathTable.get(this);
+      if (eventPath) {
+        var index = 0;
+        var lastIndex = eventPath.length - 1;
+        var baseRoot = rootOfNode(currentTargetTable.get(this));
+
+        for (var i = 0; i <= lastIndex; i++) {
+          var currentTarget = eventPath[i].currentTarget;
+          var currentRoot = rootOfNode(currentTarget);
+          if (enclosedBy(baseRoot, currentRoot) &&
+              // Make sure we do not add Window to the path.
+              (i !== lastIndex || currentTarget instanceof wrappers.Node)) {
+            nodeList[index++] = currentTarget;
+          }
+        }
+        nodeList.length = index;
+      }
+      return nodeList;
+    },
     stopPropagation: function() {
       stopPropagationTable.set(this, true);
     },
@@ -779,10 +844,17 @@ var ShadowDOMPolyfill = {};
     GenericEvent.prototype = Object.create(SuperEvent.prototype);
     if (prototype)
       mixin(GenericEvent.prototype, prototype);
-    // Firefox does not support FocusEvent
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=855741
-    if (OriginalEvent)
-      registerWrapper(OriginalEvent, GenericEvent, document.createEvent(name));
+    if (OriginalEvent) {
+      // IE does not support event constructors but FocusEvent can only be
+      // created using new FocusEvent in Firefox.
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=882165
+      if (OriginalEvent.prototype['init' + name]) {
+        registerWrapper(OriginalEvent, GenericEvent,
+                        document.createEvent(name));
+      } else {
+        registerWrapper(OriginalEvent, GenericEvent, new OriginalEvent('temp'));
+      }
+    }
     return GenericEvent;
   }
 
@@ -912,7 +984,7 @@ var ShadowDOMPolyfill = {};
     'dispatchEvent'
   ];
 
-  [Element, Window, Document].forEach(function(constructor) {
+  [Node, Window].forEach(function(constructor) {
     var p = constructor.prototype;
     methodNames.forEach(function(name) {
       Object.defineProperty(p, name + '_', {value: p[name]});
@@ -999,8 +1071,61 @@ var ShadowDOMPolyfill = {};
     return null;
   }
 
+  /**
+   * Returns a function that is to be used as a getter for `onfoo` properties.
+   * @param {string} name
+   * @return {Function}
+   */
+  function getEventHandlerGetter(name) {
+    return function() {
+      var inlineEventHandlers = eventHandlersTable.get(this);
+      return inlineEventHandlers && inlineEventHandlers[name] &&
+          inlineEventHandlers[name].value || null;
+     };
+  }
+
+  /**
+   * Returns a function that is to be used as a setter for `onfoo` properties.
+   * @param {string} name
+   * @return {Function}
+   */
+  function getEventHandlerSetter(name) {
+    var eventType = name.slice(2);
+    return function(value) {
+      var inlineEventHandlers = eventHandlersTable.get(this);
+      if (!inlineEventHandlers) {
+        inlineEventHandlers = Object.create(null);
+        eventHandlersTable.set(this, inlineEventHandlers);
+      }
+
+      var old = inlineEventHandlers[name];
+      if (old)
+        this.removeEventListener(eventType, old.wrapped, false);
+
+      if (typeof value === 'function') {
+        var wrapped = function(e) {
+          var rv = value.call(this, e);
+          if (rv === false)
+            e.preventDefault();
+          else if (name === 'onbeforeunload' && typeof rv === 'string')
+            e.returnValue = rv;
+          // mouseover uses true for preventDefault but preventDefault for
+          // mouseover is ignored by browsers these day.
+        };
+
+        this.addEventListener(eventType, wrapped, false);
+        inlineEventHandlers[name] = {
+          value: value,
+          wrapped: wrapped
+        };
+      }
+    };
+  }
+
   scope.adjustRelatedTarget = adjustRelatedTarget;
   scope.elementFromPoint = elementFromPoint;
+  scope.getEventHandlerGetter = getEventHandlerGetter;
+  scope.getEventHandlerSetter = getEventHandlerSetter;
   scope.wrapEventTargetMethods = wrapEventTargetMethods;
   scope.wrappers.CustomEvent = CustomEvent;
   scope.wrappers.Event = Event;
@@ -1073,6 +1198,7 @@ var ShadowDOMPolyfill = {};
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
+  var wrapIfNeeded = scope.wrapIfNeeded;
 
   function assertIsNodeWrapper(node) {
     assert(node instanceof Node);
@@ -1119,30 +1245,72 @@ var ShadowDOMPolyfill = {};
     return nodes;
   }
 
-  function unwrapNodesForInsertion(nodes) {
-    if (nodes.length === 1)
+  function ensureSameOwnerDocument(parent, child) {
+    var ownerDoc = parent.nodeType === Node.DOCUMENT_NODE ?
+        parent : parent.ownerDocument;
+    if (ownerDoc !== child.ownerDocument)
+      ownerDoc.adoptNode(child);
+  }
+
+  function adoptNodesIfNeeded(owner, nodes) {
+    if (!nodes.length)
+      return;
+
+    var ownerDoc = owner.ownerDocument;
+
+    // All nodes have the same ownerDocument when we get here.
+    if (ownerDoc === nodes[0].ownerDocument)
+      return;
+
+    for (var i = 0; i < nodes.length; i++) {
+      scope.adoptNodeNoRemove(nodes[i], ownerDoc);
+    }
+  }
+
+  function unwrapNodesForInsertion(owner, nodes) {
+    adoptNodesIfNeeded(owner, nodes);
+    var length = nodes.length;
+
+    if (length === 1)
       return unwrap(nodes[0]);
 
-    var df = unwrap(document.createDocumentFragment());
-    for (var i = 0; i < nodes.length; i++) {
+    var df = unwrap(owner.ownerDocument.createDocumentFragment());
+    for (var i = 0; i < length; i++) {
       df.appendChild(unwrap(nodes[i]));
     }
     return df;
   }
 
   function removeAllChildNodes(wrapper) {
-    var childWrapper = wrapper.firstChild;
-    while (childWrapper) {
-      assert(childWrapper.parentNode === wrapper);
-      var nextSibling = childWrapper.nextSibling;
-      var childNode = unwrap(childWrapper);
-      var parentNode = childNode.parentNode;
-      if (parentNode)
-        originalRemoveChild.call(parentNode, childNode);
-      childWrapper.previousSibling_ = childWrapper.nextSibling_ = childWrapper.parentNode_ = null;
-      childWrapper = nextSibling;
+    if (wrapper.invalidateShadowRenderer()) {
+      var childWrapper = wrapper.firstChild;
+      while (childWrapper) {
+        assert(childWrapper.parentNode === wrapper);
+        var nextSibling = childWrapper.nextSibling;
+        var childNode = unwrap(childWrapper);
+        var parentNode = childNode.parentNode;
+        if (parentNode)
+          originalRemoveChild.call(parentNode, childNode);
+        childWrapper.previousSibling_ = childWrapper.nextSibling_ =
+            childWrapper.parentNode_ = null;
+        childWrapper = nextSibling;
+      }
+      wrapper.firstChild_ = wrapper.lastChild_ = null;
+    } else {
+      var node = unwrap(wrapper);
+      var child = node.firstChild;
+      var nextSibling;
+      while (child) {
+        nextSibling = child.nextSibling;
+        originalRemoveChild.call(node, child);
+        child = nextSibling;
+      }
     }
-    wrapper.firstChild_ = wrapper.lastChild_ = null;
+  }
+
+  function invalidateParent(node) {
+    var p = node.parentNode;
+    return p && p.invalidateShadowRenderer();
   }
 
   var OriginalNode = window.Node;
@@ -1205,22 +1373,22 @@ var ShadowDOMPolyfill = {};
     appendChild: function(childWrapper) {
       assertIsNodeWrapper(childWrapper);
 
-      this.invalidateShadowRenderer();
+      if (this.invalidateShadowRenderer() || invalidateParent(childWrapper)) {
+        var previousNode = this.lastChild;
+        var nextNode = null;
+        var nodes = collectNodes(childWrapper, this, previousNode, nextNode);
 
-      var previousNode = this.lastChild;
-      var nextNode = null;
-      var nodes = collectNodes(childWrapper, this,
-                               previousNode, nextNode);
+        this.lastChild_ = nodes[nodes.length - 1];
+        if (!previousNode)
+          this.firstChild_ = nodes[0];
 
-      this.lastChild_ = nodes[nodes.length - 1];
-      if (!previousNode)
-        this.firstChild_ = nodes[0];
+        originalAppendChild.call(this.impl, unwrapNodesForInsertion(this, nodes));
+      } else {
+        ensureSameOwnerDocument(this, childWrapper);
+        originalAppendChild.call(this.impl, unwrap(childWrapper));
+      }
 
-      // TODO(arv): It is unclear if we need to update the visual DOM here.
-      // A better aproach might be to make sure we only get here for nodes that
-      // are related to a shadow host and then invalidate that and re-render
-      // the host (on reflow?).
-      originalAppendChild.call(this.impl, unwrapNodesForInsertion(nodes));
+      childWrapper.nodeWasAdded_();
 
       return childWrapper;
     },
@@ -1234,26 +1402,33 @@ var ShadowDOMPolyfill = {};
       assertIsNodeWrapper(refWrapper);
       assert(refWrapper.parentNode === this);
 
-      this.invalidateShadowRenderer();
+      if (this.invalidateShadowRenderer() || invalidateParent(childWrapper)) {
+        var previousNode = refWrapper.previousSibling;
+        var nextNode = refWrapper;
+        var nodes = collectNodes(childWrapper, this, previousNode, nextNode);
 
-      var previousNode = refWrapper.previousSibling;
-      var nextNode = refWrapper;
-      var nodes = collectNodes(childWrapper, this,
-                               previousNode, nextNode);
+        if (this.firstChild === refWrapper)
+          this.firstChild_ = nodes[0];
 
+        // insertBefore refWrapper no matter what the parent is?
+        var refNode = unwrap(refWrapper);
+        var parentNode = refNode.parentNode;
 
-      if (this.firstChild === refWrapper)
-        this.firstChild_ = nodes[0];
-
-      // insertBefore refWrapper no matter what the parent is?
-      var refNode = unwrap(refWrapper);
-      var parentNode = refNode.parentNode;
-      if (parentNode) {
-        originalInsertBefore.call(
-            parentNode,
-            unwrapNodesForInsertion(nodes),
-            refNode);
+        if (parentNode) {
+          originalInsertBefore.call(
+              parentNode,
+              unwrapNodesForInsertion(this, nodes),
+              refNode);
+        } else {
+          adoptNodesIfNeeded(this, nodes);
+        }
+      } else {
+        ensureSameOwnerDocument(this, childWrapper);
+        originalInsertBefore.call(this.impl, unwrap(childWrapper),
+                                  unwrap(refWrapper));
       }
+
+      childWrapper.nodeWasAdded_();
 
       return childWrapper;
     },
@@ -1265,31 +1440,37 @@ var ShadowDOMPolyfill = {};
         throw new Error('NotFoundError');
       }
 
-      this.invalidateShadowRenderer();
-
-      // We need to remove the real node from the DOM before updating the
-      // pointers. This is so that that mutation event is dispatched before
-      // the pointers have changed.
-      var thisFirstChild = this.firstChild;
-      var thisLastChild = this.lastChild;
-      var childWrapperNextSibling = childWrapper.nextSibling;
-      var childWrapperPreviousSibling = childWrapper.previousSibling;
-
       var childNode = unwrap(childWrapper);
-      var parentNode = childNode.parentNode;
-      if (parentNode)
-        originalRemoveChild.call(parentNode, childNode);
+      if (this.invalidateShadowRenderer()) {
 
-      if (thisFirstChild === childWrapper)
-        this.firstChild_ = childWrapperNextSibling;
-      if (thisLastChild === childWrapper)
-        this.lastChild_ = childWrapperPreviousSibling;
-      if (childWrapperPreviousSibling)
-        childWrapperPreviousSibling.nextSibling_ = childWrapperNextSibling;
-      if (childWrapperNextSibling)
-        childWrapperNextSibling.previousSibling_ = childWrapperPreviousSibling;
+        // We need to remove the real node from the DOM before updating the
+        // pointers. This is so that that mutation event is dispatched before
+        // the pointers have changed.
+        var thisFirstChild = this.firstChild;
+        var thisLastChild = this.lastChild;
+        var childWrapperNextSibling = childWrapper.nextSibling;
+        var childWrapperPreviousSibling = childWrapper.previousSibling;
 
-      childWrapper.previousSibling_ = childWrapper.nextSibling_ = childWrapper.parentNode_ = null;
+        var parentNode = childNode.parentNode;
+        if (parentNode)
+          originalRemoveChild.call(parentNode, childNode);
+
+        if (thisFirstChild === childWrapper)
+          this.firstChild_ = childWrapperNextSibling;
+        if (thisLastChild === childWrapper)
+          this.lastChild_ = childWrapperPreviousSibling;
+        if (childWrapperPreviousSibling)
+          childWrapperPreviousSibling.nextSibling_ = childWrapperNextSibling;
+        if (childWrapperNextSibling) {
+          childWrapperNextSibling.previousSibling_ =
+              childWrapperPreviousSibling;
+        }
+
+        childWrapper.previousSibling_ = childWrapper.nextSibling_ =
+            childWrapper.parentNode_ = undefined;
+      } else {
+        originalRemoveChild.call(this.impl, childNode);
+      }
 
       return childWrapper;
     },
@@ -1303,35 +1484,49 @@ var ShadowDOMPolyfill = {};
         throw new Error('NotFoundError');
       }
 
-      this.invalidateShadowRenderer();
-
-      var previousNode = oldChildWrapper.previousSibling;
-      var nextNode = oldChildWrapper.nextSibling;
-      if (nextNode === newChildWrapper)
-        nextNode = newChildWrapper.nextSibling;
-      var nodes = collectNodes(newChildWrapper, this,
-                               previousNode, nextNode);
-
-      if (this.firstChild === oldChildWrapper)
-        this.firstChild_ = nodes[0];
-      if (this.lastChild === oldChildWrapper)
-        this.lastChild_ = nodes[nodes.length - 1];
-
-      oldChildWrapper.previousSibling_ = null;
-      oldChildWrapper.nextSibling_ = null;
-      oldChildWrapper.parentNode_ = null;
-
-      // replaceChild no matter what the parent is?
       var oldChildNode = unwrap(oldChildWrapper);
-      if (oldChildNode.parentNode) {
-        originalReplaceChild.call(
-            oldChildNode.parentNode,
-            unwrapNodesForInsertion(nodes),
-            oldChildNode);
+
+      if (this.invalidateShadowRenderer() ||
+          invalidateParent(newChildWrapper)) {
+        var previousNode = oldChildWrapper.previousSibling;
+        var nextNode = oldChildWrapper.nextSibling;
+        if (nextNode === newChildWrapper)
+          nextNode = newChildWrapper.nextSibling;
+        var nodes = collectNodes(newChildWrapper, this,
+                                 previousNode, nextNode);
+
+        if (this.firstChild === oldChildWrapper)
+          this.firstChild_ = nodes[0];
+        if (this.lastChild === oldChildWrapper)
+          this.lastChild_ = nodes[nodes.length - 1];
+
+        oldChildWrapper.previousSibling_ = oldChildWrapper.nextSibling_ =
+            oldChildWrapper.parentNode_ = undefined;
+
+        // replaceChild no matter what the parent is?
+        if (oldChildNode.parentNode) {
+          originalReplaceChild.call(
+              oldChildNode.parentNode,
+              unwrapNodesForInsertion(this, nodes),
+              oldChildNode);
+        }
+      } else {
+        ensureSameOwnerDocument(this, newChildWrapper);
+        originalReplaceChild.call(this.impl, unwrap(newChildWrapper),
+                                  oldChildNode);
       }
+
+      newChildWrapper.nodeWasAdded_();
 
       return oldChildWrapper;
     },
+
+    /**
+     * Called after a node was added. Subclasses override this to invalidate
+     * the renderer as needed.
+     * @private
+     */
+    nodeWasAdded_: function() {},
 
     hasChildNodes: function() {
       return this.firstChild === null;
@@ -1386,11 +1581,14 @@ var ShadowDOMPolyfill = {};
       return s;
     },
     set textContent(textContent) {
-      removeAllChildNodes(this);
-      this.invalidateShadowRenderer();
-      if (textContent !== '') {
-        var textNode = this.impl.ownerDocument.createTextNode(textContent);
-        this.appendChild(textNode);
+      if (this.invalidateShadowRenderer()) {
+        removeAllChildNodes(this);
+        if (textContent !== '') {
+          var textNode = this.impl.ownerDocument.createTextNode(textContent);
+          this.appendChild(textNode);
+        }
+      } else {
+        this.impl.textContent = textContent;
       }
     },
 
@@ -1418,11 +1616,11 @@ var ShadowDOMPolyfill = {};
       return clone;
     },
 
-    // insertionParent is added in ShadowRender.js
-
     contains: function(child) {
       if (!child)
         return false;
+
+      child = wrapIfNeeded(child);
 
       // TODO(arv): Optimize using ownerDocument etc.
       if (child === this)
@@ -1598,7 +1796,7 @@ var ShadowDOMPolyfill = {};
     },
 
     get previousElementSibling() {
-      return backwardsElement(this.nextSibling);
+      return backwardsElement(this.previousSibling);
     }
   };
 
@@ -1656,17 +1854,33 @@ var ShadowDOMPolyfill = {};
   var SelectorsInterface = scope.SelectorsInterface;
   var addWrapNodeListMethod = scope.addWrapNodeListMethod;
   var mixin = scope.mixin;
+  var oneOf = scope.oneOf;
   var registerWrapper = scope.registerWrapper;
   var wrappers = scope.wrappers;
 
   var shadowRootTable = new SideTable();
   var OriginalElement = window.Element;
 
-  var originalMatches =
-      OriginalElement.prototype.matches ||
-      OriginalElement.prototype.mozMatchesSelector ||
-      OriginalElement.prototype.msMatchesSelector ||
-      OriginalElement.prototype.webkitMatchesSelector;
+
+  var matchesName = oneOf(OriginalElement.prototype, [
+    'matches',
+    'mozMatchesSelector',
+    'msMatchesSelector',
+    'webkitMatchesSelector',
+  ]);
+
+  var originalMatches = OriginalElement.prototype[matchesName];
+
+  function invalidateRendererBasedOnAttribute(element, name) {
+    // Only invalidate if parent node is a shadow host.
+    var p = element.parentNode;
+    if (!p || !p.shadowRoot)
+      return;
+
+    var renderer = scope.getRendererForHost(p);
+    if (renderer.dependsOnAttribute(name))
+      renderer.invalidate();
+  }
 
   function Element(node) {
     Node.call(this, node);
@@ -1677,9 +1891,8 @@ var ShadowDOMPolyfill = {};
       var newShadowRoot = new wrappers.ShadowRoot(this);
       shadowRootTable.set(this, newShadowRoot);
 
-      scope.getRendererForHost(this);
-
-      this.invalidateShadowRenderer(true);
+      var renderer = scope.getRendererForHost(this);
+      renderer.invalidate();
 
       return newShadowRoot;
     },
@@ -1690,16 +1903,49 @@ var ShadowDOMPolyfill = {};
 
     setAttribute: function(name, value) {
       this.impl.setAttribute(name, value);
-      // This is a bit agressive. We need to invalidate if it affects
-      // the rendering content[select] or if it effects the value of a content
-      // select.
-      this.invalidateShadowRenderer();
+      invalidateRendererBasedOnAttribute(this, name);
+    },
+
+    removeAttribute: function(name) {
+      this.impl.removeAttribute(name);
+      invalidateRendererBasedOnAttribute(this, name);
     },
 
     matches: function(selector) {
       return originalMatches.call(this.impl, selector);
     }
   });
+
+  Element.prototype[matchesName] = function(selector) {
+    return this.matches(selector);
+  };
+
+  if (OriginalElement.prototype.webkitCreateShadowRoot) {
+    Element.prototype.webkitCreateShadowRoot =
+        Element.prototype.createShadowRoot;
+  }
+
+  /**
+   * Useful for generating the accessor pair for a property that reflects an
+   * attribute.
+   */
+  function setterDirtiesAttribute(prototype, propertyName, opt_attrName) {
+    var attrName = opt_attrName || propertyName;
+    Object.defineProperty(prototype, propertyName, {
+      get: function() {
+        return this.impl[propertyName];
+      },
+      set: function(v) {
+        this.impl[propertyName] = v;
+        invalidateRendererBasedOnAttribute(this, attrName);
+      },
+      configurable: true,
+      enumerable: true
+    });
+  }
+
+  setterDirtiesAttribute(Element.prototype, 'id');
+  setterDirtiesAttribute(Element.prototype, 'className', 'class');
 
   mixin(Element.prototype, ChildNodeInterface);
   mixin(Element.prototype, GetElementsByInterface);
@@ -1708,6 +1954,9 @@ var ShadowDOMPolyfill = {};
 
   registerWrapper(OriginalElement, Element);
 
+  // TODO(arv): Export setterDirtiesAttribute and apply it to more bindings
+  // that reflect attributes.
+  scope.matchesName = matchesName;
   scope.wrappers.Element = Element;
 })(this.ShadowDOMPolyfill);
 
@@ -1802,7 +2051,7 @@ var ShadowDOMPolyfill = {};
   function setInnerHTML(node, value, opt_tagName) {
     var tagName = opt_tagName || 'div';
     node.textContent = '';
-    var tempElement =unwrap(node.ownerDocument.createElement(tagName));
+    var tempElement = unwrap(node.ownerDocument.createElement(tagName));
     tempElement.innerHTML = value;
     var firstChild;
     while (firstChild = tempElement.firstChild) {
@@ -1823,7 +2072,10 @@ var ShadowDOMPolyfill = {};
       return getInnerHTML(this);
     },
     set innerHTML(value) {
-      setInnerHTML(this, value, this.tagName);
+      if (this.invalidateShadowRenderer())
+        setInnerHTML(this, value, this.tagName);
+      else
+        this.impl.innerHTML = value;
     },
 
     get outerHTML() {
@@ -1832,10 +2084,10 @@ var ShadowDOMPolyfill = {};
       return getOuterHTML(this);
     },
     set outerHTML(value) {
-      if (!this.invalidateShadowRenderer()) {
+      var p = this.parentNode;
+      if (p) {
+        p.invalidateShadowRenderer();
         this.impl.outerHTML = value;
-      } else {
-        throw new Error('not implemented');
       }
     }
   });
@@ -1945,18 +2197,9 @@ var ShadowDOMPolyfill = {};
 
   function HTMLShadowElement(node) {
     HTMLElement.call(this, node);
-    this.olderShadowRoot_ = null;
   }
   HTMLShadowElement.prototype = Object.create(HTMLElement.prototype);
   mixin(HTMLShadowElement.prototype, {
-    get olderShadowRoot() {
-      return this.olderShadowRoot_;
-    },
-
-    invalidateShadowRenderer: function() {
-      HTMLElement.prototype.invalidateShadowRenderer.call(this, true);
-    },
-
     // TODO: attribute boolean resetStyleInheritance;
   });
 
@@ -1965,6 +2208,7 @@ var ShadowDOMPolyfill = {};
 
   scope.wrappers.HTMLShadowElement = HTMLShadowElement;
 })(this.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -1977,6 +2221,7 @@ var ShadowDOMPolyfill = {};
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var setInnerHTML = scope.setInnerHTML;
+  var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
   var contentTable = new SideTable();
@@ -2000,9 +2245,9 @@ var ShadowDOMPolyfill = {};
   }
 
   function extractContent(templateElement) {
+    // templateElement is not a wrapper here.
     var doc = getTemplateContentsOwner(templateElement.ownerDocument);
-    var df = doc.createDocumentFragment();
-    var nextSibling;
+    var df = unwrap(doc.createDocumentFragment());
     var child;
     while (child = templateElement.firstChild) {
       df.appendChild(child);
@@ -2014,6 +2259,10 @@ var ShadowDOMPolyfill = {};
 
   function HTMLTemplateElement(node) {
     HTMLElement.call(this, node);
+    if (!OriginalHTMLTemplateElement) {
+      var content = extractContent(node);
+      contentTable.set(this, wrap(content));
+    }
   }
   HTMLTemplateElement.prototype = Object.create(HTMLElement.prototype);
 
@@ -2021,16 +2270,7 @@ var ShadowDOMPolyfill = {};
     get content() {
       if (OriginalHTMLTemplateElement)
         return wrap(this.impl.content);
-
-      // TODO(arv): This should be done in createCallback. I initially tried to
-      // do this in the constructor but the wrapper is not yet created at that
-      // point in time so we hit an iloop.
-      var content = contentTable.get(this);
-      if (!content) {
-        content = extractContent(this);
-        contentTable.set(this, content);
-      }
-      return content;
+      return contentTable.get(this);
     },
 
     get innerHTML() {
@@ -2038,7 +2278,6 @@ var ShadowDOMPolyfill = {};
     },
     set innerHTML(value) {
       setInnerHTML(this.content, value);
-      this.invalidateShadowRenderer();
     }
 
     // TODO(arv): cloneNode needs to clone content.
@@ -2124,6 +2363,7 @@ var ShadowDOMPolyfill = {};
   var unwrap = scope.unwrap;
 
   var shadowHostTable = new SideTable();
+  var nextOlderShadowTreeTable = new SideTable();
 
   function ShadowRoot(hostWrapper) {
     var node = unwrap(hostWrapper.impl.ownerDocument.createDocumentFragment());
@@ -2134,7 +2374,7 @@ var ShadowDOMPolyfill = {};
     rewrap(node, this);
 
     var oldShadowRoot = hostWrapper.shadowRoot;
-    scope.nextOlderShadowTreeTable.set(this, oldShadowRoot);
+    nextOlderShadowTreeTable.set(this, oldShadowRoot);
 
     shadowHostTable.set(this, hostWrapper);
   }
@@ -2146,6 +2386,10 @@ var ShadowDOMPolyfill = {};
     set innerHTML(value) {
       setInnerHTML(this, value);
       this.invalidateShadowRenderer();
+    },
+
+    get olderShadowRoot() {
+      return nextOlderShadowTreeTable.get(this) || null;
     },
 
     invalidateShadowRenderer: function() {
@@ -2174,9 +2418,13 @@ var ShadowDOMPolyfill = {};
   'use strict';
 
   var HTMLContentElement = scope.wrappers.HTMLContentElement;
+  var HTMLShadowElement = scope.wrappers.HTMLShadowElement;
   var Node = scope.wrappers.Node;
+  var ShadowRoot = scope.wrappers.ShadowRoot;
   var assert = scope.assert;
+  var getHostForShadowRoot = scope.getHostForShadowRoot;
   var mixin = scope.mixin;
+  var oneOf = scope.oneOf;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
@@ -2219,7 +2467,8 @@ var ShadowDOMPolyfill = {};
   function removeAllChildNodes(parentNodeWrapper) {
     var parentNode = unwrap(parentNodeWrapper);
     updateAllChildNodes(parentNodeWrapper);
-    parentNode.textContent = '';
+    if (parentNode.firstChild)
+      parentNode.textContent = '';
   }
 
   function appendChild(parentNodeWrapper, childWrapper) {
@@ -2274,7 +2523,6 @@ var ShadowDOMPolyfill = {};
   var distributedChildNodesTable = new SideTable();
   var eventParentsTable = new SideTable();
   var insertionParentTable = new SideTable();
-  var nextOlderShadowTreeTable = new SideTable();
   var rendererForHostTable = new SideTable();
   var shadowDOMRendererTable = new SideTable();
 
@@ -2288,7 +2536,7 @@ var ShadowDOMPolyfill = {};
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     getDistributedChildNodes(insertionPoint).push(child);
-    insertionParentTable.set(child, insertionPoint);
+    assignToInsertionPoint(child, insertionPoint);
 
     var eventParents = eventParentsTable.get(child);
     if (!eventParents)
@@ -2333,33 +2581,6 @@ var ShadowDOMPolyfill = {};
     }
   }
 
-  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-distribution-algorithm
-  function distribute(tree, pool) {
-    var anyRemoved = false;
-
-    visit(tree, isActiveInsertionPoint,
-        function(insertionPoint) {
-          resetDistributedChildNodes(insertionPoint);
-          for (var i = 0; i < pool.length; i++) {  // 1.2
-            var node = pool[i];  // 1.2.1
-            if (node === undefined)  // removed
-              continue;
-            if (matchesCriteria(node, insertionPoint)) {  // 1.2.2
-              distributeChildToInsertionPoint(node, insertionPoint);  // 1.2.2.1
-              pool[i] = undefined;  // 1.2.2.2
-              anyRemoved = true;
-            }
-          }
-        });
-
-    if (!anyRemoved)
-      return pool;
-
-    return pool.filter(function(item) {
-      return item !== undefined;
-    });
-  }
-
   // Matching Insertion Points
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#matching-insertion-points
 
@@ -2385,13 +2606,6 @@ var ShadowDOMPolyfill = {};
     'only-of-type',
   ].join('|') + ')');
 
-
-  function oneOf(object, propertyNames) {
-    for (var i = 0; i < propertyNames.length; i++) {
-      if (propertyNames[i] in object)
-        return propertyNames[i];
-    }
-  }
 
   /**
    * @param {Element} node
@@ -2447,9 +2661,15 @@ var ShadowDOMPolyfill = {};
   function ShadowRenderer(host) {
     this.host = host;
     this.dirty = false;
+    this.invalidateAttributes();
     this.associateNode(host);
   }
 
+  /**
+   * Returns existing shadow renderer for a host or creates it if it is needed.
+   * @params {!Element} host
+   * @return {!ShadowRenderer}
+   */
   function getRendererForHost(host) {
     var renderer = rendererForHostTable.get(host);
     if (!renderer) {
@@ -2459,17 +2679,30 @@ var ShadowDOMPolyfill = {};
     return renderer;
   }
 
+  function getShadowRootAncestor(node) {
+    for (; node; node = node.parentNode) {
+      if (node instanceof ShadowRoot)
+        return node;
+    }
+    return null;
+  }
+
+  function getRendererForShadowRoot(shadowRoot) {
+    return getRendererForHost(getHostForShadowRoot(shadowRoot));
+  }
+
   ShadowRenderer.prototype = {
+
     // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#rendering-shadow-trees
     render: function() {
       if (!this.dirty)
         return;
 
-      var host = this.host;
+      this.invalidateAttributes();
       this.treeComposition();
+
+      var host = this.host;
       var shadowDOM = host.shadowRoot;
-      if (!shadowDOM)
-        return;
 
       this.removeAllChildNodes(this.host);
 
@@ -2506,14 +2739,18 @@ var ShadowDOMPolyfill = {};
       }
     },
 
-    renderAsAnyDomTree: function(visualParent, tree, child, isNested) {
-      this.appendChild(visualParent, child);
+    renderAsAnyDomTree: function(visualParent, tree, node, isNested) {
+      this.appendChild(visualParent, node);
 
-      if (isShadowHost(child)) {
-        render(child);
+      if (isShadowHost(node)) {
+        render(node);
       } else {
-        var parent = child;
+        var parent = node;
         var logicalChildNodes = getChildNodesSnapshot(parent);
+        // We associate the parent of a content/shadow with the renderer
+        // because we may need to remove stale childNodes.
+        if (shadowDOMRendererTable.get(parent))
+          this.removeAllChildNodes(parent);
         logicalChildNodes.forEach(function(node) {
           this.renderNode(parent, tree, node, isNested);
         }, this);
@@ -2538,11 +2775,9 @@ var ShadowDOMPolyfill = {};
     },
 
     renderShadowInsertionPoint: function(visualParent, tree, shadowInsertionPoint) {
-      var nextOlderTree = getNextOlderTree(tree);
+      var nextOlderTree = tree.olderShadowRoot;
       if (nextOlderTree) {
-        // This makes ShadowRoot have its insertionParent be the <shadow>.
-        insertionParentTable.set(nextOlderTree, shadowInsertionPoint);
-        shadowInsertionPoint.olderShadowRoot_ = nextOlderTree;
+        assignToInsertionPoint(nextOlderTree, shadowInsertionPoint);
         this.remove(shadowInsertionPoint);
         var shadowDOMChildNodes = getChildNodesSnapshot(nextOlderTree);
         shadowDOMChildNodes.forEach(function(node) {
@@ -2555,9 +2790,80 @@ var ShadowDOMPolyfill = {};
 
     renderFallbackContent: function (visualParent, fallbackHost) {
       var logicalChildNodes = getChildNodesSnapshot(fallbackHost);
+      this.associateNode(fallbackHost);
+      this.remove(fallbackHost);
       logicalChildNodes.forEach(function(node) {
         this.appendChild(visualParent, node);
       }, this);
+    },
+
+    /**
+     * Invalidates the attributes used to keep track of which attributes may
+     * cause the renderer to be invalidated.
+     */
+    invalidateAttributes: function() {
+      this.attributes = Object.create(null);
+    },
+
+    /**
+     * Parses the selector and makes this renderer dependent on the attribute
+     * being used in the selector.
+     * @param {string} selector
+     */
+    updateDependentAttributes: function(selector) {
+      if (!selector)
+        return;
+
+      var attributes = this.attributes;
+
+      // .class
+      if (/\.\w+/.test(selector))
+        attributes['class'] = true;
+
+      // #id
+      if (/#\w+/.test(selector))
+        attributes['id'] = true;
+
+      selector.replace(/\[\s*([^\s=\|~\]]+)/g, function(_, name) {
+        attributes[name] = true;
+      });
+
+      // Pseudo selectors have been removed from the spec.
+    },
+
+    dependsOnAttribute: function(name) {
+      return this.attributes[name];
+    },
+
+    // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-distribution-algorithm
+    distribute: function(tree, pool) {
+      var anyRemoved = false;
+      var self = this;
+
+      visit(tree, isActiveInsertionPoint,
+          function(insertionPoint) {
+            resetDistributedChildNodes(insertionPoint);
+            self.updateDependentAttributes(
+                insertionPoint.getAttribute('select'));
+
+            for (var i = 0; i < pool.length; i++) {  // 1.2
+              var node = pool[i];  // 1.2.1
+              if (node === undefined)  // removed
+                continue;
+              if (matchesCriteria(node, insertionPoint)) {  // 1.2.2
+                distributeChildToInsertionPoint(node, insertionPoint);  // 1.2.2.1
+                pool[i] = undefined;  // 1.2.2.2
+                anyRemoved = true;
+              }
+            }
+          });
+
+      if (!anyRemoved)
+        return pool;
+
+      return pool.filter(function(item) {
+        return item !== undefined;
+      });
     },
 
     // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-tree-composition
@@ -2588,14 +2894,14 @@ var ShadowDOMPolyfill = {};
         });
         point = shadowInsertionPoint;
 
-        pool = distribute(tree, pool);  // 4.2.
+        pool = this.distribute(tree, pool);  // 4.2.
         if (point) {  // 4.3.
-          var nextOlderTree = getNextOlderTree(tree);  // 4.3.1.
+          var nextOlderTree = tree.olderShadowRoot;  // 4.3.1.
           if (!nextOlderTree) {
             break;  // 4.3.1.1.
           } else {
             tree = nextOlderTree;  // 4.3.2.2.
-            assignShadowTreeToShadowInsertionPoint(tree, point);  // 4.3.2.2.
+            assignToInsertionPoint(tree, point);  // 4.3.2.2.
             continue;  // 4.3.2.3.
           }
         } else {
@@ -2604,24 +2910,24 @@ var ShadowDOMPolyfill = {};
       }
     },
 
-    // Visual DOM mutation.
     appendChild: function(parent, child) {
+      // this.associateNode(child);
+      this.associateNode(parent);
       appendChild(parent, child);
-      this.associateNode(child);
     },
 
     remove: function(node) {
+      // this.associateNode(node);
+      this.associateNode(node.parentNode);
       remove(node);
-      this.associateNode(node);
     },
 
     removeAllChildNodes: function(parent) {
+      this.associateNode(parent);
       removeAllChildNodes(parent);
-      // TODO(arv): Does this need to associate all the nodes with this renderer?
     },
 
     associateNode: function(node) {
-      // TODO: Clear when moved out of shadow tree.
       shadowDOMRendererTable.set(node, this);
     }
   };
@@ -2646,28 +2952,19 @@ var ShadowDOMPolyfill = {};
   }
 
   function isShadowHost(shadowHost) {
-    return !!shadowHost.shadowRoot;
-  }
-
-  /**
-   * @param {WrapperShadowRoot} tree
-   */
-  function getNextOlderTree(tree) {
-    return nextOlderShadowTreeTable.get(tree);
+    return shadowHost.shadowRoot;
   }
 
   function getShadowTrees(host) {
     var trees = [];
 
-    for (var tree = host.shadowRoot;
-         tree;
-         tree = nextOlderShadowTreeTable.get(tree)) {
+    for (var tree = host.shadowRoot; tree; tree = tree.olderShadowRoot) {
       trees.push(tree);
     }
     return trees;
   }
 
-  function assignShadowTreeToShadowInsertionPoint(tree, point) {
+  function assignToInsertionPoint(tree, point) {
     insertionParentTable.set(tree, point);
   }
 
@@ -2676,41 +2973,54 @@ var ShadowDOMPolyfill = {};
     new ShadowRenderer(host).render();
   };
 
-  Node.prototype.invalidateShadowRenderer = function(force) {
-    // TODO: If this is in light DOM we only need to invalidate renderer if this
-    // is a direct child of a ShadowRoot.
-    // Maybe we should only associate renderers with direct child nodes of a
-    // shadow root (and all nodes in the shadow dom).
-    var renderer = shadowDOMRendererTable.get(this);
-    if (!renderer)
-      return false;
+  // Need to rerender shadow host when:
+  //
+  // - a direct child to the ShadowRoot is added or removed
+  // - a direct child to the host is added or removed
+  // - a new shadow root is created
+  // - a direct child to a content/shadow element is added or removed
+  // - a sibling to a content/shadow element is added or removed
+  // - content[select] is changed
+  // - an attribute in a direct child to a host is modified
 
-    var p;
-    if (force || this.shadowRoot ||
-        (p = this.parentNode) && (p.shadowRoot || p instanceof ShadowRoot)) {
+  /**
+   * This gets called when a node was added or removed to it.
+   */
+  Node.prototype.invalidateShadowRenderer = function(force) {
+    var renderer = shadowDOMRendererTable.get(this);
+    if (renderer) {
       renderer.invalidate();
+      return true;
     }
 
-    return true;
+    return false;
   };
 
   HTMLContentElement.prototype.getDistributedNodes = function() {
-    // TODO(arv): We should associate the element with the shadow root so we
-    // only have to rerender this ShadowRenderer.
-    renderAllPending();
+    var renderer = shadowDOMRendererTable.get(this);
+    if (renderer)
+      renderer.render();
     return getDistributedChildNodes(this);
   };
 
-  mixin(Node.prototype, {
-    get insertionParent() {
-      return insertionParentTable.get(this) || null;
-    }
-  });
+  HTMLShadowElement.prototype.nodeWasAdded_ =
+  HTMLContentElement.prototype.nodeWasAdded_ = function() {
+    // Invalidate old renderer if any.
+    this.invalidateShadowRenderer();
+
+    var shadowRoot = getShadowRootAncestor(this);
+    var renderer;
+    if (shadowRoot)
+      renderer = getRendererForShadowRoot(shadowRoot);
+    shadowDOMRendererTable.set(this, renderer);
+    if (renderer)
+      renderer.invalidate();
+  };
 
   scope.eventParentsTable = eventParentsTable;
   scope.getRendererForHost = getRendererForHost;
   scope.getShadowTrees = getShadowTrees;
-  scope.nextOlderShadowTreeTable = nextOlderShadowTreeTable;
+  scope.insertionParentTable = insertionParentTable;
   scope.renderAllPending = renderAllPending;
 
   // Exposed for testing
@@ -2728,13 +3038,70 @@ var ShadowDOMPolyfill = {};
 (function(scope) {
   'use strict';
 
+  var HTMLElement = scope.wrappers.HTMLElement;
+  var assert = scope.assert;
+  var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
+  var wrap = scope.wrap;
+
+  var elementsWithFormProperty = [
+    'HTMLButtonElement',
+    'HTMLFieldSetElement',
+    'HTMLInputElement',
+    'HTMLKeygenElement',
+    'HTMLLabelElement',
+    'HTMLLegendElement',
+    'HTMLObjectElement',
+    'HTMLOptionElement',
+    'HTMLOutputElement',
+    'HTMLSelectElement',
+    'HTMLTextAreaElement',
+  ];
+
+  function createWrapperConstructor(name) {
+    if (!window[name])
+      return;
+
+    // Ensure we are not overriding an already existing constructor.
+    assert(!scope.wrappers[name]);
+
+    var GeneratedWrapper = function(node) {
+      // At this point all of them extend HTMLElement.
+      HTMLElement.call(this, node);
+    }
+    GeneratedWrapper.prototype = Object.create(HTMLElement.prototype);
+    mixin(GeneratedWrapper.prototype, {
+      get form() {
+        return wrap(unwrap(this).form);
+      },
+    });
+
+    registerWrapper(window[name], GeneratedWrapper,
+        document.createElement(name.slice(4, -7)));
+    scope.wrappers[name] = GeneratedWrapper;
+  }
+
+  elementsWithFormProperty.forEach(createWrapperConstructor);
+
+})(this.ShadowDOMPolyfill);
+
+// Copyright 2013 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
   var GetElementsByInterface = scope.GetElementsByInterface;
   var Node = scope.wrappers.Node;
   var ParentNodeInterface = scope.ParentNodeInterface;
   var SelectorsInterface = scope.SelectorsInterface;
+  var ShadowRoot = scope.wrappers.ShadowRoot;
   var defineWrapGetter = scope.defineWrapGetter;
   var elementFromPoint = scope.elementFromPoint;
   var forwardMethodsToWrapper = scope.forwardMethodsToWrapper;
+  var matchesName = scope.matchesName;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
@@ -2767,38 +3134,133 @@ var ShadowDOMPolyfill = {};
   }
 
   [
-    'getElementById',
+    'createComment',
+    'createDocumentFragment',
     'createElement',
     'createElementNS',
-    'createTextNode',
-    'createDocumentFragment',
     'createEvent',
     'createEventNS',
+    'createRange',
+    'createTextNode',
+    'getElementById',
   ].forEach(wrapMethod);
 
   var originalAdoptNode = document.adoptNode;
-  var originalWrite = document.write;
+
+  function adoptNodeNoRemove(node, doc) {
+    originalAdoptNode.call(doc.impl, unwrap(node));
+    adoptSubtree(node, doc);
+  }
+
+  function adoptSubtree(node, doc) {
+    if (node.shadowRoot)
+      doc.adoptNode(node.shadowRoot);
+    if (node instanceof ShadowRoot)
+      adoptOlderShadowRoots(node, doc);
+    for (var child = node.firstChild; child; child = child.nextSibling) {
+      adoptSubtree(child, doc);
+    }
+  }
+
+  function adoptOlderShadowRoots(shadowRoot, doc) {
+    var oldShadowRoot = shadowRoot.olderShadowRoot;
+    if (oldShadowRoot)
+      doc.adoptNode(oldShadowRoot);
+  }
 
   mixin(Document.prototype, {
     adoptNode: function(node) {
-      originalAdoptNode.call(this.impl, unwrap(node));
+      if (node.parentNode)
+        node.parentNode.removeChild(node);
+      adoptNodeNoRemove(node, this);
       return node;
     },
     elementFromPoint: function(x, y) {
       return elementFromPoint(this, this, x, y);
-    },
-    write: function(s) {
-      var all = this.querySelectorAll('*');
-      var last = all[all.length - 1];
-      while (last.nextSibling) {
-        last = last.nextSibling;
-      }
-      var p = last.parentNode;
-      p.lastChild_ = undefined;
-      last.nextSibling_ = undefined;
-      originalWrite.call(this.impl, s);
     }
   });
+
+  if (document.register) {
+    var originalRegister = document.register;
+    Document.prototype.register = function(tagName, object) {
+      var prototype = object.prototype;
+
+      // If we already used the object as a prototype for another custom
+      // element.
+      if (scope.nativePrototypeTable.get(prototype)) {
+        // TODO(arv): DOMException
+        throw new Error('NotSupportedError');
+      }
+
+      // Find first object on the prototype chain that already have a native
+      // prototype. Keep track of all the objects before that so we can create
+      // a similar structure for the native case.
+      var proto = Object.getPrototypeOf(prototype);
+      var nativePrototype;
+      var prototypes = [];
+      while (proto) {
+        nativePrototype = scope.nativePrototypeTable.get(proto);
+        if (nativePrototype)
+          break;
+        prototypes.push(proto);
+        proto = Object.getPrototypeOf(proto);
+      }
+
+      if (!nativePrototype) {
+        // TODO(arv): DOMException
+        throw new Error('NotSupportedError');
+      }
+
+      // This works by creating a new prototype object that is empty, but has
+      // the native prototype as its proto. The original prototype object
+      // passed into register is used as the wrapper prototype.
+
+      var newPrototype = Object.create(nativePrototype);
+      for (var i = prototypes.length - 1; i >= 0; i--) {
+        newPrototype = Object.create(newPrototype);
+      }
+
+      // Add callbacks if present.
+      // Names are taken from:
+      //   https://code.google.com/p/chromium/codesearch#chromium/src/third_party/WebKit/Source/bindings/v8/CustomElementConstructorBuilder.cpp&sq=package:chromium&type=cs&l=156
+      // and not from the spec since the spec is out of date.
+      [
+        'createdCallback',
+        'enteredDocumentCallback',
+        'leftDocumentCallback',
+        'attributeChangedCallback',
+      ].forEach(function(name) {
+        var f = prototype[name];
+        if (!f)
+          return;
+        newPrototype[name] = function() {
+          f.apply(wrap(this), arguments);
+        };
+      });
+
+      var nativeConstructor = originalRegister.call(unwrap(this), tagName,
+          {prototype: newPrototype});
+
+      function GeneratedWrapper(node) {
+        if (!node)
+          return document.createElement(tagName);
+        this.impl = node;
+      }
+      GeneratedWrapper.prototype = prototype;
+      GeneratedWrapper.prototype.constructor = GeneratedWrapper;
+
+      scope.constructorTable.set(newPrototype, GeneratedWrapper);
+      scope.nativePrototypeTable.set(prototype, newPrototype);
+
+      return GeneratedWrapper;
+    };
+
+    forwardMethodsToWrapper([
+      window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
+    ], [
+      'register',
+    ]);
+  }
 
   // We also override some of the methods on document.body and document.head
   // for convenience.
@@ -2806,9 +3268,11 @@ var ShadowDOMPolyfill = {};
     window.HTMLBodyElement,
     window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
     window.HTMLHeadElement,
+    window.HTMLHtmlElement,
   ], [
     'appendChild',
     'compareDocumentPosition',
+    'contains',
     'getElementsByClassName',
     'getElementsByTagName',
     'getElementsByTagNameNS',
@@ -2817,21 +3281,24 @@ var ShadowDOMPolyfill = {};
     'querySelectorAll',
     'removeChild',
     'replaceChild',
+    matchesName,
   ]);
 
   forwardMethodsToWrapper([
     window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
   ], [
     'adoptNode',
+    'contains',
+    'createComment',
     'createDocumentFragment',
     'createElement',
     'createElementNS',
     'createEvent',
     'createEventNS',
+    'createRange',
     'createTextNode',
     'elementFromPoint',
     'getElementById',
-    'write',
   ]);
 
   mixin(Document.prototype, GetElementsByInterface);
@@ -2898,8 +3365,9 @@ var ShadowDOMPolyfill = {};
     'hasFeature',
   ]);
 
-  scope.wrappers.Document = Document;
+  scope.adoptNodeNoRemove = adoptNodeNoRemove;
   scope.wrappers.DOMImplementation = DOMImplementation;
+  scope.wrappers.Document = Document;
 
 })(this.ShadowDOMPolyfill);
 
@@ -3046,6 +3514,99 @@ var ShadowDOMPolyfill = {};
 (function(scope) {
   'use strict';
 
+  var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
+  var unwrapIfNeeded = scope.unwrapIfNeeded;
+  var wrap = scope.wrap;
+
+  var OriginalRange = window.Range;
+
+  function Range(impl) {
+    this.impl = impl;
+  }
+  Range.prototype = {
+    get startContainer() {
+      return wrap(this.impl.startContainer);
+    },
+    get endContainer() {
+      return wrap(this.impl.endContainer);
+    },
+    get commonAncestorContainer() {
+      return wrap(this.impl.commonAncestorContainer);
+    },
+    setStart: function(refNode,offset) {
+      this.impl.setStart(unwrapIfNeeded(refNode), offset);
+    },
+    setEnd: function(refNode,offset) {
+      this.impl.setEnd(unwrapIfNeeded(refNode), offset);
+    },
+    setStartBefore: function(refNode) {
+      this.impl.setStartBefore(unwrapIfNeeded(refNode));
+    },
+    setStartAfter: function(refNode) {
+      this.impl.setStartAfter(unwrapIfNeeded(refNode));
+    },
+    setEndBefore: function(refNode) {
+      this.impl.setEndBefore(unwrapIfNeeded(refNode));
+    },
+    setEndAfter: function(refNode) {
+      this.impl.setEndAfter(unwrapIfNeeded(refNode));
+    },
+    selectNode: function(refNode) {
+      this.impl.selectNode(unwrapIfNeeded(refNode));
+    },
+    selectNodeContents: function(refNode) {
+      this.impl.selectNodeContents(unwrapIfNeeded(refNode));
+    },
+    compareBoundaryPoints: function(how, sourceRange) {
+      return this.impl.compareBoundaryPoints(how, unwrap(sourceRange));
+    },
+    extractContents: function() {
+      return wrap(this.impl.extractContents());
+    },
+    cloneContents: function() {
+      return wrap(this.impl.cloneContents());
+    },
+    insertNode: function(node) {
+      this.impl.insertNode(unwrapIfNeeded(node));
+    },
+    surroundContents: function(newParent) {
+      this.impl.surroundContents(unwrapIfNeeded(newParent));
+    },
+    cloneRange: function() {
+      return wrap(this.impl.cloneRange());
+    },
+    isPointInRange: function(node, offset) {
+      return this.impl.isPointInRange(unwrapIfNeeded(node), offset);
+    },
+    comparePoint: function(node, offset) {
+      return this.impl.comparePoint(unwrapIfNeeded(node), offset);
+    },
+    intersectsNode: function(node) {
+      return this.impl.intersectsNode(unwrapIfNeeded(node));
+    }
+  };
+
+  // IE9 does not have createContextualFragment.
+  if (OriginalRange.prototype.createContextualFragment) {
+    Range.prototype.createContextualFragment = function(html) {
+      return wrap(this.impl.createContextualFragment(html));
+    };
+  }
+
+  registerWrapper(window.Range, Range);
+
+  scope.wrappers.Range = Range;
+
+})(this.ShadowDOMPolyfill);
+
+// Copyright 2013 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
   var isWrapperFor = scope.isWrapperFor;
 
   // This is a list of the elements we currently override the global constructor
@@ -3171,31 +3732,34 @@ var ShadowDOMPolyfill = {};
   window.dartExperimentalFixupGetTag = function(originalGetTag) {
     var NodeList = ShadowDOMPolyfill.wrappers.NodeList;
     var ShadowRoot = ShadowDOMPolyfill.wrappers.ShadowRoot;
-    var isWrapper = ShadowDOMPolyfill.isWrapper;
-    var unwrap = ShadowDOMPolyfill.unwrap;
+    var unwrapIfNeeded = ShadowDOMPolyfill.unwrapIfNeeded;
     function getTag(obj) {
+      // TODO(jmesserly): do we still need these?
       if (obj instanceof NodeList) return 'NodeList';
       if (obj instanceof ShadowRoot) return 'ShadowRoot';
       if (obj instanceof MutationRecord) return 'MutationRecord';
       if (obj instanceof MutationObserver) return 'MutationObserver';
 
-      if (isWrapper(obj)) {
-        obj = unwrap(obj);
-
-        // Fix up class names for Firefox. For some of them like
-        // HTMLFormElement and HTMLInputElement, the "constructor" property of
-        // the unwrapped nodes points at the wrapper for some reason.
-        // TODO(jmesserly): figure out why this is happening.
+      var unwrapped = unwrapIfNeeded(obj);
+      if (obj !== unwrapped) {
+        // Fix up class names for Firefox.
+        // For some of them (like HTMLFormElement and HTMLInputElement),
+        // the "constructor" property of the unwrapped nodes points at the
+        // wrapper.
+        // Note: it is safe to check for the GeneratedWrapper string because
+        // we know it is some kind of Shadow DOM wrapper object.
         var ctor = obj.constructor;
-        if (ctor && ctor._ShadowDOMPolyfill$isGeneratedWrapper) {
+        if (ctor && ctor.name == 'GeneratedWrapper') {
           var name = ctor._ShadowDOMPolyfill$cacheTag_;
           if (!name) {
-            name = Object.prototype.toString.call(obj);
+            name = Object.prototype.toString.call(unwrapped);
             name = name.substring(8, name.length - 1);
             ctor._ShadowDOMPolyfill$cacheTag_ = name;
           }
           return name;
         }
+
+        obj = unwrapped;
       }
       return originalGetTag(obj);
     }

@@ -8,6 +8,9 @@ part of dart.convert;
  * This class splits [String] values into individual lines.
  */
 class LineSplitter extends Converter<String, List<String>> {
+
+  const LineSplitter();
+
   List<String> convert(String data) {
     var lines = new List<String>();
 

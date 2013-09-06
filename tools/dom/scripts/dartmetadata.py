@@ -202,11 +202,16 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('int|String|Null')",
     ],
 
-    'MessageEvent.ports': ["@Creates('JSExtendableArray')"],
-
     'MessageEvent.data': [
       "@annotation_Creates_SerializedScriptValue",
       "@annotation_Returns_SerializedScriptValue",
+    ],
+
+    'MessageEvent.ports': ["@Creates('JSExtendableArray')"],
+
+    'MessageEvent.source': [
+      "@Creates('Null')",
+      "@Returns('EventTarget|=Object')",
     ],
 
     'Metadata.modificationTime': [
@@ -502,10 +507,10 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   'WebGLRenderingContext': _webgl_annotations,
   'WebSocket': _all_but_ie9_annotations,
   'Worker': _all_but_ie9_annotations,
-  'XMLHttpRequest.onloadend': _all_but_ie9_annotations,
-  'XMLHttpRequest.onprogress': _all_but_ie9_annotations,
   'XMLHttpRequest.overrideMimeType': _no_ie_annotations,
   'XMLHttpRequest.response': _all_but_ie9_annotations,
+  'XMLHttpRequestEventTarget.onloadend': _all_but_ie9_annotations,
+  'XMLHttpRequestEventTarget.onprogress': _all_but_ie9_annotations,
   'XMLHttpRequestProgressEvent': _webkit_experimental_annotations,
   'XSLTProcessor': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",

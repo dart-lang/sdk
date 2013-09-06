@@ -150,8 +150,8 @@ testSwitch() {
   analyze("switch (1.0) { case 1.0: break; case 1.5: break; }",
       [], []);
   analyze("switch (null) { case 1.0: break; case 2: break; }",
-      [MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE, 
-       MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE], 
+      [MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
+       MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE],
       [MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL]);
 }
 
@@ -1497,7 +1497,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
   if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
-  compiler.diagnosticHandler = createHandler(text);
+  compiler.diagnosticHandler = createHandler(compiler, text);
 
   LibraryElement library = mockLibrary(compiler, text);
 
@@ -1536,29 +1536,13 @@ analyzeTopLevel(String text, [expectedWarnings]) {
   compiler.diagnosticHandler = null;
 }
 
-api.DiagnosticHandler createHandler(String text) {
-  return (uri, int begin, int end, String message, kind) {
-    SourceFile sourceFile;
-    if (uri == null) {
-      sourceFile = new SourceFile('analysis', text);
-    } else {
-      sourceFile = compiler.sourceFiles[uri.toString()];
-    }
-    if (sourceFile != null) {
-      print(sourceFile.getLocationMessage(message, begin, end, true, (x) => x));
-    } else {
-      print(message);
-    }
-  };
-}
-
 analyze(String text, [expectedWarnings, expectedErrors]) {
   if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
   if (expectedErrors == null) expectedErrors = [];
   if (expectedErrors is !List) expectedErrors = [expectedErrors];
 
-  compiler.diagnosticHandler = createHandler(text);
+  compiler.diagnosticHandler = createHandler(compiler, text);
 
   Token tokens = scan(text);
   NodeListener listener = new NodeListener(compiler, null);

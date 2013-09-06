@@ -174,6 +174,24 @@ main() {
     buildShouldSucceed();
   });
 
+  test("a transformer is added to an existing phase during isPrimary", () {
+    var rewrite = new RewriteTransformer("blub", "blab");
+    initGraph(["app|foo.blub", "app|bar.blib"], {"app": [[rewrite]]});
+
+    rewrite.pauseIsPrimary("app|foo.blub");
+    updateSources(["app|foo.blub", "app|bar.blib"]);
+    // Ensure we're waiting on [rewrite.isPrimary].
+    schedule(pumpEventQueue);
+
+    updateTransformers("app", [
+      [rewrite, new RewriteTransformer("blib", "blob")]
+    ]);
+    rewrite.resumeIsPrimary("app|foo.blub");
+    expectAsset("app|foo.blab", "foo.blab");
+    expectAsset("app|bar.blob", "bar.blob");
+    buildShouldSucceed();
+  });
+
   test("a new transformer can see pass-through assets", () {
     var rewrite = new RewriteTransformer("zip", "zap");
     initGraph(["app|foo.blub"], {"app": [[rewrite]]});
@@ -232,6 +250,33 @@ main() {
 
     updateTransformers("pkg2", [[rewrite]]);
     expectAsset("pkg1|foo.out", "foo.inc");
+    buildShouldSucceed();
+  });
+
+  // Regression test.
+  test("a phase is added, then an input is removed and re-added", () {
+    var rewrite = new RewriteTransformer("txt", "mid");
+    initGraph(["app|foo.txt"], {
+      "app": [[rewrite]]
+    });
+
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.mid", "foo.mid");
+    buildShouldSucceed();
+
+    updateTransformers("app", [
+      [rewrite],
+      [new RewriteTransformer("mid", "out")]
+    ]);
+    expectAsset("app|foo.out", "foo.mid.out");
+    buildShouldSucceed();
+
+    removeSources(["app|foo.txt"]);
+    expectNoAsset("app|foo.out");
+    buildShouldSucceed();
+
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.out", "foo.mid.out");
     buildShouldSucceed();
   });
 }

@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
 void testClientCertificate() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   SecureServerSocket.bind(HOST_NAME,
                           0,
                           CERTIFICATE,
@@ -33,14 +34,14 @@ void testClientCertificate() {
         clientEnd.close();
         serverEnd.close();
         server.close();
-        port.close();
+        asyncEnd();
       });
     });
   });
 }
 
 void testRequiredClientCertificate() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   SecureServerSocket.bind(HOST_NAME,
                           0,
                           CERTIFICATE,
@@ -61,14 +62,14 @@ void testRequiredClientCertificate() {
         clientEnd.close();
         serverEnd.close();
         server.close();
-        port.close();
+        asyncEnd();
       });
     });
   });
 }
 
 void testNoClientCertificate() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   SecureServerSocket.bind(HOST_NAME,
                           0,
                           CERTIFICATE,
@@ -82,14 +83,14 @@ void testNoClientCertificate() {
         clientEnd.close();
         serverEnd.close();
         server.close();
-        port.close();
+        asyncEnd();
       });
     });
   });
 }
 
 void testNoRequiredClientCertificate() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   bool clientError = false;
   SecureServerSocket.bind(HOST_NAME,
                           0,
@@ -104,7 +105,7 @@ void testNoRequiredClientCertificate() {
       clientDone.then((_) {
         Expect.isTrue(clientError);
         server.close();
-        port.close();
+        asyncEnd();
       });
     });
   });

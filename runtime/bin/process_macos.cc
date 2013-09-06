@@ -151,7 +151,6 @@ class ExitCodeHandler {
 
   // Get the write end of the pipe.
   static int WakeUpFd() {
-    ASSERT(initialized_);
     return sig_chld_fds_[1];
   }
 

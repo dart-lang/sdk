@@ -8,7 +8,7 @@ patch class _Directory {
   /* patch */ static _createTemp(String template) native "Directory_CreateTemp";
   /* patch */ static int _exists(String path) native "Directory_Exists";
   /* patch */ static _create(String path) native "Directory_Create";
-  /* patch */ static _delete(String path, bool recursive)
+  /* patch */ static _deleteNative(String path, bool recursive)
       native "Directory_Delete";
   /* patch */ static _rename(String path, String newPath)
       native "Directory_Rename";

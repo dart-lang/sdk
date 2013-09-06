@@ -32,6 +32,8 @@
 library intl;
 
 import 'dart:collection';
+import 'dart:convert';
+import 'package:meta/meta.dart';
 import 'src/intl_helpers.dart';
 import 'dart:math';
 import 'date_symbols.dart';

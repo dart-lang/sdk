@@ -7,10 +7,11 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void testArguments() {
   Expect.throws(() => RawServerSocket.bind("127.0.0.1", 65536));
@@ -19,68 +20,66 @@ void testArguments() {
 }
 
 void testSimpleBind() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((s) {
     Expect.isTrue(s.port > 0);
-    port.close();
+    asyncEnd();
   });
 }
 
 void testInvalidBind() {
-  int count = 0;
-  ReceivePort port = new ReceivePort();
-  port.receive((_, __) { count++; if (count == 3) port.close(); });
-
   // Bind to a unknown DNS name.
+  asyncStart();
   RawServerSocket.bind("ko.faar.__hest__", 0)
       .then((_) { Expect.fail("Failure expected"); } )
       .catchError((error) {
         Expect.isTrue(error is SocketException);
-        port.toSendPort().send(1);
+        asyncEnd();
       });
 
   // Bind to an unavaliable IP-address.
+  asyncStart();
   RawServerSocket.bind("8.8.8.8", 0)
       .then((_) { Expect.fail("Failure expected"); } )
       .catchError((error) {
         Expect.isTrue(error is SocketException);
-        port.toSendPort().send(1);
+        asyncEnd();
       });
 
   // Bind to a port already in use.
+  asyncStart();
   RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0)
       .then((s) {
           RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, s.port)
             .then((t) {
               Expect.fail("Multiple listens on same port");
-              port.toSendPort().send(1);
             })
             .catchError((error) {
               Expect.isTrue(error is SocketException);
-              port.toSendPort().send(1);
+              asyncEnd();
             });
       });
 }
 
 void testSimpleConnect() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((_) { });
     RawSocket.connect("127.0.0.1", server.port).then((_) {
       server.close();
-      port.close();
+      asyncEnd();
     });
   });
 }
 
 void testCloseOneEnd(String toClose) {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   Completer serverDone = new Completer();
   Completer serverEndDone = new Completer();
   Completer clientEndDone = new Completer();
   Future.wait([serverDone.future, serverEndDone.future, clientEndDone.future])
       .then((_) {
-        port.close();
+        asyncEnd();
       });
   RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((serverConnection) {
@@ -111,13 +110,13 @@ void testCloseOneEnd(String toClose) {
 }
 
 void testServerListenAfterConnect() {
-  ReceivePort port = new ReceivePort();
+  asyncStart();
   RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     Expect.isTrue(server.port > 0);
     RawSocket.connect("127.0.0.1", server.port).then((_) {
       server.listen((_) {
         server.close();
-        port.close();
+        asyncEnd();
       });
     });
   });
@@ -128,7 +127,7 @@ void testSimpleReadWrite({bool dropReads}) {
   // writes and the server echos. When the server has finished its
   // echo it half-closes. When the client gets the close event is
   // closes fully.
-  ReceivePort port = new ReceivePort();
+  asyncStart();
 
   const messageSize = 1000;
   int serverReadCount = 0;
@@ -245,7 +244,7 @@ void testSimpleReadWrite({bool dropReads}) {
       },
       onDone: () {
         Expect.isTrue(closedEventReceived);
-        port.close();
+        asyncEnd();
       });
     });
   });
@@ -256,15 +255,14 @@ testPauseServerSocket() {
   var acceptCount = 0;
   var resumed = false;
 
-  ReceivePort port = new ReceivePort();
-
+  asyncStart();
   RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     Expect.isTrue(server.port > 0);
     var subscription = server.listen((_) {
       Expect.isTrue(resumed);
       if (++acceptCount == socketCount) {
         server.close();
-        port.close();
+        asyncEnd();
       }
     });
 
@@ -297,8 +295,7 @@ void testPauseSocket() {
   var writeSubscription;
   var readSubscription;
 
-  ReceivePort port = new ReceivePort();
-
+  asyncStart();
   RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     Expect.isTrue(server.port > 0);
     server.listen((client) {
@@ -351,7 +348,7 @@ void testPauseSocket() {
             if (bytesRead == messageSize) {
               if (++pauseResumeCount == loopCount) {
                 socket.close();
-                port.close();
+                asyncEnd();
               } else {
                 readSubscription.pause();
               }
@@ -380,6 +377,7 @@ void testPauseSocket() {
 }
 
 main() {
+  asyncStart();
   testArguments();
   testSimpleBind();
   testCloseOneEnd("client");
@@ -391,4 +389,5 @@ main() {
   testSimpleReadWrite(dropReads: true);
   testPauseServerSocket();
   testPauseSocket();
+  asyncEnd();
 }

@@ -153,10 +153,9 @@ class SourceVisitor implements ASTVisitor {
   /// A flag to indicate that a newline should be emitted before the next token.
   bool needsNewline = false;
 
-  /// A flag to indicate that user introduced newlines should be emitted before
-  /// the next token.
-  bool preservePrecedingNewlines = false;
-
+  /// Used for matching EOL comments
+  final twoSlashes = new RegExp(r'//[^/]');
+  
   /// Initialize a newly created visitor to write source code representing
   /// the visited nodes to the given [writer].
   SourceVisitor(FormatterOptions options, this.lineInfo) :
@@ -322,14 +321,11 @@ class SourceVisitor implements ASTVisitor {
     var directives = node.directives;
     visit(scriptTag);
 
-    preservePrecedingNewlines = true;
     visitNodes(directives, separatedBy: newlines, followedBy: newlines);
 
-    preservePrecedingNewlines = true;
     visitNodes(node.declarations, separatedBy: newlines);
 
     // Handle trailing whitespace
-    preservePrecedingNewlines = true;
     token(node.endToken /* EOF */);
   }
 
@@ -1033,7 +1029,6 @@ class SourceVisitor implements ASTVisitor {
   /// Indicate that at least one newline should be emitted and possibly more
   /// if the source has them.
   newlines() {
-    preservePrecedingNewlines = true;
     needsNewline = true;
   }
 
@@ -1042,17 +1037,13 @@ class SourceVisitor implements ASTVisitor {
       if (needsNewline) {
         minNewlines = max(1, minNewlines);
       }
-      if (preservePrecedingNewlines || minNewlines > 0) {
-        var emitted = emitPrecedingNewlines(token, min: minNewlines);
-        preservePrecedingNewlines = false;
-        if (emitted > 0) {
-          needsNewline = false;
-        }
+      var emitted = emitPrecedingCommentsAndNewlines(token, min: minNewlines);
+      if (emitted > 0) {
+        needsNewline = false;
       }
       if (precededBy !=null) {
         precededBy();
       }
-      emitBlockComments(token);
       append(token.lexeme);
       if (followedBy != null) {
         followedBy();
@@ -1098,37 +1089,40 @@ class SourceVisitor implements ASTVisitor {
     writer.unindent();
   }
 
-  emitBlockComments(Token token) {
-    var comment = token.precedingComments;
-    while (comment != null) {
-      if (isBlock(comment)) {
-        append(comment.toString().trim());
-        if (linesBetween(comment.end, token.offset) >= 1) {
-          writer.newline();
-        } else {
-          space();
-        }
-      }
-      comment = comment.next;
-    }
-  }
-
-  /// Emit any detected newlines or a minimum as specified by [min].
-  int emitPrecedingNewlines(Token token, {min: 0}) {
+  
+  /// Emit any detected comments and newlines or a minimum as specified 
+  /// by [min].
+  int emitPrecedingCommentsAndNewlines(Token token, {min: 0}) {
+    
     var comment = token.precedingComments;
     var currentToken = comment != null ? comment : token;
+    
+    //Handle EOLs before newlines
+    if (isAtEOL(comment)) {
+      emitComment(comment, previousToken);
+      comment = comment.next;
+      currentToken = comment != null ? comment : token;
+    }
+    
     var lines = max(min, countNewlinesBetween(previousToken, currentToken));
     writer.newlines(lines);
-
+    
+    var previousToken = currentToken.previous;
+    
     while (comment != null) {
-      if (!isBlock(comment)) {
-        append(comment.toString().trim());
-        var nextToken = comment.next != null ? comment.next : token;
-        var postCommentNewlines =
-            max(1, countNewlinesBetween(comment, nextToken));
-        writer.newlines(postCommentNewlines);
-        lines += postCommentNewlines;
+
+      emitComment(comment, previousToken);
+      
+      var nextToken = comment.next != null ? comment.next : token;
+      var newlines = calculateNewlinesBetweenComments(comment, nextToken);
+      if (newlines > 0) {
+        writer.newlines(newlines);
+        lines += newlines;
+      } else if (!isEOF(token)) {
+        space();
       }
+      
+      previousToken = comment;
       comment = comment.next;
     }
 
@@ -1136,6 +1130,31 @@ class SourceVisitor implements ASTVisitor {
     return lines;
   }
 
+  /// Test if this [comment] is at the end of a line.
+  bool isAtEOL(Token comment) => 
+      comment != null && comment.toString().trim().startsWith(twoSlashes) && 
+      sameLine(comment, previousToken);
+
+  /// Emit this [comment], inserting leading whitespace if appropriate.
+  emitComment(Token comment, Token previousToken) {
+    if (!writer.currentLine.isWhitespace() && !isBlock(comment)) {
+      var ws = countSpacesBetween(previousToken, comment);
+      // Preserve one space but no more
+      if (ws > 0) {
+        space();
+      }
+    }
+    
+    append(comment.toString().trim());
+  }
+
+  /// Test if this token is an EOF token.
+  bool isEOF(Token token) => token.type == TokenType.EOF;
+  
+  /// Count spaces between these tokens.  Tokens on different lines return 0.
+  int countSpacesBetween(Token last, Token current) => isEOF(last) || 
+      countNewlinesBetween(last, current) > 0 ? 0 : current.offset - last.end;  
+     
   /// Count the blanks between these two nodes.
   int countBlankLinesBetween(ASTNode lastNode, ASTNode currentNode) =>
       countNewlinesBetween(lastNode.endToken, currentNode.beginToken);
@@ -1148,7 +1167,7 @@ class SourceVisitor implements ASTVisitor {
   int countSucceedingNewlines(ASTNode node) => node == null ? 0 :
       countNewlinesBetween(node.endToken, node.endToken.next);
 
-  /// Count the blanks between these two nodes.
+  /// Count the blanks between these two tokens.
   int countNewlinesBetween(Token last, Token current) {
     if (last == null || current == null) {
       return 0;
@@ -1156,11 +1175,40 @@ class SourceVisitor implements ASTVisitor {
 
     return linesBetween(last.end - 1, current.offset);
   }
+  
+  /// Calculate the newlines that should separate these comments.
+  int calculateNewlinesBetweenComments(Token last, Token current) {
+    // Insist on a newline after doc comments or single line comments
+    // (NOTE that EOL comments have already been processed).
+    if (isOldSingleLineDocComment(last) || isSingleLineComment(last)) {
+      return max(1, countNewlinesBetween(last, current)); 
+    } else {
+      return countNewlinesBetween(last, current);
+    }
+  }
+  
+  /// Single line multi-line comments (e.g., '/** like this */').
+  bool isOldSingleLineDocComment(Token comment) =>
+      comment.lexeme.startsWith(r'/**') && singleLine(comment);
+  
+  /// Test if this [token] spans just one line.
+  bool singleLine(Token token) => linesBetween(token.offset, token.end) < 1;
 
-  /// Test if this [comment] is a block comment.
+  /// Test if token [first] is on the same line as [second].
+  bool sameLine(Token first, Token second) =>
+      countNewlinesBetween(first, second) == 0;
+   
+  /// Test if this is a multi-line [comment] (e.g., '/* ...' or '/** ...')
+  bool isMultiLineComment(Token comment) => 
+      comment.type == TokenType.MULTI_LINE_COMMENT;
+  
+  /// Test if this is a single-line [comment] (e.g., '// ...')
+  bool isSingleLineComment(Token comment) => 
+      comment.type == TokenType.SINGLE_LINE_COMMENT;
+  
+  /// Test if this [comment] is a block comment (e.g., '/* like this */')..
   bool isBlock(Token comment) =>
-      comment.type != TokenType.SINGLE_LINE_COMMENT &&
-        linesBetween(comment.offset, comment.end) < 1;
+      isMultiLineComment(comment) && singleLine(comment);
 
   /// Count the lines between two offsets.
   int linesBetween(int lastOffset, int currentOffset) {

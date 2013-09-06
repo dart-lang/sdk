@@ -28,14 +28,14 @@ import 'common.dart';
  * elements annotated with `@CustomTag`.
  */
 class ScriptCompactor extends Transformer {
-  /** Only run this transformer on .html files. */
-  final String allowedExtensions = ".html";
+  /** Only run on entry point .html files. */
+  Future<bool> isPrimary(Asset input) =>
+      new Future.value(isPrimaryHtml(input.id));
 
   Future apply(Transform transform) {
     var id = transform.primaryInput.id;
     var logger = transform.logger;
-    return transform.primaryInput.readAsString().then((content) {
-      var document = parseHtml(content, id.path, logger);
+    return readPrimaryAsHtml(transform).then((document) {
       var libraries = [];
       bool changed = false;
       var dartLoaderTag = null;
@@ -68,7 +68,7 @@ class ScriptCompactor extends Transformer {
       }
 
       if (!changed) {
-        transform.addOutput(new Asset.fromString(id, content));
+        transform.addOutput(transform.primaryInput);
         return;
       }
 
@@ -87,7 +87,7 @@ class ScriptCompactor extends Transformer {
         document.body.insertBefore(bootstrapScript, dartLoaderTag);
       }
 
-      var urls = libraries.map((id) => importUrlFor(id, bootstrapId, logger))
+      var urls = libraries.map((id) => assetUrlFor(id, bootstrapId, logger))
           .where((url) => url != null).toList();
       var buffer = new StringBuffer()..write(_header);
       for (int i = 0; i < urls.length; i++) {
@@ -100,27 +100,6 @@ class ScriptCompactor extends Transformer {
       transform.addOutput(new Asset.fromString(bootstrapId, buffer.toString()));
       transform.addOutput(new Asset.fromString(id, document.outerHtml));
     });
-  }
-
-  /**
-   * Generate the import url for a file described by [id], referenced by a file
-   * with [sourceId].
-   */
-  String importUrlFor(AssetId id, AssetId sourceId, TransformLogger logger) {
-    // use package: urls if possible
-    if (id.path.startsWith('lib/')) {
-      return 'package:${id.package}/${id.path.substring(4)}';
-    }
-
-    // Use relative urls only if it's possible.
-    if (id.package != sourceId.package) {
-      logger.error("don't know how to import $id from $sourceId");
-      return null;
-    }
-
-    var builder = path.url;
-    return builder.relative(builder.join('/', id.path),
-        from: builder.join('/', builder.dirname(sourceId.path)));
   }
 }
 

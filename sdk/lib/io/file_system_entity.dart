@@ -168,77 +168,6 @@ FileStat: type $type
 abstract class FileSystemEntity {
   String get path;
 
-  external static _getType(String path, bool followLinks);
-  external static _identical(String path1, String path2);
-
-  static int _getTypeSync(String path, bool followLinks) {
-    var result = _getType(path, followLinks);
-    _throwIfError(result, 'Error getting type of FileSystemEntity');
-    return result;
-  }
-
-  static Future<int> _getTypeAsync(String path, bool followLinks) {
-    // Get a new file service port for each request.  We could also cache one.
-    var service = _FileUtils._newServicePort();
-    List request = new List(3);
-    request[0] = _TYPE_REQUEST;
-    request[1] = path;
-    request[2] = followLinks;
-    return service.call(request).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "Error getting type", path);
-      }
-      return response;
-    });
-  }
-
-  /**
-   * Synchronously checks whether two paths refer to the same object in the
-   * file system. Returns a [:Future<bool>:] that completes with the result.
-   *
-   * Comparing a link to its target returns false, as does comparing two links
-   * that point to the same target.  To check the target of a link, use
-   * Link.target explicitly to fetch it.  Directory links appearing
-   * inside a path are followed, though, to find the file system object.
-   *
-   * Completes the returned Future with an error if one of the paths points
-   * to an object that does not exist.
-   */
-  static Future<bool> identical(String path1, String path2) {
-    // Get a new file service port for each request.  We could also cache one.
-    var service = _FileUtils._newServicePort();
-    List request = new List(3);
-    request[0] = _IDENTICAL_REQUEST;
-    request[1] = path1;
-    request[2] = path2;
-    return service.call(request).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response,
-            "Error in FileSystemEntity.identical($path1, $path2)", "");
-      }
-      return response;
-    });
-  }
-
-
-  /**
-   * Synchronously checks whether two paths refer to the same object in the
-   * file system.
-   *
-   * Comparing a link to its target returns false, as does comparing two links
-   * that point to the same target.  To check the target of a link, use
-   * Link.target explicitly to fetch it.  Directory links appearing
-   * inside a path are followed, though, to find the file system object.
-   *
-   * Throws an error if one of the paths points to an object that does not
-   * exist.
-   */
-  static bool identicalSync(String path1, String path2) {
-    var result = _identical(path1, path2);
-    _throwIfError(result, 'Error in FileSystemEntity.identicalSync');
-    return result;
-  }
-
   /**
    * Checks whether the file system entity with this path exists. Returns
    * a [:Future<bool>:] that completes with the result.
@@ -316,6 +245,129 @@ abstract class FileSystemEntity {
    */
   FileStat statSync();
 
+  /**
+   * Deletes this [FileSystemEntity].
+   *
+   * If the [FileSystemEntity] is a directory, and if [recursive] is false,
+   * the directory must be empty. Otherwise, if [recursive] is true, the
+   * directory and all sub-directories and files in the directories are
+   * deleted. Links are not followed when deleting recursively. Only the link
+   * is deleted, not its target.
+   *
+   * If [recursive] is true, the [FileSystemEntity] is deleted even if the type
+   * of the [FileSystemEntity] doesn't match the content of the file system.
+   * This behavior allows [delete] to be used to unconditionally delete any file
+   * system object.
+   *
+   * Returns a [:Future<FileSystemEntity>:] that completes with this
+   * [FileSystemEntity] when the deletion is done. If the [FileSystemEntity]
+   * cannot be deleted, the future completes with an exception.
+   */
+  Future<FileSystemEntity> delete({recursive: false})
+      => _delete(recursive: recursive);
+
+  /**
+   * Synchronously deletes this [FileSystemEntity].
+   *
+   * If the [FileSystemEntity] is a directory, and if [recursive] is false,
+   * the directory must be empty. Otherwise, if [recursive] is true, the
+   * directory and all sub-directories and files in the directories are
+   * deleted. Links are not followed when deleting recursively. Only the link
+   * is deleted, not its target.
+   *
+   * If [recursive] is true, the [FileSystemEntity] is deleted even if the type
+   * of the [FileSystemEntity] doesn't match the content of the file system.
+   * This behavior allows [deleteSync] to be used to unconditionally delete any
+   * file system object.
+   *
+   * Throws an exception if the [FileSystemEntity] cannot be deleted.
+   */
+  void deleteSync({recursive: false})
+      => _deleteSync(recursive: recursive);
+
+
+  /**
+   * Start watch the [FileSystemEntity] for changes.
+   *
+   * The implementation uses platform-depending event-based APIs for receiving
+   * file-system notifixations, thus behvaiour depends on the platform.
+   *
+   *   * `Windows`: Uses `ReadDirectoryChangesW`. The implementation supports
+   *     only watching dirctories but supports recursive watching.
+   *   * `Linux`: Uses `inotify`. The implementation supports watching both
+   *     files and dirctories, but doesn't support recursive watching.
+   *   * `Mac OS`: Uses `FSEvents`. The implementation supports watching both
+   *     files and dirctories, and also recursive watching. Note that FSEvents
+   *     always use recursion internally, so when disabled, some events are
+   *     ignored.
+   *
+   * The system will start listen for events once the returned [Stream] is
+   * being listened to, not when the call to [watch] is issued. Note that the
+   * returned [Stream] is endless. To stop the [Stream], simply cancel the
+   * subscription.
+   */
+  Stream<FileSystemEvent> watch({int events: FileSystemEvent.ALL,
+                                 bool recursive: false})
+     => new _FileSystemWatcher(_trimTrailingPathSeparators(path),
+                               events,
+                               recursive).stream;
+
+  Future<FileSystemEntity> _delete({recursive: false});
+  void _deleteSync({recursive: false});
+
+  /**
+   * Synchronously checks whether two paths refer to the same object in the
+   * file system. Returns a [:Future<bool>:] that completes with the result.
+   *
+   * Comparing a link to its target returns false, as does comparing two links
+   * that point to the same target.  To check the target of a link, use
+   * Link.target explicitly to fetch it.  Directory links appearing
+   * inside a path are followed, though, to find the file system object.
+   *
+   * Completes the returned Future with an error if one of the paths points
+   * to an object that does not exist.
+   */
+  static Future<bool> identical(String path1, String path2) {
+    // Get a new file service port for each request.  We could also cache one.
+    var service = _FileUtils._newServicePort();
+    List request = new List(3);
+    request[0] = _IDENTICAL_REQUEST;
+    request[1] = path1;
+    request[2] = path2;
+    return service.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response,
+            "Error in FileSystemEntity.identical($path1, $path2)", "");
+      }
+      return response;
+    });
+  }
+
+
+  /**
+   * Synchronously checks whether two paths refer to the same object in the
+   * file system.
+   *
+   * Comparing a link to its target returns false, as does comparing two links
+   * that point to the same target.  To check the target of a link, use
+   * Link.target explicitly to fetch it.  Directory links appearing
+   * inside a path are followed, though, to find the file system object.
+   *
+   * Throws an error if one of the paths points to an object that does not
+   * exist.
+   */
+  static bool identicalSync(String path1, String path2) {
+    var result = _identical(path1, path2);
+    _throwIfError(result, 'Error in FileSystemEntity.identicalSync');
+    return result;
+  }
+
+  /**
+   * Test if [watch] is supported on the current system.
+   *
+   * Mac OS 10.6 and below is not supported.
+   */
+  static bool get isWatchSupported => _FileSystemWatcher.isSupported;
 
   /**
    * Finds the type of file system object that a path points to. Returns
@@ -347,7 +399,6 @@ abstract class FileSystemEntity {
    */
   static FileSystemEntityType typeSync(String path, {bool followLinks: true})
       => FileSystemEntityType._lookup(_getTypeSync(path, followLinks));
-
 
   /**
    * Checks if type(path, followLinks: false) returns
@@ -389,12 +440,150 @@ abstract class FileSystemEntity {
   static bool isDirectorySync(String path) =>
       (_getTypeSync(path, true) == FileSystemEntityType.DIRECTORY._type);
 
+  external static _getType(String path, bool followLinks);
+  external static _identical(String path1, String path2);
 
-  static _throwIfError(Object result, String msg) {
+  static int _getTypeSync(String path, bool followLinks) {
+    var result = _getType(path, followLinks);
+    _throwIfError(result, 'Error getting type of FileSystemEntity');
+    return result;
+  }
+
+  static Future<int> _getTypeAsync(String path, bool followLinks) {
+    // Get a new file service port for each request.  We could also cache one.
+    var service = _FileUtils._newServicePort();
+    List request = new List(3);
+    request[0] = _TYPE_REQUEST;
+    request[1] = path;
+    request[2] = followLinks;
+    return service.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response, "Error getting type", path);
+      }
+      return response;
+    });
+  }
+
+  static _throwIfError(Object result, String msg, [String path]) {
     if (result is OSError) {
-      throw new FileException(msg, result);
+      throw new FileException(msg, path, result);
     } else if (result is ArgumentError) {
       throw result;
     }
   }
+
+  static String _trimTrailingPathSeparators(String path) {
+    // Don't handle argument errors here.
+    if (path is! String) return path;
+    if (Platform.operatingSystem == 'windows') {
+      while (path.length > 1 &&
+             (path.endsWith(Platform.pathSeparator) ||
+              path.endsWith('/'))) {
+        path = path.substring(0, path.length - 1);
+      }
+    } else {
+      while (path.length > 1 && path.endsWith(Platform.pathSeparator)) {
+        path = path.substring(0, path.length - 1);
+      }
+    }
+    return path;
+  }
+}
+
+
+/**
+ * Base event class emitted by FileSystemWatcher.
+ */
+class FileSystemEvent {
+  static const int CREATE = 1 << 0;
+  static const int MODIFY = 1 << 1;
+  static const int DELETE = 1 << 2;
+  static const int MOVE = 1 << 3;
+  static const int ALL = CREATE | MODIFY | DELETE | MOVE;
+
+  static const int _MODIFY_ATTRIBUTES = 1 << 4;
+
+  /**
+   * The type of event. See [FileSystemEvent] for a list of events.
+   */
+  final int type;
+
+  /**
+   * The path that triggered the event. Depending on the platform and the
+   * FileSystemEntity, the path may be relative.
+   */
+  final String path;
+
+  FileSystemEvent._(this.type, this.path);
+}
+
+
+/**
+ * File system event for newly created file system objects.
+ */
+class FileSystemCreateEvent extends FileSystemEvent {
+  FileSystemCreateEvent._(path)
+      : super._(FileSystemEvent.CREATE, path);
+
+  String toString() => "FileSystemCreateEvent('$path')";
+}
+
+
+/**
+ * File system event for modifications of file system objects.
+ */
+class FileSystemModifyEvent extends FileSystemEvent {
+  /**
+   * If the content was changed and not only the attributes, [contentChanged]
+   * is `true`.
+   */
+  final bool contentChanged;
+
+  FileSystemModifyEvent._(path, this.contentChanged)
+      : super._(FileSystemEvent.MODIFY, path);
+
+  String toString() =>
+      "FileSystemModifyEvent('$path', contentChanged=$contentChanged)";
+}
+
+
+/**
+ * File system event for deletion of file system objects.
+ */
+class FileSystemDeleteEvent extends FileSystemEvent {
+  FileSystemDeleteEvent._(path)
+      : super._(FileSystemEvent.DELETE, path);
+
+  String toString() => "FileSystemDeleteEvent('$path')";
+}
+
+
+/**
+ * File system event for moving of file system objects.
+ */
+class FileSystemMoveEvent extends FileSystemEvent {
+  /**
+   * If the underlaying implementation is able to identify the destination of
+   * the moved file, [destination] will be set. Otherwise, it will be `null`.
+   */
+  final String destination;
+
+  FileSystemMoveEvent._(path, this.destination)
+      : super._(FileSystemEvent.MOVE, path);
+
+  String toString() {
+    var buffer = new StringBuffer();
+    buffer.write("FileSystemMoveEvent('$path'");
+    if (destination != null) buffer.write(", '$destination'");
+    buffer.write(')');
+    return buffer.toString();
+  }
+}
+
+
+abstract class _FileSystemWatcher {
+  external factory _FileSystemWatcher(String path, int events, bool recursive);
+  external static bool get isSupported;
+
+  Stream<FileSystemEvent> get stream;
 }

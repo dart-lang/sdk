@@ -13,24 +13,34 @@ void main() {
   useCompactVMConfiguration();
 
   testPhases('no changes', [[new ScriptCompactor()]], {
-      'a|test.html': '<!DOCTYPE html><html></html>',
+      'a|web/test.html': '<!DOCTYPE html><html></html>',
     }, {
-      'a|test.html': '<!DOCTYPE html><html></html>',
+      'a|web/test.html': '<!DOCTYPE html><html></html>',
     });
 
-  testPhases('single script', [[new ScriptCompactor()]], {
-      'a|test.html':
+  testPhases('no changes outside web/', [[new ScriptCompactor()]], {
+      'a|lib/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart" src="a.dart"></script>',
     }, {
-      'a|test.html':
+      'a|lib/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<script type="application/dart" src="a.dart"></script>',
+    });
+
+  testPhases('single script', [[new ScriptCompactor()]], {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<script type="application/dart" src="a.dart"></script>',
+    }, {
+      'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
           '<script type="application/dart" '
           'src="test.html_bootstrap.dart"></script>'
           '<script src="packages/browser/dart.js"></script>'
           '</body></html>',
 
-      'a|test.html_bootstrap.dart':
+      'a|web/test.html_bootstrap.dart':
           '''library app_bootstrap;
 
           import 'package:polymer/polymer.dart';
@@ -47,7 +57,7 @@ void main() {
     });
 
   testPhases('several scripts', [[new ScriptCompactor()]], {
-      'a|test.html':
+      'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart" src="a.dart"></script>'
           '<script type="application/dart" src="b.dart"></script>'
@@ -56,14 +66,14 @@ void main() {
           '</div>'
           '<script type="application/dart" src="d.dart"></script>',
     }, {
-      'a|test.html':
+      'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body><div></div>'
           '<script type="application/dart" '
           'src="test.html_bootstrap.dart"></script>'
           '<script src="packages/browser/dart.js"></script>'
           '</body></html>',
 
-      'a|test.html_bootstrap.dart':
+      'a|web/test.html_bootstrap.dart':
           '''library app_bootstrap;
 
           import 'package:polymer/polymer.dart';

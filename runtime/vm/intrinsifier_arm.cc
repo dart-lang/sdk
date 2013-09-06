@@ -1192,7 +1192,7 @@ void Intrinsifier::Double_div(Assembler* assembler) {
 // Left is double right is integer (Bigint, Mint or Smi)
 void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   Label fall_through;
-  // Only Smi-s allowed.
+  // Only smis allowed.
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ tst(R0, ShifterOperand(kSmiTagMask));
   __ b(&fall_through, NE);

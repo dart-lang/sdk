@@ -570,6 +570,9 @@ class _HttpOutboundConsumer implements StreamConsumer {
     }
   }
 
+  bool _ignoreError(error)
+    => error is SocketException && _outbound is HttpResponse;
+
   _ensureController() {
     if (_controller != null) return;
     _controller = new StreamController(sync: true,
@@ -585,8 +588,7 @@ class _HttpOutboundConsumer implements StreamConsumer {
               },
               onError: (error) {
                 _socketError = true;
-                if (error is SocketException &&
-                    _outbound is HttpResponse) {
+                if (_ignoreError(error)) {
                   _cancel();
                   _done();
                   _closeCompleter.complete(_outbound);
@@ -637,7 +639,9 @@ class _HttpOutboundConsumer implements StreamConsumer {
   Future close() {
     Future closeOutbound() {
       if (_socketError) return new Future.value(_outbound);
-      return _outbound._close().then((_) => _outbound);
+      return _outbound._close()
+          .catchError((_) {}, test: _ignoreError)
+          .then((_) => _outbound);
     }
     if (_controller == null) return closeOutbound();
     _controller.close();

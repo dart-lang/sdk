@@ -4,10 +4,11 @@
 //
 // Dart test program for testing error handling in directory I/O.
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 Directory tempDir() {
   return new Directory('').createTempSync();
@@ -199,14 +200,13 @@ void runTest(Function test) {
   var temp = new Directory('').createTempSync();
 
   // Wait for the test to finish and delete the temporary directory.
-  ReceivePort p = new ReceivePort();
-  p.receive((x,y) {
-    p.close();
-    temp.deleteSync(recursive: true);
-  });
+  asyncStart();
 
   // Run the test.
-  test(temp, () => p.toSendPort().send(null));
+  test(temp, () {
+    temp.deleteSync(recursive: true);
+    asyncEnd();
+  });
 }
 
 

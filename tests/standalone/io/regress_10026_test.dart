@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void testZLibInflate_regress10026() {
   test(data, expect) {
-    var port = new ReceivePort();
+    asyncStart();
     var controller = new StreamController(sync: true);
     controller.stream
         .transform(ZLIB.decoder)
@@ -21,7 +22,7 @@ void testZLibInflate_regress10026() {
         })
         .then((out) {
           Expect.equals(out.toString(), expect);
-          port.close();
+          asyncEnd();
         });
     controller.add(data);
     controller.close();

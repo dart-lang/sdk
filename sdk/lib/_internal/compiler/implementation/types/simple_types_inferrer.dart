@@ -93,10 +93,6 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask nonNullExact(DartType type) => new TypeMask.nonNullExact(type);
   TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
 
-  TypeMask nullable(TypeMask type) {
-    return type.nullable();
-  }
-
   TypeMask allocateContainer(TypeMask type,
                              Node node,
                              Element enclosing,
@@ -293,22 +289,28 @@ class SimpleTypesInferrer extends TypesInferrer {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return internal.getReturnTypeOfElement(element.implementation);
   }
+
   TypeMask getTypeOfElement(Element element) {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return internal.getTypeOfElement(element.implementation);
   }
+
   TypeMask getTypeOfNode(Element owner, Node node) {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return internal.getTypeOfNode(owner, node);
   }
+
   TypeMask getTypeOfSelector(Selector selector) {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return internal.getTypeOfSelector(selector);
   }
+
   Iterable<Element> getCallersOf(Element element) {
     if (compiler.disableTypeInference) throw "Don't use me";
     return internal.getCallersOf(element.implementation);
   }
+
+  Iterable<TypeMask> get containerTypes => internal.containerTypes;
 
   bool analyzeMain(Element element) {
     if (compiler.disableTypeInference) return true;
@@ -419,14 +421,14 @@ abstract class InferrerEngine<T> implements MinimalInferrerEngine<T> {
    *
    * [inLoop] tells whether the call happens in a loop.
    */
-  void registerCalledElement(Spannable node,
-                             Selector selector,
-                             Element caller,
-                             Element callee,
-                             ArgumentsTypes<T> arguments,
-                             CallSite constraint,
-                             SideEffects sideEffects,
-                             bool inLoop);
+  T registerCalledElement(Spannable node,
+                          Selector selector,
+                          Element caller,
+                          Element callee,
+                          ArgumentsTypes<T> arguments,
+                          CallSite constraint,
+                          SideEffects sideEffects,
+                          bool inLoop);
 
   /**
    * Registers that [caller] calls [selector] with [receiverType] as
@@ -610,6 +612,8 @@ class InternalSimpleTypesInferrer
    * types of lists.
    */
   final Map<Node, TypeMask> concreteTypes = new Map<Node, TypeMask>();
+
+  Iterable<TypeMask> get containerTypes => concreteTypes.values;
 
   /**
    * A map of constraints on a setter. When computing the type
@@ -1259,20 +1263,20 @@ class InternalSimpleTypesInferrer
    * [arguments]. [constraint] is a setter constraint (see
    * [setterConstraints] documentation).
    */
-  void registerCalledElement(Spannable node,
-                             Selector selector,
-                             Element caller,
-                             Element callee,
-                             ArgumentsTypes arguments,
-                             CallSite constraint,
-                             SideEffects sideEffects,
-                             bool inLoop) {
+  TypeMask registerCalledElement(Spannable node,
+                                 Selector selector,
+                                 Element caller,
+                                 Element callee,
+                                 ArgumentsTypes arguments,
+                                 CallSite constraint,
+                                 SideEffects sideEffects,
+                                 bool inLoop) {
     updateSideEffects(sideEffects, selector, callee);
 
     // Bailout for closure calls. We're not tracking types of
     // arguments for closures.
     if (callee.isInstanceMember() && selector.isClosureCall()) {
-      return;
+      return types.dynamicType;
     }
     if (inLoop) {
       // For instance methods, we only register a selector called in a
@@ -1297,29 +1301,32 @@ class InternalSimpleTypesInferrer
           callee,
           arguments.positional[0],
           constraint);
-      return;
+      return arguments.positional[0];
     } else if (selector != null && selector.isGetter()) {
       assert(arguments == null);
       if (callee.isFunction()) {
         FunctionTypeInformation functionInfo = typeInformationOf(callee);
         functionInfo.canBeClosurized = true;
+        return types.functionType;
       }
-      return;
-    } else if (callee.isField()) {
+      return callee.isGetter()
+          ? returnTypeOfElement(callee)
+          : typeOfElement(callee);
+    } else if (callee.isField() || callee.isGetter()) {
       // We're not tracking closure calls.
-      return;
-    } else if (callee.isGetter()) {
-      // Getters don't have arguments.
-      return;
+      return types.dynamicType;
     }
     FunctionElement function = callee;
-    if (function.computeSignature(compiler).parameterCount == 0) return;
+    if (function.computeSignature(compiler).parameterCount == 0) {
+      return returnTypeOfElement(callee);
+    }
 
     assert(arguments != null);
     bool isUseful = addArguments(node, callee, arguments);
     if (hasAnalyzedAll && isUseful) {
       enqueueAgain(callee);
     }
+    return returnTypeOfElement(callee);
   }
 
   void unregisterCalledElement(Node node,
@@ -1329,7 +1336,8 @@ class InternalSimpleTypesInferrer
     typeInformationOf(callee).removeCall(caller);
     if (callee.isField()) {
       if (selector.isSetter()) {
-        Map<Spannable, TypeMask> assignments = typeInformationOf(callee).assignments;
+        Map<Spannable, TypeMask> assignments =
+            typeInformationOf(callee).assignments;
         if (assignments == null || !assignments.containsKey(node)) return;
         assignments.remove(node);
         if (hasAnalyzedAll) updateNonFinalFieldType(callee);
@@ -1419,7 +1427,9 @@ class InternalSimpleTypesInferrer
         registerCalledElement(
             node, selector, caller, element, arguments,
             constraint, sideEffects, inLoop);
-
+        // We cannot use the type returned by [registerCalledElement]
+        // here because it does not handle [noSuchMethod]
+        // targets, unlike [typeOfElementWithSelector].
         if (!selector.isSetter()) {
           TypeMask type = handleIntrisifiedSelector(selector, arguments);
           if (type == null) type = typeOfElementWithSelector(element, selector);
@@ -1817,6 +1827,16 @@ class SimpleTypeInferrerVisitor<T>
     });
   }
 
+  bool get inInstanceContext {
+    return (outermostElement.isInstanceMember() && !outermostElement.isField())
+        || outermostElement.isGenerativeConstructor();
+  }
+
+  bool treatAsInstanceMember(Element element) {
+    return (Elements.isUnresolved(element) && inInstanceContext)
+        || (element != null && element.isInstanceMember());
+  }
+
   T visitSendSet(SendSet node) {
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType()) {
@@ -1835,14 +1855,14 @@ class SimpleTypeInferrerVisitor<T>
 
     T receiverType;
     bool isCallOnThis = false;
-    if (node.receiver == null
-        && element != null
-        && element.isInstanceMember()) {
-      receiverType = thisType;
-      isCallOnThis = true;
+    if (node.receiver == null) {
+      if (treatAsInstanceMember(element)) {
+        receiverType = thisType;
+        isCallOnThis = true;
+      }
     } else {
       receiverType = visit(node.receiver);
-      isCallOnThis = node.receiver != null && isThisOrSuper(node.receiver);
+      isCallOnThis = isThisOrSuper(node.receiver);
     }
 
     T rhsType;
@@ -1868,6 +1888,10 @@ class SimpleTypeInferrerVisitor<T>
       if (!isThisExposed && isCallOnThis) {
         checkIfExposesThis(
             types.newTypedSelector(receiverType, setterSelector));
+        if (getterSelector != null) {
+          checkIfExposesThis(
+              types.newTypedSelector(receiverType, getterSelector));
+        }
       }
     }
 
@@ -1918,11 +1942,13 @@ class SimpleTypeInferrerVisitor<T>
       }
       T getterType;
       T newType;
-      if (Elements.isStaticOrTopLevelField(element)) {
+      if (Elements.isErroneousElement(element)) {
+        getterType = types.dynamicType;
+        newType = types.dynamicType;
+      } else if (Elements.isStaticOrTopLevelField(element)) {
         Element getterElement = elements[node.selector];
         getterType =
-            inferrer.typeOfElementWithSelector(getterElement, getterSelector);
-        handleStaticSend(node, getterSelector, getterElement, null);
+            handleStaticSend(node, getterSelector, getterElement, null);
         newType = handleDynamicSend(
             node, operatorSelector, getterType, operatorArguments);
         handleStaticSend(
@@ -1981,7 +2007,9 @@ class SimpleTypeInferrerVisitor<T>
       }
     }
     ArgumentsTypes arguments = new ArgumentsTypes<T>([rhsType], null);
-    if (Elements.isStaticOrTopLevelField(element)) {
+    if (Elements.isErroneousElement(element)) {
+      // Code will always throw.
+    } else if (Elements.isStaticOrTopLevelField(element)) {
       handleStaticSend(node, setterSelector, element, arguments);
     } else if (Elements.isUnresolved(element) || element.isSetter()) {
       handleDynamicSend(
@@ -2018,13 +2046,11 @@ class SimpleTypeInferrerVisitor<T>
     // are calling does not expose this.
     isThisExposed = true;
     if (node.isPropertyAccess) {
-      handleStaticSend(node, selector, element, null);
-      return inferrer.typeOfElementWithSelector(element, selector);
+      return handleStaticSend(node, selector, element, null);
     } else if (element.isFunction()) {
       if (!selector.applies(element, compiler)) return types.dynamicType;
       ArgumentsTypes arguments = analyzeArguments(node.arguments);
-      handleStaticSend(node, selector, element, arguments);
-      return inferrer.returnTypeOfElement(element);
+      return handleStaticSend(node, selector, element, arguments);
     } else {
       analyzeArguments(node.arguments);
       // Closure call on a getter. We don't have function types yet,
@@ -2045,7 +2071,7 @@ class SimpleTypeInferrerVisitor<T>
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     if (!selector.applies(element, compiler)) return types.dynamicType;
 
-    handleStaticSend(node, selector, element, arguments);
+    T returnType = handleStaticSend(node, selector, element, arguments);
     if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
       return inferrer.concreteTypes.putIfAbsent(
           node, () => types.allocateContainer(
@@ -2056,7 +2082,7 @@ class SimpleTypeInferrerVisitor<T>
           node, () => types.allocateContainer(
               types.fixedListType, node, outermostElement));
     } else if (element.isFunction() || element.isConstructor()) {
-      return inferrer.returnTypeOfElement(element);
+      return returnType;
     } else {
       assert(element.isField() || element.isGetter());
       // Closure call.
@@ -2106,8 +2132,7 @@ class SimpleTypeInferrerVisitor<T>
     Element element = elements[node];
     Selector selector = elements.getSelector(node);
     if (Elements.isStaticOrTopLevelField(element)) {
-      handleStaticSend(node, selector, element, null);
-      return inferrer.typeOfElementWithSelector(element, selector);
+      return handleStaticSend(node, selector, element, null);
     } else if (Elements.isInstanceSend(node, elements)) {
       return visitDynamicSend(node);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
@@ -2141,12 +2166,12 @@ class SimpleTypeInferrerVisitor<T>
     return types.dynamicType;
   }
 
-  void handleStaticSend(Node node,
-                        Selector selector,
-                        Element element,
-                        ArgumentsTypes arguments) {
-    if (Elements.isUnresolved(element)) return;
-    inferrer.registerCalledElement(
+  T handleStaticSend(Node node,
+                     Selector selector,
+                     Element element,
+                     ArgumentsTypes arguments) {
+    if (Elements.isUnresolved(element)) return types.dynamicType;
+    return inferrer.registerCalledElement(
         node, selector, outermostElement, element, arguments, null,
         sideEffects, inLoop);
   }
@@ -2181,6 +2206,7 @@ class SimpleTypeInferrerVisitor<T>
                       T receiverType,
                       ArgumentsTypes arguments,
                       [CallSite constraint]) {
+    assert(receiverType != null);
     if (selector.mask != receiverType) {
       selector = (receiverType == types.dynamicType)
           ? selector.asUntyped
@@ -2212,8 +2238,10 @@ class SimpleTypeInferrerVisitor<T>
     T receiverType;
     bool isCallOnThis = false;
     if (node.receiver == null) {
-      isCallOnThis = true;
-      receiverType = thisType;
+      if (treatAsInstanceMember(element)) {
+        isCallOnThis = true;
+        receiverType = thisType;
+      }
     } else {
       Node receiver = node.receiver;
       isCallOnThis = isThisOrSuper(receiver);
@@ -2297,10 +2325,6 @@ class SimpleTypeInferrerVisitor<T>
                       iteratorType, new ArgumentsTypes<T>([], null));
     T currentType =
         handleDynamicSend(node, currentSelector, iteratorType, null);
-
-    // We nullify the type in case there is no element in the
-    // iterable.
-    currentType = types.nullable(currentType);
 
     if (node.expression.isThis()) {
       // Any reasonable implementation of an iterator would expose

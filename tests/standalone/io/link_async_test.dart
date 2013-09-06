@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 // Test the dart:io Link class.
 
@@ -271,9 +272,9 @@ Future testDirectoryListing(String base, Directory baseDir) {
 }
 
 main() {
-  ReceivePort keepAlive = new ReceivePort();
+  asyncStart();
   testCreate()
     .then((_) => testCreateLoopingLink())
     .then((_) => testRename())
-    .then((_) => keepAlive.close());
+    .then((_) => asyncEnd());
 }

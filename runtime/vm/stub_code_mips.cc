@@ -910,14 +910,31 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ EnterStubFrame();
 
   // Save new context and C++ ABI callee-saved registers.
-  const intptr_t kNewContextOffset =
-      -(1 + kAbiPreservedCpuRegCount) * kWordSize;
 
-  __ addiu(SP, SP, Immediate(-(3 + kAbiPreservedCpuRegCount) * kWordSize));
+  // The new context, the top exit frame, and the old context.
+  const intptr_t kPreservedContextSlots = 3;
+  const intptr_t kNewContextOffsetFromFp =
+      -(1 + kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount) * kWordSize;
+  const intptr_t kPreservedRegSpace =
+      kWordSize * (kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount +
+                   kPreservedContextSlots);
+
+  __ addiu(SP, SP, Immediate(-kPreservedRegSpace));
   for (int i = S0; i <= S7; i++) {
     Register r = static_cast<Register>(i);
-    __ sw(r, Address(SP, (i - S0 + 3) * kWordSize));
+    const intptr_t slot = i - S0 + kPreservedContextSlots;
+    __ sw(r, Address(SP, slot * kWordSize));
   }
+
+  for (intptr_t i = kAbiFirstPreservedFpuReg;
+       i <= kAbiLastPreservedFpuReg; i++) {
+    FRegister r = static_cast<FRegister>(i);
+    const intptr_t slot =
+        kAbiPreservedCpuRegCount + kPreservedContextSlots + i -
+        kAbiFirstPreservedFpuReg;
+    __ swc1(r, Address(SP, slot * kWordSize));
+  }
+
   __ sw(A3, Address(SP, 2 * kWordSize));
 
   // The new Context structure contains a pointer to the current Isolate
@@ -946,13 +963,13 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // The constants kSavedContextSlotFromEntryFp and
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -10);
-  ASSERT(kSavedContextSlotFromEntryFp == -11);
+  ASSERT(kExitLinkSlotFromEntryFp == -22);
+  ASSERT(kSavedContextSlotFromEntryFp == -23);
   __ sw(T0, Address(SP, 1 * kWordSize));
   __ sw(T1, Address(SP, 0 * kWordSize));
 
   // After the call, The stack pointer is restored to this location.
-  // Pushed A3, S0-7, T0, T1 = 11.
+  // Pushed A3, S0-7, F20-31, T0, T1 = 23.
 
   // Load arguments descriptor array into S4, which is passed to Dart code.
   __ lw(S4, Address(A1, VMHandles::kOffsetOfRawPtrInHandle));
@@ -985,7 +1002,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ TraceSimMsg("InvokeDartCodeStub return");
 
   // Read the saved new Context pointer.
-  __ lw(CTX, Address(FP, kNewContextOffset));
+  __ lw(CTX, Address(FP, kNewContextOffsetFromFp));
   __ lw(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
 
   // Get rid of arguments pushed on the stack.
@@ -1006,10 +1023,21 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore C++ ABI callee-saved registers.
   for (int i = S0; i <= S7; i++) {
     Register r = static_cast<Register>(i);
-    __ lw(r, Address(SP, (i - S0 + 3) * kWordSize));
+    const intptr_t slot = i - S0 + kPreservedContextSlots;
+    __ lw(r, Address(SP, slot * kWordSize));
   }
+
+  for (intptr_t i = kAbiFirstPreservedFpuReg;
+       i <= kAbiLastPreservedFpuReg; i++) {
+    FRegister r = static_cast<FRegister>(i);
+    const intptr_t slot =
+        kAbiPreservedCpuRegCount + kPreservedContextSlots + i -
+        kAbiFirstPreservedFpuReg;
+    __ lwc1(r, Address(SP, slot * kWordSize));
+  }
+
   __ lw(A3, Address(SP, 2 * kWordSize));
-  __ addiu(SP, SP, Immediate((3 + kAbiPreservedCpuRegCount) * kWordSize));
+  __ addiu(SP, SP, Immediate(kPreservedRegSpace));
 
   // Restore the frame pointer and return.
   __ LeaveStubFrameAndReturn();

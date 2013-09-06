@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 void testFailingList(Directory d, var recursive) {
-  var port = new ReceivePort();
+  asyncStart();
   int errors = 0;
   d.list(recursive: recursive).listen(
     () => Expect.fail("Unexpected listing result"),
@@ -15,8 +16,8 @@ void testFailingList(Directory d, var recursive) {
       errors += 1;
     },
     onDone: () {
-      port.close();
       Expect.equals(1, errors);
+      asyncEnd();
     });
   Expect.equals(0, errors);
 }

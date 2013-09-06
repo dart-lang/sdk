@@ -11,7 +11,7 @@ class A {
     // is remembered in the constructor body.
     Expect.equals(x, _x + 1);
     Expect.equals(y, _y + 1);
-    Expect.isFalse(?y);
+    Expect.isFalse(?y);  /// 01: compile-time error
   }
 }
 

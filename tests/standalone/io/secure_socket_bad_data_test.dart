@@ -7,11 +7,12 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
@@ -161,7 +162,7 @@ main() {
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart',
                           useBuiltinRoots: false);
-  var keepAlive = new ReceivePort();
+  asyncStart();
   Future.wait([test(false), test(true)])
-  .then((_) => keepAlive.close());
+      .then((_) => asyncEnd());
 }

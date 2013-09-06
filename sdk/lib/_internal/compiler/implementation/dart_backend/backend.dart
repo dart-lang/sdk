@@ -505,15 +505,19 @@ class DartBackend extends Backend {
 
   log(String message) => compiler.log('[DartBackend] $message');
 
-  void onLibraryLoaded(LibraryElement library, Uri uri) {
+  Future onLibraryLoaded(LibraryElement library, Uri uri) {
     if (useMirrorHelperLibrary && library == compiler.mirrorsLibrary) {
-      mirrorHelperLibrary = compiler.scanBuiltinLibrary(
-          MirrorRenamer.MIRROR_HELPER_LIBRARY_NAME);
-      mirrorHelperGetNameFunction = mirrorHelperLibrary.find(
-          const SourceString(MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION));
-      mirrorHelperSymbolsMap = mirrorHelperLibrary.find(
-          const SourceString(MirrorRenamer.MIRROR_HELPER_SYMBOLS_MAP_NAME));
+      return compiler.scanBuiltinLibrary(
+          MirrorRenamer.MIRROR_HELPER_LIBRARY_NAME).
+          then((LibraryElement element) {
+        mirrorHelperLibrary = element;
+        mirrorHelperGetNameFunction = mirrorHelperLibrary.find(
+            const SourceString(MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION));
+        mirrorHelperSymbolsMap = mirrorHelperLibrary.find(
+            const SourceString(MirrorRenamer.MIRROR_HELPER_SYMBOLS_MAP_NAME));
+      });
     }
+    return new Future.value();
   }
 
   void registerStaticSend(Element element, Node node) {

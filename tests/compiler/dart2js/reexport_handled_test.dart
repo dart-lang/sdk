@@ -5,6 +5,7 @@
 library reexport_handled_test;
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'mock_compiler.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'
     show Element,
@@ -28,19 +29,21 @@ void main() {
   compiler.registerSource(reexportingLibraryUri, REEXPORTING_LIBRARY_SOURCE);
 
   // Load exporting library before the reexporting library.
-  var exportingLibrary = compiler.libraryLoader.loadLibrary(
-      exportingLibraryUri, null, exportingLibraryUri);
-  Expect.isTrue(exportingLibrary.exportsHandled);
-  var foo = findInExports(exportingLibrary, 'foo');
-  Expect.isNotNull(foo);
-  Expect.isTrue(foo.isField());
+  asyncTest(() => compiler.libraryLoader.loadLibrary(
+      exportingLibraryUri, null, exportingLibraryUri).then((exportingLibrary) {
+    Expect.isTrue(exportingLibrary.exportsHandled);
+    var foo = findInExports(exportingLibrary, 'foo');
+    Expect.isNotNull(foo);
+    Expect.isTrue(foo.isField());
 
-  // Load reexporting library when exports are handled on the exporting library.
-  var reexportingLibrary = compiler.libraryLoader.loadLibrary(
-      reexportingLibraryUri, null, reexportingLibraryUri);
-  foo = findInExports(reexportingLibrary, 'foo');
-  Expect.isNotNull(foo);
-  Expect.isTrue(foo.isField());
+    // Load reexporting library when exports are handled on the exporting library.
+    return compiler.libraryLoader.loadLibrary(
+        reexportingLibraryUri, null, reexportingLibraryUri);
+  }).then((reexportingLibrary) {
+    var foo = findInExports(reexportingLibrary, 'foo');
+    Expect.isNotNull(foo);
+    Expect.isTrue(foo.isField());
+  }));
 }
 
 Element findInExports(LibraryElement library, String name) {

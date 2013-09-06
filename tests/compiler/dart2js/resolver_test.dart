@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import 'dart:async';
+import "package:async_helper/async_helper.dart";
 import 'dart:collection';
 
 import "../../../sdk/lib/_internal/compiler/implementation/resolution/resolution.dart";
@@ -77,6 +79,7 @@ main() {
   testOverrideHashCodeCheck();
   testSupertypeOrder();
   testConstructorArgumentMismatch();
+  testConstConstructorAndNonFinalFields();
 }
 
 testSupertypeOrder() {
@@ -841,11 +844,13 @@ List<String> asSortedStrings(Link link) {
   return result;
 }
 
-compileScript(String source) {
+Future compileScript(String source) {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(source, uri);
-  compiler.runCompiler(uri);
-  return compiler;
+  compiler.diagnosticHandler = createHandler(compiler, source);
+  return compiler.runCompiler(uri).then((_) {
+    return compiler;
+  });
 }
 
 checkMemberResolved(compiler, className, memberName) {
@@ -858,9 +863,9 @@ checkMemberResolved(compiler, className, memberName) {
 
 testToString() {
   final script = r"class C { toString() => 'C'; } main() { '${new C()}'; }";
-  final compiler = compileScript(script);
-
-  checkMemberResolved(compiler, 'C', buildSourceString('toString'));
+  asyncTest(() => compileScript(script).then((compiler) {
+    checkMemberResolved(compiler, 'C', buildSourceString('toString'));
+  }));
 }
 
 operatorName(op, isUnary) {
@@ -874,10 +879,10 @@ testIndexedOperator() {
         operator[]=(ix, v) {}
       }
       main() { var c = new C(); c[0]++; }""";
-  final compiler = compileScript(script);
-
-  checkMemberResolved(compiler, 'C', operatorName('[]', false));
-  checkMemberResolved(compiler, 'C', operatorName('[]=', false));
+  asyncTest(() => compileScript(script).then((compiler) {
+    checkMemberResolved(compiler, 'C', operatorName('[]', false));
+    checkMemberResolved(compiler, 'C', operatorName('[]=', false));
+  }));
 }
 
 testIncrementsAndDecrements() {
@@ -896,12 +901,12 @@ testIncrementsAndDecrements() {
         var d = new D();
         --d;
       }""";
-  final compiler = compileScript(script);
-
-  checkMemberResolved(compiler, 'A', operatorName('+', false));
-  checkMemberResolved(compiler, 'B', operatorName('+', false));
-  checkMemberResolved(compiler, 'C', operatorName('-', false));
-  checkMemberResolved(compiler, 'D', operatorName('-', false));
+  asyncTest(() => compileScript(script).then((compiler) {
+    checkMemberResolved(compiler, 'A', operatorName('+', false));
+    checkMemberResolved(compiler, 'B', operatorName('+', false));
+    checkMemberResolved(compiler, 'C', operatorName('-', false));
+    checkMemberResolved(compiler, 'D', operatorName('-', false));
+  }));
 }
 
 testOverrideHashCodeCheck() {
@@ -916,9 +921,56 @@ testOverrideHashCodeCheck() {
       main() {
         new A() == new B();
       }""";
-  final compiler = compileScript(script);
-  Expect.equals(1, compiler.warnings.length);
-  Expect.equals(MessageKind.OVERRIDE_EQUALS_NOT_HASH_CODE,
-                compiler.warnings[0].message.kind);
-  Expect.equals(0, compiler.errors.length);
+  asyncTest(() => compileScript(script).then((compiler) {
+    Expect.equals(1, compiler.warnings.length);
+    Expect.equals(MessageKind.OVERRIDE_EQUALS_NOT_HASH_CODE,
+                  compiler.warnings[0].message.kind);
+    Expect.equals(0, compiler.errors.length);
+  }));
+}
+
+testConstConstructorAndNonFinalFields() {
+  void expect(compiler, List errors, List warnings) {
+    Expect.equals(errors.length, compiler.errors.length);
+    for (int i = 0 ; i < errors.length ; i++) {
+      Expect.equals(errors[i], compiler.errors[i].message.kind);
+    }
+    Expect.equals(warnings.length, compiler.warnings.length);
+    for (int i = 0 ; i < warnings.length ; i++) {
+      Expect.equals(warnings[i], compiler.warnings[i].message.kind);
+    }
+  }
+
+  final script1 = r"""
+      class A {
+        var a;
+        const A(this.a);
+      }
+      main() {
+        new A(0);
+      }""";
+  asyncTest(() => compileScript(script1).then((compiler) {
+    expect(compiler,
+           [MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS],
+           [MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD]);
+  }));
+
+  final script2 = r"""
+      class A {
+        var a;
+        var b;
+        const A(this.a, this.b);
+        const A.named(this.a, this.b);
+      }
+      main() {
+        new A(0, 1);
+      }""";
+  asyncTest(() => compileScript(script2).then((compiler) {
+    expect(compiler,
+        [MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS],
+        [MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
+         MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
+         MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD,
+         MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD]);
+  }));
 }

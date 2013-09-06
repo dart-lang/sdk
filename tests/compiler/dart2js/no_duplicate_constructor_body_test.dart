@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 
 const String CODE = """
@@ -15,8 +16,9 @@ main() {
 """;
 
 main() {
-  String generated = compileAll(CODE);
-  RegExp regexp = new RegExp(r'\A: {"": "[A-za-z]+;"');
-  Iterator<Match> matches = regexp.allMatches(generated).iterator;
-  checkNumberOfMatches(matches, 1);
+  asyncTest(() => compileAll(CODE).then((generated) {
+    RegExp regexp = new RegExp(r'\A: {"": "[A-za-z]+;"');
+    Iterator<Match> matches = regexp.allMatches(generated).iterator;
+    checkNumberOfMatches(matches, 1);
+  }));
 }

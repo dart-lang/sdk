@@ -5,6 +5,7 @@
 library part_of_test;
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import 'mock_compiler.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
     show MessageKind;
@@ -25,13 +26,16 @@ void main() {
   compiler.registerSource(libraryUri, LIBRARY_SOURCE);
   compiler.registerSource(partUri, PART_SOURCE);
 
-  compiler.libraryLoader.loadLibrary(libraryUri, null, libraryUri);
-  print('errors: ${compiler.errors}');
-  print('warnings: ${compiler.warnings}');
-  Expect.isTrue(compiler.errors.isEmpty);
-  Expect.equals(1, compiler.warnings.length);
-  Expect.equals(MessageKind.LIBRARY_NAME_MISMATCH,
-                compiler.warnings[0].message.kind);
-  Expect.equals('foo',
-      compiler.warnings[0].message.arguments['libraryName'].toString());
+  asyncTest(() =>
+      compiler.libraryLoader.loadLibrary(libraryUri, null, libraryUri).
+      then((_) {
+    print('errors: ${compiler.errors}');
+    print('warnings: ${compiler.warnings}');
+    Expect.isTrue(compiler.errors.isEmpty);
+    Expect.equals(1, compiler.warnings.length);
+    Expect.equals(MessageKind.LIBRARY_NAME_MISMATCH,
+                  compiler.warnings[0].message.kind);
+    Expect.equals('foo',
+        compiler.warnings[0].message.arguments['libraryName'].toString());
+  }));
 }

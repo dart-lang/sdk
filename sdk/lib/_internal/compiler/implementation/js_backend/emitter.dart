@@ -339,9 +339,9 @@ class CodeEmitterTask extends CompilerTask {
           js('var body = "return " + receiver + "." + field'),
           js('prototype["${namer.getterPrefix}" + accessorName] = '
                  'new Function(args, body)'),
-          js.if_('!reflectable', [
+          js.if_('reflectable', [
                  js('prototype["${namer.getterPrefix}" + accessorName].'
-                    '$reflectableField = false')])
+                    '$reflectableField = 1')])
         ]),
 
         // if (needsSetter) {
@@ -353,9 +353,9 @@ class CodeEmitterTask extends CompilerTask {
           js('var body = receiver + "." + field + "$_=$_$valueParamName"'),
           js('prototype["${namer.setterPrefix}" + accessorName] = '
                  'new Function(args, body)'),
-          js.if_('!reflectable', [
+          js.if_('reflectable', [
                  js('prototype["${namer.setterPrefix}" + accessorName].'
-                    '$reflectableField = false')])
+                    '$reflectableField = 1')])
         ]),
 
       ]),
@@ -1653,6 +1653,21 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
+  void generateReflectionDataForFieldGetterOrSetter(Element member,
+                                                    String name,
+                                                    ClassBuilder builder,
+                                                    {bool isGetter}) {
+    Selector selector = isGetter
+        ? new Selector.getter(member.name, member.getLibrary())
+        : new Selector.setter(member.name, member.getLibrary());
+    String reflectionName = getReflectionName(selector, name);
+    if (reflectionName != null) {
+      var reflectable =
+          js(backend.isAccessibleByReflection(member) ? '1' : '0');
+      builder.addProperty('+$reflectionName', reflectable);
+    }
+  }
+
   void generateGetter(Element member, String fieldName, String accessorName,
                       ClassBuilder builder) {
     String getterName = namer.getterNameFromAccessorName(accessorName);
@@ -1663,6 +1678,8 @@ class CodeEmitterTask extends CompilerTask {
         : [];
     builder.addProperty(getterName,
         js.fun(args, js.return_(js('$receiver.$fieldName'))));
+    generateReflectionDataForFieldGetterOrSetter(
+        member, getterName, builder, isGetter: true);
   }
 
   void generateSetter(Element member, String fieldName, String accessorName,
@@ -1675,6 +1692,8 @@ class CodeEmitterTask extends CompilerTask {
         : ['v'];
     builder.addProperty(setterName,
         js.fun(args, js('$receiver.$fieldName = v')));
+    generateReflectionDataForFieldGetterOrSetter(
+        member, setterName, builder, isGetter: false);
   }
 
   bool canGenerateCheckedSetter(VariableElement field) {
@@ -1720,6 +1739,8 @@ class CodeEmitterTask extends CompilerTask {
     builder.addProperty(setterName,
         js.fun(args,
             js('$receiver.$fieldName = #', js(helperName)(arguments))));
+    generateReflectionDataForFieldGetterOrSetter(
+        member, setterName, builder, isGetter: false);
   }
 
   void emitClassConstructor(ClassElement classElement, ClassBuilder builder) {
@@ -2006,8 +2027,8 @@ class CodeEmitterTask extends CompilerTask {
     }
     buffer.write('$className:$_');
     buffer.write(jsAst.prettyPrint(builder.toObjectInitializer(), compiler));
-    if (backend.shouldRetainName(classElement.name)) {
-      String reflectionName = getReflectionName(classElement, className);
+    String reflectionName = getReflectionName(classElement, className);
+    if (reflectionName != null) {
       List<int> interfaces = <int>[];
       for (DartType interface in classElement.interfaces) {
         interfaces.add(reifyType(interface));
@@ -2880,8 +2901,10 @@ class CodeEmitterTask extends CompilerTask {
 
       String methodName = selector.invocationMirrorMemberName;
       String internalName = namer.invocationMirrorInternalName(selector);
+      String reflectionName = getReflectionName(selector, internalName);
       if (!haveVeryFewNoSuchMemberHandlers &&
-          isTrivialNsmHandler(type, argNames, selector, internalName)) {
+          isTrivialNsmHandler(type, argNames, selector, internalName) &&
+          reflectionName == null) {
         trivialNsmHandlers.add(selector);
         return null;
       }
@@ -2909,7 +2932,15 @@ class CodeEmitterTask extends CompilerTask {
     for (String jsName in addedJsNames.keys.toList()..sort()) {
       Selector selector = addedJsNames[jsName];
       jsAst.Expression method = generateMethod(jsName, selector);
-      if (method != null) defineStub(jsName, method);
+      if (method != null) {
+        defineStub(jsName, method);
+        String reflectionName = getReflectionName(selector, jsName);
+        if (reflectionName != null) {
+          bool accessible = compiler.world.allFunctions.filter(selector).any(
+              (Element e) => backend.isAccessibleByReflection(e));
+          defineStub('+$reflectionName', js(accessible ? '1' : '0'));
+        }
+      }
     }
   }
 
@@ -3661,7 +3692,19 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitMetadata(CodeBuffer buffer) {
-    buffer.write('init.metadata$_=$_[');
+    var literals = backend.typedefTypeLiterals.toList();
+    Elements.sortedByPosition(literals);
+    var properties = [];
+    for (TypedefElement literal in literals) {
+      var key = namer.getName(literal);
+      var value = js.toExpression(reifyType(literal.rawType));
+      properties.add(new jsAst.Property(js.string(key), value));
+    }
+    var map = new jsAst.ObjectInitializer(properties);
+    buffer.write(
+        jsAst.prettyPrint(
+            js('init.functionAliases = #', map).toStatement(), compiler));
+    buffer.write('${N}init.metadata$_=$_[');
     for (var metadata in globalMetadata) {
       if (metadata is String) {
         if (metadata != 'null') {
@@ -4111,8 +4154,8 @@ class CodeEmitterTask extends CompilerTask {
         var previousProperty;
         if (firstChar === "+") {
           mangledGlobalNames[previousProperty] = property.substring(1);
-          descriptor[previousProperty].''' // Break long line.
-'''$reflectableField = (descriptor[property] == 1);
+          if (descriptor[property] == 1) ''' // Break long line.
+'''descriptor[previousProperty].$reflectableField = 1;
           if (element && element.length) ''' // Break long line.
 '''init.interfaces[previousProperty] = element;
         } else if (firstChar === "@") {
@@ -4132,8 +4175,8 @@ class CodeEmitterTask extends CompilerTask {
               processStatics(init.statics[property] = element[prop]);
             } else if (firstChar === "+") {
               mangledNames[previousProp] = prop.substring(1);
-              element[previousProp].''' // Break long line.
-'''$reflectableField = (element[prop] == 1);
+              if (element[prop] == 1) ''' // Break long line.
+'''element[previousProp].$reflectableField = 1;
             } else if (firstChar === "@" && prop !== "@") {
               newDesc[prop.substring(1)][$metadataField] = element[prop];
             } else {

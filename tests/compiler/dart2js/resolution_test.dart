@@ -6,6 +6,7 @@
 // needed by the backend.
 
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 
@@ -94,8 +95,9 @@ main() {
 void test(String code, void check(Compiler compiler)) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(code, uri);
-  compiler.runCompiler(uri);
-  check(compiler);
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    check(compiler);
+  }));
 }
 
 void testHasRuntimeType(String code) {

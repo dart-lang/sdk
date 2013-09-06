@@ -241,7 +241,17 @@ class MessageKind {
       'Error: Cyclic constructor redirection.');
 
   static const MessageKind REDIRECTING_CONSTRUCTOR_HAS_BODY = const MessageKind(
-      'Error: Redirecting constructor cannot have a body.');
+      "Error: Redirecting constructor can't have a body.");
+
+  static const MessageKind CONST_CONSTRUCTOR_HAS_BODY = const MessageKind(
+      "Error: Const constructor or factory can't have a body.",
+      howToFix: "Remove the 'const' keyword or the body",
+      examples: const ["""
+class C {
+  const C() {}
+}
+
+main() => new C();"""]);
 
   static const MessageKind REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER =
       const MessageKind(
@@ -271,6 +281,29 @@ class MessageKind {
 
   static const MessageKind CONST_CALLS_NON_CONST = const MessageKind(
       'Error: "const" constructor cannot call a non-const constructor.');
+
+  static const MessageKind CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS =
+      const MessageKind(
+          "Error: Can't declare constructor 'const' on class #{className} "
+          "because the class contains non-final instance fields.",
+          howToFix: "Try making all fields final.",
+          examples: const ["""
+class C {
+  // 'a' must be declared final to allow for the const constructor.
+  var a;
+  const C(this.a);
+}
+
+main() => new C(0);"""]);
+
+  static const MessageKind CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD =
+      const MessageKind('Info: This non-final field prevents using const '
+                        'constructors.');
+
+  static const MessageKind CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR =
+      const MessageKind('Info: This const constructor is not allowed due to '
+                        'non-final fields.');
+
 
   static const MessageKind INITIALIZING_FORMAL_NOT_ALLOWED = const MessageKind(
       'Error: Initializing formal parameter only allowed in generative '
@@ -500,6 +533,18 @@ class MessageKind {
   static const MessageKind CONSTRUCTOR_WITH_RETURN_TYPE = const MessageKind(
       'Error: Cannot have return type for constructor.');
 
+  static const MessageKind CANNOT_RETURN_FROM_CONSTRUCTOR = const MessageKind(
+      "Error: Constructors can't return values.",
+      howToFix: "Remove the return statement or use a factory constructor.",
+      examples: const ["""
+class C {
+  C() {
+    return 1;
+  }
+}
+
+main() => new C();"""]);
+
   static const MessageKind ILLEGAL_FINAL_METHOD_MODIFIER = const MessageKind(
       'Error: Cannot have final modifier on method.');
 
@@ -614,6 +659,9 @@ Use "const #{name}" if possible.''');
   static const MessageKind PRIVATE_IDENTIFIER = const MessageKind(
       'Error: "#{value}" is not a valid Symbol name because it starts with '
       '"_".');
+
+  static const MessageKind UNSUPPORTED_LITERAL_SYMBOL = const MessageKind(
+      'Internal Error: Symbol literal "##{value}" is currently unsupported.');
 
   static const MessageKind INVALID_SYMBOL = const MessageKind('''
 Error: "#{value}" is not a valid Symbol name because is not:

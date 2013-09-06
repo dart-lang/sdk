@@ -4,13 +4,14 @@
 //
 // Dart test program for testing file I/O.
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import 'dart:async';
 import 'dart:convert';
 import 'dart:collection';
 import 'dart:io';
-import 'dart:isolate';
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 class MyListOfOneElement
     extends Object with ListMixin<int> implements List<int> {
@@ -31,14 +32,16 @@ class MyListOfOneElement
 class FileTest {
   static Directory tempDirectory;
   static int numLiveAsyncTests = 0;
-  static ReceivePort port;
 
-  static void asyncTestStarted() { ++numLiveAsyncTests; }
+  static void asyncTestStarted() {
+    asyncStart();
+    ++numLiveAsyncTests;
+  }
   static void asyncTestDone(String name) {
+    asyncEnd();
     --numLiveAsyncTests;
     if (numLiveAsyncTests == 0) {
       deleteTempDirectory();
-      port.close();
     }
   }
 
@@ -213,7 +216,7 @@ class FileTest {
   }
 
   static void testRead() {
-    ReceivePort port = new ReceivePort();
+    asyncStart();
     // Read a file and check part of it's contents.
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
@@ -233,7 +236,7 @@ class FileTest {
           Expect.equals(114, buffer[7]);  // represents 'r' in the file.
           Expect.equals(105, buffer[8]);  // represents 'i' in the file.
           Expect.equals(103, buffer[9]);  // represents 'g' in the file.
-          file.close().then((ignore) => port.close());
+          file.close().then((ignore) => asyncEnd());
         });
       });
     });
@@ -276,6 +279,7 @@ class FileTest {
 
   // Test for file read and write functionality.
   static void testReadWrite() {
+    asyncTestStarted();
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
     final File file = new File(inFilename);
@@ -327,7 +331,6 @@ class FileTest {
         });
       });
     });
-    asyncTestStarted();
   }
 
   static void testWriteAppend() {
@@ -355,6 +358,7 @@ class FileTest {
   }
 
   static void testOutputStreamWriteAppend() {
+    asyncTestStarted();
     String content = "foobar";
     String filename = tempDirectory.path + "/outstream_write_append";
     File file = new File(filename);
@@ -382,11 +386,11 @@ class FileTest {
         });
       });
     });
-    asyncTestStarted();
   }
 
   // Test for file read and write functionality.
   static void testOutputStreamWriteString() {
+    asyncTestStarted();
     String content = "foobar";
     String filename = tempDirectory.path + "/outstream_write_string";
     File file = new File(filename);
@@ -410,7 +414,6 @@ class FileTest {
         asyncTestDone("testOutputStreamWriteString");
       });
     });
-    asyncTestStarted();
   }
 
 
@@ -559,15 +562,6 @@ class FileTest {
 
   static void testDirectory() {
     asyncTestStarted();
-
-    // Port to verify that the test completes.
-    var port = new ReceivePort();
-    port.receive((message, replyTo) {
-      port.close();
-      Expect.equals(1, message);
-      asyncTestDone("testDirectory");
-    });
-
     var tempDir = tempDirectory.path;
     var file = new File("${tempDir}/testDirectory");
       file.create().then((ignore) {
@@ -575,9 +569,7 @@ class FileTest {
           d.exists().then((xexists) {
           Expect.isTrue(xexists);
           Expect.isTrue(d.path.endsWith(tempDir));
-          file.delete().then((ignore) {
-                port.toSendPort().send(1);
-          });
+          file.delete().then((ignore) => asyncTestDone("testDirectory"));
         });
       });
   }
@@ -604,13 +596,13 @@ class FileTest {
 
   // Test for file length functionality.
   static void testLength() {
-    var port = new ReceivePort();
+    asyncTestStarted();
     String filename = getFilename("tests/vm/data/fixed_length_file");
     File file = new File(filename);
     RandomAccessFile openedFile = file.openSync();
     openedFile.length().then((length) {
       Expect.equals(42, length);
-      openedFile.close().then((ignore) => port.close());
+      openedFile.close().then((ignore) => asyncTestDone("testLength"));
     });
     file.length().then((length) {
       Expect.equals(42, length);
@@ -628,7 +620,7 @@ class FileTest {
 
   // Test for file position functionality.
   static void testPosition() {
-    var port = new ReceivePort();
+    asyncTestStarted();
     String filename = getFilename("tests/vm/data/fixed_length_file");
     RandomAccessFile input = (new File(filename)).openSync();
     input.position().then((position) {
@@ -643,7 +635,7 @@ class FileTest {
               input.setPosition(8).then((ignore) {
                 input.position().then((position) {
                   Expect.equals(8, position);
-                  input.close().then((ignore) => port.close());
+                  input.close().then((ignore) => asyncTestDone("testPosition"));
                 });
               });
             });
@@ -668,6 +660,7 @@ class FileTest {
   }
 
   static void testTruncate() {
+    asyncTestStarted();
     File file = new File(tempDirectory.path + "/out_truncate");
     List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
     file.open(mode: WRITE).then((RandomAccessFile openedFile) {
@@ -690,7 +683,6 @@ class FileTest {
         });
       });
     });
-    asyncTestStarted();
   }
 
   static void testTruncateSync() {
@@ -939,29 +931,23 @@ class FileTest {
   }
 
   static void testReadAsBytes() {
-    var port = new ReceivePort();
-    port.receive((result, replyTo) {
-      port.close();
-      Expect.equals(42, result);
-    });
+    asyncTestStarted();
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
     f.readAsBytes().then((bytes) {
       Expect.isTrue(new String.fromCharCodes(bytes).endsWith("42 bytes."));
-      port.toSendPort().send(bytes.length);
+      Expect.equals(42, bytes.length);
+      asyncTestDone("testReadAsBytes");
     });
   }
 
   static void testReadAsBytesEmptyFile() {
-    var port = new ReceivePort();
-    port.receive((result, replyTo) {
-      port.close();
-      Expect.equals(0, result);
-    });
+    asyncTestStarted();
     var name = getFilename("tests/vm/data/empty_file");
     var f = new File(name);
     f.readAsBytes().then((bytes) {
-      port.toSendPort().send(bytes.length);
+      Expect.equals(0, bytes.length);
+      asyncTestDone("testReadAsBytesEmptyFile");
     });
   }
 
@@ -979,11 +965,7 @@ class FileTest {
   }
 
   static void testReadAsText() {
-    var port = new ReceivePort();
-    port.receive((result, replyTo) {
-      port.close();
-      Expect.equals(1, result);
-    });
+    asyncTestStarted();
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
     f.readAsString(encoding: UTF8).then((text) {
@@ -1003,7 +985,7 @@ class FileTest {
           readAsStringFuture.then((text) {
             Expect.fail("Non-ascii char should cause error");
           }).catchError((e) {
-            port.toSendPort().send(1);
+            asyncTestDone("testReadAsText");
           });
         });
       });
@@ -1011,15 +993,12 @@ class FileTest {
   }
 
   static void testReadAsTextEmptyFile() {
-    var port = new ReceivePort();
-    port.receive((result, replyTo) {
-      port.close();
-      Expect.equals(0, result);
-    });
+    asyncTestStarted();
     var name = getFilename("tests/vm/data/empty_file");
     var f = new File(name);
     f.readAsString(encoding: UTF8).then((text) {
-      port.toSendPort().send(text.length);
+      Expect.equals(0, text.length);
+      asyncTestDone("testReadAsTextEmptyFile");
       return true;
     });
   }
@@ -1058,18 +1037,15 @@ class FileTest {
   }
 
   static void testReadAsLines() {
-    var port = new ReceivePort();
-    port.receive((result, replyTo) {
-      port.close();
-      Expect.equals(42, result);
-    });
+    asyncTestStarted();
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
     f.readAsLines(encoding: UTF8).then((lines) {
       Expect.equals(1, lines.length);
       var line = lines[0];
       Expect.isTrue(line.endsWith("42 bytes."));
-      port.toSendPort().send(line.length);
+      Expect.equals(42, line.length);
+      asyncTestDone("testReadAsLines");
     });
   }
 
@@ -1087,11 +1063,7 @@ class FileTest {
 
 
   static void testReadAsErrors() {
-    var port = new ReceivePort();
-    port.receive((message, _) {
-      port.close();
-      Expect.equals(1, message);
-    });
+    asyncTestStarted();
     var f = new File('.');
     Expect.throws(f.readAsBytesSync, (e) => e is FileException);
     Expect.throws(f.readAsStringSync, (e) => e is FileException);
@@ -1105,18 +1077,18 @@ class FileTest {
         var readAsLinesFuture = f.readAsLines(encoding: UTF8);
         readAsLinesFuture.then((lines) => Expect.fail("no lines expected"))
         .catchError((e) {
-          port.toSendPort().send(1);
+          asyncTestDone("testReadAsLines");
         });
       });
     });
   }
 
   static void testLastModified() {
-    var port = new ReceivePort();
+    asyncTestStarted();
     new File(Platform.executable).lastModified().then((modified) {
       Expect.isTrue(modified is DateTime);
       Expect.isTrue(modified.isBefore(new DateTime.now()));
-      port.close();
+      asyncTestDone("testLastModified");
     });
   }
 
@@ -1129,6 +1101,7 @@ class FileTest {
   // Test that opens the same file for writing then for appending to test
   // that the file is not truncated when opened for appending.
   static void testAppend() {
+    asyncTestStarted();
     var file = new File('${tempDirectory.path}/out_append');
     file.open(mode: WRITE).then((openedFile) {
       openedFile.writeString("asdf").then((ignore) {
@@ -1154,7 +1127,6 @@ class FileTest {
         });
       });
     });
-    asyncTestStarted();
   }
 
   static void testAppendSync() {
@@ -1173,6 +1145,7 @@ class FileTest {
   }
 
   static void testWriteStringUtf8() {
+    asyncTestStarted();
     var file = new File('${tempDirectory.path}/out_write_string');
     var string = new String.fromCharCodes([0x192]);
     file.open(mode: WRITE).then((openedFile) {
@@ -1204,7 +1177,6 @@ class FileTest {
         });
       });
     });
-    asyncTestStarted();
   }
 
   static void testWriteStringUtf8Sync() {
@@ -1228,6 +1200,7 @@ class FileTest {
   // Test that opens the same file for writing then for appending to test
   // that the file is not truncated when opened for appending.
   static void testRename() {
+    asyncTestStarted();
     var file = new File('${tempDirectory.path}/rename_name');
     file.create().then((file) {
       file.rename("${tempDirectory.path}/rename_newname").then((newfile) {
@@ -1260,7 +1233,6 @@ class FileTest {
         });
       });
     });
-    asyncTestStarted();
   }
 
   static void testRenameSync() {
@@ -1288,32 +1260,25 @@ class FileTest {
 
   // Main test entrypoint.
   static testMain() {
-    port = new ReceivePort();
+    asyncStart();
+
     testRead();
     testReadSync();
     testReadStream();
-    testLength();
     testLengthSync();
-    testPosition();
     testPositionSync();
     testOpenDirectoryAsFile();
     testOpenDirectoryAsFileSync();
     testOpenFile();
-    testReadAsBytes();
-    testReadAsBytesEmptyFile();
     testReadAsBytesSync();
     testReadAsBytesSyncEmptyFile();
-    testReadAsText();
-    testReadAsTextEmptyFile();
     testReadAsTextSync();
     testReadAsTextSyncEmptyFile();
-    testReadAsLines();
     testReadAsLinesSync();
-    testReadAsErrors();
-    testLastModified();
     testLastModifiedSync();
 
     createTempDirectory(() {
+      testLength();
       testReadWrite();
       testReadWriteSync();
       testReadWriteNoArgsSync();
@@ -1321,6 +1286,13 @@ class FileTest {
       testReadEmptyFileSync();
       testReadEmptyFile();
       testReadWriteStreamLargeFile();
+      testReadAsBytes();
+      testReadAsBytesEmptyFile();
+      testReadAsText();
+      testReadAsTextEmptyFile();
+      testReadAsLines();
+      testReadAsErrors();
+      testPosition();
       testTruncate();
       testTruncateSync();
       testCloseException();
@@ -1338,6 +1310,8 @@ class FileTest {
       testWriteStringUtf8Sync();
       testRename();
       testRenameSync();
+      testLastModified();
+      asyncEnd();
     });
   }
 }
