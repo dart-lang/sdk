@@ -6786,6 +6786,23 @@ void Library::AddClass(const Class& cls) const {
   cls.set_library(*this);
 }
 
+static void AddScriptIfUnique(const GrowableObjectArray& scripts,
+                              Script& candidate) {
+  if (candidate.IsNull()) {
+    return;
+  }
+  Script& script_obj = Script::Handle();
+
+  for (int i = 0; i < scripts.Length(); i++) {
+    script_obj ^= scripts.At(i);
+    if (script_obj.raw() == candidate.raw()) {
+      // We already have a reference to this script.
+      return;
+    }
+  }
+  // Add script to the list of scripts.
+  scripts.Add(candidate);
+}
 
 RawArray* Library::LoadedScripts() const {
   // We compute the list of loaded scripts lazily. The result is
@@ -6796,13 +6813,19 @@ RawArray* Library::LoadedScripts() const {
         GrowableObjectArray::Handle(GrowableObjectArray::New(8));
     Object& entry = Object::Handle();
     Class& cls = Class::Handle();
+    Class& patch_cls = Class::Handle();
     Script& owner_script = Script::Handle();
+    Script& patch_script = Script::Handle();
     DictionaryIterator it(*this);
-    Script& script_obj = Script::Handle();
     while (it.HasNext()) {
       entry = it.GetNext();
       if (entry.IsClass()) {
         owner_script = Class::Cast(entry).script();
+        patch_cls = Class::Cast(entry).patch_class();
+        if (!patch_cls.IsNull()) {
+          patch_script = patch_cls.script();
+          AddScriptIfUnique(scripts, patch_script);
+        }
       } else if (entry.IsFunction()) {
         owner_script = Function::Cast(entry).script();
       } else if (entry.IsField()) {
@@ -6811,22 +6834,7 @@ RawArray* Library::LoadedScripts() const {
       } else {
         continue;
       }
-      if (owner_script.IsNull()) {
-        continue;
-      }
-      bool is_unique = true;
-      for (int i = 0; i < scripts.Length(); i++) {
-        script_obj ^= scripts.At(i);
-        if (script_obj.raw() == owner_script.raw()) {
-          // We already have a reference to this script.
-          is_unique = false;
-          break;
-        }
-      }
-      if (is_unique) {
-        // Add script to the list of scripts.
-        scripts.Add(owner_script);
-      }
+      AddScriptIfUnique(scripts, owner_script);
     }
 
     // Create the array of scripts and cache it in loaded_scripts_.

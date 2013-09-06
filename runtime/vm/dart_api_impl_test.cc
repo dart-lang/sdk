@@ -5296,8 +5296,13 @@ TEST_CASE(ParsePatchLibrary) {
   "  external B.named(x);\n"
   "  external B(v);\n"
   "}\n"
+  "class C {\n"
+  "  external int method();\n"
+  "}\n"
+  "\n"
   "external int unpatched();\n"
   "external int topLevel(var value);\n"
+  "external int topLevel2(var value);\n"
   "external int get topLevelGetter;\n"
   "external void set topLevelSetter(int value);\n";
 
@@ -5322,7 +5327,19 @@ TEST_CASE(ParsePatchLibrary) {
   "patch int set topLevelSetter(value) { _topLevelValue = value; }\n"
   "patch int get topLevelGetter => 2 * _topLevelValue;\n"
   // Allow top level methods named patch.
-  "patch(x) => x*3;\n";
+  "patch(x) => x*3;\n"
+  ;  // NOLINT
+
+  const char* kPatchClassOnlyChars =
+  "patch class C {\n"
+  "  /*patch*/ int method() {\n"
+  "    return 42;\n"
+  "  }\n"
+  "}\n"
+  ;  // NOLINT
+
+  const char* kPatchNoClassChars =
+  "patch topLevel2(x) => x * 2;\n";
 
   const char* kScriptChars =
   "import 'theLibrary';\n"
@@ -5356,17 +5373,27 @@ TEST_CASE(ParsePatchLibrary) {
   result = Dart_LoadLibrary(url, source);
   EXPECT_VALID(result);
 
-  const String& patch_url = String::Handle(String::New("theLibrary patch"));
-  const String& patch_source = String::Handle(String::New(kPatchChars));
-  const Script& patch_script = Script::Handle(Script::New(
-      patch_url, patch_source, RawScript::kPatchTag));
-
+  const char* patchNames[] = { "main library patch",
+                               "patch class only",
+                               "patch no class" };
+  const char* patches[] = { kPatchChars,
+                            kPatchClassOnlyChars,
+                            kPatchNoClassChars };
   const String& lib_url = String::Handle(String::New("theLibrary"));
+
   const Library& lib = Library::Handle(Library::LookupLibrary(lib_url));
-  const Error& err = Error::Handle(lib.Patch(patch_script));
-  if (!err.IsNull()) {
-    OS::Print("Patching error: %s\n", err.ToErrorCString());
-    EXPECT(false);
+
+  for (int i = 0; i < 3; i++) {
+    const String& patch_url = String::Handle(String::New(patchNames[i]));
+    const String& patch_source = String::Handle(String::New(patches[i]));
+    const Script& patch_script = Script::Handle(Script::New(
+        patch_url, patch_source, RawScript::kPatchTag));
+
+    const Error& err = Error::Handle(lib.Patch(patch_script));
+    if (!err.IsNull()) {
+      OS::Print("Patching error: %s\n", err.ToErrorCString());
+      EXPECT(false);
+    }
   }
   result = Dart_SetNativeResolver(result, &PatchNativeResolver);
   EXPECT_VALID(result);
@@ -5421,6 +5448,10 @@ TEST_CASE(ParsePatchLibrary) {
   EXPECT(Dart_IsInteger(result));
   EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(8, value);
+
+  // Make sure all source files show up in the patched library.
+  const Array& lib_scripts = Array::Handle(lib.LoadedScripts());
+  EXPECT_EQ(4, lib_scripts.Length());
 }
 
 
