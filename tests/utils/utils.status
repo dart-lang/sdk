@@ -19,9 +19,3 @@ txt_layout_test: Skip # Might just go away.
 
 [ $system == macos || $system == windows ]
 *_layout_test: Skip
-
-[ $compiler == dartanalyzer ]
-dart2js_test: Fail # Issue 13012
-
-[ $compiler == dart2analyzer ]
-dart2js_test: Fail # Issue 13012

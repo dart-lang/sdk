@@ -1065,10 +1065,14 @@ class ConcreteTypesInferrer extends TypesInferrer {
     return result == const DynamicTypeMask() ? null : result;
   }
 
+  Iterable<TypeMask> get containerTypes {
+    throw new UnsupportedError("");
+  }
+
   void clear() {}
 
   Iterable<Element> getCallersOf(Element element) {
-    throw "Don't use me";
+    throw new UnsupportedError("");
   }
 
   // --- analysis ---
