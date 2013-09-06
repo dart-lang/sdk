@@ -2641,6 +2641,27 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
 }
 
 
+extern const RuntimeEntry kCosRuntimeEntry(
+    "libc_cos", reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&cos)), 1, true, true);
+
+extern const RuntimeEntry kSinRuntimeEntry(
+    "libc_sin", reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&sin)), 1, true, true);
+
+
+const RuntimeEntry& MathUnaryInstr::TargetFunction() const {
+  switch (kind()) {
+    case MethodRecognizer::kMathSin:
+      return kSinRuntimeEntry;
+    case MethodRecognizer::kMathCos:
+      return kCosRuntimeEntry;
+    default:
+      UNREACHABLE();
+  }
+  return kSinRuntimeEntry;
+}
+
 #undef __
 
 }  // namespace dart

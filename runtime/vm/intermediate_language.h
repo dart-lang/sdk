@@ -4660,8 +4660,8 @@ class MathUnaryInstr : public TemplateDefinition<1> {
   }
 
   Value* value() const { return inputs_[0]; }
-
   MethodRecognizer::Kind kind() const { return kind_; }
+  const RuntimeEntry& TargetFunction() const;
 
   virtual bool CanDeoptimize() const { return false; }
 

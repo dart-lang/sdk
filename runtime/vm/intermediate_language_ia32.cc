@@ -3827,6 +3827,16 @@ void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* MathUnaryInstr::MakeLocationSummary() const {
+  if ((kind() == MethodRecognizer::kMathSin) ||
+      (kind() == MethodRecognizer::kMathCos)) {
+    const intptr_t kNumInputs = 1;
+    const intptr_t kNumTemps = 0;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+    summary->set_in(0, Location::FpuRegisterLocation(XMM1));
+    summary->set_out(Location::FpuRegisterLocation(XMM1));
+    return summary;
+  }
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3840,23 +3850,14 @@ LocationSummary* MathUnaryInstr::MakeLocationSummary() const {
 void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (kind() == MethodRecognizer::kMathSqrt) {
     __ sqrtsd(locs()->out().fpu_reg(), locs()->in(0).fpu_reg());
-  } else if ((kind() == MethodRecognizer::kMathCos) ||
-             (kind() == MethodRecognizer::kMathSin)) {
-    __ pushl(EAX);
-    __ pushl(EAX);
+  } else {
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(kDoubleSize * InputCount());
     __ movsd(Address(ESP, 0), locs()->in(0).fpu_reg());
-    __ fldl(Address(ESP, 0));
-    if (kind() == MethodRecognizer::kMathSin) {
-      __ fsin();
-    } else {
-      ASSERT(kind() == MethodRecognizer::kMathCos);
-      __ fcos();
-    }
+    __ CallRuntime(TargetFunction(), InputCount());
     __ fstpl(Address(ESP, 0));
     __ movsd(locs()->out().fpu_reg(), Address(ESP, 0));
-    __ addl(ESP, Immediate(2 * kWordSize));
-  } else {
-    UNREACHABLE();
+    __ leave();
   }
 }
 

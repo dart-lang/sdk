@@ -241,7 +241,6 @@ class FlowGraphCompiler : public ValueObject {
   ~FlowGraphCompiler();
 
   static bool SupportsUnboxedMints();
-  static bool SupportsInlinedTrigonometrics();
 
   // Accessors.
   Assembler* assembler() const { return assembler_; }

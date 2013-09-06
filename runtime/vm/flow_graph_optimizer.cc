@@ -1732,8 +1732,8 @@ LoadIndexedInstr* FlowGraphOptimizer::BuildStringCodeUnitAt(
 
 
 void FlowGraphOptimizer::ReplaceWithMathCFunction(
-  InstanceCallInstr* call,
-  MethodRecognizer::Kind recognized_kind) {
+    InstanceCallInstr* call,
+    MethodRecognizer::Kind recognized_kind) {
   AddReceiverCheck(call);
   ZoneGrowableArray<Value*>* args =
       new ZoneGrowableArray<Value*>(call->ArgumentCount());
@@ -2735,14 +2735,11 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
   if ((recognized_kind == MethodRecognizer::kMathSqrt) ||
       (recognized_kind == MethodRecognizer::kMathSin) ||
       (recognized_kind == MethodRecognizer::kMathCos)) {
-    if ((recognized_kind == MethodRecognizer::kMathSqrt) ||
-        FlowGraphCompiler::SupportsInlinedTrigonometrics()) {
-      MathUnaryInstr* math_unary =
-          new MathUnaryInstr(recognized_kind,
-                             new Value(call->ArgumentAt(0)),
-                             call->deopt_id());
-      ReplaceCall(call, math_unary);
-    }
+    MathUnaryInstr* math_unary =
+        new MathUnaryInstr(recognized_kind,
+                           new Value(call->ArgumentAt(0)),
+                           call->deopt_id());
+    ReplaceCall(call, math_unary);
   } else if ((recognized_kind == MethodRecognizer::kFloat32x4Zero) ||
              (recognized_kind == MethodRecognizer::kFloat32x4Splat) ||
              (recognized_kind == MethodRecognizer::kFloat32x4Constructor)) {

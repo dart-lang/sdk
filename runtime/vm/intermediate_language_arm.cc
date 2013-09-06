@@ -3760,6 +3760,16 @@ void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* MathUnaryInstr::MakeLocationSummary() const {
+  if ((kind() == MethodRecognizer::kMathSin) ||
+      (kind() == MethodRecognizer::kMathCos)) {
+    const intptr_t kNumInputs = 1;
+    const intptr_t kNumTemps = 0;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+    summary->set_in(0, Location::FpuRegisterLocation(Q0));
+    summary->set_out(Location::FpuRegisterLocation(Q0));
+    return summary;
+  }
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3776,7 +3786,7 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
     __ vsqrtd(result, val);
   } else {
-    UNIMPLEMENTED();
+    __ CallRuntime(TargetFunction(), InputCount());
   }
 }
 

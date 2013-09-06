@@ -3853,6 +3853,20 @@ void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* MathUnaryInstr::MakeLocationSummary() const {
+  if ((kind() == MethodRecognizer::kMathSin) ||
+      (kind() == MethodRecognizer::kMathCos)) {
+    // Calling convention on x64 uses XMM0 and XMM1 to pass the first two
+    // double arguments and XMM0 to return the result. Unfortunately
+    // currently we can't specify these registers because ParallelMoveResolver
+    // assumes that XMM0 is free at all times.
+    // TODO(vegorov): allow XMM0 to be used.
+    const intptr_t kNumTemps = 0;
+    LocationSummary* summary =
+        new LocationSummary(InputCount(), kNumTemps, LocationSummary::kCall);
+    summary->set_in(0, Location::FpuRegisterLocation(XMM1));
+    summary->set_out(Location::FpuRegisterLocation(XMM1));
+    return summary;
+  }
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3866,23 +3880,13 @@ LocationSummary* MathUnaryInstr::MakeLocationSummary() const {
 void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (kind() == MethodRecognizer::kMathSqrt) {
     __ sqrtsd(locs()->out().fpu_reg(), locs()->in(0).fpu_reg());
-  } else if ((kind() == MethodRecognizer::kMathCos) ||
-             (kind() == MethodRecognizer::kMathSin)) {
-    __ pushq(RAX);
-    __ movsd(Address(RSP, 0), locs()->in(0).fpu_reg());
-    __ fldl(Address(RSP, 0));
-    if (kind() == MethodRecognizer::kMathSin) {
-      __ fsin();
-    } else {
-      ASSERT(kind() == MethodRecognizer::kMathCos);
-      __ fcos();
-    }
-    __ fstpl(Address(RSP, 0));
-    __ movsd(locs()->out().fpu_reg(), Address(RSP, 0));
-    __ addq(RSP, Immediate(kWordSize));
-    return;
   } else {
-    UNREACHABLE();
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+    __ movaps(XMM0, locs()->in(0).fpu_reg());
+    __ CallRuntime(TargetFunction(), InputCount());
+    __ movaps(locs()->out().fpu_reg(), XMM0);
+    __ leave();
   }
 }
 
