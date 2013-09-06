@@ -11,7 +11,6 @@ const int BELOW_LENGTH = 2;
 const int KEPT = 3;
 const int ONE_CHECK = 4;
 const int ONE_ZERO_CHECK = 5;
-const int BELOW_ZERO_CHECK = 6;
 
 final List TESTS = [
 """
@@ -198,54 +197,6 @@ main(value) {
 }
 """,
 REMOVED,
-"""
-main(value) {
-  var a = new List(4);
-  var sum = 0;
-  for (int i = 0; i < a.length; i++) {
-    sum += a[i];
-    if (sum == 0) i++;
-  }
-  return sum;
-}
-""",
-REMOVED,
-"""
-main(value) {
-  var a = new List(5);
-  var sum = 0;
-  for (int i = a.length - 1; i >= 0; i--) {
-    sum += a[i];
-    if (sum == 0) i--;
-  }
-  return sum;
-}
-""",
-REMOVED,
-"""
-main(value) {
-  var a = new List(6);
-  var sum = 0;
-  for (int i = 0; i < a.length; i++) {
-    sum += a[i];
-    if (sum == 0) i--;
-  }
-  return sum;
-}
-""",
-BELOW_ZERO_CHECK,
-"""
-main(value) {
-  var a = new List(7);
-  var sum = 0;
-  for (int i = 0; i < a.length;) {
-    sum += a[i];
-    sum == 0 ? i-- : i++;
-  }
-  return sum;
-}
-""",
-BELOW_ZERO_CHECK,
 ];
 
 // TODO(ahe): It would probably be better if this test used the real
@@ -339,11 +290,6 @@ expect(String code, int kind) {
     case ABOVE_ZERO:
       Expect.isTrue(!generated.contains('< 0'));
       Expect.isTrue(generated.contains('ioore'));
-      break;
-
-    case BELOW_ZERO_CHECK:
-      Expect.isTrue(generated.contains('< 0'));
-      Expect.isTrue(!generated.contains('||'));
       Expect.isTrue(generated.contains('ioore'));
       break;
 
