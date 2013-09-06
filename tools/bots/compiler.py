@@ -119,7 +119,7 @@ def UseBrowserController(runtime, system):
   supported_platforms = {
     'linux': ['ff', 'chromeOnAndroid', 'chrome'],
     'mac': ['safari', 'chrome'],
-    'windows': ['ie9', 'ie10', 'ff', 'chrome']
+    'windows': ['ie9', 'ie10', 'ff']
   }
   # Platforms that we run on the fyi waterfall only.
   fyi_supported_platforms = {

@@ -353,7 +353,7 @@ class Chrome extends Browser {
 
       });
     }).catchError((e) {
-      _logEvent("Running $binary --version failed with $e");
+      _logEvent("Running $_binary --version failed with $e");
       return false;
     });
   }
