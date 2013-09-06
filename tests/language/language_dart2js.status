@@ -145,7 +145,6 @@ list_literal4_test: Fail # Issue 12890
 map_literal4_test: Fail # Issue 12891
 built_in_identifier_test/01: Fail # Issue 13022
 
-const_constructor_syntax_test/04: Fail # Issue 12900
 const_syntax_test/01: Fail # Issue 12932
 const_syntax_test/02: Fail # Issue 12932
 const_syntax_test/03: Fail # Issue 12932
@@ -268,7 +267,6 @@ compile_time_constant_arguments_test/02: Fail # Issue 5519
 compile_time_constant_arguments_test/03: Fail # Issue 5519
 compile_time_constant_arguments_test/05: Fail # Issue 5519
 compile_time_constant_arguments_test/06: Fail # Issue 5519
-const_constructor_syntax_test/04: Fail # Issue 12901
 const_syntax_test/01: Fail # Issue 12933
 const_syntax_test/02: Fail # Issue 12933
 const_syntax_test/03: Fail # Issue 12933

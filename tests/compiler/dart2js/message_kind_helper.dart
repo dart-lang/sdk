@@ -44,13 +44,18 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
           new RegExp(ESCAPE_REGEXP), (m) => '\\${m[0]}');
       pattern = pattern.replaceAll(new RegExp(r'#\\\{[^}]*\\\}'), '.*');
 
+      // TODO(johnniwinther): Extend MessageKind to contain information on
+      // where info messages are expected.
+      bool messageFound = false;
       for (String message in messages) {
-        Expect.isTrue(new RegExp('^$pattern\$').hasMatch(message),
-                      '"$pattern" does not match "$message"');
+        if (new RegExp('^$pattern\$').hasMatch(message)) {
+          messageFound = true;
+        }
       }
+      Expect.isTrue(messageFound, '"$pattern" does not match any in $messages');
       return compiler;
     });
   }
 
-  return cachedCompiler;
+  return new Future<Compiler>.sync(cachedCompiler);
 }

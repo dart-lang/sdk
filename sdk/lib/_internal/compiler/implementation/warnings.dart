@@ -282,6 +282,29 @@ main() => new C();"""]);
   static const MessageKind CONST_CALLS_NON_CONST = const MessageKind(
       'Error: "const" constructor cannot call a non-const constructor.');
 
+  static const MessageKind CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS =
+      const MessageKind(
+          "Error: Can't declare constructor 'const' on class #{className} "
+          "because the class contains non-final instance fields.",
+          howToFix: "Try making all fields final.",
+          examples: const ["""
+class C {
+  // 'a' must be declared final to allow for the const constructor.
+  var a;
+  const C(this.a);
+}
+
+main() => new C(0);"""]);
+
+  static const MessageKind CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD =
+      const MessageKind('Info: This non-final field prevents using const '
+                        'constructors.');
+
+  static const MessageKind CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR =
+      const MessageKind('Info: This const constructor is not allowed due to '
+                        'non-final fields.');
+
+
   static const MessageKind INITIALIZING_FORMAL_NOT_ALLOWED = const MessageKind(
       'Error: Initializing formal parameter only allowed in generative '
       'constructor.');

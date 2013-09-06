@@ -668,6 +668,8 @@ class ResolverTask extends CompilerTask {
     if (cls.isObject(compiler)) return;
     // TODO(johnniwinther): Should this be done on the implementation element as
     // well?
+    List<Element> constConstructors = <Element>[];
+    List<Element> nonFinalInstanceFields = <Element>[];
     cls.forEachMember((holder, member) {
       compiler.withCurrentElement(member, () {
         // Perform various checks as side effect of "computing" the type.
@@ -690,12 +692,38 @@ class ResolverTask extends CompilerTask {
                 MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS,
                 {'modifiers': mismatchedFlags});
           }
+          if (member.modifiers.isConst()) {
+            constConstructors.add(member);
+          }
+        }
+        if (member.isField()) {
+          if (!member.modifiers.isStatic() &&
+              !member.modifiers.isFinal()) {
+            nonFinalInstanceFields.add(member);
+          }
         }
         checkAbstractField(member);
         checkValidOverride(member, cls.lookupSuperMember(member.name));
         checkUserDefinableOperator(member);
       });
     });
+    if (!constConstructors.isEmpty && !nonFinalInstanceFields.isEmpty) {
+      Spannable span = constConstructors.length > 1
+          ? cls : constConstructors[0];
+      compiler.reportError(span,
+          MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS,
+          {'className': cls.name});
+      if (constConstructors.length > 1) {
+        for (Element constructor in constConstructors) {
+          compiler.reportInfo(constructor,
+              MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR);
+        }
+      }
+      for (Element field in nonFinalInstanceFields) {
+        compiler.reportInfo(field,
+            MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD);
+      }
+    }
   }
 
   void checkAbstractField(Element member) {
@@ -2722,7 +2750,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
     }
     return true;
   }
-
 
   /**
    * Try to resolve the constructor that is referred to by [node].

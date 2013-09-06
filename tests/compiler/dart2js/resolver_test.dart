@@ -79,6 +79,7 @@ main() {
   testOverrideHashCodeCheck();
   testSupertypeOrder();
   testConstructorArgumentMismatch();
+  testConstConstructorAndNonFinalFields();
 }
 
 testSupertypeOrder() {
@@ -846,6 +847,7 @@ List<String> asSortedStrings(Link link) {
 Future compileScript(String source) {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(source, uri);
+  compiler.diagnosticHandler = createHandler(compiler, source);
   return compiler.runCompiler(uri).then((_) {
     return compiler;
   });
@@ -924,5 +926,51 @@ testOverrideHashCodeCheck() {
     Expect.equals(MessageKind.OVERRIDE_EQUALS_NOT_HASH_CODE,
                   compiler.warnings[0].message.kind);
     Expect.equals(0, compiler.errors.length);
+  }));
+}
+
+testConstConstructorAndNonFinalFields() {
+  void expect(compiler, List errors, List warnings) {
+    Expect.equals(errors.length, compiler.errors.length);
+    for (int i = 0 ; i < errors.length ; i++) {
+      Expect.equals(errors[i], compiler.errors[i].message.kind);
+    }
+    Expect.equals(warnings.length, compiler.warnings.length);
+    for (int i = 0 ; i < warnings.length ; i++) {
+      Expect.equals(warnings[i], compiler.warnings[i].message.kind);
+    }
+  }
+
+  final script1 = r"""
+      class A {
+        var a;
+        const A(this.a);
+      }
+      main() {
+        new A(0);
+      }""";
+  asyncTest(() => compileScript(script1).then((compiler) {
+    expect(compiler,
+           [MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS],
+           [MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD]);
+  }));
+
+  final script2 = r"""
+      class A {
+        var a;
+        var b;
+        const A(this.a, this.b);
+        const A.named(this.a, this.b);
+      }
+      main() {
+        new A(0, 1);
+      }""";
+  asyncTest(() => compileScript(script2).then((compiler) {
+    expect(compiler,
+        [MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS],
+        [MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
+         MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
+         MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD,
+         MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD]);
   }));
 }
