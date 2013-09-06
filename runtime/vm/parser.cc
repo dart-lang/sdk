@@ -7552,7 +7552,7 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
   if (result == NULL) {
     String& name = String::ZoneHandle();
     if (original->IsTypeNode()) {
-      name = Symbols::New(original->Name());
+      name = Symbols::New(original->AsTypeNode()->TypeName());
     } else if ((left_ident != NULL) &&
                (original->IsLiteralNode() ||
                 original->IsLoadLocalNode() ||
@@ -8226,8 +8226,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
             selector = ParseInstanceCall(receiver, name);
           }
         } else if (primary->primary().IsTypeParameter()) {
+          // TODO(regis): Issue 13134.  Make sure the error message is the
+          // one we want here and add a test covering this code.
           const String& name = String::ZoneHandle(
-              Symbols::New(primary->Name()));
+              TypeParameter::Cast(primary->primary()).name());
           selector = ThrowNoSuchMethodError(primary->token_pos(),
                                             current_class(),
                                             name,

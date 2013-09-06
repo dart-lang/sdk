@@ -18,7 +18,7 @@ AstPrinter::~AstPrinter() { }
 
 
 void AstPrinter::VisitGenericAstNode(AstNode* node) {
-  OS::Print("(%s ", node->Name());
+  OS::Print("(%s ", node->PrettyName());
   node->VisitChildren(this);
   OS::Print(")");
 }
@@ -56,7 +56,7 @@ void AstPrinter::VisitReturnNode(ReturnNode* node) {
 void AstPrinter::VisitGenericLocalNode(AstNode* node,
                                        const LocalVariable& var) {
   OS::Print("(%s %s%s '%s'",
-            node->Name(),
+            node->PrettyName(),
             var.is_final() ? "final " : "",
             String::Handle(var.type().Name()).ToCString(),
             var.name().ToCString());
@@ -83,7 +83,7 @@ void AstPrinter::VisitStoreLocalNode(StoreLocalNode* node) {
 
 void AstPrinter::VisitGenericFieldNode(AstNode* node, const Field& field) {
   OS::Print("(%s %s%s '%s' ",
-            node->Name(),
+            node->PrettyName(),
             field.is_final() ? "final " : "",
             String::Handle(AbstractType::Handle(field.type()).Name()).
                 ToCString(),
@@ -147,8 +147,8 @@ void AstPrinter::VisitAssignableNode(AssignableNode* node) {
 
 
 void AstPrinter::VisitPrimaryNode(PrimaryNode* node) {
-  OS::Print("***** PRIMARY NODE IN AST ***** (%s '%s')",
-      node->Name(), node->primary().ToCString());
+  OS::Print("***** PRIMARY NODE IN AST ***** (primary '%s')",
+            node->primary().ToCString());
 }
 
 
@@ -169,7 +169,7 @@ void AstPrinter::VisitBinaryOpNode(BinaryOpNode* node) {
 
 
 void AstPrinter::VisitBinaryOpWithMask32Node(BinaryOpWithMask32Node* node) {
-  OS::Print("(%s ", node->Name());
+  OS::Print("(%s %s", node->PrettyName(), node->TokenName());
   node->VisitChildren(this);
   OS::Print(" & 0x%" Px64 "", node->mask32());
   OS::Print(")");
@@ -254,15 +254,16 @@ void AstPrinter::VisitDoWhileNode(DoWhileNode* node) {
 
 
 void AstPrinter::VisitJumpNode(JumpNode* node) {
-  OS::Print("(%s %s in scope %p)",
-            node->Name(),
+  OS::Print("(%s %s %s in scope %p)",
+            node->PrettyName(),
+            node->TokenName(),
             node->label()->name().ToCString(),
             node->label()->owner());
 }
 
 
 void AstPrinter::VisitInstanceCallNode(InstanceCallNode* node) {
-  OS::Print("(%s '%s'(", node->Name(), node->function_name().ToCString());
+  OS::Print("(%s '%s'(", node->PrettyName(), node->function_name().ToCString());
   node->VisitChildren(this);
   OS::Print("))");
 }
@@ -270,7 +271,7 @@ void AstPrinter::VisitInstanceCallNode(InstanceCallNode* node) {
 
 void AstPrinter::VisitStaticCallNode(StaticCallNode* node) {
   const char* function_fullname = node->function().ToFullyQualifiedCString();
-  OS::Print("(%s '%s'(", node->Name(), function_fullname);
+  OS::Print("(%s '%s'(", node->PrettyName(), function_fullname);
   node->VisitChildren(this);
   OS::Print("))");
 }
@@ -278,7 +279,7 @@ void AstPrinter::VisitStaticCallNode(StaticCallNode* node) {
 
 void AstPrinter::VisitClosureNode(ClosureNode* node) {
   const char* function_fullname = node->function().ToFullyQualifiedCString();
-  OS::Print("(%s '%s')", node->Name(), function_fullname);
+  OS::Print("(%s '%s')", node->PrettyName(), function_fullname);
 }
 
 
@@ -290,21 +291,25 @@ void AstPrinter::VisitClosureCallNode(ClosureCallNode* node) {
 void AstPrinter::VisitConstructorCallNode(ConstructorCallNode* node) {
   const char* kind = node->constructor().IsFactory() ? "factory " : "";
   const char* constructor_name = node->constructor().ToFullyQualifiedCString();
-  OS::Print("(%s %s'%s' ((this)", node->Name(), kind, constructor_name);
+  OS::Print("(%s %s'%s' ((this)", node->PrettyName(), kind, constructor_name);
   node->VisitChildren(this);
   OS::Print("))");
 }
 
 
 void AstPrinter::VisitInstanceGetterNode(InstanceGetterNode* node) {
-  OS::Print("(%s 'get %s'(", node->Name(), node->field_name().ToCString());
+  OS::Print("(%s 'get %s'(",
+            node->PrettyName(),
+            node->field_name().ToCString());
   node->VisitChildren(this);
   OS::Print("))");
 }
 
 
 void AstPrinter::VisitInstanceSetterNode(InstanceSetterNode* node) {
-  OS::Print("(%s 'set %s'(", node->Name(), node->field_name().ToCString());
+  OS::Print("(%s 'set %s'(",
+            node->PrettyName(),
+            node->field_name().ToCString());
   node->VisitChildren(this);
   OS::Print("))");
 }
@@ -313,7 +318,7 @@ void AstPrinter::VisitInstanceSetterNode(InstanceSetterNode* node) {
 void AstPrinter::VisitStaticGetterNode(StaticGetterNode* node) {
   String& class_name = String::Handle(node->cls().Name());
   OS::Print("(%s '%s.%s'(",
-            node->Name(),
+            node->PrettyName(),
             class_name.ToCString(),
             node->field_name().ToCString());
   OS::Print("))");
@@ -323,21 +328,23 @@ void AstPrinter::VisitStaticGetterNode(StaticGetterNode* node) {
 void AstPrinter::VisitStaticSetterNode(StaticSetterNode* node) {
   String& class_name = String::Handle(node->cls().Name());
   OS::Print("(%s '%s.%s'(",
-      node->Name(), class_name.ToCString(), node->field_name().ToCString());
+            node->PrettyName(),
+            class_name.ToCString(),
+            node->field_name().ToCString());
   node->VisitChildren(this);
   OS::Print("))");
 }
 
 
 void AstPrinter::VisitLoadIndexedNode(LoadIndexedNode* node) {
-  OS::Print("(%s%s ", node->Name(), node->IsSuperLoad() ? " super" : "");
+  OS::Print("(%s%s ", node->PrettyName(), node->IsSuperLoad() ? " super" : "");
   node->VisitChildren(this);
   OS::Print(")");
 }
 
 
 void AstPrinter::VisitStoreIndexedNode(StoreIndexedNode* node) {
-  OS::Print("(%s%s ", node->Name(), node->IsSuperStore() ? " super" : "");
+  OS::Print("(%s%s ", node->PrettyName(), node->IsSuperStore() ? " super" : "");
   node->VisitChildren(this);
   OS::Print(")");
 }

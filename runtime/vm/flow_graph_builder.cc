@@ -993,7 +993,7 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
       new ZoneGrowableArray<PushArgumentInstr*>(2);
   arguments->Add(push_left);
   arguments->Add(push_right);
-  const String& name = String::ZoneHandle(Symbols::New(node->Name()));
+  const String& name = String::ZoneHandle(Symbols::New(node->TokenName()));
   const intptr_t kNumArgsChecked = 2;
   InstanceCallInstr* call = new InstanceCallInstr(node->token_pos(),
                                                   name,
@@ -1438,7 +1438,7 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   ASSERT(Token::IsRelationalOperator(node->kind()));
   InstanceCallInstr* comp =
       new InstanceCallInstr(node->token_pos(),
-                            String::ZoneHandle(Symbols::New(node->Name())),
+                            String::ZoneHandle(Symbols::New(node->TokenName())),
                             node->kind(),
                             arguments,
                             Object::null_array(),
@@ -1473,7 +1473,7 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   arguments->Add(push_value);
   InstanceCallInstr* call =
       new InstanceCallInstr(node->token_pos(),
-                            String::ZoneHandle(Symbols::New(node->Name())),
+                            String::ZoneHandle(Symbols::New(node->TokenName())),
                             node->kind(),
                             arguments,
                             Object::null_array(),

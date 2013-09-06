@@ -85,7 +85,7 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
 #define DECLARE_COMMON_NODE_FUNCTIONS(type)                                    \
   virtual void Visit(AstNodeVisitor* visitor);                                 \
-  virtual const char* ShortName() const;                                       \
+  virtual const char* PrettyName() const;                                      \
   virtual bool Is##type() const { return true; }                               \
   virtual type* As##type() { return this; }
 
@@ -107,14 +107,7 @@ NODE_LIST(AST_TYPE_CHECK)
 
   virtual void Visit(AstNodeVisitor* visitor) = 0;
   virtual void VisitChildren(AstNodeVisitor* visitor) const = 0;
-  virtual const char* ShortName() const = 0;
-
-  // 'ShortName' is predefined for each AstNode and is the default
-  // implementation of "Name()". Each AST node can override the function
-  // "Name" to do more complex name composition.
-  virtual const char* Name() const {
-    return ShortName();
-  }
+  virtual const char* PrettyName() const = 0;
 
   // Convert the node into an assignment node using the rhs which is passed in,
   // this is typically used for converting nodes like LoadLocalNode,
@@ -358,7 +351,7 @@ class TypeNode : public AstNode {
 
   const AbstractType& type() const { return type_; }
 
-  virtual const char* Name() const;
+  const char* TypeName() const;
 
   virtual const Instance* EvalConstExpr() const {
     // TODO(regis): What if the type is malbounded?
@@ -547,7 +540,7 @@ class ComparisonNode : public AstNode {
     right()->Visit(visitor);
   }
 
-  virtual const char* Name() const;
+  const char* TokenName() const;
   virtual bool IsPotentiallyConst() const;
   virtual const Instance* EvalConstExpr() const;
 
@@ -591,7 +584,7 @@ class BinaryOpNode : public AstNode {
     right()->Visit(visitor);
   }
 
-  virtual const char* Name() const;
+  const char* TokenName() const;
   virtual bool IsPotentiallyConst() const;
   virtual const Instance* EvalConstExpr() const;
 
@@ -627,7 +620,7 @@ class BinaryOpWithMask32Node : public BinaryOpNode {
     return mask32_;
   }
 
-  virtual const char* Name() const;
+  const char* TokenName() const;
   DECLARE_COMMON_NODE_FUNCTIONS(BinaryOpWithMask32Node);
 
  private:
@@ -660,7 +653,7 @@ class UnaryOpNode : public AstNode {
     operand()->Visit(visitor);
   }
 
-  virtual const char* Name() const;
+  const char* TokenName() const;
   virtual bool IsPotentiallyConst() const;
   virtual const Instance* EvalConstExpr() const;
 
@@ -978,7 +971,7 @@ class JumpNode : public AstNode {
     inlined_finally_list_.Add(finally_node);
   }
 
-  virtual const char* Name() const;
+  const char* TokenName() const;
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
 
@@ -1003,7 +996,6 @@ class LoadLocalNode : public AstNode {
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
 
-  virtual const char* Name() const;
   virtual const Instance* EvalConstExpr() const;
   virtual bool IsPotentiallyConst() const;
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);

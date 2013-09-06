@@ -21,7 +21,7 @@ NODE_LIST(DEFINE_VISIT_FUNCTION)
 
 
 #define DEFINE_NAME_FUNCTION(type, name)                                       \
-  const char* type::ShortName() const {                                        \
+  const char* type::PrettyName() const {                                       \
     return name;                                                               \
   }
 NODE_LIST(DEFINE_NAME_FUNCTION)
@@ -137,7 +137,7 @@ AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
 }
 
 
-const char* TypeNode::Name() const {
+const char* TypeNode::TypeName() const {
   return String::Handle(type().UserVisibleName()).ToCString();
 }
 
@@ -150,7 +150,7 @@ bool ComparisonNode::IsKindValid() const {
 }
 
 
-const char* ComparisonNode::Name() const {
+const char* ComparisonNode::TokenName() const {
   return Token::Str(kind_);
 }
 
@@ -239,12 +239,12 @@ bool BinaryOpNode::IsKindValid() const {
 }
 
 
-const char* BinaryOpNode::Name() const {
+const char* BinaryOpNode::TokenName() const {
   return Token::Str(kind_);
 }
 
 
-const char* BinaryOpWithMask32Node::Name() const {
+const char* BinaryOpWithMask32Node::TokenName() const {
   return Token::Str(kind());
 }
 
@@ -405,18 +405,13 @@ AstNode* ClosureNode::MakeAssignmentNode(AstNode* rhs) {
 }
 
 
-const char* UnaryOpNode::Name() const {
+const char* UnaryOpNode::TokenName() const {
   return Token::Str(kind_);
 }
 
 
-const char* JumpNode::Name() const {
+const char* JumpNode::TokenName() const {
   return Token::Str(kind_);
-}
-
-
-const char* LoadLocalNode::Name() const {
-  return local().name().ToCString();
 }
 
 
