@@ -10,6 +10,7 @@
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
 #include <poll.h>  // NOLINT
+#include <signal.h>  // NOLINT
 #include <stdio.h>  // NOLINT
 #include <stdlib.h>  // NOLINT
 #include <string.h>  // NOLINT
@@ -110,8 +111,8 @@ ProcessInfo* ProcessInfoList::active_processes_ = NULL;
 dart::Mutex* ProcessInfoList::mutex_ = new dart::Mutex();
 
 
-// The exit code handler sets up a separate thread which waits for child
-// processes to die. That separate thread can then get the exit code from
+// The exit code handler sets up a separate thread which is signalled
+// on SIGCHLD. That separate thread can then get the exit code from
 // processes that have exited and communicate it to Dart through the
 // event loop.
 class ExitCodeHandler {
@@ -126,15 +127,33 @@ class ExitCodeHandler {
       return true;
     }
 
-    // Start thread that handles process exits when waitpid returns.
-    int result = dart::Thread::Start(ExitCodeHandlerEntry, 0);
+    // Allocate a pipe that the signal handler can write a byte to and
+    // that the exit handler thread can poll.
+    int result = TEMP_FAILURE_RETRY(pipe(sig_chld_fds_));
+    if (result < 0) {
+      return false;
+    }
+    FDUtils::SetCloseOnExec(sig_chld_fds_[0]);
+    FDUtils::SetCloseOnExec(sig_chld_fds_[1]);
+
+    // Start thread that polls the pipe and handles process exits when
+    // data is received on the pipe.
+    result = dart::Thread::Start(ExitCodeHandlerEntry, sig_chld_fds_[0]);
     if (result != 0) {
       FATAL1("Failed to start exit code handler worker thread %d", result);
     }
 
+    // Mark write end non-blocking.
+    FDUtils::SetNonBlocking(sig_chld_fds_[1]);
+
     // Thread started and the ExitCodeHandler is initialized.
     initialized_ = true;
     return true;
+  }
+
+  // Get the write end of the pipe.
+  static int WakeUpFd() {
+    return sig_chld_fds_[1];
   }
 
   static void TerminateExitCodeThread() {
@@ -143,68 +162,109 @@ class ExitCodeHandler {
       return;
     }
 
-    thread_terminate_monitor_->Enter();
-
-    terminate_ = true;
-    // Fork to wake up waitpid.
-    if (TEMP_FAILURE_RETRY(fork()) == 0) {
-      exit(0);
+    uint8_t data = kThreadTerminateByte;
+    ssize_t result =
+        TEMP_FAILURE_RETRY(write(ExitCodeHandler::WakeUpFd(), &data, 1));
+    if (result < 1) {
+      perror("Failed to write to wake-up fd to terminate exit code thread");
     }
 
-    thread_terminate_monitor_->Wait(dart::Monitor::kNoTimeout);
-    thread_terminate_monitor_->Exit();
+    {
+      MonitorLocker terminate_locker(thread_terminate_monitor_);
+      while (!thread_terminated_) {
+        terminate_locker.Wait();
+      }
+    }
+  }
+
+  static void ExitCodeThreadTerminated() {
+    MonitorLocker locker(thread_terminate_monitor_);
+    thread_terminated_ = true;
+    locker.Notify();
   }
 
  private:
+  static const uint8_t kThreadTerminateByte = 1;
+
+  // GetProcessExitCodes is called on a separate thread when a SIGCHLD
+  // signal is received to retrieve the exit codes and post them to
+  // dart.
+  static void GetProcessExitCodes() {
+    pid_t pid = 0;
+    int status = 0;
+    while ((pid = TEMP_FAILURE_RETRY(waitpid(-1, &status, WNOHANG))) > 0) {
+      int exit_code = 0;
+      int negative = 0;
+      if (WIFEXITED(status)) {
+        exit_code = WEXITSTATUS(status);
+      }
+      if (WIFSIGNALED(status)) {
+        exit_code = WTERMSIG(status);
+        negative = 1;
+      }
+      intptr_t exit_code_fd = ProcessInfoList::LookupProcessExitFd(pid);
+      if (exit_code_fd != 0) {
+        int message[2] = { exit_code, negative };
+        ssize_t result =
+            FDUtils::WriteToBlocking(exit_code_fd, &message, sizeof(message));
+        // If the process has been closed, the read end of the exit
+        // pipe has been closed. It is therefore not a problem that
+        // write fails with a broken pipe error. Other errors should
+        // not happen.
+        if (result != -1 && result != sizeof(message)) {
+          FATAL("Failed to write entire process exit message");
+        } else if (result == -1 && errno != EPIPE) {
+          FATAL1("Failed to write exit code: %d", errno);
+        }
+        ProcessInfoList::RemoveProcess(pid);
+      }
+    }
+  }
+
+
   // Entry point for the separate exit code handler thread started by
   // the ExitCodeHandler.
   static void ExitCodeHandlerEntry(uword param) {
-    pid_t pid = 0;
-    int status = 0;
-    while (!terminate_) {
-      if ((pid = TEMP_FAILURE_RETRY(waitpid(-1, &status, 0))) > 0) {
-        int exit_code = 0;
-        int negative = 0;
-        if (WIFEXITED(status)) {
-          exit_code = WEXITSTATUS(status);
+    struct pollfd pollfds;
+    pollfds.fd = param;
+    pollfds.events = POLLIN;
+    while (true) {
+      int result = TEMP_FAILURE_RETRY(poll(&pollfds, 1, -1));
+      if (result == -1) {
+        ASSERT(EAGAIN == EWOULDBLOCK);
+        if (errno != EWOULDBLOCK) {
+          perror("ExitCodeHandler poll failed");
         }
-        if (WIFSIGNALED(status)) {
-          exit_code = WTERMSIG(status);
-          negative = 1;
+      } else {
+        // Read the byte from the wake-up fd.
+        ASSERT(result = 1);
+        intptr_t data = 0;
+        ssize_t read_bytes = FDUtils::ReadFromBlocking(pollfds.fd, &data, 1);
+        if (read_bytes < 1) {
+          perror("Failed to read from wake-up fd in exit-code handler");
         }
-        intptr_t exit_code_fd = ProcessInfoList::LookupProcessExitFd(pid);
-        if (exit_code_fd != 0) {
-          int message[2] = { exit_code, negative };
-          ssize_t result =
-              FDUtils::WriteToBlocking(exit_code_fd, &message, sizeof(message));
-          // If the process has been closed, the read end of the exit
-          // pipe has been closed. It is therefore not a problem that
-          // write fails with a broken pipe error. Other errors should
-          // not happen.
-          if (result != -1 && result != sizeof(message)) {
-            FATAL("Failed to write entire process exit message");
-          } else if (result == -1 && errno != EPIPE) {
-            FATAL1("Failed to write exit code: %d", errno);
-          }
-          ProcessInfoList::RemoveProcess(pid);
+        if (data == ExitCodeHandler::kThreadTerminateByte) {
+          ExitCodeThreadTerminated();
+          return;
         }
+        // Get the exit code from all processes that have died.
+        GetProcessExitCodes();
       }
     }
-    thread_terminate_monitor_->Enter();
-    thread_terminate_monitor_->Notify();
-    thread_terminate_monitor_->Exit();
   }
 
   static dart::Mutex* mutex_;
   static bool initialized_;
-  static bool terminate_;
+  static int sig_chld_fds_[2];
+  static bool thread_terminated_;
   static dart::Monitor* thread_terminate_monitor_;
 };
 
 
 dart::Mutex* ExitCodeHandler::mutex_ = new dart::Mutex();
 bool ExitCodeHandler::initialized_ = false;
-bool ExitCodeHandler::terminate_ = false;
+int ExitCodeHandler::sig_chld_fds_[2] = { 0, 0 };
+bool ExitCodeHandler::thread_terminated_ = false;
 dart::Monitor* ExitCodeHandler::thread_terminate_monitor_ = new dart::Monitor();
 
 
@@ -213,6 +273,21 @@ static void SetChildOsErrorMessage(char** os_error_message) {
   char error_message[kBufferSize];
   strerror_r(errno, error_message, kBufferSize);
   *os_error_message = strdup(error_message);
+}
+
+
+static void SigChldHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
+  // Save errno so it can be restored at the end.
+  int entry_errno = errno;
+  // Signal the exit code handler where the actual processing takes
+  // place.
+  ssize_t result =
+      TEMP_FAILURE_RETRY(write(ExitCodeHandler::WakeUpFd(), "", 1));
+  if (result < 1) {
+    perror("Failed to write to wake-up fd in SIGCHLD handler");
+  }
+  // Restore errno.
+  errno = entry_errno;
 }
 
 
@@ -338,6 +413,13 @@ int Process::Start(const char* path,
     program_environment[environment_length] = NULL;
   }
 
+  struct sigaction act;
+  bzero(&act, sizeof(act));
+  act.sa_sigaction = SigChldHandler;
+  act.sa_flags = SA_NOCLDSTOP | SA_SIGINFO;
+  if (sigaction(SIGCHLD, &act, 0) != 0) {
+    perror("Process start: setting signal handler failed");
+  }
   pid = TEMP_FAILURE_RETRY(fork());
   if (pid < 0) {
     SetChildOsErrorMessage(os_error_message);
