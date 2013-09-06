@@ -455,18 +455,14 @@ class AndroidChrome extends Browser {
 }
 
 class Firefox extends Browser {
-  /**
-   * The binary used to run firefox - changing this can be nececcary for
-   * testing or using non standard firefox installation.
-   */
-  static const String binary = "firefox";
-
   static const String enablePopUp =
       'user_pref("dom.disable_open_during_load", false);';
   static const String disableDefaultCheck =
       'user_pref("browser.shell.checkDefaultBrowser", false);';
   static const String disableScriptTimeLimit =
       'user_pref("dom.max_script_run_time", 0);';
+
+  static string _binary = _getBinary();
 
   Future _createPreferenceFile(var path) {
     var file = new File("${path.toString()}/user.js");
@@ -477,11 +473,22 @@ class Firefox extends Browser {
     randomFile.close();
   }
 
+  // This is extracted to a function since we may need to support several
+  // locations.
+  static String _getWindowsBinary() {
+    return "C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe";
+  }
+
+  static String _getBinary() {
+    if (Platform.isWindows) return _getWindowsBinary();
+    if (Platform.isLinux) return 'firefox';
+  }
+
 
   Future<bool> start(String url) {
     _logEvent("Starting firefox browser on: $url");
     // Get the version and log that.
-    return Process.run(binary, ["--version"]).then((var versionResult) {
+    return Process.run(_binary, ["--version"]).then((var versionResult) {
       if (versionResult.exitCode != 0) {
         _logEvent("Failed to firefox get version");
         _logEvent("Make sure $binary is a valid program for running firefox");
@@ -495,7 +502,7 @@ class Firefox extends Browser {
         _cleanup = () { userDir.deleteSync(recursive: true); };
         var args = ["-profile", "${userDir.path}",
                     "-no-remote", "-new-instance", url];
-        return startBrowser(binary, args);
+        return startBrowser(_binary, args);
 
       });
     }).catchError((e) {
