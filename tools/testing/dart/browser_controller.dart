@@ -317,16 +317,26 @@ class Safari extends Browser {
 
 
 class Chrome extends Browser {
-  /**
-   * The binary used to run chrome - changing this can be nececcary for
-   * testing or using non standard chrome installation.
-   */
-  static const String binary = "google-chrome";
+  static String _binary = _getBinary();
+
+  // This is extracted to a function since we may need to support several
+  // locations.
+  static String _getWindowsBinary() {
+    return "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
+  }
+
+  static String _getBinary() {
+    if (Platform.isWindows) return _getWindowsBinary();
+    if (Platform.isMacOS) {
+      return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+    }
+    if (Platform.isLinux) return 'google-chrome';
+  }
 
   Future<bool> start(String url) {
     _logEvent("Starting chrome browser on: $url");
     // Get the version and log that.
-    return Process.run(binary, ["--version"]).then((var versionResult) {
+    return Process.run(_binary, ["--version"]).then((var versionResult) {
       if (versionResult.exitCode != 0) {
         _logEvent("Failed to chrome get version");
         _logEvent("Make sure $binary is a valid program for running chrome");
@@ -340,7 +350,7 @@ class Chrome extends Browser {
         var args = ["--user-data-dir=${userDir.path}", url,
                     "--disable-extensions", "--disable-popup-blocking",
                     "--bwsi", "--no-first-run"];
-        return startBrowser(binary, args);
+        return startBrowser(_binary, args);
 
       });
     }).catchError((e) {
@@ -483,7 +493,6 @@ class Firefox extends Browser {
     if (Platform.isWindows) return _getWindowsBinary();
     if (Platform.isLinux) return 'firefox';
   }
-
 
   Future<bool> start(String url) {
     _logEvent("Starting firefox browser on: $url");
