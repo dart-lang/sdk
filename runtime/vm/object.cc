@@ -4181,10 +4181,7 @@ void Function::set_is_inlinable(bool value) const {
 
 
 bool Function::IsInlineable() const {
-  // '==' call is handled specially.
-  return InlinableBit::decode(raw_ptr()->kind_tag_) &&
-         HasCode() &&
-         name() != Symbols::EqualOperator().raw();
+  return InlinableBit::decode(raw_ptr()->kind_tag_) && HasCode();
 }
 
 

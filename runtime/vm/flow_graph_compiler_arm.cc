@@ -1460,31 +1460,6 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 }
 
 
-// Implement equality spec: if any of the arguments is null do identity check.
-// Fallthrough calls super equality.
-void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
-                                                      Label* skip_call) {
-  Label check_identity, fall_through;
-  __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
-  __ ldr(result, Address(SP, 0 * kWordSize));  // Load right operand.
-  __ cmp(result, ShifterOperand(IP));  // Is right null?
-  __ ldr(result, Address(SP, 1 * kWordSize));  // Load left operand.
-  __ b(&check_identity, EQ);  // Branch if right (IP) is null; left in result.
-  __ cmp(result, ShifterOperand(IP));  // Right is non-null; is left null?
-  __ b(&fall_through, NE);
-  // Right is non-null, left is null. We could return false, but we save code
-  // by falling through with an IP different than null.
-  __ mov(IP, ShifterOperand(0));
-  __ Bind(&check_identity);
-  __ cmp(result, ShifterOperand(IP));
-  __ LoadObject(result, Bool::True(), EQ);
-  __ LoadObject(result, Bool::False(), NE);
-  __ Drop(2);
-  __ b(skip_call);
-  __ Bind(&fall_through);
-}
-
-
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   // TODO(vegorov): consider saving only caller save (volatile) registers.
   const intptr_t fpu_regs_count = locs->live_registers()->fpu_regs_count();

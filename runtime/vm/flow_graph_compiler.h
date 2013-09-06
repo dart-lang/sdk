@@ -383,9 +383,6 @@ class FlowGraphCompiler : public ValueObject {
                                  Register right,
                                  bool needs_number_check,
                                  intptr_t token_pos);
-  // Implement equality: if any of the arguments is null do identity check.
-  // Fallthrough calls super equality.
-  void EmitSuperEqualityCallPrologue(Register result, Label* skip_call);
 
   void EmitTrySync(Instruction* instr, intptr_t try_index);
 

@@ -1835,9 +1835,6 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    deopt_id(),
                                    token_pos());
   }
-  if (function().name() == Symbols::EqualOperator().raw()) {
-    compiler->EmitSuperEqualityCallPrologue(locs()->out().reg(), &skip_call);
-  }
   compiler->GenerateStaticCall(deopt_id(),
                                token_pos(),
                                function(),
