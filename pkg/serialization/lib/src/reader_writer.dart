@@ -40,7 +40,7 @@ class Writer implements ReaderOrWriter {
    * but also serves to record which objects we have already seen.
    */
   final Map<dynamic, Reference> references =
-      new HashMap<Object, Reference>(equals: identical);
+      new IdentityMap<Object, Reference>();
 
   /**
    * The state of objects that need to be serialized is stored here.

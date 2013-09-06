@@ -41,14 +41,6 @@ abstract class HashMap<K, V> implements Map<K, V> {
    * for keys in order to place them in the hash table. If it is omitted, the
    * key's own [Object.hashCode] is used.
    *
-   * If using methods like [operator[]], [remove] and [containsKey] together
-   * with a custom equality and hashcode, an extra `isValidKey` function
-   * can be supplied. This function is called before calling [equals] or
-   * [hashCode] with an argument that may not be a [K] instance, and if the
-   * call returns false, the key is assumed to not be in the set.
-   * The [isValidKey] function defaults to just testing if the object is a
-   * [K] instance.
-   *
    * The used `equals` and `hashCode` method should always be consistent,
    * so that if `equals(a, b)` then `hashCode(a) == hashCode(b)`. The hash
    * of an object, or what it compares equal to, should not change while the
@@ -58,9 +50,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
    * you also want to supply the other. The only common exception is to pass
    * [identical] as the equality and use the default hash code.
    */
-  external factory HashMap({bool equals(K key1, K key2),
-                            int hashCode(K key),
-                            bool isValidKey(potentialKey)});
+  external factory HashMap({bool equals(K key1, K key2), int hashCode(K key)});
 
   /**
    * Creates a [HashMap] that contains all key value pairs of [other].

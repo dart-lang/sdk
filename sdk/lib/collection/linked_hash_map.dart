@@ -18,10 +18,8 @@ part of dart.collection;
  *
  * The map allows `null` as a key.
  */
-abstract class LinkedHashMap<K, V> implements HashMap<K, V> {
-  external factory LinkedHashMap({ bool equals(K key1, K key2),
-                                   int hashCode(K key),
-                                   bool isValidKey(potentialKey) });
+class LinkedHashMap<K, V> implements HashMap<K, V> {
+  external LinkedHashMap();
 
   /**
    * Creates a [LinkedHashMap] that contains all key value pairs of [other].
@@ -66,4 +64,35 @@ abstract class LinkedHashMap<K, V> implements HashMap<K, V> {
     Maps._fillMapWithIterables(map, keys, values);
     return map;
   }
+
+  external bool containsKey(Object key);
+
+  external bool containsValue(Object value);
+
+  external void addAll(Map<K, V> other);
+
+  external V operator [](Object key);
+
+  external void operator []=(K key, V value);
+
+  external V putIfAbsent(K key, V ifAbsent());
+
+  external V remove(Object key);
+
+  external void clear();
+
+  external void forEach(void action (K key, V value));
+
+  /** The keys of the map, in insertion order. */
+  external Iterable<K> get keys;
+  /** The values of the map, in the order of their corresponding [keys].*/
+  external Iterable<V> get values;
+
+  external int get length;
+
+  external bool get isEmpty;
+
+  external bool get isNotEmpty;
+
+  String toString() => Maps.mapToString(this);
 }

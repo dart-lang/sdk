@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 
 import 'dart:collection';
 
-class Foo extends HashSet {
+class Foo extends LinkedHashMap {
 }
 
 main() {

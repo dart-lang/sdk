@@ -6,34 +6,23 @@
 import 'dart:_foreign_helper' show JS;
 
 patch class HashMap<K, V> {
-  patch factory HashMap({ bool equals(K key1, K key2),
-                          int hashCode(K key),
-                          bool isValidKey(potentialKey) }) {
-    if (isValidKey == null) {
-      if (hashCode == null) {
-        if (equals == null) {
-          return new _HashMap<K, V>();
-        }
-        if (identical(identical, equals)) {
-          return new _IdentityHashMap<K, V>();
-        }
-        hashCode = _defaultHashCode;
-      } else if (equals == null) {
-        equals = _defaultEquals;
-      }
-    } else {
-      if (hashCode == null) {
-        hashCode = _defaultHashCode;
-      }
+  patch factory HashMap({ bool equals(K key1, K key2), int hashCode(K key) }) {
+    if (hashCode == null) {
       if (equals == null) {
-        equals = _defaultEquals;
+        return new _HashMapImpl<K, V>();
       }
+      if (identical(identical, equals)) {
+        return new _IdentityHashMap<K, V>();
+      }
+      hashCode = _defaultHashCode;
+    } else if (equals == null) {
+      equals = _defaultEquals;
     }
-    return new _CustomHashMap<K, V>(equals, hashCode, isValidKey);
+    return new _CustomHashMap<K, V>(equals, hashCode);
   }
 }
 
-class _HashMap<K, V> implements HashMap<K, V> {
+class _HashMapImpl<K, V> implements HashMap<K, V> {
   int _length = 0;
 
   // The hash map contents are divided into three parts: one part for
@@ -54,7 +43,7 @@ class _HashMap<K, V> implements HashMap<K, V> {
   // guard against concurrent modifications.
   List _keys;
 
-  _Hash();
+  _HashMapImpl();
 
   int get length => _length;
   bool get isEmpty => _length == 0;
@@ -245,7 +234,7 @@ class _HashMap<K, V> implements HashMap<K, V> {
     _setTableEntry(table, key, value);
   }
 
-  V _removeHashTableEntry(var table, Object key) {
+  V _removeHashTableEntry(var table, K key) {
     if (table != null && _hasTableEntry(table, key)) {
       V value = _getTableEntry(table, key);
       _deleteTableEntry(table, key);
@@ -336,7 +325,7 @@ class _HashMap<K, V> implements HashMap<K, V> {
   }
 }
 
-class _IdentityHashMap<K, V> extends _HashMap<K, V> {
+class _IdentityHashMap<K, V> extends _HashMapImpl<K, V> {
   int _findBucketIndex(var bucket, var key) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
@@ -347,27 +336,10 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   }
 }
 
-class _CustomHashMap<K, V> extends _HashMap<K, V> {
+class _CustomHashMap<K, V> extends _HashMapImpl<K, V> {
   final _Equality<K> _equals;
   final _Hasher<K> _hashCode;
-  final _Predicate _validKey;
-  _CustomHashMap(this._equals, this._hashCode, bool validKey(potentialKey))
-      : _validKey = (validKey != null) ? validKey : ((v) => v is K);
-
-  V operator[](Object key) {
-    if (!_validKey(key)) return null;
-    return super[key];
-  }
-
-  bool containsKey(Object key) {
-    if (!_validKey(key)) return false;
-    return super.containsKey(key);
-  }
-
-  V remove(Object key) {
-    if (!_validKey(key)) return null;
-    return super.remove(key);
-  }
+  _CustomHashMap(this._equals, this._hashCode);
 
   int _computeHashCode(var key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
@@ -444,34 +416,6 @@ class HashMapKeyIterator<E> implements Iterator<E> {
 }
 
 patch class LinkedHashMap<K, V> {
-  patch factory LinkedHashMap({ bool equals(K key1, K key2),
-                                int hashCode(K key),
-                                bool isValidKey(potentialKey) }) {
-    if (isValidKey == null) {
-      if (hashCode == null) {
-        if (equals == null) {
-          return new _LinkedHashMap<K, V>();
-        }
-        if (identical(identical, equals)) {
-          return new _LinkedIdentityHashMap<K, V>();
-        }
-        hashCode = _defaultHashCode;
-      } else if (equals == null) {
-        equals = _defaultEquals;
-      }
-    } else {
-      if (hashCode == null) {
-        hashCode = _defaultHashCode;
-      }
-      if (equals == null) {
-        equals = _defaultEquals;
-      }
-    }
-    return new _LinkedCustomHashMap<K, V>(equals, hashCode, isValidKey);
-  }
-}
-
-class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
   int _length = 0;
 
   // The hash map contents are divided into three parts: one part for
@@ -496,22 +440,22 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
   // iterated over.
   int _modifications = 0;
 
-  _LinkedHash();
+  patch LinkedHashMap();
 
-  int get length => _length;
-  bool get isEmpty => _length == 0;
-  bool get isNotEmpty => !isEmpty;
+  patch int get length => _length;
+  patch bool get isEmpty => _length == 0;
+  patch bool get isNotEmpty => !isEmpty;
 
 
-  Iterable<K> get keys {
+  patch Iterable<K> get keys {
     return new LinkedHashMapKeyIterable<K>(this);
   }
 
-  Iterable<V> get values {
+  patch Iterable<V> get values {
     return keys.map((each) => this[each]);
   }
 
-  bool containsKey(Object key) {
+  patch bool containsKey(Object key) {
     if (_isStringKey(key)) {
       var strings = _strings;
       if (strings == null) return false;
@@ -530,17 +474,17 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
     }
   }
 
-  bool containsValue(Object value) {
+  patch bool containsValue(Object value) {
     return keys.any((each) => this[each] == value);
   }
 
-  void addAll(Map<K, V> other) {
+  patch void addAll(Map<K, V> other) {
     other.forEach((K key, V value) {
       this[key] = value;
     });
   }
 
-  V operator[](Object key) {
+  patch V operator[](Object key) {
     if (_isStringKey(key)) {
       var strings = _strings;
       if (strings == null) return null;
@@ -562,7 +506,7 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
     }
   }
 
-  void operator[]=(K key, V value) {
+  patch void operator[]=(K key, V value) {
     if (_isStringKey(key)) {
       var strings = _strings;
       if (strings == null) _strings = strings = _newHashTable();
@@ -592,14 +536,14 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
     }
   }
 
-  V putIfAbsent(K key, V ifAbsent()) {
+  patch V putIfAbsent(K key, V ifAbsent()) {
     if (containsKey(key)) return this[key];
     V value = ifAbsent();
     this[key] = value;
     return value;
   }
 
-  V remove(Object key) {
+  patch V remove(Object key) {
     if (_isStringKey(key)) {
       return _removeHashTableEntry(_strings, key);
     } else if (_isNumericKey(key)) {
@@ -620,7 +564,7 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
     }
   }
 
-  void clear() {
+  patch void clear() {
     if (_length > 0) {
       _strings = _nums = _rest = _first = _last = null;
       _length = 0;
@@ -628,7 +572,7 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
     }
   }
 
-  void forEach(void action(K key, V value)) {
+  patch void forEach(void action(K key, V value)) {
     LinkedHashMapCell cell = _first;
     int modifications = _modifications;
     while (cell != null) {
@@ -649,7 +593,7 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
     }
   }
 
-  V _removeHashTableEntry(var table, Object key) {
+  V _removeHashTableEntry(var table, K key) {
     if (table == null) return null;
     LinkedHashMapCell cell = _getTableEntry(table, key);
     if (cell == null) return null;
@@ -711,7 +655,7 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
     return key is num && JS('bool', '(# & 0x3ffffff) === #', key, key);
   }
 
-  int _computeHashCode(var key) {
+  static int _computeHashCode(var key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
@@ -731,12 +675,12 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
     JS('void', 'delete #[#]', table, key);
   }
 
-  List _getBucket(var table, var key) {
+  static List _getBucket(var table, var key) {
     var hash = _computeHashCode(key);
     return JS('var', '#[#]', table, hash);
   }
 
-  int _findBucketIndex(var bucket, var key) {
+  static int _findBucketIndex(var bucket, var key) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
@@ -757,61 +701,6 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
     _setTableEntry(table, temporaryKey, table);
     _deleteTableEntry(table, temporaryKey);
     return table;
-  }
-
-  String toString() => Maps.mapToString(this);
-}
-
-class _LinkedIdentityHashMap<K, V> extends _LinkedHashMap<K, V> {
-  int _findBucketIndex(var bucket, var key) {
-    if (bucket == null) return -1;
-    int length = JS('int', '#.length', bucket);
-    for (int i = 0; i < length; i++) {
-      LinkedHashMapCell cell = JS('var', '#[#]', bucket, i);
-      if (identical(cell._key, key)) return i;
-    }
-    return -1;
-  }
-}
-
-class _LinkedCustomHashMap<K, V> extends _LinkedHashMap<K, V> {
-  final _Equality<K> _equals;
-  final _Hasher<K> _hashCode;
-  final _Predicate _validKey;
-  _LinkedCustomHashMap(this._equals, this._hashCode,
-                       bool validKey(potentialKey))
-      : _validKey = (validKey != null) ? validKey : ((v) => v is K);
-
-  V operator[](Object key) {
-    if (!_validKey(key)) return null;
-    return super[key];
-  }
-
-  bool containsKey(Object key) {
-    if (!_validKey(key)) return false;
-    return super.containsKey(key);
-  }
-
-  V remove(Object key) {
-    if (!_validKey(key)) return null;
-    return super.remove(key);
-  }
-
-  int _computeHashCode(var key) {
-    // We force the hash codes to be unsigned 30-bit integers to avoid
-    // issues with problematic keys like '__proto__'. Another option
-    // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', _hashCode(key));
-  }
-
-  int _findBucketIndex(var bucket, var key) {
-    if (bucket == null) return -1;
-    int length = JS('int', '#.length', bucket);
-    for (int i = 0; i < length; i++) {
-      LinkedHashMapCell cell = JS('var', '#[#]', bucket, i);
-      if (_equals(cell._key, key)) return i;
-    }
-    return -1;
   }
 }
 

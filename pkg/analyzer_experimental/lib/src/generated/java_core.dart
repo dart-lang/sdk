@@ -31,10 +31,13 @@ bool isInstanceOf(o, Type t) {
   if (oTypeName == tTypeName) {
     return true;
   }
-  if (oTypeName.startsWith("List") && tTypeName == "List") {
+  if (oTypeName.startsWith("HashMap") && tTypeName == "Map") {
     return true;
   }
-  if (tTypeName == "Map" && o is Map) {
+  if (oTypeName.startsWith("LinkedHashMap") && tTypeName == "Map") {
+    return true;
+  }
+  if (oTypeName.startsWith("List") && tTypeName == "List") {
     return true;
   }
   // Dart Analysis Engine specific

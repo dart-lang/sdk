@@ -180,3 +180,64 @@ class _Sentinel {
   final _wrappedObject;
   const _Sentinel(this._wrappedObject);
 }
+
+/**
+ * This is used in the implementation of [IdentityMap]. We wrap all the keys
+ * in an [_IdentityMapKey] that compares using the identity of the wrapped
+ * objects. It also treats equal primitive values as identical
+ * to conserve space.
+ */
+class _IdentityMapKey {
+  _IdentityMapKey(this._value);
+  var _value;
+
+  /**
+   * Check if an object is primitive to know if we should compare it using
+   * equality or identity. We don't test null/true/false where it's the same.
+   */
+  _isPrimitive(x) => x is String || x is num;
+
+  operator ==(_IdentityMapKey w) =>
+      _isPrimitive(_value) ? _value == w._value : identical(_value, w._value);
+  get hashCode => _value.hashCode;
+  get object => _value;
+}
+
+/**
+ * This provides an identity map. We wrap all the objects in
+ * an [_IdentityMapKey] that compares using the identity of the
+ * wrapped objects. It also treats equal primitive values as identical
+ * to conserve space.
+ */
+class IdentityMap<K, V> extends LinkedHashMap<K, V> {
+// TODO(alanknight): Replace with a system identity-based map once
+// one is available. Issue 4161.
+// TODO(lrn): Replace with identity map when custom hash maps are introduced
+// (which is soon).
+
+  // Check before wrapping because some methods may call others, e.g. on
+  // dart2js putIfAbsent calls containsKey, so without this we wrap forever.
+  _wrap(Object key) =>
+      (key is _IdentityMapKey) ? key : new _IdentityMapKey(key);
+  _unwrap(_IdentityMapKey wrapper) => wrapper.object;
+
+  Iterable<K> get keys => super.keys.map((x) => _unwrap(x));
+  Iterable<V> get values => super.values;
+
+  void forEach(void f(K key, V value)) {
+    super.forEach((k, v) => f(_unwrap(k), v));
+  }
+
+  V operator [](K key) => super[_wrap(key)];
+
+  void operator []=(K key, V value) {
+      super[_wrap(key)] = value;
+  }
+
+  V putIfAbsent(K key, Function ifAbsent) =>
+      super.putIfAbsent(_wrap(key), ifAbsent);
+
+  bool containsKey(Object key) => super.containsKey(_wrap(key));
+
+  V remove(Object key) => super.remove(_wrap(key));
+}
