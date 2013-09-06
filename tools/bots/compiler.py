@@ -183,6 +183,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags, arch):
     cmd.extend(targets)
 
     print 'Running: %s' % (' '.join(map(lambda arg: '"%s"' % arg, cmd)))
+    sys.stdout.flush()
     bot.RunProcess(cmd)
 
 
