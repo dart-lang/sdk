@@ -590,6 +590,39 @@ abstract class InferrerEngine<T> implements MinimalInferrerEngine<T> {
       return returnTypeOfElement(element);
     }
   }
+
+  void updateSelectorInTree(Element owner, Node node, Selector selector) {
+    var elements = compiler.enqueuer.resolution.getCachedElements(owner);
+    if (node.asSendSet() != null) {
+      if (selector.isSetter() || selector.isIndexSet()) {
+        elements.setSelector(node, selector);
+      } else if (selector.isGetter() || selector.isIndex()) {
+        elements.setGetterSelectorInComplexSendSet(node, selector);
+      } else {
+        assert(selector.isOperator());
+        elements.setOperatorSelectorInComplexSendSet(node, selector);
+      }
+    } else if (node.asSend() != null) {
+      elements.setSelector(node, selector);
+    } else {
+      assert(node.asForIn() != null);
+      if (selector.asUntyped == compiler.iteratorSelector) {
+        elements.setIteratorSelector(node, selector);
+      } else if (selector.asUntyped == compiler.currentSelector) {
+        elements.setCurrentSelector(node, selector);
+      } else {
+        assert(selector.asUntyped == compiler.moveNextSelector);
+        elements.setMoveNextSelector(node, selector);
+      }
+    }
+  }
+
+  bool isNativeElement(Element element) {
+    if (element.isNative()) return true;
+    return element.isMember()
+        && element.getEnclosingClass().isNative()
+        && element.isField();
+  }
 }
 
 class InternalSimpleTypesInferrer
@@ -1021,13 +1054,6 @@ class InternalSimpleTypesInferrer
     return existing != newType
         && !isDynamicType(newType)
         && newType != types.nullType;
-  }
-
-  bool isNativeElement(Element element) {
-    if (element.isNative()) return true;
-    return element.isMember()
-        && element.getEnclosingClass().isNative()
-        && element.isField();
   }
 
   TypeMask checkTypeAnnotation(Element analyzedElement, TypeMask newType) {
@@ -1774,17 +1800,20 @@ class SimpleTypeInferrerVisitor<T>
       // We only set the type once. We don't need to re-visit the children
       // when re-analyzing the node.
       return inferrer.concreteTypes.putIfAbsent(node, () {
-        T elementType = types.nonNullEmpty();
+        T elementType;
         int length = 0;
         for (Node element in node.elements.nodes) {
+          T type = visit(element);
+          elementType = elementType == null
+              ? types.allocatePhi(null, null, type)
+              : types.addPhiInput(null, elementType, type);
           length++;
-          elementType = types.computeLUB(elementType, visit(element));
         }
         return types.allocateContainer(
             types.constListType,
             node,
             outermostElement,
-            elementType,
+            types.simplifyPhi(null, null, elementType),
             length);
       });
     } else {
@@ -2176,31 +2205,6 @@ class SimpleTypeInferrerVisitor<T>
         sideEffects, inLoop);
   }
 
-  void updateSelectorInTree(Node node, Selector selector) {
-    if (node.asSendSet() != null) {
-      if (selector.isSetter() || selector.isIndexSet()) {
-        elements.setSelector(node, selector);
-      } else if (selector.isGetter() || selector.isIndex()) {
-        elements.setGetterSelectorInComplexSendSet(node, selector);
-      } else {
-        assert(selector.isOperator());
-        elements.setOperatorSelectorInComplexSendSet(node, selector);
-      }
-    } else if (node.asSend() != null) {
-      elements.setSelector(node, selector);
-    } else {
-      assert(node.asForIn() != null);
-      if (selector.asUntyped == compiler.iteratorSelector) {
-        elements.setIteratorSelector(node, selector);
-      } else if (selector.asUntyped == compiler.currentSelector) {
-        elements.setCurrentSelector(node, selector);
-      } else {
-        assert(selector.asUntyped == compiler.moveNextSelector);
-        elements.setMoveNextSelector(node, selector);
-      }
-    }
-  }
-
   T handleDynamicSend(Node node,
                       Selector selector,
                       T receiverType,
@@ -2211,7 +2215,7 @@ class SimpleTypeInferrerVisitor<T>
       selector = (receiverType == types.dynamicType)
           ? selector.asUntyped
           : types.newTypedSelector(receiverType, selector);
-      updateSelectorInTree(node, selector);
+      inferrer.updateSelectorInTree(analyzedElement, node, selector);
     }
 
     // If the receiver of the call is a local, we may know more about
