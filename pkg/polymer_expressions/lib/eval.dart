@@ -259,7 +259,7 @@ abstract class ExpressionObserver<E extends Expression> implements Expression {
   String toString() => _expr.toString();
 }
 
-class Updater extends RecursiveVisitor<ExpressionObserver> {
+class Updater extends RecursiveVisitor {
   final Scope scope;
 
   Updater(this.scope);

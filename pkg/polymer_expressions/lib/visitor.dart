@@ -6,8 +6,8 @@ library polymer_expressions.visitor;
 
 import 'expression.dart';
 
-abstract class Visitor<E extends Expression> {
-  visit(E s) => s.accept(this);
+abstract class Visitor {
+  visit(Expression s) => s.accept(this);
   visitEmptyExpression(EmptyExpression e);
   visitParenthesizedExpression(ParenthesizedExpression e);
   visitInvoke(Invoke i);
@@ -20,8 +20,8 @@ abstract class Visitor<E extends Expression> {
   visitInExpression(InExpression c);
 }
 
-abstract class RecursiveVisitor<E> extends Visitor<E> {
-  visitExpression(E e);
+abstract class RecursiveVisitor extends Visitor {
+  visitExpression(Expression e);
 
   visitEmptyExpression(EmptyExpression e) => visitExpression(e);
 
