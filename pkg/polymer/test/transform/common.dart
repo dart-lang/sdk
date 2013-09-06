@@ -16,6 +16,10 @@ AssetId idFromString(String s) {
   return new AssetId(s.substring(0, index), s.substring(index + 1));
 }
 
+String _removeTrailingWhitespace(String str) =>
+    str.splitMapJoin('\n',
+        onNonMatch: (s) => s.replaceAll(new RegExp(r'\s+$'), ''));
+
 /**
  * A helper package provider that has files stored in memory, also wraps
  * [Barback] to simply our tests.
@@ -74,6 +78,8 @@ class TestHelper implements PackageProvider {
 
   Future check(String assetIdString, String content) {
     return this[assetIdString].then((value) {
+      value = _removeTrailingWhitespace(value);
+      content = _removeTrailingWhitespace(content);
       expect(value, content, reason: 'Final output of $assetIdString differs.');
     });
   }
