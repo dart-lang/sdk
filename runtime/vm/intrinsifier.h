@@ -17,6 +17,7 @@ namespace dart {
 // build and run to get the correct fingerprint from the mismatch error.
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, ~, Smi_bitNegate, 635678453)                                         \
+  V(_Smi, get:bitLength, Smi_bitLength, 383357874)                             \
   V(_Double, >, Double_greaterThan, 1021232334)                                \
   V(_Double, >=, Double_greaterEqualThan, 324955595)                           \
   V(_Double, <, Double_lessThan, 978151157)                                    \

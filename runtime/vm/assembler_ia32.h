@@ -595,6 +595,8 @@ class Assembler : public ValueObject {
   void negl(Register reg);
   void notl(Register reg);
 
+  void bsrl(Register dst, Register src);
+
   void enter(const Immediate& imm);
   void leave();
 

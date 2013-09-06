@@ -1679,6 +1679,14 @@ void Assembler::notl(Register reg) {
 }
 
 
+void Assembler::bsrl(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xBD);
+  EmitRegisterOperand(dst, src);
+}
+
+
 void Assembler::enter(const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xC8);

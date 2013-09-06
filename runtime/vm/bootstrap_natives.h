@@ -45,9 +45,12 @@ namespace dart {
   V(Smi_shlFromInt, 2)                                                         \
   V(Smi_shrFromInt, 2)                                                         \
   V(Smi_bitNegate, 1)                                                          \
+  V(Smi_bitLength, 1)                                                          \
   V(Mint_bitNegate, 1)                                                         \
+  V(Mint_bitLength, 1)                                                         \
   V(Mint_shlFromInt, 2)                                                        \
   V(Bigint_bitNegate, 1)                                                       \
+  V(Bigint_bitLength, 1)                                                       \
   V(Bigint_shlFromInt, 2)                                                      \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \

@@ -1291,6 +1291,34 @@ RawBigint* BigintOperations::BitNot(const Bigint& bigint) {
 }
 
 
+int64_t BigintOperations::BitLength(const Bigint& bigint) {
+  ASSERT(IsClamped(bigint));
+  intptr_t length = bigint.Length();
+  if (length == 0) return 0;
+  intptr_t last = length - 1;
+
+  Chunk high_chunk = bigint.GetChunkAt(last);
+  ASSERT(high_chunk != 0);
+  int64_t bit_length =
+      static_cast<int64_t>(kDigitBitSize) * last + CountBits(high_chunk);
+
+  if (bigint.IsNegative()) {
+    // We are calculating the 2's complement bitlength but we have a sign and
+    // magnitude representation.  The length is the same except when the
+    // magnitude is an exact power of two, 2^k.  In 2's complement format,
+    // -(2^k) takes one fewer bit than (2^k).
+
+    if ((high_chunk & (high_chunk - 1)) == 0) {  // Single bit set?
+      for (intptr_t i = 0; i < last; i++) {
+        if (bigint.GetChunkAt(i) != 0) return bit_length;
+      }
+      bit_length -= 1;
+    }
+  }
+  return bit_length;
+}
+
+
 int BigintOperations::Compare(const Bigint& a, const Bigint& b) {
   bool a_is_negative = a.IsNegative();
   bool b_is_negative = b.IsNegative();

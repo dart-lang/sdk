@@ -95,6 +95,20 @@ class _IntegerImplementation {
   bool get isNegative => this < 0;
   bool get isInfinite => false;
 
+  int toUnsigned(int width) {
+    return this & ((1 << width) - 1);
+  }
+
+  int toSigned(int width) {
+    // The value of binary number weights each bit by a power of two.  The
+    // twos-complement value weights the sign bit negatively.  We compute the
+    // value of the negative weighting by isolating the sign bit with the
+    // correct power of two weighting and subtracting it from the value of the
+    // lower bits.
+    int signMask = 1 << (width - 1);
+    return (this & (signMask - 1)) - (this & signMask);
+  }
+
   int compareTo(num other) {
     final int EQUAL = 0, LESS = -1, GREATER = 1;
     if (other is double) {
@@ -212,6 +226,8 @@ class _Smi extends _IntegerImplementation implements int {
     return this;
   }
   int operator ~() native "Smi_bitNegate";
+  int get bitLength native "Smi_bitLength";
+
   int _shrFromInt(int other) native "Smi_shrFromInt";
   int _shlFromInt(int other) native "Smi_shlFromInt";
 
@@ -252,6 +268,7 @@ class _Mint extends _IntegerImplementation implements int {
     return this;
   }
   int operator ~() native "Mint_bitNegate";
+  int get bitLength native "Mint_bitLength";
 
   // Shift by mint exceeds range that can be handled by the VM.
   int _shrFromInt(int other) {
@@ -275,6 +292,7 @@ class _Bigint extends _IntegerImplementation implements int {
     return this;
   }
   int operator ~() native "Bigint_bitNegate";
+  int get bitLength native "Bigint_bitLength";
 
   // Shift by bigint exceeds range that can be handled by the VM.
   int _shrFromInt(int other) {

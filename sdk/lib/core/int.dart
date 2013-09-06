@@ -99,6 +99,78 @@ abstract class int extends num {
   bool get isOdd;
 
   /**
+   * Returns the minimum number of bits required to store this integer.
+   *
+   * The number of bits excludes the sign bit, which gives the natural length
+   * for non-negative (unsigned) values.  Negative values are complemented to
+   * return the bit position of the first bit that differs from the sign bit.
+   *
+   * To find the the number of bits needed to store the value as a signed value,
+   * add one, i.e. use `x.bitLength + 1`.
+   *
+   *      x.bitLength == (-x-1).bitLength
+   *
+   *      3.bitLength == 2;     // 00000011
+   *      2.bitLength == 2;     // 00000010
+   *      1.bitLength == 1;     // 00000001
+   *      0.bitLength == 0;     // 00000000
+   *      (-1).bitLength == 0;  // 11111111
+   *      (-2).bitLength == 1;  // 11111110
+   *      (-3).bitLength == 2;  // 11111101
+   *      (-4).bitLength == 2;  // 11111100
+   */
+  int get bitLength;
+
+  /**
+   * Returns the least significant [width] bits of this integer as a
+   * non-negative number (i.e. unsigned representation).  The returned value has
+   * zeros in all bit positions higher than [width].
+   *
+   *     (-1).toUnsigned(5) == 32   // 11111111  ->  00011111
+   *
+   * This operation can be used to simulate arithmetic from low level languages.
+   * For example, to increment an 8 bit quantity:
+   *
+   *     q = (q + 1).toUnsigned(8);
+   *
+   * `q` will count from `0` up to `255` and then wrap around to `0`.
+   *
+   * If the input fits in [width] bits without truncation, the result is the
+   * same as the input.  The minimum width needed to avoid truncation of `x` is
+   * given by `x.bitLength`, i.e.
+   *
+   *     x == x.toUnsigned(x.bitLength);
+   */
+  int toUnsigned(int width);
+
+  /**
+   * Returns the least significant [width] bits of this integer, extending the
+   * highest retained bit to the sign.  This is the same as truncating the value
+   * to fit in [width] bits using an signed 2-s complement representation.  The
+   * returned value has the same bit value in all positions higher than [width].
+   *
+   *                                    V--sign bit-V
+   *     16.toSigned(5) == -16   //  00010000 -> 11110000
+   *     239.toSigned(5) == 15   //  11101111 -> 00001111
+   *                                    ^           ^
+   *
+   * This operation can be used to simulate arithmetic from low level languages.
+   * For example, to increment an 8 bit signed quantity:
+   *
+   *     q = (q + 1).toSigned(8);
+   *
+   * `q` will count from `0` up to `127`, wrap to `-128` and count back up to
+   * `127`.
+   *
+   * If the input value fits in [width] bits without truncation, the result is
+   * the same as the input.  The minimum width needed to avoid truncation of `x`
+   * is `x.bitLength + 1`, i.e.
+   *
+   *     x == x.toSigned(x.bitLength + 1);
+   */
+  int toSigned(int width);
+
+  /**
    * Return the negative value of this integer.
    *
    * The result of negating an integer always has the opposite sign, except

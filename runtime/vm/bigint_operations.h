@@ -92,6 +92,7 @@ class BigintOperations : public AllStatic {
   static RawBigint* BitOr(const Bigint& a, const Bigint& b);
   static RawBigint* BitXor(const Bigint& a, const Bigint& b);
   static RawBigint* BitNot(const Bigint& bigint);
+  static int64_t BitLength(const Bigint& bigint);
 
   static int Compare(const Bigint& a, const Bigint& b);
 

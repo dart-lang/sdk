@@ -1004,6 +1004,11 @@ void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Smi_bitLength(Assembler* assembler) {
+  // TODO(sra): Implement using bsrq.
+}
+
+
 // Check if the last argument is a double, jump to label 'is_smi' if smi
 // (easy to convert to double), otherwise jump to label 'not_double_smi',
 // Returns the last argument in RAX.

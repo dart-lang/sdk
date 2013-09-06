@@ -35,6 +35,12 @@ static bool CheckInteger(const Integer& i) {
 }
 
 
+static int BitLengthInt64(int64_t value) {
+  value ^= value >> (8 * sizeof(value) - 1);  // flip bits if negative.
+  return value == 0 ? 0 : Utils::HighestBit(value) + 1;
+}
+
+
 DEFINE_NATIVE_ENTRY(Integer_bitAndFromInteger, 2) {
   const Integer& right = Integer::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
@@ -327,6 +333,18 @@ DEFINE_NATIVE_ENTRY(Smi_bitNegate, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Smi_bitLength, 1) {
+  const Smi& operand = Smi::CheckedHandle(arguments->NativeArgAt(0));
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Smi_bitLength: %s\n", operand.ToCString());
+  }
+  int64_t value = operand.AsInt64Value();
+  intptr_t result = BitLengthInt64(value);
+  ASSERT(Smi::IsValid(result));
+  return Smi::New(result);
+}
+
+
 // Mint natives.
 
 DEFINE_NATIVE_ENTRY(Mint_bitNegate, 1) {
@@ -337,6 +355,19 @@ DEFINE_NATIVE_ENTRY(Mint_bitNegate, 1) {
   }
   int64_t result = ~operand.value();
   return Integer::New(result);
+}
+
+
+DEFINE_NATIVE_ENTRY(Mint_bitLength, 1) {
+  const Mint& operand = Mint::CheckedHandle(arguments->NativeArgAt(0));
+  ASSERT(CheckInteger(operand));
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Mint_bitLength: %s\n", operand.ToCString());
+  }
+  int64_t value = operand.AsInt64Value();
+  intptr_t result = BitLengthInt64(value);
+  ASSERT(Smi::IsValid(result));
+  return Smi::New(result);
 }
 
 
@@ -359,6 +390,12 @@ DEFINE_NATIVE_ENTRY(Bigint_bitNegate, 1) {
   ASSERT(CheckInteger(value));
   ASSERT(CheckInteger(result));
   return result.AsValidInteger();
+}
+
+
+DEFINE_NATIVE_ENTRY(Bigint_bitLength, 1) {
+  const Bigint& value = Bigint::CheckedHandle(arguments->NativeArgAt(0));
+  return Integer::New(BigintOperations::BitLength(value));
 }
 
 
