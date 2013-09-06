@@ -169,7 +169,7 @@ abstract class TypeInformation {
   /**
    * Callers of an element.
    */
-  Map<Element, int> get callers => null;
+  Map<Element, Set<Spannable>> get callers => null;
 
   /**
    * Number of times the element has been processed.
@@ -183,20 +183,20 @@ abstract class TypeInformation {
   TypeMask get returnType => null;
   void set returnType(value) {}
 
-  void addCaller(Element caller) {
+  void addCaller(Element caller, Spannable node) {
     if (callers.containsKey(caller)) {
-      callers[caller]++;
+      callers[caller].add(node);
     } else {
-      callers[caller] = 1;
+      callers[caller] = new Set<Spannable>()..add(node);
     }
   }
 
-  void removeCall(Element caller) {
+  void removeCall(Element caller, Spannable node) {
     if (!callers.containsKey(caller)) return;
-    if (callers[caller] == 1) {
+    Set<Spannable> calls = callers[caller];
+    calls.remove(node);
+    if (calls.isEmpty) {
       callers.remove(caller);
-    } else {
-      callers[caller]--;
     }
   }
 
@@ -208,7 +208,7 @@ abstract class TypeInformation {
 }
 
 class FunctionTypeInformation extends TypeInformation {
-  Map<Element, int> callers = new Map<Element, int>();
+  Map<Element, Set<Spannable>> callers = new Map<Element, Set<Spannable>>();
   TypeMask returnType;
   int analyzeCount = 0;
   bool canBeClosurized = false;
@@ -230,7 +230,7 @@ class ParameterTypeInformation extends TypeInformation {
 
 class FieldTypeInformation extends TypeInformation {
   TypeMask type;
-  Map<Element, int> callers = new Map<Element, int>();
+  Map<Element, Set<Spannable>> callers = new Map<Element, Set<Spannable>>();
   Map<Spannable, TypeMask> assignments = new Map<Spannable, TypeMask>();
   int analyzeCount = 0;
 
@@ -1181,11 +1181,11 @@ class InternalSimpleTypesInferrer
     return outermost.declaration == element.declaration;
   }
 
-  void addCaller(Element caller, Element callee) {
+  void addCaller(Element caller, Element callee, Spannable node) {
     assert(caller.isImplementation);
     assert(callee.isImplementation);
     assert(isNotClosure(caller));
-    typeInformationOf(callee).addCaller(caller);
+    typeInformationOf(callee).addCaller(caller, node);
   }
 
   bool addArguments(Spannable node,
@@ -1293,7 +1293,7 @@ class InternalSimpleTypesInferrer
 
     assert(isNotClosure(caller));
     callee = callee.implementation;
-    addCaller(caller, callee);
+    addCaller(caller, callee, node);
 
     if (selector != null && selector.isSetter() && callee.isField()) {
       recordTypeOfNonFinalField(
@@ -1333,7 +1333,7 @@ class InternalSimpleTypesInferrer
                                Selector selector,
                                Element caller,
                                Element callee) {
-    typeInformationOf(callee).removeCall(caller);
+    typeInformationOf(callee).removeCall(caller, node);
     if (callee.isField()) {
       if (selector.isSetter()) {
         Map<Spannable, TypeMask> assignments =

@@ -264,6 +264,9 @@ class TracerForConcreteContainer {
     // [potentialType] can be null if we did not find any instruction
     // that adds elements to the list.
     if (potentialType == null) {
+      if (_VERBOSE) {
+        print('Found empty type for $analyzedNode $startElement');
+      }
       mask.elementType = new TypeMask.nonNullEmpty();
       return;
     }
