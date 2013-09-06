@@ -9641,6 +9641,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   }
 
   static HtmlDocument _parseDocument;
+  static Range _parseRange;
   static NodeValidatorBuilder _defaultValidator;
   static _ValidatingTreeSanitizer _defaultSanitizer;
 
@@ -9686,6 +9687,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
 
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
+      _parseRange = _parseDocument.createRange();
     }
     var contextElement;
     if (this is BodyElement) {
@@ -9696,9 +9698,8 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
     }
     var fragment;
     if (Range.supportsCreateContextualFragment) {
-      var range = _parseDocument.createRange();
-      range.selectNodeContents(contextElement);
-      fragment = range.createContextualFragment(html);
+      _parseRange.selectNodeContents(contextElement);
+      fragment = _parseRange.createContextualFragment(html);
     } else {
       contextElement._innerHtml = html;
 
