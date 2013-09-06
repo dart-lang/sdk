@@ -196,6 +196,10 @@ class Parser {
       _advance();
       return _astFactory.literal(false);
     }
+    if (_token.value == 'null') {
+      _advance();
+      return _astFactory.literal(null);
+    }
     var identifier = _parseIdentifier();
     var args = _parseArguments();
     if (args == null) {

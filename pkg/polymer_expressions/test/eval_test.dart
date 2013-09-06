@@ -47,6 +47,10 @@ main() {
       expectEval('false', false);
     });
 
+    test('should return a literal null', () {
+      expectEval('null', null);
+    });
+
     test('should return a literal map', () {
       expectEval('{"a": 1}', equals(new Map.from({'a': 1})));
       expectEval('{"a": 1}', containsPair('a', 1));
@@ -70,8 +74,10 @@ main() {
 
       expectEval('1 == 1', true);
       expectEval('1 == 2', false);
+      expectEval('1 == null', false);
       expectEval('1 != 1', false);
       expectEval('1 != 2', true);
+      expectEval('1 != null', true);
 
       expectEval('1 > 1', false);
       expectEval('1 > 2', false);
@@ -162,6 +168,10 @@ main() {
     });
 
     test('should treat null as false', () {
+      expectEval('!null', true);
+      expectEval('true && null', false);
+      expectEval('null || false', false);
+
       expectEval('!a', true, null, {'a': null});
 
       expectEval('a && b', false, null, {'a': null, 'b': true});

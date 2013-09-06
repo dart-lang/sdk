@@ -469,9 +469,12 @@ class BinaryObserver extends ExpressionObserver<BinaryOperator>
     var f = _BINARY_OPERATORS[operator];
     if (operator == '&&' || operator == '||') {
       _value = f(_toBool(left._value), _toBool(right._value));
+    } else if (operator == '==' || operator == '!=') {
+      _value = f(left._value, right._value);
+    } else if (left._value == null || right._value == null) {
+      _value = null;
     } else {
-      _value = (left._value == null || right._value == null)
-          ? null : f(left._value, right._value);
+      _value = f(left._value, right._value);
     }
   }
 
