@@ -147,10 +147,9 @@ abstract class Browser {
           if (_cleanup != null) {
             _cleanup();
           }
-          doneCompleter.complete(true);
         }).catchError((error) {
           _logEvent("Error closing browsers: $error");
-        });
+        }).whenComplete(() => doneCompleter.complete(true));
       });
       return true;
     }).catchError((error) {
