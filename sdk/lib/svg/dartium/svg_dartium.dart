@@ -2970,7 +2970,7 @@ class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, Immuta
 
   Length get first {
     if (this.length > 0) {
-      return this[0];
+      return getItem(0);
     }
     throw new StateError("No elements");
   }
@@ -2978,7 +2978,7 @@ class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, Immuta
   Length get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return getItem(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -2986,7 +2986,7 @@ class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, Immuta
   Length get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return getItem(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -3430,7 +3430,7 @@ class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, Immuta
 
   Number get first {
     if (this.length > 0) {
-      return this[0];
+      return getItem(0);
     }
     throw new StateError("No elements");
   }
@@ -3438,7 +3438,7 @@ class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, Immuta
   Number get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return getItem(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -3446,7 +3446,7 @@ class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, Immuta
   Number get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return getItem(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -4440,7 +4440,7 @@ class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, Immu
 
   PathSeg get first {
     if (this.length > 0) {
-      return this[0];
+      return getItem(0);
     }
     throw new StateError("No elements");
   }
@@ -4448,7 +4448,7 @@ class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, Immu
   PathSeg get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return getItem(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -4456,7 +4456,7 @@ class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, Immu
   PathSeg get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return getItem(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -5152,7 +5152,7 @@ class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, Immuta
 
   String get first {
     if (this.length > 0) {
-      return this[0];
+      return getItem(0);
     }
     throw new StateError("No elements");
   }
@@ -5160,7 +5160,7 @@ class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, Immuta
   String get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return getItem(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -5168,7 +5168,7 @@ class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, Immuta
   String get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return getItem(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -6104,7 +6104,7 @@ class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, 
 
   Transform get first {
     if (this.length > 0) {
-      return this[0];
+      return getItem(0);
     }
     throw new StateError("No elements");
   }
@@ -6112,7 +6112,7 @@ class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, 
   Transform get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return getItem(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -6120,7 +6120,7 @@ class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, 
   Transform get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return getItem(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -6479,7 +6479,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<Eleme
 
   ElementInstance get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -6487,7 +6487,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<Eleme
   ElementInstance get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -6495,7 +6495,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<Eleme
   ElementInstance get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");

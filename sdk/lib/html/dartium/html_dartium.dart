@@ -8491,7 +8491,7 @@ class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, Imm
 
   String get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -8499,7 +8499,7 @@ class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, Imm
   String get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -8507,7 +8507,7 @@ class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, Imm
   String get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -11947,7 +11947,7 @@ class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableL
 
   File get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -11955,7 +11955,7 @@ class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableL
   File get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -11963,7 +11963,7 @@ class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableL
   File get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -12984,7 +12984,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, I
 
   Node get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -12992,7 +12992,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, I
   Node get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -13000,7 +13000,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, I
   Node get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -13061,7 +13061,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, Immu
 
   Node get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -13069,7 +13069,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, Immu
   Node get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -13077,7 +13077,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, Immu
   Node get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -17971,7 +17971,7 @@ class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, I
 
   MimeType get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -17979,7 +17979,7 @@ class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, I
   MimeType get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -17987,7 +17987,7 @@ class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, I
   MimeType get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -19399,7 +19399,7 @@ class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableL
 
   Node get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -19407,7 +19407,7 @@ class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableL
   Node get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -19415,7 +19415,7 @@ class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableL
   Node get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -20679,7 +20679,7 @@ class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, Immut
 
   Plugin get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -20687,7 +20687,7 @@ class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, Immut
   Plugin get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -20695,7 +20695,7 @@ class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, Immut
   Plugin get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -22794,7 +22794,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
 
   SourceBuffer get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -22802,7 +22802,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   SourceBuffer get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -22810,7 +22810,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   SourceBuffer get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -23014,7 +23014,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGr
 
   SpeechGrammar get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -23022,7 +23022,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGr
   SpeechGrammar get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -23030,7 +23030,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGr
   SpeechGrammar get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -25288,7 +25288,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrack
 
   TextTrackCue get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -25296,7 +25296,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrack
   TextTrackCue get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -25304,7 +25304,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrack
   TextTrackCue get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -25365,7 +25365,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
 
   TextTrack get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -25373,7 +25373,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   TextTrack get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -25381,7 +25381,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   TextTrack get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -25663,7 +25663,7 @@ class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, Immutabl
 
   Touch get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -25671,7 +25671,7 @@ class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, Immutabl
   Touch get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -25679,7 +25679,7 @@ class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, Immutabl
   Touch get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -28566,7 +28566,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, Imm
 
   Rect get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -28574,7 +28574,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, Imm
   Rect get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -28582,7 +28582,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, Imm
   Rect get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -28645,7 +28645,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, Imm
 
   CssRule get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -28653,7 +28653,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, Imm
   CssRule get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -28661,7 +28661,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, Imm
   CssRule get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -28714,7 +28714,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
 
   _CSSValue get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -28722,7 +28722,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   _CSSValue get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -28730,7 +28730,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   _CSSValue get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -28980,7 +28980,7 @@ class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, Imm
 
   Gamepad get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -28988,7 +28988,7 @@ class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, Imm
   Gamepad get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -28996,7 +28996,7 @@ class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, Imm
   Gamepad get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -29159,7 +29159,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, Immut
 
   Node get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -29167,7 +29167,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, Immut
   Node get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -29175,7 +29175,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, Immut
   Node get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -29331,7 +29331,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<Spe
 
   SpeechInputResult get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -29339,7 +29339,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<Spe
   SpeechInputResult get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -29347,7 +29347,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<Spe
   SpeechInputResult get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -29398,7 +29398,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMix
 
   SpeechRecognitionResult get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -29406,7 +29406,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMix
   SpeechRecognitionResult get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -29414,7 +29414,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMix
   SpeechRecognitionResult get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -29463,7 +29463,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
 
   StyleSheet get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -29471,7 +29471,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
   StyleSheet get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -29479,7 +29479,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
   StyleSheet get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");

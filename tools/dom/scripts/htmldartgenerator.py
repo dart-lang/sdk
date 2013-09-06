@@ -635,6 +635,20 @@ class HtmlDartGenerator(object):
     has_length = False
     has_length_setter = False
 
+    def _HasExplicitIndexedGetter(self):
+      return any(op.id == 'getItem' for op in self._interface.operations)
+
+    def _HasCustomIndexedGetter(self):
+      return 'CustomIndexedGetter' in self._interface.ext_attrs
+
+    def _HasNativeIndexedGetter(self):
+      return not (_HasCustomIndexedGetter(self) or _HasExplicitIndexedGetter(self))
+
+    if _HasExplicitIndexedGetter(self):
+      getter_name = 'getItem'
+    else:
+      getter_name = '_nativeIndexedGetter'
+
     for attr in self._interface.attributes:
       if attr.id == 'length':
         has_length = True
@@ -648,8 +662,9 @@ class HtmlDartGenerator(object):
         {
           'DEFINE_LENGTH_AS_NUM_ITEMS': not has_length and has_num_items,
           'DEFINE_LENGTH_SETTER': not has_length_setter,
+          'USE_NATIVE_INDEXED_GETTER': _HasNativeIndexedGetter(self) or _HasExplicitIndexedGetter(self),
         })
-    self._members_emitter.Emit(template, E=element_name)
+    self._members_emitter.Emit(template, E=element_name, GETTER=getter_name)
 
   def SecureOutputType(self, type_name, is_dart_type=False,
       can_narrow_type=False):

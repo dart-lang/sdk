@@ -82,7 +82,7 @@ class TemplateLoader(object):
           variable = words[1]
           if variable in conditions:
             condition_stack.append((active, seen_else))
-            active = conditions[variable]
+            active = active and conditions[variable]
             seen_else = False
           else:
             error(lineno, "Unknown $if variable '%s'" % variable)
@@ -93,7 +93,8 @@ class TemplateLoader(object):
           if seen_else:
             raise error(lineno, 'Double $else')
           seen_else = True
-          active = not active
+          (parentactive, _) = condition_stack[len(condition_stack) - 1]
+          active = not active and parentactive
 
         elif directive == '$endif':
           if not condition_stack:

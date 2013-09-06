@@ -232,7 +232,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, 
 
   Map get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -240,7 +240,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, 
   Map get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -248,7 +248,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, 
   Map get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
