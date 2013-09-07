@@ -357,9 +357,9 @@ final_is_not_const_test/01: Fail # Issue 12692
 super_getter_setter_test: Fail # Issue 11065.
 f_bounded_quantification4_test: Fail # Issue 12605.
 f_bounded_quantification5_test: Fail # Issue 12605.
-many_overridden_no_such_method_test: Fail # Issue 13078
-overridden_no_such_method_test: Fail # Issue 13078
-no_such_method_test: Fail # Issue 13078
+many_overridden_no_such_method_test: Pass, Fail # Issue 13078
+overridden_no_such_method_test: Pass, Fail # Issue 13078
+no_such_method_test: Pass, Fail # Issue 13078
 
 # TODO(tball): Assign proper bug numbers.
 class_literal_test: Fail
