@@ -341,8 +341,75 @@ class JavaScriptBackend extends Backend {
   /// List of elements that the backend may use.
   final Set<Element> helpersUsed = new Set<Element>();
 
+
   /// Set of typedefs that are used as type literals.
   final Set<TypedefElement> typedefTypeLiterals = new Set<TypedefElement>();
+
+  /// All the checked mode helpers.
+  static const checkedModeHelpers = const [
+      const CheckedModeHelper(const SourceString('voidTypeCheck')),
+      const CheckedModeHelper(const SourceString('stringTypeCast')),
+      const CheckedModeHelper(const SourceString('stringTypeCheck')),
+      const CheckedModeHelper(const SourceString('doubleTypeCast')),
+      const CheckedModeHelper(const SourceString('doubleTypeCheck')),
+      const CheckedModeHelper(const SourceString('numTypeCast')),
+      const CheckedModeHelper(const SourceString('numTypeCheck')),
+      const CheckedModeHelper(const SourceString('boolTypeCast')),
+      const CheckedModeHelper(const SourceString('boolTypeCheck')),
+      const CheckedModeHelper(const SourceString('intTypeCast')),
+      const CheckedModeHelper(const SourceString('intTypeCheck')),
+      const PropertyCheckedModeHelper(
+          const SourceString('numberOrStringSuperNativeTypeCast')),
+      const PropertyCheckedModeHelper(
+          const SourceString('numberOrStringSuperNativeTypeCheck')),
+      const PropertyCheckedModeHelper(
+          const SourceString('numberOrStringSuperTypeCast')),
+      const PropertyCheckedModeHelper(
+          const SourceString('numberOrStringSuperTypeCheck')),
+      const PropertyCheckedModeHelper(
+          const SourceString('stringSuperNativeTypeCast')),
+      const PropertyCheckedModeHelper(
+          const SourceString('stringSuperNativeTypeCheck')),
+      const PropertyCheckedModeHelper(
+          const SourceString('stringSuperTypeCast')),
+      const PropertyCheckedModeHelper(
+          const SourceString('stringSuperTypeCheck')),
+      const CheckedModeHelper(const SourceString('listTypeCast')),
+      const CheckedModeHelper(const SourceString('listTypeCheck')),
+      const PropertyCheckedModeHelper(
+          const SourceString('listSuperNativeTypeCast')),
+      const PropertyCheckedModeHelper(
+          const SourceString('listSuperNativeTypeCheck')),
+      const PropertyCheckedModeHelper(
+          const SourceString('listSuperTypeCast')),
+      const PropertyCheckedModeHelper(
+          const SourceString('listSuperTypeCheck')),
+      const PropertyCheckedModeHelper(
+          const SourceString('interceptedTypeCast')),
+      const PropertyCheckedModeHelper(
+          const SourceString('interceptedTypeCheck')),
+      const SubtypeCheckedModeHelper(
+          const SourceString('subtypeCast')),
+      const SubtypeCheckedModeHelper(
+          const SourceString('assertSubtype')),
+      const TypeVariableCheckedModeHelper(
+          const SourceString('subtypeOfRuntimeTypeCast')),
+      const TypeVariableCheckedModeHelper(
+          const SourceString('assertSubtypeOfRuntimeType')),
+      const FunctionTypeCheckedModeHelper(
+          const SourceString('functionSubtypeCast')),
+      const FunctionTypeCheckedModeHelper(
+          const SourceString('assertFunctionSubtype')),
+      const PropertyCheckedModeHelper(
+          const SourceString('propertyTypeCast')),
+      const PropertyCheckedModeHelper(
+          const SourceString('propertyTypeCheck')) ];
+
+  // Checked mode helpers indexed by name.
+  Map<String, CheckedModeHelper> checkedModeHelperByName =
+      new Map<String, CheckedModeHelper>.fromIterable(
+          checkedModeHelpers,
+          key: (helper) => helper.name.slowToString());
 
   JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
       : namer = determineNamer(compiler),
@@ -609,14 +676,16 @@ class JavaScriptBackend extends Backend {
         Set<Element> set = interceptedElements.putIfAbsent(
             member.name, () => new Set<Element>());
         set.add(member);
-        if (classElement == jsInterceptorClass) return;
-        if (classElement.isMixinApplication) {
-          MixinApplicationElement mixinApplication = classElement;
-          assert(member.getEnclosingClass() == mixinApplication.mixin);
-          classesMixedIntoNativeClasses.add(mixinApplication.mixin);
-        }
       },
       includeSuperAndInjectedMembers: true);
+
+      // Walk superclass chain to find mixins.
+      for (; cls != null; cls = cls.superclass) {
+        if (cls.isMixinApplication) {
+          MixinApplicationElement mixinApplication = cls;
+          classesMixedIntoNativeClasses.add(mixinApplication.mixin);
+        }
+      }
     }
   }
 
@@ -777,6 +846,7 @@ class JavaScriptBackend extends Backend {
           compiler.findHelper(const SourceString('boolConversionCheck'));
       if (e != null) enqueue(world, e, elements);
     }
+    registerCheckedModeHelpers(elements);
   }
 
   onResolutionComplete() => rti.computeClassesNeedingRti();
@@ -879,11 +949,21 @@ class JavaScriptBackend extends Backend {
     // [registerIsCheck] is also called for checked mode checks, so we
     // need to register checked mode helpers.
     if (inCheckedMode) {
-      CheckedModeHelper helper = getCheckedModeHelper(type, typeCast: false);
-      if (helper != null) enqueue(world, helper.getElement(compiler), elements);
-      // We also need the native variant of the check (for DOM types).
-      helper = getNativeCheckedModeHelper(type, typeCast: false);
-      if (helper != null) enqueue(world, helper.getElement(compiler), elements);
+      if (!world.isResolutionQueue) {
+        // All helpers are added to resolution queue in enqueueHelpers. These
+        // calls to enqueueInResolution serve as assertions that the helper was
+        // in fact added.
+        // TODO(13155): Find a way to enqueue helpers lazily.
+        CheckedModeHelper helper = getCheckedModeHelper(type, typeCast: false);
+        if (helper != null) {
+          enqueue(world, helper.getElement(compiler), elements);
+        }
+        // We also need the native variant of the check (for DOM types).
+        helper = getNativeCheckedModeHelper(type, typeCast: false);
+        if (helper != null) {
+          enqueue(world, helper.getElement(compiler), elements);
+        }
+      }
     }
     bool isTypeVariable = type.kind == TypeKind.TYPE_VARIABLE;
     if (!type.isRaw || type.containsTypeVariables) {
@@ -913,16 +993,22 @@ class JavaScriptBackend extends Backend {
               compiler.findHelper(const SourceString('defineProperty')),
               elements);
     }
-   }
+  }
 
-  void registerAsCheck(DartType type, TreeElements elements) {
+  void registerAsCheck(DartType type, Enqueuer world, TreeElements elements) {
     type = type.unalias(compiler);
-    CheckedModeHelper helper = getCheckedModeHelper(type, typeCast: true);
-    enqueueInResolution(helper.getElement(compiler), elements);
-    // We also need the native variant of the check (for DOM types).
-    helper = getNativeCheckedModeHelper(type, typeCast: true);
-    if (helper != null) {
+    if (!world.isResolutionQueue) {
+      // All helpers are added to resolution queue in enqueueHelpers. These
+      // calls to enqueueInResolution serve as assertions that the helper was in
+      // fact added.
+      // TODO(13155): Find a way to enqueue helpers lazily.
+      CheckedModeHelper helper = getCheckedModeHelper(type, typeCast: true);
       enqueueInResolution(helper.getElement(compiler), elements);
+      // We also need the native variant of the check (for DOM types).
+      helper = getNativeCheckedModeHelper(type, typeCast: true);
+      if (helper != null) {
+        enqueueInResolution(helper.getElement(compiler), elements);
+      }
     }
   }
 
@@ -1172,6 +1258,17 @@ class JavaScriptBackend extends Backend {
   CheckedModeHelper getCheckedModeHelperInternal(DartType type,
                                                  {bool typeCast,
                                                   bool nativeCheckOnly}) {
+    String name = getCheckedModeHelperNameInternal(type,
+        typeCast: typeCast, nativeCheckOnly: nativeCheckOnly);
+    if (name == null) return null;
+    CheckedModeHelper helper = checkedModeHelperByName[name];
+    assert(helper != null);
+    return helper;
+  }
+
+  String getCheckedModeHelperNameInternal(DartType type,
+                                          {bool typeCast,
+                                           bool nativeCheckOnly}) {
     assert(type.kind != TypeKind.TYPEDEF);
     Element element = type.element;
     bool nativeCheck = nativeCheckOnly ||
@@ -1179,118 +1276,104 @@ class JavaScriptBackend extends Backend {
     if (type == compiler.types.voidType) {
       assert(!typeCast); // Cannot cast to void.
       if (nativeCheckOnly) return null;
-      return const CheckedModeHelper(const SourceString('voidTypeCheck'));
+      return 'voidTypeCheck';
     } else if (element == jsStringClass || element == compiler.stringClass) {
       if (nativeCheckOnly) return null;
       return typeCast
-          ? const CheckedModeHelper(const SourceString("stringTypeCast"))
-          : const CheckedModeHelper(const SourceString('stringTypeCheck'));
+          ? 'stringTypeCast'
+          : 'stringTypeCheck';
     } else if (element == jsDoubleClass || element == compiler.doubleClass) {
       if (nativeCheckOnly) return null;
       return typeCast
-          ? const CheckedModeHelper(const SourceString("doubleTypeCast"))
-          : const CheckedModeHelper(const SourceString('doubleTypeCheck'));
+          ? 'doubleTypeCast'
+          : 'doubleTypeCheck';
     } else if (element == jsNumberClass || element == compiler.numClass) {
       if (nativeCheckOnly) return null;
       return typeCast
-          ? const CheckedModeHelper(const SourceString("numTypeCast"))
-          : const CheckedModeHelper(const SourceString('numTypeCheck'));
+          ? 'numTypeCast'
+          : 'numTypeCheck';
     } else if (element == jsBoolClass || element == compiler.boolClass) {
       if (nativeCheckOnly) return null;
       return typeCast
-          ? const CheckedModeHelper(const SourceString("boolTypeCast"))
-          : const CheckedModeHelper(const SourceString('boolTypeCheck'));
+          ? 'boolTypeCast'
+          : 'boolTypeCheck';
     } else if (element == jsIntClass || element == compiler.intClass) {
       if (nativeCheckOnly) return null;
       return typeCast
-          ? const CheckedModeHelper(const SourceString("intTypeCast"))
-          : const CheckedModeHelper(const SourceString('intTypeCheck'));
+          ? 'intTypeCast'
+          : 'intTypeCheck';
     } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
       if (nativeCheck) {
         return typeCast
-            ? const PropertyCheckedModeHelper(
-                const SourceString("numberOrStringSuperNativeTypeCast"))
-            : const PropertyCheckedModeHelper(
-                const SourceString('numberOrStringSuperNativeTypeCheck'));
+            ? 'numberOrStringSuperNativeTypeCast'
+            : 'numberOrStringSuperNativeTypeCheck';
       } else {
         return typeCast
-          ? const PropertyCheckedModeHelper(
-              const SourceString("numberOrStringSuperTypeCast"))
-          : const PropertyCheckedModeHelper(
-              const SourceString('numberOrStringSuperTypeCheck'));
+          ? 'numberOrStringSuperTypeCast'
+          : 'numberOrStringSuperTypeCheck';
       }
     } else if (Elements.isStringOnlySupertype(element, compiler)) {
       if (nativeCheck) {
         return typeCast
-            ? const PropertyCheckedModeHelper(
-                const SourceString("stringSuperNativeTypeCast"))
-            : const PropertyCheckedModeHelper(
-                const SourceString('stringSuperNativeTypeCheck'));
+            ? 'stringSuperNativeTypeCast'
+            : 'stringSuperNativeTypeCheck';
       } else {
         return typeCast
-            ? const PropertyCheckedModeHelper(
-                const SourceString("stringSuperTypeCast"))
-            : const PropertyCheckedModeHelper(
-                const SourceString('stringSuperTypeCheck'));
+            ? 'stringSuperTypeCast'
+            : 'stringSuperTypeCheck';
       }
     } else if ((element == compiler.listClass || element == jsArrayClass) &&
                type.isRaw) {
       if (nativeCheckOnly) return null;
       return typeCast
-          ? const CheckedModeHelper(const SourceString("listTypeCast"))
-          : const CheckedModeHelper(const SourceString('listTypeCheck'));
+          ? 'listTypeCast'
+          : 'listTypeCheck';
     } else {
       if (Elements.isListSupertype(element, compiler)) {
         if (nativeCheck) {
           return typeCast
-              ? const PropertyCheckedModeHelper(
-                  const SourceString("listSuperNativeTypeCast"))
-              : const PropertyCheckedModeHelper(
-                  const SourceString('listSuperNativeTypeCheck'));
+              ? 'listSuperNativeTypeCast'
+              : 'listSuperNativeTypeCheck';
         } else {
           return typeCast
-              ? const PropertyCheckedModeHelper(
-                  const SourceString("listSuperTypeCast"))
-              : const PropertyCheckedModeHelper(
-                  const SourceString('listSuperTypeCheck'));
+              ? 'listSuperTypeCast'
+              : 'listSuperTypeCheck';
         }
       } else {
         if (nativeCheck) {
           // TODO(karlklose): can we get rid of this branch when we use
           // interceptors?
           return typeCast
-              ? const PropertyCheckedModeHelper(
-                  const SourceString("interceptedTypeCast"))
-              : const PropertyCheckedModeHelper(
-                  const SourceString('interceptedTypeCheck'));
+              ? 'interceptedTypeCast'
+              : 'interceptedTypeCheck';
         } else {
           if (type.kind == TypeKind.INTERFACE && !type.isRaw) {
             return typeCast
-                ? const SubtypeCheckedModeHelper(
-                    const SourceString('subtypeCast'))
-                : const SubtypeCheckedModeHelper(
-                    const SourceString('assertSubtype'));
+                ? 'subtypeCast'
+                : 'assertSubtype';
           } else if (type.kind == TypeKind.TYPE_VARIABLE) {
             return typeCast
-                ? const TypeVariableCheckedModeHelper(
-                    const SourceString('subtypeOfRuntimeTypeCast'))
-                : const TypeVariableCheckedModeHelper(
-                    const SourceString('assertSubtypeOfRuntimeType'));
+                ? 'subtypeOfRuntimeTypeCast'
+                : 'assertSubtypeOfRuntimeType';
           } else if (type.kind == TypeKind.FUNCTION) {
             return typeCast
-                ? const FunctionTypeCheckedModeHelper(
-                    const SourceString('functionSubtypeCast'))
-                : const FunctionTypeCheckedModeHelper(
-                    const SourceString('assertFunctionSubtype'));
+                ? 'functionSubtypeCast'
+                : 'assertFunctionSubtype';
           } else {
             return typeCast
-                ? const PropertyCheckedModeHelper(
-                    const SourceString('propertyTypeCast'))
-                : const PropertyCheckedModeHelper(
-                    const SourceString('propertyTypeCheck'));
+                ? 'propertyTypeCast'
+                : 'propertyTypeCheck';
           }
         }
       }
+    }
+  }
+
+  void registerCheckedModeHelpers(TreeElements elements) {
+    // We register all the helpers in the resolution queue.
+    // TODO(13155): Find a way to register fewer helpers.
+    for (CheckedModeHelper helper in checkedModeHelpers) {
+      enqueueInResolution(helper.getElement(compiler), elements);
     }
   }
 
