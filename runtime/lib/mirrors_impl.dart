@@ -385,11 +385,6 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
     return _function;
   }
 
-  String get source {
-    throw new UnimplementedError(
-        'ClosureMirror.source is not implemented');
-  }
-
   InstanceMirror apply(List<Object> positionalArguments,
                        [Map<Symbol, Object> namedArguments]) {
     // TODO(iposva): When closures get an ordinary call method, this can be
