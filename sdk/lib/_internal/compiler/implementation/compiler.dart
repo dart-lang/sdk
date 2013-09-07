@@ -164,9 +164,7 @@ abstract class Backend {
                        TreeElements elements) {}
 
   /// Register an as check to the backend.
-  void registerAsCheck(DartType type,
-                       Enqueuer enqueuer,
-                       TreeElements elements) {}
+  void registerAsCheck(DartType type, TreeElements elements) {}
 
   /// Register that the application may throw a [NoSuchMethodError].
   void registerThrowNoSuchMethod(TreeElements elements) {}

@@ -50,6 +50,11 @@ audiobuffersourcenode_test/supported: Pass, Timeout # Issue 12772
 [ $compiler == dart2js && $browser && $checked ]
 postmessage_structured_test/typed_arrays: Fail # Issue 10097
 postmessage_structured_test/primitives: Fail # Issue 10097
+# Issue 9325 failures
+custom/constructor_calls_created_synchronously_test: Fail
+custom/created_callback_test: Fail
+custom/document_register_basic_test: Fail
+custom/document_register_type_extensions_test: Fail
 
 [ $runtime == chrome ]
 canvasrenderingcontext2d_test/drawImage_video_element: Pass,Fail # Issue 11836

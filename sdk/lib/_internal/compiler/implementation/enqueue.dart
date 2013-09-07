@@ -495,7 +495,7 @@ abstract class Enqueuer {
 
   void registerAsCheck(DartType type, TreeElements elements) {
     registerIsCheck(type, elements);
-    compiler.backend.registerAsCheck(type, this, elements);
+    compiler.backend.registerAsCheck(type, elements);
   }
 
   void registerGenericCallMethod(Element element, TreeElements elements) {
