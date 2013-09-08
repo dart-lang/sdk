@@ -2013,12 +2013,8 @@ class Field : public Object {
   // to have. If length is kUnknownFixedLength the length has not
   // been determined. If length is kNoFixedLength this field has multiple
   // list lengths associated with it and cannot be predicted.
-  intptr_t guarded_list_length() const {
-    return raw_ptr()->guarded_list_length_;
-  }
-  void set_guarded_list_length(intptr_t list_length) const {
-    raw_ptr()->guarded_list_length_ = list_length;
-  }
+  intptr_t guarded_list_length() const;
+  void set_guarded_list_length(intptr_t list_length) const;
   static intptr_t guarded_list_length_offset() {
     return OFFSET_OF(RawField, guarded_list_length_);
   }

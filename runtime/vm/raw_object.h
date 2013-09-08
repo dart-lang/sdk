@@ -680,15 +680,15 @@ class RawField : public RawObject {
   RawAbstractType* type_;
   RawInstance* value_;  // Offset in words for instance and value for static.
   RawArray* dependent_code_;
+  RawSmi* guarded_list_length_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
+    return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
   }
 
   intptr_t token_pos_;
   intptr_t guarded_cid_;
   intptr_t is_nullable_;  // kNullCid if field can contain null value and
                           // any other value otherwise.
-  intptr_t guarded_list_length_;
   uint8_t kind_bits_;  // static, final, const, has initializer.
 };
 

@@ -1591,15 +1591,43 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // Field guard may have remembered list length, check it.
         if ((field_cid == kArrayCid) || (field_cid == kImmutableArrayCid)) {
           __ lw(TMP, FieldAddress(value_reg, Array::length_offset()));
-          __ LoadImmediate(CMPRES1, field_length);
+          __ LoadImmediate(CMPRES1, Smi::RawValue(field_length));
           __ subu(CMPRES1, TMP, CMPRES1);
         } else if (RawObject::IsTypedDataClassId(field_cid)) {
           __ lw(TMP, FieldAddress(value_reg, TypedData::length_offset()));
-          __ LoadImmediate(CMPRES1, field_length);
+          __ LoadImmediate(CMPRES1, Smi::RawValue(field_length));
           __ subu(CMPRES1, TMP, CMPRES1);
         } else {
           ASSERT(field_cid == kIllegalCid);
-          __ LoadImmediate(CMPRES1, 0x1);
+          ASSERT(field_length == Field::kUnknownFixedLength);
+          // At compile time we do not know the type of the field nor its
+          // length. At execution time we may have set the class id and
+          // list length so we compare the guarded length with the
+          // list length here, without this check the list length could change
+          // without triggering a deoptimization.
+          Label check_array, length_compared, no_fixed_length;
+          __ BranchEqual(value_cid_reg, kNullCid, &no_fixed_length);
+          // Check for typed data array.
+          __ BranchSignedGreater(value_cid_reg, kTypedDataFloat32x4ArrayCid,
+                                 &no_fixed_length);
+          __ BranchSignedLess(value_cid_reg, kTypedDataInt8ArrayCid,
+                              &check_array);
+          __ lw(TMP, FieldAddress(value_reg, TypedData::length_offset()));
+          __ lw(CMPRES1, field_length_operand);
+          __ subu(CMPRES1, TMP, CMPRES1);
+          __ b(&length_compared);
+          // Check for regular array.
+          __ Bind(&check_array);
+          __ BranchSignedGreater(value_cid_reg, kImmutableArrayCid,
+                                 &no_fixed_length);
+          __ BranchSignedLess(value_cid_reg, kArrayCid, &no_fixed_length);
+          __ lw(TMP, FieldAddress(value_reg, Array::length_offset()));
+          __ lw(CMPRES1, field_length_operand);
+          __ subu(CMPRES1, TMP, CMPRES1);
+          __ b(&length_compared);
+          __ Bind(&no_fixed_length);
+          __ b(fail);
+          __ Bind(&length_compared);
         }
         __ bne(CMPRES1, ZR, fail);
       }
@@ -1620,24 +1648,27 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ bne(CMPRES, ZR, &skip_length_check);
       // Insert length check.
       if (field_has_length) {
-        if (value_cid_reg == kNoRegister) {
-          ASSERT(!compiler->is_optimizing());
-          value_cid_reg = A1;
-          ASSERT((value_cid_reg != value_reg) && (field_reg != value_cid_reg));
-        }
         ASSERT(value_cid_reg != kNoRegister);
-        if ((field_cid == kArrayCid) || (field_cid == kImmutableArrayCid)) {
+        if ((value_cid == kArrayCid) || (value_cid == kImmutableArrayCid)) {
           __ lw(TMP, FieldAddress(value_reg, Array::length_offset()));
-          __ LoadImmediate(CMPRES, field_length);
+          __ LoadImmediate(CMPRES, Smi::RawValue(field_length));
           __ subu(CMPRES, TMP, CMPRES);
-        } else if (RawObject::IsTypedDataClassId(field_cid)) {
+        } else if (RawObject::IsTypedDataClassId(value_cid)) {
           __ lw(TMP, FieldAddress(value_reg, TypedData::length_offset()));
-          __ LoadImmediate(CMPRES, field_length);
+          __ LoadImmediate(CMPRES, Smi::RawValue(field_length));
           __ subu(CMPRES, TMP, CMPRES);
+        } else if (field_cid != kIllegalCid) {
+          ASSERT(field_cid != value_cid);
+          ASSERT(field_length >= 0);
+          // Field has a known class id and length. At compile time it is
+          // known that the value's class id is not a fixed length list.
+          __ b(fail);
         } else {
           ASSERT(field_cid == kIllegalCid);
-          __ LoadImmediate(CMPRES, 0x1);
+          ASSERT(field_length == Field::kUnknownFixedLength);
+          // Following jump cannot not occur, fall through.
         }
+        __ bne(CMPRES, ZR, fail);
       }
       __ Bind(&skip_length_check);
     }
@@ -1650,64 +1681,60 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ sw(value_cid_reg, field_cid_operand);
       __ sw(value_cid_reg, field_nullability_operand);
       if (field_has_length) {
-        Label check_array, local_exit, local_fail;
-        __ BranchEqual(value_cid_reg, kNullCid, &local_fail);
+        Label check_array, length_set, no_fixed_length;
+        __ BranchEqual(value_cid_reg, kNullCid, &no_fixed_length);
         // Check for typed data array.
         __ BranchSignedGreater(value_cid_reg, kTypedDataFloat32x4ArrayCid,
-                               &local_fail);
+                               &no_fixed_length);
         __ BranchSignedLess(value_cid_reg, kTypedDataInt8ArrayCid,
                             &check_array);
         // Destroy value_cid_reg (safe because we are finished with it).
         __ lw(value_cid_reg,
               FieldAddress(value_reg, TypedData::length_offset()));
         __ sw(value_cid_reg, field_length_operand);
-        __ b(&local_exit);  // Updated field length typed data array.
+        // Updated field length typed data array.
+        __ b(&length_set);
         // Check for regular array.
         __ Bind(&check_array);
         __ BranchSignedGreater(value_cid_reg, kImmutableArrayCid,
-                               &local_fail);
-        __ BranchSignedLess(value_cid_reg, kArrayCid, &local_fail);
+                               &no_fixed_length);
+        __ BranchSignedLess(value_cid_reg, kArrayCid, &no_fixed_length);
         // Destroy value_cid_reg (safe because we are finished with it).
         __ lw(value_cid_reg,
                 FieldAddress(value_reg, Array::length_offset()));
         __ sw(value_cid_reg, field_length_operand);
-        __ b(&local_exit);  // Updated field length from regular array.
-
-        __ Bind(&local_fail);
+        // Updated field length from regular array.
+        __ b(&length_set);
+        __ Bind(&no_fixed_length);
         // TODO(regis): TMP1 may conflict. Revisit.
-        __ LoadImmediate(TMP1, Field::kNoFixedLength);
+        __ LoadImmediate(TMP1, Smi::RawValue(Field::kNoFixedLength));
         __ sw(TMP1, field_length_operand);
-
-        __ Bind(&local_exit);
+        __ Bind(&length_set);
       }
     } else {
-      if (value_cid_reg == kNoRegister) {
-        ASSERT(!compiler->is_optimizing());
-        value_cid_reg = A1;
-        ASSERT((value_cid_reg != value_reg) && (field_reg != value_cid_reg));
-      }
-      ASSERT(value_cid_reg != kNoRegister);
       ASSERT(field_reg != kNoRegister);
       __ LoadImmediate(TMP1, value_cid);
       __ sw(TMP1, field_cid_operand);
       __ sw(TMP1, field_nullability_operand);
-      if ((value_cid == kArrayCid) || (value_cid == kImmutableArrayCid)) {
-        // Destroy value_cid_reg (safe because we are finished with it).
-        __ lw(value_cid_reg,
-              FieldAddress(value_reg, Array::length_offset()));
-        __ sw(value_cid_reg, field_length_operand);
-      } else if (RawObject::IsTypedDataClassId(value_cid)) {
-        // Destroy value_cid_reg (safe because we are finished with it).
-        __ lw(value_cid_reg,
-              FieldAddress(value_reg, TypedData::length_offset()));
-        __ sw(value_cid_reg, field_length_operand);
-      } else {
-        // Destroy value_cid_reg (safe because we are finished with it).
-        __ LoadImmediate(value_cid_reg, Field::kNoFixedLength);
-        __ sw(value_cid_reg, field_length_operand);
+      if (field_has_length) {
+        ASSERT(value_cid_reg != kNoRegister);
+        if ((value_cid == kArrayCid) || (value_cid == kImmutableArrayCid)) {
+          // Destroy value_cid_reg (safe because we are finished with it).
+          __ lw(value_cid_reg,
+                FieldAddress(value_reg, Array::length_offset()));
+          __ sw(value_cid_reg, field_length_operand);
+        } else if (RawObject::IsTypedDataClassId(value_cid)) {
+          // Destroy value_cid_reg (safe because we are finished with it).
+          __ lw(value_cid_reg,
+                FieldAddress(value_reg, TypedData::length_offset()));
+          __ sw(value_cid_reg, field_length_operand);
+        } else {
+          // Destroy value_cid_reg (safe because we are finished with it).
+          __ LoadImmediate(value_cid_reg, Smi::RawValue(Field::kNoFixedLength));
+          __ sw(value_cid_reg, field_length_operand);
+        }
       }
     }
-
     if (!ok_is_fall_through) {
       __ b(&ok);
     }
@@ -1775,7 +1802,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ lw(value_cid_reg,
                 FieldAddress(value_reg, TypedData::length_offset()));
         }
-        __ LoadImmediate(TMP1, field_length);
+        __ LoadImmediate(TMP1, Smi::RawValue(field_length));
         __ subu(CMPRES, value_cid_reg, TMP1);
         if (ok_is_fall_through) {
           __ bne(CMPRES, ZR, fail);

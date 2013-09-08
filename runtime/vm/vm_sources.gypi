@@ -164,6 +164,7 @@
     'globals.h',
     'growable_array.h',
     'growable_array_test.cc',
+    'guard_field_test.cc',
     'handles.cc',
     'handles.h',
     'handles_impl.h',

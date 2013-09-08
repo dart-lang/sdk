@@ -5362,7 +5362,12 @@ RawField* Field::New(const String& name,
   result.set_has_initializer(false);
   result.set_guarded_cid(kIllegalCid);
   result.set_is_nullable(false);
-  result.set_guarded_list_length(Field::kUnknownFixedLength);
+  // Presently, we only attempt to remember the list length for final fields.
+  if (is_final) {
+    result.set_guarded_list_length(Field::kUnknownFixedLength);
+  } else {
+    result.set_guarded_list_length(Field::kNoFixedLength);
+  }
   result.set_dependent_code(Object::null_array());
   return result.raw();
 }
@@ -5387,6 +5392,16 @@ RawField* Field::Clone(const Class& new_owner) const {
 RawString* Field::UserVisibleName() const {
   const String& str = String::Handle(name());
   return IdentifierPrettyName(str);
+}
+
+
+intptr_t Field::guarded_list_length() const {
+  return Smi::Value(raw_ptr()->guarded_list_length_);
+}
+
+
+void Field::set_guarded_list_length(intptr_t list_length) const {
+  raw_ptr()->guarded_list_length_ = Smi::New(list_length);
 }
 
 
@@ -5582,7 +5597,6 @@ void Field::UpdateLength(intptr_t list_length) const {
     // List length unchanged.
     return;
   }
-
   // Multiple list lengths assigned here, stop tracking length.
   set_guarded_list_length(Field::kNoFixedLength);
   DeoptimizeDependentCode();
