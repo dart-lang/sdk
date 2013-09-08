@@ -5,6 +5,40 @@
 [ $runtime == vm ]
 Language/12_Expressions/01_Constants_A16_t04: fail # Issue 392
 Language/12_Expressions/01_Constants_A16_t05: fail # Issue 392
+LibTest/typed_data/Float32List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Float32List/Float32List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Float32List/Float32List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Float32List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Float32x4List/Float32x4List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Float32x4List/Float32x4List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Float32x4List/Float32x4List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Float64List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Float64List/Float64List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Float64List/Float64List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Float64List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Int16List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Int16List/Int16List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Int16List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Int32List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Int32List/Int32List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Int32List/Int32List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Int32List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Int64List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Int64List/Int64List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Int64List/Int64List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Int64List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint16List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint16List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint16List/Uint16List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint16List/Uint16List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Uint32List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint32List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint32List/Uint32List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint32List/Uint32List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Uint64List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint64List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint64List/Uint64List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint64List/Uint64List.view_A01_t02: fail # Issue 549
 
 [ $runtime == vm && $system == windows ]
 LibTest/core/Stopwatch/elapsed_A01_t01: Pass, Fail # Issue 11382.
