@@ -344,9 +344,7 @@ class _TemplateIterator {
       return;
     }
 
-    // TODO(jmesserly): IdentityMap matches JS semantics, but it's O(N) right
-    // now. See http://dartbug.com/4161.
-    var instanceCache = new IdentityMap();
+    var instanceCache = new HashMap(equals: identical);
     var removeDelta = 0;
     for (var splice in splices) {
       for (int i = 0; i < splice.removedCount; i++) {

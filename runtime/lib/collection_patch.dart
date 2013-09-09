@@ -4,26 +4,38 @@
 
 patch class HashMap<K, V> {
   /* patch */ factory HashMap({ bool equals(K key1, K key2),
-                                int hashCode(K key) }) {
-    if (hashCode == null) {
+                                int hashCode(K key),
+                                bool isValidKey(potentialKey) }) {
+    if (isValidKey == null) {
+      if (hashCode == null) {
+        if (equals == null) {
+          return new _HashMap<K, V>();
+        }
+        if (identical(identical, equals)) {
+          return new _IdentityHashMap<K, V>();
+        }
+        hashCode = _defaultHashCode;
+      } else if (equals == null) {
+        equals = _defaultEquals;
+      }
+    } else {
+      if (hashCode == null) {
+        hashCode = _defaultHashCode;
+      }
       if (equals == null) {
-        return new _HashMapImpl<K, V>();
+        equals = _defaultEquals;
       }
-      if (identical(identical, equals)) {
-        return new _IdentityHashMap<K, V>();
-      }
-      hashCode = _defaultHashCode;
-    } else if (equals == null) {
-      equals = _defaultEquals;
     }
-    return new _CustomHashMap<K, V>(equals, hashCode);
+    return new _CustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
 }
 
 const int _MODIFICATION_COUNT_MASK = 0x3fffffff;
 
-class _HashMapImpl<K, V> implements HashMap<K, V> {
+class _HashMap<K, V> implements HashMap<K, V> {
   static const int _INITIAL_CAPACITY = 8;
+
+  Type get runtimeType => HashMap;
 
   int _elementCount = 0;
   List<_HashMapEntry> _buckets = new List(_INITIAL_CAPACITY);
@@ -144,11 +156,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     while (entry != null) {
       _HashMapEntry next = entry.next;
       if (hashCode == entry.hashCode && entry.key == key) {
-        if (previous == null) {
-          buckets[index] = next;
-        } else {
-          previous.next = next;
-        }
+        _removeEntry(entry, previous, index);
         _elementCount--;
         _modificationCount =
             (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
@@ -164,6 +172,16 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     _elementCount = 0;
     _buckets = new List(_INITIAL_CAPACITY);
     _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
+  }
+
+  void _removeEntry(_HashMapEntry entry,
+                    _HashMapEntry previousInBucket,
+                    int bucketIndex) {
+    if (previousInBucket == null) {
+      _buckets[bucketIndex] = entry.next;
+    } else {
+      previousInBucket.next = entry.next;
+    }
   }
 
   void _addEntry(List buckets, int index, int length,
@@ -201,12 +219,17 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
   String toString() => Maps.mapToString(this);
 }
 
-class _CustomHashMap<K, V> extends _HashMapImpl<K, V> {
+class _CustomHashMap<K, V> extends _HashMap<K, V> {
   final _Equality<K> _equals;
   final _Hasher<K> _hashCode;
-  _CustomHashMap(this._equals, this._hashCode);
+  final _Predicate _validKey;
+  _CustomHashMap(this._equals, this._hashCode, validKey)
+      : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test;
+
+  Type get runtimeType => HashMap;
 
   bool containsKey(Object key) {
+    if (!_validKey(key)) return false;
     int hashCode = _hashCode(key);
     List buckets = _buckets;
     int index = hashCode & (buckets.length - 1);
@@ -219,6 +242,7 @@ class _CustomHashMap<K, V> extends _HashMapImpl<K, V> {
   }
 
   V operator[](Object key) {
+    if (!_validKey(key)) return null;
     int hashCode = _hashCode(key);
     List buckets = _buckets;
     int index = hashCode & (buckets.length - 1);
@@ -271,6 +295,7 @@ class _CustomHashMap<K, V> extends _HashMapImpl<K, V> {
   }
 
   V remove(Object key) {
+    if (!_validKey(key)) return null;
     int hashCode = _hashCode(key);
     List buckets = _buckets;
     int index = hashCode & (buckets.length - 1);
@@ -279,11 +304,7 @@ class _CustomHashMap<K, V> extends _HashMapImpl<K, V> {
     while (entry != null) {
       _HashMapEntry next = entry.next;
       if (hashCode == entry.hashCode && _equals(entry.key, key)) {
-        if (previous == null) {
-          buckets[index] = next;
-        } else {
-          previous.next = next;
-        }
+        _removeEntry(entry, previous, index);
         _elementCount--;
         _modificationCount =
             (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
@@ -298,7 +319,9 @@ class _CustomHashMap<K, V> extends _HashMapImpl<K, V> {
   String toString() => Maps.mapToString(this);
 }
 
-class _IdentityHashMap<K, V> extends _HashMapImpl<K, V> {
+class _IdentityHashMap<K, V> extends _HashMap<K, V> {
+  Type get runtimeType => HashMap;
+
   bool containsKey(Object key) {
     int hashCode = key.hashCode;
     List buckets = _buckets;
@@ -372,11 +395,7 @@ class _IdentityHashMap<K, V> extends _HashMapImpl<K, V> {
     while (entry != null) {
       _HashMapEntry next = entry.next;
       if (hashCode == entry.hashCode && identical(entry.key, key)) {
-        if (previous == null) {
-          buckets[index] = next;
-        } else {
-          previous.next = next;
-        }
+        _removeEntry(entry, previous, index);
         _elementCount--;
         _modificationCount =
             (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
@@ -596,11 +615,11 @@ class _LinkedHashMapValueIterable<V> extends IterableBase<V> {
 }
 
 abstract class _LinkedHashMapIterator<T> implements Iterator<T> {
-  final _LinkedHashMap _map;
+  final LinkedHashMap _map;
   var _next;
   T _current;
   int _modificationCount;
-  _LinkedHashMapIterator(_LinkedHashMap map)
+  _LinkedHashMapIterator(LinkedHashMap map)
       : _map = map,
         _current = null,
         _next = map._nextEntry,
@@ -626,12 +645,12 @@ abstract class _LinkedHashMapIterator<T> implements Iterator<T> {
 }
 
 class _LinkedHashMapKeyIterator<K> extends _LinkedHashMapIterator<K> {
-  _LinkedHashMapKeyIterator(_LinkedHashMap map) : super(map);
+  _LinkedHashMapKeyIterator(LinkedHashMap map) : super(map);
   K _getValue(_LinkedHashMapEntry entry) => entry.key;
 }
 
 class _LinkedHashMapValueIterator<V> extends _LinkedHashMapIterator<V> {
-  _LinkedHashMapValueIterator(_LinkedHashMap map) : super(map);
+  _LinkedHashMapValueIterator(LinkedHashMap map) : super(map);
   V _getValue(_LinkedHashMapEntry entry) => entry.value;
 }
 
@@ -640,153 +659,74 @@ class _LinkedHashMapValueIterator<V> extends _LinkedHashMapIterator<V> {
  * A hash-based map that iterates keys and values in key insertion order.
  */
 patch class LinkedHashMap<K, V> {
-  static const int _INITIAL_CAPACITY = 8;
-  static const int _MODIFICATION_COUNT_MASK = 0x3fffffff;
-
-  int _elementCount = 0;
-  List<_HashMapEntry> _buckets = new List(_INITIAL_CAPACITY);
-  int _modificationCount = 0;
-
   var _nextEntry;
   var _previousEntry;
 
-  /* patch */ LinkedHashMap() {
-    _nextEntry = _previousEntry = this;
-  }
-
-  /* patch */ int get length => _elementCount;
-  /* patch */ bool get isEmpty => _elementCount == 0;
-  /* patch */ bool get isNotEmpty => _elementCount != 0;
-
-  /* patch */ Iterable<K> get keys => new _LinkedHashMapKeyIterable<K>(this);
-  /* patch */ Iterable<V> get values => new _LinkedHashMapValueIterable<V>(this);
-
-  /* patch */ bool containsKey(Object key) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
-    while (entry != null) {
-      if (hashCode == entry.hashCode && entry.key == key) return true;
-      entry = entry.next;
+  /* patch */ factory LinkedHashMap({ bool equals(K key1, K key2),
+                                      int hashCode(K key),
+                                      bool isValidKey(potentialKey) }) {
+    if (isValidKey == null) {
+      if (hashCode == null) {
+        if (equals == null) {
+          return new _LinkedHashMap<K, V>();
+        }
+        if (identical(identical, equals)) {
+          return new _LinkedIdentityHashMap<K, V>();
+        }
+        hashCode = _defaultHashCode;
+      } else if (equals == null) {
+        equals = _defaultEquals;
+      }
+    } else {
+      if (hashCode == null) {
+        hashCode = _defaultHashCode;
+      }
+      if (equals == null) {
+        equals = _defaultEquals;
+      }
     }
-    return false;
+    return new _LinkedCustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
+}
 
-  /* patch */ bool containsValue(Object value) {
-    var cursor = _nextEntry;
+// Methods that are exactly the same in all three linked hash map variants.
+abstract class _LinkedHashMapMixin<K, V> implements LinkedHashMap<K, V> {
+  var _nextEntry;
+  var _previousEntry;
+
+  Type get runtimeType => LinkedHashMap;
+
+  bool containsValue(Object value) {
     int modificationCount = _modificationCount;
+    var cursor = _nextEntry;
     while (!identical(cursor, this)) {
       _HashMapEntry entry = cursor;
       if (entry.value == value) return true;
+      if (modificationCount != _modificationCount) {
+        throw new ConcurrentModificationError(this);
+      }
       cursor = cursor._nextEntry;
     }
     return false;
   }
 
-  /* patch */ V operator[](Object key) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _HashMapEntry entry = buckets[index];
-    while (entry != null) {
-      if (hashCode == entry.hashCode && entry.key == key) {
-        return entry.value;
-      }
-      entry = entry.next;
-    }
-    return null;
-  }
-
-  /* patch */ void operator []=(K key, V value) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int length = buckets.length;
-    int index = hashCode & (length - 1);
-    _HashMapEntry entry = buckets[index];
-    while (entry != null) {
-      if (hashCode == entry.hashCode && entry.key == key) {
-        entry.value = value;
-        return;
-      }
-      entry = entry.next;
-    }
-    _addEntry(buckets, index, length, key, value, hashCode);
-  }
-
-  /* patch */ V putIfAbsent(K key, V ifAbsent()) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int length = buckets.length;
-    int index = hashCode & (length - 1);
-    _HashMapEntry entry = buckets[index];
-    while (entry != null) {
-      if (hashCode == entry.hashCode && entry.key == key) {
-        return entry.value;
-      }
-      entry = entry.next;
-    }
-    int stamp = _modificationCount;
-    V value = ifAbsent();
-    if (stamp == _modificationCount) {
-      _addEntry(buckets, index, length, key, value, hashCode);
-    } else {
-      this[key] = value;
-    }
-    return value;
-  }
-
-  /* patch */ void addAll(Map<K, V> other) {
-    other.forEach((K key, V value) {
-      this[key] = value;
-    });
-  }
-
-  /* patch */ void forEach(void action(K key, V value)) {
-    int stamp = _modificationCount;
+  void forEach(void action(K key, V value)) {
+    int modificationCount = _modificationCount;
     var cursor = _nextEntry;
     while (!identical(cursor, this)) {
       _HashMapEntry entry = cursor;
       action(entry.key, entry.value);
-      if (stamp != _modificationCount) {
+      if (modificationCount != _modificationCount) {
         throw new ConcurrentModificationError(this);
       }
       cursor = cursor._nextEntry;
     }
   }
 
-  /* patch */ V remove(Object key) {
-    int hashCode = key.hashCode;
-    List buckets = _buckets;
-    int index = hashCode & (buckets.length - 1);
-    _LinkedHashMapEntry entry = buckets[index];
-    _HashMapEntry previous = null;
-    while (entry != null) {
-      _HashMapEntry next = entry.next;
-      if (hashCode == entry.hashCode && entry.key == key) {
-        if (previous == null) {
-          buckets[index] = next;
-        } else {
-          previous.next = next;
-        }
-        entry._previousEntry._nextEntry = entry._nextEntry;
-        entry._nextEntry._previousEntry = entry._previousEntry;
-        entry._nextEntry = entry._previousEntry = null;
-        _elementCount--;
-        _modificationCount =
-            (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
-        return entry.value;
-      }
-      previous = entry;
-      entry = next;
-    }
-    return null;
-  }
-
-  /* patch */ void clear() {
-    _elementCount = 0;
+  void clear() {
     _nextEntry = _previousEntry = this;
-    _buckets = new List(_INITIAL_CAPACITY);
+    _elementCount = 0;
+    _buckets = new List(_HashMap._INITIAL_CAPACITY);
     _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
   }
 
@@ -804,25 +744,49 @@ patch class LinkedHashMap<K, V> {
     _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
   }
 
-  void _resize() {
-    List oldBuckets = _buckets;
-    int oldLength = oldBuckets.length;
-    int newLength = oldLength << 1;
-    List newBuckets = new List(newLength);
-    for (int i = 0; i < oldLength; i++) {
-      _HashMapEntry entry = oldBuckets[i];
-      while (entry != null) {
-        _HashMapEntry next = entry.next;
-        int hashCode = entry.hashCode;
-        int index = hashCode & (newLength - 1);
-        entry.next = newBuckets[index];
-        newBuckets[index] = entry;
-        entry = next;
-      }
+  void _removeEntry(_LinkedHashMapEntry entry,
+                    _HashMapEntry previousInBucket,
+                    int bucketIndex) {
+    var previousInChain = entry._previousEntry;
+    var nextInChain = entry._nextEntry;
+    previousInChain._nextEntry = nextInChain;
+    nextInChain._previousEntry = previousInChain;
+    if (previousInBucket == null) {
+      _buckets[bucketIndex] = entry.next;
+    } else {
+      previousInBucket.next = entry.next;
     }
-    _buckets = newBuckets;
+  }
+
+
+  Iterable<K> get keys => new _LinkedHashMapKeyIterable<K>(this);
+  Iterable<V> get values => new _LinkedHashMapValueIterable<V>(this);
+}
+
+class _LinkedHashMap<K, V> extends _HashMap<K, V>
+                           with _LinkedHashMapMixin<K, V> {
+  _LinkedHashMap() {
+    _nextEntry = _previousEntry = this;
   }
 }
+
+class _LinkedIdentityHashMap<K, V> extends _IdentityHashMap<K, V>
+                                   with _LinkedHashMapMixin<K, V> {
+  _LinkedIdentityHashMap() {
+    _nextEntry = _previousEntry = this;
+  }
+}
+
+class _LinkedCustomHashMap<K, V> extends _CustomHashMap<K, V>
+                                 with _LinkedHashMapMixin<K, V> {
+  _LinkedCustomHashMap(bool equals(K key1, K key2),
+                       int hashCode(K key),
+                       bool isValidKey(potentialKey))
+      : super(equals, hashCode, isValidKey) {
+    _nextEntry = _previousEntry = this;
+  }
+}
+
 
 patch class LinkedHashSet<E> extends _HashSetBase<E> {
   static const int _INITIAL_CAPACITY = 8;
