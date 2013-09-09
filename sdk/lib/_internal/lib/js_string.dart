@@ -44,8 +44,6 @@ class JSString extends Interceptor implements String, JSIndexable {
     return JS('String', r'# + #', this, other);
   }
 
-  String concat(String other) => this + other;
-
   bool endsWith(String other) {
     checkString(other);
     int otherLength = other.length;
