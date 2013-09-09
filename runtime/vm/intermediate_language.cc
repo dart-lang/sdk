@@ -1368,6 +1368,16 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       IsFixedLengthArrayCid(call->Type()->ToCid())) {
     return call->ArgumentAt(1);
   }
+  // For arrays with guarded lengths, replace the length load
+  // with a constant.
+  LoadFieldInstr* load_array = instance()->definition()->AsLoadField();
+  if (load_array != NULL) {
+    const Field* field = load_array->field();
+    if ((field != NULL) && (field->guarded_list_length() >= 0)) {
+      return flow_graph->GetConstant(
+          Smi::Handle(Smi::New(field->guarded_list_length())));
+    }
+  }
   return this;
 }
 
