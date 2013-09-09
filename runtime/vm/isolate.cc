@@ -918,7 +918,7 @@ bool Isolate::FetchStackFrameDetails() {
   intptr_t frame_index = isolate->stack_frame_index_;
   if (frame_index >= stack->Length()) {
     // Frame no longer available.
-    return NULL;
+    return false;
   }
   ActivationFrame* frame = stack->FrameAt(frame_index);
   TextBuffer buffer(256);
