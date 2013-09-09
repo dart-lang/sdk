@@ -314,7 +314,9 @@ class PlaceholderCollector extends Visitor {
       return;
     }
     if (element == compiler.dynamicClass) {
-      return;
+      internalError(
+          'Should never make element placeholder for dynamic type element',
+          node: node);
     }
     elementNodes.putIfAbsent(element, () => new Set<Node>()).add(node);
   }

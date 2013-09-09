@@ -657,7 +657,6 @@ class Namer implements ClosureNamer {
 
   /// Returns the runtime name for [element].  The result is not safe as an id.
   String getRuntimeTypeName(Element element) {
-    if (identical(element, compiler.dynamicClass)) return 'dynamic';
     JavaScriptBackend backend = compiler.backend;
     element = backend.getImplementationClass(element);
     String name = getPrimitiveInterceptorRuntimeName(element);
