@@ -354,7 +354,7 @@ class Debugger {
   void getLibraries() {
     queuedCommands.add(new GetLibrariesCmd(isolateId));
   }
-  
+
   void enableDebugging(libraryId, enable) {
     queuedCommands.add(new SetLibraryPropertiesCmd(isolateId, libraryId, enable));
   }
@@ -441,7 +441,7 @@ class JsonBuffer {
     if (buffer == null || buffer.length == 0) {
       buffer = s;
     } else {
-      buffer = buffer.concat(s);
+      buffer = buffer + s;
     }
   }
 
@@ -471,7 +471,7 @@ class JsonBuffer {
     }
     if (i >= buffer.length) {
       return false;
-    } else { 
+    } else {
       return char != "{";
     }
   }
