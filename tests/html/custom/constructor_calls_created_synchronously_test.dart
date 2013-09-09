@@ -18,11 +18,25 @@ class A extends HtmlElement {
   }
 }
 
+loadPolyfills() {
+  if (!document.supportsRegister) {
+    // Cache blocker is a workaround for:
+    // https://code.google.com/p/dart/issues/detail?id=11834
+    var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
+    return HttpRequest.getString('/root_dart/pkg/custom_element/lib/'
+      'custom-elements.debug.js?cacheBlock=$cacheBlocker').then((code) {
+      document.head.children.add(new ScriptElement()..text = code);
+    });
+  }
+}
+
 main() {
   useHtmlConfiguration();
 
   // Adapted from Blink's
   // fast/dom/custom/constructor-calls-created-synchronously test.
+
+  setUp(loadPolyfills);
 
   test('createdCallback', () {
     document.register(A.tag, A);

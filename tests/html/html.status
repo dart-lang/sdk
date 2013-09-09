@@ -7,7 +7,8 @@ event_test: Skip  # Issue 1996
 interactive_test: Skip # Must be run manually.
 
 [ $compiler == dart2js && $runtime != drt ]
-custom/*: Skip
+custom/document_register_type_extensions_test/namespaces: Fail # Polyfill does not support createElementNS
+custom/document_register_basic_test: Fail # Polyfill is not case-sensitive
 
 [ $compiler == dart2js && $browser ]
 # Issue 9325 failures

@@ -18,7 +18,32 @@ _makeCreatedCallbackMethod() {
       convertDartClosureToJS(_callCreated, 1));
 }
 
-void _registerCustomElement(context, document, String tag, Type type) {
+const _typeNameToTag = const {
+  'HTMLAnchorElement': 'a',
+  'HTMLAudioElement': 'audio',
+  'HTMLButtonElement': 'button',
+  'HTMLCanvasElement': 'canvas',
+  'HTMLDivElement': 'div',
+  'HTMLImageElement': 'img',
+  'HTMLInputElement': 'input',
+  'HTMLLIElement': 'li',
+  'HTMLLabelElement': 'label',
+  'HTMLMenuElement': 'menu',
+  'HTMLMeterElement': 'meter',
+  'HTMLOListElement': 'ol',
+  'HTMLOptionElement': 'option',
+  'HTMLOutputElement': 'output',
+  'HTMLParagraphElement': 'p',
+  'HTMLPreElement': 'pre',
+  'HTMLProgressElement': 'progress',
+  'HTMLSelectElement': 'select',
+  'HTMLSpanElement': 'span',
+  'HTMLUListElement': 'ul',
+  'HTMLVideoElement': 'video',
+};
+
+void _registerCustomElement(context, document, String tag, Type type,
+    String extendsTagName) {
   // Function follows the same pattern as the following JavaScript code for
   // registering a custom element.
   //
@@ -37,6 +62,10 @@ void _registerCustomElement(context, document, String tag, Type type) {
   if (interceptorClass == null) {
     throw new ArgumentError(type);
   }
+
+  // Workaround for 13190- use an article element to ensure that HTMLElement's
+  // interceptor is resolved correctly.
+  getNativeInterceptor(new Element.tag('article'));
 
   String baseClassName = findDispatchTagForInterceptorClass(interceptorClass);
   if (baseClassName == null) {
@@ -60,6 +89,15 @@ void _registerCustomElement(context, document, String tag, Type type) {
 
   setNativeSubclassDispatchRecord(proto, interceptor);
 
-  JS('void', '#.register(#, #)',
-      document, tag, JS('', '{prototype: #}', proto));
+  var options = JS('=Object', '{prototype: #}', proto);
+
+  if (baseClassName != 'HTMLElement') {
+    if (extendsTagName != null) {
+      JS('=Object', '#.extends = #', options, extendsTagName);
+    } else if (_typeNameToTag.containsKey(baseClassName)) {
+      JS('=Object', '#.extends = #', options, _typeNameToTag[baseClassName]);
+    }
+  }
+
+  JS('void', '#.register(#, #)', document, tag, options);
 }

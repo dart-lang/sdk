@@ -354,8 +354,8 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    *
    * * [isTagSupported]
    */
-  factory $CLASSNAME.tag(String tag) =>
-      _$(CLASSNAME)FactoryProvider.createElement_tag(tag);
+  factory $CLASSNAME.tag(String tag, [String typeExtention]) =>
+      _$(CLASSNAME)FactoryProvider.createElement_tag(tag, typeExtention);
 
   /// Creates a new `<a>` element.
   ///
@@ -672,7 +672,7 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    * The tag should be a valid HTML tag name.
    */
   static bool isTagSupported(String tag) {
-    var e = _ElementFactoryProvider.createElement_tag(tag);
+    var e = _ElementFactoryProvider.createElement_tag(tag, null);
     return e is Element && !(e is UnknownElement);
   }
 
@@ -1327,12 +1327,22 @@ class _ElementFactoryProvider {
 $if DART2JS
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
-  static dynamic createElement_tag(String tag) =>
-      // Firefox may return a JS function for some types (Embed, Object).
-      JS('Element|=Object', 'document.createElement(#)', tag);
+  static dynamic createElement_tag(String tag, String typeExtension) {
+    // Firefox may return a JS function for some types (Embed, Object).
+    if (typeExtension != null) {
+      return JS('Element|=Object', 'document.createElement(#, #)',
+          tag, typeExtension);
+    }
+    // Should be able to eliminate this and just call the two-arg version above
+    // with null typeExtension, but Chrome treats the tag as case-sensitive if
+    // typeExtension is null.
+    // https://code.google.com/p/chromium/issues/detail?id=282467
+    return JS('Element|=Object', 'document.createElement(#)', tag);
+  }
+
 $else
-  static Element createElement_tag(String tag) =>
-      document.$dom_createElement(tag);
+  static Element createElement_tag(String tag, String typeExtension) =>
+      document.$dom_createElement(tag, typeExtension);
 $endif
 }
 
