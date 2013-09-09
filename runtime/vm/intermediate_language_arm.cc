@@ -1538,6 +1538,12 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           // list length here, without this check the list length could change
           // without triggering a deoptimization.
           Label check_array, length_compared, no_fixed_length;
+          // If length is negative the length guard is either disabled or
+          // has not been initialized, either way it is safe to skip the
+          // length check.
+          __ ldr(IP, field_length_operand);
+          __ CompareImmediate(IP, 0);
+          __ b(&skip_length_check, LT);
           __ CompareImmediate(value_cid_reg, kNullCid);
           __ b(&no_fixed_length, EQ);
           // Check for typed data array.
