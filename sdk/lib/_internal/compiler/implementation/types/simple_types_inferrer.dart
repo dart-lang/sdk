@@ -2076,7 +2076,7 @@ class SimpleTypeInferrerVisitor<T>
     isThisExposed = true;
     if (node.isPropertyAccess) {
       return handleStaticSend(node, selector, element, null);
-    } else if (element.isFunction()) {
+    } else if (element.isFunction() || element.isGenerativeConstructor()) {
       if (!selector.applies(element, compiler)) return types.dynamicType;
       ArgumentsTypes arguments = analyzeArguments(node.arguments);
       return handleStaticSend(node, selector, element, arguments);
