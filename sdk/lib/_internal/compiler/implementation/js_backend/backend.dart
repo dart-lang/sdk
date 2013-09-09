@@ -190,8 +190,8 @@ class JavaScriptBackend extends Backend {
   Element jsArrayRemoveLast;
   Element jsArrayAdd;
   Element jsStringSplit;
-  Element jsStringConcat;
   Element jsStringToString;
+  Element jsStringOperatorAdd;
   Element objectEquals;
 
   ClassElement typeLiteralClass;
@@ -614,8 +614,8 @@ class JavaScriptBackend extends Backend {
     jsStringClass.ensureResolved(compiler);
     jsStringSplit = compiler.lookupElementIn(
         jsStringClass, const SourceString('split'));
-    jsStringConcat = compiler.lookupElementIn(
-        jsStringClass, const SourceString('concat'));
+    jsStringOperatorAdd = compiler.lookupElementIn(
+        jsStringClass, const SourceString('+'));
     jsStringToString = compiler.lookupElementIn(
         jsStringClass, const SourceString('toString'));
 

@@ -54,6 +54,7 @@ class JSString {
   split(x) => null;
   concat(x) => null;
   toString() => null;
+  operator+(other) => null;
 }
 class JSNull {
 }

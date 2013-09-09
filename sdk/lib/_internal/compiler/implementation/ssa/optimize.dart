@@ -285,7 +285,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     Selector selector = node.selector;
     HInstruction input = node.inputs[1];
 
-    if (selector.isCall()) {
+    if (selector.isCall() || selector.isOperator()) {
       Element target;
       if (input.isExtendableArray(compiler)) {
         if (selector.applies(backend.jsArrayRemoveLast, compiler)) {
@@ -302,11 +302,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
           if (node.inputs[2].isString(compiler)) {
             target = backend.jsStringSplit;
           }
-        } else if (selector.applies(backend.jsStringConcat, compiler)) {
-          // `concat` is turned into a JavaScript '+' so we need to
+        } else if (selector.applies(backend.jsStringOperatorAdd, compiler)) {
+          // `operator+` is turned into a JavaScript '+' so we need to
           // make sure the receiver is not null.
           if (node.inputs[2].isString(compiler) && !input.canBeNull()) {
-            target = backend.jsStringConcat;
+            target = backend.jsStringOperatorAdd;
           }
         } else if (selector.applies(backend.jsStringToString, compiler)
                    && !input.canBeNull()) {
