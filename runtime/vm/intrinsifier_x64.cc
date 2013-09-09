@@ -117,15 +117,14 @@ void Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // RCX: new object end address.
   // RDI: iterator which initially points to the start of the variable
   // data area to be initialized.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(R12, Object::Handle(), PP);
   __ leaq(RDI, FieldAddress(RAX, sizeof(RawArray)));
   Label done;
   Label init_loop;
   __ Bind(&init_loop);
   __ cmpq(RDI, RCX);
   __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-  __ movq(Address(RDI, 0), raw_null);
+  __ movq(Address(RDI, 0), R12);
   __ addq(RDI, Immediate(kWordSize));
   __ jmp(&init_loop, Assembler::kNearJump);
   __ Bind(&done);
@@ -392,9 +391,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ StoreIntoObject(RDX,
                      FieldAddress(RDX, RCX, TIMES_4, Array::data_offset()),
                      RAX);
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<int64_t>(Object::null()));
-  __ movq(RAX, raw_null);
+  __ LoadObject(RAX, Object::Handle(), PP);
   __ ret();
   __ Bind(&fall_through);
 }
@@ -879,10 +876,10 @@ static void CompareIntegers(Assembler* assembler, Condition true_condition) {
   // RAX contains the right argument.
   __ cmpq(Address(RSP, + 2 * kWordSize), RAX);
   __ j(true_condition, &true_label, Assembler::kNearJump);
-  __ LoadObject(RAX, Bool::False());
+  __ LoadObject(RAX, Bool::False(), PP);
   __ ret();
   __ Bind(&true_label);
-  __ LoadObject(RAX, Bool::True());
+  __ LoadObject(RAX, Bool::True(), PP);
   __ ret();
   __ Bind(&fall_through);
 }
@@ -919,34 +916,39 @@ void Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
 void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   Label fall_through, true_label, check_for_mint;
   // For integer receiver '===' check first.
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ movq(RCX, Address(RSP, + 2 * kWordSize));
+  // Entering a dart frame so we can use the PP for loading True and False.
+  __ EnterDartFrame(0);
+  __ movq(RAX, Address(RSP, + 4 * kWordSize));
+  __ movq(RCX, Address(RSP, + 5 * kWordSize));
   __ cmpq(RAX, RCX);
   __ j(EQUAL, &true_label, Assembler::kNearJump);
   __ orq(RAX, RCX);
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &check_for_mint, Assembler::kNearJump);
   // Both arguments are smi, '===' is good enough.
-  __ LoadObject(RAX, Bool::False());
+  __ LoadObject(RAX, Bool::False(), PP);
+  __ LeaveFrameWithPP();
   __ ret();
   __ Bind(&true_label);
-  __ LoadObject(RAX, Bool::True());
+  __ LoadObject(RAX, Bool::True(), PP);
+  __ LeaveFrameWithPP();
   __ ret();
 
   // At least one of the arguments was not Smi.
   Label receiver_not_smi;
   __ Bind(&check_for_mint);
-  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Receiver.
+  __ movq(RAX, Address(RSP, + 5 * kWordSize));  // Receiver.
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &receiver_not_smi);
 
   // Left (receiver) is Smi, return false if right is not Double.
   // Note that an instance of Mint or Bigint never contains a value that can be
   // represented by Smi.
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RAX, Address(RSP, + 4 * kWordSize));
   __ CompareClassId(RAX, kDoubleCid);
   __ j(EQUAL, &fall_through);
-  __ LoadObject(RAX, Bool::False());
+  __ LoadObject(RAX, Bool::False(), PP);
+  __ LeaveFrameWithPP();
   __ ret();
 
   __ Bind(&receiver_not_smi);
@@ -954,14 +956,17 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ CompareClassId(RAX, kMintCid);
   __ j(NOT_EQUAL, &fall_through);
   // Receiver is Mint, return false if right is Smi.
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Right argument.
+  __ movq(RAX, Address(RSP, + 4 * kWordSize));  // Right argument.
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through);
-  __ LoadObject(RAX, Bool::False());  // Smi == Mint -> false.
+  // Smi == Mint -> false.
+  __ LoadObject(RAX, Bool::False(), PP);
+  __ LeaveFrameWithPP();
   __ ret();
   // TODO(srdjan): Implement Mint == Mint comparison.
 
   __ Bind(&fall_through);
+  __ LeaveFrameWithPP();
 }
 
 
@@ -1041,10 +1046,10 @@ static void CompareDoubles(Assembler* assembler, Condition true_condition) {
   __ j(true_condition, &is_true, Assembler::kNearJump);
   // Fall through false.
   __ Bind(&is_false);
-  __ LoadObject(RAX, Bool::False());
+  __ LoadObject(RAX, Bool::False(), PP);
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(RAX, Bool::True());
+  __ LoadObject(RAX, Bool::True(), PP);
   __ ret();
   __ Bind(&is_smi);
   __ SmiUntag(RAX);
@@ -1178,10 +1183,10 @@ void Intrinsifier::Double_getIsNaN(Assembler* assembler) {
   __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
   __ comisd(XMM0, XMM0);
   __ j(PARITY_EVEN, &is_true, Assembler::kNearJump);  // NaN -> true;
-  __ LoadObject(RAX, Bool::False());
+  __ LoadObject(RAX, Bool::False(), PP);
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(RAX, Bool::True());
+  __ LoadObject(RAX, Bool::True(), PP);
   __ ret();
 }
 
@@ -1196,10 +1201,10 @@ void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   __ j(EQUAL, &is_zero, Assembler::kNearJump);  // Check for negative zero.
   __ j(ABOVE_EQUAL, &is_false, Assembler::kNearJump);  // >= 0 -> false.
   __ Bind(&is_true);
-  __ LoadObject(RAX, Bool::True());
+  __ LoadObject(RAX, Bool::True(), PP);
   __ ret();
   __ Bind(&is_false);
-  __ LoadObject(RAX, Bool::False());
+  __ LoadObject(RAX, Bool::False(), PP);
   __ ret();
   __ Bind(&is_zero);
   // Check for negative zero (get the sign bit).
@@ -1347,17 +1352,23 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
 }
 
 
-
 // Identity comparison.
 void Intrinsifier::Object_equal(Assembler* assembler) {
   Label is_true;
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ cmpq(RAX, Address(RSP, + 2 * kWordSize));
+  // This intrinsic is used from the API even when we have not entered any
+  // Dart frame, yet, so the PP would otherwise be null in this case unless
+  // we enter a Dart frame here.
+  __ EnterDartFrame(0);
+  __ movq(RAX, Address(RSP, + 4 * kWordSize));
+  __ cmpq(RAX, Address(RSP, + 5 * kWordSize));
   __ j(EQUAL, &is_true, Assembler::kNearJump);
-  __ LoadObject(RAX, Bool::False());
+  __ movq(RAX, Immediate(reinterpret_cast<int64_t>(Bool::False().raw())));
+  __ LoadObject(RAX, Bool::False(), PP);
+  __ LeaveFrameWithPP();
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(RAX, Bool::True());
+  __ LoadObject(RAX, Bool::True(), PP);
+  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -1417,10 +1428,10 @@ void Intrinsifier::String_getIsEmpty(Assembler* assembler) {
   __ movq(RAX, FieldAddress(RAX, String::length_offset()));
   __ cmpq(RAX, Immediate(Smi::RawValue(0)));
   __ j(EQUAL, &is_true, Assembler::kNearJump);
-  __ LoadObject(RAX, Bool::False());
+  __ LoadObject(RAX, Bool::False(), PP);
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(RAX, Bool::True());
+  __ LoadObject(RAX, Bool::True(), PP);
   __ ret();
 }
 

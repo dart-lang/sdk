@@ -29,11 +29,11 @@ void CodePatcher::PatchEntry(const Code& code) {
   const uword patch_addr = code.GetPcForDeoptId(Isolate::kNoDeoptId,
                                                 PcDescriptors::kEntryPatch);
   ASSERT(patch_addr != 0);
-  JumpPattern jmp_entry(patch_addr);
+  JumpPattern jmp_entry(patch_addr, code);
   ASSERT(!jmp_entry.IsValid());
   const uword patch_buffer = code.GetPatchCodePc();
   ASSERT(patch_buffer != 0);
-  JumpPattern jmp_patch(patch_buffer);
+  JumpPattern jmp_patch(patch_buffer, code);
   ASSERT(jmp_patch.IsValid());
   const uword jump_target = jmp_patch.TargetAddress();
   SwapCode(jmp_patch.pattern_length_in_bytes(),
@@ -49,13 +49,13 @@ void CodePatcher::RestoreEntry(const Code& code) {
   const uword patch_addr = code.GetPcForDeoptId(Isolate::kNoDeoptId,
                                                 PcDescriptors::kEntryPatch);
   ASSERT(patch_addr != 0);
-  JumpPattern jmp_entry(patch_addr);
+  JumpPattern jmp_entry(patch_addr, code);
   ASSERT(jmp_entry.IsValid());
   const uword jump_target = jmp_entry.TargetAddress();
   const uword patch_buffer = code.GetPatchCodePc();
   ASSERT(patch_buffer != 0);
   // 'patch_buffer' contains original entry code.
-  JumpPattern jmp_patch(patch_buffer);
+  JumpPattern jmp_patch(patch_buffer, code);
   ASSERT(!jmp_patch.IsValid());
   SwapCode(jmp_patch.pattern_length_in_bytes(),
            reinterpret_cast<char*>(patch_addr),
@@ -72,7 +72,7 @@ bool CodePatcher::CodeIsPatchable(const Code& code) {
   if (patch_addr == 0) {
     return true;
   }
-  JumpPattern jmp_entry(patch_addr);
+  JumpPattern jmp_entry(patch_addr, code);
   if (code.Size() < (jmp_entry.pattern_length_in_bytes() * 2)) {
     return false;
   }

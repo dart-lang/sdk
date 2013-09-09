@@ -182,7 +182,8 @@ class StubCode {
   StubEntry* name##_entry_;
   STUB_CODE_LIST(STUB_CODE_ENTRY);
 #undef STUB_CODE_ENTRY
-  // This dummy field is needed so that we can intialize the stubs from a macro.
+  // This dummy field is needed so that we can initialize
+  // the stubs from a macro.
   void* dummy_;
 
   // Generate the stub and finalize the generated code into the stub

@@ -7,6 +7,7 @@
 
 #include "vm/debugger.h"
 
+#include "vm/assembler.h"
 #include "vm/cpu.h"
 #include "vm/stub_code.h"
 
@@ -42,16 +43,15 @@ RawObject* ActivationFrame::GetClosureObject(intptr_t num_actual_args) {
 
 void CodeBreakpoint::PatchFunctionReturn() {
   uint8_t* code = reinterpret_cast<uint8_t*>(pc_ - 13);
-  // movq %rbp,%rsp
-  ASSERT((code[0] == 0x48) && (code[1] == 0x89) && (code[2] == 0xec));
-  ASSERT(code[3] == 0x5d);  // popq %rbp
-  ASSERT(code[4] == 0xc3);  // ret
-  // Next 8 bytes are nop instructions
-  ASSERT((code[5] == 0x90) && (code[6] == 0x90) &&
-         (code[7] == 0x90) && (code[8] == 0x90) &&
-         (code[9] == 0x90) && (code[10] == 0x90) &&
-         (code[11] == 0x90) && (code[12] == 0x90));
-         // Smash code with call instruction and relative target address.
+  ASSERT((code[0] == 0x4c) && (code[1] == 0x8b) && (code[2] == 0x7d) &&
+         (code[3] == 0xf0));  // movq r15,[rbp-0x10]
+  ASSERT((code[4] == 0x48) && (code[5] == 0x89) &&
+         (code[6] == 0xec));  // mov rsp, rbp
+  ASSERT(code[7] == 0x5d);  // pop rbp
+  ASSERT(code[8] == 0xc3);  // ret
+  ASSERT((code[9] == 0x0F) && (code[10] == 0x1F) && (code[11] == 0x40) &&
+         (code[12] == 0x00));  // nops
+  // Smash code with call instruction and relative target address.
   uword stub_addr = StubCode::BreakpointReturnEntryPoint();
   code[0] = 0x49;
   code[1] = 0xbb;
@@ -66,19 +66,13 @@ void CodeBreakpoint::PatchFunctionReturn() {
 void CodeBreakpoint::RestoreFunctionReturn() {
   uint8_t* code = reinterpret_cast<uint8_t*>(pc_ - 13);
   ASSERT((code[0] == 0x49) && (code[1] == 0xbb));
-  code[0] = 0x48;  // movq %rbp,%rsp
-  code[1] = 0x89;
-  code[2] = 0xec;
-  code[3] = 0x5d;  // popq %rbp
-  code[4] = 0xc3;  // ret
-  code[5] = 0x90;  // nop
-  code[6] = 0x90;  // nop
-  code[7] = 0x90;  // nop
-  code[8] = 0x90;  // nop
-  code[9] = 0x90;  // nop
-  code[10] = 0x90;  // nop
-  code[11] = 0x90;  // nop
-  code[12] = 0x90;  // nop
+
+  MemoryRegion code_region(reinterpret_cast<void*>(pc_ - 13), 13);
+  Assembler assembler;
+
+  assembler.ReturnPatchable();
+  assembler.FinalizeInstructions(code_region);
+
   CPU::FlushICache(pc_ - 13, 13);
 }
 

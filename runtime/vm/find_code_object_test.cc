@@ -14,7 +14,7 @@
 namespace dart {
 
 TEST_CASE(FindCodeObject) {
-#if defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
   const int kLoopCount = 50000;
 #else
   const int kLoopCount = 25000;

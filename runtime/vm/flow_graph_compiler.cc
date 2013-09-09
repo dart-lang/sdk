@@ -633,48 +633,6 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
 }
 
 
-void FlowGraphCompiler::EmitUnoptimizedStaticCall(
-    const Function& target_function,
-    const Array& arguments_descriptor,
-    intptr_t argument_count,
-    intptr_t deopt_id,
-    intptr_t token_pos,
-    LocationSummary* locs) {
-  // TODO(srdjan): Improve performance of function recognition.
-  MethodRecognizer::Kind recognized_kind =
-      MethodRecognizer::RecognizeKind(target_function);
-  int num_args_checked = 0;
-  if ((recognized_kind == MethodRecognizer::kMathMin) ||
-      (recognized_kind == MethodRecognizer::kMathMax)) {
-    num_args_checked = 2;
-  }
-  const ICData& ic_data = ICData::ZoneHandle(
-      ICData::New(parsed_function().function(),  // Caller function.
-                  String::Handle(target_function.name()),
-                  arguments_descriptor,
-                  deopt_id,
-                  num_args_checked));  // No arguments checked.
-  ic_data.AddTarget(target_function);
-  uword label_address = 0;
-  if (ic_data.num_args_tested() == 0) {
-    label_address = StubCode::ZeroArgsUnoptimizedStaticCallEntryPoint();
-  } else if (ic_data.num_args_tested() == 2) {
-    label_address = StubCode::TwoArgsUnoptimizedStaticCallEntryPoint();
-  } else {
-    UNIMPLEMENTED();
-  }
-  ExternalLabel target_label("StaticCallICStub", label_address);
-  assembler()->LoadObject(ICREG, ic_data);
-  GenerateDartCall(deopt_id,
-                   token_pos,
-                   &target_label,
-                   PcDescriptors::kUnoptStaticCall,
-                   locs);
-  assembler()->Drop(argument_count);
-}
-
-
-
 void FlowGraphCompiler::GenerateNumberTypeCheck(Register kClassIdReg,
                                                 const AbstractType& type,
                                                 Label* is_instance_lbl,

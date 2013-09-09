@@ -11,6 +11,7 @@
 #endif
 
 #include "vm/allocation.h"
+#include "vm/object.h"
 
 namespace dart {
 
@@ -37,6 +38,8 @@ class InstructionPattern : public ValueObject {
   virtual const int* pattern() const = 0;
   virtual int pattern_length_in_bytes() const = 0;
 
+  static intptr_t IndexFromPPLoad(uword start);
+
  protected:
   uword start() const { return start_; }
 
@@ -52,46 +55,47 @@ class InstructionPattern : public ValueObject {
 };
 
 
-class CallOrJumpPattern : public InstructionPattern {
+class CallPattern : public InstructionPattern {
  public:
-  virtual int pattern_length_in_bytes() const {
+  CallPattern(uword pc, const Code& code)
+      : InstructionPattern(pc),
+        code_(code) {}
+  static int InstructionLength() {
     return kLengthInBytes;
   }
   uword TargetAddress() const;
   void SetTargetAddress(uword new_target) const;
-
- protected:
-  explicit CallOrJumpPattern(uword pc) : InstructionPattern(pc) {}
-  static const int kLengthInBytes = 13;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(CallOrJumpPattern);
-};
-
-
-class CallPattern : public CallOrJumpPattern {
- public:
-  explicit CallPattern(uword pc) : CallOrJumpPattern(pc) {}
-  static int InstructionLength() {
+  virtual int pattern_length_in_bytes() const {
     return kLengthInBytes;
   }
 
  private:
+  static const int kLengthInBytes = 13;
   virtual const int* pattern() const;
+  const Code& code_;
 
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
 };
 
 
-class JumpPattern : public CallOrJumpPattern {
+class JumpPattern : public InstructionPattern {
  public:
-  explicit JumpPattern(uword pc) : CallOrJumpPattern(pc) {}
+  JumpPattern(uword pc, const Code& code)
+      : InstructionPattern(pc),
+        object_pool_(Array::Handle(code.ObjectPool())) {}
   static int InstructionLength() {
+    return kLengthInBytes;
+  }
+  uword TargetAddress() const;
+  void SetTargetAddress(uword new_target) const;
+  virtual int pattern_length_in_bytes() const {
     return kLengthInBytes;
   }
 
  private:
+  static const int kLengthInBytes = 10;
   virtual const int* pattern() const;
+  const Array& object_pool_;
 
   DISALLOW_COPY_AND_ASSIGN(JumpPattern);
 };

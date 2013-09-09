@@ -200,6 +200,28 @@ ASSEMBLER_TEST_GENERATE(AddressingModes, assembler) {
   __ movq(RAX, Address(R13, R10, TIMES_2, 256 * kWordSize));
   __ movq(RAX, Address(R13, R12, TIMES_2, 256 * kWordSize));
   __ movq(RAX, Address(R13, R13, TIMES_2, 256 * kWordSize));
+
+  __ movq(RAX, Address::AddressBaseImm32(RSP, 0));
+  __ movq(RAX, Address::AddressBaseImm32(RBP, 0));
+  __ movq(RAX, Address::AddressBaseImm32(RAX, 0));
+  __ movq(RAX, Address::AddressBaseImm32(R10, 0));
+  __ movq(RAX, Address::AddressBaseImm32(R12, 0));
+  __ movq(RAX, Address::AddressBaseImm32(R13, 0));
+  __ movq(R10, Address::AddressBaseImm32(RAX, 0));
+
+  __ movq(RAX, Address::AddressBaseImm32(RSP, kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(RBP, kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(RAX, kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(R10, kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(R12, kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(R13, kWordSize));
+
+  __ movq(RAX, Address::AddressBaseImm32(RSP, -kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(RBP, -kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(RAX, -kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(R10, -kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(R12, -kWordSize));
+  __ movq(RAX, Address::AddressBaseImm32(R13, -kWordSize));
 }
 
 
@@ -2159,14 +2181,15 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   const Object& obj = Object::ZoneHandle(object_store->smi_class());
   Label fail;
-  __ LoadObject(RAX, obj);
+  __ EnterDartFrame(0);
+  __ LoadObject(RAX, obj, PP);
   __ CompareObject(RAX, obj);
   __ j(NOT_EQUAL, &fail);
-  __ LoadObject(RCX, obj);
+  __ LoadObject(RCX, obj, PP);
   __ CompareObject(RCX, obj);
   __ j(NOT_EQUAL, &fail);
   const Smi& smi = Smi::ZoneHandle(Smi::New(15));
-  __ LoadObject(RCX, smi);
+  __ LoadObject(RCX, smi, PP);
   __ CompareObject(RCX, smi);
   __ j(NOT_EQUAL, &fail);
   __ pushq(RAX);
@@ -2180,9 +2203,11 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   __ CompareObject(RCX, smi);
   __ j(NOT_EQUAL, &fail);
   __ movl(RAX, Immediate(1));  // OK
+  __ LeaveFrameWithPP();
   __ ret();
   __ Bind(&fail);
   __ movl(RAX, Immediate(0));  // Fail.
+  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -2393,12 +2418,14 @@ ASSEMBLER_TEST_RUN(SquareRootDouble, test) {
 
 // Called from assembler_test.cc.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
+  __ EnterDartFrame(0);
   __ pushq(CTX);
   __ movq(CTX, RDI);
   __ StoreIntoObject(RDX,
                      FieldAddress(RDX, GrowableObjectArray::data_offset()),
                      RSI);
   __ popq(CTX);
+  __ LeaveFrameWithPP();
   __ ret();
 }
 

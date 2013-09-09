@@ -34,7 +34,9 @@ void GenerateIncrement(Assembler* assembler) {
 void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
   const String& string_object =
       String::ZoneHandle(String::New(str, Heap::kOld));
-  __ LoadObject(RAX, string_object);
+  __ EnterDartFrame(0);
+  __ LoadObject(RAX, string_object, PP);
+  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -43,7 +45,7 @@ void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
 // This is used to test Embedded Smi objects in the instructions.
 void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value) {
   const Smi& smi_object = Smi::ZoneHandle(Smi::New(value));
-  __ LoadObject(RAX, smi_object);
+  __ LoadObject(RAX, smi_object, PP);
   __ ret();
 }
 

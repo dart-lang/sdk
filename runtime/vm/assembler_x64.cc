@@ -65,6 +65,47 @@ void CPUFeatures::InitOnce() {
 #undef __
 
 
+Assembler::Assembler(bool use_far_branches)
+    : buffer_(),
+      object_pool_(GrowableObjectArray::Handle()),
+      patchable_pool_entries_(),
+      prologue_offset_(-1),
+      comments_() {
+  // Far branching mode is only needed and implemented for MIPS and ARM.
+  ASSERT(!use_far_branches);
+  if (Isolate::Current() != Dart::vm_isolate()) {
+    object_pool_ = GrowableObjectArray::New(Heap::kOld);
+
+    // These objects and labels need to be accessible through every pool-pointer
+    // at the same index.
+    object_pool_.Add(Object::Handle(), Heap::kOld);
+    patchable_pool_entries_.Add(kNotPatchable);
+
+    object_pool_.Add(Bool::True(), Heap::kOld);
+    patchable_pool_entries_.Add(kNotPatchable);
+
+    object_pool_.Add(Bool::False(), Heap::kOld);
+    patchable_pool_entries_.Add(kNotPatchable);
+
+    if (StubCode::UpdateStoreBuffer_entry() != NULL) {
+      FindExternalLabel(&StubCode::UpdateStoreBufferLabel(), kNotPatchable);
+      patchable_pool_entries_.Add(kNotPatchable);
+    } else {
+      object_pool_.Add(Object::Handle(), Heap::kOld);
+      patchable_pool_entries_.Add(kNotPatchable);
+    }
+
+    if (StubCode::CallToRuntime_entry() != NULL) {
+      FindExternalLabel(&StubCode::CallToRuntimeLabel(), kNotPatchable);
+      patchable_pool_entries_.Add(kNotPatchable);
+    } else {
+      object_pool_.Add(Object::Handle(), Heap::kOld);
+      patchable_pool_entries_.Add(kNotPatchable);
+    }
+  }
+}
+
+
 void Assembler::InitializeMemoryWithBreakpoints(uword data, int length) {
   memset(reinterpret_cast<void*>(data), Instr::kBreakPointInstruction, length);
 }
@@ -95,22 +136,42 @@ void Assembler::call(Label* label) {
 }
 
 
+void Assembler::LoadExternalLabel(Register dst,
+                                  const ExternalLabel* label,
+                                  Patchability patchable,
+                                  Register pp) {
+  const int32_t offset =
+      Array::element_offset(FindExternalLabel(label, patchable));
+  LoadWordFromPoolOffset(dst, pp, offset - kHeapObjectTag);
+}
+
+
 void Assembler::call(const ExternalLabel* label) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  {  // Encode movq(TMP, Immediate(label->address())), but always as imm64.
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitRegisterREX(TMP, REX_W);
+    EmitUint8(0xB8 | (TMP & 7));
+    EmitInt64(label->address());
+  }
+  call(TMP);
+}
+
+
+void Assembler::CallPatchable(const ExternalLabel* label) {
   intptr_t call_start = buffer_.GetPosition();
-
-  // Encode movq(TMP, Immediate(label->address())), but always as imm64.
-  EmitRegisterREX(TMP, REX_W);
-  EmitUint8(0xB8 | (TMP & 7));
-  EmitInt64(label->address());
-
-  // Encode call(TMP).
-  Operand operand(TMP);
-  EmitOperandREX(2, operand, REX_NONE);
-  EmitUint8(0xFF);
-  EmitOperand(2, operand);
-
+  LoadExternalLabel(TMP, label, kPatchable, PP);
+  call(TMP);
   ASSERT((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
+}
+
+
+void Assembler::Call(const ExternalLabel* label, Register pp) {
+  if (Isolate::Current() == Dart::vm_isolate()) {
+    call(label);
+  } else {
+    LoadExternalLabel(TMP, label, kNotPatchable, pp);
+    call(TMP);
+  }
 }
 
 
@@ -1960,6 +2021,15 @@ void Assembler::j(Condition condition, const ExternalLabel* label) {
 }
 
 
+void Assembler::J(Condition condition, const ExternalLabel* label,
+                  Register pp) {
+  Label no_jump;
+  j(static_cast<Condition>(condition ^ 1), &no_jump);  // Negate condition.
+  Jmp(label, pp);
+  Bind(&no_jump);
+}
+
+
 void Assembler::jmp(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(reg);
@@ -1994,21 +2064,27 @@ void Assembler::jmp(Label* label, bool near) {
 
 
 void Assembler::jmp(const ExternalLabel* label) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  {  // Encode movq(TMP, Immediate(label->address())), but always as imm64.
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitRegisterREX(TMP, REX_W);
+    EmitUint8(0xB8 | (TMP & 7));
+    EmitInt64(label->address());
+  }
+  jmp(TMP);
+}
+
+
+void Assembler::JmpPatchable(const ExternalLabel* label, Register pp) {
   intptr_t call_start = buffer_.GetPosition();
-
-  // Encode movq(TMP, Immediate(label->address())), but always as imm64.
-  EmitRegisterREX(TMP, REX_W);
-  EmitUint8(0xB8 | (TMP & 7));
-  EmitInt64(label->address());
-
-  // Encode jmp(TMP).
-  Operand operand(TMP);
-  EmitOperandREX(4, operand, REX_NONE);
-  EmitUint8(0xFF);
-  EmitOperand(4, operand);
-
+  LoadExternalLabel(TMP, label, kPatchable, pp);
+  jmp(TMP);
   ASSERT((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
+}
+
+
+void Assembler::Jmp(const ExternalLabel* label, Register pp) {
+  LoadExternalLabel(TMP, label, kNotPatchable, pp);
+  jmp(TMP);
 }
 
 
@@ -2091,49 +2167,103 @@ void Assembler::Drop(intptr_t stack_elements) {
 }
 
 
-void Assembler::LoadObject(Register dst, const Object& object) {
-  if (object.IsSmi() || object.InVMHeap()) {
-    movq(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
+intptr_t Assembler::FindObject(const Object& obj, Patchability patchable) {
+  // The object pool cannot be used in the vm isolate.
+  ASSERT(Isolate::Current() != Dart::vm_isolate());
+  ASSERT(!object_pool_.IsNull());
+
+  // TODO(zra): This can be slow. Add a hash map from obj.raw() to
+  // object pool indexes to speed lookup.
+  for (int i = 0; i < object_pool_.Length(); i++) {
+    if ((object_pool_.At(i) == obj.raw()) &&
+        (patchable_pool_entries_[i] != kPatchable)) {
+      return i;
+    }
+  }
+  object_pool_.Add(obj, Heap::kOld);
+  patchable_pool_entries_.Add(patchable);
+  return object_pool_.Length() - 1;
+}
+
+
+intptr_t Assembler::FindExternalLabel(const ExternalLabel* label,
+                                      Patchability patchable) {
+  // The object pool cannot be used in the vm isolate.
+  ASSERT(Isolate::Current() != Dart::vm_isolate());
+  ASSERT(!object_pool_.IsNull());
+  const uword address = label->address();
+  ASSERT(Utils::IsAligned(address, 4));
+  // The address is stored in the object array as a RawSmi.
+  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(address));
+  if (patchable == kNotPatchable) {
+    return FindObject(smi, kNotPatchable);
+  }
+  // If the call is patchable, do not reuse an existing entry since each
+  // reference may be patched independently.
+  object_pool_.Add(smi, Heap::kOld);
+  patchable_pool_entries_.Add(patchable);
+  return object_pool_.Length() - 1;
+}
+
+
+bool Assembler::CanLoadFromObjectPool(const Object& object) {
+  return !object.IsSmi() &&  // Not a Smi
+         // Not in the VMHeap, OR is one of the VMHeap objects we put in every
+         // object pool.
+         (!object.InVMHeap() || (object.raw() == Object::null()) ||
+                                (object.raw() == Bool::True().raw()) ||
+                                (object.raw() == Bool::False().raw())) &&
+         object.IsNotTemporaryScopedHandle() &&
+         object.IsOld();
+}
+
+
+void Assembler::LoadWordFromPoolOffset(Register dst, Register pp,
+                                       int32_t offset) {
+  // This sequence must be of fixed size. AddressBaseImm32
+  // forces the address operand to use a fixed-size imm32 encoding.
+  movq(dst, Address::AddressBaseImm32(pp, offset));
+}
+
+
+void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
+  if (CanLoadFromObjectPool(object)) {
+    const int32_t offset =
+        Array::element_offset(FindObject(object, kNotPatchable));
+    LoadWordFromPoolOffset(dst, pp, offset - kHeapObjectTag);
   } else {
-    ASSERT(object.IsNotTemporaryScopedHandle());
-    ASSERT(object.IsOld());
-    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-    EmitRegisterREX(dst, REX_W);
-    EmitUint8(0xB8 | (dst & 7));
-    buffer_.EmitObject(object);
+    movq(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
 }
 
 
 void Assembler::StoreObject(const Address& dst, const Object& object) {
-  if (object.IsSmi() || object.InVMHeap()) {
-    movq(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
-  } else {
-    ASSERT(object.IsNotTemporaryScopedHandle());
-    ASSERT(object.IsOld());
-    LoadObject(TMP, object);
+  if (CanLoadFromObjectPool(object)) {
+    LoadObject(TMP, object, PP);
     movq(dst, TMP);
+  } else {
+    movq(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
 }
 
 
 void Assembler::PushObject(const Object& object) {
-  if (object.IsSmi() || object.InVMHeap()) {
-    pushq(Immediate(reinterpret_cast<int64_t>(object.raw())));
-  } else {
-    LoadObject(TMP, object);
+  if (CanLoadFromObjectPool(object)) {
+    LoadObject(TMP, object, PP);
     pushq(TMP);
+  } else {
+    pushq(Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
 }
 
 
 void Assembler::CompareObject(Register reg, const Object& object) {
-  if (object.IsSmi() || object.InVMHeap()) {
-    cmpq(reg, Immediate(reinterpret_cast<int64_t>(object.raw())));
-  } else {
+  if (CanLoadFromObjectPool(object)) {
     ASSERT(reg != TMP);
-    LoadObject(TMP, object);
+    LoadObject(TMP, object, PP);
     cmpq(reg, TMP);
+  } else {
+    cmpq(reg, Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
 }
 
@@ -2196,7 +2326,7 @@ void Assembler::StoreIntoObject(Register object,
   if (object != RAX) {
     movq(RAX, object);
   }
-  call(&StubCode::UpdateStoreBufferLabel());
+  Call(&StubCode::UpdateStoreBufferLabel(), PP);
   if (value != RAX) popq(RAX);
   Bind(&done);
 }
@@ -2298,6 +2428,23 @@ void Assembler::LeaveFrame() {
 }
 
 
+void Assembler::LeaveFrameWithPP() {
+  movq(PP, Address(RBP, -2 * kWordSize));
+  LeaveFrame();
+}
+
+
+void Assembler::ReturnPatchable() {
+  // This sequence must have a fixed size so that it can be patched by the
+  // debugger.
+  intptr_t start = buffer_.GetPosition();
+  LeaveFrameWithPP();
+  ret();
+  nop(4);
+  ASSERT((buffer_.GetPosition() - start) == 13);
+}
+
+
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
   // the C++ world.
@@ -2378,17 +2525,58 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 }
 
 
+void Assembler::LoadPoolPointer(Register pp) {
+  Label next;
+  call(&next);
+  Bind(&next);
+
+  // Load new pool pointer.
+  const intptr_t object_pool_pc_dist =
+      Instructions::HeaderSize() - Instructions::object_pool_offset() +
+      CodeSize();
+  popq(pp);
+  movq(pp, Address(pp, -object_pool_pc_dist));
+}
+
+
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   EnterFrame(0);
+
   Label dart_entry;
   call(&dart_entry);
   Bind(&dart_entry);
   // The runtime system assumes that the code marker address is
   // kEntryPointToPcMarkerOffset bytes from the entry.  If there is any code
   // generated before entering the frame, the address needs to be adjusted.
+  const intptr_t object_pool_pc_dist =
+      Instructions::HeaderSize() - Instructions::object_pool_offset() +
+      CodeSize();
   const intptr_t offset = kEntryPointToPcMarkerOffset - CodeSize();
   if (offset != 0) {
     addq(Address(RSP, 0), Immediate(offset));
+  }
+  // Save caller's pool pointer
+  pushq(PP);
+
+  // Load callee's pool pointer.
+  movq(PP, Address(RSP, 1 * kWordSize));
+  movq(PP, Address(PP, -object_pool_pc_dist - offset));
+
+  if (frame_size != 0) {
+    subq(RSP, Immediate(frame_size));
+  }
+}
+
+
+void Assembler::EnterDartFrameWithInfo(intptr_t frame_size,
+                                       Register new_pp, Register new_pc) {
+  if (new_pc == kNoRegister) {
+    EnterDartFrame(0);
+  } else {
+    EnterFrame(0);
+    pushq(new_pc);
+    pushq(PP);
+    movq(PP, new_pp);
   }
   if (frame_size != 0) {
     subq(RSP, Immediate(frame_size));
@@ -2401,18 +2589,32 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 // pointer is already set up.  The PC marker is not correct for the
 // optimized function and there may be extra space for spill slots to
 // allocate.
-void Assembler::EnterOsrFrame(intptr_t extra_size) {
-  Label dart_entry;
-  call(&dart_entry);
-  Bind(&dart_entry);
-  // The runtime system assumes that the code marker address is
-  // kEntryPointToPcMarkerOffset bytes from the entry.  Since there is no
-  // code to set up the frame pointer, the address needs to be adjusted.
-  const intptr_t offset = kEntryPointToPcMarkerOffset - CodeSize();
-  if (offset != 0) {
-    addq(Address(RSP, 0), Immediate(offset));
+void Assembler::EnterOsrFrame(intptr_t extra_size,
+                              Register new_pp, Register new_pc) {
+  if (new_pc == kNoRegister) {
+    Label dart_entry;
+    call(&dart_entry);
+    Bind(&dart_entry);
+    // The runtime system assumes that the code marker address is
+    // kEntryPointToPcMarkerOffset bytes from the entry.  Since there is no
+    // code to set up the frame pointer, the address needs to be adjusted.
+    const intptr_t object_pool_pc_dist =
+        Instructions::HeaderSize() - Instructions::object_pool_offset() +
+        CodeSize();
+    const intptr_t offset = kEntryPointToPcMarkerOffset - CodeSize();
+    if (offset != 0) {
+      addq(Address(RSP, 0), Immediate(offset));
+    }
+
+    // Load callee's pool pointer.
+    movq(PP, Address(RSP, 0));
+    movq(PP, Address(PP, -object_pool_pc_dist - offset));
+
+    popq(Address(RBP, kPcMarkerSlotFromFp * kWordSize));
+  } else {
+    movq(Address(RBP, kPcMarkerSlotFromFp * kWordSize), new_pc);
+    movq(PP, new_pp);
   }
-  popq(Address(RBP, kPcMarkerSlotFromFp * kWordSize));
   if (extra_size != 0) {
     subq(RSP, Immediate(extra_size));
   }
@@ -2422,6 +2624,14 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 void Assembler::EnterStubFrame() {
   EnterFrame(0);
   pushq(Immediate(0));  // Push 0 in the saved PC area for stub frames.
+}
+
+
+void Assembler::EnterStubFrameWithPP() {
+  EnterFrame(0);
+  pushq(Immediate(0));  // Push 0 in the saved PC area for stub frames.
+  pushq(PP);  // Save caller's pool pointer
+  LoadPoolPointer(PP);
 }
 
 
@@ -2646,7 +2856,6 @@ const char* Assembler::FpuRegisterName(FpuRegister reg) {
   ASSERT((0 <= reg) && (reg < kNumberOfXmmRegisters));
   return xmm_reg_names[reg];
 }
-
 
 }  // namespace dart
 

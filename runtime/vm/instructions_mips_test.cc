@@ -39,10 +39,11 @@ ASSEMBLER_TEST_GENERATE(Jump, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Jump, test) {
-  JumpPattern jump1(test->entry());
+  JumpPattern jump1(test->entry(), test->code());
   EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
             jump1.TargetAddress());
-  JumpPattern jump2(test->entry() + jump1.pattern_length_in_bytes());
+  JumpPattern jump2(test->entry() + jump1.pattern_length_in_bytes(),
+                    test->code());
   EXPECT_EQ(StubCode::AllocateArrayLabel().address(),
             jump2.TargetAddress());
   uword target1 = jump1.TargetAddress();

@@ -96,20 +96,8 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&done);
   }
 #endif
-  __ LeaveFrame();
-  __ ret();
 
-  // Generate 8 bytes of NOPs so that the debugger can patch the
-  // return pattern with a call to the debug stub.
-  // Note that the nop(8) byte pattern is not recognized by the debugger.
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
+  __ ReturnPatchable();
   compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
                                  Isolate::kNoDeoptId,
                                  token_pos());
@@ -315,7 +303,7 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out().IsInvalid()) {
     Register result = locs()->out().reg();
-    __ LoadObject(result, value());
+    __ LoadObject(result, value(), PP);
   }
 }
 
@@ -465,12 +453,11 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   const Array& kNoArgumentNames = Object::null_array();
   const int kNumArgumentsChecked = 2;
 
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label check_identity;
-  __ cmpq(Address(RSP, 0 * kWordSize), raw_null);
+  __ LoadObject(TMP, Object::Handle(), PP);
+  __ cmpq(Address(RSP, 0 * kWordSize), TMP);
   __ j(EQUAL, &check_identity);
-  __ cmpq(Address(RSP, 1 * kWordSize), raw_null);
+  __ cmpq(Address(RSP, 1 * kWordSize), TMP);
   __ j(EQUAL, &check_identity);
 
   ICData& equality_ic_data = ICData::ZoneHandle(original_ic_data.raw());
@@ -511,10 +498,10 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     __ popq(RDX);
     __ cmpq(RAX, RDX);
     __ j(EQUAL, &is_true);
-    __ LoadObject(RAX, Bool::Get(kind != Token::kEQ));
+    __ LoadObject(RAX, Bool::Get(kind != Token::kEQ), PP);
     __ jmp(&equality_done);
     __ Bind(&is_true);
-    __ LoadObject(RAX, Bool::Get(kind == Token::kEQ));
+    __ LoadObject(RAX, Bool::Get(kind == Token::kEQ), PP);
     if (kind == Token::kNE) {
       // Skip not-equal result conversion.
       __ jmp(&equality_done);
@@ -524,7 +511,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     // necessary.
     Register ic_data_reg = locs->temp(0).reg();
     ASSERT(ic_data_reg == RBX);  // Stub depends on it.
-    __ LoadObject(ic_data_reg, equality_ic_data);
+    __ LoadObject(ic_data_reg, equality_ic_data, PP);
     compiler->GenerateCall(token_pos,
                            &StubCode::EqualityWithNullArgLabel(),
                            PcDescriptors::kRuntimeCall,
@@ -537,10 +524,10 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     // Negate the condition: true label returns false and vice versa.
     __ CompareObject(RAX, Bool::True());
     __ j(EQUAL, &true_label, Assembler::kNearJump);
-    __ LoadObject(RAX, Bool::True());
+    __ LoadObject(RAX, Bool::True(), PP);
     __ jmp(&done, Assembler::kNearJump);
     __ Bind(&true_label);
-    __ LoadObject(RAX, Bool::False());
+    __ LoadObject(RAX, Bool::False(), PP);
     __ Bind(&done);
   }
   __ Bind(&equality_done);
@@ -610,10 +597,10 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
         Register result = locs->out().reg();
         Label load_true;
         __ j(cond, &load_true, Assembler::kNearJump);
-        __ LoadObject(result, Bool::False());
+        __ LoadObject(result, Bool::False(), PP);
         __ jmp(&done);
         __ Bind(&load_true);
-        __ LoadObject(result, Bool::True());
+        __ LoadObject(result, Bool::True(), PP);
       }
     } else {
       const int kNumberOfArguments = 2;
@@ -629,10 +616,10 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
           Label false_label;
           __ CompareObject(RAX, Bool::True());
           __ j(EQUAL, &false_label, Assembler::kNearJump);
-          __ LoadObject(RAX, Bool::True());
+          __ LoadObject(RAX, Bool::True(), PP);
           __ jmp(&done);
           __ Bind(&false_label);
-          __ LoadObject(RAX, Bool::False());
+          __ LoadObject(RAX, Bool::False(), PP);
         }
       } else {
         if (branch->is_checked()) {
@@ -666,12 +653,11 @@ static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
   __ testq(left, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
   // 'left' is not Smi.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+
   Label identity_compare;
-  __ cmpq(right, raw_null);
+  __ CompareObject(right, Object::Handle());
   __ j(EQUAL, &identity_compare);
-  __ cmpq(left, raw_null);
+  __ CompareObject(left, Object::Handle());
   __ j(EQUAL, &identity_compare);
 
   __ LoadClassId(temp, left);
@@ -692,10 +678,10 @@ static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
     Register result = locs.out().reg();
     __ j(EQUAL, &is_equal, Assembler::kNearJump);
     // Not equal.
-    __ LoadObject(result, Bool::Get(kind != Token::kEQ));
+    __ LoadObject(result, Bool::Get(kind != Token::kEQ), PP);
     __ jmp(&done, Assembler::kNearJump);
     __ Bind(&is_equal);
-    __ LoadObject(result, Bool::Get(kind == Token::kEQ));
+    __ LoadObject(result, Bool::Get(kind == Token::kEQ), PP);
     __ Bind(&done);
   } else {
     Condition cond = TokenKindToSmiCondition(kind);
@@ -718,12 +704,11 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
   ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
   Register left = locs->in(0).reg();
   Register right = locs->in(1).reg();
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+
   Label done, identity_compare, non_null_compare;
-  __ cmpq(right, raw_null);
+  __ CompareObject(right, Object::Handle());
   __ j(EQUAL, &identity_compare, Assembler::kNearJump);
-  __ cmpq(left, raw_null);
+  __ CompareObject(left, Object::Handle());
   __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
   // Comparison with NULL is "===".
   __ Bind(&identity_compare);
@@ -735,10 +720,10 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
     Register result = locs->out().reg();
     Label load_true;
     __ j(cond, &load_true, Assembler::kNearJump);
-    __ LoadObject(result, Bool::False());
+    __ LoadObject(result, Bool::False(), PP);
     __ jmp(&done);
     __ Bind(&load_true);
-    __ LoadObject(result, Bool::True());
+    __ LoadObject(result, Bool::True(), PP);
   }
   __ jmp(&done);
   __ Bind(&non_null_compare);  // Receiver is not null.
@@ -796,10 +781,10 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     Register result = locs.out().reg();
     Label done, is_true;
     __ j(true_condition, &is_true);
-    __ LoadObject(result, Bool::False());
+    __ LoadObject(result, Bool::False(), PP);
     __ jmp(&done);
     __ Bind(&is_true);
-    __ LoadObject(result, Bool::True());
+    __ LoadObject(result, Bool::True(), PP);
     __ Bind(&done);
   }
 }
@@ -1527,7 +1512,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT((field_reg != value_reg) && (field_reg != value_cid_reg));
     }
 
-    __ LoadObject(field_reg, Field::ZoneHandle(field().raw()));
+    __ LoadObject(field_reg, Field::ZoneHandle(field().raw()), PP);
 
     FieldAddress field_cid_operand(field_reg, Field::guarded_cid_offset());
     FieldAddress field_nullability_operand(
@@ -1711,7 +1696,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   } else {
     if (field_reg != kNoRegister) {
-      __ LoadObject(field_reg, Field::ZoneHandle(field().raw()));
+      __ LoadObject(field_reg, Field::ZoneHandle(field().raw()), PP);
     }
 
     if (value_cid == kDynamicCid) {
@@ -1747,9 +1732,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       if (field().is_nullable() && (field_cid != kNullCid)) {
         __ j(EQUAL, &ok);
-        const Immediate& raw_null =
-            Immediate(reinterpret_cast<intptr_t>(Object::null()));
-        __ cmpq(value_reg, raw_null);
+        __ CompareObject(value_reg, Object::Handle());
       }
 
       if (ok_is_fall_through) {
@@ -1874,7 +1857,7 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
 
-  __ LoadObject(temp, field());
+  __ LoadObject(temp, field(), PP);
   if (this->value()->NeedsStoreBuffer()) {
     __ StoreIntoObject(temp,
         FieldAddress(temp, Field::value_offset()), value, CanValueBeSmi());
@@ -2028,9 +2011,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   Label type_arguments_instantiated;
   const intptr_t len = type_arguments().Length();
   if (type_arguments().IsRawInstantiatedRaw(len)) {
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ cmpq(instantiator_reg, raw_null);
+    __ CompareObject(instantiator_reg, Object::Handle());
     __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
   }
   // Instantiate non-null type arguments.
@@ -2078,14 +2059,13 @@ void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
   // the type arguments.
   Label type_arguments_instantiated;
   ASSERT(type_arguments().IsRawInstantiatedRaw(type_arguments().Length()));
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ cmpq(instantiator_reg, raw_null);
+
+  __ CompareObject(instantiator_reg, Object::Handle());
   __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
   // Instantiate non-null type arguments.
   // In the non-factory case, we rely on the allocation stub to
   // instantiate the type arguments.
-  __ LoadObject(result_reg, type_arguments());
+  __ LoadObject(result_reg, type_arguments(), PP);
   // result_reg: uninstantiated type arguments.
 
   __ Bind(&type_arguments_instantiated);
@@ -2120,10 +2100,9 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
   // instantiated from null becomes a vector of dynamic, then use null as
   // the type arguments and do not pass the instantiator.
   ASSERT(type_arguments().IsRawInstantiatedRaw(type_arguments().Length()));
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+
   Label instantiator_not_null;
-  __ cmpq(instantiator_reg, raw_null);
+  __ CompareObject(instantiator_reg, Object::Handle());
   __ j(NOT_EQUAL, &instantiator_not_null, Assembler::kNearJump);
   // Null was used in VisitExtractConstructorTypeArguments as the
   // instantiated type arguments, no proper instantiator needed.
@@ -2199,6 +2178,10 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 compiler->assembler()->CodeSize(),
                                 catch_handler_types_,
                                 needs_stacktrace());
+
+  // Restore the pool pointer.
+  __ LoadPoolPointer(PP);
+
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
@@ -2279,7 +2262,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // In unoptimized code check the usage counter to trigger OSR at loop
     // stack checks.  Use progressively higher thresholds for more deeply
     // nested loops to attempt to hit outer loops with OSR when possible.
-    __ LoadObject(temp, compiler->parsed_function().function());
+    __ LoadObject(temp, compiler->parsed_function().function(), PP);
     intptr_t threshold =
         FLAG_optimization_counter_threshold * (loop_depth() + 1);
     __ cmpq(FieldAddress(temp, Function::usage_counter_offset()),
@@ -3726,10 +3709,10 @@ void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ addq(RSP, Immediate(16));
   __ testl(result, result);
   __ j(NOT_ZERO, &non_zero, Assembler::kNearJump);
-  __ LoadObject(result, Bool::False());
+  __ LoadObject(result, Bool::False(), PP);
   __ jmp(&done);
   __ Bind(&non_zero);
-  __ LoadObject(result, Bool::True());
+  __ LoadObject(result, Bool::True(), PP);
   __ Bind(&done);
 }
 
@@ -4247,9 +4230,9 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     Label check_base_is_one;
     // Check if exponent is 0.0 -> return 1.0;
-    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0)));
+    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0)), PP);
     __ movsd(zero_temp, FieldAddress(temp, Double::value_offset()));
-    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(1)));
+    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(1)), PP);
     __ movsd(result, FieldAddress(temp, Double::value_offset()));
     // 'result' contains 1.0.
     __ comisd(exp, zero_temp);
@@ -4347,9 +4330,8 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (IsNullCheck()) {
     Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                           kDeoptCheckClass);
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ cmpq(locs()->in(0).reg(), raw_null);
+    __ CompareObject(locs()->in(0).reg(),
+                     Object::Handle());
     __ j(EQUAL, deopt);
     return;
   }
@@ -4559,7 +4541,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     counter.SetAt(0, Smi::Handle(Smi::New(0)));
     Label done;
     __ Comment("Edge counter");
-    __ LoadObject(RAX, counter);
+    __ LoadObject(RAX, counter, PP);
     __ addq(FieldAddress(RAX, Array::element_offset(0)),
             Immediate(Smi::RawValue(1)));
     __ j(NO_OVERFLOW, &done);
@@ -4590,7 +4572,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     counter.SetAt(0, Smi::Handle(Smi::New(0)));
     Label done;
     __ Comment("Edge counter");
-    __ LoadObject(RAX, counter);
+    __ LoadObject(RAX, counter, PP);
     __ addq(FieldAddress(RAX, Array::element_offset(0)),
             Immediate(Smi::RawValue(1)));
     __ j(NO_OVERFLOW, &done);
@@ -4673,7 +4655,7 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const bool result = (kind() == Token::kEQ_STRICT) ?
         left.constant().raw() == right.constant().raw() :
         left.constant().raw() != right.constant().raw();
-    __ LoadObject(locs()->out().reg(), Bool::Get(result));
+    __ LoadObject(locs()->out().reg(), Bool::Get(result), PP);
     return;
   }
   if (left.IsConstant()) {
@@ -4697,10 +4679,10 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label load_true, done;
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   __ j(true_condition, &load_true, Assembler::kNearJump);
-  __ LoadObject(result, Bool::False());
+  __ LoadObject(result, Bool::False(), PP);
   __ jmp(&done, Assembler::kNearJump);
   __ Bind(&load_true);
-  __ LoadObject(result, Bool::True());
+  __ LoadObject(result, Bool::True(), PP);
   __ Bind(&done);
 }
 
@@ -4759,7 +4741,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names()));
-  __ LoadObject(temp_reg, arguments_descriptor);
+  __ LoadObject(temp_reg, arguments_descriptor, PP);
   ASSERT(temp_reg == R10);
   compiler->GenerateDartCall(deopt_id(),
                              token_pos(),
@@ -4782,10 +4764,10 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
 
   Label done;
-  __ LoadObject(result, Bool::True());
+  __ LoadObject(result, Bool::True(), PP);
   __ CompareRegisters(result, value);
   __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-  __ LoadObject(result, Bool::False());
+  __ LoadObject(result, Bool::False(), PP);
   __ Bind(&done);
 }
 
