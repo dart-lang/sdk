@@ -12,6 +12,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, reorder_basic_blocks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, verify_compiler);
 DEFINE_FLAG(bool, optimize_try_catch, true, "Optimization of try-catch");
@@ -38,6 +39,14 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     loop_headers_(NULL),
     loop_invariant_loads_(NULL) {
   DiscoverBlocks();
+}
+
+
+GrowableArray<BlockEntryInstr*>* FlowGraph::codegen_block_order(
+    bool is_optimized) {
+  return (is_optimized && FLAG_reorder_basic_blocks)
+      ? &optimized_block_order_
+      : &reverse_postorder_;
 }
 
 

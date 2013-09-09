@@ -46,14 +46,15 @@ DEFINE_FLAG(bool, loop_invariant_code_motion, true,
     "Do loop invariant code motion.");
 DEFINE_FLAG(bool, propagate_types, true, "Do static type propagation.");
 DEFINE_FLAG(bool, allocation_sinking, true,
-    "attempt to sink temporary allocations to side exits");
+    "Attempt to sink temporary allocations to side exits");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 16,
     "How many times we allow deoptimization before we disallow optimization.");
 DEFINE_FLAG(int, deoptimization_counter_licm_threshold, 8,
     "How many times we allow deoptimization before we disable LICM.");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
-DEFINE_FLAG(bool, reorder_basic_blocks, true, "Enable basic-block reordering.");
+DEFINE_FLAG(bool, reorder_basic_blocks, false,
+    "Enable basic-block reordering.");
 DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
 DECLARE_FLAG(bool, print_flow_graph);
