@@ -323,7 +323,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
         _exitHandler._nativeSocket);
 
     getOutput(output, encoding) {
-      if (stderrEncoding == null) return output;
+      if (encoding == null) return output;
       return encoding.decode(output);
     }
 
