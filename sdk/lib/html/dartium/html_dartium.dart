@@ -10103,6 +10103,11 @@ abstract class Element extends Node implements ParentNode, ChildNode {
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
       _parseRange = _parseDocument.createRange();
+
+      // Workaround for Chrome bug 229142- URIs are not resolved in new doc.
+      var base = _parseDocument.$dom_createElement('base');
+      base.href = document._baseUri;
+      _parseDocument.head.append(base);
     }
     var contextElement;
     if (this is BodyElement) {
@@ -19125,6 +19130,10 @@ class Node extends EventTarget {
   @DomName('Node.TEXT_NODE')
   @DocsEditable()
   static const int TEXT_NODE = 3;
+
+  @DomName('Node.baseURI')
+  @DocsEditable()
+  String get _baseUri native "Node_baseURI_Getter";
 
   @DomName('Node.childNodes')
   @DocsEditable()
