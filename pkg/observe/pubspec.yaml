@@ -6,7 +6,7 @@ description: >
   UI (DOM) of a document or application and its underlying data (model).
   Updates to the model are reflected in the DOM and user input into the DOM is
   immediately assigned to the model.
-homepage: https://github.com/dart-lang/web-ui
+homepage: https://www.dartlang.org/polymer-dart/
 dependencies:
   analyzer_experimental: any
   barback: any

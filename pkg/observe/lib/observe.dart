@@ -65,8 +65,8 @@
  *       print('done!');
  *     }
  *
- * [Tools](https://github.com/dart-lang/web-ui) exist to convert the first form
- * into the second form automatically, to get the best of both worlds.
+ * [Tools](https://www.dartlang.org/polymer-dart/) exist to convert the first
+ * form into the second form automatically, to get the best of both worlds.
  */
 library observe;
 
