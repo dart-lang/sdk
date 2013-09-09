@@ -21,10 +21,11 @@ class AstPrinter : public AstNodeVisitor {
   static void PrintLocalScope(const LocalScope* scope, int variable_index);
 
 
-#define DEFINE_VISITOR_FUNCTION(type, name)                                    \
-  virtual void Visit##type(type* node);
-NODE_LIST(DEFINE_VISITOR_FUNCTION)
-#undef DEFINE_VISITOR_FUNCTION
+#define DECLARE_VISITOR_FUNCTION(BaseName)                                     \
+  virtual void Visit##BaseName##Node(BaseName##Node* node);
+
+  FOR_EACH_NODE(DECLARE_VISITOR_FUNCTION)
+#undef DECLARE_VISITOR_FUNCTION
 
  private:
   AstPrinter();

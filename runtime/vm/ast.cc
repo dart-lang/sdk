@@ -12,19 +12,21 @@
 
 namespace dart {
 
-#define DEFINE_VISIT_FUNCTION(type, name)                                      \
-  void type::Visit(AstNodeVisitor* visitor) {                                  \
-    visitor->Visit##type(this);                                                \
-  }
-NODE_LIST(DEFINE_VISIT_FUNCTION)
+#define DEFINE_VISIT_FUNCTION(BaseName)                                        \
+void BaseName##Node::Visit(AstNodeVisitor* visitor) {                          \
+  visitor->Visit##BaseName##Node(this);                                        \
+}
+
+FOR_EACH_NODE(DEFINE_VISIT_FUNCTION)
 #undef DEFINE_VISIT_FUNCTION
 
 
-#define DEFINE_NAME_FUNCTION(type, name)                                       \
-  const char* type::PrettyName() const {                                       \
-    return name;                                                               \
-  }
-NODE_LIST(DEFINE_NAME_FUNCTION)
+#define DEFINE_NAME_FUNCTION(BaseName)                                         \
+const char* BaseName##Node::PrettyName() const {                               \
+  return #BaseName;                                                            \
+}
+
+FOR_EACH_NODE(DEFINE_NAME_FUNCTION)
 #undef DEFINE_NAME_FUNCTION
 
 
@@ -35,12 +37,13 @@ class AstNodeCollector : public AstNodeVisitor {
   explicit AstNodeCollector(GrowableArray<AstNode*>* nodes)
     : nodes_(nodes) { }
 
-#define DEFINE_VISITOR_FUNCTION(type, name)                                    \
-  virtual void Visit##type(type* node) {                                       \
+#define DEFINE_VISITOR_FUNCTION(BaseName)                                      \
+  virtual void Visit##BaseName##Node(BaseName##Node* node) {                   \
     nodes_->Add(node);                                                         \
     node->VisitChildren(this);                                                 \
   }
-NODE_LIST(DEFINE_VISITOR_FUNCTION)
+
+FOR_EACH_NODE(DEFINE_VISITOR_FUNCTION)
 #undef DEFINE_VISITOR_FUNCTION
 
  private:
@@ -151,7 +154,7 @@ bool ComparisonNode::IsKindValid() const {
 
 
 const char* ComparisonNode::TokenName() const {
-  return Token::Str(kind_);
+  return (kind_ == Token::kAS) ? "as" : Token::Str(kind_);
 }
 
 

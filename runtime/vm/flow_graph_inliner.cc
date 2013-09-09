@@ -77,9 +77,12 @@ static bool IsCallRecursive(const Function& function, Definition* call) {
 class ChildrenVisitor : public AstNodeVisitor {
  public:
   ChildrenVisitor() { }
-#define DEFINE_VISIT(type, name)                                               \
-  virtual void Visit##type(type* node) { node->VisitChildren(this); }
-  NODE_LIST(DEFINE_VISIT);
+#define DEFINE_VISIT(BaseName)                                                 \
+  virtual void Visit##BaseName##Node(BaseName##Node* node) {                   \
+    node->VisitChildren(this);                                                 \
+  }
+
+  FOR_EACH_NODE(DEFINE_VISIT);
 #undef DEFINE_VISIT
 };
 

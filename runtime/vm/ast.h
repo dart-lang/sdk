@@ -15,56 +15,56 @@
 
 namespace dart {
 
-#define NODE_LIST(V)                                                           \
-  V(ReturnNode, "return")                                                      \
-  V(LiteralNode, "literal")                                                    \
-  V(TypeNode, "type")                                                          \
-  V(AssignableNode, "assignable")                                              \
-  V(BinaryOpNode, "binop")                                                     \
-  V(BinaryOpWithMask32Node, "binop with mask 32")                              \
-  V(ComparisonNode, "compare")                                                 \
-  V(UnaryOpNode, "unaryop")                                                    \
-  V(ConditionalExprNode, "?:")                                                 \
-  V(IfNode, "if")                                                              \
-  V(SwitchNode, "switch")                                                      \
-  V(CaseNode, "case")                                                          \
-  V(WhileNode, "while")                                                        \
-  V(DoWhileNode, "dowhile")                                                    \
-  V(ForNode, "for")                                                            \
-  V(JumpNode, "jump")                                                          \
-  V(ArgumentListNode, "args")                                                  \
-  V(ArrayNode, "array")                                                        \
-  V(ClosureNode, "closure")                                                    \
-  V(InstanceCallNode, "instance call")                                         \
-  V(StaticCallNode, "static call")                                             \
-  V(ClosureCallNode, "closure call")                                           \
-  V(CloneContextNode, "clone context")                                         \
-  V(ConstructorCallNode, "constructor call")                                   \
-  V(InstanceGetterNode, "instance getter call")                                \
-  V(InstanceSetterNode, "instance setter call")                                \
-  V(StaticGetterNode, "static getter")                                         \
-  V(StaticSetterNode, "static setter")                                         \
-  V(NativeBodyNode, "native body")                                             \
-  V(PrimaryNode, "primary")                                                    \
-  V(LoadLocalNode, "load local")                                               \
-  V(StoreLocalNode, "store local")                                             \
-  V(LoadInstanceFieldNode, "load field")                                       \
-  V(StoreInstanceFieldNode, "store field")                                     \
-  V(LoadStaticFieldNode, "load static field")                                  \
-  V(StoreStaticFieldNode, "store static field")                                \
-  V(LoadIndexedNode, "load indexed")                                           \
-  V(StoreIndexedNode, "store indexed")                                         \
-  V(SequenceNode, "seq")                                                       \
-  V(LetNode, "let")                                                            \
-  V(CatchClauseNode, "catch clause block")                                     \
-  V(TryCatchNode, "try catch block")                                           \
-  V(ThrowNode, "throw")                                                        \
-  V(InlinedFinallyNode, "inlined finally")                                     \
+#define FOR_EACH_NODE(V)                                                       \
+  V(Return)                                                                    \
+  V(Literal)                                                                   \
+  V(Type)                                                                      \
+  V(Assignable)                                                                \
+  V(BinaryOp)                                                                  \
+  V(BinaryOpWithMask32)                                                        \
+  V(Comparison)                                                                \
+  V(UnaryOp)                                                                   \
+  V(ConditionalExpr)                                                           \
+  V(If)                                                                        \
+  V(Switch)                                                                    \
+  V(Case)                                                                      \
+  V(While)                                                                     \
+  V(DoWhile)                                                                   \
+  V(For)                                                                       \
+  V(Jump)                                                                      \
+  V(ArgumentList)                                                              \
+  V(Array)                                                                     \
+  V(Closure)                                                                   \
+  V(InstanceCall)                                                              \
+  V(StaticCall)                                                                \
+  V(ClosureCall)                                                               \
+  V(CloneContext)                                                              \
+  V(ConstructorCall)                                                           \
+  V(InstanceGetter)                                                            \
+  V(InstanceSetter)                                                            \
+  V(StaticGetter)                                                              \
+  V(StaticSetter)                                                              \
+  V(NativeBody)                                                                \
+  V(Primary)                                                                   \
+  V(LoadLocal)                                                                 \
+  V(StoreLocal)                                                                \
+  V(LoadInstanceField)                                                         \
+  V(StoreInstanceField)                                                        \
+  V(LoadStaticField)                                                           \
+  V(StoreStaticField)                                                          \
+  V(LoadIndexed)                                                               \
+  V(StoreIndexed)                                                              \
+  V(Sequence)                                                                  \
+  V(Let)                                                                       \
+  V(CatchClause)                                                               \
+  V(TryCatch)                                                                  \
+  V(Throw)                                                                     \
+  V(InlinedFinally)                                                            \
 
 
-#define DEFINE_FORWARD_DECLARATION(type, name) class type;
-NODE_LIST(DEFINE_FORWARD_DECLARATION)
-#undef DEFINE_FORWARD_DECLARATION
+#define FORWARD_DECLARATION(BaseName) class BaseName##Node;
+FOR_EACH_NODE(FORWARD_DECLARATION)
+#undef FORWARD_DECLARATION
 
 
 // Abstract class to implement an AST node visitor. An example is AstPrinter.
@@ -73,9 +73,10 @@ class AstNodeVisitor : public ValueObject {
   AstNodeVisitor() {}
   virtual ~AstNodeVisitor() {}
 
-#define DEFINE_VISITOR_FUNCTION(type, name)                                    \
-  virtual void Visit##type(type* node) { }
-NODE_LIST(DEFINE_VISITOR_FUNCTION)
+#define DEFINE_VISITOR_FUNCTION(BaseName)                                      \
+  virtual void Visit##BaseName##Node(BaseName##Node* node) { }
+
+  FOR_EACH_NODE(DEFINE_VISITOR_FUNCTION)
 #undef DEFINE_VISITOR_FUNCTION
 
  private:
@@ -99,10 +100,11 @@ class AstNode : public ZoneAllocated {
 
   intptr_t token_pos() const { return token_pos_; }
 
-#define AST_TYPE_CHECK(type, name)                                             \
-  virtual bool Is##type() const { return false; }                              \
-  virtual type* As##type() { return NULL; }
-NODE_LIST(AST_TYPE_CHECK)
+#define AST_TYPE_CHECK(BaseName)                                               \
+  virtual bool Is##BaseName##Node() const { return false; }                    \
+  virtual BaseName##Node* As##BaseName##Node() { return NULL; }
+
+  FOR_EACH_NODE(AST_TYPE_CHECK)
 #undef AST_TYPE_CHECK
 
   virtual void Visit(AstNodeVisitor* visitor) = 0;
@@ -893,7 +895,7 @@ class DoWhileNode : public AstNode {
 };
 
 
-// initializer, condition, increment expressions can be NULL.
+// The condition can be NULL.
 class ForNode : public AstNode {
  public:
   ForNode(intptr_t token_pos,
