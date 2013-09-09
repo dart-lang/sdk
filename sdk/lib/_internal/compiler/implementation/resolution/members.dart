@@ -1828,7 +1828,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
       return null;
     } else {
-      Element element = lookup(node, node.source);
+      Element element = node.source.slowToString() == 'dynamic'
+          ? compiler.dynamicClass : lookup(node, node.source);
       if (element == null) {
         if (!inInstanceContext) {
           element = warnAndCreateErroneousElement(
