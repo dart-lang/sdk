@@ -10,7 +10,9 @@ import '../utils.dart';
 
 class Foo extends HtmlElement {
   static const tag = 'x-foo';
-  static const outerHtmlString = '<x-foo></x-foo>';
+  static final List outerHtmlStrings = [
+    '<x-foo></x-foo>',
+    '<?XML:NAMESPACE PREFIX = PUBLIC NS = "URN:COMPONENT" /><x-foo></x-foo>'];
   factory Foo() => new Element.tag(tag);
 }
 
@@ -22,7 +24,9 @@ class Bar extends InputElement {
 
 class Baz extends Foo {
   static const tag = 'x-baz';
-  static const outerHtmlString = '<x-baz></x-baz>';
+  static final List outerHtmlStrings = [
+      '<x-baz></x-baz>',
+      '<?XML:NAMESPACE PREFIX = PUBLIC NS = "URN:COMPONENT" /><x-baz></x-baz>'];
   factory Baz() => new Element.tag(tag);
 }
 
@@ -86,7 +90,7 @@ main() {
 
       test('custom tag', () {
         var fooNewed = new Foo();
-        expect(fooNewed.outerHtml, Foo.outerHtmlString);
+        expect(fooNewed.outerHtml, anyOf(Foo.outerHtmlStrings));
         expect(fooNewed is Foo, isTrue);
         expect(fooNewed is HtmlElement, isTrue);
         expect(fooNewed is UnknownElement, isFalse);
@@ -102,7 +106,7 @@ main() {
 
       test('custom tag deriving from custom tag', () {
         var bazNewed = new Baz();
-        expect(bazNewed.outerHtml, Baz.outerHtmlString);
+        expect(bazNewed.outerHtml, anyOf(Baz.outerHtmlStrings));
         expect(bazNewed is Baz, isTrue);
         expect(bazNewed is HtmlElement, isTrue);
         expect(bazNewed is UnknownElement, isFalse);
@@ -121,7 +125,7 @@ main() {
     group('single-parameter createElement', () {
       test('custom tag', () {
         var fooCreated = new Element.tag('x-foo');
-        expect(fooCreated.outerHtml, Foo.outerHtmlString);
+        expect(fooCreated.outerHtml, anyOf(Foo.outerHtmlStrings));
         expect(fooCreated is Foo, isTrue);
       });
 
@@ -135,7 +139,7 @@ main() {
 
       test('custom tag deriving from custom tag', () {
         var bazCreated = new Element.tag('x-baz');
-        expect(bazCreated.outerHtml, Baz.outerHtmlString);
+        expect(bazCreated.outerHtml, anyOf(Baz.outerHtmlStrings));
         expect(bazCreated is Baz, isTrue);
         expect(bazCreated is UnknownElement, isFalse);
       });
@@ -174,7 +178,10 @@ main() {
 
       test('incorrect extension of custom tag', () {
         var fooBarCreated = new Element.tag(Foo.tag, Bar.tag);
-        expect(fooBarCreated.outerHtml, '<x-foo is="x-bar"></x-foo>');
+        expect(fooBarCreated.outerHtml, anyOf(
+            '<x-foo is="x-bar"></x-foo>',
+            '<?XML:NAMESPACE PREFIX = PUBLIC NS = "URN:COMPONENT" />'
+                '<x-foo is="x-bar"></x-foo>'));
         expect(fooBarCreated is Foo, isTrue);
       });
 
@@ -187,13 +194,13 @@ main() {
 
       test('null type extension', () {
         var fooCreatedNull = new Element.tag(Foo.tag, null);
-        expect(fooCreatedNull.outerHtml, Foo.outerHtmlString);
+        expect(fooCreatedNull.outerHtml, anyOf(Foo.outerHtmlStrings));
         expect(fooCreatedNull is Foo, isTrue);
       });
 
       test('empty type extension', () {
         var fooCreatedEmpty = new Element.tag(Foo.tag, "");
-        expect(fooCreatedEmpty.outerHtml, Foo.outerHtmlString);
+        expect(fooCreatedEmpty.outerHtml, anyOf(Foo.outerHtmlStrings));
         expect(fooCreatedEmpty is Foo, isTrue);
       });
     });
@@ -206,7 +213,7 @@ main() {
       var fooCreatedNS =
           document.$dom_createElementNS("http://www.w3.org/1999/xhtml",
           Foo.tag, null);
-      expect(fooCreatedNS.outerHtml, Foo.outerHtmlString);
+      expect(fooCreatedNS.outerHtml, anyOf(Foo.outerHtmlStrings));
       expect(fooCreatedNS is Foo, isTrue);
 
       var barCreatedNS =

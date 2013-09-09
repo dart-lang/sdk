@@ -25,7 +25,6 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue
 postmessage_structured_test/typed_arrays: Fail
 xhr_test: Pass, Fail # Issue 12648
 custom/attribute_changed_callback_test: Fail # 12643
-custom/created_callback_test: Fail # Issue 12642
 xhr_test/json: Fail # Issue 13069
 
 [ $compiler == none && $runtime == drt && $system == windows ]
@@ -145,6 +144,7 @@ xsltprocessor_test/supported: Fail
 [ $runtime == ie9 ]
 isolates_test: Timeout # Issue 13027
 blob_constructor_test: Fail
+custom/document_register_type_extensions_test/namespaces: Fail # Issue 13193
 document_test/document: Pass, Fail # BUG(9654) need per-instance patching
 dom_constructors_test: Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
