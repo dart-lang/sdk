@@ -105,8 +105,7 @@ class ClassFinalizer : public AllStatic {
                                GrowableArray<intptr_t>* visited);
   static void CheckForLegalConstClass(const Class& cls);
   static RawClass* ResolveClass(const Class& cls,
-                                const UnresolvedClass& unresolved_class,
-                                Error* ambiguity_error);
+                                const UnresolvedClass& unresolved_class);
   static void ResolveRedirectingFactoryTarget(
       const Class& cls,
       const Function& factory,

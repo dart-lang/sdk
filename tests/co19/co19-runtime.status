@@ -137,17 +137,7 @@ Language/13_Statements/09_Switch_A03_t02: fail # Dart issue 7307
 Language/13_Statements/09_Switch_A04_t01: fail # Dart issue 11233
 Language/13_Statements/12_Labels_A01_t03: fail # Dart issue 2238
 Language/14_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: fail # Dart issue 12913
-Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t10: fail # Dart issue 12915
 Language/14_Libraries_and_Scripts/1_Imports_A03_t27: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t29: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t30: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t47: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t49: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t50: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t67: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t69: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t70: fail # Dart issue 12915
 Language/14_Libraries_and_Scripts/2_Exports_A04_t02: fail # Dart issue 12916
 Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # Dart issue 12916
 Language/14_Libraries_and_Scripts/2_Exports_A05_t01: fail # Dart issue 12918

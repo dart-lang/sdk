@@ -206,7 +206,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   library_ = Library::LookupLibrary(str_);
   ASSERT(!library_.IsNull());
   str_ ^= ReadObjectImpl();
-  cls = library_.LookupClass(str_, NULL);  // No ambiguity error expected.
+  cls = library_.LookupClass(str_);
   cls.EnsureIsFinalized(isolate());
   ASSERT(!cls.IsNull());
   return cls.raw();

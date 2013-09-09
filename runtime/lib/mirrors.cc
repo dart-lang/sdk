@@ -1211,14 +1211,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
   const Array& args_descriptor_array =
       Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
 
-  String& ambiguity_error_msg = String::Handle(isolate);
   const Function& function = Function::Handle(
-      library.LookupFunctionAllowPrivate(function_name, &ambiguity_error_msg));
-
-  if (function.IsNull() && !ambiguity_error_msg.IsNull()) {
-    ThrowMirroredCompilationError(ambiguity_error_msg);
-    UNREACHABLE();
-  }
+      library.LookupFunctionAllowPrivate(function_name));
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (function.IsNull() ||
@@ -1253,16 +1247,14 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
   // To access a top-level we may need to use the Field or the
   // getter Function.  The getter function may either be in the
   // library or in the field's owner class, depending.
-  String& ambiguity_error_msg = String::Handle(isolate);
   const Field& field = Field::Handle(
-      library.LookupFieldAllowPrivate(getter_name, &ambiguity_error_msg));
+      library.LookupFieldAllowPrivate(getter_name));
   Function& getter = Function::Handle();
-  if (field.IsNull() && ambiguity_error_msg.IsNull()) {
+  if (field.IsNull()) {
     // No field found and no ambiguity error.  Check for a getter in the lib.
     const String& internal_getter_name =
         String::Handle(Field::GetterName(getter_name));
-    getter = library.LookupFunctionAllowPrivate(internal_getter_name,
-                                                &ambiguity_error_msg);
+    getter = library.LookupFunctionAllowPrivate(internal_getter_name);
   } else if (!field.IsNull() && FieldIsUninitialized(field)) {
     // A field was found.  Check for a getter in the field's owner classs.
     const Class& klass = Class::Handle(field.owner());
@@ -1284,15 +1276,11 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
   if (!field.IsNull()) {
     return field.value();
   }
-  if (ambiguity_error_msg.IsNull()) {
-    ThrowNoSuchMethod(Instance::null_instance(),
-                      getter_name,
-                      getter,
-                      InvocationMirror::kTopLevel,
-                      InvocationMirror::kGetter);
-  } else {
-    ThrowMirroredCompilationError(ambiguity_error_msg);
-  }
+  ThrowNoSuchMethod(Instance::null_instance(),
+                    getter_name,
+                    getter,
+                    InvocationMirror::kTopLevel,
+                    InvocationMirror::kGetter);
   UNREACHABLE();
   return Instance::null();
 }
@@ -1310,26 +1298,20 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
   // To access a top-level we may need to use the Field or the
   // setter Function.  The setter function may either be in the
   // library or in the field's owner class, depending.
-  String& ambiguity_error_msg = String::Handle(isolate);
   const Field& field = Field::Handle(
-      library.LookupFieldAllowPrivate(setter_name, &ambiguity_error_msg));
+      library.LookupFieldAllowPrivate(setter_name));
 
-  if (field.IsNull() && ambiguity_error_msg.IsNull()) {
+  if (field.IsNull()) {
     const String& internal_setter_name =
         String::Handle(Field::SetterName(setter_name));
     const Function& setter = Function::Handle(
-        library.LookupFunctionAllowPrivate(internal_setter_name,
-                                           &ambiguity_error_msg));
+        library.LookupFunctionAllowPrivate(internal_setter_name));
     if (setter.IsNull() || !setter.is_visible()) {
-      if (ambiguity_error_msg.IsNull()) {
-        ThrowNoSuchMethod(Instance::null_instance(),
-                          setter_name,
-                          setter,
-                          InvocationMirror::kTopLevel,
-                          InvocationMirror::kSetter);
-      } else {
-        ThrowMirroredCompilationError(ambiguity_error_msg);
-      }
+      ThrowNoSuchMethod(Instance::null_instance(),
+                        setter_name,
+                        setter,
+                        InvocationMirror::kTopLevel,
+                        InvocationMirror::kSetter);
       UNREACHABLE();
     }
 

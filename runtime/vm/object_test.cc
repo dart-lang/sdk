@@ -3252,10 +3252,8 @@ static RawField* GetField(const Class& cls, const char* name) {
 
 
 static RawClass* GetClass(const Library& lib, const char* name) {
-  String& ambiguity_error_msg = String::Handle();
   const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(name)),
-                      &ambiguity_error_msg));
+      lib.LookupClass(String::Handle(Symbols::New(name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
 }
@@ -3396,9 +3394,9 @@ TEST_CASE(FunctionSourceFingerprint) {
   EXPECT(!lib.IsNull());
 
   const Class& class_a = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A")), NULL));
+      lib.LookupClass(String::Handle(Symbols::New("A"))));
   const Class& class_b = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("B")), NULL));
+      lib.LookupClass(String::Handle(Symbols::New("B"))));
   const Function& a_test1 =
       Function::Handle(GetStaticFunction(class_a, "test1"));
   const Function& b_test1 =

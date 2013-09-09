@@ -169,8 +169,7 @@ static void MarkFunctionAsInvisible(const Library& lib,
                                     const char* function_name) {
   ASSERT(!lib.IsNull());
   const Class& cls = Class::Handle(
-      lib.LookupClassAllowPrivate(String::Handle(String::New(class_name)),
-                                  NULL));  // No ambiguity error expected.
+      lib.LookupClassAllowPrivate(String::Handle(String::New(class_name))));
   ASSERT(!cls.IsNull());
   const Function& function =
       Function::Handle(
@@ -2223,12 +2222,8 @@ void Class::PatchSignatureFunction(const Function& signature_function) const {
 RawClass* Class::NewNativeWrapper(const Library& library,
                                   const String& name,
                                   int field_count) {
-  String& ambiguity_error_msg = String::Handle();
-  Class& cls = Class::Handle(library.LookupClass(name, &ambiguity_error_msg));
+  Class& cls = Class::Handle(library.LookupClass(name));
   if (cls.IsNull()) {
-    if (!ambiguity_error_msg.IsNull()) {
-      return Class::null();
-    }
     cls = New(name, Script::Handle(), Scanner::kDummyTokenIndex);
     cls.SetFields(Object::empty_array());
     cls.SetFunctions(Object::empty_array());
@@ -6735,8 +6730,9 @@ void Library::AddObject(const Object& obj, const String& name) const {
 }
 
 
-// Lookup a name in the library's export namespace.
-RawObject* Library::LookupExport(const String& name) const {
+// Lookup a name in the library's re-export namespace. The name is
+// unmangled, i.e. no getter or setter names should be looked up.
+RawObject* Library::LookupReExport(const String& name) const {
   if (HasExports()) {
     const Array& exports = Array::Handle(this->exports());
     // Break potential export cycle while looking up name.
@@ -6914,10 +6910,8 @@ static bool ShouldBePrivate(const String& name) {
 }
 
 
-RawField* Library::LookupFieldAllowPrivate(const String& name,
-                                           String* ambiguity_error_msg) const {
-  Object& obj = Object::Handle(
-      LookupObjectAllowPrivate(name, ambiguity_error_msg));
+RawField* Library::LookupFieldAllowPrivate(const String& name) const {
+  Object& obj = Object::Handle(LookupObjectAllowPrivate(name));
   if (obj.IsField()) {
     return Field::Cast(obj).raw();
   }
@@ -6934,11 +6928,8 @@ RawField* Library::LookupLocalField(const String& name) const {
 }
 
 
-RawFunction* Library::LookupFunctionAllowPrivate(
-    const String& name,
-    String* ambiguity_error_msg) const {
-  Object& obj = Object::Handle(
-      LookupObjectAllowPrivate(name, ambiguity_error_msg));
+RawFunction* Library::LookupFunctionAllowPrivate(const String& name) const {
+  Object& obj = Object::Handle(LookupObjectAllowPrivate(name));
   if (obj.IsFunction()) {
     return Function::Cast(obj).raw();
   }
@@ -6967,9 +6958,7 @@ RawObject* Library::LookupLocalObjectAllowPrivate(const String& name) const {
 }
 
 
-RawObject* Library::LookupObjectAllowPrivate(
-    const String& name,
-    String* ambiguity_error_msg) const {
+RawObject* Library::LookupObjectAllowPrivate(const String& name) const {
   // First check if name is found in the local scope of the library.
   Object& obj = Object::Handle(LookupLocalObjectAllowPrivate(name));
   if (!obj.IsNull()) {
@@ -6981,30 +6970,27 @@ RawObject* Library::LookupObjectAllowPrivate(
     return Object::null();
   }
 
-  // Now check if name is found in any imported libs. It is a compile-time error
-  // if the name is found in more than one import and actually used.
-  return LookupImportedObject(name, ambiguity_error_msg);
+  // Now check if name is found in any imported libs.
+  return LookupImportedObject(name);
 }
 
 
-RawObject* Library::LookupObject(const String& name,
-                                 String* ambiguity_error_msg) const {
+RawObject* Library::LookupObject(const String& name) const {
   // First check if name is found in the local scope of the library.
   Object& obj = Object::Handle(LookupLocalObject(name));
   if (!obj.IsNull()) {
     return obj.raw();
   }
-  // Now check if name is found in any imported libs. It is a compile-time error
-  // if the name is found in more than one import and actually used.
-  return LookupImportedObject(name, ambiguity_error_msg);
+  // Now check if name is found in any imported libs.
+  return LookupImportedObject(name);
 }
 
 
-RawObject* Library::LookupImportedObject(const String& name,
-                                         String* ambiguity_error_msg) const {
+RawObject* Library::LookupImportedObject(const String& name) const {
   Object& obj = Object::Handle();
   Namespace& import = Namespace::Handle();
   Library& import_lib = Library::Handle();
+  String& import_lib_url = String::Handle();
   String& first_import_lib_url = String::Handle();
   Object& found_obj = Object::Handle();
   for (intptr_t i = 0; i < num_imports(); i++) {
@@ -7012,46 +6998,33 @@ RawObject* Library::LookupImportedObject(const String& name,
     obj = import.Lookup(name);
     if (!obj.IsNull()) {
       import_lib = import.library();
-      if (!first_import_lib_url.IsNull()) {
-        // Found duplicate definition.
-        const intptr_t kMessageBufferSize = 512;
-        char message_buffer[kMessageBufferSize];
-        if (first_import_lib_url.raw() == url()) {
-          OS::SNPrint(message_buffer,
-                      kMessageBufferSize,
-                      "ambiguous reference to '%s', "
-                      "as library '%s' is imported multiple times",
-                      name.ToCString(),
-                      first_import_lib_url.ToCString());
+      import_lib_url = import_lib.url();
+      if (found_obj.raw() != obj.raw()) {
+        if (first_import_lib_url.IsNull() ||
+            first_import_lib_url.StartsWith(Symbols::DartScheme())) {
+          // This is the first object we found, or the
+          // previously found object is exported from a Dart
+          // system library. The newly found object hides the one
+          // from the Dart library.
+          first_import_lib_url = import_lib.url();
+          found_obj = obj.raw();
+        } else if (import_lib_url.StartsWith(Symbols::DartScheme())) {
+          // The newly found object is exported from a Dart system
+          // library. It is hidden by the previously found object.
+          // We continue to search.
         } else {
-          OS::SNPrint(message_buffer,
-                      kMessageBufferSize,
-                      "ambiguous reference: "
-                      "'%s' is defined in library '%s' and also in '%s'",
-                      name.ToCString(),
-                      first_import_lib_url.ToCString(),
-                      String::Handle(url()).ToCString());
+          // We found two different objects with the same name.
+          return Object::null();
         }
-        // If the caller does not expect an ambiguity error, it may pass NULL as
-        // ambiguity_error_msg in order to avoid the allocation of a handle.
-        // It typically does so when looking up an object in the core library,
-        // which is guaranteed not to contain ambiguities, unless the core lib
-        // is under development, in which case the assert below may fail.
-        ASSERT(ambiguity_error_msg != NULL);  // No ambiguity error expected.
-        *ambiguity_error_msg = String::New(message_buffer);
-        return Object::null();
       }
-      first_import_lib_url = url();
-      found_obj = obj.raw();
     }
   }
   return found_obj.raw();
 }
 
 
-RawClass* Library::LookupClass(const String& name,
-                               String* ambiguity_error_msg) const {
-  Object& obj = Object::Handle(LookupObject(name, ambiguity_error_msg));
+RawClass* Library::LookupClass(const String& name) const {
+  Object& obj = Object::Handle(LookupObject(name));
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -7068,13 +7041,11 @@ RawClass* Library::LookupLocalClass(const String& name) const {
 }
 
 
-RawClass* Library::LookupClassAllowPrivate(const String& name,
-                                           String* ambiguity_error_msg) const {
+RawClass* Library::LookupClassAllowPrivate(const String& name) const {
   // See if the class is available in this library or in the top level
   // scope of any imported library.
   Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(isolate, LookupClass(name,
-                                                        ambiguity_error_msg));
+  const Class& cls = Class::Handle(isolate, LookupClass(name));
   if (!cls.IsNull()) {
     return cls.raw();
   }
@@ -7556,58 +7527,48 @@ void LibraryPrefix::AddImport(const Namespace& import) const {
 }
 
 
-RawClass* LibraryPrefix::LookupClass(const String& class_name,
-                                     String* ambiguity_error_msg) const {
+RawObject* LibraryPrefix::LookupObject(const String& name) const {
   Array& imports = Array::Handle(this->imports());
   Object& obj = Object::Handle();
   Namespace& import = Namespace::Handle();
   Library& import_lib = Library::Handle();
+  String& import_lib_url = String::Handle();
   String& first_import_lib_url = String::Handle();
   Object& found_obj = Object::Handle();
   for (intptr_t i = 0; i < num_imports(); i++) {
     import ^= imports.At(i);
-    obj = import.Lookup(class_name);
+    obj = import.Lookup(name);
     if (!obj.IsNull()) {
       import_lib = import.library();
-      if (!first_import_lib_url.IsNull()) {
-        // Found duplicate definition.
-        const intptr_t kMessageBufferSize = 512;
-        char message_buffer[kMessageBufferSize];
-        if (first_import_lib_url.raw() == import_lib.url()) {
-          OS::SNPrint(message_buffer,
-                      kMessageBufferSize,
-                      "ambiguous reference to '%s', "
-                      "as library '%s' is imported multiple times via "
-                      "prefix '%s'",
-                      class_name.ToCString(),
-                      first_import_lib_url.ToCString(),
-                      String::Handle(name()).ToCString());
+      import_lib_url = import_lib.url();
+      if (found_obj.raw() != obj.raw()) {
+        if (first_import_lib_url.IsNull() ||
+            first_import_lib_url.StartsWith(Symbols::DartScheme())) {
+          // This is the first object we found, or the
+          // previously found object is exported from a Dart
+          // system library. The newly found object hides the one
+          // from the Dart library.
+          first_import_lib_url = import_lib.url();
+          found_obj = obj.raw();
+        } else if (import_lib_url.StartsWith(Symbols::DartScheme())) {
+          // The newly found object is exported from a Dart system
+          // library. It is hidden by the previously found object.
+          // We continue to search.
         } else {
-          OS::SNPrint(message_buffer,
-                      kMessageBufferSize,
-                      "ambiguous reference: "
-                      "'%s' is defined in library '%s' and also in '%s', "
-                      "both imported via prefix '%s'",
-                      class_name.ToCString(),
-                      first_import_lib_url.ToCString(),
-                      String::Handle(import_lib.url()).ToCString(),
-                      String::Handle(name()).ToCString());
+          // We found two different objects with the same name.
+          return Object::null();
         }
-        // If the caller does not expect an ambiguity error, it may pass NULL as
-        // ambiguity_error_msg in order to avoid the allocation of a handle.
-        // It typically does so when looking up a class in the core library,
-        // which is guaranteed not to contain ambiguities, unless the core lib
-        // is under development, in which case the assert below may fail.
-        ASSERT(ambiguity_error_msg != NULL);  // No ambiguity error expected.
-        *ambiguity_error_msg = String::New(message_buffer);
-        return Class::null();
       }
-      first_import_lib_url = import_lib.url();
-      found_obj = obj.raw();
     }
   }
-  if (found_obj.IsClass()) {
-    return Class::Cast(found_obj).raw();
+  return found_obj.raw();
+}
+
+
+RawClass* LibraryPrefix::LookupClass(const String& class_name) const {
+  const Object& obj = Object::Handle(LookupObject(class_name));
+  if (obj.IsClass()) {
+    return Class::Cast(obj).raw();
   }
   return Class::null();
 }
@@ -7726,18 +7687,35 @@ bool Namespace::HidesName(const String& name) const {
 }
 
 
+// Look up object with given name in library and filter out hidden
+// names. Also look up getters and setters.
 RawObject* Namespace::Lookup(const String& name) const {
   Isolate* isolate = Isolate::Current();
   const Library& lib = Library::Handle(isolate, library());
   intptr_t ignore = 0;
+
   // Lookup the name in the library's symbols.
+  const String* filter_name = &name;
   Object& obj = Object::Handle(isolate, lib.LookupEntry(name, &ignore));
+  if (Field::IsGetterName(name)) {
+    filter_name = &String::Handle(Field::NameFromGetter(name));
+  } else if (Field::IsSetterName(name)) {
+    filter_name = &String::Handle(Field::NameFromGetter(name));
+  } else {
+    if (obj.IsNull() || obj.IsLibraryPrefix()) {
+      obj = lib.LookupEntry(String::Handle(Field::GetterName(name)), &ignore);
+      if (obj.IsNull()) {
+        obj = lib.LookupEntry(String::Handle(Field::SetterName(name)), &ignore);
+      }
+    }
+  }
+
   // Library prefixes are not exported.
   if (obj.IsNull() || obj.IsLibraryPrefix()) {
     // Lookup in the re-exported symbols.
-    obj = lib.LookupExport(name);
+    obj = lib.LookupReExport(name);
   }
-  if (obj.IsNull() || HidesName(name) || obj.IsLibraryPrefix()) {
+  if (obj.IsNull() || HidesName(*filter_name) || obj.IsLibraryPrefix()) {
     return Object::null();
   }
   return obj.raw();
@@ -7811,10 +7789,10 @@ static RawFunction* GetFunction(const GrowableArray<Library*>& libs,
     const Library& lib = *libs[l];
     if (strcmp(class_name, "::") == 0) {
       func_str = Symbols::New(function_name);
-      func = lib.LookupFunctionAllowPrivate(func_str, NULL);
+      func = lib.LookupFunctionAllowPrivate(func_str);
     } else {
       class_str = String::New(class_name);
-      cls = lib.LookupClassAllowPrivate(class_str, NULL);
+      cls = lib.LookupClassAllowPrivate(class_str);
       if (!cls.IsNull()) {
         func_str = String::New(function_name);
         if (function_name[0] == '.') {

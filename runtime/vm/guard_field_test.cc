@@ -15,8 +15,7 @@ RawField* LookupField(Dart_Handle library, const char* class_name,
   RawLibrary* raw_library = Library::RawCast(Api::UnwrapHandle(library));
   Library& lib = Library::ZoneHandle(raw_library);
   const String& classname = String::Handle(Symbols::New(class_name));
-  String& ambiguity_error_msg = String::Handle();
-  Class& cls = Class::Handle(lib.LookupClass(classname, &ambiguity_error_msg));
+  Class& cls = Class::Handle(lib.LookupClass(classname));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
 
   String& fieldname = String::Handle(String::New(field_name));

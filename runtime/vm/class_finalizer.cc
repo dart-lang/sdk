@@ -253,28 +253,21 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 
 
 // Resolve unresolved_class in the library of cls, or return null.
-RawClass* ClassFinalizer::ResolveClass(const Class& cls,
-                                       const UnresolvedClass& unresolved_class,
-                                       Error* ambiguity_error) {
+RawClass* ClassFinalizer::ResolveClass(
+      const Class& cls,
+      const UnresolvedClass& unresolved_class) {
   const String& class_name = String::Handle(unresolved_class.ident());
   Library& lib = Library::Handle();
   Class& resolved_class = Class::Handle();
-  String& ambiguity_error_msg = String::Handle();
   if (unresolved_class.library_prefix() == LibraryPrefix::null()) {
     lib = cls.library();
     ASSERT(!lib.IsNull());
-    resolved_class = lib.LookupClass(class_name, &ambiguity_error_msg);
+    resolved_class = lib.LookupClass(class_name);
   } else {
     LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
     lib_prefix = unresolved_class.library_prefix();
     ASSERT(!lib_prefix.IsNull());
-    resolved_class = lib_prefix.LookupClass(class_name, &ambiguity_error_msg);
-  }
-  if (resolved_class.IsNull() && !ambiguity_error_msg.IsNull()) {
-    const Script& script = Script::Handle(cls.script());
-    *ambiguity_error = Parser::FormatErrorMsg(
-        script, unresolved_class.token_pos(), "Error",
-        "%s", ambiguity_error_msg.ToCString());
+    resolved_class = lib_prefix.LookupClass(class_name);
   }
   return resolved_class.raw();
 }
@@ -467,9 +460,8 @@ void ClassFinalizer::ResolveType(const Class& cls,
     // Lookup the type class.
     const UnresolvedClass& unresolved_class =
         UnresolvedClass::Handle(type.unresolved_class());
-    Error& ambiguous_error = Error::Handle();
     const Class& type_class =
-        Class::Handle(ResolveClass(cls, unresolved_class, &ambiguous_error));
+        Class::Handle(ResolveClass(cls, unresolved_class));
 
     // Replace unresolved class with resolved type class.
     const Type& parameterized_type = Type::Cast(type);
@@ -478,7 +470,7 @@ void ClassFinalizer::ResolveType(const Class& cls,
           FLAG_error_on_bad_type) {
         // The type class could not be resolved. The type is malformed.
         FinalizeMalformedType(
-            ambiguous_error,  // May be null.
+            Error::Handle(),  // No previous error.
             cls,
             parameterized_type,
             "cannot resolve class '%s' from '%s'",

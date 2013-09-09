@@ -2366,24 +2366,18 @@ class Library : public Object {
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
   void ReplaceObject(const Object& obj, const String& name) const;
-  RawObject* LookupExport(const String& name) const;
-  RawObject* LookupObject(const String& name,
-                          String* ambiguity_error_msg) const;
-  RawObject* LookupObjectAllowPrivate(const String& name,
-                                      String* ambiguity_error_msg) const;
+  RawObject* LookupReExport(const String& name) const;
+  RawObject* LookupObject(const String& name) const;
+  RawObject* LookupObjectAllowPrivate(const String& name) const;
   RawObject* LookupLocalObjectAllowPrivate(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
-  RawObject* LookupImportedObject(const String& name,
-                                  String* ambiguity_error_msg) const;
-  RawClass* LookupClass(const String& name, String* ambiguity_error_msg) const;
-  RawClass* LookupClassAllowPrivate(const String& name,
-                                    String* ambiguity_error_msg) const;
+  RawObject* LookupImportedObject(const String& name) const;
+  RawClass* LookupClass(const String& name) const;
+  RawClass* LookupClassAllowPrivate(const String& name) const;
   RawClass* LookupLocalClass(const String& name) const;
-  RawField* LookupFieldAllowPrivate(const String& name,
-                                    String* ambiguity_error_msg) const;
+  RawField* LookupFieldAllowPrivate(const String& name) const;
   RawField* LookupLocalField(const String& name) const;
-  RawFunction* LookupFunctionAllowPrivate(const String& name,
-                                          String* ambiguity_error_msg) const;
+  RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupLocalFunction(const String& name) const;
   RawLibraryPrefix* LookupLocalLibraryPrefix(const String& name) const;
   RawScript* LookupScript(const String& url) const;
@@ -2521,8 +2515,8 @@ class LibraryPrefix : public Object {
   bool ContainsLibrary(const Library& library) const;
   RawLibrary* GetLibrary(int index) const;
   void AddImport(const Namespace& import) const;
-  RawClass* LookupClass(const String& class_name,
-                        String* ambiguity_error_msg) const;
+  RawObject* LookupObject(const String& name) const;
+  RawClass* LookupClass(const String& class_name) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibraryPrefix));
@@ -2544,6 +2538,8 @@ class LibraryPrefix : public Object {
 };
 
 
+// A Namespace contains the names in a library dictionary, filtered by
+// the show/hide combinators.
 class Namespace : public Object {
  public:
   RawLibrary* library() const { return raw_ptr()->library_; }

@@ -163,26 +163,21 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
     const Library& lib = Library::Cast(obj);
 
     // Case 1.  Lookup the unmodified function name.
-    String& ambiguity_error_msg = String::Handle(isolate);
-    func = lib.LookupFunctionAllowPrivate(func_name, &ambiguity_error_msg);
+    func = lib.LookupFunctionAllowPrivate(func_name);
 
     // Case 2.  Lookup the function without the external setter suffix
     // '='.  Make sure to do this check after the regular lookup, so
     // that we don't interfere with operator lookups (like ==).
-    if (func.IsNull() && ambiguity_error_msg.IsNull() &&
-        HasExternalSetterSuffix(func_name)) {
+    if (func.IsNull() && HasExternalSetterSuffix(func_name)) {
       tmp_name = RemoveExternalSetterSuffix(func_name);
       tmp_name = Field::SetterName(tmp_name);
-      func = lib.LookupFunctionAllowPrivate(tmp_name, &ambiguity_error_msg);
+      func = lib.LookupFunctionAllowPrivate(tmp_name);
     }
 
     // Case 3.  Lookup the function with the getter prefix prepended.
-    if (func.IsNull() && ambiguity_error_msg.IsNull()) {
+    if (func.IsNull()) {
       tmp_name = Field::GetterName(func_name);
-      func = lib.LookupFunctionAllowPrivate(tmp_name, &ambiguity_error_msg);
-    }
-    if (!ambiguity_error_msg.IsNull()) {
-      return Api::NewError("%s.", ambiguity_error_msg.ToCString());
+      func = lib.LookupFunctionAllowPrivate(tmp_name);
     }
   } else {
     return Api::NewError(

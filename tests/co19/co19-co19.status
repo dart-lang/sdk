@@ -20,6 +20,8 @@ Language/13_Statements/11_Try_A03_t03: FAIL, OK # co19 issue 552
 Language/13_Statements/11_Try_A04_t03: FAIL, OK # co19 issue 552
 Language/13_Statements/11_Try_A07_t03: FAIL, OK # co19 issue 553
 
+Language/14_Libraries_and_Scripts/1_Imports_A03_t65: FAIL, OK # co19 issue 560
+
 Language/07_Classes/6_Constructors_A02_t01: SKIP # co19 issue 415.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: FAIL, OK # co19 issue 547
 

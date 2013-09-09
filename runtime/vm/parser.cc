@@ -1700,7 +1700,7 @@ static RawClass* LookupCoreClass(const String& class_name) {
     name = String::Concat(name, String::Handle(core_lib.private_key()));
     name = Symbols::New(name);
   }
-  return core_lib.LookupClass(name, NULL);  // No ambiguity error expected.
+  return core_lib.LookupClass(name);
 }
 
 
@@ -8452,52 +8452,15 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
       // to resolve it too early to an imported class of the same name.
       if (finalization > ClassFinalizer::kResolveTypeParameters) {
         // Resolve classname in the scope of the current library.
-        Error& error = Error::Handle();
         resolved_type_class = ResolveClassInCurrentLibraryScope(
-            unresolved_class.token_pos(),
-            unresolved_class_name,
-            &error);
-        if (!error.IsNull()) {
-          if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-              FLAG_error_on_bad_type) {
-            *type = ClassFinalizer::NewFinalizedMalformedType(
-                error,
-                scope_class,
-                unresolved_class.token_pos(),
-                "cannot resolve class '%s'",
-                unresolved_class_name.ToCString());
-          } else {
-            // Map the malformed type to dynamic and ignore type arguments.
-            *type = Type::DynamicType();
-          }
-          return;
-        }
+            unresolved_class_name);
       }
     } else {
       LibraryPrefix& lib_prefix =
           LibraryPrefix::Handle(unresolved_class.library_prefix());
       // Resolve class name in the scope of the library prefix.
-      Error& error = Error::Handle();
-      resolved_type_class = ResolveClassInPrefixScope(
-          unresolved_class.token_pos(),
-          lib_prefix,
-          unresolved_class_name,
-          &error);
-      if (!error.IsNull()) {
-        if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-            FLAG_error_on_bad_type) {
-          *type = ClassFinalizer::NewFinalizedMalformedType(
-              error,
-              scope_class,
-              unresolved_class.token_pos(),
-              "cannot resolve class '%s'",
-              unresolved_class_name.ToCString());
-        } else {
-          // Map the malformed type to dynamic and ignore type arguments.
-          *type = Type::DynamicType();
-        }
-        return;
-      }
+      resolved_type_class =
+          ResolveClassInPrefixScope(lib_prefix, unresolved_class_name);
     }
     // At this point, we can only have a parameterized_type.
     const Type& parameterized_type = Type::Cast(*type);
@@ -8885,98 +8848,24 @@ static RawObject* LookupNameInLibrary(Isolate* isolate,
 }
 
 
-static RawObject* LookupNameInImport(Isolate* isolate,
-                                     const Namespace& ns,
-                                     const String& name) {
-  // If the given name is filtered out by the import, don't look it up, nor its
-  // getter and setter names.
-  if (ns.HidesName(name)) {
-    return Object::null();
-  }
-  Object& obj = Object::Handle(isolate);
-  obj = ns.Lookup(name);
-  if (!obj.IsNull()) {
-    return obj.raw();
-  }
-  String& accessor_name = String::Handle(isolate, Field::GetterName(name));
-  obj = ns.Lookup(accessor_name);
-  if (!obj.IsNull()) {
-    return obj.raw();
-  }
-  accessor_name = Field::SetterName(name);
-  obj = ns.Lookup(accessor_name);
-  return obj.raw();
-}
-
-
 // Resolve a name by checking the global scope of the current
 // library. If not found in the current library, then look in the scopes
 // of all libraries that are imported without a library prefix.
-// Issue an error if the name is not found in the global scope
-// of the current library, but is defined in more than one imported
-// library, i.e. if the name cannot be resolved unambiguously.
-RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
-                                                    const String& name,
-                                                    Error* error) {
+RawObject* Parser::ResolveNameInCurrentLibraryScope(const String& name) {
   TRACE_PARSER("ResolveNameInCurrentLibraryScope");
   HANDLESCOPE(isolate());
   Object& obj = Object::Handle(isolate(),
                                LookupNameInLibrary(isolate(), library_, name));
-  if (obj.IsNull()) {
-    // Name is not found in current library. Check scope of all
-    // imported libraries.
-    String& first_lib_url = String::Handle(isolate());
-    Namespace& import = Namespace::Handle(isolate());
-    intptr_t num_imports = library_.num_imports();
-    Object& imported_obj = Object::Handle(isolate());
-    Library& lib = Library::Handle(isolate());
-    for (int i = 0; i < num_imports; i++) {
-      import = library_.ImportAt(i);
-      imported_obj = LookupNameInImport(isolate(), import, name);
-      if (!imported_obj.IsNull()) {
-        lib ^= import.library();
-        if (!first_lib_url.IsNull()) {
-          // Found duplicate definition.
-          Error& ambiguous_ref_error = Error::Handle();
-          if (first_lib_url.raw() == lib.url()) {
-            ambiguous_ref_error = FormatErrorMsg(
-                script_, ident_pos, "Error",
-                "ambiguous reference to '%s', "
-                "as library '%s' is imported multiple times",
-                name.ToCString(),
-                first_lib_url.ToCString());
-          } else {
-            ambiguous_ref_error = FormatErrorMsg(
-                script_, ident_pos, "Error",
-                "ambiguous reference: "
-                "'%s' is defined in library '%s' and also in '%s'",
-                name.ToCString(),
-                first_lib_url.ToCString(),
-                String::Handle(lib.url()).ToCString());
-          }
-          if (error == NULL) {
-            // Report a compile time error since the caller is not interested
-            // in the error.
-            ErrorMsg(ambiguous_ref_error);
-          }
-          *error = ambiguous_ref_error.raw();
-          return Object::null();
-        } else {
-          first_lib_url = lib.url();
-          obj = imported_obj.raw();
-        }
-      }
-    }
+  if (!obj.IsNull()) {
+    return obj.raw();
   }
-  return obj.raw();
+  return library_.LookupImportedObject(name);
 }
 
 
-RawClass* Parser::ResolveClassInCurrentLibraryScope(intptr_t ident_pos,
-                                                    const String& name,
-                                                    Error* error) {
+RawClass* Parser::ResolveClassInCurrentLibraryScope(const String& name) {
   const Object& obj =
-      Object::Handle(ResolveNameInCurrentLibraryScope(ident_pos, name, error));
+      Object::Handle(ResolveNameInCurrentLibraryScope(name));
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -8994,7 +8883,7 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
                                                    const String& ident) {
   TRACE_PARSER("ResolveIdentInCurrentLibraryScope");
   const Object& obj =
-    Object::Handle(ResolveNameInCurrentLibraryScope(ident_pos, ident, NULL));
+    Object::Handle(ResolveNameInCurrentLibraryScope(ident));
   if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
     return new PrimaryNode(ident_pos, Class::ZoneHandle(cls.raw()));
@@ -9023,64 +8912,17 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
 }
 
 
-RawObject* Parser::ResolveNameInPrefixScope(intptr_t ident_pos,
-                                            const LibraryPrefix& prefix,
-                                            const String& name,
-                                            Error* error) {
-  TRACE_PARSER("ResolveNameInPrefixScope");
+RawObject* Parser::ResolveNameInPrefixScope(const LibraryPrefix& prefix,
+                                            const String& name) {
   HANDLESCOPE(isolate());
-  Namespace& import = Namespace::Handle(isolate());
-  String& first_lib_url = String::Handle(isolate());
-  Object& obj = Object::Handle(isolate());
-  Object& resolved_obj = Object::Handle(isolate());
-  const Array& imports = Array::Handle(isolate(), prefix.imports());
-  Library& lib = Library::Handle(isolate());
-  for (intptr_t i = 0; i < prefix.num_imports(); i++) {
-    import ^= imports.At(i);
-    resolved_obj = LookupNameInImport(isolate(), import, name);
-    if (!resolved_obj.IsNull()) {
-      obj = resolved_obj.raw();
-      lib = import.library();
-      if (first_lib_url.IsNull()) {
-        first_lib_url = lib.url();
-      } else {
-        // Found duplicate definition.
-        Error& ambiguous_ref_error = Error::Handle();
-        if (first_lib_url.raw() == lib.url()) {
-          ambiguous_ref_error = FormatErrorMsg(
-              script_, ident_pos, "Error",
-              "ambiguous reference: '%s.%s' is imported multiple times",
-              String::Handle(prefix.name()).ToCString(),
-              name.ToCString());
-        } else {
-          ambiguous_ref_error = FormatErrorMsg(
-              script_, ident_pos, "Error",
-              "ambiguous reference: '%s.%s' is defined in '%s' and '%s'",
-              String::Handle(prefix.name()).ToCString(),
-              name.ToCString(),
-              first_lib_url.ToCString(),
-              String::Handle(lib.url()).ToCString());
-        }
-        if (error == NULL) {
-          // Report a compile time error since the caller is not interested
-          // in the error.
-          ErrorMsg(ambiguous_ref_error);
-        }
-        *error = ambiguous_ref_error.raw();
-        return Object::null();
-      }
-    }
-  }
-  return obj.raw();
+  return prefix.LookupObject(name);
 }
 
 
-RawClass* Parser::ResolveClassInPrefixScope(intptr_t ident_pos,
-                                            const LibraryPrefix& prefix,
-                                            const String& name,
-                                            Error* error) {
+RawClass* Parser::ResolveClassInPrefixScope(const LibraryPrefix& prefix,
+                                            const String& name) {
   const Object& obj =
-      Object::Handle(ResolveNameInPrefixScope(ident_pos, prefix, name, error));
+      Object::Handle(ResolveNameInPrefixScope(prefix, name));
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -9096,8 +8938,7 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
                                            const LibraryPrefix& prefix,
                                            const String& ident) {
   TRACE_PARSER("ResolveIdentInPrefixScope");
-  Object& obj =
-      Object::Handle(ResolveNameInPrefixScope(ident_pos, prefix, ident, NULL));
+  Object& obj = Object::Handle(ResolveNameInPrefixScope(prefix, ident));
   if (obj.IsNull()) {
     // Unresolved prefixed primary identifier.
     ErrorMsg(ident_pos, "identifier '%s.%s' cannot be resolved",

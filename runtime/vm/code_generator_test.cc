@@ -275,8 +275,7 @@ static Library& MakeTestLibrary(const char* url) {
 
 static RawClass* LookupClass(const Library& lib, const char* name) {
   const String& cls_name = String::ZoneHandle(Symbols::New(name));
-  String& ambiguity_error_msg = String::Handle();
-  return lib.LookupClass(cls_name, &ambiguity_error_msg);
+  return lib.LookupClass(cls_name);
 }
 
 
@@ -296,7 +295,7 @@ CODEGEN_TEST_GENERATE(StaticCallCodegen, test) {
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
   Class& cls = Class::Handle(LookupClass(lib, "A"));
-  EXPECT(!cls.IsNull());  // No ambiguity error expected.
+  EXPECT(!cls.IsNull());
 
   // 'bar' will not be compiled.
   String& function_bar_name = String::Handle(String::New("bar"));
@@ -343,7 +342,7 @@ CODEGEN_TEST_GENERATE(InstanceCallCodegen, test) {
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
   Class& cls = Class::ZoneHandle(LookupClass(lib, "A"));
-  EXPECT(!cls.IsNull());  // No ambiguity error expected.
+  EXPECT(!cls.IsNull());
 
   String& constructor_name = String::Handle(String::New("A."));
   Function& constructor =
@@ -535,7 +534,7 @@ CODEGEN_TEST_GENERATE(AllocateNewObjectCodegen, test) {
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
   Class& cls = Class::ZoneHandle(LookupClass(lib, "A"));
-  EXPECT(!cls.IsNull());  // No ambiguity error expected.
+  EXPECT(!cls.IsNull());
 
   String& constructor_name = String::Handle(String::New("A."));
   Function& constructor =
@@ -561,11 +560,9 @@ CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
   Library& app_lib = Library::Handle();
   app_lib ^= libs.At(num_libs - 1);
   ASSERT(!app_lib.IsNull());
-  String& ambiguity_error_msg = String::Handle();
   const Class& cls = Class::Handle(
-      app_lib.LookupClass(String::Handle(Symbols::New("A")),
-                          &ambiguity_error_msg));
-  EXPECT_EQ(cls.raw(), result.clazz());  // No ambiguity error expected.
+      app_lib.LookupClass(String::Handle(Symbols::New("A"))));
+  EXPECT_EQ(cls.raw(), result.clazz());
 }
 
 }  // namespace dart

@@ -5628,7 +5628,7 @@ TEST_CASE(ImportLibrary3) {
 
   result = Dart_Invoke(result, NewString("main"), 0, NULL);
   EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING("ambiguous reference: 'foo'", Dart_GetError(result));
+  EXPECT_SUBSTRING("NoSuchMethodError", Dart_GetError(result));
 }
 
 
