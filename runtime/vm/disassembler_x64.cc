@@ -1442,8 +1442,8 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
              opcode == 0x16 || opcode == 0x51 || opcode == 0x52 ||
              opcode == 0x53 || opcode == 0x54 || opcode == 0x56 ||
              opcode == 0x57 || opcode == 0x58 || opcode == 0x59 ||
-             opcode == 0x5C || opcode == 0x5D || opcode == 0x5E ||
-             opcode == 0x5F) {
+             opcode == 0x5A || opcode == 0x5C || opcode == 0x5D ||
+             opcode == 0x5E || opcode == 0x5F) {
     const char* mnemonic = NULL;
     switch (opcode) {
       case 0x12: mnemonic = "movhlps"; break;
@@ -1458,6 +1458,7 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       case 0x57: mnemonic = "xorps"; break;
       case 0x58: mnemonic = "addps"; break;
       case 0x59: mnemonic = "mulps"; break;
+      case 0x5A: mnemonic = "cvtsd2ss"; break;
       case 0x5C: mnemonic = "subps"; break;
       case 0x5D: mnemonic = "minps"; break;
       case 0x5E: mnemonic = "divps"; break;
