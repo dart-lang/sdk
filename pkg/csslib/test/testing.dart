@@ -27,9 +27,11 @@ StyleSheet parseCss(String cssInput, {List errors, List opts}) =>
  * CSS will allow any property/value pairs regardless of validity; all of our
  * tests (by default) will ensure that the CSS is really valid.
  */
-StyleSheet compileCss(String cssInput, {List errors, List opts}) =>
+StyleSheet compileCss(String cssInput,
+    {List errors, List opts, bool polyfill: false}) =>
   compile(cssInput, errors: errors, options: opts == null ?
-      ['--no-colors', '--checked', '--warnings_as_errors', 'memory'] : opts);
+      ['--no-colors', '--checked', '--warnings_as_errors', 'memory'] : opts,
+      polyfill: polyfill);
 
 /** CSS emitter walks the style sheet tree and emits readable CSS. */
 var _emitCss = new CssPrinter();
