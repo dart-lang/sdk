@@ -1558,6 +1558,19 @@ TEST_CASE(Debug_EvaluateExpr) {
   EXPECT(Dart_IsDouble(r));
   EXPECT_EQ(50.0, ToDouble(r));
 
+  Dart_Handle closure =
+      Dart_EvaluateExpr(point, NewString("() => _factor * sqrt(x*x + y*y))"));
+  EXPECT_VALID(closure);
+  EXPECT(Dart_IsClosure(closure));
+  r = Dart_InvokeClosure(closure, 0, NULL);
+  EXPECT_EQ(50.0, ToDouble(r));
+
+  r = Dart_EvaluateExpr(point,
+                        NewString("(() => _factor * sqrt(x*x + y*y))()"));
+  EXPECT_VALID(r);
+  EXPECT(Dart_IsDouble(r));
+  EXPECT_EQ(50.0, ToDouble(r));
+
   Dart_Handle len = Dart_EvaluateExpr(point, NewString("l.length"));
   EXPECT_VALID(len);
   EXPECT(Dart_IsNumber(len));
@@ -1580,6 +1593,20 @@ TEST_CASE(Debug_EvaluateExpr) {
   // List l now has 5 elements.
 
   len = Dart_EvaluateExpr(script_lib, NewString("l.length + 1"));
+  EXPECT_VALID(len);
+  EXPECT(Dart_IsNumber(len));
+  EXPECT_EQ(6, ToInt64(len));
+
+  closure = Dart_EvaluateExpr(script_lib, NewString("(x) => l.length + x"));
+  EXPECT_VALID(closure);
+  EXPECT(Dart_IsClosure(closure));
+  Dart_Handle args[1] = { Dart_NewInteger(1) };
+  len = Dart_InvokeClosure(closure, 1, args);
+  EXPECT_VALID(len);
+  EXPECT(Dart_IsNumber(len));
+  EXPECT_EQ(6, ToInt64(len));
+
+  len = Dart_EvaluateExpr(script_lib, NewString("((x) => l.length + x)(1)"));
   EXPECT_VALID(len);
   EXPECT(Dart_IsNumber(len));
   EXPECT_EQ(6, ToInt64(len));

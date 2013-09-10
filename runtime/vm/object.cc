@@ -7255,6 +7255,7 @@ RawObject* Library::Evaluate(const String& expr) const {
   Class& temp_class =
       Class::Handle(Class::New(Symbols::TopLevel(), script, 0));
   temp_class.set_library(*this);
+  temp_class.set_is_finalized();
   return temp_class.Evaluate(expr);
 }
 
