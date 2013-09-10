@@ -3281,7 +3281,8 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     resolveTypeVariableBounds(node.typeParameters);
 
     element.functionSignature = SignatureResolver.analyze(
-        compiler, node.formals, node.returnType, element);
+        compiler, node.formals, node.returnType, element,
+        defaultValuesAllowed: false);
 
     element.alias = compiler.computeFunctionType(
         element, element.functionSignature);
@@ -3779,12 +3780,16 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
  */
 class SignatureResolver extends CommonResolverVisitor<Element> {
   final Element enclosingElement;
+  final bool defaultValuesAllowed;
   Link<Element> optionalParameters = const Link<Element>();
   int optionalParameterCount = 0;
   bool optionalParametersAreNamed = false;
   VariableDefinitions currentDefinitions;
 
-  SignatureResolver(Compiler compiler, this.enclosingElement) : super(compiler);
+  SignatureResolver(Compiler compiler,
+                    this.enclosingElement,
+                    {this.defaultValuesAllowed: true})
+      : super(compiler);
 
   Element visitNodeList(NodeList node) {
     // This must be a list of optional arguments.
@@ -3876,6 +3881,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     return element;
   }
 
+  /// A [SendSet] node is an optional parameter with a default value.
   Element visitSendSet(SendSet node) {
     Element element;
     if (node.receiver != null) {
@@ -3890,9 +3896,13 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       element = new VariableElementX(source, variables,
           ElementKind.PARAMETER, node);
     }
+    Node defaultValue = node.arguments.head;
+    if (!defaultValuesAllowed) {
+      error(defaultValue, MessageKind.TYPEDEF_FORMAL_WITH_DEFAULT);
+    }
     // Visit the value. The compile time constant handler will
     // make sure it's a compile time constant.
-    resolveExpression(node.arguments.head);
+    resolveExpression(defaultValue);
     return element;
   }
 
@@ -3925,8 +3935,10 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   static FunctionSignature analyze(Compiler compiler,
                                    NodeList formalParameters,
                                    Node returnNode,
-                                   Element element) {
-    SignatureResolver visitor = new SignatureResolver(compiler, element);
+                                   Element element,
+                                   {bool defaultValuesAllowed: true}) {
+    SignatureResolver visitor = new SignatureResolver(compiler, element,
+            defaultValuesAllowed: defaultValuesAllowed);
     Link<Element> parameters = const Link<Element>();
     int requiredParameterCount = 0;
     if (formalParameters == null) {

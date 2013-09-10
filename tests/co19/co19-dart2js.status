@@ -324,11 +324,6 @@ Language/13_Statements/03_Variable_Declaration_A04_t07: Fail # Checks that a var
 Language/13_Statements/03_Variable_Declaration_A04_t08: Fail # Checks that it is a compile-time error if the initializing expression of a local variable v refers to the name v= even when a top-level variable  with the same name is declared.
 Language/14_Libraries_and_Scripts/5_URIs_A01_t24: Fail # Checks that it is a compile-time error when the URI in a part directive consists of two adjacent string literals instead of one.
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: Fail # Checks that it is a compile-time error when the URI in a part directive consists of two adjacent multi-line string literals  instead of one.
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t01: Fail # Checks that a compile error is produced when a null default value is specified for a required argument in a function type alias.
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t02: Fail # Checks that a compile error is produced when a default value is specified for an optional positional  argument in a function type alias.
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t03: Fail # Checks that a compile error is produced when a default value is specified for an optional named  argument in a function type alias.
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t04: Fail # Checks that a compile error is produced when a default value is specified for one of the required arguments in a function type alias.
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t05: Fail # Checks that a compile error is produced when default values are specified for several parameters in a function type alias.
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Checks that self-referencing typedef is not allowed (return value type annotation has the same name as the type alias).
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # Checks that self-referencing typedef is not allowed (positional formal parameter type annotation has the same name as the type alias).
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Checks that self-referencing typedef is not allowed (positional optional parameter type annotation has the same name as the type alias).

@@ -290,11 +290,6 @@ Language/14_Libraries_and_Scripts/5_URIs_A01_t21: fail # co19-roll r546: Please 
 Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t65: pass, fail, ok # co19 issue 560
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t01: fail # co19-roll r546: Please triage this failure
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t02: fail # co19-roll r546: Please triage this failure
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t03: fail # co19-roll r546: Please triage this failure
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t04: fail # co19-roll r546: Please triage this failure
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t05: fail # co19-roll r546: Please triage this failure
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t01: fail # co19-roll r546: Please triage this failure
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t02: fail # co19-roll r546: Please triage this failure
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t03: fail # co19-roll r546: Please triage this failure

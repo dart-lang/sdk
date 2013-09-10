@@ -418,6 +418,21 @@ main() => new C(0);"""]);
   static const MessageKind CANNOT_INSTANTIATE_TYPEDEF = const MessageKind(
       'Error: Cannot instantiate typedef "#{typedefName}".');
 
+  static const MessageKind TYPEDEF_FORMAL_WITH_DEFAULT = const MessageKind(
+      "Error: A parameter of a typedef can't specify a default value.",
+      howToFix: "Remove the default value.",
+      examples: const ["""
+typedef void F([int arg = 0]);
+
+main() {
+  F f;
+}""", """
+typedef void F({int arg: 0});
+
+main() {
+  F f;
+}"""]);
+
   static const MessageKind CANNOT_INSTANTIATE_TYPE_VARIABLE = const MessageKind(
       'Error: Cannot instantiate type variable "#{typeVariableName}".');
 
