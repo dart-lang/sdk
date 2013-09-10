@@ -62,6 +62,7 @@ crypto/test/hmac_sha1_test: Pass, Fail # Issue 11407.
 crypto/test/sha1_test: Fail # Issue 11407.
 stack_trace/test/trace_test: Fail # http://dartbug.com/12380
 crypto/test/sha256_test: Pass, Fail # Issue 12502
+crypto/test/hmac_sha256_test: Pass, Fail # Issue 12502
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
