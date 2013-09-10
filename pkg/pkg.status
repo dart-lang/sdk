@@ -64,9 +64,9 @@ stack_trace/test/trace_test: Fail # http://dartbug.com/12380
 crypto/test/sha256_test: Pass, Fail # Issue 12502
 crypto/test/hmac_sha256_test: Pass, Fail # Issue 12502
 
-[ $runtime == ff ]
-polymer/test/events_test: Fail # Issue 13197
-polymer/test/event_path_test: Fail # Issue 13197
+[ $runtime == ff || $runtime == safari || $runtime == ie9 || $runtime == ie10 ]
+polymer/test/events_test: Fail # Issue 12865, 13197
+polymer/test/event_path_test: Fail # Issue 12865, 13197
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
