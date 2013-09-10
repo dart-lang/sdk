@@ -6,7 +6,7 @@ async_window_test: Skip #TODO(gram): investigating
 event_test: Skip  # Issue 1996
 interactive_test: Skip # Must be run manually.
 
-[ $compiler == dart2js && $runtime != drt ]
+[ $compiler == dart2js && $runtime != drt && $browser ]
 custom/document_register_type_extensions_test/namespaces: Fail # Polyfill does not support createElementNS
 custom/document_register_basic_test: Fail # Polyfill is not case-sensitive
 
@@ -145,6 +145,7 @@ xsltprocessor_test/supported: Fail
 isolates_test: Timeout # Issue 13027
 blob_constructor_test: Fail
 custom/document_register_type_extensions_test/namespaces: Fail # Issue 13193
+custom/document_register_type_extensions_test/construction: Fail # Issue 13193
 document_test/document: Pass, Fail # BUG(9654) need per-instance patching
 dom_constructors_test: Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
