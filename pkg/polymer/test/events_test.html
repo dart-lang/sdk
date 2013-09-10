@@ -7,7 +7,7 @@
 <html>
   <head>
     <title>event path</title>
-    <script src="packages/polymer/testing/testing.js"></script>
+    <script src="packages/polymer/boot.js"></script>
     <script src="packages/unittest/test_controller.js"></script>
     <!--
     Test ported from:
@@ -57,41 +57,6 @@
   <test-a id="a"></test-a>
   <test-b id="b"></test-b>
 
-  <script type="application/dart">
-    import 'dart:html';
-    import 'dart:async';
-    import 'package:unittest/unittest.dart';
-    import 'package:unittest/html_config.dart';
-
-    main() {
-      useHtmlConfiguration();
-
-      test('host event', () {
-        // Note: this test is currently the only event in
-        // polymer/test/js/events.js at commit #7936ff8
-        Timer.run(expectAsync0(() {
-          var testA = query('#a');
-          expect(testA.xtag.clicks, isEmpty);
-          testA.click();
-          expect(testA.xtag.clicks, ['host click on: test-a (id a)']);
-        }));
-      });
-
-      test('local event', () {
-        Timer.run(expectAsync0(() {
-          var testB = query('#b');
-          expect(testB.xtag.clicks, isEmpty);
-          testB.click();
-          expect(testB.xtag.clicks, []);
-          var b1 = testB.shadowRoot.query('#b-1');
-          b1.click();
-          expect(testB.xtag.clicks, []);
-          var b2 = testB.shadowRoot.query('#b-2');
-          b2.click();
-          expect(testB.xtag.clicks, ['local click under test-b (id b) on b-2']);
-        }));
-      });
-    }
-  </script>
+  <script type="application/dart" src="events_test.dart"></script>
   </body>
 </html>

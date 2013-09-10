@@ -47,7 +47,7 @@ class ScriptCompactor extends Transformer {
             continue;
           }
           var last = src.split('/').last;
-          if (last == 'dart.js' || last == 'testing.js') {
+          if (last == 'dart.js') {
             dartLoaderTag = tag;
           }
         }

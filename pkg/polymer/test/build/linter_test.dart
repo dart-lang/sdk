@@ -9,7 +9,7 @@ import 'package:polymer/src/linter.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
-import 'transform/common.dart';
+import '../transform/common.dart';
 
 void main() {
   useCompactVMConfiguration();
@@ -23,7 +23,7 @@ void main() {
     _testLinter('in web', {
         'a|web/test.html': '<html></html>',
       }, {
-        'a|web/test.html.messages': 
+        'a|web/test.html.messages':
             'warning: Unexpected start tag (html). Expected DOCTYPE. '
             '(web/test.html 0 0)',
       });
