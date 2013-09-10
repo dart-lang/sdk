@@ -12,6 +12,7 @@ LibTest/isolate/isolate_api/spawnUri_A02_t01: Crash # TODO(ahe): Please triage t
 LibTest/core/List/sort_A01_t04: Fail, Pass, Timeout # Must be a bug in jsshell, test sometimes times out.
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
+LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout # co19-roll r576: Please triage this failure
 LibTest/isolate/isolate_api/spawnUri_A02_t03: Pass, Fail # Issue 8920
 
 

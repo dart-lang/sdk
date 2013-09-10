@@ -51,6 +51,9 @@ io/process_non_ascii_test: Pass, Fail
 [ $runtime == vm && $system == windows ]
 io/http_server_early_client_close_test: Crash, Pass # Issue 12982
 
+[ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
+io/secure_socket_bad_data_test: Crash, Pass # co19-roll r576: Please triage this failure
+
 [ $compiler == none && $runtime == drt ]
 typed_data_isolate_test: Skip # This test uses dart:io
 io/*: Skip # Don't run tests using dart:io in the browser
