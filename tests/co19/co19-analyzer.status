@@ -80,14 +80,8 @@ Language/14_Libraries_and_Scripts/1_Imports_A02_t15: fail, OK
 # co19 issue #513, rules for finals were loosened, contradiction in spec was fixed
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: fail, OK
 
-# co19 issue #514, it is still an error to have both a n initializing formal and an initializer in the constructor's initializer list
-Language/05_Variables/05_Variables_A05_t03: fail, OK
-
 # co19 issue #515, it is a compile-time error if there is more than one entity with the same name declared in the same scope
-Language/07_Classes/3_Setters_A08_t01: fail, OK
-Language/07_Classes/3_Setters_A08_t02: fail, OK
 Language/07_Classes/3_Setters_A08_t03: fail, OK
-Language/07_Classes/3_Setters_A08_t04: fail, OK
 
 # co19 issue #438, Static variables are initialized lazily, need not be constants
 Language/12_Expressions/01_Constants_A16_t01: fail, OK
@@ -106,9 +100,6 @@ Language/12_Expressions/12_Instance_Creation_A01_t02: fail, OK
 Language/12_Expressions/12_Instance_Creation_A01_t05: fail, OK
 Language/12_Expressions/12_Instance_Creation_A01_t06: fail, OK
 
-# co19 issue #388 (wrongly closed), StringBuffer methods changed
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail, OK
-
 # co19 issue #433 (wrongly closed), missing @static-warning annotation
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail, OK
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail, OK
@@ -120,15 +111,7 @@ Language/12_Expressions/30_Identifier_Reference_A14_t03: fail, OK
 # co19 issue #543: invocation of a non-function
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t02: fail, OK
 
-LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: Fail, OK # co19 issue 556
-
-LibTest/async/Stream/listen_A04_t01: Fail, OK # co19 issue 557
-LibTest/typed_data/ByteData/buffer_A01_t02: Fail, OK # co19 issue 557
-
 Language/13_Statements/11_Return_A07_t01: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/11_Try_A02_t03: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/11_Try_A03_t03: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/11_Try_A04_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t27: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t47: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t67: fail # co19-roll r546: Please triage this failure
@@ -154,8 +137,6 @@ LibTest/async/Stream/asBroadcastStream_A02_t01: fail # co19-roll r546: Please tr
 LibTest/async/Stream/contains_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/StreamController/hasListener_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/StreamController/hasListener_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/StreamController/isClosed_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/StreamController/isClosed_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/async/StreamController/isPaused_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/StreamController/isPaused_A01_t03: fail # co19-roll r546: Please triage this failure
 LibTest/async/StreamController/sink_A01_t01: fail # co19-roll r546: Please triage this failure
@@ -188,7 +169,6 @@ LibTest/core/Duration/operator_lte_A01_t01: fail # co19-roll r546: Please triage
 LibTest/core/Duration/operator_minus_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/Duration/operator_mult_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/Duration/operator_plus_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/asMap_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/List/every_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/List/forEach_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/core/List/lastWhere_A03_t01: fail # co19-roll r546: Please triage this failure
@@ -206,6 +186,7 @@ LibTest/core/List/takeWhile_A02_t01: fail # co19-roll r546: Please triage this f
 LibTest/core/List/toList_A01_t03: fail # co19-roll r546: Please triage this failure
 LibTest/core/StringBuffer/writeAll_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/streamSpawnFunction_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail # co19-roll r576: Please triage this failure
 LibTest/isolate/IsolateSink/add_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure

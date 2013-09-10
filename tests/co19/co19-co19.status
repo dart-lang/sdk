@@ -8,22 +8,29 @@
 
 ### GENERAL FAILURES ###
 
+
+[ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
+LibTest/core/Uri/encodeComponent_A01_t02: fail # co19-roll r576: Please triage this failure
+LibTest/core/Uri/origin_A01_t01: fail # co19-roll r576: Please triage this failure
+LibTest/core/Uri/parse_A01_t01: fail # co19-roll r576: Please triage this failure
+LibTest/core/Uri/toFilePath_A01_t01: fail # co19-roll r576: Please triage this failure
+LibTest/core/Uri/toFilePath_A01_t02: fail # co19-roll r576: Please triage this failure
+LibTest/core/Uri/Uri_A03_t01: fail # co19-roll r576: Please triage this failure
+LibTest/core/Uri/Uri_A04_t01: fail # co19-roll r576: Please triage this failure
+LibTest/core/Uri/Uri.http_A02_t01: fail # co19-roll r576: Please triage this failure
+LibTest/core/Uri/Uri.https_A02_t01: fail # co19-roll r576: Please triage this failure
+# Maybe we should wait until isolate library is sealed before triaging these.
+LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail, timeout # co19-roll r546: Please triage this failure
+LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail, timeout # co19-roll r546: Please triage this failure
+
 [ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
 LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: fail # co19-roll r569: Please triage this failure
 
 [ $runtime == vm || $compiler == dart2js ]
+Language/07_Classes/6_Constructors_A02_t01: SKIP # co19 issue 415.
 Language/12_Expressions/01_Constants_A16_t01: FAIL, OK # co19 issue 525
 Language/12_Expressions/01_Constants_A16_t02: FAIL, OK # co19 issue 525
-
-Language/13_Statements/11_Try_A02_t03: FAIL, OK # co19 issue 552
-Language/13_Statements/11_Try_A03_t03: FAIL, OK # co19 issue 552
-Language/13_Statements/11_Try_A04_t03: FAIL, OK # co19 issue 552
-Language/13_Statements/11_Try_A07_t03: FAIL, OK # co19 issue 553
-
 Language/14_Libraries_and_Scripts/1_Imports_A03_t65: PASS, FAIL, OK # co19 issue 560
-
-Language/07_Classes/6_Constructors_A02_t01: SKIP # co19 issue 415.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: FAIL, OK # co19 issue 547
 
 LibTest/math/acos_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/asin_A01_t01: PASS, FAIL, OK # co19 issue 44
@@ -47,8 +54,6 @@ LibTest/core/double/round_A01_t04: FAIL, OK # co19 issue 389
 LibTest/core/double/truncate_A01_t03: FAIL, OK # co19 issue 389
 LibTest/core/double/truncate_A01_t04: FAIL, OK # co19 issue 389
 
-LibTest/core/int/toStringAsExponential_A02_t01: FAIL, OK # co19 issue 477
-
 LibTest/async/Stream/Stream.periodic_A01_t01: TIMEOUT, PASS, FAIL, OK # co19 issue 538
 LibTest/async/Stream/Stream.periodic_A03_t01: PASS, FAIL, OK # co19 issue 538
 LibTest/async/Timer/run_A01_t01: PASS, FAIL, OK # co19 issue 538
@@ -66,9 +71,6 @@ LibTest/isolate/isolate_api/streamSpawnFunction_A02_t03: PASS, FAIL, OK # co19 i
 LibTest/isolate/IsolateStream/contains_A02_t01: PASS, FAIL, OK # co19 issue 540
 
 LibTest/async/EventTransformStream/listen_A04_t01: Pass, Timeout # co19 issue 542
-
-LibTest/async/EventTransformStream/elementAt_A03_t01: FAIL # co19 issue 545
-LibTest/async/Stream/elementAt_A03_t01: FAIL # co19 issue 545
 
 LibTest/typed_data/Int8List/Int8List.fromList_A01_t02: Fail # co19-roll r559: Please triage this failure
 
@@ -121,4 +123,5 @@ LibTest/core/TypeError/failedAssertion_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/line_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/srcType_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/url_A01_t01: FAIL, OK # co19 issue 510
-LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: Fail # co19 issue 550
+LibTest/core/Uri/encodeFull_A01_t02: fail # co19-roll r576: Please triage this failure
+

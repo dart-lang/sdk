@@ -97,7 +97,6 @@ LibTest/typed_data/Float64List/Float64List.view_A01_t02: Crash  # Issue 12868
 [ $compiler == none && $runtime == vm ]
 Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
-Language/05_Variables/05_Variables_A05_t03: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A06_t01: fail # Dart issue 12543
 Language/05_Variables/05_Variables_A06_t02: fail # Dart issue 12543
 Language/05_Variables/05_Variables_A06_t03: fail # Dart issue 12543
@@ -107,9 +106,6 @@ Language/05_Variables/05_Variables_A06_t06: fail # Dart issue 12543
 Language/05_Variables/05_Variables_A16_t02: fail # Dart issue 12544
 Language/07_Classes/07_Classes_A11_t02: fail # Dart issue 12545
 Language/07_Classes/07_Classes_A11_t04: fail # Dart issue 12545
-Language/07_Classes/3_Setters_A08_t01: fail # co19 issue 520
-Language/07_Classes/3_Setters_A08_t02: fail # co19 issue 520
-Language/07_Classes/3_Setters_A08_t04: fail # co19 issue 520
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail # Dart issue 12543
 Language/12_Expressions/05_Strings_A02_t46: fail # Dart issue 12547
 Language/12_Expressions/05_Strings_A02_t48: fail # Dart issue 12547
@@ -119,7 +115,6 @@ Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: fail # Dart issue 13
 Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19 issue 525
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: fail # Dart issue 12550
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: fail # Dart issue 12549
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail # Dart issue 12549
 Language/12_Expressions/30_Identifier_Reference_A05_t02: fail # Dart issue 12551
 Language/12_Expressions/30_Identifier_Reference_A08_t02: fail # Dart issue 12593
 Language/12_Expressions/32_Type_Test_A04_t02: fail # co19 issue 503
@@ -152,8 +147,6 @@ Language/14_Libraries_and_Scripts/5_URIs_A01_t21: fail # Issue 12518
 LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
 
 # All isolate are being ignored at the moment as the library will go through some changes.
-LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure

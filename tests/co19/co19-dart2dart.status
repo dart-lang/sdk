@@ -6,7 +6,6 @@
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, Fail # Issue 12562.
 
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t03: Fail # TODO(dart2dart-team): Please triage this failure.
-LibTest/core/int/toStringAsExponential_A02_t01: Fail # co19 issue 477
 
 Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/7202
 
@@ -122,7 +121,6 @@ LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints
 Language/03_Overview/1_Scoping_A02_t28: Fail # co19-roll r559: Please triage this failure
 Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A05_t03: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A06_t02: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A06_t03: fail # co19-roll r546: Please triage this failure
@@ -137,9 +135,6 @@ Language/07_Classes/1_Instance_Methods_A01_t03: Fail # co19-roll r559: Please tr
 Language/07_Classes/1_Instance_Methods_A01_t04: Fail # co19-roll r559: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t05: Fail # co19-roll r559: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t06: Fail # co19-roll r559: Please triage this failure
-Language/07_Classes/3_Setters_A08_t01: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t02: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t04: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t01: Fail # co19-roll r559: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t02: Fail # co19-roll r559: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t03: Fail # co19-roll r559: Please triage this failure
@@ -225,7 +220,6 @@ Language/12_Expressions/12_Instance_Creation/2_Const_A06_t02: fail # co19-roll r
 Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/22_Equality_A01_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/22_Equality_A01_t15: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/22_Equality_A01_t16: fail # co19-roll r546: Please triage this failure
@@ -259,9 +253,6 @@ Language/13_Statements/03_Variable_Declaration_A04_t08: fail # co19-roll r546: P
 Language/13_Statements/06_For_A01_t11: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/09_Switch_A01_t02: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/09_Switch_A04_t01: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/11_Try_A02_t03: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/11_Try_A03_t03: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/11_Try_A04_t03: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/11_Try_A07_t03: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/12_Labels_A01_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A02_t28: fail # co19-roll r546: Please triage this failure
@@ -302,10 +293,8 @@ Language/16_Reference/1_Lexical_Rules_A02_t06: fail # co19-roll r546: Please tri
 LibTest/async/Stream/Stream.periodic_A03_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/async/Timer/Timer.periodic_A02_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/spawnUri_A02_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/spawnUri_A02_t03: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
