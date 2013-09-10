@@ -563,7 +563,8 @@ class Uint32List
 }
 
 
-class Uint8ClampedList extends Uint8List
+class Uint8ClampedList extends TypedData with ListMixin<int>,
+    FixedLengthListMixin<int> implements JavaScriptIndexingBehavior, List<int>
     native "Uint8ClampedArray,CanvasPixelArray" {
   factory Uint8ClampedList(int length) => _create1(length);
 
@@ -657,6 +658,16 @@ class Uint8List
   static Uint8List _create3(arg1, arg2, arg3) =>
       JS('Uint8List', 'new Uint8Array(#, #, #)', arg1, arg2, arg3)
           .._setCachedLength();
+}
+
+
+class _Uint8ListSubclass extends Uint8List native "Bogus Uint8List subclass" {
+  // The Typed Array specification states that Uint8ClampedArray is _not_
+  // a subclass of Uint8Array and is a subclass of ArrayBufferView.
+  // However, some browsers have implemented Uint8ClampedArray as a subclass of
+  // Uint8Array. Dart follows the specification but in order for dart2js to
+  // generate correct code it needs to know that there might be a subclass of
+  // Uint8Array. See: https://codereview.chromium.org/23093027/
 }
 
 
