@@ -126,6 +126,16 @@ Set setMinus(Iterable minuend, Iterable subtrahend) {
   return minuendSet;
 }
 
+/// Creates a map from [iter], using the return values of [keyFn] as the keys
+/// and the return values of [valueFn] as the values.
+Map listToMap(Iterable iter, keyFn(element), valueFn(element)) {
+  var map = new Map();
+  for (var element in iter) {
+    map[keyFn(element)] = valueFn(element);
+  }
+  return map;
+}
+
 /// Replace each instance of [matcher] in [source] with the return value of
 /// [fn].
 String replace(String source, Pattern matcher, String fn(Match)) {

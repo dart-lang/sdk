@@ -38,7 +38,7 @@ main() {
       ])
     ]).create();
 
-    createLockFile('myapp', {}, pkg: ['barback']);
+    createLockFile('myapp', pkg: ['barback']);
 
     var server = startPubServe();
     expect(server.nextErrLine(), completion(equals('Build error:')));

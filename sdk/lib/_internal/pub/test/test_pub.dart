@@ -607,12 +607,20 @@ void ensureGit() {
 
 /// Create a lock file for [package] without running `pub install`.
 ///
-/// This creates a lock file with only path dependencies. [dependencies] is a
-/// map of dependency names to paths. [pkg] is a list of packages in the Dart
-/// repo's "pkg" directory; each package listed here and all its dependencies
-/// will be linked to the version in the Dart repo.
-void createLockFile(String package, Map<String, String> dependencies,
-    {Iterable<String> pkg}) {
+/// This creates a lock file with only path dependencies. [sandbox] is a list of
+/// dependencies to be found in the sandbox directory. [pkg] is a list of
+/// packages in the Dart repo's "pkg" directory; each package listed here and
+/// all its dependencies will be linked to the version in the Dart repo.
+void createLockFile(String package, {Iterable<String> sandbox,
+    Iterable<String> pkg}) {
+  var dependencies = {};
+
+  if (sandbox != null) {
+    for (var package in sandbox) {
+      dependencies[package] = '../$package';
+    }
+  }
+
   if (pkg != null) {
     var pkgDir = path.absolute(path.join(
         path.dirname(Platform.executable),

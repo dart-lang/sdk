@@ -39,6 +39,52 @@ class RewriteTransformer extends Transformer {
 }
 """;
 
+/// Returns the source code for a Dart library defining a Transformer that
+/// rewrites Dart files.
+///
+/// The transformer defines a constant named TOKEN whose value is [id]. When the
+/// transformer transforms another Dart file, it will look for a "TOKEN"
+/// constant definition there and modify it to include *this* transformer's
+/// TOKEN value as well.
+///
+/// If [import] is passed, it should be the name of a package that defines its
+/// own TOKEN constant. The primary library of that package will be imported
+/// here and its TOKEN value will be added to this library's.
+String dartTransformer(String id, {String import}) {
+  if (import != null) {
+    id = '$id imports \${$import.TOKEN}';
+    import = 'import "package:$import/$import.dart" as $import;';
+  } else {
+    import = '';
+  }
+
+  return """
+import 'dart:async';
+
+import 'package:barback/barback.dart';
+$import
+
+const TOKEN = "$id";
+
+final _tokenRegExp = new RegExp(r'^const TOKEN = "(.*?)";\$', multiLine: true);
+
+class DartTransformer extends Transformer {
+  DartTransformer();
+
+  String get allowedExtensions => '.dart';
+
+  Future apply(Transform transform) {
+    return transform.primaryInput.readAsString().then((contents) {
+      transform.addOutput(new Asset.fromString(transform.primaryInput.id,
+          contents.replaceAllMapped(_tokenRegExp, (match) {
+        return 'const TOKEN = "(\${match[1]}, \$TOKEN)";';
+      })));
+    });
+  }
+}
+""";
+}
+
 /// Schedules starting the "pub serve" process.
 ///
 /// If [shouldInstallFirst] is `true`, validates that pub install is run first.

@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 
-import 'barback/load_transformers.dart';
+import 'barback/load_all_transformers.dart';
 import 'barback/pub_package_provider.dart';
 import 'barback/rewrite_import_transformer.dart';
 import 'barback/server.dart';
@@ -44,7 +44,7 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph) {
       })
     ];
 
-    _loadTransformers(server, graph).then((_) {
+    loadAllTransformers(server, graph).then((_) {
       if (!completer.isCompleted) completer.complete(server);
     }).catchError((error) {
       if (!completer.isCompleted) completer.completeError(error);
@@ -55,52 +55,5 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph) {
         subscription.cancel();
       }
     });
-  });
-}
-
-/// Loads all transformers depended on by packages in [graph].
-///
-/// This uses [server] to serve the Dart files from which transformers are
-/// loaded, then adds the transformers to `server.barback`.
-Future _loadTransformers(BarbackServer server, PackageGraph graph) {
-  // Add a rewrite transformer for each package, so that we can resolve
-  // "package:" imports while loading transformers.
-  var rewrite = new RewriteImportTransformer();
-  for (var package in graph.packages.values) {
-    server.barback.updateTransformers(package.name, [[rewrite]]);
-  }
-
-  // A map from each transformer id to the set of packages that use it.
-  var idsToPackages = new Map<AssetId, Set<String>>();
-  for (var package in graph.packages.values) {
-    for (var id in unionAll(package.pubspec.transformers)) {
-      idsToPackages.putIfAbsent(id, () => new Set<String>()).add(package.name);
-    }
-  }
-
-  // TODO(nweiz): support transformers that (possibly transitively)
-  // depend on other transformers.
-  var transformersForId = new Map<AssetId, Set<Transformer>>();
-  return Future.wait(idsToPackages.keys.map((id) {
-    return loadTransformers(server, id).then((transformers) {
-      if (transformers.isEmpty) {
-        var path = id.path.replaceFirst('lib/', '');
-        // Ensure that packages are listed in a deterministic order.
-        var packages = idsToPackages[id].toList();
-        packages.sort();
-        throw new ApplicationException(
-            "No transformers were defined in package:${id.package}/$path,\n"
-            "required by ${packages.join(', ')}.");
-      }
-
-      transformersForId[id] = transformers;
-    });
-  })).then((_) {
-    for (var package in graph.packages.values) {
-      var phases = package.pubspec.transformers.map((phase) {
-        return unionAll(phase.map((id) => transformersForId[id]));
-      });
-      server.barback.updateTransformers(package.name, phases);
-    }
   });
 }
