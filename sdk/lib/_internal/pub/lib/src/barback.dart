@@ -57,3 +57,56 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph) {
     });
   });
 }
+
+/// Parses a library identifier to an asset id.
+///
+/// A library identifier is a string of the form "package_name" or
+/// "package_name/path/to/library". It does not have a trailing extension. If it
+/// just has a package name, it expands to lib/${package}.dart in that package.
+/// Otherwise, it expands to lib/${path}.dart in that package.
+AssetId libraryIdentifierToId(String identifier) {
+  if (identifier.isEmpty) {
+    throw new FormatError('Invalid library identifier: "".');
+  }
+
+  // Convert the concise asset name in the pubspec (of the form "package"
+  // or "package/library") to an AssetId that points to an actual dart
+  // file ("package/lib/package.dart" or "package/lib/library.dart",
+  // respectively).
+  var parts = split1(identifier, "/");
+  if (parts.length == 1) parts.add(parts.single);
+  return new AssetId(parts.first, 'lib/' + parts.last + '.dart');
+}
+
+final _libraryPathRegExp = new RegExp(r"^lib/(.*)\.dart$");
+
+/// Converts [id] to a library identifier.
+///
+/// A library identifier is a string of the form "package_name" or
+/// "package_name/path/to/library". It does not have a trailing extension. If it
+/// just has a package name, it expands to lib/${package}.dart in that package.
+/// Otherwise, it expands to lib/${path}.dart in that package.
+///
+/// This will throw an [ArgumentError] if [id] doesn't represent a library in
+/// `lib/`.
+String idToLibraryIdentifier(AssetId id) {
+  var match = _libraryPathRegExp.firstMatch(id.path);
+  if (match == null) {
+    throw new ArgumentError("Asset id $id doesn't identify a library.");
+  }
+
+  if (match[1] == id.package) return id.package;
+  return '${id.package}/${match[1]}';
+}
+
+/// Converts [id] to a "package:" URI.
+///
+/// This will throw an [ArgumentError] if [id] doesn't represent a library in
+/// `lib/`.
+Uri idToPackageUri(AssetId id) {
+  if (!id.path.startsWith('lib/')) {
+    throw new ArgumentError("Asset id $id doesn't identify a library.");
+  }
+
+  return new Uri(scheme: 'package', path: id.path.replaceFirst('lib/', ''));
+}

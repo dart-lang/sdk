@@ -7,6 +7,8 @@ library pub.directory_tree;
 
 import 'package:path/path.dart' as path;
 
+import 'utils.dart';
+
 /// Draws a directory tree for the given list of files. Given a list of files
 /// like:
 ///
@@ -101,8 +103,7 @@ void _draw(StringBuffer buffer, String prefix, bool isLast,
   if (name != null) _drawLine(buffer, prefix, isLast, name);
 
   // Recurse to the children.
-  var childNames = new List.from(children.keys);
-  childNames.sort();
+  var childNames = ordered(children.keys);
 
   _drawChild(bool isLastChild, String child) {
     var childPrefix = _getPrefix(name == null, isLast);

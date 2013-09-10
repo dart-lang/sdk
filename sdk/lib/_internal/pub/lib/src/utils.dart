@@ -7,6 +7,7 @@ library pub.utils;
 
 import 'dart:async';
 import 'dart:io';
+import "dart:collection";
 import "dart:convert";
 import 'dart:mirrors';
 
@@ -91,6 +92,15 @@ String padRight(String source, int length) {
   return result.toString();
 }
 
+/// Returns a sentence fragment listing the elements of [iter].
+///
+/// This converts each element of [iter] to a string and separates them with
+/// commas and/or "and" where appropriate.
+String toSentence(Iterable iter) {
+  if (iter.length == 1) return iter.first.toString();
+  return iter.take(iter.length - 1).join(", ") + " and ${iter.last}";
+}
+
 /// Flattens nested lists inside an iterable into a single list containing only
 /// non-list elements.
 List flatten(Iterable nested) {
@@ -126,6 +136,41 @@ Set setMinus(Iterable minuend, Iterable subtrahend) {
   return minuendSet;
 }
 
+/// Returns a list containing the sorted elements of [iter].
+List ordered(Iterable<Comparable> iter) {
+  var list = iter.toList();
+  list.sort();
+  return list;
+}
+
+/// Returns the element of [iter] for which [f] returns the minimum value.
+minBy(Iterable iter, Comparable f(element)) {
+  var min = null;
+  var minComparable = null;
+  for (var element in iter) {
+    var comparable = f(element);
+    if (minComparable == null ||
+        comparable.compareTo(minComparable) < 0) {
+      min = element;
+      minComparable = comparable;
+    }
+  }
+  return min;
+}
+
+/// Returns every pair of consecutive elements in [iter].
+///
+/// For example, if [iter] is `[1, 2, 3, 4]`, this will return `[(1, 2), (2, 3),
+/// (3, 4)]`.
+Iterable<Pair> pairs(Iterable iter) {
+  var previous = iter.first;
+  return iter.skip(1).map((element) {
+    var oldPrevious = previous;
+    previous = element;
+    return new Pair(oldPrevious, element);
+  });
+}
+
 /// Creates a map from [iter], using the return values of [keyFn] as the keys
 /// and the return values of [valueFn] as the values.
 Map listToMap(Iterable iter, keyFn(element), valueFn(element)) {
@@ -134,6 +179,70 @@ Map listToMap(Iterable iter, keyFn(element), valueFn(element)) {
     map[keyFn(element)] = valueFn(element);
   }
   return map;
+}
+
+/// Creates a new map from [map] with new keys and values.
+///
+/// The return values of [keyFn] are used as the keys and the return values of
+/// [valueFn] are used as the values for the new map.
+Map mapMap(Map map, keyFn(key, value), valueFn(key, value)) =>
+  listToMap(map.keys,
+      (key) => keyFn(key, map[key]),
+      (key) => valueFn(key, map[key]));
+
+/// Creates a new map from [map] with the same keys.
+///
+/// The return values of [valueFn] are used as the values for the new map.
+Map mapMapValues(Map map, fn(key, value)) => mapMap(map, (key, _) => key, fn);
+
+/// Returns the shortest path from [start] to [end] in [graph].
+///
+/// The graph is represented by a map whose keys are vertices and whose values
+/// are vertices reachable from the keys. [start] and [end] must be vertices in
+/// this graph.
+List shortestPath(Map<dynamic, Iterable> graph, start, end) {
+  assert(graph.containsKey(start));
+  assert(graph.containsKey(end));
+
+  // Dijkstra's algorithm.
+  var infinity = graph.length;
+  var distance = mapMapValues(graph, (_1, _2) => infinity);
+
+  // A map from each node to the node that came before it on the shortest path
+  // from it back to [start].
+  var previous = {};
+
+  distance[start] = 0;
+  var remaining = graph.keys.toSet();
+  while (!remaining.isEmpty) {
+    var current = minBy(remaining, (node) => distance[node]);
+    remaining.remove(current);
+
+    // If there's no remaining node that's reachable from [start], then there's
+    // no path from [start] to [end].
+    if (distance[current] == infinity) return null;
+
+    // If we've reached [end], we've found the shortest path to it and we just
+    // need to reconstruct that path.
+    if (current == end) break;
+
+    for (var neighbor in graph[current]) {
+      if (!remaining.contains(neighbor)) continue;
+      var newDistance = distance[current] + 1;
+      if (newDistance >= distance[neighbor]) continue;
+      distance[neighbor] = newDistance;
+      previous[neighbor] = current;
+    }
+  }
+
+  var path = new Queue();
+  var current = end;
+  while (current != null) {
+    path.addFirst(current);
+    current = previous[current];
+  }
+
+  return path.toList();
 }
 
 /// Replace each instance of [matcher] in [source] with the return value of

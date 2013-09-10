@@ -8,6 +8,7 @@ import 'package:barback/barback.dart';
 import 'package:yaml/yaml.dart';
 import 'package:path/path.dart' as path;
 
+import 'barback.dart';
 import 'io.dart';
 import 'package.dart';
 import 'source.dart';
@@ -157,8 +158,7 @@ Pubspec _parseMap(String filePath, Map map, SourceRegistry sources) {
     if (collisions.length == 1) {
       packageNames = 'Package "${collisions.first}"';
     } else {
-      var names = collisions.toList();
-      names.sort();
+      var names = ordered(collisions);
       var buffer = new StringBuffer();
       buffer.write("Packages ");
       for (var i = 0; i < names.length; i++) {
@@ -174,6 +174,7 @@ Pubspec _parseMap(String filePath, Map map, SourceRegistry sources) {
 
       packageNames = buffer.toString();
     }
+
     throw new FormatException(
         '$packageNames cannot appear in both "dependencies" and '
         '"dev_dependencies".');
@@ -194,14 +195,7 @@ Pubspec _parseMap(String filePath, Map map, SourceRegistry sources) {
               'Transformer "$transformer" must be a string.');
         }
 
-        // Convert the concise asset name in the pubspec (of the form "package"
-        // or "package/library") to an AssetId that points to an actual dart
-        // file ("package/lib/package.dart" or "package/lib/library.dart",
-        // respectively).
-        var parts = split1(transformer, "/");
-        if (parts.length == 1) parts.add(parts.single);
-        var id = new AssetId(parts.first, 'lib/' + parts.last + '.dart');
-
+        var id = libraryIdentifierToId(transformer);
         if (id.package != name &&
             !dependencies.any((ref) => ref.name == id.package)) {
           throw new FormatException('Could not find package for transformer '

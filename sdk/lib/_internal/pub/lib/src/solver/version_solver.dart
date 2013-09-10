@@ -187,8 +187,7 @@ abstract class SolveFailure implements ApplicationException {
       map[dep.depender] = dep.dep;
     }
 
-    var names = map.keys.toList();
-    names.sort();
+    var names = ordered(map.keys);
 
     buffer.writeAll(names.map(
         (name) => "- '$name' ${_describeDependency(map[name])}"), '\n');

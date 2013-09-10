@@ -12,6 +12,7 @@ import 'load_transformers.dart';
 import 'rewrite_import_transformer.dart';
 import 'server.dart';
 import 'watch_sources.dart';
+import '../barback.dart';
 import '../utils.dart';
 
 /// Loads all transformers depended on by packages in [graph].
@@ -120,18 +121,27 @@ Future loadAllTransformers(BarbackServer server, PackageGraph graph) {
 /// are those packages' ordering dependencies.
 Map<String, Set<String>> _computeOrderingDeps(PackageGraph graph) {
   var orderingDeps = new Map<String, Set<String>>();
-  for (var package in graph.packages.values) {
+  // Iterate through the packages in a deterministic order so that if there are
+  // multiple cycles we choose which to print consistently.
+  var packages = ordered(graph.packages.values.map((package) => package.name));
+  for (var package in packages) {
     // This package's transformer dependencies are also ordering dependencies.
-    var deps = _transformerDeps(graph, package.name);
-    deps.remove(package.name);
+    var deps = _transformerDeps(graph, package);
+    deps.remove(package);
     // The transformer dependencies of this package's transitive package
     // dependencies are also ordering dependencies for this package.
-    for (var packageDep in graph.transitiveDependencies(package.name)) {
-      deps.addAll(_transformerDeps(graph, packageDep.name));
+    var transitivePackageDeps = graph.transitiveDependencies(package)
+        .map((package) => package.name);
+    for (var packageDep in ordered(transitivePackageDeps)) {
+      var transformerDeps = _transformerDeps(graph, packageDep);
+      if (transformerDeps.contains(package)) {
+        throw _cycleError(graph, package, packageDep);
+      }
+      deps.addAll(transformerDeps);
     }
-    orderingDeps[package.name] = deps;
+    orderingDeps[package] = deps;
   }
-  // TODO(nweiz): check for cycles in orderingDeps.
+
   return orderingDeps;
 }
 
@@ -139,6 +149,33 @@ Map<String, Set<String>> _computeOrderingDeps(PackageGraph graph) {
 Set<String> _transformerDeps(PackageGraph graph, String package) =>
   unionAll(graph.packages[package].pubspec.transformers)
       .map((id) => id.package).toSet();
+
+/// Returns an [ApplicationException] describing an ordering dependency cycle
+/// detected in [graph].
+///
+/// [dependee] and [depender] should be the names of two packages known to be in
+/// the cycle. In addition, [depender] should have a transformer dependency on
+/// [dependee].
+ApplicationException _cycleError(PackageGraph graph, String dependee,
+    String depender) {
+  assert(_transformerDeps(graph, depender).contains(dependee));
+
+  var simpleGraph = mapMapValues(graph.packages,
+      (_, package) => package.dependencies.map((dep) => dep.name).toList());
+  var path = shortestPath(simpleGraph, dependee, depender);
+  path.add(dependee);
+  return new ApplicationException("Transformer cycle detected:\n" +
+      pairs(path).map((pair) {
+    var transformers = unionAll(graph.packages[pair.first].pubspec.transformers)
+        .where((id) => id.package == pair.last)
+        .map(idToLibraryIdentifier).toList();
+    if (transformers.isEmpty) {
+      return "  ${pair.first} depends on ${pair.last}";
+    } else {
+      return "  ${pair.first} is transformed by ${toSentence(transformers)}";
+    }
+  }).join("\n"));
+}
 
 /// Returns a map from each package name in [graph] to the asset ids of all
 /// transformers exposed by that package and used by other packages.
@@ -166,19 +203,14 @@ class _TransformerLoader {
   /// The packages that use each transformer id.
   ///
   /// Used for error reporting.
-  final _transformerUsers = new Map<AssetId, List<String>>();
+  final _transformerUsers = new Map<AssetId, Set<String>>();
 
   _TransformerLoader(this._server, PackageGraph graph) {
     for (var package in graph.packages.values) {
       for (var id in unionAll(package.pubspec.transformers)) {
-        _transformerUsers.putIfAbsent(id, () => <String>[]).add(package.name);
+        _transformerUsers.putIfAbsent(id, () => new Set<String>())
+            .add(package.name);
       }
-    }
-
-    // Ensure that the transformer users are printed in a deterministic order if
-    // an error occurs.
-    for (var list in _transformerUsers.values) {
-      list.sort();
     }
   }
 
@@ -196,13 +228,9 @@ class _TransformerLoader {
         return;
       }
 
-      // The path is parsed from a library identifier in the pubspec, so it
-      // should always refer to a library.
-      assert(id.path.startsWith('lib/'));
-      var path = id.path.replaceFirst('lib/', '');
       throw new ApplicationException(
-          "No transformers were defined in package:${id.package}/$path,\n"
-          "required by ${_transformerUsers[id].join(', ')}.");
+          "No transformers were defined in ${idToPackageUri(id)},\n"
+          "required by ${ordered(_transformerUsers[id]).join(', ')}.");
     });
   }
 
