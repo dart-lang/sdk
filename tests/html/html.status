@@ -35,9 +35,6 @@ dom_isolates_test: Skip # Need to migrate to new spawnDomFunction.
 
 [ $compiler == dart2js && $runtime == ie10 ]
 async_test: Pass, Fail # timers test fails on ie10.
-indexeddb_2_test: Fail # Issue 12893
-indexeddb_3_test: Fail # Issue 12893
-indexeddb_4_test: Fail # Issue 12893
 indexeddb_5_test: Fail # Issue 12893
 
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
@@ -85,7 +82,6 @@ audiobuffersourcenode_test: Pass, Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 history_test/history: Pass, Fail # issue 8183
-indexeddb_1_test/functional: Fail # Issue 12893
 microtask_test: Fail, Pass # Appears to be flaky
 native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 serialized_script_value_test: Fail
@@ -141,11 +137,13 @@ xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
 
 
+[ $runtime == ie9 || $runtime == ie10 ]
+custom/document_register_type_extensions_test/construction: Fail # Issue 13193
+
 [ $runtime == ie9 ]
 isolates_test: Timeout # Issue 13027
 blob_constructor_test: Fail
 custom/document_register_type_extensions_test/namespaces: Fail # Issue 13193
-custom/document_register_type_extensions_test/construction: Fail # Issue 13193
 document_test/document: Pass, Fail # BUG(9654) need per-instance patching
 dom_constructors_test: Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
