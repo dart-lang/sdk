@@ -77,8 +77,7 @@ void Service::HandleServiceMessage(Isolate* isolate, Dart_Port reply_port,
         FindServiceMessageHandler(pathSegment.ToCString());
     ASSERT(handler != NULL);
     {
-      TextBuffer buffer(256);
-      JSONStream js(&buffer);
+      JSONStream js;
 
       // Setup JSONStream arguments and options. The arguments and options
       // are zone allocated and will be freed immediately after handling the
@@ -110,7 +109,7 @@ void Service::HandleServiceMessage(Isolate* isolate, Dart_Port reply_port,
       }
 
       handler(isolate, &js);
-      const String& reply = String::Handle(String::New(buffer.buf()));
+      const String& reply = String::Handle(String::New(js.ToCString()));
       ASSERT(!reply.IsNull());
       PostReply(reply, reply_port);
     }
@@ -118,51 +117,51 @@ void Service::HandleServiceMessage(Isolate* isolate, Dart_Port reply_port,
 }
 
 
-static void PrintArgumentsAndOptions(JSONStream* js) {
-  js->OpenObject("message");
-  js->OpenArray("arguments");
-  for (intptr_t i = 0; i < js->num_arguments(); i++) {
-    js->PrintValue(js->GetArgument(i));
+static void PrintArgumentsAndOptions(const JSONObject& obj, JSONStream* js) {
+  JSONObject jsobj(obj, "message");
+  {
+    JSONArray jsarr(jsobj, "arguments");
+    for (intptr_t i = 0; i < js->num_arguments(); i++) {
+      jsarr.AddValue(js->GetArgument(i));
+    }
   }
-  js->CloseArray();
-  js->OpenArray("option_keys");
-  for (intptr_t i = 0; i < js->num_options(); i++) {
-    js->PrintValue(js->GetOptionKey(i));
+  {
+    JSONArray jsarr(jsobj, "option_keys");
+    for (intptr_t i = 0; i < js->num_options(); i++) {
+      jsarr.AddValue(js->GetOptionKey(i));
+    }
   }
-  js->CloseArray();
-  js->OpenArray("option_values");
-  for (intptr_t i = 0; i < js->num_options(); i++) {
-    js->PrintValue(js->GetOptionValue(i));
+  {
+    JSONArray jsarr(jsobj, "option_values");
+    for (intptr_t i = 0; i < js->num_options(); i++) {
+      jsarr.AddValue(js->GetOptionValue(i));
+    }
   }
-  js->CloseArray();
-  js->CloseObject();
 }
 
 
 static void PrintCollectionErrorResponse(const char* collection_name,
                                          JSONStream* js) {
-  js->OpenObject();
-  js->PrintProperty("type", "error");
-  js->PrintfProperty("text", "Must specify collection object id: /%s/id",
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "error");
+  jsobj.AddPropertyF("text", "Must specify collection object id: /%s/id",
                      collection_name);
-  js->CloseObject();
 }
 
 
 static void HandleName(Isolate* isolate, JSONStream* js) {
-  js->OpenObject();
-  js->PrintProperty("type", "IsolateName");
-  js->PrintProperty("id", static_cast<intptr_t>(isolate->main_port()));
-  js->PrintProperty("name", isolate->name());
-  js->CloseObject();
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "IsolateName");
+  jsobj.AddProperty("id", static_cast<intptr_t>(isolate->main_port()));
+  jsobj.AddProperty("name", isolate->name());
 }
 
 
 static void HandleStackTrace(Isolate* isolate, JSONStream* js) {
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
-  js->OpenObject();
-  js->PrintProperty("type", "StackTrace");
-  js->OpenArray("members");
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "StackTrace");
+  JSONArray jsarr(jsobj, "members");
   intptr_t n_frames = stack->Length();
   String& url = String::Handle();
   String& function = String::Handle();
@@ -170,26 +169,22 @@ static void HandleStackTrace(Isolate* isolate, JSONStream* js) {
     ActivationFrame* frame = stack->FrameAt(i);
     url ^= frame->SourceUrl();
     function ^= frame->function().UserVisibleName();
-    js->OpenObject();
-    js->PrintProperty("name", function.ToCString());
-    js->PrintProperty("url", url.ToCString());
-    js->PrintProperty("line", frame->LineNumber());
-    js->PrintProperty("function", frame->function());
-    js->PrintProperty("code", frame->code());
-    js->CloseObject();
+    JSONObject jsobj(jsarr);
+    jsobj.AddProperty("name", function.ToCString());
+    jsobj.AddProperty("url", url.ToCString());
+    jsobj.AddProperty("line", frame->LineNumber());
+    jsobj.AddProperty("function", frame->function());
+    jsobj.AddProperty("code", frame->code());
   }
-  js->CloseArray();
-  js->CloseObject();
 }
 
 
 static void HandleObjectHistogram(Isolate* isolate, JSONStream* js) {
   ObjectHistogram* histogram = Isolate::Current()->object_histogram();
   if (histogram == NULL) {
-    js->OpenObject();
-    js->PrintProperty("type", "error");
-    js->PrintProperty("text", "Run with --print_object_histogram");
-    js->CloseObject();
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "error");
+    jsobj.AddProperty("text", "Run with --print_object_histogram");
     return;
   }
   histogram->PrintToJSONStream(js);
@@ -197,10 +192,9 @@ static void HandleObjectHistogram(Isolate* isolate, JSONStream* js) {
 
 
 static void HandleEcho(Isolate* isolate, JSONStream* js) {
-  js->OpenObject();
-  js->PrintProperty("type", "message");
-  PrintArgumentsAndOptions(js);
-  js->CloseObject();
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "message");
+  PrintArgumentsAndOptions(jsobj, js);
 }
 
 // Print an error message if there is no ID argument.
@@ -221,15 +215,17 @@ static void HandleEcho(Isolate* isolate, JSONStream* js) {
     /* Object is not type, replace with null. */                               \
     obj = Object::null();                                                      \
   }                                                                            \
-  js->PrintValue(obj, false)
+  obj.PrintToJSONStream(js, false)
 
 
 static void HandleLibraries(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
-    js->PrintValue(Library::Handle(isolate->object_store()->root_library()));
-    return;
+    const Library& lib =
+        Library::Handle(isolate->object_store()->root_library());
+    lib.PrintToJSONStream(js, true);
+  } else {
+    PRINT_RING_OBJ(Library);
   }
-  PRINT_RING_OBJ(Library);
 }
 
 
@@ -264,11 +260,10 @@ static ServiceMessageHandlerEntry __message_handlers[] = {
 
 
 static void HandleFallthrough(Isolate* isolate, JSONStream* js) {
-  js->OpenObject();
-  js->PrintProperty("type", "error");
-  js->PrintProperty("text", "request not understood.");
-  PrintArgumentsAndOptions(js);
-  js->CloseObject();
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "error");
+  jsobj.AddProperty("text", "request not understood.");
+  PrintArgumentsAndOptions(jsobj, js);
 }
 
 

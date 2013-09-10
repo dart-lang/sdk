@@ -9,9 +9,7 @@
 
 namespace dart {
 
-JSONStream::JSONStream(TextBuffer* buffer) {
-  ASSERT(buffer != NULL);
-  buffer_ = buffer;
+JSONStream::JSONStream(intptr_t buf_size) : buffer_(buf_size) {
   open_objects_ = 0;
   arguments_ = NULL;
   num_arguments_ = 0;
@@ -26,7 +24,7 @@ JSONStream::~JSONStream() {
 
 
 void JSONStream::Clear() {
-  buffer_->Clear();
+  buffer_.Clear();
   open_objects_ = 0;
 }
 
@@ -37,14 +35,14 @@ void JSONStream::OpenObject(const char* property_name) {
   if (property_name != NULL) {
     PrintPropertyName(property_name);
   }
-  buffer_->AddChar('{');
+  buffer_.AddChar('{');
 }
 
 
 void JSONStream::CloseObject() {
   ASSERT(open_objects_ > 0);
   open_objects_--;
-  buffer_->AddChar('}');
+  buffer_.AddChar('}');
 }
 
 
@@ -54,40 +52,40 @@ void JSONStream::OpenArray(const char* property_name) {
     PrintPropertyName(property_name);
   }
   open_objects_++;
-  buffer_->AddChar('[');
+  buffer_.AddChar('[');
 }
 
 
 void JSONStream::CloseArray() {
   ASSERT(open_objects_ > 0);
   open_objects_--;
-  buffer_->AddChar(']');
+  buffer_.AddChar(']');
 }
 
 
 void JSONStream::PrintValueBool(bool b) {
   PrintCommaIfNeeded();
-  buffer_->Printf("%s", b ? "true" : "false");
+  buffer_.Printf("%s", b ? "true" : "false");
 }
 
 
 void JSONStream::PrintValue(intptr_t i) {
   PrintCommaIfNeeded();
-  buffer_->Printf("%" Pd "", i);
+  buffer_.Printf("%" Pd "", i);
 }
 
 
 void JSONStream::PrintValue(double d) {
   PrintCommaIfNeeded();
-  buffer_->Printf("%f", d);
+  buffer_.Printf("%f", d);
 }
 
 
 void JSONStream::PrintValue(const char* s) {
   PrintCommaIfNeeded();
-  buffer_->AddChar('"');
-  buffer_->AddEscapedString(s);
-  buffer_->AddChar('"');
+  buffer_.AddChar('"');
+  buffer_.AddEscapedString(s);
+  buffer_.AddChar('"');
 }
 
 
@@ -103,9 +101,9 @@ void JSONStream::PrintfValue(const char* format, ...) {
   intptr_t len2 = OS::VSNPrint(p, len+1, format, args);
   va_end(args);
   ASSERT(len == len2);
-  buffer_->AddChar('"');
-  buffer_->AddEscapedString(p);
-  buffer_->AddChar('"');
+  buffer_.AddChar('"');
+  buffer_.AddEscapedString(p);
+  buffer_.AddChar('"');
   free(p);
 }
 
@@ -151,9 +149,9 @@ void JSONStream::PrintfProperty(const char* name, const char* format, ...) {
   intptr_t len2 = OS::VSNPrint(p, len+1, format, args);
   va_end(args);
   ASSERT(len == len2);
-  buffer_->AddChar('"');
-  buffer_->AddEscapedString(p);
-  buffer_->AddChar('"');
+  buffer_.AddChar('"');
+  buffer_.AddEscapedString(p);
+  buffer_.AddChar('"');
   free(p);
 }
 
@@ -182,28 +180,70 @@ void JSONStream::PrintProperty(const char* name, const Object& o, bool ref) {
 void JSONStream::PrintPropertyName(const char* name) {
   ASSERT(name != NULL);
   PrintCommaIfNeeded();
-  buffer_->AddChar('"');
-  buffer_->AddEscapedString(name);
-  buffer_->AddChar('"');
-  buffer_->AddChar(':');
+  buffer_.AddChar('"');
+  buffer_.AddEscapedString(name);
+  buffer_.AddChar('"');
+  buffer_.AddChar(':');
 }
 
 
 void JSONStream::PrintCommaIfNeeded() {
   if (NeedComma()) {
-    buffer_->AddChar(',');
+    buffer_.AddChar(',');
   }
 }
 
 
 bool JSONStream::NeedComma() {
-  const char* buffer = buffer_->buf();
-  intptr_t length = buffer_->length();
+  const char* buffer = buffer_.buf();
+  intptr_t length = buffer_.length();
   if (length == 0) {
     return false;
   }
   char ch = buffer[length-1];
-  return ch != '[' && ch != '{' && ch != ':' && ch != ',';
+  return (ch != '[') && (ch != '{') && (ch != ':') && (ch != ',');
+}
+
+
+JSONObject::JSONObject(const JSONArray& arr) : stream_(arr.stream_) {
+  stream_->OpenObject();
+}
+
+
+void JSONObject::AddPropertyF(const char* name,
+                                      const char* format, ...) const {
+  stream_->PrintPropertyName(name);
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+  char* p = reinterpret_cast<char*>(malloc(len+1));
+  va_start(args, format);
+  intptr_t len2 = OS::VSNPrint(p, len+1, format, args);
+  va_end(args);
+  ASSERT(len == len2);
+  stream_->buffer_.AddChar('"');
+  stream_->buffer_.AddEscapedString(p);
+  stream_->buffer_.AddChar('"');
+  free(p);
+}
+
+
+void JSONArray::AddValueF(const char* format, ...) const {
+  stream_->PrintCommaIfNeeded();
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+  char* p = reinterpret_cast<char*>(malloc(len+1));
+  va_start(args, format);
+  intptr_t len2 = OS::VSNPrint(p, len+1, format, args);
+  va_end(args);
+  ASSERT(len == len2);
+  stream_->buffer_.AddChar('"');
+  stream_->buffer_.AddEscapedString(p);
+  stream_->buffer_.AddChar('"');
+  free(p);
 }
 
 }  // namespace dart

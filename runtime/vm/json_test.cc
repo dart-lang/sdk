@@ -139,143 +139,176 @@ TEST_CASE(JSON_TextBuffer) {
 
 
 TEST_CASE(JSON_JSONStream_Primitives) {
-  TextBuffer tb(256);
-  JSONStream js(&tb);
-
-  js.OpenObject();
-  js.CloseObject();
-
-  EXPECT_STREQ("{}", tb.buf());
-
-  js.Clear();
-  js.OpenArray();
-  js.CloseArray();
-  EXPECT_STREQ("[]", tb.buf());
-
-  js.Clear();
-  js.PrintValueBool(true);
-  EXPECT_STREQ("true", tb.buf());
-
-  js.Clear();
-  js.PrintValueBool(false);
-  EXPECT_STREQ("false", tb.buf());
-
-  js.Clear();
-  js.PrintValue(static_cast<intptr_t>(4));
-  EXPECT_STREQ("4", tb.buf());
-
-  js.Clear();
-  js.PrintValue(1.0);
-  EXPECT_STREQ("1.000000", tb.buf());
-
-  js.Clear();
-  js.PrintValue("hello");
-  EXPECT_STREQ("\"hello\"", tb.buf());
+  {
+    JSONStream js;
+    {
+      JSONObject jsobj(&js);
+    }
+    EXPECT_STREQ("{}", js.ToCString());
+  }
+  {
+    JSONStream js;
+    {
+      JSONArray jsarr(&js);
+    }
+    EXPECT_STREQ("[]", js.ToCString());
+  }
+  {
+    JSONStream js;
+    {
+      JSONArray jsarr(&js);
+      jsarr.AddValue(true);
+    }
+    EXPECT_STREQ("[true]", js.ToCString());
+  }
+  {
+    JSONStream js;
+    {
+      JSONArray jsarr(&js);
+      jsarr.AddValue(false);
+    }
+    EXPECT_STREQ("[false]", js.ToCString());
+  }
+  {
+    JSONStream js;
+    {
+      JSONArray jsarr(&js);
+      jsarr.AddValue(static_cast<intptr_t>(4));
+    }
+    EXPECT_STREQ("[4]", js.ToCString());
+  }
+  {
+    JSONStream js;
+    {
+      JSONArray jsarr(&js);
+      jsarr.AddValue(1.0);
+    }
+    EXPECT_STREQ("[1.000000]", js.ToCString());
+  }
+  {
+    JSONStream js;
+    {
+      JSONArray jsarr(&js);
+      jsarr.AddValue("hello");
+    }
+    EXPECT_STREQ("[\"hello\"]", js.ToCString());
+  }
+  {
+    JSONStream js;
+    {
+      JSONArray jsarr(&js);
+      jsarr.AddValueF("h%s", "elo");
+    }
+    EXPECT_STREQ("[\"helo\"]", js.ToCString());
+  }
 }
 
 
 TEST_CASE(JSON_JSONStream_Array) {
-  TextBuffer tb(256);
-  JSONStream js(&tb);
-  js.Clear();
-  js.OpenArray();
-  js.PrintValueBool(true);
-  js.PrintValueBool(false);
-  js.CloseArray();
-  EXPECT_STREQ("[true,false]", tb.buf());
+  JSONStream js;
+  {
+    JSONArray jsarr(&js);
+    jsarr.AddValue(true);
+    jsarr.AddValue(false);
+  }
+  EXPECT_STREQ("[true,false]", js.ToCString());
 }
 
 
 TEST_CASE(JSON_JSONStream_Object) {
-  TextBuffer tb(256);
-  JSONStream js(&tb);
-  js.Clear();
-  js.OpenObject();
-  js.PrintProperty("key1", "a");
-  js.PrintProperty("key2", "b");
-  js.CloseObject();
-  EXPECT_STREQ("{\"key1\":\"a\",\"key2\":\"b\"}", tb.buf());
+  JSONStream js;
+  {
+    JSONObject jsobj(&js);
+    jsobj.AddProperty("key1", "a");
+    jsobj.AddProperty("key2", "b");
+  }
+  EXPECT_STREQ("{\"key1\":\"a\",\"key2\":\"b\"}", js.ToCString());
 }
 
 TEST_CASE(JSON_JSONStream_NestedObject) {
-  TextBuffer tb(256);
-  JSONStream js(&tb);
-  js.OpenObject();
-  js.OpenObject("key");
-  js.PrintProperty("key1", "d");
-  js.CloseObject();
-  js.CloseObject();
-  EXPECT_STREQ("{\"key\":{\"key1\":\"d\"}}", tb.buf());
+  JSONStream js;
+  {
+    JSONObject jsobj(&js);
+    JSONObject jsobj1(jsobj, "key");
+    jsobj1.AddProperty("key1", "d");
+  }
+  EXPECT_STREQ("{\"key\":{\"key1\":\"d\"}}", js.ToCString());
 }
 
 
 TEST_CASE(JSON_JSONStream_ObjectArray) {
-  TextBuffer tb(256);
-  JSONStream js(&tb);
-  js.OpenArray();
-  js.OpenObject();
-  js.PrintProperty("key", "e");
-  js.CloseObject();
-  js.OpenObject();
-  js.PrintProperty("yek", "f");
-  js.CloseObject();
-  js.CloseArray();
-  EXPECT_STREQ("[{\"key\":\"e\"},{\"yek\":\"f\"}]", tb.buf());
+  JSONStream js;
+  {
+    JSONArray jsarr(&js);
+    {
+      JSONObject jsobj(jsarr);
+      jsobj.AddProperty("key", "e");
+    }
+    {
+      JSONObject jsobj(jsarr);
+      jsobj.AddProperty("yek", "f");
+    }
+  }
+  EXPECT_STREQ("[{\"key\":\"e\"},{\"yek\":\"f\"}]", js.ToCString());
 }
 
 
 TEST_CASE(JSON_JSONStream_ArrayArray) {
-  TextBuffer tb(256);
-  JSONStream js(&tb);
-  js.OpenArray();
-  js.OpenArray();
-  js.PrintValue((intptr_t)4);
-  js.CloseArray();
-  js.OpenArray();
-  js.PrintValueBool(false);
-  js.CloseArray();
-  js.CloseArray();
-  EXPECT_STREQ("[[4],[false]]", tb.buf());
+  JSONStream js;
+  {
+    JSONArray jsarr(&js);
+    {
+      JSONArray jsarr1(jsarr);
+      jsarr1.AddValue(static_cast<intptr_t>(4));
+    }
+    {
+      JSONArray jsarr1(jsarr);
+      jsarr1.AddValue(false);
+    }
+  }
+  EXPECT_STREQ("[[4],[false]]", js.ToCString());
 }
 
 
 TEST_CASE(JSON_JSONStream_Printf) {
-  TextBuffer tb(256);
-  JSONStream js(&tb);
-  js.OpenArray();
-  js.PrintfValue("%d %s", 2, "hello");
-  js.CloseArray();
-  EXPECT_STREQ("[\"2 hello\"]", tb.buf());
+  JSONStream js;
+  {
+    JSONArray jsarr(&js);
+    jsarr.AddValueF("%d %s", 2, "hello");
+  }
+  EXPECT_STREQ("[\"2 hello\"]", js.ToCString());
 }
 
 
 TEST_CASE(JSON_JSONStream_ObjectPrintf) {
-  TextBuffer tb(256);
-  JSONStream js(&tb);
-  js.OpenObject();
-  js.PrintfProperty("key", "%d %s", 2, "hello");
-  js.CloseObject();
-  EXPECT_STREQ("{\"key\":\"2 hello\"}", tb.buf());
+  JSONStream js;
+  {
+    JSONObject jsobj(&js);
+    jsobj.AddPropertyF("key", "%d %s", 2, "hello");
+  }
+  EXPECT_STREQ("{\"key\":\"2 hello\"}", js.ToCString());
 }
 
 
 TEST_CASE(JSON_JSONStream_DartObject) {
-  TextBuffer tb(256);
-  JSONStream js(&tb);
-  js.OpenArray();
-  js.PrintValue(Object::Handle(Object::null()));
-  js.OpenObject();
-  js.PrintProperty("object_key", Object::Handle(Object::null()));
-  js.CloseArray();
-  EXPECT_STREQ("[{\"type\":\"null\"},{\"object_key\":{\"type\":\"null\"}]",
-               tb.buf());
+  JSONStream js;
+  {
+    JSONArray jsarr(&js);
+    jsarr.AddValue(Object::Handle(Object::null()));
+    JSONObject jsobj(jsarr);
+    jsobj.AddProperty("object_key", Object::Handle(Object::null()));
+  }
+  EXPECT_STREQ("[{\"type\":\"null\"},{\"object_key\":{\"type\":\"null\"}}]",
+               js.ToCString());
 }
 
 TEST_CASE(JSON_JSONStream_EscapedString) {
-  TextBuffer tb(256);
-  JSONStream js(&tb);
-  js.PrintValue("Hel\"\"lo\r\n\t");
-  EXPECT_STREQ("\"Hel\\\"\\\"lo\\r\\n\\t\"", tb.buf());
+  JSONStream js;
+  {
+    JSONArray jsarr(&js);
+    jsarr.AddValue("Hel\"\"lo\r\n\t");
+  }
+  EXPECT_STREQ("[\"Hel\\\"\\\"lo\\r\\n\\t\"]", js.ToCString());
 }
 
 

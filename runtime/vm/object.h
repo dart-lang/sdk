@@ -126,6 +126,9 @@ class Symbols;
   /* with an object id is printed. If ref is false the object is fully   */    \
   /* printed.                                                            */    \
   virtual void PrintToJSONStream(JSONStream* stream, bool ref = true) const;   \
+  virtual const char* JSONType(bool ref) const {                               \
+    return ref ? "@"#object : ""#object;                                       \
+  }                                                                            \
   static const ClassId kClassId = k##object##Cid;                              \
  private:  /* NOLINT */                                                        \
   /* Initialize the handle based on the raw_ptr in the presence of null. */    \
@@ -254,16 +257,12 @@ class Object {
   }
 
   virtual void PrintToJSONStream(JSONStream* stream, bool ref = true) const {
-    if (IsNull()) {
-      stream->OpenObject();
-      stream->PrintProperty("type", "null");
-      stream->CloseObject();
-      return;
-    }
-    ASSERT(!IsNull());
-    stream->OpenObject();
-    stream->PrintProperty("type", "Object");
-    stream->CloseObject();
+    JSONObject jsobj(stream);
+    jsobj.AddProperty("type", JSONType(ref));
+  }
+
+  virtual const char* JSONType(bool ref) const {
+    return IsNull() ? "null" : "Object";
   }
 
   // Returns the name that is used to identify an object in the

@@ -158,44 +158,47 @@ void ObjectHistogram::PrintToJSONStream(JSONStream* stream) {
 
   intptr_t size_sum = 0;
   intptr_t count_sum = 0;
-  stream->OpenObject();
-  stream->PrintProperty("type", "ObjectHistogram");
-  stream->OpenArray("properties");
-  stream->PrintValue("size");
-  stream->PrintValue("count");
-  stream->CloseArray();
-  stream->OpenArray("members");
-  for (intptr_t pos = 0; pos < length; pos++) {
-    Element* e = array[pos];
-    if (e->count_ > 0) {
-      cls = isolate_->class_table()->At(e->class_id_);
-      str = cls.Name();
-      lib = cls.library();
-      stream->OpenObject();
-      stream->PrintProperty("type", "ObjectHistogramEntry");
-      // It should not be possible to overflow here because the total
-      // size of the heap is bounded and we are dividing the value
-      // by the number of major gcs that have occurred.
-      size_sum += (e->size_ / major_gc_count_);
-      count_sum += (e->count_ / major_gc_count_);
-      stream->PrintProperty("size", e->size_ / major_gc_count_);
-      stream->PrintProperty("count", e->count_ / major_gc_count_);
-      stream->PrintProperty("name", str.ToCString());
-      if (lib.IsNull()) {
-        stream->PrintProperty("category", "");
-      } else {
-        str = lib.url();
-        stream->PrintProperty("category", str.ToCString());
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", "ObjectHistogram");
+  {  // TODO(johnmccutchan): Why is this empty array needed here?
+    JSONArray jsarr(jsobj, "properties");
+    jsarr.AddValue("size");
+    jsarr.AddValue("count");
+  }
+  {
+    JSONArray jsarr(jsobj, "members");
+    for (intptr_t pos = 0; pos < length; pos++) {
+      Element* e = array[pos];
+      if (e->count_ > 0) {
+        cls = isolate_->class_table()->At(e->class_id_);
+        str = cls.Name();
+        lib = cls.library();
+        JSONObject jsobj(jsarr);
+        jsobj.AddProperty("type", "ObjectHistogramEntry");
+        // It should not be possible to overflow here because the total
+        // size of the heap is bounded and we are dividing the value
+        // by the number of major gcs that have occurred.
+        size_sum += (e->size_ / major_gc_count_);
+        count_sum += (e->count_ / major_gc_count_);
+        jsobj.AddProperty("size", e->size_ / major_gc_count_);
+        jsobj.AddProperty("count", e->count_ / major_gc_count_);
+        jsobj.AddProperty("class", cls, true);
+        jsobj.AddProperty("lib", lib, true);
+        // TODO(johnmccutchan): Update the UI to use the class and lib object
+        // properties above instead of name and category strings.
+        jsobj.AddProperty("name", str.ToCString());
+        if (lib.IsNull()) {
+          jsobj.AddProperty("category", "");
+        } else {
+          str = lib.url();
+          jsobj.AddProperty("category", str.ToCString());
+        }
       }
-      stream->CloseObject();
     }
   }
-  stream->CloseArray();
-  stream->OpenObject("sums");
-  stream->PrintProperty("size", size_sum);
-  stream->PrintProperty("count", count_sum);
-  stream->CloseObject();
-  stream->CloseObject();
+  JSONObject sums(jsobj, "sums");
+  sums.AddProperty("size", size_sum);
+  sums.AddProperty("count", count_sum);
 
   // Deallocate the array for sorting.
   free(array);

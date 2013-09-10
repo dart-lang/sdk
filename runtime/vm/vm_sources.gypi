@@ -87,6 +87,8 @@
     'constants_ia32.h',
     'constants_mips.h',
     'constants_x64.h',
+    'coverage.cc',
+    'coverage.h',
     'cpu.h',
     'cpu_arm.cc',
     'cpu_ia32.cc',

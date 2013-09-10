@@ -10,6 +10,7 @@
 #include "lib/mirrors.h"
 #include "vm/code_observers.h"
 #include "vm/compiler_stats.h"
+#include "vm/coverage.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
@@ -712,8 +713,6 @@ static void AddFunctionsFromClass(const Class& cls,
 
 void Isolate::PrintInvokedFunctions() {
   ASSERT(this == Isolate::Current());
-  StackZone zone(this);
-  HandleScope handle_scope(this);
   const GrowableObjectArray& libraries =
       GrowableObjectArray::Handle(object_store()->libraries());
   Library& library = Library::Handle();
@@ -758,51 +757,54 @@ void Isolate::Shutdown() {
   ASSERT(top_resource() == NULL);
   ASSERT((heap_ == NULL) || heap_->Verify());
 
-  if (FLAG_print_object_histogram) {
+  // Create an area where we do have a zone and a handle scope so that we can
+  // call VM functions while tearing this isolate down.
+  {
     StackZone stack_zone(this);
     HandleScope handle_scope(this);
-    heap()->CollectAllGarbage();
-    object_histogram()->Print();
+
+    if (FLAG_print_object_histogram) {
+      heap()->CollectAllGarbage();
+      object_histogram()->Print();
+    }
+
+    // Clean up debugger resources.
+    debugger()->Shutdown();
+
+    // Close all the ports owned by this isolate.
+    PortMap::ClosePorts(message_handler());
+
+    // Fail fast if anybody tries to post any more messsages to this isolate.
+    delete message_handler();
+    set_message_handler(NULL);
+
+    // Dump all accumalated timer data for the isolate.
+    timer_list_.ReportTimers();
+    if (FLAG_report_usage_count) {
+      PrintInvokedFunctions();
+    }
+
+    if (FLAG_print_coverage) {
+      CodeCoverage::Print(this);
+    }
+
+    // Finalize any weak persistent handles with a non-null referent.
+    FinalizeWeakPersistentHandlesVisitor visitor;
+    api_state()->weak_persistent_handles().VisitHandles(&visitor);
+
+    CompilerStats::Print();
+    // TODO(asiva): Move this code to Dart::Cleanup when we have that method
+    // as the cleanup for Dart::InitOnce.
+    CodeObservers::DeleteAll();
+    if (FLAG_trace_isolates) {
+      heap()->PrintSizes();
+      megamorphic_cache_table()->PrintSizes();
+      Symbols::DumpStats();
+      OS::Print("[-] Stopping isolate:\n"
+                "\tisolate:    %s\n", name());
+    }
   }
 
-  // Clean up debugger resources. Shutting down the debugger
-  // requires a handle zone. We must set up a temporary zone because
-  // Isolate::Shutdown is called without a zone.
-  {
-    StackZone zone(this);
-    HandleScope handle_scope(this);
-    debugger_->Shutdown();
-  }
-
-  // Close all the ports owned by this isolate.
-  PortMap::ClosePorts(message_handler());
-
-  // Fail fast if anybody tries to post any more messsages to this isolate.
-  delete message_handler();
-  set_message_handler(NULL);
-
-  // Finalize any weak persistent handles with a non-null referent.
-  FinalizeWeakPersistentHandlesVisitor visitor;
-  api_state()->weak_persistent_handles().VisitHandles(&visitor);
-
-  // Dump all accumalated timer data for the isolate.
-  timer_list_.ReportTimers();
-  if (FLAG_report_usage_count) {
-    PrintInvokedFunctions();
-  }
-  CompilerStats::Print();
-  // TODO(asiva): Move this code to Dart::Cleanup when we have that method
-  // as the cleanup for Dart::InitOnce.
-  CodeObservers::DeleteAll();
-  if (FLAG_trace_isolates) {
-    StackZone zone(this);
-    HandleScope handle_scope(this);
-    heap()->PrintSizes();
-    megamorphic_cache_table()->PrintSizes();
-    Symbols::DumpStats();
-    OS::Print("[-] Stopping isolate:\n"
-              "\tisolate:    %s\n", name());
-  }
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   SetCurrent(NULL);
