@@ -85,7 +85,7 @@ class SourceWriter {
   final String lineSeparator;
   int indentCount = 0;
 
-  SourceWriter({this.indentCount: 0, this.lineSeparator: '\n'}) {
+  SourceWriter({this.indentCount: 0, this.lineSeparator: NEW_LINE}) {
     currentLine = new Line(indent: indentCount);
   }
 
@@ -139,7 +139,7 @@ class SourceWriter {
 
 }
 
-
+const NEW_LINE = '\n';
 const SPACE = ' ';
 const SPACES = const [
           '',

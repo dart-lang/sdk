@@ -18,14 +18,14 @@ final argParser = _initArgParser();
 
 bool overwriteFileContents;
 
-void main() {
+main() {
   var options = argParser.parse(new Options().arguments);
   if (options['help']) {
     _printUsage();
     return;
   }
   overwriteFileContents = options['write'];
-  
+
   if (options.rest.isEmpty) {
     _formatStdin(options);
   } else {
@@ -51,10 +51,10 @@ _formatResource(resource) {
   }
 }
 
-_formatDirectory(dir) => 
+_formatDirectory(dir) =>
     dir.listSync().forEach((resource) => _formatResource(resource));
 
-void _formatFile(file) {
+_formatFile(file) {
   if (_isDartFile(file)) {
     try {
       var buffer = new StringBuffer();
@@ -66,7 +66,7 @@ void _formatFile(file) {
         print(formatted);
       }
     } catch (e) {
-      _log('Error formatting "${file.path}": $e');
+      _log('Unable to format "${file.path}": $e');
     }
   }
 }

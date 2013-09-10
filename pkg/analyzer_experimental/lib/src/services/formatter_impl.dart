@@ -12,9 +12,6 @@ import 'package:analyzer_experimental/src/generated/scanner.dart';
 import 'package:analyzer_experimental/src/generated/source.dart';
 import 'package:analyzer_experimental/src/services/writer.dart';
 
-/// OS line separator. --- TODO(pquitslund): may not be necessary
-const NEW_LINE = '\n' ; //Platform.pathSeparator;
-
 /// Formatter options.
 class FormatterOptions {
 
@@ -43,13 +40,19 @@ class FormatterException implements Exception {
   final String message;
 
   /// Creates a new FormatterException with an optional error [message].
-  const FormatterException([this.message = '']);
+  const FormatterException([this.message = 'FormatterException']);
 
-  FormatterException.forError(List<AnalysisError> errors) :
-    // TODO(pquitslund): add descriptive message based on errors
-    message = 'an analysis error occured during format';
+  FormatterException.forError(List<AnalysisError> errors, [LineInfo line]) :
+    message = _createMessage(errors);
 
-  String toString() => 'FormatterException: $message';
+  static String _createMessage(errors) {
+    //TODO(pquitslund): consider a verbosity flag to add/suppress details
+    var errorCode = errors[0].errorCode;
+    var phase = errorCode is ParserErrorCode ? 'parsing' : 'scanning';
+    return 'An error occured while ${phase} (${errorCode.name}).';
+  }
+
+  String toString() => '$message';
 }
 
 /// Specifies the kind of code snippet to format.
@@ -84,6 +87,7 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 
   final FormatterOptions options;
   final errors = <AnalysisError>[];
+  final whitespace = new RegExp(r'[\s]+');
 
   LineInfo lineInfo;
 
@@ -92,17 +96,24 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
   String format(CodeKind kind, String source, {int offset, int end,
       int indentationLevel: 0}) {
 
-    var start = tokenize(source);
+    var startToken = tokenize(source);
     checkForErrors();
 
-    var node = parse(kind, start);
+    var node = parse(kind, startToken);
     checkForErrors();
 
     var formatter = new SourceVisitor(options, lineInfo);
     node.accept(formatter);
 
-    return formatter.writer.toString();
+    var formattedSource = formatter.writer.toString();
+    
+    checkTokenStreams(startToken, tokenize(formattedSource));
+
+    return formattedSource;
   }
+
+  checkTokenStreams(Token t1, Token t2) =>
+      new TokenStreamComparator(lineInfo, t1, t2).verifyEquals();
 
   ASTNode parse(CodeKind kind, Token start) {
 
@@ -118,13 +129,13 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
     throw new FormatterException('Unsupported format kind: $kind');
   }
 
-  void checkForErrors() {
+  checkForErrors() {
     if (errors.length > 0) {
       throw new FormatterException.forError(errors);
     }
   }
 
-  void onError(AnalysisError error) {
+  onError(AnalysisError error) {
     errors.add(error);
   }
 
@@ -137,6 +148,123 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 
 }
 
+
+// Compares two token streams.  Used for sanity checking formatted results.
+class TokenStreamComparator {
+
+  final LineInfo lineInfo;
+  Token token1, token2;
+
+  TokenStreamComparator(this.lineInfo, this.token1, this.token2);
+
+  /// Verify that these two token streams are equal.
+  verifyEquals() {
+    while (!isEOF(token1)) {
+      checkPrecedingComments();
+      if (!checkTokens()) {
+        throwNotEqualException(token1, token2);
+      }
+      advance();
+
+    }
+    if (!isEOF(token2)) {
+      throw new FormatterException(
+          'Expected "EOF" but got "${token2}".');
+    }
+  }
+
+  checkPrecedingComments() {
+    var comment1 = token1.precedingComments;
+    var comment2 = token2.precedingComments;
+    while (comment1 != null) {
+      if (comment2 == null) {
+        throw new FormatterException(
+            'Expected comment, "${comment1}", at ${describeLocation(token1)}, '
+            'but got none.');
+      }
+      if (!equivalentComments(comment1, comment2)) {
+        throwNotEqualException(comment1, comment2);
+      }
+      comment1 = comment1.next;
+      comment2 = comment2.next;
+    }
+    if (comment2 != null) {
+      throw new FormatterException(
+          'Unexpected comment, "${comment2}", at ${describeLocation(token2)}.');
+    }
+  }
+
+  bool equivalentComments(Token comment1, Token comment2) =>
+      comment1.lexeme.trim() == comment2.lexeme.trim();
+
+  throwNotEqualException(t1, t2) {
+    throw new FormatterException(
+        'Expected "${t1}" but got "${t2}", at ${describeLocation(t1)}.');
+  }
+
+  String describeLocation(Token token) => lineInfo == null ? '<unknown>' :
+      'Line: ${lineInfo.getLocation(token.offset).lineNumber}, '
+      'Column: ${lineInfo.getLocation(token.offset).columnNumber}';
+
+  advance() {
+    token1 = token1.next;
+    token2 = token2.next;
+  }
+
+  bool checkTokens() {
+    if (token1 == null || token2 == null) {
+      return false;
+    }
+    if (token1 == token2 || token1.lexeme == token2.lexeme) {
+      return true;
+    }
+
+    // '[' ']' => '[]'
+    if (isOPEN_SQ_BRACKET(token1) && isCLOSE_SQUARE_BRACKET(token1.next)) {
+      if (isINDEX(token2)) {
+        token1 = token1.next;
+        return true;
+      }
+    }
+    // '>' '>' => '>>'
+    if (isGT(token1) && isGT(token1.next)) {
+      if (isGT_GT(token2)) {
+        token1 = token1.next;
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+}
+
+// Cached parser for testing token types.
+final tokenTester = new Parser(null,null);
+
+/// Test if this token is an EOF token.
+bool isEOF(Token token) => tokenIs(token, TokenType.EOF);
+
+/// Test for token type.
+bool tokenIs(Token token, TokenType type) => 
+    token != null && tokenTester.matches4(token, type);
+
+/// Test if this token is a GT token.
+bool isGT(Token token) => tokenIs(token, TokenType.GT);
+
+/// Test if this token is a GT_GT token.
+bool isGT_GT(Token token) => tokenIs(token, TokenType.GT_GT);
+
+/// Test if this token is an INDEX token.
+bool isINDEX(Token token) => tokenIs(token, TokenType.INDEX);
+
+/// Test if this token is a OPEN_SQUARE_BRACKET token.
+bool isOPEN_SQ_BRACKET(Token token) =>
+    tokenIs(token, TokenType.OPEN_SQUARE_BRACKET);
+
+/// Test if this token is a CLOSE_SQUARE_BRACKET token.
+bool isCLOSE_SQUARE_BRACKET(Token token) =>
+    tokenIs(token, TokenType.CLOSE_SQUARE_BRACKET);
 
 /// An AST visitor that drives formatting heuristics.
 class SourceVisitor implements ASTVisitor {
@@ -155,7 +283,7 @@ class SourceVisitor implements ASTVisitor {
 
   /// Used for matching EOL comments
   final twoSlashes = new RegExp(r'//[^/]');
-  
+
   /// Initialize a newly created visitor to write source code representing
   /// the visited nodes to the given [writer].
   SourceVisitor(FormatterOptions options, this.lineInfo) :
@@ -1089,30 +1217,30 @@ class SourceVisitor implements ASTVisitor {
     writer.unindent();
   }
 
-  
-  /// Emit any detected comments and newlines or a minimum as specified 
+
+  /// Emit any detected comments and newlines or a minimum as specified
   /// by [min].
   int emitPrecedingCommentsAndNewlines(Token token, {min: 0}) {
-    
+
     var comment = token.precedingComments;
     var currentToken = comment != null ? comment : token;
-    
+
     //Handle EOLs before newlines
     if (isAtEOL(comment)) {
       emitComment(comment, previousToken);
       comment = comment.next;
       currentToken = comment != null ? comment : token;
     }
-    
+
     var lines = max(min, countNewlinesBetween(previousToken, currentToken));
     writer.newlines(lines);
-    
+
     var previousToken = currentToken.previous;
-    
+
     while (comment != null) {
 
       emitComment(comment, previousToken);
-      
+
       var nextToken = comment.next != null ? comment.next : token;
       var newlines = calculateNewlinesBetweenComments(comment, nextToken);
       if (newlines > 0) {
@@ -1121,7 +1249,7 @@ class SourceVisitor implements ASTVisitor {
       } else if (!isEOF(token)) {
         space();
       }
-      
+
       previousToken = comment;
       comment = comment.next;
     }
@@ -1131,8 +1259,8 @@ class SourceVisitor implements ASTVisitor {
   }
 
   /// Test if this [comment] is at the end of a line.
-  bool isAtEOL(Token comment) => 
-      comment != null && comment.toString().trim().startsWith(twoSlashes) && 
+  bool isAtEOL(Token comment) =>
+      comment != null && comment.toString().trim().startsWith(twoSlashes) &&
       sameLine(comment, previousToken);
 
   /// Emit this [comment], inserting leading whitespace if appropriate.
@@ -1144,17 +1272,14 @@ class SourceVisitor implements ASTVisitor {
         space();
       }
     }
-    
+
     append(comment.toString().trim());
   }
 
-  /// Test if this token is an EOF token.
-  bool isEOF(Token token) => token.type == TokenType.EOF;
-  
   /// Count spaces between these tokens.  Tokens on different lines return 0.
-  int countSpacesBetween(Token last, Token current) => isEOF(last) || 
-      countNewlinesBetween(last, current) > 0 ? 0 : current.offset - last.end;  
-     
+  int countSpacesBetween(Token last, Token current) => isEOF(last) ||
+      countNewlinesBetween(last, current) > 0 ? 0 : current.offset - last.end;
+
   /// Count the blanks between these two nodes.
   int countBlankLinesBetween(ASTNode lastNode, ASTNode currentNode) =>
       countNewlinesBetween(lastNode.endToken, currentNode.beginToken);
@@ -1175,37 +1300,37 @@ class SourceVisitor implements ASTVisitor {
 
     return linesBetween(last.end - 1, current.offset);
   }
-  
+
   /// Calculate the newlines that should separate these comments.
   int calculateNewlinesBetweenComments(Token last, Token current) {
     // Insist on a newline after doc comments or single line comments
     // (NOTE that EOL comments have already been processed).
     if (isOldSingleLineDocComment(last) || isSingleLineComment(last)) {
-      return max(1, countNewlinesBetween(last, current)); 
+      return max(1, countNewlinesBetween(last, current));
     } else {
       return countNewlinesBetween(last, current);
     }
   }
-  
+
   /// Single line multi-line comments (e.g., '/** like this */').
   bool isOldSingleLineDocComment(Token comment) =>
       comment.lexeme.startsWith(r'/**') && singleLine(comment);
-  
+
   /// Test if this [token] spans just one line.
   bool singleLine(Token token) => linesBetween(token.offset, token.end) < 1;
 
   /// Test if token [first] is on the same line as [second].
   bool sameLine(Token first, Token second) =>
       countNewlinesBetween(first, second) == 0;
-   
+
   /// Test if this is a multi-line [comment] (e.g., '/* ...' or '/** ...')
-  bool isMultiLineComment(Token comment) => 
+  bool isMultiLineComment(Token comment) =>
       comment.type == TokenType.MULTI_LINE_COMMENT;
-  
+
   /// Test if this is a single-line [comment] (e.g., '// ...')
-  bool isSingleLineComment(Token comment) => 
+  bool isSingleLineComment(Token comment) =>
       comment.type == TokenType.SINGLE_LINE_COMMENT;
-  
+
   /// Test if this [comment] is a block comment (e.g., '/* like this */')..
   bool isBlock(Token comment) =>
       isMultiLineComment(comment) && singleLine(comment);
