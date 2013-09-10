@@ -85,10 +85,10 @@ class JSONObject : public ValueObject {
   explicit JSONObject(JSONStream* stream) : stream_(stream) {
     stream_->OpenObject();
   }
-  JSONObject(const JSONObject& obj, const char* name) : stream_(obj.stream_) {
+  JSONObject(const JSONObject* obj, const char* name) : stream_(obj->stream_) {
     stream_->OpenObject(name);
   }
-  explicit JSONObject(const JSONArray& arr);
+  explicit JSONObject(const JSONArray* arr);
 
   ~JSONObject() {
     stream_->CloseObject();
@@ -113,6 +113,9 @@ class JSONObject : public ValueObject {
   JSONStream* stream_;
 
   friend class JSONArray;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(JSONObject);
 };
 
 
@@ -121,10 +124,10 @@ class JSONArray : public ValueObject {
   explicit JSONArray(JSONStream* stream) : stream_(stream) {
     stream_->OpenArray();
   }
-  JSONArray(const JSONObject& obj, const char* name) : stream_(obj.stream_) {
+  JSONArray(const JSONObject* obj, const char* name) : stream_(obj->stream_) {
     stream_->OpenArray(name);
   }
-  explicit JSONArray(const JSONArray& arr) : stream_(arr.stream_) {
+  explicit JSONArray(const JSONArray* arr) : stream_(arr->stream_) {
     stream_->OpenArray();
   }
   ~JSONArray() {
@@ -144,6 +147,9 @@ class JSONArray : public ValueObject {
   JSONStream* stream_;
 
   friend class JSONObject;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(JSONArray);
 };
 
 }  // namespace dart

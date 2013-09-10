@@ -161,19 +161,19 @@ void ObjectHistogram::PrintToJSONStream(JSONStream* stream) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "ObjectHistogram");
   {  // TODO(johnmccutchan): Why is this empty array needed here?
-    JSONArray jsarr(jsobj, "properties");
+    JSONArray jsarr(&jsobj, "properties");
     jsarr.AddValue("size");
     jsarr.AddValue("count");
   }
   {
-    JSONArray jsarr(jsobj, "members");
+    JSONArray jsarr(&jsobj, "members");
     for (intptr_t pos = 0; pos < length; pos++) {
       Element* e = array[pos];
       if (e->count_ > 0) {
         cls = isolate_->class_table()->At(e->class_id_);
         str = cls.Name();
         lib = cls.library();
-        JSONObject jsobj(jsarr);
+        JSONObject jsobj(&jsarr);
         jsobj.AddProperty("type", "ObjectHistogramEntry");
         // It should not be possible to overflow here because the total
         // size of the heap is bounded and we are dividing the value
@@ -196,7 +196,7 @@ void ObjectHistogram::PrintToJSONStream(JSONStream* stream) {
       }
     }
   }
-  JSONObject sums(jsobj, "sums");
+  JSONObject sums(&jsobj, "sums");
   sums.AddProperty("size", size_sum);
   sums.AddProperty("count", count_sum);
 

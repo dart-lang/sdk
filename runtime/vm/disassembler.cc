@@ -44,7 +44,7 @@ void DisassembleToJSONStream::ConsumeInstruction(char* hex_buffer,
                                                  intptr_t human_size,
                                                  uword pc) {
   uint8_t* pc_ptr = reinterpret_cast<uint8_t*>(pc);
-  JSONObject jsobj(jsarr_);
+  JSONObject jsobj(&jsarr_);
   jsobj.AddProperty("type", "DisassembledInstruction");
   jsobj.AddPropertyF("pc", "%p", pc_ptr);
   jsobj.AddProperty("hex", hex_buffer);
@@ -67,7 +67,7 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
       p[i] = ' ';
     }
   }
-  JSONObject jsobj(jsarr_);
+  JSONObject jsobj(&jsarr_);
   jsobj.AddProperty("type", "DisassembledInstructionComment");
   jsobj.AddProperty("comment", p);
   free(p);

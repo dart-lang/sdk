@@ -118,21 +118,21 @@ void Service::HandleServiceMessage(Isolate* isolate, Dart_Port reply_port,
 
 
 static void PrintArgumentsAndOptions(const JSONObject& obj, JSONStream* js) {
-  JSONObject jsobj(obj, "message");
+  JSONObject jsobj(&obj, "message");
   {
-    JSONArray jsarr(jsobj, "arguments");
+    JSONArray jsarr(&jsobj, "arguments");
     for (intptr_t i = 0; i < js->num_arguments(); i++) {
       jsarr.AddValue(js->GetArgument(i));
     }
   }
   {
-    JSONArray jsarr(jsobj, "option_keys");
+    JSONArray jsarr(&jsobj, "option_keys");
     for (intptr_t i = 0; i < js->num_options(); i++) {
       jsarr.AddValue(js->GetOptionKey(i));
     }
   }
   {
-    JSONArray jsarr(jsobj, "option_values");
+    JSONArray jsarr(&jsobj, "option_values");
     for (intptr_t i = 0; i < js->num_options(); i++) {
       jsarr.AddValue(js->GetOptionValue(i));
     }
@@ -161,7 +161,7 @@ static void HandleStackTrace(Isolate* isolate, JSONStream* js) {
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "StackTrace");
-  JSONArray jsarr(jsobj, "members");
+  JSONArray jsarr(&jsobj, "members");
   intptr_t n_frames = stack->Length();
   String& url = String::Handle();
   String& function = String::Handle();
@@ -169,7 +169,7 @@ static void HandleStackTrace(Isolate* isolate, JSONStream* js) {
     ActivationFrame* frame = stack->FrameAt(i);
     url ^= frame->SourceUrl();
     function ^= frame->function().UserVisibleName();
-    JSONObject jsobj(jsarr);
+    JSONObject jsobj(&jsarr);
     jsobj.AddProperty("name", function.ToCString());
     jsobj.AddProperty("url", url.ToCString());
     jsobj.AddProperty("line", frame->LineNumber());

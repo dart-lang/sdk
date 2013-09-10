@@ -7432,7 +7432,7 @@ void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
   if (ref) return;
   jsobj.AddProperty("url", library_url);
   {
-    JSONArray jsarr(jsobj, "classes");
+    JSONArray jsarr(&jsobj, "classes");
     ClassDictionaryIterator class_iter(*this);
     Class& klass = Class::Handle();
     while (class_iter.HasNext()) {
@@ -7441,7 +7441,7 @@ void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
     }
   }
   {
-    JSONArray jsarr(jsobj, "libraries");
+    JSONArray jsarr(&jsobj, "libraries");
     Library& lib = Library::Handle();
     for (intptr_t i = 0; i < num_imports(); i++) {
       lib = ImportLibraryAt(i);
@@ -8938,7 +8938,7 @@ void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("is_optimized", is_optimized());
   jsobj.AddProperty("is_alive", is_alive());
   jsobj.AddProperty("function", Object::Handle(function()));
-  JSONArray jsarr(jsobj, "disassembly");
+  JSONArray jsarr(&jsobj, "disassembly");
   DisassembleToJSONStream formatter(jsarr);
   const Instructions& instr = Instructions::Handle(instructions());
   uword start = instr.EntryPoint();

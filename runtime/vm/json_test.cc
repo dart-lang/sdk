@@ -229,7 +229,7 @@ TEST_CASE(JSON_JSONStream_NestedObject) {
   JSONStream js;
   {
     JSONObject jsobj(&js);
-    JSONObject jsobj1(jsobj, "key");
+    JSONObject jsobj1(&jsobj, "key");
     jsobj1.AddProperty("key1", "d");
   }
   EXPECT_STREQ("{\"key\":{\"key1\":\"d\"}}", js.ToCString());
@@ -241,11 +241,11 @@ TEST_CASE(JSON_JSONStream_ObjectArray) {
   {
     JSONArray jsarr(&js);
     {
-      JSONObject jsobj(jsarr);
+      JSONObject jsobj(&jsarr);
       jsobj.AddProperty("key", "e");
     }
     {
-      JSONObject jsobj(jsarr);
+      JSONObject jsobj(&jsarr);
       jsobj.AddProperty("yek", "f");
     }
   }
@@ -258,11 +258,11 @@ TEST_CASE(JSON_JSONStream_ArrayArray) {
   {
     JSONArray jsarr(&js);
     {
-      JSONArray jsarr1(jsarr);
+      JSONArray jsarr1(&jsarr);
       jsarr1.AddValue(static_cast<intptr_t>(4));
     }
     {
-      JSONArray jsarr1(jsarr);
+      JSONArray jsarr1(&jsarr);
       jsarr1.AddValue(false);
     }
   }
@@ -295,7 +295,7 @@ TEST_CASE(JSON_JSONStream_DartObject) {
   {
     JSONArray jsarr(&js);
     jsarr.AddValue(Object::Handle(Object::null()));
-    JSONObject jsobj(jsarr);
+    JSONObject jsobj(&jsarr);
     jsobj.AddProperty("object_key", Object::Handle(Object::null()));
   }
   EXPECT_STREQ("[{\"type\":\"null\"},{\"object_key\":{\"type\":\"null\"}}]",

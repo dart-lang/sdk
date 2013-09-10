@@ -27,7 +27,7 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
   for (int i = 0; i < functions.Length(); i++) {
     function ^= functions.At(i);
     if (function.HasCode()) {
-      JSONObject jsobj(jsarr);
+      JSONObject jsobj(&jsarr);
 
       script = function.script();
       url = script.url();
@@ -39,7 +39,7 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
       ic_array = code.ExtractTypeFeedbackArray();
       descriptors = code.pc_descriptors();
 
-      JSONArray jsarr(jsobj, "hits");
+      JSONArray jsarr(&jsobj, "hits");
       for (int j = 0; j < descriptors.Length(); j++) {
         PcDescriptors::Kind kind = descriptors.DescriptorKind(j);
         // Only IC based calls have counting.
@@ -52,7 +52,7 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
             intptr_t line = -1;
             intptr_t col = -1;
             script.GetTokenLocation(token_pos, &line, &col);
-            JSONObject ic_info(jsarr);
+            JSONObject ic_info(&jsarr);
             ic_info.AddProperty("line", line);
             ic_info.AddProperty("col", col);
             ic_info.AddProperty("count", ic_data.AggregateCount());

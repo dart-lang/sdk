@@ -205,7 +205,7 @@ bool JSONStream::NeedComma() {
 }
 
 
-JSONObject::JSONObject(const JSONArray& arr) : stream_(arr.stream_) {
+JSONObject::JSONObject(const JSONArray* arr) : stream_(arr->stream_) {
   stream_->OpenObject();
 }
 
