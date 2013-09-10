@@ -799,6 +799,7 @@ class SourceVisitor implements ASTVisitor {
     visit(node.typeArguments);
     token(node.leftBracket);
     visitNodes(node.elements, separatedBy: commaSeperator);
+    optionalTrailingComma(node.rightBracket);
     token(node.rightBracket);
   }
 
@@ -807,9 +808,10 @@ class SourceVisitor implements ASTVisitor {
     visitNode(node.typeArguments, followedBy: space);
     token(node.leftBracket);
     visitNodes(node.entries, separatedBy: commaSeperator);
+    optionalTrailingComma(node.rightBracket);
     token(node.rightBracket);
   }
-
+  
   visitMapLiteralEntry(MapLiteralEntry node) {
     visit(node.key);
     token(node.separator);
@@ -1153,13 +1155,19 @@ class SourceVisitor implements ASTVisitor {
     token(modifier, followedBy: space);
   }
 
-
   /// Indicate that at least one newline should be emitted and possibly more
   /// if the source has them.
   newlines() {
     needsNewline = true;
   }
 
+  /// Optionally emit a trailing comma.
+  optionalTrailingComma(Token rightBracket) {
+    if (rightBracket.previous.lexeme == ',') {
+      comma();
+    }
+  }
+  
   token(Token token, {precededBy(), followedBy(), int minNewlines: 0}) {
     if (token != null) {
       if (needsNewline) {
@@ -1169,7 +1177,7 @@ class SourceVisitor implements ASTVisitor {
       if (emitted > 0) {
         needsNewline = false;
       }
-      if (precededBy !=null) {
+      if (precededBy != null) {
         precededBy();
       }
       append(token.lexeme);

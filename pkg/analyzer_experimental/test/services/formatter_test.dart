@@ -671,11 +671,29 @@ main() {
         'var numbers = <int>[1, 2, (3 + 4)];'
       );
     });
+    
+    test('stmt (lists)', () {
+      expectStmtFormatsTo(
+        'var l = [1,2,3,4];',
+        'var l = [1, 2, 3, 4];'
+      );
+      //Dangling ','
+      expectStmtFormatsTo(
+        'var l = [1,];',
+        'var l = [1,];'
+      );
+    });
 
     test('stmt (maps)', () {
       expectStmtFormatsTo(
         'var map = const {"foo": "bar", "fuz": null};',
         'var map = const {"foo": "bar", "fuz": null};'
+      );
+      
+      //Dangling ','
+      expectStmtFormatsTo(
+        'var map = {"foo": "bar",};',
+        'var map = {"foo": "bar",};'
       );
     });
 
