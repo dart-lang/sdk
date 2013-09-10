@@ -108,8 +108,6 @@ getter_no_setter_test/01: Fail # Issue 5519
 not_enough_positional_arguments_test/01: Fail # Issue 12838
 not_enough_positional_arguments_test/02: Fail # Issue 12838
 not_enough_positional_arguments_test/05: Fail # Issue 12838
-dynamic_test: Fail # Issue 12398
-dynamic_prefix_core_test: Fail # Issue 12398
 metadata_test: Fail # Issue 5841
 infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # Issue 12795

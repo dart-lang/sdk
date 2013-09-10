@@ -19,9 +19,11 @@ main() {
   Expect.equals(int, int);
   Expect.notEquals(int, num);
   Expect.equals(Foo, Foo);
+  Expect.equals(dynamic, dynamic);
 
   // Test that class literals return instances of Type.
   Expect.isTrue((D).runtimeType is Type);
+  Expect.isTrue((dynamic).runtimeType is Type);
 
   // Test that types from runtimeType and literals agree.
   Expect.equals(int, 1.runtimeType);
@@ -40,4 +42,11 @@ main() {
   Expect.throws(() => C + 1, (e) => e is NoSuchMethodError);
   Expect.throws(() => C[2], (e) => e is NoSuchMethodError);
   Expect.throws(() => C[2] = 'hest', (e) => e is NoSuchMethodError);
+  Expect.throws(() => dynamic = 1, (e) => e is NoSuchMethodError);
+  Expect.throws(() => dynamic++, (e) => e is NoSuchMethodError);
+  Expect.throws(() => dynamic + 1, (e) => e is NoSuchMethodError);
+  Expect.throws(() => dynamic[2], (e) => e is NoSuchMethodError);
+  Expect.throws(() => dynamic[2] = 'hest', (e) => e is NoSuchMethodError);
+
+  Expect.equals((dynamic).toString(), 'dynamic');
 }

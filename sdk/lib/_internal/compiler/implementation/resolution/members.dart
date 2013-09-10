@@ -1751,8 +1751,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   ResolutionEnqueuer get world => compiler.enqueuer.resolution;
 
-  Element lookup(Node node, SourceString name) {
-    Element result = scope.lookup(name);
+  Element reportLookupErrorIfAny(Element result, Node node, SourceString name) {
     if (!Elements.isUnresolved(result)) {
       if (!inInstanceContext && result.isInstanceMember()) {
         compiler.reportError(
@@ -1828,7 +1827,12 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
       return null;
     } else {
-      Element element = lookup(node, node.source);
+      SourceString name = node.source;
+      Element element = scope.lookup(name);
+      if (Elements.isUnresolved(element) && name.slowToString() == 'dynamic') {
+        element = compiler.dynamicClass;
+      }
+      element = reportLookupErrorIfAny(element, node, node.source);
       if (element == null) {
         if (!inInstanceContext) {
           element = warnAndCreateErroneousElement(
@@ -4140,7 +4144,8 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
 
   Element visitIdentifier(Identifier node) {
     SourceString name = node.source;
-    Element e = resolver.lookup(node, name);
+    Element e = resolver.reportLookupErrorIfAny(
+        resolver.scope.lookup(name), node, name);
     // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
     if (e == null) {
       return failOrReturnErroneousElement(resolver.enclosingElement, node, name,
