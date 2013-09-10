@@ -23,7 +23,6 @@ third_party/html5lib/test/browser/browser_test: Skip
 
 [ $compiler == dart2js ]
 analyzer_experimental/test/generated/ast_test: Fail #Issue 12341
-polymer/example/component: Fail # Issue 13198
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
@@ -113,6 +112,7 @@ unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
+polymer/example/component: Fail # Issue 13198
 
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
