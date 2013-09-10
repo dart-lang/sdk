@@ -103,6 +103,9 @@ class JSONObject : public ValueObject {
   void AddProperty(const char* name, double d) const {
     stream_->PrintProperty(name, d);
   }
+  void AddProperty(const char* name, const char* s) const {
+    stream_->PrintProperty(name, s);
+  }
   void AddProperty(const char* name, const Object& obj, bool ref = true) const {
     stream_->PrintProperty(name, obj, ref);
   }

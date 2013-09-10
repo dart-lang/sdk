@@ -7,9 +7,6 @@
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
 
-vmservice/*: Skip # Temporarily disabled.
-
-
 # The testing infrastructure is using the dart:io Path and LineTransformer
 # classes.
 io/skipping_dart2js_compilations_test: Skip # http/dartbug.com/12449
