@@ -106,8 +106,6 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Issue 12029
 async/deferred/deferred_api_test: Pass, Timeout # http://dartbug.com/12635
 convert/streamed_conversion_utf8_decode_test: Pass, Timeout # http://dartbug.com/12768
 
-[ $compiler == dart2js ]
-typed_data/typed_data_hierarchy_int64_test: Fail # Issue 10275
 
 [ $runtime == opera ]
 async/multiple_timer_test: Pass, Fail
