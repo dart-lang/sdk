@@ -17,6 +17,7 @@ final dartFileRegExp = new RegExp(r'^[^.].*\.dart$', caseSensitive: false);
 final argParser = _initArgParser();
 
 bool overwriteFileContents;
+const followLinks = false;
 
 main() {
   var options = argParser.parse(new Options().arguments);
@@ -51,8 +52,8 @@ _formatResource(resource) {
   }
 }
 
-_formatDirectory(dir) =>
-    dir.listSync().forEach((resource) => _formatResource(resource));
+_formatDirectory(dir) => dir.listSync(followLinks: followLinks)
+    .forEach((resource) => _formatResource(resource));
 
 _formatFile(file) {
   if (_isDartFile(file)) {
