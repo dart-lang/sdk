@@ -124,7 +124,7 @@ class JSONArray : public ValueObject {
   JSONArray(const JSONObject& obj, const char* name) : stream_(obj.stream_) {
     stream_->OpenArray(name);
   }
-  JSONArray(const JSONArray& arr) : stream_(arr.stream_) {
+  explicit JSONArray(const JSONArray& arr) : stream_(arr.stream_) {
     stream_->OpenArray();
   }
   ~JSONArray() {
