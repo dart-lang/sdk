@@ -180,3 +180,10 @@ LibTest/typed_data/Float32x4List/singleWhere_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/skip_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/take_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/take_A02_t01: Fail # Dart issue 12861
+
+[ $compiler == none && $runtime == vm && $system == windows ]
+Language/15_Types/4_Interface_Types_A11_t01: pass, timeout # co19-roll r576: Please triage this failure
+Language/15_Types/4_Interface_Types_A11_t02: pass, timeout # co19-roll r576: Please triage this failure
+LibTest/core/Uri/toFilePath_A02_t01: fail # co19-roll r576: Please triage this failure
+LibTest/core/Uri/Uri.file_A01_t01: fail # co19-roll r576: Please triage this failure
+

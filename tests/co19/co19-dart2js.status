@@ -30,7 +30,6 @@ LibTest/core/List/sort_A01_t04: Pass, Slow # http://dartbug.com/11846
 LibTest/math/pow_A13_t01: FAIL, OK # co19 issue 507
 LibTest/math/pow_A18_t01: FAIL, OK # co19 issue 507
 
-LibTest/typed_data/ByteData/ByteData_A02_t01: fail # co19-roll r576: Please triage this failure
 LibTest/typed_data/ByteData/getFloat32_A02_t02: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/getFloat64_A02_t02: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/getInt16_A02_t02: fail # co19-roll r569: Please triage this failure
@@ -57,6 +56,9 @@ LibTest/typed_data/Uint16List/Uint16List_A02_t01: fail # co19-roll r576: Please 
 LibTest/typed_data/Uint32List/Uint32List_A02_t01: fail # co19-roll r576: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/Uint8ClampedList_A02_t01: fail # co19-roll r576: Please triage this failure
 LibTest/typed_data/Uint8List/Uint8List_A02_t01: fail # co19-roll r576: Please triage this failure
+
+[ $compiler == dart2js && $runtime != ie9 ]
+LibTest/typed_data/ByteData/ByteData_A02_t01: fail # co19-roll r576: Please triage this failure
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/isolate/SendPort/send_A02_t05: Fail, Pass # TODO(ahe): Please triage this failure.
