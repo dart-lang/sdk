@@ -509,28 +509,42 @@ class _File extends FileSystemEntity implements File {
     return builder.takeBytes();
   }
 
+  String _tryDecode(List<int> bytes, Encoding encoding) {
+    try {
+      return encoding.decode(bytes);
+    } catch (_) {
+      throw new FileException(
+          "Failed to decode data using encoding '${encoding.name}'", path);
+    }
+  }
+
   Future<String> readAsString({Encoding encoding: UTF8}) {
     _ensureFileService();
     return readAsBytes().then((bytes) {
-      return encoding.decode(bytes);
+      return _tryDecode(bytes, encoding);
     });
   }
 
   String readAsStringSync({Encoding encoding: UTF8}) {
     List<int> bytes = readAsBytesSync();
-    return encoding.decode(bytes);
+    return _tryDecode(bytes, encoding);
   }
 
-  static List<String> _decodeLines(List<int> bytes, Encoding encoding) {
+  List<String> _decodeLines(List<int> bytes, Encoding encoding) {
     if (bytes.length == 0) return [];
     var list = [];
     var controller = new StreamController(sync: true);
+    var error = null;
     controller.stream
         .transform(encoding.decoder)
         .transform(new LineSplitter())
-        .listen((line) => list.add(line));
+        .listen((line) => list.add(line), onError: (e) => error = e);
     controller.add(bytes);
     controller.close();
+    if (error != null) {
+      throw new FileException(
+          "Failed to decode data using encoding '${encoding.name}'", path);
+    }
     return list;
   }
 
