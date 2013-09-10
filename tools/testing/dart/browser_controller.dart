@@ -318,6 +318,8 @@ class Safari extends Browser {
 class Chrome extends Browser {
   static String _binary = _getBinary();
 
+  String _version = "Version not found yet";
+
   // This is extracted to a function since we may need to support several
   // locations.
   static String _getWindowsBinary() {
@@ -332,17 +334,41 @@ class Chrome extends Browser {
     if (Platform.isLinux) return 'google-chrome';
   }
 
-  Future<bool> start(String url) {
-    _logEvent("Starting chrome browser on: $url");
-    // Get the version and log that.
+  Future<bool> _getVersion() {
+    if (Platform.isWindows) {
+      // The version flag does not work on windows.
+      // See issue:
+      // https://code.google.com/p/chromium/issues/detail?id=158372
+      // The registry hack does not seem to work.
+      _version = "Can't get version on windows";
+      // We still validate that the binary exists so that we can give good
+      // feedback.
+      return new File(_binary).exists().then((exists) {
+        if (!exists) {
+          _logEvent("Chrome binary not available.");
+          _logEvent("Make sure $_binary is a valid program for running chrome");
+        }
+        return exists;
+      });
+    }
     return Process.run(_binary, ["--version"]).then((var versionResult) {
       if (versionResult.exitCode != 0) {
         _logEvent("Failed to chrome get version");
-        _logEvent("Make sure $binary is a valid program for running chrome");
-        return new Future.value(false);
+        _logEvent("Make sure $_binary is a valid program for running chrome");
+        return false;
       }
-      version = versionResult.stdout;
-      _logEvent("Got version: $version");
+      _version = versionResult.stdout;
+      return true;
+    });
+  }
+
+
+  Future<bool> start(String url) {
+    _logEvent("Starting chrome browser on: $url");
+    // Get the version and log that.
+    return _getVersion().then((success) {
+      if (!success) return false;
+      _logEvent("Got version: $_version");
 
       return new Directory('').createTemp().then((userDir) {
         _cleanup = () { userDir.deleteSync(recursive: true); };
@@ -350,7 +376,6 @@ class Chrome extends Browser {
                     "--disable-extensions", "--disable-popup-blocking",
                     "--bwsi", "--no-first-run"];
         return startBrowser(_binary, args);
-
       });
     }).catchError((e) {
       _logEvent("Running $_binary --version failed with $e");
