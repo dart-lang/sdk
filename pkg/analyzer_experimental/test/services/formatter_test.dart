@@ -46,7 +46,7 @@ main() {
           'class A {\n'
           '  }',
           'class A {\n'
-          '}'
+          '}\n'
         );
     });
 
@@ -64,7 +64,7 @@ main() {
           'class A  { int meaningOfLife() => 42; }',
           'class A {\n'
           '  int meaningOfLife() => 42;\n'
-          '}'
+          '}\n'
       );
     });
 
@@ -162,7 +162,7 @@ main() {
           'library a; class B { }',
           'library a;\n'
           'class B {\n'
-          '}'
+          '}\n'
       );
     });
 
@@ -196,7 +196,7 @@ main() {
           'import "foo";\n\n'
           '//Killer class\n'
           'class A {\n'
-          '}'
+          '}\n'
         );
     });
 
@@ -428,7 +428,7 @@ main() {
           '\n'
           '// Comment 2\n'
           '\n'
-          '/* Comment 3 */'
+          '/* Comment 3 */\n'
         );
     });
 
@@ -479,7 +479,7 @@ main() {
           'class X { //X!\n'
           '}',
           'class X { //X!\n'
-          '}'
+          '}\n'
       );
     });
 
@@ -535,7 +535,13 @@ main() {
         );
     });
 
-
+    test('CU - EOF nl', () {
+      expectCUFormatsTo(
+          'var x = 1;',
+          'var x = 1;\n'
+      );
+    });
+    
     test('CU - constructor', () {
       expectCUFormatsTo(
           'class A {\n'

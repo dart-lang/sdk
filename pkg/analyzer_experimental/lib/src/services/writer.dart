@@ -41,9 +41,7 @@ class Line {
 
   String toString() {
     var buffer = new StringBuffer();
-    for (var tok in tokens) {
-      buffer.write(tok.toString());
-    }
+    tokens.forEach((tok) => buffer.write(tok.toString()));
     return buffer.toString();
   }
 
@@ -84,28 +82,29 @@ class SourceWriter {
 
   final String lineSeparator;
   int indentCount = 0;
-
+  
+  LineToken _lastToken;
+  
   SourceWriter({this.indentCount: 0, this.lineSeparator: NEW_LINE}) {
     currentLine = new Line(indent: indentCount);
   }
 
+  LineToken get lastToken => _lastToken;
+  
+  _addToken(LineToken token) {
+    _lastToken = token;
+    currentLine.addToken(token);
+  }
+  
   void indent() {
     ++indentCount;
-  }
-
-  void unindent() {
-    --indentCount;
-  }
-
-  void print(x) {
-    currentLine.addToken(new LineToken(x));
   }
 
   void newline() {
     if (currentLine.isWhitespace()) {
       currentLine.tokens.clear();
     }
-    currentLine.addToken(new NewlineToken(this.lineSeparator));
+    _addToken(new NewlineToken(this.lineSeparator));
     buffer.write(currentLine.toString());
     currentLine = new Line(indent: indentCount);
   }
@@ -116,6 +115,15 @@ class SourceWriter {
     }
   }
 
+  void print(x) {
+    _addToken(new LineToken(x));
+  }
+  
+  void println(String s) {
+    print(s);
+    newline();
+  }
+  
   void space() {
     spaces(1);
   }
@@ -123,12 +131,11 @@ class SourceWriter {
   void spaces(n) {
     currentLine.addSpaces(n);
   }
-
-  void println(String s) {
-    print(s);
-    newline();
+  
+  void unindent() {
+    --indentCount;
   }
-
+  
   String toString() {
     var source = new StringBuffer(buffer.toString());
     if (!currentLine.isWhitespace()) {

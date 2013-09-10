@@ -455,6 +455,9 @@ class SourceVisitor implements ASTVisitor {
 
     // Handle trailing whitespace
     token(node.endToken /* EOF */);
+    
+    // Be a good citizen, end with a NL
+    ensureTrailingNewline();
   }
 
   visitConditionalExpression(ConditionalExpression node) {
@@ -1210,7 +1213,7 @@ class SourceVisitor implements ASTVisitor {
 
   /// Append the given [string] to the source writer if it's non-null.
   append(String string) {
-    if (string != null) {
+    if (string != null && !string.isEmpty) {
       writer.print(string);
     }
   }
@@ -1266,6 +1269,14 @@ class SourceVisitor implements ASTVisitor {
     return lines;
   }
 
+
+  ensureTrailingNewline() {
+    if (writer.lastToken is! NewlineToken) {
+      writer.newline();
+    }
+  }
+  
+  
   /// Test if this [comment] is at the end of a line.
   bool isAtEOL(Token comment) =>
       comment != null && comment.toString().trim().startsWith(twoSlashes) &&
