@@ -406,6 +406,9 @@ int Process::Start(const char* path,
     ReportChildError(exec_control[1]);
   }
 
+  // Be sure to listen for exit-codes, now we have a child-process.
+  ExitCodeHandler::ProcessStarted();
+
   // The arguments and environment for the spawned process are not needed
   // any longer.
   delete[] program_arguments;
@@ -491,9 +494,6 @@ int Process::Start(const char* path,
   FDUtils::SetNonBlocking(read_err[0]);
   *err = read_err[0];
   TEMP_FAILURE_RETRY(close(read_err[1]));
-
-  // Be sure to listen for exit-codes, now we have a child-process.
-  ExitCodeHandler::ProcessStarted();
 
   *id = pid;
   return 0;
