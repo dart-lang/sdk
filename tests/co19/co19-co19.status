@@ -10,14 +10,14 @@
 
 
 [ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
-LibTest/core/Uri/encodeComponent_A01_t02: fail # co19 issue 588
-LibTest/core/Uri/parse_A01_t01: fail # co19-roll r576: Please triage this failure
-LibTest/core/Uri/toFilePath_A01_t01: fail # co19-roll r576: Please triage this failure
-LibTest/core/Uri/toFilePath_A01_t02: fail # co19-roll r576: Please triage this failure
-LibTest/core/Uri/Uri_A03_t01: fail # co19 issue 588
-LibTest/core/Uri/Uri_A04_t01: fail # co19-roll r576: Please triage this failure
-LibTest/core/Uri/Uri.http_A02_t01: fail # co19 issue 588
-LibTest/core/Uri/Uri.https_A02_t01: fail # co19 issue 588
+LibTest/core/Uri/encodeComponent_A01_t02: fail # Issue 13251, co19 Issues 588, 589
+LibTest/core/Uri/parse_A01_t01: fail # Issue 13252
+LibTest/core/Uri/toFilePath_A01_t01: fail # Issue 13253
+LibTest/core/Uri/toFilePath_A01_t02: fail # Issue 13253
+LibTest/core/Uri/Uri_A03_t01: fail # Issue 13250, co19 Issue 588
+LibTest/core/Uri/Uri_A04_t01: fail # Issue 13249
+LibTest/core/Uri/Uri.http_A02_t01: fail # Issue 13250, co19 Issue 588
+LibTest/core/Uri/Uri.https_A02_t01: fail # Issue 13250, co19 Issue 588
 # Maybe we should wait until isolate library is sealed before triaging these.
 LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail, timeout # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail, timeout # co19-roll r546: Please triage this failure
@@ -122,5 +122,5 @@ LibTest/core/TypeError/failedAssertion_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/line_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/srcType_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/url_A01_t01: FAIL, OK # co19 issue 510
-LibTest/core/Uri/encodeFull_A01_t02: fail # co19-roll r576: Please triage this failure
+LibTest/core/Uri/encodeFull_A01_t02: fail # co19 Issue 589
 
