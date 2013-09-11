@@ -10,7 +10,6 @@ import "dart:collection";
 
 void testMain(Set create()) {
   Set set = create();
-
   testLength(0, set);
   set.add(1);
   testLength(1, set);
@@ -190,15 +189,6 @@ void testLength(int length, Set set) {
 }
 
 main() {
+  testMain(() => new Set());
   testMain(() => new HashSet());
-  testMain(() => new LinkedHashSet());
-  testMain(() => new HashSet(equals: identical));
-  testMain(() => new LinkedHashSet(equals: identical));
-  testMain(() => new HashSet(equals: (int a, int b) => a == b || a == -b,
-                             hashCode: (int n) => n.hashCode & (-n).hashCode,
-                             isValidKey: (n) => n is int));
-  testMain(() => new LinkedHashSet(
-      equals: (int a, int b) => a == b || a == -b,
-      hashCode: (int n) => n.hashCode & (-n).hashCode,
-      isValidKey: (n) => n is int));
 }
