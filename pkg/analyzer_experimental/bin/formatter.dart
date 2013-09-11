@@ -5,6 +5,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:utf';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
@@ -75,11 +76,11 @@ _formatFile(file) {
 _isDartFile(file) => dartFileRegExp.hasMatch(path.basename(file.path));
 
 _formatStdin(options) {
-  _log('not supported yet!');
-//  stdin.transform(new StringDecoder())
-//      .listen((String data) => print(data),
-//        onError: (error) => print('Error reading from stdin'),
-//        onDone: () => print('Finished reading data'));
+  var input = new StringBuffer();
+  stdin.transform(new Utf8DecoderTransformer())
+      .listen((data) => input.write(data),
+        onError: (error) => _log('Error reading from stdin'),
+        onDone: () => print(_formatCU(input.toString())));
 }
 
 /// Initialize the arg parser instance.
