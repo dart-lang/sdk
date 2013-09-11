@@ -32,7 +32,7 @@ void testCreateClampedUint8TypedData() {
 
   typed_data = new Uint8ClampedList(0);
   Expect.isTrue(typed_data is Uint8ClampedList);
-  Expect.isFalse(typed_data is Uint8List);
+  Expect.isTrue(typed_data is Uint8List);
   Expect.equals(0, typed_data.length);
   Expect.equals(0, typed_data.lengthInBytes);
 
