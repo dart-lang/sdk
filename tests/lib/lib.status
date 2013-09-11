@@ -42,6 +42,9 @@ mirrors/typedef_test/02: Fail, OK # Incorrect VM behavior.
 [ $runtime == safari ]
 mirrors/return_type_test: Pass, Timeout # Issue 12858
 
+[ $runtime == safari || $runtime == chrome ]
+lib/typed_data/typed_data_hierarchy_test: Fail # Issue 13230
+
 [ $csp ]
 mirrors/*: Skip # Issue 6490
 
