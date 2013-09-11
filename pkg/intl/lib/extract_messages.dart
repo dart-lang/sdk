@@ -147,6 +147,7 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
    */
   void visitMethodDeclaration(MethodDeclaration node) {
     parameters = node.parameters;
+    if (parameters == null) parameters = new FormalParameterList();
     name = node.name.name;
     super.visitMethodDeclaration(node);
   }
@@ -157,6 +158,7 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
    */
   void visitFunctionDeclaration(FunctionDeclaration node) {
     parameters = node.functionExpression.parameters;
+    if (parameters == null) parameters = new FormalParameterList();
     name = node.name.name;
     super.visitFunctionDeclaration(node);
   }
