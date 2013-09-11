@@ -202,33 +202,36 @@ class FlowGraphCompiler : public ValueObject {
   class BlockInfo : public ZoneAllocated {
    public:
     BlockInfo()
-        : jump_label_(&block_label_),
-          block_label_(),
-          fallthrough_label_(NULL),
+        : block_label_(),
+          jump_label_(&block_label_),
+          next_nonempty_label_(NULL),
           is_marked_(false) {}
 
+    // The label to jump to when control is transferred to this block.  For
+    // nonempty blocks it is the label of the block itself.  For empty
+    // blocks it is the label of the first nonempty successor block.
     Label* jump_label() const { return jump_label_; }
     void set_jump_label(Label* label) { jump_label_ = label; }
 
-    // Label of the block that will follow this block in the generated code.
-    // Can be NULL if the block is the last block.
-    Label* fallthrough_label() const { return fallthrough_label_; }
-    void set_fallthrough_label(Label* fallthrough_label) {
-      fallthrough_label_ = fallthrough_label;
-    }
+    // The label of the first nonempty block after this one in the block
+    // order, or NULL if there is no nonempty block following this one.
+    Label* next_nonempty_label() const { return next_nonempty_label_; }
+    void set_next_nonempty_label(Label* label) { next_nonempty_label_ = label; }
 
     bool WasCompacted() const {
       return jump_label_ != &block_label_;
     }
 
+    // Block compaction is recursive.  Block info for already-compacted
+    // blocks is marked so as to avoid cycles in the graph.
     bool is_marked() const { return is_marked_; }
     void mark() { is_marked_ = true; }
 
    private:
-    Label* jump_label_;
     Label block_label_;
 
-    Label* fallthrough_label_;
+    Label* jump_label_;
+    Label* next_nonempty_label_;
 
     bool is_marked_;
   };

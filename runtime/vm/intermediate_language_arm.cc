@@ -4435,6 +4435,13 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (!compiler->CanFallThroughTo(normal_entry())) {
+    __ b(compiler->GetJumpLabel(normal_entry()));
+  }
+}
+
+
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
@@ -4491,8 +4498,7 @@ void ControlInstruction::EmitBranchOnCondition(FlowGraphCompiler* compiler,
     // If the next block is the false successor we will fall through to it.
     __ b(compiler->GetJumpLabel(true_successor()), true_condition);
   } else {
-    // If the next block is the true successor we negate comparison and fall
-    // through to it.
+    // If the next block is not the false successor we will branch to it.
     Condition false_condition = NegateCondition(true_condition);
     __ b(compiler->GetJumpLabel(false_successor()), false_condition);
 

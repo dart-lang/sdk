@@ -1620,11 +1620,6 @@ LocationSummary* GraphEntryInstr::MakeLocationSummary() const {
 }
 
 
-void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Nothing to do.
-}
-
-
 LocationSummary* JoinEntryInstr::MakeLocationSummary() const {
   UNREACHABLE();
   return NULL;
