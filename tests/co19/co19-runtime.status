@@ -94,7 +94,7 @@ LibTest/core/double/toInt_A01_t01: Fail
 LibTest/typed_data/Float32List/Float32List.view_A01_t02: Crash  # Issue 12868
 LibTest/typed_data/Float64List/Float64List.view_A01_t02: Crash  # Issue 12868
 
-[ $compiler == none && ($runtime == simarm || $runtime == simmips) ]
+[ $compiler == none && $runtime == vm && ($arch == simarm || $arch == simmips) ]
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # co19-roll r576: Please triage this failure
 
 [ $compiler == none && $runtime == vm ]
