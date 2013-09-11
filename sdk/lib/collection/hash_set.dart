@@ -16,7 +16,7 @@ abstract class _HashSetBase<E> extends IterableBase<E> implements Set<E> {
   }
 
   /** Create a new Set of the same type as this. */
-  Set _newSet();
+  HashSet<E> _newSet();
 
   Set<E> intersection(Set<Object> other) {
     Set<E> result = _newSet();
@@ -54,6 +54,15 @@ abstract class _HashSetBase<E> extends IterableBase<E> implements Set<E> {
     retainWhere(retainSet.contains);
   }
 
+  List<E> toList({bool growable: true}) {
+    List<E> result = new List<E>()..length = this.length;
+    int i = 0;
+    for (E element in this) result[i++] = element;
+    return result;
+  }
+
+  Set<E> toSet() => _newSet()..addAll(this);
+
   // TODO(zarah) Remove this, and let it be inherited by IterableBase
   String toString() => IterableMixinWorkaround.toStringIterable(this, '{', '}');
 }
@@ -61,49 +70,50 @@ abstract class _HashSetBase<E> extends IterableBase<E> implements Set<E> {
 /**
  * A [HashSet] is a hash-table based [Set] implementation.
  *
- * The elements of a `HashSet` must have consistent [Object.operator==]
- * and [Object.hashCode] implementations. This means that the `==` operator
+ * The elements of a `HashSet` must have consistent equality
+ * and hashCode implementations. This means that the equals operation
  * must define a stable equivalence relation on the elements (reflexive,
- * anti-symmetric, transitive, and consistent over time), and that `hashCode`
- * must be the same for objects that are considered equal by `==`.
+ * anti-symmetric, transitive, and consistent over time), and that the hashCode
+ * must consistent with equality, so that the same for objects that are
+ * considered equal.
  *
  * The set allows `null` as an element.
  *
  * Most simple operations on `HashSet` are done in constant time: [add],
  * [contains], [remove], and [length].
  */
-class HashSet<E> extends _HashSetBase<E> {
-  external HashSet();
+class HashSet<E> implements Set<E> {
+  /**
+   * Create a hash set using the provided [equals] as equality.
+   *
+   * The provided [equals] must define a stable equivalence relation, and
+   * [hashCode] must be consistent with [equals]. If the [equals] or [hashCode]
+   * methods won't work on all objects, but only to instances of E, the
+   * [isValidKey] predicate can be used to restrict the keys that they are
+   * applied to. Any key for which [isValidKey] returns false is automatically
+   * assumed to not be in the set.
+   *
+   * If [equals], [hashCode] and [isValidKey] are omitted, the set uses
+   * the objects' intrinsic [Object.operator==] and [Object.hashCode].
+   *
+   * If [isValidKey] is omitted, it defaults to testing if the object is an
+   * [E] instance.
+   *
+   * If [equals] is [identical], this creates an identity set. Any hashCode
+   * is compatible with [identical], and it applies to all objects, so
+   * [hashCode] and [isValidKey] can safely be omitted.
+   */
+  external factory HashSet({ bool equals(E e1, E e2),
+                             int hashCode(E e),
+                             bool isValidKey(potentialKey) });
 
+  /**
+   * Create a hash set containing the elements of [iterable].
+   *
+   * Creates a hash set as by `new HashSet<E>()` and adds each element of
+   * `iterable` to this set in the order they are iterated.
+   */
   factory HashSet.from(Iterable<E> iterable) {
     return new HashSet<E>()..addAll(iterable);
   }
-
-  // Iterable.
-  external Iterator<E> get iterator;
-
-  external int get length;
-
-  external bool get isEmpty;
-
-  external bool get isNotEmpty;
-
-  external bool contains(Object object);
-
-  // Set.
-  external void add(E element);
-
-  external void addAll(Iterable<E> objects);
-
-  external bool remove(Object object);
-
-  external void removeAll(Iterable<Object> objectsToRemove);
-
-  external void removeWhere(bool test(E element));
-
-  external void retainWhere(bool test(E element));
-
-  external void clear();
-
-  Set<E> _newSet() => new HashSet<E>();
 }

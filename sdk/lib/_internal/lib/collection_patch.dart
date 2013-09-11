@@ -883,6 +883,30 @@ class LinkedHashMapKeyIterator<E> implements Iterator<E> {
 }
 
 patch class HashSet<E> {
+  patch factory HashSet({ bool equals(E e1, E e2),
+                          int hashCode(E e),
+                          bool isValidKey(potentialKey) }) {
+    if (isValidKey == null) {
+      if (hashCode == null) {
+        if (equals == null) {
+          return new _HashSet<E>();
+        }
+        if (identical(identical, equals)) {
+          return new _IdentityHashSet<E>();
+        }
+        hashCode = _defaultHashCode;
+      } else if (equals == null) {
+        equals = _defaultEquals;
+      }
+    } else {
+      if (hashCode == null) hashCode = _defaultHashCode;
+      if (equals == null) equals = _defaultEquals;
+    }
+    return new _CustomHashSet<E>(equals, hashCode, isValidKey);
+  }
+}
+
+class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
   int _length = 0;
 
   // The hash set contents are divided into three parts: one part for
@@ -904,18 +928,20 @@ patch class HashSet<E> {
   // guard against concurrent modifications.
   List _elements;
 
-  patch HashSet();
+  _HashSet();
+
+  Set<E> _newSet() => new _HashSet<E>();
 
   // Iterable.
-  patch Iterator<E> get iterator {
+  Iterator<E> get iterator {
     return new HashSetIterator<E>(this, _computeElements());
   }
 
-  patch int get length => _length;
-  patch bool get isEmpty => _length == 0;
-  patch bool get isNotEmpty => !isEmpty;
+  int get length => _length;
+  bool get isEmpty => _length == 0;
+  bool get isNotEmpty => !isEmpty;
 
-  patch bool contains(Object object) {
+  bool contains(Object object) {
     if (_isStringElement(object)) {
       var strings = _strings;
       return (strings == null) ? false : _hasTableEntry(strings, object);
@@ -931,7 +957,7 @@ patch class HashSet<E> {
   }
 
   // Collection.
-  patch void add(E element) {
+  void add(E element) {
     if (_isStringElement(element)) {
       var strings = _strings;
       if (strings == null) _strings = strings = _newHashTable();
@@ -957,13 +983,13 @@ patch class HashSet<E> {
     }
   }
 
-  patch void addAll(Iterable<E> objects) {
+  void addAll(Iterable<E> objects) {
     for (E each in objects) {
       add(each);
     }
   }
 
-  patch bool remove(Object object) {
+  bool remove(Object object) {
     if (_isStringElement(object)) {
       return _removeHashTableEntry(_strings, object);
     } else if (_isNumericElement(object)) {
@@ -985,21 +1011,21 @@ patch class HashSet<E> {
     }
   }
 
-  patch void removeAll(Iterable<Object> objectsToRemove) {
+  void removeAll(Iterable<Object> objectsToRemove) {
     for (var each in objectsToRemove) {
       remove(each);
     }
   }
 
-  patch void removeWhere(bool test(E element)) {
+  void removeWhere(bool test(E element)) {
     removeAll(_computeElements().where(test));
   }
 
-  patch void retainWhere(bool test(E element)) {
+  void retainWhere(bool test(E element)) {
     removeAll(_computeElements().where((E element) => !test(element)));
   }
 
-  patch void clear() {
+  void clear() {
     if (_length > 0) {
       _strings = _nums = _rest = _elements = null;
       _length = 0;
@@ -1086,7 +1112,7 @@ patch class HashSet<E> {
         JS('bool', '(# & 0x3ffffff) === #', element, element);
   }
 
-  static int _computeHashCode(var element) {
+  int _computeHashCode(var element) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic elements like '__proto__'. Another
     // option would be to throw an exception if the hash code isn't a
@@ -1111,12 +1137,12 @@ patch class HashSet<E> {
     JS('void', 'delete #[#]', table, key);
   }
 
-  static List _getBucket(var table, var element) {
+  List _getBucket(var table, var element) {
     var hash = _computeHashCode(element);
     return JS('var', '#[#]', table, hash);
   }
 
-  static int _findBucketIndex(var bucket, var element) {
+  int _findBucketIndex(var bucket, var element) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
@@ -1136,6 +1162,56 @@ patch class HashSet<E> {
     _setTableEntry(table, temporaryKey, table);
     _deleteTableEntry(table, temporaryKey);
     return table;
+  }
+}
+
+class _IdentityHashSet<E> extends _HashSet<E> {
+  Set<E> _newSet() => new _IdentityHashSet<E>();
+
+  int _findBucketIndex(var bucket, var element) {
+    if (bucket == null) return -1;
+    int length = JS('int', '#.length', bucket);
+    for (int i = 0; i < length; i++) {
+      if (identical(JS('var', '#[#]', bucket, i), element)) return i;
+    }
+    return -1;
+  }
+}
+
+class _CustomHashSet<E> extends _HashSet<E> {
+  _Equality<E> _equality;
+  _Hasher<E> _hasher;
+  _Predicate _validKey;
+  _CustomHashSet(this._equality, this._hasher, bool validKey(potentialKey))
+      : _validKey = (validKey != null) ? validKey : ((x) => x is E);
+
+  Set<E> _newSet() => new _CustomHashSet<E>(_equality, _hasher, _validKey);
+
+  int _findBucketIndex(var bucket, var element) {
+    if (bucket == null) return -1;
+    int length = JS('int', '#.length', bucket);
+    for (int i = 0; i < length; i++) {
+      if (_equality(JS('var', '#[#]', bucket, i), element)) return i;
+    }
+    return -1;
+  }
+
+  int _computeHashCode(var element) {
+    // We force the hash codes to be unsigned 30-bit integers to avoid
+    // issues with problematic elements like '__proto__'. Another
+    // option would be to throw an exception if the hash code isn't a
+    // number.
+    return JS('int', '# & 0x3ffffff', _hasher(element));
+  }
+
+  bool contains(Object object) {
+    if (!_validKey(object)) return false;
+    return super.contains(object);
+  }
+
+  bool remove(Object object) {
+    if (!_validKey(object)) return false;
+    return super.remove(object);
   }
 }
 
@@ -1169,7 +1245,31 @@ class HashSetIterator<E> implements Iterator<E> {
   }
 }
 
-patch class LinkedHashSet<E> extends _HashSetBase<E> {
+patch class LinkedHashSet<E> {
+  patch factory LinkedHashSet({ bool equals(E e1, E e2),
+                                int hashCode(E e),
+                                bool isValidKey(potentialKey) }) {
+    if (isValidKey == null) {
+      if (hashCode == null) {
+        if (equals == null) {
+          return new _LinkedHashSet<E>();
+        }
+        if (identical(identical, equals)) {
+          return new _LinkedIdentityHashSet<E>();
+        }
+        hashCode = _defaultHashCode;
+      } else if (equals == null) {
+        equals = _defaultEquals;
+      }
+    } else {
+      if (hashCode == null) hashCode = _defaultHashCode;
+      if (equals == null) equals = _defaultEquals;
+    }
+    return new _LinkedCustomHashSet<E>(equals, hashCode, isValidKey);
+  }
+}
+
+class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
   int _length = 0;
 
   // The hash set contents are divided into three parts: one part for
@@ -1195,22 +1295,24 @@ patch class LinkedHashSet<E> extends _HashSetBase<E> {
   // over.
   int _modifications = 0;
 
-  patch LinkedHashSet();
+  _LinkedHashSet();
+
+  Set<E> _newSet() => new _LinkedHashSet<E>();
 
   void _unsupported(String operation) {
     throw 'LinkedHashSet: unsupported $operation';
   }
 
   // Iterable.
-  patch Iterator<E> get iterator {
+  Iterator<E> get iterator {
     return new LinkedHashSetIterator(this, _modifications);
   }
 
-  patch int get length => _length;
-  patch bool get isEmpty => _length == 0;
-  patch bool get isNotEmpty => !isEmpty;
+  int get length => _length;
+  bool get isEmpty => _length == 0;
+  bool get isNotEmpty => !isEmpty;
 
-  patch bool contains(Object object) {
+  bool contains(Object object) {
     if (_isStringElement(object)) {
       var strings = _strings;
       if (strings == null) return false;
@@ -1229,7 +1331,7 @@ patch class LinkedHashSet<E> extends _HashSetBase<E> {
     }
   }
 
-  patch void forEach(void action(E element)) {
+  void forEach(void action(E element)) {
     LinkedHashSetCell cell = _first;
     int modifications = _modifications;
     while (cell != null) {
@@ -1241,18 +1343,18 @@ patch class LinkedHashSet<E> extends _HashSetBase<E> {
     }
   }
 
-  patch E get first {
+  E get first {
     if (_first == null) throw new StateError("No elements");
     return _first._element;
   }
 
-  patch E get last {
+  E get last {
     if (_last == null) throw new StateError("No elements");
     return _last._element;
   }
 
   // Collection.
-  patch void add(E element) {
+  void add(E element) {
     if (_isStringElement(element)) {
       var strings = _strings;
       if (strings == null) _strings = strings = _newHashTable();
@@ -1278,13 +1380,13 @@ patch class LinkedHashSet<E> extends _HashSetBase<E> {
     }
   }
 
-  patch void addAll(Iterable<E> objects) {
+  void addAll(Iterable<E> objects) {
     for (E object in objects) {
       add(object);
     }
   }
 
-  patch bool remove(Object object) {
+  bool remove(Object object) {
     if (_isStringElement(object)) {
       return _removeHashTableEntry(_strings, object);
     } else if (_isNumericElement(object)) {
@@ -1303,17 +1405,17 @@ patch class LinkedHashSet<E> extends _HashSetBase<E> {
     }
   }
 
-  patch void removeAll(Iterable objectsToRemove) {
+  void removeAll(Iterable objectsToRemove) {
     for (var each in objectsToRemove) {
       remove(each);
     }
   }
 
-  patch void removeWhere(bool test(E element)) {
+  void removeWhere(bool test(E element)) {
     _filterWhere(test, true);
   }
 
-  patch void retainWhere(bool test(E element)) {
+  void retainWhere(bool test(E element)) {
     _filterWhere(test, false);
   }
 
@@ -1332,7 +1434,7 @@ patch class LinkedHashSet<E> extends _HashSetBase<E> {
     }
   }
 
-  patch void clear() {
+  void clear() {
     if (_length > 0) {
       _strings = _nums = _rest = _first = _last = null;
       _length = 0;
@@ -1409,7 +1511,7 @@ patch class LinkedHashSet<E> extends _HashSetBase<E> {
         JS('bool', '(# & 0x3ffffff) === #', element, element);
   }
 
-  static int _computeHashCode(var element) {
+  int _computeHashCode(var element) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic elements like '__proto__'. Another
     // option would be to throw an exception if the hash code isn't a
@@ -1430,12 +1532,12 @@ patch class LinkedHashSet<E> extends _HashSetBase<E> {
     JS('void', 'delete #[#]', table, key);
   }
 
-  static List _getBucket(var table, var element) {
+  List _getBucket(var table, var element) {
     var hash = _computeHashCode(element);
     return JS('var', '#[#]', table, hash);
   }
 
-  static int _findBucketIndex(var bucket, var element) {
+  int _findBucketIndex(var bucket, var element) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
@@ -1456,6 +1558,60 @@ patch class LinkedHashSet<E> extends _HashSetBase<E> {
     _setTableEntry(table, temporaryKey, table);
     _deleteTableEntry(table, temporaryKey);
     return table;
+  }
+}
+
+class _LinkedIdentityHashSet<E> extends _LinkedHashSet<E> {
+  Set<E> _newSet() => new _LinkedIdentityHashSet<E>();
+
+  int _findBucketIndex(var bucket, var element) {
+    if (bucket == null) return -1;
+    int length = JS('int', '#.length', bucket);
+    for (int i = 0; i < length; i++) {
+      LinkedHashSetCell cell = JS('var', '#[#]', bucket, i);
+      if (identical(cell._element, element)) return i;
+    }
+    return -1;
+  }
+}
+
+class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
+  _Equality<E> _equality;
+  _Hasher<E> _hasher;
+  _Predicate _validKey;
+  _LinkedCustomHashSet(this._equality, this._hasher,
+                       bool validKey(potentialKey))
+      : _validKey = (validKey != null) ? validKey : ((x) => x is E);
+
+  Set<E> _newSet() =>
+      new _LinkedCustomHashSet<E>(_equality, _hasher, _validKey);
+
+  int _findBucketIndex(var bucket, var element) {
+    if (bucket == null) return -1;
+    int length = JS('int', '#.length', bucket);
+    for (int i = 0; i < length; i++) {
+      LinkedHashSetCell cell = JS('var', '#[#]', bucket, i);
+      if (_equality(cell._element, element)) return i;
+    }
+    return -1;
+  }
+
+  int _computeHashCode(var element) {
+    // We force the hash codes to be unsigned 30-bit integers to avoid
+    // issues with problematic elements like '__proto__'. Another
+    // option would be to throw an exception if the hash code isn't a
+    // number.
+    return JS('int', '# & 0x3ffffff', _hasher(element));
+  }
+
+  bool contains(Object object) {
+    if (!_validKey(object)) return false;
+    return super.contains(object);
+  }
+
+  bool remove(Object object) {
+    if (!_validKey(object)) return false;
+    return super.remove(object);
   }
 }
 

@@ -8,11 +8,11 @@
 import "package:expect/expect.dart";
 import 'dart:collection';
 
-class Crash extends HashSet<String> {
+class Crash extends Expando<String> {
   Crash(): super();
 }
 
 void main() {
-  Crash map = new Crash();
-  Expect.isTrue(map is HashSet);
+  Crash expando = new Crash();
+  Expect.isTrue(expando is Expando);
 }
