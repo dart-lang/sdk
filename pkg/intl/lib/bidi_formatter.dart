@@ -85,7 +85,11 @@ class BidiFormatter {
    * Escapes HTML-special characters of [text] so that the result can be
    * included verbatim in HTML source code, either in an element body or in an
    * attribute value.
+   *
+   * *htmlEscape* is deprecated. Use [HtmlEscape] from the `dart:convert`
+   * package. *htmlEscape* will be removed the 30th of September 2013.
    */
+  // TODO(kevmoo) Remove this!
   @deprecated
   String htmlEscape(String text) => HTML_ESCAPE.convert(text);
 
