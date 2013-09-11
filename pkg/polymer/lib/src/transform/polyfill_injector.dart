@@ -21,10 +21,14 @@ import 'common.dart';
  * script tag that loads the shadow_dom polyfill and interop.js (used for the
  * css shimming).
  */
-class PolyfillInjector extends Transformer {
+class PolyfillInjector extends Transformer with PolymerTransformer {
+  final TransformOptions options;
+
+  PolyfillInjector(this.options);
+
   /** Only run on entry point .html files. */
   Future<bool> isPrimary(Asset input) =>
-      new Future.value(isPrimaryHtml(input.id));
+      new Future.value(options.isHtmlEntryPoint(input.id));
 
   Future apply(Transform transform) {
     return readPrimaryAsHtml(transform).then((document) {

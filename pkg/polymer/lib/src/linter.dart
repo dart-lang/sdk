@@ -8,6 +8,7 @@
  */
 library polymer.src.linter;
 
+import 'dart:io';
 import 'dart:async';
 import 'dart:mirrors';
 import 'dart:convert' show JSON;
@@ -25,13 +26,15 @@ typedef String MessageFormatter(String kind, String message, Span span);
  * show on the editor or the command line. Leaves sources unchanged, but creates
  * a new asset containing all the warnings.
  */
-class Linter extends Transformer {
+class Linter extends Transformer with PolymerTransformer {
+  final TransformOptions options;
+
   /** Only run on .html files. */
   final String allowedExtensions = '.html';
 
   final MessageFormatter _formatter;
 
-  Linter([this._formatter]);
+  Linter(this.options, [this._formatter]);
 
   Future apply(Transform transform) {
     var wrapper = new _LoggerInterceptor(transform, _formatter);
@@ -120,7 +123,7 @@ class _LoggerInterceptor implements Transform, TransformLogger {
   final MessageFormatter _formatter;
 
   _LoggerInterceptor(this._original, MessageFormatter formatter)
-      : _formatter = formatter == null ? _defaultFormatter : formatter;
+      : _formatter = formatter == null ? consoleFormatter : formatter;
 
   TransformLogger get logger => this;
 
@@ -137,10 +140,10 @@ class _LoggerInterceptor implements Transform, TransformLogger {
 }
 
 /**
- * Default formatter that generates messages using a format that can be parsed
+ * Formatter that generates messages using a format that can be parsed
  * by tools, such as the Dart Editor, for reporting error messages.
  */
-String _defaultFormatter(String kind, String message, Span span) {
+String jsonFormatter(String kind, String message, Span span) {
   return JSON.encode((span == null)
       ? [{'method': 'warning', 'params': {'message': message}}]
       : [{'method': kind,
@@ -153,6 +156,26 @@ String _defaultFormatter(String kind, String message, Span span) {
           }}]);
 }
 
+/**
+ * Formatter that generates messages that are easy to read on the console (used
+ * by default).
+ */
+String consoleFormatter(String kind, String message, Span span) {
+  var useColors = stdioType(stdout) == StdioType.TERMINAL;
+  var levelColor = (kind == 'error') ? _RED_COLOR : _MAGENTA_COLOR;
+  var output = new StringBuffer();
+  if (useColors) output.write(levelColor);
+  output..write(kind)..write(' ');
+  if (useColors) output.write(_NO_COLOR);
+  if (span == null) {
+    output.write(message);
+  } else {
+    output.write(span.getLocationMessage(message,
+          useColors: useColors,
+          color: levelColor));
+  }
+  return output.toString();
+}
 
 /**
  * Information needed about other polymer-element tags in order to validate
@@ -415,3 +438,7 @@ bool _isCustomTag(String name) {
   if (name == null || !name.contains('-')) return false;
   return !_invalidTagNames.containsKey(name);
 }
+
+final String _RED_COLOR = '\u001b[31m';
+final String _MAGENTA_COLOR = '\u001b[35m';
+final String _NO_COLOR = '\u001b[0m';

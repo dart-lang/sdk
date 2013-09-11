@@ -4,6 +4,7 @@
 
 library polymer.test.transform.script_compactor_test;
 
+import 'package:polymer/src/transform/common.dart';
 import 'package:polymer/src/transform/script_compactor.dart';
 import 'package:unittest/compact_vm_config.dart';
 
@@ -11,14 +12,15 @@ import 'common.dart';
 
 void main() {
   useCompactVMConfiguration();
+  var phases = [[new ScriptCompactor(new TransformOptions())]];
 
-  testPhases('no changes', [[new ScriptCompactor()]], {
+  testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     }, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     });
 
-  testPhases('no changes outside web/', [[new ScriptCompactor()]], {
+  testPhases('no changes outside web/', phases, {
       'a|lib/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart" src="a.dart"></script>',
@@ -28,7 +30,7 @@ void main() {
           '<script type="application/dart" src="a.dart"></script>',
     });
 
-  testPhases('single script', [[new ScriptCompactor()]], {
+  testPhases('single script', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart" src="a.dart"></script>',
@@ -56,7 +58,7 @@ void main() {
           '''.replaceAll('\n          ', '\n'),
     });
 
-  testPhases('several scripts', [[new ScriptCompactor()]], {
+  testPhases('several scripts', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart" src="a.dart"></script>'

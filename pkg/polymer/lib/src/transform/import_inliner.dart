@@ -16,10 +16,14 @@ import 'common.dart';
 /** Recursively inlines polymer-element definitions from html imports. */
 // TODO(sigmund): make sure we match semantics of html-imports for tags other
 // than polymer-element (see dartbug.com/12613).
-class ImportedElementInliner extends Transformer {
+class ImportedElementInliner extends Transformer with PolymerTransformer {
+  final TransformOptions options;
+
+  ImportedElementInliner(this.options);
+
   /** Only run on entry point .html files. */
   Future<bool> isPrimary(Asset input) =>
-      new Future.value(isPrimaryHtml(input.id));
+      new Future.value(options.isHtmlEntryPoint(input.id));
 
   Future apply(Transform transform) {
     var seen = new Set<AssetId>();

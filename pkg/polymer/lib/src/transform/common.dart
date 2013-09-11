@@ -34,23 +34,48 @@ Document _parseHtml(String contents, String sourcePath, TransformLogger logger,
   return document;
 }
 
-Future<Document> readPrimaryAsHtml(Transform transform) {
-  var asset = transform.primaryInput;
-  var id = asset.id;
-  return asset.readAsString().then((content) {
-    return _parseHtml(content, id.path, transform.logger,
-      checkDocType: isPrimaryHtml(id));
-  });
+/** Additional options used by polymer transformers */
+class TransformOptions {
+  String currentPackage;
+  List<String> entryPoints;
+
+  TransformOptions([this.currentPackage, this.entryPoints]);
+
+  /** Whether an asset with [id] is an entry point HTML file. */
+  bool isHtmlEntryPoint(AssetId id) {
+    if (id.extension != '.html') return false;
+
+    // Note: [id.path] is a relative path from the root of a package.
+    if (!id.path.startsWith('web/') &&
+        !id.path.startsWith('test/')) return false;
+
+    if (currentPackage == null || entryPoints == null) return true;
+    return id.package == currentPackage && entryPoints.contains(id.path);
+  }
 }
 
-Future<Document> readAsHtml(AssetId id, Transform transform) {
-  var primaryId = transform.primaryInput.id;
-  var url = (id.package == primaryId.package) ? id.path
-      : assetUrlFor(id, primaryId, transform.logger, allowAssetUrl: true);
-  return transform.readInputAsString(id).then((content) {
-    return _parseHtml(content, url, transform.logger,
-      checkDocType: isPrimaryHtml(id));
-  });
+/** Mixin for polymer transformers. */
+abstract class PolymerTransformer {
+  TransformOptions get options;
+
+  Future<Document> readPrimaryAsHtml(Transform transform) {
+    var asset = transform.primaryInput;
+    var id = asset.id;
+    return asset.readAsString().then((content) {
+      return _parseHtml(content, id.path, transform.logger,
+        checkDocType: options.isHtmlEntryPoint(id));
+    });
+  }
+
+  Future<Document> readAsHtml(AssetId id, Transform transform) {
+    var primaryId = transform.primaryInput.id;
+    var url = (id.package == primaryId.package) ? id.path
+        : assetUrlFor(id, primaryId, transform.logger, allowAssetUrl: true);
+    return transform.readInputAsString(id).then((content) {
+      return _parseHtml(content, url, transform.logger,
+        checkDocType: options.isHtmlEntryPoint(id));
+    });
+  }
 }
 
 /** Create an [AssetId] for a [url] seen in the [source] asset. */
@@ -91,11 +116,6 @@ AssetId resolve(AssetId source, String url, TransformLogger logger, Span span) {
   }
   return new AssetId(package, targetPath);
 }
-
-/** Whether an asset with [id] is considered a primary entry point HTML file. */
-bool isPrimaryHtml(AssetId id) => id.extension == '.html' &&
-    // Note: [id.path] is a relative path from the root of a package.
-    (id.path.startsWith('web/') || id.path.startsWith('test/'));
 
 /**
  * Generate the import url for a file described by [id], referenced by a file

@@ -4,6 +4,7 @@
 
 library polymer.test.transform.import_inliner_test;
 
+import 'package:polymer/src/transform/common.dart';
 import 'package:polymer/src/transform/import_inliner.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
@@ -12,13 +13,14 @@ import 'common.dart';
 
 void main() {
   useCompactVMConfiguration();
-  testPhases('no changes', [[new ImportedElementInliner()]], {
+  var phases = [[new ImportedElementInliner(new TransformOptions())]];
+  testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     }, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     });
 
-  testPhases('empty import', [[new ImportedElementInliner()]], {
+  testPhases('empty import', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<link rel="import" href="">' // empty href
@@ -36,7 +38,7 @@ void main() {
           '</head><body></body></html>',
     });
 
-  testPhases('shallow, no elements', [[new ImportedElementInliner()]], {
+  testPhases('shallow, no elements', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<link rel="import" href="test2.html">'
@@ -53,7 +55,7 @@ void main() {
           '</head></html>',
     });
 
-  testPhases('shallow, elements, one import', [[new ImportedElementInliner()]],
+  testPhases('shallow, elements, one import', phases,
     {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
@@ -73,7 +75,7 @@ void main() {
           '</head><body><polymer-element>2</polymer-element></html>',
     });
 
-  testPhases('no transformation outside web/', [[new ImportedElementInliner()]],
+  testPhases('no transformation outside web/', phases,
     {
       'a|lib/test.html':
           '<!DOCTYPE html><html><head>'
@@ -92,7 +94,7 @@ void main() {
           '</head><body><polymer-element>2</polymer-element></html>',
     });
 
-  testPhases('shallow, elements, many', [[new ImportedElementInliner()]],
+  testPhases('shallow, elements, many', phases,
     {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
@@ -120,7 +122,7 @@ void main() {
           '</head><body><polymer-element>3</polymer-element></html>',
     });
 
-  testPhases('deep, elements, one per file', [[new ImportedElementInliner()]], {
+  testPhases('deep, elements, one per file', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<link rel="import" href="test2.html">'
@@ -158,7 +160,7 @@ void main() {
           '</head><body><polymer-element>4</polymer-element></html>',
     });
 
-  testPhases('deep, elements, many imports', [[new ImportedElementInliner()]], {
+  testPhases('deep, elements, many imports', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<link rel="import" href="test2a.html">'
@@ -233,7 +235,7 @@ void main() {
           '</body></html>',
     });
 
-  testPhases('imports cycle, 1-step lasso', [[new ImportedElementInliner()]], {
+  testPhases('imports cycle, 1-step lasso', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<link rel="import" href="test_1.html">'
@@ -264,7 +266,7 @@ void main() {
           '<polymer-element>2</polymer-element></body></html>',
     });
 
-  testPhases('imports cycle, 2-step lasso', [[new ImportedElementInliner()]], {
+  testPhases('imports cycle, 2-step lasso', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<link rel="import" href="test_1.html">'
@@ -308,7 +310,7 @@ void main() {
           '<polymer-element>3</polymer-element></body></html>',
     });
 
-  testPhases('imports cycle, self cycle', [[new ImportedElementInliner()]], {
+  testPhases('imports cycle, self cycle', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<link rel="import" href="test_1.html">'
@@ -328,7 +330,7 @@ void main() {
           '<polymer-element>1</polymer-element></body></html>',
     });
 
-  testPhases('imports DAG', [[new ImportedElementInliner()]], {
+  testPhases('imports DAG', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<link rel="import" href="test_1.html">'

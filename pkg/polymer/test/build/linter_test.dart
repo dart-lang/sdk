@@ -4,8 +4,9 @@
 
 library polymer.test.linter_test;
 
-import 'package:source_maps/span.dart';
 import 'package:polymer/src/linter.dart';
+import 'package:polymer/src/transform/common.dart';
+import 'package:source_maps/span.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
@@ -400,7 +401,7 @@ void main() {
 }
 
 _testLinter(String name, Map inputFiles, Map outputMessages) {
-  var linter = new Linter(_testFormatter);
+  var linter = new Linter(new TransformOptions(), _testFormatter);
   var outputFiles = {};
   inputFiles.forEach((k, v) => outputFiles[k] = v);
   outputMessages.forEach((k, v) => outputFiles[k] = v);

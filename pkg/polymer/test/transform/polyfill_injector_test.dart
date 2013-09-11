@@ -4,21 +4,23 @@
 
 library polymer.test.transform.polyfill_injector_test;
 
-import 'package:polymer/src/transform.dart';
+import 'package:polymer/src/transform/common.dart';
+import 'package:polymer/src/transform/polyfill_injector.dart';
 import 'package:unittest/compact_vm_config.dart';
 
 import 'common.dart';
 
 void main() {
   useCompactVMConfiguration();
+  var phases = [[new PolyfillInjector(new TransformOptions())]];
 
-  testPhases('no changes', [[new PolyfillInjector()]], {
+  testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     }, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     });
 
-  testPhases('no changes under lib ', [[new PolyfillInjector()]], {
+  testPhases('no changes under lib ', phases, {
       'a|lib/test.html':
           '<!DOCTYPE html><html><head></head><body>'
           '<script type="application/dart" src="a.dart"></script>',
@@ -28,7 +30,7 @@ void main() {
           '<script type="application/dart" src="a.dart"></script>',
     });
 
-  testPhases('with some script', [[new PolyfillInjector()]], {
+  testPhases('with some script', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
           '<script type="application/dart" src="a.dart"></script>',
@@ -40,7 +42,7 @@ void main() {
           '</body></html>',
     });
 
-  testPhases('interop/shadow dom already present', [[new PolyfillInjector()]], {
+  testPhases('interop/shadow dom already present', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
           '<script type="application/dart" src="a.dart"></script>'

@@ -5,21 +5,22 @@
 library polymer.test.transform.code_extractor_test;
 
 import 'package:polymer/src/transform/code_extractor.dart';
+import 'package:polymer/src/transform/common.dart';
 import 'package:unittest/compact_vm_config.dart';
 
 import 'common.dart';
 
 void main() {
   useCompactVMConfiguration();
+  var phases = [[new InlineCodeExtractor(new TransformOptions())]];
 
-  testPhases('no changes', [[new InlineCodeExtractor()]], {
+  testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     }, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     });
 
-  testPhases('single script, no library in script',
-      [[new InlineCodeExtractor()]], {
+  testPhases('single script, no library in script', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart">main() { }</script>',
@@ -33,7 +34,7 @@ void main() {
           'library web_test_html_0;\nmain() { }',
     });
 
-  testPhases('single script, with library', [[new InlineCodeExtractor()]], {
+  testPhases('single script, with library', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart">library f;\nmain() { }</script>',
@@ -47,8 +48,7 @@ void main() {
           'library f;\nmain() { }',
     });
 
-  testPhases('under lib/ directory also transformed',
-      [[new InlineCodeExtractor()]], {
+  testPhases('under lib/ directory also transformed', phases, {
       'a|lib/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart">library f;\nmain() { }</script>',
@@ -62,7 +62,7 @@ void main() {
           'library f;\nmain() { }',
     });
 
-  testPhases('multiple scripts', [[new InlineCodeExtractor()]], {
+  testPhases('multiple scripts', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart">library a1;\nmain1() { }</script>'
@@ -81,7 +81,7 @@ void main() {
           'library a2;\nmain2() { }',
     });
 
-  testPhases('multiple deeper scripts', [[new InlineCodeExtractor()]], {
+  testPhases('multiple deeper scripts', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart">main1() { }</script>'

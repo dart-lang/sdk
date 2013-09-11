@@ -27,10 +27,14 @@ import 'common.dart';
  * invoke the main method on each of these libraries and register any polymer
  * elements annotated with `@CustomTag`.
  */
-class ScriptCompactor extends Transformer {
+class ScriptCompactor extends Transformer with PolymerTransformer {
+  final TransformOptions options;
+
+  ScriptCompactor(this.options);
+
   /** Only run on entry point .html files. */
   Future<bool> isPrimary(Asset input) =>
-      new Future.value(isPrimaryHtml(input.id));
+      new Future.value(options.isHtmlEntryPoint(input.id));
 
   Future apply(Transform transform) {
     var id = transform.primaryInput.id;

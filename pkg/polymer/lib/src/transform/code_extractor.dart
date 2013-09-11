@@ -20,7 +20,11 @@ import 'common.dart';
  * Transformer that extracts Dart code inlined in HTML script tags and outputs a
  * separate file for each.
  */
-class InlineCodeExtractor extends Transformer {
+class InlineCodeExtractor extends Transformer with PolymerTransformer {
+  final TransformOptions options;
+
+  InlineCodeExtractor(this.options);
+
   /** Only run this transformer on .html files. */
   final String allowedExtensions = ".html";
 

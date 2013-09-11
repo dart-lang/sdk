@@ -11,6 +11,7 @@ import 'common.dart';
 
 void main() {
   useCompactVMConfiguration();
+  var phases = createDeployPhases(new TransformOptions());
 
   testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
