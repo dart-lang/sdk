@@ -107,7 +107,45 @@ void testValidIpv6Uri() {
   Expect.equals(path, uri.toString());
 }
 
+
+void testParseIPv6Address() {
+  void pass(String host, List<int> expected) {
+    Expect.listEquals(expected, Uri.parseIPv6Address(host));
+  }
+  void fail(String host) {
+    Expect.throws(() => Uri.parseIPv6Address(host),
+                  (e) => e is FormatException);
+  }
+
+  pass('::127.0.0.1', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1]);
+  pass('0::127.0.0.1', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1]);
+  pass('::', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  pass('0::', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  fail(':0::127.0.0.1');
+  fail('0:::');
+  fail(':::');
+  fail('::0:');
+  fail('::0::');
+  fail('::0::0');
+  fail('00000::0');
+  fail('-1::0');
+  fail('-AAA::0');
+  fail('0::127.0.0.1:0');
+  fail('0::127.0.0');
+  pass('0::1111', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 17]);
+  pass('2010:836B:4179::836B:4179',
+       [32, 16, 131, 107, 65, 121, 0, 0, 0, 0, 0, 0, 131, 107, 65, 121] );
+  fail('2010:836B:4179:0000:127.0.0.1');
+  fail('2010:836B:4179:0000:0000:127.0.0.1');
+  fail('2010:836B:4179:0000:0000:0000::127.0.0.1');
+  fail('2010:836B:4179:0000:0000:0000:0000:127.0.0.1');
+  pass('2010:836B:4179:0000:0000:0000:127.0.0.1',
+       [32, 16, 131, 107, 65, 121, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1] );
+}
+
+
 void main() {
   testValidIpv6Uri();
+  testParseIPv6Address();
 }
 

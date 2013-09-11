@@ -11,7 +11,6 @@
 
 [ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
 LibTest/core/Uri/encodeComponent_A01_t02: fail # co19-roll r576: Please triage this failure
-LibTest/core/Uri/origin_A01_t01: fail # co19-roll r576: Please triage this failure
 LibTest/core/Uri/parse_A01_t01: fail # co19-roll r576: Please triage this failure
 LibTest/core/Uri/toFilePath_A01_t01: fail # co19-roll r576: Please triage this failure
 LibTest/core/Uri/toFilePath_A01_t02: fail # co19-roll r576: Please triage this failure
