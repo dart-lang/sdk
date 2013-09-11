@@ -460,15 +460,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   Symbol _simpleName;
   Symbol get simpleName {
-    // dynamic, void and the function types have their names set eagerly in the
-    // constructor.
+    // All but anonymous mixin applications have their name set at construction.
     if(_simpleName == null) {
-      var simpleString = _name(_reflectee);
-      if (simpleString.contains('&')) {
-        _simpleName = this._mixinApplicationName;
-      } else {
-        _simpleName = _s(simpleString);
-      }
+      _simpleName = this._mixinApplicationName;
     }
     return _simpleName;
   }
@@ -717,9 +711,6 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   int get hashCode => simpleName.hashCode;
-
-  static _name(reflectee)
-      native "ClassMirror_name";
 
   static _library(reflectee)
       native "ClassMirror_library";

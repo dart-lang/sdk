@@ -262,7 +262,6 @@ namespace dart {
   V(InstanceMirror_invokeSetter, 4)                                            \
   V(ClosureMirror_function, 1)                                                 \
   V(ClosureMirror_apply, 3)                                                    \
-  V(ClassMirror_name, 1)                                                       \
   V(ClassMirror_library, 1)                                                    \
   V(ClassMirror_supertype, 1)                                                  \
   V(ClassMirror_interfaces, 1)                                                 \
