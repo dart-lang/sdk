@@ -9,6 +9,8 @@ part of dart.core;
 // different platform implementations.
 
 /**
+ * A double-precision floating point number.
+ *
  * Representation of Dart doubles containing double specific constants
  * and operations and specializations of operations inherited from
  * [num]. Dart doubles are 64-bit floating-point numbers as specified in the

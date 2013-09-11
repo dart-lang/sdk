@@ -5,7 +5,7 @@
 part of dart.core;
 
 /**
- * A simple [Stopwatch] interface to measure elapsed time.
+ * A simple stopwatch interface to measure elapsed time.
  */
 class Stopwatch {
   // The _start and _stop fields capture the time when [start] and [stop]

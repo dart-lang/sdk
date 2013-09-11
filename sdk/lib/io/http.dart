@@ -55,8 +55,10 @@ abstract class HttpStatus {
 
 
 /**
- * The [HttpServer] class implements the server side of the HTTP
- * protocol. The [HttpServer] is a [Stream] of [HttpRequest]s. Each
+ * A server that delivers content, such as web pages, using
+ * the HTTP protocol.
+ *
+ * The [HttpServer] is a [Stream] of [HttpRequest]s. Each
  * [HttpRequest] has an associated [HttpResponse] object as its
  * [HttpRequest.response] member, and the server responds to a request by
  * writing to that [HttpResponse] object.
@@ -950,8 +952,10 @@ abstract class HttpResponse implements IOSink {
 
 
 /**
- * The [HttpClient] class implements the client side of the HTTP
- * protocol. It contains a number of methods to send a HTTP request
+ * A client that receives content, such as web pages, from
+ * a server using the HTTP protocol.
+ *
+ * HttpClient contains a number of methods to send a HTTP request
  * to a HTTP server and receive a HTTP response back.
  *
  * This is a two-step process, triggered by two futures. When the
