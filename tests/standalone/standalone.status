@@ -15,6 +15,9 @@ io/status_file_parser_test: Skip # http/dartbug.com/12449
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
+[ $runtime == vm && $system == windows ]
+io/file_system_watcher_test: Pass, Timeout # Issue 13228
+
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
 
