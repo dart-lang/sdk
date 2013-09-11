@@ -8870,9 +8870,6 @@ RawClass* Parser::ResolveClassInCurrentLibraryScope(const String& name) {
 // Resolve an identifier by checking the global scope of the current
 // library. If not found in the current library, then look in the scopes
 // of all libraries that are imported without a library prefix.
-// Issue an error if the identifier is not found in the global scope
-// of the current library, but is defined in more than one imported
-// library, i.e. if the identifier cannot be resolved unambiguously.
 AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
                                                    const String& ident) {
   TRACE_PARSER("ResolveIdentInCurrentLibraryScope");
@@ -8926,8 +8923,7 @@ RawClass* Parser::ResolveClassInPrefixScope(const LibraryPrefix& prefix,
 
 // Do a lookup for the identifier in the scope of the specified
 // library prefix. This means trying to resolve it locally in all of the
-// libraries present in the library prefix. If there are multiple libraries
-// with the name, issue an ambiguous reference error.
+// libraries present in the library prefix.
 AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
                                            const LibraryPrefix& prefix,
                                            const String& ident) {
@@ -8935,11 +8931,12 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
   Object& obj = Object::Handle(ResolveNameInPrefixScope(prefix, ident));
   if (obj.IsNull()) {
     // Unresolved prefixed primary identifier.
-    ErrorMsg(ident_pos, "identifier '%s.%s' cannot be resolved",
-             String::Handle(prefix.name()).ToCString(),
-             ident.ToCString());
-  }
-  if (obj.IsClass()) {
+    String& qualified_name = String::ZoneHandle(prefix.name());
+    qualified_name = String::Concat(qualified_name, Symbols::Dot());
+    qualified_name = String::Concat(qualified_name, ident);
+    qualified_name = Symbols::New(qualified_name);
+    return new PrimaryNode(ident_pos, qualified_name);
+  } else if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
     return new PrimaryNode(ident_pos, Class::ZoneHandle(cls.raw()));
   } else if (obj.IsField()) {
@@ -8959,21 +8956,18 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
     } else {
       return new PrimaryNode(ident_pos, Function::ZoneHandle(func.raw()));
     }
-  } else {
-    // TODO(hausner): Should this be an error? It is not meaningful to
-    // reference a library prefix defined in an imported library.
-    ASSERT(obj.IsLibraryPrefix());
   }
-  // Lexically unresolved primary identifiers are referenced by their name.
-  return new PrimaryNode(ident_pos, ident);
+  // All possible object types are handled above.
+  UNREACHABLE();
+  return NULL;
 }
 
 
 // Resolve identifier. Issue an error message if
 // the ident refers to a method and allow_closure_names is false.
 // If the name cannot be resolved, turn it into an instance field access
-// if we're compiling an instance method, or issue an error message
-// if we're compiling a static method.
+// if we're compiling an instance method, or generate
+// throw NoSuchMethodError if we're compiling a static method.
 AstNode* Parser::ResolveIdent(intptr_t ident_pos,
                               const String& ident,
                               bool allow_closure_names) {
@@ -9959,6 +9953,34 @@ AstNode* Parser::ParsePrimary() {
       primary = ResolveIdentInPrefixScope(qual_ident.ident_pos,
                                           *qual_ident.lib_prefix,
                                           *qual_ident.ident);
+      // If the identifier could not be resolved, throw a NoSuchMethodError.
+      // Note: unlike in the case of an unqualified identifier, do not
+      // interpret the unresolved identifier as an instance method or
+      // instance getter call when compiling an instance method.
+      // TODO(hausner): Ideally we should generate the NoSuchMethodError
+      // later, when we know more about how the unresolved name is used.
+      // For example, we don't know yet whether the unresolved name
+      // refers to a getter or a setter. However, it is more awkward
+      // to distinuish four NoSuchMethodError cases all over the place
+      // in the parser. The four cases are: prefixed vs non-prefixed
+      // name, static vs dynamic context in which the unresolved name
+      // is used. We cheat a little here by looking at the next token
+      // to determine whether we have an unresolved method call or
+      // field access.
+      if (primary->IsPrimaryNode() &&
+          primary->AsPrimaryNode()->primary().IsString()) {
+        InvocationMirror::Type call_type =
+            CurrentToken() == Token::kLPAREN ?
+               InvocationMirror::kMethod : InvocationMirror::kGetter;
+        const String& unresolved_name =
+            String::Cast(primary->AsPrimaryNode()->primary());
+        primary = ThrowNoSuchMethodError(primary->token_pos(),
+                                        current_class(),
+                                        unresolved_name,
+                                        NULL,  // No arguments.
+                                        InvocationMirror::kTopLevel,
+                                        call_type);
+      }
     }
     ASSERT(primary != NULL);
   } else if (CurrentToken() == Token::kTHIS) {
