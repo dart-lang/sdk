@@ -149,7 +149,6 @@ duplicate_implements_test/03: Fail # Issue 12991
 duplicate_implements_test/04: Fail # Issue 12991
 list_literal1_test/01: Fail # Issue 12993
 map_literal1_test/01: Fail # Issue 12993
-number_identifier_test/05: Fail # Issue 13070
 scope_variable_test/01: Fail # Issue 13016
 static_final_field2_test/02: Fail # Issue 13017
 throw7_test/01: Fail # Issue 13019

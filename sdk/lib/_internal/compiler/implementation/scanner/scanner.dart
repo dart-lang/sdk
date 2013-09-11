@@ -464,12 +464,15 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
       next = advance();
       if ($0 <= next && next <= $9) {
         continue;
-      } else if (identical(next, $PERIOD)) {
-        return tokenizeFractionPart(advance(), start);
-      } else if (identical(next, $e) || identical(next, $E)
-          || identical(next, $d) || identical(next, $D)) {
+      } else if (identical(next, $e) || identical(next, $E)) {
         return tokenizeFractionPart(next, start);
       } else {
+        if (identical(next, $PERIOD)) {
+          int nextnext = peek();
+          if ($0 <= nextnext && nextnext <= $9) {
+            return tokenizeFractionPart(advance(), start);
+          }
+        }
         appendByteStringToken(INT_INFO, asciiString(start, 0));
         return next;
       }
@@ -542,9 +545,6 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
       // TODO(ahe): Wrong offset for the period.
       appendPrecedenceToken(PERIOD_INFO);
       return bigSwitch(next);
-    }
-    if (identical(next, $d) || identical(next, $D)) {
-      next = advance();
     }
     appendByteStringToken(DOUBLE_INFO, asciiString(start, 0));
     return next;
