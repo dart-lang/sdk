@@ -3016,12 +3016,6 @@ class CodeEmitterTask extends CompilerTask {
 })(function(currentScript) {
   init.currentScript = currentScript;
 
-  if (typeof console !== "undefined" && typeof document !== "undefined" &&
-      document.readyState == "loading") {
-    console.warn("Dart script executed synchronously, use <script src='" +
-        currentScript.src + "' defer></scr" + "ipt> to execute after parsing " +
-        "has completed. See also http://dartbug.com/12281.");
-  }
   if (typeof dartMainRunner === "function") {
     dartMainRunner(function() { ${mainCall}; });
   } else {
