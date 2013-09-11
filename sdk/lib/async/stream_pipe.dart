@@ -25,10 +25,10 @@ _runUserCode(userCode(), onSuccess(value), onError(error)) {
 }
 
 /** Helper function to make an onError argument to [_runUserCode]. */
-_cancelAndError(StreamSubscription subscription, _FutureImpl future) =>
+_cancelAndError(StreamSubscription subscription, _Future future) =>
   (error) {
     subscription.cancel();
-    future._setError(error);
+    future._completeError(error);
   };
 
 
