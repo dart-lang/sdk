@@ -563,7 +563,8 @@ class Uint32List
 }
 
 
-class Uint8ClampedList extends Uint8List
+class Uint8ClampedList extends TypedData with ListMixin<int>,
+    FixedLengthListMixin<int> implements JavaScriptIndexingBehavior, List<int>
     native "Uint8ClampedArray,CanvasPixelArray" {
   factory Uint8ClampedList(int length) => _create1(length);
 
@@ -578,8 +579,7 @@ class Uint8ClampedList extends Uint8List
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  // Use implementation from Uint8List
-  // final int length;
+  int get length => JS("int", '#(#)', fetchLength, this);
 
   int operator[](int index) {
     _checkIndex(index, length);
@@ -615,7 +615,11 @@ class Uint8ClampedList extends Uint8List
 class Uint8List
     extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
     implements JavaScriptIndexingBehavior, List<int>
-    native "Uint8Array" {
+    // On some browsers Uint8ClampedArray is a subtype of Uint8Array.  Marking
+    // Uint8List as !nonleaf ensures that the native dispatch correctly handles
+    // the potential for Uint8ClampedArray to 'accidentally' pick up the
+    // dispatch record for Uint8List.
+    native "Uint8Array,!nonleaf" {
   factory Uint8List(int length) => _create1(length);
 
   factory Uint8List.fromList(List<num> list) =>

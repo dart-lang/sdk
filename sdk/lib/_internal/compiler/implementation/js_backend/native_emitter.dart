@@ -105,10 +105,24 @@ class NativeEmitter {
     return backend.namer.isolateAccess(element);
   }
 
-  List<String> nativeTagsOfClass(ClassElement cls) {
+  // The tags string contains comma-separated 'words' which are either dispatch
+  // tags (having JavaScript identifier syntax) and directives that begin with
+  // `!`.
+  List<String> nativeTagsOfClassRaw(ClassElement cls) {
     String quotedName = cls.nativeTagInfo.slowToString();
     return quotedName.substring(1, quotedName.length - 1).split(',');
   }
+
+  List<String> nativeTagsOfClass(ClassElement cls) {
+    return nativeTagsOfClassRaw(cls).where((s) => !s.startsWith('!')).toList();
+  }
+
+  bool nativeHasTagsMarker(ClassElement cls, String marker) {
+    return nativeTagsOfClassRaw(cls).contains(marker);
+  }
+
+  bool nativeForcedNonLeaf(ClassElement cls) =>
+      nativeHasTagsMarker(cls, '!nonleaf');
 
   /**
    * Writes the class definitions for the interceptors to [mainBuffer].
@@ -196,6 +210,10 @@ class NativeEmitter {
         needed = true;
       } else if (extensionPoints.containsKey(classElement)) {
         needed = true;
+      }
+      if (classElement.isNative() && nativeForcedNonLeaf(classElement)) {
+        needed = true;
+        nonleafClasses.add(classElement);
       }
 
       if (needed || neededClasses.contains(classElement)) {
