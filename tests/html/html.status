@@ -247,6 +247,7 @@ xsltprocessor_test/supported: Fail
 
 [ $runtime == safari ]
 worker_test: Skip # Issue 13221
+worker_api_test: Skip # Issue 13221
 notifications_test/supported: Pass, Fail # Issue 13210
 element_types_test/supported_track: Pass, Fail
 input_element_test/supported_month: Fail, Crash
