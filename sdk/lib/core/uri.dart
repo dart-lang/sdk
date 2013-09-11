@@ -1056,7 +1056,7 @@ class Uri {
    * safe for literal use as a URI component.
    *
    * All characters except uppercase and lowercase letters, digits and
-   * the characters `!$&'()*+,;=:@` are percent-encoded. This is the
+   * the characters `-_.!~*'()` are percent-encoded. This is the
    * set of characters specified in RFC 2396 and the which is
    * specified for the encodeUriComponent in ECMA-262 version 5.1.
    *
