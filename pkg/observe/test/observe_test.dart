@@ -22,9 +22,11 @@ void main() {
     expect(dirty_check.allObservablesCount, 0);
   });
 
-  group('WatcherModel', () { _observeTests(watch: true); });
+  group('WatcherModel', () => _observeTests((x) => new WatcherModel(x)));
 
-  group('ObservableBox', () { _observeTests(); });
+  group('ObservableBox', () => _observeTests((x) => new ObservableBox(x)));
+
+  group('ModelSubclass', () => _observeTests((x) => new ModelSubclass(x)));
 
   group('dirtyCheck loops can be debugged', () {
     var messages;
@@ -60,9 +62,8 @@ void main() {
   });
 }
 
-void _observeTests({bool watch: false}) {
-  final createModel = watch ? (x) => new WatcherModel(x)
-      : (x) => new ObservableBox(x);
+void _observeTests(createModel(x)) {
+  final watch = createModel(null) is! ChangeNotifierMixin;
 
   // Track the subscriptions so we can clean them up in tearDown.
   List subs;
@@ -254,4 +255,8 @@ class WatcherModel<T> extends ObservableBase {
   WatcherModel([T initialValue]) : value = initialValue;
 
   String toString() => '#<$runtimeType value: $value>';
+}
+
+class ModelSubclass<T> extends WatcherModel<T> {
+  ModelSubclass([T initialValue]) : super(initialValue);
 }
