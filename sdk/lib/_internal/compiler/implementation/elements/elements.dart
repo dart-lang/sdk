@@ -823,6 +823,7 @@ abstract class ClassElement extends TypeDeclarationElement
 
   int get supertypeLoadState;
   int get resolutionState;
+  bool get isResolved;
   SourceString get nativeTagInfo;
 
   bool get isMixinApplication;

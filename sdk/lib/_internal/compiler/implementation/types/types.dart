@@ -52,21 +52,141 @@ class TypesTask extends CompilerTask {
     }
   }
 
-  TypeMask dynamicType;
-  TypeMask nullType;
-  TypeMask intType;
-  TypeMask doubleType;
-  TypeMask numType;
-  TypeMask boolType;
-  TypeMask functionType;
-  TypeMask listType;
-  TypeMask constListType;
-  TypeMask fixedListType;
-  TypeMask growableListType;
-  TypeMask mapType;
-  TypeMask constMapType;
-  TypeMask stringType;
-  TypeMask typeType;
+  TypeMask dynamicTypeCache;
+  TypeMask nullTypeCache;
+  TypeMask intTypeCache;
+  TypeMask doubleTypeCache;
+  TypeMask numTypeCache;
+  TypeMask boolTypeCache;
+  TypeMask functionTypeCache;
+  TypeMask listTypeCache;
+  TypeMask constListTypeCache;
+  TypeMask fixedListTypeCache;
+  TypeMask growableListTypeCache;
+  TypeMask mapTypeCache;
+  TypeMask constMapTypeCache;
+  TypeMask stringTypeCache;
+  TypeMask typeTypeCache;
+
+  TypeMask get dynamicType {
+    if (dynamicTypeCache == null) {
+      dynamicTypeCache = new TypeMask.subclass(compiler.objectClass.rawType);
+    }
+    return dynamicTypeCache;
+  }
+
+  TypeMask get intType {
+    if (intTypeCache == null) {
+      intTypeCache = new TypeMask.nonNullExact(
+          compiler.backend.intImplementation.rawType);
+    }
+    return intTypeCache;
+  }
+
+  TypeMask get doubleType {
+    if (doubleTypeCache == null) {
+      doubleTypeCache = new TypeMask.nonNullExact(
+          compiler.backend.doubleImplementation.rawType);
+    }
+    return doubleTypeCache;
+  }
+
+  TypeMask get numType {
+    if (numTypeCache == null) {
+      numTypeCache = new TypeMask.nonNullSubclass(
+          compiler.backend.numImplementation.rawType);
+    }
+    return numTypeCache;
+  }
+
+  TypeMask get boolType {
+    if (boolTypeCache == null) {
+      boolTypeCache = new TypeMask.nonNullExact(
+          compiler.backend.boolImplementation.rawType);
+    }
+    return boolTypeCache;
+  }
+
+  TypeMask get functionType {
+    if (functionTypeCache == null) {
+      functionTypeCache = new TypeMask.nonNullSubtype(
+          compiler.backend.functionImplementation.rawType);
+    }
+    return functionTypeCache;
+  }
+
+  TypeMask get listType {
+    if (listTypeCache == null) {
+      listTypeCache = new TypeMask.nonNullExact(
+          compiler.backend.listImplementation.rawType);
+    }
+    return listTypeCache;
+  }
+
+  TypeMask get constListType {
+    if (constListTypeCache == null) {
+      constListTypeCache = new TypeMask.nonNullExact(
+          compiler.backend.constListImplementation.rawType);
+    }
+    return constListTypeCache;
+  }
+
+  TypeMask get fixedListType {
+    if (fixedListTypeCache == null) {
+      fixedListTypeCache = new TypeMask.nonNullExact(
+          compiler.backend.fixedListImplementation.rawType);
+    }
+    return fixedListTypeCache;
+  }
+
+  TypeMask get growableListType {
+    if (growableListTypeCache == null) {
+      growableListTypeCache = new TypeMask.nonNullExact(
+          compiler.backend.growableListImplementation.rawType);
+    }
+    return growableListTypeCache;
+  }
+
+  TypeMask get mapType {
+    if (mapTypeCache == null) {
+      mapTypeCache = new TypeMask.nonNullSubtype(
+          compiler.backend.mapImplementation.rawType);
+    }
+    return mapTypeCache;
+  }
+
+  TypeMask get constMapType {
+    if (constMapTypeCache == null) {
+      constMapTypeCache = new TypeMask.nonNullSubtype(
+          compiler.backend.constMapImplementation.rawType);
+    }
+    return constMapTypeCache;
+  }
+
+  TypeMask get stringType {
+    if (stringTypeCache == null) {
+      stringTypeCache = new TypeMask.nonNullExact(
+          compiler.backend.stringImplementation.rawType);
+    }
+    return stringTypeCache;
+  }
+
+  TypeMask get typeType {
+    if (typeTypeCache == null) {
+      typeTypeCache = new TypeMask.nonNullExact(
+          compiler.backend.typeImplementation.rawType);
+    }
+    return typeTypeCache;
+  }
+
+  TypeMask get nullType {
+    if (nullTypeCache == null) {
+      // TODO(johnniwinther): Assert that the null type has been resolved.
+      nullTypeCache = new TypeMask.empty();
+    }
+    return nullTypeCache;
+  }
+
 
   /// Replaces native types by their backend implementation.
   Element normalize(Element cls) {
@@ -181,56 +301,11 @@ class TypesTask extends CompilerTask {
     }
   }
 
-  // TODO(ngeoffray): Get rid of this method. Unit tests don't always
-  // ensure these classes are resolved.
-  rawTypeOf(ClassElement cls) {
-    cls.ensureResolved(compiler);
-    assert(cls.rawType != null);
-    return cls.rawType;
-  }
-
-  void initializeTypes() {
-    nullType = new TypeMask.empty();
-
-    Backend backend = compiler.backend;
-    intType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.intImplementation));
-    doubleType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.doubleImplementation));
-    numType = new TypeMask.nonNullSubclass(
-        rawTypeOf(backend.numImplementation));
-    stringType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.stringImplementation));
-    boolType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.boolImplementation));
-
-    listType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.listImplementation));
-    constListType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.constListImplementation));
-    fixedListType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.fixedListImplementation));
-    growableListType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.growableListImplementation));
-
-    mapType = new TypeMask.nonNullSubtype(
-        rawTypeOf(backend.mapImplementation));
-    constMapType = new TypeMask.nonNullSubtype(
-        rawTypeOf(backend.constMapImplementation));
-    functionType = new TypeMask.nonNullSubtype(
-        rawTypeOf(backend.functionImplementation));
-    typeType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.typeImplementation));
-
-    dynamicType = new TypeMask.subclass(rawTypeOf(compiler.objectClass));
-  }
-
   /**
    * Called when resolution is complete.
    */
   void onResolutionComplete(Element mainElement) {
     measure(() {
-      initializeTypes();
       typesInferrer.analyzeMain(mainElement);
       if (concreteTypesInferrer != null) {
         bool success = concreteTypesInferrer.analyzeMain(mainElement);

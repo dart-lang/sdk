@@ -465,6 +465,7 @@ class ContainerTracerVisitor
       LocalsHandler closureLocals = new LocalsHandler<TypeMask>.from(
           locals, node, useOtherTryBlock: false);
       new ContainerTracerVisitor(function, tracer, closureLocals).run();
+      return types.functionType;
     } else {
       // Visiting [analyzedElement].
       FunctionSignature signature = function.computeSignature(compiler);
@@ -475,8 +476,8 @@ class ContainerTracerVisitor
       visit(node.initializers);
       visitingInitializers = false;
       visit(node.body);
+      return null;
     }
-    return types.functionType;
   }
 
   TypeMask visitLiteralList(LiteralList node) {

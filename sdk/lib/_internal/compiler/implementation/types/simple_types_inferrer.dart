@@ -1404,6 +1404,9 @@ class InternalSimpleTypesInferrer
 
   TypeMask handleIntrisifiedSelector(Selector selector,
                                      ArgumentsTypes arguments) {
+    // If [:compiler.intClass:] has not been resolved, there are no int values
+    // in the program.
+    if (!compiler.intClass.isResolved) return null;
     TypeMask intType = types.intType;
     if (selector.mask != intType) return null;
     if (!selector.isCall() && !selector.isOperator()) return null;
@@ -2220,7 +2223,7 @@ class SimpleTypeInferrerVisitor<T>
 
     // If the receiver of the call is a local, we may know more about
     // its type by refining it with the potential targets of the
-    // calls. 
+    // calls.
     if (node.asSend() != null) {
       Node receiver = node.asSend().receiver;
       if (receiver != null) {

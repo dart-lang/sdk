@@ -26,6 +26,14 @@ abstract class TreeElements {
   Selector setMoveNextSelector(ForIn node, Selector selector);
   Selector setCurrentSelector(ForIn node, Selector selector);
 
+  /**
+   * Returns [:true:] if [node] is a type literal.
+   *
+   * Resolution marks this by setting the type on the node to be the
+   * [:Type:] type.
+   */
+  bool isTypeLiteral(Send node);
+
   /// Register additional dependencies required by [currentElement].
   /// For example, elements that are used by a backend.
   void registerDependency(Element element);
@@ -130,6 +138,10 @@ class TreeElementMapping implements TreeElements {
 
   Selector getCurrentSelector(ForIn node) {
     return selectors[node.inToken];
+  }
+
+  bool isTypeLiteral(Send node) {
+    return getType(node) != null;
   }
 
   void registerDependency(Element element) {
@@ -2313,7 +2325,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // Set the type of the node to [Type] to mark this send as a
         // type variable expression.
         mapping.setType(node, compiler.typeClass.computeType(compiler));
-        world.registerInstantiatedClass(compiler.typeClass, mapping);
+        world.registerTypeLiteral(target, mapping);
       } else if (target.impliesType() && !sendIsMemberAccess) {
         // Set the type of the node to [Type] to mark this send as a
         // type literal.
@@ -2477,8 +2489,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
       if (identical(source, '++')) {
         registerBinaryOperator(const SourceString('+'));
+        world.registerInstantiatedClass(compiler.intClass, mapping);
       } else if (identical(source, '--')) {
         registerBinaryOperator(const SourceString('-'));
+        world.registerInstantiatedClass(compiler.intClass, mapping);
       } else if (source.endsWith('=')) {
         registerBinaryOperator(Elements.mapToUserOperator(operatorName));
       }

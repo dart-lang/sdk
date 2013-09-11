@@ -730,7 +730,7 @@ void main() {
 
     checkReturn('testCascade1', typesTask.growableListType);
     checkReturn('testCascade2', new TypeMask.nonNullExact(
-        typesTask.rawTypeOf(findElement(compiler, 'CascadeHelper'))));
+        findElement(compiler, 'CascadeHelper').rawType));
     checkReturn('testSpecialization1', typesTask.numType);
     checkReturn('testSpecialization2', typesTask.dynamicType);
     checkReturn('testSpecialization3', typesTask.intType.nullable());

@@ -152,7 +152,9 @@ abstract class Backend {
 
   /// Called during resolution to notify to the backend that the
   /// program uses a type literal.
-  void registerTypeLiteral(Element element, TreeElements elements) {}
+  void registerTypeLiteral(Element element,
+                           Enqueuer enqueuer,
+                           TreeElements elements) {}
 
   /// Called during resolution to notify to the backend that the
   /// program has a catch statement with a stack trace.

@@ -487,7 +487,8 @@ class CompileTimeConstantEvaluator extends Visitor {
 
   Constant makeTypeConstant(Element element) {
     DartType elementType = element.computeType(compiler).asRaw();
-    compiler.backend.registerTypeLiteral(element, elements);
+    compiler.backend.registerTypeLiteral(
+        element, compiler.enqueuer.codegen, elements);
     DartType constantType =
         compiler.backend.typeImplementation.computeType(compiler);
     Constant constant = new TypeConstant(elementType, constantType);

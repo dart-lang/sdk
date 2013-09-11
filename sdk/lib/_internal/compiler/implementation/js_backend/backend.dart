@@ -878,7 +878,10 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getCyclicThrowHelper(), elements);
   }
 
-  void registerTypeLiteral(Element element, TreeElements elements) {
+  void registerTypeLiteral(Element element,
+                           Enqueuer enqueuer,
+                           TreeElements elements) {
+    enqueuer.registerInstantiatedClass(typeImplementation, elements);
     enqueueInResolution(getCreateRuntimeType(), elements);
     // TODO(ahe): Might want to register [element] as an instantiated class
     // when reflection is used.  However, as long as we disable tree-shaking

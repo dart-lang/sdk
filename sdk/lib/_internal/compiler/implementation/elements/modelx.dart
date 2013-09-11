@@ -1510,6 +1510,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   SourceString nativeTagInfo;
   int supertypeLoadState;
   int resolutionState;
+  bool get isResolved => resolutionState == STATE_DONE;
 
   // backendMembers are members that have been added by the backend to simplify
   // compilation. They don't have any user-side counter-part.

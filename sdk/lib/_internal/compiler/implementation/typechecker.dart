@@ -592,7 +592,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       return const DynamicAccess();
     } else if (element.impliesType()) {
       // The literal `Foo` where Foo is a class, a typedef, or a type variable.
-      if (elements.getType(node) != null) {
+      if (elements.isTypeLiteral(node)) {
         assert(invariant(node, identical(compiler.typeClass,
             elements.getType(node).element),
             message: 'Expected type literal type: '

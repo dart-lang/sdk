@@ -136,7 +136,7 @@ abstract class Enqueuer {
 
   void registerTypeLiteral(Element element, TreeElements elements) {
     registerInstantiatedClass(compiler.typeClass, elements);
-    compiler.backend.registerTypeLiteral(element, elements);
+    compiler.backend.registerTypeLiteral(element, this, elements);
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {
