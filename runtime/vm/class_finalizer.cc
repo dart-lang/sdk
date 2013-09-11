@@ -1853,25 +1853,27 @@ void ClassFinalizer::CollectTypeArguments(
       type_args.IsNull() ? 0 : type_args.Length();
   AbstractType& arg = AbstractType::Handle();
   if (num_type_arguments > 0) {
-    if (num_type_arguments != num_type_parameters) {
+    if (num_type_arguments == num_type_parameters) {
+      for (int i = 0; i < num_type_arguments; i++) {
+        arg = type_args.TypeAt(i);
+        collected_args.Add(arg);
+      }
+      return;
+    }
+    if (FLAG_error_on_bad_type) {
       const Script& script = Script::Handle(cls.script());
       const String& type_class_name = String::Handle(type_class.Name());
-      // TODO(regis): This should not be a compile time error anymore.
       ReportError(Error::Handle(),  // No previous error.
                   script, type.token_pos(),
                   "wrong number of type arguments for class '%s'",
                   type_class_name.ToCString());
     }
-    for (int i = 0; i < num_type_arguments; i++) {
-      arg = type_args.TypeAt(i);
-      collected_args.Add(arg);
-    }
-  } else {
-    // Fill arguments with type dynamic.
-    for (int i = 0; i < num_type_parameters; i++) {
-      arg = Type::DynamicType();
-      collected_args.Add(arg);
-    }
+    // Discard provided type arguments and treat type as raw.
+  }
+  // Fill arguments with type dynamic.
+  for (int i = 0; i < num_type_parameters; i++) {
+    arg = Type::DynamicType();
+    collected_args.Add(arg);
   }
 }
 
@@ -1881,18 +1883,16 @@ RawType* ClassFinalizer::ResolveMixinAppType(const Class& cls,
   // Resolve super type and all mixin types.
   const GrowableObjectArray& type_args =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
-  AbstractType& type = AbstractType::Handle(mixin_app.super_type());
+  AbstractType& type = AbstractType::Handle(mixin_app.SuperType());
   ResolveType(cls, type, kCanonicalizeWellFormed);
   ASSERT(type.HasResolvedTypeClass());
   // TODO(hausner): May need to handle BoundedType here.
   ASSERT(type.IsType());
   CollectTypeArguments(cls, Type::Cast(type), type_args);
-  const Array& mixins = Array::Handle(mixin_app.mixin_types());
   Class& mixin_app_class = Class::Handle();
-  for (int i = 0; i < mixins.Length(); i++) {
-    type ^= mixins.At(i);
-    ASSERT(type.HasResolvedTypeClass());  // Newly created class in parser.
-    mixin_app_class ^= type.type_class();
+  const intptr_t depth = mixin_app.Depth();
+  for (int i = 0; i < depth; i++) {
+    mixin_app_class = mixin_app.MixinAppAt(i);
     type = mixin_app_class.mixin();
     ASSERT(!type.IsNull());
     ResolveType(cls, type, kCanonicalizeWellFormed);
@@ -1910,16 +1910,13 @@ RawType* ClassFinalizer::ResolveMixinAppType(const Class& cls,
     OS::Print("ResolveMixinAppType: mixin appl type args: %s\n",
               mixin_app_args.ToCString());
   }
-  // The last element in the mixins array is the lowest mixin application
-  // type in the mixin chain. Build a new super type with its type class
-  // and the collected type arguments from the super type and all
-  // mixin types. This super type replaces the MixinAppType object
-  // in the class that extends the mixin application.
-  type ^= mixins.At(mixins.Length() - 1);
-  mixin_app_class ^= type.type_class();
-  return Type::New(mixin_app_class,
-                   mixin_app_args,
-                   mixin_app.token_pos());
+  // The mixin application class at depth k is a subclass of mixin application
+  // class at depth k - 1. Build a new super type with the class at the highest
+  // depth (the last one processed by the loop above) as the type class and the
+  // collected type arguments from the super type and all mixin types.
+  // This super type replaces the MixinAppType object in the class that extends
+  // the mixin application.
+  return Type::New(mixin_app_class, mixin_app_args, mixin_app.token_pos());
 }
 
 

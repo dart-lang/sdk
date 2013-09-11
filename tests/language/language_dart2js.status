@@ -125,9 +125,6 @@ method_override5_test: Fail # Issue 12809
 parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters_aggregated_test/03: Fail # Issue 12812
 super_implicit_closure_test: Fail # Issue 12884
-mixin_type_parameters_errors_test/01: Fail # Issue 12885
-mixin_type_parameters_errors_test/02: Fail # Issue 12885
-mixin_type_parameters_errors_test/05: Fail # Issue 12885
 external_test/11: Fail # Issue 12887
 external_test/12: Fail # Issue 12887
 external_test/13: Fail # Issue 12887
@@ -214,10 +211,6 @@ factory3_test: Fail # Issue 13077
 type_checks_in_factory_method_test: Fail # Issue 12747
 
 on_catch_malformed_type_test: Fail # Issue 8601
-
-mixin_type_parameters_errors_test/01: Fail # Issue 12886
-mixin_type_parameters_errors_test/02: Fail # Issue 12886
-mixin_type_parameters_errors_test/05: Fail # Issue 12886
 
 # Mixins fail on the VM.
 mixin_mixin_test: Fail # Issue 9683

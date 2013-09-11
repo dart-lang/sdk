@@ -1201,12 +1201,11 @@ class RawMixinAppType : public RawAbstractType {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MixinAppType);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->super_type_);
+    return reinterpret_cast<RawObject**>(&ptr()->mixins_);
   }
-  RawAbstractType* super_type_;
-  RawArray* mixin_types_;
+  RawArray* mixins_;  // Array of synthesized mixin application classes.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->mixin_types_);
+    return reinterpret_cast<RawObject**>(&ptr()->mixins_);
   }
 };
 

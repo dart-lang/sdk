@@ -4354,18 +4354,16 @@ void Parser::ParseInterfaceList(const Class& cls) {
 RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
   TRACE_PARSER("ParseMixins");
   ASSERT(CurrentToken() == Token::kWITH);
+  ASSERT(super_type.IsType());  // TODO(regis): Could be a BoundedType.
+  AbstractType& mixin_super_type = AbstractType::Handle(super_type.raw());
 
   const GrowableObjectArray& mixin_apps =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   AbstractType& mixin_type = AbstractType::Handle();
-  AbstractTypeArguments& mixin_type_arguments =
-      AbstractTypeArguments::Handle();
-  Class& mixin_application = Class::Handle();
-  Type& mixin_application_type = Type::Handle();
-  Type& mixin_super_type = Type::Handle();
-  ASSERT(super_type.IsType());
-  mixin_super_type ^= super_type.raw();
-  Array& mixin_application_interfaces = Array::Handle();
+  Class& mixin_app_class = Class::Handle();
+  Array& mixin_app_interfaces = Array::Handle();
+  String& mixin_app_class_name = String::Handle();
+  String& mixin_type_class_name = String::Handle();
   do {
     ConsumeToken();
     const intptr_t mixin_pos = TokenPos();
@@ -4377,42 +4375,38 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
     }
 
     // The name of the mixin application class is a combination of
-    // the superclass and mixin class.
-    String& mixin_app_name = String::Handle();
-    mixin_app_name = mixin_super_type.ClassName();
-    mixin_app_name = String::Concat(mixin_app_name, Symbols::Ampersand());
-    mixin_app_name = String::Concat(mixin_app_name,
-                                    String::Handle(mixin_type.ClassName()));
-    mixin_app_name = Symbols::New(mixin_app_name);
+    // the super class name and mixin class name.
+    mixin_app_class_name = mixin_super_type.ClassName();
+    mixin_app_class_name = String::Concat(mixin_app_class_name,
+                                          Symbols::Ampersand());
+    mixin_type_class_name = mixin_type.ClassName();
+    mixin_app_class_name = String::Concat(mixin_app_class_name,
+                                          mixin_type_class_name);
+    mixin_app_class_name = Symbols::New(mixin_app_class_name);
 
-    mixin_application = Class::New(mixin_app_name, script_, mixin_pos);
-    mixin_application.set_super_type(mixin_super_type);
-    mixin_application.set_mixin(Type::Cast(mixin_type));
-    mixin_application.set_library(library_);
-    mixin_application.set_is_synthesized_class();
+    mixin_app_class = Class::New(mixin_app_class_name, script_, mixin_pos);
+    mixin_app_class.set_super_type(mixin_super_type);
+    mixin_app_class.set_mixin(Type::Cast(mixin_type));
+    mixin_app_class.set_library(library_);
+    mixin_app_class.set_is_synthesized_class();
 
     // Add the mixin type to the interfaces that the mixin application
     // class implements. This is necessary so that type tests work.
-    mixin_application_interfaces = Array::New(1);
-    mixin_application_interfaces.SetAt(0, mixin_type);
-    mixin_application.set_interfaces(mixin_application_interfaces);
+    mixin_app_interfaces = Array::New(1);
+    mixin_app_interfaces.SetAt(0, mixin_type);
+    mixin_app_class.set_interfaces(mixin_app_interfaces);
 
-    // For the type arguments of the mixin application type, we need
-    // a copy of the type arguments to the mixin type. The simplest way
-    // to get the copy is to rewind the parser, parse the mixin type
-    // again and steal its type arguments.
-    SetPosition(mixin_pos);
-    mixin_type = ParseType(ClassFinalizer::kResolveTypeParameters);
-    mixin_type_arguments = mixin_type.arguments();
+    // Add the synthesized class to the list of mixin apps.
+    mixin_apps.Add(mixin_app_class);
 
-    mixin_application_type = Type::New(mixin_application,
-                                       mixin_type_arguments,
-                                       mixin_pos);
-    mixin_super_type = mixin_application_type.raw();
-    mixin_apps.Add(mixin_application_type);
+    // This mixin application class becomes the type class of the super type of
+    // the next mixin application class. It is however too early to provide the
+    // correct super type arguments. We use the raw type for now.
+    mixin_super_type = Type::New(mixin_app_class,
+                                 Object::null_abstract_type_arguments(),
+                                 mixin_pos);
   } while (CurrentToken() == Token::kCOMMA);
-  return MixinAppType::New(super_type,
-                           Array::Handle(Array::MakeArray(mixin_apps)));
+  return MixinAppType::New(Array::Handle(Array::MakeArray(mixin_apps)));
 }
 
 
