@@ -250,7 +250,7 @@ abstract class _StreamController<T> implements StreamController<T>,
   // TODO(lrn): Could this be stored in the varData field too, if it's not
   // accessed until the call to "close"? Then we need to special case if it's
   // accessed earlier, or if close is called before subscribing.
-  _Future _doneFuture;
+  _FutureImpl _doneFuture;
 
   _StreamController();
 
@@ -347,7 +347,7 @@ abstract class _StreamController<T> implements StreamController<T>,
   // StreamSink interface.
   Future addStream(Stream<T> source) {
     if (!_mayAddEvent) throw _badEventState();
-    if (_isCanceled) return new _Future.immediate(null);
+    if (_isCanceled) return new _FutureImpl.immediate(null);
     _StreamControllerAddStreamState addState =
         new _StreamControllerAddStreamState(this, _varData, source);
     _varData = addState;
@@ -359,8 +359,8 @@ abstract class _StreamController<T> implements StreamController<T>,
 
   Future _ensureDoneFuture() {
     if (_doneFuture == null) {
-      _doneFuture = new _Future();
-      if (_isCanceled) _doneFuture._complete(null);
+      _doneFuture = new _FutureImpl();
+      if (_isCanceled) _doneFuture._setValue(null);
     }
     return _doneFuture;
   }
@@ -479,7 +479,7 @@ abstract class _StreamController<T> implements StreamController<T>,
         (_state & ~(_STATE_SUBSCRIBED | _STATE_ADDSTREAM)) | _STATE_CANCELED;
     _runGuarded(_onCancel);
     if (_doneFuture != null && _doneFuture._mayComplete) {
-      _doneFuture._asyncComplete(null);
+      _doneFuture._asyncSetValue(null);
     }
   }
 
@@ -649,13 +649,13 @@ class _StreamSinkWrapper<T> implements StreamSink<T> {
  */
 class _AddStreamState<T> {
   // [_FutureImpl] returned by call to addStream.
-  _Future addStreamFuture;
+  _FutureImpl addStreamFuture;
 
   // Subscription on stream argument to addStream.
   StreamSubscription addSubscription;
 
   _AddStreamState(_EventSink<T> controller, Stream source)
-      : addStreamFuture = new _Future(),
+      : addStreamFuture = new _FutureImpl(),
         addSubscription = source.listen(controller._add,
                                         onError: controller._addError,
                                         onDone: controller._close,
@@ -675,7 +675,7 @@ class _AddStreamState<T> {
   }
 
   void complete() {
-    addStreamFuture._asyncComplete(null);
+    addStreamFuture._asyncSetValue(null);
   }
 }
 

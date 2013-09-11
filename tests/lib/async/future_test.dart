@@ -617,6 +617,22 @@ void testChainedFutureError() {
   completer.complete(21);
 }
 
+void testChainedFutureCycle() {
+  asyncStart();
+  var completer = new Completer();
+  var future, future2;
+  future  = completer.future.then((_) => future2);
+  future2 = completer.future.then((_) => future);
+  completer.complete(42);
+  int ctr = 2;
+  void receiveError(e) {
+    Expect.isTrue(e is StateError);
+    if (--ctr == 0) asyncEnd();
+  }
+  future.catchError(receiveError);
+  future.catchError(receiveError);
+}
+
 main() {
   testValue();
   testSync();
@@ -658,4 +674,5 @@ main() {
   testChainedFutureValue();
   testChainedFutureValueDelay();
   testChainedFutureError();
+  testChainedFutureCycle();
 }

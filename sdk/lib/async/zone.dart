@@ -87,13 +87,13 @@ abstract class _Zone {
    *
    * Returns the result of the invocation.
    */
-  dynamic runFromChildZone(f());
+  runFromChildZone(f());
 
   /**
    * Same as [runFromChildZone] but catches uncaught errors and gives them to
    * [handleUncaughtError].
    */
-  dynamic runFromChildZoneGuarded(f());
+  runFromChildZoneGuarded(f());
 
   /**
    * Runs [f] asynchronously in [zone].
@@ -181,7 +181,7 @@ class _ZoneBase implements _Zone {
    * A zone is done when its dynamic extent has finished executing and
    * there are no outstanding asynchronous callbacks.
    */
-  void _dispose() {
+  _dispose() {
     if (_parentZone != null) {
       _parentZone._removeChild(this);
     }
@@ -218,10 +218,10 @@ class _ZoneBase implements _Zone {
     this._runGuarded(f);
   }
 
-  dynamic runFromChildZone(f()) => this._runUnguarded(f);
-  dynamic runFromChildZoneGuarded(f()) => this._runGuarded(f);
+  runFromChildZone(f()) => this._runUnguarded(f);
+  runFromChildZoneGuarded(f()) => this._runGuarded(f);
 
-  dynamic _runInZone(f(), bool handleUncaught) {
+  _runInZone(f(), bool handleUncaught) {
     if (identical(_Zone._current, this)
         && !handleUncaught
         && _isExecutingCallback) {
@@ -261,18 +261,18 @@ class _ZoneBase implements _Zone {
    *
    * Uncaught errors are given to [handleUncaughtError].
    */
-  dynamic _runGuarded(void f()) {
+  _runGuarded(void f()) {
     return _runInZone(f, true);
   }
 
   /**
    * Runs the function but doesn't catch uncaught errors.
    */
-  dynamic _runUnguarded(void f()) {
+  _runUnguarded(void f()) {
     return _runInZone(f, false);
   }
 
-  void runAsync(void f(), _Zone zone) => _parentZone.runAsync(f, zone);
+  runAsync(void f(), _Zone zone) => _parentZone.runAsync(f, zone);
 
   // TODO(floitsch): the zone should just forward to the parent zone. The
   // default zone should then create the _ZoneTimer.
@@ -305,7 +305,7 @@ class _DefaultZone extends _ZoneBase {
 
   _Zone get _errorZone => this;
 
-  void handleUncaughtError(error) {
+  handleUncaughtError(error) {
     _scheduleAsyncCallback(() {
       print("Uncaught Error: ${error}");
       var trace = getAttachedStackTrace(error);
@@ -341,15 +341,14 @@ class _WaitForCompletionZone extends _ZoneBase {
   _WaitForCompletionZone(_Zone parentZone, this._onDone) : super(parentZone);
 
   /**
-   * Runs the given function.
-   *
-   * Executes the [_onDone] callback when the zone is done.
+   * Runs the given function asynchronously. Executes the [_onDone] callback
+   * when the zone is done.
    */
-  dynamic runWaitForCompletion(void f()) {
+  runWaitForCompletion(void f()) {
     return this._runUnguarded(f);
   }
 
-  void _dispose() {
+  _dispose() {
     super._dispose();
     _onDone();
   }
@@ -371,7 +370,7 @@ class _CatchErrorsZone extends _WaitForCompletionZone {
 
   _Zone get _errorZone => this;
 
-  void handleUncaughtError(error) {
+  handleUncaughtError(error) {
     try {
       _handleError(error);
     } catch(e, s) {
@@ -387,7 +386,7 @@ class _CatchErrorsZone extends _WaitForCompletionZone {
    * Runs the given function asynchronously. Executes the [_onDone] callback
    * when the zone is done.
    */
-  dynamic runWaitForCompletion(void f()) {
+  runWaitForCompletion(void f()) {
     return this._runGuarded(f);
   }
 

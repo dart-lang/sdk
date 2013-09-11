@@ -107,7 +107,7 @@ abstract class _BroadcastStreamController<T>
    * Any attempt to listen after calling [close] will throw, so there won't
    * be any further listeners.
    */
-  _Future _doneFuture;
+  _FutureImpl _doneFuture;
 
   _BroadcastStreamController(this._onListen, this._onCancel)
       : _state = _STATE_INITIAL {
@@ -140,9 +140,9 @@ abstract class _BroadcastStreamController<T>
 
   bool get _mayAddEvent => (_state < _STATE_CLOSED);
 
-  _Future _ensureDoneFuture() {
+  _FutureImpl _ensureDoneFuture() {
     if (_doneFuture != null) return _doneFuture;
-    return _doneFuture = new _Future();
+    return _doneFuture = new _FutureImpl();
   }
 
   // Linked list helpers
@@ -314,7 +314,7 @@ abstract class _BroadcastStreamController<T>
     assert(_isEmpty);
     if (isClosed && _doneFuture._mayComplete) {
       // When closed, _doneFuture is not null.
-      _doneFuture._asyncComplete(null);
+      _doneFuture._asyncSetValue(null);
     }
     _runGuarded(_onCancel);
   }
@@ -348,7 +348,7 @@ class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
     } else {
       assert(_doneFuture != null);
       assert(_doneFuture._mayComplete);
-      _doneFuture._asyncComplete(null);
+      _doneFuture._asyncSetValue(null);
     }
   }
 }
@@ -388,7 +388,7 @@ class _AsyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
     } else {
       assert(_doneFuture != null);
       assert(_doneFuture._mayComplete);
-      _doneFuture._asyncComplete(null);
+      _doneFuture._asyncSetValue(null);
     }
   }
 }
@@ -480,5 +480,5 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
   }
   void cancel() {}
   bool get isPaused => _pauseCount > 0;
-  Future asFuture([Object value]) => new _Future();
+  Future asFuture([Object value]) => new _FutureImpl();
 }
