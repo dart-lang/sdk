@@ -2,28 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 /**
- * The matcher library provides a 3rd generation assertion mechanism, drawing
- * inspiration from [Hamcrest](http://code.google.com/p/hamcrest/).
+ * Support for specifying test expectations,
+ * such as for unit tests.
  *
- * ## Installing ##
- *
- * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
- * file.
- *
- *     dependencies:
- *       unittest: any
- *
- * Then run `pub install`.
- *
- * Import this into your Dart code with:
+ * This library is included in the
+ * [unittest package on pub.dartlang.org]
+ * (http://pub.dartlang.org/packages/unittest).
+ * Import this library into your Dart code with:
  *
  *     import 'package:unittest/matcher.dart';
  *
- * For more information, see the [unittest package on pub.dartlang.org].
- * (http://pub.dartlang.org/packages/unittest).
- *
- * [pub]: http://pub.dartlang.org
- * [pkg]: http://pub.dartlang.org/packages/matcher
+ * The matcher library provides a third-generation assertion mechanism, drawing
+ * inspiration from [Hamcrest](http://code.google.com/p/hamcrest/).
+ * For more information, see
+ * [Unit Testing with Dart]
+ * (http://www.dartlang.org/articles/dart-unit-tests/).
  */
 library matcher;
 

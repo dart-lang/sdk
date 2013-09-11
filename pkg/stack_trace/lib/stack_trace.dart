@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
+ * Stack trace generation and parsing.
+ *
  * ## Installing ##
  *
  * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
