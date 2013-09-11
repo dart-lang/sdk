@@ -3,141 +3,144 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * This library lets you define parsers for parsing raw command-line arguments
- * into a set of options and values using [GNU][] and [POSIX][] style options.
+ * Parser support for transforming raw command-line arguments into a set
+ * of options and values.
  *
- * ## Installing ##
+ * This library supports [GNU][] and [POSIX][] style options, and it works
+ * in both server-side and client-side apps.
  *
- * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
- * file.
- *
- *     dependencies:
- *       args: any
- *
- * Then run `pub install`.
- *
- * For more information, see the
+ * For information on installing this library, see the
  * [args package on pub.dartlang.org](http://pub.dartlang.org/packages/args).
+ * Here's an example of importing this library:
  *
- * ## Defining options ##
+ *     import 'package:args/args.dart';
  *
- * To use this library, you create an [ArgParser] object which will contain
- * the set of options you support:
+ * ## Defining options
+ *
+ * To use this library, first create an [ArgParser]:
  *
  *     var parser = new ArgParser();
  *
- * Then you define a set of options on that parser using [addOption()] and
- * [addFlag()]. The minimal way to create an option is:
+ * Then define a set of options on that parser using [addOption()] and
+ * [addFlag()]. Here's the minimal way to create an option named "name":
  *
  *     parser.addOption('name');
  *
- * This creates an option named "name". Options must be given a value on the
- * command line. If you have a simple on/off flag, you can instead use:
+ * When an option can only be set or unset (as opposed to taking a string
+ * value), use a flag:
  *
  *     parser.addFlag('name');
  *
- * Flag options will, by default, accept a 'no-' prefix to negate the option.
- * This can be disabled like so:
+ * Flag options, by default, accept a 'no-' prefix to negate the option.
+ * You can disable the 'no-' prefix using the `negatable` parameter:
  *
  *     parser.addFlag('name', negatable: false);
  *
- * (From here on out "option" will refer to both "regular" options and flags.
- * In cases where the distinction matters, we'll use "non-flag option".)
+ * **Terminology note:**
+ * From here on out, the term _option_ refers to both regular options and
+ * flags. In cases where the distinction matters, this documentation uses
+ * the term _non-flag option._
  *
- * Options may have an optional single-character abbreviation:
+ * Options can have an optional single-character abbreviation, specified
+ * with the `abbr` parameter:
  *
  *     parser.addOption('mode', abbr: 'm');
  *     parser.addFlag('verbose', abbr: 'v');
  *
- * They may also specify a default value. The default value will be used if the
- * option isn't provided:
+ * Options can also have a default value, specified with the `defaultsTo`
+ * parameter. The default value is used when arguments don't specify the
+ * option.
  *
  *     parser.addOption('mode', defaultsTo: 'debug');
  *     parser.addFlag('verbose', defaultsTo: false);
  *
- * The default value for non-flag options can be any [String]. For flags, it
- * must be a [bool].
+ * The default value for non-flag options can be any [String]. For flags,
+ * it must be a [bool].
  *
- * To validate non-flag options, you may provide an allowed set of values. When
- * you do, it will throw a [FormatException] when you parse the arguments if
- * the value for an option is not in the allowed set:
+ * To validate a non-flag option, you can use the `allowed` parameter to
+ * provide an allowed set of values. When you do, the parser throws a
+ * [FormatException] if the value for an option is not in the allowed set.
+ * Here's an example of specifying allowed values:
  *
  *     parser.addOption('mode', allowed: ['debug', 'release']);
  *
- * You can provide a callback when you define an option. When you later parse
- * a set of arguments, the callback for that option will be invoked with the
- * value provided for it:
+ * You can use the `callback` parameter to associate a function with an
+ * option. Later, when parsing occurs, the callback function is invoked
+ * with the value of the option:
  *
  *     parser.addOption('mode', callback: (mode) => print('Got mode $mode));
  *     parser.addFlag('verbose', callback: (verbose) {
  *       if (verbose) print('Verbose');
  *     });
  *
- * The callback for each option will *always* be called when you parse a set of
- * arguments. If the option isn't provided in the args, the callback will be
- * passed the default value, or `null` if there is none set.
+ * The callbacks for all options are called whenever a set of arguments
+ * is parsed. If an option isn't provided in the args, its callback is
+ * passed the default value, or `null` if no default value is set.
  *
- * ## Parsing arguments ##
+ * ## Parsing arguments
  *
- * Once you have an [ArgParser] set up with some options and flags, you use it
- * by calling [ArgParser.parse()] with a set of arguments:
+ * Once you have an [ArgParser] set up with some options and flags, you
+ * use it by calling [ArgParser.parse()] with a set of arguments:
  *
  *     var results = parser.parse(['some', 'command', 'line', 'args']);
  *
- * These will usually come from `new Options().arguments`, but you can pass in
- * any list of strings. It returns an instance of [ArgResults]. This is a
- * map-like object that will return the value of any parsed option.
+ * These arguments usually come from dart:io's Options class
+ * (`new Options().arguments`), but you can pass in any list of strings.
+ * The parse() method returns an instance of [ArgResults], a map-like
+ * object that contains the values of the parsed options.
  *
  *     var parser = new ArgParser();
  *     parser.addOption('mode');
  *     parser.addFlag('verbose', defaultsTo: true);
- *     var results = parser.parse('['--mode', 'debug', 'something', 'else']);
+ *     var results = parser.parse(['--mode', 'debug', 'something', 'else']);
  *
  *     print(results['mode']); // debug
  *     print(results['verbose']); // true
  *
- * The [parse()] method will stop as soon as it reaches `--` or anything that
- * it doesn't recognize as an option, flag, or option value. If there are still
- * arguments left, they will be provided to you in
- * [ArgResults.rest].
+ * By default, the parse() method stops as soon as it reaches `--` by itself
+ * or anything that the parser doesn't recognize as an option, flag, or
+ * option value. If arguments still remain, they go into [ArgResults.rest].
  *
  *     print(results.rest); // ['something', 'else']
  *
- * ## Specifying options ##
+ * To continue to parse options found after non-option arguments, call
+ * parse() with `allowTrailingOptions: true`.
  *
- * To actually pass in options and flags on the command line, use GNU or POSIX
- * style. If you define an option like:
+ * ## Specifying options
+ *
+ * To actually pass in options and flags on the command line, use GNU or
+ * POSIX style. Consider this option:
  *
  *     parser.addOption('name', abbr: 'n');
  *
- * Then a value for it can be specified on the command line using any of:
+ * You can specify its value on the command line using any of the following:
  *
  *     --name=somevalue
  *     --name somevalue
  *     -nsomevalue
  *     -n somevalue
  *
- * Given this flag:
+ * Consider this flag:
  *
  *     parser.addFlag('name', abbr: 'n');
  *
- * You can set it on using one of:
+ * You can set it to true using one of the following:
  *
  *     --name
  *     -n
  *
- * Or set it off using:
+ * You can set it to false using the following:
  *
  *     --no-name
  *
- * Multiple flag abbreviation can also be collapsed into a single argument. If
- * you define:
+ * Multiple flag abbreviations can be collapsed into a single argument. Say
+ * you define these flags:
  *
  *     parser.addFlag('verbose', abbr: 'v');
  *     parser.addFlag('french', abbr: 'f');
  *     parser.addFlag('iambic-pentameter', abbr: 'i');
  *
- * Then all three flags could be set using:
+ * You can set all three flags at once:
  *
  *     -vfi
  *
@@ -149,9 +152,9 @@
  *     var results = parser.parse(['--mode', 'on', '--mode', 'off']);
  *     print(results['mode']); // prints 'off'
  *
- * If you need multiple values, set the [allowMultiple] flag. In that
- * case the option can occur multiple times and when parsing arguments a
- * List of values will be returned:
+ * If you need multiple values, set the `allowMultiple` parameter. In that
+ * case the option can occur multiple times, and the parse() method returns
+ * a list of values:
  *
  *     var parser = new ArgParser();
  *     parser.addOption('mode', allowMultiple: true);
@@ -160,68 +163,73 @@
  *
  * ## Defining commands ##
  *
- * In addition to *options*, you can also define *commands*. A command is a
- * named argument that has its own set of options. For example, when you run:
+ * In addition to *options*, you can also define *commands*. A command is
+ * a named argument that has its own set of options. For example, consider
+ * this shell command:
  *
  *     $ git commit -a
  *
- * The executable is `git`, the command is `commit`, and the `-a` option is an
- * option passed to the command. You can add a command like so:
+ * The executable is `git`, the command is `commit`, and the `-a` option is
+ * an option passed to the command. You can add a command using the
+ * [addCommand] method:
  *
  *     var parser = new ArgParser();
  *     var command = parser.addCommand('commit');
  *
- * It returns another [ArgParser] which you can then use to define options
- * specific to that command. If you already have an [ArgParser] for the
- * command's options, you can pass it to [addCommand]:
+ * The addCommand() method returns another [ArgParser], which you can then
+ * use to define options specific to that command. If you already have an
+ * [ArgParser] for the command's options, you can pass it to addCommand:
  *
  *     var parser = new ArgParser();
  *     var command = new ArgParser();
  *     parser.addCommand('commit', command);
  *
- * The [ArgParser] for a command can then define whatever options or flags:
+ * The [ArgParser] for a command can then define options or flags:
  *
  *     command.addFlag('all', abbr: 'a');
  *
  * You can add multiple commands to the same parser so that a user can select
- * one from a range of possible commands. When an argument list is parsed,
+ * one from a range of possible commands. When parsing an argument list,
  * you can then determine which command was entered and what options were
  * provided for it.
  *
  *     var results = parser.parse(['commit', '-a']);
- *     print(results.command.name); // "commit"
- *     print(results.command['a']); // true
+ *     print(results.command.name);   // "commit"
+ *     print(results.command['all']); // true
  *
  * Options for a command must appear after the command in the argument list.
  * For example, given the above parser, "git -a commit" is *not* valid. The
- * parser will try to find the right-most command that accepts an option. For
+ * parser tries to find the right-most command that accepts an option. For
  * example:
  *
  *     var parser = new ArgParser();
  *     parser.addFlag('all', abbr: 'a');
- *     var command = new ArgParser().addCommand('commit');
- *     parser.addFlag('all', abbr: 'a');
+ *     var command = parser.addCommand('commit');
+ *     command.addFlag('all', abbr: 'a');
+ *
  *     var results = parser.parse(['commit', '-a']);
- *     print(results.command['a']); // true
+ *     print(results.command['all']); // true
  *
- * Here, both the top-level parser and the "commit" command can accept a "-a"
- * (which is probably a bad command line interface, admittedly). In that case,
- * when "-a" appears after "commit", it will be applied to that command. If it
- * appears to the left of "commit", it will be given to the top-level parser.
+ * Here, both the top-level parser and the "commit" command can accept a
+ * "-a" (which is probably a bad command line interface, admittedly). In
+ * that case, when "-a" appears after "commit", it is applied to that
+ * command. If it appears to the left of "commit", it is given to the
+ * top-level parser.
  *
- * ## Displaying usage ##
+ * ## Displaying usage
  *
- * This library can also be used to automatically generate nice usage help
- * text like you get when you run a program with `--help`. To use this, you
- * will also want to provide some help text when you create your options. To
- * define help text for the entire option, do:
+ * You can automatically generate nice help text, suitable for use as the
+ * output of `--help`. To display good usage information, you should
+ * provide some help text when you create your options.
+ *
+ * To define help text for an entire option, use the `help` parameter:
  *
  *     parser.addOption('mode', help: 'The compiler configuration',
  *         allowed: ['debug', 'release']);
  *     parser.addFlag('verbose', help: 'Show additional diagnostic info');
  *
  * For non-flag options, you can also provide detailed help for each expected
- * value using a map:
+ * value by using the `allowedHelp` parameter:
  *
  *     parser.addOption('arch', help: 'The architecture to compile for',
  *         allowedHelp: {
@@ -229,11 +237,11 @@
  *           'arm': 'ARM Holding 32-bit chip'
  *         });
  *
- * If you define a set of options like the above, then calling this:
+ * To display the help, use the ArgParser getUsage() method:
  *
  *     print(parser.getUsage());
- *
- * Will display something like:
+ * 
+ * The resulting string looks something like this:
  *
  *     --mode            The compiler configuration
  *                       [debug, release]
@@ -244,14 +252,12 @@
  *           [arm]       ARM Holding 32-bit chip
  *           [ia32]      Intel x86
  *
- * To assist the formatting of the usage help, single line help text will
- * be followed by a single new line. Options with multi-line help text
- * will be followed by two new lines. This provides spatial diversity between
- * options.
+ * To assist the formatting of the usage help, single-line help text is
+ * followed by a single new line. Options with multi-line help text are
+ * followed by two new lines. This provides spatial diversity between options.
  *
  * [posix]: http://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html#tag_12_02
  * [gnu]: http://www.gnu.org/prep/standards/standards.html#Command_002dLine-Interfaces
- * [pub]: http://pub.dartlang.org
  */
 library args;
 
