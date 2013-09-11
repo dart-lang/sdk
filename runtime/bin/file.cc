@@ -919,6 +919,7 @@ static CObject* FileReadRequest(const CObjectArray& request) {
     if (!file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
       Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
+      ASSERT(io_buffer != NULL);
       uint8_t* data = io_buffer->value.as_external_typed_data.data;
       int64_t bytes_read = file->Read(data, length);
       if (bytes_read >= 0) {
@@ -950,6 +951,7 @@ static CObject* FileReadIntoRequest(const CObjectArray& request) {
     if (!file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
       Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
+      ASSERT(io_buffer != NULL);
       uint8_t* data = io_buffer->value.as_external_typed_data.data;
       int64_t bytes_read = file->Read(data, length);
       if (bytes_read >= 0) {

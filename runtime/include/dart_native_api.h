@@ -53,17 +53,17 @@ typedef struct _Dart_CObject {
     char* as_string;
     char* as_bigint;
     struct {
-      int length;
+      intptr_t length;
       struct _Dart_CObject** values;
     } as_array;
     struct {
       Dart_TypedData_Type type;
-      int length;
+      intptr_t length;
       uint8_t* values;
     } as_typed_data;
     struct {
       Dart_TypedData_Type type;
-      int length;
+      intptr_t length;
       uint8_t* data;
       void* peer;
       Dart_WeakPersistentHandleFinalizer callback;

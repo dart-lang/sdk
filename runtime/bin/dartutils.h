@@ -271,13 +271,14 @@ class CObject {
   static Dart_CObject* NewIntptr(intptr_t value);
   // TODO(sgjesse): Add support for kBigint.
   static Dart_CObject* NewDouble(double value);
-  static Dart_CObject* NewString(int length);
+  static Dart_CObject* NewString(intptr_t length);
   static Dart_CObject* NewString(const char* str);
-  static Dart_CObject* NewArray(int length);
-  static Dart_CObject* NewUint8Array(int length);
+  static Dart_CObject* NewArray(intptr_t length);
+  static Dart_CObject* NewUint8Array(intptr_t length);
   static Dart_CObject* NewExternalUint8Array(
-      int64_t length, uint8_t* data, void* peer,
+      intptr_t length, uint8_t* data, void* peer,
       Dart_WeakPersistentHandleFinalizer callback);
+
   static Dart_CObject* NewIOBuffer(int64_t length);
   static void FreeIOBufferData(Dart_CObject* object);
 
@@ -452,11 +453,11 @@ class CObjectArray : public CObject {
  public:
   DECLARE_COBJECT_CONSTRUCTORS(Array)
 
-  int Length() const { return cobject_->value.as_array.length; }
-  CObject* operator[](int index) const {
+  intptr_t Length() const { return cobject_->value.as_array.length; }
+  CObject* operator[](intptr_t index) const {
     return new CObject(cobject_->value.as_array.values[index]);
   }
-  void SetAt(int index, CObject* value) {
+  void SetAt(intptr_t index, CObject* value) {
     cobject_->value.as_array.values[index] = value->AsApiCObject();
   }
 
@@ -480,7 +481,7 @@ class CObjectTypedData : public CObject {
   Dart_TypedData_Type Type() const {
     return cobject_->value.as_typed_data.type;
   }
-  int Length() const { return cobject_->value.as_typed_data.length; }
+  intptr_t Length() const { return cobject_->value.as_typed_data.length; }
   uint8_t* Buffer() const { return cobject_->value.as_typed_data.values; }
 
  private:
@@ -492,7 +493,7 @@ class CObjectUint8Array : public CObject {
  public:
   DECLARE_COBJECT_TYPED_DATA_CONSTRUCTORS(Uint8)
 
-  int Length() const { return cobject_->value.as_typed_data.length; }
+  intptr_t Length() const { return cobject_->value.as_typed_data.length; }
   uint8_t* Buffer() const { return cobject_->value.as_typed_data.values; }
 
  private:
@@ -504,8 +505,10 @@ class CObjectExternalUint8Array : public CObject {
  public:
   DECLARE_COBJECT_EXTERNAL_TYPED_DATA_CONSTRUCTORS(Uint8)
 
-  int Length() const { return cobject_->value.as_external_typed_data.length; }
-  void SetLength(uint64_t length) {
+  intptr_t Length() const {
+    return cobject_->value.as_external_typed_data.length;
+  }
+  void SetLength(intptr_t length) {
     cobject_->value.as_external_typed_data.length = length;
   }
   uint8_t* Data() const { return cobject_->value.as_external_typed_data.data; }

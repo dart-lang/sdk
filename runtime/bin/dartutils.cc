@@ -918,7 +918,7 @@ Dart_CObject* CObject::NewDouble(double value) {
 }
 
 
-Dart_CObject* CObject::NewString(int length) {
+Dart_CObject* CObject::NewString(intptr_t length) {
   Dart_CObject* cobject = New(Dart_CObject_kString, length + 1);
   cobject->value.as_string = reinterpret_cast<char*>(cobject + 1);
   return cobject;
@@ -933,7 +933,7 @@ Dart_CObject* CObject::NewString(const char* str) {
 }
 
 
-Dart_CObject* CObject::NewArray(int length) {
+Dart_CObject* CObject::NewArray(intptr_t length) {
   Dart_CObject* cobject =
       New(Dart_CObject_kArray, length * sizeof(Dart_CObject*));  // NOLINT
   cobject->value.as_array.length = length;
@@ -943,7 +943,7 @@ Dart_CObject* CObject::NewArray(int length) {
 }
 
 
-Dart_CObject* CObject::NewUint8Array(int length) {
+Dart_CObject* CObject::NewUint8Array(intptr_t length) {
   Dart_CObject* cobject = New(Dart_CObject_kTypedData, length);
   cobject->value.as_typed_data.type = Dart_TypedData_kUint8;
   cobject->value.as_typed_data.length = length;
@@ -953,7 +953,7 @@ Dart_CObject* CObject::NewUint8Array(int length) {
 
 
 Dart_CObject* CObject::NewExternalUint8Array(
-    int64_t length, uint8_t* data, void* peer,
+    intptr_t length, uint8_t* data, void* peer,
     Dart_WeakPersistentHandleFinalizer callback) {
   Dart_CObject* cobject = New(Dart_CObject_kExternalTypedData);
   cobject->value.as_external_typed_data.type = Dart_TypedData_kUint8;
@@ -966,8 +966,16 @@ Dart_CObject* CObject::NewExternalUint8Array(
 
 
 Dart_CObject* CObject::NewIOBuffer(int64_t length) {
+  // Make sure that we do not have an integer overflow here. Actual check
+  // against max elements will be done at the time of writing, as the constant
+  // is not part of the public API.
+  if (length > kIntptrMax) {
+    return NULL;
+  }
   uint8_t* data = IOBuffer::Allocate(length);
-  return NewExternalUint8Array(length, data, data, IOBuffer::Finalizer);
+  ASSERT(data != NULL);
+  return NewExternalUint8Array(
+      static_cast<intptr_t>(length), data, data, IOBuffer::Finalizer);
 }
 
 

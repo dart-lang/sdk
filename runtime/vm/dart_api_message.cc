@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/bigint_operations.h"
 #include "vm/dart_api_message.h"
 #include "vm/object.h"
 #include "vm/snapshot_ids.h"
@@ -887,17 +888,23 @@ bool ApiMessageWriter::WriteCObject(Dart_CObject* object) {
 
   Dart_CObject_Type type = object->type;
   if (type == Dart_CObject_kArray) {
+    const intptr_t array_length = object->value.as_array.length;
+    if (array_length < 0 ||
+        array_length > Array::kMaxElements) {
+      return false;
+    }
+
     // Write out the serialization header value for this object.
     WriteInlinedHeader(object);
     // Write out the class and tags information.
     WriteIndexedObject(kArrayCid);
     WriteIntptrValue(0);
-
-    WriteSmi(object->value.as_array.length);
+    // Write out the length information.
+    WriteSmi(array_length);
     // Write out the type arguments.
     WriteNullObject();
     // Write out array elements.
-    for (int i = 0; i < object->value.as_array.length; i++) {
+    for (int i = 0; i < array_length; i++) {
       bool success = WriteCObjectRef(object->value.as_array.values[i]);
       if (!success) return false;
     }
@@ -916,12 +923,17 @@ bool ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
 
   Dart_CObject_Type type = object->type;
   if (type == Dart_CObject_kArray) {
+    const intptr_t array_length = object->value.as_array.length;
+    if (array_length < 0 ||
+        array_length > Array::kMaxElements) {
+      return false;
+    }
     // Write out the serialization header value for this object.
     WriteInlinedHeader(object);
     // Write out the class information.
     WriteIndexedObject(kArrayCid);
     // Write out the length information.
-    WriteSmi(object->value.as_array.length);
+    WriteSmi(array_length);
     // Add object to forward list so that this object is serialized later.
     AddToForwardList(object);
     return true;
@@ -935,6 +947,11 @@ bool ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
   Dart_CObject_Type type =
       static_cast<Dart_CObject_Type>(object->type & kDartCObjectTypeMask);
   ASSERT(type == Dart_CObject_kArray);
+  const intptr_t array_length = object->value.as_array.length;
+  if (array_length < 0 ||
+      array_length > Array::kMaxElements) {
+    return false;
+  }
 
   // Write out the serialization header value for this object.
   intptr_t object_id = GetMarkedCObjectMark(object);
@@ -942,12 +959,12 @@ bool ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
   // Write out the class and tags information.
   WriteIndexedObject(kArrayCid);
   WriteIntptrValue(0);
-
-  WriteSmi(object->value.as_array.length);
+  // Write out the length information.
+  WriteSmi(array_length);
   // Write out the type arguments.
   WriteNullObject();
   // Write out array elements.
-  for (int i = 0; i < object->value.as_array.length; i++) {
+  for (int i = 0; i < array_length; i++) {
     bool success = WriteCObjectRef(object->value.as_array.values[i]);
     if (!success) return false;
   }
@@ -975,13 +992,19 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteInt64(object);
       break;
     case Dart_CObject_kBigint: {
+      char* hex_string = object->value.as_bigint;
+      const intptr_t chunk_len =
+          BigintOperations::ComputeChunkLength(hex_string);
+      if (chunk_len < 0 ||
+          chunk_len > Bigint::kMaxElements) {
+        return false;
+      }
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);
       // Write out the class and tags information.
       WriteIndexedObject(kBigintCid);
       WriteIntptrValue(0);
       // Write hex string length and content
-      char* hex_string = object->value.as_bigint;
       intptr_t len = strlen(hex_string);
       WriteIntptrValue(len);
       for (intptr_t i = 0; i < len; i++) {
@@ -1008,6 +1031,10 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
 
       Utf8::Type type;
       intptr_t len = Utf8::CodeUnitCount(utf8_str, utf8_len, &type);
+      ASSERT(len > 0);
+      if (len > String::kMaxElements) {
+        return false;
+      }
 
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);
@@ -1059,11 +1086,16 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
           UNIMPLEMENTED();
       }
 
+      intptr_t len = object->value.as_typed_data.length;
+      if (len < 0 ||
+          len > TypedData::MaxElements(class_id)) {
+        return false;
+      }
+
       WriteIndexedObject(class_id);
       WriteIntptrValue(RawObject::ClassIdTag::update(class_id, 0));
-      uint8_t* bytes = object->value.as_typed_data.values;
-      intptr_t len = object->value.as_typed_data.length;
       WriteSmi(len);
+      uint8_t* bytes = object->value.as_typed_data.values;
       for (intptr_t i = 0; i < len; i++) {
         Write<uint8_t>(bytes[i]);
       }
@@ -1081,7 +1113,12 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteIndexedObject(kExternalTypedDataUint8ArrayCid);
       WriteIntptrValue(RawObject::ClassIdTag::update(
           kExternalTypedDataUint8ArrayCid, 0));
-      int length = object->value.as_external_typed_data.length;
+      intptr_t length = object->value.as_external_typed_data.length;
+      if (length < 0 ||
+          length > ExternalTypedData::MaxElements(
+              kExternalTypedDataUint8ArrayCid)) {
+        return false;
+      }
       uint8_t* data = object->value.as_external_typed_data.data;
       void* peer = object->value.as_external_typed_data.peer;
       Dart_WeakPersistentHandleFinalizer callback =
