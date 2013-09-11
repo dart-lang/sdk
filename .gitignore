@@ -54,6 +54,14 @@ pubspec.lock
 # Vim temporary swap files.
 *.swp
 
+# Kate temporary files.
+*~
+*.kate-swp
+
+# Merge files.
+*.orig
+*.rej
+
 # Generated files.
 tools/out
 tools/xcodebuild
