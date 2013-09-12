@@ -307,11 +307,11 @@ class CursorWithValue extends Cursor native "IDBCursorWithValue" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable()
 /**
  * An indexed database object for storing client-side data
  * in web apps.
  */
-@DocsEditable()
 @DomName('IDBDatabase')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')

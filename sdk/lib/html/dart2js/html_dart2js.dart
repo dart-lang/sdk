@@ -867,11 +867,6 @@ class Canvas2DContextAttributes extends Interceptor native "Canvas2DContextAttri
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * A rectangular drawing surface on which scripts can
- * dynamically render 2-dimensional shapes and bitmap images;
- * corresponds to the &lt;canvas&gt; tag.
- */
 @DomName('HTMLCanvasElement')
 class CanvasElement extends HtmlElement implements CanvasImageSource native "HTMLCanvasElement" {
   // To suppress missing implicit constructor warnings.
@@ -10874,11 +10869,6 @@ class ErrorEvent extends Event native "ErrorEvent" {
 // WARNING: Do not edit - generated code.
 
 
-/**
- * An occurrence, typically asynchronous, within a program;
- * an event can originate from a variety of sources, such as
- * a mouse, a completed task, a timer, and so on.
- */
 @DomName('Event')
 class Event extends Interceptor native "Event" {
   // In JS, canBubble and cancelable are technically required parameters to
@@ -11242,8 +11232,7 @@ class Events {
 }
 
 /**
- * A DOM element that initiated an Event; this is the
- * base class for all browser objects that support events.
+ * Base class for all browser objects that support events.
  *
  * Use the [on] property to add, and remove events (rather than
  * [$dom_addEventListener] and [$dom_removeEventListener]
@@ -13573,10 +13562,7 @@ class ImageData extends Interceptor native "ImageData" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * An HTML element that represents an image;
- * corresponds to the HTML &lt;img&gt; tag.
- */
+
 @DomName('HTMLImageElement')
 class ImageElement extends HtmlElement implements CanvasImageSource native "HTMLImageElement" {
   // To suppress missing implicit constructor warnings.
@@ -13657,10 +13643,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource native "HTML
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A class of HTML widgets that lets the user enter different kinds of data,
- * including text, dates and times, colors, numbers, and so on.
- */
+
 @DomName('HTMLInputElement')
 class InputElement extends HtmlElement implements
     HiddenInputElement,
@@ -16774,10 +16757,6 @@ class ModElement extends HtmlElement native "HTMLModElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * A change in the state of a mouse,
- * such as a button being pressed or the mouse being moved.
- */
 @DomName('MouseEvent')
 class MouseEvent extends UIEvent native "MouseEvent,DragEvent,PointerEvent,MSPointerEvent" {
   factory MouseEvent(String type,
@@ -17719,11 +17698,7 @@ class TemplateInstance {
   TemplateInstance(this.firstNode, this.lastNode, this.model);
 }
 
-/**
- * An object in the DOM tree (a hierarchical structure that
- * represents an HTML page); a Node has at most one parent
- * and can have multiple children.
- */
+
 @DomName('Node')
 class Node extends EventTarget native "Node" {
   List<Node> get nodes {
