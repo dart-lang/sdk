@@ -971,7 +971,7 @@ class Uri {
     }
     _checkNonWindowsPathReservedCharacters(pathSegments, false);
     var result = new StringBuffer();
-    if (isAbsolute) result.write("/");
+    if (_isPathAbsolute) result.write("/");
     result.writeAll(pathSegments, "/");
     return result.toString();
   }
@@ -989,7 +989,7 @@ class Uri {
       _checkWindowsPathReservedCharacters(segments, false);
     }
     var result = new StringBuffer();
-    if (isAbsolute && !hasDriveLetter) result.write("\\");
+    if (_isPathAbsolute && !hasDriveLetter) result.write("\\");
     if (host != "") {
       result.write("\\");
       result.write(host);
@@ -998,6 +998,11 @@ class Uri {
     result.writeAll(segments, "\\");
     if (hasDriveLetter && segments.length == 1) result.write("\\");
     return result.toString();
+  }
+
+  bool get _isPathAbsolute {
+    if (path == null || path.isEmpty) return false;
+    return path.startsWith('/');
   }
 
   void _writeAuthority(StringSink ss) {
