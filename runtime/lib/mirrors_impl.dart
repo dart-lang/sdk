@@ -21,11 +21,8 @@ Map _filterMap(Map<Symbol, dynamic> old_map, bool filter(Symbol key, value)) {
   return new_map;
 }
 
-Map _makeMemberMap(List mirrors) {
-  Map result = new Map<Symbol, dynamic>();
-  mirrors.forEach((mirror) => result[mirror.simpleName] = mirror);
-  return result;
-}
+Map _makeMemberMap(List mirrors) => new Map<Symbol, dynamic>.fromIterable(
+    mirrors, key: (e) => e.simpleName);
 
 String _n(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 
@@ -37,13 +34,6 @@ Symbol _s(String name) {
 Symbol _computeQualifiedName(DeclarationMirror owner, Symbol simpleName) {
   if (owner == null) return simpleName;
   return _s('${_n(owner.qualifiedName)}.${_n(simpleName)}');
-}
-
-Map<Symbol, dynamic> _convertStringToSymbolMap(Map<String, dynamic> map) {
-  if (map == null) return null;
-  Map<Symbol, dynamic> result = new Map<Symbol, dynamic>();
-  map.forEach((name, value) => result[_s(name)] = value);
-  return result;
 }
 
 String _makeSignatureString(TypeMirror returnType,
@@ -83,18 +73,12 @@ String _makeSignatureString(TypeMirror returnType,
   return buf.toString();
 }
 
-Map<Uri, LibraryMirror> _createLibrariesMap(List<LibraryMirror> list) {
-  var map = new Map<Uri, LibraryMirror>();
-  list.forEach((LibraryMirror mirror) => map[mirror.uri] = mirror);
-  return map;
-}
-
 List _metadata(reflectee)
   native 'DeclarationMirror_metadata';
 
 // This will verify the argument types, unwrap them, and ensure we have a fixed
 // array.
-List _unwarpAsyncPositionals(wrappedArgs) {
+List _unwrapAsyncPositionals(wrappedArgs) {
   List unwrappedArgs = new List(wrappedArgs.length);
   for(int i = 0; i < wrappedArgs.length; i++){
     var wrappedArg = wrappedArgs[i];
@@ -109,7 +93,8 @@ List _unwarpAsyncPositionals(wrappedArgs) {
   }
   return unwrappedArgs;
 }
-Map _unwarpAsyncNamed(wrappedArgs) {
+
+Map _unwrapAsyncNamed(wrappedArgs) {
   if (wrappedArgs==null) return null;
   Map unwrappedArgs = new Map();
   wrappedArgs.forEach((name, wrappedArg){
@@ -128,13 +113,13 @@ Map _unwarpAsyncNamed(wrappedArgs) {
 class _LocalMirrorSystemImpl extends MirrorSystem {
   // Change parameter back to "this.libraries" when native code is changed.
   _LocalMirrorSystemImpl(List<LibraryMirror> libraries, this.isolate)
-      : this.libraries = _createLibrariesMap(libraries);
+      : this.libraries = new Map<Uri, LibraryMirror>.fromIterable(
+            libraries, key: (e) => e.uri);
 
   final Map<Uri, LibraryMirror> libraries;
   final IsolateMirror isolate;
 
   TypeMirror _dynamicType = null;
-
   TypeMirror get dynamicType {
     if (_dynamicType == null) {
       _dynamicType = new _SpecialTypeMirrorImpl('dynamic');
@@ -143,7 +128,6 @@ class _LocalMirrorSystemImpl extends MirrorSystem {
   }
 
   TypeMirror _voidType = null;
-
   TypeMirror get voidType {
     if (_voidType == null) {
       _voidType = new _SpecialTypeMirrorImpl('void');
@@ -166,7 +150,7 @@ abstract class _LocalMirrorImpl implements Mirror {
 
 class _LocalIsolateMirrorImpl extends _LocalMirrorImpl
     implements IsolateMirror {
-  _LocalIsolateMirrorImpl(this.debugName, this.rootLibrary) {}
+  _LocalIsolateMirrorImpl(this.debugName, this.rootLibrary);
 
   final String debugName;
   final bool isCurrent = true;
@@ -223,8 +207,8 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
                                      [Map<Symbol, dynamic> namedArguments]) {
     return new Future(() {
       return this.invoke(memberName,
-                         _unwarpAsyncPositionals(positionalArguments),
-                         _unwarpAsyncNamed(namedArguments));
+                         _unwrapAsyncPositionals(positionalArguments),
+                         _unwrapAsyncNamed(namedArguments));
     });
   }
 
@@ -416,8 +400,8 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
   Future<InstanceMirror> applyAsync(List positionalArguments,
                                     [Map<Symbol, dynamic> namedArguments]) {
     return new Future(() {
-      return this.apply(_unwarpAsyncPositionals(positionalArguments),
-                        _unwarpAsyncNamed(namedArguments));
+      return this.apply(_unwrapAsyncPositionals(positionalArguments),
+                        _unwrapAsyncNamed(namedArguments));
     });
   }
 
@@ -490,8 +474,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   final bool isTopLevel = true;
 
   SourceLocation get location {
-    throw new UnimplementedError(
-        'ClassMirror.location is not implemented');
+    throw new UnimplementedError('ClassMirror.location is not implemented');
   }
 
   // TODO(rmacnak): Remove these left-overs from the days of separate interfaces
@@ -556,7 +539,6 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   Map<Symbol, Mirror> _members;
-
   Map<Symbol, Mirror> get members {
     if (_members == null) {
       var whoseMembers = _isMixinTypedef ? _trueSuperclass : this;
@@ -565,11 +547,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     return _members;
   }
 
-  Map<Symbol, MethodMirror> _methods = null;
-  Map<Symbol, MethodMirror> _getters = null;
-  Map<Symbol, MethodMirror> _setters = null;
-  Map<Symbol, VariableMirror> _variables = null;
-
+  Map<Symbol, MethodMirror> _methods;
   Map<Symbol, MethodMirror> get methods {
     if (_methods == null) {
       _methods = _filterMap(
@@ -579,6 +557,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     return _methods;
   }
 
+  Map<Symbol, MethodMirror> _getters;
   Map<Symbol, MethodMirror> get getters {
     if (_getters == null) {
       _getters = _filterMap(
@@ -588,6 +567,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     return _getters;
   }
 
+  Map<Symbol, MethodMirror> _setters;
   Map<Symbol, MethodMirror> get setters {
     if (_setters == null) {
       _setters = _filterMap(
@@ -597,6 +577,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     return _setters;
   }
 
+  Map<Symbol, VariableMirror> _variables;
   Map<Symbol, VariableMirror> get variables {
     if (_variables == null) {
       _variables = _filterMap(
@@ -607,7 +588,6 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   Map<Symbol, MethodMirror> _constructors;
-
   Map<Symbol, MethodMirror> get constructors {
     if (_constructors == null) {
       var constructorsList = _computeConstructors(_reflectee);
@@ -619,7 +599,6 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   Map<Symbol, TypeVariableMirror> _typeVariables = null;
-
   Map<Symbol, TypeVariableMirror> get typeVariables {
     if (_typeVariables == null) {
       List params = _ClassMirror_type_variables(_reflectee);
@@ -641,16 +620,14 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
         _typeArguments = new LinkedHashMap<Symbol, TypeMirror>();
       } else {
         _typeArguments =
-            new LinkedHashMap<Symbol, TypeMirror>.fromIterables(typeVariables.keys,
-                                                                _computeTypeArguments(_reflectedType));
+            new LinkedHashMap<Symbol, TypeMirror>.fromIterables(
+                typeVariables.keys, _computeTypeArguments(_reflectedType));
       }
     }
     return _typeArguments;
   }
 
-  bool get isOriginalDeclaration {
-    return !_isGeneric || _isGenericDeclaration;
-  }
+  bool get isOriginalDeclaration => !_isGeneric || _isGenericDeclaration;
 
   ClassMirror get originalDeclaration {
     if (isOriginalDeclaration) {
@@ -660,9 +637,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     }
   }
 
-  String toString() {
-    return "ClassMirror on '${_n(simpleName)}'";
-  }
+  String toString() => "ClassMirror on '${_n(simpleName)}'";
 
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
@@ -696,8 +671,8 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
                                           [Map<Symbol, dynamic> namedArguments]) {
     return new Future(() {
       return this.newInstance(constructorName,
-                              _unwarpAsyncPositionals(positionalArguments),
-                              _unwarpAsyncNamed(namedArguments));
+                              _unwrapAsyncPositionals(positionalArguments),
+                              _unwrapAsyncNamed(namedArguments));
     });
   }
 
@@ -897,8 +872,12 @@ class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
                           this._owner)
       : super(reflectee, _s(simpleName));
 
+  final bool isTopLevel = true;
+
   // TODO(12282): Deal with generic typedefs.
   bool get _isGeneric => false;
+
+  bool get isPrivate => false;
 
   DeclarationMirror _owner;
   DeclarationMirror get owner {
@@ -908,13 +887,8 @@ class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
     return _owner;
   }
 
-  bool get isPrivate => false;
-
-  final bool isTopLevel = true;
-
   SourceLocation get location {
-    throw new UnimplementedError(
-        'TypedefMirror.location is not implemented');
+    throw new UnimplementedError('TypedefMirror.location is not implemented');
   }
 
   TypeMirror _referent = null;
@@ -957,14 +931,12 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
   final bool isTopLevel = false;
 
   SourceLocation get location {
-    throw new UnimplementedError(
-        'LibraryMirror.location is not implemented');
+    throw new UnimplementedError('LibraryMirror.location is not implemented');
   }
 
   final Uri uri;
 
   Map<Symbol, Mirror> _members;
-
   Map<Symbol, Mirror> get members {
     if (_members == null) {
       _members = _makeMemberMap(_computeMembers(_reflectee));
@@ -972,12 +944,7 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
     return _members;
   }
 
-  Map<Symbol, ClassMirror> _classes = null;
-  Map<Symbol, MethodMirror> _functions = null;
-  Map<Symbol, MethodMirror> _getters = null;
-  Map<Symbol, MethodMirror> _setters = null;
-  Map<Symbol, VariableMirror> _variables = null;
-
+  Map<Symbol, ClassMirror> _classes;
   Map<Symbol, ClassMirror> get classes {
     if (_classes == null) {
       _classes = _filterMap(members,
@@ -986,30 +953,31 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
     return _classes;
   }
 
+  Map<Symbol, MethodMirror> _functions;
   Map<Symbol, MethodMirror> get functions {
     if (_functions == null) {
-      _functions = _filterMap(members,
-                              (key, value) => (value is MethodMirror));
+      _functions = _filterMap(members, (key, value) => (value is MethodMirror));
     }
     return _functions;
   }
 
+  Map<Symbol, MethodMirror> _getters;
   Map<Symbol, MethodMirror> get getters {
     if (_getters == null) {
-      _getters = _filterMap(functions,
-                            (key, value) => (value.isGetter));
+      _getters = _filterMap(functions, (key, value) => (value.isGetter));
     }
     return _getters;
   }
 
+  Map<Symbol, MethodMirror> _setters;
   Map<Symbol, MethodMirror> get setters {
     if (_setters == null) {
-      _setters = _filterMap(functions,
-                            (key, value) => (value.isSetter));
+      _setters = _filterMap(functions, (key, value) => (value.isSetter));
     }
     return _setters;
   }
 
+  Map<Symbol, VariableMirror> _variables;
   Map<Symbol, VariableMirror> get variables {
     if (_variables == null) {
       _variables = _filterMap(members,
@@ -1024,14 +992,14 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
     return _metadata(_reflectee).map(reflect).toList(growable:false);
   }
 
-  String toString() => "LibraryMirror on '${_n(simpleName)}'";
-
   bool operator ==(other) {
     return this.runtimeType == other.runtimeType &&
            this._reflectee == other._reflectee; 
   }
 
   int get hashCode => simpleName.hashCode;
+
+  String toString() => "LibraryMirror on '${_n(simpleName)}'";
 
   _invoke(reflectee, memberName, arguments, argumentNames)
       native 'LibraryMirror_invoke';
@@ -1087,16 +1055,13 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
     return _owner;
   }
 
-  bool get isPrivate {
-    return _n(simpleName).startsWith('_') ||
-        _n(constructorName).startsWith('_');
-  }
+  bool get isPrivate => _n(simpleName).startsWith('_') ||
+                        _n(constructorName).startsWith('_');
 
   bool get isTopLevel =>  owner is LibraryMirror;
 
   SourceLocation get location {
-    throw new UnimplementedError(
-        'MethodMirror.location is not implemented');
+    throw new UnimplementedError('MethodMirror.location is not implemented');
   }
 
   TypeMirror _returnType = null;
@@ -1187,18 +1152,15 @@ class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
       : super(reflectee, _s(simpleName));
 
   final DeclarationMirror owner;
+  final bool isStatic;
+  final bool isFinal;
 
-  bool get isPrivate {
-    return _n(simpleName).startsWith('_');
-  }
+  bool get isPrivate => _n(simpleName).startsWith('_');
 
-  bool get isTopLevel {
-    return owner is LibraryMirror;
-  }
+  bool get isTopLevel => owner is LibraryMirror;
 
   SourceLocation get location {
-    throw new UnimplementedError(
-        'VariableMirror.location is not implemented');
+    throw new UnimplementedError('VariableMirror.location is not implemented');
   }
 
   TypeMirror _type;
@@ -1208,9 +1170,6 @@ class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
     }
     return _type;
   }
-
-  final bool isStatic;
-  final bool isFinal;
 
   String toString() => "VariableMirror on '${_n(simpleName)}'";
 
@@ -1280,24 +1239,17 @@ class _SpecialTypeMirrorImpl extends _LocalMirrorImpl
   _SpecialTypeMirrorImpl(String name) : simpleName = _s(name);
 
   final bool isPrivate = false;
+  final DeclarationMirror owner = null;
+  final Symbol simpleName;
   final bool isTopLevel = true;
-
   // Fixed length 0, therefore immutable.
   final List<InstanceMirror> metadata = new List(0);
 
-  final DeclarationMirror owner = null;
-  final Symbol simpleName;
-
   SourceLocation get location {
-    throw new UnimplementedError(
-        'TypeMirror.location is not implemented');
+    throw new UnimplementedError('TypeMirror.location is not implemented');
   }
 
-  Symbol get qualifiedName {
-    return simpleName;
-  }
-
-  String toString() => "TypeMirror on '${_n(simpleName)}'";
+  Symbol get qualifiedName => simpleName;
 
   // TODO(11955): Remove once dynamicType and voidType are canonical objects in
   // the object store.
@@ -1309,6 +1261,8 @@ class _SpecialTypeMirrorImpl extends _LocalMirrorImpl
   }
 
   int get hashCode => simpleName.hashCode;
+
+  String toString() => "TypeMirror on '${_n(simpleName)}'";
 }
 
 class _Mirrors {
