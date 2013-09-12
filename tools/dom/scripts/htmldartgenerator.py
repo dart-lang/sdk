@@ -166,8 +166,11 @@ class HtmlDartGenerator(object):
       full_operation_str = self._GetStringRepresentation(interface, operation)
       if (full_operation_str in renamed_overloads and
           renamed_overloads[full_operation_str] not in already_renamed):
-        operation.ext_attrs['DartName'] = renamed_overloads[
-            full_operation_str]
+        dart_name = renamed_overloads[full_operation_str]
+        if not dart_name:
+          continue
+
+        operation.ext_attrs['DartName'] = dart_name
         potential_added_operations.add(operation.id)
       self._EnsureNoMultipleTypeSignatures(interface, operation,
           operations_by_name)

@@ -29,7 +29,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements
     $NATIVESPEC {
 
   factory InputElement({String type}) {
-    var e = document.$dom_createElement("input");
+    var e = document.createElement("input");
     if (type != null) {
       try {
         // IE throws an exception for unknown types.

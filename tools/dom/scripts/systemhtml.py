@@ -295,11 +295,11 @@ _element_constructors = {
 _factory_ctr_strings = {
   'html': {
       'provider_name': 'document',
-      'constructor_name': '$dom_createElement'
+      'constructor_name': 'createElement'
   },
   'indexed_db': {
       'provider_name': 'document',
-      'constructor_name': '$dom_createElement'
+      'constructor_name': 'createElement'
   },
   'svg': {
     'provider_name': '_SvgElementFactoryProvider',
@@ -307,19 +307,19 @@ _factory_ctr_strings = {
   },
   'typed_data': {
       'provider_name': 'document',
-      'constructor_name': '$dom_createElement'
+      'constructor_name': 'createElement'
   },
   'web_audio': {
     'provider_name': 'document',
-    'constructor_name': '$dom_createElement'
+    'constructor_name': 'createElement'
   },
   'web_gl': {
     'provider_name': 'document',
-    'constructor_name': '$dom_createElement'
+    'constructor_name': 'createElement'
   },
   'web_sql': {
     'provider_name': 'document',
-    'constructor_name': '$dom_createElement'
+    'constructor_name': 'createElement'
   },
 }
 

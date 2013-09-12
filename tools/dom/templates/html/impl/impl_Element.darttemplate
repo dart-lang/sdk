@@ -1238,7 +1238,7 @@ $endif
       _parseRange = _parseDocument.createRange();
 
       // Workaround for Chrome bug 229142- URIs are not resolved in new doc.
-      var base = _parseDocument.$dom_createElement('base');
+      var base = _parseDocument.createElement('base');
       base.href = document._baseUri;
       _parseDocument.head.append(base);
     }
@@ -1246,7 +1246,7 @@ $endif
     if (this is BodyElement) {
       contextElement = _parseDocument.body;
     } else {
-      contextElement = _parseDocument.$dom_createElement(tagName);
+      contextElement = _parseDocument.createElement(tagName);
       _parseDocument.body.append(contextElement);
     }
     var fragment;
@@ -1342,7 +1342,7 @@ $if DART2JS
 
 $else
   static Element createElement_tag(String tag, String typeExtension) =>
-      document.$dom_createElement(tag, typeExtension);
+      document.createElement(tag, typeExtension);
 $endif
 }
 

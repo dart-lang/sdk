@@ -157,8 +157,6 @@ convert_to_future_members = monitored.Set(
 # $dom in installments instead of all at once, but the intent is to move all of
 # these either into private_html_members or remove them from this list entirely.
 dom_private_html_members = monitored.Set('htmlrenamer.private_html_members', [
-  'Document.createElement',
-  'Document.createElementNS',
   'EventTarget.addEventListener',
   'EventTarget.removeEventListener',
 ])
@@ -368,6 +366,8 @@ renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
       'DOMString repetitionType)': 'createPatternFromImage',
   'DataTransferItemList.add(File file)': 'addFile',
   'DataTransferItemList.add(DOMString data, DOMString type)': 'addData',
+  'Document.createElement(DOMString tagName)': None,
+  'Document.createElementNS(DOMString namespaceURI, DOMString qualifiedName)': None,
   'FormData.append(DOMString name, Blob value, DOMString filename)':
       'appendBlob',
   'IDBDatabase.transaction(DOMStringList storeNames, DOMString mode)':

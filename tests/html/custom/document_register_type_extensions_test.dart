@@ -211,20 +211,20 @@ main() {
 
     test('createElementNS', () {
       var fooCreatedNS =
-          document.$dom_createElementNS("http://www.w3.org/1999/xhtml",
+          document.createElementNS("http://www.w3.org/1999/xhtml",
           Foo.tag, null);
       expect(fooCreatedNS.outerHtml, anyOf(Foo.outerHtmlStrings));
       expect(fooCreatedNS is Foo, isTrue);
 
       var barCreatedNS =
-          document.$dom_createElementNS("http://www.w3.org/1999/xhtml", "input",
+          document.createElementNS("http://www.w3.org/1999/xhtml", "input",
           Bar.tag);
       expect(barCreatedNS.outerHtml, Bar.outerHtmlString);
       expect(barCreatedNS is Bar, isTrue);
       expect(isFormControl(barCreatedNS), isTrue);
 
       expect(() =>
-         document.$dom_createElementNS(
+         document.createElementNS(
              'http://example.com/2013/no-such-namespace',
        'xml:lang', 'x-bar'), throws);
     });
