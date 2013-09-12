@@ -130,8 +130,13 @@ class _PolymerPackageProvider implements PackageProvider {
 
   Future<Asset> getAsset(AssetId id) => new Future.value(
       new Asset.fromPath(id, path.join(packageDirs[id.package],
-      // Assets always use the posix style paths
-      path.joinAll(path.posix.split(id.path)))));
+      _toSystemPath(id.path))));
+}
+
+/** Convert asset paths to system paths (Assets always use the posix style). */
+String _toSystemPath(String assetPath) {
+  if (path.Style.platform != path.Style.windows) return assetPath;
+  return path.joinAll(path.posix.split(assetPath));
 }
 
 /** Tell barback which transformers to use and which assets to process. */
@@ -187,6 +192,9 @@ void _attachListeners(Barback barback) {
  */
 Future _emitAllFiles(Barback barback, BarbackOptions options) {
   return barback.getAllAssets().then((assets) {
+    // Delete existing output folder before we generate anything
+    var dir = new Directory(options.outDir);
+    if (dir.existsSync()) dir.deleteSync(recursive: true);
     return _emitPackagesDir(options)
       .then((_) => _emitTransformedFiles(assets, options))
       .then((_) => _addPackagesSymlinks(assets, options))
@@ -209,10 +217,11 @@ Future _emitTransformedFiles(AssetSet assets, BarbackOptions options) {
     if (dir == 'lib') {
       // Put lib files directly under the packages folder (e.g. 'lib/foo.dart'
       // will be emitted at out/packages/package_name/foo.dart).
-      filepath = path.join(outPackages, id.package, id.path.substring(4));
+      filepath = path.join(outPackages, id.package,
+          _toSystemPath(id.path.substring(4)));
     } else if (id.package == currentPackage &&
         (dir == 'web' || (transformTests && dir == 'test'))) {
-      filepath = path.join(options.outDir, id.path);
+      filepath = path.join(options.outDir, _toSystemPath(id.path));
     } else {
       // TODO(sigmund): do something about other assets?
       continue;
@@ -237,13 +246,15 @@ Future _addPackagesSymlinks(AssetSet assets, BarbackOptions options) {
     if (firstDir == null) continue;
 
     if (firstDir == 'web' || (options.transformTests && firstDir == 'test')) {
-      var dir = path.join(options.outDir, path.dirname(id.path));
+      var dir = path.join(options.outDir, path.dirname(_toSystemPath(id.path)));
       var linkPath = path.join(dir, 'packages');
-      _deleteIfPresent(linkPath);
-      var targetPath = Platform.operatingSystem == 'windows'
-          ? path.normalize(path.absolute(outPackages))
-          : path.normalize(path.relative(outPackages, from: dir));
-      new Link(linkPath).createSync(targetPath);
+      var link = new Link(linkPath);
+      if (!link.existsSync()) {
+        var targetPath = Platform.operatingSystem == 'windows'
+            ? path.normalize(path.absolute(outPackages))
+            : path.normalize(path.relative(outPackages, from: dir));
+        link.createSync(targetPath);
+      }
     }
   }
 }
@@ -253,12 +264,9 @@ Future _addPackagesSymlinks(AssetSet assets, BarbackOptions options) {
  * of every file that was not transformed by barback.
  */
 Future _emitPackagesDir(BarbackOptions options) {
-  // Ensure we don't have a packages symlink in our output folder (could happen
-  // when people are using nested packages).
-  var outPackages = path.join(options.outDir, 'packages');
-  _deleteIfPresent(outPackages);
-
   if (options.transformPolymerDependencies) return new Future.value(null);
+  var outPackages = path.join(options.outDir, 'packages');
+  _ensureDir(outPackages);
 
   // Copy all the files we didn't process
   var futures = [];
@@ -276,30 +284,6 @@ Future _emitPackagesDir(BarbackOptions options) {
 /** Ensure [dirpath] exists. */
 void _ensureDir(String dirpath) {
   new Directory(dirpath).createSync(recursive: true);
-}
-
-/** Deletes [packagesPath] if it's a packages symlink, file, or folder. */
-void _deleteIfPresent(String packagesPath) {
-  try {
-    var link = new Link(packagesPath);
-    if (link.existsSync()) {
-      link.deleteSync();
-      return;
-    }
-
-    var dir = new Directory(packagesPath);
-    if (dir.existsSync()) {
-      dir.deleteSync(recursive: true);
-      return;
-    }
-
-    var file = new File(packagesPath);
-    if (file.existsSync()) {
-      file.deleteSync();
-    }
-  } catch (e) {
-    print('Error while deleting $pacakgesPath: $e');
-  }
 }
 
 /**

@@ -39,17 +39,19 @@ class TransformOptions {
   String currentPackage;
   List<String> entryPoints;
 
-  TransformOptions([this.currentPackage, this.entryPoints]);
+  TransformOptions([this.currentPackage, entryPoints])
+      : entryPoints = entryPoints == null ? null
+          : entryPoints.map(_systemToAssetPath).toList();
 
   /** Whether an asset with [id] is an entry point HTML file. */
   bool isHtmlEntryPoint(AssetId id) {
     if (id.extension != '.html') return false;
 
     // Note: [id.path] is a relative path from the root of a package.
-    if (!id.path.startsWith('web/') &&
-        !id.path.startsWith('test/')) return false;
+    if (currentPackage == null || entryPoints == null) {
+      return id.path.startsWith('web/') || id.path.startsWith('test/');
+    }
 
-    if (currentPackage == null || entryPoints == null) return true;
     return id.package == currentPackage && entryPoints.contains(id.path);
   }
 }
@@ -147,4 +149,11 @@ String assetUrlFor(AssetId id, AssetId sourceId, TransformLogger logger,
   var builder = path.url;
   return builder.relative(builder.join('/', id.path),
       from: builder.join('/', builder.dirname(sourceId.path)));
+}
+
+
+/** Convert system paths to asset paths (asset paths are posix style). */
+String _systemToAssetPath(String assetPath) {
+  if (path.Style.platform != path.Style.windows) return assetPath;
+  return path.posix.joinAll(path.split(assetPath));
 }
