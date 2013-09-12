@@ -161,7 +161,7 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
                                            Label* is_true,
                                            Label* is_false) {
   Label fall_through;
-  __ CompareObject(bool_register, Object::Handle());
+  __ CompareObject(bool_register, Object::null_object());
   __ j(EQUAL, &fall_through, Assembler::kNearJump);
   __ CompareObject(bool_register, Bool::True());
   __ j(EQUAL, is_true);
@@ -185,11 +185,11 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   __ pushq(instance_reg);  // Instance.
   if (test_kind == kTestTypeOneArg) {
     ASSERT(type_arguments_reg == kNoRegister);
-    __ PushObject(Object::Handle());
+    __ PushObject(Object::null_object());
     __ Call(&StubCode::Subtype1TestCacheLabel(), PP);
   } else if (test_kind == kTestTypeTwoArgs) {
     ASSERT(type_arguments_reg == kNoRegister);
-    __ PushObject(Object::Handle());
+    __ PushObject(Object::null_object());
     __ Call(&StubCode::Subtype2TestCacheLabel(), PP);
   } else if (test_kind == kTestTypeThreeArgs) {
     __ pushq(type_arguments_reg);
@@ -340,7 +340,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     // Check if instance is a closure.
     __ LoadClassById(R13, kClassIdReg);
     __ movq(R13, FieldAddress(R13, Class::signature_function_offset()));
-    __ CompareObject(R13, Object::Handle());
+    __ CompareObject(R13, Object::null_object());
     __ j(NOT_EQUAL, is_instance_lbl);
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
@@ -409,7 +409,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
     // RDX: instantiator type arguments.
     // Check if type argument is dynamic.
-    __ CompareObject(RDX, Object::Handle());
+    __ CompareObject(RDX, Object::null_object());
     __ j(EQUAL, is_instance_lbl);
     // Can handle only type arguments that are instances of TypeArguments.
     // (runtime checks canonicalize type arguments).
@@ -422,7 +422,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Check if type argument is dynamic.
     __ CompareObject(RDI, Type::ZoneHandle(Type::DynamicType()));
     __ j(EQUAL,  is_instance_lbl);
-    __ CompareObject(RDI, Object::Handle());
+    __ CompareObject(RDI, Object::null_object());
     __ j(EQUAL,  is_instance_lbl);
     const Type& object_type = Type::ZoneHandle(Type::ObjectType());
     __ CompareObject(RDI, object_type);
@@ -575,7 +575,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     // We can only inline this null check if the type is instantiated at compile
     // time, since an uninstantiated type at compile time could be Object or
     // dynamic at run time.
-    __ CompareObject(RAX, Object::Handle());
+    __ CompareObject(RAX, Object::null_object());
     __ j(EQUAL, &is_not_instance);
   }
 
@@ -655,7 +655,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ pushq(RDX);  // Store instantiator type arguments.
   // A null object is always assignable and is returned as result.
   Label is_assignable, runtime_call;
-  __ CompareObject(RAX, Object::Handle());
+  __ CompareObject(RAX, Object::null_object());
   __ j(EQUAL, &is_assignable);
 
   if (!FLAG_eliminate_type_checks || dst_type.IsMalformed()) {
@@ -959,7 +959,7 @@ void FlowGraphCompiler::CopyParameters() {
     if (check_correct_named_args) {
       // Check that RDI now points to the null terminator in the arguments
       // descriptor.
-      __ LoadObject(TMP, Object::Handle(), PP);
+      __ LoadObject(TMP, Object::null_object(), PP);
       __ cmpq(Address(RDI, 0), TMP);
       __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
     }
@@ -1024,7 +1024,7 @@ void FlowGraphCompiler::CopyParameters() {
   // R10 : arguments descriptor array.
   __ movq(RCX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(RCX);
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   Label null_args_loop, null_args_loop_condition;
   __ jmp(&null_args_loop_condition, Assembler::kNearJump);
   const Address original_argument_addr(
@@ -1055,7 +1055,7 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ movq(RAX, Address(RSP, 2 * kWordSize));  // Receiver.
   __ movq(RBX, Address(RSP, 1 * kWordSize));  // Value.
   __ StoreIntoObject(RAX, FieldAddress(RAX, offset), RBX);
-  __ LoadObject(RAX, Object::Handle(), PP);
+  __ LoadObject(RAX, Object::null_object(), PP);
   __ ret();
 }
 
@@ -1217,7 +1217,7 @@ void FlowGraphCompiler::CompileGraph() {
   if (!is_optimizing() && (num_locals > 0)) {
     __ Comment("Initialize spill slots");
     const intptr_t slot_base = parsed_function().first_stack_local_index();
-    __ LoadObject(RAX, Object::Handle(), PP);
+    __ LoadObject(RAX, Object::null_object(), PP);
     for (intptr_t i = 0; i < num_locals; ++i) {
       // Subtract index i (locals lie at lower addresses than RBP).
       __ movq(Address(RBP, (slot_base - i) * kWordSize), RAX);

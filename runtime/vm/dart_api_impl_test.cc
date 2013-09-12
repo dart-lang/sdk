@@ -6920,9 +6920,9 @@ static void MakeExternalCback(void* peer) {
 
 
 TEST_CASE(MakeExternalString) {
-  int peer8 = 40;
-  int peer16 = 41;
-  int canonical_str_peer = 42;
+  static int peer8 = 40;
+  static int peer16 = 41;
+  static int canonical_str_peer = 42;
   intptr_t length = 0;
   intptr_t expected_length = 0;
   {

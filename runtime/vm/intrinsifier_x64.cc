@@ -117,7 +117,7 @@ void Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // RCX: new object end address.
   // RDI: iterator which initially points to the start of the variable
   // data area to be initialized.
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   __ leaq(RDI, FieldAddress(RAX, sizeof(RawArray)));
   Label done;
   Label init_loop;
@@ -391,7 +391,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ StoreIntoObject(RDX,
                      FieldAddress(RDX, RCX, TIMES_4, Array::data_offset()),
                      RAX);
-  __ LoadObject(RAX, Object::Handle(), PP);
+  __ LoadObject(RAX, Object::null_object(), PP);
   __ ret();
   __ Bind(&fall_through);
 }

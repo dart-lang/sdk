@@ -83,7 +83,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movq(RBX, Address(CTX, Isolate::top_context_offset()));
 
   // Reset Context pointer in Isolate structure.
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   __ movq(Address(CTX, Isolate::top_context_offset()), R12);
 
   // Cache Context pointer into CTX while executing Dart code.
@@ -171,7 +171,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movq(R8, Address(CTX, Isolate::top_context_offset()));
 
   // Reset Context pointer in Isolate structure.
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   __ movq(Address(CTX, Isolate::top_context_offset()), R12);
 
   // Cache Context pointer into CTX while executing Dart code.
@@ -238,7 +238,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ movq(R8, Address(CTX, Isolate::top_context_offset()));
 
   // Reset Context pointer in Isolate structure.
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   __ movq(Address(CTX, Isolate::top_context_offset()), R12);
 
   // Cache Context pointer into CTX while executing Dart code.
@@ -255,7 +255,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   // Setup space on stack for return value.
-  __ PushObject(Object::Handle());
+  __ PushObject(Object::null_object());
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
   __ popq(RAX);  // Get Code object result.
   __ popq(R10);  // Restore arguments descriptor array.
@@ -275,7 +275,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   // Setup space on stack for return value.
-  __ PushObject(Object::Handle());
+  __ PushObject(Object::null_object());
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   __ popq(RAX);  // Get Code object.
   __ popq(R10);  // Restore arguments descriptor array.
@@ -291,7 +291,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 //   R10: smi-tagged argument count, may be zero.
 //   RBP[kParamEndSlotFromFp + 1]: last argument.
 static void PushArgumentsArray(Assembler* assembler) {
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   // Allocate array to store arguments of caller.
   __ movq(RBX, R12);  // Null element type for raw Array.
   __ call(&StubCode::AllocateArrayLabel());
@@ -324,7 +324,7 @@ static void PushArgumentsArray(Assembler* assembler) {
 //       when trying to resolve the call.
 void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   __ EnterStubFrameWithPP();
-  __ PushObject(Object::Handle());  // Space for the return value.
+  __ PushObject(Object::null_object());  // Space for the return value.
 
   // Push the receiver as an argument.  Load the smi-tagged argument
   // count into R13 to index the receiver in the stack.  There are
@@ -504,7 +504,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ pushq(R10);
 
   // Space for the result of the runtime call.
-  __ PushObject(Object::Handle());
+  __ PushObject(Object::null_object());
   __ pushq(RAX);  // Receiver.
   __ pushq(RBX);  // IC data.
   __ pushq(R10);  // Arguments descriptor.
@@ -519,7 +519,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ LeaveFrameWithPP();
 
   Label lookup;
-  __ CompareObject(RAX, Object::Handle());
+  __ CompareObject(RAX, Object::null_object());
   __ j(EQUAL, &lookup, Assembler::kNearJump);
   __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RAX);
@@ -625,7 +625,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ leaq(RBX, FieldAddress(RAX, Array::data_offset()));
     // RBX: iterator which initially points to the start of the variable
     // data area to be initialized.
-    __ LoadObject(R13, Object::Handle(), PP);
+    __ LoadObject(R13, Object::null_object(), PP);
     Label done;
     Label init_loop;
     __ Bind(&init_loop);
@@ -650,7 +650,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   // Setup space on stack for return value.
-  __ PushObject(Object::Handle());
+  __ PushObject(Object::null_object());
   __ pushq(R10);  // Array length as Smi.
   __ pushq(RBX);  // Element type.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
@@ -673,7 +673,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // Load closure object in R13.
   __ movq(R13, Address(RSP, RAX, TIMES_4, 0));  // RAX is a Smi.
 
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
 
   // Verify that R13 is a closure by checking its class.
   Label not_closure;
@@ -885,7 +885,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // Output:
 // RAX: new allocated RawContext object.
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   if (FLAG_inline_alloc) {
     const Class& context_class = Class::ZoneHandle(Object::context_class());
     Label slow_case;
@@ -1084,7 +1084,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
   const intptr_t type_args_size = InstantiatedTypeArguments::InstanceSize();
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   if (FLAG_inline_alloc &&
       Heap::IsAllocatableInNewSpace(instance_size + type_args_size)) {
     Label slow_case;
@@ -1251,7 +1251,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   const bool has_type_arguments = cls.HasTypeArguments();
 
   __ EnterStubFrameWithPP();  // Uses pool pointer to refer to function.
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   const intptr_t kTypeArgumentsOffset = 4 * kWordSize;
   const intptr_t kReceiverOffset = 5 * kWordSize;
   const intptr_t closure_size = Closure::InstanceSize();
@@ -1394,7 +1394,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ movq(RAX, Address(RBP, R13, TIMES_4, kParamEndSlotFromFp * kWordSize));
 
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   __ pushq(R12);  // Setup space on stack for result from noSuchMethod.
   __ pushq(RAX);  // Receiver.
   __ pushq(RBX);  // IC data array.
@@ -1543,7 +1543,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
 
   // IC miss.
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   // Compute address of arguments (first read number of arguments from
   // arguments descriptor array and then compute address on the stack).
   __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
@@ -1738,7 +1738,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   // Get function and call it, if possible.
   __ movq(R13, Address(R12, target_offset));
   __ movq(RAX, FieldAddress(R13, Function::code_offset()));
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   __ cmpq(RAX, R12);
   __ j(NOT_EQUAL, &target_is_compiled, Assembler::kNearJump);
 
@@ -1779,7 +1779,7 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ pushq(R10);
   // Room for result. Debugger stub returns address of the
   // unpatched runtime stub.
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   __ pushq(R12);  // Room for result.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ popq(RAX);  // Address of original.
@@ -1794,7 +1794,7 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   __ EnterStubFrame();
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   __ pushq(RBX);  // Preserve IC data for unoptimized call.
   __ pushq(R12);  // Room for result.
   __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry, 0);
@@ -1866,7 +1866,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const intptr_t kInstanceOffsetInBytes = 2 * kWordSize;
   const intptr_t kCacheOffsetInBytes = 3 * kWordSize;
   __ movq(RAX, Address(RSP, kInstanceOffsetInBytes));
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   if (n > 1) {
     __ LoadClass(R10, RAX);
     // Compute instance type arguments into R13.
@@ -2094,7 +2094,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
 // R10: argument descriptor (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ EnterStubFrameWithPP();
-  __ LoadObject(R12, Object::Handle(), PP);
+  __ LoadObject(R12, Object::null_object(), PP);
   __ pushq(R10);
   __ pushq(R12);  // Setup space on stack for return value.
   __ pushq(RDI);

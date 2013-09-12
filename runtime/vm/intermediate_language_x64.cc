@@ -454,7 +454,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   const int kNumArgumentsChecked = 2;
 
   Label check_identity;
-  __ LoadObject(TMP, Object::Handle(), PP);
+  __ LoadObject(TMP, Object::null_object(), PP);
   __ cmpq(Address(RSP, 0 * kWordSize), TMP);
   __ j(EQUAL, &check_identity);
   __ cmpq(Address(RSP, 1 * kWordSize), TMP);
@@ -655,9 +655,9 @@ static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
   // 'left' is not Smi.
 
   Label identity_compare;
-  __ CompareObject(right, Object::Handle());
+  __ CompareObject(right, Object::null_object());
   __ j(EQUAL, &identity_compare);
-  __ CompareObject(left, Object::Handle());
+  __ CompareObject(left, Object::null_object());
   __ j(EQUAL, &identity_compare);
 
   __ LoadClassId(temp, left);
@@ -706,9 +706,9 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
   Register right = locs->in(1).reg();
 
   Label done, identity_compare, non_null_compare;
-  __ CompareObject(right, Object::Handle());
+  __ CompareObject(right, Object::null_object());
   __ j(EQUAL, &identity_compare, Assembler::kNearJump);
-  __ CompareObject(left, Object::Handle());
+  __ CompareObject(left, Object::null_object());
   __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
   // Comparison with NULL is "===".
   __ Bind(&identity_compare);
@@ -1732,7 +1732,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       if (field().is_nullable() && (field_cid != kNullCid)) {
         __ j(EQUAL, &ok);
-        __ CompareObject(value_reg, Object::Handle());
+        __ CompareObject(value_reg, Object::null_object());
       }
 
       if (ok_is_fall_through) {
@@ -2011,7 +2011,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   Label type_arguments_instantiated;
   const intptr_t len = type_arguments().Length();
   if (type_arguments().IsRawInstantiatedRaw(len)) {
-    __ CompareObject(instantiator_reg, Object::Handle());
+    __ CompareObject(instantiator_reg, Object::null_object());
     __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
   }
   // Instantiate non-null type arguments.
@@ -2060,7 +2060,7 @@ void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
   Label type_arguments_instantiated;
   ASSERT(type_arguments().IsRawInstantiatedRaw(type_arguments().Length()));
 
-  __ CompareObject(instantiator_reg, Object::Handle());
+  __ CompareObject(instantiator_reg, Object::null_object());
   __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
   // Instantiate non-null type arguments.
   // In the non-factory case, we rely on the allocation stub to
@@ -2102,7 +2102,7 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
   ASSERT(type_arguments().IsRawInstantiatedRaw(type_arguments().Length()));
 
   Label instantiator_not_null;
-  __ CompareObject(instantiator_reg, Object::Handle());
+  __ CompareObject(instantiator_reg, Object::null_object());
   __ j(NOT_EQUAL, &instantiator_not_null, Assembler::kNearJump);
   // Null was used in VisitExtractConstructorTypeArguments as the
   // instantiated type arguments, no proper instantiator needed.
@@ -4331,7 +4331,7 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                           kDeoptCheckClass);
     __ CompareObject(locs()->in(0).reg(),
-                     Object::Handle());
+                     Object::null_object());
     __ j(EQUAL, deopt);
     return;
   }

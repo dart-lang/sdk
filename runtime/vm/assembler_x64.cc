@@ -2207,14 +2207,19 @@ intptr_t Assembler::FindExternalLabel(const ExternalLabel* label,
 
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) {
-  return !object.IsSmi() &&  // Not a Smi
+  // TODO(zra, kmillikin): Move the use of large Smis into the constant pool.
+  if (object.IsSmi()) {
+    return false;
+  }
+  ASSERT(object.IsNotTemporaryScopedHandle());
+  ASSERT(object.IsOld());
+  return (Isolate::Current() != Dart::vm_isolate()) &&
          // Not in the VMHeap, OR is one of the VMHeap objects we put in every
          // object pool.
+         // TODO(zra): Evaluate putting all VM heap objects into the pool.
          (!object.InVMHeap() || (object.raw() == Object::null()) ||
                                 (object.raw() == Bool::True().raw()) ||
-                                (object.raw() == Bool::False().raw())) &&
-         object.IsNotTemporaryScopedHandle() &&
-         object.IsOld();
+                                (object.raw() == Bool::False().raw()));
 }
 
 
@@ -2232,6 +2237,9 @@ void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
         Array::element_offset(FindObject(object, kNotPatchable));
     LoadWordFromPoolOffset(dst, pp, offset - kHeapObjectTag);
   } else {
+    ASSERT((Isolate::Current() == Dart::vm_isolate()) ||
+           object.IsSmi() ||
+           object.InVMHeap());
     movq(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
 }
