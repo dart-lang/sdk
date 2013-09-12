@@ -638,6 +638,21 @@ Length: #{length}''');
       const MessageKind(
           'Error: Top-level variable cannot be declared static.');
 
+  static const MessageKind REFERENCE_IN_INITIALIZATION = const MessageKind(
+       "Error: Variable '#{variableName}' is referenced during its "
+       "initialization.",
+       howToFix: "If you are trying to reference a shadowed variable, rename"
+         " one of the variables.",
+       examples: const ["""
+foo(t) {
+  var t = t;
+  return t;
+}
+
+main() => foo(1);
+"""]);
+
+
   static const MessageKind WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT =
       const MessageKind(
           'Error: Wrong number of arguments to assert. Should be 1, but given '

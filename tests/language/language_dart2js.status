@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js || $compiler == dart2dart ]
+block_scope_test: Fail # Issue 13204.
 compile_time_constant_c_test/none: Fail # Issue 11583
 null_test/03: Fail # Issue 12445.
 black_listed_test/none: Fail # Issue 12446.

@@ -330,14 +330,6 @@ Language/12_Expressions/23_Relational_Expressions_A01_t13: Fail # Checks that a 
 Language/12_Expressions/30_Identifier_Reference_A04_t09: Fail # Checks that it is a compile-time error when a built-in identifier dynamic is used as the declared name of a type variable.
 Language/12_Expressions/30_Identifier_Reference_A05_t01: Fail # Checks that it is a compile-time error when a built-in identifier "abstract" is used as a type annotation of a local variable.
 Language/12_Expressions/30_Identifier_Reference_A05_t12: Fail # Checks that it is a compile-time error when a built-in identifier "static" is used as a type annotation of a local variable.
-Language/13_Statements/03_Variable_Declaration_A04_t01: Fail # Checks that a variable declaration statement var e = e; causes a compile-time error.
-Language/13_Statements/03_Variable_Declaration_A04_t02: Fail # Checks that a variable declaration statement T e = e; causes a compile-time error.
-Language/13_Statements/03_Variable_Declaration_A04_t03: Fail # Checks that a variable declaration statement const e = e; causes a compile-time error.
-Language/13_Statements/03_Variable_Declaration_A04_t04: Fail # Checks that a variable declaration statement const T e = e; causes a compile-time error.
-Language/13_Statements/03_Variable_Declaration_A04_t05: Fail # Checks that a variable declaration statement final e = e; causes a compile-time error.
-Language/13_Statements/03_Variable_Declaration_A04_t06: Fail # Checks that a variable declaration statement final T e = e; causes a compile-time error.
-Language/13_Statements/03_Variable_Declaration_A04_t07: Fail # Checks that a variable declaration statement var e = e; causes a compile-time error. A top-level variable with the same name is declared.
-Language/13_Statements/03_Variable_Declaration_A04_t08: Fail # Checks that it is a compile-time error if the initializing expression of a local variable v refers to the name v= even when a top-level variable  with the same name is declared.
 Language/14_Libraries_and_Scripts/5_URIs_A01_t24: Fail # Checks that it is a compile-time error when the URI in a part directive consists of two adjacent string literals instead of one.
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: Fail # Checks that it is a compile-time error when the URI in a part directive consists of two adjacent multi-line string literals  instead of one.
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Checks that self-referencing typedef is not allowed (return value type annotation has the same name as the type alias).

@@ -17,9 +17,9 @@ regExpGetNative(JSSyntaxRegExp regexp) => regexp._nativeRegExp;
  * when it's returned, with no user-provided code run in between.
  */
 regExpGetGlobalNative(JSSyntaxRegExp regexp) {
-  var regexp = regexp._nativeGlobalVersion;
-  JS("void", "#.lastIndex = 0", regexp);
-  return regexp;
+  var nativeRegexp = regexp._nativeGlobalVersion;
+  JS("void", "#.lastIndex = 0", nativeRegexp);
+  return nativeRegexp;
 }
 
 class JSSyntaxRegExp implements RegExp {

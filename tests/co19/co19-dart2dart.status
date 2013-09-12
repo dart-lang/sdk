@@ -242,14 +242,6 @@ Language/12_Expressions/32_Type_Test_A04_t04: fail # co19-roll r546: Please tria
 Language/12_Expressions/33_Type_Cast_A03_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/33_Type_Cast_A03_t03: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/02_Expression_Statements_A01_t08: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/03_Variable_Declaration_A04_t01: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/03_Variable_Declaration_A04_t02: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/03_Variable_Declaration_A04_t03: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/03_Variable_Declaration_A04_t04: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/03_Variable_Declaration_A04_t05: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/03_Variable_Declaration_A04_t06: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/03_Variable_Declaration_A04_t07: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/03_Variable_Declaration_A04_t08: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/06_For_A01_t11: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/09_Switch_A01_t02: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/09_Switch_A04_t01: fail # co19-roll r546: Please triage this failure

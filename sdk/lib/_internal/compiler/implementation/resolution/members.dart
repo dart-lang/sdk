@@ -3772,7 +3772,15 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
 
   SourceString visitSendSet(SendSet node) {
     assert(node.arguments.tail.isEmpty); // Sanity check
-    resolver.visit(node.arguments.head);
+    Identifier identifier = node.selector;
+    SourceString name = identifier.source;
+    VariableDefinitionScope scope =
+        new VariableDefinitionScope(resolver.scope, name);
+    resolver.visitIn(node.arguments.head, scope);
+    if (scope.variableReferencedInInitializer) {
+      resolver.error(identifier, MessageKind.REFERENCE_IN_INITIALIZATION,
+                     {'variableName': name.toString()});
+    }
     return visit(node.selector);
   }
 
