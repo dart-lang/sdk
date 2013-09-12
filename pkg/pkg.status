@@ -68,11 +68,11 @@ polymer/test/event_path_test: Fail # Issue 12865, 13197
 [ $runtime == ff ]
 polymer/test/event_path_test: Fail # Issue 12865, 13197
 
-[ $runtime == ie9 || $runtime == ie10 || ($system == windows && $runtime == ff) ]
+[ $runtime == ie9 || $runtime == ie10 ]
 polymer/test/events_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/event_path_test: Fail, Timeout # Issue 12865, 13197, 13260
 
-[ $system == windows && $runtime == chrome ]
+[ $system == windows && ($runtime == chrome || $runtime == ff) ]
 polymer/test/events_test: Pass, Timeout # Issue 13260
 polymer/test/event_path_test: Pass, Timeout # Issue 13260
 
