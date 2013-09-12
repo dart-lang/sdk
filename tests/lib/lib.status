@@ -19,6 +19,7 @@ mirrors/hierarchy_invariants_test: Fail # Issue 11863
 mirrors/invoke_test: Fail # Issue 11954
 mirrors/invoke_named_test: Fail # Issue 10471, 12863
 mirrors/invoke_private_test: Fail # Issue 12164
+mirrors/invoke_throws_test: Fail # Issue 11954
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
 mirrors/method_mirror_name_test: Fail # Issue 6335
 mirrors/method_mirror_properties_test: Fail # Issue 11861

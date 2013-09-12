@@ -1166,7 +1166,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
                                                args,
                                                args_descriptor_array));
   if (result.IsError()) {
-    return result.raw();
+    ThrowInvokeError(Error::Cast(result));
+    UNREACHABLE();
   }
 
   // Factories may return null.
