@@ -449,7 +449,7 @@ class DeoptUint32x4FpuRegisterInstr: public DeoptInstr {
       : reg_(static_cast<FpuRegister>(reg_as_int)) {}
 
   virtual intptr_t from_index() const { return static_cast<intptr_t>(reg_); }
-  virtual DeoptInstr::Kind kind() const { return kFloat32x4FpuRegister; }
+  virtual DeoptInstr::Kind kind() const { return kUint32x4FpuRegister; }
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
