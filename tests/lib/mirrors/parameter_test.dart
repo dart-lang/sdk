@@ -31,6 +31,12 @@ class B {
   waldo(int z);
 }
 
+class C <S extends int, T> {
+  // TODO(6490): Currently only supported by the VM.
+  foo(int a, S b) => b;
+  bar(S a, T b, num c) {}
+}
+
 main() {
   ClassMirror cm = reflectClass(B);
   Map<Symbol, MethodMirror> constructors = cm.constructors;
@@ -141,4 +147,27 @@ main() {
          ' type = Class(s(int) in s(dart.core), top-level))]',
          waldo.parameters);
   expect('<null>', waldo.parameters[0].defaultValue);
+
+  cm = reflectClass(C);
+
+  MethodMirror fooInC = cm.members[const Symbol("foo")];
+  expect('Method(s(foo) in s(C))', fooInC);
+  expect('[Parameter(s(a) in s(foo),'
+         ' type = Class(s(int) in s(dart.core), top-level)), '
+         'Parameter(s(b) in s(foo),'
+         ' type = TypeVariable(s(S) in s(C),'
+         ' upperBound = Class(s(int) in s(dart.core), top-level)))]',
+         fooInC.parameters);
+
+  MethodMirror barInC = cm.members[const Symbol("bar")];
+  expect('Method(s(bar) in s(C))', barInC);
+  expect('[Parameter(s(a) in s(bar),'
+         ' type = TypeVariable(s(S) in s(C),'
+         ' upperBound = Class(s(int) in s(dart.core), top-level))), '
+         'Parameter(s(b) in s(bar),'
+         ' type = TypeVariable(s(T) in s(C),'
+         ' upperBound = Class(s(Object) in s(dart.core), top-level))), '
+         'Parameter(s(c) in s(bar),'
+         ' type = Class(s(num) in s(dart.core), top-level))]',
+         barInC.parameters);
 }
