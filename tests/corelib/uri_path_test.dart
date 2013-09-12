@@ -47,12 +47,9 @@ void testPathSegments() {
 
     var uri1 = new Uri(pathSegments: segments);
     var uri2 = new Uri(path: path);
-    var uri3 = Uri.parse(path);
     check(uri1);
     check(uri2);
-    check(uri3);
-    Expect.equals(uri1, uri3);
-    Expect.equals(uri2, uri3);
+    Expect.equals(uri1, uri2);
   }
 
   test("", []);

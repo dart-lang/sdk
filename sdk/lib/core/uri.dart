@@ -63,7 +63,13 @@ class Uri {
    *
    * Returns 0 if there is no port in the authority component.
    */
-  int get port => _port;
+  int get port {
+    if (_port == 0) {
+      if (scheme == "http") return 80;
+      if (scheme == "https") return 443;
+    }
+    return _port;
+  }
 
   /**
    * Returns the path component.
@@ -107,7 +113,7 @@ class Uri {
   static Uri parse(String uri) => new Uri._fromMatch(_splitRe.firstMatch(uri));
 
   Uri._fromMatch(Match m) :
-    this(scheme: _emptyIfNull(m[_COMPONENT_SCHEME]),
+    this(scheme: _makeScheme(_emptyIfNull(m[_COMPONENT_SCHEME])),
          userInfo: _emptyIfNull(m[_COMPONENT_USER_INFO]),
          host: _eitherOf(
          m[_COMPONENT_HOST], m[_COMPONENT_HOST_IPV6]),
@@ -529,6 +535,10 @@ class Uri {
     int length = scheme.length;
     for (int i = 0; i < length; i++) {
       int codeUnit = scheme.codeUnitAt(i);
+      if (i == 0 && !_isAlphabeticCharacter(codeUnit)) {
+        // First code unit must be an alphabetic character.
+        throw new ArgumentError('Illegal scheme: $scheme');
+      }
       if (!isSchemeLowerCharacter(codeUnit)) {
         if (isSchemeCharacter(codeUnit)) {
           allLowercase = false;
@@ -710,7 +720,7 @@ class Uri {
   static final RegExp _splitRe = new RegExp(
       '^'
       '(?:'
-        '([^:/?#.]+)'                   // scheme - ignore special characters
+        '([^:/?#]+)'                    // scheme - ignore special characters
                                         // used by other URL parts such as :,
                                         // ?, /, #, and .
       ':)?'
@@ -875,8 +885,8 @@ class Uri {
       throw new StateError(
         "Origin is only applicable schemes http and https: $this");
     }
-    if (port == 0) return "$scheme://$_host";
-    return "$scheme://$_host:$port";
+    if (_port == 0) return "$scheme://$_host";
+    return "$scheme://$_host:$_port";
   }
 
   /**
@@ -1008,9 +1018,9 @@ class Uri {
   void _writeAuthority(StringSink ss) {
     _addIfNonEmpty(ss, userInfo, userInfo, "@");
     ss.write(_host == null ? "null" : _host);
-    if (port != 0) {
+    if (_port != 0) {
       ss.write(":");
-      ss.write(port.toString());
+      ss.write(_port.toString());
     }
   }
 
@@ -1453,6 +1463,10 @@ class Uri {
     }
     return result.toString();
   }
+
+  static bool _isAlphabeticCharacter(int codeUnit)
+    => (codeUnit >= _LOWER_CASE_A && codeUnit <= _LOWER_CASE_Z) ||
+       (codeUnit >= _UPPER_CASE_A && codeUnit <= _UPPER_CASE_Z);
 
   // Tables of char-codes organized as a bit vector of 128 bits where
   // each bit indicate whether a character code on the 0-127 needs to
