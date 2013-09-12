@@ -214,6 +214,15 @@ version: not version
       expectFormatError('{author: abe, authors: ted}');
     });
 
+    test("throws if a transformer isn't a string or map", () {
+      expectFormatError('{transformers: 12}');
+      expectFormatError('{transformers: [12]}');
+    });
+
+    test("throws if a transformer's configuration isn't a map", () {
+      expectFormatError('{transformers: {pkg: 12}}');
+    });
+
     test("allows comment-only files", () {
       var pubspec = new Pubspec.parse(null, '''
 # No external dependencies yet

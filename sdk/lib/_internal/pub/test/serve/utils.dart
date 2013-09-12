@@ -26,7 +26,7 @@ import 'dart:async';
 import 'package:barback/barback.dart';
 
 class RewriteTransformer extends Transformer {
-  RewriteTransformer();
+  RewriteTransformer.asPlugin();
 
   String get allowedExtensions => '.txt';
 
@@ -69,7 +69,7 @@ const TOKEN = "$id";
 final _tokenRegExp = new RegExp(r'^const TOKEN = "(.*?)";\$', multiLine: true);
 
 class DartTransformer extends Transformer {
-  DartTransformer();
+  DartTransformer.asPlugin();
 
   String get allowedExtensions => '.dart';
 

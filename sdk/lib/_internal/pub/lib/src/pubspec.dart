@@ -30,9 +30,8 @@ class Pubspec {
   /// The packages this package depends on when it is the root package.
   final List<PackageDep> devDependencies;
 
-  /// The ids of the libraries containing the transformers to use for this
-  /// package.
-  final List<Set<AssetId>> transformers;
+  /// The ids of the transformers to use for this package.
+  final List<Set<TransformerId>> transformers;
 
   /// The environment-related metadata.
   final PubspecEnvironment environment;
@@ -74,7 +73,7 @@ class Pubspec {
       dependencies = <PackageDep>[],
       devDependencies = <PackageDep>[],
       environment = new PubspecEnvironment(),
-      transformers = <Set<AssetId>>[],
+      transformers = <Set<TransformerId>>[],
       fields = {};
 
   /// Whether or not the pubspec has no contents.
@@ -190,19 +189,36 @@ Pubspec _parseMap(String filePath, Map map, SourceRegistry sources) {
     transformers = transformers.map((phase) {
       if (phase is! List) phase = [phase];
       return phase.map((transformer) {
-        if (transformer is! String) {
+        if (transformer is! String && transformer is! Map) {
           throw new FormatException(
-              'Transformer "$transformer" must be a string.');
+              'Transformer "$transformer" must be a string or map.');
         }
 
-        var id = libraryIdentifierToId(transformer);
+        var id;
+        var configuration;
+        if (transformer is String) {
+          id = libraryIdentifierToId(transformer);
+        } else {
+          if (transformer.length != 1) {
+            throw new FormatException('Transformer map "$transformer" must '
+                'have a single key: the library identifier.');
+          }
+
+          id = libraryIdentifierToId(transformer.keys.single);
+          configuration = transformer.values.single;
+          if (configuration is! Map) {
+            throw new FormatException('Configuration for transformer "$id" '
+                'must be a map, but was "$configuration".');
+          }
+        }
+
         if (id.package != name &&
             !dependencies.any((ref) => ref.name == id.package)) {
           throw new FormatException('Could not find package for transformer '
               '"$transformer".');
         }
 
-        return id;
+        return new TransformerId(id, configuration);
       }).toSet();
     }).toList();
   } else {

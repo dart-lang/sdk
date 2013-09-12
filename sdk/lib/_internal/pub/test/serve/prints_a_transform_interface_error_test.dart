@@ -16,7 +16,7 @@ import 'dart:async';
 import 'package:barback/barback.dart';
 
 class RewriteTransformer extends Transformer {
-  RewriteTransformer();
+  RewriteTransformer.asPlugin();
 
   String get allowedExtensions => '.txt';
 }

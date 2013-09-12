@@ -86,7 +86,7 @@ Future loadAllTransformers(BarbackServer server, PackageGraph graph) {
       var transformers = [[rewrite]];
       return Future.forEach(graph.packages[package].pubspec.transformers,
           (phase) {
-        return Future.wait(phase.where((id) => id.package == package)
+        return Future.wait(phase.where((id) => id.asset.package == package)
             .map(loader.load)).then((_) {
           transformers.add(unionAll(phase.map(
               (id) => loader.transformersFor(id))));
@@ -148,7 +148,7 @@ Map<String, Set<String>> _computeOrderingDeps(PackageGraph graph) {
 /// Returns the set of transformer dependencies for [package].
 Set<String> _transformerDeps(PackageGraph graph, String package) =>
   unionAll(graph.packages[package].pubspec.transformers)
-      .map((id) => id.package).toSet();
+      .map((id) => id.asset.package).toSet();
 
 /// Returns an [ApplicationException] describing an ordering dependency cycle
 /// detected in [graph].
@@ -167,7 +167,7 @@ ApplicationException _cycleError(PackageGraph graph, String dependee,
   return new ApplicationException("Transformer cycle detected:\n" +
       pairs(path).map((pair) {
     var transformers = unionAll(graph.packages[pair.first].pubspec.transformers)
-        .where((id) => id.package == pair.last)
+        .where((id) => id.asset.package == pair.last)
         .map(idToLibraryIdentifier).toList();
     if (transformers.isEmpty) {
       return "  ${pair.first} depends on ${pair.last}";
@@ -177,15 +177,16 @@ ApplicationException _cycleError(PackageGraph graph, String dependee,
   }).join("\n"));
 }
 
-/// Returns a map from each package name in [graph] to the asset ids of all
-/// transformers exposed by that package and used by other packages.
-Map<String, Set<AssetId>> _computePackageTransformers(PackageGraph graph) {
+/// Returns a map from each package name in [graph] to the transformer ids of
+/// all transformers exposed by that package and used by other packages.
+Map<String, Set<TransformerId>> _computePackageTransformers(
+    PackageGraph graph) {
   var packageTransformers = listToMap(graph.packages.values,
-      (package) => package.name, (_) => new Set<AssetId>());
+      (package) => package.name, (_) => new Set<TransformerId>());
   for (var package in graph.packages.values) {
     for (var phase in package.pubspec.transformers) {
       for (var id in phase) {
-        packageTransformers[id.package].add(id);
+        packageTransformers[id.asset.package].add(id);
       }
     }
   }
@@ -196,11 +197,11 @@ Map<String, Set<AssetId>> _computePackageTransformers(PackageGraph graph) {
 class _TransformerLoader {
   final BarbackServer _server;
 
-  /// The loaded transformers defined in the library identified by each asset
-  /// id.
-  final _transformers = new Map<AssetId, Set<Transformer>>();
+  /// The loaded transformers defined in the library identified by each
+  /// transformer id.
+  final _transformers = new Map<TransformerId, Set<Transformer>>();
 
-  /// The packages that use each transformer id.
+  /// The packages that use each transformer asset id.
   ///
   /// Used for error reporting.
   final _transformerUsers = new Map<AssetId, Set<String>>();
@@ -208,29 +209,35 @@ class _TransformerLoader {
   _TransformerLoader(this._server, PackageGraph graph) {
     for (var package in graph.packages.values) {
       for (var id in unionAll(package.pubspec.transformers)) {
-        _transformerUsers.putIfAbsent(id, () => new Set<String>())
+        _transformerUsers.putIfAbsent(id.asset, () => new Set<String>())
             .add(package.name);
       }
     }
   }
 
-  /// Loads the transformer(s) defined in the asset [id].
+  /// Loads the transformer(s) defined in [id].
   ///
   /// Once the returned future completes, these transformers can be retrieved
   /// using [transformersFor]. If [id] doesn't define any transformers, this
   /// will complete to an error.
-  Future load(AssetId id) {
+  Future load(TransformerId id) {
     if (_transformers.containsKey(id)) return new Future.value();
 
+    // TODO(nweiz): load multiple instances of the same transformer from the
+    // same isolate rather than spinning up a separate isolate for each one.
     return loadTransformers(_server, id).then((transformers) {
       if (!transformers.isEmpty) {
         _transformers[id] = transformers;
         return;
       }
 
+      var message = "No transformers";
+      if (id.configuration != null) {
+        message += " that accept configuration";
+      }
       throw new ApplicationException(
-          "No transformers were defined in ${idToPackageUri(id)},\n"
-          "required by ${ordered(_transformerUsers[id]).join(', ')}.");
+          "$message were defined in ${idToPackageUri(id.asset)},\n"
+          "required by ${ordered(_transformerUsers[id.asset]).join(', ')}.");
     });
   }
 
@@ -238,7 +245,7 @@ class _TransformerLoader {
   ///
   /// It's an error to call this before [load] is called with [id] and the
   /// future it returns has completed.
-  Set<Transformers> transformersFor(AssetId id) {
+  Set<Transformers> transformersFor(TransformerId id) {
     assert(_transformers.containsKey(id));
     return _transformers[id];
   }

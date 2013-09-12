@@ -4,6 +4,8 @@
 
 library pub_tests;
 
+import 'dart:convert';
+
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../descriptor.dart' as d;
@@ -12,21 +14,29 @@ import 'utils.dart';
 
 final transformer = """
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:barback/barback.dart';
 
-class RewriteTransformer extends Transformer {
-  RewriteTransformer.asPlugin();
+class ConfigTransformer extends Transformer {
+  final Map configuration;
+
+  ConfigTransformer.asPlugin(this.configuration);
 
   String get allowedExtensions => '.txt';
 
-  Future apply(Transform transform) => throw new Exception('oh no!');
+  Future apply(Transform transform) {
+    return transform.primaryInput.readAsString().then((contents) {
+      var id = transform.primaryInput.id.changeExtension(".json");
+      transform.addOutput(new Asset.fromString(id, JSON.encode(configuration)));
+    });
+  }
 }
 """;
 
 main() {
   initConfig();
-  integration("prints a transform error in apply", () {
+  integration("configuration defaults to an empty map", () {
     d.dir(appPath, [
       d.pubspec({
         "name": "myapp",
@@ -43,10 +53,7 @@ main() {
     createLockFile('myapp', pkg: ['barback']);
 
     var server = startPubServe();
-    expect(server.nextErrLine(),
-        completion(equals('Build error:')));
-    expect(server.nextErrLine(), completion(equals('Transform Rewrite on '
-        'myapp|web/foo.txt threw error: oh no!')));
+    requestShouldSucceed("foo.json", JSON.encode({}));
     endPubServe();
   });
 }

@@ -5,6 +5,7 @@
 library pub.load_transformers;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:barback/barback.dart';
@@ -21,15 +22,19 @@ import '../utils.dart';
 const _TRANSFORMER_ISOLATE = """
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:convert';
 import 'dart:mirrors';
 
 import 'http://localhost:<<PORT>>/packages/barback/barback.dart';
 
 /// Sets up the initial communication with the host isolate.
 void main() {
-  port.receive((uri, replyTo) {
+  port.receive((args, replyTo) {
     _sendFuture(replyTo, new Future.sync(() {
-      return initialize(Uri.parse(uri)).map(_serializeTransformer).toList();
+      var library = Uri.parse(args['library']);
+      var configuration = JSON.decode(args['configuration']);
+      return initialize(library, configuration).
+          map(_serializeTransformer).toList();
     }));
   });
 }
@@ -37,8 +42,8 @@ void main() {
 /// Loads all the transformers defined in [uri] and adds them to [transformers].
 ///
 /// We then load the library, find any Transformer subclasses in it, instantiate
-/// them, and return them.
-Iterable<Transformer> initialize(Uri uri) {
+/// them (with [configuration] if it's non-null), and return them.
+Iterable<Transformer> initialize(Uri uri, Map configuration) {
   var mirrors = currentMirrorSystem();
   // TODO(nweiz): look this up by name once issue 5897 is fixed.
   var transformerUri = Uri.parse(
@@ -46,17 +51,30 @@ Iterable<Transformer> initialize(Uri uri) {
   var transformerClass = mirrors.libraries[transformerUri]
       .classes[const Symbol('Transformer')];
 
-  return mirrors.libraries[uri].classes.values.where((classMirror) {
-    if (classMirror.isPrivate) return false;
-    if (isAbstract(classMirror)) return false;
-    if (!classIsA(classMirror, transformerClass)) return false;
-    var constructor = classMirror.constructors[classMirror.simpleName];
-    if (constructor == null) return false;
-    if (!constructor.parameters.isEmpty) return false;
-    return true;
-  }).map((classMirror) {
-    return classMirror.newInstance(const Symbol(''), []).reflectee;
-  });
+  // TODO(nweiz): if no valid transformers are found, throw an error message
+  // describing candidates and why they were rejected.
+  return mirrors.libraries[uri].classes.values.map((classMirror) {
+    if (classMirror.isPrivate) return null;
+    if (isAbstract(classMirror)) return null;
+    if (!classIsA(classMirror, transformerClass)) return null;
+
+    var constructor = getConstructor(classMirror, 'asPlugin');
+    if (constructor == null) return null;
+    if (constructor.parameters.isEmpty) {
+      if (configuration != null) return null;
+      return classMirror.newInstance(const Symbol('asPlugin'), []).reflectee;
+    }
+    if (constructor.parameters.length != 1) return null;
+
+    // If the constructor expects configuration and none was passed, it defaults
+    // to an empty map.
+    if (configuration == null) configuration = {};
+
+    // TODO(nweiz): if the constructor accepts named parameters, automatically
+    // destructure the configuration map.
+    return classMirror.newInstance(const Symbol('asPlugin'), [configuration])
+        .reflectee;
+  }).where((classMirror) => classMirror != null);
 }
 
 /// A wrapper for a [Transform] that's in the host isolate.
@@ -106,6 +124,13 @@ ClassMirror get objectMirror {
   return _objectMirror;
 }
 ClassMirror _objectMirror;
+
+// TODO(nweiz): clean this up when issue 13248 is fixed.
+MethodMirror getConstructor(ClassMirror classMirror, String constructor) {
+  var name = new Symbol("\${MirrorSystem.getName(classMirror.simpleName)}"
+      ".\$constructor");
+  return classMirror.constructors[name];
+}
 
 // TODO(nweiz): get rid of this when issue 12439 is fixed.
 /// Returns whether or not [mirror] is a subtype of [superclass].
@@ -256,23 +281,28 @@ String getErrorMessage(error) {
 }
 """;
 
-/// Load and return all transformers from the library identified by [library].
+/// Load and return all transformers from the library identified by [id].
 ///
-/// [server] is used to serve [library] and any Dart files it imports.
+/// [server] is used to serve any Dart files needed to load the transformer.
 Future<Set<Transformer>> loadTransformers(BarbackServer server,
-    AssetId library) {
-  var path = library.path.replaceFirst('lib/', '');
+    TransformerId id) {
+  var path = id.asset.path.replaceFirst('lib/', '');
   // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
-  var uri = 'http://localhost:${server.port}/packages/${library.package}/$path';
+  var uri = 'http://localhost:${server.port}/packages/${id.asset.package}/'
+      '$path';
   var code = 'import "$uri";' +
       _TRANSFORMER_ISOLATE.replaceAll('<<PORT>>', server.port.toString());
-  log.fine("Loading transformers from $library");
+  log.fine("Loading transformers from ${id.asset}");
   return dart.runInIsolate(code).then((sendPort) {
-    return _receiveFuture(sendPort.call(uri)).then((transformers) {
+    return _receiveFuture(sendPort.call({
+      'library': uri,
+      // TODO(nweiz): support non-JSON-encodable configuration maps.
+      'configuration': JSON.encode(id.configuration)
+    })).then((transformers) {
       transformers = transformers
           .map((transformer) => new _ForeignTransformer(transformer))
           .toSet();
-      log.fine("Transformers from $library: $transformers");
+      log.fine("Transformers from ${id.asset}: $transformers");
       return transformers;
     });
   }).catchError((error) {
@@ -287,7 +317,7 @@ Future<Set<Transformer>> loadTransformers(BarbackServer server,
     // If there was an IsolateSpawnException and the import that actually failed
     // was the one we were loading transformers from, throw an application
     // exception with a more user-friendly message.
-    fail('Transformer library "package:${library.package}/$path" not found.');
+    fail('Transformer library "package:${id.asset.package}/$path" not found.');
   });
 }
 

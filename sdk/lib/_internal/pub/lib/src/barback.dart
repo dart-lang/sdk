@@ -15,6 +15,38 @@ import 'barback/server.dart';
 import 'barback/watch_sources.dart';
 import 'utils.dart';
 
+/// An identifier for a transformer and the configuration that will be passed to
+/// it.
+///
+/// It's possible that [asset] defines multiple transformers. If so,
+/// [configuration] will be passed to all of them.
+class TransformerId {
+  /// The asset containing the transformer.
+  final AssetId asset;
+
+  /// The configuration to pass to the transformer.
+  ///
+  /// This will be null if no configuration was provided.
+  final Map configuration;
+
+  TransformerId(this.asset, this.configuration) {
+    if (configuration == null) return;
+    for (var reserved in ['include', 'exclude']) {
+      if (!configuration.containsKey(reserved)) continue;
+      throw new FormatException('Configuration for transformer '
+          '${idToLibraryIdentifier(asset)} may not include reserved key '
+          '"$reserved".');
+    }
+  }
+
+  // TODO(nweiz): support deep equality on [configuration] as well.
+  bool operator==(other) => other is TransformerId &&
+      other.asset == asset &&
+      other.configuration == configuration;
+
+  int get hashCode => asset.hashCode ^ configuration.hashCode;
+}
+
 /// Creates a [BarbackServer] serving on [host] and [port].
 ///
 /// This transforms and serves all library and asset files in all packages in
