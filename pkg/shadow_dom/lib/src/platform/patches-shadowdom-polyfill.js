@@ -38,11 +38,9 @@
         // Fix up class names for Firefox.
         // For some of them (like HTMLFormElement and HTMLInputElement),
         // the "constructor" property of the unwrapped nodes points at the
-        // wrapper.
-        // Note: it is safe to check for the GeneratedWrapper string because
-        // we know it is some kind of Shadow DOM wrapper object.
-        var ctor = obj.constructor;
-        if (ctor && ctor.name == 'GeneratedWrapper') {
+        // same constructor as the wrapper.
+        var ctor = obj.constructor
+        if (ctor === unwrapped.constructor) {
           var name = ctor._ShadowDOMPolyfill$cacheTag_;
           if (!name) {
             name = Object.prototype.toString.call(unwrapped);

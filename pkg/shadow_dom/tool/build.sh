@@ -11,20 +11,24 @@
 set -e
 
 DIR=$( cd $( dirname "${BASH_SOURCE[0]}" ) && pwd )
-# Note: dartanalyzer and some tests needs to be run from the root directory
 pushd $DIR > /dev/null
 
-SHADOWDOM_REMOTE=https://github.com/dart-lang/ShadowDOM.git
-SHADOWDOM_DIR=../../../third_party/polymer/ShadowDOM
+POLYMER_REMOTE=https://github.com/Polymer
+POLYMER_DIR=../../../third_party/polymer
 
-echo "*** Syncing $SHADOWDOM_DIR from $SHADOWDOM_REMOTE"
-if [ -d "$SHADOWDOM_DIR" ]; then
-  pushd $SHADOWDOM_DIR > /dev/null
-  git pull
-  popd
-else
-  git clone --branch shadowdom_patches $SHADOWDOM_REMOTE $SHADOWDOM_DIR
-fi
+for NAME in ShadowDOM observe-js WeakMap; do
+  GIT_REMOTE="$POLYMER_REMOTE/$NAME.git"
+  GIT_DIR="$POLYMER_DIR/$NAME"
+  echo "*** Syncing $GIT_DIR from $GIT_REMOTE"
+  if [ -d "$GIT_DIR" ]; then
+    pushd $GIT_DIR > /dev/null
+    git remote set-url origin $GIT_REMOTE
+    git pull
+    popd
+  else
+    git clone $GIT_REMOTE $GIT_DIR
+  fi
+done
 
 echo '*** Installing NPM prerequisites'
 npm install
