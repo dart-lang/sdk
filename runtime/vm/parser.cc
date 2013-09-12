@@ -3617,6 +3617,13 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
   }
 
   ASSERT(member.name != NULL);
+  if (member.kind != RawFunction::kConstructor) {
+    if (member.name->Equals(members->class_name())) {
+      ErrorMsg(member.name_pos,
+               "class member must not have the same name as its class");
+    }
+  }
+
   if (CurrentToken() == Token::kLPAREN || member.IsGetter()) {
     // Constructor or method.
     if (member.type == NULL) {

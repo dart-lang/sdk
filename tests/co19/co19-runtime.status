@@ -107,8 +107,6 @@ Language/05_Variables/05_Variables_A06_t04: fail # Dart issue 12543
 Language/05_Variables/05_Variables_A06_t05: fail # Dart issue 12543
 Language/05_Variables/05_Variables_A06_t06: fail # Dart issue 12543
 Language/05_Variables/05_Variables_A16_t02: fail # Dart issue 12544
-Language/07_Classes/07_Classes_A11_t02: fail # Dart issue 12545
-Language/07_Classes/07_Classes_A11_t04: fail # Dart issue 12545
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail # Dart issue 12543
 Language/12_Expressions/05_Strings_A02_t46: fail # Dart issue 12547
 Language/12_Expressions/05_Strings_A02_t48: fail # Dart issue 12547
