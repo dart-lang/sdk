@@ -119,8 +119,6 @@ Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_
 
 # co19 issue #562: malformed superclass
 Language/14_Libraries_and_Scripts/1_Imports_A03_t27: fail, OK
-Language/14_Libraries_and_Scripts/1_Imports_A03_t47: fail, OK
-Language/14_Libraries_and_Scripts/1_Imports_A03_t67: fail, OK
 
 # co19 issue #563: implicitly named libraries are allowed
 Language/14_Libraries_and_Scripts/2_Exports_A05_t01: fail, OK
