@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "include/dart_debugger_api.h"
+#include "include/dart_mirrors_api.h"
 #include "platform/assert.h"
 #include "vm/dart_api_impl.h"
 #include "vm/thread.h"
@@ -235,8 +236,9 @@ static void VerifyStackFrame(Dart_ActivationFrame frame,
                              Dart_Handle expected_locals,
                              bool skip_null_expects) {
   Dart_Handle func_name;
+  Dart_Handle func;
   Dart_Handle res;
-  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
+  res = Dart_ActivationFrameGetLocation(frame, &func_name, &func, NULL);
   EXPECT_TRUE(res);
   EXPECT(Dart_IsString(func_name));
   const char* func_name_chars;
@@ -244,6 +246,11 @@ static void VerifyStackFrame(Dart_ActivationFrame frame,
   if (expected_name != NULL) {
     EXPECT_SUBSTRING(expected_name, func_name_chars);
   }
+  EXPECT(Dart_IsFunction(func));
+  const char* func_name_chars_from_func_handle;
+  Dart_StringToCString(Dart_FunctionName(func),
+                       &func_name_chars_from_func_handle);
+  EXPECT_STREQ(func_name_chars, func_name_chars_from_func_handle);
 
   if (!Dart_IsNull(expected_locals)) {
     Dart_Handle locals = Dart_GetLocalVariables(frame);
