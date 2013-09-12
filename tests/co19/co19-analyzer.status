@@ -90,6 +90,9 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: fail, OK
 # co19 issue #515, it is a compile-time error if there is more than one entity with the same name declared in the same scope
 Language/07_Classes/3_Setters_A08_t03: fail, OK
 
+# co19 issue #593: Conditional expressions are now allowed as constant expressions
+Language/12_Expressions/01_Constants_A15_t16: fail, OK
+
 # co19 issue #438, Static variables are initialized lazily, need not be constants
 Language/12_Expressions/01_Constants_A16_t01: fail, OK
 Language/12_Expressions/01_Constants_A16_t02: fail, OK
