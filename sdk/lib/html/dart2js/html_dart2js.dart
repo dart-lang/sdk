@@ -9397,7 +9397,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
   @Experimental()
   ShadowRoot get shadowRoot =>
-      JS('ShadowRoot', '#.shadowRoot || #.webkitShadowRoot', this, this);
+      JS('ShadowRoot|Null', '#.shadowRoot || #.webkitShadowRoot', this, this);
 
 
   /**
