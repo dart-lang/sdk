@@ -186,55 +186,141 @@ void _attachListeners(Barback barback) {
  * polymer's libraries).
  */
 Future _emitAllFiles(Barback barback, BarbackOptions options) {
-  return _emitFiles(barback, options, 'web').then((res) {
-    if (options.transformTests) return _emitFiles(barback, options, 'test');
-    return res;
+  return barback.getAllAssets().then((assets) {
+    return _emitPackagesDir(options)
+      .then((_) => _emitTransformedFiles(assets, options))
+      .then((_) => _addPackagesSymlinks(assets, options))
+      .then((_) => assets);
   });
 }
 
-Future _emitFiles(Barback barback, BarbackOptions options, String emitSubDir) {
-  return barback.getAllAssets().then((assets) {
-    // Copy all the assets we transformed
-    var futures = [];
-    for (var asset in assets) {
-      var id = asset.id;
-      var filepath;
-      if (id.package == options.currentPackage &&
-          id.path.startsWith('$emitSubDir/')) {
-        filepath = path.join(options.outDir, id.path);
-      } else if (id.path.startsWith('lib/')) {
-        filepath = path.join(options.outDir, emitSubDir, 'packages', id.package,
-            id.path.substring(4));
-      } else {
-        // TODO(sigmund): do something about other assets?
-        continue;
-      }
+Future _emitTransformedFiles(AssetSet assets, BarbackOptions options) {
+  // Copy all the assets we transformed
+  var futures = [];
+  var currentPackage = options.currentPackage;
+  var transformTests = options.transformTests;
+  var outPackages = path.join(options.outDir, 'packages');
+  for (var asset in assets) {
+    var id = asset.id;
+    var dir = _firstDir(id.path);
+    if (dir == null) continue;
 
-      _ensureDir(path.dirname(filepath));
-      var writer = new File(filepath).openWrite();
-      futures.add(writer.addStream(asset.read()).then((_) => writer.close()));
+    var filepath;
+    if (dir == 'lib') {
+      // Put lib files directly under the packages folder (e.g. 'lib/foo.dart'
+      // will be emitted at out/packages/package_name/foo.dart).
+      filepath = path.join(outPackages, id.package, id.path.substring(4));
+    } else if (id.package == currentPackage &&
+        (dir == 'web' || (transformTests && dir == 'test'))) {
+      filepath = path.join(options.outDir, id.path);
+    } else {
+      // TODO(sigmund): do something about other assets?
+      continue;
     }
-    return Future.wait(futures).then((_) {
-      // Copy also all the files we didn't process
-      var futures = [];
-      for (var package in _polymerPackageDependencies) {
-        for (var relpath in _listPackageDir(package, 'lib', options)) {
-          var inpath = path.join(options.packageDirs[package], relpath);
-          var outpath = path.join(options.outDir, emitSubDir,
-              'packages', package, relpath.substring(4));
-          _ensureDir(path.dirname(outpath));
 
-          var writer = new File(outpath).openWrite();
-          futures.add(writer.addStream(new File(inpath).openRead())
-            .then((_) => writer.close()));
-        }
-      }
-      return Future.wait(futures);
-    }).then((_) => assets);
-  });
+    futures.add(_writeAsset(filepath, asset));
+  }
+  return Future.wait(futures);
+}
+
+/**
+ * Adds a package symlink from each directory under `out/web/foo/` to
+ * `out/packages`.
+ */
+Future _addPackagesSymlinks(AssetSet assets, BarbackOptions options) {
+  var outPackages = path.join(options.outDir, 'packages');
+  var currentPackage = options.currentPackage;
+  for (var asset in assets) {
+    var id = asset.id;
+    if (id.package != currentPackage) continue;
+    var firstDir = _firstDir(id.path);
+    if (firstDir == null) continue;
+
+    if (firstDir == 'web' || (options.transformTests && firstDir == 'test')) {
+      var dir = path.join(options.outDir, path.dirname(id.path));
+      var linkPath = path.join(dir, 'packages');
+      var targetPath = path.relative(outPackages, from: dir);
+      _deleteIfPresent(linkPath);
+      new Link(linkPath).createSync(targetPath);
+    }
+  }
+}
+
+/**
+ * Emits a 'packages' directory directly under `out/packages` with the contents
+ * of every file that was not transformed by barback.
+ */
+Future _emitPackagesDir(BarbackOptions options) {
+  // Ensure we don't have a packages symlink in our output folder (could happen
+  // when people are using nested packages).
+  var outPackages = path.join(options.outDir, 'packages');
+  _deleteIfPresent(outPackages);
+
+  if (options.transformPolymerDependencies) return new Future.value(null);
+
+  // Copy all the files we didn't process
+  var futures = [];
+  var dirs = options.packageDirs;
+  for (var package in _polymerPackageDependencies) {
+    for (var relpath in _listPackageDir(package, 'lib', options)) {
+      var inpath = path.join(dirs[package], relpath);
+      var outpath = path.join(outPackages, package, relpath.substring(4));
+      futures.add(_copyFile(inpath, outpath));
+    }
+  }
+  return Future.wait(futures);
 }
 
 /** Ensure [dirpath] exists. */
-void _ensureDir(var dirpath) {
+void _ensureDir(String dirpath) {
   new Directory(dirpath).createSync(recursive: true);
+}
+
+/** Deletes [packagesPath] if it's a packages symlink, file, or folder. */
+void _deleteIfPresent(String packagesPath) {
+  try {
+    var link = new Link(packagesPath);
+    if (link.existsSync()) {
+      link.deleteSync();
+      return;
+    }
+
+    var dir = new Directory(packagesPath);
+    if (dir.existsSync()) {
+      dir.deleteSync(recursive: true);
+      return;
+    }
+
+    var file = new File(packagesPath);
+    if (file.existsSync()) {
+      file.deleteSync();
+    }
+  } catch (e) {
+    print('Error while deleting $pacakgesPath: $e');
+  }
+}
+
+/**
+ * Returns the first directory name on a url-style path, or null if there are no
+ * slashes.
+ */
+String _firstDir(String url) {
+  var firstSlash = url.indexOf('/');
+  if (firstSlash == -1) return null;
+  return url.substring(0, firstSlash);
+}
+
+/** Copy a file from [inpath] to [outpath]. */
+Future _copyFile(String inpath, String outpath) {
+  _ensureDir(path.dirname(outpath));
+  var writer = new File(outpath).openWrite();
+  return writer.addStream(new File(inpath).openRead())
+      .then((_) => writer.close());
+}
+
+/** Write contents of an [asset] into a file at [filepath]. */
+Future _writeAsset(String filepath, Asset asset) {
+  _ensureDir(path.dirname(filepath));
+  var writer = new File(filepath).openWrite();
+  return writer.addStream(asset.read()).then((_) => writer.close());
 }
