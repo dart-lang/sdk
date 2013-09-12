@@ -144,10 +144,6 @@ const_syntax_test/02: Fail # Issue 12932
 const_syntax_test/03: Fail # Issue 12932
 const_syntax_test/04: Fail # Issue 12932
 constructor9_test/01: Fail # Issue 12934
-duplicate_implements_test/01: Fail # Issue 12991
-duplicate_implements_test/02: Fail # Issue 12991
-duplicate_implements_test/03: Fail # Issue 12991
-duplicate_implements_test/04: Fail # Issue 12991
 list_literal1_test/01: Fail # Issue 12993
 map_literal1_test/01: Fail # Issue 12993
 scope_variable_test/01: Fail # Issue 13016
@@ -290,10 +286,6 @@ external_test/30: Fail # Issue 12888
 external_test/31: Fail # Issue 12888
 built_in_identifier_test/01: Fail # Issue 13022
 lazy_static3_test: Fail # Issue 12593
-duplicate_implements_test/01: Fail # Issue 12992
-duplicate_implements_test/02: Fail # Issue 12992
-duplicate_implements_test/03: Fail # Issue 12992
-duplicate_implements_test/04: Fail # Issue 12992
 list_literal1_test/01: Fail # Issue 12993
 map_literal1_test/01: Fail # Issue 12993
 method_override4_test: Fail # Issue 12810
