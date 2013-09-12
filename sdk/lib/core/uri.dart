@@ -1127,12 +1127,13 @@ class Uri {
    * pluses to spaces.
    *
    * It will create a byte-list of the decoded characters, and then use
-   * [decode] to decode the byte-list to a String. Default is a UTF-8 decoder.
+   * [encoding] to decode the byte-list to a String. The default encoding is
+   * UTF-8.
    */
   static String decodeQueryComponent(
       String encodedComponent,
-      {String decode(List<int> bytes): null}) {
-    return _uriDecode(encodedComponent, plusToSpace: true, decode: decode);
+      {Encoding encoding: UTF8}) {
+    return _uriDecode(encodedComponent, plusToSpace: true, encoding: encoding);
   }
 
   /**
@@ -1172,21 +1173,22 @@ class Uri {
    * Keys in the query string that have no value are mapped to the
    * empty string.
    *
-   * Each query component will be decoded using [decode]. Default is a UTF-8
-   * decoder.
+   * Each query component will be decoded using [encoding]. The default encoding
+   * is UTF-8.
    */
-  static Map<String, String> splitQueryString(
-      String query,
-      {String decode(List<int> bytes): null}) {
+  static Map<String, String> splitQueryString(String query,
+                                              {Encoding encoding: UTF8}) {
     return query.split("&").fold({}, (map, element) {
       int index = element.indexOf("=");
       if (index == -1) {
-        if (element != "") map[decodeQueryComponent(element)] = "";
+        if (element != "") {
+          map[decodeQueryComponent(element, encoding: encoding)] = "";
+        }
       } else if (index != 0) {
         var key = element.substring(0, index);
         var value = element.substring(index + 1);
-        map[Uri.decodeQueryComponent(key, decode: decode)] =
-            decodeQueryComponent(value, decode: decode);
+        map[Uri.decodeQueryComponent(key, encoding: encoding)] =
+            decodeQueryComponent(value, encoding: encoding);
       }
       return map;
     });
@@ -1419,11 +1421,11 @@ class Uri {
    * If [plusToSpace] is `true`, plus characters will be converted to spaces.
    *
    * The decoder will create a byte-list of the percent-encoded parts, and then
-   * decode the byte-list using [decode]. Default is a UTF-8 decoder.
+   * decode the byte-list using [encoding]. The default encodingis UTF-8.
    */
   static String _uriDecode(String text,
                            {bool plusToSpace: false,
-                            String decode(List<int> bytes): null}) {
+                            Encoding encoding: UTF8}) {
     StringBuffer result = new StringBuffer();
     List<int> codepoints = new List<int>();
     for (int i = 0; i < text.length;) {
@@ -1446,8 +1448,7 @@ class Uri {
           if (i == text.length) break;
           ch = text.codeUnitAt(i);
         }
-        result.write(
-            decode == null ? UTF8.decode(codepoints) : decode(codepoints));
+        result.write(encoding.decode(codepoints));
       }
     }
     return result.toString();

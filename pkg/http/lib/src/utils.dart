@@ -21,9 +21,9 @@ Map<String, String> queryToMap(String queryList, {Encoding encoding}) {
   for (var pair in queryList.split("&")) {
     var split = split1(pair, "=");
     if (split.isEmpty) continue;
-    var key = Uri.decodeQueryComponent(split[0], decode: encoding.decode);
+    var key = Uri.decodeQueryComponent(split[0], encoding: encoding);
     var value = Uri.decodeQueryComponent(split.length > 1 ? split[1] : "",
-        decode: encoding.decode);
+        encoding: encoding);
     map[key] = value;
   }
   return map;

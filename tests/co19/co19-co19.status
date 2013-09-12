@@ -10,6 +10,7 @@
 
 
 [ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
+LibTest/core/Uri/decodeQueryComponent_A02_t01: fail # co19 Issue 591
 LibTest/core/Uri/encodeComponent_A01_t02: fail # Issue 13251, co19 Issues 588, 589
 LibTest/core/Uri/parse_A01_t01: fail # Issue 13252
 LibTest/core/Uri/toFilePath_A01_t01: pass, fail, ok # co19 Issue 592
