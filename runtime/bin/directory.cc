@@ -26,6 +26,10 @@ void FUNCTION_NAME(Directory_Current)(Dart_NativeArguments args) {
   if (current != NULL) {
     Dart_SetReturnValue(args, DartUtils::NewString(current));
     free(current);
+  } else {
+    Dart_Handle err = DartUtils::NewDartOSError();
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
   }
 }
 

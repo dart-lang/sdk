@@ -26,8 +26,15 @@ testChangeDirectory() {
     Directory.current = "..";
     Expect.isTrue(new File("111").existsSync());
     Expect.isTrue(new File("222/333").existsSync());
+    // Deleting the current working directory causes an error.
+    // On Windows, the deletion fails, and on non-Windows, the getter fails.
+    Expect.throws(() {
+      temp.deleteSync(recursive: true);
+      Directory.current;
+    }, (e) => e is DirectoryException);
     Directory.current = initialCurrent;
-    temp.deleteSync(recursive: true);
+    Directory.current;
+    if (temp.existsSync()) temp.deleteSync(recursive: true);
     asyncEnd();
   });
 }

@@ -24,7 +24,7 @@ class _Directory extends FileSystemEntity implements Directory {
     }
   }
 
-  external static String _current();
+  external static _current();
   external static _setCurrent(path);
   external static _createTemp(String template);
   external static int _exists(String path);
@@ -34,7 +34,14 @@ class _Directory extends FileSystemEntity implements Directory {
   external static List _list(String path, bool recursive, bool followLinks);
   external static SendPort _newServicePort();
 
-  static Directory get current => new _Directory(_current());
+  static Directory get current {
+    var result = _current();
+    if (result is OSError) {
+      throw new DirectoryException(
+          "Getting current working directory failed", "", result);
+    }
+    return new _Directory(result);
+  }
 
   static void set current(path) {
     if (path is Directory) path = path.path;
