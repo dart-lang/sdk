@@ -244,7 +244,7 @@ subclassOfInterceptor(compiler) {
 void test() {
   runTest(TEST_1, (compiler) => [compiler.typesTask.stringType]);
   runTest(TEST_2, (compiler) => [compiler.typesTask.intType]);
-  runTest(TEST_3, (compiler) => [compiler.typesTask.numType]);
+  runTest(TEST_3, (compiler) => [compiler.typesTask.intType]);
   runTest(TEST_4, (compiler) => [compiler.typesTask.numType]);
   runTest(TEST_5, (compiler) => [compiler.typesTask.numType]);
   runTest(TEST_6, (compiler) => [compiler.typesTask.numType]);
@@ -257,8 +257,8 @@ void test() {
                                  compiler.typesTask.dynamicType.nonNullable()]);
   runTest(TEST_9, (compiler) => [compiler.typesTask.intType,
                                  compiler.typesTask.intType]);
-  runTest(TEST_10, (compiler) => [subclassOfInterceptor(compiler),
-                                  subclassOfInterceptor(compiler)]);
+  runTest(TEST_10, (compiler) => [compiler.typesTask.intType,
+                                 compiler.typesTask.intType]);
   runTest(TEST_11, (compiler) => [subclassOfInterceptor(compiler),
                                   subclassOfInterceptor(compiler)]);
 

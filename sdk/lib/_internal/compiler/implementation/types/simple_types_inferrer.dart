@@ -333,9 +333,10 @@ class SimpleTypesInferrer extends TypesInferrer {
  * type information about visited nodes, as well as to request type
  * information of elements.
  */
-abstract class InferrerEngine<T> implements MinimalInferrerEngine<T> {
+abstract class InferrerEngine<T, V extends TypeSystem>
+    implements MinimalInferrerEngine<T> {
   final Compiler compiler;
-  final TypeSystem<T> types;
+  final V types;
   final Map<Node, T> concreteTypes = new Map<Node, T>();
 
   InferrerEngine(this.compiler, this.types);
@@ -359,11 +360,6 @@ abstract class InferrerEngine<T> implements MinimalInferrerEngine<T> {
    * Returns the return type of [element].
    */
   T returnTypeOfElement(Element element);
-
-  /**
-   * Returns the type returned by a call to this [selector].
-   */
-  T returnTypeOfSelector(Selector selector);
 
   /**
    * Records that [node] sets final field [element] to be of type [type].
@@ -626,7 +622,8 @@ abstract class InferrerEngine<T> implements MinimalInferrerEngine<T> {
 }
 
 class InternalSimpleTypesInferrer
-    extends InferrerEngine<TypeMask> implements TypesInferrer {
+    extends InferrerEngine<TypeMask, TypeMaskSystem>
+    implements TypesInferrer {
   /**
    * Maps a class to a [ClassTypeInformation] to help collect type
    * information of final fields.
@@ -1626,13 +1623,13 @@ class InternalSimpleTypesInferrer
 }
 
 class SimpleTypeInferrerVisitor<T>
-    extends InferrerVisitor<T, InferrerEngine<T>> {
+    extends InferrerVisitor<T, InferrerEngine<T, TypeSystem<T>>> {
   T returnType;
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;
   SideEffects sideEffects = new SideEffects.empty();
   final Element outermostElement;
-  final InferrerEngine<T> inferrer;
+  final InferrerEngine<T, TypeSystem<T>> inferrer;
   final Set<Element> capturedVariables = new Set<Element>();
 
   SimpleTypeInferrerVisitor.internal(analyzedElement,
@@ -1645,7 +1642,7 @@ class SimpleTypeInferrerVisitor<T>
 
   factory SimpleTypeInferrerVisitor(Element element,
                                     Compiler compiler,
-                                    InferrerEngine<T> inferrer,
+                                    InferrerEngine<T, TypeSystem<T>> inferrer,
                                     [LocalsHandler<T> handler]) {
     Element outermostElement =
         element.getOutermostEnclosingMemberOrTopLevel().implementation;
@@ -1812,11 +1809,14 @@ class SimpleTypeInferrerVisitor<T>
               : types.addPhiInput(null, elementType, type);
           length++;
         }
+        elementType = elementType == null
+            ? types.nonNullEmpty()
+            : types.simplifyPhi(null, null, elementType);
         return types.allocateContainer(
             types.constListType,
             node,
             outermostElement,
-            types.simplifyPhi(null, null, elementType),
+            elementType,
             length);
       });
     } else {

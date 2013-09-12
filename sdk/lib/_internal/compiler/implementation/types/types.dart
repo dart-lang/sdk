@@ -11,6 +11,7 @@ import '../native_handler.dart' as native;
 import '../util/util.dart';
 import '../universe/universe.dart';
 import 'simple_types_inferrer.dart' show SimpleTypesInferrer;
+import 'type_graph_inferrer.dart' show TypeGraphInferrer;
 import 'concrete_types_inferrer.dart' show ConcreteTypesInferrer;
 import '../dart_types.dart';
 
@@ -42,11 +43,11 @@ class TypesTask extends CompilerTask {
   static final bool DUMP_SURPRISING_RESULTS = false;
 
   final String name = 'Type inference';
-  SimpleTypesInferrer typesInferrer;
+  TypesInferrer typesInferrer;
   ConcreteTypesInferrer concreteTypesInferrer;
 
   TypesTask(Compiler compiler) : super(compiler) {
-    typesInferrer = new SimpleTypesInferrer(compiler);
+    typesInferrer = new TypeGraphInferrer(compiler);
     if (compiler.enableConcreteTypeInference) {
       concreteTypesInferrer = new ConcreteTypesInferrer(compiler);
     }
