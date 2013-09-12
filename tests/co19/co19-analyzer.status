@@ -37,6 +37,7 @@ Language/15_Types/6_Type_dynamic_A03_t01: fail
 Language/15_Types/6_Type_dynamic_A04_t01: fail
 
 
+LibTest/core/Uri/decodeQueryComponent_A02_t01: fail # co19 Issue 591
 
 # co19 issue #380, Strings class has been removed
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: fail, OK

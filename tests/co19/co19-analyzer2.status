@@ -30,7 +30,7 @@ Language/15_Types/4_Interface_Types_A11_t01: Skip
 Language/15_Types/4_Interface_Types_A11_t02: Skip
 
 
-
+LibTest/core/Uri/decodeQueryComponent_A02_t01: fail # co19 Issue 591
 
 # co19 issue #380, Strings class has been removed
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: fail, OK
