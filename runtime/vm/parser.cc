@@ -4808,7 +4808,7 @@ void Parser::ParseLibraryImportExport() {
   }
   ConsumeToken();
   String& prefix = String::Handle();
-  if (is_import && IsLiteral("as")) {
+  if (is_import && (CurrentToken() == Token::kAS)) {
     ConsumeToken();
     prefix = ExpectIdentifier("prefix identifier expected")->raw();
   }
@@ -7339,9 +7339,6 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
   if (left_operand->IsPrimaryNode() &&
       (left_operand->AsPrimaryNode()->IsSuper())) {
     ErrorMsg(left_operand->token_pos(), "illegal use of 'super'");
-  }
-  if (IsLiteral("as")) {  // Not a reserved word.
-    token_kind_ = Token::kAS;
   }
   int current_preced = Token::Precedence(CurrentToken());
   while (current_preced >= min_preced) {
@@ -10363,18 +10360,18 @@ void Parser::SkipBinaryExpr() {
   const int min_prec = Token::Precedence(Token::kOR);
   const int max_prec = Token::Precedence(Token::kMUL);
   while (((min_prec <= Token::Precedence(CurrentToken())) &&
-      (Token::Precedence(CurrentToken()) <= max_prec)) ||
-      IsLiteral("as")) {
-    Token::Kind last_token = IsLiteral("as") ? Token::kAS : CurrentToken();
-    ConsumeToken();
-    if (last_token == Token::kIS) {
+      (Token::Precedence(CurrentToken()) <= max_prec))) {
+    if (CurrentToken() == Token::kIS) {
+      ConsumeToken();
       if (CurrentToken() == Token::kNOT) {
         ConsumeToken();
       }
       SkipType(false);
-    } else if (last_token == Token::kAS) {
+    } else if (CurrentToken() == Token::kAS) {
+      ConsumeToken();
       SkipType(false);
     } else {
+      ConsumeToken();
       SkipUnaryExpr();
     }
   }

@@ -33,17 +33,17 @@ namespace dart {
   V(_Double, .fromInteger, Double_fromInteger, 475441744)                      \
   V(_ObjectArray, ., ObjectArray_Allocate, 1930677134)                         \
   V(_ObjectArray, get:length, Array_getLength, 259323113)                      \
-  V(_ObjectArray, [], Array_getIndexed, 93386978)                              \
-  V(_ObjectArray, []=, Array_setIndexed, 1296046137)                           \
+  V(_ObjectArray, [], Array_getIndexed, 1353366945)                            \
+  V(_ObjectArray, []=, Array_setIndexed, 1492559642)                           \
   V(_GrowableObjectArray, .withData, GrowableArray_Allocate, 1012992871)       \
   V(_GrowableObjectArray, get:length, GrowableArray_getLength, 1160357614)     \
   V(_GrowableObjectArray, get:_capacity, GrowableArray_getCapacity, 1509781988)\
-  V(_GrowableObjectArray, [], GrowableArray_getIndexed, 500679426)             \
-  V(_GrowableObjectArray, []=, GrowableArray_setIndexed, 211112998)            \
+  V(_GrowableObjectArray, [], GrowableArray_getIndexed, 1760659393)            \
+  V(_GrowableObjectArray, []=, GrowableArray_setIndexed, 407626503)            \
   V(_GrowableObjectArray, _setLength, GrowableArray_setLength, 1922121178)     \
   V(_GrowableObjectArray, _setData, GrowableArray_setData, 236295352)          \
   V(_GrowableObjectArray, add, GrowableArray_add, 1442410650)                  \
-  V(_ImmutableArray, [], ImmutableArray_getIndexed, 894753724)                 \
+  V(_ImmutableArray, [], ImmutableArray_getIndexed, 7250043)                   \
   V(_ImmutableArray, get:length, ImmutableArray_getLength, 1341942416)         \
   V(Object, ==, Object_equal, 677817295)                                       \
   V(_StringBase, get:hashCode, String_getHashCode, 654483446)                  \
