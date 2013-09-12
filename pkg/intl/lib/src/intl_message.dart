@@ -239,16 +239,35 @@ class LiteralString extends Message {
  */
 class VariableSubstitution extends Message {
   VariableSubstitution(this._index, Message parent) : super(parent);
-  VariableSubstitution.named(this._variableName, Message parent)
-      : super(parent);
+
+  /**
+   * Create a substitution based on the name rather than the index. The name
+   * may have been used as all upper-case in the translation tool, so we
+   * save it separately and look it up case-insensitively once the parent
+   * (and its arguments) are definitely available.
+   */
+  VariableSubstitution.named(String name, Message parent)
+      : super(parent) {
+    _variableNameUpper = name.toUpperCase();
+  }
 
   /** The index in the list of parameters of the containing function. */
   int _index;
   int get index {
     if (_index != null) return _index;
     if (arguments.isEmpty) return null;
-    return _index = arguments.indexOf(_variableName);
+    // We may have been given an all-uppercase version of the name, so compare
+    // case-insensitive.
+    _index = arguments.map((x) => x.toUpperCase()).toList()
+        .indexOf(_variableNameUpper);
+    return _index;
   }
+
+  /**
+   * The variable name we get from parsing. This may be an all uppercase version
+   * of the Dart argument name.
+   */
+  String _variableNameUpper;
 
   /**
    * The name of the variable in the parameter list of the containing function.
