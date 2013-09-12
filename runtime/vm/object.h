@@ -702,6 +702,11 @@ class Class : public Object {
   // function.
   RawType* SignatureType() const;
 
+  // Return the Type with type parameters declared by this class filled in with
+  // dynamic and type parameters declared in superclasses filled in as declared
+  // in superclass clauses.
+  RawType* RareType() const;
+
   RawLibrary* library() const { return raw_ptr()->library_; }
   void set_library(const Library& value) const;
 

@@ -272,7 +272,7 @@ namespace dart {
   V(ClassMirror_invoke, 5)                                                     \
   V(ClassMirror_invokeGetter, 3)                                               \
   V(ClassMirror_invokeSetter, 4)                                               \
-  V(ClassMirror_invokeConstructor, 4)                                          \
+  V(ClassMirror_invokeConstructor, 5)                                          \
   V(ClassMirror_type_variables, 1)                                             \
   V(ClassMirror_type_arguments, 1)                                             \
   V(LibraryMirror_invoke, 5)                                                   \

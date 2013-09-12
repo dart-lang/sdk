@@ -2846,13 +2846,18 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
     RETURN_TYPE_ERROR(isolate, type, Type);
   }
   Class& cls = Class::Handle(isolate);
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::Handle(isolate);
+
   if (result.IsType()) {
     cls = Type::Cast(result).type_class();
+    type_arguments = Type::Cast(result).arguments();
   } else if (result.IsClass()) {
     // For backwards compatibility we allow class objects to be passed in
     // for now. This needs to be removed once all code that uses class
     // objects to invoke Dart_New is removed.
     cls ^= result.raw();
+    type_arguments = Type::Handle(cls.RareType()).arguments();
   } else {
     RETURN_TYPE_ERROR(isolate, type, Type);
   }
@@ -2913,12 +2918,18 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
       Array::Handle(isolate, Array::New(number_of_arguments + extra_args));
   if (constructor.IsConstructor()) {
     // Constructors get the uninitialized object and a constructor phase.
+    if (!type_arguments.IsNull()) {
+      // The type arguments will be null if the class has no type parameters, in
+      // which case the following call would fail because there is no slot
+      // reserved in the object for the type vector.
+      new_object.SetTypeArguments(type_arguments);
+    }
     args.SetAt(arg_index++, new_object);
     args.SetAt(arg_index++,
                Smi::Handle(isolate, Smi::New(Function::kCtorPhaseAll)));
   } else {
     // Factories get type arguments.
-    args.SetAt(arg_index++, TypeArguments::Handle(isolate));
+    args.SetAt(arg_index++, type_arguments);
   }
   Object& argument = Object::Handle(isolate);
   for (int i = 0; i < number_of_arguments; i++) {

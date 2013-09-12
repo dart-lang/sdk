@@ -29,15 +29,6 @@ static RawInstance* CreateMirror(const String& mirror_class_name,
 }
 
 
-// Note a "raw type" is not the same as a RawType.
-static RawAbstractType* RawTypeOfClass(const Class& cls) {
-  Type& type = Type::Handle(Type::New(cls,
-                                      Object::null_abstract_type_arguments(),
-                                      Scanner::kDummyTokenIndex));
-  return ClassFinalizer::FinalizeType(cls, type, ClassFinalizer::kCanonicalize);
-}
-
-
 static void ThrowMirroredCompilationError(const String& message) {
   Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, message);
@@ -294,6 +285,7 @@ static RawFunction* CallMethod(const Class& cls) {
 
 static RawInstance* CreateClassMirror(const Class& cls,
                                       const AbstractType& type,
+                                      const Bool& is_declaration,
                                       const Instance& owner_mirror) {
   ASSERT(!cls.IsDynamicClass() && !cls.IsVoidClass());
 
@@ -307,16 +299,12 @@ static RawInstance* CreateClassMirror(const Class& cls,
     }
   }
 
+  ASSERT(!type.IsNull());
+
   const Bool& is_generic = Bool::Get(cls.NumTypeParameters() != 0);
   const Bool& is_mixin_typedef = Bool::Get(cls.is_mixin_typedef());
 
-  // If the class is not generic, the mirror must have a non-null runtime type.
-  // If the class is generic, the mirror will have a null runtime type if it
-  // represents the declaration or a non-null runtime type if it represents an
-  // instantiation.
-  ASSERT(!(cls.NumTypeParameters() == 0) || !type.IsNull());
-
-  const Array& args = Array::Handle(Array::New(5));
+  const Array& args = Array::Handle(Array::New(6));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
   args.SetAt(1, type);
   // We do not set the names of anonymous mixin applications because the mirrors
@@ -327,6 +315,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
   }
   args.SetAt(3, is_generic);
   args.SetAt(4, is_mixin_typedef);
+  args.SetAt(5, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
   return CreateMirror(Symbols::_LocalClassMirrorImpl(), args);
 }
 
@@ -359,7 +348,7 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
       // TODO(mlippautz): Create once in the VM isolate and retrieve from there.
       return CreateMirror(Symbols::_SpecialTypeMirrorImpl(), args);
     }
-    return CreateClassMirror(cls, type, Object::null_instance());
+    return CreateClassMirror(cls, type, Bool::False(), Object::null_instance());
   } else if (type.IsTypeParameter()) {
     return CreateTypeVariableMirror(TypeParameter::Cast(type),
                                     Object::null_instance());
@@ -424,16 +413,11 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
     Exceptions::ThrowByType(Exceptions::kArgument, args);
     UNREACHABLE();
   }
-  // Strip the type for generics only.
-  if (cls.NumTypeParameters() == 0) {
-    return CreateClassMirror(cls,
-                             type,
-                             Object::null_instance());
-  } else {
-    return CreateClassMirror(cls,
-                             AbstractType::Handle(),
-                             Object::null_instance());
-  }
+  const Type& stripped_type = Type::Handle(cls.RareType());
+  return CreateClassMirror(cls,
+                           stripped_type,
+                           Bool::True(),  // is_declaration
+                           Object::null_instance());
 }
 
 
@@ -661,13 +645,11 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
       if (!klass.IsCanonicalSignatureClass() &&
           !klass.IsDynamicClass() &&
           !RawObject::IsImplementationClassId(klass.id())) {
-        if (klass.NumTypeParameters() == 0) {
-          // Include runtime type for non-generics only.
-          type = RawTypeOfClass(klass);
-        } else {
-          type = AbstractType::null();
-        }
-        member_mirror = CreateClassMirror(klass, type, owner_mirror);
+        type = klass.RareType();
+        member_mirror = CreateClassMirror(klass,
+                                          type,
+                                          Bool::True(),  // is_declaration
+                                          owner_mirror);
         member_mirrors.Add(member_mirror);
       }
     } else if (entry.IsField()) {
@@ -738,11 +720,10 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
 DEFINE_NATIVE_ENTRY(TypeVariableMirror_owner, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
   const Class& owner = Class::Handle(param.parameterized_class());
-  // The owner of a type variable must be a generic class: pass a null runtime
-  // type to get a mirror on the declaration.
-  ASSERT(owner.NumTypeParameters() != 0);
+  const Type& type = Type::Handle(owner.RareType());
   return CreateClassMirror(owner,
-                           AbstractType::Handle(),
+                           type,
+                           Bool::True(),  // is_declaration
                            Instance::null_instance());
 }
 
@@ -967,7 +948,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
   if (function.IsNull() ||
       !function.AreValidArguments(args_descriptor, NULL) ||
       !function.is_visible()) {
-    ThrowNoSuchMethod(AbstractType::Handle(RawTypeOfClass(klass)),
+    ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                       function_name,
                       function,
                       InvocationMirror::kStatic,
@@ -1002,7 +983,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 3) {
         klass.LookupStaticFunctionAllowPrivate(internal_getter_name));
 
     if (getter.IsNull() || !getter.is_visible()) {
-      ThrowNoSuchMethod(AbstractType::Handle(RawTypeOfClass(klass)),
+      ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                         getter_name,
                         getter,
                         InvocationMirror::kStatic,
@@ -1041,7 +1022,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
       klass.LookupStaticFunctionAllowPrivate(internal_setter_name));
 
     if (setter.IsNull() || !setter.is_visible()) {
-      ThrowNoSuchMethod(AbstractType::Handle(RawTypeOfClass(klass)),
+      ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                         setter_name,
                         setter,
                         InvocationMirror::kStatic,
@@ -1077,13 +1058,14 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
 }
 
 
-DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 4) {
+DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Class& klass = Class::Handle(ref.GetClassReferent());
+  GET_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(
-      String, constructor_name, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, explicit_args, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(3));
+      String, constructor_name, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, explicit_args, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
 
   // By convention, the static function implementing a named constructor 'C'
   // for class 'A' is labeled 'A.C', and the static function implementing the
@@ -1106,7 +1088,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 4) {
     // Pretend we didn't find the constructor at all when the arity is wrong
     // so as to produce the same NoSuchMethodError as the non-reflective case.
     lookup_constructor = Function::null();
-    ThrowNoSuchMethod(AbstractType::Handle(RawTypeOfClass(klass)),
+    ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                       internal_constructor_name,
                       lookup_constructor,
                       InvocationMirror::kConstructor,
@@ -1147,7 +1129,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 4) {
     // Pretend we didn't find the constructor at all when the arity is wrong
     // so as to produce the same NoSuchMethodError as the non-reflective case.
     redirected_constructor = Function::null();
-    ThrowNoSuchMethod(AbstractType::Handle(RawTypeOfClass(klass)),
+    ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                       internal_constructor_name,
                       redirected_constructor,
                       InvocationMirror::kConstructor,
@@ -1155,19 +1137,27 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 4) {
     UNREACHABLE();
   }
 
+  ASSERT(!type.IsNull());
+  const AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::Handle(type.arguments());
+
   Instance& new_object = Instance::Handle();
   if (redirected_constructor.IsConstructor()) {
     // Constructors get the uninitialized object and a constructor phase. Note
     // we have delayed allocation until after the function type and argument
     // matching checks.
     new_object = Instance::New(redirected_klass);
+    if (!type_arguments.IsNull()) {
+      // The type arguments will be null if the class has no type parameters, in
+      // which case the following call would fail because there is no slot
+      // reserved in the object for the type vector.
+      new_object.SetTypeArguments(type_arguments);
+    }
     args.SetAt(0, new_object);
     args.SetAt(1, Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
   } else {
     // Factories get type arguments.
-    // TODO(12921): Should we allow the user to specify type arguments? Use type
-    // arguments from the mirror?
-    args.SetAt(0, Object::null_abstract_type_arguments());
+    args.SetAt(0, type_arguments);
   }
 
   // Invoke the constructor and return the new object.
@@ -1347,12 +1337,8 @@ DEFINE_NATIVE_ENTRY(MethodMirror_owner, 1) {
     return CreateLibraryMirror(Library::Handle(owner.library()));
   }
 
-  AbstractType& type = AbstractType::Handle();
-  if (owner.NumTypeParameters() == 0) {
-    // Include runtime type for non-generics only.
-    type = RawTypeOfClass(owner);
-  }
-  return CreateClassMirror(owner, type, Object::null_instance());
+  Type& type = Type::Handle(owner.RareType());
+  return CreateClassMirror(owner, type, Bool::True(), Object::null_instance());
 }
 
 

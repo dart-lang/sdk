@@ -441,15 +441,17 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
                         this._reflectedType,
                         String simpleName,
                         this._isGeneric,
-                        this._isMixinTypedef)
+                        this._isMixinTypedef,
+                        this._isGenericDeclaration)
       : this._simpleName = _s(simpleName),
         super(reflectee);
 
   final Type _reflectedType;
   final bool _isGeneric;
   final bool _isMixinTypedef;
+  final bool _isGenericDeclaration;
 
-  bool get hasReflectedType => _reflectedType != null;
+  bool get hasReflectedType => !_isGenericDeclaration;
   Type get reflectedType {
     if (!hasReflectedType) {
       throw new UnsupportedError(
@@ -635,7 +637,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   Map<Symbol, TypeMirror> _typeArguments = null;
   Map<Symbol, TypeMirror> get typeArguments {
     if(_typeArguments == null) {
-      if(_reflectedType == null) {
+      if(_isGenericDeclaration) {
         _typeArguments = new LinkedHashMap<Symbol, TypeMirror>();
       } else {
         _typeArguments =
@@ -647,7 +649,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   bool get isOriginalDeclaration {
-    return !_isGeneric || _reflectedType == null;
+    return !_isGeneric || _isGenericDeclaration;
   }
 
   ClassMirror get originalDeclaration {
@@ -683,6 +685,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     }
 
     return reflect(_invokeConstructor(_reflectee,
+                                      _reflectedType,
                                       _n(constructorName),
                                       arguments,
                                       names));
@@ -707,7 +710,8 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   bool operator ==(other) {
     return this.runtimeType == other.runtimeType &&
            this._reflectee == other._reflectee &&
-           this._reflectedType == other._reflectedType;
+           this._reflectedType == other._reflectedType &&
+           this._isGenericDeclaration == other._isGenericDeclaration;
   }
 
   int get hashCode => simpleName.hashCode;
@@ -739,7 +743,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   _invokeSetter(reflectee, setterName, value)
       native 'ClassMirror_invokeSetter';
 
-  static _invokeConstructor(reflectee, constructorName, arguments, argumentNames)
+  static _invokeConstructor(reflectee, type, constructorName, arguments, argumentNames)
       native 'ClassMirror_invokeConstructor';
 
   static _ClassMirror_type_variables(reflectee)
@@ -752,7 +756,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
     implements FunctionTypeMirror {
   _LocalFunctionTypeMirrorImpl(reflectee, reflectedType)
-      : super(reflectee, reflectedType, null, false, false);
+      : super(reflectee, reflectedType, null, false, false, false);
 
   // FunctionTypeMirrors have a simpleName generated from their signature.
   Symbol _simpleName = null;

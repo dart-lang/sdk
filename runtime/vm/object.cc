@@ -1512,6 +1512,16 @@ RawType* Class::SignatureType() const {
 }
 
 
+RawType* Class::RareType() const {
+  const Type& type = Type::Handle(Type::New(
+      *this,
+      Object::null_abstract_type_arguments(),
+      Scanner::kDummyTokenIndex));
+  return Type::RawCast(
+      ClassFinalizer::FinalizeType(*this, type, ClassFinalizer::kCanonicalize));
+}
+
+
 template <class FakeObject>
 RawClass* Class::New() {
   ASSERT(Object::class_class() != Class::null());
