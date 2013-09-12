@@ -1556,6 +1556,7 @@ class TypeResolver {
       type = reportFailureAndCreateType(
           MessageKind.NOT_A_TYPE, {'node': node.typeName});
     } else {
+      bool addTypeVariableBoundsCheck = false;
       if (identical(element, compiler.types.voidType.element) ||
           identical(element, compiler.dynamicClass)) {
         type = checkNoTypeArguments(element.computeType(compiler));
@@ -1575,6 +1576,7 @@ class TypeResolver {
             type = cls.rawType;
           } else {
             type = new InterfaceType(cls.declaration, arguments.toLink());
+            addTypeVariableBoundsCheck = true;
           }
         }
       } else if (element.isTypedef()) {
@@ -1592,7 +1594,8 @@ class TypeResolver {
           if (arguments.isEmpty) {
             type = typdef.rawType;
           } else {
-           type = new TypedefType(typdef, arguments.toLink());
+            type = new TypedefType(typdef, arguments.toLink());
+            addTypeVariableBoundsCheck = true;
           }
         }
       } else if (element.isTypeVariable()) {
@@ -1617,9 +1620,41 @@ class TypeResolver {
         compiler.cancel("unexpected element kind ${element.kind}",
                         node: node);
       }
+      // TODO(johnniwinther): We should not resolve type annotations after the
+      // resolution queue has been closed. Currently the dart backend does so.
+      // Remove the guarded when this is fixed.
+      if (!compiler.enqueuer.resolution.queueIsClosed &&
+          addTypeVariableBoundsCheck) {
+        compiler.enqueuer.resolution.addPostProcessAction(
+            visitor.enclosingElement,
+            () => checkTypeVariableBounds(node, type));
+      }
     }
     visitor.useType(node, type);
     return type;
+  }
+
+  /// Checks the type arguments of [type] against the type variable bounds.
+  void checkTypeVariableBounds(TypeAnnotation node, GenericType type) {
+    TypeDeclarationElement element = type.element;
+    Link<DartType> typeArguments = type.typeArguments;
+    Link<DartType> typeVariables = element.typeVariables;
+    while (!typeVariables.isEmpty && !typeArguments.isEmpty) {
+      TypeVariableType typeVariable = typeVariables.head;
+      DartType bound = typeVariable.element.bound.subst(
+          type.typeArguments, element.typeVariables);
+      DartType typeArgument = typeArguments.head;
+      if (!compiler.types.isSubtype(typeArgument, bound)) {
+        compiler.reportWarningCode(node,
+            MessageKind.INVALID_TYPE_VARIABLE_BOUND,
+            {'typeVariable': typeVariable,
+             'bound': bound,
+             'typeArgument': typeArgument,
+             'thisType': element.thisType});
+      }
+      typeVariables = typeVariables.tail;
+      typeArguments = typeArguments.tail;
+    }
   }
 
   /**

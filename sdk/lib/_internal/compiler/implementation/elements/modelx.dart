@@ -849,14 +849,24 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
 class TypedefElementX extends ElementX implements TypedefElement {
   Typedef cachedNode;
-  TypedefType cachedType;
 
   /**
-   * Canonicalize raw version of [cachedType].
+   * The type of this typedef in which the type arguments are the type
+   * variables.
+   *
+   * This resembles the [ClassElement.thisType] though a typedef has no notion
+   * of [:this:].
+   *
+   * This type is computed in [computeType].
+   */
+  TypedefType thisType;
+
+  /**
+   * Canonicalized raw version of [thisType].
    *
    * See [ClassElement.rawType] for motivation.
    *
-   * The [rawType] is computed together with [cachedType] in [computeType].
+   * The [rawType] is computed together with [thisType] in [computeType].
    */
   TypedefType rawType;
 
@@ -884,13 +894,13 @@ class TypedefElementX extends ElementX implements TypedefElement {
   FunctionSignature functionSignature;
 
   TypedefType computeType(Compiler compiler) {
-    if (cachedType != null) return cachedType;
+    if (thisType != null) return thisType;
     Typedef node = parseNode(compiler);
     Link<DartType> parameters =
         TypeDeclarationElementX.createTypeVariables(this, node.typeParameters);
-    cachedType = new TypedefType(this, parameters);
+    thisType = new TypedefType(this, parameters);
     if (parameters.isEmpty) {
-      rawType = cachedType;
+      rawType = thisType;
     } else {
       var dynamicParameters = const Link<DartType>();
       parameters.forEach((_) {
@@ -900,10 +910,10 @@ class TypedefElementX extends ElementX implements TypedefElement {
       rawType = new TypedefType(this, dynamicParameters);
     }
     compiler.resolveTypedef(this);
-    return cachedType;
+    return thisType;
   }
 
-  Link<DartType> get typeVariables => cachedType.typeArguments;
+  Link<DartType> get typeVariables => thisType.typeArguments;
 
   Scope buildScope() {
     return new TypeDeclarationScope(enclosingElement.buildScope(), this);

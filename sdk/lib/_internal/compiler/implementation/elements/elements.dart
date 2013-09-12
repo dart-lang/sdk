@@ -680,6 +680,7 @@ abstract class PrefixElement extends Element {
 
 abstract class TypedefElement extends Element
     implements TypeDeclarationElement {
+  TypedefType get thisType;
   TypedefType get rawType;
   DartType get alias;
   FunctionSignature get functionSignature;
@@ -790,6 +791,7 @@ abstract class ConstructorBodyElement extends FunctionElement {
  * declarations and typedefs.
  */
 abstract class TypeDeclarationElement extends Element {
+  GenericType get thisType;
   GenericType get rawType;
 
   /**

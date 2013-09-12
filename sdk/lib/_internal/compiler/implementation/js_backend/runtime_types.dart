@@ -231,6 +231,8 @@ class RuntimeTypes {
       }
       // Find all supertypes of [element] in [checkedArguments] and add checks
       // and precompute the substitutions for them.
+      assert(invariant(element, element.allSupertypes != null,
+             message: 'Supertypes have not been computed for $element.'));
       for (DartType supertype in element.allSupertypes) {
         ClassElement superelement = supertype.element;
         if (checked.contains(superelement)) {

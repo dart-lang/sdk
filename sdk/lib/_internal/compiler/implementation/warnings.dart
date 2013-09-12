@@ -378,6 +378,17 @@ main() => new C(0);"""]);
   static const MessageKind TYPE_VARIABLE_IN_CONSTANT = const MessageKind(
       'Error: Cannot refer to type variable in constant.');
 
+  static const MessageKind INVALID_TYPE_VARIABLE_BOUND = const MessageKind(
+      "Warning: '#{typeArgument}' is not a subtype of bound '#{bound}' for "
+      "type variable '#{typeVariable}' of type '#{thisType}'.",
+      howToFix: "Try to change or remove the type argument.",
+      examples: const ["""
+class C<T extends num> {}
+
+// 'String' is not a valid instantiation of T with bound num.'.
+main() => new C<String>();
+"""]);
+
   static const MessageKind INVALID_USE_OF_SUPER = const MessageKind(
       'Error: "super" not allowed here.');
 
