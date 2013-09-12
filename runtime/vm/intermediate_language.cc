@@ -1579,6 +1579,11 @@ Instruction* GuardFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     return NULL;  // Nothing to guard.
   }
 
+  if (field().guarded_list_length() != Field::kNoFixedLength) {
+    // We are still guarding the list length.
+    return this;
+  }
+
   if (field().is_nullable() && value()->Type()->IsNull()) {
     return NULL;
   }
