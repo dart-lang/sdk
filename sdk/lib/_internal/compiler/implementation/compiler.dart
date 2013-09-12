@@ -469,15 +469,25 @@ abstract class Compiler implements DiagnosticListener {
    * [element].  Can be nested.
    */
   withCurrentElement(Element element, f()) {
+    String tryToString(object) {
+      try {
+        return object.toString();
+      } catch (_) {
+        return '<exception in toString()>';
+      }
+    }
+
     Element old = currentElement;
     _currentElement = element;
     try {
       return f();
     } on SpannableAssertionFailure catch (ex, s) {
       if (!hasCrashed) {
+        String message = (ex.message != null) ? tryToString(ex.message)
+                                              : tryToString(ex);
         SourceSpan span = spanFromSpannable(ex.node);
-        reportError(ex.node, MessageKind.GENERIC, {'text': ex.message});
-        pleaseReportCrash(s);
+        reportError(ex.node, MessageKind.GENERIC, {'text': message});
+        pleaseReportCrash(s, 'The compiler crashed: $message.');
       }
       hasCrashed = true;
       throw new CompilerCancelledException('The compiler crashed.');
@@ -488,12 +498,13 @@ abstract class Compiler implements DiagnosticListener {
       // do not have enough stack space.
       rethrow;
     } catch (ex, s) {
+      String message = 'The compiler crashed: ${tryToString(ex)}.';
       try {
-        unhandledExceptionOnElement(element, s);
+        unhandledExceptionOnElement(element, s, message);
       } catch (doubleFault) {
         // Ignoring exceptions in exception handling.
       }
-      throw new CompilerCancelledException('The compiler crashed.');
+      throw new CompilerCancelledException('The compiler crashed');
     } finally {
       _currentElement = old;
     }
@@ -672,17 +683,22 @@ abstract class Compiler implements DiagnosticListener {
     internalError(message, element: element);
   }
 
-  void unhandledExceptionOnElement(Element element, StackTrace stackTrace) {
+  void unhandledExceptionOnElement(Element element,
+                                   StackTrace stackTrace,
+                                   String message) {
     if (hasCrashed) return;
     hasCrashed = true;
     reportDiagnostic(spanFromElement(element),
                      MessageKind.COMPILER_CRASHED.error().toString(),
                      api.Diagnostic.CRASH);
-    pleaseReportCrash(stackTrace);
+    pleaseReportCrash(stackTrace, message);
   }
 
-  void pleaseReportCrash(StackTrace stackTrace) {
+  void pleaseReportCrash(StackTrace stackTrace, String message) {
     print(MessageKind.PLEASE_REPORT_THE_CRASH.message({'buildId': buildId}));
+    if (message != null) {
+      print(message);
+    }
     if (stackTrace != null) {
       print(stackTrace);
     }
@@ -749,7 +765,8 @@ abstract class Compiler implements DiagnosticListener {
           reportDiagnostic(new SourceSpan(uri, 0, 0),
                            MessageKind.COMPILER_CRASHED.error().toString(),
                            api.Diagnostic.CRASH);
-          pleaseReportCrash(getAttachedStackTrace(error));
+          String message = 'The compiler crashed.';
+          pleaseReportCrash(getAttachedStackTrace(error), message);
         }
       } catch (doubleFault) {
         // Ignoring exceptions in exception handling.
