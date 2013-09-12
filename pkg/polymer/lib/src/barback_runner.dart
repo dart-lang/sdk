@@ -239,8 +239,10 @@ Future _addPackagesSymlinks(AssetSet assets, BarbackOptions options) {
     if (firstDir == 'web' || (options.transformTests && firstDir == 'test')) {
       var dir = path.join(options.outDir, path.dirname(id.path));
       var linkPath = path.join(dir, 'packages');
-      var targetPath = path.relative(outPackages, from: dir);
       _deleteIfPresent(linkPath);
+      var targetPath = Platform.operatingSystem == 'windows'
+          ? path.normalize(path.absolute(outPackages))
+          : path.normalize(path.relative(outPackages, from: dir));
       new Link(linkPath).createSync(targetPath);
     }
   }
