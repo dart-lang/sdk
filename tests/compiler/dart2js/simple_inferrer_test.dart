@@ -246,6 +246,49 @@ testIsCheck22(a) {
   return (a is int || a is List) ? a : 42;
 }
 
+testIsCheck23(a) {
+  if (a is! int) throw 'foo';
+  return a;
+}
+
+testIsCheck24(a) {
+  if (a is! int) return 42;
+  return a;
+}
+
+testIsCheck25(a) {
+  if (a is int) throw 'foo';
+  return a;
+}
+
+testIsCheck26(a) {
+  if (a is int) {
+  } else {
+    throw 42;
+  }
+  return a;
+}
+
+testIsCheck27(a) {
+  if (a is int) {
+  } else {
+    return 42;
+  }
+  return a;
+}
+
+testIsCheck28(a) {
+  if (a is int) {
+  } else {
+  }
+  return a;
+}
+
+testIsCheck29(a) {
+  if (a is int) {}
+  return a;
+}
+
 testIf1(a) {
   var c = null;
   if (a) {
@@ -559,6 +602,13 @@ main() {
   testIsCheck20();
   testIsCheck21(topLevelGetter());
   testIsCheck22(topLevelGetter());
+  testIsCheck23(topLevelGetter());
+  testIsCheck24(topLevelGetter());
+  testIsCheck25(topLevelGetter());
+  testIsCheck26(topLevelGetter());
+  testIsCheck27(topLevelGetter());
+  testIsCheck28(topLevelGetter());
+  testIsCheck29(topLevelGetter());
   testIf1(topLevelGetter());
   testIf2(topLevelGetter());
   returnAsString();
@@ -665,6 +715,13 @@ void main() {
     checkReturn('testIsCheck20', typesTask.dynamicType.nonNullable());
     checkReturn('testIsCheck21', typesTask.dynamicType);
     checkReturn('testIsCheck22', typesTask.dynamicType);
+    checkReturn('testIsCheck23', intType);
+    checkReturn('testIsCheck24', intType);
+    checkReturn('testIsCheck25', typesTask.dynamicType);
+    checkReturn('testIsCheck26', intType);
+    checkReturn('testIsCheck27', intType);
+    checkReturn('testIsCheck28', typesTask.dynamicType);
+    checkReturn('testIsCheck29', typesTask.dynamicType);
     checkReturn('testIf1', typesTask.intType.nullable());
     checkReturn('testIf2', typesTask.intType.nullable());
     checkReturn('returnAsString',
