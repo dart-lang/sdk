@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** Tests for some of the utility helper functions used by the compiler. */
-library utils_test;
+library polymer.test.utils_test;
 
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';

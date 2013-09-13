@@ -12,7 +12,7 @@
  *
  * * If you've never written a web app before, try our
  * tutorials&mdash;[A Game of Darts](http://dartlang.org/docs/tutorials).
- * 
+ *
  * * To see some web-based Dart apps in action and to play with the code,
  * download
  * [Dart Editor](http://www.dartlang.org/#get-started)
@@ -54,7 +54,8 @@ import 'dart:_js_helper' show
     JSName, Null, Returns,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord;
 import 'dart:_interceptors' show
-    Interceptor, JSExtendableArray, findInterceptorConstructorForType;
+    Interceptor, JSExtendableArray, findInterceptorConstructorForType,
+    getNativeInterceptor;
 
 
 
@@ -184,7 +185,7 @@ class AnchorElement extends HtmlElement native "HTMLAnchorElement" {
   @DomName('HTMLAnchorElement.HTMLAnchorElement')
   @DocsEditable()
   factory AnchorElement({String href}) {
-    var e = document.$dom_createElement("a");
+    var e = document.createElement("a");
     if (href != null) e.href = href;
     return e;
   }
@@ -432,7 +433,7 @@ class AreaElement extends HtmlElement native "HTMLAreaElement" {
 
   @DomName('HTMLAreaElement.HTMLAreaElement')
   @DocsEditable()
-  factory AreaElement() => document.$dom_createElement("area");
+  factory AreaElement() => document.createElement("area");
 
   @DomName('HTMLAreaElement.alt')
   @DocsEditable()
@@ -540,7 +541,7 @@ class BRElement extends HtmlElement native "HTMLBRElement" {
 
   @DomName('HTMLBRElement.HTMLBRElement')
   @DocsEditable()
-  factory BRElement() => document.$dom_createElement("br");
+  factory BRElement() => document.createElement("br");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -570,7 +571,7 @@ class BaseElement extends HtmlElement native "HTMLBaseElement" {
 
   @DomName('HTMLBaseElement.HTMLBaseElement')
   @DocsEditable()
-  factory BaseElement() => document.$dom_createElement("base");
+  factory BaseElement() => document.createElement("base");
 
   @DomName('HTMLBaseElement.href')
   @DocsEditable()
@@ -697,7 +698,7 @@ class BodyElement extends HtmlElement native "HTMLBodyElement" {
 
   @DomName('HTMLBodyElement.HTMLBodyElement')
   @DocsEditable()
-  factory BodyElement() => document.$dom_createElement("body");
+  factory BodyElement() => document.createElement("body");
 
   @DomName('HTMLBodyElement.onblur')
   @DocsEditable()
@@ -760,7 +761,7 @@ class ButtonElement extends HtmlElement native "HTMLButtonElement" {
 
   @DomName('HTMLButtonElement.HTMLButtonElement')
   @DocsEditable()
-  factory ButtonElement() => document.$dom_createElement("button");
+  factory ButtonElement() => document.createElement("button");
 
   @DomName('HTMLButtonElement.autofocus')
   @DocsEditable()
@@ -882,7 +883,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource native "HTM
   @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable()
   factory CanvasElement({int width, int height}) {
-    var e = document.$dom_createElement("canvas");
+    var e = document.createElement("canvas");
     if (width != null) e.width = width;
     if (height != null) e.height = height;
     return e;
@@ -1975,7 +1976,7 @@ class ContentElement extends HtmlElement native "HTMLContentElement" {
 
   @DomName('HTMLContentElement.HTMLContentElement')
   @DocsEditable()
-  factory ContentElement() => document.$dom_createElement("content");
+  factory ContentElement() => document.createElement("content");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('content');
@@ -6317,7 +6318,7 @@ class DListElement extends HtmlElement native "HTMLDListElement" {
 
   @DomName('HTMLDListElement.HTMLDListElement')
   @DocsEditable()
-  factory DListElement() => document.$dom_createElement("dl");
+  factory DListElement() => document.createElement("dl");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6336,7 +6337,7 @@ class DataListElement extends HtmlElement native "HTMLDataListElement" {
 
   @DomName('HTMLDataListElement.HTMLDataListElement')
   @DocsEditable()
-  factory DataListElement() => document.$dom_createElement("datalist");
+  factory DataListElement() => document.createElement("datalist");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('datalist');
@@ -6551,7 +6552,7 @@ class DetailsElement extends HtmlElement native "HTMLDetailsElement" {
 
   @DomName('HTMLDetailsElement.HTMLDetailsElement')
   @DocsEditable()
-  factory DetailsElement() => document.$dom_createElement("details");
+  factory DetailsElement() => document.createElement("details");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('details');
@@ -6914,10 +6915,11 @@ class DirectoryReader extends Interceptor native "DirectoryReader" {
 
 @DocsEditable()
 /**
- * Represents an HTML <div> element.
+ * A generic container for content on an HTML page;
+ * corresponds to the &lt;div&gt; tag.
  *
- * The [DivElement] is a generic container for content and does not have any
- * special significance. It is functionally similar to [SpanElement].
+ * The [DivElement] is a generic container and does not have any semantic
+ * significance. It is functionally similar to [SpanElement].
  *
  * The [DivElement] is a block-level element, as opposed to [SpanElement],
  * which is an inline-level element.
@@ -6941,7 +6943,7 @@ class DivElement extends HtmlElement native "HTMLDivElement" {
 
   @DomName('HTMLDivElement.HTMLDivElement')
   @DocsEditable()
-  factory DivElement() => document.$dom_createElement("div");
+  factory DivElement() => document.createElement("div");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7169,16 +7171,14 @@ class Document extends Node  native "Document"
   @DocsEditable()
   DocumentFragment createDocumentFragment() native;
 
-  @JSName('createElement')
   /// Deprecated: use new Element.tag(tagName) instead.
   @DomName('Document.createElement')
   @DocsEditable()
-  Element $dom_createElement(String localName_OR_tagName, [String typeExtension]) native;
+  Element createElement(String localName_OR_tagName, [String typeExtension]) native;
 
-  @JSName('createElementNS')
   @DomName('Document.createElementNS')
   @DocsEditable()
-  Element $dom_createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) native;
+  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) native;
 
   @JSName('createEvent')
   @DomName('Document.createEvent')
@@ -8819,8 +8819,8 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    *
    * * [isTagSupported]
    */
-  factory Element.tag(String tag) =>
-      _ElementFactoryProvider.createElement_tag(tag);
+  factory Element.tag(String tag, [String typeExtention]) =>
+      _ElementFactoryProvider.createElement_tag(tag, typeExtention);
 
   /// Creates a new `<a>` element.
   ///
@@ -9137,7 +9137,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    * The tag should be a valid HTML tag name.
    */
   static bool isTagSupported(String tag) {
-    var e = _ElementFactoryProvider.createElement_tag(tag);
+    var e = _ElementFactoryProvider.createElement_tag(tag, null);
     return e is Element && !(e is UnknownElement);
   }
 
@@ -9397,7 +9397,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
   @Experimental()
   ShadowRoot get shadowRoot =>
-      JS('ShadowRoot', '#.shadowRoot || #.webkitShadowRoot', this, this);
+      JS('ShadowRoot|Null', '#.shadowRoot || #.webkitShadowRoot', this, this);
 
 
   /**
@@ -9688,12 +9688,17 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
       _parseRange = _parseDocument.createRange();
+
+      // Workaround for Chrome bug 229142- URIs are not resolved in new doc.
+      var base = _parseDocument.createElement('base');
+      base.href = document._baseUri;
+      _parseDocument.head.append(base);
     }
     var contextElement;
     if (this is BodyElement) {
       contextElement = _parseDocument.body;
     } else {
-      contextElement = _parseDocument.$dom_createElement(tagName);
+      contextElement = _parseDocument.createElement(tagName);
       _parseDocument.body.append(contextElement);
     }
     var fragment;
@@ -10586,9 +10591,19 @@ class _ElementFactoryProvider {
   @DomName('Document.createElement')
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
-  static dynamic createElement_tag(String tag) =>
-      // Firefox may return a JS function for some types (Embed, Object).
-      JS('Element|=Object', 'document.createElement(#)', tag);
+  static dynamic createElement_tag(String tag, String typeExtension) {
+    // Firefox may return a JS function for some types (Embed, Object).
+    if (typeExtension != null) {
+      return JS('Element|=Object', 'document.createElement(#, #)',
+          tag, typeExtension);
+    }
+    // Should be able to eliminate this and just call the two-arg version above
+    // with null typeExtension, but Chrome treats the tag as case-sensitive if
+    // typeExtension is null.
+    // https://code.google.com/p/chromium/issues/detail?id=282467
+    return JS('Element|=Object', 'document.createElement(#)', tag);
+  }
+
 }
 
 
@@ -10624,7 +10639,7 @@ class EmbedElement extends HtmlElement native "HTMLEmbedElement" {
 
   @DomName('HTMLEmbedElement.HTMLEmbedElement')
   @DocsEditable()
-  factory EmbedElement() => document.$dom_createElement("embed");
+  factory EmbedElement() => document.createElement("embed");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('embed');
@@ -11263,7 +11278,7 @@ class FieldSetElement extends HtmlElement native "HTMLFieldSetElement" {
 
   @DomName('HTMLFieldSetElement.HTMLFieldSetElement')
   @DocsEditable()
-  factory FieldSetElement() => document.$dom_createElement("fieldset");
+  factory FieldSetElement() => document.createElement("fieldset");
 
   @DomName('HTMLFieldSetElement.disabled')
   @DocsEditable()
@@ -11957,7 +11972,7 @@ class FormElement extends HtmlElement native "HTMLFormElement" {
 
   @DomName('HTMLFormElement.HTMLFormElement')
   @DocsEditable()
-  factory FormElement() => document.$dom_createElement("form");
+  factory FormElement() => document.createElement("form");
 
   @DomName('HTMLFormElement.acceptCharset')
   @DocsEditable()
@@ -12217,7 +12232,7 @@ class HRElement extends HtmlElement native "HTMLHRElement" {
 
   @DomName('HTMLHRElement.HTMLHRElement')
   @DocsEditable()
-  factory HRElement() => document.$dom_createElement("hr");
+  factory HRElement() => document.createElement("hr");
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12273,7 +12288,7 @@ class HeadElement extends HtmlElement native "HTMLHeadElement" {
 
   @DomName('HTMLHeadElement.HTMLHeadElement')
   @DocsEditable()
-  factory HeadElement() => document.$dom_createElement("head");
+  factory HeadElement() => document.createElement("head");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12288,27 +12303,27 @@ class HeadingElement extends HtmlElement native "HTMLHeadingElement" {
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h1() => document.$dom_createElement("h1");
+  factory HeadingElement.h1() => document.createElement("h1");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h2() => document.$dom_createElement("h2");
+  factory HeadingElement.h2() => document.createElement("h2");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h3() => document.$dom_createElement("h3");
+  factory HeadingElement.h3() => document.createElement("h3");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h4() => document.$dom_createElement("h4");
+  factory HeadingElement.h4() => document.createElement("h4");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h5() => document.$dom_createElement("h5");
+  factory HeadingElement.h5() => document.createElement("h5");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h6() => document.$dom_createElement("h6");
+  factory HeadingElement.h6() => document.createElement("h6");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12732,8 +12747,76 @@ class HtmlDocument extends Document native "HTMLDocument" {
       '#.webkitVisibilityState)', this, this, this, this);
 
   @Experimental
-  void register(String tag, Type customElementClass) {
-    _registerCustomElement(JS('', 'window'), this, tag, customElementClass);
+  /**
+   * Register a custom subclass of Element to be instantiatable by the DOM.
+   *
+   * This is necessary to allow the construction of any custom elements.
+   *
+   * The class being registered must either subclass HtmlElement or SvgElement.
+   * If they subclass these directly then they can be used as:
+   *
+   *     class FooElement extends HtmlElement{
+   *        void created() {
+   *          print('FooElement created!');
+   *        }
+   *     }
+   *
+   *     main() {
+   *       document.register('x-foo', FooElement);
+   *       var myFoo = new Element.tag('x-foo');
+   *       // prints 'FooElement created!' to the console.
+   *     }
+   *
+   * The custom element can also be instantiated via HTML using the syntax
+   * `<x-foo></x-foo>`
+   *
+   * Other elements can be subclassed as well:
+   *
+   *     class BarElement extends InputElement{
+   *        void created() {
+   *          print('BarElement created!');
+   *        }
+   *     }
+   *
+   *     main() {
+   *       document.register('x-bar', BarElement);
+   *       var myBar = new Element.tag('input', 'x-bar');
+   *       // prints 'BarElement created!' to the console.
+   *     }
+   *
+   * This custom element can also be instantiated via HTML using the syntax
+   * `<input is="x-bar"></input>`
+   *
+   * The [nativeTagName] parameter is needed by platforms without native support
+   * when subclassing a native type other than:
+   *
+   * * HtmlElement
+   * * SvgElement
+   * * AnchorElement
+   * * AudioElement
+   * * ButtonElement
+   * * CanvasElement
+   * * DivElement
+   * * ImageElement
+   * * InputElement
+   * * LIElement
+   * * LabelElement
+   * * MenuElement
+   * * MeterElement
+   * * OListElement
+   * * OptionElement
+   * * OutputElement
+   * * ParagraphElement
+   * * PreElement
+   * * ProgressElement
+   * * SelectElement
+   * * SpanElement
+   * * UListElement
+   * * VideoElement
+   */
+  void register(String tag, Type customElementClass, {String nativeTagName}) {
+    _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
+        nativeTagName);
   }
 
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
@@ -12798,7 +12881,7 @@ class HtmlHtmlElement extends HtmlElement native "HTMLHtmlElement" {
 
   @DomName('HTMLHtmlElement.HTMLHtmlElement')
   @DocsEditable()
-  factory HtmlHtmlElement() => document.$dom_createElement("html");
+  factory HtmlHtmlElement() => document.createElement("html");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13394,7 +13477,7 @@ class IFrameElement extends HtmlElement native "HTMLIFrameElement" {
 
   @DomName('HTMLIFrameElement.HTMLIFrameElement')
   @DocsEditable()
-  factory IFrameElement() => document.$dom_createElement("iframe");
+  factory IFrameElement() => document.createElement("iframe");
 
   @DomName('HTMLIFrameElement.contentWindow')
   @DocsEditable()
@@ -13488,7 +13571,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource native "HTML
   @DomName('HTMLImageElement.HTMLImageElement')
   @DocsEditable()
   factory ImageElement({String src, int width, int height}) {
-    var e = document.$dom_createElement("img");
+    var e = document.createElement("img");
     if (src != null) e.src = src;
     if (width != null) e.width = width;
     if (height != null) e.height = height;
@@ -13587,7 +13670,7 @@ class InputElement extends HtmlElement implements
      native "HTMLInputElement" {
 
   factory InputElement({String type}) {
-    var e = document.$dom_createElement("input");
+    var e = document.createElement("input");
     if (type != null) {
       try {
         // IE throws an exception for unknown types.
@@ -14627,7 +14710,7 @@ class KeygenElement extends HtmlElement native "HTMLKeygenElement" {
 
   @DomName('HTMLKeygenElement.HTMLKeygenElement')
   @DocsEditable()
-  factory KeygenElement() => document.$dom_createElement("keygen");
+  factory KeygenElement() => document.createElement("keygen");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('keygen') && (new Element.tag('keygen') is KeygenElement);
@@ -14700,7 +14783,7 @@ class LIElement extends HtmlElement native "HTMLLIElement" {
 
   @DomName('HTMLLIElement.HTMLLIElement')
   @DocsEditable()
-  factory LIElement() => document.$dom_createElement("li");
+  factory LIElement() => document.createElement("li");
 
   @DomName('HTMLLIElement.type')
   @DocsEditable()
@@ -14725,7 +14808,7 @@ class LabelElement extends HtmlElement native "HTMLLabelElement" {
 
   @DomName('HTMLLabelElement.HTMLLabelElement')
   @DocsEditable()
-  factory LabelElement() => document.$dom_createElement("label");
+  factory LabelElement() => document.createElement("label");
 
   @DomName('HTMLLabelElement.control')
   @DocsEditable()
@@ -14752,7 +14835,7 @@ class LegendElement extends HtmlElement native "HTMLLegendElement" {
 
   @DomName('HTMLLegendElement.HTMLLegendElement')
   @DocsEditable()
-  factory LegendElement() => document.$dom_createElement("legend");
+  factory LegendElement() => document.createElement("legend");
 
   @DomName('HTMLLegendElement.form')
   @DocsEditable()
@@ -14771,7 +14854,7 @@ class LinkElement extends HtmlElement native "HTMLLinkElement" {
 
   @DomName('HTMLLinkElement.HTMLLinkElement')
   @DocsEditable()
-  factory LinkElement() => document.$dom_createElement("link");
+  factory LinkElement() => document.createElement("link");
 
   @DomName('HTMLLinkElement.disabled')
   @DocsEditable()
@@ -14918,7 +15001,7 @@ class MapElement extends HtmlElement native "HTMLMapElement" {
 
   @DomName('HTMLMapElement.HTMLMapElement')
   @DocsEditable()
-  factory MapElement() => document.$dom_createElement("map");
+  factory MapElement() => document.createElement("map");
 
   @DomName('HTMLMapElement.areas')
   @DocsEditable()
@@ -16135,7 +16218,7 @@ class MenuElement extends HtmlElement native "HTMLMenuElement" {
 
   @DomName('HTMLMenuElement.HTMLMenuElement')
   @DocsEditable()
-  factory MenuElement() => document.$dom_createElement("menu");
+  factory MenuElement() => document.createElement("menu");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16282,7 +16365,7 @@ class MetaElement extends HtmlElement native "HTMLMetaElement" {
 
   @DomName('HTMLMetaElement.HTMLMetaElement')
   @DocsEditable()
-  factory MetaElement() => document.$dom_createElement("meta");
+  factory MetaElement() => document.createElement("meta");
 
   @DomName('HTMLMetaElement.content')
   @DocsEditable()
@@ -16348,7 +16431,7 @@ class MeterElement extends HtmlElement native "HTMLMeterElement" {
 
   @DomName('HTMLMeterElement.HTMLMeterElement')
   @DocsEditable()
-  factory MeterElement() => document.$dom_createElement("meter");
+  factory MeterElement() => document.createElement("meter");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('meter');
@@ -17785,6 +17868,11 @@ class Node extends EventTarget native "Node" {
   @DocsEditable()
   static const int TEXT_NODE = 3;
 
+  @JSName('baseURI')
+  @DomName('Node.baseURI')
+  @DocsEditable()
+  final String _baseUri;
+
   @DomName('Node.childNodes')
   @DocsEditable()
   @deprecated
@@ -18291,7 +18379,7 @@ class OListElement extends HtmlElement native "HTMLOListElement" {
 
   @DomName('HTMLOListElement.HTMLOListElement')
   @DocsEditable()
-  factory OListElement() => document.$dom_createElement("ol");
+  factory OListElement() => document.createElement("ol");
 
   @DomName('HTMLOListElement.reversed')
   @DocsEditable()
@@ -18322,7 +18410,7 @@ class ObjectElement extends HtmlElement native "HTMLObjectElement" {
 
   @DomName('HTMLObjectElement.HTMLObjectElement')
   @DocsEditable()
-  factory ObjectElement() => document.$dom_createElement("object");
+  factory ObjectElement() => document.createElement("object");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('object');
@@ -18402,7 +18490,7 @@ class OptGroupElement extends HtmlElement native "HTMLOptGroupElement" {
 
   @DomName('HTMLOptGroupElement.HTMLOptGroupElement')
   @DocsEditable()
-  factory OptGroupElement() => document.$dom_createElement("optgroup");
+  factory OptGroupElement() => document.createElement("optgroup");
 
   @DomName('HTMLOptGroupElement.disabled')
   @DocsEditable()
@@ -18490,7 +18578,7 @@ class OutputElement extends HtmlElement native "HTMLOutputElement" {
 
   @DomName('HTMLOutputElement.HTMLOutputElement')
   @DocsEditable()
-  factory OutputElement() => document.$dom_createElement("output");
+  factory OutputElement() => document.createElement("output");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('output');
@@ -18612,7 +18700,7 @@ class ParagraphElement extends HtmlElement native "HTMLParagraphElement" {
 
   @DomName('HTMLParagraphElement.HTMLParagraphElement')
   @DocsEditable()
-  factory ParagraphElement() => document.$dom_createElement("p");
+  factory ParagraphElement() => document.createElement("p");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18628,7 +18716,7 @@ class ParamElement extends HtmlElement native "HTMLParamElement" {
 
   @DomName('HTMLParamElement.HTMLParamElement')
   @DocsEditable()
-  factory ParamElement() => document.$dom_createElement("param");
+  factory ParamElement() => document.createElement("param");
 
   @DomName('HTMLParamElement.name')
   @DocsEditable()
@@ -19270,7 +19358,7 @@ class PreElement extends HtmlElement native "HTMLPreElement" {
 
   @DomName('HTMLPreElement.HTMLPreElement')
   @DocsEditable()
-  factory PreElement() => document.$dom_createElement("pre");
+  factory PreElement() => document.createElement("pre");
 
   @DomName('HTMLPreElement.wrap')
   @DocsEditable()
@@ -19315,7 +19403,7 @@ class ProgressElement extends HtmlElement native "HTMLProgressElement" {
 
   @DomName('HTMLProgressElement.HTMLProgressElement')
   @DocsEditable()
-  factory ProgressElement() => document.$dom_createElement("progress");
+  factory ProgressElement() => document.createElement("progress");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('progress');
@@ -19440,7 +19528,7 @@ class QuoteElement extends HtmlElement native "HTMLQuoteElement" {
 
   @DomName('HTMLQuoteElement.HTMLQuoteElement')
   @DocsEditable()
-  factory QuoteElement() => document.$dom_createElement("q");
+  factory QuoteElement() => document.createElement("q");
 
   @DomName('HTMLQuoteElement.cite')
   @DocsEditable()
@@ -20462,7 +20550,7 @@ class ScriptElement extends HtmlElement native "HTMLScriptElement" {
 
   @DomName('HTMLScriptElement.HTMLScriptElement')
   @DocsEditable()
-  factory ScriptElement() => document.$dom_createElement("script");
+  factory ScriptElement() => document.createElement("script");
 
   @DomName('HTMLScriptElement.async')
   @DocsEditable()
@@ -20649,7 +20737,7 @@ class SelectElement extends HtmlElement native "HTMLSelectElement" {
 
   @DomName('HTMLSelectElement.HTMLSelectElement')
   @DocsEditable()
-  factory SelectElement() => document.$dom_createElement("select");
+  factory SelectElement() => document.createElement("select");
 
   @DomName('HTMLSelectElement.autofocus')
   @DocsEditable()
@@ -20892,7 +20980,7 @@ class ShadowElement extends HtmlElement native "HTMLShadowElement" {
 
   @DomName('HTMLShadowElement.HTMLShadowElement')
   @DocsEditable()
-  factory ShadowElement() => document.$dom_createElement("shadow");
+  factory ShadowElement() => document.createElement("shadow");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('shadow');
@@ -21135,7 +21223,7 @@ class SourceElement extends HtmlElement native "HTMLSourceElement" {
 
   @DomName('HTMLSourceElement.HTMLSourceElement')
   @DocsEditable()
-  factory SourceElement() => document.$dom_createElement("source");
+  factory SourceElement() => document.createElement("source");
 
   @DomName('HTMLSourceElement.media')
   @DocsEditable()
@@ -21192,7 +21280,7 @@ class SpanElement extends HtmlElement native "HTMLSpanElement" {
 
   @DomName('HTMLSpanElement.HTMLSpanElement')
   @DocsEditable()
-  factory SpanElement() => document.$dom_createElement("span");
+  factory SpanElement() => document.createElement("span");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22091,7 +22179,7 @@ class StyleElement extends HtmlElement native "HTMLStyleElement" {
 
   @DomName('HTMLStyleElement.HTMLStyleElement')
   @DocsEditable()
-  factory StyleElement() => document.$dom_createElement("style");
+  factory StyleElement() => document.createElement("style");
 
   @DomName('HTMLStyleElement.disabled')
   @DocsEditable()
@@ -22182,7 +22270,7 @@ class TableCaptionElement extends HtmlElement native "HTMLTableCaptionElement" {
 
   @DomName('HTMLTableCaptionElement.HTMLTableCaptionElement')
   @DocsEditable()
-  factory TableCaptionElement() => document.$dom_createElement("caption");
+  factory TableCaptionElement() => document.createElement("caption");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22197,7 +22285,7 @@ class TableCellElement extends HtmlElement native "HTMLTableCellElement,HTMLTabl
 
   @DomName('HTMLTableCellElement.HTMLTableCellElement')
   @DocsEditable()
-  factory TableCellElement() => document.$dom_createElement("td");
+  factory TableCellElement() => document.createElement("td");
 
   @DomName('HTMLTableCellElement.cellIndex')
   @DocsEditable()
@@ -22228,7 +22316,7 @@ class TableColElement extends HtmlElement native "HTMLTableColElement" {
 
   @DomName('HTMLTableColElement.HTMLTableColElement')
   @DocsEditable()
-  factory TableColElement() => document.$dom_createElement("col");
+  factory TableColElement() => document.createElement("col");
 
   @DomName('HTMLTableColElement.span')
   @DocsEditable()
@@ -22294,7 +22382,7 @@ class TableElement extends HtmlElement native "HTMLTableElement" {
 
   @DomName('HTMLTableElement.HTMLTableElement')
   @DocsEditable()
-  factory TableElement() => document.$dom_createElement("table");
+  factory TableElement() => document.createElement("table");
 
   @DomName('HTMLTableElement.border')
   @DocsEditable()
@@ -22399,7 +22487,7 @@ class TableRowElement extends HtmlElement native "HTMLTableRowElement" {
 
   @DomName('HTMLTableRowElement.HTMLTableRowElement')
   @DocsEditable()
-  factory TableRowElement() => document.$dom_createElement("tr");
+  factory TableRowElement() => document.createElement("tr");
 
   @JSName('cells')
   @DomName('HTMLTableRowElement.cells')
@@ -22573,7 +22661,7 @@ class TemplateElement extends HtmlElement native "HTMLTemplateElement" {
 
   @DomName('HTMLTemplateElement.HTMLTemplateElement')
   @DocsEditable()
-  factory TemplateElement() => document.$dom_createElement("template");
+  factory TemplateElement() => document.createElement("template");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('template');
@@ -22693,7 +22781,7 @@ class TemplateElement extends HtmlElement native "HTMLTemplateElement" {
   //       + <td>Bar</td>
   //
   static Element _extractTemplateFromAttributeTemplate(Element el) {
-    var template = el.document.$dom_createElement('template');
+    var template = el.document.createElement('template');
     el.parentNode.insertBefore(template, el);
 
     for (var name in el.attributes.keys.toList()) {
@@ -22846,7 +22934,7 @@ class TextAreaElement extends HtmlElement native "HTMLTextAreaElement" {
 
   @DomName('HTMLTextAreaElement.HTMLTextAreaElement')
   @DocsEditable()
-  factory TextAreaElement() => document.$dom_createElement("textarea");
+  factory TextAreaElement() => document.createElement("textarea");
 
   @DomName('HTMLTextAreaElement.autofocus')
   @DocsEditable()
@@ -23351,7 +23439,7 @@ class TitleElement extends HtmlElement native "HTMLTitleElement" {
 
   @DomName('HTMLTitleElement.HTMLTitleElement')
   @DocsEditable()
-  factory TitleElement() => document.$dom_createElement("title");
+  factory TitleElement() => document.createElement("title");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23617,7 +23705,7 @@ class TrackElement extends HtmlElement native "HTMLTrackElement" {
 
   @DomName('HTMLTrackElement.HTMLTrackElement')
   @DocsEditable()
-  factory TrackElement() => document.$dom_createElement("track");
+  factory TrackElement() => document.createElement("track");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('track');
@@ -23894,7 +23982,7 @@ class UListElement extends HtmlElement native "HTMLUListElement" {
 
   @DomName('HTMLUListElement.HTMLUListElement')
   @DocsEditable()
-  factory UListElement() => document.$dom_createElement("ul");
+  factory UListElement() => document.createElement("ul");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24000,7 +24088,7 @@ class VideoElement extends MediaElement implements CanvasImageSource native "HTM
 
   @DomName('HTMLVideoElement.HTMLVideoElement')
   @DocsEditable()
-  factory VideoElement() => document.$dom_createElement("video");
+  factory VideoElement() => document.createElement("video");
 
   @DomName('HTMLVideoElement.height')
   @DocsEditable()
@@ -31959,7 +32047,32 @@ _makeCreatedCallbackMethod() {
       convertDartClosureToJS(_callCreated, 1));
 }
 
-void _registerCustomElement(context, document, String tag, Type type) {
+const _typeNameToTag = const {
+  'HTMLAnchorElement': 'a',
+  'HTMLAudioElement': 'audio',
+  'HTMLButtonElement': 'button',
+  'HTMLCanvasElement': 'canvas',
+  'HTMLDivElement': 'div',
+  'HTMLImageElement': 'img',
+  'HTMLInputElement': 'input',
+  'HTMLLIElement': 'li',
+  'HTMLLabelElement': 'label',
+  'HTMLMenuElement': 'menu',
+  'HTMLMeterElement': 'meter',
+  'HTMLOListElement': 'ol',
+  'HTMLOptionElement': 'option',
+  'HTMLOutputElement': 'output',
+  'HTMLParagraphElement': 'p',
+  'HTMLPreElement': 'pre',
+  'HTMLProgressElement': 'progress',
+  'HTMLSelectElement': 'select',
+  'HTMLSpanElement': 'span',
+  'HTMLUListElement': 'ul',
+  'HTMLVideoElement': 'video',
+};
+
+void _registerCustomElement(context, document, String tag, Type type,
+    String extendsTagName) {
   // Function follows the same pattern as the following JavaScript code for
   // registering a custom element.
   //
@@ -31978,6 +32091,10 @@ void _registerCustomElement(context, document, String tag, Type type) {
   if (interceptorClass == null) {
     throw new ArgumentError(type);
   }
+
+  // Workaround for 13190- use an article element to ensure that HTMLElement's
+  // interceptor is resolved correctly.
+  getNativeInterceptor(new Element.tag('article'));
 
   String baseClassName = findDispatchTagForInterceptorClass(interceptorClass);
   if (baseClassName == null) {
@@ -32001,8 +32118,17 @@ void _registerCustomElement(context, document, String tag, Type type) {
 
   setNativeSubclassDispatchRecord(proto, interceptor);
 
-  JS('void', '#.register(#, #)',
-      document, tag, JS('', '{prototype: #}', proto));
+  var options = JS('=Object', '{prototype: #}', proto);
+
+  if (baseClassName != 'HTMLElement') {
+    if (extendsTagName != null) {
+      JS('=Object', '#.extends = #', options, extendsTagName);
+    } else if (_typeNameToTag.containsKey(baseClassName)) {
+      JS('=Object', '#.extends = #', options, _typeNameToTag[baseClassName]);
+    }
+  }
+
+  JS('void', '#.register(#, #)', document, tag, options);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

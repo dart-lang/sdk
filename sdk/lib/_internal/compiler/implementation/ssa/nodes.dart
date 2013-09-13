@@ -737,14 +737,20 @@ class HBasicBlock extends HInstructionList {
     return validator.isValid;
   }
 
-  // TODO(ngeoffray): Cache the information if this method ends up
-  // being hot.
+  Map<HBasicBlock, bool> dominatesCache;
+
   bool dominates(HBasicBlock other) {
+    if (dominatesCache == null) {
+      dominatesCache = new Map<HBasicBlock, bool>();
+    } else {
+      bool res = dominatesCache[other];
+      if (res != null) return res;
+    }
     do {
-      if (identical(this, other)) return true;
+      if (identical(this, other)) return dominatesCache[other] = true;
       other = other.dominator;
     } while (other != null && other.id >= id);
-    return false;
+    return dominatesCache[other] = false;
   }
 }
 
@@ -2416,24 +2422,26 @@ class HLoopInformation {
 
   void addBackEdge(HBasicBlock predecessor) {
     backEdges.add(predecessor);
-    addBlock(predecessor);
+    List<HBasicBlock> workQueue = <HBasicBlock>[predecessor];
+    do {
+      HBasicBlock current = workQueue.removeLast();
+      addBlock(current, workQueue);
+    } while (!workQueue.isEmpty);
   }
 
   // Adds a block and transitively all its predecessors in the loop as
   // loop blocks.
-  void addBlock(HBasicBlock block) {
+  void addBlock(HBasicBlock block, List<HBasicBlock> workQueue) {
     if (identical(block, header)) return;
     HBasicBlock parentHeader = block.parentLoopHeader;
     if (identical(parentHeader, header)) {
       // Nothing to do in this case.
     } else if (parentHeader != null) {
-      addBlock(parentHeader);
+      workQueue.add(parentHeader);
     } else {
       block.parentLoopHeader = header;
       blocks.add(block);
-      for (int i = 0, length = block.predecessors.length; i < length; i++) {
-        addBlock(block.predecessors[i]);
-      }
+      workQueue.addAll(block.predecessors);
     }
   }
 

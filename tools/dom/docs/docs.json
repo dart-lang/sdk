@@ -188,10 +188,11 @@
     "HTMLDivElement": {
       "comment": [
         "/**",
-        " * Represents an HTML <div> element.",
+        " * A generic container for content on an HTML page;",
+        " * corresponds to the &lt;div&gt; tag.",
         " *",
-        " * The [DivElement] is a generic container for content and does not have any",
-        " * special significance. It is functionally similar to [SpanElement].",
+        " * The [DivElement] is a generic container and does not have any semantic",
+        " * significance. It is functionally similar to [SpanElement].",
         " *",
         " * The [DivElement] is a block-level element, as opposed to [SpanElement],",
         " * which is an inline-level element.",
@@ -477,6 +478,16 @@
           "   */"
         ]
       }
+    }
+  },
+  "dart.dom.indexed_db": {
+    "IDBDatabase": {
+      "comment": [
+        "/**",
+        " * An indexed database object for storing client-side data",
+        " * in web apps.",
+        " */"
+      ]
     }
   },
   "dart.dom.web_audio": {

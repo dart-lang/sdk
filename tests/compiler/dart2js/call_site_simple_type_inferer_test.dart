@@ -16,14 +16,13 @@ void compileAndFind(String code,
                     bool disableInlining,
                     check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');
-  asyncStart();
   var compiler = compilerFor(code, uri);
   compiler.disableInlining = disableInlining;
-  compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
     var cls = findElement(compiler, className);
     var member = cls.lookupLocalMember(buildSourceString(memberName));
     return check(compiler, member);
-  }).whenComplete(() => asyncEnd());
+  }));
 }
 
 const String TEST_1 = r"""
@@ -244,7 +243,7 @@ subclassOfInterceptor(compiler) {
 void test() {
   runTest(TEST_1, (compiler) => [compiler.typesTask.stringType]);
   runTest(TEST_2, (compiler) => [compiler.typesTask.intType]);
-  runTest(TEST_3, (compiler) => [compiler.typesTask.numType]);
+  runTest(TEST_3, (compiler) => [compiler.typesTask.intType]);
   runTest(TEST_4, (compiler) => [compiler.typesTask.numType]);
   runTest(TEST_5, (compiler) => [compiler.typesTask.numType]);
   runTest(TEST_6, (compiler) => [compiler.typesTask.numType]);
@@ -257,8 +256,8 @@ void test() {
                                  compiler.typesTask.dynamicType.nonNullable()]);
   runTest(TEST_9, (compiler) => [compiler.typesTask.intType,
                                  compiler.typesTask.intType]);
-  runTest(TEST_10, (compiler) => [subclassOfInterceptor(compiler),
-                                  subclassOfInterceptor(compiler)]);
+  runTest(TEST_10, (compiler) => [compiler.typesTask.intType,
+                                 compiler.typesTask.intType]);
   runTest(TEST_11, (compiler) => [subclassOfInterceptor(compiler),
                                   subclassOfInterceptor(compiler)]);
 

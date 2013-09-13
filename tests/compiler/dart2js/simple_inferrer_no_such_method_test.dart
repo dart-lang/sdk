@@ -21,7 +21,7 @@ class C extends B {
   foo() => {};
 }
 
-var a;
+var a = [new B(), new C()][0];
 test1() => new A().foo();
 test2() => a.foo();
 test3() => new B().foo();
@@ -57,7 +57,7 @@ class D implements A {
   noSuchMethod(im) => 42.5;
 }
 
-var a;
+var a = [new B(), new C(), new D()][0];
 test1() => a.foo();
 test2() => new B().foo();
 test3() => new C().foo();

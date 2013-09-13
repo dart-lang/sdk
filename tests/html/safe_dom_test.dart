@@ -64,7 +64,7 @@ DocumentFragment createContextualFragment(String html, [String contextTag]) {
 
   var contextElement;
   if (contextTag != null) {
-    contextElement = doc.$dom_createElement(contextTag);
+    contextElement = doc.createElement(contextTag);
   } else {
     contextElement = doc.body;
   }

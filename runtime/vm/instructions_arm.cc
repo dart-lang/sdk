@@ -163,7 +163,7 @@ void CallPattern::InsertAt(uword pc, uword target_address) {
 }
 
 
-JumpPattern::JumpPattern(uword pc) : pc_(pc) { }
+JumpPattern::JumpPattern(uword pc, const Code& code) : pc_(pc) { }
 
 
 bool JumpPattern::IsValid() const {

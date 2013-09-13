@@ -1015,7 +1015,7 @@ class FileTest {
     Expect.listEquals(expected, text.codeUnits);
     // First character is not ASCII. The default ASCII decoder will throw.
     Expect.throws(() => new File(name).readAsStringSync(encoding: ASCII),
-                  (e) => e is FormatException);
+                  (e) => e is FileException);
     // We can use an ASCII decoder that inserts the replacement character.
     var lenientAscii = const AsciiCodec(allowInvalid: true);
     text = new File(name).readAsStringSync(encoding: lenientAscii);

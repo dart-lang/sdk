@@ -4,6 +4,31 @@
 
 part of html;
 
+class _ConsoleVariables {
+  Map<String, Object> _data = new Map<String, Object>();
+  
+  /**
+   * Forward member accesses to the backing JavaScript object.
+   */
+  noSuchMethod(Invocation invocation) {
+    String member = MirrorSystem.getName(invocation.memberName);
+    if (invocation.isGetter) {
+      return _data[member];
+    } else if (invocation.isSetter) {
+      _data[member] = invocation.positionalArguments[0];
+    } else {
+      return Function.apply(_data[member], invocation.positionalArguments, invocation.namedArguments);
+    }
+  }
+  
+  void clear() => _data.clear();
+
+  /**
+   * List all variables currently defined.
+   */
+  List variables() => _data.keys.toList(growable: false);
+}
+
 class _Utils {
   static double dateTimeToDouble(DateTime dateTime) =>
       dateTime.millisecondsSinceEpoch.toDouble();
@@ -100,6 +125,41 @@ class _Utils {
       map[stripMemberName(localVariables[i])] = localVariables[i+1];
     }
     return map;
+  }
+
+  static _ConsoleVariables _consoleTempVariables = new _ConsoleVariables();
+  /**
+   * Takes an [expression] and a list of [local] variable and returns an
+   * expression for a closure with a body matching the original expression
+   * where locals are passed in as arguments. Returns a list containing the
+   * String expression for the closure and the list of arguments that should
+   * be passed to it.
+   *
+   * For example:
+   * <code>wrapExpressionAsClosure("foo + bar", ["bar", 40, "foo", 2])</code>
+   * will return:
+   * <code>["(final $var, final bar, final foo) => foo + bar", [40, 2]]</code>
+   */
+  static List wrapExpressionAsClosure(String expression, List locals) {
+    var args = {};
+    var sb = new StringBuffer("(");
+    addArg(arg, value) {
+      arg = stripMemberName(arg);
+      if (args.containsKey(arg)) return;
+      if (args.isNotEmpty) {
+        sb.write(", ");
+      }
+      sb.write("final $arg");
+      args[arg] = value;
+    }
+    
+    addArg("\$var", _consoleTempVariables);
+    
+    for (int i = 0; i < locals.length; i+= 2) {
+      addArg(locals[i], locals[i+1]);
+    }
+    sb..write(')=>\n$expression'); 
+    return [sb.toString(), args.values.toList(growable: false)];
   }
 
   /**

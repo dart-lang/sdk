@@ -5,6 +5,7 @@
 // WARNING: Do not edit - generated code.
 
 #include "config.h"
+#include "DartWebkitClassIds.h"
 #include "Dart$(INTERFACE).h"
 
 $INCLUDES
@@ -28,5 +29,5 @@ $RESOLVER
 
 const char* const Dart$(INTERFACE)::dartImplementationClassName = "$DART_IMPLEMENTATION_CLASS";
 const char* const Dart$(INTERFACE)::dartImplementationLibraryName = "$DART_IMPLEMENTATION_LIBRARY";
-
+const int Dart$(INTERFACE)::dartClassId = $(INTERFACE)ClassId;
 }

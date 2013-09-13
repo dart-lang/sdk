@@ -378,6 +378,17 @@ main() => new C(0);"""]);
   static const MessageKind TYPE_VARIABLE_IN_CONSTANT = const MessageKind(
       'Error: Cannot refer to type variable in constant.');
 
+  static const MessageKind INVALID_TYPE_VARIABLE_BOUND = const MessageKind(
+      "Warning: '#{typeArgument}' is not a subtype of bound '#{bound}' for "
+      "type variable '#{typeVariable}' of type '#{thisType}'.",
+      howToFix: "Try to change or remove the type argument.",
+      examples: const ["""
+class C<T extends num> {}
+
+// 'String' is not a valid instantiation of T with bound num.'.
+main() => new C<String>();
+"""]);
+
   static const MessageKind INVALID_USE_OF_SUPER = const MessageKind(
       'Error: "super" not allowed here.');
 
@@ -417,6 +428,21 @@ main() => new C(0);"""]);
 
   static const MessageKind CANNOT_INSTANTIATE_TYPEDEF = const MessageKind(
       'Error: Cannot instantiate typedef "#{typedefName}".');
+
+  static const MessageKind TYPEDEF_FORMAL_WITH_DEFAULT = const MessageKind(
+      "Error: A parameter of a typedef can't specify a default value.",
+      howToFix: "Remove the default value.",
+      examples: const ["""
+typedef void F([int arg = 0]);
+
+main() {
+  F f;
+}""", """
+typedef void F({int arg: 0});
+
+main() {
+  F f;
+}"""]);
 
   static const MessageKind CANNOT_INSTANTIATE_TYPE_VARIABLE = const MessageKind(
       'Error: Cannot instantiate type variable "#{typeVariableName}".');
@@ -622,6 +648,21 @@ Length: #{length}''');
   static const MessageKind TOP_LEVEL_VARIABLE_DECLARED_STATIC =
       const MessageKind(
           'Error: Top-level variable cannot be declared static.');
+
+  static const MessageKind REFERENCE_IN_INITIALIZATION = const MessageKind(
+       "Error: Variable '#{variableName}' is referenced during its "
+       "initialization.",
+       howToFix: "If you are trying to reference a shadowed variable, rename"
+         " one of the variables.",
+       examples: const ["""
+foo(t) {
+  var t = t;
+  return t;
+}
+
+main() => foo(1);
+"""]);
+
 
   static const MessageKind WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT =
       const MessageKind(

@@ -118,8 +118,7 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
 
   Class& invocation_mirror_class = Class::Handle(
       core_lib.LookupClass(
-          String::Handle(core_lib.PrivateName(Symbols::InvocationMirror())),
-          NULL));  // No ambiguity error expected.
+          String::Handle(core_lib.PrivateName(Symbols::InvocationMirror()))));
   ASSERT(!invocation_mirror_class.IsNull());
   const String& function_name =
       String::Handle(core_lib.PrivateName(Symbols::AllocateInvocationMirror()));
@@ -302,8 +301,7 @@ RawObject* DartLibraryCalls::InstanceCreate(const Library& lib,
                                             const String& class_name,
                                             const String& constructor_name,
                                             const Array& arguments) {
-  const Class& cls = Class::Handle(
-      lib.LookupClassAllowPrivate(class_name, NULL));  // No ambiguity expected.
+  const Class& cls = Class::Handle(lib.LookupClassAllowPrivate(class_name));
   ASSERT(!cls.IsNull());
   // For now, we only support a non-parameterized or raw type.
   const int kNumExtraArgs = 2;  // implicit rcvr and construction phase args.
@@ -392,8 +390,7 @@ RawObject* DartLibraryCalls::LookupReceivePort(Dart_Port port_id) {
                                        function_name,
                                        kNumArguments,
                                        Object::empty_array(),
-                                       Resolver::kIsQualified,
-                                       NULL);  // No ambiguity error expected.
+                                       Resolver::kIsQualified);
     ASSERT(!function.IsNull());
     isolate->object_store()->set_lookup_receive_port_function(function);
   }
@@ -425,8 +422,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
                                        function_name,
                                        kNumArguments,
                                        Object::empty_array(),
-                                       Resolver::kIsQualified,
-                                       NULL);  // No ambiguity error expected.
+                                       Resolver::kIsQualified);
     ASSERT(!function.IsNull());
     isolate->object_store()->set_handle_message_function(function);
   }
@@ -461,8 +457,7 @@ RawObject* DartLibraryCalls::NewSendPort(intptr_t port_id) {
                               function_name,
                               kNumArguments,
                               Object::empty_array(),
-                              Resolver::kIsQualified,
-                              NULL));  // No ambiguity error expected.
+                              Resolver::kIsQualified));
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, Integer::Handle(Integer::New(port_id)));

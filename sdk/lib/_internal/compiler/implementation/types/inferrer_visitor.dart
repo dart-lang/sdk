@@ -384,17 +384,28 @@ class LocalsHandler<T> {
     void mergeOneBranch(LocalsHandler<T> other) {
       other.locals.forEachOwnLocal((Element local, T type) {
         T myType = locals[local];
-        if (myType == null) return;
+        if (myType == null) return; // Variable is only defined in [other].
         if (type == myType) return;
         locals[local] = types.allocateDiamondPhi(myType, type);
       });
     }
 
+    void inPlaceUpdateOneBranch(LocalsHandler<T> other) {
+      other.locals.forEachOwnLocal((Element local, T type) {
+        T myType = locals[local];
+        if (myType == null) return; // Variable is only defined in [other].
+        if (type == myType) return;
+        locals[local] = type;
+      });
+    }
+
     if (thenBranch.aborts) {
       if (elseBranch == null) return;
-      mergeOneBranch(elseBranch);
-    } else if (elseBranch == null || elseBranch.aborts) {
+      inPlaceUpdateOneBranch(elseBranch);
+    } else if (elseBranch == null) {
       mergeOneBranch(thenBranch);
+    } else if (elseBranch.aborts) {
+      inPlaceUpdateOneBranch(thenBranch);
     } else {
       void mergeLocal(Element local) {
         T myType = locals[local];
@@ -678,7 +689,9 @@ abstract class InferrerVisitor
   }
 
   T visitTypeReferenceSend(Send node) {
-    return types.typeType;
+    // If [node] is not a type literal is the class name of a static access,
+    // in which case we don't use the type mask.
+    return elements.isTypeLiteral(node) ? types.typeType : null;
   }
 
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();

@@ -16,28 +16,1350 @@ if ((!HTMLElement.prototype.createShadowRoot &&
   }
 })();
 
+// Copyright 2012 Google Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+(function(global) {
+  'use strict';
+
+  function detectObjectObserve() {
+    if (typeof Object.observe !== 'function' ||
+        typeof Array.observe !== 'function') {
+      return false;
+    }
+
+    var gotSplice = false;
+    function callback(records) {
+      if (records[0].type === 'splice' && records[1].type === 'splice')
+        gotSplice = true;
+    }
+
+    var test = [0];
+    Array.observe(test, callback);
+    test[1] = 1;
+    test.length = 0;
+    Object.deliverChangeRecords(callback);
+    return gotSplice;
+  }
+
+  var hasObserve = detectObjectObserve();
+
+  function detectEval() {
+    // don't test for eval if document has CSP securityPolicy object and we can see that
+    // eval is not supported. This avoids an error message in console even when the exception
+    // is caught
+    if (global.document &&
+        'securityPolicy' in global.document &&
+        !global.document.securityPolicy.allowsEval) {
+      return false;
+    }
+
+    try {
+      var f = new Function('', 'return true;');
+      return f();
+    } catch (ex) {
+      return false;
+    }
+  }
+
+  var hasEval = detectEval();
+
+  function isIndex(s) {
+    return +s === s >>> 0;
+  }
+
+  function toNumber(s) {
+    return +s;
+  }
+
+  function isObject(obj) {
+    return obj === Object(obj);
+  }
+
+  var numberIsNaN = global.Number.isNaN || function isNaN(value) {
+    return typeof value === 'number' && global.isNaN(value);
+  }
+
+  function areSameValue(left, right) {
+    if (left === right)
+      return left !== 0 || 1 / left === 1 / right;
+    if (numberIsNaN(left) && numberIsNaN(right))
+      return true;
+
+    return left !== left && right !== right;
+  }
+
+  var createObject = ('__proto__' in {}) ?
+    function(obj) { return obj; } :
+    function(obj) {
+      var proto = obj.__proto__;
+      if (!proto)
+        return obj;
+      var newObject = Object.create(proto);
+      Object.getOwnPropertyNames(obj).forEach(function(name) {
+        Object.defineProperty(newObject, name,
+                             Object.getOwnPropertyDescriptor(obj, name));
+      });
+      return newObject;
+    };
+
+  var identStart = '[\$_a-zA-Z]';
+  var identPart = '[\$_a-zA-Z0-9]';
+  var ident = identStart + '+' + identPart + '*';
+  var elementIndex = '(?:[0-9]|[1-9]+[0-9]+)';
+  var identOrElementIndex = '(?:' + ident + '|' + elementIndex + ')';
+  var path = '(?:' + identOrElementIndex + ')(?:\\s*\\.\\s*' + identOrElementIndex + ')*';
+  var pathRegExp = new RegExp('^' + path + '$');
+
+  function isPathValid(s) {
+    if (typeof s != 'string')
+      return false;
+    s = s.trim();
+
+    if (s == '')
+      return true;
+
+    if (s[0] == '.')
+      return false;
+
+    return pathRegExp.test(s);
+  }
+
+  var constructorIsPrivate = {};
+
+  function Path(s, privateToken) {
+    if (privateToken !== constructorIsPrivate)
+      throw Error('Use Path.get to retrieve path objects');
+
+    if (s.trim() == '')
+      return this;
+
+    if (isIndex(s)) {
+      this.push(s);
+      return this;
+    }
+
+    s.split(/\s*\.\s*/).filter(function(part) {
+      return part;
+    }).forEach(function(part) {
+      this.push(part);
+    }, this);
+
+    if (hasEval && !hasObserve && this.length) {
+      this.getValueFrom = this.compiledGetValueFromFn();
+    }
+  }
+
+  // TODO(rafaelw): Make simple LRU cache
+  var pathCache = {};
+
+  function getPath(pathString) {
+    if (pathString instanceof Path)
+      return pathString;
+
+    if (pathString == null)
+      pathString = '';
+
+    if (typeof pathString !== 'string')
+      pathString = String(pathString);
+
+    var path = pathCache[pathString];
+    if (path)
+      return path;
+    if (!isPathValid(pathString))
+      return invalidPath;
+    var path = new Path(pathString, constructorIsPrivate);
+    pathCache[pathString] = path;
+    return path;
+  }
+
+  Path.get = getPath;
+
+  Path.prototype = createObject({
+    __proto__: [],
+    valid: true,
+
+    toString: function() {
+      return this.join('.');
+    },
+
+    getValueFrom: function(obj, observedSet) {
+      for (var i = 0; i < this.length; i++) {
+        if (obj == null)
+          return;
+        if (observedSet)
+          observedSet.observe(obj);
+        obj = obj[this[i]];
+      }
+      return obj;
+    },
+
+    compiledGetValueFromFn: function() {
+      var accessors = this.map(function(ident) {
+        return isIndex(ident) ? '["' + ident + '"]' : '.' + ident;
+      });
+
+      var str = '';
+      var pathString = 'obj';
+      str += 'if (obj != null';
+      var i = 0;
+      for (; i < (this.length - 1); i++) {
+        var ident = this[i];
+        pathString += accessors[i];
+        str += ' &&\n     ' + pathString + ' != null';
+      }
+      str += ')\n';
+
+      pathString += accessors[i];
+
+      str += '  return ' + pathString + ';\nelse\n  return undefined;';
+      return new Function('obj', str);
+    },
+
+    setValueFrom: function(obj, value) {
+      if (!this.length)
+        return false;
+
+      for (var i = 0; i < this.length - 1; i++) {
+        if (!isObject(obj))
+          return false;
+        obj = obj[this[i]];
+      }
+
+      if (!isObject(obj))
+        return false;
+
+      obj[this[i]] = value;
+      return true;
+    }
+  });
+
+  var invalidPath = new Path('', constructorIsPrivate);
+  invalidPath.valid = false;
+  invalidPath.getValueFrom = invalidPath.setValueFrom = function() {};
+
+  var MAX_DIRTY_CHECK_CYCLES = 1000;
+
+  function dirtyCheck(observer) {
+    var cycles = 0;
+    while (cycles < MAX_DIRTY_CHECK_CYCLES && observer.check()) {
+      observer.report();
+      cycles++;
+    }
+    if (global.testingExposeCycleCount)
+      global.dirtyCheckCycleCount = cycles;
+  }
+
+  function objectIsEmpty(object) {
+    for (var prop in object)
+      return false;
+    return true;
+  }
+
+  function diffIsEmpty(diff) {
+    return objectIsEmpty(diff.added) &&
+           objectIsEmpty(diff.removed) &&
+           objectIsEmpty(diff.changed);
+  }
+
+  function diffObjectFromOldObject(object, oldObject) {
+    var added = {};
+    var removed = {};
+    var changed = {};
+    var oldObjectHas = {};
+
+    for (var prop in oldObject) {
+      var newValue = object[prop];
+
+      if (newValue !== undefined && newValue === oldObject[prop])
+        continue;
+
+      if (!(prop in object)) {
+        removed[prop] = undefined;
+        continue;
+      }
+
+      if (newValue !== oldObject[prop])
+        changed[prop] = newValue;
+    }
+
+    for (var prop in object) {
+      if (prop in oldObject)
+        continue;
+
+      added[prop] = object[prop];
+    }
+
+    if (Array.isArray(object) && object.length !== oldObject.length)
+      changed.length = object.length;
+
+    return {
+      added: added,
+      removed: removed,
+      changed: changed
+    };
+  }
+
+  function copyObject(object, opt_copy) {
+    var copy = opt_copy || (Array.isArray(object) ? [] : {});
+    for (var prop in object) {
+      copy[prop] = object[prop];
+    };
+    if (Array.isArray(object))
+      copy.length = object.length;
+    return copy;
+  }
+
+  function Observer(object, callback, target, token) {
+    this.closed = false;
+    this.object = object;
+    this.callback = callback;
+    // TODO(rafaelw): Hold this.target weakly when WeakRef is available.
+    this.target = target;
+    this.token = token;
+    this.reporting = true;
+    if (hasObserve) {
+      var self = this;
+      this.boundInternalCallback = function(records) {
+        self.internalCallback(records);
+      };
+    }
+
+    addToAll(this);
+  }
+
+  Observer.prototype = {
+    internalCallback: function(records) {
+      if (this.closed)
+        return;
+      if (this.reporting && this.check(records)) {
+        this.report();
+        if (this.testingResults)
+          this.testingResults.anyChanged = true;
+      }
+    },
+
+    close: function() {
+      if (this.closed)
+        return;
+      if (this.object && typeof this.object.close === 'function')
+        this.object.close();
+
+      this.disconnect();
+      this.object = undefined;
+      this.closed = true;
+    },
+
+    deliver: function(testingResults) {
+      if (this.closed)
+        return;
+      if (hasObserve) {
+        this.testingResults = testingResults;
+        Object.deliverChangeRecords(this.boundInternalCallback);
+        this.testingResults = undefined;
+      } else {
+        dirtyCheck(this);
+      }
+    },
+
+    report: function() {
+      if (!this.reporting)
+        return;
+
+      this.sync(false);
+      if (this.callback) {
+        this.reportArgs.push(this.token);
+        this.invokeCallback(this.reportArgs);
+      }
+      this.reportArgs = undefined;
+    },
+
+    invokeCallback: function(args) {
+      try {
+        this.callback.apply(this.target, args);
+      } catch (ex) {
+        Observer._errorThrownDuringCallback = true;
+        console.error('Exception caught during observer callback: ' + (ex.stack || ex));
+      }
+    },
+
+    reset: function() {
+      if (this.closed)
+        return;
+
+      if (hasObserve) {
+        this.reporting = false;
+        Object.deliverChangeRecords(this.boundInternalCallback);
+        this.reporting = true;
+      }
+
+      this.sync(true);
+    }
+  }
+
+  var collectObservers = !hasObserve || global.forceCollectObservers;
+  var allObservers;
+  Observer._allObserversCount = 0;
+
+  if (collectObservers) {
+    allObservers = [];
+  }
+
+  function addToAll(observer) {
+    if (!collectObservers)
+      return;
+
+    allObservers.push(observer);
+    Observer._allObserversCount++;
+  }
+
+  var runningMicrotaskCheckpoint = false;
+
+  var hasDebugForceFullDelivery = typeof Object.deliverAllChangeRecords == 'function';
+
+  global.Platform = global.Platform || {};
+
+  global.Platform.performMicrotaskCheckpoint = function() {
+    if (runningMicrotaskCheckpoint)
+      return;
+
+    if (hasDebugForceFullDelivery) {
+      Object.deliverAllChangeRecords();
+      return;
+    }
+
+    if (!collectObservers)
+      return;
+
+    runningMicrotaskCheckpoint = true;
+
+    var cycles = 0;
+    var results = {};
+
+    do {
+      cycles++;
+      var toCheck = allObservers;
+      allObservers = [];
+      results.anyChanged = false;
+
+      for (var i = 0; i < toCheck.length; i++) {
+        var observer = toCheck[i];
+        if (observer.closed)
+          continue;
+
+        if (hasObserve) {
+          observer.deliver(results);
+        } else if (observer.check()) {
+          results.anyChanged = true;
+          observer.report();
+        }
+
+        allObservers.push(observer);
+      }
+    } while (cycles < MAX_DIRTY_CHECK_CYCLES && results.anyChanged);
+
+    if (global.testingExposeCycleCount)
+      global.dirtyCheckCycleCount = cycles;
+
+    Observer._allObserversCount = allObservers.length;
+    runningMicrotaskCheckpoint = false;
+  };
+
+  if (collectObservers) {
+    global.Platform.clearObservers = function() {
+      allObservers = [];
+    };
+  }
+
+  function ObjectObserver(object, callback, target, token) {
+    Observer.call(this, object, callback, target, token);
+    this.connect();
+    this.sync(true);
+  }
+
+  ObjectObserver.prototype = createObject({
+    __proto__: Observer.prototype,
+
+    connect: function() {
+      if (hasObserve)
+        Object.observe(this.object, this.boundInternalCallback);
+    },
+
+    sync: function(hard) {
+      if (!hasObserve)
+        this.oldObject = copyObject(this.object);
+    },
+
+    check: function(changeRecords) {
+      var diff;
+      var oldValues;
+      if (hasObserve) {
+        if (!changeRecords)
+          return false;
+
+        oldValues = {};
+        diff = diffObjectFromChangeRecords(this.object, changeRecords,
+                                           oldValues);
+      } else {
+        oldValues = this.oldObject;
+        diff = diffObjectFromOldObject(this.object, this.oldObject);
+      }
+
+      if (diffIsEmpty(diff))
+        return false;
+
+      this.reportArgs =
+          [diff.added || {}, diff.removed || {}, diff.changed || {}];
+      this.reportArgs.push(function(property) {
+        return oldValues[property];
+      });
+
+      return true;
+    },
+
+    disconnect: function() {
+      if (!hasObserve)
+        this.oldObject = undefined;
+      else if (this.object)
+        Object.unobserve(this.object, this.boundInternalCallback);
+    }
+  });
+
+  function ArrayObserver(array, callback, target, token) {
+    if (!Array.isArray(array))
+      throw Error('Provided object is not an Array');
+    ObjectObserver.call(this, array, callback, target, token);
+  }
+
+  ArrayObserver.prototype = createObject({
+    __proto__: ObjectObserver.prototype,
+
+    connect: function() {
+      if (hasObserve)
+        Array.observe(this.object, this.boundInternalCallback);
+    },
+
+    sync: function() {
+      if (!hasObserve)
+        this.oldObject = this.object.slice();
+    },
+
+    check: function(changeRecords) {
+      var splices;
+      if (hasObserve) {
+        if (!changeRecords)
+          return false;
+        splices = projectArraySplices(this.object, changeRecords);
+      } else {
+        splices = calcSplices(this.object, 0, this.object.length,
+                              this.oldObject, 0, this.oldObject.length);
+      }
+
+      if (!splices || !splices.length)
+        return false;
+
+      this.reportArgs = [splices];
+      return true;
+    }
+  });
+
+  ArrayObserver.applySplices = function(previous, current, splices) {
+    splices.forEach(function(splice) {
+      var spliceArgs = [splice.index, splice.removed.length];
+      var addIndex = splice.index;
+      while (addIndex < splice.index + splice.addedCount) {
+        spliceArgs.push(current[addIndex]);
+        addIndex++;
+      }
+
+      Array.prototype.splice.apply(previous, spliceArgs);
+    });
+  };
+
+  function ObservedSet(callback) {
+    this.arr = [];
+    this.callback = callback;
+    this.isObserved = true;
+  }
+
+  var objProto = Object.getPrototypeOf({});
+  var arrayProto = Object.getPrototypeOf([]);
+  ObservedSet.prototype = {
+    reset: function() {
+      this.isObserved = !this.isObserved;
+    },
+
+    observe: function(obj) {
+      if (!isObject(obj) || obj === objProto || obj === arrayProto)
+        return;
+      var i = this.arr.indexOf(obj);
+      if (i >= 0 && this.arr[i+1] === this.isObserved)
+        return;
+
+      if (i < 0) {
+        i = this.arr.length;
+        this.arr[i] = obj;
+        Object.observe(obj, this.callback);
+      }
+
+      this.arr[i+1] = this.isObserved;
+      this.observe(Object.getPrototypeOf(obj));
+    },
+
+    cleanup: function() {
+      var i = 0, j = 0;
+      var isObserved = this.isObserved;
+      while(j < this.arr.length) {
+        var obj = this.arr[j];
+        if (this.arr[j + 1] == isObserved) {
+          if (i < j) {
+            this.arr[i] = obj;
+            this.arr[i + 1] = isObserved;
+          }
+          i += 2;
+        } else {
+          Object.unobserve(obj, this.callback);
+        }
+        j += 2;
+      }
+
+      this.arr.length = i;
+    }
+  };
+
+  function PathObserver(object, path, callback, target, token, valueFn,
+                        setValueFn) {
+    var path = path instanceof Path ? path : getPath(path);
+    if (!path || !path.length || !isObject(object)) {
+      this.value_ = path ? path.getValueFrom(object) : undefined;
+      this.value = valueFn ? valueFn(this.value_) : this.value_;
+      this.closed = true;
+      return;
+    }
+
+    Observer.call(this, object, callback, target, token);
+    this.valueFn = valueFn;
+    this.setValueFn = setValueFn;
+    this.path = path;
+
+    this.connect();
+    this.sync(true);
+  }
+
+  PathObserver.prototype = createObject({
+    __proto__: Observer.prototype,
+
+    connect: function() {
+      if (hasObserve)
+        this.observedSet = new ObservedSet(this.boundInternalCallback);
+    },
+
+    disconnect: function() {
+      this.value = undefined;
+      this.value_ = undefined;
+      if (this.observedSet) {
+        this.observedSet.reset();
+        this.observedSet.cleanup();
+        this.observedSet = undefined;
+      }
+    },
+
+    check: function() {
+      // Note: Extracting this to a member function for use here and below
+      // regresses dirty-checking path perf by about 25% =-(.
+      if (this.observedSet)
+        this.observedSet.reset();
+
+      this.value_ = this.path.getValueFrom(this.object, this.observedSet);
+
+      if (this.observedSet)
+        this.observedSet.cleanup();
+
+      if (areSameValue(this.value_, this.oldValue_))
+        return false;
+
+      this.value = this.valueFn ? this.valueFn(this.value_) : this.value_;
+      this.reportArgs = [this.value, this.oldValue];
+      return true;
+    },
+
+    sync: function(hard) {
+      if (hard) {
+        if (this.observedSet)
+          this.observedSet.reset();
+
+        this.value_ = this.path.getValueFrom(this.object, this.observedSet);
+        this.value = this.valueFn ? this.valueFn(this.value_) : this.value_;
+
+        if (this.observedSet)
+          this.observedSet.cleanup();
+      }
+
+      this.oldValue_ = this.value_;
+      this.oldValue = this.value;
+    },
+
+    setValue: function(newValue) {
+      if (!this.path)
+        return;
+      if (typeof this.setValueFn === 'function')
+        newValue = this.setValueFn(newValue);
+      this.path.setValueFrom(this.object, newValue);
+    }
+  });
+
+  function CompoundPathObserver(callback, target, token, valueFn) {
+    Observer.call(this, undefined, callback, target, token);
+    this.valueFn = valueFn;
+
+    this.observed = [];
+    this.values = [];
+    this.started = false;
+  }
+
+  CompoundPathObserver.prototype = createObject({
+    __proto__: PathObserver.prototype,
+
+    addPath: function(object, path) {
+      if (this.started)
+        throw Error('Cannot add more paths once started.');
+
+      var path = path instanceof Path ? path : getPath(path);
+      var value = path ? path.getValueFrom(object) : undefined;
+
+      this.observed.push(object, path);
+      this.values.push(value);
+    },
+
+    start: function() {
+      this.connect();
+      this.sync(true);
+    },
+
+    getValues: function() {
+      if (this.observedSet)
+        this.observedSet.reset();
+
+      var anyChanged = false;
+      for (var i = 0; i < this.observed.length; i = i+2) {
+        var path = this.observed[i+1];
+        if (!path)
+          continue;
+        var object = this.observed[i];
+        var value = path.getValueFrom(object, this.observedSet);
+        var oldValue = this.values[i/2];
+        if (!areSameValue(value, oldValue)) {
+          this.values[i/2] = value;
+          anyChanged = true;
+        }
+      }
+
+      if (this.observedSet)
+        this.observedSet.cleanup();
+
+      return anyChanged;
+    },
+
+    check: function() {
+      if (!this.getValues())
+        return;
+
+      this.value = this.valueFn(this.values);
+
+      if (areSameValue(this.value, this.oldValue))
+        return false;
+
+      this.reportArgs = [this.value, this.oldValue];
+      return true;
+    },
+
+    sync: function(hard) {
+      if (hard) {
+        this.getValues();
+        this.value = this.valueFn(this.values);
+      }
+
+      this.oldValue = this.value;
+    },
+
+    close: function() {
+      if (this.observed) {
+        for (var i = 0; i < this.observed.length; i = i + 2) {
+          var object = this.observed[i];
+          if (object && typeof object.close === 'function')
+            object.close();
+        }
+        this.observed = undefined;
+        this.values = undefined;
+      }
+
+      Observer.prototype.close.call(this);
+    }
+  });
+
+  var knownRecordTypes = {
+    'new': true,
+    'updated': true,
+    'deleted': true
+  };
+
+  function notifyFunction(object, name) {
+    if (typeof Object.observe !== 'function')
+      return;
+
+    var notifier = Object.getNotifier(object);
+    return function(type, oldValue) {
+      var changeRecord = {
+        object: object,
+        type: type,
+        name: name
+      };
+      if (arguments.length === 2)
+        changeRecord.oldValue = oldValue;
+      notifier.notify(changeRecord);
+    }
+  }
+
+  // TODO(rafaelw): It should be possible for the Object.observe case to have
+  // every PathObserver used by defineProperty share a single Object.observe
+  // callback, and thus get() can simply call observer.deliver() and any changes
+  // to any dependent value will be observed.
+  PathObserver.defineProperty = function(object, name, descriptor) {
+    // TODO(rafaelw): Validate errors
+    var obj = descriptor.object;
+    var path = getPath(descriptor.path);
+    var notify = notifyFunction(object, name);
+
+    var observer = new PathObserver(obj, descriptor.path,
+        function(newValue, oldValue) {
+          if (notify)
+            notify('updated', oldValue);
+        }
+    );
+
+    Object.defineProperty(object, name, {
+      get: function() {
+        return path.getValueFrom(obj);
+      },
+      set: function(newValue) {
+        path.setValueFrom(obj, newValue);
+      },
+      configurable: true
+    });
+
+    return {
+      close: function() {
+        var oldValue = path.getValueFrom(obj);
+        if (notify)
+          observer.deliver();
+        observer.close();
+        Object.defineProperty(object, name, {
+          value: oldValue,
+          writable: true,
+          configurable: true
+        });
+      }
+    };
+  }
+
+  function diffObjectFromChangeRecords(object, changeRecords, oldValues) {
+    var added = {};
+    var removed = {};
+
+    for (var i = 0; i < changeRecords.length; i++) {
+      var record = changeRecords[i];
+      if (!knownRecordTypes[record.type]) {
+        console.error('Unknown changeRecord type: ' + record.type);
+        console.error(record);
+        continue;
+      }
+
+      if (!(record.name in oldValues))
+        oldValues[record.name] = record.oldValue;
+
+      if (record.type == 'updated')
+        continue;
+
+      if (record.type == 'new') {
+        if (record.name in removed)
+          delete removed[record.name];
+        else
+          added[record.name] = true;
+
+        continue;
+      }
+
+      // type = 'deleted'
+      if (record.name in added) {
+        delete added[record.name];
+        delete oldValues[record.name];
+      } else {
+        removed[record.name] = true;
+      }
+    }
+
+    for (var prop in added)
+      added[prop] = object[prop];
+
+    for (var prop in removed)
+      removed[prop] = undefined;
+
+    var changed = {};
+    for (var prop in oldValues) {
+      if (prop in added || prop in removed)
+        continue;
+
+      var newValue = object[prop];
+      if (oldValues[prop] !== newValue)
+        changed[prop] = newValue;
+    }
+
+    return {
+      added: added,
+      removed: removed,
+      changed: changed
+    };
+  }
+
+  function newSplice(index, removed, addedCount) {
+    return {
+      index: index,
+      removed: removed,
+      addedCount: addedCount
+    };
+  }
+
+  var EDIT_LEAVE = 0;
+  var EDIT_UPDATE = 1;
+  var EDIT_ADD = 2;
+  var EDIT_DELETE = 3;
+
+  function ArraySplice() {}
+
+  ArraySplice.prototype = {
+
+    // Note: This function is *based* on the computation of the Levenshtein
+    // "edit" distance. The one change is that "updates" are treated as two
+    // edits - not one. With Array splices, an update is really a delete
+    // followed by an add. By retaining this, we optimize for "keeping" the
+    // maximum array items in the original array. For example:
+    //
+    //   'xxxx123' -> '123yyyy'
+    //
+    // With 1-edit updates, the shortest path would be just to update all seven
+    // characters. With 2-edit updates, we delete 4, leave 3, and add 4. This
+    // leaves the substring '123' intact.
+    calcEditDistances: function(current, currentStart, currentEnd,
+                                old, oldStart, oldEnd) {
+      // "Deletion" columns
+      var rowCount = oldEnd - oldStart + 1;
+      var columnCount = currentEnd - currentStart + 1;
+      var distances = new Array(rowCount);
+
+      // "Addition" rows. Initialize null column.
+      for (var i = 0; i < rowCount; i++) {
+        distances[i] = new Array(columnCount);
+        distances[i][0] = i;
+      }
+
+      // Initialize null row
+      for (var j = 0; j < columnCount; j++)
+        distances[0][j] = j;
+
+      for (var i = 1; i < rowCount; i++) {
+        for (var j = 1; j < columnCount; j++) {
+          if (this.equals(current[currentStart + j - 1], old[oldStart + i - 1]))
+            distances[i][j] = distances[i - 1][j - 1];
+          else {
+            var north = distances[i - 1][j] + 1;
+            var west = distances[i][j - 1] + 1;
+            distances[i][j] = north < west ? north : west;
+          }
+        }
+      }
+
+      return distances;
+    },
+
+    // This starts at the final weight, and walks "backward" by finding
+    // the minimum previous weight recursively until the origin of the weight
+    // matrix.
+    spliceOperationsFromEditDistances: function(distances) {
+      var i = distances.length - 1;
+      var j = distances[0].length - 1;
+      var current = distances[i][j];
+      var edits = [];
+      while (i > 0 || j > 0) {
+        if (i == 0) {
+          edits.push(EDIT_ADD);
+          j--;
+          continue;
+        }
+        if (j == 0) {
+          edits.push(EDIT_DELETE);
+          i--;
+          continue;
+        }
+        var northWest = distances[i - 1][j - 1];
+        var west = distances[i - 1][j];
+        var north = distances[i][j - 1];
+
+        var min;
+        if (west < north)
+          min = west < northWest ? west : northWest;
+        else
+          min = north < northWest ? north : northWest;
+
+        if (min == northWest) {
+          if (northWest == current) {
+            edits.push(EDIT_LEAVE);
+          } else {
+            edits.push(EDIT_UPDATE);
+            current = northWest;
+          }
+          i--;
+          j--;
+        } else if (min == west) {
+          edits.push(EDIT_DELETE);
+          i--;
+          current = west;
+        } else {
+          edits.push(EDIT_ADD);
+          j--;
+          current = north;
+        }
+      }
+
+      edits.reverse();
+      return edits;
+    },
+
+    /**
+     * Splice Projection functions:
+     *
+     * A splice map is a representation of how a previous array of items
+     * was transformed into a new array of items. Conceptually it is a list of
+     * tuples of
+     *
+     *   <index, removed, addedCount>
+     *
+     * which are kept in ascending index order of. The tuple represents that at
+     * the |index|, |removed| sequence of items were removed, and counting forward
+     * from |index|, |addedCount| items were added.
+     */
+
+    /**
+     * Lacking individual splice mutation information, the minimal set of
+     * splices can be synthesized given the previous state and final state of an
+     * array. The basic approach is to calculate the edit distance matrix and
+     * choose the shortest path through it.
+     *
+     * Complexity: O(l * p)
+     *   l: The length of the current array
+     *   p: The length of the old array
+     */
+    calcSplices: function(current, currentStart, currentEnd,
+                          old, oldStart, oldEnd) {
+      var prefixCount = 0;
+      var suffixCount = 0;
+
+      var minLength = Math.min(currentEnd - currentStart, oldEnd - oldStart);
+      if (currentStart == 0 && oldStart == 0)
+        prefixCount = this.sharedPrefix(current, old, minLength);
+
+      if (currentEnd == current.length && oldEnd == old.length)
+        suffixCount = this.sharedSuffix(current, old, minLength - prefixCount);
+
+      currentStart += prefixCount;
+      oldStart += prefixCount;
+      currentEnd -= suffixCount;
+      oldEnd -= suffixCount;
+
+      if (currentEnd - currentStart == 0 && oldEnd - oldStart == 0)
+        return [];
+
+      if (currentStart == currentEnd) {
+        var splice = newSplice(currentStart, [], 0);
+        while (oldStart < oldEnd)
+          splice.removed.push(old[oldStart++]);
+
+        return [ splice ];
+      } else if (oldStart == oldEnd)
+        return [ newSplice(currentStart, [], currentEnd - currentStart) ];
+
+      var ops = this.spliceOperationsFromEditDistances(
+          this.calcEditDistances(current, currentStart, currentEnd,
+                                 old, oldStart, oldEnd));
+
+      var splice = undefined;
+      var splices = [];
+      var index = currentStart;
+      var oldIndex = oldStart;
+      for (var i = 0; i < ops.length; i++) {
+        switch(ops[i]) {
+          case EDIT_LEAVE:
+            if (splice) {
+              splices.push(splice);
+              splice = undefined;
+            }
+
+            index++;
+            oldIndex++;
+            break;
+          case EDIT_UPDATE:
+            if (!splice)
+              splice = newSplice(index, [], 0);
+
+            splice.addedCount++;
+            index++;
+
+            splice.removed.push(old[oldIndex]);
+            oldIndex++;
+            break;
+          case EDIT_ADD:
+            if (!splice)
+              splice = newSplice(index, [], 0);
+
+            splice.addedCount++;
+            index++;
+            break;
+          case EDIT_DELETE:
+            if (!splice)
+              splice = newSplice(index, [], 0);
+
+            splice.removed.push(old[oldIndex]);
+            oldIndex++;
+            break;
+        }
+      }
+
+      if (splice) {
+        splices.push(splice);
+      }
+      return splices;
+    },
+
+    sharedPrefix: function(current, old, searchLength) {
+      for (var i = 0; i < searchLength; i++)
+        if (!this.equals(current[i], old[i]))
+          return i;
+      return searchLength;
+    },
+
+    sharedSuffix: function(current, old, searchLength) {
+      var index1 = current.length;
+      var index2 = old.length;
+      var count = 0;
+      while (count < searchLength && this.equals(current[--index1], old[--index2]))
+        count++;
+
+      return count;
+    },
+
+    calculateSplices: function(current, previous) {
+      return this.calcSplices(current, 0, current.length, previous, 0,
+                              previous.length);
+    },
+
+    equals: function(currentValue, previousValue) {
+      return currentValue === previousValue;
+    }
+  };
+
+  var arraySplice = new ArraySplice();
+
+  function calcSplices(current, currentStart, currentEnd,
+                       old, oldStart, oldEnd) {
+    return arraySplice.calcSplices(current, currentStart, currentEnd,
+                                   old, oldStart, oldEnd);
+  }
+
+  function intersect(start1, end1, start2, end2) {
+    // Disjoint
+    if (end1 < start2 || end2 < start1)
+      return -1;
+
+    // Adjacent
+    if (end1 == start2 || end2 == start1)
+      return 0;
+
+    // Non-zero intersect, span1 first
+    if (start1 < start2) {
+      if (end1 < end2)
+        return end1 - start2; // Overlap
+      else
+        return end2 - start2; // Contained
+    } else {
+      // Non-zero intersect, span2 first
+      if (end2 < end1)
+        return end2 - start1; // Overlap
+      else
+        return end1 - start1; // Contained
+    }
+  }
+
+  function mergeSplice(splices, index, removed, addedCount) {
+
+    var splice = newSplice(index, removed, addedCount);
+
+    var inserted = false;
+    var insertionOffset = 0;
+
+    for (var i = 0; i < splices.length; i++) {
+      var current = splices[i];
+      current.index += insertionOffset;
+
+      if (inserted)
+        continue;
+
+      var intersectCount = intersect(splice.index,
+                                     splice.index + splice.removed.length,
+                                     current.index,
+                                     current.index + current.addedCount);
+
+      if (intersectCount >= 0) {
+        // Merge the two splices
+
+        splices.splice(i, 1);
+        i--;
+
+        insertionOffset -= current.addedCount - current.removed.length;
+
+        splice.addedCount += current.addedCount - intersectCount;
+        var deleteCount = splice.removed.length +
+                          current.removed.length - intersectCount;
+
+        if (!splice.addedCount && !deleteCount) {
+          // merged splice is a noop. discard.
+          inserted = true;
+        } else {
+          var removed = current.removed;
+
+          if (splice.index < current.index) {
+            // some prefix of splice.removed is prepended to current.removed.
+            var prepend = splice.removed.slice(0, current.index - splice.index);
+            Array.prototype.push.apply(prepend, removed);
+            removed = prepend;
+          }
+
+          if (splice.index + splice.removed.length > current.index + current.addedCount) {
+            // some suffix of splice.removed is appended to current.removed.
+            var append = splice.removed.slice(current.index + current.addedCount - splice.index);
+            Array.prototype.push.apply(removed, append);
+          }
+
+          splice.removed = removed;
+          if (current.index < splice.index) {
+            splice.index = current.index;
+          }
+        }
+      } else if (splice.index < current.index) {
+        // Insert splice here.
+
+        inserted = true;
+
+        splices.splice(i, 0, splice);
+        i++;
+
+        var offset = splice.addedCount - splice.removed.length
+        current.index += offset;
+        insertionOffset += offset;
+      }
+    }
+
+    if (!inserted)
+      splices.push(splice);
+  }
+
+  function createInitialSplices(array, changeRecords) {
+    var splices = [];
+
+    for (var i = 0; i < changeRecords.length; i++) {
+      var record = changeRecords[i];
+      switch(record.type) {
+        case 'splice':
+          mergeSplice(splices, record.index, record.removed.slice(), record.addedCount);
+          break;
+        case 'new':
+        case 'updated':
+        case 'deleted':
+          if (!isIndex(record.name))
+            continue;
+          var index = toNumber(record.name);
+          if (index < 0)
+            continue;
+          mergeSplice(splices, index, [record.oldValue], 1);
+          break;
+        default:
+          console.error('Unexpected record type: ' + JSON.stringify(record));
+          break;
+      }
+    }
+
+    return splices;
+  }
+
+  function projectArraySplices(array, changeRecords) {
+    var splices = [];
+
+    createInitialSplices(array, changeRecords).forEach(function(splice) {
+      if (splice.addedCount == 1 && splice.removed.length == 1) {
+        if (splice.removed[0] !== array[splice.index])
+          splices.push(splice);
+
+        return
+      };
+
+      splices = splices.concat(calcSplices(array, splice.index, splice.index + splice.addedCount,
+                                           splice.removed, 0, splice.removed.length));
+    });
+
+    return splices;
+  }
+
+  global.Observer = Observer;
+  global.Observer.hasObjectObserve = hasObserve;
+  global.ArrayObserver = ArrayObserver;
+  global.ArrayObserver.calculateSplices = function(current, previous) {
+    return arraySplice.calculateSplices(current, previous);
+  };
+
+  global.ArraySplice = ArraySplice;
+  global.ObjectObserver = ObjectObserver;
+  global.PathObserver = PathObserver;
+  global.CompoundPathObserver = CompoundPathObserver;
+  global.Path = Path;
+})(typeof global !== 'undefined' && global ? global : this);
+
 /*
  * Copyright 2012 The Polymer Authors. All rights reserved.
- * Use of this source code is goverened by a BSD-style
+ * Use of this source code is governed by a BSD-style
  * license that can be found in the LICENSE file.
  */
 
-// SideTable is a weak map where possible. If WeakMap is not available the
-// association is stored as an expando property.
-var SideTable;
+// If WeakMap is not available, the association is stored as an expando property on the "key".
 // TODO(arv): WeakMap does not allow for Node etc to be keys in Firefox
-if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 0) {
-  SideTable = WeakMap;
-} else {
+if (typeof WeakMap === 'undefined' || navigator.userAgent.indexOf('Firefox/') > -1) {
   (function() {
     var defineProperty = Object.defineProperty;
     var counter = Date.now() % 1e9;
 
-    SideTable = function() {
+    var WeakMap = function() {
       this.name = '__st' + (Math.random() * 1e9 >>> 0) + (counter++ + '__');
     };
 
-    SideTable.prototype = {
+    WeakMap.prototype = {
       set: function(key, value) {
         var entry = key[this.name];
         if (entry && entry[0] === key)
@@ -53,7 +1375,9 @@ if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 
       delete: function(key) {
         this.set(key, undefined);
       }
-    }
+    };
+
+    window.WeakMap = WeakMap;
   })();
 }
 
@@ -66,10 +1390,22 @@ var ShadowDOMPolyfill = {};
 (function(scope) {
   'use strict';
 
-  var wrapperTable = new SideTable();
-  var constructorTable = new SideTable();
-  var nativePrototypeTable = new SideTable();
+  var constructorTable = new WeakMap();
+  var nativePrototypeTable = new WeakMap();
   var wrappers = Object.create(null);
+
+  // Don't test for eval if document has CSP securityPolicy object and we can
+  // see that eval is not supported. This avoids an error message in console
+  // even when the exception is caught
+  var hasEval = !('securityPolicy' in document) ||
+      document.securityPolicy.allowsEval;
+  if (hasEval) {
+    try {
+      var f = new Function('', 'return true;');
+      hasEval = f();
+    } catch (ex) {
+    }
+  }
 
   function assert(b) {
     if (!b)
@@ -150,6 +1486,25 @@ var ShadowDOMPolyfill = {};
     return /^on[a-z]+$/.test(name);
   }
 
+  function getGetter(name) {
+    return hasEval ?
+        new Function('return this.impl.' + name) :
+        function() { return this.impl[name]; };
+  }
+
+  function getSetter(name) {
+    return hasEval ?
+        new Function('v', 'this.impl.' + name + ' = v') :
+        function(v) { this.impl[name] = v; };
+  }
+
+  function getMethod(name) {
+    return hasEval ?
+        new Function('return this.impl.' + name +
+                     '.apply(this.impl, arguments)') :
+        function() { return this.impl[name].apply(this.impl, arguments); };
+  }
+
   function installProperty(source, target, allowMethod) {
     Object.getOwnPropertyNames(source).forEach(function(name) {
       if (name in target)
@@ -170,29 +1525,21 @@ var ShadowDOMPolyfill = {};
       }
       var getter, setter;
       if (allowMethod && typeof descriptor.value === 'function') {
-        target[name] = function() {
-          return this.impl[name].apply(this.impl, arguments);
-        };
+        target[name] = getMethod(name);
         return;
       }
 
       var isEvent = isEventHandlerName(name);
-      if (isEvent) {
+      if (isEvent)
         getter = scope.getEventHandlerGetter(name);
-      } else {
-        getter = function() {
-          return this.impl[name];
-        };
-      }
+      else
+        getter = getGetter(name);
 
       if (descriptor.writable || descriptor.set) {
-        if (isEvent) {
+        if (isEvent)
           setter = scope.getEventHandlerSetter(name);
-        } else {
-          setter = function(value) {
-            this.impl[name] = value;
-          };
-        }
+        else
+          setter = getSetter(name);
       }
 
       Object.defineProperty(target, name, {
@@ -296,10 +1643,8 @@ var ShadowDOMPolyfill = {};
       return null;
 
     assert(isNative(impl));
-    var wrapper = wrapperTable.get(impl);
-    if (!wrapper)
-      wrapperTable.set(impl, wrapper = new (getWrapperConstructor(impl))(impl));
-    return wrapper;
+    return impl.polymerWrapper_ ||
+        (impl.polymerWrapper_ = new (getWrapperConstructor(impl))(impl));
   }
 
   /**
@@ -343,7 +1688,7 @@ var ShadowDOMPolyfill = {};
       return;
     assert(isNative(node));
     assert(wrapper === undefined || isWrapper(wrapper));
-    wrapperTable.set(node, wrapper);
+    node.polymerWrapper_ = wrapper;
   }
 
   function defineGetter(constructor, name, getter) {
@@ -411,17 +1756,17 @@ var ShadowDOMPolyfill = {};
   var wrap = scope.wrap;
   var wrappers = scope.wrappers;
 
-  var wrappedFuns = new SideTable();
-  var listenersTable = new SideTable();
-  var handledEventsTable = new SideTable();
-  var targetTable = new SideTable();
-  var currentTargetTable = new SideTable();
-  var relatedTargetTable = new SideTable();
-  var eventPhaseTable = new SideTable();
-  var stopPropagationTable = new SideTable();
-  var stopImmediatePropagationTable = new SideTable();
-  var eventHandlersTable = new SideTable();
-  var eventPathTable = new SideTable();
+  var wrappedFuns = new WeakMap();
+  var listenersTable = new WeakMap();
+  var handledEventsTable = new WeakMap();
+  var targetTable = new WeakMap();
+  var currentTargetTable = new WeakMap();
+  var relatedTargetTable = new WeakMap();
+  var eventPhaseTable = new WeakMap();
+  var stopPropagationTable = new WeakMap();
+  var stopImmediatePropagationTable = new WeakMap();
+  var eventHandlersTable = new WeakMap();
+  var eventPathTable = new WeakMap();
 
   function isShadowRoot(node) {
     return node instanceof wrappers.ShadowRoot;
@@ -578,7 +1923,6 @@ var ShadowDOMPolyfill = {};
       return enclosedBy(rootOfNode(host), b);
     }
     return false;
-
   }
 
   function isMutationEvent(type) {
@@ -1042,7 +2386,6 @@ var ShadowDOMPolyfill = {};
       }
     },
     dispatchEvent: function(event) {
-      scope.renderAllPending();
       var target = getTargetToListenAt(this);
       return target.dispatchEvent_(unwrap(event));
     }
@@ -1211,7 +2554,7 @@ var ShadowDOMPolyfill = {};
    * This updates the internal pointers for node, previousNode and nextNode.
    */
   function collectNodes(node, parentNode, previousNode, nextNode) {
-    if (node.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
+    if (!(node instanceof DocumentFragment)) {
       if (node.parentNode)
         node.parentNode.removeChild(node);
       node.parentNode_ = parentNode;
@@ -1243,6 +2586,24 @@ var ShadowDOMPolyfill = {};
       nextNode.previousSibling_ = nodes[nodes.length - 1];
 
     return nodes;
+  }
+
+  function collectNodesNoNeedToUpdatePointers(node) {
+    if (node instanceof DocumentFragment) {
+      var nodes = [];
+      var i = 0;
+      for (var child = node.firstChild; child; child = child.nextSibling) {
+        nodes[i++] = child;
+      }
+      return nodes;
+    }
+    return [node];
+  }
+
+  function nodesWereAdded(nodes) {
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].nodeWasAdded_();
+    }
   }
 
   function ensureSameOwnerDocument(parent, child) {
@@ -1373,10 +2734,12 @@ var ShadowDOMPolyfill = {};
     appendChild: function(childWrapper) {
       assertIsNodeWrapper(childWrapper);
 
+      var nodes;
+
       if (this.invalidateShadowRenderer() || invalidateParent(childWrapper)) {
         var previousNode = this.lastChild;
         var nextNode = null;
-        var nodes = collectNodes(childWrapper, this, previousNode, nextNode);
+        nodes = collectNodes(childWrapper, this, previousNode, nextNode);
 
         this.lastChild_ = nodes[nodes.length - 1];
         if (!previousNode)
@@ -1384,11 +2747,12 @@ var ShadowDOMPolyfill = {};
 
         originalAppendChild.call(this.impl, unwrapNodesForInsertion(this, nodes));
       } else {
+        nodes = collectNodesNoNeedToUpdatePointers(childWrapper)
         ensureSameOwnerDocument(this, childWrapper);
         originalAppendChild.call(this.impl, unwrap(childWrapper));
       }
 
-      childWrapper.nodeWasAdded_();
+      nodesWereAdded(nodes);
 
       return childWrapper;
     },
@@ -1402,10 +2766,12 @@ var ShadowDOMPolyfill = {};
       assertIsNodeWrapper(refWrapper);
       assert(refWrapper.parentNode === this);
 
+      var nodes;
+
       if (this.invalidateShadowRenderer() || invalidateParent(childWrapper)) {
         var previousNode = refWrapper.previousSibling;
         var nextNode = refWrapper;
-        var nodes = collectNodes(childWrapper, this, previousNode, nextNode);
+        nodes = collectNodes(childWrapper, this, previousNode, nextNode);
 
         if (this.firstChild === refWrapper)
           this.firstChild_ = nodes[0];
@@ -1423,12 +2789,13 @@ var ShadowDOMPolyfill = {};
           adoptNodesIfNeeded(this, nodes);
         }
       } else {
+        nodes = collectNodesNoNeedToUpdatePointers(childWrapper);
         ensureSameOwnerDocument(this, childWrapper);
         originalInsertBefore.call(this.impl, unwrap(childWrapper),
                                   unwrap(refWrapper));
       }
 
-      childWrapper.nodeWasAdded_();
+      nodesWereAdded(nodes);
 
       return childWrapper;
     },
@@ -1485,6 +2852,7 @@ var ShadowDOMPolyfill = {};
       }
 
       var oldChildNode = unwrap(oldChildWrapper);
+      var nodes;
 
       if (this.invalidateShadowRenderer() ||
           invalidateParent(newChildWrapper)) {
@@ -1492,8 +2860,7 @@ var ShadowDOMPolyfill = {};
         var nextNode = oldChildWrapper.nextSibling;
         if (nextNode === newChildWrapper)
           nextNode = newChildWrapper.nextSibling;
-        var nodes = collectNodes(newChildWrapper, this,
-                                 previousNode, nextNode);
+        nodes = collectNodes(newChildWrapper, this, previousNode, nextNode);
 
         if (this.firstChild === oldChildWrapper)
           this.firstChild_ = nodes[0];
@@ -1511,12 +2878,13 @@ var ShadowDOMPolyfill = {};
               oldChildNode);
         }
       } else {
+        nodes = collectNodesNoNeedToUpdatePointers(newChildWrapper);
         ensureSameOwnerDocument(this, newChildWrapper);
         originalReplaceChild.call(this.impl, unwrap(newChildWrapper),
                                   oldChildNode);
       }
 
-      newChildWrapper.nodeWasAdded_();
+      nodesWereAdded(nodes);
 
       return oldChildWrapper;
     },
@@ -1635,19 +3003,10 @@ var ShadowDOMPolyfill = {};
       // This only wraps, it therefore only operates on the composed DOM and not
       // the logical DOM.
       return originalCompareDocumentPosition.call(this.impl, unwrap(otherNode));
-    },
-
-    // TODO(jmesserly): this is a workaround for
-    // https://github.com/Polymer/ShadowDOM/issues/200
-    get ownerDocument() {
-      scope.renderAllPending();
-      return wrap(this.impl.ownerDocument);
     }
   });
 
-  // TODO(jmesserly): this is commented out to workaround:
-  // https://github.com/Polymer/ShadowDOM/issues/200
-  //defineWrapGetter(Node, 'ownerDocument');
+  defineWrapGetter(Node, 'ownerDocument');
 
   // We use a DocumentFragment as a base and then delete the properties of
   // DocumentFragment.prototype from the wrapper Node. Since delete makes
@@ -1858,7 +3217,7 @@ var ShadowDOMPolyfill = {};
   var registerWrapper = scope.registerWrapper;
   var wrappers = scope.wrappers;
 
-  var shadowRootTable = new SideTable();
+  var shadowRootTable = new WeakMap();
   var OriginalElement = window.Element;
 
 
@@ -2224,8 +3583,8 @@ var ShadowDOMPolyfill = {};
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
-  var contentTable = new SideTable();
-  var templateContentsOwnerTable = new SideTable();
+  var contentTable = new WeakMap();
+  var templateContentsOwnerTable = new WeakMap();
 
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
   function getTemplateContentsOwner(doc) {
@@ -2362,8 +3721,8 @@ var ShadowDOMPolyfill = {};
   var setInnerHTML = scope.setInnerHTML;
   var unwrap = scope.unwrap;
 
-  var shadowHostTable = new SideTable();
-  var nextOlderShadowTreeTable = new SideTable();
+  var shadowHostTable = new WeakMap();
+  var nextOlderShadowTreeTable = new WeakMap();
 
   function ShadowRoot(hostWrapper) {
     var node = unwrap(hostWrapper.impl.ownerDocument.createDocumentFragment());
@@ -2417,6 +3776,7 @@ var ShadowDOMPolyfill = {};
 (function(scope) {
   'use strict';
 
+  var Element = scope.wrappers.Element;
   var HTMLContentElement = scope.wrappers.HTMLContentElement;
   var HTMLShadowElement = scope.wrappers.HTMLShadowElement;
   var Node = scope.wrappers.Node;
@@ -2460,79 +3820,59 @@ var ShadowDOMPolyfill = {};
     updateWrapperDown(parentNodeWrapper);
   }
 
-  // This object groups DOM operations. This is supposed to be the DOM as the
-  // browser/render tree sees it.
-  // When changes are done to the visual DOM the logical DOM needs to be updated
-  // to reflect the correct tree.
-  function removeAllChildNodes(parentNodeWrapper) {
+  function insertBefore(parentNodeWrapper, newChildWrapper, refChildWrapper) {
     var parentNode = unwrap(parentNodeWrapper);
-    updateAllChildNodes(parentNodeWrapper);
-    if (parentNode.firstChild)
-      parentNode.textContent = '';
-  }
+    var newChild = unwrap(newChildWrapper);
+    var refChild = refChildWrapper ? unwrap(refChildWrapper) : null;
 
-  function appendChild(parentNodeWrapper, childWrapper) {
-    var parentNode = unwrap(parentNodeWrapper);
-    var child = unwrap(childWrapper);
-    if (child.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      updateAllChildNodes(childWrapper);
+    remove(newChildWrapper);
+    updateWrapperUpAndSideways(newChildWrapper);
 
+    if (!refChildWrapper) {
+      parentNodeWrapper.lastChild_ = parentNodeWrapper.lastChild;
+      if (parentNodeWrapper.lastChild === parentNodeWrapper.firstChild)
+        parentNodeWrapper.firstChild_ = parentNodeWrapper.firstChild;
+
+      var lastChildWrapper = wrap(parentNode.lastChild);
+      if (lastChildWrapper)
+        lastChildWrapper.nextSibling_ = lastChildWrapper.nextSibling;
     } else {
-      remove(childWrapper);
-      updateWrapperUpAndSideways(childWrapper);
+      if (parentNodeWrapper.firstChild === refChildWrapper)
+        parentNodeWrapper.firstChild_ = refChildWrapper;
+
+      refChildWrapper.previousSibling_ = refChildWrapper.previousSibling;
     }
 
-    parentNodeWrapper.lastChild_ = parentNodeWrapper.lastChild;
-    if (parentNodeWrapper.lastChild === parentNodeWrapper.firstChild)
-      parentNodeWrapper.firstChild_ = parentNodeWrapper.firstChild;
-
-    var lastChildWrapper = wrap(parentNode.lastChild);
-    if (lastChildWrapper) {
-      lastChildWrapper.nextSibling_ = lastChildWrapper.nextSibling;
-    }
-
-    parentNode.appendChild(child);
-  }
-
-  function removeChild(parentNodeWrapper, childWrapper) {
-    var parentNode = unwrap(parentNodeWrapper);
-    var child = unwrap(childWrapper);
-
-    updateWrapperUpAndSideways(childWrapper);
-
-    if (childWrapper.previousSibling)
-      childWrapper.previousSibling.nextSibling_ = childWrapper;
-    if (childWrapper.nextSibling)
-      childWrapper.nextSibling.previousSibling_ = childWrapper;
-
-    if (parentNodeWrapper.lastChild === childWrapper)
-      parentNodeWrapper.lastChild_ = childWrapper;
-    if (parentNodeWrapper.firstChild === childWrapper)
-      parentNodeWrapper.firstChild_ = childWrapper;
-
-    parentNode.removeChild(child);
+    parentNode.insertBefore(newChild, refChild);
   }
 
   function remove(nodeWrapper) {
     var node = unwrap(nodeWrapper)
     var parentNode = node.parentNode;
-    if (parentNode)
-      removeChild(wrap(parentNode), nodeWrapper);
+    if (!parentNode)
+      return;
+
+    var parentNodeWrapper = wrap(parentNode);
+    updateWrapperUpAndSideways(nodeWrapper);
+
+    if (nodeWrapper.previousSibling)
+      nodeWrapper.previousSibling.nextSibling_ = nodeWrapper;
+    if (nodeWrapper.nextSibling)
+      nodeWrapper.nextSibling.previousSibling_ = nodeWrapper;
+
+    if (parentNodeWrapper.lastChild === nodeWrapper)
+      parentNodeWrapper.lastChild_ = nodeWrapper;
+    if (parentNodeWrapper.firstChild === nodeWrapper)
+      parentNodeWrapper.firstChild_ = nodeWrapper;
+
+    parentNode.removeChild(node);
   }
 
-  var distributedChildNodesTable = new SideTable();
-  var eventParentsTable = new SideTable();
-  var insertionParentTable = new SideTable();
-  var rendererForHostTable = new SideTable();
-  var shadowDOMRendererTable = new SideTable();
-
-  var reprCounter = 0;
-
-  function repr(node) {
-    if (!node.displayName)
-      node.displayName = node.nodeName + '-' + ++reprCounter;
-    return node.displayName;
-  }
+  var distributedChildNodesTable = new WeakMap();
+  var eventParentsTable = new WeakMap();
+  var insertionParentTable = new WeakMap();
+  var rendererForHostTable = new WeakMap();
+  var shadowDOMRendererTable = new WeakMap();
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     getDistributedChildNodes(insertionPoint).push(child);
@@ -2569,9 +3909,7 @@ var ShadowDOMPolyfill = {};
    */
   function visit(tree, predicate, visitor) {
     // This operates on logical DOM.
-    var nodes = getChildNodesSnapshot(tree);
-    for (var i = 0; i < nodes.length; i++) {
-      var node = nodes[i];
+    for (var node = tree.firstChild; node; node = node.nextSibling) {
       if (predicate(node)) {
         if (visitor(node) === false)
           return;
@@ -2622,14 +3960,14 @@ var ShadowDOMPolyfill = {};
     if (!select)
       return true;
 
-    if (node.nodeType !== Node.ELEMENT_NODE)
+    if (!(node instanceof Element))
       return false;
 
     // TODO(arv): This does not seem right. Need to check for a simple selector.
     if (!selectorMatchRegExp.test(select))
       return false;
 
-    if (select[0] === ':' &&!allowedPseudoRegExp.test(select))
+    if (select[0] === ':' && !allowedPseudoRegExp.test(select))
       return false;
 
     try {
@@ -2651,18 +3989,15 @@ var ShadowDOMPolyfill = {};
   var renderTimer;
 
   function renderAllPending() {
-    renderTimer = null;
-    pendingDirtyRenderers.forEach(function(owner) {
-      owner.render();
-    });
+    for (var i = 0; i < pendingDirtyRenderers.length; i++) {
+      pendingDirtyRenderers[i].render();
+    }
     pendingDirtyRenderers = [];
   }
 
-  function ShadowRenderer(host) {
-    this.host = host;
-    this.dirty = false;
-    this.invalidateAttributes();
-    this.associateNode(host);
+  function handleRequestAnimationFrame() {
+    renderTimer = null;
+    renderAllPending();
   }
 
   /**
@@ -2691,10 +4026,92 @@ var ShadowDOMPolyfill = {};
     return getRendererForHost(getHostForShadowRoot(shadowRoot));
   }
 
+  var spliceDiff = new ArraySplice();
+  spliceDiff.equals = function(renderNode, rawNode) {
+    return unwrap(renderNode.node) === rawNode;
+  };
+
+  /**
+   * RenderNode is used as an in memory "render tree". When we render the
+   * composed tree we create a tree of RenderNodes, then we diff this against
+   * the real DOM tree and make minimal changes as needed.
+   */
+  function RenderNode(node) {
+    this.skip = false;
+    this.node = node;
+    this.childNodes = [];
+  }
+
+  RenderNode.prototype = {
+    append: function(node) {
+      var rv = new RenderNode(node);
+      this.childNodes.push(rv);
+      return rv;
+    },
+
+    sync: function(opt_added) {
+      if (this.skip)
+        return;
+
+      var nodeWrapper = this.node;
+      // plain array of RenderNodes
+      var newChildren = this.childNodes;
+      // plain array of real nodes.
+      var oldChildren = getChildNodesSnapshot(unwrap(nodeWrapper));
+      var added = opt_added || new WeakMap();
+
+      var splices = spliceDiff.calculateSplices(newChildren, oldChildren);
+
+      var newIndex = 0, oldIndex = 0;
+      var lastIndex = 0;
+      for (var i = 0; i < splices.length; i++) {
+        var splice = splices[i];
+        for (; lastIndex < splice.index; lastIndex++) {
+          oldIndex++;
+          newChildren[newIndex++].sync(added);
+        }
+
+        var removedCount = splice.removed.length;
+        for (var j = 0; j < removedCount; j++) {
+          var wrapper = wrap(oldChildren[oldIndex++]);
+          if (!added.get(wrapper))
+            remove(wrapper);
+        }
+
+        var addedCount = splice.addedCount;
+        var refNode = oldChildren[oldIndex] && wrap(oldChildren[oldIndex]);
+        for (var j = 0; j < addedCount; j++) {
+          var newChildRenderNode = newChildren[newIndex++];
+          var newChildWrapper = newChildRenderNode.node;
+          insertBefore(nodeWrapper, newChildWrapper, refNode);
+
+          // Keep track of added so that we do not remove the node after it
+          // has been added.
+          added.set(newChildWrapper, true);
+
+          newChildRenderNode.sync(added);
+        }
+
+        lastIndex += addedCount;
+      }
+
+      for (var i = lastIndex; i < newChildren.length; i++) {
+        newChildren[i++].sync(added);
+      }
+    }
+  };
+
+  function ShadowRenderer(host) {
+    this.host = host;
+    this.dirty = false;
+    this.invalidateAttributes();
+    this.associateNode(host);
+  }
+
   ShadowRenderer.prototype = {
 
     // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#rendering-shadow-trees
-    render: function() {
+    render: function(opt_renderNode) {
       if (!this.dirty)
         return;
 
@@ -2702,14 +4119,18 @@ var ShadowDOMPolyfill = {};
       this.treeComposition();
 
       var host = this.host;
-      var shadowDOM = host.shadowRoot;
+      var shadowRoot = host.shadowRoot;
 
-      this.removeAllChildNodes(this.host);
+      this.associateNode(host);
+      var topMostRenderer = !renderNode;
+      var renderNode = opt_renderNode || new RenderNode(host);
 
-      var shadowDOMChildNodes = getChildNodesSnapshot(shadowDOM);
-      shadowDOMChildNodes.forEach(function(node) {
-        this.renderNode(host, shadowDOM, node, false);
-      }, this);
+      for (var node = shadowRoot.firstChild; node; node = node.nextSibling) {
+        this.renderNode(shadowRoot, renderNode, node, false);
+      }
+
+      if (topMostRenderer)
+        renderNode.sync();
 
       this.dirty = false;
     },
@@ -2720,81 +4141,81 @@ var ShadowDOMPolyfill = {};
         pendingDirtyRenderers.push(this);
         if (renderTimer)
           return;
-        renderTimer = window[request](renderAllPending, 0);
+        renderTimer = window[request](handleRequestAnimationFrame, 0);
       }
     },
 
-    renderNode: function(visualParent, tree, node, isNested) {
+    renderNode: function(shadowRoot, renderNode, node, isNested) {
       if (isShadowHost(node)) {
-        this.appendChild(visualParent, node);
+        renderNode = renderNode.append(node);
         var renderer = getRendererForHost(node);
         renderer.dirty = true;  // Need to rerender due to reprojection.
-        renderer.render();
+        renderer.render(renderNode);
       } else if (isInsertionPoint(node)) {
-        this.renderInsertionPoint(visualParent, tree, node, isNested);
+        this.renderInsertionPoint(shadowRoot, renderNode, node, isNested);
       } else if (isShadowInsertionPoint(node)) {
-        this.renderShadowInsertionPoint(visualParent, tree, node);
+        this.renderShadowInsertionPoint(shadowRoot, renderNode, node);
       } else {
-        this.renderAsAnyDomTree(visualParent, tree, node, isNested);
+        this.renderAsAnyDomTree(shadowRoot, renderNode, node, isNested);
       }
     },
 
-    renderAsAnyDomTree: function(visualParent, tree, node, isNested) {
-      this.appendChild(visualParent, node);
+    renderAsAnyDomTree: function(shadowRoot, renderNode, node, isNested) {
+      renderNode = renderNode.append(node);
 
       if (isShadowHost(node)) {
-        render(node);
+        var renderer = getRendererForHost(node);
+        renderNode.skip = !renderer.dirty;
+        renderer.render(renderNode);
       } else {
-        var parent = node;
-        var logicalChildNodes = getChildNodesSnapshot(parent);
-        // We associate the parent of a content/shadow with the renderer
-        // because we may need to remove stale childNodes.
-        if (shadowDOMRendererTable.get(parent))
-          this.removeAllChildNodes(parent);
-        logicalChildNodes.forEach(function(node) {
-          this.renderNode(parent, tree, node, isNested);
-        }, this);
+        for (var child = node.firstChild; child; child = child.nextSibling) {
+          this.renderNode(shadowRoot, renderNode, child, isNested);
+        }
       }
     },
 
-    renderInsertionPoint: function(visualParent, tree, insertionPoint, isNested) {
+    renderInsertionPoint: function(shadowRoot, renderNode, insertionPoint,
+                                   isNested) {
       var distributedChildNodes = getDistributedChildNodes(insertionPoint);
       if (distributedChildNodes.length) {
-        this.removeAllChildNodes(insertionPoint);
+        this.associateNode(insertionPoint);
 
-        distributedChildNodes.forEach(function(child) {
+        for (var i = 0; i < distributedChildNodes.length; i++) {
+          var child = distributedChildNodes[i];
           if (isInsertionPoint(child) && isNested)
-            this.renderInsertionPoint(visualParent, tree, child, isNested);
+            this.renderInsertionPoint(shadowRoot, renderNode, child, isNested);
           else
-            this.renderAsAnyDomTree(visualParent, tree, child, isNested);
-        }, this);
+            this.renderAsAnyDomTree(shadowRoot, renderNode, child, isNested);
+        }
       } else {
-        this.renderFallbackContent(visualParent, insertionPoint);
+        this.renderFallbackContent(shadowRoot, renderNode, insertionPoint);
       }
-      this.remove(insertionPoint);
+      this.associateNode(insertionPoint.parentNode);
     },
 
-    renderShadowInsertionPoint: function(visualParent, tree, shadowInsertionPoint) {
-      var nextOlderTree = tree.olderShadowRoot;
+    renderShadowInsertionPoint: function(shadowRoot, renderNode,
+                                         shadowInsertionPoint) {
+      var nextOlderTree = shadowRoot.olderShadowRoot;
       if (nextOlderTree) {
         assignToInsertionPoint(nextOlderTree, shadowInsertionPoint);
-        this.remove(shadowInsertionPoint);
-        var shadowDOMChildNodes = getChildNodesSnapshot(nextOlderTree);
-        shadowDOMChildNodes.forEach(function(node) {
-          this.renderNode(visualParent, nextOlderTree, node, true);
-        }, this);
+        this.associateNode(shadowInsertionPoint.parentNode);
+        for (var node = nextOlderTree.firstChild;
+             node;
+             node = node.nextSibling) {
+          this.renderNode(nextOlderTree, renderNode, node, true);
+        }
       } else {
-        this.renderFallbackContent(visualParent, shadowInsertionPoint);
+        this.renderFallbackContent(shadowRoot, renderNode,
+                                   shadowInsertionPoint);
       }
     },
 
-    renderFallbackContent: function (visualParent, fallbackHost) {
-      var logicalChildNodes = getChildNodesSnapshot(fallbackHost);
+    renderFallbackContent: function(shadowRoot, renderNode, fallbackHost) {
       this.associateNode(fallbackHost);
-      this.remove(fallbackHost);
-      logicalChildNodes.forEach(function(node) {
-        this.appendChild(visualParent, node);
-      }, this);
+      this.associateNode(fallbackHost.parentNode);
+      for (var node = fallbackHost.firstChild; node; node = node.nextSibling) {
+        this.renderAsAnyDomTree(shadowRoot, renderNode, node, false);
+      }
     },
 
     /**
@@ -2837,7 +4258,6 @@ var ShadowDOMPolyfill = {};
 
     // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-distribution-algorithm
     distribute: function(tree, pool) {
-      var anyRemoved = false;
       var self = this;
 
       visit(tree, isActiveInsertionPoint,
@@ -2853,17 +4273,9 @@ var ShadowDOMPolyfill = {};
               if (matchesCriteria(node, insertionPoint)) {  // 1.2.2
                 distributeChildToInsertionPoint(node, insertionPoint);  // 1.2.2.1
                 pool[i] = undefined;  // 1.2.2.2
-                anyRemoved = true;
               }
             }
           });
-
-      if (!anyRemoved)
-        return pool;
-
-      return pool.filter(function(item) {
-        return item !== undefined;
-      });
     },
 
     // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-tree-composition
@@ -2871,8 +4283,10 @@ var ShadowDOMPolyfill = {};
       var shadowHost = this.host;
       var tree = shadowHost.shadowRoot;  // 1.
       var pool = [];  // 2.
-      var shadowHostChildNodes = getChildNodesSnapshot(shadowHost);
-      shadowHostChildNodes.forEach(function(child) {  // 3.
+
+      for (var child = shadowHost.firstChild;
+           child;
+           child = child.nextSibling) {  // 3.
         if (isInsertionPoint(child)) {  // 3.2.
           var reprojected = getDistributedChildNodes(child);  // 3.2.1.
           // if reprojected is undef... reset it?
@@ -2882,7 +4296,7 @@ var ShadowDOMPolyfill = {};
         } else {
           pool.push(child); // 3.3.
         }
-      });
+      }
 
       var shadowInsertionPoint, point;
       while (tree) {  // 4.
@@ -2894,7 +4308,7 @@ var ShadowDOMPolyfill = {};
         });
         point = shadowInsertionPoint;
 
-        pool = this.distribute(tree, pool);  // 4.2.
+        this.distribute(tree, pool);  // 4.2.
         if (point) {  // 4.3.
           var nextOlderTree = tree.olderShadowRoot;  // 4.3.1.
           if (!nextOlderTree) {
@@ -2910,23 +4324,6 @@ var ShadowDOMPolyfill = {};
       }
     },
 
-    appendChild: function(parent, child) {
-      // this.associateNode(child);
-      this.associateNode(parent);
-      appendChild(parent, child);
-    },
-
-    remove: function(node) {
-      // this.associateNode(node);
-      this.associateNode(node.parentNode);
-      remove(node);
-    },
-
-    removeAllChildNodes: function(parent) {
-      this.associateNode(parent);
-      removeAllChildNodes(parent);
-    },
-
     associateNode: function(node) {
       shadowDOMRendererTable.set(node, this);
     }
@@ -2934,21 +4331,21 @@ var ShadowDOMPolyfill = {};
 
   function isInsertionPoint(node) {
     // Should this include <shadow>?
-    return node.localName === 'content';
+    return node instanceof HTMLContentElement;
   }
 
   function isActiveInsertionPoint(node) {
     // <content> inside another <content> or <shadow> is considered inactive.
-    return node.localName === 'content';
+    return node instanceof HTMLContentElement;
   }
 
   function isShadowInsertionPoint(node) {
-    return node.localName === 'shadow';
+    return node instanceof HTMLShadowElement;
   }
 
   function isActiveShadowInsertionPoint(node) {
     // <shadow> inside another <content> or <shadow> is considered inactive.
-    return node.localName === 'shadow';
+    return node instanceof HTMLShadowElement;
   }
 
   function isShadowHost(shadowHost) {
@@ -3025,9 +4422,8 @@ var ShadowDOMPolyfill = {};
 
   // Exposed for testing
   scope.visual = {
-    removeAllChildNodes: removeAllChildNodes,
-    appendChild: appendChild,
-    removeChild: removeChild
+    insertBefore: insertBefore,
+    remove: remove,
   };
 
 })(this.ShadowDOMPolyfill);
@@ -3109,7 +4505,7 @@ var ShadowDOMPolyfill = {};
   var wrapEventTargetMethods = scope.wrapEventTargetMethods;
   var wrapNodeList = scope.wrapNodeList;
 
-  var implementationTable = new SideTable();
+  var implementationTable = new WeakMap();
 
   function Document(node) {
     Node.call(this, node);
@@ -3384,6 +4780,7 @@ var ShadowDOMPolyfill = {};
   var unwrap = scope.unwrap;
   var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
+  var renderAllPending = scope.renderAllPending;
 
   var OriginalWindow = window.Window;
 
@@ -3394,6 +4791,7 @@ var ShadowDOMPolyfill = {};
 
   var originalGetComputedStyle = window.getComputedStyle;
   OriginalWindow.prototype.getComputedStyle = function(el, pseudo) {
+    renderAllPending();
     return originalGetComputedStyle.call(this || window, unwrapIfNeeded(el),
                                          pseudo);
   };
@@ -3745,11 +5143,9 @@ var ShadowDOMPolyfill = {};
         // Fix up class names for Firefox.
         // For some of them (like HTMLFormElement and HTMLInputElement),
         // the "constructor" property of the unwrapped nodes points at the
-        // wrapper.
-        // Note: it is safe to check for the GeneratedWrapper string because
-        // we know it is some kind of Shadow DOM wrapper object.
-        var ctor = obj.constructor;
-        if (ctor && ctor.name == 'GeneratedWrapper') {
+        // same constructor as the wrapper.
+        var ctor = obj.constructor
+        if (ctor === unwrapped.constructor) {
           var name = ctor._ShadowDOMPolyfill$cacheTag_;
           if (!name) {
             name = Object.prototype.toString.call(unwrapped);

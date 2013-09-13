@@ -775,9 +775,9 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
     const Script& script = Script::Handle(isolate, func.script());
     const Class& owner = Class::Handle(isolate, func.Owner());
     ASSERT(!owner.IsNull());
-    const Library& lib = Library::Handle(isolate, owner.library());
-    Parser parser(script, lib, func.token_pos());
-    parser.set_current_class(owner);
+    ParsedFunction* parsed_function = new ParsedFunction(
+        Function::ZoneHandle(func.raw()));
+    Parser parser(script, parsed_function, func.token_pos());
     parser.SkipFunctionPreamble();
     ParamList params;
     parser.ParseFormalParameterList(true, true, &params);
@@ -1700,7 +1700,7 @@ static RawClass* LookupCoreClass(const String& class_name) {
     name = String::Concat(name, String::Handle(core_lib.private_key()));
     name = Symbols::New(name);
   }
-  return core_lib.LookupClass(name, NULL);  // No ambiguity error expected.
+  return core_lib.LookupClass(name);
 }
 
 
@@ -1904,7 +1904,55 @@ AstNode* Parser::ParseSuperOperator() {
       op_arguments = BuildNoSuchMethodArguments(
           operator_pos, operator_function_name, *op_arguments);
     }
-    super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
+    if (super_operator.name() == Symbols::EqualOperator().raw()) {
+      // Expand super.== call to match correct == semantics into:
+      // Let t1 = left, t2 = right {
+      //   (t1 === null  || t2 === null) ? t1 === t2
+      //                                 : static_call(super.==, t1, t2)
+      // }
+      // Normal == calls are not expanded at the AST level to produce
+      // more compact code and enable more optimization opportunities.
+      ASSERT(!is_no_such_method);  // == is always found.
+      EnsureExpressionTemp();  // Needed for ConditionalExprNode.
+      LetNode* result = new LetNode(operator_pos);
+      AstNode* left =
+          new LoadLocalNode(operator_pos,
+                            result->AddInitializer(op_arguments->NodeAt(0)));
+      AstNode* right =
+          new LoadLocalNode(operator_pos,
+                            result->AddInitializer(op_arguments->NodeAt(1)));
+      LiteralNode* null_operand =
+          new LiteralNode(operator_pos, Instance::ZoneHandle());
+      ComparisonNode* is_left_null = new ComparisonNode(operator_pos,
+                                                        Token::kEQ_STRICT,
+                                                        left,
+                                                        null_operand);
+      ComparisonNode* is_right_null = new ComparisonNode(operator_pos,
+                                                         Token::kEQ_STRICT,
+                                                         right,
+                                                         null_operand);
+      BinaryOpNode* null_check = new BinaryOpNode(operator_pos,
+                                                  Token::kOR,
+                                                  is_left_null,
+                                                  is_right_null);
+      ArgumentListNode* new_arguments = new ArgumentListNode(operator_pos);
+      new_arguments->Add(left);
+      new_arguments->Add(right);
+      StaticCallNode* call = new StaticCallNode(operator_pos,
+                                                super_operator,
+                                                new_arguments);
+      ComparisonNode* strict_eq = new ComparisonNode(operator_pos,
+                                                     Token::kEQ_STRICT,
+                                                     left,
+                                                     right);
+      result->AddNode(new ConditionalExprNode(operator_pos,
+                                              null_check,
+                                              strict_eq,
+                                              call));
+      super_op = result;
+    } else {
+      super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
+    }
     if (negate_result) {
       super_op = new UnaryOpNode(operator_pos, Token::kNOT, super_op);
     }
@@ -3569,6 +3617,13 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
   }
 
   ASSERT(member.name != NULL);
+  if (member.kind != RawFunction::kConstructor) {
+    if (member.name->Equals(members->class_name())) {
+      ErrorMsg(member.name_pos,
+               "class member must not have the same name as its class");
+    }
+  }
+
   if (CurrentToken() == Token::kLPAREN || member.IsGetter()) {
     // Constructor or method.
     if (member.type == NULL) {
@@ -4306,18 +4361,16 @@ void Parser::ParseInterfaceList(const Class& cls) {
 RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
   TRACE_PARSER("ParseMixins");
   ASSERT(CurrentToken() == Token::kWITH);
+  ASSERT(super_type.IsType());  // TODO(regis): Could be a BoundedType.
+  AbstractType& mixin_super_type = AbstractType::Handle(super_type.raw());
 
   const GrowableObjectArray& mixin_apps =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   AbstractType& mixin_type = AbstractType::Handle();
-  AbstractTypeArguments& mixin_type_arguments =
-      AbstractTypeArguments::Handle();
-  Class& mixin_application = Class::Handle();
-  Type& mixin_application_type = Type::Handle();
-  Type& mixin_super_type = Type::Handle();
-  ASSERT(super_type.IsType());
-  mixin_super_type ^= super_type.raw();
-  Array& mixin_application_interfaces = Array::Handle();
+  Class& mixin_app_class = Class::Handle();
+  Array& mixin_app_interfaces = Array::Handle();
+  String& mixin_app_class_name = String::Handle();
+  String& mixin_type_class_name = String::Handle();
   do {
     ConsumeToken();
     const intptr_t mixin_pos = TokenPos();
@@ -4329,42 +4382,38 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
     }
 
     // The name of the mixin application class is a combination of
-    // the superclass and mixin class.
-    String& mixin_app_name = String::Handle();
-    mixin_app_name = mixin_super_type.ClassName();
-    mixin_app_name = String::Concat(mixin_app_name, Symbols::Ampersand());
-    mixin_app_name = String::Concat(mixin_app_name,
-                                    String::Handle(mixin_type.ClassName()));
-    mixin_app_name = Symbols::New(mixin_app_name);
+    // the super class name and mixin class name.
+    mixin_app_class_name = mixin_super_type.ClassName();
+    mixin_app_class_name = String::Concat(mixin_app_class_name,
+                                          Symbols::Ampersand());
+    mixin_type_class_name = mixin_type.ClassName();
+    mixin_app_class_name = String::Concat(mixin_app_class_name,
+                                          mixin_type_class_name);
+    mixin_app_class_name = Symbols::New(mixin_app_class_name);
 
-    mixin_application = Class::New(mixin_app_name, script_, mixin_pos);
-    mixin_application.set_super_type(mixin_super_type);
-    mixin_application.set_mixin(Type::Cast(mixin_type));
-    mixin_application.set_library(library_);
-    mixin_application.set_is_synthesized_class();
+    mixin_app_class = Class::New(mixin_app_class_name, script_, mixin_pos);
+    mixin_app_class.set_super_type(mixin_super_type);
+    mixin_app_class.set_mixin(Type::Cast(mixin_type));
+    mixin_app_class.set_library(library_);
+    mixin_app_class.set_is_synthesized_class();
 
     // Add the mixin type to the interfaces that the mixin application
     // class implements. This is necessary so that type tests work.
-    mixin_application_interfaces = Array::New(1);
-    mixin_application_interfaces.SetAt(0, mixin_type);
-    mixin_application.set_interfaces(mixin_application_interfaces);
+    mixin_app_interfaces = Array::New(1);
+    mixin_app_interfaces.SetAt(0, mixin_type);
+    mixin_app_class.set_interfaces(mixin_app_interfaces);
 
-    // For the type arguments of the mixin application type, we need
-    // a copy of the type arguments to the mixin type. The simplest way
-    // to get the copy is to rewind the parser, parse the mixin type
-    // again and steal its type arguments.
-    SetPosition(mixin_pos);
-    mixin_type = ParseType(ClassFinalizer::kResolveTypeParameters);
-    mixin_type_arguments = mixin_type.arguments();
+    // Add the synthesized class to the list of mixin apps.
+    mixin_apps.Add(mixin_app_class);
 
-    mixin_application_type = Type::New(mixin_application,
-                                       mixin_type_arguments,
-                                       mixin_pos);
-    mixin_super_type = mixin_application_type.raw();
-    mixin_apps.Add(mixin_application_type);
+    // This mixin application class becomes the type class of the super type of
+    // the next mixin application class. It is however too early to provide the
+    // correct super type arguments. We use the raw type for now.
+    mixin_super_type = Type::New(mixin_app_class,
+                                 Object::null_abstract_type_arguments(),
+                                 mixin_pos);
   } while (CurrentToken() == Token::kCOMMA);
-  return MixinAppType::New(super_type,
-                           Array::Handle(Array::MakeArray(mixin_apps)));
+  return MixinAppType::New(Array::Handle(Array::MakeArray(mixin_apps)));
 }
 
 
@@ -4759,7 +4808,7 @@ void Parser::ParseLibraryImportExport() {
   }
   ConsumeToken();
   String& prefix = String::Handle();
-  if (is_import && IsLiteral("as")) {
+  if (is_import && (CurrentToken() == Token::kAS)) {
     ConsumeToken();
     prefix = ExpectIdentifier("prefix identifier expected")->raw();
   }
@@ -7291,9 +7340,6 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
       (left_operand->AsPrimaryNode()->IsSuper())) {
     ErrorMsg(left_operand->token_pos(), "illegal use of 'super'");
   }
-  if (IsLiteral("as")) {  // Not a reserved word.
-    token_kind_ = Token::kAS;
-  }
   int current_preced = Token::Precedence(CurrentToken());
   while (current_preced >= min_preced) {
     while (Token::Precedence(CurrentToken()) == current_preced) {
@@ -7552,7 +7598,7 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
   if (result == NULL) {
     String& name = String::ZoneHandle();
     if (original->IsTypeNode()) {
-      name = Symbols::New(original->Name());
+      name = Symbols::New(original->AsTypeNode()->TypeName());
     } else if ((left_ident != NULL) &&
                (original->IsLiteralNode() ||
                 original->IsLoadLocalNode() ||
@@ -8226,8 +8272,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
             selector = ParseInstanceCall(receiver, name);
           }
         } else if (primary->primary().IsTypeParameter()) {
+          // TODO(regis): Issue 13134.  Make sure the error message is the
+          // one we want here and add a test covering this code.
           const String& name = String::ZoneHandle(
-              Symbols::New(primary->Name()));
+              TypeParameter::Cast(primary->primary()).name());
           selector = ThrowNoSuchMethodError(primary->token_pos(),
                                             current_class(),
                                             name,
@@ -8402,52 +8450,15 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
       // to resolve it too early to an imported class of the same name.
       if (finalization > ClassFinalizer::kResolveTypeParameters) {
         // Resolve classname in the scope of the current library.
-        Error& error = Error::Handle();
         resolved_type_class = ResolveClassInCurrentLibraryScope(
-            unresolved_class.token_pos(),
-            unresolved_class_name,
-            &error);
-        if (!error.IsNull()) {
-          if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-              FLAG_error_on_bad_type) {
-            *type = ClassFinalizer::NewFinalizedMalformedType(
-                error,
-                scope_class,
-                unresolved_class.token_pos(),
-                "cannot resolve class '%s'",
-                unresolved_class_name.ToCString());
-          } else {
-            // Map the malformed type to dynamic and ignore type arguments.
-            *type = Type::DynamicType();
-          }
-          return;
-        }
+            unresolved_class_name);
       }
     } else {
       LibraryPrefix& lib_prefix =
           LibraryPrefix::Handle(unresolved_class.library_prefix());
       // Resolve class name in the scope of the library prefix.
-      Error& error = Error::Handle();
-      resolved_type_class = ResolveClassInPrefixScope(
-          unresolved_class.token_pos(),
-          lib_prefix,
-          unresolved_class_name,
-          &error);
-      if (!error.IsNull()) {
-        if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-            FLAG_error_on_bad_type) {
-          *type = ClassFinalizer::NewFinalizedMalformedType(
-              error,
-              scope_class,
-              unresolved_class.token_pos(),
-              "cannot resolve class '%s'",
-              unresolved_class_name.ToCString());
-        } else {
-          // Map the malformed type to dynamic and ignore type arguments.
-          *type = Type::DynamicType();
-        }
-        return;
-      }
+      resolved_type_class =
+          ResolveClassInPrefixScope(lib_prefix, unresolved_class_name);
     }
     // At this point, we can only have a parameterized_type.
     const Type& parameterized_type = Type::Cast(*type);
@@ -8835,98 +8846,24 @@ static RawObject* LookupNameInLibrary(Isolate* isolate,
 }
 
 
-static RawObject* LookupNameInImport(Isolate* isolate,
-                                     const Namespace& ns,
-                                     const String& name) {
-  // If the given name is filtered out by the import, don't look it up, nor its
-  // getter and setter names.
-  if (ns.HidesName(name)) {
-    return Object::null();
-  }
-  Object& obj = Object::Handle(isolate);
-  obj = ns.Lookup(name);
-  if (!obj.IsNull()) {
-    return obj.raw();
-  }
-  String& accessor_name = String::Handle(isolate, Field::GetterName(name));
-  obj = ns.Lookup(accessor_name);
-  if (!obj.IsNull()) {
-    return obj.raw();
-  }
-  accessor_name = Field::SetterName(name);
-  obj = ns.Lookup(accessor_name);
-  return obj.raw();
-}
-
-
 // Resolve a name by checking the global scope of the current
 // library. If not found in the current library, then look in the scopes
 // of all libraries that are imported without a library prefix.
-// Issue an error if the name is not found in the global scope
-// of the current library, but is defined in more than one imported
-// library, i.e. if the name cannot be resolved unambiguously.
-RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
-                                                    const String& name,
-                                                    Error* error) {
+RawObject* Parser::ResolveNameInCurrentLibraryScope(const String& name) {
   TRACE_PARSER("ResolveNameInCurrentLibraryScope");
   HANDLESCOPE(isolate());
   Object& obj = Object::Handle(isolate(),
                                LookupNameInLibrary(isolate(), library_, name));
-  if (obj.IsNull()) {
-    // Name is not found in current library. Check scope of all
-    // imported libraries.
-    String& first_lib_url = String::Handle(isolate());
-    Namespace& import = Namespace::Handle(isolate());
-    intptr_t num_imports = library_.num_imports();
-    Object& imported_obj = Object::Handle(isolate());
-    Library& lib = Library::Handle(isolate());
-    for (int i = 0; i < num_imports; i++) {
-      import = library_.ImportAt(i);
-      imported_obj = LookupNameInImport(isolate(), import, name);
-      if (!imported_obj.IsNull()) {
-        lib ^= import.library();
-        if (!first_lib_url.IsNull()) {
-          // Found duplicate definition.
-          Error& ambiguous_ref_error = Error::Handle();
-          if (first_lib_url.raw() == lib.url()) {
-            ambiguous_ref_error = FormatErrorMsg(
-                script_, ident_pos, "Error",
-                "ambiguous reference to '%s', "
-                "as library '%s' is imported multiple times",
-                name.ToCString(),
-                first_lib_url.ToCString());
-          } else {
-            ambiguous_ref_error = FormatErrorMsg(
-                script_, ident_pos, "Error",
-                "ambiguous reference: "
-                "'%s' is defined in library '%s' and also in '%s'",
-                name.ToCString(),
-                first_lib_url.ToCString(),
-                String::Handle(lib.url()).ToCString());
-          }
-          if (error == NULL) {
-            // Report a compile time error since the caller is not interested
-            // in the error.
-            ErrorMsg(ambiguous_ref_error);
-          }
-          *error = ambiguous_ref_error.raw();
-          return Object::null();
-        } else {
-          first_lib_url = lib.url();
-          obj = imported_obj.raw();
-        }
-      }
-    }
+  if (!obj.IsNull()) {
+    return obj.raw();
   }
-  return obj.raw();
+  return library_.LookupImportedObject(name);
 }
 
 
-RawClass* Parser::ResolveClassInCurrentLibraryScope(intptr_t ident_pos,
-                                                    const String& name,
-                                                    Error* error) {
+RawClass* Parser::ResolveClassInCurrentLibraryScope(const String& name) {
   const Object& obj =
-      Object::Handle(ResolveNameInCurrentLibraryScope(ident_pos, name, error));
+      Object::Handle(ResolveNameInCurrentLibraryScope(name));
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -8937,14 +8874,11 @@ RawClass* Parser::ResolveClassInCurrentLibraryScope(intptr_t ident_pos,
 // Resolve an identifier by checking the global scope of the current
 // library. If not found in the current library, then look in the scopes
 // of all libraries that are imported without a library prefix.
-// Issue an error if the identifier is not found in the global scope
-// of the current library, but is defined in more than one imported
-// library, i.e. if the identifier cannot be resolved unambiguously.
 AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
                                                    const String& ident) {
   TRACE_PARSER("ResolveIdentInCurrentLibraryScope");
   const Object& obj =
-    Object::Handle(ResolveNameInCurrentLibraryScope(ident_pos, ident, NULL));
+    Object::Handle(ResolveNameInCurrentLibraryScope(ident));
   if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
     return new PrimaryNode(ident_pos, Class::ZoneHandle(cls.raw()));
@@ -8973,64 +8907,17 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
 }
 
 
-RawObject* Parser::ResolveNameInPrefixScope(intptr_t ident_pos,
-                                            const LibraryPrefix& prefix,
-                                            const String& name,
-                                            Error* error) {
-  TRACE_PARSER("ResolveNameInPrefixScope");
+RawObject* Parser::ResolveNameInPrefixScope(const LibraryPrefix& prefix,
+                                            const String& name) {
   HANDLESCOPE(isolate());
-  Namespace& import = Namespace::Handle(isolate());
-  String& first_lib_url = String::Handle(isolate());
-  Object& obj = Object::Handle(isolate());
-  Object& resolved_obj = Object::Handle(isolate());
-  const Array& imports = Array::Handle(isolate(), prefix.imports());
-  Library& lib = Library::Handle(isolate());
-  for (intptr_t i = 0; i < prefix.num_imports(); i++) {
-    import ^= imports.At(i);
-    resolved_obj = LookupNameInImport(isolate(), import, name);
-    if (!resolved_obj.IsNull()) {
-      obj = resolved_obj.raw();
-      lib = import.library();
-      if (first_lib_url.IsNull()) {
-        first_lib_url = lib.url();
-      } else {
-        // Found duplicate definition.
-        Error& ambiguous_ref_error = Error::Handle();
-        if (first_lib_url.raw() == lib.url()) {
-          ambiguous_ref_error = FormatErrorMsg(
-              script_, ident_pos, "Error",
-              "ambiguous reference: '%s.%s' is imported multiple times",
-              String::Handle(prefix.name()).ToCString(),
-              name.ToCString());
-        } else {
-          ambiguous_ref_error = FormatErrorMsg(
-              script_, ident_pos, "Error",
-              "ambiguous reference: '%s.%s' is defined in '%s' and '%s'",
-              String::Handle(prefix.name()).ToCString(),
-              name.ToCString(),
-              first_lib_url.ToCString(),
-              String::Handle(lib.url()).ToCString());
-        }
-        if (error == NULL) {
-          // Report a compile time error since the caller is not interested
-          // in the error.
-          ErrorMsg(ambiguous_ref_error);
-        }
-        *error = ambiguous_ref_error.raw();
-        return Object::null();
-      }
-    }
-  }
-  return obj.raw();
+  return prefix.LookupObject(name);
 }
 
 
-RawClass* Parser::ResolveClassInPrefixScope(intptr_t ident_pos,
-                                            const LibraryPrefix& prefix,
-                                            const String& name,
-                                            Error* error) {
+RawClass* Parser::ResolveClassInPrefixScope(const LibraryPrefix& prefix,
+                                            const String& name) {
   const Object& obj =
-      Object::Handle(ResolveNameInPrefixScope(ident_pos, prefix, name, error));
+      Object::Handle(ResolveNameInPrefixScope(prefix, name));
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -9040,21 +8927,20 @@ RawClass* Parser::ResolveClassInPrefixScope(intptr_t ident_pos,
 
 // Do a lookup for the identifier in the scope of the specified
 // library prefix. This means trying to resolve it locally in all of the
-// libraries present in the library prefix. If there are multiple libraries
-// with the name, issue an ambiguous reference error.
+// libraries present in the library prefix.
 AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
                                            const LibraryPrefix& prefix,
                                            const String& ident) {
   TRACE_PARSER("ResolveIdentInPrefixScope");
-  Object& obj =
-      Object::Handle(ResolveNameInPrefixScope(ident_pos, prefix, ident, NULL));
+  Object& obj = Object::Handle(ResolveNameInPrefixScope(prefix, ident));
   if (obj.IsNull()) {
     // Unresolved prefixed primary identifier.
-    ErrorMsg(ident_pos, "identifier '%s.%s' cannot be resolved",
-             String::Handle(prefix.name()).ToCString(),
-             ident.ToCString());
-  }
-  if (obj.IsClass()) {
+    String& qualified_name = String::ZoneHandle(prefix.name());
+    qualified_name = String::Concat(qualified_name, Symbols::Dot());
+    qualified_name = String::Concat(qualified_name, ident);
+    qualified_name = Symbols::New(qualified_name);
+    return new PrimaryNode(ident_pos, qualified_name);
+  } else if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
     return new PrimaryNode(ident_pos, Class::ZoneHandle(cls.raw()));
   } else if (obj.IsField()) {
@@ -9074,21 +8960,18 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
     } else {
       return new PrimaryNode(ident_pos, Function::ZoneHandle(func.raw()));
     }
-  } else {
-    // TODO(hausner): Should this be an error? It is not meaningful to
-    // reference a library prefix defined in an imported library.
-    ASSERT(obj.IsLibraryPrefix());
   }
-  // Lexically unresolved primary identifiers are referenced by their name.
-  return new PrimaryNode(ident_pos, ident);
+  // All possible object types are handled above.
+  UNREACHABLE();
+  return NULL;
 }
 
 
 // Resolve identifier. Issue an error message if
 // the ident refers to a method and allow_closure_names is false.
 // If the name cannot be resolved, turn it into an instance field access
-// if we're compiling an instance method, or issue an error message
-// if we're compiling a static method.
+// if we're compiling an instance method, or generate
+// throw NoSuchMethodError if we're compiling a static method.
 AstNode* Parser::ResolveIdent(intptr_t ident_pos,
                               const String& ident,
                               bool allow_closure_names) {
@@ -10074,6 +9957,34 @@ AstNode* Parser::ParsePrimary() {
       primary = ResolveIdentInPrefixScope(qual_ident.ident_pos,
                                           *qual_ident.lib_prefix,
                                           *qual_ident.ident);
+      // If the identifier could not be resolved, throw a NoSuchMethodError.
+      // Note: unlike in the case of an unqualified identifier, do not
+      // interpret the unresolved identifier as an instance method or
+      // instance getter call when compiling an instance method.
+      // TODO(hausner): Ideally we should generate the NoSuchMethodError
+      // later, when we know more about how the unresolved name is used.
+      // For example, we don't know yet whether the unresolved name
+      // refers to a getter or a setter. However, it is more awkward
+      // to distinuish four NoSuchMethodError cases all over the place
+      // in the parser. The four cases are: prefixed vs non-prefixed
+      // name, static vs dynamic context in which the unresolved name
+      // is used. We cheat a little here by looking at the next token
+      // to determine whether we have an unresolved method call or
+      // field access.
+      if (primary->IsPrimaryNode() &&
+          primary->AsPrimaryNode()->primary().IsString()) {
+        InvocationMirror::Type call_type =
+            CurrentToken() == Token::kLPAREN ?
+               InvocationMirror::kMethod : InvocationMirror::kGetter;
+        const String& unresolved_name =
+            String::Cast(primary->AsPrimaryNode()->primary());
+        primary = ThrowNoSuchMethodError(primary->token_pos(),
+                                        current_class(),
+                                        unresolved_name,
+                                        NULL,  // No arguments.
+                                        InvocationMirror::kTopLevel,
+                                        call_type);
+      }
     }
     ASSERT(primary != NULL);
   } else if (CurrentToken() == Token::kTHIS) {
@@ -10449,18 +10360,18 @@ void Parser::SkipBinaryExpr() {
   const int min_prec = Token::Precedence(Token::kOR);
   const int max_prec = Token::Precedence(Token::kMUL);
   while (((min_prec <= Token::Precedence(CurrentToken())) &&
-      (Token::Precedence(CurrentToken()) <= max_prec)) ||
-      IsLiteral("as")) {
-    Token::Kind last_token = IsLiteral("as") ? Token::kAS : CurrentToken();
-    ConsumeToken();
-    if (last_token == Token::kIS) {
+      (Token::Precedence(CurrentToken()) <= max_prec))) {
+    if (CurrentToken() == Token::kIS) {
+      ConsumeToken();
       if (CurrentToken() == Token::kNOT) {
         ConsumeToken();
       }
       SkipType(false);
-    } else if (last_token == Token::kAS) {
+    } else if (CurrentToken() == Token::kAS) {
+      ConsumeToken();
       SkipType(false);
     } else {
+      ConsumeToken();
       SkipUnaryExpr();
     }
   }

@@ -390,7 +390,7 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(
 
 
 /**
- * DEPRECATED -- Use Dart_ActivationframeGetLocation instead.
+ * DEPRECATED -- Use Dart_ActivationFrameGetLocation instead.
  *
  * Returns information about the given activation frame.
  * \function_name receives a string handle with the qualified
@@ -420,6 +420,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
  *
  * \function_name receives a string handle with the qualified
  *    function name.
+ * \function receives a handle to the function.
  * \location.script_url receives a string handle with the url of
  *    the source script that contains the frame's function.
  *    Receives a null handle if there is no textual location
@@ -440,6 +441,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
 DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
                             Dart_ActivationFrame activation_frame,
                             Dart_Handle* function_name,
+                            Dart_Handle* function,
                             Dart_CodeLocation* location);
 
 

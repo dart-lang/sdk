@@ -29,9 +29,7 @@ main() {
       d.appPubspec({"foo": {"path": "../foo"}}),
     ]).create();
 
-    createLockFile('myapp', {
-      'foo': '../foo'
-    }, pkg: ['barback']);
+    createLockFile('myapp', sandbox: ['foo'], pkg: ['barback']);
 
     startPubServe();
     requestShouldSucceed("assets/foo/foo.out", "foo.out");

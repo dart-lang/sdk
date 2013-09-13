@@ -67,6 +67,7 @@ class JSExtendableArray extends JSMutableArray {}
 class JSString implements JSIndexable {
   var split;
   var concat;
+  operator+(other) {}
   var toString;
 }
 class JSFunction {}
@@ -115,5 +116,5 @@ main() {
     }
   }, onError: (e) {
       throw 'Compilation failed';
-  }).whenComplete(() => asyncEnd());
+  }).then(asyncSuccess);
 }

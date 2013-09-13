@@ -623,6 +623,31 @@ var-color-foreground: #00f;
   expect(prettyPrint(stylesheet), generated2);
 }
 
+void polyfill() {
+  var errors = [];
+  var input = r'''
+@color-background: red;
+@color-foreground: blue;
+.test {
+  background-color: @color-background;
+  color: @color-foreground;
+}''';
+
+  var generated = r'''.test {
+  background-color: #f00;
+  color: #00f;
+}''';
+
+  var stylesheet = compileCss(input, errors: errors,
+      opts: ['--no-colors', 'memory'], polyfill: true);
+
+  expect(stylesheet != null, true);
+  expect(errors.isEmpty, true, reason: errors.toString());
+  expect(prettyPrint(stylesheet), generated);
+}
+
+
+
 main() {
   test('Simple var', simpleVar);
   test('Expressions var', expressionsVar);
@@ -631,4 +656,5 @@ main() {
   test('Var syntax', testVar);
   test('Cycles var', cyclesVar);
   test('Less syntax', testLess);
+  test('Polyfill', polyfill);
 }

@@ -83,6 +83,13 @@ stringifyParameter(ParameterMirror parameter) {
   return 'Parameter($buffer)';
 }
 
+stringifyTypeVariable(TypeVariableMirror typeVariable) {
+  var buffer = new StringBuffer();
+  writeDeclarationOn(typeVariable, buffer);
+  buffer.write(', upperBound = ${stringify(typeVariable.upperBound)}');
+  return 'TypeVariable($buffer)';
+}
+
 stringifyType(TypeMirror type) {
   var buffer = new StringBuffer();
   writeDeclarationOn(type, buffer);
@@ -116,6 +123,7 @@ stringify(value) {
   if (value is String) return value;
   if (value is Symbol) return stringifySymbol(value);
   if (value is ClassMirror) return stringifyClass(value);
+  if (value is TypeVariableMirror) return stringifyTypeVariable(value);
   if (value is TypeMirror) return stringifyType(value);
   if (value == null) return '<null>';
   throw 'Unexpected value: $value';

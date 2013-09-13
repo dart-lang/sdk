@@ -821,7 +821,6 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   field.set_token_pos(reader->ReadIntptrValue());
   field.set_guarded_cid(reader->ReadIntptrValue());
   field.set_is_nullable(reader->ReadIntptrValue());
-  field.set_guarded_list_length(reader->ReadIntptrValue());
   field.set_kind_bits(reader->Read<uint8_t>());
 
   // Set all the object fields.
@@ -855,7 +854,6 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(ptr()->token_pos_);
   writer->WriteIntptrValue(ptr()->guarded_cid_);
   writer->WriteIntptrValue(ptr()->is_nullable_);
-  writer->WriteIntptrValue(ptr()->guarded_list_length_);
   writer->Write<uint8_t>(ptr()->kind_bits_);
 
   // Write out all the object pointer fields.

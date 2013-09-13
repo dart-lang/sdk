@@ -147,10 +147,9 @@ abstract class Browser {
           if (_cleanup != null) {
             _cleanup();
           }
-          doneCompleter.complete(true);
         }).catchError((error) {
           _logEvent("Error closing browsers: $error");
-        });
+        }).whenComplete(() => doneCompleter.complete(true));
       });
       return true;
     }).catchError((error) {
@@ -317,34 +316,69 @@ class Safari extends Browser {
 
 
 class Chrome extends Browser {
-  /**
-   * The binary used to run chrome - changing this can be nececcary for
-   * testing or using non standard chrome installation.
-   */
-  static const String binary = "google-chrome";
+  static String _binary = _getBinary();
+
+  String _version = "Version not found yet";
+
+  // This is extracted to a function since we may need to support several
+  // locations.
+  static String _getWindowsBinary() {
+    return "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
+  }
+
+  static String _getBinary() {
+    if (Platform.isWindows) return _getWindowsBinary();
+    if (Platform.isMacOS) {
+      return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+    }
+    if (Platform.isLinux) return 'google-chrome';
+  }
+
+  Future<bool> _getVersion() {
+    if (Platform.isWindows) {
+      // The version flag does not work on windows.
+      // See issue:
+      // https://code.google.com/p/chromium/issues/detail?id=158372
+      // The registry hack does not seem to work.
+      _version = "Can't get version on windows";
+      // We still validate that the binary exists so that we can give good
+      // feedback.
+      return new File(_binary).exists().then((exists) {
+        if (!exists) {
+          _logEvent("Chrome binary not available.");
+          _logEvent("Make sure $_binary is a valid program for running chrome");
+        }
+        return exists;
+      });
+    }
+    return Process.run(_binary, ["--version"]).then((var versionResult) {
+      if (versionResult.exitCode != 0) {
+        _logEvent("Failed to chrome get version");
+        _logEvent("Make sure $_binary is a valid program for running chrome");
+        return false;
+      }
+      _version = versionResult.stdout;
+      return true;
+    });
+  }
+
 
   Future<bool> start(String url) {
     _logEvent("Starting chrome browser on: $url");
     // Get the version and log that.
-    return Process.run(binary, ["--version"]).then((var versionResult) {
-      if (versionResult.exitCode != 0) {
-        _logEvent("Failed to chrome get version");
-        _logEvent("Make sure $binary is a valid program for running chrome");
-        return new Future.value(false);
-      }
-      version = versionResult.stdout;
-      _logEvent("Got version: $version");
+    return _getVersion().then((success) {
+      if (!success) return false;
+      _logEvent("Got version: $_version");
 
       return new Directory('').createTemp().then((userDir) {
         _cleanup = () { userDir.deleteSync(recursive: true); };
         var args = ["--user-data-dir=${userDir.path}", url,
                     "--disable-extensions", "--disable-popup-blocking",
                     "--bwsi", "--no-first-run"];
-        return startBrowser(binary, args);
-
+        return startBrowser(_binary, args);
       });
     }).catchError((e) {
-      _logEvent("Running $binary --version failed with $e");
+      _logEvent("Running $_binary --version failed with $e");
       return false;
     });
   }
@@ -455,18 +489,14 @@ class AndroidChrome extends Browser {
 }
 
 class Firefox extends Browser {
-  /**
-   * The binary used to run firefox - changing this can be nececcary for
-   * testing or using non standard firefox installation.
-   */
-  static const String binary = "firefox";
-
   static const String enablePopUp =
       'user_pref("dom.disable_open_during_load", false);';
   static const String disableDefaultCheck =
       'user_pref("browser.shell.checkDefaultBrowser", false);';
   static const String disableScriptTimeLimit =
       'user_pref("dom.max_script_run_time", 0);';
+
+  static string _binary = _getBinary();
 
   Future _createPreferenceFile(var path) {
     var file = new File("${path.toString()}/user.js");
@@ -477,11 +507,21 @@ class Firefox extends Browser {
     randomFile.close();
   }
 
+  // This is extracted to a function since we may need to support several
+  // locations.
+  static String _getWindowsBinary() {
+    return "C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe";
+  }
+
+  static String _getBinary() {
+    if (Platform.isWindows) return _getWindowsBinary();
+    if (Platform.isLinux) return 'firefox';
+  }
 
   Future<bool> start(String url) {
     _logEvent("Starting firefox browser on: $url");
     // Get the version and log that.
-    return Process.run(binary, ["--version"]).then((var versionResult) {
+    return Process.run(_binary, ["--version"]).then((var versionResult) {
       if (versionResult.exitCode != 0) {
         _logEvent("Failed to firefox get version");
         _logEvent("Make sure $binary is a valid program for running firefox");
@@ -495,7 +535,7 @@ class Firefox extends Browser {
         _cleanup = () { userDir.deleteSync(recursive: true); };
         var args = ["-profile", "${userDir.path}",
                     "-no-remote", "-new-instance", url];
-        return startBrowser(binary, args);
+        return startBrowser(_binary, args);
 
       });
     }).catchError((e) {

@@ -323,7 +323,7 @@ static RawField* LookupStacktraceField(const Instance& instance) {
                                      isolate->object_store()->error_class());
   if (error_class.IsNull()) {
     const Library& core_lib = Library::Handle(isolate, Library::CoreLibrary());
-    error_class = core_lib.LookupClass(Symbols::Error(), NULL);
+    error_class = core_lib.LookupClass(Symbols::Error());
     ASSERT(!error_class.IsNull());
     isolate->object_store()->set_error_class(error_class);
   }
@@ -483,7 +483,7 @@ RawInstance* Exceptions::NewInstance(const char* class_name) {
   const String& cls_name = String::Handle(Symbols::New(class_name));
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   // No ambiguity error expected: passing NULL.
-  Class& cls = Class::Handle(core_lib.LookupClass(cls_name, NULL));
+  Class& cls = Class::Handle(core_lib.LookupClass(cls_name));
   ASSERT(!cls.IsNull());
   // There are no parameterized error types, so no need to set type arguments.
   return Instance::New(cls);

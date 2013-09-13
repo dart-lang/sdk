@@ -294,6 +294,27 @@ ASSEMBLER_TEST_RUN(Negate, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(BitScanReverse, assembler) {
+  __ movl(ECX, Address(ESP, kWordSize));
+  __ movl(EAX, Immediate(666));  // Marker for conditional write.
+  __ bsrl(EAX, ECX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(BitScanReverse, test) {
+  typedef int (*Bsr)(int input);
+  Bsr call = reinterpret_cast<Bsr>(test->entry());
+  EXPECT_EQ(666, call(0));
+  EXPECT_EQ(0, call(1));
+  EXPECT_EQ(1, call(2));
+  EXPECT_EQ(1, call(3));
+  EXPECT_EQ(2, call(4));
+  EXPECT_EQ(5, call(42));
+  EXPECT_EQ(31, call(-1));
+}
+
+
 ASSEMBLER_TEST_GENERATE(MoveExtend, assembler) {
   __ pushl(EBX);  // preserve EBX.
   __ movl(EDX, Immediate(0x1234ffff));

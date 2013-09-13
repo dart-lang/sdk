@@ -46,11 +46,10 @@ main() {
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
-  asyncStart();
-  compiler.compile(entrypoint, libraryRoot, packageRoot,
+  asyncTest(() => compiler.compile(entrypoint, libraryRoot, packageRoot,
       provideInput, handleDiagnostic, []).then((code) {
     Expect.isNotNull(code);
-  }).whenComplete(() => asyncEnd());
+  }));
 }
 
 void handleDiagnostic(Uri uri, int begin, int end, String message,

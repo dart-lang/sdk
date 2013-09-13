@@ -90,9 +90,9 @@ void main() {
 
     checkReturnInClass('B', 'returnString1', typesTask.stringType);
     checkReturnInClass('B', 'returnString2', typesTask.stringType);
-    checkReturnInClass('B', 'returnDynamic1', typesTask.dynamicType);
-    checkReturnInClass('B', 'returnDynamic2', typesTask.dynamicType);
-    checkReturnInClass('B', 'returnDynamic3', typesTask.dynamicType);
-    checkReturnInClass('B', 'returnDynamic4', typesTask.dynamicType);
+    checkReturnInClass('B', 'returnDynamic1', const TypeMask.nonNullEmpty());
+    checkReturnInClass('B', 'returnDynamic2', const TypeMask.nonNullEmpty());
+    checkReturnInClass('B', 'returnDynamic3', const TypeMask.nonNullEmpty());
+    checkReturnInClass('B', 'returnDynamic4', const TypeMask.nonNullEmpty());
   }));
 }

@@ -2325,6 +2325,7 @@ class _Int16ArrayView extends _TypedListView implements Int16List {
     _rangeCheck(buffer.lengthInBytes,
                 offsetInBytes,
                 length * Int16List.BYTES_PER_ELEMENT);
+    _offsetAlignmentCheck(_offsetInBytes, Int16List.BYTES_PER_ELEMENT);
   }
 
 
@@ -2376,6 +2377,7 @@ class _Uint16ArrayView extends _TypedListView implements Uint16List {
     _rangeCheck(buffer.lengthInBytes,
                 offsetInBytes,
                 length * Uint16List.BYTES_PER_ELEMENT);
+    _offsetAlignmentCheck(_offsetInBytes, Uint16List.BYTES_PER_ELEMENT);
   }
 
 
@@ -2427,6 +2429,7 @@ class _Int32ArrayView extends _TypedListView implements Int32List {
     _rangeCheck(buffer.lengthInBytes,
                 offsetInBytes,
                 length * Int32List.BYTES_PER_ELEMENT);
+    _offsetAlignmentCheck(_offsetInBytes, Int32List.BYTES_PER_ELEMENT);
   }
 
 
@@ -2478,6 +2481,7 @@ class _Uint32ArrayView extends _TypedListView implements Uint32List {
     _rangeCheck(buffer.lengthInBytes,
                 offsetInBytes,
                 length * Uint32List.BYTES_PER_ELEMENT);
+    _offsetAlignmentCheck(_offsetInBytes, Uint32List.BYTES_PER_ELEMENT);
   }
 
 
@@ -2529,6 +2533,7 @@ class _Int64ArrayView extends _TypedListView implements Int64List {
     _rangeCheck(buffer.lengthInBytes,
                 offsetInBytes,
                 length * Int64List.BYTES_PER_ELEMENT);
+    _offsetAlignmentCheck(_offsetInBytes, Int64List.BYTES_PER_ELEMENT);
   }
 
 
@@ -2580,6 +2585,7 @@ class _Uint64ArrayView extends _TypedListView implements Uint64List {
     _rangeCheck(buffer.lengthInBytes,
                 offsetInBytes,
                 length * Uint64List.BYTES_PER_ELEMENT);
+    _offsetAlignmentCheck(_offsetInBytes, Uint64List.BYTES_PER_ELEMENT);
   }
 
 
@@ -2631,6 +2637,7 @@ class _Float32ArrayView extends _TypedListView implements Float32List {
     _rangeCheck(buffer.lengthInBytes,
                 offsetInBytes,
                 length * Float32List.BYTES_PER_ELEMENT);
+    _offsetAlignmentCheck(_offsetInBytes, Float32List.BYTES_PER_ELEMENT);
   }
 
 
@@ -2682,6 +2689,7 @@ class _Float64ArrayView extends _TypedListView implements Float64List {
     _rangeCheck(buffer.lengthInBytes,
                 offsetInBytes,
                 length * Float64List.BYTES_PER_ELEMENT);
+    _offsetAlignmentCheck(_offsetInBytes, Float64List.BYTES_PER_ELEMENT);
   }
 
 
@@ -2733,6 +2741,7 @@ class _Float32x4ArrayView extends _TypedListView implements Float32x4List {
     _rangeCheck(buffer.lengthInBytes,
                 offsetInBytes,
                 length * Float32x4List.BYTES_PER_ELEMENT);
+    _offsetAlignmentCheck(_offsetInBytes, Float32x4List.BYTES_PER_ELEMENT);
   }
 
 
@@ -3121,6 +3130,14 @@ void _rangeCheck(int listLength, int start, int length) {
   }
   if (start + length > listLength) {
     throw new RangeError.value(start + length);
+  }
+}
+
+
+void _offsetAlignmentCheck(int offset, int alignment) {
+  if ((offset % alignment) != 0) {
+    throw new RangeError('Offset ($offset) must be a multiple of '
+                         'BYTES_PER_ELEMENT ($alignment)');
   }
 }
 

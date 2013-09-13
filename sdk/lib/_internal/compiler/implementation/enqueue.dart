@@ -117,7 +117,12 @@ abstract class Enqueuer {
       elements.registerDependency(cls);
       cls.ensureResolved(compiler);
       universe.instantiatedTypes.add(type);
-      if (!cls.isAbstract(compiler)) {
+      if (!cls.isAbstract(compiler)
+          // We can't use the closed-world assumption with native abstract
+          // classes; a native abstract class may have non-abstract subclasses
+          // not declared to the program.  Instances of these classes are
+          // indistinguishable from the abstract class.
+          || cls.isNative()) {
         universe.instantiatedClasses.add(cls);
       }
       onRegisterInstantiatedClass(cls);
@@ -131,7 +136,7 @@ abstract class Enqueuer {
 
   void registerTypeLiteral(Element element, TreeElements elements) {
     registerInstantiatedClass(compiler.typeClass, elements);
-    compiler.backend.registerTypeLiteral(element, elements);
+    compiler.backend.registerTypeLiteral(element, this, elements);
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {
@@ -495,7 +500,7 @@ abstract class Enqueuer {
 
   void registerAsCheck(DartType type, TreeElements elements) {
     registerIsCheck(type, elements);
-    compiler.backend.registerAsCheck(type, elements);
+    compiler.backend.registerAsCheck(type, this, elements);
   }
 
   void registerGenericCallMethod(Element element, TreeElements elements) {

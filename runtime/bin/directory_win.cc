@@ -351,6 +351,7 @@ Directory::ExistsResult Directory::Exists(const char* dir_name) {
 
 char* Directory::Current() {
   int length = GetCurrentDirectoryW(0, NULL);
+  if (length == 0) return NULL;
   wchar_t* current = new wchar_t[length + 1];
   GetCurrentDirectoryW(length + 1, current);
   char* result = StringUtils::WideToUtf8(current);

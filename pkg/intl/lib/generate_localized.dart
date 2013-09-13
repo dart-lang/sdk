@@ -85,7 +85,7 @@ abstract class TranslatedMessage {
  * We can't use a hyphen in a Dart library name, so convert the locale
  * separator to an underscore.
  */
-String _libraryName(String x) => x.replaceAll('-', '_');
+String _libraryName(String x) => 'messages_' + x.replaceAll('-', '_');
 
 /**
  * Generate a file <[generated_file_prefix]>_messages_<[locale]>.dart
@@ -135,7 +135,7 @@ String prologue(String locale) => """
  * function name.
  */
 
-library messages_${locale.replaceAll('-','_')};
+library ${_libraryName(locale)};
 import 'package:$intlImportPath/intl.dart';
 import 'package:$intlImportPath/message_lookup_by_library.dart';
 

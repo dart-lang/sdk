@@ -102,10 +102,10 @@ void Intrinsifier::InitializeState() {
 #define SETUP_FUNCTION(class_name, function_name, destination, fp)             \
   if (strcmp(#class_name, "::") == 0) {                                        \
     str = String::New(#function_name);                                         \
-    func = lib.LookupFunctionAllowPrivate(str, NULL);                          \
+    func = lib.LookupFunctionAllowPrivate(str);                                \
   } else {                                                                     \
     str = String::New(#class_name);                                            \
-    cls = lib.LookupClassAllowPrivate(str, NULL);                              \
+    cls = lib.LookupClassAllowPrivate(str);                                    \
     ASSERT(!cls.IsNull());                                                     \
     error = cls.EnsureIsFinalized(isolate);                                    \
     ASSERT(error.IsNull());                                                    \

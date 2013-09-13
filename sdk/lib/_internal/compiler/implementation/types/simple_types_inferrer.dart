@@ -169,7 +169,7 @@ abstract class TypeInformation {
   /**
    * Callers of an element.
    */
-  Map<Element, int> get callers => null;
+  Map<Element, Set<Spannable>> get callers => null;
 
   /**
    * Number of times the element has been processed.
@@ -183,20 +183,20 @@ abstract class TypeInformation {
   TypeMask get returnType => null;
   void set returnType(value) {}
 
-  void addCaller(Element caller) {
+  void addCaller(Element caller, Spannable node) {
     if (callers.containsKey(caller)) {
-      callers[caller]++;
+      callers[caller].add(node);
     } else {
-      callers[caller] = 1;
+      callers[caller] = new Set<Spannable>()..add(node);
     }
   }
 
-  void removeCall(Element caller) {
+  void removeCall(Element caller, Spannable node) {
     if (!callers.containsKey(caller)) return;
-    if (callers[caller] == 1) {
+    Set<Spannable> calls = callers[caller];
+    calls.remove(node);
+    if (calls.isEmpty) {
       callers.remove(caller);
-    } else {
-      callers[caller]--;
     }
   }
 
@@ -208,7 +208,7 @@ abstract class TypeInformation {
 }
 
 class FunctionTypeInformation extends TypeInformation {
-  Map<Element, int> callers = new Map<Element, int>();
+  Map<Element, Set<Spannable>> callers = new Map<Element, Set<Spannable>>();
   TypeMask returnType;
   int analyzeCount = 0;
   bool canBeClosurized = false;
@@ -230,7 +230,7 @@ class ParameterTypeInformation extends TypeInformation {
 
 class FieldTypeInformation extends TypeInformation {
   TypeMask type;
-  Map<Element, int> callers = new Map<Element, int>();
+  Map<Element, Set<Spannable>> callers = new Map<Element, Set<Spannable>>();
   Map<Spannable, TypeMask> assignments = new Map<Spannable, TypeMask>();
   int analyzeCount = 0;
 
@@ -333,9 +333,10 @@ class SimpleTypesInferrer extends TypesInferrer {
  * type information about visited nodes, as well as to request type
  * information of elements.
  */
-abstract class InferrerEngine<T> implements MinimalInferrerEngine<T> {
+abstract class InferrerEngine<T, V extends TypeSystem>
+    implements MinimalInferrerEngine<T> {
   final Compiler compiler;
-  final TypeSystem<T> types;
+  final V types;
   final Map<Node, T> concreteTypes = new Map<Node, T>();
 
   InferrerEngine(this.compiler, this.types);
@@ -359,11 +360,6 @@ abstract class InferrerEngine<T> implements MinimalInferrerEngine<T> {
    * Returns the return type of [element].
    */
   T returnTypeOfElement(Element element);
-
-  /**
-   * Returns the type returned by a call to this [selector].
-   */
-  T returnTypeOfSelector(Selector selector);
 
   /**
    * Records that [node] sets final field [element] to be of type [type].
@@ -590,10 +586,44 @@ abstract class InferrerEngine<T> implements MinimalInferrerEngine<T> {
       return returnTypeOfElement(element);
     }
   }
+
+  void updateSelectorInTree(Element owner, Node node, Selector selector) {
+    var elements = compiler.enqueuer.resolution.getCachedElements(owner);
+    if (node.asSendSet() != null) {
+      if (selector.isSetter() || selector.isIndexSet()) {
+        elements.setSelector(node, selector);
+      } else if (selector.isGetter() || selector.isIndex()) {
+        elements.setGetterSelectorInComplexSendSet(node, selector);
+      } else {
+        assert(selector.isOperator());
+        elements.setOperatorSelectorInComplexSendSet(node, selector);
+      }
+    } else if (node.asSend() != null) {
+      elements.setSelector(node, selector);
+    } else {
+      assert(node.asForIn() != null);
+      if (selector.asUntyped == compiler.iteratorSelector) {
+        elements.setIteratorSelector(node, selector);
+      } else if (selector.asUntyped == compiler.currentSelector) {
+        elements.setCurrentSelector(node, selector);
+      } else {
+        assert(selector.asUntyped == compiler.moveNextSelector);
+        elements.setMoveNextSelector(node, selector);
+      }
+    }
+  }
+
+  bool isNativeElement(Element element) {
+    if (element.isNative()) return true;
+    return element.isMember()
+        && element.getEnclosingClass().isNative()
+        && element.isField();
+  }
 }
 
 class InternalSimpleTypesInferrer
-    extends InferrerEngine<TypeMask> implements TypesInferrer {
+    extends InferrerEngine<TypeMask, TypeMaskSystem>
+    implements TypesInferrer {
   /**
    * Maps a class to a [ClassTypeInformation] to help collect type
    * information of final fields.
@@ -1023,13 +1053,6 @@ class InternalSimpleTypesInferrer
         && newType != types.nullType;
   }
 
-  bool isNativeElement(Element element) {
-    if (element.isNative()) return true;
-    return element.isMember()
-        && element.getEnclosingClass().isNative()
-        && element.isField();
-  }
-
   TypeMask checkTypeAnnotation(Element analyzedElement, TypeMask newType) {
     if (compiler.trustTypeAnnotations
         // Parameters are being checked by the method, and we can
@@ -1181,11 +1204,11 @@ class InternalSimpleTypesInferrer
     return outermost.declaration == element.declaration;
   }
 
-  void addCaller(Element caller, Element callee) {
+  void addCaller(Element caller, Element callee, Spannable node) {
     assert(caller.isImplementation);
     assert(callee.isImplementation);
     assert(isNotClosure(caller));
-    typeInformationOf(callee).addCaller(caller);
+    typeInformationOf(callee).addCaller(caller, node);
   }
 
   bool addArguments(Spannable node,
@@ -1293,7 +1316,7 @@ class InternalSimpleTypesInferrer
 
     assert(isNotClosure(caller));
     callee = callee.implementation;
-    addCaller(caller, callee);
+    addCaller(caller, callee, node);
 
     if (selector != null && selector.isSetter() && callee.isField()) {
       recordTypeOfNonFinalField(
@@ -1333,7 +1356,7 @@ class InternalSimpleTypesInferrer
                                Selector selector,
                                Element caller,
                                Element callee) {
-    typeInformationOf(callee).removeCall(caller);
+    typeInformationOf(callee).removeCall(caller, node);
     if (callee.isField()) {
       if (selector.isSetter()) {
         Map<Spannable, TypeMask> assignments =
@@ -1378,6 +1401,9 @@ class InternalSimpleTypesInferrer
 
   TypeMask handleIntrisifiedSelector(Selector selector,
                                      ArgumentsTypes arguments) {
+    // If [:compiler.intClass:] has not been resolved, there are no int values
+    // in the program.
+    if (!compiler.intClass.isResolved) return null;
     TypeMask intType = types.intType;
     if (selector.mask != intType) return null;
     if (!selector.isCall() && !selector.isOperator()) return null;
@@ -1597,13 +1623,13 @@ class InternalSimpleTypesInferrer
 }
 
 class SimpleTypeInferrerVisitor<T>
-    extends InferrerVisitor<T, InferrerEngine<T>> {
+    extends InferrerVisitor<T, InferrerEngine<T, TypeSystem<T>>> {
   T returnType;
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;
   SideEffects sideEffects = new SideEffects.empty();
   final Element outermostElement;
-  final InferrerEngine<T> inferrer;
+  final InferrerEngine<T, TypeSystem<T>> inferrer;
   final Set<Element> capturedVariables = new Set<Element>();
 
   SimpleTypeInferrerVisitor.internal(analyzedElement,
@@ -1616,7 +1642,7 @@ class SimpleTypeInferrerVisitor<T>
 
   factory SimpleTypeInferrerVisitor(Element element,
                                     Compiler compiler,
-                                    InferrerEngine<T> inferrer,
+                                    InferrerEngine<T, TypeSystem<T>> inferrer,
                                     [LocalsHandler<T> handler]) {
     Element outermostElement =
         element.getOutermostEnclosingMemberOrTopLevel().implementation;
@@ -1774,12 +1800,18 @@ class SimpleTypeInferrerVisitor<T>
       // We only set the type once. We don't need to re-visit the children
       // when re-analyzing the node.
       return inferrer.concreteTypes.putIfAbsent(node, () {
-        T elementType = types.nonNullEmpty();
+        T elementType;
         int length = 0;
         for (Node element in node.elements.nodes) {
+          T type = visit(element);
+          elementType = elementType == null
+              ? types.allocatePhi(null, null, type)
+              : types.addPhiInput(null, elementType, type);
           length++;
-          elementType = types.computeLUB(elementType, visit(element));
         }
+        elementType = elementType == null
+            ? types.nonNullEmpty()
+            : types.simplifyPhi(null, null, elementType);
         return types.allocateContainer(
             types.constListType,
             node,
@@ -2047,7 +2079,7 @@ class SimpleTypeInferrerVisitor<T>
     isThisExposed = true;
     if (node.isPropertyAccess) {
       return handleStaticSend(node, selector, element, null);
-    } else if (element.isFunction()) {
+    } else if (element.isFunction() || element.isGenerativeConstructor()) {
       if (!selector.applies(element, compiler)) return types.dynamicType;
       ArgumentsTypes arguments = analyzeArguments(node.arguments);
       return handleStaticSend(node, selector, element, arguments);
@@ -2176,31 +2208,6 @@ class SimpleTypeInferrerVisitor<T>
         sideEffects, inLoop);
   }
 
-  void updateSelectorInTree(Node node, Selector selector) {
-    if (node.asSendSet() != null) {
-      if (selector.isSetter() || selector.isIndexSet()) {
-        elements.setSelector(node, selector);
-      } else if (selector.isGetter() || selector.isIndex()) {
-        elements.setGetterSelectorInComplexSendSet(node, selector);
-      } else {
-        assert(selector.isOperator());
-        elements.setOperatorSelectorInComplexSendSet(node, selector);
-      }
-    } else if (node.asSend() != null) {
-      elements.setSelector(node, selector);
-    } else {
-      assert(node.asForIn() != null);
-      if (selector.asUntyped == compiler.iteratorSelector) {
-        elements.setIteratorSelector(node, selector);
-      } else if (selector.asUntyped == compiler.currentSelector) {
-        elements.setCurrentSelector(node, selector);
-      } else {
-        assert(selector.asUntyped == compiler.moveNextSelector);
-        elements.setMoveNextSelector(node, selector);
-      }
-    }
-  }
-
   T handleDynamicSend(Node node,
                       Selector selector,
                       T receiverType,
@@ -2211,12 +2218,12 @@ class SimpleTypeInferrerVisitor<T>
       selector = (receiverType == types.dynamicType)
           ? selector.asUntyped
           : types.newTypedSelector(receiverType, selector);
-      updateSelectorInTree(node, selector);
+      inferrer.updateSelectorInTree(analyzedElement, node, selector);
     }
 
     // If the receiver of the call is a local, we may know more about
     // its type by refining it with the potential targets of the
-    // calls. 
+    // calls.
     if (node.asSend() != null) {
       Node receiver = node.asSend().receiver;
       if (receiver != null) {

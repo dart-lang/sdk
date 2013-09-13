@@ -176,7 +176,7 @@ void Intrinsifier::ImmutableArray_getIndexed(Assembler* assembler) {
 static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::Handle(
-      core_lib.LookupClassAllowPrivate(Symbols::ObjectArray(), NULL));
+      core_lib.LookupClassAllowPrivate(Symbols::ObjectArray()));
   ASSERT(!cls.IsNull());
   ASSERT(cls.HasTypeArguments());
   ASSERT(cls.NumTypeArguments() == 1);
@@ -1093,6 +1093,11 @@ void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Smi_bitLength(Assembler* assembler) {
+  // TODO(sra): Implement.
+}
+
+
 // Check if the last argument is a double, jump to label 'is_smi' if smi
 // (easy to convert to double), otherwise jump to label 'not_double_smi',
 // Returns the last argument in T0.
@@ -1394,7 +1399,7 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   ASSERT(!math_lib.IsNull());
   const Class& random_class = Class::Handle(
-      math_lib.LookupClassAllowPrivate(Symbols::_Random(), NULL));
+      math_lib.LookupClassAllowPrivate(Symbols::_Random()));
   ASSERT(!random_class.IsNull());
   const Field& state_field = Field::ZoneHandle(
       random_class.LookupInstanceField(Symbols::_state()));

@@ -5,6 +5,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:utf';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
@@ -17,15 +18,16 @@ final dartFileRegExp = new RegExp(r'^[^.].*\.dart$', caseSensitive: false);
 final argParser = _initArgParser();
 
 bool overwriteFileContents;
+const followLinks = false;
 
-void main() {
+main() {
   var options = argParser.parse(new Options().arguments);
   if (options['help']) {
     _printUsage();
     return;
   }
   overwriteFileContents = options['write'];
-  
+
   if (options.rest.isEmpty) {
     _formatStdin(options);
   } else {
@@ -51,10 +53,10 @@ _formatResource(resource) {
   }
 }
 
-_formatDirectory(dir) => 
-    dir.listSync().forEach((resource) => _formatResource(resource));
+_formatDirectory(dir) => dir.listSync(followLinks: followLinks)
+    .forEach((resource) => _formatResource(resource));
 
-void _formatFile(file) {
+_formatFile(file) {
   if (_isDartFile(file)) {
     try {
       var buffer = new StringBuffer();
@@ -66,7 +68,7 @@ void _formatFile(file) {
         print(formatted);
       }
     } catch (e) {
-      _log('Error formatting "${file.path}": $e');
+      _log('Unable to format "${file.path}": $e');
     }
   }
 }
@@ -74,11 +76,11 @@ void _formatFile(file) {
 _isDartFile(file) => dartFileRegExp.hasMatch(path.basename(file.path));
 
 _formatStdin(options) {
-  _log('not supported yet!');
-//  stdin.transform(new StringDecoder())
-//      .listen((String data) => print(data),
-//        onError: (error) => print('Error reading from stdin'),
-//        onDone: () => print('Finished reading data'));
+  var input = new StringBuffer();
+  stdin.transform(new Utf8DecoderTransformer())
+      .listen((data) => input.write(data),
+        onError: (error) => _log('Error reading from stdin'),
+        onDone: () => print(_formatCU(input.toString())));
 }
 
 /// Initialize the arg parser instance.

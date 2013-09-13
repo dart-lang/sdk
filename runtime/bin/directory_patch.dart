@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class _Directory {
-  /* patch */ static String _current() native "Directory_Current";
+  /* patch */ static _current() native "Directory_Current";
   /* patch */ static _setCurrent(path) native "Directory_SetCurrent";
   /* patch */ static _createTemp(String template) native "Directory_CreateTemp";
   /* patch */ static int _exists(String path) native "Directory_Exists";

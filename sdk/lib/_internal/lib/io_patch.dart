@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class _Directory {
-  patch static String _current() {
+  patch static _current() {
     throw new UnsupportedError("Directory._current");
   }
   patch static _setCurrent(path) {

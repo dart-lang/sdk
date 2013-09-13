@@ -598,23 +598,15 @@ class Parser : public ValueObject {
                                      const String& ident);
 
   // Find class with the given name in the library or prefix scope.
-  RawClass* ResolveClassInCurrentLibraryScope(intptr_t ident_pos,
-                                              const String& name,
-                                              Error* error);
-  RawClass* ResolveClassInPrefixScope(intptr_t ident_pos,
-                                      const LibraryPrefix& prefix,
-                                      const String& name,
-                                      Error* error);
+  RawClass* ResolveClassInCurrentLibraryScope(const String& name);
+  RawClass* ResolveClassInPrefixScope(const LibraryPrefix& prefix,
+                                      const String& name);
 
   // Find name in the library or prefix scope and return the corresponding
   // object (field, class, function etc).
-  RawObject* ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
-                                              const String& ident,
-                                              Error* error);
-  RawObject* ResolveNameInPrefixScope(intptr_t ident_pos,
-                                      const LibraryPrefix& prefix,
-                                      const String& name,
-                                      Error* error);
+  RawObject* ResolveNameInCurrentLibraryScope(const String& ident);
+  RawObject* ResolveNameInPrefixScope(const LibraryPrefix& prefix,
+                                      const String& name);
 
   AstNode* ResolveIdent(intptr_t ident_pos,
                         const String& ident,

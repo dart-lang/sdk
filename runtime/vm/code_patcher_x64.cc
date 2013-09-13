@@ -16,53 +16,60 @@
 namespace dart {
 
 // The expected pattern of a Dart unoptimized call (static and instance):
-//  00: 48 bb imm64  mov RBX, ic-data
-//  10: 49 bb imm64  mov R11, target_address
-//  20: 41 ff d3   call R11
-//  23 <- return address
+//  00: 49 8b 9f imm32  mov RBX, [PP + off]
+//  07: 4d 8b 9f imm32  mov R11, [PP + off]
+//  14: 41 ff d3        call R11
+//  17 <- return address
 class UnoptimizedCall : public ValueObject {
  public:
-  explicit UnoptimizedCall(uword return_address)
-      : start_(return_address - kCallPatternSize) {
+  UnoptimizedCall(uword return_address, const Code& code)
+      : start_(return_address - kCallPatternSize),
+        object_pool_(Array::Handle(code.ObjectPool())) {
     ASSERT(IsValid(return_address));
-    ASSERT((kCallPatternSize - 10) == Assembler::kCallExternalLabelSize);
+    ASSERT((kCallPatternSize - 7) == Assembler::kCallExternalLabelSize);
   }
 
-  static const int kCallPatternSize = 23;
+  static const int kCallPatternSize = 17;
 
   static bool IsValid(uword return_address) {
     uint8_t* code_bytes =
         reinterpret_cast<uint8_t*>(return_address - kCallPatternSize);
-    return (code_bytes[00] == 0x48) && (code_bytes[01] == 0xBB) &&
-           (code_bytes[10] == 0x49) && (code_bytes[11] == 0xBB) &&
-           (code_bytes[20] == 0x41) && (code_bytes[21] == 0xFF) &&
-           (code_bytes[22] == 0xD3);
+    return (code_bytes[0] == 0x49) && (code_bytes[1] == 0x8B) &&
+           (code_bytes[2] == 0x9F) &&
+           (code_bytes[7] == 0x4D) && (code_bytes[8] == 0x8B) &&
+           (code_bytes[9] == 0x9F) &&
+           (code_bytes[14] == 0x41) && (code_bytes[15] == 0xFF) &&
+           (code_bytes[16] == 0xD3);
   }
 
   RawObject* ic_data() const {
-    return *reinterpret_cast<RawObject**>(start_ + 0 + 2);
+    int index = InstructionPattern::IndexFromPPLoad(start_ + 3);
+    return object_pool_.At(index);
   }
 
   uword target() const {
-    return *reinterpret_cast<uword*>(start_ + 10 + 2);
+    int index = InstructionPattern::IndexFromPPLoad(start_ + 10);
+    return reinterpret_cast<uword>(object_pool_.At(index));
   }
 
   void set_target(uword target) const {
-    uword* target_addr = reinterpret_cast<uword*>(start_ + 10 + 2);
-    *target_addr = target;
-    CPU::FlushICache(start_ + 10, 2 + 8);
+    int index = InstructionPattern::IndexFromPPLoad(start_ + 10);
+    const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target));
+    object_pool_.SetAt(index, smi);
+    // No need to flush the instruction cache, since the code is not modified.
   }
 
  private:
   uword start_;
+  const Array& object_pool_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedCall);
 };
 
 
 class InstanceCall : public UnoptimizedCall {
  public:
-  explicit InstanceCall(uword return_address)
-      : UnoptimizedCall(return_address) {
+  InstanceCall(uword return_address, const Code& code)
+      : UnoptimizedCall(return_address, code) {
 #if defined(DEBUG)
     ICData& test_ic_data = ICData::Handle();
     test_ic_data ^= ic_data();
@@ -77,8 +84,8 @@ class InstanceCall : public UnoptimizedCall {
 
 class UnoptimizedStaticCall : public UnoptimizedCall {
  public:
-  explicit UnoptimizedStaticCall(uword return_address)
-      : UnoptimizedCall(return_address) {
+  UnoptimizedStaticCall(uword return_address, const Code& code)
+      : UnoptimizedCall(return_address, code) {
 #if defined(DEBUG)
     ICData& test_ic_data = ICData::Handle();
     test_ic_data ^= ic_data();
@@ -92,50 +99,54 @@ class UnoptimizedStaticCall : public UnoptimizedCall {
 
 
 // The expected pattern of a dart static call:
-//  mov R10, arguments_descriptor_array (10 bytes) (optional in polym. calls)
-//  mov R11, target_address (10 bytes)
-//  call R11  (3 bytes)
+//  00 mov R10, arguments_descriptor_array (10 bytes) (optional in polym. calls)
+//  11: 4d 8b 9f imm32  mov R11, [PP + off]
+//  16: call R11  (3 bytes)
 //  <- return address
 class StaticCall : public ValueObject {
  public:
-  explicit StaticCall(uword return_address)
-      : start_(return_address - kCallPatternSize) {
+  explicit StaticCall(uword return_address, const Code& code)
+      : start_(return_address - kCallPatternSize),
+        object_pool_(Array::Handle(code.ObjectPool())) {
     ASSERT(IsValid(return_address));
     ASSERT(kCallPatternSize == Assembler::kCallExternalLabelSize);
   }
 
-  static const int kCallPatternSize = 13;
+  static const int kCallPatternSize = 10;
 
   static bool IsValid(uword return_address) {
     uint8_t* code_bytes =
         reinterpret_cast<uint8_t*>(return_address - kCallPatternSize);
-    return (code_bytes[00] == 0x49) && (code_bytes[01] == 0xBB) &&
-           (code_bytes[10] == 0x41) && (code_bytes[11] == 0xFF) &&
-           (code_bytes[12] == 0xD3);
+    return (code_bytes[0] == 0x4D) && (code_bytes[1] == 0x8B) &&
+           (code_bytes[2] == 0x9F) &&
+           (code_bytes[7] == 0x41) && (code_bytes[8] == 0xFF) &&
+           (code_bytes[9] == 0xD3);
   }
 
   uword target() const {
-    return *reinterpret_cast<uword*>(start_ + 2);
+    int index = InstructionPattern::IndexFromPPLoad(start_ + 3);
+    return reinterpret_cast<uword>(object_pool_.At(index));
   }
 
   void set_target(uword target) const {
-    uword* target_addr = reinterpret_cast<uword*>(start_ + 2);
-    *target_addr = target;
-    CPU::FlushICache(start_, 2 + 8);
+    int index = InstructionPattern::IndexFromPPLoad(start_ + 3);
+    const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target));
+    object_pool_.SetAt(index, smi);
+    // No need to flush the instruction cache, since the code is not modified.
   }
 
  private:
   uword start_;
-
+  const Array& object_pool_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticCall);
 };
 
 
 // The expected code pattern of a dart closure call:
-//  00: 49 ba imm64  mov R10, immediate 2      ; 10 bytes
-//  10: 49 bb imm64  mov R11, target_address   ; 10 bytes
-//  20: 41 ff d3     call R11                  ; 3 bytes
-//  23: <- return_address
+//  00: 49 ba imm64     mov R10, immediate 2      ; 10 bytes
+//  10: 4d 8b 9f imm32  mov R11, [PP + off]
+//  17: 41 ff d3        call R11                  ; 3 bytes
+//  20: <- return_address
 class ClosureCall : public ValueObject {
  public:
   explicit ClosureCall(uword return_address)
@@ -147,9 +158,10 @@ class ClosureCall : public ValueObject {
     uint8_t* code_bytes =
         reinterpret_cast<uint8_t*>(return_address - kCallPatternSize);
     return (code_bytes[00] == 0x49) && (code_bytes[01] == 0xBA) &&
-           (code_bytes[10] == 0x49) && (code_bytes[11] == 0xBB) &&
-           (code_bytes[20] == 0x41) && (code_bytes[21] == 0xFF) &&
-           (code_bytes[22] == 0xD3);
+           (code_bytes[10] == 0x4D) && (code_bytes[11] == 0x8B) &&
+           (code_bytes[12] == 0x9F) &&
+           (code_bytes[17] == 0x41) && (code_bytes[18] == 0xFF) &&
+           (code_bytes[19] == 0xD3);
   }
 
   RawArray* arguments_descriptor() const {
@@ -157,7 +169,7 @@ class ClosureCall : public ValueObject {
   }
 
  private:
-  static const int kCallPatternSize = 10 + 10 + 3;
+  static const int kCallPatternSize = 10 + 7 + 3;
   uword start_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(ClosureCall);
 };
@@ -174,7 +186,7 @@ RawArray* CodePatcher::GetClosureArgDescAt(uword return_address,
 uword CodePatcher::GetStaticCallTargetAt(uword return_address,
                                          const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
-  StaticCall call(return_address);
+  StaticCall call(return_address, code);
   return call.target();
 }
 
@@ -183,7 +195,7 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
                                     const Code& code,
                                     uword new_target) {
   ASSERT(code.ContainsInstructionAt(return_address));
-  StaticCall call(return_address);
+  StaticCall call(return_address, code);
   call.set_target(new_target);
 }
 
@@ -192,7 +204,7 @@ void CodePatcher::PatchInstanceCallAt(uword return_address,
                                       const Code& code,
                                       uword new_target) {
   ASSERT(code.ContainsInstructionAt(return_address));
-  InstanceCall call(return_address);
+  InstanceCall call(return_address, code);
   call.set_target(new_target);
 }
 
@@ -201,7 +213,7 @@ uword CodePatcher::GetInstanceCallAt(uword return_address,
                                      const Code& code,
                                      ICData* ic_data) {
   ASSERT(code.ContainsInstructionAt(return_address));
-  InstanceCall call(return_address);
+  InstanceCall call(return_address, code);
   if (ic_data != NULL) {
     *ic_data ^= call.ic_data();
   }
@@ -227,7 +239,7 @@ void CodePatcher::InsertCallAt(uword start, uword target) {
 RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
     uword return_address, const Code& code, ICData* ic_data_result) {
   ASSERT(code.ContainsInstructionAt(return_address));
-  UnoptimizedStaticCall static_call(return_address);
+  UnoptimizedStaticCall static_call(return_address, code);
   ICData& ic_data = ICData::Handle();
   ic_data ^= static_call.ic_data();
   if (ic_data_result != NULL) {

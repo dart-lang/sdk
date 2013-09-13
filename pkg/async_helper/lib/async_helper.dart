@@ -8,13 +8,18 @@
 /// finished] even if the asynchronous operations fail).
 /// Tests which can't use the unittest framework should use the helper functions
 /// in this library.
-/// This library provides two methods
+/// This library provides four methods
 ///  - asyncStart(): Needs to be called before an asynchronous operation is
 ///                  scheduled.
 ///  - asyncEnd(): Needs to be called as soon as the asynchronous operation
 ///                ended.
+///  - asyncSuccess(_): Variant of asyncEnd useful together with Future.then.
+///  - asyncTest(f()): Helper method that wraps a computation that returns a
+///                    Future with matching calls to asyncStart() and
+///                    asyncSuccess(_).
 /// After the last asyncStart() called was matched with a corresponding
-/// asyncEnd() call, the testing driver will be notified that the tests is done.
+/// asyncEnd() or asyncSuccess(_) call, the testing driver will be notified that
+/// the tests is done.
 
 library async_helper;
 
@@ -32,6 +37,7 @@ Exception _buildException(String msg) {
   return new Exception('Fatal: $msg. This is most likely a bug in your test.');
 }
 
+/// Call this method before an asynchronous test is created.
 void asyncStart() {
   if (_initialized && _asyncLevel == 0) {
     throw _buildException('asyncStart() was called even though we are done '
@@ -45,6 +51,7 @@ void asyncStart() {
   _asyncLevel++;
 }
 
+/// Call this after an asynchronous test has ended successfully.
 void asyncEnd() {
   if (_asyncLevel <= 0) {
     if (!_initialized) {
@@ -62,7 +69,26 @@ void asyncEnd() {
   }
 }
 
+/**
+ * Call this after an asynchronous test has ended successfully. This is a helper
+ * for calling [asyncEnd].
+ *
+ * This method intentionally has a signature that matches [:Future.then:] as a
+ * convenience for calling [asyncEnd] when a [:Future:] completes without error,
+ * like this:
+ *
+ *     asyncStart();
+ *     Future result = test();
+ *     result.then(asyncSuccess);
+ */
+void asyncSuccess(_) => asyncEnd();
+
+/**
+ * Helper method for performing asynchronous tests involving [:Future:].
+ *
+ * [f] must return a [:Future:] for the test computation.
+ */
 void asyncTest(f()) {
   asyncStart();
-  f().whenComplete(() => asyncEnd());
+  f().then(asyncSuccess);
 }

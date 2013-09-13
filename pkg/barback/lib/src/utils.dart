@@ -83,7 +83,7 @@ String byteToHex(int byte) {
 ///
 /// This returns a map whose keys are the return values of [fn] and whose values
 /// are lists of each element in [iter] for which [fn] returned that key.
-Map groupBy(Iterable iter, fn(element)) {
+Map<Object, List> groupBy(Iterable iter, fn(element)) {
   var map = {};
   for (var element in iter) {
     var list = map.putIfAbsent(fn(element), () => []);

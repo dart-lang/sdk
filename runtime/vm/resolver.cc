@@ -143,14 +143,12 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
                                      const String& function_name,
                                      intptr_t num_arguments,
                                      const Array& argument_names,
-                                     StaticResolveType resolve_type,
-                                     String* ambiguity_error_msg) {
+                                     StaticResolveType resolve_type) {
   ASSERT(!library.IsNull());
   Function& function = Function::Handle();
   if (class_name.IsNull() || (class_name.Length() == 0)) {
     // Check if we are referring to a top level function.
-    const Object& object = Object::Handle(
-        library.LookupObject(function_name, ambiguity_error_msg));
+    const Object& object = Object::Handle(library.LookupObject(function_name));
     if (!object.IsNull() && object.IsFunction()) {
       function ^= object.raw();
       if (!function.AreValidArguments(num_arguments, argument_names, NULL)) {
@@ -168,18 +166,15 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
       }
     } else {
       if (FLAG_trace_resolving) {
-        OS::Print("ResolveStatic error '%s': %s.\n",
-                  function_name.ToCString(),
-                  ambiguity_error_msg->IsNull() ? "top level function not found"
-                      : ambiguity_error_msg->ToCString());
+        OS::Print("ResolveStatic error: function '%s' not found.\n",
+                  function_name.ToCString());
       }
     }
   } else {
     // Lookup class_name in the library's class dictionary to get at
     // the dart class object. If class_name is not found in the dictionary
     // ResolveStatic will return a NULL function object.
-    const Class& cls = Class::Handle(
-        library.LookupClass(class_name, ambiguity_error_msg));
+    const Class& cls = Class::Handle(library.LookupClass(class_name));
     if (!cls.IsNull()) {
       function = ResolveStatic(cls,
                                function_name,
@@ -188,11 +183,9 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
                                resolve_type);
     }
     if (FLAG_trace_resolving && function.IsNull()) {
-      OS::Print("ResolveStatic error '%s.%s': %s.\n",
+      OS::Print("ResolveStatic error: function '%s.%s' not found.\n",
                 class_name.ToCString(),
-                function_name.ToCString(),
-                ambiguity_error_msg->IsNull() ? "static function not found"
-                    : ambiguity_error_msg->ToCString());
+                function_name.ToCString());
     }
   }
   return function.raw();

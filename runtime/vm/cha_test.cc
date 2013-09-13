@@ -33,24 +33,23 @@ TEST_CASE(ClassHierarchyAnalysis) {
   const Library& lib = Library::Handle(Library::LookupLibrary(name));
   EXPECT(!lib.IsNull());
 
-  String& ambiguity_error_msg = String::Handle();
   const Class& class_a = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A")), &ambiguity_error_msg));
+      lib.LookupClass(String::Handle(Symbols::New("A"))));
   EXPECT(!class_a.IsNull());
   const intptr_t class_a_id = class_a.id();
 
   const Class& class_b = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("B")), &ambiguity_error_msg));
+      lib.LookupClass(String::Handle(Symbols::New("B"))));
   EXPECT(!class_b.IsNull());
   const intptr_t class_b_id = class_b.id();
 
   const Class& class_c = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("C")), &ambiguity_error_msg));
+      lib.LookupClass(String::Handle(Symbols::New("C"))));
   EXPECT(!class_c.IsNull());
   const intptr_t class_c_id = class_c.id();
 
   const Class& class_d = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("D")), &ambiguity_error_msg));
+      lib.LookupClass(String::Handle(Symbols::New("D"))));
   EXPECT(!class_d.IsNull());
   const intptr_t class_d_id = class_d.id();
 

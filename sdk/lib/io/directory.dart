@@ -109,6 +109,15 @@ abstract class Directory implements FileSystemEntity {
   Directory renameSync(String newPath);
 
   /**
+   * Returns a [Directory] instance whose path is the absolute path to [this].
+   *
+   * The absolute path is computed by prefixing
+   * a relative path with the current working directory, and returning
+   * an absolute path unchanged.
+   */
+  Directory get absolute;
+
+  /**
    * Lists the sub-directories and files of this [Directory].
    * Optionally recurses into sub-directories.
    *

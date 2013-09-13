@@ -16,7 +16,7 @@ import 'dart:async';
 import 'package:barback/barback.dart';
 
 class RewriteTransformer extends Transformer {
-  RewriteTransformer();
+  RewriteTransformer.asPlugin();
 
   String get allowedExtensions => '.txt';
 
@@ -40,7 +40,7 @@ main() {
       ])
     ]).create();
 
-    createLockFile('myapp', {}, pkg: ['barback']);
+    createLockFile('myapp', pkg: ['barback']);
 
     var server = startPubServe();
     expect(server.nextErrLine(),

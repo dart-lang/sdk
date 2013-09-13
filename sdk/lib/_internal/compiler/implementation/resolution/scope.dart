@@ -41,6 +41,24 @@ abstract class NestedScope extends Scope {
   }
 }
 
+class VariableDefinitionScope extends NestedScope {
+  final SourceString variableName;
+  bool variableReferencedInInitializer = false;
+
+  VariableDefinitionScope(Scope parent, this.variableName) : super(parent);
+
+  Element localLookup(SourceString name) {
+    if (name == variableName) {
+      variableReferencedInInitializer = true;
+    }
+    return null;
+  }
+
+  Element add(Element newElement) {
+    throw "Cannot add element to VariableDefinitionScope";
+  }
+}
+
 /**
  * [TypeDeclarationScope] defines the outer scope of a type declaration in
  * which the declared type variables and the entities in the enclosing scope are

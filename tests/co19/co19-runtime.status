@@ -5,6 +5,40 @@
 [ $runtime == vm ]
 Language/12_Expressions/01_Constants_A16_t04: fail # Issue 392
 Language/12_Expressions/01_Constants_A16_t05: fail # Issue 392
+LibTest/typed_data/Float32List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Float32List/Float32List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Float32List/Float32List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Float32List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Float32x4List/Float32x4List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Float32x4List/Float32x4List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Float32x4List/Float32x4List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Float64List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Float64List/Float64List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Float64List/Float64List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Float64List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Int16List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Int16List/Int16List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Int16List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Int32List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Int32List/Int32List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Int32List/Int32List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Int32List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Int64List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Int64List/Int64List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Int64List/Int64List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Int64List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint16List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint16List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint16List/Uint16List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint16List/Uint16List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Uint32List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint32List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint32List/Uint32List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint32List/Uint32List.view_A01_t02: fail # Issue 549
+LibTest/typed_data/Uint64List/buffer_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint64List/offsetInBytes_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint64List/Uint64List.view_A01_t01: fail # Issue 549
+LibTest/typed_data/Uint64List/Uint64List.view_A01_t02: fail # Issue 549
 
 [ $runtime == vm && $system == windows ]
 LibTest/core/Stopwatch/elapsed_A01_t01: Pass, Fail # Issue 11382.
@@ -60,10 +94,12 @@ LibTest/core/double/toInt_A01_t01: Fail
 LibTest/typed_data/Float32List/Float32List.view_A01_t02: Crash  # Issue 12868
 LibTest/typed_data/Float64List/Float64List.view_A01_t02: Crash  # Issue 12868
 
+[ $compiler == none && $runtime == vm && ($arch == simarm || $arch == simmips) ]
+LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # co19-roll r576: Please triage this failure
+
 [ $compiler == none && $runtime == vm ]
 Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
-Language/05_Variables/05_Variables_A05_t03: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A06_t01: fail # Dart issue 12543
 Language/05_Variables/05_Variables_A06_t02: fail # Dart issue 12543
 Language/05_Variables/05_Variables_A06_t03: fail # Dart issue 12543
@@ -71,11 +107,6 @@ Language/05_Variables/05_Variables_A06_t04: fail # Dart issue 12543
 Language/05_Variables/05_Variables_A06_t05: fail # Dart issue 12543
 Language/05_Variables/05_Variables_A06_t06: fail # Dart issue 12543
 Language/05_Variables/05_Variables_A16_t02: fail # Dart issue 12544
-Language/07_Classes/07_Classes_A11_t02: fail # Dart issue 12545
-Language/07_Classes/07_Classes_A11_t04: fail # Dart issue 12545
-Language/07_Classes/3_Setters_A08_t01: fail # co19 issue 520
-Language/07_Classes/3_Setters_A08_t02: fail # co19 issue 520
-Language/07_Classes/3_Setters_A08_t04: fail # co19 issue 520
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail # Dart issue 12543
 Language/12_Expressions/05_Strings_A02_t46: fail # Dart issue 12547
 Language/12_Expressions/05_Strings_A02_t48: fail # Dart issue 12547
@@ -85,8 +116,6 @@ Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: fail # Dart issue 13
 Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19 issue 525
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: fail # Dart issue 12550
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: fail # Dart issue 12549
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail # Dart issue 12549
-Language/12_Expressions/30_Identifier_Reference_A05_t02: fail # Dart issue 12551
 Language/12_Expressions/30_Identifier_Reference_A08_t02: fail # Dart issue 12593
 Language/12_Expressions/32_Type_Test_A04_t02: fail # co19 issue 503
 Language/12_Expressions/32_Type_Test_A04_t03: fail # co19 issue 534
@@ -102,18 +131,7 @@ Language/13_Statements/09_Switch_A03_t01: fail # Dart issue 7307
 Language/13_Statements/09_Switch_A03_t02: fail # Dart issue 7307
 Language/13_Statements/09_Switch_A04_t01: fail # Dart issue 11233
 Language/13_Statements/12_Labels_A01_t03: fail # Dart issue 2238
-Language/14_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: fail # Dart issue 12913
-Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t10: fail # Dart issue 12915
 Language/14_Libraries_and_Scripts/1_Imports_A03_t27: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t29: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t30: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t47: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t49: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t50: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t67: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t69: fail # Dart issue 12915
-Language/14_Libraries_and_Scripts/1_Imports_A03_t70: fail # Dart issue 12915
 Language/14_Libraries_and_Scripts/2_Exports_A04_t02: fail # Dart issue 12916
 Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # Dart issue 12916
 Language/14_Libraries_and_Scripts/2_Exports_A05_t01: fail # Dart issue 12918
@@ -128,8 +146,6 @@ Language/14_Libraries_and_Scripts/5_URIs_A01_t21: fail # Issue 12518
 LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
 
 # All isolate are being ignored at the moment as the library will go through some changes.
-LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
@@ -163,3 +179,10 @@ LibTest/typed_data/Float32x4List/singleWhere_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/skip_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/take_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/take_A02_t01: Fail # Dart issue 12861
+
+[ $compiler == none && $runtime == vm && $system == windows ]
+Language/15_Types/4_Interface_Types_A11_t01: pass, timeout # co19-roll r576: Please triage this failure
+Language/15_Types/4_Interface_Types_A11_t02: pass, timeout # co19-roll r576: Please triage this failure
+LibTest/core/Uri/toFilePath_A02_t01: fail # co19-roll r576: Please triage this failure
+LibTest/core/Uri/Uri.file_A01_t01: fail # co19-roll r576: Please triage this failure
+

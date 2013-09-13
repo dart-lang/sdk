@@ -11,11 +11,14 @@ namespace dart {
 
                |                    | <- TOS
 Callee frame   | ...                |
+               | saved PP           |
+               | callee's PC marker |
                | saved RBP          |    (RBP of current frame)
                | saved PC           |    (PC of current frame)
                +--------------------+
 Current frame  | ...                | <- RSP of current frame
                | first local        |
+               | caller's PP        |
                | PC marker          |    (current frame's code entry + offset)
                | caller's RBP       | <- RBP of current frame
                | caller's ret addr  |    (PC of caller frame)
@@ -24,21 +27,22 @@ Caller frame   | last parameter     | <- RSP of caller frame
                |  ...               |
 */
 
-static const int kDartFrameFixedSize = 3;  // PC marker, RBP, PC.
+static const int kDartFrameFixedSize = 4;  // PC marker, RBP, PP, PC.
 static const int kSavedPcSlotFromSp = -1;
-static const int kFirstLocalSlotFromFp = -2;
+
+static const int kFirstLocalSlotFromFp = -3;
+static const int kSavedCallerPpSlotFromFp = -2;
 static const int kPcMarkerSlotFromFp = -1;
 static const int kSavedCallerFpSlotFromFp = 0;
 static const int kSavedCallerPcSlotFromFp = 1;
+
 static const int kParamEndSlotFromFp = 1;  // One slot past last parameter.
 static const int kCallerSpSlotFromFp = 2;
-
-// No pool pointer on X64 (indicated by aliasing saved fp).
-static const int kSavedCallerPpSlotFromFp = kSavedCallerFpSlotFromFp;
+static const int kSavedAboveReturnAddress = 3;  // Saved above return address.
 
 // Entry and exit frame layout.
-static const int kSavedContextSlotFromEntryFp = -9;
-static const int kExitLinkSlotFromEntryFp = -8;
+static const int kSavedContextSlotFromEntryFp = -10;
+static const int kExitLinkSlotFromEntryFp = -9;
 
 }  // namespace dart
 

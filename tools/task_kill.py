@@ -166,8 +166,7 @@ def Main():
     status += KillDart();
   if (options.kill_browsers):
     status += KillBrowsers()
-  # Investigating hanging firefox, see issue 13121
-  return 0
+  return status
 
 if __name__ == '__main__':
   sys.exit(Main())

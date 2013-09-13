@@ -47,6 +47,12 @@ class ValueRangeInfo {
   Range newNormalizedRange(Value low, Value up) {
     return new Range.normalize(low, up, this);
   }
+
+  Range newMarkerRange() {
+    return new Range(new MarkerValue(false, this),
+                     new MarkerValue(true, this),
+                     this);
+  }
 }
 
 /**
@@ -86,6 +92,33 @@ abstract class Value {
   bool get isNegative => false;
   bool get isPositive => false;
   bool get isZero => false;
+}
+
+/**
+ * The [MarkerValue] class is used to recognize ranges of loop
+ * updates.
+ */
+class MarkerValue extends Value {
+  /// If [positive] is true (respectively false), the marker goes
+  /// to [MaxIntValue] (respectively [MinIntValue]) when being added
+  /// to a positive (respectively negative) value.
+  final bool positive;
+
+  const MarkerValue(this.positive, info) : super(info);
+
+  Value operator +(Value other) {
+    if (other.isPositive && positive) return const MaxIntValue();
+    if (other.isNegative && !positive) return const MinIntValue();
+    if (other is IntValue) return this;
+    return const UnknownValue();
+  }
+
+  Value operator -(Value other) {
+    if (other.isPositive && !positive) return const MinIntValue();
+    if (other.isNegative && positive) return const MaxIntValue();
+    if (other is IntValue) return this;
+    return const UnknownValue();
+  }
 }
 
 /**
@@ -454,7 +487,7 @@ class Range {
         lower.min(other.lower), upper.max(other.upper));
   }
 
-  intersection(Range other) {
+  Range intersection(Range other) {
     Value low = lower.max(other.lower);
     Value up = upper.min(other.upper);
     // If we could not compute max or min, pick a value in the two
@@ -621,7 +654,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     // phase is not necessarily run before the [ValueRangeAnalyzer].
     if (phi.inputs.any((i) => !i.isInteger())) return info.newUnboundRange();
     if (phi.block.isLoopHeader()) {
-      Range range = tryInferLoopPhiRange(phi);
+      Range range = new LoopUpdateRecognizer(ranges, info).run(phi);
       if (range == null) return info.newUnboundRange();
       return range;
     }
@@ -631,11 +664,6 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       range = range.union(ranges[phi.inputs[i]]);
     }
     return range;
-  }
-
-  Range tryInferLoopPhiRange(HPhi phi) {
-    HInstruction update = phi.inputs[1];
-    return update.accept(new LoopUpdateRecognizer(phi, ranges, info));
   }
 
   Range visitConstant(HConstant constant) {
@@ -908,52 +936,48 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 }
 
 /**
- * Recognizes a number of patterns in a loop update instruction and
- * tries to infer a range for the loop phi.
+ * Tries to find a range for the update instruction of a loop phi.
  */
 class LoopUpdateRecognizer extends HBaseVisitor {
-  final HPhi loopPhi;
   final Map<HInstruction, Range> ranges;
   final ValueRangeInfo info;
-  LoopUpdateRecognizer(this.loopPhi, this.ranges, this.info);
+  LoopUpdateRecognizer(this.ranges, this.info);
 
-  Range visitAdd(HAdd operation) {
-    Range range = getRangeForRecognizableOperation(operation);
-    if (range == null) return info.newUnboundRange();
-    Range initial = ranges[loopPhi.inputs[0]];
-    if (range.isPositive) {
-      return info.newNormalizedRange(initial.lower, const MaxIntValue());
-    } else if (range.isNegative) {
-      return info.newNormalizedRange(const MinIntValue(), initial.upper);
-    }
-    return info.newUnboundRange();
+  Range run(HPhi loopPhi) {
+    // Create a marker range for the loop phi, so that if the update
+    // uses the loop phi, it has a range to use.
+    ranges[loopPhi] = info.newMarkerRange();
+    Range updateRange = visit(loopPhi.inputs[1]);
+    ranges[loopPhi] = null;
+    if (updateRange == null) return null;
+    Range startRange = ranges[loopPhi.inputs[0]];
+    // If the lower (respectively upper) value is the marker, we know
+    // the loop does not change it, so we can just use the
+    // [startRange]'s lower (upper) value. Otherwise the lower (upper) value
+    // is the minimum of the [startRange]'s lower (upper) and the
+    // [updateRange]'s lower (upper).
+    Value low = updateRange.lower is MarkerValue
+        ? startRange.lower
+        : updateRange.lower.min(startRange.lower);
+    Value up = updateRange.upper is MarkerValue
+        ? startRange.upper
+        : updateRange.upper.max(startRange.upper);
+    return info.newNormalizedRange(low, up);
   }
 
-  Range visitSubtract(HSubtract operation) {
-    Range range = getRangeForRecognizableOperation(operation);
-    if (range == null) return info.newUnboundRange();
-    Range initial = ranges[loopPhi.inputs[0]];
-    if (range.isPositive) {
-      return info.newNormalizedRange(const MinIntValue(), initial.upper);
-    } else if (range.isNegative) {
-      return info.newNormalizedRange(initial.lower, const MaxIntValue());
-    }
-    return info.newUnboundRange();
+  Range visit(HInstruction instruction) {
+    if (!instruction.isInteger()) return null;
+    if (ranges[instruction] != null) return ranges[instruction];
+    return instruction.accept(this);
   }
 
   Range visitPhi(HPhi phi) {
+    // If the update of a loop phi involves another loop phi, we give
+    // up.
+    if (phi.block.isLoopHeader()) return null;
     Range phiRange;
     for (HInstruction input in phi.inputs) {
-      HInstruction instruction = unwrap(input);
-      // If one of the inputs is the loop phi, then we're only
-      // interested in the other inputs: a loop phi feeding itself means
-      // it is not being updated.
-      if (instruction == loopPhi) continue;
-
-      // If another loop phi is involved, it's too complex to analyze.
-      if (instruction is HPhi && instruction.block.isLoopHeader()) return null;
-
-      Range inputRange = instruction.accept(this);
+      Range inputRange = visit(input);
       if (inputRange == null) return null;
       if (phiRange == null) {
         phiRange = inputRange;
@@ -964,49 +988,23 @@ class LoopUpdateRecognizer extends HBaseVisitor {
     return phiRange;
   }
 
-  /**
-   * If [operation] is recognizable, returns the inferred range.
-   * Otherwise returns [null].
-   */
-  Range getRangeForRecognizableOperation(HBinaryArithmetic operation) {
-    if (!operation.left.isInteger()) return null;
-    if (!operation.right.isInteger()) return null;
-    HInstruction left = unwrap(operation.left);
-    HInstruction right = unwrap(operation.right);
-    // We only recognize operations that operate on the loop phi.
-    bool isLeftLoopPhi = (left == loopPhi);
-    bool isRightLoopPhi = (right == loopPhi);
-    if (!isLeftLoopPhi && !isRightLoopPhi) return null;
-
-    var other = isLeftLoopPhi ? right : left;
-    // If the analysis already computed range for the update, use it.
-    if (ranges[other] != null) return ranges[other];
-
-    // We currently only handle constants in updates if the
-    // update does not have a range.
-    if (other.isConstant()) {
-      Value value = info.newIntValue(other.constant.value);
-      return info.newNormalizedRange(value, value);
-    }
-    return null;
+  Range visitCheck(HCheck instruction) {
+    return visit(instruction.checkedInput);
   }
 
-  /**
-   * [HCheck] instructions may check the loop phi. Since we only
-   * recognize updates on the loop phi, we must [unwrap] the [HCheck]
-   * instruction to check if it references the loop phi.
-   */
-  HInstruction unwrap(instruction) {
-    if (instruction is HCheck) return unwrap(instruction.checkedInput);
-    // [HPhi] might have two different [HCheck] instructions as
-    // inputs, checking the same instruction.
-    if (instruction is HPhi && !instruction.block.isLoopHeader()) {
-      HInstruction result = unwrap(instruction.inputs[0]);
-      for (int i = 1; i < instruction.inputs.length; i++) {
-        if (result != unwrap(instruction.inputs[i])) return instruction;
-      }
-      return result;
-    }
-    return instruction;
+  Range visitAdd(HAdd operation) {
+    return handleBinaryOperation(operation);
+  }
+
+  Range visitSubtract(HSubtract operation) {
+    return handleBinaryOperation(operation);
+  }
+
+  Range handleBinaryOperation(HBinaryArithmetic instruction) {
+    Range leftRange = visit(instruction.left);
+    Range rightRange = visit(instruction.right);
+    if (leftRange == null || rightRange == null) return null;
+    BinaryOperation operation = instruction.operation(info.constantSystem);
+    return operation.apply(leftRange, rightRange);
   }
 }

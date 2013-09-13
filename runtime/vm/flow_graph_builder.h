@@ -208,9 +208,11 @@ class EffectGraphVisitor : public AstNodeVisitor {
         entry_(NULL),
         exit_(NULL) { }
 
-#define DEFINE_VISIT(type, name) virtual void Visit##type(type* node);
-  NODE_LIST(DEFINE_VISIT)
-#undef DEFINE_VISIT
+#define DECLARE_VISIT(BaseName)                                                \
+  virtual void Visit##BaseName##Node(BaseName##Node* node);
+
+  FOR_EACH_NODE(DECLARE_VISIT)
+#undef DECLARE_VISIT
 
   FlowGraphBuilder* owner() const { return owner_; }
   intptr_t temp_index() const { return temp_index_; }

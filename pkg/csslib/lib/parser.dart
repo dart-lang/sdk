@@ -13,6 +13,7 @@ import 'src/messages.dart';
 import 'src/options.dart';
 
 part 'src/analyzer.dart';
+part 'src/polyfill.dart';
 part 'src/property.dart';
 part 'src/token.dart';
 part 'src/tokenizer_base.dart';
@@ -44,7 +45,8 @@ bool get isChecked => messages.options.checked;
 
 // TODO(terry): Remove nested name parameter.
 /** Parse and analyze the CSS file. */
-StyleSheet compile(var input, {List errors, List options, bool nested: true}) {
+StyleSheet compile(var input,
+    {List errors, List options, bool nested: true, bool polyfill: false}) {
   var source = _inputAsString(input);
 
   _createMessages(errors: errors, options: options);
@@ -54,6 +56,11 @@ StyleSheet compile(var input, {List errors, List options, bool nested: true}) {
   var tree = new Parser(file, source).parse();
 
   analyze([tree], errors: errors, options: options);
+
+  if (polyfill) {
+    var processCss = new PolyFill(messages, true);
+    processCss.process(tree);
+  }
 
   return tree;
 }

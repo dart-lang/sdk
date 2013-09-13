@@ -18,4 +18,22 @@ class PackageGraph {
   final Map<String, Package> packages;
 
   PackageGraph(this.entrypoint, this.packages);
+
+  /// Returns the set of transitive dependencies of the package named
+  /// [packageName].
+  Set<Package> transitiveDependencies(String packageName) {
+    var seen = new Set<Package>();
+    traverse(Package package) {
+      if (seen.contains(package)) return;
+      seen.add(package);
+      for (var dep in package.dependencies) {
+        traverse(packages[dep.name]);
+      }
+    }
+
+    var package = packages[packageName];
+    traverse(package);
+    seen.remove(package);
+    return seen;
+  }
 }

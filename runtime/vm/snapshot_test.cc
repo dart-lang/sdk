@@ -131,6 +131,15 @@ static void CheckEncodeDecodeMessage(Dart_CObject* root) {
   CompareDartCObjects(root, new_root);
 }
 
+
+static void ExpectEncodeFail(Dart_CObject* root) {
+  uint8_t* buffer = NULL;
+  ApiMessageWriter writer(&buffer, &malloc_allocator);
+  const bool result = writer.WriteCMessage(root);
+  EXPECT_EQ(false, result);
+}
+
+
 TEST_CASE(SerializeNull) {
   StackZone zone(Isolate::Current());
 
@@ -577,6 +586,58 @@ TEST_CASE(SerializeArray) {
     EXPECT_EQ(i, element->value.as_int32);
   }
   CheckEncodeDecodeMessage(root);
+}
+
+
+TEST_CASE(FailSerializeLargeArray) {
+  Dart_CObject root;
+  root.type = Dart_CObject_kArray;
+  root.value.as_array.length = Array::kMaxElements + 1;
+  root.value.as_array.values = NULL;
+  ExpectEncodeFail(&root);
+}
+
+
+TEST_CASE(FailSerializeLargeNestedArray) {
+  Dart_CObject parent;
+  Dart_CObject child;
+  Dart_CObject* values[1] = { &child };
+
+  parent.type = Dart_CObject_kArray;
+  parent.value.as_array.length = 1;
+  parent.value.as_array.values = values;
+  child.type = Dart_CObject_kArray;
+  child.value.as_array.length = Array::kMaxElements + 1;
+  ExpectEncodeFail(&parent);
+}
+
+
+TEST_CASE(FailSerializeLargeTypedDataInt8) {
+  Dart_CObject root;
+  root.type = Dart_CObject_kTypedData;
+  root.value.as_typed_data.type = Dart_TypedData_kInt8;
+  root.value.as_typed_data.length =
+      TypedData::MaxElements(kTypedDataInt8ArrayCid) + 1;
+  ExpectEncodeFail(&root);
+}
+
+
+TEST_CASE(FailSerializeLargeTypedDataUint8) {
+  Dart_CObject root;
+  root.type = Dart_CObject_kTypedData;
+  root.value.as_typed_data.type = Dart_TypedData_kUint8;
+  root.value.as_typed_data.length =
+      TypedData::MaxElements(kTypedDataUint8ArrayCid) + 1;
+  ExpectEncodeFail(&root);
+}
+
+
+TEST_CASE(FailSerializeLargeExternalTypedData) {
+  Dart_CObject root;
+  root.type = Dart_CObject_kExternalTypedData;
+  root.value.as_typed_data.length =
+      ExternalTypedData::MaxElements(kExternalTypedDataUint8ArrayCid) + 1;
+  ExpectEncodeFail(&root);
 }
 
 

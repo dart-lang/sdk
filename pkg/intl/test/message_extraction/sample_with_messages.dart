@@ -47,7 +47,7 @@ trickyInterpolation(s) =>
     Intl.message("Interpolation is tricky when it ends a sentence like ${s}.",
         name: 'trickyInterpolation', args: [s]);
 
-leadingQuotes() => Intl.message("\"So-called\"", name: 'leadingQuotes');
+get leadingQuotes => Intl.message("\"So-called\"", name: 'leadingQuotes');
 
 // A message with characters not in the basic multilingual plane.
 originalNotInBMP() => Intl.message("Ancient Greek hangman characters: 𐅆𐅇.",
@@ -135,7 +135,7 @@ printStuff(Intl locale) {
     printOut(messageVariable(1,2,3));
     printOut(multiLine());
     printOut(types(1, "b", ["c", "d"]));
-    printOut(leadingQuotes());
+    printOut(leadingQuotes);
     printOut(alwaysTranslated());
     printOut(trickyInterpolation("this"));
     var thing = new YouveGotMessages();

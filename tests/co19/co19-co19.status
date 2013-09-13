@@ -8,20 +8,26 @@
 
 ### GENERAL FAILURES ###
 
+
+[ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
+LibTest/core/Uri/decodeQueryComponent_A02_t01: fail # co19 Issue 591
+LibTest/core/Uri/encodeComponent_A01_t02: fail # Issue 13251, co19 Issues 588, 589
+LibTest/core/Uri/toFilePath_A01_t01: pass, fail, ok # co19 Issue 592
+LibTest/core/Uri/Uri_A03_t01: fail # Issue 13250, co19 Issue 588
+LibTest/core/Uri/Uri.http_A02_t01: fail # Issue 13250, co19 Issue 588
+LibTest/core/Uri/Uri.https_A02_t01: fail # Issue 13250, co19 Issue 588
+# Maybe we should wait until isolate library is sealed before triaging these.
+LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail, timeout # co19-roll r546: Please triage this failure
+LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail, timeout # co19-roll r546: Please triage this failure
+
 [ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
 LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: fail # co19-roll r569: Please triage this failure
 
 [ $runtime == vm || $compiler == dart2js ]
+Language/07_Classes/6_Constructors_A02_t01: SKIP # co19 issue 415.
 Language/12_Expressions/01_Constants_A16_t01: FAIL, OK # co19 issue 525
 Language/12_Expressions/01_Constants_A16_t02: FAIL, OK # co19 issue 525
-
-Language/13_Statements/11_Try_A02_t03: FAIL, OK # co19 issue 552
-Language/13_Statements/11_Try_A03_t03: FAIL, OK # co19 issue 552
-Language/13_Statements/11_Try_A04_t03: FAIL, OK # co19 issue 552
-Language/13_Statements/11_Try_A07_t03: FAIL, OK # co19 issue 553
-
-Language/07_Classes/6_Constructors_A02_t01: SKIP # co19 issue 415.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: FAIL, OK # co19 issue 547
+Language/14_Libraries_and_Scripts/1_Imports_A03_t65: PASS, FAIL, OK # co19 issue 560
 
 LibTest/math/acos_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/asin_A01_t01: PASS, FAIL, OK # co19 issue 44
@@ -45,8 +51,6 @@ LibTest/core/double/round_A01_t04: FAIL, OK # co19 issue 389
 LibTest/core/double/truncate_A01_t03: FAIL, OK # co19 issue 389
 LibTest/core/double/truncate_A01_t04: FAIL, OK # co19 issue 389
 
-LibTest/core/int/toStringAsExponential_A02_t01: FAIL, OK # co19 issue 477
-
 LibTest/async/Stream/Stream.periodic_A01_t01: TIMEOUT, PASS, FAIL, OK # co19 issue 538
 LibTest/async/Stream/Stream.periodic_A03_t01: PASS, FAIL, OK # co19 issue 538
 LibTest/async/Timer/run_A01_t01: PASS, FAIL, OK # co19 issue 538
@@ -64,9 +68,6 @@ LibTest/isolate/isolate_api/streamSpawnFunction_A02_t03: PASS, FAIL, OK # co19 i
 LibTest/isolate/IsolateStream/contains_A02_t01: PASS, FAIL, OK # co19 issue 540
 
 LibTest/async/EventTransformStream/listen_A04_t01: Pass, Timeout # co19 issue 542
-
-LibTest/async/EventTransformStream/elementAt_A03_t01: FAIL # co19 issue 545
-LibTest/async/Stream/elementAt_A03_t01: FAIL # co19 issue 545
 
 LibTest/typed_data/Int8List/Int8List.fromList_A01_t02: Fail # co19-roll r559: Please triage this failure
 
@@ -95,11 +96,19 @@ LibTest/typed_data/Uint8ClampedList/retainAll_A01_t01: Fail  # co19 issue 548
 LibTest/typed_data/Uint8List/removeAll_A01_t01: Fail  # co19 issue 548
 LibTest/typed_data/Uint8List/retainAll_A01_t01: Fail  # co19 issue 548
 
+Language/12_Expressions/06_Lists_A08_t01: Fail  # co19 issue 561
+LibTest/core/String/String_class_A01_t01: Fail  # co19 issue 561
+LibTest/core/String/concat_A01_t01: Fail  # co19 issue 561
+LibTest/core/String/concat_A02_t01: Fail  # co19 issue 561
+LibTest/core/String/hashCode_A01_t01: Fail  # co19 issue 561
+
 ### CHECKED MODE FAILURES ###
 
 [ ($runtime == vm || $compiler == dart2js) && $checked]
 Language/13_Statements/09_Switch_A05_t01: FAIL, OK # co19 issue 498
 Language/14_Libraries_and_Scripts/1_Imports_A03_t26: FAIL, OK  # co19 issue 498
+Language/14_Libraries_and_Scripts/1_Imports_A03_t46: PASS, FAIL, OK # co19 issue 560
+Language/14_Libraries_and_Scripts/1_Imports_A03_t66: PASS, FAIL, OK # co19 issue 560
 Language/15_Types/1_Static_Types_A03_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/async/EventTransformStream/contains_A01_t01: FAIL, OK  # co19 issue 498
 LibTest/core/DateTime/compareTo_A02_t01: FAIL, OK  # co19 issue 498
@@ -111,4 +120,5 @@ LibTest/core/TypeError/failedAssertion_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/line_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/srcType_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/url_A01_t01: FAIL, OK # co19 issue 510
-LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: Fail # co19 issue 550
+LibTest/core/Uri/encodeFull_A01_t02: fail # co19 Issue 589
+

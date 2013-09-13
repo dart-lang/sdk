@@ -14,6 +14,6 @@ main() {
 
   asyncTest(() => compileAll(
       r'''main() { return "foo ${new Object()}"; }''').then((code) {
-    Expect.isFalse(code.contains(r'concat'));
+    Expect.isFalse(code.contains(r'$add'));
   }));
 }

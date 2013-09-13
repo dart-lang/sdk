@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "include/dart_debugger_api.h"
+#include "include/dart_mirrors_api.h"
 #include "platform/assert.h"
 #include "vm/dart_api_impl.h"
 #include "vm/thread.h"
@@ -235,8 +236,9 @@ static void VerifyStackFrame(Dart_ActivationFrame frame,
                              Dart_Handle expected_locals,
                              bool skip_null_expects) {
   Dart_Handle func_name;
+  Dart_Handle func;
   Dart_Handle res;
-  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
+  res = Dart_ActivationFrameGetLocation(frame, &func_name, &func, NULL);
   EXPECT_TRUE(res);
   EXPECT(Dart_IsString(func_name));
   const char* func_name_chars;
@@ -244,6 +246,11 @@ static void VerifyStackFrame(Dart_ActivationFrame frame,
   if (expected_name != NULL) {
     EXPECT_SUBSTRING(expected_name, func_name_chars);
   }
+  EXPECT(Dart_IsFunction(func));
+  const char* func_name_chars_from_func_handle;
+  Dart_StringToCString(Dart_FunctionName(func),
+                       &func_name_chars_from_func_handle);
+  EXPECT_STREQ(func_name_chars, func_name_chars_from_func_handle);
 
   if (!Dart_IsNull(expected_locals)) {
     Dart_Handle locals = Dart_GetLocalVariables(frame);
@@ -1558,6 +1565,19 @@ TEST_CASE(Debug_EvaluateExpr) {
   EXPECT(Dart_IsDouble(r));
   EXPECT_EQ(50.0, ToDouble(r));
 
+  Dart_Handle closure =
+      Dart_EvaluateExpr(point, NewString("() => _factor * sqrt(x*x + y*y))"));
+  EXPECT_VALID(closure);
+  EXPECT(Dart_IsClosure(closure));
+  r = Dart_InvokeClosure(closure, 0, NULL);
+  EXPECT_EQ(50.0, ToDouble(r));
+
+  r = Dart_EvaluateExpr(point,
+                        NewString("(() => _factor * sqrt(x*x + y*y))()"));
+  EXPECT_VALID(r);
+  EXPECT(Dart_IsDouble(r));
+  EXPECT_EQ(50.0, ToDouble(r));
+
   Dart_Handle len = Dart_EvaluateExpr(point, NewString("l.length"));
   EXPECT_VALID(len);
   EXPECT(Dart_IsNumber(len));
@@ -1580,6 +1600,20 @@ TEST_CASE(Debug_EvaluateExpr) {
   // List l now has 5 elements.
 
   len = Dart_EvaluateExpr(script_lib, NewString("l.length + 1"));
+  EXPECT_VALID(len);
+  EXPECT(Dart_IsNumber(len));
+  EXPECT_EQ(6, ToInt64(len));
+
+  closure = Dart_EvaluateExpr(script_lib, NewString("(x) => l.length + x"));
+  EXPECT_VALID(closure);
+  EXPECT(Dart_IsClosure(closure));
+  Dart_Handle args[1] = { Dart_NewInteger(1) };
+  len = Dart_InvokeClosure(closure, 1, args);
+  EXPECT_VALID(len);
+  EXPECT(Dart_IsNumber(len));
+  EXPECT_EQ(6, ToInt64(len));
+
+  len = Dart_EvaluateExpr(script_lib, NewString("((x) => l.length + x)(1)"));
   EXPECT_VALID(len);
   EXPECT(Dart_IsNumber(len));
   EXPECT_EQ(6, ToInt64(len));

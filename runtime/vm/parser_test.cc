@@ -16,9 +16,8 @@ namespace dart {
 
 void DumpFunction(const Library& lib, const char* cname, const char* fname) {
   const String& classname = String::Handle(Symbols::New(cname));
-  String& ambiguity_error_msg = String::Handle();
-  Class& cls = Class::Handle(lib.LookupClass(classname, &ambiguity_error_msg));
-  EXPECT(!cls.IsNull());  // No ambiguity error expected.
+  Class& cls = Class::Handle(lib.LookupClass(classname));
+  EXPECT(!cls.IsNull());
 
   String& funcname = String::Handle(String::New(fname));
   Function& function = Function::ZoneHandle(cls.LookupStaticFunction(funcname));
@@ -51,9 +50,8 @@ void CheckField(const Library& lib,
                 bool expect_static,
                 bool is_final) {
   const String& classname = String::Handle(Symbols::New(class_name));
-  String& ambiguity_error_msg = String::Handle();
-  Class& cls = Class::Handle(lib.LookupClass(classname, &ambiguity_error_msg));
-  EXPECT(!cls.IsNull());  // No ambiguity error expected.
+  Class& cls = Class::Handle(lib.LookupClass(classname));
+  EXPECT(!cls.IsNull());
 
   String& fieldname = String::Handle(String::New(field_name));
   String& functionname = String::Handle();
@@ -87,9 +85,8 @@ void CheckFunction(const Library& lib,
                    const char* function_name,
                    bool expect_static) {
   const String& classname = String::Handle(Symbols::New(class_name));
-  String& ambiguity_error_msg = String::Handle();
-  Class& cls = Class::Handle(lib.LookupClass(classname, &ambiguity_error_msg));
-  EXPECT(!cls.IsNull());  // No ambiguity error expected.
+  Class& cls = Class::Handle(lib.LookupClass(classname));
+  EXPECT(!cls.IsNull());
 
   String& functionname = String::Handle(String::New(function_name));
   Function& function = Function::Handle();

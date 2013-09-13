@@ -13,16 +13,16 @@ import 'package:unittest/unittest.dart';
 main() {
   useHtmlConfiguration();
 
-  // Load the MutationObserver polyfill.
-  HttpRequest.getString('/root_dart/pkg/mutation_observer/lib/'
-      'mutation_observer.js').then((code) {
-    document.head.children.add(new ScriptElement()..text = code);
-
-    customElementTests();
+  setUp(() {
+    // Load the MutationObserver polyfill if needed.
+    if (!MutationObserver.supported) {
+      var script = new ScriptElement()
+          ..src =  '/packages/mutation_observer/mutation_observer.js';
+      document.head.append(script);
+      return script.onLoad.first;
+    }
   });
-}
 
-customElementTests() {
   test('register creates the element and calls lifecycle methods', () {
     // Add element to the page.
     var element = new Element.html('<fancy-button>foo bar</fancy-button>',

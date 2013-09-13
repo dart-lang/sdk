@@ -21,25 +21,28 @@ ASSEMBLER_TEST_GENERATE(Call, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Call, test) {
-  CallPattern call(test->entry());
+  CallPattern call(test->entry(), test->code());
   EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
             call.TargetAddress());
 }
 
 
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
-  __ jmp(&StubCode::InstanceFunctionLookupLabel());
-  __ jmp(&StubCode::AllocateArrayLabel());
+  __ EnterDartFrame(0);  // 20 bytes
+  __ JmpPatchable(&StubCode::InstanceFunctionLookupLabel(), PP);
+  __ JmpPatchable(&StubCode::AllocateArrayLabel(), PP);
+  __ LeaveFrameWithPP();
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(Jump, test) {
-  JumpPattern jump1(test->entry());
+  JumpPattern jump1(test->entry() + 20, test->code());
   jump1.IsValid();
   EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
             jump1.TargetAddress());
-  JumpPattern jump2(test->entry() + jump1.pattern_length_in_bytes());
+  JumpPattern jump2(test->entry() + jump1.pattern_length_in_bytes() + 20,
+                    test->code());
   EXPECT_EQ(StubCode::AllocateArrayLabel().address(),
             jump2.TargetAddress());
   uword target1 = jump1.TargetAddress();

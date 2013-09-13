@@ -157,8 +157,6 @@ convert_to_future_members = monitored.Set(
 # $dom in installments instead of all at once, but the intent is to move all of
 # these either into private_html_members or remove them from this list entirely.
 dom_private_html_members = monitored.Set('htmlrenamer.private_html_members', [
-  'Document.createElement',
-  'Document.createElementNS',
   'EventTarget.addEventListener',
   'EventTarget.removeEventListener',
 ])
@@ -273,6 +271,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'MutationEvent.initMutationEvent',
   'MutationObserver.observe',
   'Node.attributes',
+  'Node.baseURI',
   'Node.localName',
   'Node.namespaceURI',
   'Node.removeChild',
@@ -367,6 +366,8 @@ renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
       'DOMString repetitionType)': 'createPatternFromImage',
   'DataTransferItemList.add(File file)': 'addFile',
   'DataTransferItemList.add(DOMString data, DOMString type)': 'addData',
+  'Document.createElement(DOMString tagName)': None,
+  'Document.createElementNS(DOMString namespaceURI, DOMString qualifiedName)': None,
   'FormData.append(DOMString name, Blob value, DOMString filename)':
       'appendBlob',
   'IDBDatabase.transaction(DOMStringList storeNames, DOMString mode)':
@@ -706,7 +707,6 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Node.get:DOCUMENT_POSITION_FOLLOWING',
     'Node.get:DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC',
     'Node.get:DOCUMENT_POSITION_PRECEDING',
-    'Node.get:baseURI',
     'Node.get:prefix',
     'Node.hasAttributes',
     'Node.isDefaultNamespace',

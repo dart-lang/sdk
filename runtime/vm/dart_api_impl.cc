@@ -60,7 +60,7 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
   if (obj.IsInstance()) {
     const Library& core_lib = Library::Handle(Library::CoreLibrary());
     const Class& list_class =
-        Class::Handle(core_lib.LookupClass(Symbols::List(), NULL));
+        Class::Handle(core_lib.LookupClass(Symbols::List()));
     ASSERT(!list_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(isolate, obj.clazz());
@@ -1073,8 +1073,7 @@ DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
                               function_name,
                               kNumArguments,
                               Object::empty_array(),
-                              Resolver::kIsQualified,
-                              NULL));  // No ambiguity error expected.
+                              Resolver::kIsQualified));
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
   args.SetAt(0, Integer::Handle(isolate, Integer::New(port_id)));
@@ -2102,7 +2101,7 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
     return ApiError::New(message);
   }
   const Class& cls = Class::Handle(
-      isolate, lib.LookupClassAllowPrivate(class_name, NULL));
+      isolate, lib.LookupClassAllowPrivate(class_name));
   ASSERT(!cls.IsNull());
   Object& result = Object::Handle(isolate);
   String& dot_name = String::Handle(String::New("."));
@@ -2488,7 +2487,7 @@ static RawObject* GetByteDataConstructor(Isolate* isolate,
       Library::Handle(isolate->object_store()->typed_data_library());
   ASSERT(!lib.IsNull());
   const Class& cls = Class::Handle(
-      isolate, lib.LookupClassAllowPrivate(Symbols::ByteData(), NULL));
+      isolate, lib.LookupClassAllowPrivate(Symbols::ByteData()));
   ASSERT(!cls.IsNull());
   return ResolveConstructor(CURRENT_FUNC,
                             cls,
@@ -2847,13 +2846,18 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
     RETURN_TYPE_ERROR(isolate, type, Type);
   }
   Class& cls = Class::Handle(isolate);
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::Handle(isolate);
+
   if (result.IsType()) {
     cls = Type::Cast(result).type_class();
+    type_arguments = Type::Cast(result).arguments();
   } else if (result.IsClass()) {
     // For backwards compatibility we allow class objects to be passed in
     // for now. This needs to be removed once all code that uses class
     // objects to invoke Dart_New is removed.
     cls ^= result.raw();
+    type_arguments = Type::Handle(cls.RareType()).arguments();
   } else {
     RETURN_TYPE_ERROR(isolate, type, Type);
   }
@@ -2914,12 +2918,18 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
       Array::Handle(isolate, Array::New(number_of_arguments + extra_args));
   if (constructor.IsConstructor()) {
     // Constructors get the uninitialized object and a constructor phase.
+    if (!type_arguments.IsNull()) {
+      // The type arguments will be null if the class has no type parameters, in
+      // which case the following call would fail because there is no slot
+      // reserved in the object for the type vector.
+      new_object.SetTypeArguments(type_arguments);
+    }
     args.SetAt(arg_index++, new_object);
     args.SetAt(arg_index++,
                Smi::Handle(isolate, Smi::New(Function::kCtorPhaseAll)));
   } else {
     // Factories get type arguments.
-    args.SetAt(arg_index++, TypeArguments::Handle(isolate));
+    args.SetAt(arg_index++, type_arguments);
   }
   Object& argument = Object::Handle(isolate);
   for (int i = 0; i < number_of_arguments; i++) {
@@ -3082,14 +3092,9 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
       return state;
     }
 
-    String& ambiguity_error_msg = String::Handle(isolate);
     Function& function = Function::Handle(isolate);
-    function = lib.LookupFunctionAllowPrivate(function_name,
-                                              &ambiguity_error_msg);
+    function = lib.LookupFunctionAllowPrivate(function_name);
     if (function.IsNull()) {
-      if (!ambiguity_error_msg.IsNull()) {
-        return Api::NewError("%s.", ambiguity_error_msg.ToCString());
-      }
       return Api::NewError("%s: did not find top-level function '%s'.",
                            CURRENT_FUNC,
                            function_name.ToCString());
@@ -3248,15 +3253,13 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     // To access a top-level we may need to use the Field or the
     // getter Function.  The getter function may either be in the
     // library or in the field's owner class, depending.
-    String& ambiguity_error_msg = String::Handle(isolate);
     const Library& lib = Library::Cast(obj);
-    field = lib.LookupFieldAllowPrivate(field_name, &ambiguity_error_msg);
-    if (field.IsNull() && ambiguity_error_msg.IsNull()) {
+    field = lib.LookupFieldAllowPrivate(field_name);
+    if (field.IsNull()) {
       // No field found and no ambiguity error.  Check for a getter in the lib.
       const String& getter_name =
           String::Handle(isolate, Field::GetterName(field_name));
-      getter = lib.LookupFunctionAllowPrivate(getter_name,
-                                              &ambiguity_error_msg);
+      getter = lib.LookupFunctionAllowPrivate(getter_name);
     } else if (!field.IsNull() && FieldIsUninitialized(isolate, field)) {
       // A field was found.  Check for a getter in the field's owner classs.
       const Class& cls = Class::Handle(isolate, field.owner());
@@ -3272,9 +3275,6 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     }
     if (!field.IsNull()) {
       return Api::NewHandle(isolate, field.value());
-    }
-    if (!ambiguity_error_msg.IsNull()) {
-      return Api::NewError("%s.",  ambiguity_error_msg.ToCString());
     }
     return Api::NewError("%s: did not find top-level variable '%s'.",
                          CURRENT_FUNC, field_name.ToCString());
@@ -3405,14 +3405,12 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     // To access a top-level we may need to use the Field or the
     // setter Function.  The setter function may either be in the
     // library or in the field's owner class, depending.
-    String& ambiguity_error_msg = String::Handle(isolate);
     const Library& lib = Library::Cast(obj);
-    field = lib.LookupFieldAllowPrivate(field_name, &ambiguity_error_msg);
-    if (field.IsNull() && ambiguity_error_msg.IsNull()) {
+    field = lib.LookupFieldAllowPrivate(field_name);
+    if (field.IsNull()) {
       const String& setter_name =
           String::Handle(isolate, Field::SetterName(field_name));
-      setter ^= lib.LookupFunctionAllowPrivate(setter_name,
-                                               &ambiguity_error_msg);
+      setter ^= lib.LookupFunctionAllowPrivate(setter_name);
     }
 
     if (!setter.IsNull()) {
@@ -3434,9 +3432,6 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
       }
       field.set_value(value_instance);
       return Api::Success();
-    }
-    if (!ambiguity_error_msg.IsNull()) {
-      return Api::NewError("%s.", ambiguity_error_msg.ToCString());
     }
     return Api::NewError("%s: did not find top-level variable '%s'.",
                          CURRENT_FUNC, field_name.ToCString());
@@ -4031,13 +4026,9 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
   if (cls_name.IsNull()) {
     RETURN_TYPE_ERROR(isolate, class_name, String);
   }
-  String& ambiguity_error_msg = String::Handle(isolate);
   const Class& cls = Class::Handle(
-      isolate, lib.LookupClassAllowPrivate(cls_name, &ambiguity_error_msg));
+      isolate, lib.LookupClassAllowPrivate(cls_name));
   if (cls.IsNull()) {
-    if (!ambiguity_error_msg.IsNull()) {
-      return Api::NewError("%s.", ambiguity_error_msg.ToCString());
-    }
     // TODO(turnidge): Return null or error in this case?
     const String& lib_name = String::Handle(isolate, lib.name());
     return Api::NewError("Class '%s' not found in library '%s'.",
@@ -4068,14 +4059,9 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
   if (::Dart_IsError(state)) {
     return state;
   }
-  String& ambiguity_error_msg = String::Handle(isolate);
   const Class& cls =
-      Class::Handle(isolate, lib.LookupClassAllowPrivate(name_str,
-                                                         &ambiguity_error_msg));
+      Class::Handle(isolate, lib.LookupClassAllowPrivate(name_str));
   if (cls.IsNull()) {
-    if (!ambiguity_error_msg.IsNull()) {
-      return Api::NewError("%s.", ambiguity_error_msg.ToCString());
-    }
     const String& lib_name = String::Handle(isolate, lib.name());
     return Api::NewError("Type '%s' not found in library '%s'.",
                          name_str.ToCString(), lib_name.ToCString());

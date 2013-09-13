@@ -43,12 +43,6 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 }
 
 
-// TODO(srdjan): Enable by calling C-functions.
-bool FlowGraphCompiler::SupportsInlinedTrigonometrics() {
-  return false;
-}
-
-
 RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder) {
   if (deopt_env_ == NULL) return DeoptInfo::null();
@@ -1391,6 +1385,47 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 }
 
 
+void FlowGraphCompiler::EmitUnoptimizedStaticCall(
+    const Function& target_function,
+    const Array& arguments_descriptor,
+    intptr_t argument_count,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
+  // TODO(srdjan): Improve performance of function recognition.
+  MethodRecognizer::Kind recognized_kind =
+      MethodRecognizer::RecognizeKind(target_function);
+  int num_args_checked = 0;
+  if ((recognized_kind == MethodRecognizer::kMathMin) ||
+      (recognized_kind == MethodRecognizer::kMathMax)) {
+    num_args_checked = 2;
+  }
+  const ICData& ic_data = ICData::ZoneHandle(
+      ICData::New(parsed_function().function(),  // Caller function.
+                  String::Handle(target_function.name()),
+                  arguments_descriptor,
+                  deopt_id,
+                  num_args_checked));  // No arguments checked.
+  ic_data.AddTarget(target_function);
+  uword label_address = 0;
+  if (ic_data.num_args_tested() == 0) {
+    label_address = StubCode::ZeroArgsUnoptimizedStaticCallEntryPoint();
+  } else if (ic_data.num_args_tested() == 2) {
+    label_address = StubCode::TwoArgsUnoptimizedStaticCallEntryPoint();
+  } else {
+    UNIMPLEMENTED();
+  }
+  ExternalLabel target_label("StaticCallICStub", label_address);
+  __ LoadObject(R5, ic_data);
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   &target_label,
+                   PcDescriptors::kUnoptStaticCall,
+                   locs);
+  __ Drop(argument_count);
+}
+
+
 void FlowGraphCompiler::EmitOptimizedStaticCall(
     const Function& function,
     const Array& arguments_descriptor,
@@ -1457,31 +1492,6 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
   } else {
     __ cmp(left, ShifterOperand(right));
   }
-}
-
-
-// Implement equality spec: if any of the arguments is null do identity check.
-// Fallthrough calls super equality.
-void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
-                                                      Label* skip_call) {
-  Label check_identity, fall_through;
-  __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
-  __ ldr(result, Address(SP, 0 * kWordSize));  // Load right operand.
-  __ cmp(result, ShifterOperand(IP));  // Is right null?
-  __ ldr(result, Address(SP, 1 * kWordSize));  // Load left operand.
-  __ b(&check_identity, EQ);  // Branch if right (IP) is null; left in result.
-  __ cmp(result, ShifterOperand(IP));  // Right is non-null; is left null?
-  __ b(&fall_through, NE);
-  // Right is non-null, left is null. We could return false, but we save code
-  // by falling through with an IP different than null.
-  __ mov(IP, ShifterOperand(0));
-  __ Bind(&check_identity);
-  __ cmp(result, ShifterOperand(IP));
-  __ LoadObject(result, Bool::True(), EQ);
-  __ LoadObject(result, Bool::False(), NE);
-  __ Drop(2);
-  __ b(skip_call);
-  __ Bind(&fall_through);
 }
 
 

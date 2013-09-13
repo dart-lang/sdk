@@ -100,18 +100,23 @@ abstract class Future<T> {
    * If a value is returned, it becomes the result of the created future.
    */
   factory Future(computation()) {
-    _ThenFuture<dynamic, T> future =
-        new _ThenFuture<dynamic, T>((_) => computation());
-    Timer.run(() => future._sendValue(null));
-    return future;
+    _Future result = new _Future<T>();
+    Timer.run(() {
+      try {
+        result._complete(computation());
+      } catch (e, s) {
+        result._completeError(e, s);
+      }
+    });
+    return result;
   }
 
   /**
    * Creates a future containing the result of immediately calling
    * [computation].
    *
-   * if the result of executing [computation] throws, the returned future is
-   * completed with the error. If a thrown value is an [AsyncError], it is used
+   * If calling [computation] throws, the returned future is completed with the
+   * error. If a thrown value is an [AsyncError], it is used
    * directly, instead of wrapping this error again in another [AsyncError].
    *
    * If the returned value is itself a [Future], completion of
@@ -121,9 +126,9 @@ abstract class Future<T> {
   factory Future.sync(computation()) {
     try {
       var result = computation();
-      return new _FutureImpl<T>().._setOrChainValue(result);
+      return new Future<T>.value(result);
     } catch (error, stackTrace) {
-      return new _FutureImpl<T>.immediateError(error, stackTrace);
+      return new Future<T>.error(error, stackTrace);
     }
   }
 
@@ -135,7 +140,9 @@ abstract class Future<T> {
    *
    * See [Completer] to create a Future and complete it later.
    */
-  factory Future.value([T value]) => new _FutureImpl<T>.immediate(value);
+  factory Future.value([T value]) {
+    return new _Future<T>.immediate(value);
+  }
 
   /**
    * A future that completes with an error in the next event-loop iteration.
@@ -143,7 +150,7 @@ abstract class Future<T> {
    * See [Completer] to create a Future and complete it later.
    */
   factory Future.error(var error, [Object stackTrace]) {
-    return new _FutureImpl<T>.immediateError(error, stackTrace);
+    return new _Future<T>.immediateError(error, stackTrace);
   }
 
   /**
@@ -163,13 +170,13 @@ abstract class Future<T> {
    * See [Completer]s, for futures with values that are computed asynchronously.
    */
   factory Future.delayed(Duration duration, [T computation()]) {
-    // TODO(floitsch): no need to allocate a ThenFuture when the computation is
-    // null.
-    if (computation == null) computation = (() => null);
-    _ThenFuture<dynamic, T> future =
-        new _ThenFuture<dynamic, T>((_) => computation());
-    new Timer(duration, () => future._sendValue(null));
-    return future;
+    Completer completer = new Completer.sync();
+    Future result = completer.future;
+    if (computation != null) {
+      result = result.then((ignored) => computation());
+    }
+    new Timer(duration, () { completer.complete(null); });
+    return result;
   }
 
   /**
@@ -181,7 +188,36 @@ abstract class Future<T> {
    * of the returned future will be a list of all the values that were produced.
    */
   static Future<List> wait(Iterable<Future> futures) {
-    return new _FutureImpl<List>.wait(futures);
+    Completer completer;
+    // List collecting values from the futures.
+    // Set to null if an error occurs.
+    List values;
+    void handleError(error) {
+      if (values != null) {
+        values = null;
+        completer.completeError(error);
+      }
+    }
+    // As each future completes, put its value into the corresponding
+    // position in the list of values.
+    int remaining = 0;
+    for (Future future in futures) {
+      int pos = remaining++;
+      future.catchError(handleError).then((Object value) {
+        if (values == null) return null;
+        values[pos] = value;
+        remaining--;
+        if (remaining == 0) {
+          completer.complete(values);
+        }
+      });
+    }
+    if (remaining == 0) {
+      return new Future.value(const []);
+    }
+    values = new List(remaining);
+    completer = new Completer<List>();
+    return completer.future;
   }
 
   /**
@@ -195,14 +231,14 @@ abstract class Future<T> {
    * iteration to stop and will be piped through the returned [Future].
    */
   static Future forEach(Iterable input, Future f(element)) {
-    _FutureImpl doneSignal = new _FutureImpl();
+    _Future doneSignal = new _Future();
     Iterator iterator = input.iterator;
     void nextElement(_) {
       if (iterator.moveNext()) {
         new Future.sync(() => f(iterator.current))
-            .then(nextElement, onError: doneSignal._setError);
+            .then(nextElement, onError: doneSignal._completeError);
       } else {
-        doneSignal._setValue(null);
+        doneSignal._complete(null);
       }
     }
     nextElement(null);

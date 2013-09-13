@@ -415,7 +415,7 @@ static void FormatLocationFromTrace(dart::TextBuffer* msg,
   res = Dart_GetActivationFrame(trace, 0, &frame);
   ASSERT_NOT_ERROR(res);
   Dart_CodeLocation location;
-  res = Dart_ActivationFrameGetLocation(frame, NULL, &location);
+  res = Dart_ActivationFrameGetLocation(frame, NULL, NULL, &location);
   ASSERT_NOT_ERROR(res);
   if (!Dart_IsNull(location.script_url)) {
     ASSERT(Dart_IsString(location.script_url));
@@ -438,7 +438,7 @@ static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
     ASSERT_NOT_ERROR(res);
     Dart_Handle func_name;
     Dart_CodeLocation location;
-    res = Dart_ActivationFrameGetLocation(frame, &func_name, &location);
+    res = Dart_ActivationFrameGetLocation(frame, &func_name, NULL, &location);
     ASSERT_NOT_ERROR(res);
     ASSERT(Dart_IsString(func_name));
     msg->Printf("%s{\"functionName\":", (i > 0) ? "," : "");

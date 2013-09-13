@@ -74,8 +74,6 @@ class _StringBase {
 
   String operator +(String other) native "String_concat";
 
-  String concat(String other) => this + other;
-
   String toString() {
     return this;
   }

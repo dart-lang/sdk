@@ -108,9 +108,6 @@ namespace dart {
   /* Internal token for !(expr is Type) negative type test operator */         \
   TOK(kISNOT, "", 10, kNoAttribute)                                            \
                                                                                \
-  /* Internal token for (expr as Type) type cast operator */                   \
-  TOK(kAS, "", 10, kNoAttribute)                                               \
-                                                                               \
   TOK(kINDEX, "[]", 0, kNoAttribute)                                           \
   TOK(kASSIGN_INDEX, "[]=", 0, kNoAttribute)                                   \
   TOK(kNEGATE, "unary-", 0, kNoAttribute)                                      \
@@ -139,7 +136,8 @@ namespace dart {
 // to update kFirstKeyword and kLastKeyword below.
 #define DART_KEYWORD_LIST(KW)                                                  \
   KW(kABSTRACT, "abstract", 0, kPseudoKeyword) /* == kFirstKeyword */          \
-  KW(kASSERT, "assert", 0, kKeyword)                                           \
+  KW(kAS, "as", 10, kPseudoKeyword)                                            \
+  KW(kASSERT, "assert", 10, kKeyword)                                          \
   KW(kBREAK, "break", 0, kKeyword)                                             \
   KW(kCASE, "case", 0, kKeyword)                                               \
   KW(kCATCH, "catch", 0, kKeyword)                                             \

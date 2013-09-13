@@ -118,8 +118,8 @@ def TestStepName(name, flags):
 def UseBrowserController(runtime, system):
   supported_platforms = {
     'linux': ['ff', 'chromeOnAndroid', 'chrome'],
-    'mac': ['safari'],
-    'windows': ['ie9', 'ie10']
+    'mac': ['safari', 'chrome'],
+    'windows': ['ie9', 'ie10', 'ff', 'chrome']
   }
   # Platforms that we run on the fyi waterfall only.
   fyi_supported_platforms = {
@@ -183,6 +183,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags, arch):
     cmd.extend(targets)
 
     print 'Running: %s' % (' '.join(map(lambda arg: '"%s"' % arg, cmd)))
+    sys.stdout.flush()
     bot.RunProcess(cmd)
 
 

@@ -8,6 +8,7 @@ part of dart.core;
  * A parsed URI, as specified by RFC-3986, http://tools.ietf.org/html/rfc3986.
  */
 class Uri {
+  final String _host;
   int _port;
   String _path;
 
@@ -46,15 +47,29 @@ class Uri {
    *
    * Returns the empty string if there is no authority component and
    * hence no host.
+   *
+   * If the host is an IP version 6 address, the surrounding `[` and `]` is
+   * removed.
    */
-  final String host;
+  String get host {
+    if (_host != null && _host.startsWith('[')) {
+      return _host.substring(1, _host.length - 1);
+    }
+    return _host;
+  }
 
   /**
    * Returns the port part of the authority component.
    *
    * Returns 0 if there is no port in the authority component.
    */
-  int get port => _port;
+  int get port {
+    if (_port == 0) {
+      if (scheme == "http") return 80;
+      if (scheme == "https") return 443;
+    }
+    return _port;
+  }
 
   /**
    * Returns the path component.
@@ -98,7 +113,7 @@ class Uri {
   static Uri parse(String uri) => new Uri._fromMatch(_splitRe.firstMatch(uri));
 
   Uri._fromMatch(Match m) :
-    this(scheme: _emptyIfNull(m[_COMPONENT_SCHEME]),
+    this(scheme: _makeScheme(_emptyIfNull(m[_COMPONENT_SCHEME])),
          userInfo: _emptyIfNull(m[_COMPONENT_USER_INFO]),
          host: _eitherOf(
          m[_COMPONENT_HOST], m[_COMPONENT_HOST_IPV6]),
@@ -123,7 +138,7 @@ class Uri {
    * [userInfo].
    *
    * The host part of the authority component is set through
-   * [host]. The host can either be a hostname, a IPv4 address or an
+   * [host]. The host can either be a hostname, an IPv4 address or an
    * IPv6 address, contained in '[' and ']'. If the host contains a
    * ':' character, the '[' and ']' are added if not already provided.
    *
@@ -153,9 +168,9 @@ class Uri {
    *
    * The fragment component is set through [fragment].
    */
-  Uri({scheme,
+  Uri({String scheme,
        this.userInfo: "",
-       this.host: "",
+       String host: "",
        port: 0,
        String path,
        Iterable<String> pathSegments,
@@ -163,6 +178,7 @@ class Uri {
        Map<String, String> queryParameters,
        fragment: ""}) :
       scheme = _makeScheme(scheme),
+      _host = _makeHost(host),
       query = _makeQuery(query, queryParameters),
       fragment = _makeFragment(fragment) {
     // Perform scheme specific normalization.
@@ -237,22 +253,34 @@ class Uri {
         break;
       }
     }
+    var hostEnd = hostStart;
+    if (hostStart < authority.length &&
+        authority.codeUnitAt(hostStart) == _LEFT_BRACKET) {
+      // IPv6 host.
+      for (; hostEnd < authority.length; hostEnd++) {
+        if (authority.codeUnitAt(hostEnd) == _RIGHT_BRACKET) break;
+      }
+      if (hostEnd == authority.length) {
+        throw new FormatException("Invalid IPv6 host entry.");
+      }
+      parseIPv6Address(authority.substring(hostStart + 1, hostEnd));
+      hostEnd++;  // Skip the closing bracket.
+      if (hostEnd != authority.length &&
+          authority.codeUnitAt(hostEnd) != _COLON) {
+        throw new FormatException("Invalid end of authority");
+      }
+    }
     // Split host and port.
     bool hasPort = false;
-    for (int i = hostStart; i < authority.length; i++) {
-      if (authority.codeUnitAt(i) == _COLON) {
-        hasPort = true;
-        host = authority.substring(hostStart, i);
-        if (!host.isEmpty) {
-          var portString = authority.substring(i + 1);
-          if (portString.isNotEmpty) port = int.parse(portString);
-        }
+    for (; hostEnd < authority.length; hostEnd++) {
+      if (authority.codeUnitAt(hostEnd) == _COLON) {
+        var portString = authority.substring(hostEnd + 1);
+        // We allow the empty port - falling back to initial value.
+        if (portString.isNotEmpty) port = int.parse(portString);
         break;
       }
     }
-    if (!hasPort) {
-      host = hasUserInfo ? authority.substring(hostStart) : authority;
-    }
+    host = authority.substring(hostStart, hostEnd);
 
     return new Uri(scheme: scheme,
                    userInfo: userInfo,
@@ -474,6 +502,24 @@ class Uri {
     return _queryParameters;
   }
 
+  static String _makeHost(String host) {
+    if (host == null || host.isEmpty) return host;
+    if (host.codeUnitAt(0) == _LEFT_BRACKET) {
+      if (host.codeUnitAt(host.length - 1) != _RIGHT_BRACKET) {
+        throw new FormatException('Missing end `]` to match `[` in host');
+      }
+      parseIPv6Address(host.substring(1, host.length - 1));
+      return host;
+    }
+    for (int i = 0; i < host.length; i++) {
+      if (host.codeUnitAt(i) == _COLON) {
+        parseIPv6Address(host);
+        return '[$host]';
+      }
+    }
+    return host;
+  }
+
   static String _makeScheme(String scheme) {
     bool isSchemeLowerCharacter(int ch) {
       return ch < 128 &&
@@ -489,6 +535,10 @@ class Uri {
     int length = scheme.length;
     for (int i = 0; i < length; i++) {
       int codeUnit = scheme.codeUnitAt(i);
+      if (i == 0 && !_isAlphabeticCharacter(codeUnit)) {
+        // First code unit must be an alphabetic character.
+        throw new ArgumentError('Illegal scheme: $scheme');
+      }
       if (!isSchemeLowerCharacter(codeUnit)) {
         if (isSchemeCharacter(codeUnit)) {
           allLowercase = false;
@@ -670,7 +720,7 @@ class Uri {
   static final RegExp _splitRe = new RegExp(
       '^'
       '(?:'
-        '([^:/?#.]+)'                   // scheme - ignore special characters
+        '([^:/?#]+)'                    // scheme - ignore special characters
                                         // used by other URL parts such as :,
                                         // ?, /, #, and .
       ':)?'
@@ -828,15 +878,15 @@ class Uri {
    * See: http://www.w3.org/TR/2011/WD-html5-20110405/origin-0.html#origin
    */
   String get origin {
-    if (scheme == "" || host == null || host == "") {
+    if (scheme == "" || _host == null || _host == "") {
       throw new StateError("Cannot use origin without a scheme: $this");
     }
     if (scheme != "http" && scheme != "https") {
       throw new StateError(
         "Origin is only applicable schemes http and https: $this");
     }
-    if (port == 0) return "$scheme://$host";
-    return "$scheme://$host:$port";
+    if (_port == 0) return "$scheme://$_host";
+    return "$scheme://$_host:$_port";
   }
 
   /**
@@ -931,7 +981,7 @@ class Uri {
     }
     _checkNonWindowsPathReservedCharacters(pathSegments, false);
     var result = new StringBuffer();
-    if (isAbsolute) result.write("/");
+    if (_isPathAbsolute) result.write("/");
     result.writeAll(pathSegments, "/");
     return result.toString();
   }
@@ -949,7 +999,7 @@ class Uri {
       _checkWindowsPathReservedCharacters(segments, false);
     }
     var result = new StringBuffer();
-    if (isAbsolute && !hasDriveLetter) result.write("\\");
+    if (_isPathAbsolute && !hasDriveLetter) result.write("\\");
     if (host != "") {
       result.write("\\");
       result.write(host);
@@ -960,13 +1010,17 @@ class Uri {
     return result.toString();
   }
 
+  bool get _isPathAbsolute {
+    if (path == null || path.isEmpty) return false;
+    return path.startsWith('/');
+  }
+
   void _writeAuthority(StringSink ss) {
     _addIfNonEmpty(ss, userInfo, userInfo, "@");
-    ss.write(host == null ? "null" :
-             host.contains(':') ? '[$host]' : host);
-    if (port != 0) {
+    ss.write(_host == null ? "null" : _host);
+    if (_port != 0) {
       ss.write(":");
-      ss.write(port.toString());
+      ss.write(_port.toString());
     }
   }
 
@@ -1017,7 +1071,7 @@ class Uri {
    * safe for literal use as a URI component.
    *
    * All characters except uppercase and lowercase letters, digits and
-   * the characters `!$&'()*+,;=:@` are percent-encoded. This is the
+   * the characters `-_.!~*'()` are percent-encoded. This is the
    * set of characters specified in RFC 2396 and the which is
    * specified for the encodeUriComponent in ECMA-262 version 5.1.
    *
@@ -1083,12 +1137,13 @@ class Uri {
    * pluses to spaces.
    *
    * It will create a byte-list of the decoded characters, and then use
-   * [decode] to decode the byte-list to a String. Default is a UTF-8 decoder.
+   * [encoding] to decode the byte-list to a String. The default encoding is
+   * UTF-8.
    */
   static String decodeQueryComponent(
       String encodedComponent,
-      {String decode(List<int> bytes): null}) {
-    return _uriDecode(encodedComponent, plusToSpace: true, decode: decode);
+      {Encoding encoding: UTF8}) {
+    return _uriDecode(encodedComponent, plusToSpace: true, encoding: encoding);
   }
 
   /**
@@ -1128,24 +1183,154 @@ class Uri {
    * Keys in the query string that have no value are mapped to the
    * empty string.
    *
-   * Each query component will be decoded using [decode]. Default is a UTF-8
-   * decoder.
+   * Each query component will be decoded using [encoding]. The default encoding
+   * is UTF-8.
    */
-  static Map<String, String> splitQueryString(
-      String query,
-      {String decode(List<int> bytes): null}) {
+  static Map<String, String> splitQueryString(String query,
+                                              {Encoding encoding: UTF8}) {
     return query.split("&").fold({}, (map, element) {
       int index = element.indexOf("=");
       if (index == -1) {
-        if (element != "") map[decodeQueryComponent(element)] = "";
+        if (element != "") {
+          map[decodeQueryComponent(element, encoding: encoding)] = "";
+        }
       } else if (index != 0) {
         var key = element.substring(0, index);
         var value = element.substring(index + 1);
-        map[Uri.decodeQueryComponent(key, decode: decode)] =
-            decodeQueryComponent(value, decode: decode);
+        map[Uri.decodeQueryComponent(key, encoding: encoding)] =
+            decodeQueryComponent(value, encoding: encoding);
       }
       return map;
     });
+  }
+
+  /**
+   * Parse the [host] as an IP version 4 (IPv4) address, returning the address
+   * as a list of 4 bytes in network byte order (big endian).
+   *
+   * Throws a [FormatException] if [host] is not a valid IPv4 address
+   * representation.
+   */
+  static List<int> parseIPv4Address(String host) {
+    void error(String msg) {
+      throw new FormatException('Illegal IPv4 address, $msg');
+    }
+    var bytes = host.split('.');
+    if (bytes.length != 4) {
+      error('IPv4 address should contain exactly 4 parts');
+    }
+    // TODO(ajohnsen): Consider using Uint8List.
+    return bytes
+        .map((byteString) {
+          int byte = int.parse(byteString);
+          if (byte < 0 || byte > 255) {
+            error('each part must be in the range of `0..255`');
+          }
+          return byte;
+        })
+        .toList();
+  }
+
+  /**
+   * Parse the [host] as an IP version 6 (IPv6) address, returning the address
+   * as a list of 16 bytes in network byte order (big endian).
+   *
+   * Throws a [FormatException] if [host] is not a valid IPv6 address
+   * representation.
+   *
+   * Some examples of IPv6 addresses:
+   *  * ::1
+   *  * FEDC:BA98:7654:3210:FEDC:BA98:7654:3210
+   *  * 3ffe:2a00:100:7031::1
+   *  * ::FFFF:129.144.52.38
+   *  * 2010:836B:4179::836B:4179
+   */
+  static List<int> parseIPv6Address(String host) {
+    // An IPv6 address consists of exactly 8 parts of 1-4 hex digits, seperated
+    // by `:`'s, with the following exceptions:
+    //
+    //  - One (and only one) wildcard (`::`) may be present, representing a fill
+    //    of 0's. The IPv6 `::` is thus 16 bytes of `0`.
+    //  - The last two parts may be replaced by an IPv4 address.
+    void error(String msg) {
+      throw new FormatException('Illegal IPv6 address, $msg');
+    }
+    int parseHex(int start, int end) {
+      if (end - start > 4) {
+        error('an IPv6 part can only contain a maximum of 4 hex digits');
+      }
+      int value = int.parse(host.substring(start, end), radix: 16);
+      if (value < 0 || value > (1 << 16) - 1) {
+        error('each part must be in the range of `0x0..0xFFFF`');
+      }
+      return value;
+    }
+    if (host.length < 2) error('address is too short');
+    List<int> parts = [];
+    bool wildcardSeen = false;
+    int partStart = 0;
+    // Parse all parts, except a potential last one.
+    for (int i = 0; i < host.length; i++) {
+      if (host.codeUnitAt(i) == _COLON) {
+        if (i == 0) {
+          // If we see a `:` in the beginning, expect wildcard.
+          i++;
+          if (host.codeUnitAt(i) != _COLON) {
+            error('invalid start colon.');
+          }
+          partStart = i;
+        }
+        if (i == partStart) {
+          // Wildcard. We only allow one.
+          if (wildcardSeen) {
+            error('only one wildcard `::` is allowed');
+          }
+          wildcardSeen = true;
+          parts.add(-1);
+        } else {
+          // Found a single colon. Parse [partStart..i] as a hex entry.
+          parts.add(parseHex(partStart, i));
+        }
+        partStart = i + 1;
+      }
+    }
+    if (parts.length == 0) error('too few parts');
+    bool atEnd = partStart == host.length;
+    bool isLastWildcard = parts.last == -1;
+    if (atEnd && !isLastWildcard) {
+      error('expected a part after last `:`');
+    }
+    if (!atEnd) {
+      try {
+        parts.add(parseHex(partStart, host.length));
+      } catch (e) {
+        // Failed to parse the last chunk as hex. Try IPv4.
+        try {
+          List<int> last = parseIPv4Address(host.substring(partStart));
+          parts.add(last[0] << 8 | last[1]);
+          parts.add(last[2] << 8 | last[3]);
+        } catch (e) {
+          error('invalid end of IPv6 address.');
+        }
+      }
+    }
+    if (wildcardSeen) {
+      if (parts.length > 7) {
+        error('an address with a wildcard must have less than 7 parts');
+      }
+    } else if (parts.length != 8) {
+      error('an address without a wildcard must contain exactly 8 parts');
+    }
+    // TODO(ajohnsen): Consider using Uint8List.
+    return parts
+        .expand((value) {
+          if (value == -1) {
+            return new List.filled((9 - parts.length) * 2, 0);
+          } else {
+            return [(value >> 8) & 0xFF, value & 0xFF];
+          }
+        })
+        .toList();
   }
 
   // Frequently used character codes.
@@ -1164,7 +1349,9 @@ class Uri {
   static const int _UPPER_CASE_A = 0x41;
   static const int _UPPER_CASE_F = 0x46;
   static const int _UPPER_CASE_Z = 0x5A;
+  static const int _LEFT_BRACKET = 0x5B;
   static const int _BACKSLASH = 0x5C;
+  static const int _RIGHT_BRACKET = 0x5D;
   static const int _LOWER_CASE_A = 0x61;
   static const int _LOWER_CASE_F = 0x66;
   static const int _LOWER_CASE_Z = 0x7A;
@@ -1244,11 +1431,11 @@ class Uri {
    * If [plusToSpace] is `true`, plus characters will be converted to spaces.
    *
    * The decoder will create a byte-list of the percent-encoded parts, and then
-   * decode the byte-list using [decode]. Default is a UTF-8 decoder.
+   * decode the byte-list using [encoding]. The default encodingis UTF-8.
    */
   static String _uriDecode(String text,
                            {bool plusToSpace: false,
-                            String decode(List<int> bytes): null}) {
+                            Encoding encoding: UTF8}) {
     StringBuffer result = new StringBuffer();
     List<int> codepoints = new List<int>();
     for (int i = 0; i < text.length;) {
@@ -1271,12 +1458,15 @@ class Uri {
           if (i == text.length) break;
           ch = text.codeUnitAt(i);
         }
-        result.write(
-            decode == null ? UTF8.decode(codepoints) : decode(codepoints));
+        result.write(encoding.decode(codepoints));
       }
     }
     return result.toString();
   }
+
+  static bool _isAlphabeticCharacter(int codeUnit)
+    => (codeUnit >= _LOWER_CASE_A && codeUnit <= _LOWER_CASE_Z) ||
+       (codeUnit >= _UPPER_CASE_A && codeUnit <= _UPPER_CASE_Z);
 
   // Tables of char-codes organized as a bit vector of 128 bits where
   // each bit indicate whether a character code on the 0-127 needs to

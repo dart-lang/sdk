@@ -54,7 +54,7 @@ def main():
     join(DIRECTORY, 'docgen.dart')]
   docgen.extend(options.options.split())
   ExecuteCommand(docgen)
-  ExecuteCommand(['git', 'clone', '-b', 'dev',
+  ExecuteCommand(['git', 'clone', '-b', 'master',
    'git://github.com/dart-lang/dartdoc-viewer.git'])
   ExecuteCommand(['mv', 'docs', 'dartdoc-viewer/client/local'])
   os.chdir('dartdoc-viewer/client/')

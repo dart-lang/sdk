@@ -15,6 +15,9 @@ io/status_file_parser_test: Skip # http/dartbug.com/12449
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
+[ $runtime == vm && $system == windows ]
+io/file_system_watcher_test: Pass, Timeout # Issue 13228
+
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
 
@@ -50,6 +53,9 @@ io/process_non_ascii_test: Pass, Fail
 
 [ $runtime == vm && $system == windows ]
 io/http_server_early_client_close_test: Crash, Pass # Issue 12982
+
+[ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
+io/secure_socket_bad_data_test: Crash, Pass # co19-roll r576: Please triage this failure
 
 [ $compiler == none && $runtime == drt ]
 typed_data_isolate_test: Skip # This test uses dart:io

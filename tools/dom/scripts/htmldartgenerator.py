@@ -166,8 +166,11 @@ class HtmlDartGenerator(object):
       full_operation_str = self._GetStringRepresentation(interface, operation)
       if (full_operation_str in renamed_overloads and
           renamed_overloads[full_operation_str] not in already_renamed):
-        operation.ext_attrs['DartName'] = renamed_overloads[
-            full_operation_str]
+        dart_name = renamed_overloads[full_operation_str]
+        if not dart_name:
+          continue
+
+        operation.ext_attrs['DartName'] = dart_name
         potential_added_operations.add(operation.id)
       self._EnsureNoMultipleTypeSignatures(interface, operation,
           operations_by_name)
@@ -635,6 +638,20 @@ class HtmlDartGenerator(object):
     has_length = False
     has_length_setter = False
 
+    def _HasExplicitIndexedGetter(self):
+      return any(op.id == 'getItem' for op in self._interface.operations)
+
+    def _HasCustomIndexedGetter(self):
+      return 'CustomIndexedGetter' in self._interface.ext_attrs
+
+    def _HasNativeIndexedGetter(self):
+      return not (_HasCustomIndexedGetter(self) or _HasExplicitIndexedGetter(self))
+
+    if _HasExplicitIndexedGetter(self):
+      getter_name = 'getItem'
+    else:
+      getter_name = '_nativeIndexedGetter'
+
     for attr in self._interface.attributes:
       if attr.id == 'length':
         has_length = True
@@ -648,8 +665,9 @@ class HtmlDartGenerator(object):
         {
           'DEFINE_LENGTH_AS_NUM_ITEMS': not has_length and has_num_items,
           'DEFINE_LENGTH_SETTER': not has_length_setter,
+          'USE_NATIVE_INDEXED_GETTER': _HasNativeIndexedGetter(self) or _HasExplicitIndexedGetter(self),
         })
-    self._members_emitter.Emit(template, E=element_name)
+    self._members_emitter.Emit(template, E=element_name, GETTER=getter_name)
 
   def SecureOutputType(self, type_name, is_dart_type=False,
       can_narrow_type=False):

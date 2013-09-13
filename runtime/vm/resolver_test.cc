@@ -92,7 +92,6 @@ TEST_CASE(DartStaticResolve) {
   const String& class_name = String::Handle(String::New(test_class_name));
   const String& static_function_name =
       String::Handle(String::New(test_static_function_name));
-  String& ambiguity_error_msg = String::Handle();
 
   // Now try to resolve and invoke the static function in this class.
   {
@@ -103,8 +102,7 @@ TEST_CASE(DartStaticResolve) {
                                 static_function_name,
                                 kNumArguments,
                                 Object::empty_array(),
-                                kResolveType,
-                                &ambiguity_error_msg));
+                                kResolveType));
     EXPECT(!function.IsNull());  // No ambiguity error expected.
     const Array& args = Array::Handle(Array::New(kNumArguments));
     const String& arg0 = String::Handle(String::New("junk"));
@@ -125,8 +123,7 @@ TEST_CASE(DartStaticResolve) {
                                 static_function_name,
                                 kNumArguments,
                                 Object::empty_array(),
-                                kResolveType,
-                                &ambiguity_error_msg));
+                                kResolveType));
     EXPECT(bad_function.IsNull());  // No ambiguity error expected.
   }
 
@@ -142,8 +139,7 @@ TEST_CASE(DartStaticResolve) {
                                 super_static_function_name,
                                 kNumArguments,
                                 Object::empty_array(),
-                                kResolveType,
-                                &ambiguity_error_msg));
+                                kResolveType));
     EXPECT(!super_function.IsNull());  // No ambiguity error expected.
   }
 }
@@ -165,9 +161,8 @@ TEST_CASE(DartDynamicResolve) {
   const String& lib_name = String::Handle(String::New(test_library_name));
   const Library& lib = Library::Handle(Library::LookupLibrary(lib_name));
   ASSERT(!lib.IsNull());
-  String& ambiguity_error_msg = String::Handle();
   const Class& cls = Class::Handle(lib.LookupClass(
-      String::Handle(Symbols::New(test_class_name)), &ambiguity_error_msg));
+      String::Handle(Symbols::New(test_class_name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
 
   Instance& receiver = Instance::Handle(Instance::New(cls));

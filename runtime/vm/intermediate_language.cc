@@ -1368,6 +1368,16 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       IsFixedLengthArrayCid(call->Type()->ToCid())) {
     return call->ArgumentAt(1);
   }
+  // For arrays with guarded lengths, replace the length load
+  // with a constant.
+  LoadFieldInstr* load_array = instance()->definition()->AsLoadField();
+  if (load_array != NULL) {
+    const Field* field = load_array->field();
+    if ((field != NULL) && (field->guarded_list_length() >= 0)) {
+      return flow_graph->GetConstant(
+          Smi::Handle(Smi::New(field->guarded_list_length())));
+    }
+  }
   return this;
 }
 
@@ -1569,6 +1579,11 @@ Instruction* GuardFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     return NULL;  // Nothing to guard.
   }
 
+  if (field().guarded_list_length() != Field::kNoFixedLength) {
+    // We are still guarding the list length.
+    return this;
+  }
+
   if (field().is_nullable() && value()->Type()->IsNull()) {
     return NULL;
   }
@@ -1607,11 +1622,6 @@ Instruction* CheckEitherNonSmiInstr::Canonicalize(FlowGraph* flow_graph) {
 LocationSummary* GraphEntryInstr::MakeLocationSummary() const {
   UNREACHABLE();
   return NULL;
-}
-
-
-void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Nothing to do.
 }
 
 
@@ -1834,9 +1844,6 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id(),
                                    token_pos());
-  }
-  if (function().name() == Symbols::EqualOperator().raw()) {
-    compiler->EmitSuperEqualityCallPrologue(locs()->out().reg(), &skip_call);
   }
   compiler->GenerateStaticCall(deopt_id(),
                                token_pos(),
@@ -2643,6 +2650,27 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
   return kPowRuntimeEntry;
 }
 
+
+extern const RuntimeEntry kCosRuntimeEntry(
+    "libc_cos", reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&cos)), 1, true, true);
+
+extern const RuntimeEntry kSinRuntimeEntry(
+    "libc_sin", reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&sin)), 1, true, true);
+
+
+const RuntimeEntry& MathUnaryInstr::TargetFunction() const {
+  switch (kind()) {
+    case MethodRecognizer::kMathSin:
+      return kSinRuntimeEntry;
+    case MethodRecognizer::kMathCos:
+      return kCosRuntimeEntry;
+    default:
+      UNREACHABLE();
+  }
+  return kSinRuntimeEntry;
+}
 
 #undef __
 

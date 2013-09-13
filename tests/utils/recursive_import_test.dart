@@ -54,6 +54,7 @@ class JSString {
   split(x) => null;
   concat(x) => null;
   toString() => null;
+  operator+(other) => null;
 }
 class JSNull {
 }
@@ -127,5 +128,5 @@ main() {
     Expect.equals(1, errorCount);
   }, onError: (e) {
       throw 'Compilation failed';
-  }).whenComplete(() => asyncEnd());
+  }).then(asyncSuccess);
 }

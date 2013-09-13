@@ -4,6 +4,8 @@
 
 part of dart.collection;
 
+typedef bool _Predicate<T>(T value);
+
 /**
  * A node in a splay tree. It holds the sorting key and the left
  * and right children in the tree.
@@ -229,6 +231,10 @@ abstract class _SplayTree<K> {
   }
 }
 
+class _TypeTest<T> {
+  bool test(v) => v is T;
+}
+
 /*
  * A [Map] of objects that can be ordered relative to each other.
  *
@@ -238,19 +244,31 @@ abstract class _SplayTree<K> {
  * Keys of the map are compared using the `compare` function passed in
  * the constructor. If that is omitted, the objects are assumed to be
  * [Comparable], and are compared using their [Comparable.compareTo]
- * method. This also means that `null` is *not* allowed as a key.
+ * method. Non-comparable objects (including `null`) will not work as keys
+ * in that case.
+ *
+ * To allow calling [operator[]], [remove] or [containsKey] with objects
+ * that are not supported by the `compare` function, an extra `isValidKey`
+ * predicate function can be supplied. This function is tested before
+ * using the `compare` function on an argument value that may not be a [K]
+ * value. If omitted, the `isValidKey` function defaults to testing if the
+ * value is a [K].
  */
 class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   Comparator<K> _comparator;
+  _Predicate _validKey;
 
-  SplayTreeMap([int compare(K key1, K key2)])
-      : _comparator = (compare == null) ? Comparable.compare : compare;
+  SplayTreeMap([int compare(K key1, K key2), bool isValidKey(potentialKey)])
+      : _comparator = (compare == null) ? Comparable.compare : compare,
+        _validKey = (isValidKey != null) ? isValidKey : ((v) => v is K);
 
   /**
    * Creates a [SplayTreeMap] that contains all key value pairs of [other].
    */
-  factory SplayTreeMap.from(Map<K, V> other, [int compare(K key1, K key2)]) =>
-      new SplayTreeMap(compare)..addAll(other);
+  factory SplayTreeMap.from(Map<K, V> other,
+                            [ int compare(K key1, K key2),
+                              bool isValidKey(potentialKey)]) =>
+      new SplayTreeMap(compare, isValidKey)..addAll(other);
 
   /**
    * Creates a [SplayTreeMap] where the keys and values are computed from the
@@ -266,8 +284,9 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
    * identity function.
    */
   factory SplayTreeMap.fromIterable(Iterable<K> iterable,
-      {K key(element), V value(element), int compare(K key1, K key2)}) {
-    SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare);
+      {K key(element), V value(element), int compare(K key1, K key2),
+       bool isValidKey(potentialKey) }) {
+    SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
     Maps._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
   }
@@ -284,8 +303,8 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
    * It is an error if the two [Iterable]s don't have the same length.
    */
   factory SplayTreeMap.fromIterables(Iterable<K> keys, Iterable<V> values,
-      [int compare(K key1, K key2)]) {
-    SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare);
+      [int compare(K key1, K key2), bool isValidKey(potentialKey)]) {
+    SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
     Maps._fillMapWithIterables(map, keys, values);
     return map;
   }
@@ -296,7 +315,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
 
   V operator [](Object key) {
     if (key == null) throw new ArgumentError(key);
-    if (key is! K) return null;
+    if (!_validKey(key)) return null;
     if (_root != null) {
       int comp = _splay(key);
       if (comp == 0) {
@@ -308,7 +327,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   }
 
   V remove(Object key) {
-    if (key is! K) return null;
+    if (!_validKey(key)) return null;
     _SplayTreeMapNode mapRoot = _remove(key);
     if (mapRoot != null) return mapRoot.value;
     return null;
@@ -378,7 +397,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   }
 
   bool containsKey(Object key) {
-    return key is K && _splay(key) == 0;
+    return _validKey(key) && _splay(key) == 0;
   }
 
   bool containsValue(Object value) {

@@ -11,6 +11,7 @@
 #endif
 
 #include "vm/allocation.h"
+#include "vm/object.h"
 
 namespace dart {
 
@@ -85,7 +86,7 @@ class CallPattern : public CallOrJumpPattern {
 
 class JumpPattern : public CallOrJumpPattern {
  public:
-  explicit JumpPattern(uword pc) : CallOrJumpPattern(pc) {}
+  JumpPattern(uword pc, const Code& code) : CallOrJumpPattern(pc) {}
 
  private:
   virtual const int* pattern() const;

@@ -577,13 +577,8 @@ class IsolateNatives {
     JS("void", r"#.console.log(#)", globalThis, msg);
   }
 
-  /** Find a constructor given its name. */
-  static dynamic _getJSConstructorFromName(String factoryName) {
-    return JS("", "#[#]", JS_CURRENT_ISOLATE(), factoryName);
-  }
-
-  static dynamic _getJSFunctionFromName(String functionName) {
-    return JS("", "#[#]", JS_CURRENT_ISOLATE(), functionName);
+  static _getJSFunctionFromName(String functionName) {
+    return JS("", "init.globalFunctions[#]", functionName);
   }
 
   /**

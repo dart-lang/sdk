@@ -37,10 +37,24 @@ class BadE implements HtmlElement {
   factory BadE() => new Element.tag(tag);
 }
 
+loadPolyfills() {
+  if (!document.supportsRegister) {
+    // Cache blocker is a workaround for:
+    // https://code.google.com/p/dart/issues/detail?id=11834
+    var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
+    return HttpRequest.getString('/root_dart/pkg/custom_element/lib/'
+      'custom-elements.debug.js?cacheBlock=$cacheBlocker').then((code) {
+      document.head.children.add(new ScriptElement()..text = code);
+    });
+  }
+}
+
 main() {
   useHtmlConfiguration();
 
   // Adapted from Blink's fast/dom/custom/document-register-basic test.
+
+  setUp(loadPolyfills);
 
   test('Testing document.register() basic behaviors', () {
     document.register(Foo.tag, Foo);
@@ -86,6 +100,7 @@ main() {
     document.body.append(container);
     container.setInnerHtml("<x-foo></x-foo>",
         treeSanitizer: new NullTreeSanitizer());
+    Platform.upgradeCustomElements(container);
     var parsedFoo = container.firstChild;
 
     expect(parsedFoo is Foo, isTrue);
@@ -121,6 +136,7 @@ main() {
 
     container.setInnerHtml("<X-BAR></X-BAR><X-Bar></X-Bar>",
         treeSanitizer: new NullTreeSanitizer());
+    Platform.upgradeCustomElements(container);
     expect(container.firstChild is Bar, isTrue);
     expect(container.firstChild.tagName, "X-BAR");
     expect(container.lastChild is Bar, isTrue);

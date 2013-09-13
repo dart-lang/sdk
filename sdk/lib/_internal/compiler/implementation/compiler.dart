@@ -152,7 +152,9 @@ abstract class Backend {
 
   /// Called during resolution to notify to the backend that the
   /// program uses a type literal.
-  void registerTypeLiteral(Element element, TreeElements elements) {}
+  void registerTypeLiteral(Element element,
+                           Enqueuer enqueuer,
+                           TreeElements elements) {}
 
   /// Called during resolution to notify to the backend that the
   /// program has a catch statement with a stack trace.
@@ -164,7 +166,9 @@ abstract class Backend {
                        TreeElements elements) {}
 
   /// Register an as check to the backend.
-  void registerAsCheck(DartType type, TreeElements elements) {}
+  void registerAsCheck(DartType type,
+                       Enqueuer enqueuer,
+                       TreeElements elements) {}
 
   /// Register that the application may throw a [NoSuchMethodError].
   void registerThrowNoSuchMethod(TreeElements elements) {}
@@ -459,6 +463,14 @@ abstract class Compiler implements DiagnosticListener {
 
   Element get currentElement => _currentElement;
 
+  String tryToString(object) {
+    try {
+      return object.toString();
+    } catch (_) {
+      return '<exception in toString()>';
+    }
+  }
+
   /**
    * Perform an operation, [f], returning the return value from [f].  If an
    * error occurs then report it as having occurred during compilation of
@@ -469,27 +481,31 @@ abstract class Compiler implements DiagnosticListener {
     _currentElement = element;
     try {
       return f();
-    } on SpannableAssertionFailure catch (ex) {
+    } on SpannableAssertionFailure catch (ex, s) {
       if (!hasCrashed) {
+        String message = (ex.message != null) ? tryToString(ex.message)
+                                              : tryToString(ex);
         SourceSpan span = spanFromSpannable(ex.node);
-        reportError(ex.node, MessageKind.GENERIC, {'text': ex.message});
-        pleaseReportCrash();
+        reportError(ex.node, MessageKind.GENERIC, {'text': message});
+        pleaseReportCrash(s, 'The compiler crashed: $message.');
       }
       hasCrashed = true;
-      rethrow;
+      throw new CompilerCancelledException('The compiler crashed.');
     } on CompilerCancelledException catch (ex) {
       rethrow;
     } on StackOverflowError catch (ex) {
       // We cannot report anything useful in this case, because we
       // do not have enough stack space.
       rethrow;
-    } catch (ex) {
+    } catch (ex, s) {
+      if (hasCrashed) rethrow;
+      String message = 'The compiler crashed: ${tryToString(ex)}.';
       try {
-        unhandledExceptionOnElement(element);
+        unhandledExceptionOnElement(element, s, message);
       } catch (doubleFault) {
         // Ignoring exceptions in exception handling.
       }
-      rethrow;
+      throw new CompilerCancelledException(message);
     } finally {
       _currentElement = old;
     }
@@ -668,17 +684,25 @@ abstract class Compiler implements DiagnosticListener {
     internalError(message, element: element);
   }
 
-  void unhandledExceptionOnElement(Element element) {
+  void unhandledExceptionOnElement(Element element,
+                                   StackTrace stackTrace,
+                                   String message) {
     if (hasCrashed) return;
     hasCrashed = true;
     reportDiagnostic(spanFromElement(element),
                      MessageKind.COMPILER_CRASHED.error().toString(),
                      api.Diagnostic.CRASH);
-    pleaseReportCrash();
+    pleaseReportCrash(stackTrace, message);
   }
 
-  void pleaseReportCrash() {
+  void pleaseReportCrash(StackTrace stackTrace, String message) {
     print(MessageKind.PLEASE_REPORT_THE_CRASH.message({'buildId': buildId}));
+    if (message != null) {
+      print(message);
+    }
+    if (stackTrace != null) {
+      print(stackTrace);
+    }
   }
 
   void cancel(String reason, {Node node, Token token,
@@ -742,7 +766,8 @@ abstract class Compiler implements DiagnosticListener {
           reportDiagnostic(new SourceSpan(uri, 0, 0),
                            MessageKind.COMPILER_CRASHED.error().toString(),
                            api.Diagnostic.CRASH);
-          pleaseReportCrash();
+          String message = 'The compiler crashed.';
+          pleaseReportCrash(getAttachedStackTrace(error), message);
         }
       } catch (doubleFault) {
         // Ignoring exceptions in exception handling.

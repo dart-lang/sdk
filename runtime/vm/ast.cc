@@ -12,19 +12,21 @@
 
 namespace dart {
 
-#define DEFINE_VISIT_FUNCTION(type, name)                                      \
-  void type::Visit(AstNodeVisitor* visitor) {                                  \
-    visitor->Visit##type(this);                                                \
-  }
-NODE_LIST(DEFINE_VISIT_FUNCTION)
+#define DEFINE_VISIT_FUNCTION(BaseName)                                        \
+void BaseName##Node::Visit(AstNodeVisitor* visitor) {                          \
+  visitor->Visit##BaseName##Node(this);                                        \
+}
+
+FOR_EACH_NODE(DEFINE_VISIT_FUNCTION)
 #undef DEFINE_VISIT_FUNCTION
 
 
-#define DEFINE_NAME_FUNCTION(type, name)                                       \
-  const char* type::ShortName() const {                                        \
-    return name;                                                               \
-  }
-NODE_LIST(DEFINE_NAME_FUNCTION)
+#define DEFINE_NAME_FUNCTION(BaseName)                                         \
+const char* BaseName##Node::PrettyName() const {                               \
+  return #BaseName;                                                            \
+}
+
+FOR_EACH_NODE(DEFINE_NAME_FUNCTION)
 #undef DEFINE_NAME_FUNCTION
 
 
@@ -35,12 +37,13 @@ class AstNodeCollector : public AstNodeVisitor {
   explicit AstNodeCollector(GrowableArray<AstNode*>* nodes)
     : nodes_(nodes) { }
 
-#define DEFINE_VISITOR_FUNCTION(type, name)                                    \
-  virtual void Visit##type(type* node) {                                       \
+#define DEFINE_VISITOR_FUNCTION(BaseName)                                      \
+  virtual void Visit##BaseName##Node(BaseName##Node* node) {                   \
     nodes_->Add(node);                                                         \
     node->VisitChildren(this);                                                 \
   }
-NODE_LIST(DEFINE_VISITOR_FUNCTION)
+
+FOR_EACH_NODE(DEFINE_VISITOR_FUNCTION)
 #undef DEFINE_VISITOR_FUNCTION
 
  private:
@@ -137,7 +140,7 @@ AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
 }
 
 
-const char* TypeNode::Name() const {
+const char* TypeNode::TypeName() const {
   return String::Handle(type().UserVisibleName()).ToCString();
 }
 
@@ -150,8 +153,8 @@ bool ComparisonNode::IsKindValid() const {
 }
 
 
-const char* ComparisonNode::Name() const {
-  return Token::Str(kind_);
+const char* ComparisonNode::TokenName() const {
+  return (kind_ == Token::kAS) ? "as" : Token::Str(kind_);
 }
 
 
@@ -239,12 +242,12 @@ bool BinaryOpNode::IsKindValid() const {
 }
 
 
-const char* BinaryOpNode::Name() const {
+const char* BinaryOpNode::TokenName() const {
   return Token::Str(kind_);
 }
 
 
-const char* BinaryOpWithMask32Node::Name() const {
+const char* BinaryOpWithMask32Node::TokenName() const {
   return Token::Str(kind());
 }
 
@@ -405,18 +408,13 @@ AstNode* ClosureNode::MakeAssignmentNode(AstNode* rhs) {
 }
 
 
-const char* UnaryOpNode::Name() const {
+const char* UnaryOpNode::TokenName() const {
   return Token::Str(kind_);
 }
 
 
-const char* JumpNode::Name() const {
+const char* JumpNode::TokenName() const {
   return Token::Str(kind_);
-}
-
-
-const char* LoadLocalNode::Name() const {
-  return local().name().ToCString();
 }
 
 

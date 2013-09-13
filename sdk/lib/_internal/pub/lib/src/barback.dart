@@ -8,12 +8,44 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 
-import 'barback/load_transformers.dart';
+import 'barback/load_all_transformers.dart';
 import 'barback/pub_package_provider.dart';
 import 'barback/rewrite_import_transformer.dart';
 import 'barback/server.dart';
 import 'barback/watch_sources.dart';
 import 'utils.dart';
+
+/// An identifier for a transformer and the configuration that will be passed to
+/// it.
+///
+/// It's possible that [asset] defines multiple transformers. If so,
+/// [configuration] will be passed to all of them.
+class TransformerId {
+  /// The asset containing the transformer.
+  final AssetId asset;
+
+  /// The configuration to pass to the transformer.
+  ///
+  /// This will be null if no configuration was provided.
+  final Map configuration;
+
+  TransformerId(this.asset, this.configuration) {
+    if (configuration == null) return;
+    for (var reserved in ['include', 'exclude']) {
+      if (!configuration.containsKey(reserved)) continue;
+      throw new FormatException('Configuration for transformer '
+          '${idToLibraryIdentifier(asset)} may not include reserved key '
+          '"$reserved".');
+    }
+  }
+
+  // TODO(nweiz): support deep equality on [configuration] as well.
+  bool operator==(other) => other is TransformerId &&
+      other.asset == asset &&
+      other.configuration == configuration;
+
+  int get hashCode => asset.hashCode ^ configuration.hashCode;
+}
 
 /// Creates a [BarbackServer] serving on [host] and [port].
 ///
@@ -44,7 +76,7 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph) {
       })
     ];
 
-    _loadTransformers(server, graph).then((_) {
+    loadAllTransformers(server, graph).then((_) {
       if (!completer.isCompleted) completer.complete(server);
     }).catchError((error) {
       if (!completer.isCompleted) completer.completeError(error);
@@ -58,49 +90,55 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph) {
   });
 }
 
-/// Loads all transformers depended on by packages in [graph].
+/// Parses a library identifier to an asset id.
 ///
-/// This uses [server] to serve the Dart files from which transformers are
-/// loaded, then adds the transformers to `server.barback`.
-Future _loadTransformers(BarbackServer server, PackageGraph graph) {
-  // Add a rewrite transformer for each package, so that we can resolve
-  // "package:" imports while loading transformers.
-  var rewrite = new RewriteImportTransformer();
-  for (var package in graph.packages.values) {
-    server.barback.updateTransformers(package.name, [[rewrite]]);
+/// A library identifier is a string of the form "package_name" or
+/// "package_name/path/to/library". It does not have a trailing extension. If it
+/// just has a package name, it expands to lib/${package}.dart in that package.
+/// Otherwise, it expands to lib/${path}.dart in that package.
+AssetId libraryIdentifierToId(String identifier) {
+  if (identifier.isEmpty) {
+    throw new FormatError('Invalid library identifier: "".');
   }
 
-  // A map from each transformer id to the set of packages that use it.
-  var idsToPackages = new Map<AssetId, Set<String>>();
-  for (var package in graph.packages.values) {
-    for (var id in unionAll(package.pubspec.transformers)) {
-      idsToPackages.putIfAbsent(id, () => new Set<String>()).add(package.name);
-    }
+  // Convert the concise asset name in the pubspec (of the form "package"
+  // or "package/library") to an AssetId that points to an actual dart
+  // file ("package/lib/package.dart" or "package/lib/library.dart",
+  // respectively).
+  var parts = split1(identifier, "/");
+  if (parts.length == 1) parts.add(parts.single);
+  return new AssetId(parts.first, 'lib/' + parts.last + '.dart');
+}
+
+final _libraryPathRegExp = new RegExp(r"^lib/(.*)\.dart$");
+
+/// Converts [id] to a library identifier.
+///
+/// A library identifier is a string of the form "package_name" or
+/// "package_name/path/to/library". It does not have a trailing extension. If it
+/// just has a package name, it expands to lib/${package}.dart in that package.
+/// Otherwise, it expands to lib/${path}.dart in that package.
+///
+/// This will throw an [ArgumentError] if [id] doesn't represent a library in
+/// `lib/`.
+String idToLibraryIdentifier(AssetId id) {
+  var match = _libraryPathRegExp.firstMatch(id.path);
+  if (match == null) {
+    throw new ArgumentError("Asset id $id doesn't identify a library.");
   }
 
-  // TODO(nweiz): support transformers that (possibly transitively)
-  // depend on other transformers.
-  var transformersForId = new Map<AssetId, Set<Transformer>>();
-  return Future.wait(idsToPackages.keys.map((id) {
-    return loadTransformers(server, id).then((transformers) {
-      if (transformers.isEmpty) {
-        var path = id.path.replaceFirst('lib/', '');
-        // Ensure that packages are listed in a deterministic order.
-        var packages = idsToPackages[id].toList();
-        packages.sort();
-        throw new ApplicationException(
-            "No transformers were defined in package:${id.package}/$path,\n"
-            "required by ${packages.join(', ')}.");
-      }
+  if (match[1] == id.package) return id.package;
+  return '${id.package}/${match[1]}';
+}
 
-      transformersForId[id] = transformers;
-    });
-  })).then((_) {
-    for (var package in graph.packages.values) {
-      var phases = package.pubspec.transformers.map((phase) {
-        return unionAll(phase.map((id) => transformersForId[id]));
-      });
-      server.barback.updateTransformers(package.name, phases);
-    }
-  });
+/// Converts [id] to a "package:" URI.
+///
+/// This will throw an [ArgumentError] if [id] doesn't represent a library in
+/// `lib/`.
+Uri idToPackageUri(AssetId id) {
+  if (!id.path.startsWith('lib/')) {
+    throw new ArgumentError("Asset id $id doesn't identify a library.");
+  }
+
+  return new Uri(scheme: 'package', path: id.path.replaceFirst('lib/', ''));
 }

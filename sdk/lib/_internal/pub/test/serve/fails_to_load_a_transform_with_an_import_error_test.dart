@@ -25,7 +25,7 @@ main() {
       ])])
     ]).create();
 
-    createLockFile('myapp', {}, pkg: ['barback']);
+    createLockFile('myapp', pkg: ['barback']);
 
     var pub = startPub(args: ['serve', '--port=0']);
     expect(pub.nextErrLine(), completion(matches(new RegExp(

@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js || $compiler == dart2dart ]
+block_scope_test: Fail # Issue 13204.
 compile_time_constant_c_test/none: Fail # Issue 11583
 null_test/03: Fail # Issue 12445.
 black_listed_test/none: Fail # Issue 12446.
@@ -108,8 +109,6 @@ getter_no_setter_test/01: Fail # Issue 5519
 not_enough_positional_arguments_test/01: Fail # Issue 12838
 not_enough_positional_arguments_test/02: Fail # Issue 12838
 not_enough_positional_arguments_test/05: Fail # Issue 12838
-dynamic_test: Fail # Issue 12398
-dynamic_prefix_core_test: Fail # Issue 12398
 metadata_test: Fail # Issue 5841
 infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # Issue 12795
@@ -121,17 +120,12 @@ map_literal3_test: Fail # Issue 12793
 function_type_alias5_test/00: Fail # Issue 12754
 function_type_alias5_test/01: Fail # Issue 12754
 function_type_alias5_test/02: Fail # Issue 12754
-function_type_alias7_test/00: Fail # Issue 12801
 method_binding_test: Fail # Issue 12807
 method_override_test: Fail # Issue 12808
 method_override5_test: Fail # Issue 12809
 parameter_initializer6_negative_test: Fail # Issue 3502
-named_parameters_aggregated_test/01: Fail # Issue 12801
 named_parameters_aggregated_test/03: Fail # Issue 12812
 super_implicit_closure_test: Fail # Issue 12884
-mixin_type_parameters_errors_test/01: Fail # Issue 12885
-mixin_type_parameters_errors_test/02: Fail # Issue 12885
-mixin_type_parameters_errors_test/05: Fail # Issue 12885
 external_test/11: Fail # Issue 12887
 external_test/12: Fail # Issue 12887
 external_test/13: Fail # Issue 12887
@@ -150,13 +144,8 @@ const_syntax_test/02: Fail # Issue 12932
 const_syntax_test/03: Fail # Issue 12932
 const_syntax_test/04: Fail # Issue 12932
 constructor9_test/01: Fail # Issue 12934
-duplicate_implements_test/01: Fail # Issue 12991
-duplicate_implements_test/02: Fail # Issue 12991
-duplicate_implements_test/03: Fail # Issue 12991
-duplicate_implements_test/04: Fail # Issue 12991
 list_literal1_test/01: Fail # Issue 12993
 map_literal1_test/01: Fail # Issue 12993
-number_identifier_test/05: Fail # Issue 13070
 scope_variable_test/01: Fail # Issue 13016
 static_final_field2_test/02: Fail # Issue 13017
 throw7_test/01: Fail # Issue 13019
@@ -219,10 +208,6 @@ type_checks_in_factory_method_test: Fail # Issue 12747
 
 on_catch_malformed_type_test: Fail # Issue 8601
 
-mixin_type_parameters_errors_test/01: Fail # Issue 12886
-mixin_type_parameters_errors_test/02: Fail # Issue 12886
-mixin_type_parameters_errors_test/05: Fail # Issue 12886
-
 # Mixins fail on the VM.
 mixin_mixin_test: Fail # Issue 9683
 mixin_mixin2_test: Fail # Issue 9683
@@ -283,7 +268,6 @@ final_syntax_test/02: Fail # Issue 13020
 final_syntax_test/03: Fail # Issue 13020
 final_syntax_test/04: Fail # Issue 13020
 getter_no_setter_test/01: Fail # Issue 5519
-named_parameters_aggregated_test/01: Fail # Issue 12802
 named_parameters_aggregated_test/03: Fail # Issue 12813
 not_enough_positional_arguments_test/01: Fail # Issue 12839
 not_enough_positional_arguments_test/02: Fail # Issue 12839
@@ -302,10 +286,6 @@ external_test/30: Fail # Issue 12888
 external_test/31: Fail # Issue 12888
 built_in_identifier_test/01: Fail # Issue 13022
 lazy_static3_test: Fail # Issue 12593
-duplicate_implements_test/01: Fail # Issue 12992
-duplicate_implements_test/02: Fail # Issue 12992
-duplicate_implements_test/03: Fail # Issue 12992
-duplicate_implements_test/04: Fail # Issue 12992
 list_literal1_test/01: Fail # Issue 12993
 map_literal1_test/01: Fail # Issue 12993
 method_override4_test: Fail # Issue 12810
@@ -322,7 +302,6 @@ factory_redirection_test/14: Fail # Issue 10959
 function_type_alias5_test/00: Fail # Issue 12755
 function_type_alias5_test/01: Fail # Issue 12755
 function_type_alias5_test/02: Fail # Issue 12755
-function_type_alias7_test/00: Fail # Issue 12802
 parameter_initializer6_negative_test: Fail # Issue 3502
 
 # DartVM problem.
@@ -357,9 +336,9 @@ final_is_not_const_test/01: Fail # Issue 12692
 super_getter_setter_test: Fail # Issue 11065.
 f_bounded_quantification4_test: Fail # Issue 12605.
 f_bounded_quantification5_test: Fail # Issue 12605.
-many_overridden_no_such_method_test: Fail # Issue 13078
-overridden_no_such_method_test: Fail # Issue 13078
-no_such_method_test: Fail # Issue 13078
+many_overridden_no_such_method_test: Pass, Fail # Issue 13078
+overridden_no_such_method_test: Pass, Fail # Issue 13078
+no_such_method_test: Pass, Fail # Issue 13078
 
 # TODO(tball): Assign proper bug numbers.
 class_literal_test: Fail

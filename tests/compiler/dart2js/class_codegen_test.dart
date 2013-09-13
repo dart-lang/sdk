@@ -90,7 +90,7 @@ fieldTest() {
 
 constructor1() {
   asyncTest(() => compileAll(TEST_FIVE).then((generated) {
-    Expect.isTrue(generated.contains(new RegExp(r"new [$a-z]+\.A\(a\);")));
+    Expect.isTrue(generated.contains(new RegExp(r"new [$A-Z]+\.A\(a\);")));
   }));
 }
 

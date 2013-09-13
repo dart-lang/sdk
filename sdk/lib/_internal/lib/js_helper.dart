@@ -19,7 +19,6 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_FUNCTION_TYPE_TAG,
                                    JS_FUNCTION_TYPE_VOID_RETURN_TAG,
                                    JS_GET_NAME,
-                                   JS_GLOBAL_OBJECT,
                                    JS_HAS_EQUALS,
                                    JS_IS_INDEXABLE_FIELD_NAME,
                                    JS_OBJECT_CLASS_NAME,
@@ -729,7 +728,7 @@ class Primitives {
     if (JS('bool', '# == "num"', className)) return const JSNumber();
     if (JS('bool', '# == "bool"', className)) return const JSBool();
     if (JS('bool', '# == "List"', className)) return const JSArray();
-    return JS('var', '#[#]', JS_CURRENT_ISOLATE(), className);
+    return JS('var', 'init.allClasses[#]', className);
   }
 
   static bool identicalImplementation(a, b) {

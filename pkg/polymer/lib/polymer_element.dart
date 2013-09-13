@@ -16,7 +16,7 @@ import 'package:observe/observe.dart';
 import 'package:observe/src/microtask.dart';
 import 'package:polymer_expressions/polymer_expressions.dart';
 
-import 'src/utils_observe.dart' show toCamelCase, toHyphenedName;
+import 'src/utils.dart' show toCamelCase, toHyphenedName;
 
 /**
  * Registers a [PolymerElement]. This is similar to [registerCustomElement]

@@ -264,6 +264,9 @@ class TracerForConcreteContainer {
     // [potentialType] can be null if we did not find any instruction
     // that adds elements to the list.
     if (potentialType == null) {
+      if (_VERBOSE) {
+        print('Found empty type for $analyzedNode $startElement');
+      }
       mask.elementType = new TypeMask.nonNullEmpty();
       return;
     }
@@ -462,6 +465,7 @@ class ContainerTracerVisitor
       LocalsHandler closureLocals = new LocalsHandler<TypeMask>.from(
           locals, node, useOtherTryBlock: false);
       new ContainerTracerVisitor(function, tracer, closureLocals).run();
+      return types.functionType;
     } else {
       // Visiting [analyzedElement].
       FunctionSignature signature = function.computeSignature(compiler);
@@ -472,8 +476,8 @@ class ContainerTracerVisitor
       visit(node.initializers);
       visitingInitializers = false;
       visit(node.body);
+      return null;
     }
-    return types.functionType;
   }
 
   TypeMask visitLiteralList(LiteralList node) {

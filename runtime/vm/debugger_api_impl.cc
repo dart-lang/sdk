@@ -255,6 +255,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
 DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
                             Dart_ActivationFrame activation_frame,
                             Dart_Handle* function_name,
+                            Dart_Handle* function,
                             Dart_CodeLocation* location) {
   // TODO(hausner): Implement a way to recognize when there
   // is no source code for the code in the frame.
@@ -263,6 +264,9 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
   if (function_name != NULL) {
     *function_name = Api::NewHandle(isolate, frame->QualifiedFunctionName());
+  }
+  if (function != NULL) {
+    *function = Api::NewHandle(isolate, frame->function().raw());
   }
 
   if (location != NULL) {

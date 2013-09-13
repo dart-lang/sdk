@@ -50,7 +50,7 @@ class CallPattern : public ValueObject {
 
 class JumpPattern : public ValueObject {
  public:
-  explicit JumpPattern(uword pc);
+  JumpPattern(uword pc, const Code& code);
 
   // lui; ori; jr; nop (in delay slot) = 4.
   static const int kLengthInBytes = 4*Instr::kInstrSize;

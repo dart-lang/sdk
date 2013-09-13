@@ -223,10 +223,9 @@ TEST_CASE(StackmapGC) {
   const String& name = String::Handle(String::New(TestCase::url()));
   const Library& lib = Library::Handle(Library::LookupLibrary(name));
   EXPECT(!lib.IsNull());
-  String& ambiguity_error_msg = String::Handle();
   Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A")), &ambiguity_error_msg));
-  EXPECT(!cls.IsNull());  // No ambiguity error expected.
+      lib.LookupClass(String::Handle(Symbols::New("A"))));
+  EXPECT(!cls.IsNull());
 
   // Now compile the two functions 'A.foo' and 'A.moo'
   String& function_moo_name = String::Handle(String::New("moo"));

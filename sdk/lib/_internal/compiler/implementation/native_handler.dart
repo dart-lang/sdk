@@ -501,7 +501,11 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   }
 
   onFirstNativeClass() {
-    staticUse(name) => world.registerStaticUse(compiler.findHelper(name));
+    staticUse(name) {
+      JavaScriptBackend backend = compiler.backend;
+      backend.enqueue(
+          world, compiler.findHelper(name), compiler.globalDependencies);
+    }
 
     staticUse(const SourceString('dynamicFunction'));
     staticUse(const SourceString('dynamicSetMetadata'));

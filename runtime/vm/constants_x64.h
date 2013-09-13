@@ -85,8 +85,9 @@ enum RexBits {
 
 // Register aliases.
 const Register TMP = R11;  // Used as scratch register by the assembler.
-const Register CTX = R15;  // Caches current context in generated code.
-const Register PP = kNoRegister;  // No object pool pointer.
+const Register CTX = R14;  // Caches current context in generated code.
+// Caches object pool pointer in generated code.
+const Register PP = R15;
 const Register SPREG = RSP;  // Stack pointer register.
 const Register FPREG = RBP;  // Frame pointer register.
 const Register ICREG = RBX;  // IC data register.

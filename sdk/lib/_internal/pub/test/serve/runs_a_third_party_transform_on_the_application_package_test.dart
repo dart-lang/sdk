@@ -29,9 +29,7 @@ main() {
       ])
     ]).create();
 
-    createLockFile('myapp', {
-      'foo': '../foo'
-    }, pkg: ['barback']);
+    createLockFile('myapp', sandbox: ['foo'], pkg: ['barback']);
 
     startPubServe();
     requestShouldSucceed("foo.out", "foo.out");

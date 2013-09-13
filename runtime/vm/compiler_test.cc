@@ -43,10 +43,9 @@ TEST_CASE(CompileFunction) {
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
-  String& ambiguity_error_msg = String::Handle();
   Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A")), &ambiguity_error_msg));
-  EXPECT(!cls.IsNull());  // No ambiguity error expected.
+      lib.LookupClass(String::Handle(Symbols::New("A"))));
+  EXPECT(!cls.IsNull());
   String& function_foo_name = String::Handle(String::New("foo"));
   Function& function_foo =
       Function::Handle(cls.LookupStaticFunction(function_foo_name));

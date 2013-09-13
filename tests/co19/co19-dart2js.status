@@ -12,6 +12,7 @@ LibTest/isolate/isolate_api/spawnUri_A02_t01: Crash # TODO(ahe): Please triage t
 LibTest/core/List/sort_A01_t04: Fail, Pass, Timeout # Must be a bug in jsshell, test sometimes times out.
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
+LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout # co19-roll r576: Please triage this failure
 LibTest/isolate/isolate_api/spawnUri_A02_t03: Pass, Fail # Issue 8920
 
 
@@ -20,10 +21,12 @@ LibTest/isolate/isolate_api/spawnUri_A02_t03: Pass, Fail # Issue 8920
 [ $compiler == dart2js ]
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(ahe): Please triage this failure.
+Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: fail # co19-roll r576: Please triage this failure
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/List/List_A03_t01: Fail # TODO(kasperl): Please triage this failure.
+Language/13_Statements/11_Try_A07_t03: fail # co19-roll r576: Please triage this failure
 LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/List/List_A03_t01: Fail # TODO(kasperl): Please triage this failure.
 LibTest/core/List/sort_A01_t04: Pass, Slow # http://dartbug.com/11846
 LibTest/math/pow_A13_t01: FAIL, OK # co19 issue 507
 LibTest/math/pow_A18_t01: FAIL, OK # co19 issue 507
@@ -44,6 +47,19 @@ LibTest/typed_data/ByteData/setInt64_A02_t02: fail # co19-roll r569: Please tria
 LibTest/typed_data/ByteData/setUint16_A02_t02: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/setUint32_A02_t02: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/setUint64_A02_t02: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/Float32List/Float32List_A02_t01: fail # co19-roll r576: Please triage this failure
+LibTest/typed_data/Float32x4List/Float32x4List_A02_t01: fail # co19-roll r576: Please triage this failure
+LibTest/typed_data/Float64List/Float64List_A02_t01: fail # co19-roll r576: Please triage this failure
+LibTest/typed_data/Int16List/Int16List_A02_t01: fail # co19-roll r576: Please triage this failure
+LibTest/typed_data/Int32List/Int32List_A02_t01: fail # co19-roll r576: Please triage this failure
+LibTest/typed_data/Int8List/Int8List_A02_t01: fail # co19-roll r576: Please triage this failure
+LibTest/typed_data/Uint16List/Uint16List_A02_t01: fail # co19-roll r576: Please triage this failure
+LibTest/typed_data/Uint32List/Uint32List_A02_t01: fail # co19-roll r576: Please triage this failure
+LibTest/typed_data/Uint8ClampedList/Uint8ClampedList_A02_t01: fail # co19-roll r576: Please triage this failure
+LibTest/typed_data/Uint8List/Uint8List_A02_t01: fail # co19-roll r576: Please triage this failure
+
+[ $compiler == dart2js && $runtime != ie9 ]
+LibTest/typed_data/ByteData/ByteData_A02_t01: fail # co19-roll r576: Please triage this failure
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/isolate/SendPort/send_A02_t05: Fail, Pass # TODO(ahe): Please triage this failure.
@@ -314,21 +330,8 @@ Language/12_Expressions/23_Relational_Expressions_A01_t13: Fail # Checks that a 
 Language/12_Expressions/30_Identifier_Reference_A04_t09: Fail # Checks that it is a compile-time error when a built-in identifier dynamic is used as the declared name of a type variable.
 Language/12_Expressions/30_Identifier_Reference_A05_t01: Fail # Checks that it is a compile-time error when a built-in identifier "abstract" is used as a type annotation of a local variable.
 Language/12_Expressions/30_Identifier_Reference_A05_t12: Fail # Checks that it is a compile-time error when a built-in identifier "static" is used as a type annotation of a local variable.
-Language/13_Statements/03_Variable_Declaration_A04_t01: Fail # Checks that a variable declaration statement var e = e; causes a compile-time error.
-Language/13_Statements/03_Variable_Declaration_A04_t02: Fail # Checks that a variable declaration statement T e = e; causes a compile-time error.
-Language/13_Statements/03_Variable_Declaration_A04_t03: Fail # Checks that a variable declaration statement const e = e; causes a compile-time error.
-Language/13_Statements/03_Variable_Declaration_A04_t04: Fail # Checks that a variable declaration statement const T e = e; causes a compile-time error.
-Language/13_Statements/03_Variable_Declaration_A04_t05: Fail # Checks that a variable declaration statement final e = e; causes a compile-time error.
-Language/13_Statements/03_Variable_Declaration_A04_t06: Fail # Checks that a variable declaration statement final T e = e; causes a compile-time error.
-Language/13_Statements/03_Variable_Declaration_A04_t07: Fail # Checks that a variable declaration statement var e = e; causes a compile-time error. A top-level variable with the same name is declared.
-Language/13_Statements/03_Variable_Declaration_A04_t08: Fail # Checks that it is a compile-time error if the initializing expression of a local variable v refers to the name v= even when a top-level variable  with the same name is declared.
 Language/14_Libraries_and_Scripts/5_URIs_A01_t24: Fail # Checks that it is a compile-time error when the URI in a part directive consists of two adjacent string literals instead of one.
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: Fail # Checks that it is a compile-time error when the URI in a part directive consists of two adjacent multi-line string literals  instead of one.
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t01: Fail # Checks that a compile error is produced when a null default value is specified for a required argument in a function type alias.
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t02: Fail # Checks that a compile error is produced when a default value is specified for an optional positional  argument in a function type alias.
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t03: Fail # Checks that a compile error is produced when a default value is specified for an optional named  argument in a function type alias.
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t04: Fail # Checks that a compile error is produced when a default value is specified for one of the required arguments in a function type alias.
-Language/15_Types/3_Type_Declarations/1_Typedef_A06_t05: Fail # Checks that a compile error is produced when default values are specified for several parameters in a function type alias.
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Checks that self-referencing typedef is not allowed (return value type annotation has the same name as the type alias).
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # Checks that self-referencing typedef is not allowed (positional formal parameter type annotation has the same name as the type alias).
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Checks that self-referencing typedef is not allowed (positional optional parameter type annotation has the same name as the type alias).
@@ -423,16 +426,12 @@ LibTest/typed_data/ByteData/toString_A01_t01: fail # co19-roll r569: Please tria
 Language/03_Overview/1_Scoping_A02_t28: fail # co19-roll r559: Please triage this failure
 Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A05_t03: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t01: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t02: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t03: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t04: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t05: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t06: fail # co19-roll r559: Please triage this failure
-Language/07_Classes/3_Setters_A08_t01: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t02: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t04: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t01: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t02: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t03: fail # co19-roll r559: Please triage this failure
@@ -461,7 +460,6 @@ Language/12_Expressions/12_Instance_Creation/1_New_A02_t07: fail # co19-roll r54
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/22_Equality_A01_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/22_Equality_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # co19-roll r546: Please triage this failure
@@ -511,13 +509,11 @@ LibTest/core/List/List_A02_t01: fail # co19-roll r546: Please triage this failur
 LibTest/core/Match/pattern_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/core/RegExp/allMatches_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/spawnFunction_A04_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/spawnFunction_A04_t03: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/spawnUri_A02_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/spawnUri_A02_t03: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/streamSpawnFunction_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/add_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/add_A01_t02: fail # co19-roll r546: Please triage this failure
@@ -666,5 +662,7 @@ LibTest/typed_data/Uint8List/runtimeType_A01_t01: fail # co19-roll r559: Please 
 
 [ $compiler == dart2js || $compiler == dart2dart ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t08: fail # co19-roll r569: Please triage this failure
-
+LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: fail # co19-roll r576: Please triage this failure
+LibTest/core/Uri/Uri_A06_t02: fail # co19-roll r576: Please triage this failure
+LibTest/core/Uri/Uri_A06_t03: fail # co19-roll r576: Please triage this failure
 

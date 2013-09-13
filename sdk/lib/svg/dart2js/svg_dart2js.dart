@@ -32,7 +32,7 @@ import 'dart:_interceptors' show Interceptor;
 class _SvgElementFactoryProvider {
   static SvgElement createSvgElement_tag(String tag) {
     final Element temp =
-      document.$dom_createElementNS("http://www.w3.org/2000/svg", tag);
+      document.createElementNS("http://www.w3.org/2000/svg", tag);
     return temp;
   }
 }
@@ -4740,7 +4740,7 @@ class SvgElement extends Element native "SVGElement" {
   static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
   factory SvgElement.tag(String tag) =>
-      document.$dom_createElementNS("http://www.w3.org/2000/svg", tag);
+      document.createElementNS("http://www.w3.org/2000/svg", tag);
   factory SvgElement.svg(String svg,
       {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
 

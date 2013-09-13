@@ -108,13 +108,13 @@ void main() {
     }
 
     checkReturn('returnInt1', compiler.typesTask.intType);
-    checkReturn('returnInt2', compiler.typesTask.intType.nullable());
+    checkReturn('returnInt2', compiler.typesTask.intType);
     checkReturn('returnInt3', compiler.typesTask.intType);
     checkReturn('returnInt4', compiler.typesTask.intType);
 
-    checkReturn('returnDyn1', compiler.typesTask.dynamicType);
-    checkReturn('returnDyn2', compiler.typesTask.dynamicType);
-    checkReturn('returnDyn3', compiler.typesTask.dynamicType);
+    checkReturn('returnDyn1', compiler.typesTask.dynamicType.nonNullable());
+    checkReturn('returnDyn2', compiler.typesTask.dynamicType.nonNullable());
+    checkReturn('returnDyn3', compiler.typesTask.dynamicType.nonNullable());
     checkReturn('returnNum1', compiler.typesTask.numType);
   }));
 }

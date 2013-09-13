@@ -54,11 +54,25 @@ class C extends HtmlElement {
   }
 }
 
+loadPolyfills() {
+  if (!document.supportsRegister) {
+    // Cache blocker is a workaround for:
+    // https://code.google.com/p/dart/issues/detail?id=11834
+    var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
+    return HttpRequest.getString('/root_dart/pkg/custom_element/lib/'
+      'custom-elements.debug.js?cacheBlock=$cacheBlocker').then((code) {
+      document.head.children.add(new ScriptElement()..text = code);
+    });
+  }
+}
+
 main() {
   useHtmlConfiguration();
 
   // Adapted from Blink's
   // fast/dom/custom/created-callback test.
+
+  setUp(loadPolyfills);
 
   test('transfer created callback', () {
     document.register(A.tag, A);
@@ -78,6 +92,8 @@ main() {
 <x-c id="v"></x-c>
 <x-b id="w"></x-b>
 """, treeSanitizer: new NullTreeSanitizer());
+
+    Platform.upgradeCustomElements(div);
 
     expect(C.createdInvocations, 2);
     expect(div.query('#w') is B, isTrue);

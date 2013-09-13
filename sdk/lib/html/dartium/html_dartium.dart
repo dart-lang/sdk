@@ -204,7 +204,7 @@ class AnchorElement extends HtmlElement {
   @DomName('HTMLAnchorElement.HTMLAnchorElement')
   @DocsEditable()
   factory AnchorElement({String href}) {
-    var e = document.$dom_createElement("a");
+    var e = document.createElement("a");
     if (href != null) e.href = href;
     return e;
   }
@@ -537,7 +537,7 @@ class AreaElement extends HtmlElement {
 
   @DomName('HTMLAreaElement.HTMLAreaElement')
   @DocsEditable()
-  factory AreaElement() => document.$dom_createElement("area");
+  factory AreaElement() => document.createElement("area");
 
   @DomName('HTMLAreaElement.alt')
   @DocsEditable()
@@ -678,7 +678,7 @@ class BRElement extends HtmlElement {
 
   @DomName('HTMLBRElement.HTMLBRElement')
   @DocsEditable()
-  factory BRElement() => document.$dom_createElement("br");
+  factory BRElement() => document.createElement("br");
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -714,7 +714,7 @@ class BaseElement extends HtmlElement {
 
   @DomName('HTMLBaseElement.HTMLBaseElement')
   @DocsEditable()
-  factory BaseElement() => document.$dom_createElement("base");
+  factory BaseElement() => document.createElement("base");
 
   @DomName('HTMLBaseElement.href')
   @DocsEditable()
@@ -861,7 +861,7 @@ class BodyElement extends HtmlElement {
 
   @DomName('HTMLBodyElement.HTMLBodyElement')
   @DocsEditable()
-  factory BodyElement() => document.$dom_createElement("body");
+  factory BodyElement() => document.createElement("body");
 
   @DomName('HTMLBodyElement.onblur')
   @DocsEditable()
@@ -927,7 +927,7 @@ class ButtonElement extends HtmlElement {
 
   @DomName('HTMLButtonElement.HTMLButtonElement')
   @DocsEditable()
-  factory ButtonElement() => document.$dom_createElement("button");
+  factory ButtonElement() => document.createElement("button");
 
   @DomName('HTMLButtonElement.autofocus')
   @DocsEditable()
@@ -1098,7 +1098,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable()
   factory CanvasElement({int width, int height}) {
-    var e = document.$dom_createElement("canvas");
+    var e = document.createElement("canvas");
     if (width != null) e.width = width;
     if (height != null) e.height = height;
     return e;
@@ -2369,7 +2369,7 @@ class ContentElement extends HtmlElement {
 
   @DomName('HTMLContentElement.HTMLContentElement')
   @DocsEditable()
-  factory ContentElement() => document.$dom_createElement("content");
+  factory ContentElement() => document.createElement("content");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -6884,7 +6884,7 @@ class DListElement extends HtmlElement {
 
   @DomName('HTMLDListElement.HTMLDListElement')
   @DocsEditable()
-  factory DListElement() => document.$dom_createElement("dl");
+  factory DListElement() => document.createElement("dl");
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6906,7 +6906,7 @@ class DataListElement extends HtmlElement {
 
   @DomName('HTMLDataListElement.HTMLDataListElement')
   @DocsEditable()
-  factory DataListElement() => document.$dom_createElement("datalist");
+  factory DataListElement() => document.createElement("datalist");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -7145,7 +7145,7 @@ class DetailsElement extends HtmlElement {
 
   @DomName('HTMLDetailsElement.HTMLDetailsElement')
   @DocsEditable()
-  factory DetailsElement() => document.$dom_createElement("details");
+  factory DetailsElement() => document.createElement("details");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -7456,10 +7456,11 @@ class DirectoryReader extends NativeFieldWrapperClass1 {
 
 @DocsEditable()
 /**
- * Represents an HTML <div> element.
+ * A generic container for content on an HTML page;
+ * corresponds to the &lt;div&gt; tag.
  *
- * The [DivElement] is a generic container for content and does not have any
- * special significance. It is functionally similar to [SpanElement].
+ * The [DivElement] is a generic container and does not have any semantic
+ * significance. It is functionally similar to [SpanElement].
  *
  * The [DivElement] is a block-level element, as opposed to [SpanElement],
  * which is an inline-level element.
@@ -7483,7 +7484,7 @@ class DivElement extends HtmlElement {
 
   @DomName('HTMLDivElement.HTMLDivElement')
   @DocsEditable()
-  factory DivElement() => document.$dom_createElement("div");
+  factory DivElement() => document.createElement("div");
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7705,7 +7706,7 @@ class Document extends Node
   @DocsEditable()
   DocumentFragment createDocumentFragment() native "Document_createDocumentFragment_Callback";
 
-  Element $dom_createElement(String localName_OR_tagName, [String typeExtension]) {
+  Element createElement(String localName_OR_tagName, [String typeExtension]) {
     if ((localName_OR_tagName is String || localName_OR_tagName == null) && typeExtension == null) {
       return _createElement_1(localName_OR_tagName);
     }
@@ -7719,7 +7720,7 @@ class Document extends Node
 
   Element _createElement_2(localName_OR_tagName, typeExtension) native "Document__createElement_2_Callback";
 
-  Element $dom_createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
+  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
     if ((qualifiedName is String || qualifiedName == null) && (namespaceURI is String || namespaceURI == null) && typeExtension == null) {
       return _createElementNS_1(namespaceURI, qualifiedName);
     }
@@ -8491,7 +8492,7 @@ class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, Imm
 
   String get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -8499,7 +8500,7 @@ class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, Imm
   String get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -8507,7 +8508,7 @@ class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, Imm
   String get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -9398,8 +9399,8 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    *
    * * [isTagSupported]
    */
-  factory Element.tag(String tag) =>
-      _ElementFactoryProvider.createElement_tag(tag);
+  factory Element.tag(String tag, [String typeExtention]) =>
+      _ElementFactoryProvider.createElement_tag(tag, typeExtention);
 
   /// Creates a new `<a>` element.
   ///
@@ -9716,7 +9717,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    * The tag should be a valid HTML tag name.
    */
   static bool isTagSupported(String tag) {
-    var e = _ElementFactoryProvider.createElement_tag(tag);
+    var e = _ElementFactoryProvider.createElement_tag(tag, null);
     return e is Element && !(e is UnknownElement);
   }
 
@@ -10103,12 +10104,17 @@ abstract class Element extends Node implements ParentNode, ChildNode {
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
       _parseRange = _parseDocument.createRange();
+
+      // Workaround for Chrome bug 229142- URIs are not resolved in new doc.
+      var base = _parseDocument.createElement('base');
+      base.href = document._baseUri;
+      _parseDocument.head.append(base);
     }
     var contextElement;
     if (this is BodyElement) {
       contextElement = _parseDocument.body;
     } else {
-      contextElement = _parseDocument.$dom_createElement(tagName);
+      contextElement = _parseDocument.createElement(tagName);
       _parseDocument.body.append(contextElement);
     }
     var fragment;
@@ -11004,8 +11010,8 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 class _ElementFactoryProvider {
 
   @DomName('Document.createElement')
-  static Element createElement_tag(String tag) =>
-      document.$dom_createElement(tag);
+  static Element createElement_tag(String tag, String typeExtension) =>
+      document.createElement(tag, typeExtension);
 }
 
 
@@ -11043,7 +11049,7 @@ class EmbedElement extends HtmlElement {
 
   @DomName('HTMLEmbedElement.HTMLEmbedElement')
   @DocsEditable()
-  factory EmbedElement() => document.$dom_createElement("embed");
+  factory EmbedElement() => document.createElement("embed");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -11712,7 +11718,7 @@ class FieldSetElement extends HtmlElement {
 
   @DomName('HTMLFieldSetElement.HTMLFieldSetElement')
   @DocsEditable()
-  factory FieldSetElement() => document.$dom_createElement("fieldset");
+  factory FieldSetElement() => document.createElement("fieldset");
 
   @DomName('HTMLFieldSetElement.disabled')
   @DocsEditable()
@@ -11947,7 +11953,7 @@ class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableL
 
   File get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -11955,7 +11961,7 @@ class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableL
   File get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -11963,7 +11969,7 @@ class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableL
   File get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -12464,7 +12470,7 @@ class FormElement extends HtmlElement {
 
   @DomName('HTMLFormElement.HTMLFormElement')
   @DocsEditable()
-  factory FormElement() => document.$dom_createElement("form");
+  factory FormElement() => document.createElement("form");
 
   @DomName('HTMLFormElement.acceptCharset')
   @DocsEditable()
@@ -12750,7 +12756,7 @@ class HRElement extends HtmlElement {
 
   @DomName('HTMLHRElement.HTMLHRElement')
   @DocsEditable()
-  factory HRElement() => document.$dom_createElement("hr");
+  factory HRElement() => document.createElement("hr");
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -12806,7 +12812,7 @@ class HeadElement extends HtmlElement {
 
   @DomName('HTMLHeadElement.HTMLHeadElement')
   @DocsEditable()
-  factory HeadElement() => document.$dom_createElement("head");
+  factory HeadElement() => document.createElement("head");
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12824,27 +12830,27 @@ class HeadingElement extends HtmlElement {
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h1() => document.$dom_createElement("h1");
+  factory HeadingElement.h1() => document.createElement("h1");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h2() => document.$dom_createElement("h2");
+  factory HeadingElement.h2() => document.createElement("h2");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h3() => document.$dom_createElement("h3");
+  factory HeadingElement.h3() => document.createElement("h3");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h4() => document.$dom_createElement("h4");
+  factory HeadingElement.h4() => document.createElement("h4");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h5() => document.$dom_createElement("h5");
+  factory HeadingElement.h5() => document.createElement("h5");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h6() => document.$dom_createElement("h6");
+  factory HeadingElement.h6() => document.createElement("h6");
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12984,7 +12990,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, I
 
   Node get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -12992,7 +12998,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, I
   Node get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -13000,7 +13006,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, I
   Node get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -13061,7 +13067,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, Immu
 
   Node get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -13069,7 +13075,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, Immu
   Node get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -13077,7 +13083,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, Immu
   Node get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -13277,8 +13283,75 @@ class HtmlDocument extends Document {
   String get visibilityState => _webkitVisibilityState;
 
   @Experimental
-  void register(String tag, Type custom) {
-    _Utils.register(tag, custom);
+  /**
+   * Register a custom subclass of Element to be instantiatable by the DOM.
+   *
+   * This is necessary to allow the construction of any custom elements.
+   *
+   * The class being registered must either subclass HtmlElement or SvgElement.
+   * If they subclass these directly then they can be used as:
+   *
+   *     class FooElement extends HtmlElement{
+   *        void created() {
+   *          print('FooElement created!');
+   *        }
+   *     }
+   *
+   *     main() {
+   *       document.register('x-foo', FooElement);
+   *       var myFoo = new Element.tag('x-foo');
+   *       // prints 'FooElement created!' to the console.
+   *     }
+   *
+   * The custom element can also be instantiated via HTML using the syntax
+   * `<x-foo></x-foo>`
+   *
+   * Other elements can be subclassed as well:
+   *
+   *     class BarElement extends InputElement{
+   *        void created() {
+   *          print('BarElement created!');
+   *        }
+   *     }
+   *
+   *     main() {
+   *       document.register('x-bar', BarElement);
+   *       var myBar = new Element.tag('input', 'x-bar');
+   *       // prints 'BarElement created!' to the console.
+   *     }
+   *
+   * This custom element can also be instantiated via HTML using the syntax
+   * `<input is="x-bar"></input>`
+   *
+   * The [nativeTagName] parameter is needed by platforms without native support
+   * when subclassing a native type other than:
+   *
+   * * HtmlElement
+   * * SvgElement
+   * * AnchorElement
+   * * AudioElement
+   * * ButtonElement
+   * * CanvasElement
+   * * DivElement
+   * * ImageElement
+   * * InputElement
+   * * LIElement
+   * * LabelElement
+   * * MenuElement
+   * * MeterElement
+   * * OListElement
+   * * OptionElement
+   * * OutputElement
+   * * ParagraphElement
+   * * PreElement
+   * * ProgressElement
+   * * SelectElement
+   * * SpanElement
+   * * UListElement
+   * * VideoElement
+   */
+  void register(String tag, Type customElementClass, {String nativeTagName}) {
+    _Utils.register(tag, customElementClass);
   }
 
   // Note: used to polyfill <template>
@@ -13486,7 +13559,7 @@ class HtmlHtmlElement extends HtmlElement {
 
   @DomName('HTMLHtmlElement.HTMLHtmlElement')
   @DocsEditable()
-  factory HtmlHtmlElement() => document.$dom_createElement("html");
+  factory HtmlHtmlElement() => document.createElement("html");
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14074,7 +14147,7 @@ class IFrameElement extends HtmlElement {
 
   @DomName('HTMLIFrameElement.HTMLIFrameElement')
   @DocsEditable()
-  factory IFrameElement() => document.$dom_createElement("iframe");
+  factory IFrameElement() => document.createElement("iframe");
 
   @DomName('HTMLIFrameElement.contentWindow')
   @DocsEditable()
@@ -14202,7 +14275,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.HTMLImageElement')
   @DocsEditable()
   factory ImageElement({String src, int width, int height}) {
-    var e = document.$dom_createElement("img");
+    var e = document.createElement("img");
     if (src != null) e.src = src;
     if (width != null) e.width = width;
     if (height != null) e.height = height;
@@ -14339,7 +14412,7 @@ class InputElement extends HtmlElement implements
      {
 
   factory InputElement({String type}) {
-    var e = document.$dom_createElement("input");
+    var e = document.createElement("input");
     if (type != null) {
       try {
         // IE throws an exception for unknown types.
@@ -15554,7 +15627,7 @@ class KeygenElement extends HtmlElement {
 
   @DomName('HTMLKeygenElement.HTMLKeygenElement')
   @DocsEditable()
-  factory KeygenElement() => document.$dom_createElement("keygen");
+  factory KeygenElement() => document.createElement("keygen");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -15648,7 +15721,7 @@ class LIElement extends HtmlElement {
 
   @DomName('HTMLLIElement.HTMLLIElement')
   @DocsEditable()
-  factory LIElement() => document.$dom_createElement("li");
+  factory LIElement() => document.createElement("li");
 
   @DomName('HTMLLIElement.type')
   @DocsEditable()
@@ -15686,7 +15759,7 @@ class LabelElement extends HtmlElement {
 
   @DomName('HTMLLabelElement.HTMLLabelElement')
   @DocsEditable()
-  factory LabelElement() => document.$dom_createElement("label");
+  factory LabelElement() => document.createElement("label");
 
   @DomName('HTMLLabelElement.control')
   @DocsEditable()
@@ -15720,7 +15793,7 @@ class LegendElement extends HtmlElement {
 
   @DomName('HTMLLegendElement.HTMLLegendElement')
   @DocsEditable()
-  factory LegendElement() => document.$dom_createElement("legend");
+  factory LegendElement() => document.createElement("legend");
 
   @DomName('HTMLLegendElement.form')
   @DocsEditable()
@@ -15742,7 +15815,7 @@ class LinkElement extends HtmlElement {
 
   @DomName('HTMLLinkElement.HTMLLinkElement')
   @DocsEditable()
-  factory LinkElement() => document.$dom_createElement("link");
+  factory LinkElement() => document.createElement("link");
 
   @DomName('HTMLLinkElement.disabled')
   @DocsEditable()
@@ -15949,7 +16022,7 @@ class MapElement extends HtmlElement {
 
   @DomName('HTMLMapElement.HTMLMapElement')
   @DocsEditable()
-  factory MapElement() => document.$dom_createElement("map");
+  factory MapElement() => document.createElement("map");
 
   @DomName('HTMLMapElement.areas')
   @DocsEditable()
@@ -17408,7 +17481,7 @@ class MenuElement extends HtmlElement {
 
   @DomName('HTMLMenuElement.HTMLMenuElement')
   @DocsEditable()
-  factory MenuElement() => document.$dom_createElement("menu");
+  factory MenuElement() => document.createElement("menu");
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17545,7 +17618,7 @@ class MetaElement extends HtmlElement {
 
   @DomName('HTMLMetaElement.HTMLMetaElement')
   @DocsEditable()
-  factory MetaElement() => document.$dom_createElement("meta");
+  factory MetaElement() => document.createElement("meta");
 
   @DomName('HTMLMetaElement.content')
   @DocsEditable()
@@ -17624,7 +17697,7 @@ class MeterElement extends HtmlElement {
 
   @DomName('HTMLMeterElement.HTMLMeterElement')
   @DocsEditable()
-  factory MeterElement() => document.$dom_createElement("meter");
+  factory MeterElement() => document.createElement("meter");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -17971,7 +18044,7 @@ class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, I
 
   MimeType get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -17979,7 +18052,7 @@ class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, I
   MimeType get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -17987,7 +18060,7 @@ class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, I
   MimeType get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -19126,6 +19199,10 @@ class Node extends EventTarget {
   @DocsEditable()
   static const int TEXT_NODE = 3;
 
+  @DomName('Node.baseURI')
+  @DocsEditable()
+  String get _baseUri native "Node_baseURI_Getter";
+
   @DomName('Node.childNodes')
   @DocsEditable()
   @deprecated
@@ -19399,7 +19476,7 @@ class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableL
 
   Node get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -19407,7 +19484,7 @@ class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableL
   Node get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -19415,7 +19492,7 @@ class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableL
   Node get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -19666,7 +19743,7 @@ class OListElement extends HtmlElement {
 
   @DomName('HTMLOListElement.HTMLOListElement')
   @DocsEditable()
-  factory OListElement() => document.$dom_createElement("ol");
+  factory OListElement() => document.createElement("ol");
 
   @DomName('HTMLOListElement.reversed')
   @DocsEditable()
@@ -19712,7 +19789,7 @@ class ObjectElement extends HtmlElement {
 
   @DomName('HTMLObjectElement.HTMLObjectElement')
   @DocsEditable()
-  factory ObjectElement() => document.$dom_createElement("object");
+  factory ObjectElement() => document.createElement("object");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -19825,7 +19902,7 @@ class OptGroupElement extends HtmlElement {
 
   @DomName('HTMLOptGroupElement.HTMLOptGroupElement')
   @DocsEditable()
-  factory OptGroupElement() => document.$dom_createElement("optgroup");
+  factory OptGroupElement() => document.createElement("optgroup");
 
   @DomName('HTMLOptGroupElement.disabled')
   @DocsEditable()
@@ -19933,7 +20010,7 @@ class OutputElement extends HtmlElement {
 
   @DomName('HTMLOutputElement.HTMLOutputElement')
   @DocsEditable()
-  factory OutputElement() => document.$dom_createElement("output");
+  factory OutputElement() => document.createElement("output");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -20074,7 +20151,7 @@ class ParagraphElement extends HtmlElement {
 
   @DomName('HTMLParagraphElement.HTMLParagraphElement')
   @DocsEditable()
-  factory ParagraphElement() => document.$dom_createElement("p");
+  factory ParagraphElement() => document.createElement("p");
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20093,7 +20170,7 @@ class ParamElement extends HtmlElement {
 
   @DomName('HTMLParamElement.HTMLParamElement')
   @DocsEditable()
-  factory ParamElement() => document.$dom_createElement("param");
+  factory ParamElement() => document.createElement("param");
 
   @DomName('HTMLParamElement.name')
   @DocsEditable()
@@ -20679,7 +20756,7 @@ class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, Immut
 
   Plugin get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -20687,7 +20764,7 @@ class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, Immut
   Plugin get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -20695,7 +20772,7 @@ class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, Immut
   Plugin get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -20811,7 +20888,7 @@ class PreElement extends HtmlElement {
 
   @DomName('HTMLPreElement.HTMLPreElement')
   @DocsEditable()
-  factory PreElement() => document.$dom_createElement("pre");
+  factory PreElement() => document.createElement("pre");
 
   @DomName('HTMLPreElement.wrap')
   @DocsEditable()
@@ -20867,7 +20944,7 @@ class ProgressElement extends HtmlElement {
 
   @DomName('HTMLProgressElement.HTMLProgressElement')
   @DocsEditable()
-  factory ProgressElement() => document.$dom_createElement("progress");
+  factory ProgressElement() => document.createElement("progress");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -21010,7 +21087,7 @@ class QuoteElement extends HtmlElement {
 
   @DomName('HTMLQuoteElement.HTMLQuoteElement')
   @DocsEditable()
-  factory QuoteElement() => document.$dom_createElement("q");
+  factory QuoteElement() => document.createElement("q");
 
   @DomName('HTMLQuoteElement.cite')
   @DocsEditable()
@@ -22030,7 +22107,7 @@ class ScriptElement extends HtmlElement {
 
   @DomName('HTMLScriptElement.HTMLScriptElement')
   @DocsEditable()
-  factory ScriptElement() => document.$dom_createElement("script");
+  factory ScriptElement() => document.createElement("script");
 
   @DomName('HTMLScriptElement.async')
   @DocsEditable()
@@ -22264,7 +22341,7 @@ class SelectElement extends HtmlElement {
 
   @DomName('HTMLSelectElement.HTMLSelectElement')
   @DocsEditable()
-  factory SelectElement() => document.$dom_createElement("select");
+  factory SelectElement() => document.createElement("select");
 
   @DomName('HTMLSelectElement.autofocus')
   @DocsEditable()
@@ -22546,7 +22623,7 @@ class ShadowElement extends HtmlElement {
 
   @DomName('HTMLShadowElement.HTMLShadowElement')
   @DocsEditable()
-  factory ShadowElement() => document.$dom_createElement("shadow");
+  factory ShadowElement() => document.createElement("shadow");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -22794,7 +22871,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
 
   SourceBuffer get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -22802,7 +22879,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   SourceBuffer get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -22810,7 +22887,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   SourceBuffer get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -22851,7 +22928,7 @@ class SourceElement extends HtmlElement {
 
   @DomName('HTMLSourceElement.HTMLSourceElement')
   @DocsEditable()
-  factory SourceElement() => document.$dom_createElement("source");
+  factory SourceElement() => document.createElement("source");
 
   @DomName('HTMLSourceElement.media')
   @DocsEditable()
@@ -22926,7 +23003,7 @@ class SpanElement extends HtmlElement {
 
   @DomName('HTMLSpanElement.HTMLSpanElement')
   @DocsEditable()
-  factory SpanElement() => document.$dom_createElement("span");
+  factory SpanElement() => document.createElement("span");
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23014,7 +23091,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGr
 
   SpeechGrammar get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -23022,7 +23099,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGr
   SpeechGrammar get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -23030,7 +23107,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGr
   SpeechGrammar get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -23989,7 +24066,7 @@ class StyleElement extends HtmlElement {
 
   @DomName('HTMLStyleElement.HTMLStyleElement')
   @DocsEditable()
-  factory StyleElement() => document.$dom_createElement("style");
+  factory StyleElement() => document.createElement("style");
 
   @DomName('HTMLStyleElement.disabled')
   @DocsEditable()
@@ -24109,7 +24186,7 @@ class TableCaptionElement extends HtmlElement {
 
   @DomName('HTMLTableCaptionElement.HTMLTableCaptionElement')
   @DocsEditable()
-  factory TableCaptionElement() => document.$dom_createElement("caption");
+  factory TableCaptionElement() => document.createElement("caption");
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24127,7 +24204,7 @@ class TableCellElement extends HtmlElement {
 
   @DomName('HTMLTableCellElement.HTMLTableCellElement')
   @DocsEditable()
-  factory TableCellElement() => document.$dom_createElement("td");
+  factory TableCellElement() => document.createElement("td");
 
   @DomName('HTMLTableCellElement.cellIndex')
   @DocsEditable()
@@ -24173,7 +24250,7 @@ class TableColElement extends HtmlElement {
 
   @DomName('HTMLTableColElement.HTMLTableColElement')
   @DocsEditable()
-  factory TableColElement() => document.$dom_createElement("col");
+  factory TableColElement() => document.createElement("col");
 
   @DomName('HTMLTableColElement.span')
   @DocsEditable()
@@ -24217,7 +24294,7 @@ class TableElement extends HtmlElement {
 
   @DomName('HTMLTableElement.HTMLTableElement')
   @DocsEditable()
-  factory TableElement() => document.$dom_createElement("table");
+  factory TableElement() => document.createElement("table");
 
   @DomName('HTMLTableElement.border')
   @DocsEditable()
@@ -24324,7 +24401,7 @@ class TableRowElement extends HtmlElement {
 
   @DomName('HTMLTableRowElement.HTMLTableRowElement')
   @DocsEditable()
-  factory TableRowElement() => document.$dom_createElement("tr");
+  factory TableRowElement() => document.createElement("tr");
 
   @DomName('HTMLTableRowElement.cells')
   @DocsEditable()
@@ -24481,7 +24558,7 @@ class TemplateElement extends HtmlElement {
 
   @DomName('HTMLTemplateElement.HTMLTemplateElement')
   @DocsEditable()
-  factory TemplateElement() => document.$dom_createElement("template");
+  factory TemplateElement() => document.createElement("template");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -24600,7 +24677,7 @@ class TemplateElement extends HtmlElement {
   //       + <td>Bar</td>
   //
   static Element _extractTemplateFromAttributeTemplate(Element el) {
-    var template = el.document.$dom_createElement('template');
+    var template = el.document.createElement('template');
     el.parentNode.insertBefore(template, el);
 
     for (var name in el.attributes.keys.toList()) {
@@ -24753,7 +24830,7 @@ class TextAreaElement extends HtmlElement {
 
   @DomName('HTMLTextAreaElement.HTMLTextAreaElement')
   @DocsEditable()
-  factory TextAreaElement() => document.$dom_createElement("textarea");
+  factory TextAreaElement() => document.createElement("textarea");
 
   @DomName('HTMLTextAreaElement.autofocus')
   @DocsEditable()
@@ -25288,7 +25365,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrack
 
   TextTrackCue get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -25296,7 +25373,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrack
   TextTrackCue get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -25304,7 +25381,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrack
   TextTrackCue get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -25365,7 +25442,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
 
   TextTrack get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -25373,7 +25450,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   TextTrack get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -25381,7 +25458,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   TextTrack get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -25460,7 +25537,7 @@ class TitleElement extends HtmlElement {
 
   @DomName('HTMLTitleElement.HTMLTitleElement')
   @DocsEditable()
-  factory TitleElement() => document.$dom_createElement("title");
+  factory TitleElement() => document.createElement("title");
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25663,7 +25740,7 @@ class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, Immutabl
 
   Touch get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -25671,7 +25748,7 @@ class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, Immutabl
   Touch get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -25679,7 +25756,7 @@ class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, Immutabl
   Touch get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -25713,7 +25790,7 @@ class TrackElement extends HtmlElement {
 
   @DomName('HTMLTrackElement.HTMLTrackElement')
   @DocsEditable()
-  factory TrackElement() => document.$dom_createElement("track");
+  factory TrackElement() => document.createElement("track");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -26008,7 +26085,7 @@ class UListElement extends HtmlElement {
 
   @DomName('HTMLUListElement.HTMLUListElement')
   @DocsEditable()
-  factory UListElement() => document.$dom_createElement("ul");
+  factory UListElement() => document.createElement("ul");
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26146,7 +26223,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
 
   @DomName('HTMLVideoElement.HTMLVideoElement')
   @DocsEditable()
-  factory VideoElement() => document.$dom_createElement("video");
+  factory VideoElement() => document.createElement("video");
 
   @DomName('HTMLVideoElement.height')
   @DocsEditable()
@@ -28566,7 +28643,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, Imm
 
   Rect get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -28574,7 +28651,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, Imm
   Rect get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -28582,7 +28659,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, Imm
   Rect get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -28645,7 +28722,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, Imm
 
   CssRule get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -28653,7 +28730,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, Imm
   CssRule get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -28661,7 +28738,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, Imm
   CssRule get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -28714,7 +28791,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
 
   _CSSValue get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -28722,7 +28799,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   _CSSValue get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -28730,7 +28807,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   _CSSValue get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -28980,7 +29057,7 @@ class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, Imm
 
   Gamepad get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -28988,7 +29065,7 @@ class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, Imm
   Gamepad get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -28996,7 +29073,7 @@ class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, Imm
   Gamepad get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -29159,7 +29236,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, Immut
 
   Node get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -29167,7 +29244,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, Immut
   Node get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -29175,7 +29252,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, Immut
   Node get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -29331,7 +29408,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<Spe
 
   SpeechInputResult get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -29339,7 +29416,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<Spe
   SpeechInputResult get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -29347,7 +29424,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<Spe
   SpeechInputResult get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -29398,7 +29475,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMix
 
   SpeechRecognitionResult get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -29406,7 +29483,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMix
   SpeechRecognitionResult get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -29414,7 +29491,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMix
   SpeechRecognitionResult get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -29463,7 +29540,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
 
   StyleSheet get first {
     if (this.length > 0) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
@@ -29471,7 +29548,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
   StyleSheet get last {
     int len = this.length;
     if (len > 0) {
-      return this[len - 1];
+      return _nativeIndexedGetter(len - 1);
     }
     throw new StateError("No elements");
   }
@@ -29479,7 +29556,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
   StyleSheet get single {
     int len = this.length;
     if (len == 1) {
-      return this[0];
+      return _nativeIndexedGetter(0);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -34406,6 +34483,31 @@ class TestRunner {
 // BSD-style license that can be found in the LICENSE file.
 
 
+class _ConsoleVariables {
+  Map<String, Object> _data = new Map<String, Object>();
+  
+  /**
+   * Forward member accesses to the backing JavaScript object.
+   */
+  noSuchMethod(Invocation invocation) {
+    String member = MirrorSystem.getName(invocation.memberName);
+    if (invocation.isGetter) {
+      return _data[member];
+    } else if (invocation.isSetter) {
+      _data[member] = invocation.positionalArguments[0];
+    } else {
+      return Function.apply(_data[member], invocation.positionalArguments, invocation.namedArguments);
+    }
+  }
+  
+  void clear() => _data.clear();
+
+  /**
+   * List all variables currently defined.
+   */
+  List variables() => _data.keys.toList(growable: false);
+}
+
 class _Utils {
   static double dateTimeToDouble(DateTime dateTime) =>
       dateTime.millisecondsSinceEpoch.toDouble();
@@ -34502,6 +34604,41 @@ class _Utils {
       map[stripMemberName(localVariables[i])] = localVariables[i+1];
     }
     return map;
+  }
+
+  static _ConsoleVariables _consoleTempVariables = new _ConsoleVariables();
+  /**
+   * Takes an [expression] and a list of [local] variable and returns an
+   * expression for a closure with a body matching the original expression
+   * where locals are passed in as arguments. Returns a list containing the
+   * String expression for the closure and the list of arguments that should
+   * be passed to it.
+   *
+   * For example:
+   * <code>wrapExpressionAsClosure("foo + bar", ["bar", 40, "foo", 2])</code>
+   * will return:
+   * <code>["(final $var, final bar, final foo) => foo + bar", [40, 2]]</code>
+   */
+  static List wrapExpressionAsClosure(String expression, List locals) {
+    var args = {};
+    var sb = new StringBuffer("(");
+    addArg(arg, value) {
+      arg = stripMemberName(arg);
+      if (args.containsKey(arg)) return;
+      if (args.isNotEmpty) {
+        sb.write(", ");
+      }
+      sb.write("final $arg");
+      args[arg] = value;
+    }
+    
+    addArg("\$var", _consoleTempVariables);
+    
+    for (int i = 0; i < locals.length; i+= 2) {
+      addArg(locals[i], locals[i+1]);
+    }
+    sb..write(')=>\n$expression'); 
+    return [sb.toString(), args.values.toList(growable: false)];
   }
 
   /**

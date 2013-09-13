@@ -212,6 +212,20 @@ class Address : public Operand {
     Operand::operator=(other);
     return *this;
   }
+
+  static Address AddressBaseImm32(Register base, int32_t disp) {
+    return Address(base, disp, true);
+  }
+
+ private:
+  Address(Register base, int32_t disp, bool fixed) {
+    ASSERT(fixed);
+    SetModRM(2, base);
+    if ((base & 7) == RSP) {
+      SetSIB(TIMES_1, RSP, base);
+    }
+    SetDisp32(disp);
+  }
 };
 
 
@@ -321,14 +335,8 @@ class CPUFeatures : public AllStatic {
 
 class Assembler : public ValueObject {
  public:
-  explicit Assembler(bool use_far_branches = false)
-      : buffer_(),
-        object_pool_(GrowableObjectArray::Handle()),
-        prologue_offset_(-1),
-        comments_() {
-    // This mode is only needed and implemented for MIPS and ARM.
-    ASSERT(!use_far_branches);
-  }
+  explicit Assembler(bool use_far_branches = false);
+
   ~Assembler() { }
 
   static const bool kNearJump = true;
@@ -342,7 +350,7 @@ class Assembler : public ValueObject {
   void call(Label* label);
   void call(const ExternalLabel* label);
 
-  static const intptr_t kCallExternalLabelSize = 13;
+  static const intptr_t kCallExternalLabelSize = 10;
 
   void pushq(Register reg);
   void pushq(const Address& address);
@@ -652,7 +660,17 @@ class Assembler : public ValueObject {
 
   void Drop(intptr_t stack_elements);
 
-  void LoadObject(Register dst, const Object& object);
+  enum Patchability {
+    kPatchable,
+    kNotPatchable,
+  };
+
+  void LoadObject(Register dst, const Object& obj, Register pp);
+  void JmpPatchable(const ExternalLabel* label, Register pp);
+  void Jmp(const ExternalLabel* label, Register pp);
+  void J(Condition condition, const ExternalLabel* label, Register pp);
+  void CallPatchable(const ExternalLabel* label);
+  void Call(const ExternalLabel* label, Register pp);
   void StoreObject(const Address& dst, const Object& obj);
   void PushObject(const Object& object);
   void CompareObject(Register reg, const Object& object);
@@ -680,6 +698,8 @@ class Assembler : public ValueObject {
 
   void EnterFrame(intptr_t frame_space);
   void LeaveFrame();
+  void LeaveFrameWithPP();
+  void ReturnPatchable();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
   // Create a frame for calling into runtime that preserves all volatile
@@ -731,6 +751,8 @@ class Assembler : public ValueObject {
     buffer_.FinalizeInstructions(region);
   }
 
+  void LoadPoolPointer(Register pp);
+
   // Set up a Dart frame on entry with a frame pointer and PC information to
   // enable easy access to the RawInstruction object of code corresponding
   // to this frame.
@@ -739,6 +761,7 @@ class Assembler : public ValueObject {
   //   ret PC
   //   saved RBP     <=== RBP
   //   pc (used to derive the RawInstruction Object of the dart code)
+  //   saved PP
   //   locals space  <=== RSP
   //   .....
   // This code sets this up with the sequence:
@@ -746,13 +769,17 @@ class Assembler : public ValueObject {
   //   movq rbp, rsp
   //   call L
   //   L: <code to adjust saved pc if there is any intrinsification code>
+  //   ...
+  //   pushq r15
   //   .....
   void EnterDartFrame(intptr_t frame_size);
+  void EnterDartFrameWithInfo(intptr_t frame_size,
+                              Register new_pp, Register new_pc);
 
   // Set up a Dart frame for a function compiled for on-stack replacement.
   // The frame layout is a normal Dart frame, but the frame is partially set
   // up on entry (it is the frame of the unoptimized code).
-  void EnterOsrFrame(intptr_t extra_size);
+  void EnterOsrFrame(intptr_t extra_size, Register new_pp, Register new_pc);
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
@@ -768,8 +795,9 @@ class Assembler : public ValueObject {
   //   pushq immediate(0)
   //   .....
   void EnterStubFrame();
+  void EnterStubFrameWithPP();
 
-  // Instruction pattern from entrypoint is used in dart frame prologs
+  // Instruction pattern from entrypoint is used in dart frame prologues
   // to set up the frame and save a PC which can be used to figure out the
   // RawInstruction object corresponding to the code running in the frame.
   // entrypoint:
@@ -802,7 +830,13 @@ class Assembler : public ValueObject {
 
  private:
   AssemblerBuffer buffer_;
-  GrowableObjectArray& object_pool_;  // Object pool is not used on x64.
+
+  // Objects and jump targets.
+  GrowableObjectArray& object_pool_;
+
+  // Patchability of pool entries.
+  GrowableArray<Patchability> patchable_pool_entries_;
+
   int prologue_offset_;
 
   class CodeComment : public ZoneAllocated {
@@ -821,6 +855,16 @@ class Assembler : public ValueObject {
   };
 
   GrowableArray<CodeComment*> comments_;
+
+  intptr_t FindObject(const Object& obj, Patchability patchable);
+  intptr_t FindExternalLabel(const ExternalLabel* label,
+                             Patchability patchable);
+  void LoadExternalLabel(Register dst,
+                         const ExternalLabel* label,
+                         Patchability patchable,
+                         Register pp);
+  bool CanLoadFromObjectPool(const Object& object);
+  void LoadWordFromPoolOffset(Register dst, Register pp, int32_t offset);
 
   inline void EmitUint8(uint8_t value);
   inline void EmitInt32(int32_t value);

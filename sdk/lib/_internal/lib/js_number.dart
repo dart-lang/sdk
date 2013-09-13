@@ -278,6 +278,65 @@ class JSInt extends JSNumber implements int, double {
 
   bool get isOdd => (this & 1) == 1;
 
+  int toUnsigned(int width) {
+    return this & ((1 << width) - 1);
+  }
+
+  int toSigned(int width) {
+    int signMask = 1 << (width - 1);
+    return (this & (signMask - 1)) - (this & signMask);
+  }
+
+  int get bitLength {
+    int nonneg = this < 0 ? -this-1 : this;
+    if (nonneg >= 0x100000000) {
+      nonneg = nonneg ~/ 0x100000000;
+      return _bitCount(_spread(nonneg)) + 32;
+    }
+    return _bitCount(_spread(nonneg));
+  }
+
+  // Assumes i is <= 32-bit and unsigned.
+  static int _bitCount(int i) {
+    // See "Hacker's Delight", section 5-1, "Counting 1-Bits".
+
+    // The basic strategy is to use "divide and conquer" to
+    // add pairs (then quads, etc.) of bits together to obtain
+    // sub-counts.
+    //
+    // A straightforward approach would look like:
+    //
+    // i = (i & 0x55555555) + ((i >>  1) & 0x55555555);
+    // i = (i & 0x33333333) + ((i >>  2) & 0x33333333);
+    // i = (i & 0x0F0F0F0F) + ((i >>  4) & 0x0F0F0F0F);
+    // i = (i & 0x00FF00FF) + ((i >>  8) & 0x00FF00FF);
+    // i = (i & 0x0000FFFF) + ((i >> 16) & 0x0000FFFF);
+    //
+    // The code below removes unnecessary &'s and uses a
+    // trick to remove one instruction in the first line.
+
+    i = _shru(i, 0) - (_shru(i, 1) & 0x55555555);
+    i = (i & 0x33333333) + (_shru(i, 2) & 0x33333333);
+    i = 0x0F0F0F0F & (i + _shru(i, 4));
+    i += _shru(i, 8);
+    i += _shru(i, 16);
+    return (i & 0x0000003F);
+  }
+
+  static _shru(int value, int shift) => JS('int', '# >>> #', value, shift);
+  static _shrs(int value, int shift) => JS('int', '# >> #', value, shift);
+  static _ors(int a, int b) => JS('int', '# | #', a, b);
+
+  // Assumes i is <= 32-bit
+  static int _spread(int i) {
+    i = _ors(i, _shrs(i, 1));
+    i = _ors(i, _shrs(i, 2));
+    i = _ors(i, _shrs(i, 4));
+    i = _ors(i, _shrs(i, 8));
+    i = _shru(_ors(i, _shrs(i, 16)), 0);
+    return i;
+  }
+
   Type get runtimeType => int;
 
   int operator ~() => JS('int', r'(~#) >>> 0', this);

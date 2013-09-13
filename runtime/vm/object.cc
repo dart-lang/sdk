@@ -64,6 +64,7 @@ DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, verbose_stacktrace);
+DECLARE_FLAG(bool, print_coverage);
 
 static const char* kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -169,8 +170,7 @@ static void MarkFunctionAsInvisible(const Library& lib,
                                     const char* function_name) {
   ASSERT(!lib.IsNull());
   const Class& cls = Class::Handle(
-      lib.LookupClassAllowPrivate(String::Handle(String::New(class_name)),
-                                  NULL));  // No ambiguity error expected.
+      lib.LookupClassAllowPrivate(String::Handle(String::New(class_name))));
   ASSERT(!cls.IsNull());
   const Function& function =
       Function::Handle(
@@ -1512,6 +1512,16 @@ RawType* Class::SignatureType() const {
 }
 
 
+RawType* Class::RareType() const {
+  const Type& type = Type::Handle(Type::New(
+      *this,
+      Object::null_abstract_type_arguments(),
+      Scanner::kDummyTokenIndex));
+  return Type::RawCast(
+      ClassFinalizer::FinalizeType(*this, type, ClassFinalizer::kCanonicalize));
+}
+
+
 template <class FakeObject>
 RawClass* Class::New() {
   ASSERT(Object::class_class() != Class::null());
@@ -2223,12 +2233,8 @@ void Class::PatchSignatureFunction(const Function& signature_function) const {
 RawClass* Class::NewNativeWrapper(const Library& library,
                                   const String& name,
                                   int field_count) {
-  String& ambiguity_error_msg = String::Handle();
-  Class& cls = Class::Handle(library.LookupClass(name, &ambiguity_error_msg));
+  Class& cls = Class::Handle(library.LookupClass(name));
   if (cls.IsNull()) {
-    if (!ambiguity_error_msg.IsNull()) {
-      return Class::null();
-    }
     cls = New(name, Script::Handle(), Scanner::kDummyTokenIndex);
     cls.SetFields(Object::empty_array());
     cls.SetFunctions(Object::empty_array());
@@ -2923,20 +2929,13 @@ void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
   const char* class_name = String::Handle(UserVisibleName()).ToCString();
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   intptr_t id = ring->GetIdForObject(raw());
-  if (ref) {
-    stream->OpenObject();
-    stream->PrintProperty("type", "@Class");
-    stream->PrintProperty("id", id);
-    stream->PrintProperty("name", class_name);
-    stream->CloseObject();
-    return;
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddProperty("id", id);
+  jsobj.AddProperty("name", class_name);
+  if (!ref) {
+    jsobj.AddProperty("library", Object::Handle(library()));
   }
-  stream->OpenObject();
-  stream->PrintProperty("type", "Class");
-  stream->PrintProperty("id", id);
-  stream->PrintProperty("name", class_name);
-  stream->PrintProperty("library", Object::Handle(library()));
-  stream->CloseObject();
 }
 
 
@@ -3020,8 +3019,7 @@ const char* UnresolvedClass::ToCString() const {
 
 
 void UnresolvedClass::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -3244,8 +3242,7 @@ const char* AbstractTypeArguments::ToCString() const {
 
 void AbstractTypeArguments::PrintToJSONStream(JSONStream* stream,
                                               bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -3585,8 +3582,7 @@ const char* TypeArguments::ToCString() const {
 
 
 void TypeArguments::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -3674,8 +3670,7 @@ const char* InstantiatedTypeArguments::ToCString() const {
 
 void InstantiatedTypeArguments::PrintToJSONStream(JSONStream* stream,
                                                   bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -3691,8 +3686,7 @@ const char* PatchClass::ToCString() const {
 
 
 void PatchClass::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -4139,6 +4133,9 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
 
 
 bool Function::is_optimizable() const {
+  if (FLAG_print_coverage) {
+    return false;
+  }
   if (OptimizableBit::decode(raw_ptr()->kind_tag_) &&
       (script() != Script::null()) &&
       ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff_in_tokens)) {
@@ -4181,10 +4178,7 @@ void Function::set_is_inlinable(bool value) const {
 
 
 bool Function::IsInlineable() const {
-  // '==' call is handled specially.
-  return InlinableBit::decode(raw_ptr()->kind_tag_) &&
-         HasCode() &&
-         name() != Symbols::EqualOperator().raw();
+  return InlinableBit::decode(raw_ptr()->kind_tag_) && HasCode();
 }
 
 
@@ -5100,22 +5094,15 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
       String::Handle(QualifiedUserVisibleName()).ToCString();
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   intptr_t id = ring->GetIdForObject(raw());
-  if (ref) {
-    stream->OpenObject();
-    stream->PrintProperty("type", "@Function");
-    stream->PrintProperty("id", id);
-    stream->PrintProperty("name", function_name);
-    stream->CloseObject();
-    return;
-  }
-  stream->OpenObject();
-  stream->PrintProperty("type", "Function");
-  stream->PrintProperty("name", function_name);
-  stream->PrintProperty("id", id);
-  stream->PrintPropertyBool("is_static", is_static());
-  stream->PrintPropertyBool("is_const", is_const());
-  stream->PrintPropertyBool("is_optimizable", is_optimizable());
-  stream->PrintPropertyBool("is_inlinable", IsInlineable());
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddProperty("id", id);
+  jsobj.AddProperty("name", function_name);
+  if (ref) return;
+  jsobj.AddProperty("is_static", is_static());
+  jsobj.AddProperty("is_const", is_const());
+  jsobj.AddProperty("is_optimizable", is_optimizable());
+  jsobj.AddProperty("is_inlinable", IsInlineable());
   const char* kind_string = NULL;
   switch (kind()) {
       case RawFunction::kRegularFunction:
@@ -5151,15 +5138,13 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
       default:
         UNREACHABLE();
   }
-  stream->PrintProperty("kind", kind_string);
-  stream->PrintProperty("unoptimized_code", Object::Handle(unoptimized_code()));
-  stream->PrintProperty("usage_counter", usage_counter());
-  stream->PrintProperty("optimized_call_site_count",
-                        optimized_call_site_count());
-  stream->PrintProperty("code", Object::Handle(CurrentCode()));
-  stream->PrintProperty("deoptimizations",
-                        static_cast<intptr_t>(deoptimization_counter()));
-  stream->CloseObject();
+  jsobj.AddProperty("kind", kind_string);
+  jsobj.AddProperty("unoptimized_code", Object::Handle(unoptimized_code()));
+  jsobj.AddProperty("usage_counter", usage_counter());
+  jsobj.AddProperty("optimized_call_site_count", optimized_call_site_count());
+  jsobj.AddProperty("code", Object::Handle(CurrentCode()));
+  jsobj.AddProperty("deoptimizations",
+                    static_cast<intptr_t>(deoptimization_counter()));
 }
 
 
@@ -5207,8 +5192,7 @@ const char* ClosureData::ToCString() const {
 
 
 void ClosureData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -5243,8 +5227,7 @@ const char* RedirectionData::ToCString() const {
 
 
 void RedirectionData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -5365,7 +5348,12 @@ RawField* Field::New(const String& name,
   result.set_has_initializer(false);
   result.set_guarded_cid(kIllegalCid);
   result.set_is_nullable(false);
-  result.set_guarded_list_length(Field::kUnknownFixedLength);
+  // Presently, we only attempt to remember the list length for final fields.
+  if (is_final) {
+    result.set_guarded_list_length(Field::kUnknownFixedLength);
+  } else {
+    result.set_guarded_list_length(Field::kNoFixedLength);
+  }
   result.set_dependent_code(Object::null_array());
   return result.raw();
 }
@@ -5393,6 +5381,16 @@ RawString* Field::UserVisibleName() const {
 }
 
 
+intptr_t Field::guarded_list_length() const {
+  return Smi::Value(raw_ptr()->guarded_list_length_);
+}
+
+
+void Field::set_guarded_list_length(intptr_t list_length) const {
+  raw_ptr()->guarded_list_length_ = Smi::New(list_length);
+}
+
+
 const char* Field::ToCString() const {
   if (IsNull()) {
     return "Field::null";
@@ -5413,8 +5411,7 @@ const char* Field::ToCString() const {
 
 
 void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -5585,7 +5582,6 @@ void Field::UpdateLength(intptr_t list_length) const {
     // List length unchanged.
     return;
   }
-
   // Multiple list lengths assigned here, stop tracking length.
   set_guarded_list_length(Field::kNoFixedLength);
   DeoptimizeDependentCode();
@@ -5637,8 +5633,7 @@ const char* LiteralToken::ToCString() const {
 
 
 void LiteralToken::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -6053,8 +6048,7 @@ const char* TokenStream::ToCString() const {
 
 
 void TokenStream::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -6405,8 +6399,7 @@ const char* Script::ToCString() const {
 
 
 void Script::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -6724,8 +6717,9 @@ void Library::AddObject(const Object& obj, const String& name) const {
 }
 
 
-// Lookup a name in the library's export namespace.
-RawObject* Library::LookupExport(const String& name) const {
+// Lookup a name in the library's re-export namespace. The name is
+// unmangled, i.e. no getter or setter names should be looked up.
+RawObject* Library::LookupReExport(const String& name) const {
   if (HasExports()) {
     const Array& exports = Array::Handle(this->exports());
     // Break potential export cycle while looking up name.
@@ -6789,6 +6783,23 @@ void Library::AddClass(const Class& cls) const {
   cls.set_library(*this);
 }
 
+static void AddScriptIfUnique(const GrowableObjectArray& scripts,
+                              Script& candidate) {
+  if (candidate.IsNull()) {
+    return;
+  }
+  Script& script_obj = Script::Handle();
+
+  for (int i = 0; i < scripts.Length(); i++) {
+    script_obj ^= scripts.At(i);
+    if (script_obj.raw() == candidate.raw()) {
+      // We already have a reference to this script.
+      return;
+    }
+  }
+  // Add script to the list of scripts.
+  scripts.Add(candidate);
+}
 
 RawArray* Library::LoadedScripts() const {
   // We compute the list of loaded scripts lazily. The result is
@@ -6799,13 +6810,19 @@ RawArray* Library::LoadedScripts() const {
         GrowableObjectArray::Handle(GrowableObjectArray::New(8));
     Object& entry = Object::Handle();
     Class& cls = Class::Handle();
+    Class& patch_cls = Class::Handle();
     Script& owner_script = Script::Handle();
+    Script& patch_script = Script::Handle();
     DictionaryIterator it(*this);
-    Script& script_obj = Script::Handle();
     while (it.HasNext()) {
       entry = it.GetNext();
       if (entry.IsClass()) {
         owner_script = Class::Cast(entry).script();
+        patch_cls = Class::Cast(entry).patch_class();
+        if (!patch_cls.IsNull()) {
+          patch_script = patch_cls.script();
+          AddScriptIfUnique(scripts, patch_script);
+        }
       } else if (entry.IsFunction()) {
         owner_script = Function::Cast(entry).script();
       } else if (entry.IsField()) {
@@ -6814,22 +6831,7 @@ RawArray* Library::LoadedScripts() const {
       } else {
         continue;
       }
-      if (owner_script.IsNull()) {
-        continue;
-      }
-      bool is_unique = true;
-      for (int i = 0; i < scripts.Length(); i++) {
-        script_obj ^= scripts.At(i);
-        if (script_obj.raw() == owner_script.raw()) {
-          // We already have a reference to this script.
-          is_unique = false;
-          break;
-        }
-      }
-      if (is_unique) {
-        // Add script to the list of scripts.
-        scripts.Add(owner_script);
-      }
+      AddScriptIfUnique(scripts, owner_script);
     }
 
     // Create the array of scripts and cache it in loaded_scripts_.
@@ -6895,10 +6897,8 @@ static bool ShouldBePrivate(const String& name) {
 }
 
 
-RawField* Library::LookupFieldAllowPrivate(const String& name,
-                                           String* ambiguity_error_msg) const {
-  Object& obj = Object::Handle(
-      LookupObjectAllowPrivate(name, ambiguity_error_msg));
+RawField* Library::LookupFieldAllowPrivate(const String& name) const {
+  Object& obj = Object::Handle(LookupObjectAllowPrivate(name));
   if (obj.IsField()) {
     return Field::Cast(obj).raw();
   }
@@ -6915,11 +6915,8 @@ RawField* Library::LookupLocalField(const String& name) const {
 }
 
 
-RawFunction* Library::LookupFunctionAllowPrivate(
-    const String& name,
-    String* ambiguity_error_msg) const {
-  Object& obj = Object::Handle(
-      LookupObjectAllowPrivate(name, ambiguity_error_msg));
+RawFunction* Library::LookupFunctionAllowPrivate(const String& name) const {
+  Object& obj = Object::Handle(LookupObjectAllowPrivate(name));
   if (obj.IsFunction()) {
     return Function::Cast(obj).raw();
   }
@@ -6948,9 +6945,7 @@ RawObject* Library::LookupLocalObjectAllowPrivate(const String& name) const {
 }
 
 
-RawObject* Library::LookupObjectAllowPrivate(
-    const String& name,
-    String* ambiguity_error_msg) const {
+RawObject* Library::LookupObjectAllowPrivate(const String& name) const {
   // First check if name is found in the local scope of the library.
   Object& obj = Object::Handle(LookupLocalObjectAllowPrivate(name));
   if (!obj.IsNull()) {
@@ -6962,30 +6957,27 @@ RawObject* Library::LookupObjectAllowPrivate(
     return Object::null();
   }
 
-  // Now check if name is found in any imported libs. It is a compile-time error
-  // if the name is found in more than one import and actually used.
-  return LookupImportedObject(name, ambiguity_error_msg);
+  // Now check if name is found in any imported libs.
+  return LookupImportedObject(name);
 }
 
 
-RawObject* Library::LookupObject(const String& name,
-                                 String* ambiguity_error_msg) const {
+RawObject* Library::LookupObject(const String& name) const {
   // First check if name is found in the local scope of the library.
   Object& obj = Object::Handle(LookupLocalObject(name));
   if (!obj.IsNull()) {
     return obj.raw();
   }
-  // Now check if name is found in any imported libs. It is a compile-time error
-  // if the name is found in more than one import and actually used.
-  return LookupImportedObject(name, ambiguity_error_msg);
+  // Now check if name is found in any imported libs.
+  return LookupImportedObject(name);
 }
 
 
-RawObject* Library::LookupImportedObject(const String& name,
-                                         String* ambiguity_error_msg) const {
+RawObject* Library::LookupImportedObject(const String& name) const {
   Object& obj = Object::Handle();
   Namespace& import = Namespace::Handle();
   Library& import_lib = Library::Handle();
+  String& import_lib_url = String::Handle();
   String& first_import_lib_url = String::Handle();
   Object& found_obj = Object::Handle();
   for (intptr_t i = 0; i < num_imports(); i++) {
@@ -6993,46 +6985,33 @@ RawObject* Library::LookupImportedObject(const String& name,
     obj = import.Lookup(name);
     if (!obj.IsNull()) {
       import_lib = import.library();
-      if (!first_import_lib_url.IsNull()) {
-        // Found duplicate definition.
-        const intptr_t kMessageBufferSize = 512;
-        char message_buffer[kMessageBufferSize];
-        if (first_import_lib_url.raw() == url()) {
-          OS::SNPrint(message_buffer,
-                      kMessageBufferSize,
-                      "ambiguous reference to '%s', "
-                      "as library '%s' is imported multiple times",
-                      name.ToCString(),
-                      first_import_lib_url.ToCString());
+      import_lib_url = import_lib.url();
+      if (found_obj.raw() != obj.raw()) {
+        if (first_import_lib_url.IsNull() ||
+            first_import_lib_url.StartsWith(Symbols::DartScheme())) {
+          // This is the first object we found, or the
+          // previously found object is exported from a Dart
+          // system library. The newly found object hides the one
+          // from the Dart library.
+          first_import_lib_url = import_lib.url();
+          found_obj = obj.raw();
+        } else if (import_lib_url.StartsWith(Symbols::DartScheme())) {
+          // The newly found object is exported from a Dart system
+          // library. It is hidden by the previously found object.
+          // We continue to search.
         } else {
-          OS::SNPrint(message_buffer,
-                      kMessageBufferSize,
-                      "ambiguous reference: "
-                      "'%s' is defined in library '%s' and also in '%s'",
-                      name.ToCString(),
-                      first_import_lib_url.ToCString(),
-                      String::Handle(url()).ToCString());
+          // We found two different objects with the same name.
+          return Object::null();
         }
-        // If the caller does not expect an ambiguity error, it may pass NULL as
-        // ambiguity_error_msg in order to avoid the allocation of a handle.
-        // It typically does so when looking up an object in the core library,
-        // which is guaranteed not to contain ambiguities, unless the core lib
-        // is under development, in which case the assert below may fail.
-        ASSERT(ambiguity_error_msg != NULL);  // No ambiguity error expected.
-        *ambiguity_error_msg = String::New(message_buffer);
-        return Object::null();
       }
-      first_import_lib_url = url();
-      found_obj = obj.raw();
     }
   }
   return found_obj.raw();
 }
 
 
-RawClass* Library::LookupClass(const String& name,
-                               String* ambiguity_error_msg) const {
-  Object& obj = Object::Handle(LookupObject(name, ambiguity_error_msg));
+RawClass* Library::LookupClass(const String& name) const {
+  Object& obj = Object::Handle(LookupObject(name));
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -7049,13 +7028,11 @@ RawClass* Library::LookupLocalClass(const String& name) const {
 }
 
 
-RawClass* Library::LookupClassAllowPrivate(const String& name,
-                                           String* ambiguity_error_msg) const {
+RawClass* Library::LookupClassAllowPrivate(const String& name) const {
   // See if the class is available in this library or in the top level
   // scope of any imported library.
   Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(isolate, LookupClass(name,
-                                                        ambiguity_error_msg));
+  const Class& cls = Class::Handle(isolate, LookupClass(name));
   if (!cls.IsNull()) {
     return cls.raw();
   }
@@ -7265,6 +7242,7 @@ RawObject* Library::Evaluate(const String& expr) const {
   Class& temp_class =
       Class::Handle(Class::New(Symbols::TopLevel(), script, 0));
   temp_class.set_library(*this);
+  temp_class.set_is_finalized();
   return temp_class.Evaluate(expr);
 }
 
@@ -7457,36 +7435,29 @@ void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
   const char* library_url = String::Handle(url()).ToCString();
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   intptr_t id = ring->GetIdForObject(raw());
-  if (ref) {
-    // Print a reference
-    stream->OpenObject();
-    stream->PrintProperty("type", "@Library");
-    stream->PrintProperty("id", id);
-    stream->PrintProperty("name", library_name);
-    stream->CloseObject();
-    return;
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddProperty("id", id);
+  jsobj.AddProperty("name", library_name);
+  if (ref) return;
+  jsobj.AddProperty("url", library_url);
+  {
+    JSONArray jsarr(&jsobj, "classes");
+    ClassDictionaryIterator class_iter(*this);
+    Class& klass = Class::Handle();
+    while (class_iter.HasNext()) {
+      klass = class_iter.GetNextClass();
+      jsarr.AddValue(klass);
+    }
   }
-  stream->OpenObject();
-  stream->PrintProperty("type", "Library");
-  stream->PrintProperty("id", id);
-  stream->PrintProperty("name", library_name);
-  stream->PrintProperty("url", library_url);
-  ClassDictionaryIterator class_iter(*this);
-  stream->OpenArray("classes");
-  Class& klass = Class::Handle();
-  while (class_iter.HasNext()) {
-    klass = class_iter.GetNextClass();
-    stream->PrintValue(klass);
+  {
+    JSONArray jsarr(&jsobj, "libraries");
+    Library& lib = Library::Handle();
+    for (intptr_t i = 0; i < num_imports(); i++) {
+      lib = ImportLibraryAt(i);
+      jsarr.AddValue(lib);
+    }
   }
-  stream->CloseArray();
-  stream->OpenArray("libraries");
-  Library& lib = Library::Handle();
-  for (intptr_t i = 0; i < num_imports(); i++) {
-    lib = ImportLibraryAt(i);
-    stream->PrintValue(lib);
-  }
-  stream->CloseArray();
-  stream->CloseObject();
 }
 
 
@@ -7537,58 +7508,48 @@ void LibraryPrefix::AddImport(const Namespace& import) const {
 }
 
 
-RawClass* LibraryPrefix::LookupClass(const String& class_name,
-                                     String* ambiguity_error_msg) const {
+RawObject* LibraryPrefix::LookupObject(const String& name) const {
   Array& imports = Array::Handle(this->imports());
   Object& obj = Object::Handle();
   Namespace& import = Namespace::Handle();
   Library& import_lib = Library::Handle();
+  String& import_lib_url = String::Handle();
   String& first_import_lib_url = String::Handle();
   Object& found_obj = Object::Handle();
   for (intptr_t i = 0; i < num_imports(); i++) {
     import ^= imports.At(i);
-    obj = import.Lookup(class_name);
+    obj = import.Lookup(name);
     if (!obj.IsNull()) {
       import_lib = import.library();
-      if (!first_import_lib_url.IsNull()) {
-        // Found duplicate definition.
-        const intptr_t kMessageBufferSize = 512;
-        char message_buffer[kMessageBufferSize];
-        if (first_import_lib_url.raw() == import_lib.url()) {
-          OS::SNPrint(message_buffer,
-                      kMessageBufferSize,
-                      "ambiguous reference to '%s', "
-                      "as library '%s' is imported multiple times via "
-                      "prefix '%s'",
-                      class_name.ToCString(),
-                      first_import_lib_url.ToCString(),
-                      String::Handle(name()).ToCString());
+      import_lib_url = import_lib.url();
+      if (found_obj.raw() != obj.raw()) {
+        if (first_import_lib_url.IsNull() ||
+            first_import_lib_url.StartsWith(Symbols::DartScheme())) {
+          // This is the first object we found, or the
+          // previously found object is exported from a Dart
+          // system library. The newly found object hides the one
+          // from the Dart library.
+          first_import_lib_url = import_lib.url();
+          found_obj = obj.raw();
+        } else if (import_lib_url.StartsWith(Symbols::DartScheme())) {
+          // The newly found object is exported from a Dart system
+          // library. It is hidden by the previously found object.
+          // We continue to search.
         } else {
-          OS::SNPrint(message_buffer,
-                      kMessageBufferSize,
-                      "ambiguous reference: "
-                      "'%s' is defined in library '%s' and also in '%s', "
-                      "both imported via prefix '%s'",
-                      class_name.ToCString(),
-                      first_import_lib_url.ToCString(),
-                      String::Handle(import_lib.url()).ToCString(),
-                      String::Handle(name()).ToCString());
+          // We found two different objects with the same name.
+          return Object::null();
         }
-        // If the caller does not expect an ambiguity error, it may pass NULL as
-        // ambiguity_error_msg in order to avoid the allocation of a handle.
-        // It typically does so when looking up a class in the core library,
-        // which is guaranteed not to contain ambiguities, unless the core lib
-        // is under development, in which case the assert below may fail.
-        ASSERT(ambiguity_error_msg != NULL);  // No ambiguity error expected.
-        *ambiguity_error_msg = String::New(message_buffer);
-        return Class::null();
       }
-      first_import_lib_url = import_lib.url();
-      found_obj = obj.raw();
     }
   }
-  if (found_obj.IsClass()) {
-    return Class::Cast(found_obj).raw();
+  return found_obj.raw();
+}
+
+
+RawClass* LibraryPrefix::LookupClass(const String& class_name) const {
+  const Object& obj = Object::Handle(LookupObject(class_name));
+  if (obj.IsClass()) {
+    return Class::Cast(obj).raw();
   }
   return Class::null();
 }
@@ -7641,8 +7602,7 @@ const char* LibraryPrefix::ToCString() const {
 
 
 void LibraryPrefix::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -7657,8 +7617,7 @@ const char* Namespace::ToCString() const {
 
 
 void Namespace::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -7707,18 +7666,35 @@ bool Namespace::HidesName(const String& name) const {
 }
 
 
+// Look up object with given name in library and filter out hidden
+// names. Also look up getters and setters.
 RawObject* Namespace::Lookup(const String& name) const {
   Isolate* isolate = Isolate::Current();
   const Library& lib = Library::Handle(isolate, library());
   intptr_t ignore = 0;
+
   // Lookup the name in the library's symbols.
+  const String* filter_name = &name;
   Object& obj = Object::Handle(isolate, lib.LookupEntry(name, &ignore));
+  if (Field::IsGetterName(name)) {
+    filter_name = &String::Handle(Field::NameFromGetter(name));
+  } else if (Field::IsSetterName(name)) {
+    filter_name = &String::Handle(Field::NameFromGetter(name));
+  } else {
+    if (obj.IsNull() || obj.IsLibraryPrefix()) {
+      obj = lib.LookupEntry(String::Handle(Field::GetterName(name)), &ignore);
+      if (obj.IsNull()) {
+        obj = lib.LookupEntry(String::Handle(Field::SetterName(name)), &ignore);
+      }
+    }
+  }
+
   // Library prefixes are not exported.
   if (obj.IsNull() || obj.IsLibraryPrefix()) {
     // Lookup in the re-exported symbols.
-    obj = lib.LookupExport(name);
+    obj = lib.LookupReExport(name);
   }
-  if (obj.IsNull() || HidesName(name) || obj.IsLibraryPrefix()) {
+  if (obj.IsNull() || HidesName(*filter_name) || obj.IsLibraryPrefix()) {
     return Object::null();
   }
   return obj.raw();
@@ -7792,10 +7768,10 @@ static RawFunction* GetFunction(const GrowableArray<Library*>& libs,
     const Library& lib = *libs[l];
     if (strcmp(class_name, "::") == 0) {
       func_str = Symbols::New(function_name);
-      func = lib.LookupFunctionAllowPrivate(func_str, NULL);
+      func = lib.LookupFunctionAllowPrivate(func_str);
     } else {
       class_str = String::New(class_name);
-      cls = lib.LookupClassAllowPrivate(class_str, NULL);
+      cls = lib.LookupClassAllowPrivate(class_str);
       if (!cls.IsNull()) {
         func_str = String::New(function_name);
         if (function_name[0] == '.') {
@@ -7905,8 +7881,7 @@ const char* Instructions::ToCString() const {
 
 
 void Instructions::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -8060,8 +8035,7 @@ const char* PcDescriptors::ToCString() const {
 
 
 void PcDescriptors::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -8216,8 +8190,7 @@ const char* Stackmap::ToCString() const {
 
 
 void Stackmap::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -8287,8 +8260,7 @@ const char* LocalVarDescriptors::ToCString() const {
 
 void LocalVarDescriptors::PrintToJSONStream(JSONStream* stream,
                                             bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -8472,8 +8444,7 @@ const char* ExceptionHandlers::ToCString() const {
 
 void ExceptionHandlers::PrintToJSONStream(JSONStream* stream,
                                           bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -8571,8 +8542,7 @@ const char* DeoptInfo::ToCString() const {
 
 
 void DeoptInfo::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -8967,27 +8937,23 @@ const char* Code::ToCString() const {
 void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   intptr_t id = ring->GetIdForObject(raw());
+  JSONObject jsobj(stream);
   if (ref) {
-    stream->OpenObject();
-    stream->PrintProperty("type", "@Code");
-    stream->PrintProperty("id", id);
-    stream->CloseObject();
+    jsobj.AddProperty("type", "@Code");
+    jsobj.AddProperty("id", id);
     return;
   }
-  stream->OpenObject();
-  stream->PrintProperty("type", "Code");
-  stream->PrintProperty("id", id);
-  stream->PrintPropertyBool("is_optimized", is_optimized());
-  stream->PrintPropertyBool("is_alive", is_alive());
-  stream->PrintProperty("function", Object::Handle(function()));
-  stream->OpenArray("disassembly");
-  DisassembleToJSONStream formatter(stream);
+  jsobj.AddProperty("type", "Code");
+  jsobj.AddProperty("id", id);
+  jsobj.AddProperty("is_optimized", is_optimized());
+  jsobj.AddProperty("is_alive", is_alive());
+  jsobj.AddProperty("function", Object::Handle(function()));
+  JSONArray jsarr(&jsobj, "disassembly");
+  DisassembleToJSONStream formatter(jsarr);
   const Instructions& instr = Instructions::Handle(instructions());
   uword start = instr.EntryPoint();
   Disassembler::Disassemble(start, start + instr.size(), &formatter,
                             comments());
-  stream->CloseArray();
-  stream->CloseObject();
 }
 
 
@@ -9118,8 +9084,7 @@ const char* Context::ToCString() const {
 
 
 void Context::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -9238,8 +9203,7 @@ const char* ContextScope::ToCString() const {
 
 
 void ContextScope::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -9711,8 +9675,7 @@ RawICData* ICData::New(const Function& function,
 
 
 void ICData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -9828,8 +9791,7 @@ const char* MegamorphicCache::ToCString() const {
 
 
 void MegamorphicCache::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -9905,8 +9867,7 @@ const char* SubtypeTestCache::ToCString() const {
 
 
 void SubtypeTestCache::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -9924,8 +9885,7 @@ const char* Error::ToCString() const {
 
 
 void Error::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -9970,8 +9930,7 @@ const char* ApiError::ToCString() const {
 
 
 void ApiError::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -10016,8 +9975,7 @@ const char* LanguageError::ToCString() const {
 
 
 void LanguageError::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -10091,8 +10049,7 @@ const char* UnhandledException::ToCString() const {
 
 void UnhandledException::PrintToJSONStream(JSONStream* stream,
                                            bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -10128,8 +10085,7 @@ const char* UnwindError::ToCString() const {
 
 
 void UnwindError::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -10483,8 +10439,7 @@ const char* Instance::ToCString() const {
 
 
 void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -10842,8 +10797,7 @@ const char* AbstractType::ToCString() const {
 
 
 void AbstractType::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -11290,8 +11244,7 @@ const char* Type::ToCString() const {
 
 
 void Type::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -11478,8 +11431,7 @@ const char* TypeParameter::ToCString() const {
 
 
 void TypeParameter::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -11647,34 +11599,59 @@ const char* BoundedType::ToCString() const {
 
 
 void BoundedType::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
+}
+
+
+intptr_t MixinAppType::token_pos() const {
+  return Class::Handle(MixinAppAt(0)).token_pos();
+}
+
+
+intptr_t MixinAppType::Depth() const {
+  const Array& mixin_apps = Array::Handle(mixins());
+  return mixin_apps.Length();
 }
 
 
 RawString* MixinAppType::Name() const {
-  return String::New("MixinApplication");
+  return String::New("MixinAppType");
 }
 
 
 const char* MixinAppType::ToCString() const {
-  return "MixinAppType";
+  const char* format = "MixinAppType: super type: %s; first mixin app: %s";
+  const char* super_type_cstr = String::Handle(AbstractType::Handle(
+      SuperType()).Name()).ToCString();
+  const char* first_mixin_app_cstr = String::Handle(Class::Handle(
+      MixinAppAt(0)).Name()).ToCString();
+  intptr_t len = OS::SNPrint(
+      NULL, 0, format, super_type_cstr, first_mixin_app_cstr) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, format, super_type_cstr, first_mixin_app_cstr);
+  return chars;
 }
 
 
 void MixinAppType::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
-void MixinAppType::set_super_type(const AbstractType& value) const {
-  StorePointer(&raw_ptr()->super_type_, value.raw());
+RawAbstractType* MixinAppType::SuperType() const {
+  return Class::Handle(MixinAppAt(0)).super_type();
 }
 
 
-void MixinAppType::set_mixin_types(const Array& value) const {
-  StorePointer(&raw_ptr()->mixin_types_, value.raw());
+RawClass* MixinAppType::MixinAppAt(intptr_t depth) const {
+  Class& mixin_app = Class::Handle();
+  mixin_app ^= Array::Handle(mixins()).At(depth);
+  return mixin_app.raw();
+}
+
+
+void MixinAppType::set_mixins(const Array& value) const {
+  StorePointer(&raw_ptr()->mixins_, value.raw());
 }
 
 
@@ -11690,11 +11667,9 @@ RawMixinAppType* MixinAppType::New() {
 }
 
 
-RawMixinAppType* MixinAppType::New(const AbstractType& super_type,
-                                   const Array& mixin_types) {
+RawMixinAppType* MixinAppType::New(const Array& mixins) {
   const MixinAppType& result = MixinAppType::Handle(MixinAppType::New());
-  result.set_super_type(super_type);
-  result.set_mixin_types(mixin_types);
+  result.set_mixins(mixins);
   return result.raw();
 }
 
@@ -11707,8 +11682,7 @@ const char* Number::ToCString() const {
 
 
 void Number::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -11720,8 +11694,7 @@ const char* Integer::ToCString() const {
 
 
 void Integer::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -12139,8 +12112,7 @@ const char* Smi::ToCString() const {
 
 
 void Smi::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -12259,8 +12231,7 @@ const char* Mint::ToCString() const {
 
 
 void Mint::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -12366,8 +12337,7 @@ const char* Double::ToCString() const {
 
 
 void Double::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -12538,8 +12508,7 @@ const char* Bigint::ToCString() const {
 
 
 void Bigint::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -13142,8 +13111,7 @@ const char* String::ToCString() const {
 
 
 void String::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -13864,8 +13832,7 @@ const char* Bool::ToCString() const {
 
 
 void Bool::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -13948,8 +13915,7 @@ const char* Array::ToCString() const {
 
 
 void Array::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -14160,8 +14126,7 @@ const char* GrowableObjectArray::ToCString() const {
 
 void GrowableObjectArray::PrintToJSONStream(JSONStream* stream,
                                             bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -14266,8 +14231,7 @@ const char* Float32x4::ToCString() const {
 
 
 void Float32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -14372,8 +14336,7 @@ const char* Uint32x4::ToCString() const {
 
 
 void Uint32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -14422,8 +14385,7 @@ const char* TypedData::ToCString() const {
 
 
 void TypedData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -14459,8 +14421,7 @@ const char* ExternalTypedData::ToCString() const {
 
 void ExternalTypedData::PrintToJSONStream(JSONStream* stream,
                                           bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -14647,8 +14608,7 @@ const char* Stacktrace::ToCString() const {
 
 
 void Stacktrace::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -14845,8 +14805,7 @@ const char* JSRegExp::ToCString() const {
 
 
 void JSRegExp::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 
@@ -14866,8 +14825,7 @@ const char* WeakProperty::ToCString() const {
 
 
 void WeakProperty::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 RawAbstractType* MirrorReference::GetAbstractTypeReferent() const {
@@ -14929,8 +14887,7 @@ const char* MirrorReference::ToCString() const {
 
 
 void MirrorReference::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
+  JSONObject jsobj(stream);
 }
 
 

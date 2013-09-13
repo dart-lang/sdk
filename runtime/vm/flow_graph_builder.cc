@@ -993,7 +993,7 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
       new ZoneGrowableArray<PushArgumentInstr*>(2);
   arguments->Add(push_left);
   arguments->Add(push_right);
-  const String& name = String::ZoneHandle(Symbols::New(node->Name()));
+  const String& name = String::ZoneHandle(Symbols::New(node->TokenName()));
   const intptr_t kNumArgsChecked = 2;
   InstanceCallInstr* call = new InstanceCallInstr(node->token_pos(),
                                                   name,
@@ -1438,7 +1438,7 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   ASSERT(Token::IsRelationalOperator(node->kind()));
   InstanceCallInstr* comp =
       new InstanceCallInstr(node->token_pos(),
-                            String::ZoneHandle(Symbols::New(node->Name())),
+                            String::ZoneHandle(Symbols::New(node->TokenName())),
                             node->kind(),
                             arguments,
                             Object::null_array(),
@@ -1473,7 +1473,7 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   arguments->Add(push_value);
   InstanceCallInstr* call =
       new InstanceCallInstr(node->token_pos(),
-                            String::ZoneHandle(Symbols::New(node->Name())),
+                            String::ZoneHandle(Symbols::New(node->TokenName())),
                             node->kind(),
                             arguments,
                             Object::null_array(),
@@ -3061,12 +3061,6 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
                                        dst_name);
   }
 
-  if (!node->field().is_final()) {
-    // For now, disable list length guarding on non-final fields by specifying
-    // that the field doesn't have a length. See issue #12485.
-    node->field().set_guarded_list_length(Field::kNoFixedLength);
-  }
-
   store_value = Bind(BuildStoreExprTemp(store_value));
   GuardFieldInstr* guard =
       new GuardFieldInstr(store_value,
@@ -3680,7 +3674,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   // Resolve and call NoSuchMethodError._throwNew.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::Handle(
-      core_lib.LookupClass(Symbols::NoSuchMethodError(), NULL));
+      core_lib.LookupClass(Symbols::NoSuchMethodError()));
   ASSERT(!cls.IsNull());
   const Function& func = Function::ZoneHandle(
       Resolver::ResolveStatic(cls,

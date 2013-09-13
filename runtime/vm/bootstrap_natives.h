@@ -45,9 +45,12 @@ namespace dart {
   V(Smi_shlFromInt, 2)                                                         \
   V(Smi_shrFromInt, 2)                                                         \
   V(Smi_bitNegate, 1)                                                          \
+  V(Smi_bitLength, 1)                                                          \
   V(Mint_bitNegate, 1)                                                         \
+  V(Mint_bitLength, 1)                                                         \
   V(Mint_shlFromInt, 2)                                                        \
   V(Bigint_bitNegate, 1)                                                       \
+  V(Bigint_bitLength, 1)                                                       \
   V(Bigint_shlFromInt, 2)                                                      \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
@@ -259,7 +262,6 @@ namespace dart {
   V(InstanceMirror_invokeSetter, 4)                                            \
   V(ClosureMirror_function, 1)                                                 \
   V(ClosureMirror_apply, 3)                                                    \
-  V(ClassMirror_name, 1)                                                       \
   V(ClassMirror_library, 1)                                                    \
   V(ClassMirror_supertype, 1)                                                  \
   V(ClassMirror_interfaces, 1)                                                 \
@@ -270,7 +272,7 @@ namespace dart {
   V(ClassMirror_invoke, 5)                                                     \
   V(ClassMirror_invokeGetter, 3)                                               \
   V(ClassMirror_invokeSetter, 4)                                               \
-  V(ClassMirror_invokeConstructor, 4)                                          \
+  V(ClassMirror_invokeConstructor, 5)                                          \
   V(ClassMirror_type_variables, 1)                                             \
   V(ClassMirror_type_arguments, 1)                                             \
   V(LibraryMirror_invoke, 5)                                                   \

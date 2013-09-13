@@ -29,6 +29,8 @@ import '../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart' as ssa;
 
 import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
        as types;
+export '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
+       show TypeMask;
 
 import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
 export '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';

@@ -27,6 +27,15 @@ main() {
       expectParse('"abc"', literal('abc'));
     });
 
+    test('should parse a bool literal', () {
+      expectParse('true', literal(true));
+      expectParse('false', literal(false));
+    });
+
+    test('should parse a null literal', () {
+      expectParse('null', literal(null));
+    });
+
     test('should parse an integer literal', () {
       expectParse('123', literal(123));
     });

@@ -46,7 +46,7 @@ main() {
           'class A {\n'
           '  }',
           'class A {\n'
-          '}'
+          '}\n'
         );
     });
 
@@ -64,7 +64,7 @@ main() {
           'class A  { int meaningOfLife() => 42; }',
           'class A {\n'
           '  int meaningOfLife() => 42;\n'
-          '}'
+          '}\n'
       );
     });
 
@@ -162,7 +162,7 @@ main() {
           'library a; class B { }',
           'library a;\n'
           'class B {\n'
-          '}'
+          '}\n'
       );
     });
 
@@ -196,7 +196,7 @@ main() {
           'import "foo";\n\n'
           '//Killer class\n'
           'class A {\n'
-          '}'
+          '}\n'
         );
     });
 
@@ -410,7 +410,7 @@ main() {
           '}\n'
       );
     });
-    
+
     test('CU - mixed comments', () {
       expectCUFormatsTo(
           'library foo;\n'
@@ -428,17 +428,17 @@ main() {
           '\n'
           '// Comment 2\n'
           '\n'
-          '/* Comment 3 */'
+          '/* Comment 3 */\n'
         );
     });
-    
+
     test('CU - comments (EOF)', () {
       expectCUFormatsTo(
           'library foo; //zamm',
           'library foo; //zamm\n' //<-- note extra NEWLINE
         );
-    });  
-    
+    });
+
     test('CU - comments (0)', () {
       expectCUFormatsTo(
           'library foo; //zamm\n'
@@ -458,11 +458,11 @@ main() {
           '/* foo */ /* bar */\n'
       );
     });
-    
+
     test('CU - comments (2)', () {
       expectCUFormatsTo(
           '/** foo */ /** bar */\n',
-          '/** foo */\n' 
+          '/** foo */\n'
           '/** bar */\n'
       );
     });
@@ -479,10 +479,10 @@ main() {
           'class X { //X!\n'
           '}',
           'class X { //X!\n'
-          '}'
+          '}\n'
       );
     });
-    
+
     test('CU - comments (5)', () {
       expectCUFormatsTo(
           '//comment one\n\n'
@@ -490,22 +490,22 @@ main() {
           '//comment one\n\n'
           '//comment two\n\n'
       );
-    });    
-    
+    });
+
     test('CU - comments (6)', () {
       expectCUFormatsTo(
           'var x;   //x\n',
           'var x; //x\n'
       );
-    });    
+    });
 
     test('CU - comments (6)', () {
       expectCUFormatsTo(
           'var /* int */ x; //x\n',
           'var /* int */ x; //x\n'
       );
-    });    
-    
+    });
+
     test('CU - comments (7)', () {
       expectCUFormatsTo(
           'library foo;\n'
@@ -534,7 +534,13 @@ main() {
           'int x;\n'
         );
     });
-    
+
+    test('CU - EOF nl', () {
+      expectCUFormatsTo(
+          'var x = 1;',
+          'var x = 1;\n'
+      );
+    });
     
     test('CU - constructor', () {
       expectCUFormatsTo(
@@ -671,11 +677,29 @@ main() {
         'var numbers = <int>[1, 2, (3 + 4)];'
       );
     });
+    
+    test('stmt (lists)', () {
+      expectStmtFormatsTo(
+        'var l = [1,2,3,4];',
+        'var l = [1, 2, 3, 4];'
+      );
+      //Dangling ','
+      expectStmtFormatsTo(
+        'var l = [1,];',
+        'var l = [1,];'
+      );
+    });
 
     test('stmt (maps)', () {
       expectStmtFormatsTo(
         'var map = const {"foo": "bar", "fuz": null};',
         'var map = const {"foo": "bar", "fuz": null};'
+      );
+      
+      //Dangling ','
+      expectStmtFormatsTo(
+        'var map = {"foo": "bar",};',
+        'var map = {"foo": "bar",};'
       );
     });
 
@@ -745,6 +769,51 @@ main() {
           new FormatterOptions(initialIndentationLevel: 2));
       var formattedSource = formatter.format(CodeKind.STATEMENT, 'var x;');
       expect(formattedSource, startsWith('    '));
+    });
+
+  });
+
+
+  /// Token streams
+  group('token streams', () {
+
+    test('string tokens', () {
+      expectTokenizedEqual('class A{}', 'class A{ }');
+      expectTokenizedEqual('class A{}', 'class A{\n  }\n');
+      expectTokenizedEqual('class A {}', 'class A{ }');
+      expectTokenizedEqual('  class A {}', 'class A{ }');
+    });
+
+    test('string tokens - w/ comments', () {
+      expectTokenizedEqual('//foo\nint bar;', '//foo\nint bar;');
+      expectTokenizedNotEqual('int bar;', '//foo\nint bar;');
+      expectTokenizedNotEqual('//foo\nint bar;', 'int bar;');
+    });
+
+    test('INDEX', () {
+      /// '[' ']' => '[]'
+      var t1 = openSqBracket()..setNext(closeSqBracket()..setNext(eof()));
+      var t2 = index()..setNext(eof());
+      expectStreamsEqual(t1, t2);
+    });
+
+    test('GT_GT', () {
+      /// '>' '>' => '>>'
+      var t1 = gt()..setNext(gt()..setNext(eof()));
+      var t2 = gt_gt()..setNext(eof());
+      expectStreamsEqual(t1, t2);
+    });
+
+    test('t1 < t2', () {
+      var t1 = string('foo')..setNext(eof());
+      var t2 = string('foo')..setNext(string('bar')..setNext(eof()));
+      expectStreamsNotEqual(t1, t2);
+    });
+
+    test('t1 > t2', () {
+      var t1 = string('foo')..setNext(string('bar')..setNext(eof()));
+      var t2 = string('foo')..setNext(eof());
+      expectStreamsNotEqual(t1, t2);
     });
 
   });
@@ -853,8 +922,21 @@ main() {
 
 }
 
-Token classKeyword(int offset) =>
-    new KeywordToken(Keyword.CLASS, offset);
+Token closeSqBracket() => new Token(TokenType.CLOSE_SQUARE_BRACKET, 0);
+
+Token eof() => new Token(TokenType.EOF, 0);
+
+Token gt() => new Token(TokenType.GT, 0);
+
+Token gt_gt() => new Token(TokenType.GT_GT, 0);
+
+Token index() => new Token(TokenType.INDEX, 0);
+
+Token openSqBracket() => new BeginToken(TokenType.OPEN_SQUARE_BRACKET, 0);
+
+Token string(String lexeme) => new StringToken(TokenType.STRING, lexeme, 0);
+
+Token classKeyword(int offset) => new KeywordToken(Keyword.CLASS, offset);
 
 Token identifier(String value, int offset) =>
     new StringToken(TokenType.IDENTIFIER, value, offset);
@@ -877,6 +959,23 @@ String formatCU(src, {options: const FormatterOptions()}) =>
 
 String formatStatement(src, {options: const FormatterOptions()}) =>
     new CodeFormatter(options).format(CodeKind.STATEMENT, src);
+
+Token tokenize(String str) => new StringScanner(null, str, null).tokenize();
+
+
+expectTokenizedEqual(String s1, String s2) =>
+    expectStreamsEqual(tokenize(s1), tokenize(s2));
+
+expectTokenizedNotEqual(String s1, String s2) =>
+    expect(()=> expectStreamsEqual(tokenize(s1), tokenize(s2)),
+    throwsA(new isInstanceOf<FormatterException>()));
+
+expectStreamsEqual(Token t1, Token t2) =>
+    new TokenStreamComparator(null, t1, t2).verifyEquals();
+
+expectStreamsNotEqual(Token t1, Token t2) =>
+    expect(() => new TokenStreamComparator(null, t1, t2).verifyEquals(),
+    throwsA(new isInstanceOf<FormatterException>()));
 
 expectCUFormatsTo(src, expected) => expect(formatCU(src), equals(expected));
 

@@ -105,10 +105,24 @@ class NativeEmitter {
     return backend.namer.isolateAccess(element);
   }
 
-  List<String> nativeTagsOfClass(ClassElement cls) {
+  // The tags string contains comma-separated 'words' which are either dispatch
+  // tags (having JavaScript identifier syntax) and directives that begin with
+  // `!`.
+  List<String> nativeTagsOfClassRaw(ClassElement cls) {
     String quotedName = cls.nativeTagInfo.slowToString();
     return quotedName.substring(1, quotedName.length - 1).split(',');
   }
+
+  List<String> nativeTagsOfClass(ClassElement cls) {
+    return nativeTagsOfClassRaw(cls).where((s) => !s.startsWith('!')).toList();
+  }
+
+  bool nativeHasTagsMarker(ClassElement cls, String marker) {
+    return nativeTagsOfClassRaw(cls).contains(marker);
+  }
+
+  bool nativeForcedNonLeaf(ClassElement cls) =>
+      nativeHasTagsMarker(cls, '!nonleaf');
 
   /**
    * Writes the class definitions for the interceptors to [mainBuffer].
@@ -197,6 +211,10 @@ class NativeEmitter {
       } else if (extensionPoints.containsKey(classElement)) {
         needed = true;
       }
+      if (classElement.isNative() && nativeForcedNonLeaf(classElement)) {
+        needed = true;
+        nonleafClasses.add(classElement);
+      }
 
       if (needed || neededClasses.contains(classElement)) {
         neededClasses.add(classElement);
@@ -266,7 +284,7 @@ class NativeEmitter {
       if (neededClasses.contains(classElement)) {
         // Define interceptor class for [classElement].
         emitter.emitClassBuilderWithReflectionData(
-            backend.namer.getName(classElement),
+            backend.namer.getNameOfClass(classElement),
             classElement, builders[classElement],
             emitter.bufferForElement(classElement, mainBuffer));
         emitter.needsDefineClass = true;
@@ -318,7 +336,7 @@ class NativeEmitter {
       superclass = backend.jsInterceptorClass;
     }
 
-    String superName = backend.namer.getName(superclass);
+    String superName = backend.namer.getNameOfClass(superclass);
 
     ClassBuilder builder = new ClassBuilder();
     emitter.emitClassConstructor(classElement, builder);
@@ -464,19 +482,21 @@ class NativeEmitter {
       return false;
     }
 
+    if (backend.classesMixedIntoNativeClasses.contains(element)) return true;
+
     return subtypes[element] != null;
   }
 
   bool requiresNativeIsCheck(Element element) {
     // TODO(sra): Remove this function.  It determines if a native type may
-    // satisfy a check against [element], in whcih case an interceptor must be
+    // satisfy a check against [element], in which case an interceptor must be
     // used.  We should also use an interceptor if the check can't be satisfied
-    // by a native class in case we get a natibe instance that tries to spoof
+    // by a native class in case we get a native instance that tries to spoof
     // the type info.  i.e the criteria for whether or not to use an interceptor
     // is whether the receiver can be native, not the type of the test.
     if (!element.isClass()) return false;
     ClassElement cls = element;
-    if (cls.isNative()) return true;
+    if (Elements.isNativeOrExtendsNative(cls)) return true;
     return isSupertypeOfNativeClass(element);
   }
 

@@ -45,8 +45,8 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
   const Object& result = Object::ZoneHandle();
   const Context& context = Context::ZoneHandle(Context::New(0, Heap::kOld));
   ASSERT(context.isolate() == Isolate::Current());
-  __ enter(Immediate(0));
-  __ LoadObject(CTX, context);
+  __ EnterStubFrameWithPP();
+  __ LoadObject(CTX, context, PP);
   __ PushObject(result);  // Push Null object for return value.
   __ PushObject(smi1);  // Push argument 1 smi1.
   __ PushObject(smi2);  // Push argument 2 smi2.
@@ -54,7 +54,7 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
   __ CallRuntime(kTestSmiSubRuntimeEntry, argc);  // Call SmiSub runtime func.
   __ AddImmediate(RSP, Immediate(argc * kWordSize));
   __ popq(RAX);  // Pop return value from return slot.
-  __ leave();
+  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -84,8 +84,8 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
   const Smi& smi2 = Smi::ZoneHandle(Smi::New(value2));
   __ enter(Immediate(0));
   __ ReserveAlignedFrameSpace(0);
-  __ LoadObject(RDI, smi1);  // Set up argument 1 smi1.
-  __ LoadObject(RSI, smi2);  // Set up argument 2 smi2.
+  __ LoadObject(RDI, smi1, PP);  // Set up argument 1 smi1.
+  __ LoadObject(RSI, smi2, PP);  // Set up argument 2 smi2.
   __ CallRuntime(kTestLeafSmiAddRuntimeEntry, 2);  // Call SmiAdd runtime func.
   __ leave();
   __ ret();  // Return value is in RAX.

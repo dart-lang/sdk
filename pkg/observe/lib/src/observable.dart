@@ -97,6 +97,8 @@ abstract class ObservableMixin implements Observable {
   Map<Symbol, Object> _values;
   List<ChangeRecord> _records;
 
+  static final _objectType = reflectClass(Object);
+
   Stream<List<ChangeRecord>> get changes {
     if (_changes == null) {
       _changes = new StreamController.broadcast(sync: true,
@@ -114,19 +116,21 @@ abstract class ObservableMixin implements Observable {
     var mirror = reflect(this);
     var values = new Map<Symbol, Object>();
 
-    // TODO(jmesserly): this should consider the superclass. Unfortunately
-    // that is not possible right now because of:
-    // http://code.google.com/p/dart/issues/detail?id=9434
-    for (var field in mirror.type.variables.values) {
-      if (field.isFinal || field.isStatic || field.isPrivate) continue;
+    // Note: we scan for @observable regardless of whether the base type
+    // actually includes this mixin. While perhaps too inclusive, it lets us
+    // avoid complex logic that walks "with" and "implements" clauses.
+    for (var type = mirror.type; type != _objectType; type = type.superclass) {
+      for (var field in type.variables.values) {
+        if (field.isFinal || field.isStatic || field.isPrivate) continue;
 
-      for (var meta in field.metadata) {
-        if (identical(observable, meta.reflectee)) {
-          var name = field.simpleName;
-          // Note: since this is a field, getting the value shouldn't execute
-          // user code, so we don't need to worry about errors.
-          values[name] = mirror.getField(name).reflectee;
-          break;
+        for (var meta in field.metadata) {
+          if (identical(observable, meta.reflectee)) {
+            var name = field.simpleName;
+            // Note: since this is a field, getting the value shouldn't execute
+            // user code, so we don't need to worry about errors.
+            values[name] = mirror.getField(name).reflectee;
+            break;
+          }
         }
       }
     }

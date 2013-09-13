@@ -190,13 +190,13 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
   }
 
   Future asFuture([var futureValue]) {
-    _FutureImpl<T> result = new _FutureImpl<T>();
+    _Future<T> result = new _Future<T>();
 
     // Overwrite the onDone and onError handlers.
-    _onDone = () { result._setValue(futureValue); };
+    _onDone = () { result._complete(futureValue); };
     _onError = (error) {
       cancel();
-      result._setError(error);
+      result._completeError(error);
     };
 
     return result;
@@ -716,7 +716,7 @@ class _DummyStreamSubscription<T> implements StreamSubscription<T> {
   void cancel() {}
   bool get isPaused => _pauseCounter > 0;
 
-  Future asFuture([futureValue]) => new _FutureImpl();
+  Future asFuture([futureValue]) => new _Future();
 }
 
 class _AsBroadcastStream<T> extends Stream<T> {
@@ -917,14 +917,14 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
 
   Future<bool> moveNext() {
     if (_state == _STATE_DONE) {
-      return new _FutureImpl<bool>.immediate(false);
+      return new _Future<bool>.immediate(false);
     }
     if (_state == _STATE_MOVING) {
       throw new StateError("Already waiting for next.");
     }
     if (_state == _STATE_FOUND) {
       _state = _STATE_MOVING;
-      _futureOrPrefetch = new _FutureImpl<bool>();
+      _futureOrPrefetch = new _Future<bool>();
       return _futureOrPrefetch;
     } else {
       assert(_state >= _STATE_EXTRA_DATA);
@@ -934,14 +934,14 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
           _current = _futureOrPrefetch;
           _futureOrPrefetch = null;
           _subscription.resume();
-          return new _FutureImpl<bool>.immediate(true);
+          return new _Future<bool>.immediate(true);
         case _STATE_EXTRA_ERROR:
           Object prefetch = _futureOrPrefetch;
           _clear();
-          return new _FutureImpl<bool>.immediateError(prefetch);
+          return new _Future<bool>.immediateError(prefetch);
         case _STATE_EXTRA_DONE:
           _clear();
-          return new _FutureImpl<bool>.immediate(false);
+          return new _Future<bool>.immediate(false);
       }
     }
   }
@@ -957,9 +957,9 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
   void cancel() {
     StreamSubscription subscription = _subscription;
     if (_state == _STATE_MOVING) {
-      _FutureImpl<bool> hasNext = _futureOrPrefetch;
+      _Future<bool> hasNext = _futureOrPrefetch;
       _clear();
-      hasNext._setValue(false);
+      hasNext._complete(false);
     } else {
       _clear();
     }
@@ -969,10 +969,10 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
   void _onData(T data) {
     if (_state == _STATE_MOVING) {
       _current = data;
-      _FutureImpl<bool> hasNext = _futureOrPrefetch;
+      _Future<bool> hasNext = _futureOrPrefetch;
       _futureOrPrefetch = null;
       _state = _STATE_FOUND;
-      hasNext._setValue(true);
+      hasNext._complete(true);
       return;
     }
     _subscription.pause();
@@ -983,10 +983,10 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
 
   void _onError(Object error) {
     if (_state == _STATE_MOVING) {
-      _FutureImpl<bool> hasNext = _futureOrPrefetch;
+      _Future<bool> hasNext = _futureOrPrefetch;
       // We have cancelOnError: true, so the subscription is canceled.
       _clear();
-      hasNext._setError(error);
+      hasNext._completeError(error);
       return;
     }
     _subscription.pause();
@@ -997,9 +997,9 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
 
   void _onDone() {
      if (_state == _STATE_MOVING) {
-      _FutureImpl<bool> hasNext = _futureOrPrefetch;
+      _Future<bool> hasNext = _futureOrPrefetch;
       _clear();
-      hasNext._setValue(false);
+      hasNext._complete(false);
       return;
     }
     _subscription.pause();

@@ -1,0 +1,86 @@
+<!doctype html>
+<!--
+   Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>event path</title>
+    <script src="packages/polymer/boot.js"></script>
+    <script src="packages/unittest/test_controller.js"></script>
+    <!--
+    Test ported from:
+    https://github.com/Polymer/polymer/blob/7936ff8/test/html/event-path.html
+
+    This test actually doesn't test the polymer's event layer. It just ensures
+    that tests are propagated in the right order when using Shadow DOM.
+    -->
+  </head>
+  <body>
+
+  <polymer-element name="x-selector">
+    <template>
+      <div id="selectorDiv">
+        <content id="selectorContent"></content>
+      </div>
+    </template>
+    <script type="application/dart">
+      import 'package:polymer/polymer.dart';
+      @CustomTag("x-selector")
+      class XSelector extends PolymerElement {}
+    </script>
+  </polymer-element>
+
+  <polymer-element name="x-overlay">
+    <template>
+      <content id="overlayContent"></content>
+    </template>
+    <script type="application/dart">
+      import 'package:polymer/polymer.dart';
+      @CustomTag("x-overlay")
+      class XOverlay extends PolymerElement {}
+    </script>
+  </polymer-element>
+
+  <polymer-element name="x-menu" extends="x-selector">
+    <template>
+      <div id="menuDiv">
+        <shadow id="menuShadow"></shadow>
+      </div>
+    </template>
+    <script type="application/dart">
+      import 'package:polymer/polymer.dart';
+      @CustomTag("x-menu")
+      class XMenu extends PolymerElement {}
+    </script>
+  </polymer-element>
+
+  <polymer-element name="x-menu-button">
+    <template>
+    <div>
+      <x-overlay id="overlay">
+        <div id="menuButtonDiv">
+          <x-menu id="menu">
+            <content id="menuButtonContent"></content>
+          </x-menu>
+        </div>
+      </x-overlay>
+      </div>
+    </template>
+    <script type="application/dart">
+      import 'package:polymer/polymer.dart';
+      @CustomTag("x-menu-button")
+      class XMenuButton extends PolymerElement {}
+    </script>
+  </polymer-element>
+
+  <x-menu-button id="menuButton">
+    <div id="item1"><div id="source"></div>Item1</div>
+    <div id="item2">Item2</div>
+  </x-menu-button>
+
+
+  <script type="application/dart" src="event_path_test.dart"></script>
+  </body>
+</html>

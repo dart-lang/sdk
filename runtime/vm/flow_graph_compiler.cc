@@ -89,7 +89,7 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
           Isolate::Current()->object_store()->uint32x4_class())),
       list_class_(Class::ZoneHandle(
           Library::Handle(Library::CoreLibrary()).
-              LookupClass(Symbols::List(), NULL))),
+              LookupClass(Symbols::List()))),
       parallel_move_resolver_(this),
       pending_deoptimization_env_(NULL) {
   ASSERT(assembler != NULL);
@@ -180,12 +180,15 @@ static bool IsEmptyBlock(BlockEntryInstr* block) {
 void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
   BlockInfo* block_info = block_info_[block->postorder_number()];
 
+  // Break out of cycles in the control flow graph.
   if (block_info->is_marked()) {
     return;
   }
   block_info->mark();
 
   if (IsEmptyBlock(block)) {
+    // For empty blocks, record a corresponding nonempty target as their
+    // jump label.
     BlockEntryInstr* target = block->next()->AsGoto()->successor();
     CompactBlock(target);
     block_info->set_jump_label(GetJumpLabel(target));
@@ -194,7 +197,10 @@ void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
 
 
 void FlowGraphCompiler::CompactBlocks() {
-  Label* fallthrough_label = NULL;
+  // This algorithm does not garbage collect blocks in place, but merely
+  // records forwarding label information.  In this way it avoids having to
+  // change join and target entries.
+  Label* nonempty_label = NULL;
   for (intptr_t i = block_order().length() - 1; i >= 1; --i) {
     BlockEntryInstr* block = block_order()[i];
 
@@ -203,16 +209,19 @@ void FlowGraphCompiler::CompactBlocks() {
       CompactBlock(block);
     }
 
+    // For nonempty blocks, record the next nonempty block in the block
+    // order.  Since no code is emitted for empty blocks, control flow is
+    // eligible to fall through to the next nonempty one.
     if (!WasCompacted(block)) {
       BlockInfo* block_info = block_info_[block->postorder_number()];
-      block_info->set_fallthrough_label(fallthrough_label);
-      fallthrough_label = GetJumpLabel(block);
+      block_info->set_next_nonempty_label(nonempty_label);
+      nonempty_label = GetJumpLabel(block);
     }
   }
 
   ASSERT(block_order()[0]->IsGraphEntry());
   BlockInfo* block_info = block_info_[block_order()[0]->postorder_number()];
-  block_info->set_fallthrough_label(fallthrough_label);
+  block_info->set_next_nonempty_label(nonempty_label);
 }
 
 
@@ -289,8 +298,8 @@ bool FlowGraphCompiler::WasCompacted(
 
 bool FlowGraphCompiler::CanFallThroughTo(BlockEntryInstr* block_entry) const {
   const intptr_t current_index = current_block()->postorder_number();
-  Label* fallthrough_label = block_info_[current_index]->fallthrough_label();
-  return fallthrough_label == GetJumpLabel(block_entry);
+  Label* next_nonempty = block_info_[current_index]->next_nonempty_label();
+  return next_nonempty == GetJumpLabel(block_entry);
 }
 
 
@@ -631,48 +640,6 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                               deopt_id, token_pos, locs);
   }
 }
-
-
-void FlowGraphCompiler::EmitUnoptimizedStaticCall(
-    const Function& target_function,
-    const Array& arguments_descriptor,
-    intptr_t argument_count,
-    intptr_t deopt_id,
-    intptr_t token_pos,
-    LocationSummary* locs) {
-  // TODO(srdjan): Improve performance of function recognition.
-  MethodRecognizer::Kind recognized_kind =
-      MethodRecognizer::RecognizeKind(target_function);
-  int num_args_checked = 0;
-  if ((recognized_kind == MethodRecognizer::kMathMin) ||
-      (recognized_kind == MethodRecognizer::kMathMax)) {
-    num_args_checked = 2;
-  }
-  const ICData& ic_data = ICData::ZoneHandle(
-      ICData::New(parsed_function().function(),  // Caller function.
-                  String::Handle(target_function.name()),
-                  arguments_descriptor,
-                  deopt_id,
-                  num_args_checked));  // No arguments checked.
-  ic_data.AddTarget(target_function);
-  uword label_address = 0;
-  if (ic_data.num_args_tested() == 0) {
-    label_address = StubCode::ZeroArgsUnoptimizedStaticCallEntryPoint();
-  } else if (ic_data.num_args_tested() == 2) {
-    label_address = StubCode::TwoArgsUnoptimizedStaticCallEntryPoint();
-  } else {
-    UNIMPLEMENTED();
-  }
-  ExternalLabel target_label("StaticCallICStub", label_address);
-  assembler()->LoadObject(ICREG, ic_data);
-  GenerateDartCall(deopt_id,
-                   token_pos,
-                   &target_label,
-                   PcDescriptors::kUnoptStaticCall,
-                   locs);
-  assembler()->Drop(argument_count);
-}
-
 
 
 void FlowGraphCompiler::GenerateNumberTypeCheck(Register kClassIdReg,

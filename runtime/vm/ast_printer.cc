@@ -18,23 +18,22 @@ AstPrinter::~AstPrinter() { }
 
 
 void AstPrinter::VisitGenericAstNode(AstNode* node) {
-  OS::Print("(%s ", node->Name());
+  OS::Print("(%s ", node->PrettyName());
   node->VisitChildren(this);
   OS::Print(")");
 }
 
 
-void AstPrinter::VisitSequenceNode(SequenceNode* node_sequence) {
+void AstPrinter::VisitSequenceNode(SequenceNode* node) {
   // TODO(regis): Make the output more readable by indenting the nested
   // sequences. This could be achieved using a AstPrinterContext similar to the
   // CodeGeneratorContext.
-  ASSERT(node_sequence != NULL);
-  for (int i = 0; i < node_sequence->length(); i++) {
-    OS::Print("scope %p: ",
-              node_sequence->scope());
-    node_sequence->NodeAt(i)->Visit(this);
+  OS::Print("(%s (scope \"%p\")", node->PrettyName(), node->scope());
+  for (int i = 0; i < node->length(); ++i) {
     OS::Print("\n");
+    node->NodeAt(i)->Visit(this);
   }
+  OS::Print(")");
 }
 
 
@@ -55,17 +54,19 @@ void AstPrinter::VisitReturnNode(ReturnNode* node) {
 
 void AstPrinter::VisitGenericLocalNode(AstNode* node,
                                        const LocalVariable& var) {
-  OS::Print("(%s %s%s '%s'",
-            node->Name(),
+  OS::Print("(%s %s%s \"%s\"",
+            node->PrettyName(),
             var.is_final() ? "final " : "",
             String::Handle(var.type().Name()).ToCString(),
             var.name().ToCString());
   if (var.HasIndex()) {
-    OS::Print(" @%d", var.index());
     if (var.is_captured()) {
-      OS::Print(" ctx %d", var.owner()->context_level());
+      OS::Print(" (context %d %d)", var.owner()->context_level(), var.index());
+    } else {
+      OS::Print(" (stack %d)", var.index());
     }
   }
+  OS::Print(" ");
   node->VisitChildren(this);
   OS::Print(")");
 }
@@ -82,8 +83,8 @@ void AstPrinter::VisitStoreLocalNode(StoreLocalNode* node) {
 
 
 void AstPrinter::VisitGenericFieldNode(AstNode* node, const Field& field) {
-  OS::Print("(%s %s%s '%s' ",
-            node->Name(),
+  OS::Print("(%s %s%s \"%s\" ",
+            node->PrettyName(),
             field.is_final() ? "final " : "",
             String::Handle(AbstractType::Handle(field.type()).Name()).
                 ToCString(),
@@ -125,59 +126,63 @@ void AstPrinter::VisitArrayNode(ArrayNode* node) {
 
 void AstPrinter::VisitLiteralNode(LiteralNode* node) {
   const Instance& literal = node->literal();
-  OS::Print("'%s'", literal.ToCString());
+  OS::Print("(%s \"%s\")", node->PrettyName(), literal.ToCString());
 }
 
 
 void AstPrinter::VisitTypeNode(TypeNode* node) {
   const AbstractType& type = node->type();
-  OS::Print("'%s'", String::Handle(type.Name()).ToCString());
+  OS::Print("(%s \"%s\")",
+            node->PrettyName(),
+            String::Handle(type.Name()).ToCString());
 }
 
 
 void AstPrinter::VisitAssignableNode(AssignableNode* node) {
-  OS::Print("(assignable ");
-  node->expr()->Visit(this);
   const AbstractType& type = node->type();
   const String& dst_name = node->dst_name();
-  OS::Print(" to type '%s' of '%s')",
+  OS::Print("(%s (type \"%s\") (of \"%s\") ",
+            node->PrettyName(),
             String::Handle(type.Name()).ToCString(),
             dst_name.ToCString());
-}
-
-
-void AstPrinter::VisitPrimaryNode(PrimaryNode* node) {
-  OS::Print("***** PRIMARY NODE IN AST ***** (%s '%s')",
-      node->Name(), node->primary().ToCString());
-}
-
-
-void AstPrinter::VisitComparisonNode(ComparisonNode* node) {
-  if (node->kind() == Token::kAS) {
-    OS::Print("(as ");
-    node->VisitChildren(this);
-    OS::Print(")");
-  } else {
-    VisitGenericAstNode(node);
-  }
-}
-
-
-void AstPrinter::VisitBinaryOpNode(BinaryOpNode* node) {
-  VisitGenericAstNode(node);
-}
-
-
-void AstPrinter::VisitBinaryOpWithMask32Node(BinaryOpWithMask32Node* node) {
-  OS::Print("(%s ", node->Name());
   node->VisitChildren(this);
-  OS::Print(" & 0x%" Px64 "", node->mask32());
   OS::Print(")");
 }
 
 
+void AstPrinter::VisitPrimaryNode(PrimaryNode* node) {
+  OS::Print("*****%s***** \"%s\")",
+            node->PrettyName(),
+            node->primary().ToCString());
+}
+
+
+void AstPrinter::VisitComparisonNode(ComparisonNode* node) {
+  OS::Print("(%s %s ", node->PrettyName(), node->TokenName());
+  node->VisitChildren(this);
+  OS::Print(")");
+}
+
+
+void AstPrinter::VisitBinaryOpNode(BinaryOpNode* node) {
+  OS::Print("(%s %s ", node->PrettyName(), node->TokenName());
+  node->VisitChildren(this);
+  OS::Print(")");
+}
+
+
+void AstPrinter::VisitBinaryOpWithMask32Node(BinaryOpWithMask32Node* node) {
+  OS::Print("(%s %s ", node->PrettyName(), node->TokenName());
+  node->VisitChildren(this);
+  OS::Print(" & \"0x%" Px64 "", node->mask32());
+  OS::Print("\")");
+}
+
+
 void AstPrinter::VisitUnaryOpNode(UnaryOpNode* node) {
-  VisitGenericAstNode(node);
+  OS::Print("(%s %s ", node->PrettyName(), node->TokenName());
+  node->VisitChildren(this);
+  OS::Print(")");
 }
 
 
@@ -187,25 +192,17 @@ void AstPrinter::VisitConditionalExprNode(ConditionalExprNode* node) {
 
 
 void AstPrinter::VisitIfNode(IfNode* node) {
-  OS::Print("(if ");
-  node->condition()->Visit(this);
-  OS::Print(" then ");
-  node->true_branch()->Visit(this);
-  OS::Print(" else ");
-  if (node->false_branch() != NULL) {
-    node->false_branch()->Visit(this);
-  }
-  OS::Print(")");
+  VisitGenericAstNode(node);
 }
 
 
 void AstPrinter::VisitCaseNode(CaseNode* node) {
-  OS::Print("(case (");
+  OS::Print("(%s (", node->PrettyName());
   for (int i = 0; i < node->case_expressions()->length(); i++) {
     node->case_expressions()->NodeAt(i)->Visit(this);
   }
   if (node->contains_default()) {
-    OS::Print(" default ");
+    OS::Print(" default");
   }
   OS::Print(")");
   node->statements()->Visit(this);
@@ -214,71 +211,66 @@ void AstPrinter::VisitCaseNode(CaseNode* node) {
 
 
 void AstPrinter::VisitSwitchNode(SwitchNode* node) {
-  OS::Print("(switch ");
-  node->body()->Visit(this);
-  OS::Print(")");
+  VisitGenericAstNode(node);
 }
 
 
 void AstPrinter::VisitWhileNode(WhileNode* node) {
-  OS::Print("(while ");
-  node->condition()->Visit(this);
-  OS::Print(" do ");
-  node->body()->Visit(this);
-  OS::Print(")");
+  VisitGenericAstNode(node);
 }
 
 
 void AstPrinter::VisitForNode(ForNode* node) {
-  OS::Print("(for (init: ");
+  // Complicated because the condition is optional and so we clearly want to
+  // indicate the subparts.
+  OS::Print("(%s (init ", node->PrettyName());
   node->initializer()->Visit(this);
-  OS::Print("; cond:");
   if (node->condition() != NULL) {
+    OS::Print(") (cond ");
     node->condition()->Visit(this);
   }
-  OS::Print("; incr:");
+  OS::Print(") (update ");
   node->increment()->Visit(this);
-  OS::Print(") body:");
+  OS::Print(") ");
   node->body()->Visit(this);
-  OS::Print("endfor)");
-}
-
-
-void AstPrinter::VisitDoWhileNode(DoWhileNode* node) {
-  OS::Print("(do ");
-  node->body()->Visit(this);
-  OS::Print(" while ");
-  node->condition()->Visit(this);
   OS::Print(")");
 }
 
 
+void AstPrinter::VisitDoWhileNode(DoWhileNode* node) {
+  VisitGenericAstNode(node);
+}
+
+
 void AstPrinter::VisitJumpNode(JumpNode* node) {
-  OS::Print("(%s %s in scope %p)",
-            node->Name(),
+  OS::Print("(%s %s %s (scope \"%p\"))",
+            node->PrettyName(),
+            node->TokenName(),
             node->label()->name().ToCString(),
             node->label()->owner());
 }
 
 
 void AstPrinter::VisitInstanceCallNode(InstanceCallNode* node) {
-  OS::Print("(%s '%s'(", node->Name(), node->function_name().ToCString());
+  OS::Print("(%s \"%s\" ",
+            node->PrettyName(),
+            node->function_name().ToCString());
   node->VisitChildren(this);
-  OS::Print("))");
+  OS::Print(")");
 }
 
 
 void AstPrinter::VisitStaticCallNode(StaticCallNode* node) {
   const char* function_fullname = node->function().ToFullyQualifiedCString();
-  OS::Print("(%s '%s'(", node->Name(), function_fullname);
+  OS::Print("(%s \"%s\" ", node->PrettyName(), function_fullname);
   node->VisitChildren(this);
-  OS::Print("))");
+  OS::Print(")");
 }
 
 
 void AstPrinter::VisitClosureNode(ClosureNode* node) {
   const char* function_fullname = node->function().ToFullyQualifiedCString();
-  OS::Print("(%s '%s')", node->Name(), function_fullname);
+  OS::Print("(%s \"%s\")", node->PrettyName(), function_fullname);
 }
 
 
@@ -290,93 +282,88 @@ void AstPrinter::VisitClosureCallNode(ClosureCallNode* node) {
 void AstPrinter::VisitConstructorCallNode(ConstructorCallNode* node) {
   const char* kind = node->constructor().IsFactory() ? "factory " : "";
   const char* constructor_name = node->constructor().ToFullyQualifiedCString();
-  OS::Print("(%s %s'%s' ((this)", node->Name(), kind, constructor_name);
+  OS::Print("(%s %s \"%s\" ", node->PrettyName(), kind, constructor_name);
   node->VisitChildren(this);
-  OS::Print("))");
+  OS::Print(")");
 }
 
 
 void AstPrinter::VisitInstanceGetterNode(InstanceGetterNode* node) {
-  OS::Print("(%s 'get %s'(", node->Name(), node->field_name().ToCString());
+  OS::Print("(%s \"%s\" ",
+            node->PrettyName(),
+            node->field_name().ToCString());
   node->VisitChildren(this);
-  OS::Print("))");
+  OS::Print(")");
 }
 
 
 void AstPrinter::VisitInstanceSetterNode(InstanceSetterNode* node) {
-  OS::Print("(%s 'set %s'(", node->Name(), node->field_name().ToCString());
+  OS::Print("(%s \"%s\" ",
+            node->PrettyName(),
+            node->field_name().ToCString());
   node->VisitChildren(this);
-  OS::Print("))");
+  OS::Print(")");
 }
 
 
 void AstPrinter::VisitStaticGetterNode(StaticGetterNode* node) {
   String& class_name = String::Handle(node->cls().Name());
-  OS::Print("(%s '%s.%s'(",
-            node->Name(),
+  OS::Print("(%s \"%s.%s\")",
+            node->PrettyName(),
             class_name.ToCString(),
             node->field_name().ToCString());
-  OS::Print("))");
 }
 
 
 void AstPrinter::VisitStaticSetterNode(StaticSetterNode* node) {
   String& class_name = String::Handle(node->cls().Name());
-  OS::Print("(%s '%s.%s'(",
-      node->Name(), class_name.ToCString(), node->field_name().ToCString());
+  OS::Print("(%s \"%s.%s\" ",
+            node->PrettyName(),
+            class_name.ToCString(),
+            node->field_name().ToCString());
   node->VisitChildren(this);
-  OS::Print("))");
+  OS::Print(")");
 }
 
 
 void AstPrinter::VisitLoadIndexedNode(LoadIndexedNode* node) {
-  OS::Print("(%s%s ", node->Name(), node->IsSuperLoad() ? " super" : "");
+  OS::Print("(%s%s ", node->PrettyName(), node->IsSuperLoad() ? " super" : "");
   node->VisitChildren(this);
   OS::Print(")");
 }
 
 
 void AstPrinter::VisitStoreIndexedNode(StoreIndexedNode* node) {
-  OS::Print("(%s%s ", node->Name(), node->IsSuperStore() ? " super" : "");
+  OS::Print("(%s%s ", node->PrettyName(), node->IsSuperStore() ? " super" : "");
   node->VisitChildren(this);
   OS::Print(")");
 }
 
 
 void AstPrinter::VisitNativeBodyNode(NativeBodyNode* node) {
-  OS::Print("(native_c call '%s'(%d args))",
+  OS::Print("(%s \"%s\" (%d args))",
+            node->PrettyName(),
             node->native_c_function_name().ToCString(),
             NativeArguments::ParameterCountForResolution(node->function()));
 }
 
 
 void AstPrinter::VisitCatchClauseNode(CatchClauseNode* node) {
-  node->VisitChildren(this);
+  VisitGenericAstNode(node);
 }
 
 
 void AstPrinter::VisitTryCatchNode(TryCatchNode* node) {
-  OS::Print("(");
-
-  // First visit the try block.
-  OS::Print("(try block (");
+  OS::Print("(%s ", node->PrettyName());
   node->try_block()->Visit(this);
-  OS::Print("))");
-
-  // Now visit the catch block if it exists.
   if (node->catch_block() != NULL) {
-    OS::Print("(catch block () (");
     node->catch_block()->Visit(this);
-    OS::Print("))");
   }
-
-  // Now visit the finally block if it exists.
   if (node->finally_block() != NULL) {
-    OS::Print("(finally block () (");
+    OS::Print("(finally ");
     node->finally_block()->Visit(this);
-    OS::Print("))");
+    OS::Print(")");
   }
-
   OS::Print(")");
 }
 

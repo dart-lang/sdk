@@ -20,7 +20,7 @@
  *
  * * If you've never written a web app before, try our
  * tutorials&mdash;[A Game of Darts](http://dartlang.org/docs/tutorials).
- * 
+ *
  * * To see some web-based Dart apps in action and to play with the code,
  * download
  * [Dart Editor](http://www.dartlang.org/#get-started)
@@ -51,7 +51,8 @@ import 'dart:_js_helper' show
     JSName, Null, Returns,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord;
 import 'dart:_interceptors' show
-    Interceptor, JSExtendableArray, findInterceptorConstructorForType;
+    Interceptor, JSExtendableArray, findInterceptorConstructorForType,
+    getNativeInterceptor;
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS;
 

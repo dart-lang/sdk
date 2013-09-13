@@ -343,6 +343,45 @@ abstract class FileSystemEntity {
     });
   }
 
+  static final RegExp _absoluteWindowsPathPattern =
+      new RegExp(r'^(\\\\|[a-zA-Z]:[/\\])');
+
+  /**
+   * Returns a [bool] indicating whether this object's path is absolute.
+   *
+   * On Windows, a path is absolute if it starts with \\ or a drive letter
+   * between a and z (upper or lower case) followed by :\ or :/.
+   * On non-Windows, a path is absolute if it starts with /.
+   */
+  bool get isAbsolute {
+    if (Platform.isWindows) {
+      return path.startsWith(_absoluteWindowsPathPattern);
+    } else {
+      return path.startsWith('/');
+    }
+  }
+
+  /**
+   * Returns a [FileSystemEntity] whose path is the absolute path to [this].
+   * The type of the returned instance is the type of [this].
+   *
+   * The absolute path is computed by prefixing
+   * a relative path with the current working directory, and returning
+   * an absolute path unchanged.
+   */
+  FileSystemEntity get absolute;
+
+  String get _absolutePath {
+    if (isAbsolute) return path;
+    String current = Directory.current.path;
+    if (current.endsWith('/') ||
+        (Platform.isWindows && current.endsWith('\\'))) {
+      return '$current$path';
+    } else {
+      return '$current${Platform.pathSeparator}$path';
+    }
+  }
+
 
   /**
    * Synchronously checks whether two paths refer to the same object in the

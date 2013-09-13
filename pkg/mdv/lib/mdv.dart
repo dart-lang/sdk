@@ -14,9 +14,6 @@ import 'dart:collection';
 import 'dart:html';
 import 'package:observe/observe.dart';
 
-// TODO(jmesserly): get this from somewhere else. See http://dartbug.com/4161.
-import 'package:serialization/src/serialization_helpers.dart' show IdentityMap;
-
 import 'src/list_diff.dart' show calculateSplices, ListChangeDelta;
 
 part 'src/element.dart';

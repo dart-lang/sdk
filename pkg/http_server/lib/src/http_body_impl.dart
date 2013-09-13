@@ -121,7 +121,7 @@ class _HttpBodyHandler {
             return asText(ASCII)
                 .then((body) {
                   var map = Uri.splitQueryString(body.body,
-                      decode: (s) => defaultEncoding.decode(s));
+                      encoding: defaultEncoding);
                   var result = {};
                   for (var key in map.keys) {
                     result[key] = map[key];

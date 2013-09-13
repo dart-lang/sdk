@@ -26,6 +26,14 @@ abstract class TreeElements {
   Selector setMoveNextSelector(ForIn node, Selector selector);
   Selector setCurrentSelector(ForIn node, Selector selector);
 
+  /**
+   * Returns [:true:] if [node] is a type literal.
+   *
+   * Resolution marks this by setting the type on the node to be the
+   * [:Type:] type.
+   */
+  bool isTypeLiteral(Send node);
+
   /// Register additional dependencies required by [currentElement].
   /// For example, elements that are used by a backend.
   void registerDependency(Element element);
@@ -130,6 +138,10 @@ class TreeElementMapping implements TreeElements {
 
   Selector getCurrentSelector(ForIn node) {
     return selectors[node.inToken];
+  }
+
+  bool isTypeLiteral(Send node) {
+    return getType(node) != null;
   }
 
   void registerDependency(Element element) {
@@ -1544,6 +1556,7 @@ class TypeResolver {
       type = reportFailureAndCreateType(
           MessageKind.NOT_A_TYPE, {'node': node.typeName});
     } else {
+      bool addTypeVariableBoundsCheck = false;
       if (identical(element, compiler.types.voidType.element) ||
           identical(element, compiler.dynamicClass)) {
         type = checkNoTypeArguments(element.computeType(compiler));
@@ -1563,6 +1576,7 @@ class TypeResolver {
             type = cls.rawType;
           } else {
             type = new InterfaceType(cls.declaration, arguments.toLink());
+            addTypeVariableBoundsCheck = true;
           }
         }
       } else if (element.isTypedef()) {
@@ -1580,7 +1594,8 @@ class TypeResolver {
           if (arguments.isEmpty) {
             type = typdef.rawType;
           } else {
-           type = new TypedefType(typdef, arguments.toLink());
+            type = new TypedefType(typdef, arguments.toLink());
+            addTypeVariableBoundsCheck = true;
           }
         }
       } else if (element.isTypeVariable()) {
@@ -1605,9 +1620,41 @@ class TypeResolver {
         compiler.cancel("unexpected element kind ${element.kind}",
                         node: node);
       }
+      // TODO(johnniwinther): We should not resolve type annotations after the
+      // resolution queue has been closed. Currently the dart backend does so.
+      // Remove the guarded when this is fixed.
+      if (!compiler.enqueuer.resolution.queueIsClosed &&
+          addTypeVariableBoundsCheck) {
+        compiler.enqueuer.resolution.addPostProcessAction(
+            visitor.enclosingElement,
+            () => checkTypeVariableBounds(node, type));
+      }
     }
     visitor.useType(node, type);
     return type;
+  }
+
+  /// Checks the type arguments of [type] against the type variable bounds.
+  void checkTypeVariableBounds(TypeAnnotation node, GenericType type) {
+    TypeDeclarationElement element = type.element;
+    Link<DartType> typeArguments = type.typeArguments;
+    Link<DartType> typeVariables = element.typeVariables;
+    while (!typeVariables.isEmpty && !typeArguments.isEmpty) {
+      TypeVariableType typeVariable = typeVariables.head;
+      DartType bound = typeVariable.element.bound.subst(
+          type.typeArguments, element.typeVariables);
+      DartType typeArgument = typeArguments.head;
+      if (!compiler.types.isSubtype(typeArgument, bound)) {
+        compiler.reportWarningCode(node,
+            MessageKind.INVALID_TYPE_VARIABLE_BOUND,
+            {'typeVariable': typeVariable,
+             'bound': bound,
+             'typeArgument': typeArgument,
+             'thisType': element.thisType});
+      }
+      typeVariables = typeVariables.tail;
+      typeArguments = typeArguments.tail;
+    }
   }
 
   /**
@@ -1751,8 +1798,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   ResolutionEnqueuer get world => compiler.enqueuer.resolution;
 
-  Element lookup(Node node, SourceString name) {
-    Element result = scope.lookup(name);
+  Element reportLookupErrorIfAny(Element result, Node node, SourceString name) {
     if (!Elements.isUnresolved(result)) {
       if (!inInstanceContext && result.isInstanceMember()) {
         compiler.reportError(
@@ -1828,7 +1874,12 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
       return null;
     } else {
-      Element element = lookup(node, node.source);
+      SourceString name = node.source;
+      Element element = scope.lookup(name);
+      if (Elements.isUnresolved(element) && name.slowToString() == 'dynamic') {
+        element = compiler.dynamicClass;
+      }
+      element = reportLookupErrorIfAny(element, node, node.source);
       if (element == null) {
         if (!inInstanceContext) {
           element = warnAndCreateErroneousElement(
@@ -2309,7 +2360,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // Set the type of the node to [Type] to mark this send as a
         // type variable expression.
         mapping.setType(node, compiler.typeClass.computeType(compiler));
-        world.registerInstantiatedClass(compiler.typeClass, mapping);
+        world.registerTypeLiteral(target, mapping);
       } else if (target.impliesType() && !sendIsMemberAccess) {
         // Set the type of the node to [Type] to mark this send as a
         // type literal.
@@ -2473,8 +2524,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
       if (identical(source, '++')) {
         registerBinaryOperator(const SourceString('+'));
+        world.registerInstantiatedClass(compiler.intClass, mapping);
       } else if (identical(source, '--')) {
         registerBinaryOperator(const SourceString('-'));
+        world.registerInstantiatedClass(compiler.intClass, mapping);
       } else if (source.endsWith('=')) {
         registerBinaryOperator(Elements.mapToUserOperator(operatorName));
       }
@@ -3281,7 +3334,8 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     resolveTypeVariableBounds(node.typeParameters);
 
     element.functionSignature = SignatureResolver.analyze(
-        compiler, node.formals, node.returnType, element);
+        compiler, node.formals, node.returnType, element,
+        defaultValuesAllowed: false);
 
     element.alias = compiler.computeFunctionType(
         element, element.functionSignature);
@@ -3753,7 +3807,15 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
 
   SourceString visitSendSet(SendSet node) {
     assert(node.arguments.tail.isEmpty); // Sanity check
-    resolver.visit(node.arguments.head);
+    Identifier identifier = node.selector;
+    SourceString name = identifier.source;
+    VariableDefinitionScope scope =
+        new VariableDefinitionScope(resolver.scope, name);
+    resolver.visitIn(node.arguments.head, scope);
+    if (scope.variableReferencedInInitializer) {
+      resolver.error(identifier, MessageKind.REFERENCE_IN_INITIALIZATION,
+                     {'variableName': name.toString()});
+    }
     return visit(node.selector);
   }
 
@@ -3779,12 +3841,16 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
  */
 class SignatureResolver extends CommonResolverVisitor<Element> {
   final Element enclosingElement;
+  final bool defaultValuesAllowed;
   Link<Element> optionalParameters = const Link<Element>();
   int optionalParameterCount = 0;
   bool optionalParametersAreNamed = false;
   VariableDefinitions currentDefinitions;
 
-  SignatureResolver(Compiler compiler, this.enclosingElement) : super(compiler);
+  SignatureResolver(Compiler compiler,
+                    this.enclosingElement,
+                    {this.defaultValuesAllowed: true})
+      : super(compiler);
 
   Element visitNodeList(NodeList node) {
     // This must be a list of optional arguments.
@@ -3876,6 +3942,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     return element;
   }
 
+  /// A [SendSet] node is an optional parameter with a default value.
   Element visitSendSet(SendSet node) {
     Element element;
     if (node.receiver != null) {
@@ -3890,9 +3957,13 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       element = new VariableElementX(source, variables,
           ElementKind.PARAMETER, node);
     }
+    Node defaultValue = node.arguments.head;
+    if (!defaultValuesAllowed) {
+      error(defaultValue, MessageKind.TYPEDEF_FORMAL_WITH_DEFAULT);
+    }
     // Visit the value. The compile time constant handler will
     // make sure it's a compile time constant.
-    resolveExpression(node.arguments.head);
+    resolveExpression(defaultValue);
     return element;
   }
 
@@ -3925,8 +3996,10 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   static FunctionSignature analyze(Compiler compiler,
                                    NodeList formalParameters,
                                    Node returnNode,
-                                   Element element) {
-    SignatureResolver visitor = new SignatureResolver(compiler, element);
+                                   Element element,
+                                   {bool defaultValuesAllowed: true}) {
+    SignatureResolver visitor = new SignatureResolver(compiler, element,
+            defaultValuesAllowed: defaultValuesAllowed);
     Link<Element> parameters = const Link<Element>();
     int requiredParameterCount = 0;
     if (formalParameters == null) {
@@ -4128,7 +4201,8 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
 
   Element visitIdentifier(Identifier node) {
     SourceString name = node.source;
-    Element e = resolver.lookup(node, name);
+    Element e = resolver.reportLookupErrorIfAny(
+        resolver.scope.lookup(name), node, name);
     // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
     if (e == null) {
       return failOrReturnErroneousElement(resolver.enclosingElement, node, name,

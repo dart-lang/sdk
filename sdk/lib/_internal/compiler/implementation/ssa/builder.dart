@@ -2815,7 +2815,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (type.containsTypeVariables) {
         ClassElement contextClass = Types.getClassContext(type);
         contextName = graph.addConstantString(
-            new DartString.literal(backend.namer.getName(contextClass)),
+            new DartString.literal(backend.namer.getNameOfClass(contextClass)),
             node, compiler);
         if (currentElement.isInstanceMember()) {
           context = localsHandler.readThis();
@@ -3060,18 +3060,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                 argument, string.dartString.slowToString())));
   }
 
-  void handleForeignJsSetupObject(Send node) {
-    if (!node.arguments.isEmpty) {
-      compiler.cancel(
-          'Too many arguments to JS_GLOBAL_OBJECT', node: node);
-    }
-
-    String name = backend.namer.GLOBAL_OBJECT;
-    push(new HForeign(new js.LiteralString(name),
-                      HType.UNKNOWN,
-                      <HInstruction>[]));
-  }
-
   void handleForeignJsCallInIsolate(Send node) {
     Link<Node> link = node.arguments;
     if (!compiler.hasIsolateSupport()) {
@@ -3183,8 +3171,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       handleForeignJs(node);
     } else if (name == const SourceString('JS_CURRENT_ISOLATE_CONTEXT')) {
       handleForeignJsCurrentIsolateContext(node);
-    } else if (name == const SourceString('JS_GLOBAL_OBJECT')) {
-      handleForeignJsSetupObject(node);
     } else if (name == const SourceString('JS_CALL_IN_ISOLATE')) {
       handleForeignJsCallInIsolate(node);
     } else if (name == const SourceString('DART_CLOSURE_TO_JS')) {
@@ -3350,7 +3336,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                 TypeVariableElement variable) {
     assert(currentElement.isInstanceMember());
     int index = RuntimeTypes.getTypeVariableIndex(variable);
-    String substitutionNameString = backend.namer.getName(cls);
+    // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
+    // string concatenation in the implementation), and may prevent
+    // segmentation of '$'.
+    String substitutionNameString = backend.namer.getNameForRti(cls);
     HInstruction substitutionName = graph.addConstantString(
         new LiteralDartString(substitutionNameString), null, compiler);
     HInstruction target = localsHandler.readThis();

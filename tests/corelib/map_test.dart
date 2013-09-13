@@ -33,6 +33,8 @@ void main() {
   testNumericKeys(new HashMap<num, String>(equals: identical));
   testNumericKeys(new LinkedHashMap());
   testNumericKeys(new LinkedHashMap<num, String>());
+  testNumericKeys(new LinkedHashMap(equals: identical));
+  testNumericKeys(new LinkedHashMap<num, String>(equals: identical));
 
   testNaNKeys(new Map());
   testNaNKeys(new Map<num, String>());
@@ -44,10 +46,40 @@ void main() {
   // NaN is not equal to NaN.
 
   testIdentityMap(new HashMap(equals: identical));
+  testIdentityMap(new LinkedHashMap(equals: identical));
 
-  testCustomMap(new HashMap(equals: myEquals, hashCode: myHashCode));
+  testCustomMap(new HashMap(equals: myEquals, hashCode: myHashCode,
+                            isValidKey: (v) => v is Customer));
+  testCustomMap(new LinkedHashMap(equals: myEquals, hashCode: myHashCode,
+                                  isValidKey: (v) => v is Customer));
+  testCustomMap(new HashMap<Customer,dynamic>(equals: myEquals,
+                                              hashCode: myHashCode));
+
+  testCustomMap(new LinkedHashMap<Customer,dynamic>(equals: myEquals,
+                                                    hashCode: myHashCode));
 
   testIterationOrder(new LinkedHashMap());
+  testIterationOrder(new LinkedHashMap(equals: identical));
+
+  testOtherKeys(new SplayTreeMap<int, int>());
+  testOtherKeys(new SplayTreeMap<int, int>((int a, int b) => a - b,
+                                           (v) => v is int));
+  testOtherKeys(new SplayTreeMap((int a, int b) => a - b,
+                                 (v) => v is int));
+  testOtherKeys(new HashMap<int, int>());
+  testOtherKeys(new HashMap<int, int>(equals: identical));
+  testOtherKeys(new HashMap<int, int>(hashCode: (v) => v.hashCode,
+                                      isValidKey: (v) => v is int));
+  testOtherKeys(new HashMap(equals: (int x, int y) => x == y,
+                            hashCode: (int v) => v.hashCode,
+                            isValidKey: (v) => v is int));
+  testOtherKeys(new LinkedHashMap<int, int>());
+  testOtherKeys(new LinkedHashMap<int, int>(equals: identical));
+  testOtherKeys(new LinkedHashMap<int, int>(hashCode: (v) => v.hashCode,
+                                       isValidKey: (v) => v is int));
+  testOtherKeys(new LinkedHashMap(equals: (int x, int y) => x == y,
+                                  hashCode: (int v) => v.hashCode,
+                                  isValidKey: (v) => v is int));
 }
 
 
@@ -642,9 +674,26 @@ class Customer {
 int myHashCode(Customer c) => c.secondId;
 bool myEquals(Customer a, Customer b) => a.secondId == b.secondId;
 
-testIterationOrder(Map map) {
+void testIterationOrder(Map map) {
   var order = [0, 6, 4, 2, 7, 9, 7, 1, 2, 5, 3];
   for (int i = 0; i < order.length; i++) map[order[i]] = i;
   Expect.listEquals(map.keys.toList(), [0, 6, 4, 2, 7, 9, 1, 5, 3]);
   Expect.listEquals(map.values.toList(), [0, 1, 2, 8, 6, 5, 7, 9, 10]);
+}
+
+void testOtherKeys(Map<int, int> map) {
+  // Test that non-int keys are allowed in containsKey/remove/lookup.
+  // Custom hash sets and tree sets must be constructed so they don't
+  // use the equality/comparator on incompatible objects.
+
+  // This should not throw in either checked or unchecked mode.
+  map[0] = 0;
+  map[1] = 1;
+  map[2] = 2;
+  Expect.isFalse(map.containsKey("not an int"));
+  Expect.isFalse(map.containsKey(1.5));
+  Expect.isNull(map.remove("not an int"));
+  Expect.isNull(map.remove(1.5));
+  Expect.isNull(map["not an int"]);
+  Expect.isNull(map[1.5]);
 }

@@ -128,10 +128,6 @@ interface_static_non_final_fields_negative_test: fail
 
 instantiate_type_variable_test/01: fail # Issue 11595
 
-mixin_type_parameters_errors_test/01: fail # Issue 11598
-mixin_type_parameters_errors_test/02: fail # Issue 11598
-mixin_type_parameters_errors_test/05: fail # Issue 11598
-
 # test issue 11698, no setter, so warning, not error
 assign_instance_method_negative_test: fail
 

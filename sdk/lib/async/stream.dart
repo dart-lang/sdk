@@ -272,7 +272,7 @@ abstract class Stream<T> {
    * Reduces a sequence of values by repeatedly applying [combine].
    */
   Future<T> reduce(T combine(T previous, T element)) {
-    _FutureImpl<T> result = new _FutureImpl<T>();
+    _Future<T> result = new _Future<T>();
     bool seenFirst = false;
     T value;
     StreamSubscription subscription;
@@ -287,12 +287,12 @@ abstract class Stream<T> {
           seenFirst = true;
         }
       },
-      onError: result._setError,
+      onError: result._completeError,
       onDone: () {
         if (!seenFirst) {
-          result._setError(new StateError("No elements"));
+          result._completeError(new StateError("No elements"));
         } else {
-          result._setValue(value);
+          result._complete(value);
         }
       },
       cancelOnError: true
@@ -302,7 +302,7 @@ abstract class Stream<T> {
 
   /** Reduces a sequence of values by repeatedly applying [combine]. */
   Future fold(var initialValue, combine(var previous, T element)) {
-    _FutureImpl result = new _FutureImpl();
+    _Future result = new _Future();
     var value = initialValue;
     StreamSubscription subscription;
     subscription = this.listen(
@@ -314,10 +314,10 @@ abstract class Stream<T> {
         );
       },
       onError: (e) {
-        result._setError(e);
+        result._completeError(e);
       },
       onDone: () {
-        result._setValue(value);
+        result._complete(value);
       },
       cancelOnError: true);
     return result;
@@ -334,7 +334,7 @@ abstract class Stream<T> {
    * the "done" event arrives.
    */
   Future<String> join([String separator = ""]) {
-    _FutureImpl<String> result = new _FutureImpl<String>();
+    _Future<String> result = new _Future<String>();
     StringBuffer buffer = new StringBuffer();
     StreamSubscription subscription;
     bool first = true;
@@ -348,14 +348,14 @@ abstract class Stream<T> {
           buffer.write(element);
         } catch (e, s) {
           subscription.cancel();
-          result._setError(_asyncError(e, s));
+          result._completeError(_asyncError(e, s));
         }
       },
       onError: (e) {
-        result._setError(e);
+        result._completeError(e);
       },
       onDone: () {
-        result._setValue(buffer.toString());
+        result._complete(buffer.toString());
       },
       cancelOnError: true);
     return result;
@@ -368,7 +368,7 @@ abstract class Stream<T> {
    * If this stream reports an error, the [Future] will report that error.
    */
   Future<bool> contains(Object needle) {
-    _FutureImpl<bool> future = new _FutureImpl<bool>();
+    _Future<bool> future = new _Future<bool>();
     StreamSubscription subscription;
     subscription = this.listen(
         (T element) {
@@ -377,15 +377,15 @@ abstract class Stream<T> {
             (bool isMatch) {
               if (isMatch) {
                 subscription.cancel();
-                future._setValue(true);
+                future._complete(true);
               }
             },
             _cancelAndError(subscription, future)
           );
         },
-        onError: future._setError,
+        onError: future._completeError,
         onDone: () {
-          future._setValue(false);
+          future._complete(false);
         },
         cancelOnError: true);
     return future;
@@ -399,7 +399,7 @@ abstract class Stream<T> {
    * stream has an error event, or if [action] throws.
    */
   Future forEach(void action(T element)) {
-    _FutureImpl future = new _FutureImpl();
+    _Future future = new _Future();
     StreamSubscription subscription;
     subscription = this.listen(
         (T element) {
@@ -409,9 +409,9 @@ abstract class Stream<T> {
             _cancelAndError(subscription, future)
           );
         },
-        onError: future._setError,
+        onError: future._completeError,
         onDone: () {
-          future._setValue(null);
+          future._complete(null);
         },
         cancelOnError: true);
     return future;
@@ -424,7 +424,7 @@ abstract class Stream<T> {
    * If this stream reports an error, the [Future] will report that error.
    */
   Future<bool> every(bool test(T element)) {
-    _FutureImpl<bool> future = new _FutureImpl<bool>();
+    _Future<bool> future = new _Future<bool>();
     StreamSubscription subscription;
     subscription = this.listen(
         (T element) {
@@ -433,15 +433,15 @@ abstract class Stream<T> {
             (bool isMatch) {
               if (!isMatch) {
                 subscription.cancel();
-                future._setValue(false);
+                future._complete(false);
               }
             },
             _cancelAndError(subscription, future)
           );
         },
-        onError: future._setError,
+        onError: future._completeError,
         onDone: () {
-          future._setValue(true);
+          future._complete(true);
         },
         cancelOnError: true);
     return future;
@@ -454,7 +454,7 @@ abstract class Stream<T> {
    * If this stream reports an error, the [Future] will report that error.
    */
   Future<bool> any(bool test(T element)) {
-    _FutureImpl<bool> future = new _FutureImpl<bool>();
+    _Future<bool> future = new _Future<bool>();
     StreamSubscription subscription;
     subscription = this.listen(
         (T element) {
@@ -463,15 +463,15 @@ abstract class Stream<T> {
             (bool isMatch) {
               if (isMatch) {
                 subscription.cancel();
-                future._setValue(true);
+                future._complete(true);
               }
             },
             _cancelAndError(subscription, future)
           );
         },
-        onError: future._setError,
+        onError: future._completeError,
         onDone: () {
-          future._setValue(false);
+          future._complete(false);
         },
         cancelOnError: true);
     return future;
@@ -480,13 +480,13 @@ abstract class Stream<T> {
 
   /** Counts the elements in the stream. */
   Future<int> get length {
-    _FutureImpl<int> future = new _FutureImpl<int>();
+    _Future<int> future = new _Future<int>();
     int count = 0;
     this.listen(
       (_) { count++; },
-      onError: future._setError,
+      onError: future._completeError,
       onDone: () {
-        future._setValue(count);
+        future._complete(count);
       },
       cancelOnError: true);
     return future;
@@ -494,16 +494,16 @@ abstract class Stream<T> {
 
   /** Reports whether this stream contains any elements. */
   Future<bool> get isEmpty {
-    _FutureImpl<bool> future = new _FutureImpl<bool>();
+    _Future<bool> future = new _Future<bool>();
     StreamSubscription subscription;
     subscription = this.listen(
       (_) {
         subscription.cancel();
-        future._setValue(false);
+        future._complete(false);
       },
-      onError: future._setError,
+      onError: future._completeError,
       onDone: () {
-        future._setValue(true);
+        future._complete(true);
       },
       cancelOnError: true);
     return future;
@@ -512,14 +512,14 @@ abstract class Stream<T> {
   /** Collects the data of this stream in a [List]. */
   Future<List<T>> toList() {
     List<T> result = <T>[];
-    _FutureImpl<List<T>> future = new _FutureImpl<List<T>>();
+    _Future<List<T>> future = new _Future<List<T>>();
     this.listen(
       (T data) {
         result.add(data);
       },
-      onError: future._setError,
+      onError: future._completeError,
       onDone: () {
-        future._setValue(result);
+        future._complete(result);
       },
       cancelOnError: true);
     return future;
@@ -528,14 +528,14 @@ abstract class Stream<T> {
   /** Collects the data of this stream in a [Set]. */
   Future<Set<T>> toSet() {
     Set<T> result = new Set<T>();
-    _FutureImpl<Set<T>> future = new _FutureImpl<Set<T>>();
+    _Future<Set<T>> future = new _Future<Set<T>>();
     this.listen(
       (T data) {
         result.add(data);
       },
-      onError: future._setError,
+      onError: future._completeError,
       onDone: () {
-        future._setValue(result);
+        future._complete(result);
       },
       cancelOnError: true);
     return future;
@@ -627,17 +627,17 @@ abstract class Stream<T> {
    * [:this.elementAt(0):].
    */
   Future<T> get first {
-    _FutureImpl<T> future = new _FutureImpl<T>();
+    _Future<T> future = new _Future<T>();
     StreamSubscription subscription;
     subscription = this.listen(
       (T value) {
         subscription.cancel();
-        future._setValue(value);
+        future._complete(value);
         return;
       },
-      onError: future._setError,
+      onError: future._completeError,
       onDone: () {
-        future._setError(new StateError("No elements"));
+        future._completeError(new StateError("No elements"));
       },
       cancelOnError: true);
     return future;
@@ -653,7 +653,7 @@ abstract class Stream<T> {
    * the resulting future completes with a [StateError].
    */
   Future<T> get last {
-    _FutureImpl<T> future = new _FutureImpl<T>();
+    _Future<T> future = new _Future<T>();
     T result = null;
     bool foundResult = false;
     StreamSubscription subscription;
@@ -662,13 +662,13 @@ abstract class Stream<T> {
         foundResult = true;
         result = value;
       },
-      onError: future._setError,
+      onError: future._completeError,
       onDone: () {
         if (foundResult) {
-          future._setValue(result);
+          future._complete(result);
           return;
         }
-        future._setError(new StateError("No elements"));
+        future._completeError(new StateError("No elements"));
       },
       cancelOnError: true);
     return future;
@@ -680,7 +680,7 @@ abstract class Stream<T> {
    * If [this] is empty or has more than one element throws a [StateError].
    */
   Future<T> get single {
-    _FutureImpl<T> future = new _FutureImpl<T>();
+    _Future<T> future = new _Future<T>();
     T result = null;
     bool foundResult = false;
     StreamSubscription subscription;
@@ -690,19 +690,19 @@ abstract class Stream<T> {
           subscription.cancel();
           // This is the second element we get.
           Error error = new StateError("More than one element");
-          future._setError(error);
+          future._completeError(error);
           return;
         }
         foundResult = true;
         result = value;
       },
-      onError: future._setError,
+      onError: future._completeError,
       onDone: () {
         if (foundResult) {
-          future._setValue(result);
+          future._complete(result);
           return;
         }
-        future._setError(new StateError("No elements"));
+        future._completeError(new StateError("No elements"));
       },
       cancelOnError: true);
     return future;
@@ -723,7 +723,7 @@ abstract class Stream<T> {
    * error.
    */
   Future<dynamic> firstWhere(bool test(T element), {Object defaultValue()}) {
-    _FutureImpl<dynamic> future = new _FutureImpl();
+    _Future<dynamic> future = new _Future();
     StreamSubscription subscription;
     subscription = this.listen(
       (T value) {
@@ -732,19 +732,19 @@ abstract class Stream<T> {
           (bool isMatch) {
             if (isMatch) {
               subscription.cancel();
-              future._setValue(value);
+              future._complete(value);
             }
           },
           _cancelAndError(subscription, future)
         );
       },
-      onError: future._setError,
+      onError: future._completeError,
       onDone: () {
         if (defaultValue != null) {
-          _runUserCode(defaultValue, future._setValue, future._setError);
+          _runUserCode(defaultValue, future._complete, future._completeError);
           return;
         }
-        future._setError(new StateError("firstMatch ended without match"));
+        future._completeError(new StateError("firstMatch ended without match"));
       },
       cancelOnError: true);
     return future;
@@ -758,7 +758,7 @@ abstract class Stream<T> {
    * is done.
    */
   Future<dynamic> lastWhere(bool test(T element), {Object defaultValue()}) {
-    _FutureImpl<dynamic> future = new _FutureImpl();
+    _Future<dynamic> future = new _Future();
     T result = null;
     bool foundResult = false;
     StreamSubscription subscription;
@@ -775,17 +775,17 @@ abstract class Stream<T> {
           _cancelAndError(subscription, future)
         );
       },
-      onError: future._setError,
+      onError: future._completeError,
       onDone: () {
         if (foundResult) {
-          future._setValue(result);
+          future._complete(result);
           return;
         }
         if (defaultValue != null) {
-          _runUserCode(defaultValue, future._setValue, future._setError);
+          _runUserCode(defaultValue, future._complete, future._completeError);
           return;
         }
-        future._setError(new StateError("lastMatch ended without match"));
+        future._completeError(new StateError("lastMatch ended without match"));
       },
       cancelOnError: true);
     return future;
@@ -798,7 +798,7 @@ abstract class Stream<T> {
    * matching element occurs in the stream.
    */
   Future<T> singleWhere(bool test(T element)) {
-    _FutureImpl<T> future = new _FutureImpl<T>();
+    _Future<T> future = new _Future<T>();
     T result = null;
     bool foundResult = false;
     StreamSubscription subscription;
@@ -810,7 +810,7 @@ abstract class Stream<T> {
             if (isMatch) {
               if (foundResult) {
                 subscription.cancel();
-                future._setError(
+                future._completeError(
                     new StateError('Multiple matches for "single"'));
                 return;
               }
@@ -821,13 +821,13 @@ abstract class Stream<T> {
           _cancelAndError(subscription, future)
         );
       },
-      onError: future._setError,
+      onError: future._completeError,
       onDone: () {
         if (foundResult) {
-          future._setValue(result);
+          future._complete(result);
           return;
         }
-        future._setError(new StateError("single ended without match"));
+        future._completeError(new StateError("single ended without match"));
       },
       cancelOnError: true);
     return future;
@@ -846,20 +846,20 @@ abstract class Stream<T> {
    */
   Future<T> elementAt(int index) {
     if (index is! int || index < 0) throw new ArgumentError(index);
-    _FutureImpl<T> future = new _FutureImpl<T>();
+    _Future<T> future = new _Future<T>();
     StreamSubscription subscription;
     subscription = this.listen(
       (T value) {
         if (index == 0) {
           subscription.cancel();
-          future._setValue(value);
+          future._complete(value);
           return;
         }
         index -= 1;
       },
-      onError: future._setError,
+      onError: future._completeError,
       onDone: () {
-        future._setError(new RangeError.value(index));
+        future._completeError(new RangeError.value(index));
       },
       cancelOnError: true);
     return future;
