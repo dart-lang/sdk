@@ -1628,12 +1628,17 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitInvokeStatic(HInvokeStatic node) {
     Element element = node.element;
-    world.registerStaticUse(element);
     ClassElement cls = element.getEnclosingClass();
-    if (element.isGenerativeConstructor()
-        || (element.isFactoryConstructor() && cls == compiler.listClass)) {
-      world.registerInstantiatedClass(cls, work.resolutionTree);
+    List<DartType> instantiatedTypes = node.instantiatedTypes;
+
+    world.registerStaticUse(element);
+
+    if (instantiatedTypes != null && !instantiatedTypes.isEmpty) {
+      instantiatedTypes.forEach((type) {
+        world.registerInstantiatedType(type, work.resolutionTree);
+      });
     }
+
     push(new js.VariableUse(backend.namer.isolateAccess(node.element)));
     push(new js.Call(pop(), visitArguments(node.inputs, start: 0)), node);
   }
@@ -1721,12 +1726,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assignVariable(variableNames.getName(node.receiver), pop());
   }
 
-  void registerForeignType(HType type) {
-    if (type.isUnknown()) return;
-    TypeMask mask = type.computeMask(compiler);
-    for (ClassElement cls in mask.containedClasses(compiler)) {
-      world.registerInstantiatedClass(cls, work.resolutionTree);
-    }
+  void registerForeignTypes(HForeign node) {
+    native.NativeBehavior nativeBehavior = node.nativeBehavior;
+    if (nativeBehavior == null) return;
+    nativeBehavior.typesReturned.forEach((type) {
+      if (type is DartType) {
+        world.registerInstantiatedType(type, work.resolutionTree);
+      }
+    });
   }
 
   visitForeign(HForeign node) {
@@ -1751,8 +1758,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     }
 
-    registerForeignType(node.instructionType);
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
+    registerForeignTypes(node);
   }
 
   visitForeignNew(HForeignNew node) {
@@ -1761,7 +1768,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // TODO(floitsch): jsClassReference is an Access. We shouldn't treat it
     // as if it was a string.
     push(new js.New(new js.VariableUse(jsClassReference), arguments), node);
-    registerForeignType(node.instructionType);
+    registerForeignTypes(node);
+    if (node.instantiatedTypes == null) {
+      return;
+    }
+    node.instantiatedTypes.forEach((type) {
+      world.registerInstantiatedType(type, work.resolutionTree);
+    });
   }
 
   js.Expression newLiteralBool(bool value) {

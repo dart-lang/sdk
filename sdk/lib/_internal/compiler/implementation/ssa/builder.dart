@@ -912,6 +912,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  /// A stack of [DartType]s the have been seen during inlining of factory
+  /// constructors.  These types are preserved in [HInvokeStatic]s and
+  /// [HForeignNews] inside the inline code and registered during code
+  /// generation for these nodes.
+  // TODO(karlklose): consider removing this and keeping the (substituted)
+  // types of the type variables in an environment (like the [LocalsHandler]).
+  final List<DartType> currentInlinedInstantiations = <DartType>[];
+
   Compiler get compiler => builder.compiler;
   CodeEmitterTask get emitter => builder.emitter;
 
@@ -1220,7 +1228,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   bool tryInlineMethod(Element element,
                        Selector selector,
                        List<HInstruction> providedArguments,
-                       Node currentNode) {
+                       Node currentNode,
+                       [DartType instantiatedType]) {
     backend.registerStaticUse(element, compiler.enqueuer.codegen);
 
     // Ensure that [element] is an implementation element.
@@ -1319,9 +1328,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           HInstruction argument = localsHandler.readLocal(parameter);
           potentiallyCheckType(argument, parameter.computeType(compiler));
         });
-        element.isGenerativeConstructor()
-            ? buildFactory(element)
-            : functionExpression.body.accept(this);
+        addInlinedInstantiation(instantiatedType);
+        if (element.isGenerativeConstructor()) {
+          buildFactory(element);
+        } else {
+          functionExpression.body.accept(this);
+        }
+        removeInlinedInstantiation(instantiatedType);
       });
       leaveInlinedMethod(state);
     }
@@ -1336,6 +1349,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     return false;
+  }
+
+  addInlinedInstantiation(DartType type) {
+    if (type != null) {
+      currentInlinedInstantiations.add(type);
+    }
+  }
+
+  removeInlinedInstantiation(DartType type) {
+    if (type != null) {
+      currentInlinedInstantiations.removeLast();
+    }
   }
 
   inlinedFrom(Element element, f()) {
@@ -1627,11 +1652,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     InterfaceType type = classElement.computeType(compiler);
     HType ssaType = new HType.nonNullExact(type, compiler);
+    List<DartType> instantiatedTypes;
+    addInlinedInstantiation(type);
+    if (!currentInlinedInstantiations.isEmpty) {
+      instantiatedTypes = new List<DartType>.from(currentInlinedInstantiations);
+    }
     HForeignNew newObject = new HForeignNew(classElement,
                                             ssaType,
-                                            constructorArguments);
+                                            constructorArguments,
+                                            instantiatedTypes);
     add(newObject);
-
+    removeInlinedInstantiation(type);
     // Create the runtime type information, if needed.
     if (backend.classNeedsRti(classElement)) {
       List<HInstruction> rtiInputs = <HInstruction>[];
@@ -2699,10 +2730,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return interceptor;
   }
 
-  HForeign createForeign(String code,
+  HForeign createForeign(js.Expression code,
                          HType type,
                          List<HInstruction> inputs) {
-    return new HForeign(js.js.parseForeignJS(code), type, inputs);
+    return new HForeign(code, type, inputs);
   }
 
   HInstruction getRuntimeTypeInfo(HInstruction target) {
@@ -2734,8 +2765,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }));
       }
       String template = '[${templates.join(', ')}]';
+      js.Expression code = js.js.parseForeignJS(template);
       HInstruction representation =
-        createForeign(template, backend.readableArrayType, inputs);
+        createForeign(code, backend.readableArrayType, inputs);
       return representation;
     }
   }
@@ -3419,7 +3451,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       inputs.add(addTypeVariableReference(variable));
     });
 
-    HInstruction result = createForeign(template, backend.stringType, inputs);
+    js.Expression code = js.js.parseForeignJS(template);
+    HInstruction result = createForeign(code, backend.stringType, inputs);
     add(result);
     return result;
   }
@@ -3457,10 +3490,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     pop();
   }
 
-  handleNewSend(NewExpression node, InterfaceType type) {
+  handleNewSend(NewExpression node) {
     Send send = node.send;
     bool isListConstructor = false;
-    computeType(element) {
+
+    HType computeType(element) {
       Element originalElement = elements[send];
       if (Elements.isFixedListConstructorCall(originalElement, send, compiler)
           || Elements.isFilledListConstructorCall(
@@ -3502,6 +3536,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     bool isRedirected = functionElement.isRedirectingFactory;
+    InterfaceType type = elements.getType(node);
     DartType expectedType = type;
     if (isRedirected) {
       type = functionElement.computeTargetType(compiler, type);
@@ -3541,7 +3576,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);
     }
     HType elementType = computeType(constructor);
+    addInlinedInstantiation(expectedType);
     pushInvokeStatic(node, constructor, inputs, elementType);
+    removeInlinedInstantiation(expectedType);
     HInstruction newInstance = stack.last;
 
     // The List constructor forwards to a Dart static method that does
@@ -3761,10 +3798,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.enqueuer.codegen.registerConstSymbol(nameString, elements);
       }
     } else {
-      DartType type = elements.getType(node);
-      // TODO(karlklose): move this type registration to the codegen.
-      compiler.codegenWorld.instantiatedTypes.add(type);
-      handleNewSend(node, type);
+      handleNewSend(node);
     }
   }
 
@@ -3858,8 +3892,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HInvokeStatic].
-    HInstruction instruction =
+    HInvokeStatic instruction =
         new HInvokeStatic(element.declaration, arguments, type);
+    if (!currentInlinedInstantiations.isEmpty) {
+      instruction.instantiatedTypes = new List<DartType>.from(
+          currentInlinedInstantiations);
+    }
     instruction.sideEffects = compiler.world.getSideEffectsOfElement(element);
     if (location == null) {
       push(instruction);
@@ -4655,7 +4693,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // If the switch statement has no default case, surround the loop with
       // a test of the target.
       void buildCondition() {
-        push(createForeign('#', HType.BOOLEAN,
+        js.Expression code = js.js.parseForeignJS('#');
+        push(createForeign(code,
+                           HType.BOOLEAN,
                            [localsHandler.readLocal(switchTarget)]));
       }
       handleIf(node, buildCondition, buildLoop, () => {});
