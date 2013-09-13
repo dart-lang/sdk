@@ -63,30 +63,41 @@ class Linter extends Transformer with PolymerTransformer {
       Document document, AssetId sourceId, Transform transform,
       Set<AssetId> seen, [Map<String, _ElementSummary> elements]) {
     if (elements == null) elements = <String, _ElementSummary>{};
-    var logger = transform.logger;
-    // Note: the import order is relevant, so we visit in that order.
-    return Future.forEach(_getImportedIds(document, sourceId, logger), (id) {
-      if (seen.contains(id)) return new Future.value(null);
-      seen.add(id);
-      return readAsHtml(id, transform)
-        .then((doc) => _collectElements(doc, id, transform, seen, elements));
-    }).then((_) {
-      _addElements(document, logger, elements);
-      return elements;
-    });
+    return _getImportedIds(document, sourceId, transform)
+        // Note: the import order is relevant, so we visit in that order.
+        .then((ids) => Future.forEach(ids,
+              (id) => _readAndCollectElements(id, transform, seen, elements)))
+        .then((_) => _addElements(document, transform.logger, elements))
+        .then((_) => elements);
   }
 
-  List<AssetId> _getImportedIds(
-      Document document, AssetId sourceId, TranformLogger logger) {
+  Future _readAndCollectElements(AssetId id, Transform transform,
+      Set<AssetId> seen, Map<String, _ElementSummary> elements) {
+    if (id == null || seen.contains(id)) return new Future.value(null);
+    seen.add(id);
+    return readAsHtml(id, transform).then(
+        (doc) => _collectElements(doc, id, transform, seen, elements));
+  }
+
+  Future<List<AssetId>> _getImportedIds(
+      Document document, AssetId sourceId, Tranform transform) {
     var importIds = [];
+    var logger = transform.logger;
     for (var tag in document.queryAll('link')) {
       if (tag.attributes['rel'] != 'import') continue;
       var href = tag.attributes['href'];
-      var id = resolve(sourceId, href, logger, tag.sourceSpan);
+      var span = tag.sourceSpan;
+      var id = resolve(sourceId, href, logger, span);
       if (id == null) continue;
-      importIds.add(id);
+      importIds.add(assetExists(id, transform).then((exists) {
+        if (exists) return id;
+        if (sourceId == transform.primaryInput.id) {
+          logger.error('couldn\'t find imported asset "${id.path}" in package '
+              '"${id.package}".', span);
+        }
+      }));
     }
-    return importIds;
+    return Future.wait(importIds);
   }
 
   void _addElements(Document document, TransformLogger logger,
