@@ -115,6 +115,17 @@
       }
     },
     "Document": {
+      "comment": [
+        "/**",
+        " * The base class for all documents.",
+        " *",
+        " * Each web page loaded in the browser has its own [Document] object, which is",
+        " * typically an [HtmlDocument].",
+        " *",
+        " * If you aren't comfortable with DOM concepts, see the Dart tutorial",
+        " * [Target 2: Connect Dart & HTML](http://www.dartlang.org/docs/tutorials/connect-dart-html/).",
+        " */"
+      ],
       "members": {
         "createElement": [
           "/// Deprecated: use new Element.tag(tagName) instead."
@@ -139,6 +150,11 @@
       }
     },
     "Element": {
+      "comment": [
+        "/**",
+        " * An abstract class, which all HTML elements extend.",
+        " */"
+      ],
       "members": {
         "querySelector": [
           "/**",

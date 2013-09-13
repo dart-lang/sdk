@@ -301,9 +301,7 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
 $!ELEMENT_STREAM_GETTERS
 }
 
-/**
- * An abstract class, which all HTML elements extend.
- */
+@DocsEditable
 $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   /**
