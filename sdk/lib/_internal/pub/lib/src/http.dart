@@ -99,6 +99,8 @@ class PubHttpClient extends http.BaseClient {
               '"${request.url.origin}".');
         }
       }
+      print('Error in PubHttpClient.send (issue 12581) error: $error');
+      print('    stacktrace: $stackTrace');
       throw error;
     }), HTTP_TIMEOUT, 'fetching URL "${request.url}"');
   }
