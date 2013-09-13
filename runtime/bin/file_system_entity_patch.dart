@@ -12,6 +12,4 @@ patch class FileSystemEntity {
       native "File_GetType";
   /* patch */ static _identical(String path1, String path2)
       native "File_AreIdentical";
-  /* patch */ static _resolveSymbolicLinks(String path)
-      native "File_ResolveSymbolicLinks";
 }

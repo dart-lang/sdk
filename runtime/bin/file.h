@@ -67,7 +67,7 @@ class File {
     kDeleteRequest = 2,
     kRenameRequest = 3,
     kOpenRequest = 4,
-    kResolveSymbolicLinksRequest = 5,
+    kFullPathRequest = 5,
     kCloseRequest = 6,
     kPositionRequest = 7,
     kSetPositionRequest = 8,

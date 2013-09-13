@@ -508,7 +508,7 @@ void FUNCTION_NAME(File_RenameLink)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(File_ResolveSymbolicLinks)(Dart_NativeArguments args) {
+void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
   const char* str =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   char* path = File::GetCanonicalPath(str);
@@ -711,7 +711,7 @@ static CObject* FileRenameRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileResolveSymbolicLinksRequest(const CObjectArray& request) {
+static CObject* FileFullPathRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsString()) {
     CObjectString filename(request[1]);
     char* result = File::GetCanonicalPath(filename.CString());
@@ -1191,8 +1191,8 @@ static void FileService(Dart_Port dest_port_id,
         case File::kRenameRequest:
           response = FileRenameRequest(request);
           break;
-        case File::kResolveSymbolicLinksRequest:
-          response = FileResolveSymbolicLinksRequest(request);
+        case File::kFullPathRequest:
+          response = FileFullPathRequest(request);
           break;
         case File::kCloseRequest:
           response = FileCloseRequest(request);

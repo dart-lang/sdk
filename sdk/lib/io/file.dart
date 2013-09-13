@@ -156,23 +156,14 @@ abstract class File implements FileSystemEntity {
   /**
    * Get the canonical full path corresponding to the file path.
    * Returns a [:Future<String>:] that completes with the path.
-   *
-   * *FullPath is deprecated.  Use absolutePath or resolveSymbolicLinks
-   * instead.  FullPath will be removed the 23rd of September, 2013.*
    */
-  @deprecated
   Future<String> fullPath();
 
   /**
    * Synchronously get the canonical full path corresponding to the file path.
    *
    * Throws a [FileException] if the operation fails.
-   *
-   * *FullPathSync is deprecated.  Use absolutePathSync or
-   * resolveSymbolicLinksSync instead.  FullPathSync will be removed
-   * the 23rd of September, 2013.*
    */
-  @deprecated
   String fullPathSync();
 
   /**

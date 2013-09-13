@@ -130,29 +130,29 @@ void testCreateInNonExistentDirectory() {
   });
 }
 
-bool checkResolveSymbolicLinksOnNonExistentDirectoryException(e) {
+bool checkFullPathOnNonExistentDirectoryException(e) {
   Expect.isTrue(e is FileException);
   Expect.isTrue(e.osError != null);
-  Expect.isTrue(e.toString().indexOf("Cannot resolve symbolic links") != -1);
+  Expect.isTrue(e.toString().indexOf("Cannot retrieve full path") != -1);
   // File not not found has error code 2 on all supported platforms.
   Expect.equals(2, e.osError.errorCode);
 
   return true;
 }
 
-void testResolveSymbolicLinksOnNonExistentDirectory() {
+void testFullPathOnNonExistentDirectory() {
   asyncStart();
   Directory temp = tempDir();
   var file = new File("${temp.path}/nonExistentDirectory");
 
   // Full path non-existent directory should throw exception.
-  Expect.throws(() => file.resolveSymbolicLinksSync(),
-      (e) => checkResolveSymbolicLinksOnNonExistentDirectoryException(e));
+  Expect.throws(() => file.fullPathSync(),
+                (e) => checkFullPathOnNonExistentDirectoryException(e));
 
-  var resolvedFuture = file.resolveSymbolicLinks();
-  resolvedFuture.then((path) => Expect.fail("Unreachable code $path"))
+  var fullPathFuture = file.fullPath();
+  fullPathFuture.then((path) => Expect.fail("Unreachable code $path"))
   .catchError((error) {
-    checkResolveSymbolicLinksOnNonExistentDirectoryException(error);
+    checkFullPathOnNonExistentDirectoryException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
   });
@@ -424,7 +424,7 @@ main() {
   testDeleteNonExistent();
   testLengthNonExistent();
   testCreateInNonExistentDirectory();
-  testResolveSymbolicLinksOnNonExistentDirectory();
+  testFullPathOnNonExistentDirectory();
   testReadAsBytesNonExistent();
   testReadAsTextNonExistent();
   testReadAsLinesNonExistent();

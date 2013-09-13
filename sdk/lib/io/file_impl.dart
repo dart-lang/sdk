@@ -204,7 +204,7 @@ const int _CREATE_REQUEST = 1;
 const int _DELETE_REQUEST = 2;
 const int _RENAME_REQUEST = 3;
 const int _OPEN_REQUEST = 4;
-const int _RESOLVE_SYMBOLIC_LINKS_REQUEST = 5;
+const int _FULL_PATH_REQUEST = 5;
 const int _CLOSE_REQUEST = 6;
 const int _POSITION_REQUEST = 7;
 const int _SET_POSITION_REQUEST = 8;
@@ -446,9 +446,28 @@ class _File extends FileSystemEntity implements File {
     return new _RandomAccessFile(id, "");
   }
 
-  Future<String> fullPath() => resolveSymbolicLinks();
+  Future<String> fullPath() {
+    _ensureFileService();
+    List request = new List(2);
+    request[0] = _FULL_PATH_REQUEST;
+    request[1] = path;
+    return _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response,
+                                     "Cannot retrieve full path",
+                                     path);
+      }
+      return response;
+    });
+  }
 
-  String fullPathSync() => resolveSymbolicLinksSync();
+  external static _fullPath(String path);
+
+  String fullPathSync() {
+    var result = _fullPath(path);
+    throwIfError(result, "Cannot retrieve full path", path);
+    return result;
+  }
 
   Stream<List<int>> openRead([int start, int end]) {
     return new _FileStream(path, start, end);

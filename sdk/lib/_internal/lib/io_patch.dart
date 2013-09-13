@@ -59,9 +59,6 @@ patch class FileSystemEntity {
   patch static _identical(String path1, String path2) {
     throw new UnsupportedError("FileSystemEntity._identical");
   }
-  patch static _resolveSymbolicLinks(String path) {
-    throw new UnsupportedError("FileSystemEntity._resolveSymbolicLinks");
-  }
 }
 
 patch class _File {
@@ -100,6 +97,9 @@ patch class _File {
   }
   patch static int _openStdio(int fd) {
     throw new UnsupportedError("File._openStdio");
+  }
+  patch static _fullPath(String path) {
+    throw new UnsupportedError("File._fullPath");
   }
 }
 

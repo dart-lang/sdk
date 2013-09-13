@@ -221,68 +221,6 @@ abstract class FileSystemEntity {
   FileSystemEntity renameSync(String newPath);
 
   /**
-   * Resolves the path of a file system object relative to the
-   * current working directory, resolving all symbolic links on
-   * the path and resolving all '..' and '.' path segments.
-   * [resolveSymbolicLinks] returns a [:Future<String>:]
-   *
-   * [resolveSymbolicLinks] uses the operating system's native filesystem api
-   * to resolve the path, using the realpath function on linux and
-   * Mac OS, and the GetFinalPathNameByHandle function on Windows.
-   * If the path does not point to an existing file system object,
-   * [resolveSymbolicLinks] completes the returned Future with an FileException.
-   *
-   * On Windows, symbolic links are resolved to their target before applying
-   * a '..' that follows, and on other platforms, the '..' is applied to the
-   * symbolic link without resolving it.  The second behavior can be emulated
-   * on Windows by processing any '..' segments before calling
-   * [resolveSymbolicLinks].  One way of doing this is with the URI class:
-   * [:new Uri.parse('.').resolveUri(new Uri.file(input)).toFilePath();],
-   * since [resolve] removes '..' segments.
-   */
-  Future<String> resolveSymbolicLinks() {
-    // Get a new file service port for each request.  We could also cache one.
-    var service = _FileUtils._newServicePort();
-    List request = new List(2);
-    request[0] = _RESOLVE_SYMBOLIC_LINKS_REQUEST;
-    request[1] = path;
-    return service.call(request).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response,
-                                     "Cannot resolve symbolic links",
-                                     path);
-      }
-      return response;
-    });
-  }
-
-  /**
-   * Resolves the path of a file system object relative to the
-   * current working directory, resolving all symbolic links on
-   * the path and resolving all '..' and '.' path segments.
-   *
-   * [resolveSymbolicLinksSync] uses the operating system's native
-   * filesystem api to resolve the path, using the realpath function
-   * on linux and Mac OS, and the GetFinalPathNameByHandle function on Windows.
-   * If the path does not point to an existing file system object,
-   * [resolveSymbolicLinksSync] throws a FileException.
-   *
-   * On Windows, symbolic links are resolved to their target before applying
-   * a '..' that follows, and on other platforms, the '..' is applied to the
-   * symbolic link without resolving it.  The second behavior can be emulated
-   * on Windows by processing any '..' segments before calling
-   * [resolveSymbolicLinks].  One way of doing this is with the URI class:
-   * [:new Uri.parse('.').resolveUri(new Uri.file(input)).toFilePath();],
-   * since [resolve] removes '..' segments.
-   */
-  String resolveSymbolicLinksSync() {
-    var result = _resolveSymbolicLinks(path);
-    _throwIfError(result, "Cannot resolve symbolic links", path);
-    return result;
-  }
-
-
-  /**
    * Calls the operating system's stat() function on the [path] of this
    * [FileSystemEntity].  Identical to [:FileStat.stat(this.path):].
    *
@@ -378,7 +316,7 @@ abstract class FileSystemEntity {
   void _deleteSync({recursive: false});
 
   /**
-   * Checks whether two paths refer to the same object in the
+   * Synchronously checks whether two paths refer to the same object in the
    * file system. Returns a [:Future<bool>:] that completes with the result.
    *
    * Comparing a link to its target returns false, as does comparing two links
@@ -543,7 +481,6 @@ abstract class FileSystemEntity {
 
   external static _getType(String path, bool followLinks);
   external static _identical(String path1, String path2);
-  external static _resolveSymbolicLinks(String path);
 
   static int _getTypeSync(String path, bool followLinks) {
     var result = _getType(path, followLinks);

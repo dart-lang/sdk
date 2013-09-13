@@ -920,6 +920,16 @@ class FileTest {
     }
   }
 
+  static void testOpenFile() {
+    var name = getFilename("tests/vm/data/fixed_length_file");
+    var f = new File(name);
+    Expect.isTrue(f.existsSync());
+    name = f.fullPathSync();
+    var g = new File(name);
+    Expect.isTrue(g.existsSync());
+    Expect.equals(name, g.fullPathSync());
+  }
+
   static void testReadAsBytes() {
     asyncTestStarted();
     var name = getFilename("tests/vm/data/fixed_length_file");
@@ -1259,6 +1269,7 @@ class FileTest {
     testPositionSync();
     testOpenDirectoryAsFile();
     testOpenDirectoryAsFileSync();
+    testOpenFile();
     testReadAsBytesSync();
     testReadAsBytesSyncEmptyFile();
     testReadAsTextSync();
