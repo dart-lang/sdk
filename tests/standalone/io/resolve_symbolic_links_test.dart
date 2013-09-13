@@ -61,7 +61,6 @@ main() {
           testFile('link1/file2'),
           testFile(join('dir1', '..', 'dir1', '.', 'file1')),
           testDir('.'),
-          testDir('link1/.'),
           testLink('link1')]);
     })
     .then((_) {
@@ -71,7 +70,7 @@ main() {
           testFile('file2'),
           // Windows applies '..' to a link without resolving the link first.
           testFile('..\\dir1\\file1'),
-          testDir('.'),
+          testLink('.'),
           testDir('..'),
           testLink('..\\link1')]);
       } else {
@@ -81,10 +80,14 @@ main() {
           testFile('../dir2/file2'),
           testDir('.'),
           testDir('..'),
+          testDir('link1/.'),
           testLink('../../link1')]);
       }
     })
-    .whenComplete(() => tempDir.delete(recursive: true));
+    .whenComplete(() {
+      Directory.current = testsDir;
+      tempDir.delete(recursive: true);
+    });
   }));
 }
 
