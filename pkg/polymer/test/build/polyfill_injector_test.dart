@@ -37,7 +37,7 @@ void main() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
-          '$SHADOW_DOM_TAG$INTEROP_TAG$PKG_JS_INTEROP_TAG'
+          '$SHADOW_DOM_TAG$INTEROP_TAG'
           '<script type="application/dart" src="a.dart"></script>'
           '</body></html>',
     });
@@ -48,14 +48,12 @@ void main() {
           '<script type="application/dart" src="a.dart"></script>'
           '$SHADOW_DOM_TAG'
           '$INTEROP_TAG'
-          '$PKG_JS_INTEROP_TAG',
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
           '<script type="application/dart" src="a.dart"></script>'
           '$SHADOW_DOM_TAG'
           '$INTEROP_TAG'
-          '$PKG_JS_INTEROP_TAG'
           '</body></html>',
     });
 }

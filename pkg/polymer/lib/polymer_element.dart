@@ -7,10 +7,9 @@ library polymer.polymer_element;
 import 'dart:async';
 import 'dart:html';
 import 'dart:mirrors';
-import 'dart:js' as dartJs;
+import 'dart:js' as js;
 
 import 'package:custom_element/custom_element.dart';
-import 'package:js/js.dart' as js;
 import 'package:mdv/mdv.dart' show NodeBinding;
 import 'package:observe/observe.dart';
 import 'package:observe/src/microtask.dart';
@@ -87,15 +86,19 @@ class PolymerElement extends CustomElement with _EventsMixin {
     var declaration = getDeclaration(localName);
     if (declaration == null) return;
 
-    if (declaration.attributes['extends'] != null) {
-      var base = declaration.attributes['extends'];
+    var extendee = declaration.attributes['extends'];
+    if (extendee != null) {
       // Skip normal tags, only initialize parent custom elements.
-      if (base.contains('-')) _initialize(base);
+      if (extendee.contains('-')) _initialize(extendee);
     }
 
     _parseHostEvents(declaration);
     _parseLocalEvents(declaration);
     _publishAttributes(declaration);
+
+    var templateContent = declaration.query('template').content;
+    _shimStyling(templateContent, localName);
+
     _localNames.add(localName);
   }
 
@@ -151,15 +154,11 @@ class PolymerElement extends CustomElement with _EventsMixin {
       root.applyAuthorStyles = applyAuthorStyles;
       root.resetStyleInheritance = resetStyleInheritance;
 
-      var templateNode = declaration.children.firstWhere(
-          (n) => n.localName == 'template', orElse: () => null);
+      var templateNode = declaration.query('template');
       if (templateNode == null) return;
 
       // Create the contents of the element's ShadowRoot, and add them.
       root.nodes.add(instanceTemplate(templateNode));
-
-      var extendsName = declaration.attributes['extends'];
-      _shimCss(root, localName, extendsName);
     }
   }
 
@@ -174,31 +173,26 @@ class PolymerElement extends CustomElement with _EventsMixin {
   /**
    * Using Polymer's platform/src/ShadowCSS.js passing the style tag's content.
    */
-  void _shimCss(ShadowRoot root, String localName, String extendsName) {
-    // TODO(terry): Need to detect if ShadowCSS.js has been loaded.  Under
-    //              Dartium this wouldn't exist.  However, dart:js isn't robust
-    //              to use to detect in both Dartium and dart2js if Platform is
-    //              defined.  This bug is described in
-    //              https://code.google.com/p/dart/issues/detail?id=12548
-    //              When fixed only use dart:js.  This is necessary under
-    //              Dartium (no compile) we want to run w/o the JS polyfill.
-    if (dartJs.context == null || !dartJs.context.hasProperty('Platform')) {
-      return;
-    }
+  void _shimStyling(DocumentFragment template, String localName) {
+    if (js.context == null) return;
 
-    var platform = js.context["Platform"];
+    var platform = js.context['Platform'];
     if (platform == null) return;
-    var shadowCss = platform.ShadowCSS;
+
+    var style = template.query('style');
+    if (style == null) return;
+
+    var shadowCss = platform['ShadowCSS'];
     if (shadowCss == null) return;
 
     // TODO(terry): Remove calls to shimShadowDOMStyling2 and replace with
     //              shimShadowDOMStyling when we support unwrapping dart:html
     //              Element to a JS DOM node.
-    var shimShadowDOMStyling2 = shadowCss.shimShadowDOMStyling2;
+    var shimShadowDOMStyling2 = shadowCss['shimShadowDOMStyling2'];
     if (shimShadowDOMStyling2 == null) return;
-    var style = root.query('style');
-    if (style == null) return;
-    var scopedCSS = shimShadowDOMStyling2(style.text, localName);
+
+    var scopedCSS = shimShadowDOMStyling2.apply(shadowCss,
+        [style.text, localName]);
 
     // TODO(terry): Remove when shimShadowDOMStyling is called we don't need to
     //              replace original CSS with scoped CSS shimShadowDOMStyling
