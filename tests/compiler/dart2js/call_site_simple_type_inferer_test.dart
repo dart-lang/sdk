@@ -16,14 +16,13 @@ void compileAndFind(String code,
                     bool disableInlining,
                     check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');
-  asyncStart();
   var compiler = compilerFor(code, uri);
   compiler.disableInlining = disableInlining;
-  compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
     var cls = findElement(compiler, className);
     var member = cls.lookupLocalMember(buildSourceString(memberName));
     return check(compiler, member);
-  }).whenComplete(() => asyncEnd());
+  }));
 }
 
 const String TEST_1 = r"""

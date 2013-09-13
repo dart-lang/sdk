@@ -116,5 +116,5 @@ main() {
     }
   }, onError: (e) {
       throw 'Compilation failed';
-  }).whenComplete(() => asyncEnd());
+  }).then(asyncSuccess);
 }

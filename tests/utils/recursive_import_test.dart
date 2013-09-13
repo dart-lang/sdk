@@ -128,5 +128,5 @@ main() {
     Expect.equals(1, errorCount);
   }, onError: (e) {
       throw 'Compilation failed';
-  }).whenComplete(() => asyncEnd());
+  }).then(asyncSuccess);
 }

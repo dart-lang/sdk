@@ -55,7 +55,7 @@ main() {
                        <String>['--preserve-comments']);
   result.then((MirrorSystem mirrors) {
     test(mirrors);
-  }).whenComplete(() => asyncEnd());
+  }).then(asyncSuccess);
 }
 
 void test(MirrorSystem mirrors) {

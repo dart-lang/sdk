@@ -29,18 +29,16 @@ main() {
 
 main() {
   Uri uri = Uri.parse('test:code');
-  asyncStart();
   var compiler1 = compilerFor(SOURCE, uri, analyzeAll: false);
-  compiler1.runCompiler(uri).then((_) {
+  asyncTest(() => compiler1.runCompiler(uri).then((_) {
     Expect.isFalse(compiler1.compilationFailed);
     print(compiler1.warnings);
     Expect.isTrue(compiler1.warnings.isEmpty, 'unexpected warnings');
     Expect.isTrue(compiler1.errors.isEmpty, 'unexpected errors');
-  }).whenComplete(() => asyncEnd());
+  }));
 
-  asyncStart();
   var compiler2 = compilerFor(SOURCE, uri, analyzeAll: true);
-  compiler2.runCompiler(uri).then((_) {
+  asyncTest(() => compiler2.runCompiler(uri).then((_) {
     Expect.isTrue(compiler2.compilationFailed);
     Expect.isTrue(compiler2.warnings.isEmpty, 'unexpected warnings');
     Expect.equals(2, compiler2.errors.length,
@@ -53,5 +51,5 @@ main() {
     Expect.equals(MessageKind.CONSTRUCTOR_IS_NOT_CONST,
                   compiler2.errors[1].message.kind);
     Expect.equals("Foo", compiler2.errors[1].node.toString());
-  }).whenComplete(() => asyncEnd());
+  }));
 }

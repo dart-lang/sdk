@@ -37,12 +37,11 @@ main() {
                                    libraryRoot,
                                    packageRoot,
                                    ['--analyze-only']);
-  asyncStart();
-  compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     Expect.isTrue(compiler.compilationFailed);
     Expect.equals(5, errorCount);
     Expect.equals(1, warningCount);
-  }).whenComplete(() => asyncEnd());
+  }));
 }
 
 const Map MEMORY_SOURCE_FILES = const {

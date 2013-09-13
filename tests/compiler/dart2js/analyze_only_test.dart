@@ -45,7 +45,7 @@ runCompiler(String main, List<String> options,
     onValue(code, errors, warnings);
   }, onError: (e) {
       throw 'Compilation failed';
-  }).whenComplete(() => asyncEnd());
+  }).then(asyncSuccess);
 }
 
 main() {
