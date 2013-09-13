@@ -1153,6 +1153,12 @@ class SsaRedundantPhiEliminator implements OptimizationPhase {
   }
 }
 
+class GvnWorkItem {
+  final HBasicBlock block;
+  final ValueSet valueSet;
+  GvnWorkItem(this.block, this.valueSet);
+}
+
 class SsaGlobalValueNumberer implements OptimizationPhase {
   final String name = "SsaGlobalValueNumberer";
   final Compiler compiler;
@@ -1166,7 +1172,12 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
   void visitGraph(HGraph graph) {
     computeChangesFlags(graph);
     moveLoopInvariantCode(graph);
-    visitBasicBlock(graph.entry, new ValueSet());
+    List<GvnWorkItem> workQueue =
+        <GvnWorkItem>[new GvnWorkItem(graph.entry, new ValueSet())];
+    do {
+      GvnWorkItem item = workQueue.removeLast();
+      visitBasicBlock(item.block, item.valueSet, workQueue);
+    } while (!workQueue.isEmpty);
   }
 
   void moveLoopInvariantCode(HGraph graph) {
@@ -1243,7 +1254,8 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     return input.block.id > dominator.id;
   }
 
-  void visitBasicBlock(HBasicBlock block, ValueSet values) {
+  void visitBasicBlock(
+      HBasicBlock block, ValueSet values, List<GvnWorkItem> workQueue) {
     HInstruction instruction = block.first;
     if (block.isLoopHeader()) {
       int flags = loopChangesFlags[block.id];
@@ -1280,10 +1292,16 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       assert(block.id < dominated.id);
       if (!successorValues.isEmpty && block.id + 1 < dominated.id) {
         visited.clear();
-        int changesFlags = getChangesFlagsForDominatedBlock(block, dominated);
+        List<HBasicBlock> workQueue = <HBasicBlock>[dominated];
+        int changesFlags = 0;
+        do {
+          HBasicBlock current = workQueue.removeLast();
+          changesFlags |=
+              getChangesFlagsForDominatedBlock(block, current, workQueue);
+        } while (!workQueue.isEmpty);
         successorValues.kill(changesFlags);
       }
-      visitBasicBlock(dominated, successorValues);
+      workQueue.add(new GvnWorkItem(dominated, successorValues));
     }
   }
 
@@ -1329,7 +1347,8 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
   }
 
   int getChangesFlagsForDominatedBlock(HBasicBlock dominator,
-                                       HBasicBlock dominated) {
+                                       HBasicBlock dominated,
+                                       List<HBasicBlock> workQueue) {
     int changesFlags = 0;
     List<HBasicBlock> predecessors = dominated.predecessors;
     for (int i = 0, length = predecessors.length; i < length; i++) {
@@ -1344,7 +1363,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
         // Loop bodies might not be on the path from dominator to dominated,
         // but they can invalidate values.
         changesFlags |= loopChangesFlags[id];
-        changesFlags |= getChangesFlagsForDominatedBlock(dominator, block);
+        workQueue.add(block);
       }
     }
     return changesFlags;
