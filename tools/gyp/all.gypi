@@ -9,7 +9,7 @@
   'variables': {
     'library': 'static_library',
     'component': 'static_library',
-    'target_arch': 'ia32',
+    'target_arch%': 'ia32',
     # Flag that tells us whether to build native support for dart:io.
     'dart_io_support': 1,
   },

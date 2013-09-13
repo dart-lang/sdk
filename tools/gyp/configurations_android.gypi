@@ -33,7 +33,8 @@
     'android_build_type%': '<(android_build_type)',
 
     'OS': 'android',
-    'android_target_arch' : 'x86',
+    'android_target_arch%' : 'arm',
+    'armv7': 1,
   },  # variables
   'target_defaults': {
     'defines': [

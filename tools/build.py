@@ -101,7 +101,7 @@ def ProcessOptions(options, args):
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os, HOST_OS))
         return False
-      if not arch in ['ia32']:
+      if not arch in ['ia32', 'arm']:
         print ("Cross-compilation to %s is not supported for architecture %s."
                % (os, arch))
         return False
@@ -144,7 +144,7 @@ def SetCrossCompilationEnvironment(host_os, target_os, target_arch, old_path):
     raise Exception('Unsupported host os %s' % host_os)
   if target_os not in ['android']:
     raise Exception('Unsupported target os %s' % target_os)
-  if target_arch not in ['ia32']:
+  if target_arch not in ['ia32', 'arm']:
     raise Exception('Unsupported target architecture %s' % target_arch)
 
   CheckDirExists(THIRD_PARTY_ROOT, 'third party tools');
@@ -158,7 +158,10 @@ def SetCrossCompilationEnvironment(host_os, target_os, target_arch, old_path):
   os.environ['ANDROID_NDK_ROOT'] = android_ndk_root
   os.environ['ANDROID_SDK_ROOT'] = android_sdk_root
 
-  toolchain_arch = 'x86-4.4.3'
+  if target_arch == 'arm':
+    toolchain_arch = 'arm-linux-androideabi-4.6'
+  else:
+    toolchain_arch = 'x86-4.4.3'
   toolchain_dir = 'linux-x86'
   android_toolchain = os.path.join(android_ndk_root,
       'toolchains', toolchain_arch,
@@ -184,8 +187,13 @@ def SetCrossCompilationEnvironment(host_os, target_os, target_arch, old_path):
               ]
   os.environ['PATH'] = ':'.join(pathList)
 
+  android_target_arch = target_arch
+  if target_arch == 'ia32':
+    android_target_arch = 'x86'
+
   gypDefinesList = [
-    'target_arch=ia32',
+    'target_arch=%s' % target_arch,
+    'android_target_arch=%s' % android_target_arch,
     'OS=%s' % target_os,
     'android_build_type=0',
     'host_os=%s' % host_os,
@@ -211,25 +219,29 @@ def GClientRunHooks():
   Execute(['gclient', 'runhooks'])
 
 
-def RunhooksIfNeeded(host_os, mode, arch, target_os):
+def RunhooksIfNeeded(host_os, mode, target_arch, target_os):
   if host_os != 'linux':
     return
   build_root = utils.GetBuildRoot(host_os)
   build_cookie_path = os.path.join(build_root, 'lastHooksTargetOS.txt')
 
   old_target_os = None
+  old_target_arch = None
   try:
     with open(build_cookie_path) as f:
-      old_target_os = f.read(1024)
+      lines = f.readlines()
+      old_target_os = lines[0]
+      old_target_arch = lines[1]
   except IOError as e:
     pass
-  if target_os != old_target_os:
+  if (target_os != old_target_os) or (target_arch != old_target_arch):
     try:
       os.mkdir(build_root)
     except OSError as e:
       pass
     with open(build_cookie_path, 'w') as f:
-      f.write(target_os)
+      f.write(target_os + '\n')
+      f.write(target_arch + '\n')
     GClientRunHooks()
 
 
@@ -418,8 +430,12 @@ def Main():
 
           toolchainprefix = None
           if target_os == 'android':
-            toolchainprefix = ('%s/i686-linux-android'
-                                % os.environ['ANDROID_TOOLCHAIN'])
+            if arch == 'ia32':
+              toolchainprefix = ('%s/i686-linux-android'
+                                  % os.environ['ANDROID_TOOLCHAIN'])
+            if arch == 'arm':
+              toolchainprefix = ('%s/arm-linux-androideabi'
+                                  % os.environ['ANDROID_TOOLCHAIN'])
           toolsOverride = SetTools(arch, toolchainprefix)
           if toolsOverride:
             printToolOverrides = target_os != 'android'
