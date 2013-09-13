@@ -70,6 +70,7 @@ class LocalVariable : public ZoneAllocated {
   void set_invisible(bool value) {
     is_invisible_ = value;
   }
+  bool is_invisible() const { return is_invisible_; }
 
   bool IsConst() const {
     return const_value_ != NULL;

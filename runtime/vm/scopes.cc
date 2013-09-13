@@ -220,8 +220,8 @@ static bool IsInternalIdentifier(const String& str) {
 }
 
 
-// Add variables that are declared in this scope to vars, then collect
-// variables of children, followed by siblings.
+// Add visible variables that are declared in this scope to vars, then
+// collect visible variables of children, followed by siblings.
 void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
                                        int16_t* scope_id) {
   (*scope_id)++;
@@ -242,7 +242,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
   }
   for (int i = 0; i < this->variables_.length(); i++) {
     LocalVariable* var = variables_[i];
-    if (var->owner() == this) {
+    if ((var->owner() == this) && !var->is_invisible()) {
       if (!IsInternalIdentifier(var->name())) {
         // This is a regular Dart variable, either stack-based or captured.
         VarDesc desc;

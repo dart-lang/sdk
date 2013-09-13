@@ -433,6 +433,7 @@ struct ParamDesc {
         name(NULL),
         default_value(NULL),
         metadata(NULL),
+        var(NULL),
         is_final(false),
         is_field_initializer(false) { }
   const AbstractType* type;
@@ -440,6 +441,7 @@ struct ParamDesc {
   const String* name;
   const Object* default_value;  // NULL if not an optional parameter.
   const Object* metadata;  // NULL if no metadata or metadata not evaluated.
+  LocalVariable* var;  // Scope variable allocated for this parameter.
   bool is_final;
   bool is_field_initializer;
 };
@@ -476,6 +478,20 @@ struct ParamList {
   void AddReceiver(const AbstractType* receiver_type, intptr_t token_pos) {
     ASSERT(this->parameters->is_empty());
     AddFinalParameter(token_pos, &Symbols::This(), receiver_type);
+  }
+
+
+  // Make the parameter variables visible/invisible.
+  // Field initializer parameters are always invisible.
+  void SetInvisible(bool invisible) {
+    const intptr_t num_params = parameters->length();
+    for (int i = 0; i < num_params; i++) {
+      ParamDesc& param = (*parameters)[i];
+      ASSERT(param.var != NULL);
+      if (!param.is_field_initializer) {
+        param.var->set_invisible(invisible);
+      }
+    }
   }
 
   void SetImplicitlyFinal() {
@@ -2483,16 +2499,6 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
 }
 
 
-// Helper function to make the first num_variables variables in the
-// given scope visible/invisible.
-static void SetInvisible(LocalScope* scope, int num_variables, bool invisible) {
-  ASSERT(num_variables <= scope->num_variables());
-  for (int i = 0; i < num_variables; i++) {
-    scope->VariableAt(i)->set_invisible(invisible);
-  }
-}
-
-
 void Parser::CheckRecursiveInvocation() {
   const GrowableObjectArray& pending_functions =
       GrowableObjectArray::Handle(
@@ -2568,14 +2574,13 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   // the scope so the expressions use the correct offsets for 'this' when
   // storing values. We make the formal parameters temporarily invisible
   // while parsing the instance field initializer expressions.
-  SetInvisible(current_block_->scope, params.parameters->length(), true);
+  params.SetInvisible(true);
   GrowableArray<Field*> initialized_fields;
   LocalVariable* receiver = current_block_->scope->VariableAt(0);
   OpenBlock();
   ParseInitializedInstanceFields(cls, receiver, &initialized_fields);
   // Make the parameters (which are in the outer scope) visible again.
-  SetInvisible(current_block_->scope->parent(),
-               params.parameters->length(), false);
+  params.SetInvisible(false);
 
   // Turn formal field parameters into field initializers or report error
   // if the function is not a constructor.
@@ -2592,13 +2597,12 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
         }
         CheckDuplicateFieldInit(param.name_pos, &initialized_fields, &field);
         AstNode* instance = new LoadLocalNode(param.name_pos, receiver);
-        LocalVariable* p =
-            current_block_->scope->LookupVariable(*param.name, false);
-        ASSERT(p != NULL);
         // Initializing formals cannot be used in the explicit initializer
         // list, nor can they be used in the constructor body.
-        // Thus, make the parameter invisible.
-        p->set_invisible(true);
+        // Thus, they are set to be invisible when added to the scope.
+        LocalVariable* p = param.var;
+        ASSERT(p != NULL);
+        ASSERT(p->is_invisible());
         AstNode* value = new LoadLocalNode(param.name_pos, p);
         EnsureExpressionTemp();
         AstNode* initializer = new StoreInstanceFieldNode(
@@ -5171,8 +5175,12 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
                "name '%s' already exists in scope",
                param_desc.name->ToCString());
     }
+    param_desc.var = parameter;
     if (param_desc.is_final) {
       parameter->set_is_final();
+    }
+    if (param_desc.is_field_initializer) {
+      parameter->set_invisible(true);
     }
   }
 }
