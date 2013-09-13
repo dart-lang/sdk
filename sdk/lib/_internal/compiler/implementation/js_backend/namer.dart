@@ -806,9 +806,17 @@ class Namer implements ClosureNamer {
 
   String getNameOfGlobalFunction(FunctionElement element) => getNameX(element);
 
-  /// Returns true if [element] is stored on CURRENT_ISOLATE ('$').
+  /// Returns true if [element] is stored on CURRENT_ISOLATE ('$').  We intend
+  /// to store only mutable static state in [CURRENT_ISOLATE], constants are
+  /// stored in 'C', and functions, accessors, classes, etc. are stored in one
+  /// of the other objects in [reservedGlobalObjectNames].
   bool isPropertyOfCurrentIsolate(Element element) {
+    // TODO(ahe): Make sure this method's documentation is always true and
+    // remove the word "intend".
     return
+        // TODO(ahe): Re-write these tests to be positive (so it only returns
+        // true for static/top-level mutable fields). Right now, a number of
+        // other elements, such as bound closures also live in CURRENT_ISOLATE.
         !element.isAccessor() &&
         !element.isClass() &&
         !element.isConstructor() &&
@@ -816,11 +824,7 @@ class Namer implements ClosureNamer {
         !element.isLibrary();
   }
 
-  /// Returns [CURRENT_ISOLATE] or one of [reservedGlobalObjectNames].  We
-  /// intend to store only mutable static state in [CURRENT_ISOLATE], constants
-  /// are stored in 'C', and functions, accessors, classes, etc. are stored in
-  /// one of the other objects in [reservedGlobalObjectNames].
-  // TODO(ahe): Make sure the above is always true and remove the word "intend".
+  /// Returns [CURRENT_ISOLATE] or one of [reservedGlobalObjectNames].
   String globalObjectFor(Element element) {
     if (isPropertyOfCurrentIsolate(element)) return CURRENT_ISOLATE;
     LibraryElement library = element.getLibrary();

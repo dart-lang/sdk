@@ -153,10 +153,10 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
       js.return_('Isolate')]);
   }
 
-  void emitInstancify() {
+  void emitConvertToFastObjectFunction() {
     // Create an instance that uses 'properties' as prototype. This should make
     // 'properties' a fast object.
-    mainBuffer.add(r'''function instancify(properties) {
+    mainBuffer.add(r'''function convertToFastObject(properties) {
   function MyClass() {};
   MyClass.prototype = properties;
   new MyClass();
@@ -169,6 +169,7 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
               primitives, const SourceString('printString'));
       String printHelperName = namer.isolateAccess(printHelper);
       mainBuffer.add('''
+// The following only works on V8 when run with option "--allow-natives-syntax".
 if (typeof $printHelperName === "function") {
   $printHelperName("Size of global object: "
                    + String(Object.getOwnPropertyNames(properties).length)

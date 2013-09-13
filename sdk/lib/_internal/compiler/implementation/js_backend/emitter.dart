@@ -4,6 +4,7 @@
 
 part of js_backend;
 
+/// Enables debugging of fast/slow objects using V8-specific primitives.
 const DEBUG_FAST_OBJECTS = false;
 
 /**
@@ -703,7 +704,8 @@ class CodeEmitterTask extends CompilerTask {
 
       optional(
           DEBUG_FAST_OBJECTS,
-          js(r'print("Number of classes: " + Object.getOwnPropertyNames($$).length)')),
+          js('print("Number of classes: "'
+             r' + Object.getOwnPropertyNames($$).length)')),
 
       js.forIn('cls', 'collectedClasses', [
         js.if_('hasOwnProperty.call(collectedClasses, cls)', [
@@ -3730,9 +3732,9 @@ class CodeEmitterTask extends CompilerTask {
     buffer.write('];$n');
   }
 
-  void emitInstancify() {
+  void emitConvertToFastObjectFunction() {
     mainBuffer.add(r'''
-function instancify(properties) {
+function convertToFastObject(properties) {
   function makeConstructor() {
     var str = "{\n";
     var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -3766,6 +3768,11 @@ function instancify(properties) {
       }
 
       for (String globalObject in Namer.reservedGlobalObjectNames) {
+        // The global objects start as so-called "slow objects". For V8, this
+        // means that it won't try to make map transitions as we add properties
+        // to these objects. Later on, we attempt to turn these objects into
+        // fast objects by calling "convertToFastObject" (see
+        // [emitConvertToFastObjectFunction]).
         mainBuffer
             ..write('var ${globalObject}$_=$_{}$N')
             ..write('delete ${globalObject}.x$N');
@@ -3994,9 +4001,9 @@ function instancify(properties) {
       mainBuffer.add(
           '${namer.CURRENT_ISOLATE}$_=${_}new ${namer.isolateName}()$N');
 
-      emitInstancify();
+      emitConvertToFastObjectFunction();
       for (String globalObject in Namer.reservedGlobalObjectNames) {
-        mainBuffer.add('$globalObject = instancify($globalObject)$N');
+        mainBuffer.add('$globalObject = convertToFastObject($globalObject)$N');
       }
       if (DEBUG_FAST_OBJECTS) {
         ClassElement primitives =
@@ -4007,6 +4014,7 @@ function instancify(properties) {
         String printHelperName = namer.isolateAccess(printHelper);
 
         mainBuffer.add('''
+// The following only works on V8 when run with option "--allow-natives-syntax".
 if (typeof $printHelperName === "function") {
   $printHelperName("Size of global helper object: "
                    + String(Object.getOwnPropertyNames(H).length)
