@@ -5,7 +5,18 @@
 part of dart.core;
 
 /**
- * Everything in Dart is an [Object].
+ * The base class for all Dart objects.
+ *
+ * Because Object is the root of the Dart class hierarchy,
+ * every other Dart class is a subclass of Object.
+ *
+ * When you define a class, you should override [toString]
+ * to return a string describing an instance of that class.
+ * You might also need to define [hashCode] and [==], as described in the
+ * [Implementing map keys]
+ * (http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-implementing-map-keys)
+ * section of the [library tour]
+ * (http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html).
  */
 class Object {
   /**

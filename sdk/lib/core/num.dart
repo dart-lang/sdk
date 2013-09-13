@@ -5,9 +5,9 @@
 part of dart.core;
 
 /**
- * All numbers in dart are instances of [num].
+ * An integer or floating-point number.
  *
- * It is a compile-time error for any type other than the types int and double
+ * It is a compile-time error for any type other than [int] or [double]
  * to attempt to extend or implement num.
  */
 abstract class num implements Comparable<num> {

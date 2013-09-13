@@ -147,7 +147,7 @@
  * for more coverage of classes in this package.
  *
  * The 
- * [Dart Language Specification](https://www.dartlang.org/docs/spec/)
+ * [Dart Language Specification](http://www.dartlang.org/docs/spec/)
  * provides technical details.
  */
 library dart.core;

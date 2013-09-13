@@ -5,7 +5,15 @@
 part of dart.core;
 
 /**
- * A parsed URI, as specified by RFC-3986, http://tools.ietf.org/html/rfc3986.
+ * A parsed URI, such as a URL.
+ *
+ * **See also:**
+ *
+ * * [URIs][uris] in the [library tour][libtour]
+ * * [RFC-3986](http://tools.ietf.org/html/rfc3986)
+ *
+ * [uris]: http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-uri
+ * [libtour]: http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html
  */
 class Uri {
   final String _host;

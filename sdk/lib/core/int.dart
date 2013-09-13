@@ -5,18 +5,15 @@
 part of dart.core;
 
 /**
- * Representation of Dart integers containing integer specific
- * operations and specialization of operations inherited from [num].
+ * An arbitrarily large integer.
  *
- * Integers can be arbitrarily large in Dart.
- *
- * *Note however, that when compiling to JavaScript, integers are
+ * **Note:** When compiling to JavaScript, integers are
  * implemented as JavaScript numbers. When compiling to JavaScript,
  * integers are therefore restricted to 53 significant bits because
  * all JavaScript numbers are double-precision floating point
  * values. The behavior of the operators and methods in the [int]
  * class therefore sometimes differs between the Dart VM and Dart code
- * compiled to JavaScript.*
+ * compiled to JavaScript.
  *
  * It is a compile-time error for a class to attempt to extend or implement int.
  */

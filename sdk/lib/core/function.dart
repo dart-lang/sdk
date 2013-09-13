@@ -5,7 +5,7 @@
 part of dart.core;
 
 /**
- * Super-type of all function types.
+ * The base class for all function types.
  *
  * A function value, or an instance of a class with a "call" method, is a
  * subtype of a function type, and as such, a subtype of [Function].
