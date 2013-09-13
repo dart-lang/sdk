@@ -4,8 +4,13 @@
 
 // TODO(jmesserly): more commentary here.
 /**
- * This library provides access to Model-Driven-Views APIs on HTML elements.
- * More information can be found at: <https://github.com/Polymer/mdv>.
+ * Template and node binding for HTML elements.
+ *
+ * This library provides access to the Polymer project's
+ * [Template Binding](http://www.polymer-project.org/platform/template.html) and
+ * [Node.bind()](http://www.polymer-project.org/platform/node_bind.html) APIs.
+ * Find more information at the
+ * [Polymer.dart homepage](https://www.dartlang.org/polymer-dart/).
  */
 library mdv;
 
