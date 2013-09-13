@@ -5,8 +5,10 @@
 part of dart.math;
 
 /**
- * A random number generator. The default implementation supplies a stream of
- * pseudo-random bits which is not suitable for cryptographic purposes.
+ * A generator of random bool, int, or double values.
+ *
+ * The default implementation supplies a stream of
+ * pseudo-random bits that are not suitable for cryptographic purposes.
  */
 abstract class Random {
   /**
