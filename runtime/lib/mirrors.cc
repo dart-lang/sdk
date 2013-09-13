@@ -259,7 +259,7 @@ static RawInstance* CreateVariableMirror(const Field& field,
   args.SetAt(0, field_ref);
   args.SetAt(1, name);
   args.SetAt(2, owner_mirror);
-  args.SetAt(3, Instance::Handle());  // Null for type.
+  args.SetAt(3, Object::null_instance());  // Null for type.
   args.SetAt(4, Bool::Get(field.is_static()));
   args.SetAt(5, Bool::Get(field.is_final()));
 

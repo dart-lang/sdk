@@ -109,7 +109,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   if (!message->IsOOB()) {
     receive_port = DartLibraryCalls::LookupReceivePort(message->dest_port());
     if (receive_port.IsError()) {
-      return ProcessUnhandledException(Instance::Handle(),
+      return ProcessUnhandledException(Object::null_instance(),
                                        Error::Cast(receive_port));
     }
     if (receive_port.IsNull()) {
@@ -124,7 +124,8 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   const Object& msg_obj = Object::Handle(reader.ReadObject());
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
-    return ProcessUnhandledException(Instance::Handle(), Error::Cast(msg_obj));
+    return ProcessUnhandledException(Object::null_instance(),
+                                     Error::Cast(msg_obj));
   }
   if (!msg_obj.IsNull() && !msg_obj.IsInstance()) {
     // TODO(turnidge): We need to decide what an isolate does with

@@ -78,7 +78,7 @@ Assembler::Assembler(bool use_far_branches)
 
     // These objects and labels need to be accessible through every pool-pointer
     // at the same index.
-    object_pool_.Add(Object::Handle(), Heap::kOld);
+    object_pool_.Add(Object::null_object(), Heap::kOld);
     patchable_pool_entries_.Add(kNotPatchable);
 
     object_pool_.Add(Bool::True(), Heap::kOld);
@@ -91,7 +91,7 @@ Assembler::Assembler(bool use_far_branches)
       FindExternalLabel(&StubCode::UpdateStoreBufferLabel(), kNotPatchable);
       patchable_pool_entries_.Add(kNotPatchable);
     } else {
-      object_pool_.Add(Object::Handle(), Heap::kOld);
+      object_pool_.Add(Object::null_object(), Heap::kOld);
       patchable_pool_entries_.Add(kNotPatchable);
     }
 
@@ -99,7 +99,7 @@ Assembler::Assembler(bool use_far_branches)
       FindExternalLabel(&StubCode::CallToRuntimeLabel(), kNotPatchable);
       patchable_pool_entries_.Add(kNotPatchable);
     } else {
-      object_pool_.Add(Object::Handle(), Heap::kOld);
+      object_pool_.Add(Object::null_object(), Heap::kOld);
       patchable_pool_entries_.Add(kNotPatchable);
     }
   }
