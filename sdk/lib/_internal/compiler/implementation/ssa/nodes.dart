@@ -1250,12 +1250,14 @@ class HBoundsCheck extends HCheck {
    */
   int staticChecks = FULL_CHECK;
 
-  HBoundsCheck(length, index) : super(<HInstruction>[length, index]) {
+  HBoundsCheck(length, index, array)
+      : super(<HInstruction>[length, index, array]) {
     instructionType = HType.INTEGER;
   }
 
   HInstruction get length => inputs[1];
   HInstruction get index => inputs[0];
+  HInstruction get array => inputs[2];
   bool isControlFlow() => true;
 
   accept(HVisitor visitor) => visitor.visitBoundsCheck(this);

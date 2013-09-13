@@ -877,7 +877,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     length.instructionType = HType.INTEGER;
     indexNode.block.addBefore(indexNode, length);
 
-    HBoundsCheck check = new HBoundsCheck(indexArgument, length);
+    HBoundsCheck check = new HBoundsCheck(indexArgument, length, array);
     indexNode.block.addBefore(indexNode, check);
     // If the index input to the bounds check was not known to be an integer
     // then we replace its uses with the bounds check, which is known to be an

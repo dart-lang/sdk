@@ -1978,23 +1978,35 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Statement thenBody = new js.Block.empty();
       js.Block oldContainer = currentContainer;
       currentContainer = thenBody;
-      generateThrowWithHelper('ioore', node.index);
+      generateThrowWithHelper('ioore', [node.array, node.index]);
       currentContainer = oldContainer;
       thenBody = unwrapStatement(thenBody);
       pushStatement(new js.If.noElse(underOver, thenBody), node);
     } else {
-      generateThrowWithHelper('ioore', node.index);
+      generateThrowWithHelper('ioore', [node.array, node.index]);
     }
   }
 
-  void generateThrowWithHelper(String helperName, HInstruction argument) {
+  void generateThrowWithHelper(String helperName, argument) {
     Element helper = compiler.findHelper(new SourceString(helperName));
     world.registerStaticUse(helper);
     js.VariableUse jsHelper =
         new js.VariableUse(backend.namer.isolateAccess(helper));
-    use(argument);
-    js.Call value = new js.Call(jsHelper, [pop()]);
-    attachLocation(value, argument);
+    List arguments = [];
+    var location;
+    if (argument is List) {
+      location = argument[0];
+      argument.forEach((instruction) {
+        use(instruction);
+        arguments.add(pop());
+      });
+    } else {
+      location = argument;
+      use(argument);
+      arguments.add(pop());
+    }
+    js.Call value = new js.Call(jsHelper, arguments);
+    attachLocation(value, location);
     // BUG(4906): Using throw here adds to the size of the generated code
     // but it has the advantage of explicitly telling the JS engine that
     // this code path will terminate abruptly. Needs more work.
