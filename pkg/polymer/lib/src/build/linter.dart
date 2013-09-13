@@ -6,7 +6,7 @@
  * Logic to validate that developers are correctly using Polymer constructs.
  * This is mainly used to produce warnings for feedback in the editor.
  */
-library polymer.src.linter;
+library polymer.src.build.linter;
 
 import 'dart:io';
 import 'dart:async';
@@ -17,7 +17,7 @@ import 'package:barback/barback.dart';
 import 'package:html5lib/dom.dart';
 import 'package:html5lib/dom_parsing.dart';
 
-import 'transform/common.dart';
+import 'common.dart';
 
 typedef String MessageFormatter(String kind, String message, Span span);
 

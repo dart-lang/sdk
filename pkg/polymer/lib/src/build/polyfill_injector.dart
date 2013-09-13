@@ -6,7 +6,7 @@
  * Final phase of the polymer transformation: includes any additional polyfills
  * that may needed by the deployed app.
  */
-library polymer.src.transform.polyfill_injector;
+library polymer.src.build.polyfill_injector;
 
 import 'dart:async';
 

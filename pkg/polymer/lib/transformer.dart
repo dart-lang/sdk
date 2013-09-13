@@ -7,17 +7,17 @@
 library polymer.src.transform;
 
 import 'package:observe/transform.dart';
-import 'transform/code_extractor.dart';
-import 'transform/import_inliner.dart';
-import 'transform/script_compactor.dart';
-import 'transform/polyfill_injector.dart';
-import 'transform/common.dart';
+import 'src/build/code_extractor.dart';
+import 'src/build/import_inliner.dart';
+import 'src/build/script_compactor.dart';
+import 'src/build/polyfill_injector.dart';
+import 'src/build/common.dart';
 
-export 'transform/code_extractor.dart';
-export 'transform/import_inliner.dart';
-export 'transform/script_compactor.dart';
-export 'transform/polyfill_injector.dart';
-export 'transform/common.dart' show TransformOptions;
+export 'src/build/code_extractor.dart';
+export 'src/build/import_inliner.dart';
+export 'src/build/script_compactor.dart';
+export 'src/build/polyfill_injector.dart';
+export 'src/build/common.dart' show TransformOptions;
 
 /** Creates phases to deploy a polymer application. */
 List<List<Transformer>> createDeployPhases(TransformOptions options) {

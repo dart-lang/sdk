@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** Transfomer that inlines polymer-element definitions from html imports. */
-library polymer.src.transform.import_inliner;
+library polymer.src.build.import_inliner;
 
 import 'dart:async';
 

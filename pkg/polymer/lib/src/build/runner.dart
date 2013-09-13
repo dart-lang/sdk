@@ -6,7 +6,7 @@
  * Definitions used to run the polymer linter and deploy tools without using
  * pub serve or pub deploy.
  */
-library polymer.src.barback_runner;
+library polymer.src.build.runner;
 
 import 'dart:async';
 import 'dart:convert';

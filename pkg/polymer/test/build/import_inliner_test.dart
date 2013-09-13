@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library polymer.test.transform.import_inliner_test;
+library polymer.test.build.import_inliner_test;
 
-import 'package:polymer/src/transform/common.dart';
-import 'package:polymer/src/transform/import_inliner.dart';
+import 'package:polymer/src/build/common.dart';
+import 'package:polymer/src/build/import_inliner.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 

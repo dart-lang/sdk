@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library polymer.test.transform.polyfill_injector_test;
+library polymer.test.build.polyfill_injector_test;
 
-import 'package:polymer/src/transform/common.dart';
-import 'package:polymer/src/transform/polyfill_injector.dart';
+import 'package:polymer/src/build/common.dart';
+import 'package:polymer/src/build/polyfill_injector.dart';
 import 'package:unittest/compact_vm_config.dart';
 
 import 'common.dart';

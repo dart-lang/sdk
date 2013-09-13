@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library polymer.test.transform.all_phases_test;
+library polymer.test.build.all_phases_test;
 
-import 'package:polymer/src/transform.dart';
+import 'package:polymer/transformer.dart';
 import 'package:unittest/compact_vm_config.dart';
 
 import 'common.dart';

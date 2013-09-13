@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** Common methods used by transfomers. */
-library polymer.src.transform.common;
+library polymer.src.build.common;
 
 import 'dart:async';
 

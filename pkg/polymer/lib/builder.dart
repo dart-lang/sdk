@@ -84,9 +84,9 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
-import 'src/barback_runner.dart';
-import 'src/linter.dart';
-import 'src/transform.dart';
+import 'src/build/linter.dart';
+import 'src/build/runner.dart';
+import 'transformer.dart';
 
 
 /**

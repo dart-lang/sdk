@@ -27,8 +27,8 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
-import 'package:polymer/src/barback_runner.dart';
-import 'package:polymer/src/transform.dart';
+import 'src/build/runner.dart';
+import 'transformer.dart';
 
 main() {
   var args = _parseArgs(new Options().arguments);

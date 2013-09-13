@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** Transfomer that combines multiple dart script tags into a single one. */
-library polymer.src.transform.script_compactor;
+library polymer.src.build.script_compactor;
 
 import 'dart:async';
 

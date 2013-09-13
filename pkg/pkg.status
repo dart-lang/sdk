@@ -151,7 +151,7 @@ oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
 observe/test/transform_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
 polymer/test/build/*: Fail, OK # Uses dart:io.
-polymer/test/transform/*: Fail, OK # Uses dart:io.
+polymer/test/utils_test: Fail, OK # Uses dart:io.
 watcher/test/*: Fail, OK # Uses dart:io.
 
 scheduled_test/test/descriptor/async_test: Fail # http://dartbug.com/8440

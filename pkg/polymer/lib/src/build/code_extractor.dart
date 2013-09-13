@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** Transfomer that extracts inlined script code into separate assets. */
-library polymer.src.transformers;
+library polymer.src.build.code_extractor;
 
 import 'dart:async';
 
