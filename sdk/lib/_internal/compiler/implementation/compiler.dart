@@ -463,20 +463,20 @@ abstract class Compiler implements DiagnosticListener {
 
   Element get currentElement => _currentElement;
 
+  String tryToString(object) {
+    try {
+      return object.toString();
+    } catch (_) {
+      return '<exception in toString()>';
+    }
+  }
+
   /**
    * Perform an operation, [f], returning the return value from [f].  If an
    * error occurs then report it as having occurred during compilation of
    * [element].  Can be nested.
    */
   withCurrentElement(Element element, f()) {
-    String tryToString(object) {
-      try {
-        return object.toString();
-      } catch (_) {
-        return '<exception in toString()>';
-      }
-    }
-
     Element old = currentElement;
     _currentElement = element;
     try {
@@ -498,13 +498,14 @@ abstract class Compiler implements DiagnosticListener {
       // do not have enough stack space.
       rethrow;
     } catch (ex, s) {
+      if (hasCrashed) rethrow;
       String message = 'The compiler crashed: ${tryToString(ex)}.';
       try {
         unhandledExceptionOnElement(element, s, message);
       } catch (doubleFault) {
         // Ignoring exceptions in exception handling.
       }
-      throw new CompilerCancelledException('The compiler crashed');
+      throw new CompilerCancelledException(message);
     } finally {
       _currentElement = old;
     }

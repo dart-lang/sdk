@@ -176,7 +176,8 @@ class Compiler extends leg.Compiler {
     // TODO(johnniwinther): Wrap the result from [provider] in a specialized
     // [Future] to ensure that we never execute an asynchronous action without setting
     // up the current element of the compiler.
-    return new Future.sync(() => provider(resourceUri)).then((String text) {
+    return new Future.sync(() => callUserProvider(resourceUri))
+        .then((String text) {
       SourceFile sourceFile = new SourceFile(resourceUri.toString(), text);
       // We use [readableUri] as the URI for the script since need to preserve
       // the scheme in the script because [Script.uri] is used for resolving
@@ -283,15 +284,41 @@ class Compiler extends leg.Compiler {
     // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For
     // instance in the [Types] constructor in typechecker.dart.
     if (span == null || span.uri == null) {
-      handler(null, null, null, message, kind);
+      callUserHandler(null, null, null, message, kind);
     } else {
-      handler(translateUri(span.uri, null), span.begin, span.end,
-              message, kind);
+      callUserHandler(
+          translateUri(span.uri, null), span.begin, span.end, message, kind);
     }
   }
 
   bool get isMockCompilation {
     return mockableLibraryUsed
       && (options.indexOf('--allow-mock-compilation') != -1);
+  }
+
+  void callUserHandler(Uri uri, int begin, int end,
+                       String message, api.Diagnostic kind) {
+    try {
+      handler(uri, begin, end, message, kind);
+    } catch (ex, s) {
+      diagnoseCrashInUserCode(
+          'Uncaught exception in diagnostic handler', ex, s);
+      rethrow;
+    }
+  }
+
+  Future callUserProvider(Uri uri) {
+    try {
+      return provider(uri);
+    } catch (ex, s) {
+      diagnoseCrashInUserCode('Uncaught exception in input provider', ex, s);
+      rethrow;
+    }
+  }
+
+  void diagnoseCrashInUserCode(String message, exception, stackTrace) {
+    hasCrashed = true;
+    print('$message: ${tryToString(exception)}');
+    print(tryToString(stackTrace));
   }
 }
