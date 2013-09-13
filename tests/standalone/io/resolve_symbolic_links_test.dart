@@ -80,7 +80,6 @@ main() {
           testFile('../dir2/file2'),
           testDir('.'),
           testDir('..'),
-          testDir('link1/.'),
           testLink('../../link1')]);
       }
     })
