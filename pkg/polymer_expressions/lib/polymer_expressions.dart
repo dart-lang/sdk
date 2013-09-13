@@ -2,6 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * A binding delegate used with Polymer elements that
+ * allows for complex binding expressions, including
+ * property access, function invocation,
+ * list/map indexing, and two-way filtering.
+ *
+ * When you install polymer.dart,
+ * polymer_expressions is automatically installed as well.
+ *
+ * Polymer expressions are part of the Polymer.dart project.
+ * Refer to the
+ * [Polymer.dart](http://www.dartlang.org/polymer-dart/)
+ * homepage for example code, project status, and
+ * information about how to get started using Polymer.dart in your apps.
+ * 
+ * ## Other resources
+ *
+ * The
+ * [Polymer expressions](http://pub.dartlang.org/packages/polymer_expressions)
+ * pub repository contains detailed documentation about using polymer
+ * expressions.
+ */
+
 library polymer_expressions;
 
 import 'dart:async';

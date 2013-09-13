@@ -1,8 +1,25 @@
 polymer_expressions
 ===================
 
-Polymer Expressions are an expressive syntax that can be used in templates in
-Dart. Polymer Expressions allow you to write complex binding expressions, with
+
+Polymer expressions are an expressive syntax that can be used in HTML templates
+with Dart.
+
+Templates are one feature of Polymer.dart, which is a set of comprehensive UI
+and utility components for building web applications.
+This package is automatically included with the
+[Polymer](https://pub.dartlang.org/packages/polymer) package
+because Polymer expressions are the default expression syntax
+in Polymer Dart apps.
+The [Polymer.dart homepage][home_page]
+contains a list of features, project status,
+installation instructions, tips for upgrading from Web UI,
+and links to other documentation.
+
+
+## Overview
+
+Polymer expressions allow you to write complex binding expressions, with
 property access, function invocation, list/map indexing, and two-way filtering
 like:
 
@@ -10,12 +27,10 @@ like:
     {{ person.title + " " + person.getFullName() | upppercase }}
 ```
 
-## Overview
-
 ### Model-Driven Views (MDV)
-[MDV][mdv] allows you to define templates directly in HTML that are rendered by the
-browser into the DOM. Templates are bound to a data model, and changes to the
-data are automatically reflected in the DOM, and changes in HTML inputs are
+[MDV][mdv] allows you to define templates directly in HTML that are rendered by
+the browser into the DOM. Templates are bound to a data model, and changes to
+the data are automatically reflected in the DOM, and changes in HTML inputs are
 assigned back into the model. The template and model are bound together via
 binding expressions that are evaluated against the model. These binding
 expressions are placed in double-curly-braces, or "mustaches".

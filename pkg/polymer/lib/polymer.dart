@@ -3,11 +3,39 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * This library exports all of the commonly used functions and types for
- * building UI's.
+ * Custom HTML tags, data binding, and templates for building
+ * structured, encapsulated, client-side web apps.
  *
- * See this article for more information:
- * <http://www.dartlang.org/articles/dart-web-components/>.
+ * Polymer.dart, the next evolution of Web UI,
+ * is an in-progress Dart port of the
+ * [Polymer project](http://www.polymer-project.org/).
+ * Polymer.dart compiles to JavaScript and runs across the modern web.
+ *
+ * To use polymer.dart in your application,
+ * first add a
+ * [dependency](http://pub.dartlang.org/doc/dependencies.html)
+ * to the app's pubspec.yaml file.
+ * Instead of using the open-ended `any` version specifier,
+ * we recommend using a range of version numbers, as in this example:
+ *
+ *     dependencies:
+ *       polymer: '>=0.7.1 <0.8'
+ *
+ * Then import the library into your application:
+ *
+ *     import 'package:polymer/polymer.dart';
+ *
+ * ## Other resources
+ *
+ * * [Polymer.dart homepage](http://www.dartlang.org/polymer-dart/):
+ * Example code, project status, and
+ * information about how to get started using Polymer.dart in your apps.
+ *
+ * * [polymer.dart package](http://pub.dartlang.org/packages/polymer):
+ * More details, such as the current major release number.
+ *
+ * * [Upgrading to Polymer.dart](http://www.dartlang.org/polymer-dart/upgrading-to-polymer-from-web-ui.html):
+ * Tips for converting your apps from Web UI to Polymer.dart.
  */
 library polymer;
 
