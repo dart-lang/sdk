@@ -74,6 +74,8 @@ class _Directory extends FileSystemEntity implements Directory {
     return (result == 1);
   }
 
+  Directory get absolute => new Directory(_absolutePath);
+
   Future<FileStat> stat() => FileStat.stat(path);
 
   FileStat statSync() => FileStat.statSync(path);

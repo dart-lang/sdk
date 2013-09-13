@@ -85,6 +85,15 @@ abstract class Link implements FileSystemEntity {
   Link renameSync(String newPath);
 
   /**
+   * Returns a [Link] instance whose path is the absolute path to [this].
+   *
+   * The absolute path is computed by prefixing
+   * a relative path with the current working directory, and returning
+   * an absolute path unchanged.
+   */
+  Link get absolute;
+
+  /**
    * Gets the target of the link. Returns a future that completes with
    * the path to the target.
    *
@@ -126,6 +135,8 @@ class _Link extends FileSystemEntity implements Link {
   Future<bool> exists() => FileSystemEntity.isLink(path);
 
   bool existsSync() => FileSystemEntity.isLinkSync(path);
+
+  Link get absolute => new Link(_absolutePath);
 
   Future<FileStat> stat() => FileStat.stat(path);
 

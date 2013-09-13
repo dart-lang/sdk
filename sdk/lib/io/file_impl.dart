@@ -267,6 +267,8 @@ class _File extends FileSystemEntity implements File {
     return result;
   }
 
+  File get absolute => new File(_absolutePath);
+
   Future<FileStat> stat() => FileStat.stat(path);
 
   FileStat statSync() => FileStat.statSync(path);

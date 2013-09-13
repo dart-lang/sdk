@@ -99,6 +99,15 @@ abstract class File implements FileSystemEntity {
   int lengthSync();
 
   /**
+   * Returns a [File] instance whose path is the absolute path to [this].
+   *
+   * The absolute path is computed by prefixing
+   * a relative path with the current working directory, and returning
+   * an absolute path unchanged.
+   */
+  File get absolute;
+
+  /**
    * Get the last-modified time of the file. Returns a
    * [:Future<DateTime>:] that completes with a [DateTime] object for the
    * modification date.
