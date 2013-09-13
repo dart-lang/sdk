@@ -471,20 +471,50 @@ bool File::IsAbsolutePath(const char* pathname) {
 char* File::GetCanonicalPath(const char* pathname) {
   struct _stat st;
   const wchar_t* system_name = StringUtils::Utf8ToWide(pathname);
-  int stat_status = _wstat(system_name, &st);
-  if (stat_status != 0) {
-    SetLastError(ERROR_FILE_NOT_FOUND);
+  HANDLE file_handle = CreateFileW(
+        system_name,
+        0,
+        FILE_SHARE_READ,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS,
+        NULL);
+  if (file_handle == INVALID_HANDLE_VALUE) {
     free(const_cast<wchar_t*>(system_name));
     return NULL;
   }
-  int required_size = GetFullPathNameW(system_name, 0, NULL, NULL);
+  wchar_t dummy_buffer[1];
+  int required_size = GetFinalPathNameByHandle(file_handle,
+                                               dummy_buffer,
+                                               0,
+                                               VOLUME_NAME_DOS);
+  if (required_size == 0) {
+    free(const_cast<wchar_t*>(system_name));
+    DWORD error = GetLastError();
+    CloseHandle(file_handle);
+    SetLastError(error);
+    return NULL;
+  }
   wchar_t* path =
       static_cast<wchar_t*>(malloc(required_size * sizeof(wchar_t)));
-  int written = GetFullPathNameW(system_name, required_size, path, NULL);
+  int result_size = GetFinalPathNameByHandle(file_handle,
+                                             path,
+                                             required_size,
+                                             VOLUME_NAME_DOS);
+  ASSERT(result_size == required_size - 1);
+  // Remove leading \\?\ if possible, unless input used it.
+  char* result;
+  if (result_size < MAX_PATH - 1 + 4 &&
+      result_size > 4 &&
+      wcsncmp(path, L"\\\\?\\", 4) == 0 &&
+      wcsncmp(system_name, L"\\\\?\\", 4) != 0) {
+    result = StringUtils::WideToUtf8(path + 4);
+  } else {
+    result = StringUtils::WideToUtf8(path);
+  }
   free(const_cast<wchar_t*>(system_name));
-  ASSERT(written <= (required_size - 1));
-  char* result = StringUtils::WideToUtf8(path);
   free(path);
+  CloseHandle(file_handle);
   return result;
 }
 
