@@ -63,9 +63,12 @@ function notifyStart() {
 notifyStart();
 
 function notifyDone() {
-  // TODO(ricow): REMOVE, debug info, see issue 13292
-  dartPrint('Calling notifyDone()');
   if (testRunner) testRunner.notifyDone();
+
+  // TODO(ricow): REMOVE, debug info, see issue 13292
+  if (!testRunner) {
+    dartPrint('Calling notifyDone()');
+  }
   // To support in browser launching of tests we post back start and result
   // messages to the window.opener.
   var driver = getDriverWindow();
@@ -76,8 +79,9 @@ function notifyDone() {
 
 function processMessage(msg) {
   // TODO(ricow): REMOVE, debug info, see issue 13292
-  dartPrint('processMessage(): ' + msg);
-
+  if (!testRunner) {
+    dartPrint('processMessage(): ' + msg);
+  }
   if (typeof msg != 'string') return;
   if (msg == 'unittest-suite-done') {
     notifyDone();
