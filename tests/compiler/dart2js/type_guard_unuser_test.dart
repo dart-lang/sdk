@@ -47,7 +47,7 @@ main() {
   checkNumberOfMatches(matches, 0);
   Expect.isTrue(
       generated.contains(
-          new RegExp(r'return a === true \? [$a-z]+\.foo\(2\) : b;')));
+          new RegExp(r'return a === true \? [$A-Z]+\.foo\(2\) : b;')));
 
   generated = compile(TEST_TWO, entry: 'foo');
   regexp = new RegExp("foo\\(1\\)");

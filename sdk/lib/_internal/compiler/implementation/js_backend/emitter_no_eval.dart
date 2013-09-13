@@ -113,9 +113,7 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
   }
 
   jsAst.Expression buildLazyInitializedGetter(VariableElement element) {
-    String isolate = namer.CURRENT_ISOLATE;
-    String name = namer.getName(element);
-    return js.fun([], js.return_(js('$isolate.$name')));
+    return js.fun([], js.return_(namer.elementAccess(element)));
   }
 
   jsAst.Fun get lazyInitializerFunction {
@@ -153,5 +151,34 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
       js('Isolate.prototype.constructor = Isolate'),
       js('Isolate.${namer.isolatePropertiesName} = isolateProperties'),
       js.return_('Isolate')]);
+  }
+
+  void emitInstancify() {
+    // Create an instance that uses 'properties' as prototype. This should make
+    // 'properties' a fast object.
+    mainBuffer.add(r'''function instancify(properties) {
+  function MyClass() {};
+  MyClass.prototype = properties;
+  new MyClass();
+''');
+    if (DEBUG_FAST_OBJECTS) {
+      ClassElement primitives =
+          compiler.findHelper(const SourceString('Primitives'));
+      FunctionElement printHelper =
+          compiler.lookupElementIn(
+              primitives, const SourceString('printString'));
+      String printHelperName = namer.isolateAccess(printHelper);
+      mainBuffer.add('''
+if (typeof $printHelperName === "function") {
+  $printHelperName("Size of global object: "
+                   + String(Object.getOwnPropertyNames(properties).length)
+                   + ", fast properties " + %HasFastProperties(properties));
+}
+''');
+    }
+mainBuffer.add(r'''
+  return properties;
+}
+''');
   }
 }

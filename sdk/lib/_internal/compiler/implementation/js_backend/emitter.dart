@@ -4,6 +4,8 @@
 
 part of js_backend;
 
+const DEBUG_FAST_OBJECTS = false;
+
 /**
  * A function element that represents a closure call. The signature is copied
  * from the given element.
@@ -584,7 +586,7 @@ class CodeEmitterTask extends CompilerTask {
     // Startup code that loops over the method names and puts handlers on the
     // Object class to catch noSuchMethod invocations.
     ClassElement objectClass = compiler.objectClass;
-    String createInvocationMirror = namer.getName(
+    String createInvocationMirror = namer.isolateAccess(
         backend.getCreateInvocationMirror());
     String noSuchMethodName = namer.publicInstanceMethodNameByArity(
         Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
@@ -592,11 +594,13 @@ class CodeEmitterTask extends CompilerTask {
     if (useDiffEncoding) {
       statements.addAll([
         js('var objectClassObject = '
-           '        collectedClasses["${namer.getName(objectClass)}"],'
+           '        collectedClasses["${namer.getNameOfClass(objectClass)}"],'
            '    shortNames = "$diffEncoding".split(","),'
            '    nameNumber = 0,'
            '    diffEncodedString = shortNames[0],'
            '    calculatedShortNames = [0, 1]'),  // 0, 1 are args for splice.
+        js.if_('objectClassObject instanceof Array',
+               js('objectClassObject = objectClassObject[1]')),
         js.for_('var i = 0', 'i < diffEncodedString.length', 'i++', [
           js('var codes = [],'
              '    diff = 0,'
@@ -631,9 +635,12 @@ class CodeEmitterTask extends CompilerTask {
           ',longNames = "${longs.join(",")}".split(",")';
       statements.add(
         js('var objectClassObject = '
-           '        collectedClasses["${namer.getName(objectClass)}"],'
+           '        collectedClasses["${namer.getNameOfClass(objectClass)}"],'
            '    shortNames = "$diffEncoding".split(",")'
            '    $longNamesConstant'));
+      statements.add(
+          js.if_('objectClassObject instanceof Array',
+                 js('objectClassObject = objectClassObject[1]')));
     }
 
     String sliceOffset = ', (j < $firstNormalSelector) ? 1 : 0';
@@ -666,7 +673,7 @@ class CodeEmitterTask extends CompilerTask {
                [js.return_(js(
                    'this.$noSuchMethodName('
                        'this, '
-                       '${namer.CURRENT_ISOLATE}.$createInvocationMirror('
+                       '$createInvocationMirror('
                            'name, short, type, '
                            '$slice(arguments$sliceOffsetParam), []))'))]))]))
       ])
@@ -689,12 +696,23 @@ class CodeEmitterTask extends CompilerTask {
 
     List<jsAst.Node> statements = [
       js('var pendingClasses = {}'),
+      js.if_('!init.allClasses', js('init.allClasses = {}')),
+      js('var allClasses = init.allClasses'),
 
       js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
+
+      optional(
+          DEBUG_FAST_OBJECTS,
+          js(r'print("Number of classes: " + Object.getOwnPropertyNames($$).length)')),
 
       js.forIn('cls', 'collectedClasses', [
         js.if_('hasOwnProperty.call(collectedClasses, cls)', [
           js('var desc = collectedClasses[cls]'),
+          js('var globalObject = isolateProperties'),
+          js.if_('desc instanceof Array', [
+              js('globalObject = desc[0] || isolateProperties'),
+              js('desc = desc[1]')
+          ]),
 
           /* The 'fields' are either a constructor function or a
            * string encoding fields, constructor and superclass.  Get
@@ -733,6 +751,7 @@ class CodeEmitterTask extends CompilerTask {
             js('s = supr.split("+")'),
             js('supr = s[0]'),
             js('var mixin = collectedClasses[s[1]]'),
+            js.if_('mixin instanceof Array', js('mixin = mixin[1]')),
             js.forIn('d', 'mixin', [
               js.if_('hasOwnProperty.call(mixin, d)'
                      '&& !hasOwnProperty.call(desc, d)',
@@ -743,7 +762,8 @@ class CodeEmitterTask extends CompilerTask {
           js('var constructor = defineClass(name, cls, fields, desc)'),
           optional(backend.isTreeShakingDisabled,
                    js('constructor["${namer.metadataField}"] = desc')),
-          js('isolateProperties[cls] = constructor'),
+          js('allClasses[cls] = constructor'),
+          js('globalObject[cls] = constructor'),
           js.if_('supr', js('pendingClasses[cls] = supr'))
         ])
       ]),
@@ -792,8 +812,8 @@ class CodeEmitterTask extends CompilerTask {
       // we have a string.
       js.if_('!superclass || typeof superclass != "string"', js.return_()),
       js('finishClass(superclass)'),
-      js('var constructor = isolateProperties[cls]'),
-      js('var superConstructor = isolateProperties[superclass]'),
+      js('var constructor = allClasses[cls]'),
+      js('var superConstructor = allClasses[superclass]'),
 
       js.if_(js('!superConstructor'),
              js('superConstructor ='
@@ -888,10 +908,6 @@ class CodeEmitterTask extends CompilerTask {
 
       js('str += "}\\n"'),
 
-      js('var Constants = #', js.fun('', [])),
-      // Install 'C' as a prototype to ensure it has a hidden class.
-      js('Constants.prototype = ${namer.globalObjectForConstant(null)}'),
-
       js('var newIsolate = new Function(str)'),
       js('newIsolate.prototype = isolatePrototype'),
       js('isolatePrototype.constructor = newIsolate'),
@@ -907,8 +923,6 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   jsAst.Fun get lazyInitializerFunction {
-    String isolate = namer.CURRENT_ISOLATE;
-
     // function(prototype, staticName, fieldName, getterName, lazyValue) {
     var parameters = <String>['prototype', 'staticName', 'fieldName',
                               'getterName', 'lazyValue'];
@@ -1103,7 +1117,8 @@ class CodeEmitterTask extends CompilerTask {
           parametersBuffer, argumentsBuffer,
           indexOfLastOptionalArgumentInParameters);
     } else {
-      body = [js.return_(js('this')[namer.getName(member)](argumentsBuffer))];
+      body = [js.return_(
+          js('this')[namer.getNameOfInstanceMember(member)](argumentsBuffer))];
     }
 
     jsAst.Fun function = js.fun(parametersBuffer, body);
@@ -1270,7 +1285,7 @@ class CodeEmitterTask extends CompilerTask {
       if (member.isAbstract(compiler)) return;
       jsAst.Expression code = backend.generatedCode[member];
       if (code == null) return;
-      String name = namer.getName(member);
+      String name = namer.getNameOfInstanceMember(member);
       if (backend.isInterceptedMethod(member)) {
         interceptorInvocationNames.add(name);
       }
@@ -1490,6 +1505,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitRuntimeTypeSupport(CodeBuffer buffer) {
+    addComment('Runtime type support', buffer);
     RuntimeTypes rti = backend.rti;
     TypeChecks typeChecks = rti.requiredChecks;
 
@@ -1612,7 +1628,7 @@ class CodeEmitterTask extends CompilerTask {
           || needsSetter) {
         String accessorName = isShadowed
             ? namer.shadowedFieldName(field)
-            : namer.getName(field);
+            : namer.getNameOfField(field);
         String fieldName = field.hasFixedBackendName()
             ? field.fixedBackendName()
             : (isMixinNativeField ? name.slowToString() : accessorName);
@@ -1952,18 +1968,18 @@ class CodeEmitterTask extends CompilerTask {
     assert(invariant(classElement, !classElement.isNative() || onlyForRti));
 
     needsDefineClass = true;
-    String className = namer.getName(classElement);
+    String className = namer.getNameOfClass(classElement);
 
     ClassElement superclass = classElement.superclass;
     String superName = "";
     if (superclass != null) {
-      superName = namer.getName(superclass);
+      superName = namer.getNameOfClass(superclass);
     }
     String runtimeName =
         namer.getPrimitiveInterceptorRuntimeName(classElement);
 
     if (classElement.isMixinApplication) {
-      String mixinName = namer.getName(computeMixinClass(classElement));
+      String mixinName = namer.getNameOfClass(computeMixinClass(classElement));
       superName = '$superName+$mixinName';
       needsMixinSupport = true;
     }
@@ -2332,7 +2348,7 @@ class CodeEmitterTask extends CompilerTask {
     for (Element element in Elements.sortedByPosition(elements)) {
       CodeBuffer buffer = bufferForElement(element, eagerBuffer);
       jsAst.Expression code = backend.generatedCode[element];
-      String name = namer.getName(element);
+      String name = namer.getNameOfGlobalFunction(element);
       code = extendWithMetadata(element, code);
       emitStaticFunction(buffer, name, code);
       String reflectionName = getReflectionName(element, name);
@@ -2362,17 +2378,20 @@ class CodeEmitterTask extends CompilerTask {
   final Map<Element, Element> staticGetters = new Map<Element, Element>();
 
   void emitStaticFunctionGetters(CodeBuffer eagerBuffer) {
+    addComment('Static function getters', mainBuffer);
     for (FunctionElement element in
              Elements.sortedByPosition(staticGetters.keys)) {
       Element closure = staticGetters[element];
       CodeBuffer buffer = isDeferred(element) ? deferredConstants : eagerBuffer;
       String closureClass = namer.isolateAccess(closure);
       String name = namer.getStaticClosureName(element);
-      String staticName = namer.getName(element);
 
       String closureName = namer.getStaticClosureName(element);
-      jsAst.Node assignment = js('$isolateProperties.$name = '
-          'new $closureClass($isolateProperties.$staticName, "$closureName")');
+      jsAst.Node assignment = js(
+          'init.globalFunctions["$closureName"] ='
+          ' ${namer.globalObjectFor(element)}.$name ='
+          ' new $closureClass(#, "$closureName")',
+          namer.elementAccess(element));
       buffer.write(jsAst.prettyPrint(assignment, compiler));
       buffer.write('$N');
     }
@@ -2383,8 +2402,7 @@ class CodeEmitterTask extends CompilerTask {
         compiler.codegenWorld.staticFunctionsNeedingGetter;
     for (FunctionElement element in
              Elements.sortedByPosition(functionsNeedingGetter)) {
-      String staticName = namer.getName(element);
-      String superName = namer.getName(compiler.closureClass);
+      String superName = namer.getNameOfClass(compiler.closureClass);
       String name = 'Closure\$${element.name.slowToString()}';
       assert(instantiatedClasses.contains(compiler.closureClass));
 
@@ -2400,7 +2418,7 @@ class CodeEmitterTask extends CompilerTask {
                                        element);
 
       String invocationName = namer.instanceMethodName(callElement);
-      String mangledName = namer.getName(closureClassElement);
+      String mangledName = namer.getNameOfClass(closureClassElement);
 
       // Define the constructor with a name so that Object.toString can
       // find the class name of the closure class.
@@ -2418,7 +2436,8 @@ class CodeEmitterTask extends CompilerTask {
       // closures, and static closures that have common type checks.
       boundClosures.add(
           js('$classesCollector.$mangledName = #',
-              closureBuilder.toObjectInitializer()));
+             js('[${namer.globalObjectFor(closureClassElement)}, #]',
+                closureBuilder.toObjectInitializer())));
 
       staticGetters[element] = closureClassElement;
 
@@ -2497,7 +2516,7 @@ class CodeEmitterTask extends CompilerTask {
     }
     List<String> fieldNames = <String>[];
     compiler.boundClosureClass.forEachInstanceField((_, Element field) {
-      fieldNames.add(namer.getName(field));
+      fieldNames.add(namer.getNameOfInstanceMember(field));
     });
 
     DartType memberType = member.computeType(compiler);
@@ -2527,8 +2546,8 @@ class CodeEmitterTask extends CompilerTask {
       ClassElement closureClassElement = new ClosureClassElement(
           null, new SourceString(name), compiler, member,
           member.getCompilationUnit());
-      String mangledName = namer.getName(closureClassElement);
-      String superName = namer.getName(closureClassElement.superclass);
+      String mangledName = namer.getNameOfClass(closureClassElement);
+      String superName = namer.getNameOfClass(closureClassElement.superclass);
 
       // Define the constructor with a name so that Object.toString can
       // find the class name of the closure class.
@@ -2582,7 +2601,8 @@ class CodeEmitterTask extends CompilerTask {
 
       boundClosures.add(
           js('$classesCollector.$mangledName = #',
-              boundClosureBuilder.toObjectInitializer()));
+             js('[${namer.globalObjectFor(closureClassElement)}, #]',
+                boundClosureBuilder.toObjectInitializer())));
 
       closureClass = namer.isolateAccess(closureClassElement);
 
@@ -2693,7 +2713,7 @@ class CodeEmitterTask extends CompilerTask {
       compiler.withCurrentElement(element, () {
         Constant initialValue = handler.getInitialValueFor(element);
         jsAst.Expression init =
-          js('$isolateProperties.${namer.getName(element)} = #',
+          js('$isolateProperties.${namer.getNameOfGlobalField(element)} = #',
               constantEmitter.referenceInInitializationContext(initialValue));
         buffer.write(jsAst.prettyPrint(init, compiler));
         buffer.write('$N');
@@ -2722,7 +2742,7 @@ class CodeEmitterTask extends CompilerTask {
         List<jsAst.Expression> arguments = <jsAst.Expression>[];
         arguments.add(js(isolateProperties));
         arguments.add(js.string(element.name.slowToString()));
-        arguments.add(js.string(namer.getName(element)));
+        arguments.add(js.string(namer.getNameX(element)));
         arguments.add(js.string(namer.getLazyInitializerName(element)));
         arguments.add(code);
         jsAst.Expression getter = buildLazyInitializedGetter(element);
@@ -2746,7 +2766,6 @@ class CodeEmitterTask extends CompilerTask {
     List<Constant> constants = handler.getConstantsForEmission(
         compareConstants);
     bool addedMakeConstantList = false;
-    eagerBuffer.write('var ${namer.globalObjectForConstant(null)}$_=$_{}$N');
     for (Constant constant in constants) {
       if (isConstantInlinedOrAlreadyEmitted(constant)) continue;
       String name = namer.constantName(constant);
@@ -2847,10 +2866,6 @@ class CodeEmitterTask extends CompilerTask {
     String noSuchMethodName = namer.publicInstanceMethodNameByArity(
         Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
 
-    Element createInvocationMirrorElement = backend.getCreateInvocationMirror();
-    String createInvocationMirrorName =
-        namer.getName(createInvocationMirrorElement);
-
     // Keep track of the JavaScript names we've already added so we
     // do not introduce duplicates (bad for code size).
     Map<String, Selector> addedJsNames = new Map<String, Selector>();
@@ -2909,13 +2924,10 @@ class CodeEmitterTask extends CompilerTask {
         return null;
       }
 
-      String createInvocationMirror = namer.getName(
-          backend.getCreateInvocationMirror());
-
       assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
       jsAst.Expression expression = js('this.$noSuchMethodName')(
           [js('this'),
-           js(namer.CURRENT_ISOLATE)[createInvocationMirror]([
+           namer.elementAccess(backend.getCreateInvocationMirror())([
                js.string(compiler.enableMinification ?
                          internalName : methodName),
                js.string(internalName),
@@ -2948,7 +2960,6 @@ class CodeEmitterTask extends CompilerTask {
                            Element appMain,
                            Element isolateMain) {
     String mainAccess = "${namer.isolateStaticClosureAccess(appMain)}";
-    String currentIsolate = "${namer.CURRENT_ISOLATE}";
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
     return "${namer.isolateAccess(isolateMain)}($mainAccess)";
@@ -3183,7 +3194,8 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     buffer.write(jsAst.prettyPrint(
-        js('$isolateProperties.$key = #', js.fun(['receiver'], block)),
+        js('${namer.globalObjectFor(compiler.interceptorsLibrary)}.$key = #',
+           js.fun(['receiver'], block)),
         compiler));
     buffer.write(N);
   }
@@ -3192,6 +3204,7 @@ class CodeEmitterTask extends CompilerTask {
    * Emit all versions of the [:getInterceptor:] method.
    */
   void emitGetInterceptorMethods(CodeBuffer buffer) {
+    addComment('getInterceptor methods', buffer);
     Map<String, Set<ClassElement>> specializedGetInterceptors =
         backend.specializedGetInterceptors;
     for (String name in specializedGetInterceptors.keys.toList()..sort()) {
@@ -3513,12 +3526,13 @@ class CodeEmitterTask extends CompilerTask {
       }
 
       String invocationName = backend.namer.invocationName(selector);
+      String globalObject = namer.globalObjectFor(compiler.interceptorsLibrary);
       body.add(js.return_(
-          js(isolateProperties)[getInterceptorName]('receiver')[invocationName](
+          js(globalObject)[getInterceptorName]('receiver')[invocationName](
               arguments)));
 
       jsAst.Expression assignment =
-          js('$isolateProperties.$name = #', js.fun(parameters, body));
+          js('${globalObject}.$name = #', js.fun(parameters, body));
 
       buffer.write(jsAst.prettyPrint(assignment, compiler));
       buffer.write(N);
@@ -3537,7 +3551,10 @@ class CodeEmitterTask extends CompilerTask {
     // compile time, it can be generated automatically at runtime given
     // subclasses of Interceptor (which can easily be identified).
     if (!compiler.enabledInvokeOn) return;
-    String name = backend.namer.getName(backend.interceptedNames);
+
+    // TODO(ahe): We should roll this into
+    // [emitStaticNonFinalFieldInitializations].
+    String name = backend.namer.getNameOfGlobalField(backend.interceptedNames);
 
     int index = 0;
     var invocationNames = interceptorInvocationNames.toList()..sort();
@@ -3579,7 +3596,8 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     jsAst.ArrayInitializer array = new jsAst.ArrayInitializer.from(elements);
-    String name = backend.namer.getName(backend.mapTypeToInterceptor);
+    String name =
+        backend.namer.getNameOfGlobalField(backend.mapTypeToInterceptor);
     jsAst.Expression assignment = js('$isolateProperties.$name = #', array);
 
     buffer.write(jsAst.prettyPrint(assignment, compiler));
@@ -3690,7 +3708,7 @@ class CodeEmitterTask extends CompilerTask {
     Elements.sortedByPosition(literals);
     var properties = [];
     for (TypedefElement literal in literals) {
-      var key = namer.getName(literal);
+      var key = namer.getNameX(literal);
       var value = js.toExpression(reifyType(literal.rawType));
       properties.add(new jsAst.Property(js.string(key), value));
     }
@@ -3712,6 +3730,26 @@ class CodeEmitterTask extends CompilerTask {
     buffer.write('];$n');
   }
 
+  void emitInstancify() {
+    mainBuffer.add(r'''
+function instancify(properties) {
+  function makeConstructor() {
+    var str = "{\n";
+    var hasOwnProperty = Object.prototype.hasOwnProperty;
+    for (var property in properties) {
+      if (hasOwnProperty.call(properties, property)) {
+        str += "this." + property + "= properties." + property + ";\n";
+      }
+    }
+    str += "}\n";
+    return new Function("properties", str);
+  };
+  var constructor = makeConstructor();
+  return makeConstructor.prototype = new constructor(properties);
+}
+''');
+  }
+
   String assembleProgram() {
     measure(() {
       // Compute the required type checks to know which classes need a
@@ -3725,6 +3763,12 @@ class CodeEmitterTask extends CompilerTask {
 
       if (!areAnyElementsDeferred) {
         mainBuffer.add('(function(${namer.CURRENT_ISOLATE})$_{$n');
+      }
+
+      for (String globalObject in Namer.reservedGlobalObjectNames) {
+        mainBuffer
+            ..write('var ${globalObject}$_=$_{}$N')
+            ..write('delete ${globalObject}.x$N');
       }
 
       mainBuffer.add('function ${namer.isolateName}()$_{}\n');
@@ -3888,6 +3932,8 @@ class CodeEmitterTask extends CompilerTask {
                 ..write(metadata == null
                         ? "" : jsAst.prettyPrint(metadata, compiler))
                 ..write(',$_')
+                ..write(namer.globalObjectFor(library))
+                ..write(',$_')
                 ..write('{$n')
                 ..addBuffer(buffer)
                 ..write('}');
@@ -3902,6 +3948,8 @@ class CodeEmitterTask extends CompilerTask {
                 ..write('["${library.getLibraryOrScriptName()}",$_')
                 ..write('"${uri}",$_')
                 ..write('[],$_')
+                ..write(namer.globalObjectFor(library))
+                ..write(',$_')
                 ..write('{$n')
                 ..addBuffer(buffer)
                 ..write('}],$n');
@@ -3945,6 +3993,52 @@ class CodeEmitterTask extends CompilerTask {
       emitFinishIsolateConstructorInvocation(mainBuffer);
       mainBuffer.add(
           '${namer.CURRENT_ISOLATE}$_=${_}new ${namer.isolateName}()$N');
+
+      emitInstancify();
+      for (String globalObject in Namer.reservedGlobalObjectNames) {
+        mainBuffer.add('$globalObject = instancify($globalObject)$N');
+      }
+      if (DEBUG_FAST_OBJECTS) {
+        ClassElement primitives =
+            compiler.findHelper(const SourceString('Primitives'));
+        FunctionElement printHelper =
+            compiler.lookupElementIn(
+                primitives, const SourceString('printString'));
+        String printHelperName = namer.isolateAccess(printHelper);
+
+        mainBuffer.add('''
+if (typeof $printHelperName === "function") {
+  $printHelperName("Size of global helper object: "
+                   + String(Object.getOwnPropertyNames(H).length)
+                   + ", fast properties " + %HasFastProperties(H));
+  $printHelperName("Size of global platform object: "
+                   + String(Object.getOwnPropertyNames(P).length)
+                   + ", fast properties " + %HasFastProperties(P));
+  $printHelperName("Size of global dart:html object: "
+                   + String(Object.getOwnPropertyNames(W).length)
+                   + ", fast properties " + %HasFastProperties(W));
+  $printHelperName("Size of isolate properties object: "
+                   + String(Object.getOwnPropertyNames(\$).length)
+                   + ", fast properties " + %HasFastProperties(\$));
+  $printHelperName("Size of constant object: "
+                   + String(Object.getOwnPropertyNames(C).length)
+                   + ", fast properties " + %HasFastProperties(C));
+  var names = Object.getOwnPropertyNames(\$);
+  for (var i = 0; i < names.length; i++) {
+    $printHelperName("\$." + names[i]);
+  }
+}
+''');
+        for (String object in Namer.userGlobalObjects) {
+        mainBuffer.add('''
+if (typeof $printHelperName === "function") {
+  $printHelperName("Size of $object: "
+                   + String(Object.getOwnPropertyNames($object).length)
+                   + ", fast properties " + %HasFastProperties($object));
+}
+''');
+        }
+      }
 
       emitMain(mainBuffer);
       emitInitFunction(mainBuffer);
@@ -4113,6 +4207,7 @@ class CodeEmitterTask extends CompilerTask {
   if (!init.mangledGlobalNames) init.mangledGlobalNames = map();
   if (!init.statics) init.statics = map();
   if (!init.interfaces) init.interfaces = map();
+  if (!init.globalFunctions) init.globalFunctions = map();
   var libraries = init.libraries;
   var mangledNames = init.mangledNames;
   var mangledGlobalNames = init.mangledGlobalNames;
@@ -4125,8 +4220,9 @@ class CodeEmitterTask extends CompilerTask {
 // 0. The library name (not unique).
 // 1. The library URI (unique).
 // 2. A function returning the metadata associated with this library.
-// 3. An object literal listing the members of the library.
-// 4. This element is optional and if present it is true and signals that this
+// 3. The global object to use for this library.
+// 4. An object literal listing the members of the library.
+// 5. This element is optional and if present it is true and signals that this
 // library is the root library (see dart:mirrors IsolateMirror.rootLibrary).
 //
 // The entries of [data] are built in [assembleProgram] above.
@@ -4134,8 +4230,9 @@ class CodeEmitterTask extends CompilerTask {
     var name = data[0];
     var uri = data[1];
     var metadata = data[2];
-    var descriptor = data[3];
-    var isRoot = !!data[4];
+    var globalObject = data[3];
+    var descriptor = data[4];
+    var isRoot = !!data[5];
     var fields = descriptor && descriptor[""];
     var classes = [];
     var functions = [];
@@ -4156,8 +4253,9 @@ class CodeEmitterTask extends CompilerTask {
           property = property.substring(1);
           ${namer.CURRENT_ISOLATE}[property][$metadataField] = element;
         } else if (typeof element === "function") {
-          ${namer.CURRENT_ISOLATE}[previousProperty = property] = element;
+          globalObject[previousProperty = property] = element;
           functions.push(property);
+          init.globalFunctions[property] = element;
         } else {
           previousProperty = property;
           var newDesc = {};
@@ -4177,13 +4275,14 @@ class CodeEmitterTask extends CompilerTask {
               newDesc[previousProp = prop] = element[prop];
             }
           }
-          $classesCollector[property] = newDesc;
+          $classesCollector[property] = [globalObject, newDesc];
           classes.push(property);
         }
       }
     }
     processStatics(descriptor);
-    libraries.push([name, uri, classes, functions, metadata, fields, isRoot]);
+    libraries.push([name, uri, classes, functions, metadata, fields, isRoot,
+                    globalObject]);
   }
 })''';
   }

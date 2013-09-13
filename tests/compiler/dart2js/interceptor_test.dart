@@ -42,7 +42,7 @@ main() {
   // Check that one-shot interceptors preserve variable names, see
   // https://code.google.com/p/dart/issues/detail?id=8106.
   generated = compile(TEST_TWO, entry: 'foo');
-  Expect.isTrue(generated.contains(new RegExp(r'[$a-z]+\.toString\$0\(a\)')));
+  Expect.isTrue(generated.contains(new RegExp(r'[$A-Z]+\.toString\$0\(a\)')));
   Expect.isTrue(generated.contains('myVariableName'));
 
   // Check that an intercepted getter that does not need to be
@@ -50,7 +50,7 @@ main() {
   // access.
   generated = compile(TEST_THREE, entry: 'foo');
   Expect.isFalse(generated.contains(r'a.get$length()'));
-  Expect.isTrue(generated.contains(new RegExp(r'[$a-z]+\.A\$\(\)\.length')));
+  Expect.isTrue(generated.contains(new RegExp(r'[$A-Z]+\.A\$\(\)\.length')));
   Expect.isTrue(
-      generated.contains(new RegExp(r'[$a-z]+\.get\$length\$a\(a\)')));
+      generated.contains(new RegExp(r'[$A-Z]+\.get\$length\$a\(a\)')));
 }

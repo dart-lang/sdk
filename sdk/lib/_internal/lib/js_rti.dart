@@ -350,9 +350,9 @@ bool checkFunctionSubtype(var target, String signatureName,
   if (hasField(interceptor, '${JS_OPERATOR_IS_PREFIX()}_$signatureName')) {
     return true;
   }
-  var signatureLocation = JS_GLOBAL_OBJECT();
+  var signatureLocation = JS_CURRENT_ISOLATE();
   if (isNotNull(contextName)) {
-    signatureLocation = getField(signatureLocation, contextName);
+    signatureLocation = getField(JS('=Object', 'init.allClasses'), contextName);
   }
   var typeSignature =
       getField(signatureLocation, '${JS_SIGNATURE_NAME()}_$signatureName');

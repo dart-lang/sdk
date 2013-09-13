@@ -91,12 +91,14 @@ class JsMirrorSystem implements MirrorSystem {
       var metadataFunction = data[4];
       var fields = data[5];
       bool isRoot = data[6];
+      var globalObject = data[7];
       List metadata = (metadataFunction == null)
           ? const [] : JS('List', '#()', metadataFunction);
       var libraries = result.putIfAbsent(name, () => <LibraryMirror>[]);
       libraries.add(
           new JsLibraryMirror(
-              s(name), uri, classes, functions, metadata, fields, isRoot));
+              s(name), uri, classes, functions, metadata, fields, isRoot,
+              globalObject));
     }
     return result;
   }
@@ -199,6 +201,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   final List _metadata;
   final String _compactFieldSpecification;
   final bool _isRoot;
+  final _globalObject;
   List<JsMethodMirror> _cachedFunctionMirrors;
   List<JsVariableMirror> _cachedFields;
   UnmodifiableMapView<Symbol, ClassMirror> _cachedClasses;
@@ -215,7 +218,8 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
                   this._functions,
                   this._metadata,
                   this._compactFieldSpecification,
-                  this._isRoot)
+                  this._isRoot,
+                  this._globalObject)
       : super(simpleName);
 
   String get _prettyName => 'LibraryMirror';
@@ -282,11 +286,18 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   }
 
   _loadField(String name) {
+    // TODO(ahe): What about lazily initialized fields? See
+    // [JsClassMirror.getField].
+
+    // '$' (JS_CURRENT_ISOLATE()) stores state which is read directly, so we
+    // shouldn't use [_globalObject] here.
     assert(JS('bool', '# in #', name, JS_CURRENT_ISOLATE()));
     return JS('', '#[#]', JS_CURRENT_ISOLATE(), name);
   }
 
   void _storeField(String name, Object arg) {
+    // '$' (JS_CURRENT_ISOLATE()) stores state which is stored directly, so we
+    // shouldn't use [_globalObject] here.
     assert(JS('bool', '# in #', name, JS_CURRENT_ISOLATE()));
     JS('void', '#[#] = #', JS_CURRENT_ISOLATE(), name, arg);
   }
@@ -296,9 +307,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     var result = new List<JsMethodMirror>();
     for (int i = 0; i < _functions.length; i++) {
       String name = _functions[i];
-      // TODO(ahe): Create accessor for accessing $.  It is also
-      // used in js_helper.
-      var jsFunction = JS('', '#[#]', JS_CURRENT_ISOLATE(), name);
+      var jsFunction = JS('', '#[#]', _globalObject, name);
       String unmangledName = mangledGlobalNames[name];
       if (unmangledName == null) {
         // If there is no unmangledName, [jsFunction] is either a synthetic
@@ -794,9 +803,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       String mangledName = keys[i];
       if (mangledName == '') continue; // Skip static field descriptor.
       String unmangledName = mangledName;
-      // TODO(ahe): Create accessor for accessing $.  It is also
-      // used in js_helper.
-      var jsFunction = JS('', '#[#]', JS_CURRENT_ISOLATE(), mangledName);
+      var jsFunction = JS('', '#[#]', owner._globalObject, mangledName);
 
       bool isConstructor = false;
       if (i + 1 < length) {
@@ -926,6 +933,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   InstanceMirror setField(Symbol fieldName, Object arg) {
     JsVariableMirror mirror = variables[fieldName];
     if (mirror != null && mirror.isStatic && !mirror.isFinal) {
+      // '$' (JS_CURRENT_ISOLATE()) stores state which is stored directly, so
+      // we shouldn't use [JsLibraryMirror._globalObject] here.
       String jsName = mirror._jsName;
       if (!JS('bool', '# in #', jsName, JS_CURRENT_ISOLATE())) {
         throw new RuntimeError('Cannot find "$jsName" in current isolate.');
@@ -941,6 +950,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     JsVariableMirror mirror = variables[fieldName];
     if (mirror != null && mirror.isStatic) {
       String jsName = mirror._jsName;
+      // '$' (JS_CURRENT_ISOLATE()) stores state which is read directly, so
+      // we shouldn't use [JsLibraryMirror._globalObject] here.
       if (!JS('bool', '# in #', jsName, JS_CURRENT_ISOLATE())) {
         throw new RuntimeError('Cannot find "$jsName" in current isolate.');
       }
@@ -969,7 +980,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
           orElse: () {
             // TODO(ahe): What receiver to use?
             throw new NoSuchMethodError(
-                owner, constructorName, positionalArguments, namedArguments);
+                this, constructorName, positionalArguments, namedArguments);
           });
       JsCache.update(_jsConstructorCache, n(constructorName), mirror);
     }
@@ -988,7 +999,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
             constructorName, positionalArguments, namedArguments));
   }
 
-  DeclarationMirror get owner {
+  JsLibraryMirror get owner {
     if (_owner == null) {
       if (_jsConstructorOrInterceptor is Interceptor) {
         _owner = reflectType(Object).owner;
@@ -1363,6 +1374,10 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
       throw new NoSuchMethodError(
           owner, simpleName, positionalArguments, namedArguments);
     }
+    // Using JS_CURRENT_ISOLATE() ('$') here is actually correct, although
+    // _jsFunction may not be a property of '$', most static functions do not
+    // care who their receiver is. But to lazy getters, it is important that
+    // 'this' is '$'.
     return JS('', r'#.apply(#, #)', _jsFunction, JS_CURRENT_ISOLATE(),
               new List.from(positionalArguments));
   }

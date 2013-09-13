@@ -277,10 +277,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
   JavaScriptBackend get backend => compiler.backend;
 
   jsAst.PropertyAccess getHelperProperty(Element helper) {
-    String helperName = backend.namer.getName(helper);
-    return new jsAst.PropertyAccess.field(
-        new jsAst.VariableUse(namer.CURRENT_ISOLATE),
-        helperName);
+    return backend.namer.elementAccess(helper);
   }
 
   jsAst.Expression visitType(TypeConstant constant) {

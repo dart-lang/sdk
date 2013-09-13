@@ -518,14 +518,12 @@ class RuntimeTypes {
         getTypeEncoding(type, alwaysGenerateFunction: true);
     if (contextClass != null) {
       JavaScriptBackend backend = compiler.backend;
-      String computeSignature =
-          backend.namer.getName(backend.getComputeSignature());
-      String contextName = backend.namer.getName(contextClass);
+      String contextName = backend.namer.getNameOfClass(contextClass);
       List<jsAst.Expression> arguments =
           <jsAst.Expression>[encoding, this_, js.string(contextName)];
       return js.fun([], js.return_(
           new jsAst.Call(
-              js(backend.namer.GLOBAL_OBJECT)[js.string(computeSignature)],
+              backend.namer.elementAccess(backend.getComputeSignature()),
               arguments)));
     } else {
       return encoding;
@@ -822,11 +820,13 @@ class Substitution {
 
   jsAst.Expression getCode(RuntimeTypes rti, bool ensureIsFunction) {
     jsAst.Expression declaration(TypeVariableType variable) {
-      return new jsAst.Parameter(variable.name.slowToString());
+      return new jsAst.Parameter(
+          rti.backend.namer.safeVariableName(variable.name.slowToString()));
     }
 
     jsAst.Expression use(TypeVariableType variable) {
-      return new jsAst.VariableUse(variable.name.slowToString());
+      return new jsAst.VariableUse(
+          rti.backend.namer.safeVariableName(variable.name.slowToString()));
     }
 
     jsAst.Expression value =

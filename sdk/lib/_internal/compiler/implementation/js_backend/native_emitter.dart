@@ -284,7 +284,7 @@ class NativeEmitter {
       if (neededClasses.contains(classElement)) {
         // Define interceptor class for [classElement].
         emitter.emitClassBuilderWithReflectionData(
-            backend.namer.getName(classElement),
+            backend.namer.getNameOfClass(classElement),
             classElement, builders[classElement],
             emitter.bufferForElement(classElement, mainBuffer));
         emitter.needsDefineClass = true;
@@ -336,7 +336,7 @@ class NativeEmitter {
       superclass = backend.jsInterceptorClass;
     }
 
-    String superName = backend.namer.getName(superclass);
+    String superName = backend.namer.getNameOfClass(superclass);
 
     ClassBuilder builder = new ClassBuilder();
     emitter.emitClassConstructor(classElement, builder);

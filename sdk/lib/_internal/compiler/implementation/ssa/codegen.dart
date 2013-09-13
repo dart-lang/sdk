@@ -1480,7 +1480,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     backend.registerSpecializedGetInterceptor(node.interceptedClasses);
     String name = backend.namer.getInterceptorName(
         backend.getInterceptorMethod, node.interceptedClasses);
-    var isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
+    var isolate = new js.VariableUse(
+        backend.namer.globalObjectFor(compiler.interceptorsLibrary));
     use(node.receiver);
     List<js.Expression> arguments = <js.Expression>[pop()];
     push(jsPropertyCall(isolate, name, arguments), node);
@@ -1528,7 +1529,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitInvokeConstructorBody(HInvokeConstructorBody node) {
     use(node.inputs[0]);
     js.Expression object = pop();
-    String methodName = backend.namer.getName(node.element);
+    String methodName = backend.namer.getNameOfInstanceMember(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs);
     push(jsPropertyCall(object, methodName, arguments), node);
     world.registerStaticUse(node.element);
@@ -1536,7 +1537,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitOneShotInterceptor(HOneShotInterceptor node) {
     List<js.Expression> arguments = visitArguments(node.inputs);
-    var isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
+    var isolate = new js.VariableUse(
+        backend.namer.globalObjectFor(compiler.interceptorsLibrary));
     Selector selector = getOptimizedSelectorFor(node, node.selector);
     String methodName = backend.registerOneShotInterceptor(selector);
     push(jsPropertyCall(isolate, methodName, arguments), node);
@@ -1654,7 +1656,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         push(access, node);
       }
     } else {
-      String methodName = backend.namer.getName(superMethod);
+      String methodName = backend.namer.getNameOfInstanceMember(superMethod);
       String className = backend.namer.isolateAccess(superClass);
       js.VariableUse classReference = new js.VariableUse(className);
       js.PropertyAccess prototype =
@@ -1708,7 +1710,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   String _fieldPropertyName(Element element) => element.hasFixedBackendName()
       ? element.fixedBackendName()
-      : backend.namer.getName(element);
+      : backend.namer.getNameOfInstanceMember(element);
 
   visitLocalGet(HLocalGet node) {
     use(node.receiver);
@@ -2039,12 +2041,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitStaticStore(HStaticStore node) {
     world.registerStaticUse(node.element);
-    js.VariableUse isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
-    // Create a property access to make sure expressions and variable
-    // declarations recognizers don't see this assignment as a local
-    // assignment.
-    js.Node variable = new js.PropertyAccess.field(
-        isolate, backend.namer.getName(node.element));
+    js.Node variable = backend.namer.elementAccess(node.element);
     use(node.inputs[0]);
     push(new js.Assignment(variable, pop()), node);
   }

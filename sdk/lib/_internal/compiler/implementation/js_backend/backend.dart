@@ -90,7 +90,10 @@ class FunctionTypeCheckedModeHelper extends CheckedModeHelper {
 
     if (type.containsTypeVariables) {
       ClassElement contextClass = Types.getClassContext(type);
-      String contextName = codegen.backend.namer.getName(contextClass);
+      // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
+      // string concatenation in the implementation), and may prevent
+      // segmentation of '$'.
+      String contextName = codegen.backend.namer.getNameForRti(contextClass);
       arguments.add(js.string(contextName));
 
       if (node.contextIsTypeArguments) {

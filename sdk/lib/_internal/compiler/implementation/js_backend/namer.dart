@@ -146,10 +146,43 @@ class Namer implements ClosureNamer {
     // next-generation plugin, this results in starting a new Java process.
     "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass",
     "JavaArray", "JavaMember",
-
-    // Global object for constants.
-    "C",
   ];
+
+  static const reservedGlobalObjectNames = const <String>[
+      "A",
+      "B",
+      "C", // Global object for *C*onstants.
+      "D",
+      "E",
+      "F",
+      "G",
+      "H", // Global object for internal (*H*elper) libraries.
+      // I is used for used for the Isolate function.
+      "J", // Global object for the interceptor library.
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P", // Global object for other *P*latform libraries.
+      "Q",
+      "R",
+      "S",
+      "T",
+      "U",
+      "V",
+      "W", // Global object for *W*eb libraries (dart:html).
+      "X",
+      "Y",
+      "Z",
+  ];
+
+  static final userGlobalObjects = new List.from(reservedGlobalObjectNames)
+      ..remove('C')
+      ..remove('H')
+      ..remove('J')
+      ..remove('P')
+      ..remove('W');
 
   Set<String> _jsReserved = null;
   /// Names that cannot be used by members, top level and static
@@ -171,6 +204,9 @@ class Namer implements ClosureNamer {
       _jsVariableReserved.addAll(javaScriptKeywords);
       _jsVariableReserved.addAll(reservedPropertySymbols);
       _jsVariableReserved.addAll(reservedGlobalSymbols);
+      _jsVariableReserved.addAll(reservedGlobalObjectNames);
+      // 26 letters in the alphabet, 25 not counting I.
+      assert(reservedGlobalObjectNames.length == 25);
     }
     return _jsVariableReserved;
   }
@@ -324,7 +360,7 @@ class Namer implements ClosureNamer {
 
     // If a library name does not start with the [LIBRARY_PREFIX] then our
     // assumptions about clashing with mangled private members do not hold.
-    String libraryName = getName(library);
+    String libraryName = getNameOfLibrary(library);
     assert(shouldMinify || libraryName.startsWith(LIBRARY_PREFIX));
     // TODO(erikcorry): Fix this with other manglings to avoid clashes.
     return '_lib$libraryName\$$nameString';
@@ -425,8 +461,8 @@ class Namer implements ClosureNamer {
     // classes.
     assert (!fieldElement.hasFixedBackendName());
 
-    String libraryName = getName(fieldElement.getLibrary());
-    String className = getName(fieldElement.getEnclosingClass());
+    String libraryName = getNameOfLibrary(fieldElement.getLibrary());
+    String className = getNameOfClass(fieldElement.getEnclosingClass());
     String instanceName = instanceFieldName(fieldElement);
     return getMappedInstanceName('$libraryName\$$className\$$instanceName');
   }
@@ -591,7 +627,7 @@ class Namer implements ClosureNamer {
       // If the base Interceptor class is in the set of intercepted classes, we
       // need to go through the generic getInterceptorMethod, since any subclass
       // of the base Interceptor could match.
-      return getName(element);
+      return getNameOfInstanceMember(element);
     }
     String suffix = getInterceptorSuffix(classes);
     return getMappedGlobalName("${element.name.slowToString()}\$$suffix");
@@ -630,7 +666,7 @@ class Namer implements ClosureNamer {
     // are minifying, but it doesn't really make much difference.  The
     // important thing is that it is a unique name.  We add $bailout and, if we
     // are minifying, we minify the minified name and '$bailout'.
-    String unminifiedName = '${getName(element)}\$bailout';
+    String unminifiedName = '${getNameX(element)}\$bailout';
     if (global) {
       name = getMappedGlobalName(unminifiedName);
     } else {
@@ -661,7 +697,10 @@ class Namer implements ClosureNamer {
     JavaScriptBackend backend = compiler.backend;
     element = backend.getImplementationClass(element);
     String name = getPrimitiveInterceptorRuntimeName(element);
-    return name != null ? name : getName(element);
+    // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
+    // string concatenation in the implementation), and may prevent
+    // segmentation of '$'.
+    return name != null ? name : getNameForRti(element);
   }
 
   /**
@@ -695,7 +734,9 @@ class Namer implements ClosureNamer {
    * For accessing statics consider calling
    * [isolateAccess]/[isolateBailoutAccess] or [isolatePropertyAccess] instead.
    */
-  String getName(Element element) {
+  // TODO(ahe): This is an internal method to the Namer (and its subclasses)
+  // and should not be call from outside.
+  String getNameX(Element element) {
     if (element.isInstanceMember()) {
       if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY
           || element.kind == ElementKind.FUNCTION) {
@@ -751,35 +792,80 @@ class Namer implements ClosureNamer {
     }
   }
 
+  String getNameForRti(Element element) => getNameX(element);
+
+  String getNameOfLibrary(LibraryElement library) => getNameX(library);
+
+  String getNameOfClass(ClassElement cls) => getNameX(cls);
+
+  String getNameOfField(VariableElement field) => getNameX(field);
+
+  String getNameOfInstanceMember(Element member) => getNameX(member);
+
+  String getNameOfGlobalField(VariableElement field) => getNameX(field);
+
+  String getNameOfGlobalFunction(FunctionElement element) => getNameX(element);
+
+  /// Returns true if [element] is stored on CURRENT_ISOLATE ('$').
+  bool isPropertyOfCurrentIsolate(Element element) {
+    return
+        !element.isAccessor() &&
+        !element.isClass() &&
+        !element.isConstructor() &&
+        !element.isFunction() &&
+        !element.isLibrary();
+  }
+
+  /// Returns [CURRENT_ISOLATE] or one of [reservedGlobalObjectNames].  We
+  /// intend to store only mutable static state in [CURRENT_ISOLATE], constants
+  /// are stored in 'C', and functions, accessors, classes, etc. are stored in
+  /// one of the other objects in [reservedGlobalObjectNames].
+  // TODO(ahe): Make sure the above is always true and remove the word "intend".
+  String globalObjectFor(Element element) {
+    if (isPropertyOfCurrentIsolate(element)) return CURRENT_ISOLATE;
+    LibraryElement library = element.getLibrary();
+    if (library == compiler.interceptorsLibrary) return 'J';
+    if (library.isInternalLibrary) return 'H';
+    if (library.isPlatformLibrary) {
+      if ('${library.canonicalUri}' == 'dart:html') return 'W';
+      return 'P';
+    }
+    return userGlobalObjects[
+        library.getLibraryOrScriptName().hashCode % userGlobalObjects.length];
+  }
+
+  jsAst.PropertyAccess elementAccess(Element element) {
+    String name = getNameX(element);
+    return new jsAst.PropertyAccess.field(
+        new jsAst.VariableUse(globalObjectFor(element)),
+        name);
+  }
+
   String getLazyInitializerName(Element element) {
     assert(Elements.isStaticOrTopLevelField(element));
-    return getMappedGlobalName("$getterPrefix${getName(element)}");
+    return getMappedGlobalName("$getterPrefix${getNameX(element)}");
   }
 
   String getStaticClosureName(Element element) {
     assert(Elements.isStaticOrTopLevelFunction(element));
-    return getMappedGlobalName("${getName(element)}\$closure");
-  }
-
-  String isolatePropertiesAccess(Element element) {
-    return "$isolateName.$isolatePropertiesName.${getName(element)}";
+    return getMappedGlobalName("${getNameX(element)}\$closure");
   }
 
   String isolateAccess(Element element) {
-    return "$CURRENT_ISOLATE.${getName(element)}";
+    return "${globalObjectFor(element)}.${getNameX(element)}";
   }
 
   String isolateBailoutAccess(Element element) {
-    String newName = getMappedGlobalName('${getName(element)}\$bailout');
-    return '$CURRENT_ISOLATE.$newName';
+    String newName = getMappedGlobalName('${getNameX(element)}\$bailout');
+    return '${globalObjectFor(element)}.$newName';
   }
 
   String isolateLazyInitializerAccess(Element element) {
-    return "$CURRENT_ISOLATE.${getLazyInitializerName(element)}";
+    return "${globalObjectFor(element)}.${getLazyInitializerName(element)}";
   }
 
   String isolateStaticClosureAccess(Element element) {
-    return "$CURRENT_ISOLATE.${getStaticClosureName(element)}";
+    return "${globalObjectFor(element)}.${getStaticClosureName(element)}";
   }
 
   String globalObjectForConstant(Constant constant) => 'C';
@@ -841,7 +927,10 @@ class Namer implements ClosureNamer {
   }
 
   String substitutionName(Element element) {
-    return '${operatorAsPrefix()}${getName(element)}';
+    // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
+    // string concatenation in the implementation), and may prevent
+    // segmentation of '$'.
+    return '${operatorAsPrefix()}${getNameForRti(element)}';
   }
 
   String signatureLocation(FunctionType type) {
