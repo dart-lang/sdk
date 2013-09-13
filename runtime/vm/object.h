@@ -337,6 +337,7 @@ class Object {
   }
 
   static RawObject* null() { return null_; }
+
   static const Object& null_object() {
     ASSERT(null_object_ != NULL);
     return *null_object_;
@@ -357,6 +358,7 @@ class Object {
     ASSERT(null_abstract_type_arguments_ != NULL);
     return *null_abstract_type_arguments_;
   }
+
   static const Array& empty_array() {
     ASSERT(empty_array_ != NULL);
     return *empty_array_;

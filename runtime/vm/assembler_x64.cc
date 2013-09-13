@@ -80,16 +80,19 @@ Assembler::Assembler(bool use_far_branches)
     // at the same index.
     object_pool_.Add(Object::null_object(), Heap::kOld);
     patchable_pool_entries_.Add(kNotPatchable);
+    // Not adding Object::null() to the index table. It is at index 0 in the
+    // object pool, but the HashMap uses 0 to indicate not found.
 
     object_pool_.Add(Bool::True(), Heap::kOld);
     patchable_pool_entries_.Add(kNotPatchable);
+    object_pool_index_table_.Insert(ObjIndexPair(Bool::True().raw(), 1));
 
     object_pool_.Add(Bool::False(), Heap::kOld);
     patchable_pool_entries_.Add(kNotPatchable);
+    object_pool_index_table_.Insert(ObjIndexPair(Bool::False().raw(), 2));
 
     if (StubCode::UpdateStoreBuffer_entry() != NULL) {
       FindExternalLabel(&StubCode::UpdateStoreBufferLabel(), kNotPatchable);
-      patchable_pool_entries_.Add(kNotPatchable);
     } else {
       object_pool_.Add(Object::null_object(), Heap::kOld);
       patchable_pool_entries_.Add(kNotPatchable);
@@ -97,7 +100,6 @@ Assembler::Assembler(bool use_far_branches)
 
     if (StubCode::CallToRuntime_entry() != NULL) {
       FindExternalLabel(&StubCode::CallToRuntimeLabel(), kNotPatchable);
-      patchable_pool_entries_.Add(kNotPatchable);
     } else {
       object_pool_.Add(Object::null_object(), Heap::kOld);
       patchable_pool_entries_.Add(kNotPatchable);
@@ -2172,16 +2174,30 @@ intptr_t Assembler::FindObject(const Object& obj, Patchability patchable) {
   ASSERT(Isolate::Current() != Dart::vm_isolate());
   ASSERT(!object_pool_.IsNull());
 
-  // TODO(zra): This can be slow. Add a hash map from obj.raw() to
-  // object pool indexes to speed lookup.
-  for (int i = 0; i < object_pool_.Length(); i++) {
-    if ((object_pool_.At(i) == obj.raw()) &&
-        (patchable_pool_entries_[i] != kPatchable)) {
-      return i;
+  // If the object is not patchable, check if we've already got it in the
+  // object pool.
+  if (patchable == kNotPatchable) {
+    // Special case for Object::null(), which is always at object_pool_ index 0
+    // because Lookup() below returns 0 when the object is not mapped in the
+    // table.
+    if (obj.raw() == Object::null()) {
+      return 0;
+    }
+
+    intptr_t idx = object_pool_index_table_.Lookup(obj.raw());
+    if (idx != 0) {
+      ASSERT(patchable_pool_entries_[idx] == kNotPatchable);
+      return idx;
     }
   }
+
   object_pool_.Add(obj, Heap::kOld);
   patchable_pool_entries_.Add(patchable);
+  if (patchable == kNotPatchable) {
+    // The object isn't patchable. Record the index for fast lookup.
+    object_pool_index_table_.Insert(
+        ObjIndexPair(obj.raw(), object_pool_.Length() - 1));
+  }
   return object_pool_.Length() - 1;
 }
 
@@ -2196,6 +2212,8 @@ intptr_t Assembler::FindExternalLabel(const ExternalLabel* label,
   // The address is stored in the object array as a RawSmi.
   const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(address));
   if (patchable == kNotPatchable) {
+    // If the call site is not patchable, we can try to re-use an existing
+    // entry.
     return FindObject(smi, kNotPatchable);
   }
   // If the call is patchable, do not reuse an existing entry since each
