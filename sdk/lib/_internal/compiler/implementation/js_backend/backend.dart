@@ -436,16 +436,23 @@ class JavaScriptBackend extends Backend {
   }
 
   bool canBeUsedForGlobalOptimizations(Element element) {
+    bool isFinalField = element.isField()
+        && (element.modifiers.isFinal() || element.modifiers.isConst());
     if (element.isParameter()
         || element.isFieldParameter()
         || element.isField()) {
-      if (hasInsufficientMirrorsUsed && compiler.enabledInvokeOn) return false;
+      if (!isFinalField
+          && hasInsufficientMirrorsUsed
+          && compiler.enabledInvokeOn) {
+        return false;
+      }
       if (!canBeUsedForGlobalOptimizations(element.enclosingElement)) {
         return false;
       }
     }
     element = element.declaration;
-    return !isNeededForReflection(element) && !helpersUsed.contains(element);
+    if (helpersUsed.contains(element)) return false;
+    return isFinalField || !isNeededForReflection(element);
   }
 
   bool isInterceptorClass(ClassElement element) {

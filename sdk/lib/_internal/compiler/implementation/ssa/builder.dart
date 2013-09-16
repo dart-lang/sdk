@@ -2623,8 +2623,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (value != null) {
         HInstruction instruction = graph.addConstant(value, compiler);
         stack.add(instruction);
-        HType type = new HType.inferredTypeForElement(element, compiler);
-        if (!type.isUnknown()) instruction.instructionType = type;
       } else if (element.isField() && isLazilyInitialized(element)) {
         HInstruction instruction = new HLazyStatic(element);
         instruction.instructionType =
