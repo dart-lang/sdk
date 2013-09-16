@@ -197,7 +197,7 @@ main() {
       var scope = new Scope(variables: {'items': null});
       var comprehension = eval(parse('item in items'), scope);
       expect(comprehension, isNotNull);
-      expect(comprehension.iterable, []]);
+      expect(comprehension.iterable, []);
     });
 
   });
