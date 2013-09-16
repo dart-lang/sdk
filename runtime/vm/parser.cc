@@ -4247,7 +4247,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
     AbstractType& type_parameter_bound = Type::Handle();
     do {
       ConsumeToken();
-      SkipMetadata();
+      const intptr_t metadata_pos = SkipMetadata();
       const intptr_t type_parameter_pos = TokenPos();
       String& type_parameter_name =
           *ExpectUserDefinedTypeIdentifier("type parameter expected");
@@ -4276,6 +4276,9 @@ void Parser::ParseTypeParameters(const Class& cls) {
                                           type_parameter_bound,
                                           type_parameter_pos);
       type_parameters_array.Add(type_parameter);
+      if (metadata_pos >= 0) {
+        library_.AddTypeParameterMetadata(type_parameter, metadata_pos);
+      }
       index++;
     } while (CurrentToken() == Token::kCOMMA);
     Token::Kind token = CurrentToken();

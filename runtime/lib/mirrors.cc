@@ -435,9 +435,16 @@ DEFINE_NATIVE_ENTRY(MirrorReference_equals, 2) {
 
 
 DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
-  const MirrorReference& decl_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
-  const Object& decl = Object::Handle(decl_ref.referent());
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(0));
+  Object& decl = Object::Handle();
+  if (reflectee.IsMirrorReference()) {
+    const MirrorReference& decl_ref = MirrorReference::Cast(reflectee);
+    decl = decl_ref.referent();
+  } else if (reflectee.IsTypeParameter()) {
+    decl = reflectee.raw();
+  } else {
+    UNREACHABLE();
+  }
 
   Class& klass = Class::Handle();
   Library& library = Library::Handle();
@@ -453,6 +460,9 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
     library = klass.library();
   } else if (decl.IsLibrary()) {
     library ^= decl.raw();
+  } else if (decl.IsTypeParameter()) {
+    klass ^= TypeParameter::Cast(decl).parameterized_class();
+    library = klass.library();
   } else {
     return Object::empty_array().raw();
   }

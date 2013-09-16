@@ -769,7 +769,6 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
 
   Map<Symbol, Mirror> get members => new Map<Symbol,Mirror>();
   Map<Symbol, MethodMirror> get constructors => new Map<Symbol,MethodMirror>();
-  final Map<Symbol, TypeVariableMirror> typeVariables = const {};
 
   String toString() => "FunctionTypeMirror on '${_n(simpleName)}'";
 
@@ -845,11 +844,6 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
           _Mirrors._reflectType(_TypeVariableMirror_upper_bound(_reflectee));
     }
     return _upperBound;
-  }
-
-  List<InstanceMirror> get metadata {
-    throw new UnimplementedError(
-        'TypeVariableMirror.metadata is not implemented');
   }
 
   bool get isOriginalDeclaration => true;

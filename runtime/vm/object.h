@@ -2397,6 +2397,8 @@ class Library : public Object {
   void AddFieldMetadata(const Field& field, intptr_t token_pos) const;
   void AddFunctionMetadata(const Function& func, intptr_t token_pos) const;
   void AddLibraryMetadata(const Class& cls, intptr_t token_pos) const;
+  void AddTypeParameterMetadata(const TypeParameter& param,
+                                intptr_t token_pos) const;
   RawObject* GetMetadata(const Object& obj) const;
 
   intptr_t num_anonymous_classes() const { return raw_ptr()->num_anonymous_; }

@@ -6546,6 +6546,21 @@ static RawString* MakeFunctionMetaName(const Function& func) {
 }
 
 
+static RawString* MakeTypeParameterMetaName(const TypeParameter& param) {
+  const Array& parts = Array::Handle(Array::New(3));
+  String& part = String::Handle();
+  part ^= MakeClassMetaName(Class::Handle(param.parameterized_class()));
+  parts.SetAt(0, part);
+  // We need to choose something different from field/function names, because it
+  // is allowed to have type parameters and fields/functions with the same name
+  // in a class.
+  parts.SetAt(1, Symbols::Slash());
+  part ^= param.name();
+  parts.SetAt(2, part);
+  return String::ConcatAll(parts);
+}
+
+
 void Library::AddMetadata(const Class& cls,
                           const String& name,
                           intptr_t token_pos) const {
@@ -6584,6 +6599,15 @@ void Library::AddFunctionMetadata(const Function& func,
               token_pos);
 }
 
+
+void Library::AddTypeParameterMetadata(const TypeParameter& param,
+                                       intptr_t token_pos) const {
+  AddMetadata(Class::Handle(param.parameterized_class()),
+              String::Handle(MakeTypeParameterMetaName(param)),
+              token_pos);
+}
+
+
 void Library::AddLibraryMetadata(const Class& cls, intptr_t token_pos) const {
   AddMetadata(cls, Symbols::TopLevel(), token_pos);
 }
@@ -6598,6 +6622,8 @@ RawString* Library::MakeMetadataName(const Object& obj) const {
     return MakeFunctionMetaName(Function::Cast(obj));
   } else if (obj.IsLibrary()) {
     return Symbols::TopLevel().raw();
+  } else if (obj.IsTypeParameter()) {
+    return MakeTypeParameterMetaName(TypeParameter::Cast(obj));
   }
   UNIMPLEMENTED();
   return String::null();
@@ -6623,7 +6649,7 @@ RawField* Library::GetMetadataField(const String& metaname) const {
 
 RawObject* Library::GetMetadata(const Object& obj) const {
   if (!obj.IsClass() && !obj.IsField() && !obj.IsFunction() &&
-      !obj.IsLibrary()) {
+      !obj.IsLibrary() && !obj.IsTypeParameter()) {
     return Object::null();
   }
   const String& metaname = String::Handle(MakeMetadataName(obj));
