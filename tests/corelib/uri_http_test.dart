@@ -66,7 +66,17 @@ testHttpsUri() {
   check(new Uri.https("[::127.0.0.1]", "a"), "https://[::127.0.0.1]/a");
 }
 
+testResolveHttpScheme() {
+  String s = "//myserver:1234/path/some/thing";
+  Uri uri = Uri.parse(s);
+  Uri http = new Uri(scheme: "http");
+  Uri https = new Uri(scheme: "https");
+  Expect.equals("http:$s", http.resolveUri(uri).toString());
+  Expect.equals("https:$s", https.resolveUri(uri).toString());
+}
+
 main() {
   testHttpUri();
   testHttpsUri();
+  testResolveHttpScheme();
 }
