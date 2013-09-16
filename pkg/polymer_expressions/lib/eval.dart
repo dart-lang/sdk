@@ -595,12 +595,16 @@ call(dynamic receiver, List args) {
 }
 
 /**
- * A comprehension declaration ("a in b").
+ * A comprehension declaration ("a in b"). [identifier] is the loop variable
+ * that's added to the scope during iteration. [iterable] is the set of
+ * objects to iterate over.
  */
 class Comprehension {
   final String identifier;
   final Iterable iterable;
-  Comprehension(this.identifier, this.iterable);
+
+  Comprehension(this.identifier, Iterable iterable)
+      : iterable = (iterable != null) ? iterable : const [];
 }
 
 /**

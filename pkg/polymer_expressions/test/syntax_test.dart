@@ -15,19 +15,23 @@ main() {
   mdv.initialize();
   useHtmlEnhancedConfiguration();
 
-  group('syntax', () {
+  group('PolymerExpressions', () {
+    var testDiv;
+
     setUp(() {
-      document.body.nodes.add(new Element.html('''
-          <template id="test" bind>
-            <input id="input" value="{{ firstName }}">
-          </template>'''));
+      document.body.append(testDiv = new DivElement());
     });
 
     tearDown(() {
-      query('#test')..unbindAll()..remove();
+      testDiv.remove();
+      testDiv = null;
     });
 
     test('should make two-way bindings to inputs', () {
+      testDiv.nodes.add(new Element.html('''
+          <template id="test" bind>
+            <input id="input" value="{{ firstName }}">
+          </template>'''));
       var person = new Person('John', 'Messerly', ['A', 'B', 'C']);
       query('#test')
           ..bindingDelegate = new PolymerExpressions()
@@ -44,6 +48,20 @@ main() {
       });
     });
 
+    test('should handle null collections in "in" expressions', () {
+      testDiv.nodes.add(new Element.html('''
+          <template id="test" bind>
+            <template repeat="{{ item in items }}">
+              {{ item }}
+            </template>
+          </template>'''));      
+      query('#test')
+          ..bindingDelegate = new PolymerExpressions(globals: {'items': null})
+          ..model = null;
+      // the template should be the only node
+      expect(testDiv.nodes.length, 1);
+      expect(testDiv.nodes[0].id, 'test');
+    });
   });
 }
 
