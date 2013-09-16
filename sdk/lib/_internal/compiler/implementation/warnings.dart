@@ -429,9 +429,44 @@ main() => new C<String>();
   static const MessageKind CANNOT_INSTANTIATE_TYPEDEF = const MessageKind(
       'Error: Cannot instantiate typedef "#{typedefName}".');
 
+  static const MessageKind REQUIRED_PARAMETER_WITH_DEFAULT = const MessageKind(
+      "Error: Non-optional parameters can't have a default value.",
+      howToFix:
+        "Try removing the default value or making the parameter optional.",
+      examples: const ["""
+main() {
+  foo(a: 1) => print(a);
+  foo(2);
+}""", """
+main() {
+  foo(a = 1) => print(a);
+  foo(2);
+}"""]);
+
+  static const MessageKind NAMED_PARAMETER_WITH_EQUALS = const MessageKind(
+      "Error: Named optional parameters can't use '=' to specify a default "
+      "value.",
+      howToFix: "Try replacing '=' with ':'.",
+      examples: const ["""
+main() {
+  foo({a = 1}) => print(a);
+  foo(a: 2);
+}"""]);
+
+  static const MessageKind POSITIONAL_PARAMETER_WITH_EQUALS = const MessageKind(
+      "Error: Positional optional parameters can't use ':' to specify a "
+      "default value.",
+      howToFix: "Try replacing ':' with '='.",
+      examples: const ["""
+main() {
+  foo([a: 1]) => print(a);
+  foo(2);
+}"""]);
+
   static const MessageKind TYPEDEF_FORMAL_WITH_DEFAULT = const MessageKind(
       "Error: A parameter of a typedef can't specify a default value.",
-      howToFix: "Remove the default value.",
+      howToFix:
+        "Try removing the default value or making the parameter optional.",
       examples: const ["""
 typedef void F([int arg = 0]);
 

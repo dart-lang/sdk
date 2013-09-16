@@ -4,6 +4,17 @@
 
 part of scanner;
 
+class FormalParameterType {
+  final String type;
+  const FormalParameterType(this.type);
+  bool get isRequired => this == REQUIRED;
+  bool get isPositional => this == POSITIONAL;
+  bool get isNamed => this == NAMED;
+  static final REQUIRED = const FormalParameterType('required');
+  static final POSITIONAL = const FormalParameterType('positional');
+  static final NAMED = const FormalParameterType('named');
+}
+
 /**
  * An event generating parser of Dart programs. This parser expects
  * all tokens in a linked list (aka a token stream).
@@ -306,13 +317,13 @@ class Parser {
         token = parseOptionalFormalParameters(token, true);
         break;
       }
-      token = parseFormalParameter(token);
+      token = parseFormalParameter(token, FormalParameterType.REQUIRED);
     } while (optional(',', token));
     listener.endFormalParameters(parameterCount, begin, token);
     return expect(')', token);
   }
 
-  Token parseFormalParameter(Token token) {
+  Token parseFormalParameter(Token token, FormalParameterType type) {
     listener.beginFormalParameter(token);
     token = parseModifiers(token);
     // TODO(ahe): Validate that there are formal parameters if void.
@@ -335,6 +346,15 @@ class Parser {
       Token equal = token;
       token = parseExpression(token.next);
       listener.handleValuedFormalParameter(equal, token);
+      if (type.isRequired) {
+        listener.reportError(equal,
+            MessageKind.REQUIRED_PARAMETER_WITH_DEFAULT);
+      } else if (type.isNamed && identical('=', value)) {
+        listener.reportError(equal, MessageKind.NAMED_PARAMETER_WITH_EQUALS);
+      } else if (type.isPositional && identical(':', value)) {
+        listener.reportError(equal,
+            MessageKind.POSITIONAL_PARAMETER_WITH_EQUALS);
+      }
     }
     listener.endFormalParameter(thisKeyword);
     return token;
@@ -347,7 +367,9 @@ class Parser {
     int parameterCount = 0;
     do {
       token = token.next;
-      token = parseFormalParameter(token);
+      var type = isNamed ? FormalParameterType.NAMED
+                         : FormalParameterType.POSITIONAL;
+      token = parseFormalParameter(token, type);
       ++parameterCount;
     } while (optional(',', token));
     listener.endOptionalFormalParameters(parameterCount, begin, token);
