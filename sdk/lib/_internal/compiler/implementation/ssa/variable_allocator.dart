@@ -184,6 +184,7 @@ class LiveEnvironment {
 class SsaLiveIntervalBuilder extends HBaseVisitor {
   final Compiler compiler;
   final Set<HInstruction> generateAtUseSite;
+  final Set<HInstruction> controlFlowOperators;
 
   /**
    * A counter to assign start and end ids to live ranges. The initial
@@ -203,7 +204,8 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
    */
   final Map<HInstruction, LiveInterval> liveIntervals;
 
-  SsaLiveIntervalBuilder(this.compiler, this.generateAtUseSite)
+  SsaLiveIntervalBuilder(
+      this.compiler, this.generateAtUseSite, this.controlFlowOperators)
     : liveInstructions = new Map<HBasicBlock, LiveEnvironment>(),
       liveIntervals = new Map<HInstruction, LiveInterval>();
 
@@ -262,6 +264,19 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
   void visitBasicBlock(HBasicBlock block) {
     LiveEnvironment environment =
         new LiveEnvironment(liveIntervals, instructionId);
+
+    // If the control flow instruction in this block will actually be
+    // inlined in the codegen in the join block, we need to make
+    // whatever is used by that control flow instruction as live in
+    // the join block.
+    if (controlFlowOperators.contains(block.last)) {
+      HIf ifInstruction = block.last;
+      HBasicBlock joinBlock = ifInstruction.joinBlock;
+      if (generateAtUseSite.contains(joinBlock.phis.first)) {
+        markInputsAsLiveInEnvironment(
+            ifInstruction, liveInstructions[joinBlock]);
+      }
+    }
 
     // Add to the environment the liveIn of its successor, as well as
     // the inputs of the phis of the successor that flow from this block.

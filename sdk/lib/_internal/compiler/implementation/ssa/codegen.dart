@@ -299,8 +299,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     new SsaInstructionMerger(generateAtUseSite, compiler).visitGraph(graph);
     new SsaConditionMerger(
         generateAtUseSite, controlFlowOperators).visitGraph(graph);
-    SsaLiveIntervalBuilder intervalBuilder =
-        new SsaLiveIntervalBuilder(compiler, generateAtUseSite);
+    SsaLiveIntervalBuilder intervalBuilder = new SsaLiveIntervalBuilder(
+        compiler, generateAtUseSite, controlFlowOperators);
     intervalBuilder.visitGraph(graph);
     SsaVariableAllocator allocator = new SsaVariableAllocator(
         compiler,
