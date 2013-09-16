@@ -930,10 +930,34 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
         : zapInstructionCache;
   }
 
+  /// Returns whether the next throwing instruction that may have side
+  /// effects after [instruction], throws [NoSuchMethodError] on the
+  /// same receiver of [instruction].
+  bool hasFollowingThrowingNSM(HInstruction instruction) {
+    HInstruction receiver = instruction.getDartReceiver(compiler);
+    HInstruction current = instruction.next;
+    do {
+      if ((current.getDartReceiver(compiler) == receiver)
+          && current.canThrow()) {
+        return true;
+      }
+      if (current.canThrow() || current.sideEffects.hasSideEffects()) {
+        return false;
+      }
+      current = current.next;
+    } while (current != null);
+    return false;
+  }
+
   bool isDeadCode(HInstruction instruction) {
-    return !instruction.sideEffects.hasSideEffects()
-           && !instruction.canThrow()
-           && instruction.usedBy.isEmpty
+    if (!instruction.usedBy.isEmpty) return false;
+    if (instruction.sideEffects.hasSideEffects()) return false;
+    if (instruction.canThrow()
+        && instruction.onlyThrowsNSM()
+        && hasFollowingThrowingNSM(instruction)) {
+      return true;
+    }
+    return !instruction.canThrow()
            && instruction is !HTypeGuard
            && instruction is !HParameterValue
            && instruction is !HLocalSet;

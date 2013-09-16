@@ -887,6 +887,7 @@ abstract class HInstruction implements Spannable {
 
   Selector get selector => null;
   HInstruction getDartReceiver(Compiler compiler) => null;
+  bool onlyThrowsNSM() => false;
 
   bool isInBasicBlock() => block != null;
 
@@ -1492,6 +1493,9 @@ class HFieldGet extends HFieldAccess {
 
   bool canThrow() => receiver.canBeNull();
 
+  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  bool onlyThrowsNSM() => true;
+
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
   int typeCode() => HInstruction.FIELD_GET_TYPECODE;
@@ -1510,6 +1514,9 @@ class HFieldSet extends HFieldAccess {
   }
 
   bool canThrow() => receiver.canBeNull();
+
+  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  bool onlyThrowsNSM() => true;
 
   HInstruction get value => inputs[1];
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
@@ -2203,6 +2210,9 @@ class HIndex extends HInstruction {
   HInstruction get receiver => inputs[0];
   HInstruction get index => inputs[1];
 
+  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  bool onlyThrowsNSM() => true;
+
   int typeCode() => HInstruction.INDEX_TYPECODE;
   bool typeEquals(HInstruction other) => other is HIndex;
   bool dataEquals(HIndex other) => true;
@@ -2228,6 +2238,9 @@ class HIndexAssign extends HInstruction {
   HInstruction get receiver => inputs[0];
   HInstruction get index => inputs[1];
   HInstruction get value => inputs[2];
+
+  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  bool onlyThrowsNSM() => true;
 }
 
 class HIs extends HInstruction {
