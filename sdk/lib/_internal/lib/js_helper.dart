@@ -85,9 +85,9 @@ createUnmangledInvocationMirror(Symbol symbol, internalName, kind, arguments,
                                 argumentNames);
 }
 
-void throwInvalidReflectionError(Symbol memberName) {
-  throw new UnsupportedError('invalid reflective use of ${memberName}, '
-      'which is not included by a @MirrorsUsed annotation');
+void throwInvalidReflectionError(String memberName) {
+  throw new UnsupportedError("Can't use '$memberName' in reflection "
+      "because it is not included in a @MirrorsUsed annotation.");
 }
 
 bool hasReflectableProperty(var jsFunction) {
@@ -179,7 +179,7 @@ class JSInvocationMirror implements Invocation {
     var method = JS('var', '#[#]', receiver, name);
     if (JS('String', 'typeof #', method) == 'function') {
       if (!hasReflectableProperty(method)) {
-        throwInvalidReflectionError(memberName);
+        throwInvalidReflectionError(_symbol_dev.Symbol.getName(memberName));
       }
       return new CachedInvocation(method, isIntercepted, interceptor);
     } else {
@@ -1497,11 +1497,14 @@ class BoundClosure extends Closure {
   // we need the interceptor when generating the call method.
   final _self;
 
-  /// The method name.
-  final String _target;
+  /// The method.
+  final _target;
 
-  /// The receiver.
+  /// The receiver. Null if [_self] is not an interceptor.
   final _receiver;
+
+  /// The name of the function. Only used by the mirror system.
+  final String _name;
 
   bool operator==(other) {
     if (identical(this, other)) return true;
@@ -1513,17 +1516,30 @@ class BoundClosure extends Closure {
   }
 
   int get hashCode {
-    return JS('int', '(# + # + #) & 0x3ffffff',
-        _self.hashCode,
-        _target.hashCode,
-        _receiver.hashCode);
+    int receiverHashCode;
+    if (_receiver == null) {
+      // A bound closure on a regular Dart object, just use the
+      // identity hash code.
+      receiverHashCode = Primitives.objectHashCode(_self);
+    } else if (JS('String', 'typeof #', _receiver) != 'object') {
+      // A bound closure on a primitive JavaScript type. We
+      // use the hashCode method we define for those primitive types.
+      receiverHashCode = _receiver.hashCode;
+    } else {
+      // A bound closure on an intercepted native class, just use the
+      // identity hash code.
+      receiverHashCode = Primitives.objectHashCode(_receiver);
+    }
+    return receiverHashCode ^ Primitives.objectHashCode(_target);
   }
 
   static selfOf(BoundClosure closure) => closure._self;
 
-  static String targetOf(BoundClosure closure) => closure._target;
+  static targetOf(BoundClosure closure) => closure._target;
 
-  static revceiverOf(BoundClosure closure) => closure._receiver;
+  static receiverOf(BoundClosure closure) => closure._receiver;
+
+  static nameOf(BoundClosure closure) => closure._name;
 }
 
 bool jsHasOwnProperty(var jsObject, String property) {

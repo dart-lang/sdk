@@ -279,7 +279,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     if (mirror is JsMethodMirror) {
       JsMethodMirror method = mirror;
       if (!method.canInvokeReflectively()) {
-        throwInvalidReflectionError(memberName);
+        throwInvalidReflectionError(n(memberName));
       }
     }
     return reflect(mirror._invoke(positionalArguments, namedArguments));
@@ -1063,7 +1063,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
           this, memberName, positionalArguments, namedArguments);
     }
     if (!mirror.canInvokeReflectively()) {
-      throwInvalidReflectionError(memberName);
+      throwInvalidReflectionError(n(memberName));
     }
     return reflect(mirror._invoke(positionalArguments, namedArguments));
   }
@@ -1221,14 +1221,17 @@ function(reflectee) {
       throw new RuntimeError('Cannot find callName on "$reflectee"');
     }
     int parameterCount = int.parse(callName.split(r'$')[1]);
-    bool isStatic = true; // TODO(ahe): Compute isStatic correctly.
     if (reflectee is BoundClosure) {
       var target = BoundClosure.targetOf(reflectee);
       var self = BoundClosure.selfOf(reflectee);
-      cachedFunction = new JsMethodMirror(
-          s(target), JS('', '#[#]', self, target), parameterCount,
-          false, false, isStatic, false, false);
+      var name = mangledNames[BoundClosure.nameOf(reflectee)];
+      if (name == null) {
+        throwInvalidReflectionError(name);
+      }
+      cachedFunction = new JsMethodMirror.fromUnmangledName(
+          name, target, false, false);
     } else {
+      bool isStatic = true; // TODO(ahe): Compute isStatic correctly.
       var jsFunction = JS('', '#[#]', reflectee, callName);
       cachedFunction = new JsMethodMirror(
           s(callName), jsFunction, parameterCount,

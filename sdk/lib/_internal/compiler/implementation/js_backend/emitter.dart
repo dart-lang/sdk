@@ -2568,6 +2568,7 @@ class CodeEmitterTask extends CompilerTask {
 
       List<String> parameters = <String>[];
       List<jsAst.Expression> arguments = <jsAst.Expression>[];
+      arguments.add(js('this')[fieldNames[0]]);
       if (inInterceptor) {
         arguments.add(js('this')[fieldNames[2]]);
       }
@@ -2580,7 +2581,7 @@ class CodeEmitterTask extends CompilerTask {
       jsAst.Expression fun = js.fun(
           parameters,
           js.return_(
-              js('this')[fieldNames[0]][js('this')[fieldNames[1]]](arguments)));
+              js('this')[fieldNames[1]]['call'](arguments)));
       boundClosureBuilder.addProperty(invocationName, fun);
 
       addParameterStubs(callElement, boundClosureBuilder.addProperty);
@@ -2621,7 +2622,10 @@ class CodeEmitterTask extends CompilerTask {
     List<String> parameters = <String>[];
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
     arguments.add(js('this'));
-    arguments.add(js.string(targetName));
+    jsAst.PropertyAccess method =
+        backend.namer.elementAccess(classElement)['prototype'][targetName];
+
+    arguments.add(method);
     if (inInterceptor) {
       String receiverArg = fieldNames[2];
       parameters.add(receiverArg);
@@ -2630,6 +2634,7 @@ class CodeEmitterTask extends CompilerTask {
       // Put null in the intercepted receiver field.
       arguments.add(new jsAst.LiteralNull());
     }
+    arguments.add(js.string(targetName));
 
     jsAst.Expression getterFunction = js.fun(
         parameters, js.return_(js(closureClass).newWith(arguments)));

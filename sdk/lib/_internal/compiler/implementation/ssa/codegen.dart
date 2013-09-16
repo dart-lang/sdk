@@ -1646,7 +1646,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeSuper(HInvokeSuper node) {
     Element superMethod = node.element;
     world.registerStaticUse(superMethod);
-    Element superClass = superMethod.getEnclosingClass();
+    ClassElement superClass = superMethod.getEnclosingClass();
     if (superMethod.kind == ElementKind.FIELD) {
       String fieldName = node.caller.isShadowedByField(superMethod)
           ? backend.namer.shadowedFieldName(superMethod)
@@ -1661,13 +1661,21 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         push(access, node);
       }
     } else {
-      String methodName = backend.namer.getNameOfInstanceMember(superMethod);
-      String className = backend.namer.isolateAccess(superClass);
-      js.VariableUse classReference = new js.VariableUse(className);
-      js.PropertyAccess prototype =
-          new js.PropertyAccess.field(classReference, "prototype");
+      Selector selector = node.selector;
+      String methodName;
+      if (selector.isGetter()) {
+        // If the selector we need to register a typed getter to the
+        // [world]. The emitter needs to know if it needs to emit a
+        // bound closure for a method.
+        TypeMask receiverType = new TypeMask.nonNullExact(superClass.rawType);
+        selector = new TypedSelector(receiverType, selector);
+        world.registerDynamicGetter(selector);
+        methodName = backend.namer.invocationName(selector);
+      } else {
+        methodName = backend.namer.getNameOfInstanceMember(superMethod);
+      }
       js.PropertyAccess method =
-          new js.PropertyAccess.field(prototype, methodName);
+          backend.namer.elementAccess(superClass)['prototype'][methodName];
       push(jsPropertyCall(
           method, "call", visitArguments(node.inputs, start: 0)), node);
     }

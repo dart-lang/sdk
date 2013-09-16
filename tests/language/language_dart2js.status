@@ -120,12 +120,9 @@ map_literal3_test: Fail # Issue 12793
 function_type_alias5_test/00: Fail # Issue 12754
 function_type_alias5_test/01: Fail # Issue 12754
 function_type_alias5_test/02: Fail # Issue 12754
-method_binding_test: Fail # Issue 12807
-method_override_test: Fail # Issue 12808
 method_override5_test: Fail # Issue 12809
 parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters_aggregated_test/03: Fail # Issue 12812
-super_implicit_closure_test: Fail # Issue 12884
 external_test/11: Fail # Issue 12887
 external_test/12: Fail # Issue 12887
 external_test/13: Fail # Issue 12887
