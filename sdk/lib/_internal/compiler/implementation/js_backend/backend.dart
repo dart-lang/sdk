@@ -435,24 +435,34 @@ class JavaScriptBackend extends Backend {
         new Namer(compiler);
   }
 
-  bool canBeUsedForGlobalOptimizations(Element element) {
-    bool isFinalField = element.isField()
-        && (element.modifiers.isFinal() || element.modifiers.isConst());
+  bool usedByBackend(Element element) {
     if (element.isParameter()
         || element.isFieldParameter()
         || element.isField()) {
-      if (!isFinalField
-          && hasInsufficientMirrorsUsed
-          && compiler.enabledInvokeOn) {
-        return false;
-      }
-      if (!canBeUsedForGlobalOptimizations(element.enclosingElement)) {
-        return false;
-      }
+      if (usedByBackend(element.enclosingElement)) return true;
     }
-    element = element.declaration;
-    if (helpersUsed.contains(element)) return false;
-    return isFinalField || !isNeededForReflection(element);
+    return helpersUsed.contains(element.declaration);
+  }
+
+  bool invokedReflectively(Element element) {
+    if (element.isParameter() || element.isFieldParameter()) {
+      if (hasInsufficientMirrorsUsed && compiler.enabledInvokeOn) return true;
+      if (invokedReflectively(element.enclosingElement)) return true;
+    }
+
+    if (element.isField()) {
+      if (Elements.isStaticOrTopLevel(element)
+          && (element.modifiers.isFinal() || element.modifiers.isConst())) {
+        return false;
+      }
+      if (hasInsufficientMirrorsUsed && compiler.enabledInvokeOn) return true;
+    }
+
+    return isNeededForReflection(element.declaration);
+  }
+
+  bool canBeUsedForGlobalOptimizations(Element element) {
+    return !usedByBackend(element) && !invokedReflectively(element);
   }
 
   bool isInterceptorClass(ClassElement element) {
