@@ -842,7 +842,7 @@ RawError* Object::Init(Isolate* isolate) {
   ASSERT(!core_lib.IsNull());
 
   const GrowableObjectArray& pending_classes =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld));
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
   object_store->set_pending_classes(pending_classes);
 
   Context& context = Context::Handle(Context::New(0, Heap::kOld));
@@ -854,7 +854,7 @@ RawError* Object::Init(Isolate* isolate) {
   String& name = String::Handle();
   cls = object_store->array_class();  // Was allocated above.
   RegisterPrivateClass(cls, Symbols::ObjectArray(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
   // We cannot use NewNonParameterizedType(cls), because Array is parameterized.
   type ^= Type::New(Object::Handle(cls.raw()),
                     TypeArguments::Handle(),
@@ -865,7 +865,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = object_store->growable_object_array_class();  // Was allocated above.
   RegisterPrivateClass(cls, Symbols::GrowableObjectArray(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = Class::New<Array>(kImmutableArrayCid);
   object_store->set_immutable_array_class(cls);
@@ -873,36 +873,36 @@ RawError* Object::Init(Isolate* isolate) {
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
   cls.set_is_prefinalized();
   RegisterPrivateClass(cls, Symbols::ImmutableArray(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = object_store->one_byte_string_class();  // Was allocated above.
   RegisterPrivateClass(cls, Symbols::OneByteString(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = object_store->two_byte_string_class();  // Was allocated above.
   RegisterPrivateClass(cls, Symbols::TwoByteString(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = Class::NewStringClass(kExternalOneByteStringCid);
   object_store->set_external_one_byte_string_class(cls);
   RegisterPrivateClass(cls, Symbols::ExternalOneByteString(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = Class::NewStringClass(kExternalTwoByteStringCid);
   object_store->set_external_two_byte_string_class(cls);
   RegisterPrivateClass(cls, Symbols::ExternalTwoByteString(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
   RegisterClass(cls, Symbols::StackTrace(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
   // Super type set below, after Object is allocated.
 
   cls = Class::New<JSRegExp>();
   object_store->set_jsregexp_class(cls);
   RegisterPrivateClass(cls, Symbols::JSSyntaxRegExp(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   // Initialize the base interfaces used by the core VM classes.
 
@@ -915,67 +915,67 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_name(Symbols::Object());
   cls.set_is_prefinalized();
   core_lib.AddClass(cls);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_object_type(type);
 
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
   RegisterClass(cls, Symbols::Bool(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = Class::New<Instance>(kNullCid);
   cls.set_is_prefinalized();
   object_store->set_null_class(cls);
   RegisterClass(cls, Symbols::Null(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = object_store->type_class();
   RegisterPrivateClass(cls, Symbols::Type(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = object_store->type_parameter_class();
   RegisterPrivateClass(cls, Symbols::TypeParameter(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = object_store->bounded_type_class();
   RegisterPrivateClass(cls, Symbols::BoundedType(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = object_store->mixin_app_type_class();
   RegisterPrivateClass(cls, Symbols::MixinAppType(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
   RegisterPrivateClass(cls, Symbols::IntegerImplementation(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = Class::New<Smi>();
   object_store->set_smi_class(cls);
   RegisterPrivateClass(cls, Symbols::_Smi(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = Class::New<Mint>();
   object_store->set_mint_class(cls);
   RegisterPrivateClass(cls, Symbols::_Mint(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = Class::New<Bigint>();
   object_store->set_bigint_class(cls);
   RegisterPrivateClass(cls, Symbols::_Bigint(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   cls = Class::New<Double>();
   object_store->set_double_class(cls);
   RegisterPrivateClass(cls, Symbols::_Double(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 
   // Abstract super class for all signature classes.
   cls = Class::New<Instance>(kIllegalCid);
   cls.set_is_prefinalized();
   RegisterPrivateClass(cls, Symbols::FunctionImpl(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_function_impl_type(type);
 
@@ -1033,14 +1033,14 @@ RawError* Object::Init(Isolate* isolate) {
   index = kTypedData##clazz##ViewCid - kTypedDataInt8ArrayCid;                 \
   typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_##clazz##View(), lib);                   \
-  pending_classes.Add(cls, Heap::kOld);                                        \
+  pending_classes.Add(cls);                                                    \
 
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
   cls = Class::NewTypedDataViewClass(kByteDataViewCid);
   index = kByteDataViewCid - kTypedDataInt8ArrayCid;
   typed_data_classes.SetAt(index, cls);
   RegisterPrivateClass(cls, Symbols::_ByteDataView(), lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);      \
@@ -1061,14 +1061,14 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Float32x4(), lib);
   cls.set_is_prefinalized();
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_float32x4_type(type);
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Uint32x4(), lib);
   cls.set_is_prefinalized();
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_uint32x4_type(type);
 
@@ -1084,27 +1084,27 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Instance>(kIllegalCid);
   cls.set_is_prefinalized();
   RegisterClass(cls, Symbols::Function(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_function_type(type);
 
   cls = Class::New<Number>();
   RegisterClass(cls, Symbols::Number(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_number_type(type);
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Int(), core_lib);
   cls.set_is_prefinalized();
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_int_type(type);
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Double(), core_lib);
   cls.set_is_prefinalized();
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_double_type(type);
 
@@ -1112,7 +1112,7 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, name, core_lib);
   cls.set_is_prefinalized();
-  pending_classes.Add(cls, Heap::kOld);
+  pending_classes.Add(cls);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_string_type(type);
 
