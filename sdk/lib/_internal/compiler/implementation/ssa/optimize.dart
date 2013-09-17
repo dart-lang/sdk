@@ -299,13 +299,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
         }
       } else if (input.isString(compiler)) {
         if (selector.applies(backend.jsStringSplit, compiler)) {
-          if (node.inputs[2].isString(compiler)) {
+          HInstruction argument = node.inputs[2];
+          if (argument.isString(compiler) && !argument.canBeNull()) {
             target = backend.jsStringSplit;
           }
         } else if (selector.applies(backend.jsStringOperatorAdd, compiler)) {
           // `operator+` is turned into a JavaScript '+' so we need to
-          // make sure the receiver is not null.
-          if (node.inputs[2].isString(compiler) && !input.canBeNull()) {
+          // make sure the receiver and the argument are not null.
+          HInstruction argument = node.inputs[2];
+          if (argument.isString(compiler)
+              && !argument.canBeNull()
+              && !input.canBeNull()) {
             target = backend.jsStringOperatorAdd;
           }
         } else if (selector.applies(backend.jsStringToString, compiler)
