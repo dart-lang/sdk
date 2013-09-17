@@ -131,10 +131,11 @@ class GCSNamer(object):
     return '%s-%s-%s-%s.zip' % (
         name, SYSTEM_RENAMES[system], ARCH_RENAMES[arch], mode)
 
-def run(command, env=None):
+def run(command, env=None, shell=False):
   print "Running command: ", command
+
   p = subprocess.Popen(command, stdout=subprocess.PIPE,
-                       stderr=subprocess.PIPE, env=env)
+                       stderr=subprocess.PIPE, env=env, shell=shell)
   (stdout, stderr) = p.communicate()
   if p.returncode != 0:
     print >> sys.stderr, "Failed to execute '%s'. Exit code: %s." % (
@@ -184,7 +185,8 @@ class GSUtil(object):
     else:
       gsutil_command = [sys.executable, GSUtil.GSUTIL_PATH]
 
-    run(gsutil_command + gsutil_args, env=env)
+    run(gsutil_command + gsutil_args, env=env,
+        shell=GSUtil.GSUTIL_IS_SHELL_SCRIPT)
 
   def upload(self, local_path, remote_path, recursive=False, public=False):
     assert remote_path.startswith('gs://')
@@ -231,4 +233,3 @@ def CreateChecksumFile(filename, mangled_filename=None):
     f.write('%s *%s' % (checksum, mangled_filename))
 
   return checksum_filename
-
