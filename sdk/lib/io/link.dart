@@ -182,7 +182,6 @@ class _Link extends FileSystemEntity implements Link {
           'Target $result of Link.create on Windows cannot be converted' +
           ' to start with a drive letter.  Unexpected error.');
     }
-    return target;
   }
 
   void updateSync(String target) {
