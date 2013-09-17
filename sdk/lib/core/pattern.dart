@@ -4,6 +4,9 @@
 
 part of dart.core;
 
+/**
+ * An interface for basic searches within strings.
+ */
 abstract class Pattern {
   /**
    * Match this pattern against the string repeatedly.

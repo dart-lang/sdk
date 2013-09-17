@@ -75,9 +75,15 @@ class MessageKind {
   /// Should describe how to fix the problem. Elided when using --terse option.
   final String howToFix;
 
-  /// Examples will be checked by
-  /// tests/compiler/dart2js/message_kind_test.dart.
-  final List<String> examples;
+  /**
+   *  Examples will be checked by
+   *  tests/compiler/dart2js/message_kind_test.dart.
+   *
+   *  An example is either a String containing the example source code or a Map
+   *  from filenames to source code. In the latter case, the filename for the
+   *  main library code must be 'main.dart'.
+   */
+  final List examples;
 
   const MessageKind(this.template, {this.howToFix, this.examples});
 
@@ -187,6 +193,59 @@ class MessageKind {
   static const DualKind DUPLICATE_IMPORT = const DualKind(
       error: const MessageKind('Error: Duplicate import of "#{name}".'),
       warning: const MessageKind('Warning: Duplicate import of "#{name}".'));
+
+  static const MessageKind HIDDEN_IMPORT = const MessageKind(
+      "Warning: '#{name}' from library '#{hiddenUri}' by '#{name}' "
+      "from library '#{hidingUri}'.",
+      howToFix: "Try adding 'hide #{name}' to the import of '#{hiddenUri}'.",
+      examples: const [
+          const {
+'main.dart':
+"""
+import 'dart:async'; // This imports a class Future.
+import 'future.dart';
+
+void main() {}""",
+
+'future.dart':
+"""
+library future;
+
+class Future {}"""},
+
+          const {
+'main.dart':
+"""
+import 'future.dart';
+import 'dart:async'; // This imports a class Future.
+
+void main() {}""",
+
+'future.dart':
+"""
+library future;
+
+class Future {}"""},
+
+          const {
+'main.dart':
+"""
+import 'export.dart';
+import 'dart:async'; // This imports a class Future.
+
+void main() {}""",
+
+'future.dart':
+"""
+library future;
+
+class Future {}""",
+
+'export.dart':
+"""
+library export;
+
+export 'future.dart';"""}]);
 
   static const MessageKind DUPLICATE_EXPORT = const MessageKind(
       'Error: Duplicate export of "#{name}".');
@@ -429,9 +488,44 @@ main() => new C<String>();
   static const MessageKind CANNOT_INSTANTIATE_TYPEDEF = const MessageKind(
       'Error: Cannot instantiate typedef "#{typedefName}".');
 
+  static const MessageKind REQUIRED_PARAMETER_WITH_DEFAULT = const MessageKind(
+      "Error: Non-optional parameters can't have a default value.",
+      howToFix:
+        "Try removing the default value or making the parameter optional.",
+      examples: const ["""
+main() {
+  foo(a: 1) => print(a);
+  foo(2);
+}""", """
+main() {
+  foo(a = 1) => print(a);
+  foo(2);
+}"""]);
+
+  static const MessageKind NAMED_PARAMETER_WITH_EQUALS = const MessageKind(
+      "Error: Named optional parameters can't use '=' to specify a default "
+      "value.",
+      howToFix: "Try replacing '=' with ':'.",
+      examples: const ["""
+main() {
+  foo({a = 1}) => print(a);
+  foo(a: 2);
+}"""]);
+
+  static const MessageKind POSITIONAL_PARAMETER_WITH_EQUALS = const MessageKind(
+      "Error: Positional optional parameters can't use ':' to specify a "
+      "default value.",
+      howToFix: "Try replacing ':' with '='.",
+      examples: const ["""
+main() {
+  foo([a: 1]) => print(a);
+  foo(2);
+}"""]);
+
   static const MessageKind TYPEDEF_FORMAL_WITH_DEFAULT = const MessageKind(
       "Error: A parameter of a typedef can't specify a default value.",
-      howToFix: "Remove the default value.",
+      howToFix:
+        "Try removing the default value or making the parameter optional.",
       examples: const ["""
 typedef void F([int arg = 0]);
 
@@ -901,6 +995,13 @@ main() {}
       howToFix: "Try adding {}.",
       examples: const [
           "main();"]);
+
+  static const MessageKind MIRROR_BLOAT = const MessageKind(
+      "Hint: #{count} methods retained for use by dart:mirrors out of #{total}"
+      " total methods (#{percentage}%).");
+
+  static const MessageKind MIRROR_IMPORT = const MessageKind(
+      "Info: Import of 'dart:mirrors'.");
 
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       'Error: The compiler crashed when compiling this element.');

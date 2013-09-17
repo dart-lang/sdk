@@ -259,17 +259,34 @@ class ElementTypeInformation extends TypeInformation {
     return null;
   }
 
+  TypeMask potentiallyNarrowType(TypeMask mask,
+                                 TypeGraphInferrerEngine inferrer) {
+    Compiler compiler = inferrer.compiler;
+    if (!compiler.trustTypeAnnotations && !compiler.enableTypeAssertions) {
+      return mask;
+    }
+    if (element.isGenerativeConstructor() || element.isSetter()) return mask;
+    var type = element.computeType(compiler);
+    if (element.isFunction()
+        || element.isGetter()
+        || element.isFactoryConstructor()) {
+      type = type.returnType;
+    }
+    return new TypeMaskSystem(compiler).narrowType(mask, type);
+  }
+
   TypeMask refine(TypeGraphInferrerEngine inferrer) {
     TypeMask special = handleSpecialCases(inferrer);
-    if (special != null) return special;
-    return inferrer.types.computeTypeMask(assignments);
+    if (special != null) return potentiallyNarrowType(special, inferrer);
+    return potentiallyNarrowType(
+        inferrer.types.computeTypeMask(assignments), inferrer);
   }
 
   TypeMask refineOptimistic(TypeGraphInferrerEngine inferrer) {
     TypeMask special = handleSpecialCases(inferrer);
-    if (special != null) return special;
-    return inferrer.types.computeTypeMask(
-        assignments.where((e) => e.isConcrete));
+    if (special != null) return potentiallyNarrowType(special, inferrer);
+    return potentiallyNarrowType(inferrer.types.computeTypeMask(
+        assignments.where((e) => e.isConcrete)), inferrer);
   }
 
   String toString() => 'Element $element';
@@ -330,8 +347,21 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
         this, calledElement, arguments, selector, remove: false, init: true);
   }
 
+  bool get isSynthesized {
+    // Some calls do not have a corresponding node, for example
+    // fowarding factory constructors, or synthesized super
+    // constructor calls. We synthesize these calls but do
+    // not create a selector for them.
+    return selector == null;
+  }
+
   TypeMask refine(TypeGraphInferrerEngine inferrer) {
-    return inferrer.types.getInferredTypeOf(calledElement).type;
+    if (isSynthesized) {
+      assert(arguments != null);
+      return inferrer.types.getInferredTypeOf(calledElement).type;
+    } else {
+      return inferrer.typeOfElementWithSelector(calledElement, selector).type;
+    }
   }
 
   Iterable<Element> get callees => [calledElement.implementation];
@@ -542,8 +572,7 @@ class ConcreteTypeInformation extends TypeInformation {
  *   potential target of this dynamic call.
  *
  * - In checked mode, after a type annotation, we have more
- *   information on the type of an element (parameter, function,
- *   local). TODO(ngeoffray): Implement this.
+ *   information on the type of a local.
  */
 class NarrowTypeInformation extends TypeInformation {
   final TypeMask typeAnnotation;
@@ -1005,6 +1034,24 @@ class TypeGraphInferrerEngine
     refine();
 
     compiler.log('Inferred $overallRefineCount types.');
+
+    if (compiler.enableTypeAssertions) {
+      // Undo the narrowing of parameters types. Parameters are being
+      // checked by the method, and we can therefore only trust their
+      // type after the checks. It is okay for the inferrer to rely on
+      // the type annotations, but the backend should has to
+      // insert the checks.
+      types.typeInformations.forEach((Element element,
+                                      ElementTypeInformation info) {
+        if (element.isParameter() || element.isFieldParameter()) {
+          if (info.abandonInferencing) {
+            info.type = types.dynamicType.type;
+          } else {
+            info.type = types.computeTypeMask(info.assignments);
+          }
+        }
+      });
+    }
   }
 
 

@@ -48,9 +48,6 @@ dart/inline_stack_frame_test: Fail
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $arch == x64 && $mode == debug ]
-cc/FindCodeObject: Pass, Timeout  # Issue 13144
-
 [ $arch == simarm ]
 dart/isolate_mirror_local_test: Skip
 

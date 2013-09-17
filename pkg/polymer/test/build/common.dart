@@ -106,6 +106,3 @@ const SHADOW_DOM_TAG =
     '<script src="packages/shadow_dom/shadow_dom.debug.js"></script>\n';
 
 const INTEROP_TAG = '<script src="packages/browser/interop.js"></script>\n';
-
-const PKG_JS_INTEROP_TAG =
-    '<script src="packages/js/dart_interop.js"></script>\n';

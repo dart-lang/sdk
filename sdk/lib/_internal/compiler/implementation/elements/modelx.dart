@@ -674,15 +674,31 @@ class LibraryElementX extends ElementX implements LibraryElement {
     importers[element] =
         importers.putIfAbsent(element, () => const Link<Import>())
         .prepend(import);
-    Element existing = importScope[element.name];
-    if (existing != null) {
-      // TODO(johnniwinther): Provide access to the import tags from which
-      // the elements came.
-      importScope[element.name] = new AmbiguousElementX(
-          MessageKind.DUPLICATE_IMPORT, {'name': element.name},
-          this, existing, element);
-    } else {
-      importScope[element.name] = element;
+    SourceString name = element.name;
+    Element existing = importScope.putIfAbsent(name, () => element);
+    if (existing != element) {
+      if (existing.getLibrary().isPlatformLibrary &&
+          !element.getLibrary().isPlatformLibrary) {
+        // [existing] is implicitly hidden.
+        importScope[name] = element;
+        listener.reportWarningCode(import, MessageKind.HIDDEN_IMPORT,
+            {'name': name,
+             'hiddenUri': existing.getLibrary().canonicalUri,
+             'hidingUri': element.getLibrary().canonicalUri});
+      } else if (!existing.getLibrary().isPlatformLibrary &&
+                 element.getLibrary().isPlatformLibrary) {
+        // [element] is implicitly hidden.
+        listener.reportWarningCode(import, MessageKind.HIDDEN_IMPORT,
+            {'name': name,
+             'hiddenUri': element.getLibrary().canonicalUri,
+             'hidingUri': existing.getLibrary().canonicalUri});
+      } else {
+        // TODO(johnniwinther): Provide access to the import tags from which
+        // the elements came.
+        importScope[name] = new AmbiguousElementX(
+            MessageKind.DUPLICATE_IMPORT, {'name': name},
+            this, existing, element);
+      }
     }
   }
 

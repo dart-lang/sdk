@@ -5,7 +5,8 @@
 library dart2js.cmdline;
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io'
+    show exit, File, FileMode, Options, Platform, RandomAccessFile;
 import 'dart:math' as math;
 
 import '../compiler.dart' as api;
@@ -562,7 +563,7 @@ void helpAndFail(String message) {
 }
 
 void mainWithErrorHandler(Options options) {
-  new Future.sync(() => compilerMain(options)).catchError((exception) {
+  runZonedExperimental(() => compilerMain(options), onError: (exception) {
     try {
       print('Internal error: $exception');
     } catch (ignored) {

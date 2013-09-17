@@ -844,8 +844,9 @@ Dart_Handle DartUtils::NewInternalError(const char* message) {
 }
 
 
-void DartUtils::SetOriginalWorkingDirectory() {
+bool DartUtils::SetOriginalWorkingDirectory() {
   original_working_directory = Directory::Current();
+  return original_working_directory != NULL;
 }
 
 

@@ -163,7 +163,7 @@ class DartUtils {
   // Create a new Dart InternalError object with the provided message.
   static Dart_Handle NewInternalError(const char* message);
 
-  static void SetOriginalWorkingDirectory();
+  static bool SetOriginalWorkingDirectory();
 
   static const char* MapLibraryUrl(CommandLineOptions* url_mapping,
                                    const char* url_string);

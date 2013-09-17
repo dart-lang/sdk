@@ -12,6 +12,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/constants_x64.h"
+#include "vm/hash_map.h"
 
 namespace dart {
 
@@ -836,6 +837,47 @@ class Assembler : public ValueObject {
 
   // Patchability of pool entries.
   GrowableArray<Patchability> patchable_pool_entries_;
+
+  // Pair type parameter for DirectChainedHashMap.
+  class ObjIndexPair {
+   public:
+    // TODO(zra): A WeakTable should be used here instead, but then it would
+    // also have to be possible to register and de-register WeakTables with the
+    // heap. Also, the Assembler would need to become a StackResource.
+    // Issue 13305. In the meantime...
+    // CAUTION: the RawObject* below is only safe because:
+    // The HashMap that will use this pair type will not contain any RawObject*
+    // keys that are not in the object_pool_ array. Since the keys will be
+    // visited by the GC when it visits the object_pool_, and since all objects
+    // in the object_pool_ are Old (and so will not be moved) the GC does not
+    // also need to visit the keys here in the HashMap.
+
+    // Typedefs needed for the DirectChainedHashMap template.
+    typedef RawObject* Key;
+    typedef intptr_t Value;
+    typedef ObjIndexPair Pair;
+
+    ObjIndexPair(Key key, Value value) : key_(key), value_(value) { }
+
+    static Key KeyOf(Pair kv) { return kv.key_; }
+
+    static Value ValueOf(Pair kv) { return kv.value_; }
+
+    static intptr_t Hashcode(Key key) {
+      return reinterpret_cast<intptr_t>(key) >> kObjectAlignmentLog2;
+    }
+
+    static inline bool IsKeyEqual(Pair kv, Key key) {
+      return kv.key_ == key;
+    }
+
+   private:
+    Key key_;
+    Value value_;
+  };
+
+  // Hashmap for fast lookup in object pool.
+  DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;
 
   int prologue_offset_;
 

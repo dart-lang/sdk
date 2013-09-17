@@ -285,6 +285,12 @@ TEST_CASE(InstanceGetClass) {
   EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
   EXPECT_STREQ("bool", cls_name_cstr);
 
+  Dart_Handle qual_cls_name = Dart_QualifiedClassName(cls);
+  EXPECT_VALID(qual_cls_name);
+  const char* qual_cls_name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(qual_cls_name, &qual_cls_name_cstr));
+  EXPECT_STREQ("Library:'dart:core' Class: bool", qual_cls_name_cstr);
+
   // Errors propagate.
   Dart_Handle error = Dart_NewApiError("MyError");
   Dart_Handle error_cls = Dart_InstanceGetClass(error);

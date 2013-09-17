@@ -21,6 +21,11 @@ abstract class DiagnosticListener {
 
   void reportError(Spannable node, MessageKind errorCode, [Map arguments]);
 
+  // TODO(johnniwinther): Rename to [reportWarning] when
+  // [Compiler.reportWarning] has been removed.
+  void reportWarningCode(Spannable node, MessageKind errorCode,
+                         [Map arguments = const {}]);
+
   void reportInfo(Spannable node, MessageKind errorCode, [Map arguments]);
 
   // TODO(ahe): We should not expose this here.  Perhaps a

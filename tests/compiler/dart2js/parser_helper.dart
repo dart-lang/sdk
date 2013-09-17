@@ -32,6 +32,32 @@ class LoggerCanceler implements DiagnosticListener {
   void log(message) {
     print(message);
   }
+
+  void internalErrorOnElement(element, String message) {
+    log(message);
+  }
+
+  void internalError(String message, {node, token, instruction, element}) {
+    log(message);
+  }
+
+  SourceSpan spanFromSpannable(node, [uri]) {
+    throw 'unsupported operation';
+  }
+
+  void reportMessage(SourceSpan span, Diagnostic message, kind) {
+    log(message);
+  }
+
+  void reportError(Spannable node, MessageKind errorCode, [Map arguments]) {
+    log(new Message(errorCode, arguments, false));
+  }
+
+  void reportInfo(Spannable node, MessageKind errorCode, [Map arguments]) {
+    log(new Message(errorCode, arguments, false));
+  }
+
+  withCurrentElement(Element element, f()) => f();
 }
 
 Token scan(String text) => new StringScanner(text).tokenize();

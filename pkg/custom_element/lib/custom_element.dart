@@ -3,10 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Custom Elements let authors define their own elements. Authors associate code
- * with custom tag names, and then use those custom tag names as they would any
- * standard tag. See <www.polymer-project.org/platform/custom-elements.html>
- * for more information.
+ * Custom DOM elements.
+ *
+ * This library provides access to the Polymer project's
+ * [Custom Elements]
+ * (http://www.polymer-project.org/platform/custom-elements.html)
+ * API, which lets you define your own elements. With custom elements, you
+ * associate code with custom tag names, and then use those custom tag names
+ * as you would any standard tag. For more information, see the
+ * [Polymer.dart homepage](https://www.dartlang.org/polymer-dart/) and its
+ * [custom element example]
+ * (https://www.dartlang.org/polymer-dart/#custom-elements).
  */
 library custom_element;
 

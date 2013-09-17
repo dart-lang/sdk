@@ -887,6 +887,7 @@ abstract class HInstruction implements Spannable {
 
   Selector get selector => null;
   HInstruction getDartReceiver(Compiler compiler) => null;
+  bool onlyThrowsNSM() => false;
 
   bool isInBasicBlock() => block != null;
 
@@ -1250,12 +1251,14 @@ class HBoundsCheck extends HCheck {
    */
   int staticChecks = FULL_CHECK;
 
-  HBoundsCheck(length, index) : super(<HInstruction>[length, index]) {
+  HBoundsCheck(length, index, array)
+      : super(<HInstruction>[length, index, array]) {
     instructionType = HType.INTEGER;
   }
 
   HInstruction get length => inputs[1];
   HInstruction get index => inputs[0];
+  HInstruction get array => inputs[2];
   bool isControlFlow() => true;
 
   accept(HVisitor visitor) => visitor.visitBoundsCheck(this);
@@ -1406,6 +1409,13 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 
 class HInvokeStatic extends HInvoke {
   final Element element;
+
+  /// If this instruction is a call to a constructor, [instantiatedTypes]
+  /// contains the type(s) used in the (Dart) `New` expression(s).
+  /// The [instructionType] of this node is not enough, because we also need
+  /// the type arguments.  See also [SsaBuilder.currentInlinedInstantiations].
+  List<DartType> instantiatedTypes;
+
   /** The first input must be the target. */
   HInvokeStatic(this.element, inputs, HType type) : super(inputs) {
     instructionType = type;
@@ -1483,6 +1493,9 @@ class HFieldGet extends HFieldAccess {
 
   bool canThrow() => receiver.canBeNull();
 
+  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  bool onlyThrowsNSM() => true;
+
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
   int typeCode() => HInstruction.FIELD_GET_TYPECODE;
@@ -1501,6 +1514,9 @@ class HFieldSet extends HFieldAccess {
   }
 
   bool canThrow() => receiver.canBeNull();
+
+  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  bool onlyThrowsNSM() => true;
 
   HInstruction get value => inputs[1];
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
@@ -1534,20 +1550,27 @@ class HLocalSet extends HFieldAccess {
 class HForeign extends HInstruction {
   final js.Node codeAst;
   final bool isStatement;
+  final native.NativeBehavior nativeBehavior;
 
   HForeign(this.codeAst,
            HType type,
            List<HInstruction> inputs,
            {this.isStatement: false,
-            SideEffects effects})
-      : super(inputs) {
+            SideEffects effects,
+            native.NativeBehavior nativeBehavior})
+      : this.nativeBehavior = nativeBehavior, super(inputs) {
+    if (effects == null && nativeBehavior != null) {
+      effects = nativeBehavior.sideEffects;
+    }
     if (effects != null) sideEffects.add(effects);
     instructionType = type;
   }
 
-  HForeign.statement(codeAst, List<HInstruction> inputs, SideEffects effects)
+  HForeign.statement(codeAst, List<HInstruction> inputs,
+                     SideEffects effects,
+                     native.NativeBehavior nativeBehavior)
       : this(codeAst, HType.UNKNOWN, inputs, isStatement: true,
-             effects: effects);
+             effects: effects, nativeBehavior: nativeBehavior);
 
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
@@ -1559,8 +1582,17 @@ class HForeign extends HInstruction {
 
 class HForeignNew extends HForeign {
   ClassElement element;
-  HForeignNew(this.element, HType type, List<HInstruction> inputs)
+
+  /// If this field is not `null`, this call is from an inlined constructor and
+  /// we have to register the instantiated type in the code generator.
+  /// The [instructionType] of this node is not enough, because we also need
+  /// the type arguments.  See also [SsaBuilder.currentInlinedInstantiations].
+  List<DartType> instantiatedTypes;
+
+  HForeignNew(this.element, HType type, List<HInstruction> inputs,
+              [this.instantiatedTypes])
       : super(null, type, inputs);
+
   accept(HVisitor visitor) => visitor.visitForeignNew(this);
 }
 
@@ -2178,6 +2210,9 @@ class HIndex extends HInstruction {
   HInstruction get receiver => inputs[0];
   HInstruction get index => inputs[1];
 
+  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  bool onlyThrowsNSM() => true;
+
   int typeCode() => HInstruction.INDEX_TYPECODE;
   bool typeEquals(HInstruction other) => other is HIndex;
   bool dataEquals(HIndex other) => true;
@@ -2203,6 +2238,9 @@ class HIndexAssign extends HInstruction {
   HInstruction get receiver => inputs[0];
   HInstruction get index => inputs[1];
   HInstruction get value => inputs[2];
+
+  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  bool onlyThrowsNSM() => true;
 }
 
 class HIs extends HInstruction {

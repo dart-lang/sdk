@@ -34,7 +34,6 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
     return readPrimaryAsHtml(transform).then((document) {
       bool shadowDomFound = false;
       bool jsInteropFound = false;
-      bool pkgJsInteropFound = false;
       bool dartScriptTags = false;
 
       for (var tag in document.queryAll('script')) {
@@ -43,8 +42,6 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
           var last = src.split('/').last;
           if (last == 'interop.js') {
             jsInteropFound = true;
-          } else if (last == 'dart_interop.js') {
-            pkgJsInteropFound = true;
           } else if (_shadowDomJS.hasMatch(last)) {
             shadowDomFound = true;
           }
@@ -59,12 +56,6 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
         // This HTML has no Dart code, there is nothing to do here.
         transform.addOutput(transform.primaryInput);
         return;
-      }
-
-      if (!pkgJsInteropFound) {
-        // JS interop code is required for Polymer CSS shimming.
-        document.body.nodes.insert(0, parseFragment(
-            '<script src="packages/js/dart_interop.js"></script>\n'));
       }
 
       if (!jsInteropFound) {

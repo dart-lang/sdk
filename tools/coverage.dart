@@ -78,7 +78,7 @@ class Source {
 
   void SetLineInfo(List lineInfoTable) {
     // Each line is encoded as an array with first element being the line
-    // number, followed by pairs of (tokenPosition, textOffset).
+    // number, followed by pairs of (tokenPosition, columnNumber).
     lineInfoTable.forEach((List<int> line) {
       int lineNumber = line[0];
       for (int t = 1; t < line.length; t += 2) {

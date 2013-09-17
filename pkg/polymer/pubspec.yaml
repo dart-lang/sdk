@@ -14,7 +14,6 @@ dependencies:
   custom_element: any
   html5lib: any
   html_import: any
-  js: any
   logging: any
   mdv: any
   observe: any

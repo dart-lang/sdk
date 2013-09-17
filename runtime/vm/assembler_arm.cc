@@ -91,6 +91,7 @@ static bool CPUInfoContainsString(const char* search_string) {
 }
 #endif
 
+
 void CPUFeatures::InitOnce() {
 #if defined(USING_SIMULATOR)
   integer_division_supported_ = true;
@@ -1592,8 +1593,12 @@ void Assembler::PushObject(const Object& object) {
 
 void Assembler::CompareObject(Register rn, const Object& object) {
   ASSERT(rn != IP);
-  LoadObject(IP, object);
-  cmp(rn, ShifterOperand(IP));
+  if (object.IsSmi()) {
+    CompareImmediate(rn, reinterpret_cast<int32_t>(object.raw()));
+  } else {
+    LoadObject(IP, object);
+    cmp(rn, ShifterOperand(IP));
+  }
 }
 
 

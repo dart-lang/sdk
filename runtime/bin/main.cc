@@ -719,6 +719,13 @@ int main(int argc, char** argv) {
     }
   }
 
+  if (!DartUtils::SetOriginalWorkingDirectory()) {
+    OSError err;
+    fprintf(stderr, "Error determinig current directory: %s\n", err.message());
+    fflush(stderr);
+    return kErrorExitCode;
+  }
+
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
   // Initialize the Dart VM.
@@ -731,8 +738,6 @@ int main(int argc, char** argv) {
     fflush(stderr);
     return kErrorExitCode;
   }
-
-  DartUtils::SetOriginalWorkingDirectory();
 
   // Start the debugger wire protocol handler if necessary.
   if (start_debugger) {

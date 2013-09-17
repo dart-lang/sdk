@@ -264,7 +264,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // they have side effects.
     HInstruction instruction;
     if (selector.isGetter()) {
-      instruction= new HInvokeDynamicGetter(
+      instruction = new HInvokeDynamicGetter(
           selector,
           node.element,
           <HInstruction>[constant, node.inputs[1]],

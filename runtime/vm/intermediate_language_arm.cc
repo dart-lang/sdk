@@ -1740,8 +1740,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ ldr(value_cid_reg,
                  FieldAddress(value_reg, TypedData::length_offset()));
         }
-        __ LoadImmediate(IP, field_length);
-        __ cmp(value_cid_reg, ShifterOperand(IP));
+        __ CompareImmediate(value_cid_reg, field_length);
         if (ok_is_fall_through) {
           __ b(fail, NE);
         }

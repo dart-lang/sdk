@@ -5,13 +5,13 @@
 part of dart.core;
 
 /**
- * A `Set` is a collection of elements where each element can occur only once.
+ * A collection of objects in which each object can occur only once.
  *
  * That is, for each object of the element type, the object is either considered
- * to be in the set, or it is not in the set.
+ * to be in the set, or to _not_ be in the set. 
  *
  * Set implementations may consider some elements indistinguishable. These
- * objects will be treated as being the same for any operation on the set.
+ * elements are treated as being the same for any operation on the set.
  *
  * The default `Set` implementation, [HashSet], considers objects
  * indistinguishable if they are equal with regard to [Object.operator==].

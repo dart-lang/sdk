@@ -5,7 +5,7 @@
 part of dart.io;
 
 /**
- * [Directory] objects are used for working with directories.
+ * A reference to a directory (or _folder_) on the file system.
  */
 abstract class Directory implements FileSystemEntity {
   /**

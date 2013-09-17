@@ -52,12 +52,12 @@ const String DEFAULT_HELPERLIB = r'''
   boolConversionCheck(x) {}
   abstract class JavaScriptIndexingBehavior {}
   class JSInvocationMirror {}
-  class BoundClosure {
+  class BoundClosure extends Closure {
     var self;
     var target;
     var receiver;
   }
-  class Closure {}
+  class Closure implements Function {}
   class Null {}
   class Dynamic_ {}
   class LinkedHashMap {}

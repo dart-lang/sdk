@@ -4,15 +4,7 @@
 
 part of $LIBRARYNAME;
 
-/**
- * The base class for all documents.
- *
- * Each web page loaded in the browser has its own [Document] object, which is
- * typically an [HtmlDocument].
- *
- * If you aren't comfortable with DOM concepts, see the Dart tutorial
- * [Target 2: Connect Dart & HTML](http://www.dartlang.org/docs/tutorials/connect-dart-html/).
- */
+@DocsEditable
 $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME extends Node $NATIVESPEC
 {
 

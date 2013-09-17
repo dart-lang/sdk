@@ -690,6 +690,7 @@ DART_EXPORT Dart_Handle Dart_ScriptGetTokenInfo(
   const String& key = Symbols::Empty();
   const Object& line_separator = Object::Handle();
   const TokenStream& tkns = TokenStream::Handle(script.tokens());
+  int line_offset = script.line_offset();
   ASSERT(!tkns.IsNull());
   TokenStream::Iterator tkit(tkns, 0);
   int current_line = -1;
@@ -702,14 +703,19 @@ DART_EXPORT Dart_Handle Dart_ScriptGetTokenInfo(
     if (token_line != current_line) {
       // emit line
       info.Add(line_separator);
-      info.Add(Smi::Handle(Smi::New(token_line)));
+      info.Add(Smi::Handle(Smi::New(token_line + line_offset)));
       current_line = token_line;
     }
     // TODO(hausner): Could optimize here by not reporting tokens
     // that will never be a location used by the debugger, e.g.
     // braces, semicolons, most keywords etc.
     info.Add(Smi::Handle(Smi::New(tkit.CurrentPosition())));
-    info.Add(Smi::Handle(Smi::New(s.current_token().offset)));
+    int column = s.current_token().position.column;
+    // On the first line of the script we must add the column offset.
+    if (token_line == 1) {
+      column += script.col_offset();
+    }
+    info.Add(Smi::Handle(Smi::New(column)));
     s.Scan();
     tkit.Advance();
   }

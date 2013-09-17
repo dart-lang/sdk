@@ -5,24 +5,30 @@
 part of dart.core;
 
 /**
- * The [Iterator] class provides methods to iterate over an object. It
- * is transparently used by the for-in construct to test for the end
- * of the iteration, and to get the elements.
+ * An interface for getting items, one at a time, from an object.
+ *
+ * The for-in construct transparently uses Iterator to test for the end
+ * of the iteration, and to get each item (or _element_).
  *
  * If the object iterated over is changed during the iteration, the
  * behavior is unspecified.
  *
- * The [Iterator] is initially positioned before the first element. Before
+ * The Iterator is initially positioned before the first element. Before
  * accessing the first element the iterator must thus be advanced ([moveNext])
- * to point to the first element. If there is no element left, then [moveNext]
+ * to point to the first element. If no element is left, then [moveNext]
  * returns false.
  *
- * A typical usage of an [Iterator] looks as follows:
+ * A typical usage of an Iterator looks as follows:
  *
  *     var it = obj.iterator;
  *     while (it.moveNext()) {
  *       use(it.current);
  *     }
+ *
+ * **See also:** [Iteration]
+ * (http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-iteration)
+ * in the [library tour]
+ * (http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html)
  */
 abstract class Iterator<E> {
   /**

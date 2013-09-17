@@ -299,8 +299,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     new SsaInstructionMerger(generateAtUseSite, compiler).visitGraph(graph);
     new SsaConditionMerger(
         generateAtUseSite, controlFlowOperators).visitGraph(graph);
-    SsaLiveIntervalBuilder intervalBuilder =
-        new SsaLiveIntervalBuilder(compiler, generateAtUseSite);
+    SsaLiveIntervalBuilder intervalBuilder = new SsaLiveIntervalBuilder(
+        compiler, generateAtUseSite, controlFlowOperators);
     intervalBuilder.visitGraph(graph);
     SsaVariableAllocator allocator = new SsaVariableAllocator(
         compiler,
@@ -1628,12 +1628,17 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitInvokeStatic(HInvokeStatic node) {
     Element element = node.element;
-    world.registerStaticUse(element);
     ClassElement cls = element.getEnclosingClass();
-    if (element.isGenerativeConstructor()
-        || (element.isFactoryConstructor() && cls == compiler.listClass)) {
-      world.registerInstantiatedClass(cls, work.resolutionTree);
+    List<DartType> instantiatedTypes = node.instantiatedTypes;
+
+    world.registerStaticUse(element);
+
+    if (instantiatedTypes != null && !instantiatedTypes.isEmpty) {
+      instantiatedTypes.forEach((type) {
+        world.registerInstantiatedType(type, work.resolutionTree);
+      });
     }
+
     push(new js.VariableUse(backend.namer.isolateAccess(node.element)));
     push(new js.Call(pop(), visitArguments(node.inputs, start: 0)), node);
   }
@@ -1641,7 +1646,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeSuper(HInvokeSuper node) {
     Element superMethod = node.element;
     world.registerStaticUse(superMethod);
-    Element superClass = superMethod.getEnclosingClass();
+    ClassElement superClass = superMethod.getEnclosingClass();
     if (superMethod.kind == ElementKind.FIELD) {
       String fieldName = node.caller.isShadowedByField(superMethod)
           ? backend.namer.shadowedFieldName(superMethod)
@@ -1656,13 +1661,21 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         push(access, node);
       }
     } else {
-      String methodName = backend.namer.getNameOfInstanceMember(superMethod);
-      String className = backend.namer.isolateAccess(superClass);
-      js.VariableUse classReference = new js.VariableUse(className);
-      js.PropertyAccess prototype =
-          new js.PropertyAccess.field(classReference, "prototype");
+      Selector selector = node.selector;
+      String methodName;
+      if (selector.isGetter()) {
+        // If the selector we need to register a typed getter to the
+        // [world]. The emitter needs to know if it needs to emit a
+        // bound closure for a method.
+        TypeMask receiverType = new TypeMask.nonNullExact(superClass.rawType);
+        selector = new TypedSelector(receiverType, selector);
+        world.registerDynamicGetter(selector);
+        methodName = backend.namer.invocationName(selector);
+      } else {
+        methodName = backend.namer.getNameOfInstanceMember(superMethod);
+      }
       js.PropertyAccess method =
-          new js.PropertyAccess.field(prototype, methodName);
+          backend.namer.elementAccess(superClass)['prototype'][methodName];
       push(jsPropertyCall(
           method, "call", visitArguments(node.inputs, start: 0)), node);
     }
@@ -1721,12 +1734,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assignVariable(variableNames.getName(node.receiver), pop());
   }
 
-  void registerForeignType(HType type) {
-    if (type.isUnknown()) return;
-    TypeMask mask = type.computeMask(compiler);
-    for (ClassElement cls in mask.containedClasses(compiler)) {
-      world.registerInstantiatedClass(cls, work.resolutionTree);
-    }
+  void registerForeignTypes(HForeign node) {
+    native.NativeBehavior nativeBehavior = node.nativeBehavior;
+    if (nativeBehavior == null) return;
+    nativeBehavior.typesReturned.forEach((type) {
+      if (type is DartType) {
+        world.registerInstantiatedType(type, work.resolutionTree);
+      }
+    });
   }
 
   visitForeign(HForeign node) {
@@ -1751,8 +1766,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     }
 
-    registerForeignType(node.instructionType);
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
+    registerForeignTypes(node);
   }
 
   visitForeignNew(HForeignNew node) {
@@ -1761,7 +1776,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // TODO(floitsch): jsClassReference is an Access. We shouldn't treat it
     // as if it was a string.
     push(new js.New(new js.VariableUse(jsClassReference), arguments), node);
-    registerForeignType(node.instructionType);
+    registerForeignTypes(node);
+    if (node.instantiatedTypes == null) {
+      return;
+    }
+    node.instantiatedTypes.forEach((type) {
+      world.registerInstantiatedType(type, work.resolutionTree);
+    });
   }
 
   js.Expression newLiteralBool(bool value) {
@@ -1978,23 +1999,35 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Statement thenBody = new js.Block.empty();
       js.Block oldContainer = currentContainer;
       currentContainer = thenBody;
-      generateThrowWithHelper('ioore', node.index);
+      generateThrowWithHelper('ioore', [node.array, node.index]);
       currentContainer = oldContainer;
       thenBody = unwrapStatement(thenBody);
       pushStatement(new js.If.noElse(underOver, thenBody), node);
     } else {
-      generateThrowWithHelper('ioore', node.index);
+      generateThrowWithHelper('ioore', [node.array, node.index]);
     }
   }
 
-  void generateThrowWithHelper(String helperName, HInstruction argument) {
+  void generateThrowWithHelper(String helperName, argument) {
     Element helper = compiler.findHelper(new SourceString(helperName));
     world.registerStaticUse(helper);
     js.VariableUse jsHelper =
         new js.VariableUse(backend.namer.isolateAccess(helper));
-    use(argument);
-    js.Call value = new js.Call(jsHelper, [pop()]);
-    attachLocation(value, argument);
+    List arguments = [];
+    var location;
+    if (argument is List) {
+      location = argument[0];
+      argument.forEach((instruction) {
+        use(instruction);
+        arguments.add(pop());
+      });
+    } else {
+      location = argument;
+      use(argument);
+      arguments.add(pop());
+    }
+    js.Call value = new js.Call(jsHelper, arguments);
+    attachLocation(value, location);
     // BUG(4906): Using throw here adds to the size of the generated code
     // but it has the advantage of explicitly telling the JS engine that
     // this code path will terminate abruptly. Needs more work.

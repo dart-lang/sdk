@@ -196,10 +196,8 @@ testInvokeConstructor(mirrors) {
 
   instanceMirror = classMirror.newInstance(const Symbol('redirectingFactory'),
                                            [10]);
-  if (!isDart2js) {
-    expect(instanceMirror.reflectee is Class, equals(true));
-    expect(instanceMirror.reflectee.field, equals(30));
-  }
+  expect(instanceMirror.reflectee is Class, equals(true));
+  expect(instanceMirror.reflectee.field, equals(30));
 
 
   var future = classMirror.newInstanceAsync(const Symbol(''), []);
@@ -223,7 +221,6 @@ testReflectClass(mirrors) {
   var symbolClassMirror = reflectClass(Symbol);
   var symbolMirror = symbolClassMirror.newInstance(const Symbol(''),
                                                    ['withInitialValue']);
-  if (isDart2js) return;
   var objectMirror = classMirror.newInstance(symbolMirror.reflectee,[1234]);
   expect(objectMirror.reflectee is Class, equals(true));
   expect(objectMirror.reflectee.field, equals(1234));

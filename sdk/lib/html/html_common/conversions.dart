@@ -219,7 +219,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
  * MessageEvents.  Mutating the object to make it more 'Dart-like' would corrupt
  * the value as seen from the JavaScript listeners.
  */
-convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
+convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) {
 
   // TODO(sra): Replace slots with identity hash table that works on non-dart
   // objects.

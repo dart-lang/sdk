@@ -78,6 +78,9 @@ abstract class PolymerTransformer {
         checkDocType: options.isHtmlEntryPoint(id));
     });
   }
+
+  Future<bool> assetExists(AssetId id, Transform transform) =>
+      transform.getInput(id).then((_) => true).catchError((_) => false);
 }
 
 /** Create an [AssetId] for a [url] seen in the [source] asset. */

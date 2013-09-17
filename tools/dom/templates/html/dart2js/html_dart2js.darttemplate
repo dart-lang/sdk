@@ -133,6 +133,3 @@ int _getNewIsolateId() {
 _callPortSync(int id, message) {
   return JS('var', r'ReceivePortSync.dispatchCall(#, #)', id, message);
 }
-
-Future<SendPort> spawnDomFunction(Function f) =>
-  new Future.value(IsolateNatives.spawnDomFunction(f));

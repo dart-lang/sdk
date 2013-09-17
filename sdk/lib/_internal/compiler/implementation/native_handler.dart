@@ -1151,6 +1151,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     builder.push(new HForeign.statement(
         new js.LiteralStatement(jsCode.dartString.slowToString()),
         <HInstruction>[],
-        new SideEffects()));
+        new SideEffects(),
+        null));
   }
 }

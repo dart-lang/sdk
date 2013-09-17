@@ -15,6 +15,8 @@ class _ConsoleVariables {
     if (invocation.isGetter) {
       return _data[member];
     } else if (invocation.isSetter) {
+      assert(member.endsWith('='));
+      member = member.substring(0, member.length - 1);
       _data[member] = invocation.positionalArguments[0];
     } else {
       return Function.apply(_data[member], invocation.positionalArguments, invocation.namedArguments);
@@ -94,7 +96,6 @@ class _Utils {
   static window() native "Utils_window";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
   static void spawnDomFunction(Function f, int replyTo) native "Utils_spawnDomFunction";
-  static void spawnDomUri(String uri, int replyTo) native "Utils_spawnDomUri";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
 
   // The following methods were added for debugger integration to make working
@@ -133,7 +134,9 @@ class _Utils {
    * expression for a closure with a body matching the original expression
    * where locals are passed in as arguments. Returns a list containing the
    * String expression for the closure and the list of arguments that should
-   * be passed to it.
+   * be passed to it. The expression should then be evaluated using
+   * Dart_EvaluateExpr which will generate a closure that should be invoked
+   * with the list of arguments passed to this method.
    *
    * For example:
    * <code>wrapExpressionAsClosure("foo + bar", ["bar", 40, "foo", 2])</code>
@@ -146,6 +149,12 @@ class _Utils {
     addArg(arg, value) {
       arg = stripMemberName(arg);
       if (args.containsKey(arg)) return;
+      // We ignore arguments with the name 'this' rather than throwing an
+      // exception because Dart_GetLocalVariables includes 'this' and it
+      // is more convenient to filter it out here than from C++ code.
+      // 'this' needs to be handled by calling Dart_EvaluateExpr with
+      // 'this' as the target rather than by passing it as an argument.
+      if (arg == 'this') return;
       if (args.isNotEmpty) {
         sb.write(", ");
       }
@@ -366,8 +375,28 @@ class _DOMStringMap extends NativeFieldWrapperClass1 implements Map<String, Stri
   bool get isNotEmpty => Maps.isNotEmpty(this);
 }
 
+// TODO(vsm): Remove DOM isolate code.  This is only used to support
+// printing and timers in background isolates.  Background isolates
+// should just forward to the main DOM isolate instead of requiring a
+// special DOM isolate.
+
+_makeSendPortFuture(spawnRequest) {
+  final completer = new Completer<SendPort>.sync();
+  final port = new ReceivePort();
+  port.receive((result, _) {
+    completer.complete(result);
+    port.close();
+  });
+  // TODO: SendPort.hashCode is ugly way to access port id.
+  spawnRequest(port.toSendPort().hashCode);
+  return completer.future;
+}
+
+Future<SendPort> _spawnDomFunction(Function f) =>
+    _makeSendPortFuture((portId) { _Utils.spawnDomFunction(f, portId); });
+
 final Future<SendPort> __HELPER_ISOLATE_PORT =
-    spawnDomFunction(_helperIsolateMain);
+    _spawnDomFunction(_helperIsolateMain);
 
 // Tricky part.
 // Once __HELPER_ISOLATE_PORT gets resolved, it will still delay in .then

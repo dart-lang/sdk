@@ -5,13 +5,13 @@
 part of dart.core;
 
 /**
- * [Match] contains methods to manipulate a pattern match.
+ * A result from searching within a string.
  *
- * A [Match] or and iterable of [Match] objects are returned from [Pattern]
+ * A Match or an [Iterable] of Match objects is returned from [Pattern]
  * matching methods.
  *
  * The following example finds all matches of a [RegExp] in a [String]
- * and iterates through the returned iterable of [Match] objects.
+ * and iterates through the returned iterable of Match objects.
  *
  *     RegExp exp = new RegExp(r"(\w+)");
  *     String str = "Parse my string";
@@ -28,7 +28,7 @@ part of dart.core;
  *     string
  *
  * Some patterns, regular expressions in particular, may record subtrings
- * that were part of the matching. These are called "groups" in the `Match`
+ * that were part of the matching. These are called _groups_ in the Match
  * object. Some patterns may never have any groups, and their matches always
  * have zero [groupCount].
  */

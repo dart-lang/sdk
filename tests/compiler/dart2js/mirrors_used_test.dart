@@ -30,6 +30,11 @@ void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
     print(message);
     return;
   }
+  if (message.contains('methods retained for use by dart:mirrors out of')) {
+    print(message);
+    return;
+  }
+  if (kind.name == 'info') return;
   throw '$uri:$begin:$end: $kind: $message';
 }
 

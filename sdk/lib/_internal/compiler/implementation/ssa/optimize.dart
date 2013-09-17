@@ -299,13 +299,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
         }
       } else if (input.isString(compiler)) {
         if (selector.applies(backend.jsStringSplit, compiler)) {
-          if (node.inputs[2].isString(compiler)) {
+          HInstruction argument = node.inputs[2];
+          if (argument.isString(compiler) && !argument.canBeNull()) {
             target = backend.jsStringSplit;
           }
         } else if (selector.applies(backend.jsStringOperatorAdd, compiler)) {
           // `operator+` is turned into a JavaScript '+' so we need to
-          // make sure the receiver is not null.
-          if (node.inputs[2].isString(compiler) && !input.canBeNull()) {
+          // make sure the receiver and the argument are not null.
+          HInstruction argument = node.inputs[2];
+          if (argument.isString(compiler)
+              && !argument.canBeNull()
+              && !input.canBeNull()) {
             target = backend.jsStringOperatorAdd;
           }
         } else if (selector.applies(backend.jsStringToString, compiler)
@@ -877,7 +881,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     length.instructionType = HType.INTEGER;
     indexNode.block.addBefore(indexNode, length);
 
-    HBoundsCheck check = new HBoundsCheck(indexArgument, length);
+    HBoundsCheck check = new HBoundsCheck(indexArgument, length, array);
     indexNode.block.addBefore(indexNode, check);
     // If the index input to the bounds check was not known to be an integer
     // then we replace its uses with the bounds check, which is known to be an
@@ -930,10 +934,34 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
         : zapInstructionCache;
   }
 
+  /// Returns whether the next throwing instruction that may have side
+  /// effects after [instruction], throws [NoSuchMethodError] on the
+  /// same receiver of [instruction].
+  bool hasFollowingThrowingNSM(HInstruction instruction) {
+    HInstruction receiver = instruction.getDartReceiver(compiler);
+    HInstruction current = instruction.next;
+    do {
+      if ((current.getDartReceiver(compiler) == receiver)
+          && current.canThrow()) {
+        return true;
+      }
+      if (current.canThrow() || current.sideEffects.hasSideEffects()) {
+        return false;
+      }
+      current = current.next;
+    } while (current != null);
+    return false;
+  }
+
   bool isDeadCode(HInstruction instruction) {
-    return !instruction.sideEffects.hasSideEffects()
-           && !instruction.canThrow()
-           && instruction.usedBy.isEmpty
+    if (!instruction.usedBy.isEmpty) return false;
+    if (instruction.sideEffects.hasSideEffects()) return false;
+    if (instruction.canThrow()
+        && instruction.onlyThrowsNSM()
+        && hasFollowingThrowingNSM(instruction)) {
+      return true;
+    }
+    return !instruction.canThrow()
            && instruction is !HTypeGuard
            && instruction is !HParameterValue
            && instruction is !HLocalSet;

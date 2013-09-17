@@ -259,7 +259,7 @@ static RawInstance* CreateVariableMirror(const Field& field,
   args.SetAt(0, field_ref);
   args.SetAt(1, name);
   args.SetAt(2, owner_mirror);
-  args.SetAt(3, Instance::Handle());  // Null for type.
+  args.SetAt(3, Object::null_instance());  // Null for type.
   args.SetAt(4, Bool::Get(field.is_static()));
   args.SetAt(5, Bool::Get(field.is_final()));
 
@@ -435,9 +435,16 @@ DEFINE_NATIVE_ENTRY(MirrorReference_equals, 2) {
 
 
 DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
-  const MirrorReference& decl_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
-  const Object& decl = Object::Handle(decl_ref.referent());
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(0));
+  Object& decl = Object::Handle();
+  if (reflectee.IsMirrorReference()) {
+    const MirrorReference& decl_ref = MirrorReference::Cast(reflectee);
+    decl = decl_ref.referent();
+  } else if (reflectee.IsTypeParameter()) {
+    decl = reflectee.raw();
+  } else {
+    UNREACHABLE();
+  }
 
   Class& klass = Class::Handle();
   Library& library = Library::Handle();
@@ -453,6 +460,9 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
     library = klass.library();
   } else if (decl.IsLibrary()) {
     library ^= decl.raw();
+  } else if (decl.IsTypeParameter()) {
+    klass ^= TypeParameter::Cast(decl).parameterized_class();
+    library = klass.library();
   } else {
     return Object::empty_array().raw();
   }

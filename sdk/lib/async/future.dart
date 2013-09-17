@@ -5,7 +5,9 @@
 part of dart.async;
 
 /**
- * A [Future] represents a delayed computation. It is used to obtain a not-yet
+ * An object representing a delayed computation.
+ *
+ * A [Future] is used to obtain a not yet
  * available value, or error, sometime in the future.  Receivers of a
  * [Future] can register callbacks that handle the value or error once it is
  * available. For example:
@@ -358,23 +360,33 @@ abstract class Future<T> {
 }
 
 /**
- * A [Completer] is used to produce [Future]s and to complete those futures
- * with a value or error at a later time.
+ * A way to produce Future objects and to complete them later
+ * with a value or error.
  *
- * A class that wants to return [Future]s can use a [Completer] as follows:
+ * If you already have a Future, you probably don't need a Completer.
+ * Instead, you can usually use [Future.then], which returns a Future:
+ * 
+ *     Future doStuff(){
+ *       return someAsyncOperation().then((result) {
+ *         // Do something.
+ *       });
+ *     }
  *
- *     Class myAsyncOperation {
+ * If you do need to create a Future from scratch—for example,
+ * when you're converting a callback-based API into a Future-based
+ * one—you can use a Completer as follows:
+ *
+ *     Class AsyncOperation {
  *       Completer _completer = new Completer();
  *
- *       Future<T> myOp() {
+ *       Future<T> doOperation() {
  *         _startOperation();
- *         // send future object back to client...
- *         return _completer.future;
+ *         return _completer.future; // Send future object back to client.
  *       }
  *
  *       // Something calls this when the value is ready.
  *       _finishOperation(T result) {
- *         _completer.complete(value);
+ *         _completer.complete(result);
  *       }
  *
  *       // If something goes wrong, call this.
@@ -382,7 +394,6 @@ abstract class Future<T> {
  *         _completer.completeError(error);
  *       }
  *     }
- *
  */
 abstract class Completer<T> {
 

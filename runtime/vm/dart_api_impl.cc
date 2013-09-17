@@ -505,7 +505,7 @@ DART_EXPORT bool Dart_IdentityEquals(Dart_Handle obj1, Dart_Handle obj2) {
 DART_EXPORT Dart_Handle Dart_HandleFromPersistent(
     Dart_PersistentHandle object) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
+  CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsValidPersistentHandle(object));
@@ -517,7 +517,7 @@ DART_EXPORT Dart_Handle Dart_HandleFromPersistent(
 DART_EXPORT Dart_Handle Dart_HandleFromWeakPersistent(
     Dart_WeakPersistentHandle object) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
+  CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsValidWeakPersistentHandle(object) ||

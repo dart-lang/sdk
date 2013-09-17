@@ -20,7 +20,7 @@ const WRITE = FileMode.WRITE;
 const APPEND = FileMode.APPEND;
 
 /**
- * [File] objects are references to files.
+ * A reference to a file on the file system.
  *
  * If [path] is a symbolic link, rather than a file, then
  * the methods of [File] operate on the ultimate target of the

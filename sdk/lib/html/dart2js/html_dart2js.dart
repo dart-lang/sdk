@@ -102,9 +102,6 @@ int _getNewIsolateId() {
 _callPortSync(int id, message) {
   return JS('var', r'ReceivePortSync.dispatchCall(#, #)', id, message);
 }
-
-Future<SendPort> spawnDomFunction(Function f) =>
-  new Future.value(IsolateNatives.spawnDomFunction(f));
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6950,6 +6947,7 @@ class DivElement extends HtmlElement native "HTMLDivElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 /**
  * The base class for all documents.
  *
@@ -8765,6 +8763,7 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
 
 }
 
+@DocsEditable
 /**
  * An abstract class, which all HTML elements extend.
  */
@@ -24670,6 +24669,7 @@ class WheelEvent extends MouseEvent native "WheelEvent,MouseWheelEvent,MouseScro
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 @DomName('Window')
 class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase64 native "Window,DOMWindow" {
 

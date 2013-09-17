@@ -1,7 +1,7 @@
 name: polymer_expressions
 author: Web UI Authors <html-dev@dartlang.org>
 description: An expressive custom binding syntax for MDV templates
-homepage: http://www.dartlang.org/
+homepage: http://www.dartlang.org/polymer-dart/
 dependencies:
   browser: any
   mdv: any

@@ -66,6 +66,17 @@ void main() {
             '(second definition). (lib/test.html 2 0)'
       });
 
+    _testLinter('non existing file', {
+        'a|lib/test.html': '''<html>
+            <link rel="import" href="b.html">
+            <polymer-element name="x-a"></polymer-element>
+            </html>'''.replaceAll('            ', ''),
+      }, {
+        'a|lib/test.html.messages':
+            'error: couldn\'t find imported asset "lib/b.html" in package '
+            '"a". (lib/test.html 1 0)'
+      });
+
     _testLinter('other package', {
         'b|lib/b.html': '''<html>
             <polymer-element name="x-a"></polymer-element>
