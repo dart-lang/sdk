@@ -375,7 +375,7 @@ class _CatchErrorsZone extends _WaitForCompletionZone {
     try {
       _handleError(error);
     } catch(e, s) {
-      if (identical(e, s)) {
+      if (identical(e, error)) {
         _parentZone.handleUncaughtError(error);
       } else {
         _parentZone.handleUncaughtError(_asyncError(e, s));
