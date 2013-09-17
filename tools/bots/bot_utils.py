@@ -144,19 +144,25 @@ def run(command, env=None):
     raise Exception("Failed to execute %s." % command)
 
 class GSUtil(object):
+  GSUTIL_IS_SHELL_SCRIPT = False
   GSUTIL_PATH = None
-  
+
   def _layzCalculateGSUtilPath(self):
     if not GSUtil.GSUTIL_PATH:
-      dart_gsutil = os.path.join(DART_DIR, 'third_party', 'gsutil', 'gsutil')
       buildbot_gsutil = os.path.dirname(utils.GetBuildbotGSUtilPath())
-      possible_locations = (list(os.environ['PATH'].split(os.pathsep))
-          + [dart_gsutil, buildbot_gsutil])
-      for directory in possible_locations:
-        location = os.path.join(directory, 'gsutil')
-        if os.path.isfile(location):
-          GSUtil.GSUTIL_PATH = location
-          break
+      if os.path.isfile(buildbot_gsutil):
+        GSUtil.GSUTIL_IS_SHELL_SCRIPT = True
+        GSUtil.GSUTIL_PATH = buildbot_gsutil
+      else:
+        dart_gsutil = os.path.join(DART_DIR, 'third_party', 'gsutil', 'gsutil')
+        possible_locations = (list(os.environ['PATH'].split(os.pathsep))
+            + [dart_gsutil])
+        for directory in possible_locations:
+          location = os.path.join(directory, 'gsutil')
+          if os.path.isfile(location):
+            GSUtil.GSUTIL_IS_SHELL_SCRIPT = False
+            GSUtil.GSUTIL_PATH = location
+            break
       assert GSUtil.GSUTIL_PATH
 
   def execute(self, gsutil_args):
@@ -172,8 +178,13 @@ class GSUtil(object):
       }[utils.GuessOS()]
       env['AWS_CREDENTIAL_FILE'] = boto_config
       env['BOTO_CONFIG'] = boto_config
-    run([sys.executable, GSUtil.GSUTIL_PATH] + gsutil_args,
-        env=env)
+
+    if GSUtil.GSUTIL_IS_SHELL_SCRIPT:
+      gsutil_command = [GSUtil.GSUTIL_PATH]
+    else:
+      gsutil_command = [sys.executable, GSUtil.GSUTIL_PATH]
+
+    run(gsutil_command + gsutil_args, env=env)
 
   def upload(self, local_path, remote_path, recursive=False, public=False):
     assert remote_path.startswith('gs://')
