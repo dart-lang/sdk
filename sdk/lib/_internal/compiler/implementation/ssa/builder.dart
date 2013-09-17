@@ -4205,7 +4205,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (backend.classNeedsRti(element.getEnclosingClass())) {
         ClassElement cls = function.getEnclosingClass();
         Link<DartType> typeVariable = cls.typeVariables;
-        DartType type = elements.getType(node.expression);
+        InterfaceType type = elements.getType(node.expression);
         type.typeArguments.forEach((DartType argument) {
           inputs.add(analyzeTypeArgument(argument));
           typeVariable = typeVariable.tail;
