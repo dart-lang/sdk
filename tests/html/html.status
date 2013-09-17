@@ -33,9 +33,6 @@ xhr_test/json: Fail # Issue 13069
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
 
-[ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == opera || $runtime == drt || $runtime == dartium)]
-dom_isolates_test: Skip # Need to migrate to new spawnDomFunction.
-
 [ $compiler == dart2js && $runtime == ie10 ]
 async_test: Pass, Fail # timers test fails on ie10.
 indexeddb_5_test: Fail # Issue 12893

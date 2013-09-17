@@ -604,15 +604,6 @@ class IsolateNatives {
     return spawn(name, null, false);
   }
 
-  static SendPort spawnDomFunction(void topLevelFunction()) {
-    final name = _getJSFunctionName(topLevelFunction);
-    if (name == null) {
-      throw new UnsupportedError(
-          "only top-level functions can be spawned.");
-    }
-    return spawn(name, null, true);
-  }
-
   // TODO(sigmund): clean up above, after we make the new API the default:
 
   static spawn(String functionName, String uri, bool isLight) {

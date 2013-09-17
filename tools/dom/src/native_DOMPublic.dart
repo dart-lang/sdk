@@ -4,25 +4,6 @@
 
 part of html;
 
-_makeSendPortFuture(spawnRequest) {
-  final completer = new Completer<SendPort>.sync();
-  final port = new ReceivePort();
-  port.receive((result, _) {
-    completer.complete(result);
-    port.close();
-  });
-  // TODO: SendPort.hashCode is ugly way to access port id.
-  spawnRequest(port.toSendPort().hashCode);
-  return completer.future;
-}
-
-// This API is exploratory.
-Future<SendPort> spawnDomFunction(Function f) =>
-    _makeSendPortFuture((portId) { _Utils.spawnDomFunction(f, portId); });
-
-Future<SendPort> spawnDomUri(String uri) =>
-    _makeSendPortFuture((portId) { _Utils.spawnDomUri(uri, portId); });
-
 // testRunner implementation.
 // FIXME: provide a separate lib for testRunner.
 

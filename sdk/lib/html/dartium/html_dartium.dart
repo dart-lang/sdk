@@ -34440,25 +34440,6 @@ class Platform {
 // BSD-style license that can be found in the LICENSE file.
 
 
-_makeSendPortFuture(spawnRequest) {
-  final completer = new Completer<SendPort>.sync();
-  final port = new ReceivePort();
-  port.receive((result, _) {
-    completer.complete(result);
-    port.close();
-  });
-  // TODO: SendPort.hashCode is ugly way to access port id.
-  spawnRequest(port.toSendPort().hashCode);
-  return completer.future;
-}
-
-// This API is exploratory.
-Future<SendPort> spawnDomFunction(Function f) =>
-    _makeSendPortFuture((portId) { _Utils.spawnDomFunction(f, portId); });
-
-Future<SendPort> spawnDomUri(String uri) =>
-    _makeSendPortFuture((portId) { _Utils.spawnDomUri(uri, portId); });
-
 // testRunner implementation.
 // FIXME: provide a separate lib for testRunner.
 
@@ -34578,7 +34559,6 @@ class _Utils {
   static window() native "Utils_window";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
   static void spawnDomFunction(Function f, int replyTo) native "Utils_spawnDomFunction";
-  static void spawnDomUri(String uri, int replyTo) native "Utils_spawnDomUri";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
 
   // The following methods were added for debugger integration to make working
@@ -34858,8 +34838,28 @@ class _DOMStringMap extends NativeFieldWrapperClass1 implements Map<String, Stri
   bool get isNotEmpty => Maps.isNotEmpty(this);
 }
 
+// TODO(vsm): Remove DOM isolate code.  This is only used to support
+// printing and timers in background isolates.  Background isolates
+// should just forward to the main DOM isolate instead of requiring a
+// special DOM isolate.
+
+_makeSendPortFuture(spawnRequest) {
+  final completer = new Completer<SendPort>.sync();
+  final port = new ReceivePort();
+  port.receive((result, _) {
+    completer.complete(result);
+    port.close();
+  });
+  // TODO: SendPort.hashCode is ugly way to access port id.
+  spawnRequest(port.toSendPort().hashCode);
+  return completer.future;
+}
+
+Future<SendPort> _spawnDomFunction(Function f) =>
+    _makeSendPortFuture((portId) { _Utils.spawnDomFunction(f, portId); });
+
 final Future<SendPort> __HELPER_ISOLATE_PORT =
-    spawnDomFunction(_helperIsolateMain);
+    _spawnDomFunction(_helperIsolateMain);
 
 // Tricky part.
 // Once __HELPER_ISOLATE_PORT gets resolved, it will still delay in .then
