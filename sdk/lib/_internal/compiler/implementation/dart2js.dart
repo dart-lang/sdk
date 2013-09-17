@@ -562,7 +562,7 @@ void helpAndFail(String message) {
 }
 
 void mainWithErrorHandler(Options options) {
-  new Future.sync(() => compilerMain(options)).catchError((exception) {
+  runZonedExperimental(() => compilerMain(options), onError: (exception) {
     try {
       print('Internal error: $exception');
     } catch (ignored) {

@@ -16,6 +16,47 @@ LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout # co19-roll r576: P
 LibTest/isolate/isolate_api/spawnUri_A02_t03: Pass, Fail # Issue 8920
 
 
+[ $compiler == dart2js || $compiler == dart2dart ]
+Language/14_Libraries_and_Scripts/3_Parts_A01_t01: Crash # Issue 13328
+Language/14_Libraries_and_Scripts/3_Parts_A03_t03: Crash # Issue 13328
+Language/14_Libraries_and_Scripts/3_Parts_A03_t04: Crash # Issue 13328
+Language/14_Libraries_and_Scripts/3_Parts_A03_t05: Crash # Issue 13328
+Language/14_Libraries_and_Scripts/3_Parts_A03_t06: Crash # Issue 13328
+Language/14_Libraries_and_Scripts/3_Parts_A03_t07: Crash # Issue 13328
+Language/14_Libraries_and_Scripts/3_Parts_A03_t08: Crash # Issue 13328
+Language/14_Libraries_and_Scripts/3_Parts_A03_t09: Crash # Issue 13328
+Language/14_Libraries_and_Scripts/3_Parts_A03_t10: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A01_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A02_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A03_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A04_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A05_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A06_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A07_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A08_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A09_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A11_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A12_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A13_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A14_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A15_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A16_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A17_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A18_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A19_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A20_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A21_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A22_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A23_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A24_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A25_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A26_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A27_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A28_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t12: Crash # Issue 13328
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t12: Crash # Issue 13328
+
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
 [ $compiler == dart2js ]
