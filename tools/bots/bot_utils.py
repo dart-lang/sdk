@@ -149,7 +149,7 @@ class GSUtil(object):
 
   def _layzCalculateGSUtilPath(self):
     if not GSUtil.GSUTIL_PATH:
-      buildbot_gsutil = os.path.dirname(utils.GetBuildbotGSUtilPath())
+      buildbot_gsutil = utils.GetBuildbotGSUtilPath()
       if os.path.isfile(buildbot_gsutil):
         GSUtil.GSUTIL_IS_SHELL_SCRIPT = True
         GSUtil.GSUTIL_PATH = buildbot_gsutil
