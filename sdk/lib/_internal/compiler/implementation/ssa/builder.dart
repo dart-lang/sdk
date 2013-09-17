@@ -1414,10 +1414,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       }
 
-      inlinedFrom(callee, () {
-        buildFieldInitializers(callee.enclosingElement.implementation,
+      // For redirecting constructors, the fields have already been
+      // initialized by the caller.
+      if (callee.getEnclosingClass() != caller.getEnclosingClass()) {
+        inlinedFrom(callee, () {
+          buildFieldInitializers(callee.enclosingElement.implementation,
                                fieldValues);
-      });
+        });
+      }
 
       int index = 0;
       FunctionSignature params = callee.computeSignature(compiler);
