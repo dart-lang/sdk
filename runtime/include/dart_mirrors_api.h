@@ -11,9 +11,14 @@
 
 
 /**
- * Returns the class name for the provided class or interface.
+ * Returns the class name for the provided class.
  */
-DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle clazz);
+DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle type);
+
+/**
+ * Returns the qualified class name for the provided class.
+ */
+DART_EXPORT Dart_Handle Dart_QualifiedClassName(Dart_Handle type);
 
 /**
  * Returns a list of the names of all functions or methods declared in

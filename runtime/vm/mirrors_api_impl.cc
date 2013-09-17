@@ -35,6 +35,19 @@ DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle object) {
   }
 }
 
+DART_EXPORT Dart_Handle Dart_QualifiedClassName(Dart_Handle object) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (obj.IsType() || obj.IsClass()) {
+    const Class& cls = (obj.IsType()) ?
+        Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
+    return Dart_NewStringFromCString(cls.ToCString());
+  } else {
+    RETURN_TYPE_ERROR(isolate, object, Class/Type);
+  }
+}
+
 // --- Function and Variable Reflection ---
 
 // Outside of the vm, we expose setter names with a trailing '='.
