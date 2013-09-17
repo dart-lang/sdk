@@ -347,8 +347,21 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
         this, calledElement, arguments, selector, remove: false, init: true);
   }
 
+  bool get isSynthesized {
+    // Some calls do not have a corresponding node, for example
+    // fowarding factory constructors, or synthesized super
+    // constructor calls. We synthesize these calls but do
+    // not create a selector for them.
+    return selector == null;
+  }
+
   TypeMask refine(TypeGraphInferrerEngine inferrer) {
-    return inferrer.types.getInferredTypeOf(calledElement).type;
+    if (isSynthesized) {
+      assert(arguments != null);
+      return inferrer.types.getInferredTypeOf(calledElement).type;
+    } else {
+      return inferrer.typeOfElementWithSelector(calledElement, selector).type;
+    }
   }
 
   Iterable<Element> get callees => [calledElement.implementation];

@@ -2168,8 +2168,7 @@ class SimpleTypeInferrerVisitor<T>
     } else if (Elements.isInstanceSend(node, elements)) {
       return visitDynamicSend(node);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
-      handleStaticSend(node, selector, element, null);
-      return types.functionType;
+      return handleStaticSend(node, selector, element, null);
     } else if (Elements.isErroneousElement(element)) {
       return types.dynamicType;
     } else if (Elements.isLocal(element)) {
