@@ -281,7 +281,7 @@ class LibraryLoaderTask extends LibraryLoader {
 
     // TODO(rnystrom): Remove .toList() here if #11523 is fixed.
     return Future.forEach(library.tags.reverse().toList(), (LibraryTag tag) {
-      compiler.withCurrentElement(library, () {
+      return compiler.withCurrentElement(library, () {
         if (tag.isImport) {
           Import import = tag;
           tagState = checkTag(TagState.IMPORT_OR_EXPORT, import);
