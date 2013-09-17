@@ -498,29 +498,6 @@ class ContainerTracerVisitor
     return types.growableListType;
   }
 
-  // TODO(ngeoffray): Try to move the following two methods in
-  // [InferrerVisitor].
-  TypeMask visitCascadeReceiver(CascadeReceiver node) {
-    return visit(node.expression);
-  }
-
-  TypeMask visitCascade(Cascade node) {
-    Send send = node.expression;
-    TypeMask result;
-    bool isReceiver = visitAndCatchEscaping(() {
-      result = visit(send.receiver);
-    });
-    if (send.asSendSet() != null) {
-      handleSendSet(send, isReceiver);
-    } else {
-      handleDynamicSend(send, isReceiver);
-    }
-    if (isReceiver) {
-      escaping = true;
-    }
-    return result;
-  }
-
   TypeMask visitSendSet(SendSet node) {
     bool isReceiver = visitAndCatchEscaping(() {
       visit(node.receiver);
