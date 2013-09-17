@@ -41,7 +41,11 @@ async/run_async6_test: Fail # global error handling is not supported. http://dar
 async/stream_controller_async_test: Fail, Pass # http://dartbug.com/11953
 mirrors/typedef_test/none: Fail # http://dartbug.com/6490
 mirrors/typedef_test/02: Fail, OK # Incorrect VM behavior.
+<<<<<<< .mine
+mirrors/redirecting_factory_test/none: Fail # Issue 6490
+=======
 mirrors/closures_test/none: Fail # Issue 6490
+>>>>>>> .r27560
 
 [ $runtime == safari ]
 mirrors/return_type_test: Pass, Timeout # Issue 12858
@@ -131,6 +135,8 @@ async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug
 mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
 mirrors/mixin_test/01: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
+mirrors/redirecting_factory_test/none: Fail # Issue 13365
+mirrors/redirecting_factory_test/01: Fail # Issue 13365
 mirrors/closures_test/01: Fail, OK # Incorrect dart2js behavior.
 
 [ $compiler == none && $runtime == drt ]

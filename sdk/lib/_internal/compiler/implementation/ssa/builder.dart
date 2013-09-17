@@ -3571,12 +3571,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         inputs.add(analyzeTypeArgument(argument));
         typeVariable = typeVariable.tail;
       });
-      // Also add null to non-provided type variables to call the
-      // constructor with the right number of arguments.
-      while (!typeVariable.isEmpty) {
-        inputs.add(graph.addConstantNull(compiler));
-        typeVariable = typeVariable.tail;
-      }
+      assert(typeVariable.isEmpty);
     }
 
     if (constructor.isFactoryConstructor() && !type.typeArguments.isEmpty) {
@@ -4187,8 +4182,38 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HInstruction value;
     if (node.isRedirectingFactoryBody) {
-      // TODO(ahe): This is only for reflection, and it is not correct yet.
-      value = graph.addConstantNull(compiler);
+      FunctionElement element = elements[node.expression];
+      FunctionElement function = currentElement;
+      List<HInstruction> inputs = <HInstruction>[];
+      FunctionSignature calleeSignature = element.functionSignature;
+      FunctionSignature callerSignature = function.functionSignature;
+      callerSignature.forEachRequiredParameter((Element element) {
+        inputs.add(localsHandler.readLocal(element));
+      });
+      List<Element> calleeOptionals =
+          calleeSignature.orderedOptionalParameters;
+      List<Element> callerOptionals =
+          callerSignature.orderedOptionalParameters;
+      int i = 0;
+      for (; i < callerOptionals.length; i++) {
+        inputs.add(localsHandler.readLocal(callerOptionals[i]));
+      }
+      for (; i < calleeOptionals.length; i++) {
+        inputs.add(handleConstantForOptionalParameter(calleeOptionals[i]));
+      }
+
+      if (backend.classNeedsRti(element.getEnclosingClass())) {
+        ClassElement cls = function.getEnclosingClass();
+        Link<DartType> typeVariable = cls.typeVariables;
+        DartType type = elements.getType(node.expression);
+        type.typeArguments.forEach((DartType argument) {
+          inputs.add(analyzeTypeArgument(argument));
+          typeVariable = typeVariable.tail;
+        });
+        assert(typeVariable.isEmpty);
+      }
+      pushInvokeStatic(node, element, inputs);
+      value = pop();
     } else if (node.expression == null) {
       value = graph.addConstantNull(compiler);
     } else {
