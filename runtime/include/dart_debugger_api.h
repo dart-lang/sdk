@@ -147,8 +147,8 @@ DART_EXPORT Dart_Handle Dart_ScriptGetSource(
  * Returns an array of numbers. Null values indicate the beginning of
  * a new line. The first number after null is the line number.
  * The line number is followed by pairs of numbers, with the first value
- * being the "token offset" and the second value being the character offset
- * of the token relative to the beginning of the script.
+ * being the "token offset" and the second value being the column number
+ * of the token.
  * The "token offset" is a value that is used to indicate a location
  * in code, similarly to a "PC" address.
  * Source lines with no tokens are omitted.
