@@ -22,7 +22,8 @@ abstract class Link implements FileSystemEntity {
    * On the Windows platform, this will only work with directories, and the
    * target directory must exist. The link will be created as a Junction.
    * Only absolute links will be created, and relative paths to the target
-   * will be converted to absolute paths.
+   * will be converted to absolute paths by joining them with the path of the
+   * directory the link is contained in.
    *
    * On other platforms, the posix symlink() call is used to make a symbolic
    * link containing the string [target].  If [target] is a relative path,
@@ -170,21 +171,15 @@ class _Link extends FileSystemEntity implements Link {
 
   // Put target into the form "\??\C:\my\target\dir".
   String _makeWindowsLinkTarget(String target) {
-    if (target.startsWith('\\??\\')) {
-      return target;
-    }
-    if (!(target.length > 3 && target[1] == ':' && target[2] == '\\')) {
-      try {
-        target = new File(target).fullPathSync();
-      } on FileException catch (e) {
-        throw new LinkException('Could not locate target', target, e.osError);
-      }
-    }
-    if (target.length > 3 && target[1] == ':' && target[2] == '\\') {
-      target = '\\??\\$target';
+    Uri base = new Uri.file('${Directory.current.path}\\');
+    Uri link = new Uri.file(path);
+    Uri destination = new Uri.file(target);
+    String result = base.resolveUri(link).resolveUri(destination).toFilePath();
+    if (result.length > 3 && result[1] == ':' && result[2] == '\\') {
+      return '\\??\\$result';
     } else {
       throw new LinkException(
-          'Target $target of Link.create on Windows cannot be converted' +
+          'Target $result of Link.create on Windows cannot be converted' +
           ' to start with a drive letter.  Unexpected error.');
     }
     return target;

@@ -140,7 +140,7 @@ Future testCreate() {
 }
 
 
-Future testCreateLoopingLink() {
+Future testCreateLoopingLink(_) {
   return new Directory('').createTemp()
     .then((dir) => dir.path)
     .then((String base) =>
@@ -163,7 +163,7 @@ Future testCreateLoopingLink() {
 }
 
 
-Future testRename() {
+Future testRename(_) {
   Future testRename(String base , String target) {
     Link link1;
     Link link2;
@@ -271,10 +271,45 @@ Future testDirectoryListing(String base, Directory baseDir) {
   return Future.wait(futures);
 }
 
+Future checkExists(String filePath) =>
+    new File(filePath).exists().then(Expect.isTrue);
+
+Future testRelativeLinks(_) {
+  return new Directory('').createTemp().then((tempDirectory) {
+    String temp = tempDirectory.path;
+    String oldWorkingDirectory = Directory.current.path;
+    // Make directories and files to test links.
+    return new Directory(join(temp, 'dir1', 'dir2')).create(recursive: true)
+    .then((_) => new File(join(temp, 'dir1', 'file1')).create())
+    .then((_) => new File(join(temp, 'dir1', 'dir2', 'file2')).create())
+    // Make links whose path and/or target is given by a relative path.
+    .then((_) => new Link(join(temp, 'dir1', 'link1_2')).create('dir2'))
+    .then((_) => Directory.current = temp)
+    .then((_) => new Link('link0_2').create(join('dir1', 'dir2')))
+    .then((_) => new Link(join('dir1', 'link1_0')).create('..'))
+    .then((_) => Directory.current = 'dir1')
+    .then((_) => new Link(join('..', 'link0_1')).create('dir1'))
+    .then((_) => new Link(join('dir2', 'link2_1')).create(join(temp, 'dir1')))
+    .then((_) => new Link(join(temp, 'dir1', 'dir2', 'link2_0'))
+                     .create(join('..', '..')))
+    // Test that the links go to the right targets.
+    .then((_) => checkExists(join('..', 'link0_1', 'file1')))
+    .then((_) => checkExists(join('..', 'link0_2', 'file2')))
+    .then((_) => checkExists(join('link1_0', 'dir1', 'file1')))
+    .then((_) => checkExists(join('link1_2', 'file2')))
+    .then((_) => checkExists(join('dir2', 'link2_0', 'dir1', 'file1')))
+    .then((_) => checkExists(join('dir2', 'link2_1', 'file1')))
+    // Clean up
+    .whenComplete(() => Directory.current = oldWorkingDirectory)
+    .whenComplete(() => tempDirectory.delete(recursive: true));
+  });
+}
+
 main() {
   asyncStart();
   testCreate()
-    .then((_) => testCreateLoopingLink())
-    .then((_) => testRename())
+    .then(testCreateLoopingLink)
+    .then(testRename)
+    .then(testRelativeLinks)
     .then((_) => asyncEnd());
 }

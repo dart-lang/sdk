@@ -200,9 +200,41 @@ void testLinkErrorSync() {
       (e) => e is LinkException);
 }
 
+checkExists(String filePath) => Expect.isTrue(new File(filePath).existsSync());
+
+testRelativeLinksSync() {
+  Directory tempDirectory = new Directory('').createTempSync();
+  String temp = tempDirectory.path;
+  String oldWorkingDirectory = Directory.current.path;
+  // Make directories and files to test links.
+  new Directory(join(temp, 'dir1', 'dir2')).createSync(recursive: true);
+  new File(join(temp, 'dir1', 'file1')).createSync();
+  new File(join(temp, 'dir1', 'dir2', 'file2')).createSync();
+  // Make links whose path and/or target is given by a relative path.
+  new Link(join(temp, 'dir1', 'link1_2')).createSync('dir2');
+  Directory.current = temp;
+  new Link('link0_2').createSync(join('dir1', 'dir2'));
+  new Link(join('dir1', 'link1_0')).createSync('..');
+  Directory.current = 'dir1';
+  new Link(join('..', 'link0_1')).createSync('dir1');
+  new Link(join('dir2', 'link2_1')).createSync(join(temp, 'dir1'));
+  new Link(join(temp, 'dir1', 'dir2', 'link2_0')).createSync(join('..', '..'));
+  // Test that the links go to the right targets.
+  checkExists(join('..', 'link0_1', 'file1'));
+  checkExists(join('..', 'link0_2', 'file2'));
+  checkExists(join('link1_0', 'dir1', 'file1'));
+  checkExists(join('link1_2', 'file2'));
+  checkExists(join('dir2', 'link2_0', 'dir1', 'file1'));
+  checkExists(join('dir2', 'link2_1', 'file1'));
+    // Clean up
+  Directory.current = oldWorkingDirectory;
+  tempDirectory.deleteSync(recursive: true);
+}
+
 main() {
   testCreateSync();
   testCreateLoopingLink();
   testRenameSync();
   testLinkErrorSync();
+  testRelativeLinksSync();
 }
