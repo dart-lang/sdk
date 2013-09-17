@@ -26124,13 +26124,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -34497,6 +34497,8 @@ class _ConsoleVariables {
     if (invocation.isGetter) {
       return _data[member];
     } else if (invocation.isSetter) {
+      assert(member.endsWith('='));
+      member = member.substring(0, member.length - 1);
       _data[member] = invocation.positionalArguments[0];
     } else {
       return Function.apply(_data[member], invocation.positionalArguments, invocation.namedArguments);
@@ -34615,7 +34617,9 @@ class _Utils {
    * expression for a closure with a body matching the original expression
    * where locals are passed in as arguments. Returns a list containing the
    * String expression for the closure and the list of arguments that should
-   * be passed to it.
+   * be passed to it. The expression should then be evaluated using
+   * Dart_EvaluateExpr which will generate a closure that should be invoked
+   * with the list of arguments passed to this method.
    *
    * For example:
    * <code>wrapExpressionAsClosure("foo + bar", ["bar", 40, "foo", 2])</code>
@@ -34628,6 +34632,12 @@ class _Utils {
     addArg(arg, value) {
       arg = stripMemberName(arg);
       if (args.containsKey(arg)) return;
+      // We ignore arguments with the name 'this' rather than throwing an
+      // exception because Dart_GetLocalVariables includes 'this' and it
+      // is more convenient to filter it out here than from C++ code.
+      // 'this' needs to be handled by calling Dart_EvaluateExpr with
+      // 'this' as the target rather than by passing it as an argument.
+      if (arg == 'this') return;
       if (args.isNotEmpty) {
         sb.write(", ");
       }
