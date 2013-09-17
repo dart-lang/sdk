@@ -186,7 +186,7 @@ class GSUtil(object):
       gsutil_command = [sys.executable, GSUtil.GSUTIL_PATH]
 
     run(gsutil_command + gsutil_args, env=env,
-        shell=GSUtil.GSUTIL_IS_SHELL_SCRIPT)
+        shell=(GSUtil.GSUTIL_IS_SHELL_SCRIPT and sys.platform == 'win32'))
 
   def upload(self, local_path, remote_path, recursive=False, public=False):
     assert remote_path.startswith('gs://')
