@@ -247,7 +247,7 @@ DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function) {
 #endif
     return Api::NewHandle(isolate, owner.library());
   } else {
-    return Api::NewHandle(isolate, owner.raw());
+    return Api::NewHandle(isolate, owner.RareType());
   }
 }
 
