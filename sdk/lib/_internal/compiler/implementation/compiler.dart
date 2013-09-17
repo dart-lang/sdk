@@ -277,6 +277,11 @@ abstract class Backend {
   /// apply is runtime helpers that the backend calls, but the
   /// optimizations don't see those calls.
   bool canBeUsedForGlobalOptimizations(Element element) => true;
+
+  /// Called when [enqueuer]'s queue is empty, but before it is closed.
+  /// This is used, for example, by the JS backend to enqueue additional
+  /// elements needed for reflection.
+  void onQueueEmpty(Enqueuer enqueuer) {}
 }
 
 /**

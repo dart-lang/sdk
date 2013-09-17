@@ -937,6 +937,13 @@ main() {}
       examples: const [
           "main();"]);
 
+  static const MessageKind MIRROR_BLOAT = const MessageKind(
+      "Hint: #{count} methods retained for use by dart:mirrors out of #{total}"
+      " total methods (#{percentage}%).");
+
+  static const MessageKind MIRROR_IMPORT = const MessageKind(
+      "Info: Import of 'dart:mirrors'.");
+
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       'Error: The compiler crashed when compiling this element.');
 

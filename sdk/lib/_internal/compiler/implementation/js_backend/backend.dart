@@ -414,6 +414,9 @@ class JavaScriptBackend extends Backend {
           checkedModeHelpers,
           key: (helper) => helper.name.slowToString());
 
+  /// Number of methods compiled before considering reflection.
+  int preMirrorsMethodCount = 0;
+
   JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
@@ -1233,6 +1236,28 @@ class JavaScriptBackend extends Backend {
 
   void assembleProgram() {
     emitter.assembleProgram();
+    int totalMethodCount = generatedCode.length;
+    if (totalMethodCount != preMirrorsMethodCount) {
+      int mirrorCount = totalMethodCount - preMirrorsMethodCount;
+      double percentage = (mirrorCount / totalMethodCount) * 100;
+      compiler.reportHint(
+          compiler.mainApp, MessageKind.MIRROR_BLOAT,
+          {'count': mirrorCount,
+           'total': totalMethodCount,
+           'percentage': percentage.round()});
+      for (LibraryElement library in compiler.libraries.values) {
+        if (library.isInternalLibrary) continue;
+        for (LibraryTag tag in library.tags) {
+          Import importTag = tag.asImport();
+          if (importTag == null) continue;
+          LibraryElement importedLibrary = library.getLibraryFromTag(tag);
+          if (importedLibrary != compiler.mirrorsLibrary) continue;
+          compiler.withCurrentElement(library, () {
+            compiler.reportInfo(importTag, MessageKind.MIRROR_IMPORT);
+          });
+        }
+      }
+    }
   }
 
   Element getImplementationClass(Element element) {
@@ -1541,28 +1566,10 @@ class JavaScriptBackend extends Backend {
     if (element == disableTreeShakingMarker) {
       compiler.disableTypeInferenceForMirrors = true;
       isTreeShakingDisabled = true;
-      enqueuer.enqueueEverything();
     } else if (element == preserveNamesMarker) {
-      if (mustPreserveNames) return;
       mustPreserveNames = true;
-      compiler.log('Preserving names.');
     } else if (element == preserveMetadataMarker) {
-      if (mustRetainMetadata) return;
-      compiler.log('Retaining metadata.');
       mustRetainMetadata = true;
-      compiler.libraries.values.forEach(retainMetadataOf);
-      for (Dependency dependency in metadataInstantiatedTypes) {
-        registerMetadataInstantiatedType(dependency.type, dependency.user);
-      }
-      metadataInstantiatedTypes.clear();
-      for (Element e in metadataStaticUse) {
-        registerMetadataStaticUse(e);
-      }
-      metadataStaticUse.clear();
-      for (Element e in metadataGetOfStaticFunction) {
-        registerMetadataGetOfStaticFunction(e);
-      }
-      metadataGetOfStaticFunction.clear();
     }
   }
 
@@ -1750,6 +1757,35 @@ class JavaScriptBackend extends Backend {
     return compiler.typedDataClass != null
         && mask.satisfies(compiler.typedDataClass, compiler)
         && mask.satisfies(jsIndexingBehaviorInterface, compiler);
+  }
+
+  /// Called when [enqueuer] is empty, but before it is closed.
+  void onQueueEmpty(Enqueuer enqueuer) {
+    if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
+      preMirrorsMethodCount = generatedCode.length;
+    }
+
+    if (isTreeShakingDisabled) enqueuer.enqueueEverything();
+
+    if (mustPreserveNames) compiler.log('Preserving names.');
+
+    if (mustRetainMetadata) {
+      compiler.log('Retaining metadata.');
+
+      compiler.libraries.values.forEach(retainMetadataOf);
+      for (Dependency dependency in metadataInstantiatedTypes) {
+        registerMetadataInstantiatedType(dependency.type, dependency.user);
+      }
+      metadataInstantiatedTypes.clear();
+      for (Element e in metadataStaticUse) {
+        registerMetadataStaticUse(e);
+      }
+      metadataStaticUse.clear();
+      for (Element e in metadataGetOfStaticFunction) {
+        registerMetadataGetOfStaticFunction(e);
+      }
+      metadataGetOfStaticFunction.clear();
+    }
   }
 }
 

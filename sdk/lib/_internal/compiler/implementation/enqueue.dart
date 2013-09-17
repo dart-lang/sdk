@@ -89,6 +89,8 @@ abstract class Enqueuer {
            ItemCompilationContext itemCompilationContextCreator())
     : this.itemCompilationContextCreator = itemCompilationContextCreator;
 
+  Queue<WorkItem> get queue;
+
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue => false;
 
@@ -529,7 +531,15 @@ abstract class Enqueuer {
     universe.closurizedGenericMembers.add(element);
   }
 
-  void forEach(f(WorkItem work));
+  void forEach(f(WorkItem work)) {
+    do {
+      while (!queue.isEmpty) {
+        // TODO(johnniwinther): Find an optimal process order.
+        f(queue.removeLast());
+      }
+      compiler.backend.onQueueEmpty(this);
+    } while (!queue.isEmpty);
+  }
 
   void forEachPostProcessTask(f(PostProcessTask work)) {}
 
@@ -661,13 +671,6 @@ class ResolutionEnqueuer extends Enqueuer {
     compiler.backend.enableNoSuchMethod(this);
   }
 
-  void forEach(f(WorkItem work)) {
-    while (!queue.isEmpty) {
-      // TODO(johnniwinther): Find an optimal process order for resolution.
-      f(queue.removeLast());
-    }
-  }
-
   /**
    * Adds an action to the post-processing queue.
    *
@@ -724,13 +727,6 @@ class CodegenEnqueuer extends Enqueuer {
     CodegenWorkItem workItem = new CodegenWorkItem(
         element, itemCompilationContextCreator());
     queue.add(workItem);
-  }
-
-  void forEach(f(WorkItem work)) {
-    while(!queue.isEmpty) {
-      // TODO(johnniwinther): Find an optimal process order for codegen.
-      f(queue.removeLast());
-    }
   }
 
   void _logSpecificSummary(log(message)) {
