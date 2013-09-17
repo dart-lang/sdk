@@ -3739,6 +3739,10 @@ class Instance : public Object {
                     const AbstractTypeArguments& type_instantiator,
                     Error* bound_error) const;
 
+  // Check whether this instance is identical to the argument according to the
+  // specification of dare:core's identical().
+  bool IsIdenticalTo(const Instance& other) const;
+
   bool IsValidNativeIndex(int index) const {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
   }

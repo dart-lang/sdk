@@ -10358,6 +10358,24 @@ bool Instance::IsInstanceOf(const AbstractType& other,
 }
 
 
+bool Instance::IsIdenticalTo(const Instance& other) const {
+  if (raw() == other.raw()) return true;
+  if (IsInteger() && other.IsInteger()) {
+    return Equals(other);
+  }
+  if (IsDouble() && other.IsDouble()) {
+    if (Equals(other)) return true;
+    // Check for NaN.
+    const Double& a_double = Double::Cast(*this);
+    const Double& b_double = Double::Cast(other);
+    if (isnan(a_double.value()) && isnan(b_double.value())) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 void Instance::SetNativeField(int index, intptr_t value) const {
   ASSERT(IsValidNativeIndex(index));
   Object& native_fields = Object::Handle(*NativeFieldsAddr());
