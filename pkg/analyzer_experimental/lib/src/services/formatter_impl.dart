@@ -78,10 +78,36 @@ abstract class CodeFormatter {
 
   /// Format the specified portion (from [offset] with [length]) of the given
   /// [source] string, optionally providing an [indentationLevel].
-  String format(CodeKind kind, String source, {int offset, int end,
-    int indentationLevel: 0});
+  FormattedSource format(CodeKind kind, String source, {int offset, int end,
+    int indentationLevel: 0, Selection selection: null});
 
 }
+
+/// Source selection state information.
+class Selection {
+  
+  /// The offset of the source selection.
+  final int offset;
+  
+  /// The length of the selection.
+  final int length;
+  
+  Selection(this.offset, this.length);
+}
+
+/// Formatted source.
+class FormattedSource {
+  
+  /// Selection state or null if unspecified.
+  final Selection selection;
+  
+  /// Formatted source string.
+  final String source;
+  
+  /// Create a formatted [source] result, with optional [selection] information.
+  FormattedSource(this.source, [this.selection = null]);
+}
+
 
 class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 
@@ -93,8 +119,8 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 
   CodeFormatterImpl(this.options);
 
-  String format(CodeKind kind, String source, {int offset, int end,
-      int indentationLevel: 0}) {
+  FormattedSource format(CodeKind kind, String source, {int offset, int end,
+      int indentationLevel: 0, Selection selection: null}) {
 
     var startToken = tokenize(source);
     checkForErrors();
@@ -109,7 +135,7 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
     
     checkTokenStreams(startToken, tokenize(formattedSource));
 
-    return formattedSource;
+    return new FormattedSource(formattedSource);
   }
 
   checkTokenStreams(Token t1, Token t2) =>
