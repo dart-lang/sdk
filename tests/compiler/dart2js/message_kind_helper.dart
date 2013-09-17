@@ -19,7 +19,15 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
   Expect.isNotNull(kind.howToFix);
   Expect.isFalse(kind.examples.isEmpty);
 
-  for (String example in kind.examples) {
+  return Future.forEach(kind.examples, (example) {
+    if (example is String) {
+      example = {'main.dart': example};
+    } else {
+      Expect.isTrue(example is Map,
+                    "Example must be either a String or a Map.");
+      Expect.isTrue(example.containsKey('main.dart'),
+                    "Example map must contain a 'main.dart' entry.");
+    }
     List<String> messages = <String>[];
     void collect(Uri uri, int begin, int end, String message, kind) {
       if (kind.name == 'verbose info') {
@@ -29,7 +37,7 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
     }
 
     Compiler compiler = compilerFor(
-        {'main.dart': example},
+        example,
         diagnosticHandler: collect,
         options: ['--analyze-only'],
         cachedCompiler: cachedCompiler);
@@ -53,9 +61,7 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
         }
       }
       Expect.isTrue(messageFound, '"$pattern" does not match any in $messages');
-      return compiler;
+      cachedCompiler = compiler;
     });
-  }
-
-  return new Future<Compiler>.sync(cachedCompiler);
+  }).then((_) => cachedCompiler);
 }

@@ -75,9 +75,15 @@ class MessageKind {
   /// Should describe how to fix the problem. Elided when using --terse option.
   final String howToFix;
 
-  /// Examples will be checked by
-  /// tests/compiler/dart2js/message_kind_test.dart.
-  final List<String> examples;
+  /**
+   *  Examples will be checked by
+   *  tests/compiler/dart2js/message_kind_test.dart.
+   *
+   *  An example is either a String containing the example source code or a Map
+   *  from filenames to source code. In the latter case, the filename for the
+   *  main library code must be 'main.dart'.
+   */
+  final List examples;
 
   const MessageKind(this.template, {this.howToFix, this.examples});
 
@@ -187,6 +193,59 @@ class MessageKind {
   static const DualKind DUPLICATE_IMPORT = const DualKind(
       error: const MessageKind('Error: Duplicate import of "#{name}".'),
       warning: const MessageKind('Warning: Duplicate import of "#{name}".'));
+
+  static const MessageKind HIDDEN_IMPORT = const MessageKind(
+      "Warning: '#{name}' from library '#{hiddenUri}' by '#{name}' "
+      "from library '#{hidingUri}'.",
+      howToFix: "Try adding 'hide #{name}' to the import of '#{hiddenUri}'.",
+      examples: const [
+          const {
+'main.dart':
+"""
+import 'dart:async'; // This imports a class Future.
+import 'future.dart';
+
+void main() {}""",
+
+'future.dart':
+"""
+library future;
+
+class Future {}"""},
+
+          const {
+'main.dart':
+"""
+import 'future.dart';
+import 'dart:async'; // This imports a class Future.
+
+void main() {}""",
+
+'future.dart':
+"""
+library future;
+
+class Future {}"""},
+
+          const {
+'main.dart':
+"""
+import 'export.dart';
+import 'dart:async'; // This imports a class Future.
+
+void main() {}""",
+
+'future.dart':
+"""
+library future;
+
+class Future {}""",
+
+'export.dart':
+"""
+library export;
+
+export 'future.dart';"""}]);
 
   static const MessageKind DUPLICATE_EXPORT = const MessageKind(
       'Error: Duplicate export of "#{name}".');

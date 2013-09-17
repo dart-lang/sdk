@@ -565,7 +565,7 @@ class ImportLink {
       });
     } else {
       importedLibrary.forEachExport((Element element) {
-        compiler.withCurrentElement(element, () {
+        compiler.withCurrentElement(importingLibrary, () {
           if (combinatorFilter.exclude(element)) return;
           importingLibrary.addImport(element, import, compiler);
         });
