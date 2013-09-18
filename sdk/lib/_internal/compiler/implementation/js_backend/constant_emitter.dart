@@ -215,7 +215,6 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
   jsAst.Expression visitMap(MapConstant constant) {
     jsAst.Expression jsMap() {
       List<jsAst.Property> properties = <jsAst.Property>[];
-      int valueIndex = 0;
       for (int i = 0; i < constant.keys.entries.length; i++) {
         StringConstant key = constant.keys.entries[i];
         if (key.value == MapConstant.PROTO_PROPERTY) continue;
@@ -223,21 +222,27 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
         // Keys in literal maps must be emitted in place.
         jsAst.Literal keyExpression = _visit(key);
         jsAst.Expression valueExpression =
-            _reference(constant.values[valueIndex++]);
+            _reference(constant.values[i]);
         properties.add(new jsAst.Property(keyExpression, valueExpression));
-      }
-      if (valueIndex != constant.values.length) {
-        compiler.internalError("Bad value count.");
       }
       return new jsAst.ObjectInitializer(properties);
     }
 
-    void badFieldCountError() {
-      compiler.internalError(
-          "Compiler and ConstantMap disagree on number of fields.");
+    jsAst.Expression jsGeneralMap() {
+      List<jsAst.Expression> data = <jsAst.Expression>[];
+      for (int i = 0; i < constant.keys.entries.length; i++) {
+        jsAst.Expression keyExpression =
+            _reference(constant.keys.entries[i]);
+        jsAst.Expression valueExpression =
+            _reference(constant.values[i]);
+        data.add(keyExpression);
+        data.add(valueExpression);
+      }
+      return new jsAst.ArrayInitializer.from(data);
     }
 
     ClassElement classElement = constant.type.element;
+    SourceString className = classElement.name;
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
 
@@ -256,16 +261,24 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
           } else if (field.name == MapConstant.PROTO_VALUE) {
             assert(constant.protoValue != null);
             arguments.add(_reference(constant.protoValue));
+          } else if (field.name == MapConstant.JS_DATA_NAME) {
+            arguments.add(jsGeneralMap());
           } else {
-            badFieldCountError();
+            compiler.internalError(
+                "Compiler has unexpected field ${field.name} for "
+                "${className}.");
           }
           emittedArgumentCount++;
         },
         includeSuperAndInjectedMembers: true);
-
-    if ((constant.protoValue == null && emittedArgumentCount != 3) ||
-        (constant.protoValue != null && emittedArgumentCount != 4)) {
-      badFieldCountError();
+    if ((className == MapConstant.DART_STRING_CLASS &&
+         emittedArgumentCount != 3) ||
+        (className == MapConstant.DART_PROTO_CLASS &&
+         emittedArgumentCount != 4) ||
+        (className == MapConstant.DART_GENERAL_CLASS &&
+         emittedArgumentCount != 1)) {
+      compiler.internalError(
+          "Compiler and ${className} disagree on number of fields.");
     }
 
     jsAst.Expression value = new jsAst.New(

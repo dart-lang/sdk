@@ -467,21 +467,12 @@ Language/07_Classes/4_Abstract_Instance_Members_A03_t03: fail # co19-roll r559: 
 Language/07_Classes/4_Abstract_Instance_Members_A03_t04: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t05: fail # co19-roll r559: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A02_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/01_Constants_A03_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t06: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t09: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/05_Strings_A20_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/07_Maps_A01_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/07_Maps_A08_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/07_Maps_A12_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/07_Maps_A12_t04: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/07_Maps_A12_t05: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/07_Maps_A12_t06: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/07_Maps_A12_t07: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t06: fail # co19-roll r546: Please triage this failure
@@ -683,7 +674,4 @@ LibTest/typed_data/Uint8List/runtimeType_A01_t01: fail # co19-roll r559: Please 
 
 [ $compiler == dart2js || $compiler == dart2dart ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t08: fail # co19-roll r569: Please triage this failure
-LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: fail # co19-roll r576: Please triage this failure
-LibTest/core/Uri/Uri_A06_t02: fail # co19-roll r576: Please triage this failure
-LibTest/core/Uri/Uri_A06_t03: fail # co19-roll r576: Please triage this failure
 

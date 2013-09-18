@@ -386,46 +386,53 @@ class CompileTimeConstantEvaluator extends Visitor {
     if (!node.isConst()) {
       return signalNotCompileTimeConstant(node);
     }
-    List<StringConstant> keys = <StringConstant>[];
-    Map<StringConstant, Constant> map = new Map<StringConstant, Constant>();
+    List<Constant> keys = <Constant>[];
+    Map<Constant, Constant> map = new Map<Constant, Constant>();
     for (Link<Node> link = node.entries.nodes;
          !link.isEmpty;
          link = link.tail) {
       LiteralMapEntry entry = link.head;
       Constant key = evaluateConstant(entry.key);
-      if (!key.isString() || entry.key.asStringNode() == null) {
-        compiler.reportFatalError(
-            entry.key, MessageKind.KEY_NOT_A_STRING_LITERAL);
-      }
-      StringConstant keyConstant = key;
       if (!map.containsKey(key)) keys.add(key);
       map[key] = evaluateConstant(entry.value);
     }
-    List<Constant> values = <Constant>[];
+
+    bool onlyStringKeys = true;
     Constant protoValue = null;
-    for (StringConstant key in keys) {
-      if (key.value == MapConstant.PROTO_PROPERTY) {
-        protoValue = map[key];
+    for (var key in keys) {
+      if (key.isString()) {
+        if (key.value == MapConstant.PROTO_PROPERTY) {
+          protoValue = map[key];
+        }
       } else {
-        values.add(map[key]);
+        onlyStringKeys = false;
+        // Don't handle __proto__ values specially in the general map case.
+        protoValue = null;
+        break;
       }
     }
+
     bool hasProtoKey = (protoValue != null);
+    List<Constant> values = map.values.toList();
     InterfaceType sourceType = elements.getType(node);
     Link<DartType> arguments =
         new Link<DartType>.fromList([compiler.stringClass.rawType]);
     DartType keysType = new InterfaceType(compiler.listClass, arguments);
     ListConstant keysList = new ListConstant(keysType, keys);
-    handler.registerCompileTimeConstant(keysList, elements);
-    SourceString className = hasProtoKey
-                             ? MapConstant.DART_PROTO_CLASS
-                             : MapConstant.DART_CLASS;
+    if (onlyStringKeys) {
+      handler.registerCompileTimeConstant(keysList, elements);
+    }
+    SourceString className = onlyStringKeys
+        ? (hasProtoKey ? MapConstant.DART_PROTO_CLASS
+                       : MapConstant.DART_STRING_CLASS)
+        : MapConstant.DART_GENERAL_CLASS;
     ClassElement classElement = compiler.jsHelperLibrary.find(className);
     classElement.ensureResolved(compiler);
-    Link<DartType> typeArgument = sourceType.typeArguments.tail;
+    Link<DartType> typeArgument = sourceType.typeArguments;
     InterfaceType type = new InterfaceType(classElement, typeArgument);
     handler.registerInstantiatedType(type, elements);
-    Constant constant = new MapConstant(type, keysList, values, protoValue);
+    Constant constant =
+        new MapConstant(type, keysList, values, protoValue, onlyStringKeys);
     handler.registerCompileTimeConstant(constant, elements);
     return constant;
   }

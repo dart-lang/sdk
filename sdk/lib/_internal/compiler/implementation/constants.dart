@@ -374,19 +374,26 @@ class MapConstant extends ObjectConstant {
 
   /** The dart class implementing constant map literals. */
   static const SourceString DART_CLASS = const SourceString("ConstantMap");
+  static const SourceString DART_STRING_CLASS =
+      const SourceString("ConstantStringMap");
   static const SourceString DART_PROTO_CLASS =
       const SourceString("ConstantProtoMap");
+  static const SourceString DART_GENERAL_CLASS =
+      const SourceString("GeneralConstantMap");
   static const SourceString LENGTH_NAME = const SourceString("length");
   static const SourceString JS_OBJECT_NAME = const SourceString("_jsObject");
   static const SourceString KEYS_NAME = const SourceString("_keys");
   static const SourceString PROTO_VALUE = const SourceString("_protoValue");
+  static const SourceString JS_DATA_NAME = const SourceString("_jsData");
 
   final ListConstant keys;
   final List<Constant> values;
   final Constant protoValue;
   final int hashCode;
+  final bool onlyStringKeys;
 
-  MapConstant(DartType type, this.keys, List<Constant> values, this.protoValue)
+  MapConstant(DartType type, this.keys, List<Constant> values, this.protoValue,
+              this.onlyStringKeys)
       : this.values = values,
         this.hashCode = computeHash(type, values),
         super(type);
@@ -415,7 +422,14 @@ class MapConstant extends ObjectConstant {
   }
 
   List<Constant> getDependencies() {
-    List<Constant> result = <Constant>[keys];
+    List<Constant> result = <Constant>[];
+    if (onlyStringKeys) {
+      result.add(keys);
+    } else {
+      // Add the keys individually to avoid generating a unused list constant
+      // for the keys.
+      result.addAll(keys.entries);
+    }
     result.addAll(values);
     return result;
   }

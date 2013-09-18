@@ -1422,17 +1422,35 @@ class _StackTrace implements StackTrace {
   }
 }
 
+int _objectHashCode(var object) {
+  if (object == null || JS('bool', "typeof # != 'object'", object)) {
+    return object.hashCode;
+  } else {
+    return Primitives.objectHashCode(object);
+  }
+}
+
 /**
  * Called by generated code to build a map literal. [keyValuePairs] is
  * a list of key, value, key, value, ..., etc.
  */
-makeLiteralMap(List keyValuePairs) {
-  Iterator iterator = keyValuePairs.iterator;
-  Map result = new LinkedHashMap();
-  while (iterator.moveNext()) {
-    String key = iterator.current;
-    iterator.moveNext();
-    var value = iterator.current;
+makeLiteralMap(keyValuePairs) {
+  return fillLiteralMap(keyValuePairs, new LinkedHashMap());
+}
+
+makeConstantMap(keyValuePairs) {
+  return fillLiteralMap(keyValuePairs,
+      new LinkedHashMap(equals: identical, hashCode: _objectHashCode));
+}
+
+fillLiteralMap(keyValuePairs, Map result) {
+  // TODO(johnniwinther): Use JSArray to optimize this code instead of calling
+  // [getLength] and [getIndex].
+  int index = 0;
+  int length = getLength(keyValuePairs);
+  while (index < length) {
+    var key = getIndex(keyValuePairs, index++);
+    var value = getIndex(keyValuePairs, index++);
     result[key] = value;
   }
   return result;
