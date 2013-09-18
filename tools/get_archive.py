@@ -338,8 +338,9 @@ def main():
   if args.revision and int(args.revision) < LAST_VALID[positional[0]]:
     return TooEarlyError()
 
-  # Use the incremental release bot ('dartium-*-inc') by default.
-  bot = 'inc'
+  # Use the incremental release bot ('dartium-*-inc-be') by default.
+  # Issue 13399 Quick fix, update with channel support.
+  bot = 'inc-be'
   if args.debug:
     bot = 'debug'
 
