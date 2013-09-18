@@ -280,6 +280,34 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # E
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
 
+
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+LibTest/isolate/isolate_api/streamSpawnFunction_A01_t01: Pass # TODO(kasperl): Please triage.
+LibTest/isolate/IsolateSink/add_A01_t02: Pass # TODO(kasperl): Please triage.
+LibTest/isolate/IsolateSink/operator_equality_A01_t01: Pass # TODO(kasperl): Please triage.
+
+LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail, Slow # TODO(kasperl): Please triage.
+LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail, Slow # TODO(kasperl): Please triage.
+LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail, Slow # TODO(kasperl): Please triage.
+LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail, Slow # TODO(kasperl): Please triage.
+LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail, Slow # TODO(kasperl): Please triage.
+
+LibTest/core/int/compareTo_A01_t01: Fail # TODO(kasperl): Please triage.
+LibTest/core/int/operator_left_shift_A01_t01: Fail # TODO(kasperl): Please triage.
+LibTest/core/int/operator_remainder_A01_t03: Fail # TODO(kasperl): Please triage.
+LibTest/core/int/operator_truncating_division_A01_t02: Fail # TODO(kasperl): Please triage.
+LibTest/core/int/remainder_A01_t01: Fail # TODO(kasperl): Please triage.
+LibTest/core/int/remainder_A01_t03: Fail # TODO(kasperl): Please triage.
+LibTest/core/int/toRadixString_A01_t01: Fail # TODO(kasperl): Please triage.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # TODO(kasperl): Please triage.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # TODO(kasperl): Please triage.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # TODO(kasperl): Please triage.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # TODO(kasperl): Please triage.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # TODO(kasperl): Please triage.
+LibTest/isolate/ReceivePort/toSendPort_A01_t02: Fail # TODO(kasperl): Please triage.
+LibTest/math/log_A01_t01: Fail # TODO(kasperl): Please triage.
+
+
 [ $compiler == dart2js && ($runtime == ie10 || $runtime == ff || $runtime == chrome || $runtime == drt || $runtime == safari || $runtime == opera) ]
 *: Skip
 

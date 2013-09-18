@@ -126,6 +126,10 @@ crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 polymer/example/component: Fail # Issue 13198
 
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.
+intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.
+
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/generated/element_test: Fail, OK # Uses dart:io.

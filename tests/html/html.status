@@ -33,6 +33,29 @@ xhr_test/json: Fail # Issue 13069
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
 
+
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+crypto_test/functional: Pass, Slow # TODO(kasperl): Please triage.
+input_element_test/supported_datetime-local: Pass, Slow # TODO(kasperl): Please triage.
+
+audiobuffersourcenode_test/supported: Fail # TODO(kasperl): Please triage.
+canvasrenderingcontext2d_test/drawImage_video_element: Fail # TODO(kasperl): Please triage.
+canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # TODO(kasperl): Please triage.
+dromaeo_smoke_test: Fail # TODO(kasperl): Please triage.
+element_types_test/supported_datalist: Fail # TODO(kasperl): Please triage.
+fileapi_test/directoryReader: Fail # TODO(kasperl): Please triage.
+fileapi_test/entry: Fail # TODO(kasperl): Please triage.
+fileapi_test/getFile: Fail # TODO(kasperl): Please triage.
+indexeddb_4_test: Fail # TODO(kasperl): Please triage.
+input_element_test/supported_week: Fail # TODO(kasperl): Please triage.
+media_stream_test/supported_media: Fail # TODO(kasperl): Please triage.
+notifications_test/supported: Fail # TODO(kasperl): Please triage.
+rtc_test/supported: Fail # TODO(kasperl): Please triage.
+speechrecognition_test/supported: Fail # TODO(kasperl): Please triage.
+speechrecognition_test/types: Fail # TODO(kasperl): Please triage.
+xhr_test/json: Fail # TODO(kasperl): Please triage.
+
+
 [ $compiler == dart2js && $runtime == ie10 ]
 async_test: Pass, Fail # timers test fails on ie10.
 indexeddb_5_test: Fail # Issue 12893

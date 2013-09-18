@@ -53,6 +53,9 @@ date_time7_test: Fail # BUG(3304): Maybe this doesn't time out?
 string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
 list_test: Fail # IE doesn't support typed data.
 
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
+
 [ $compiler == dart2js && ($runtime == firefox || $runtime == safari || $runtime == chrome || $runtime == drt) ]
 
 [ $compiler == dart2dart ]

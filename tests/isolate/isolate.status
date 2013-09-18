@@ -78,6 +78,9 @@ isolate_import_negative_test: Fail # Issue 12628
 isolate2_negative_test: Fail # Issue 12628
 illegal_msg_test: Pass # Issue 12628
 
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
+
 [ $compiler == dart2dart ]
 *: Skip # Issue 12629
 
