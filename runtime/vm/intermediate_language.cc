@@ -265,7 +265,7 @@ const Object& Value::BoundConstant() const {
 }
 
 
-GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
+GraphEntryInstr::GraphEntryInstr(const ParsedFunction* parsed_function,
                                  TargetEntryInstr* normal_entry,
                                  intptr_t osr_id)
     : BlockEntryInstr(0, CatchClauseNode::kInvalidTryIndex),

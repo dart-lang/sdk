@@ -132,6 +132,22 @@ class Range;
   V(_Uint32x4, withFlagZ, Uint32x4WithFlagZ, 1714792414)                       \
   V(_Uint32x4, withFlagW, Uint32x4WithFlagW, 1516924162)                       \
   V(_Uint32x4, _toFloat32x4, Uint32x4ToUint32x4, 2054503505)                   \
+  V(_ObjectArray, [], ObjectArrayGetIndexed, 1353366945)                       \
+  V(_ImmutableArray, [], ImmutableArrayGetIndexed, 7250043)                    \
+  V(_GrowableObjectArray, [], GrowableArrayGetIndexed, 1760659393)             \
+  V(_Float32Array, [], Float32ArrayGetIndexed, 752719987)                      \
+  V(_Float64Array, [], Float64ArrayGetIndexed, 398551809)                      \
+  V(_Int8Array, [], Int8ArrayGetIndexed, 1874842660)                           \
+  V(_Uint8Array, [], Uint8ArrayGetIndexed, 29882029)                           \
+  V(_Uint8ClampedArray, [], Uint8ClampedArrayGetIndexed, 820327077)            \
+  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 1358816690)         \
+  V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
+    1359339569)                                                                \
+  V(_Int16Array, [], Int16ArrayGetIndexed, 719232917)                          \
+  V(_Uint16Array, [], Uint16ArrayGetIndexed, 341610618)                        \
+  V(_Int32Array, [], Int32ArrayGetIndexed, 314755114)                          \
+  V(_Uint32Array, [], Uint32ArrayGetIndexed, 949356200)                        \
+  V(_Float32x4Array, [], Float32x4ArrayGetIndexed, 1428560299)                 \
 
 
 // A list of core function that should always be inlined.
@@ -1326,7 +1342,7 @@ class BackwardInstructionIterator : public ValueObject {
 
 class GraphEntryInstr : public BlockEntryInstr {
  public:
-  GraphEntryInstr(const ParsedFunction& parsed_function,
+  GraphEntryInstr(const ParsedFunction* parsed_function,
                   TargetEntryInstr* normal_entry,
                   intptr_t osr_id);
 
@@ -1371,7 +1387,7 @@ class GraphEntryInstr : public BlockEntryInstr {
   TargetEntryInstr* normal_entry() const { return normal_entry_; }
 
   const ParsedFunction& parsed_function() const {
-    return parsed_function_;
+    return *parsed_function_;
   }
 
   const GrowableArray<CatchBlockEntryInstr*>& catch_entries() const {
@@ -1384,7 +1400,7 @@ class GraphEntryInstr : public BlockEntryInstr {
   virtual void ClearPredecessors() {}
   virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
 
-  const ParsedFunction& parsed_function_;
+  const ParsedFunction* parsed_function_;
   TargetEntryInstr* normal_entry_;
   GrowableArray<CatchBlockEntryInstr*> catch_entries_;
   GrowableArray<Definition*> initial_definitions_;

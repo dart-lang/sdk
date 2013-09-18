@@ -124,6 +124,10 @@ class FlowGraph : public ZoneAllocated {
                    Instruction* instr,
                    Environment* env,
                    Definition::UseKind use_kind);
+  Instruction* AppendTo(Instruction* prev,
+                        Instruction* instr,
+                        Environment* env,
+                        Definition::UseKind use_kind);
 
   // Operations on the flow graph.
   void ComputeSSA(intptr_t next_virtual_register_number,

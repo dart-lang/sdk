@@ -97,6 +97,20 @@ void FlowGraph::InsertAfter(Instruction* prev,
 }
 
 
+Instruction* FlowGraph::AppendTo(Instruction* prev,
+                                 Instruction* instr,
+                                 Environment* env,
+                                 Definition::UseKind use_kind) {
+  if (use_kind == Definition::kValue) {
+    ASSERT(instr->IsDefinition());
+    instr->AsDefinition()->set_ssa_temp_index(alloc_ssa_temp_index());
+  }
+  ASSERT(instr->env() == NULL);
+  if (env != NULL) env->DeepCopyTo(instr);
+  return prev->AppendInstruction(instr);
+}
+
+
 void FlowGraph::DiscoverBlocks() {
   // Initialize state.
   preorder_.Clear();

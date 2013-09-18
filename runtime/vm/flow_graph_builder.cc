@@ -3768,7 +3768,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   TargetEntryInstr* normal_entry =
       new TargetEntryInstr(AllocateBlockId(),
                            CatchClauseNode::kInvalidTryIndex);
-  graph_entry_ = new GraphEntryInstr(*parsed_function(), normal_entry, osr_id_);
+  graph_entry_ = new GraphEntryInstr(parsed_function(), normal_entry, osr_id_);
   EffectGraphVisitor for_effect(this, 0);
   // This check may be deleted if the generated code is leaf.
   // Native functions don't need a stack check at entry.

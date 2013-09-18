@@ -46,6 +46,12 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void AnalyzeTryCatch();
 
+  bool TryInlineRecognizedMethod(const Function& target,
+                                 Instruction* call,
+                                 const ICData& ic_data,
+                                 TargetEntryInstr** entry,
+                                 Definition** last);
+
   // Remove environments from the instructions which do not deoptimize.
   void EliminateEnvironments();
 
@@ -77,6 +83,11 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                          const ICData& value_check,
                          intptr_t class_id);
   bool TryReplaceWithLoadIndexed(InstanceCallInstr* call);
+  bool TryInlineGetIndexed(MethodRecognizer::Kind kind,
+                           Instruction* call,
+                           const ICData& ic_data,
+                           TargetEntryInstr** entry,
+                           Definition** last);
 
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithUnaryOp(InstanceCallInstr* call, Token::Kind op_kind);

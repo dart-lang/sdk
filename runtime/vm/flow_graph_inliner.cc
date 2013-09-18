@@ -364,6 +364,7 @@ class PolymorphicInliner : public ValueObject {
   bool CheckNonInlinedDuplicate(const Function& target);
 
   bool TryInlining(const Function& target);
+  bool TryInlineRecognizedMethod(const Function& target);
 
   TargetEntryInstr* BuildDecisionGraph();
 
@@ -681,6 +682,8 @@ class CallSiteInliner : public ValueObject {
   }
 
  private:
+  friend class PolymorphicInliner;
+
   void InlineCall(InlinedCallData* call_data) {
     TimerScope timer(FLAG_compiler_stats,
                      &CompilerStats::graphinliner_subst_timer,
@@ -1083,8 +1086,13 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 
 bool PolymorphicInliner::TryInlining(const Function& target) {
   if (!target.is_optimizable()) {
+    if (TryInlineRecognizedMethod(target)) {
+      owner_->inlined_ = true;
+      return true;
+    }
     return false;
   }
+
   GrowableArray<Value*> arguments(call_->ArgumentCount());
   for (int i = 0; i < call_->ArgumentCount(); ++i) {
     arguments.Add(call_->PushArgumentAt(i)->value());
@@ -1141,6 +1149,42 @@ static Instruction* AppendInstruction(Instruction* first,
   }
   first->LinkTo(second);
   return second;
+}
+
+
+bool PolymorphicInliner::TryInlineRecognizedMethod(const Function& target) {
+  FlowGraphOptimizer optimizer(owner_->caller_graph(),
+                               NULL);  // No guarded fields needed.
+  TargetEntryInstr* entry;
+  Definition* last;
+  if (optimizer.TryInlineRecognizedMethod(target,
+                                          call_,
+                                          call_->ic_data(),
+                                          &entry, &last)) {
+    // Create a graph fragment.
+    InlineExitCollector* exit_collector =
+        new InlineExitCollector(owner_->caller_graph(), call_);
+
+    ReturnInstr* result =
+        new ReturnInstr(call_->instance_call()->token_pos(),
+                        new Value(last));
+    owner_->caller_graph()->AppendTo(
+        last,
+        result,
+        call_->env(),  // Return can become deoptimization target.
+        Definition::kEffect);
+    entry->set_last_instruction(result);
+    exit_collector->AddExit(result);
+    GraphEntryInstr* graph_entry =
+        new GraphEntryInstr(NULL,  // No parsed function.
+                            entry,
+                            Isolate::kNoDeoptId);  // No OSR id.
+    // Update polymorphic inliner state.
+    inlined_entries_.Add(graph_entry);
+    exit_collector_->Union(exit_collector);
+    return true;
+  }
+  return false;
 }
 
 
