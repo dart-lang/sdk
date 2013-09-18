@@ -35,7 +35,7 @@ abstract class Hash {
   /**
    * Add a list of bytes to the hash computation.
    */
-  add(List<int> data);
+  void add(List<int> data);
 
   /**
    * Finish the hash computation and extract the message digest as
