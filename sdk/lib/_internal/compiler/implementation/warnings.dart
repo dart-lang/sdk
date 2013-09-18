@@ -783,6 +783,15 @@ foo(t) {
 main() => foo(1);
 """]);
 
+  static const MessageKind CONST_WITHOUT_INITIALIZER = const MessageKind(
+      "Error: A constant variable must be initialized.",
+      howToFix: "Try adding an initializer or "
+                "removing the 'const' modifier.",
+      examples: const ["""
+void main() {
+  const c; // This constant variable must be initialized. 
+}"""]);
+
 
   static const MessageKind WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT =
       const MessageKind(

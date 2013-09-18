@@ -3912,13 +3912,16 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
       resolver.error(identifier, MessageKind.REFERENCE_IN_INITIALIZATION,
                      {'variableName': name.toString()});
     }
-    return visit(node.selector);
+    return name;
   }
 
   SourceString visitIdentifier(Identifier node) {
     // The variable is initialized to null.
     resolver.world.registerInstantiatedClass(compiler.nullClass,
                                              resolver.mapping);
+    if (definitions.modifiers.isConst()) {
+      compiler.reportError(node, MessageKind.CONST_WITHOUT_INITIALIZER);
+    }
     return node.source;
   }
 
