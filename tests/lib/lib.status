@@ -11,7 +11,7 @@ math/double_pow_test: Fail
 math/low_test: Fail
 math/random_test: Fail
 mirrors/class_mirror_type_variables_test: Fail # Issue 12087
-mirrors/equality_test: Fail # Issue 12333
+mirrors/equality_test/02: Fail # Issue 12333
 mirrors/fake_function_test: Fail # Issue 11612
 mirrors/function_type_mirror_test: Fail # Issue 12166
 mirrors/generics_test: Fail # Issue 12333
@@ -29,7 +29,7 @@ mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
 mirrors/mixin_test/none: Fail # Issue 12464
 mirrors/new_instance_with_type_arguments_test: Fail # Issue 12333
 mirrors/null_test : Fail # Issue 12129
-mirrors/parameter_test: Fail # Issue 6490
+mirrors/parameter_test/none: Fail # Issue 6490
 mirrors/parameter_metadata_test: Fail # Issue 10905
 mirrors/reflected_type_test: Fail # Issue 12607
 mirrors/typedef_metadata_test: Fail # Issue 12785

@@ -2,6 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This tests uses the multi-test "ok" feature:
+// none: Trimmed behaviour. Passing on the VM.
+// 01: Trimmed version for dart2js.
+// 02: Full version passing in the VM.
+//
+// TODO(rmacnak,ahe): Remove multi-test when VM and dart2js are on par.
+
 library test.class_equality_test;
 
 import 'dart:mirrors';
@@ -88,9 +95,11 @@ main() {
     {'reflect("foo")' : reflect("foo"),
      'reflect("foo"), again' : reflect("foo")},
 
-    {'currentMirrorSystem().voidType' : currentMirrorSystem().voidType,
-     'thisLibrary.functions[#subroutine].returnType' :
-          thisLibrary.functions[const Symbol('subroutine')].returnType},
+    {'currentMirrorSystem().voidType' : currentMirrorSystem().voidType},  /// 01: ok
+
+    {'currentMirrorSystem().voidType' : currentMirrorSystem().voidType,   /// 02: ok
+     'thisLibrary.functions[#subroutine].returnType' :                    /// 02: ok
+          thisLibrary.functions[const Symbol('subroutine')].returnType},  /// 02: ok
 
     {'currentMirrorSystem().dynamicType' : currentMirrorSystem().dynamicType,
      'thisLibrary.functions[#main].returnType' :
@@ -101,8 +110,8 @@ main() {
      'reflect(new A<int>()).type.originalDeclaration' :
           reflect(new A<int>()).type.originalDeclaration},
 
-    {'reflectClass(B).superclass' : reflectClass(B).superclass,
-     'reflect(new A<int>()).type' : reflect(new A<int>()).type},
+    {'reflectClass(B).superclass' : reflectClass(B).superclass,  /// 02: ok
+     'reflect(new A<int>()).type' : reflect(new A<int>()).type}, /// 02: ok
 
     {'reflectClass(B)' : reflectClass(B),
      'thisLibrary.classes[#B]' : thisLibrary.classes[const Symbol('B')],
