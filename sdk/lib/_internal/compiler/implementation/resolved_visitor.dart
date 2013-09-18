@@ -5,9 +5,10 @@
 part of dart2js;
 
 abstract class ResolvedVisitor<R> extends Visitor<R> {
+  final Compiler compiler;
   TreeElements elements;
 
-  ResolvedVisitor(this.elements);
+  ResolvedVisitor(this.elements, this.compiler);
 
   R visitSend(Send node) {
     Element element = elements[node];
@@ -26,6 +27,8 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
       return visitStaticSend(node);
     } else if (Elements.isClosureSend(node, element)) {
       return visitClosureSend(node);
+    } else if (element == compiler.assertMethod) {
+      return visitAssert(node);
     } else {
       if (Elements.isUnresolved(element)) {
         if (element == null) {
@@ -59,6 +62,7 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
   R visitDynamicSend(Send node);
   R visitStaticSend(Send node);
   R visitTypeReferenceSend(Send node);
+  R visitAssert(Send node);
 
   void internalError(String reason, {Node node});
 
