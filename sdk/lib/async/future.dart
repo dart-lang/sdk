@@ -138,11 +138,11 @@ abstract class Future<T> {
    * A future whose value is available in the next event-loop iteration.
    *
    * If [value] is not a [Future], using this constructor is equivalent
-   * to [:new Future.sync(() => value):].
+   * to [:new Future<T>.sync(() => value):].
    *
    * See [Completer] to create a Future and complete it later.
    */
-  factory Future.value([T value]) {
+  factory Future.value([value]) {
     return new _Future<T>.immediate(value);
   }
 
@@ -365,7 +365,7 @@ abstract class Future<T> {
  *
  * If you already have a Future, you probably don't need a Completer.
  * Instead, you can usually use [Future.then], which returns a Future:
- * 
+ *
  *     Future doStuff(){
  *       return someAsyncOperation().then((result) {
  *         // Do something.
