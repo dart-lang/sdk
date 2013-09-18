@@ -63,6 +63,7 @@ abstract class Navigator {
 const helperLib = r'''
 library js_helper;
 class JSInvocationMirror {}
+assertHelper(a) {}
 ''';
 
 const foreignLib = r'''
