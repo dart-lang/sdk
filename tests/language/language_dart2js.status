@@ -253,6 +253,8 @@ const_syntax_test/06: Fail # Issue 12933
 const_syntax_test/07: Fail # Issue 12933
 const_syntax_test/08: Fail # Issue 12933
 const_syntax_test/10: Fail # Issue 12933
+map_literal11_test: Fail # Issue 12933
+compile_time_constant_c_test/02: Fail # Issue 12933
 constructor9_test/01: Fail # Issue 12935
 constructor_named_arguments_test/01: Fail # Issue 5519
 final_syntax_test/01: Fail # Issue 13020
