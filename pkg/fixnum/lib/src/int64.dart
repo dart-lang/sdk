@@ -14,12 +14,7 @@ class Int64 implements IntX {
   // integers, storing the 22 low, 22 middle, and 20 high bits of the
   // 64-bit value.  _l (low) and _m (middle) are in the range
   // [0, 2^22 - 1] and _h (high) is in the range [0, 2^20 - 1].
-  int _l, _m, _h;
-
-  // Note: instances of [Int64] are immutable outside of this library,
-  // therefore we may return a reference to an existing instance.
-  // We take care to perform mutation only on internally-generated
-  // instances before they are exposed to external code.
+  final int _l, _m, _h;
 
   // Note: several functions require _BITS == 22 -- do not change this value.
   static const int _BITS = 22;
@@ -30,67 +25,38 @@ class Int64 implements IntX {
   static const int _SIGN_BIT = 19; // _BITS2 - 1
   static const int _SIGN_BIT_MASK = 524288; // 1 << _SIGN_BIT
 
-  // Cached constants
-  static Int64 _MAX_VALUE;
-  static Int64 _MIN_VALUE;
-  static Int64 _ZERO;
-  static Int64 _ONE;
-  static Int64 _TWO;
-
-  // The remainder of the last divide operation.
-  static Int64 _remainder;
-
   /**
    * The maximum positive value attainable by an [Int64], namely
    * 9,223,372,036,854,775,807.
    */
-  static Int64 get MAX_VALUE {
-    if (_MAX_VALUE == null) {
-      _MAX_VALUE = new Int64._bits(_MASK, _MASK, _MASK2 >> 1);
-    }
-    return _MAX_VALUE;
-  }
+  static const Int64 MAX_VALUE = const Int64._bits(_MASK, _MASK, _MASK2 >> 1);
 
   /**
    * The minimum positive value attainable by an [Int64], namely
    * -9,223,372,036,854,775,808.
    */
-  static Int64 get MIN_VALUE {
-    if (_MIN_VALUE == null) {
-      _MIN_VALUE = new Int64._bits(0, 0, _SIGN_BIT_MASK);
-    }
-    return _MIN_VALUE;
-  }
+  static const Int64 MIN_VALUE = const Int64._bits(0, 0, _SIGN_BIT_MASK);
 
   /**
    * An [Int64] constant equal to 0.
    */
-  static Int64 get ZERO {
-    if (_ZERO == null) {
-      _ZERO = new Int64();
-    }
-    return _ZERO;
-  }
+  static const Int64 ZERO = const Int64._bits(0, 0, 0);
 
   /**
    * An [Int64] constant equal to 1.
    */
-  static Int64 get ONE {
-    if (_ONE == null) {
-      _ONE = new Int64._bits(1, 0, 0);
-    }
-    return _ONE;
-  }
+  static const Int64 ONE = const Int64._bits(1, 0, 0);
 
   /**
    * An [Int64] constant equal to 2.
    */
-  static Int64 get TWO {
-    if (_TWO == null) {
-      _TWO = new Int64._bits(2, 0, 0);
-    }
-    return _TWO;
-  }
+  static const Int64 TWO = const Int64._bits(2, 0, 0);
+
+  /**
+   * Constructs an [Int64] with a given bitwise representation.  No validation
+   * is performed.
+   */
+  const Int64._bits(int this._l, int this._m, int this._h);
 
   /**
    * Parses a [String] in a given [radix] between 2 and 36 and returns an
@@ -122,26 +88,18 @@ class Int64 implements IntX {
       // multiply and add within 30 bit temporary values.
       d0 = d0 * radix + digit;
       int carry = d0 >> _BITS;
-      d0 &= _MASK;
+      d0 = _MASK & d0;
 
       d1 = d1 * radix + carry;
       carry = d1 >> _BITS;
-      d1 &= _MASK;
+      d1 = _MASK & d1;;
 
       d2 = d2 * radix + carry;
-      d2 &= _MASK2;
+      d2 = _MASK2 & d2;
     }
 
-    if (negative) {
-      d0 = 0 - d0;
-      int borrow = (d0 >> _BITS) & 1;
-      d0 &= _MASK;
-      d1 = 0 - d1 - borrow;
-      borrow = (d1 >> _BITS) & 1;
-      d1 &= _MASK;
-      d2 = 0 - d2 - borrow;
-      d2 &= _MASK2;
-    }
+    if (negative) return _negate(d0, d1, d2);
+
     return new Int64._bits(d0, d1, d2);
   }
 
@@ -167,30 +125,32 @@ class Int64 implements IntX {
   /**
    * Constructs an [Int64] with a given [int] value.
    */
-  Int64.fromInt(int value) {
+  factory Int64.fromInt(int value) {
+    int v0 = 0, v1 = 0, v2 = 0;
     bool negative = false;
     if (value < 0) {
       negative = true;
       value = -value - 1;
     }
     if (_haveBigInts) {
-      _l = value & _MASK;
-      _m = (value >> _BITS) & _MASK;
-      _h = (value >> _BITS01) & _MASK2;
+      v0 = _MASK & value;
+      v1 = _MASK & (value >> _BITS);
+      v2 = _MASK2 & (value >> _BITS01);
     } else {
       // Avoid using bitwise operations that coerce their input to 32 bits.
-      _h = value ~/ 17592186044416; // 2^44
-      value -= _h * 17592186044416;
-      _m = value ~/ 4194304; // 2^22
-      value -= _m * 4194304;
-      _l = value;
+      v2 = value ~/ 17592186044416; // 2^44
+      value -= v2 * 17592186044416;
+      v1 = value ~/ 4194304; // 2^22
+      value -= v1 * 4194304;
+      v0 = value;
     }
 
     if (negative) {
-      _l = ~_l & _MASK;
-      _m = ~_m & _MASK;
-      _h = ~_h & _MASK2;
+      v0 = _MASK & ~v0;
+      v1 = _MASK & ~v1;
+      v2 = _MASK2 & ~v2;
     }
+    return new Int64._bits(v0, v1, v2);
   }
 
   factory Int64.fromBytes(List<int> bytes) {
@@ -248,7 +208,7 @@ class Int64 implements IntX {
 
   // Returns the [Int64] representation of the specified value. Throws
   // [ArgumentError] for non-integer arguments.
-  Int64 _promote(val) {
+  static Int64 _promote(val) {
     if (val is Int64) {
       return val;
     } else if (val is int) {
@@ -262,31 +222,17 @@ class Int64 implements IntX {
   Int64 operator +(other) {
     Int64 o = _promote(other);
     int sum0 = _l + o._l;
-    int sum1 = _m + o._m + _shiftRight(sum0, _BITS);
-    int sum2 = _h + o._h + _shiftRight(sum1, _BITS);
-
-    Int64 result = new Int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK2);
-    return result;
+    int sum1 = _m + o._m + (sum0 >> _BITS);
+    int sum2 = _h + o._h + (sum1 >> _BITS);
+    return Int64._masked(sum0, sum1, sum2);
   }
 
   Int64 operator -(other) {
     Int64 o = _promote(other);
-    int sum0 = _l - o._l;
-    int sum1 = _m - o._m + _shiftRight(sum0, _BITS);
-    int sum2 = _h - o._h + _shiftRight(sum1, _BITS);
-
-    Int64 result = new Int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK2);
-    return result;
+    return _sub(_l, _m, _h, o._l, o._m, o._h);
   }
 
-  Int64 operator -() {
-    // Like 0 - this.
-    int sum0 = -_l;
-    int sum1 = -_m + _shiftRight(sum0, _BITS);
-    int sum2 = -_h + _shiftRight(sum1, _BITS);
-
-    return new Int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK2);
-  }
+  Int64 operator -() => _negate(_l, _m, _h);
 
   Int64 operator *(other) {
     Int64 o = _promote(other);
@@ -372,29 +318,11 @@ class Int64 implements IntX {
     return new Int64._bits(c0, c1, c2);
   }
 
-  Int64 operator %(other) {
-    if (other.isZero) {
-      throw new IntegerDivisionByZeroException();
-    }
-    if (this.isZero) {
-      return ZERO;
-    }
-    Int64 o = _promote(other).abs();
-    _divMod(this, o, true);
-    return _remainder < 0 ? (_remainder + o) : _remainder;
-  }
+  Int64 operator %(other) => _divide(this, other, _RETURN_MOD);
 
-  Int64 operator ~/(other) => _divMod(this, _promote(other), false);
+  Int64 operator ~/(other) => _divide(this, other, _RETURN_DIV);
 
-  // Int64 remainder(other) => this - (this ~/ other) * other;
-  Int64 remainder(other) {
-    if (other.isZero) {
-      throw new IntegerDivisionByZeroException();
-    }
-    Int64 o = _promote(other).abs();
-    _divMod(this, o, true);
-    return _remainder;
-  }
+  Int64 remainder(other) => _divide(this, other, _RETURN_REM);
 
   Int64 operator &(other) {
     Int64 o = _promote(other);
@@ -421,8 +349,7 @@ class Int64 implements IntX {
   }
 
   Int64 operator ~() {
-    var result = new Int64._bits((~_l) & _MASK, (~_m) & _MASK, (~_h) & _MASK2);
-    return result;
+    return Int64._masked(~_l, ~_m, ~_h);
   }
 
   Int64 operator <<(int n) {
@@ -446,7 +373,7 @@ class Int64 implements IntX {
       res2 = _l << (n - _BITS01);
     }
 
-    return new Int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK2);
+    return Int64._masked(res0, res1, res2);
   }
 
   Int64 operator >>(int n) {
@@ -460,8 +387,10 @@ class Int64 implements IntX {
     // Sign extend h(a).
     int a2 = _h;
     bool negative = (a2 & _SIGN_BIT_MASK) != 0;
-    if (negative) {
-      a2 += 0x3 << _BITS2; // add extra one bits on the left
+    if (negative && _MASK > _MASK2) {
+      // Add extra one bits on the left so the sign gets shifted into the wider
+      // lower words.
+      a2 += (_MASK - _MASK2);
     }
 
     if (n < _BITS) {
@@ -487,7 +416,7 @@ class Int64 implements IntX {
       }
     }
 
-    return new Int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK2);
+    return Int64._masked(res0, res1, res2);
   }
 
   Int64 shiftRightUnsigned(int n) {
@@ -497,7 +426,7 @@ class Int64 implements IntX {
     n &= 63;
 
     int res0, res1, res2;
-    int a2 = _h & _MASK2; // Ensure a2 is positive.
+    int a2 = _MASK2 & _h; // Ensure a2 is positive.
     if (n < _BITS) {
       res2 = a2 >> n;
       res1 = (_m >> n) | (a2 << (_BITS - n));
@@ -512,7 +441,7 @@ class Int64 implements IntX {
       res0 = a2 >> (n - _BITS01);
     }
 
-    return new Int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK2);
+    return Int64._masked(res0, res1, res2);
   }
 
   /**
@@ -524,6 +453,10 @@ class Int64 implements IntX {
     if (other is Int64) {
       o = other;
     } else if (other is int) {
+      if (_h == 0 && _m == 0) return _l == other;
+      // Since we know one of [_h] or [_m] is non-zero, if [other] fits in the
+      // low word then it can't be numerically equal.
+      if ((_MASK & other) == other) return false;
       o = new Int64.fromInt(other);
     } else if (other is Int32) {
       o = other.toInt64();
@@ -578,7 +511,7 @@ class Int64 implements IntX {
   bool get isEven => (_l & 0x1) == 0;
   bool get isMaxValue => (_h == _MASK2 >> 1) && _m == _MASK && _l == _MASK;
   bool get isMinValue => _h == _SIGN_BIT_MASK && _m == 0 && _l == 0;
-  bool get isNegative => (_h >> (_BITS2 - 1)) != 0;
+  bool get isNegative => (_h & _SIGN_BIT_MASK) != 0;
   bool get isOdd => (_l & 0x1) == 1;
   bool get isZero => _h == 0 && _m == 0 && _l == 0;
 
@@ -586,13 +519,15 @@ class Int64 implements IntX {
    * Returns a hash code based on all the bits of this [Int64].
    */
   int get hashCode {
+    // TODO(sra): Should we ensure that hashCode values match corresponding int?
+    // i.e. should `new Int64.fromInt(x).hashCode == x.hashCode`?
     int bottom = ((_m & 0x3ff) << _BITS) | _l;
     int top = (_h << 12) | ((_m >> 10) & 0xfff);
     return bottom ^ top;
   }
 
   Int64 abs() {
-    return this < 0 ? -this : this;
+    return this.isNegative ? -this : this;
   }
 
   /**
@@ -689,10 +624,8 @@ class Int64 implements IntX {
 
   // TODO(rice) - Make this faster by avoiding arithmetic.
   String toHexString() {
-    Int64 x = new Int64._copy(this);
-    if (isZero) {
-      return "0";
-    }
+    if (isZero) return "0";
+    Int64 x = this;
     String hexStr = "";
     Int64 digit_f = new Int64.fromInt(0xf);
     while (!x.isZero) {
@@ -854,19 +787,20 @@ class Int64 implements IntX {
     return "Int64[_l=$_l, _m=$_m, _h=$_h]";
   }
 
-  /**
-   * Constructs an [Int64] with a given bitwise representation.  No validation
-   * is performed.
-   */
-  Int64._bits(int this._l, int this._m, int this._h);
 
-  /**
-   * Constructs an [Int64] with the same value as an existing [Int64].
-   */
-  Int64._copy(Int64 other)
-      : _l = other._l,
-        _m = other._m,
-        _h = other._h;
+  static Int64 _masked(int a0, int a1, int a2) =>
+      new Int64._bits(_MASK & a0, _MASK & a1, _MASK2 & a2);
+
+  static Int64 _sub(int a0, int a1, int a2, int b0, int b1, int b2) {
+    int diff0 = a0 - b0;
+    int diff1 = a1 - b1 - ((diff0 >> _BITS) & 1);
+    int diff2 = a2 - b2 - ((diff1 >> _BITS) & 1);
+    return _masked(diff0, diff1, diff2);
+  }
+
+  static Int64 _negate(int b0, int b1, int b2) {
+    return _sub(0, 0, 0, b0, b1, b2);
+  }
 
   // Determine whether the platform supports ints greater than 2^53
   // without loss of precision.
@@ -888,40 +822,6 @@ class Int64 implements IntX {
 
   String _hexDigit(int digit) => "0123456789ABCDEF"[digit];
 
-  // Implementation of '~/' and '%'.
-
-  // Note: mutates [this].
-  void _negate() {
-    int neg0 = (~_l + 1) & _MASK;
-    int neg1 = (~_m + (neg0 == 0 ? 1 : 0)) & _MASK;
-    int neg2 = (~_h + ((neg0 == 0 && neg1 == 0) ? 1 : 0)) & _MASK2;
-
-    _l = neg0;
-    _m = neg1;
-    _h = neg2;
-  }
-
-  // Note: mutates [this].
-  void _setBit(int bit) {
-    if (bit < _BITS) {
-      _l |= 0x1 << bit;
-    } else if (bit < _BITS01) {
-      _m |= 0x1 << (bit - _BITS);
-    } else {
-      _h |= 0x1 << (bit - _BITS01);
-    }
-  }
-
-  // Note: mutates [this].
-  void _toShru1() {
-    int a2 = _h;
-    int a1 = _m;
-    int a0 = _l;
-
-    _h = a2 >> 1;
-    _m = (a1 >> 1) | ((a2 & 0x1) << (_BITS - 1));
-    _l = (a0 >> 1) | ((a1 & 0x1) << (_BITS - 1));
-  }
 
   // Work around dart2js bugs with negative arguments to '>>' operator.
   static int _shiftRight(int x, int n) {
@@ -936,267 +836,157 @@ class Int64 implements IntX {
     }
   }
 
-  /**
-   * Attempt to subtract b from a if a >= b:
-   *
-   * if (a >= b) {
-   *   a -= b;
-   *   return true;
-   * } else {
-   *   return false;
-   * }
-   */
-  // Note: mutates [a].
-  static bool _trialSubtract(Int64 a, Int64 b) {
-    // Early exit.
-    int sum2 = a._h - b._h;
-    if (sum2 < 0) {
-      return false;
-    }
 
-    int sum0 = a._l - b._l;
-    int sum1 = a._m - b._m + _shiftRight(sum0, _BITS);
-    sum2 += _shiftRight(sum1, _BITS);
+  // Implementation of '~/', '%' and 'remainder'.
 
-    if (sum2 < 0) {
-      return false;
-    }
-
-    a._l = sum0 & _MASK;
-    a._m = sum1 & _MASK;
-    a._h = sum2 & _MASK2;
-
-    return true;
-  }
-
-  // Note: mutates [a] via _trialSubtract.
-  static Int64 _divModHelper(Int64 a, Int64 b,
-      bool negative, bool aIsNegative, bool aIsMinValue,
-      bool computeRemainder) {
-    // Align the leading one bits of a and b by shifting b left.
-    int shift = b.numberOfLeadingZeros() - a.numberOfLeadingZeros();
-    Int64 bshift = b << shift;
-
-    // Quotient must be a new instance since we mutate it.
-    Int64 quotient = new Int64();
-    while (shift >= 0) {
-      bool gte = _trialSubtract(a, bshift);
-      if (gte) {
-        quotient._setBit(shift);
-        if (a.isZero) {
-          break;
-        }
-      }
-
-      bshift._toShru1();
-      shift--;
-    }
-
-    if (negative) {
-      quotient._negate();
-    }
-
-    if (computeRemainder) {
-      if (aIsNegative) {
-        _remainder = -a;
-        if (aIsMinValue) {
-          _remainder = _remainder - ONE;
-        }
-      } else {
-        _remainder = a;
-      }
-    }
-
-    return quotient;
-  }
-
-  Int64 _divModByMinValue(bool computeRemainder) {
-    // MIN_VALUE / MIN_VALUE == 1, remainder = 0
-    // (x != MIN_VALUE) / MIN_VALUE == 0, remainder == x
-    if (isMinValue) {
-      if (computeRemainder) {
-        _remainder = ZERO;
-      }
-      return ONE;
-    }
-    if (computeRemainder) {
-      _remainder = this;
-    }
-    return ZERO;
-  }
-
-  /**
-   * this &= ((1L << bits) - 1)
-   */
-  // Note: mutates [this].
-  Int64 _maskRight(int bits) {
-    int b0, b1, b2;
-    if (bits <= _BITS) {
-      b0 = _l & ((1 << bits) - 1);
-      b1 = b2 = 0;
-    } else if (bits <= _BITS01) {
-      b0 = _l;
-      b1 = _m & ((1 << (bits - _BITS)) - 1);
-      b2 = 0;
-    } else {
-      b0 = _l;
-      b1 = _m;
-      b2 = _h & ((1 << (bits - _BITS01)) - 1);
-    }
-
-    _l = b0;
-    _m = b1;
-    _h = b2;
-  }
-
-  static Int64 _divModByShift(Int64 a, int bpower, bool negative, bool aIsCopy,
-      bool aIsNegative, bool computeRemainder) {
-    Int64 c = a >> bpower;
-    if (negative) {
-      c._negate();
-    }
-
-    if (computeRemainder) {
-      if (!aIsCopy) {
-        a = new Int64._copy(a);
-      }
-      a._maskRight(bpower);
-      if (aIsNegative) {
-        a._negate();
-      }
-      _remainder = a;
-    }
-    return c;
-  }
-
-  /**
-   * Return the exact log base 2 of this, or -1 if this is not a power of two.
-   */
-  int _powerOfTwo() {
-    // Power of two or 0.
-    int l = _l;
-    if ((l & (l - 1)) != 0) {
-      return -1;
-    }
-    int m = _m;
-    if ((m & (m - 1)) != 0) {
-      return -1;
-    }
-    int h = _h;
-    if ((h & (h - 1)) != 0) {
-      return -1;
-    }
-    if (h == 0 && m == 0 && l == 0) {
-      return -1;
-    }
-    if (h == 0 && m == 0 && l != 0) {
-      return Int32._numberOfTrailingZeros(l);
-    }
-    if (h == 0 && m != 0 && l == 0) {
-      return Int32._numberOfTrailingZeros(m) + _BITS;
-    }
-    if (h != 0 && m == 0 && l == 0) {
-      return Int32._numberOfTrailingZeros(h) + _BITS01;
-    }
-
-    return -1;
-  }
-
-  static Int64 _divMod(Int64 a, Int64 b, bool computeRemainder) {
+  static Int64 _divide(Int64 a, other, int what) {
+    Int64 b = _promote(other);
     if (b.isZero) {
       throw new IntegerDivisionByZeroException();
     }
-    if (a.isZero) {
-      if (computeRemainder) {
-        _remainder = ZERO;
+    if (a.isZero) return ZERO;
+
+    bool aNeg = a.isNegative;
+    bool bNeg = b.isNegative;
+    a = a.abs();
+    b = b.abs();
+
+    int a0 = a._l;
+    int a1 = a._m;
+    int a2 = a._h;
+
+    int b0 = b._l;
+    int b1 = b._m;
+    int b2 = b._h;
+    return _divideHelper(a0, a1, a2, aNeg, b0, b1, b2, bNeg, what);
+  }
+
+  static const _RETURN_DIV = 1;
+  static const _RETURN_REM = 2;
+  static const _RETURN_MOD = 3;
+
+  static _divideHelper(
+      // up to 64 bits unsigned in a2/a1/a0 and b2/b1/b0
+      int a0, int a1, int a2, bool aNeg,  // input A.
+      int b0, int b1, int b2, bool bNeg,  // input B.
+      int what) {
+    int q0 = 0, q1 = 0, q2 = 0;  // result Q.
+    int r0 = 0, r1 = 0, r2 = 0;  // result R.
+
+    if (b2 == 0 && b1 == 0 && b0 < (1 << (30 - _BITS))) {
+      // Small divisor can be handled by single-digit division within Smi range.
+      //
+      // Handling small divisors here helps the estimate version below by
+      // handling cases where the estimate is off by more than a small amount.
+
+      q2 = a2 ~/ b0;
+      int carry = a2 - q2 * b0;
+      int d1 = a1 + (carry << _BITS);
+      q1 = d1 ~/ b0;
+      carry = d1 - q1 * b0;
+      int d0 = a0 + (carry << _BITS);
+      q0 = d0 ~/ b0;
+      r0 = d0 - q0 * b0;
+    } else {
+      // Approximate Q = A ~/ B and R = A - Q * B using doubles.
+
+      // The floating point approximation is very close to the correct value
+      // when floor(A/B) fits in fewer that 53 bits.
+
+      // We use double arithmetic for intermediate values.  Double arithmetic on
+      // non-negative values is exact under the following conditions:
+      //
+      //   - The values are integer values that fit in 53 bits.
+      //   - Dividing by powers of two (adjusts exponent only).
+      //   - Floor (zeroes bits with fractional weight).
+
+      const double K2 = 17592186044416.0; // 2^44
+      const double K1 = 4194304.0; // 2^22
+
+      // Approximate double values for [a] and [b].
+      double ad = a0 + K1 * a1 + K2 * a2;
+      double bd = b0 + K1 * b1 + K2 * b2;
+      // Approximate quotient.
+      double qd = (ad / bd).floorToDouble();
+
+      // Extract components of [qd] using double arithmetic.
+      double q2d = (qd / K2).floorToDouble();
+      qd = qd - K2 * q2d;
+      double q1d = (qd / K1).floorToDouble();
+      double q0d = qd - K1 * q1d;
+      q2 = q2d.toInt();
+      q1 = q1d.toInt();
+      q0 = q0d.toInt();
+
+      assert(q0 + K1 * q1 + K2 * q2 == (ad / bd).floorToDouble());
+      assert(q2 == 0 || b2 == 0);  // Q and B can't both be big since Q*B <= A.
+
+      // P = Q * B, using doubles to hold intermediates.
+      // We don't need all partial sums since Q*B <= A.
+      double p0d = q0d * b0;
+      double p0carry = (p0d / K1).floorToDouble();
+      p0d = p0d - p0carry * K1;
+      double p1d = q1d * b0 + q0d * b1 + p0carry;
+      double p1carry = (p1d / K1).floorToDouble();
+      p1d = p1d - p1carry * K1;
+      double p2d = q2d * b0 + q1d * b1 + q0d * b2 + p1carry;
+      assert(p2d <= _MASK2);  // No partial sum overflow.
+
+      // R = A - P
+      int diff0 = a0 - p0d.toInt();
+      int diff1 = a1 - p1d.toInt() - ((diff0 >> _BITS) & 1);
+      int diff2 = a2 - p2d.toInt() - ((diff1 >> _BITS) & 1);
+      r0 = _MASK & diff0;
+      r1 = _MASK & diff1;
+      r2 = _MASK2 & diff2;
+
+      // while (R < 0 || R >= B)
+      //  adjust R towards [0, B)
+      while (
+          r2 >= _SIGN_BIT_MASK ||
+          r2 > b2 ||
+          (r2 == b2 && (r1 > b1 || (r1 == b1 && r0 >= b0)))) {
+        // Direction multiplier for adjustment.
+        int m = (r2 & _SIGN_BIT_MASK) == 0 ? 1 : -1;
+        // R = R - B  or  R = R + B
+        int d0 = r0 - m * b0;
+        int d1 = r1 - m * (b1 + ((d0 >> _BITS) & 1));
+        int d2 = r2 - m * (b2 + ((d1 >> _BITS) & 1));
+        r0 = _MASK & d0;
+        r1 = _MASK & d1;
+        r2 = _MASK2 & d2;
+
+        // Q = Q + 1  or  Q = Q - 1
+        d0 = q0 + m;
+        d1 = q1 + m * ((d0 >> _BITS) & 1);
+        d2 = q2 + m * ((d1 >> _BITS) & 1);
+        q0 = _MASK & d0;
+        q1 = _MASK & d1;
+        q2 = _MASK2 & d2;
       }
-      return ZERO;
     }
-    // MIN_VALUE / MIN_VALUE = 1, anything other a / MIN_VALUE is 0.
-    if (b.isMinValue) {
-      return a._divModByMinValue(computeRemainder);
-    }
-    // Normalize b to abs(b), keeping track of the parity in 'negative'.
-    // We can do this because we have already ensured that b != MIN_VALUE.
-    bool negative = false;
-    if (b.isNegative) {
-      b = -b;
-      negative = !negative;
-    }
-    // If b == 2^n, bpower will be n, otherwise it will be -1.
-    int bpower = b._powerOfTwo();
 
-    // True if the original value of a is negative.
-    bool aIsNegative = false;
-    // True if the original value of a is Int64.MIN_VALUE.
-    bool aIsMinValue = false;
+    // 0 <= R < B
+    assert(Int64.ZERO <= new Int64._bits(r0, r1, r2));
+    assert(r2 < b2 ||  // Handles case where B = -(MIN_VALUE)
+        new Int64._bits(r0, r1, r2) < new Int64._bits(b0, b1, b2));
 
-    /*
-     * Normalize a to a positive value, keeping track of the sign change in
-     * 'negative' (which tracks the sign of both a and b and is used to
-     * determine the sign of the quotient) and 'aIsNegative' (which is used to
-     * determine the sign of the remainder).
-     *
-     * For all values of a except MIN_VALUE, we can just negate a and modify
-     * negative and aIsNegative appropriately. When a == MIN_VALUE, negation is
-     * not possible without overflowing 64 bits, so instead of computing
-     * abs(MIN_VALUE) / abs(b) we compute (abs(MIN_VALUE) - 1) / abs(b). The
-     * only circumstance under which these quotients differ is when b is a power
-     * of two, which will divide abs(MIN_VALUE) == 2^64 exactly. In this case,
-     * we can get the proper result by shifting MIN_VALUE in unsigned fashion.
-     *
-     * We make a single copy of a before the first operation that needs to
-     * modify its value.
-     */
-    bool aIsCopy = false;
-    if (a.isMinValue) {
-      aIsMinValue = true;
-      aIsNegative = true;
-      // If b is not a power of two, treat -a as MAX_VALUE (instead of the
-      // actual value (MAX_VALUE + 1)).
-      if (bpower == -1) {
-        a = new Int64._copy(MAX_VALUE);
-        aIsCopy = true;
-        negative = !negative;
+    assert(what == _RETURN_DIV || what == _RETURN_MOD || what == _RETURN_REM);
+    if (what == _RETURN_DIV) {
+      if (aNeg != bNeg) return _negate(q0, q1, q2);
+      return new Int64._bits(q0, q1, q2);
+    }
+
+    if (!aNeg) return new Int64._bits(r0, r1, r2);
+
+    if (what == _RETURN_MOD) {
+      if (r0 == 0 && r1 == 0 && r2 == 0) {
+        return ZERO;
       } else {
-        // Signed shift of MIN_VALUE produces the right answer.
-        Int64 c = a >> bpower;
-        if (negative) {
-          c._negate();
-        }
-        if (computeRemainder) {
-          _remainder = ZERO;
-        }
-        return c;
+        return _sub(b0, b1, b2, r0, r1, r2);
       }
-    } else if (a.isNegative) {
-      aIsNegative = true;
-      a = -a;
-      aIsCopy = true;
-      negative = !negative;
+    } else {
+      return _negate(r0, r1, r2);
     }
-
-    // Now both a and b are non-negative.
-    // If b is a power of two, just shift.
-    if (bpower != -1) {
-      return _divModByShift(a, bpower, negative, aIsCopy, aIsNegative,
-        computeRemainder);
-    }
-
-    // If a < b, the quotient is 0 and the remainder is a.
-    if (a < b) {
-      if (computeRemainder) {
-        if (aIsNegative) {
-          _remainder = -a;
-        } else {
-          _remainder = aIsCopy ? a : new Int64._copy(a);
-        }
-      }
-      return ZERO;
-    }
-
-    // Generate the quotient using bit-at-a-time long division.
-    return _divModHelper(aIsCopy ? a : new Int64._copy(a), b, negative,
-        aIsNegative, aIsMinValue, computeRemainder);
   }
 }

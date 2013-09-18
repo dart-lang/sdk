@@ -45,8 +45,8 @@ void main() {
           new Int64.fromInt(-3333));
       expect(new Int64.fromInt(-1111) * new Int64.fromInt(-3),
           new Int64.fromInt(3333));
-      expect(new Int64.fromInt(100) * new Int64.fromInt(0),
-          new Int64.fromInt(0));
+      expect(new Int64.fromInt(100) * Int64.ZERO,
+          Int64.ZERO);
 
       expect(new Int64.fromInts(0x12345678, 0x12345678) *
           new Int64.fromInts(0x1234, 0x12345678),
@@ -68,7 +68,7 @@ void main() {
       expect((new Int64.fromInt(123456789) * new Int64.fromInt(987654321)),
           new Int64.fromInts(0x1b13114, 0xfbff5385));
 
-      expect(Int64.MIN_VALUE * new Int64.fromInt(2), new Int64.fromInt(0));
+      expect(Int64.MIN_VALUE * new Int64.fromInt(2), Int64.ZERO);
       expect(Int64.MIN_VALUE * new Int64.fromInt(1), Int64.MIN_VALUE);
       expect(Int64.MIN_VALUE * new Int64.fromInt(-1), Int64.MIN_VALUE);
     });
@@ -133,7 +133,7 @@ void main() {
       expect(new Int64.fromInt(-1000) ~/ new Int64.fromInt(-3),
           new Int64.fromInt(333));
       expect(new Int64.fromInt(3) ~/ new Int64.fromInt(1000),
-          new Int64.fromInt(0));
+          Int64.ZERO);
       expect(new Int64.fromInts( 0x12345678, 0x12345678) ~/
           new Int64.fromInts(0x0, 0x123),
           new Int64.fromInts(0x1003d0, 0xe84f5ae8));
@@ -152,7 +152,7 @@ void main() {
           new Int32.fromInt(432461));
       expect(new Int64.fromInt(829893893) ~/ 1919,
           new Int32.fromInt(432461));
-      expect(() => new Int64.fromInt(1) ~/ new Int64.fromInt(0),
+      expect(() => new Int64.fromInt(1) ~/ Int64.ZERO,
           throwsA(new isInstanceOf<IntegerDivisionByZeroException>()));
       expect(Int64.MIN_VALUE ~/ new Int64.fromInt(2),
           new Int64.fromInts(0xc0000000, 0x00000000));
@@ -164,11 +164,11 @@ void main() {
 
     test("%", () {
       // Define % as Euclidean mod, with positive result for all arguments
-      expect(Int64.ZERO % new Int64.fromInt(1000), new Int64.fromInt(0));
-      expect(Int64.MIN_VALUE % Int64.MIN_VALUE, new Int64.fromInt(0));
+      expect(Int64.ZERO % new Int64.fromInt(1000), Int64.ZERO);
+      expect(Int64.MIN_VALUE % Int64.MIN_VALUE, Int64.ZERO);
       expect(new Int64.fromInt(1000) % Int64.MIN_VALUE,
           new Int64.fromInt(1000));
-      expect(Int64.MIN_VALUE % new Int64.fromInt(8192), new Int64.fromInt(0));
+      expect(Int64.MIN_VALUE % new Int64.fromInt(8192), Int64.ZERO);
       expect(Int64.MIN_VALUE % new Int64.fromInt(8193),
           new Int64.fromInt(6145));
       expect(new Int64.fromInt(-1000) % new Int64.fromInt(8192),
@@ -223,7 +223,7 @@ void main() {
       expect(new Int64.fromInt(10) < new Int32.fromInt(10), false);
       expect(new Int64.fromInt(10) < new Int32.fromInt(9), false);
       expect(new Int64.fromInt(-10) < new Int64.fromInt(-11), false);
-      expect(Int64.MIN_VALUE < new Int64.fromInt(0), true);
+      expect(Int64.MIN_VALUE < Int64.ZERO, true);
       expect(largeNeg < largePos, true);
       expect(largePos < largePosPlusOne, true);
       expect(largePos < largePos, false);
@@ -303,7 +303,7 @@ void main() {
       expect(largePos > largePosPlusOne, false);
       expect(largePos > largePos, false);
       expect(largePosPlusOne > largePos, true);
-      expect(new Int64.fromInt(0) > Int64.MIN_VALUE, true);
+      expect(Int64.ZERO > Int64.MIN_VALUE, true);
       expect(Int64.MIN_VALUE > Int64.MAX_VALUE, false);
       expect(Int64.MAX_VALUE > Int64.MIN_VALUE, true);
       expect(() => new Int64.fromInt(17) > null, throwsArgumentError);
