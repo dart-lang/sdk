@@ -1666,7 +1666,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
                       ConcreteTypesInferrer inferrer, this.environment)
       : this.inferrer = inferrer
       , this.backend = inferrer.compiler.backend
-      , super(elements, inferrer.compiler) {
+      , super(elements) {
         for (Element element in elements.otherDependencies) {
           if (element.isClass()) {
             inferrer.augmentSeenClasses(inferrer.normalize(element));
@@ -2376,14 +2376,6 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitForeignSend(Send node) {
     return inferrer.unknownConcreteType;
-  }
-
-  ConcreteType visitAssert(Send node) {
-    if (!compiler.enableUserAssertions) {
-      return inferrer.nullConcreteType;
-    } else {
-      return visitStaticSend(node);
-    }
   }
 
   ConcreteType visitStaticSend(Send node) {
