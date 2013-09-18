@@ -422,37 +422,37 @@ const PrecedenceInfo AMPERSAND_AMPERSAND_INFO =
   const PrecedenceInfo(const SourceString('&&'), 5, AMPERSAND_AMPERSAND_TOKEN);
 
 const PrecedenceInfo BAR_INFO =
-  const PrecedenceInfo(const SourceString('|'), 6, BAR_TOKEN);
+  const PrecedenceInfo(const SourceString('|'), 8, BAR_TOKEN);
 
 const PrecedenceInfo CARET_INFO =
-  const PrecedenceInfo(const SourceString('^'), 7, CARET_TOKEN);
+  const PrecedenceInfo(const SourceString('^'), 9, CARET_TOKEN);
 
 const PrecedenceInfo AMPERSAND_INFO =
-  const PrecedenceInfo(const SourceString('&'), 8, AMPERSAND_TOKEN);
+  const PrecedenceInfo(const SourceString('&'), 10, AMPERSAND_TOKEN);
 
 // Equality operators.
 const PrecedenceInfo BANG_EQ_EQ_INFO =
-  const PrecedenceInfo(const SourceString('!=='), 9, BANG_EQ_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('!=='), 6, BANG_EQ_EQ_TOKEN);
 const PrecedenceInfo BANG_EQ_INFO =
-  const PrecedenceInfo(const SourceString('!='), 9, BANG_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('!='), 6, BANG_EQ_TOKEN);
 const PrecedenceInfo EQ_EQ_EQ_INFO =
-  const PrecedenceInfo(const SourceString('==='), 9, EQ_EQ_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('==='), 6, EQ_EQ_EQ_TOKEN);
 const PrecedenceInfo EQ_EQ_INFO =
-  const PrecedenceInfo(const SourceString('=='), 9, EQ_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('=='), 6, EQ_EQ_TOKEN);
 
 // Relational operators.
 const PrecedenceInfo GT_EQ_INFO =
-  const PrecedenceInfo(const SourceString('>='), 10, GT_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('>='), 7, GT_EQ_TOKEN);
 const PrecedenceInfo GT_INFO =
-  const PrecedenceInfo(const SourceString('>'), 10, GT_TOKEN);
+  const PrecedenceInfo(const SourceString('>'), 7, GT_TOKEN);
 const PrecedenceInfo IS_INFO =
-  const PrecedenceInfo(const SourceString('is'), 10, KEYWORD_TOKEN);
+  const PrecedenceInfo(const SourceString('is'), 7, KEYWORD_TOKEN);
 const PrecedenceInfo AS_INFO =
-  const PrecedenceInfo(const SourceString('as'), 10, KEYWORD_TOKEN);
+  const PrecedenceInfo(const SourceString('as'), 7, KEYWORD_TOKEN);
 const PrecedenceInfo LT_EQ_INFO =
-  const PrecedenceInfo(const SourceString('<='), 10, LT_EQ_TOKEN);
+  const PrecedenceInfo(const SourceString('<='), 7, LT_EQ_TOKEN);
 const PrecedenceInfo LT_INFO =
-  const PrecedenceInfo(const SourceString('<'), 10, LT_TOKEN);
+  const PrecedenceInfo(const SourceString('<'), 7, LT_TOKEN);
 
 // Shift operators.
 const PrecedenceInfo GT_GT_INFO =

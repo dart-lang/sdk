@@ -102,6 +102,10 @@ LibTest/core/String/concat_A01_t01: Fail  # co19 issue 561
 LibTest/core/String/concat_A02_t01: Fail  # co19 issue 561
 LibTest/core/String/hashCode_A01_t01: Fail  # co19 issue 561
 
+[ $compiler == none || $compiler == dart2dart ]
+# Dart2js/Dart2dart succeedes due to a bug in their parser (issue 13223).
+Language/12_Expressions/21_Bitwise_Expressions_A01_t01: Fail # co19 Issue 595
+
 [ $compiler == dart2dart || $compiler == dart2js ]
 Language/14_Libraries_and_Scripts/1_Imports_A03_t49: Fail # co19 Issue 590
 

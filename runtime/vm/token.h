@@ -14,11 +14,11 @@ namespace dart {
 //  13  multiplicative  * / ~/ %
 //  12  additive        + -
 //  11  shift           << >>
-//  10  relational      >= > <= < is as
-//   9  equality        == != === !==
-//   8  bitwise and     &
-//   7  bitwise xor     ^
-//   6  bitwise or      |
+//  10  bitwise and     &
+//   9  bitwise xor     ^
+//   8  bitwise or      |
+//   7  relational      >= > <= < is as
+//   6  equality        == != === !==
 //   5  logical and     &&
 //   4  logical or      ||
 //   3  conditional     ?
@@ -67,9 +67,9 @@ namespace dart {
   TOK(kCOMMA, ",", 1, kNoAttribute)                                            \
   TOK(kOR, "||", 4, kNoAttribute)                                              \
   TOK(kAND, "&&", 5, kNoAttribute)                                             \
-  TOK(kBIT_OR, "|", 6, kNoAttribute)                                           \
-  TOK(kBIT_XOR, "^", 7, kNoAttribute)                                          \
-  TOK(kBIT_AND, "&", 8, kNoAttribute)                                          \
+  TOK(kBIT_OR, "|", 8, kNoAttribute)                                           \
+  TOK(kBIT_XOR, "^", 9, kNoAttribute)                                          \
+  TOK(kBIT_AND, "&", 10, kNoAttribute)                                         \
   TOK(kBIT_NOT, "~", 0, kNoAttribute)                                          \
                                                                                \
   /* Shift operators. */                                                       \
@@ -92,18 +92,18 @@ namespace dart {
   /* Equality operators.                             */                        \
   /* Please update IsEqualityOperator() if you make  */                        \
   /* any changes to this block.                      */                        \
-  TOK(kEQ, "==", 9, kNoAttribute)                                              \
-  TOK(kNE, "!=", 9, kNoAttribute)                                              \
-  TOK(kEQ_STRICT, "===", 9, kNoAttribute)                                      \
-  TOK(kNE_STRICT, "!==", 9, kNoAttribute)                                      \
+  TOK(kEQ, "==", 6, kNoAttribute)                                              \
+  TOK(kNE, "!=", 6, kNoAttribute)                                              \
+  TOK(kEQ_STRICT, "===", 6, kNoAttribute)                                      \
+  TOK(kNE_STRICT, "!==", 6, kNoAttribute)                                      \
                                                                                \
   /* Relational operators.                             */                      \
   /* Please update IsRelationalOperator() if you make  */                      \
   /* any changes to this block.                        */                      \
-  TOK(kLT, "<", 10, kNoAttribute)                                              \
-  TOK(kGT, ">", 10, kNoAttribute)                                              \
-  TOK(kLTE, "<=", 10, kNoAttribute)                                            \
-  TOK(kGTE, ">=", 10, kNoAttribute)                                            \
+  TOK(kLT, "<", 7, kNoAttribute)                                               \
+  TOK(kGT, ">", 7, kNoAttribute)                                               \
+  TOK(kLTE, "<=", 7, kNoAttribute)                                             \
+  TOK(kGTE, ">=", 7, kNoAttribute)                                             \
                                                                                \
   /* Internal token for !(expr is Type) negative type test operator */         \
   TOK(kISNOT, "", 10, kNoAttribute)                                            \
