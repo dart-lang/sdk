@@ -69,10 +69,10 @@ void runCompiler(Uri main, String expectedMessage) {
 void main() {
   runCompiler(Uri.parse('memory:main.dart'),
               "Error: Can't read 'memory:foo.dart' "
-              "(No such file memory:foo.dart).");
+              "(Exception: No such file memory:foo.dart).");
   runCompiler(Uri.parse('memory:foo.dart'),
               "Error: Can't read 'memory:foo.dart' "
-              "(No such file memory:foo.dart).");
+              "(Exception: No such file memory:foo.dart).");
   runCompiler(Uri.parse('dart:foo'),
               'Error: Library not found "dart:foo".');
 }
