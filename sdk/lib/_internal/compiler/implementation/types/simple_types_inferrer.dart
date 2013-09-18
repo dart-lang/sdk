@@ -1784,8 +1784,10 @@ class SimpleTypeInferrerVisitor<T>
         compiler.closureToClassMapper.getMappingForNestedFunction(node);
     nestedClosureData.forEachCapturedVariable((variable, field) {
       if (!nestedClosureData.isVariableBoxed(variable)) {
-        // The type may be null for instance contexts: the 'this'
-        // variable and type parameters.
+        if (variable == nestedClosureData.thisElement) {
+          inferrer.recordType(field, thisType);
+        }
+        // The type is null for type parameters.
         if (locals.locals[variable] == null) return;
         inferrer.recordType(field, locals.locals[variable]);
       }

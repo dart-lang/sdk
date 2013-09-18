@@ -5,6 +5,7 @@
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
+import 'parser_helper.dart' show buildSourceString;
 
 const String TEST = """
 returnInt1() {
@@ -82,6 +83,13 @@ returnNum1() {
   return a;
 }
 
+class A {
+  foo() {
+    f() => this;
+    return f();
+  }
+}
+
 main() {
   returnInt1();
   returnDyn1();
@@ -91,6 +99,7 @@ main() {
   returnDyn3();
   returnInt4();
   returnNum1();
+  new A().foo();
 }
 """;
 
@@ -116,5 +125,14 @@ void main() {
     checkReturn('returnDyn2', compiler.typesTask.dynamicType.nonNullable());
     checkReturn('returnDyn3', compiler.typesTask.dynamicType.nonNullable());
     checkReturn('returnNum1', compiler.typesTask.numType);
+
+    checkReturnInClass(String className, String methodName, type) {
+      var cls = findElement(compiler, className);
+      var element = cls.lookupLocalMember(buildSourceString(methodName));
+      Expect.equals(type,
+          typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
+    }
+    var cls = findElement(compiler, 'A');
+    checkReturnInClass('A', 'foo', new TypeMask.nonNullExact(cls.rawType));
   }));
 }
