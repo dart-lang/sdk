@@ -2349,18 +2349,6 @@ void Parser::ParseInitializers(const Class& cls,
   TRACE_PARSER("ParseInitializers");
   bool super_init_seen = false;
   if (CurrentToken() == Token::kCOLON) {
-    if ((LookaheadToken(1) == Token::kTHIS) &&
-        ((LookaheadToken(2) == Token::kLPAREN) ||
-        ((LookaheadToken(2) == Token::kPERIOD) &&
-            (LookaheadToken(4) == Token::kLPAREN)))) {
-      // Either we see this(...) or this.xxx(...) which is a
-      // redirected constructor. We don't need to check whether
-      // const fields are initialized. The other constructor will
-      // guarantee that.
-      ConsumeToken();  // Colon.
-      ParseConstructorRedirection(cls, receiver);
-      return;
-    }
     do {
       ConsumeToken();  // Colon or comma.
       AstNode* init_statement;
@@ -2388,6 +2376,7 @@ void Parser::ParseInitializers(const Class& cls,
 void Parser::ParseConstructorRedirection(const Class& cls,
                                          LocalVariable* receiver) {
   TRACE_PARSER("ParseConstructorRedirection");
+  ExpectToken(Token::kCOLON);
   ASSERT(CurrentToken() == Token::kTHIS);
   const intptr_t call_pos = TokenPos();
   ConsumeToken();
@@ -2568,24 +2557,36 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   // Now populate function scope with the formal parameters.
   AddFormalParamsToScope(&params, current_block_->scope);
 
-  // Initialize instance fields that have an explicit initializer expression.
-  // The formal parameter names must not be visible to the instance
-  // field initializer expressions, yet the parameters must be added to
-  // the scope so the expressions use the correct offsets for 'this' when
-  // storing values. We make the formal parameters temporarily invisible
-  // while parsing the instance field initializer expressions.
-  params.SetInvisible(true);
-  GrowableArray<Field*> initialized_fields;
-  LocalVariable* receiver = current_block_->scope->VariableAt(0);
-  OpenBlock();
-  ParseInitializedInstanceFields(cls, receiver, &initialized_fields);
-  // Make the parameters (which are in the outer scope) visible again.
-  params.SetInvisible(false);
+  const bool is_redirecting_constructor =
+      (CurrentToken() == Token::kCOLON) &&
+          ((LookaheadToken(1) == Token::kTHIS) &&
+              ((LookaheadToken(2) == Token::kLPAREN) ||
+              ((LookaheadToken(2) == Token::kPERIOD) &&
+              (LookaheadToken(4) == Token::kLPAREN))));
 
-  // Turn formal field parameters into field initializers or report error
-  // if the function is not a constructor.
+  GrowableArray<Field*> initialized_fields;
+  LocalVariable* receiver = (*params.parameters)[0].var;
+  OpenBlock();
+
+  // If this is not a redirecting constructor, initialize
+  // instance fields that have an explicit initializer expression.
+  if (!is_redirecting_constructor) {
+    // The formal parameter names must not be visible to the instance
+    // field initializer expressions, yet the parameters must be added to
+    // the scope so the expressions use the correct offsets for 'this' when
+    // storing values. We make the formal parameters temporarily invisible
+    // while parsing the instance field initializer expressions.
+    params.SetInvisible(true);
+    ParseInitializedInstanceFields(cls, receiver, &initialized_fields);
+    // Make the parameters (which are in the outer scope) visible again.
+    params.SetInvisible(false);
+  }
+
+  // Turn formal field parameters into field initializers.
   if (params.has_field_initializer) {
-    for (int i = 0; i < params.parameters->length(); i++) {
+    // First two parameters are implicit receiver and phase.
+    ASSERT(params.parameters->length() >= 2);
+    for (int i = 2; i < params.parameters->length(); i++) {
       ParamDesc& param = (*params.parameters)[i];
       if (param.is_field_initializer) {
         const String& field_name = *param.name;
@@ -2594,6 +2595,11 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
           ErrorMsg(param.name_pos,
                    "unresolved reference to instance field '%s'",
                    field_name.ToCString());
+        }
+        if (is_redirecting_constructor) {
+          ErrorMsg(param.name_pos,
+                   "redirecting constructors may not have "
+                   "initializing formal parameters");
         }
         CheckDuplicateFieldInit(param.name_pos, &initialized_fields, &field);
         AstNode* instance = new LoadLocalNode(param.name_pos, receiver);
@@ -2612,8 +2618,11 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     }
   }
 
-  // Now parse the explicit initializer list or constructor redirection.
-  ParseInitializers(cls, receiver, &initialized_fields);
+  if (is_redirecting_constructor) {
+    ParseConstructorRedirection(cls, receiver);
+  } else {
+    ParseInitializers(cls, receiver, &initialized_fields);
+  }
 
   SequenceNode* init_statements = CloseBlock();
   if (init_statements->length() > 0) {
@@ -2660,6 +2669,11 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     // saves the evaluated actual arguments in temporary variables.
     // The temporary variables are necessary so that the argument
     // expressions are not evaluated twice.
+    // Note: we should never get here in the case of a redirecting
+    // constructor. In that case, the call to the target constructor
+    // is the "super call" and is implicitly at the end of the
+    // initializer list.
+    ASSERT(!is_redirecting_constructor);
     ArgumentListNode* ctor_args = super_call->arguments();
     // The super initializer call has at least 2 arguments: the
     // implicit receiver, and the hidden construction phase.
@@ -2719,6 +2733,9 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   }
 
   if (CurrentToken() == Token::kLBRACE) {
+    // We checked in the top-level parse phase that a redirecting
+    // constructor does not have a body.
+    ASSERT(!is_redirecting_constructor);
     ConsumeToken();
     ParseStatementSequence();
     ExpectToken(Token::kRBRACE);

@@ -13,7 +13,6 @@ library_juxtaposition_test: Fail # Issue 6877
 switch_int_double_test/01: Fail # Issue 7307
 switch_int_double_test/02: Fail # Issue 7307
 symbol_literal_test: Fail # Issue 12171
-evaluation_redirecting_constructor_test: Fail # Issue 13347
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
