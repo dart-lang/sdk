@@ -2653,7 +2653,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
     FunctionType targetType = redirectionTarget.computeType(compiler)
         .subst(type.typeArguments, targetClass.typeVariables);
     FunctionType constructorType = constructor.computeType(compiler);
-    if (!compiler.types.isSubtype(targetType, constructorType)) {
+    bool isSubtype = compiler.types.isSubtype(targetType, constructorType);
+    if (!isSubtype) {
       warning(node, MessageKind.NOT_ASSIGNABLE.warning,
               {'fromType': targetType, 'toType': constructorType});
     }
@@ -2663,6 +2664,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     FunctionSignature constructorSignature =
         constructor.computeSignature(compiler);
     if (!targetSignature.isCompatibleWith(constructorSignature)) {
+      assert(!isSubtype);
       compiler.backend.registerThrowNoSuchMethod(mapping);
     }
 

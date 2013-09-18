@@ -2269,10 +2269,15 @@ class SimpleTypeInferrerVisitor<T>
     returnType = inferrer.addReturnTypeFor(analyzedElement, returnType, type);
   }
 
-  void synthesizeForwardingCall(Spannable node, FunctionElement element) {
+  T synthesizeForwardingCall(Spannable node, FunctionElement element) {
     element = element.implementation;
     FunctionElement function = analyzedElement;
     FunctionSignature signature = function.computeSignature(compiler);
+    FunctionSignature calleeSignature = element.computeSignature(compiler);
+    if (!calleeSignature.isCompatibleWith(signature)) {
+      return types.nonNullEmpty();
+    }
+
     List<T> unnamed = <T>[];
     Map<SourceString, T> named = new Map<SourceString, T>();
     signature.forEachRequiredParameter((Element element) {
@@ -2295,6 +2300,7 @@ class SimpleTypeInferrerVisitor<T>
                                    null,
                                    sideEffects,
                                    inLoop);
+    return inferrer.returnTypeOfElement(element);
   }
 
   T visitReturn(Return node) {
@@ -2307,8 +2313,8 @@ class SimpleTypeInferrerVisitor<T>
         // the send is just a property access. Therefore we must
         // manually create the [ArgumentsTypes] of the call, and
         // manually register [analyzedElement] as a caller of [element].
-        synthesizeForwardingCall(node.expression, element);
-        recordReturnType(inferrer.returnTypeOfElement(element));
+        T mask = synthesizeForwardingCall(node.expression, element);
+        recordReturnType(mask);
       }
     } else {
       Node expression = node.expression;

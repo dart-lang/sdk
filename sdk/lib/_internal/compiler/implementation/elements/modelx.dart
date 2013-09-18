@@ -1189,28 +1189,32 @@ class FunctionSignatureX implements FunctionSignature {
    * exception/call.
    */
   bool isCompatibleWith(FunctionSignature signature) {
-    if (optionalParametersAreNamed != signature.optionalParametersAreNamed) {
-      return false;
-    }
     if (optionalParametersAreNamed) {
+      if (!signature.optionalParametersAreNamed) {
+        return requiredParameterCount == signature.parameterCount;
+      }
+      // If both signatures have named parameters, then they must have
+      // the same number of required parameters, and the names in
+      // [signature] must all be in [:this:].
       if (requiredParameterCount != signature.requiredParameterCount) {
         return false;
       }
+      Set<String> names = optionalParameters.toList().map(
+          (Element element) => element.name.slowToString()).toSet();
       for (Element namedParameter in signature.optionalParameters) {
-        if (!optionalParameters.contains(namedParameter)) {
+        if (!names.contains(namedParameter.name.slowToString())) {
           return false;
         }
       }
     } else {
+      if (signature.optionalParametersAreNamed) return false;
       // There must be at least as many arguments as in the other signature, but
       // this signature must not have more required parameters.  Having more
       // optional parameters is not a problem, they simply are never provided
       // by call sites of a call to a method with the other signature.
-      if (requiredParameterCount > signature.requiredParameterCount ||
-          requiredParameterCount < signature.parameterCount ||
-          parameterCount < signature.parameterCount) {
-        return false;
-      }
+      int otherTotalCount = signature.parameterCount;
+      return requiredParameterCount <= otherTotalCount
+          && parameterCount >= otherTotalCount;
     }
     return true;
   }

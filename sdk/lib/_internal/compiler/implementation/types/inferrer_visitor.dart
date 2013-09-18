@@ -975,7 +975,7 @@ abstract class InferrerVisitor
   T visitThrow(Throw node) {
     node.visitChildren(this);
     locals.seenReturnOrThrow = true;
-    return types.dynamicType;
+    return types.nonNullEmpty();
   }
 
   T visitCatchBlock(CatchBlock node) {
