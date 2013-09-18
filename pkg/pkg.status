@@ -65,9 +65,6 @@ crypto/test/hmac_sha256_test: Pass, Fail # Issue 12502
 polymer/test/events_test: Fail # Issue 12865, 13197
 polymer/test/event_path_test: Fail # Issue 12865, 13197
 
-[ $runtime == safari || $runtime == ie9 ]
-polymer_expressions/test/syntax_test: Fail # Issue 13361
-
 [ $runtime == ff ]
 polymer/test/event_path_test: Fail # Issue 12865, 13197
 

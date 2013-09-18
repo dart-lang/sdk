@@ -23,7 +23,7 @@ main() {
     });
 
     tearDown(() {
-      testDiv.remove();
+      testDiv.firstChild.remove();
       testDiv = null;
     });
 
@@ -54,7 +54,7 @@ main() {
             <template repeat="{{ item in items }}">
               {{ item }}
             </template>
-          </template>'''));      
+          </template>'''));
       query('#test')
           ..bindingDelegate = new PolymerExpressions(globals: {'items': null})
           ..model = null;
