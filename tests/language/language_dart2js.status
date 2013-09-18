@@ -167,6 +167,8 @@ null_test/none: Fail  # Issue 12482
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == ie9 || $runtime == safari)]
 round_test: Fail, OK # Common JavaScript engine Math.round bug.
 
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && $runtime == ie9 ]
 double_to_string_as_exponential3_test: Fail # Issue 12750
