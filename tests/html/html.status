@@ -38,14 +38,17 @@ worker_test/functional: Pass, Crash # Issue 9929.
 crypto_test/functional: Pass, Slow # TODO(kasperl): Please triage.
 input_element_test/supported_datetime-local: Pass, Slow # TODO(kasperl): Please triage.
 
+fileapi_test/entry: Fail, Pass # TODO(kasperl): Please triage.
+fileapi_test/fileEntry: Fail, Pass # TODO(kasperl): Please triage.
+fileapi_test/getDirectory: Fail, Pass # TODO(kasperl): Please triage.
+fileapi_test/getFile: Fail, Pass # TODO(kasperl): Please triage.
+
 audiobuffersourcenode_test/supported: Fail # TODO(kasperl): Please triage.
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # TODO(kasperl): Please triage.
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # TODO(kasperl): Please triage.
 dromaeo_smoke_test: Fail # TODO(kasperl): Please triage.
 element_types_test/supported_datalist: Fail # TODO(kasperl): Please triage.
 fileapi_test/directoryReader: Fail # TODO(kasperl): Please triage.
-fileapi_test/fileEntry: Fail # TODO(kasperl): Please triage.
-fileapi_test/getDirectory: Fail # TODO(kasperl): Please triage.
 input_element_test/supported_week: Fail # TODO(kasperl): Please triage.
 media_stream_test/supported_media: Fail # TODO(kasperl): Please triage.
 notifications_test/supported: Fail # TODO(kasperl): Please triage.

@@ -80,8 +80,9 @@ illegal_msg_test: Pass # Issue 12628
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
-mandel_isolate_test: Pass, Slow # TODO(kasperl): Please triage.
 mandel_isolate_stream_test: Pass, Slow # TODO(kasperl): Please triage.
+
+mandel_isolate_test: Timeout # TODO(kasperl): Please triage.
 
 [ $compiler == dart2dart ]
 *: Skip # Issue 12629

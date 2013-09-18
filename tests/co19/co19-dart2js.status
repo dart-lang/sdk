@@ -286,8 +286,11 @@ LibTest/isolate/isolate_api/streamSpawnFunction_A01_t01: Pass # TODO(kasperl): P
 LibTest/isolate/IsolateSink/add_A01_t02: Pass # TODO(kasperl): Please triage.
 LibTest/isolate/IsolateSink/operator_equality_A01_t01: Pass # TODO(kasperl): Please triage.
 
-LibTest/typed_data/Uint8ClampedList/map_A02_t01: Pass, Slow # TODO(kasperl): Please triage.
 Language/12_Expressions/05_Strings_A06_t01: Pass, Slow # TODO(kasperl): Please triage.
+LibTest/core/Set/removeAll_A01_t02: Pass, Slow # TODO(kasperl): Please triage.
+LibTest/typed_data/Float64List/join_A01_t01: Pass, Slow # TODO(kasperl): Please triage.
+LibTest/typed_data/Int8List/sublist_A02_t01: Pass, Slow # TODO(kasperl): Please triage.
+LibTest/typed_data/Uint8ClampedList/map_A02_t01: Pass, Slow # TODO(kasperl): Please triage.
 
 LibTest/isolate/isolate_api/spawnUri_A01_t01: Timeout # TODO(kasperl): Please triage.
 LibTest/isolate/isolate_api/spawnUri_A01_t02: Timeout # TODO(kasperl): Please triage.
