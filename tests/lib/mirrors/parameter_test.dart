@@ -32,9 +32,9 @@ class B {
   get x =>  _x;
   set x(final value) { _x = value; }
 
-  grault([int x]);
-  garply({int y});
-  waldo(int z);
+  grault([int x]) {}
+  garply({int y}) {}
+  waldo(int z) {}
 }
 
 class C <S extends int, T> {

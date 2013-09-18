@@ -121,6 +121,6 @@ main() {
      'reflectClass(A).owner' : reflectClass(A).owner,
      'reflectClass(B).owner' : reflectClass(B).owner,
      'reflect(new A()).type.owner' : reflect(new A()).type.owner,
-     'reflect(new A()).type.owner' : reflect(new A()).type.owner},
+     'reflect(new B()).type.owner' : reflect(new B()).type.owner},
   ]);
 }
