@@ -2940,6 +2940,12 @@ class DeoptInfo : public Object {
   void ToInstructions(const Array& table,
                       GrowableArray<DeoptInstr*>* instructions) const;
 
+
+  // Returns true iff decompression yields the same instructions as the
+  // original.
+  bool VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
+                           const Array& deopt_table) const;
+
  private:
   intptr_t* EntryAddr(intptr_t index, intptr_t entry_offset) const {
     ASSERT((index >=0) && (index < Length()));

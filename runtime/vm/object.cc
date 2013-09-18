@@ -8567,6 +8567,20 @@ const char* DeoptInfo::ToCString() const {
 }
 
 
+// Returns a bool so it can be asserted.
+bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
+                                    const Array& deopt_table) const {
+  intptr_t length = TranslationLength();
+  GrowableArray<DeoptInstr*> unpacked(length);
+  ToInstructions(deopt_table, &unpacked);
+  ASSERT(unpacked.length() == original.length());
+  for (intptr_t i = 0; i < unpacked.length(); ++i) {
+    ASSERT(unpacked[i]->Equals(*original[i]));
+  }
+  return true;
+}
+
+
 void DeoptInfo::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
 }

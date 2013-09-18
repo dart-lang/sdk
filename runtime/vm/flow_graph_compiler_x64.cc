@@ -45,7 +45,8 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 
 
 RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
-                                                 DeoptInfoBuilder* builder) {
+                                                 DeoptInfoBuilder* builder,
+                                                 const Array& deopt_table) {
   if (deopt_env_ == NULL) return DeoptInfo::null();
 
   intptr_t stack_height = compiler->StackSize();
@@ -129,7 +130,8 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     builder->AddCopy(previous->ValueAt(i), previous->LocationAt(i), slot_ix++);
   }
 
-  const DeoptInfo& deopt_info = DeoptInfo::Handle(builder->CreateDeoptInfo());
+  const DeoptInfo& deopt_info =
+      DeoptInfo::Handle(builder->CreateDeoptInfo(deopt_table));
   return deopt_info.raw();
 }
 

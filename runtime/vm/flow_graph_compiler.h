@@ -120,7 +120,8 @@ class CompilerDeoptInfo : public ZoneAllocated {
   }
 
   RawDeoptInfo* CreateDeoptInfo(FlowGraphCompiler* compiler,
-                                DeoptInfoBuilder* builder);
+                                DeoptInfoBuilder* builder,
+                                const Array& deopt_table);
 
 
   // No code needs to be generated.
