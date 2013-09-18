@@ -253,7 +253,7 @@ class MockCompiler extends Compiler {
     libraryLoader.importLibrary(interceptorsLibrary, coreLibrary, null);
     libraryLoader.importLibrary(isolateHelperLibrary, coreLibrary, null);
 
-    assertMethod = jsHelperLibrary.find(buildSourceString('assert'));
+    assertMethod = jsHelperLibrary.find(buildSourceString('assertHelper'));
     identicalFunction = coreLibrary.find(buildSourceString('identical'));
 
     mainApp = mockLibrary(this, "");
