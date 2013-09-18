@@ -1897,7 +1897,7 @@ AstNode* Parser::ParseSuperOperator() {
       negate_result = true;
     }
 
-    ASSERT(Token::Precedence(op) >= Token::Precedence(Token::kBIT_OR));
+    ASSERT(Token::Precedence(op) >= Token::Precedence(Token::kEQ));
     AstNode* other_operand = ParseBinaryExpr(Token::Precedence(op) + 1);
 
     ArgumentListNode* op_arguments = new ArgumentListNode(operator_pos);
@@ -7345,7 +7345,7 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
 
 AstNode* Parser::ParseBinaryExpr(int min_preced) {
   TRACE_PARSER("ParseBinaryExpr");
-  ASSERT(min_preced >= 4);
+  ASSERT(min_preced >= Token::Precedence(Token::kOR));
   AstNode* left_operand = ParseUnaryExpr();
   if (left_operand->IsPrimaryNode() &&
       (left_operand->AsPrimaryNode()->IsSuper())) {
