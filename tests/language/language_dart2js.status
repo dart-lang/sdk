@@ -301,7 +301,6 @@ constructor5_test: Fail
 constructor6_test: Fail
 closure_in_initializer_test: Fail
 super_first_constructor_test: Fail
-evaluation_redirecting_constructor_test: Fail # Issue 13347
 # Minified mode failures.
 
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
