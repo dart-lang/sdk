@@ -65,6 +65,10 @@ abstract class Link implements FileSystemEntity {
    */
   Future<Link> update(String target);
 
+  Future<String> resolveSymbolicLinks();
+
+  String resolveSymbolicLinksSync();
+
   /**
    * Renames this link. Returns a `Future<Link>` that completes
    * with a [Link] instance for the renamed link.
