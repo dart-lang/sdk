@@ -22,6 +22,9 @@ string_interpolation_test: Skip
 class_test: Fail
 deferred/*: Skip # http://dartbug.com/12635
 
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+no_such_method_mirrors_test: Pass, Slow # TODO(kasperl): Please triage.
+
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 

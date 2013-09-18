@@ -286,11 +286,14 @@ LibTest/isolate/isolate_api/streamSpawnFunction_A01_t01: Pass # TODO(kasperl): P
 LibTest/isolate/IsolateSink/add_A01_t02: Pass # TODO(kasperl): Please triage.
 LibTest/isolate/IsolateSink/operator_equality_A01_t01: Pass # TODO(kasperl): Please triage.
 
-LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail, Slow # TODO(kasperl): Please triage.
-LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail, Slow # TODO(kasperl): Please triage.
-LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail, Slow # TODO(kasperl): Please triage.
-LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail, Slow # TODO(kasperl): Please triage.
-LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail, Slow # TODO(kasperl): Please triage.
+LibTest/typed_data/Uint8ClampedList/map_A02_t01: Pass, Slow # TODO(kasperl): Please triage.
+Language/12_Expressions/05_Strings_A06_t01: Pass, Slow # TODO(kasperl): Please triage.
+
+LibTest/isolate/isolate_api/spawnUri_A01_t01: Timeout # TODO(kasperl): Please triage.
+LibTest/isolate/isolate_api/spawnUri_A01_t02: Timeout # TODO(kasperl): Please triage.
+LibTest/isolate/isolate_api/spawnUri_A01_t03: Timeout # TODO(kasperl): Please triage.
+LibTest/isolate/isolate_api/spawnUri_A01_t04: Timeout # TODO(kasperl): Please triage.
+LibTest/isolate/isolate_api/spawnUri_A01_t05: Timeout # TODO(kasperl): Please triage.
 
 LibTest/core/int/compareTo_A01_t01: Fail # TODO(kasperl): Please triage.
 LibTest/core/int/operator_left_shift_A01_t01: Fail # TODO(kasperl): Please triage.

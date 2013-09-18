@@ -44,9 +44,8 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # TODO(kaspe
 dromaeo_smoke_test: Fail # TODO(kasperl): Please triage.
 element_types_test/supported_datalist: Fail # TODO(kasperl): Please triage.
 fileapi_test/directoryReader: Fail # TODO(kasperl): Please triage.
-fileapi_test/entry: Fail # TODO(kasperl): Please triage.
-fileapi_test/getFile: Fail # TODO(kasperl): Please triage.
-indexeddb_4_test: Fail # TODO(kasperl): Please triage.
+fileapi_test/fileEntry: Fail # TODO(kasperl): Please triage.
+fileapi_test/getDirectory: Fail # TODO(kasperl): Please triage.
 input_element_test/supported_week: Fail # TODO(kasperl): Please triage.
 media_stream_test/supported_media: Fail # TODO(kasperl): Please triage.
 notifications_test/supported: Fail # TODO(kasperl): Please triage.
