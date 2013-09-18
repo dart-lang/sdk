@@ -2,6 +2,7 @@
 
 #include "vm/bigint_operations.h"
 
+#include "platform/assert.h"
 #include "platform/utils.h"
 
 #include "vm/double_internals.h"
@@ -106,7 +107,9 @@ RawBigint* BigintOperations::NewFromCString(const char* str,
     return result.raw();
   }
 
-  intptr_t str_length = strlen(str);
+  // No overflow check needed since overflowing str_length implies that we take
+  // the branch to FromDecimalCString() which contains a check itself.
+  const intptr_t str_length = strlen(str);
   if ((str_length > 2) &&
       (str[0] == '0') &&
       ((str[1] == 'x') || (str[1] == 'X'))) {
@@ -121,7 +124,11 @@ RawBigint* BigintOperations::NewFromCString(const char* str,
 
 intptr_t BigintOperations::ComputeChunkLength(const char* hex_string) {
   ASSERT(kDigitBitSize % 4 == 0);
-  intptr_t hex_length = strlen(hex_string);
+  const intptr_t hex_length = strlen(hex_string);
+  if (hex_length < 0) {
+    FATAL("Fatal error in BigintOperations::ComputeChunkLength: "
+          "string too long");
+  }
   // Round up.
   intptr_t bigint_length = ((hex_length - 1) / kHexCharsPerDigit) + 1;
   return bigint_length;
@@ -158,7 +165,11 @@ RawBigint* BigintOperations::FromDecimalCString(const char* str,
   const Chunk kTenMultiplier = 100000000;
   ASSERT(kDigitBitSize >= 27);
 
-  intptr_t str_length = strlen(str);
+  const intptr_t str_length = strlen(str);
+  if (str_length < 0) {
+    FATAL("Fatal error in BigintOperations::FromDecimalCString: "
+          "string too long");
+  }
   intptr_t str_pos = 0;
 
   // Read first digit separately. This avoids a multiplication and addition.
@@ -247,11 +258,21 @@ const char* BigintOperations::ToHexCString(intptr_t length,
 
   ASSERT(kDigitBitSize % 4 == 0);
 
-  intptr_t chunk_length = length;
+  // Conservative maximum chunk length.
+  const intptr_t kMaxChunkLen =
+      (kIntptrMax - 2 /* 0x */
+                  - 1 /* trailing '\0' */
+                  - 1 /* leading '-' */) / kHexCharsPerDigit;
+  const intptr_t chunk_length = length;
+  // Conservative check assuming leading bigint-digit also takes up
+  // kHexCharsPerDigit.
+  if (chunk_length > kMaxChunkLen) {
+    FATAL("Fatal error in BigintOperations::ToHexCString: string too long");
+  }
   Chunk* chunk_data = reinterpret_cast<Chunk*>(data);
   if (length == 0) {
     const char* zero = "0x0";
-    const int kLength = strlen(zero);
+    const intptr_t kLength = strlen(zero);
     char* result = reinterpret_cast<char*>(allocator(kLength + 1));
     ASSERT(result != NULL);
     memmove(result, zero, kLength);
@@ -330,7 +351,7 @@ const char* BigintOperations::ToDecimalCString(
   const intptr_t kMaxAllowedDigitLength =
       (kIntptrMax - 10) / kLog2Dividend / kDigitBitSize * kLog2Divisor;
 
-  intptr_t length = bigint.Length();
+  const intptr_t length = bigint.Length();
   Isolate* isolate = Isolate::Current();
   if (length >= kMaxAllowedDigitLength) {
     // Use the preallocated out of memory exception to avoid calling
@@ -1341,7 +1362,10 @@ void BigintOperations::FromHexCString(const char* hex_string,
   // given string has it's lsd at the last position.
   // The hex_i index, pointing into the string, starts therefore at the end,
   // whereas the bigint-index (i) starts at 0.
-  intptr_t hex_length = strlen(hex_string);
+  const intptr_t hex_length = strlen(hex_string);
+  if (hex_length < 0) {
+    FATAL("Fatal error in BigintOperations::FromHexCString: string too long");
+  }
   intptr_t hex_i = hex_length - 1;
   for (intptr_t i = 0; i < bigint_length; i++) {
     Chunk digit = 0;
