@@ -70,7 +70,6 @@ f_bounded_quantification5_test: Fail # Issue 12605.
 mixin_mixin2_test: Fail # Issue 12605.
 
 [ $compiler == dart2js ]
-function_type_alias6_test/00: Crash # Issue 9792
 function_type_alias9_test/00: Crash # Issue 9792
 branch_canonicalization_test: Fail # Issue 638.
 div_with_power_of_two_test: Fail # Issue 8301.
@@ -194,7 +193,6 @@ label_test: Skip
 [ $compiler == dart2dart ]
 mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631
-function_type_alias6_test/00: Fail # Issue 11986
 function_type_alias9_test/00: Crash # Issue 11986
 symbol_literal_test: Fail # Issue 12171
 

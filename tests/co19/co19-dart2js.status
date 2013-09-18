@@ -330,10 +330,6 @@ Language/12_Expressions/30_Identifier_Reference_A05_t01: Fail # Checks that it i
 Language/12_Expressions/30_Identifier_Reference_A05_t12: Fail # Checks that it is a compile-time error when a built-in identifier "static" is used as a type annotation of a local variable.
 Language/14_Libraries_and_Scripts/5_URIs_A01_t24: Fail # Checks that it is a compile-time error when the URI in a part directive consists of two adjacent string literals instead of one.
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: Fail # Checks that it is a compile-time error when the URI in a part directive consists of two adjacent multi-line string literals  instead of one.
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Checks that self-referencing typedef is not allowed (return value type annotation has the same name as the type alias).
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # Checks that self-referencing typedef is not allowed (positional formal parameter type annotation has the same name as the type alias).
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Checks that self-referencing typedef is not allowed (positional optional parameter type annotation has the same name as the type alias).
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # Checks that self-referencing typedef is not allowed (named optional parameter type annotation has the same name as the type alias).
 Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # Checks that other Unicode whitespaces are not allowed:  check NO-BREAK SPACE (U+00A0)
 Language/16_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
 

@@ -544,6 +544,32 @@ main() {
   static const MessageKind CYCLIC_TYPE_VARIABLE = const MessageKind(
       'Warning: Type variable "#{typeVariableName}" is a supertype of itself.');
 
+  static const CYCLIC_TYPEDEF = const MessageKind(
+      "Error: A typedef can't refer to itself.",
+      howToFix: "Try removing all references to '#{typedefName}' "
+                "in the definition of '#{typedefName}'.",
+      examples: const ["""
+typedef F F(); // The return type 'F' is a self-reference.
+main() { F f = null; }"""]);
+
+  static const CYCLIC_TYPEDEF_ONE = const MessageKind(
+      "Error: A typedef can't refer to itself through another typedef.",
+      howToFix: "Try removing all references to "
+                "'#{otherTypedefName}' in the definition of '#{typedefName}'.",
+      examples: const ["""
+typedef G F(); // The return type 'G' is a self-reference through typedef 'G'.
+typedef F G(); // The return type 'F' is a self-reference through typedef 'F'.
+main() { F f = null; }""",
+"""
+typedef G F(); // The return type 'G' creates a self-reference.
+typedef H G(); // The return type 'H' creates a self-reference.
+typedef H(F f); // The argument type 'F' creates a self-reference.
+main() { F f = null; }"""]);
+
+  static const CYCLIC_TYPEDEF_TYPEVAR = const MessageKind(
+      "Internal Error: Recursive type variable bounds are not "
+      "supported on typedefs.");
+
   static const MessageKind CLASS_NAME_EXPECTED = const MessageKind(
       'Error: Class name expected.');
 

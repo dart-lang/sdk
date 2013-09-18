@@ -3340,7 +3340,101 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     element.alias = compiler.computeFunctionType(
         element, element.functionSignature);
 
-    // TODO(johnniwinther): Check for cyclic references in the typedef alias.
+    void checkCyclicReference() {
+      var visitor = new TypedefCyclicVisitor(compiler, element);
+      type.accept(visitor, null);
+    }
+    compiler.enqueuer.resolution.addPostProcessAction(element,
+                                                      checkCyclicReference);
+  }
+}
+
+// TODO(johnniwinther): Replace with a traversal on the AST when the type
+// annotations in typedef alias are stored in a [TreeElements] mapping.
+class TypedefCyclicVisitor extends DartTypeVisitor {
+  final Compiler compiler;
+  final TypedefElement element;
+  bool hasCyclicReference = false;
+
+  /// Counter for how many bounds the visitor currently has on the call-stack.
+  /// Used to detect when to report [Messagekind.CYCLIC_TYPEDEF_TYPEVAR].
+  int seenBoundsCount = 0;
+
+  Link<TypedefElement> seenTypedefs = const Link<TypedefElement>();
+
+  int seenTypedefsCount = 0;
+
+  Link<TypeVariableElement> seenTypeVariables =
+      const Link<TypeVariableElement>();
+
+  TypedefCyclicVisitor(Compiler this.compiler, TypedefElement this.element);
+
+  visitType(DartType type, _) {
+    // Do nothing.
+  }
+
+  visitTypedefType(TypedefType type, _) {
+    TypedefElement typedefElement = type.element;
+    if (seenTypedefs.contains(typedefElement)) {
+      if (!hasCyclicReference && identical(element, typedefElement)) {
+        // Only report an error on the checked typedef to avoid generating
+        // multiple errors for the same cyclicity.
+        hasCyclicReference = true;
+        if (seenBoundsCount > 0) {
+          compiler.reportError(element, MessageKind.CYCLIC_TYPEDEF_TYPEVAR);
+        } else if (seenTypedefsCount == 1) {
+          // Direct cyclicity.
+          compiler.reportError(element,
+              MessageKind.CYCLIC_TYPEDEF,
+              {'typedefName': element.name});
+        } else if (seenTypedefsCount == 2) {
+          // Cyclicity through one other typedef.
+          compiler.reportError(element,
+              MessageKind.CYCLIC_TYPEDEF_ONE,
+              {'typedefName': element.name,
+               'otherTypedefName': seenTypedefs.head.name});
+        } else {
+          // Cyclicity through more than one other typedef.
+          for (TypedefElement cycle in seenTypedefs) {
+            if (!identical(typedefElement, cycle)) {
+              compiler.reportError(element,
+                  MessageKind.CYCLIC_TYPEDEF_ONE,
+                  {'typedefName': element.name,
+                   'otherTypedefName': cycle.name});
+            }
+          }
+        }
+      }
+    } else {
+      seenTypedefs = seenTypedefs.prepend(typedefElement);
+      seenTypedefsCount++;
+      type.visitChildren(this, null);
+      typedefElement.alias.accept(this, null);
+      seenTypedefs = seenTypedefs.tail;
+      seenTypedefsCount--;
+    }
+  }
+
+  visitFunctionType(FunctionType type, _) {
+    type.visitChildren(this, null);
+  }
+
+  visitInterfaceType(InterfaceType type, _) {
+    type.visitChildren(this, null);
+  }
+
+  visitTypeVariableType(TypeVariableType type, _) {
+    TypeVariableElement typeVariableElement = type.element;
+    if (seenTypeVariables.contains(typeVariableElement)) {
+      // Avoid running in cycles on cyclic type variable bounds.
+      // Cyclicity is reported elsewhere.
+      return;
+    }
+    seenTypeVariables = seenTypeVariables.prepend(typeVariableElement);
+    seenBoundsCount++;
+    typeVariableElement.bound.accept(this, null);
+    seenBoundsCount--;
+    seenTypeVariables = seenTypeVariables.tail;
   }
 }
 
