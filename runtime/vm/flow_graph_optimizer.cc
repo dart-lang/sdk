@@ -1570,20 +1570,6 @@ bool FlowGraphOptimizer::MethodExtractorNeedsClassCheck(
 }
 
 
-void FlowGraphOptimizer::AddToGuardedFields(const Field& field) {
-  if ((field.guarded_cid() == kDynamicCid) ||
-      (field.guarded_cid() == kIllegalCid)) {
-    return;
-  }
-  for (intptr_t j = 0; j < guarded_fields_->length(); j++) {
-    if ((*guarded_fields_)[j]->raw() == field.raw()) {
-      return;
-    }
-  }
-  guarded_fields_->Add(&field);
-}
-
-
 void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
@@ -1610,7 +1596,7 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
     if (!field.is_nullable() || (field.guarded_cid() == kNullCid)) {
       load->set_result_cid(field.guarded_cid());
     }
-    AddToGuardedFields(field);
+    flow_graph_->builder().AddToGuardedFields(field);
   }
 
   // Discard the environment from the original instruction because the load

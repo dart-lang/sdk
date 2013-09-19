@@ -271,6 +271,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
     isolate->set_long_jump_base(&bailout_jump);
     if (setjmp(*bailout_jump.Set()) == 0) {
       FlowGraph* flow_graph = NULL;
+      GrowableArray<const Field*> guarded_fields;
       // TimerScope needs an isolate to be properly terminated in case of a
       // LongJump.
       {
@@ -293,6 +294,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         FlowGraphBuilder builder(parsed_function,
                                  ic_data_array,
                                  NULL,  // NULL = not inlining.
+                                 &guarded_fields,
                                  osr_id);
         flow_graph = builder.BuildGraph();
       }
@@ -326,13 +328,12 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
       // Collect all instance fields that are loaded in the graph and
       // have non-generic type feedback attached to them that can
       // potentially affect optimizations.
-      GrowableArray<const Field*> guarded_fields(10);
       if (optimized) {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphoptimizer_timer,
                          isolate);
 
-        FlowGraphOptimizer optimizer(flow_graph, &guarded_fields);
+        FlowGraphOptimizer optimizer(flow_graph);
         optimizer.ApplyICData();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
@@ -358,7 +359,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           optimizer.ApplyClassIds();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-          FlowGraphInliner inliner(flow_graph, &guarded_fields);
+          FlowGraphInliner inliner(flow_graph);
           inliner.Inline();
           // Use lists are maintained and validated by the inliner.
           DEBUG_ASSERT(flow_graph->VerifyUseLists());

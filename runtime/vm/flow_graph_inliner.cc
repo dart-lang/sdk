@@ -382,8 +382,7 @@ class PolymorphicInliner : public ValueObject {
 
 class CallSiteInliner : public ValueObject {
  public:
-  CallSiteInliner(FlowGraph* flow_graph,
-                  GrowableArray<const Field*>* guarded_fields)
+  explicit CallSiteInliner(FlowGraph* flow_graph)
       : caller_graph_(flow_graph),
         inlined_(false),
         initial_size_(flow_graph->InstructionCount()),
@@ -391,8 +390,7 @@ class CallSiteInliner : public ValueObject {
         inlining_depth_(1),
         collected_call_sites_(NULL),
         inlining_call_sites_(NULL),
-        function_cache_(),
-        guarded_fields_(guarded_fields) { }
+        function_cache_() { }
 
   FlowGraph* caller_graph() const { return caller_graph_; }
 
@@ -544,9 +542,11 @@ class CallSiteInliner : public ValueObject {
       // Build the callee graph.
       InlineExitCollector* exit_collector =
           new InlineExitCollector(caller_graph_, call);
+      GrowableArray<const Field*> inlined_guarded_fields;
       FlowGraphBuilder builder(parsed_function,
                                ic_data_array,
                                exit_collector,
+                               &inlined_guarded_fields,
                                Isolate::kNoDeoptId);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
@@ -607,7 +607,7 @@ class CallSiteInliner : public ValueObject {
                          &CompilerStats::graphinliner_opt_timer,
                          isolate);
         // TODO(zerny): Do more optimization passes on the callee graph.
-        FlowGraphOptimizer optimizer(callee_graph, guarded_fields_);
+        FlowGraphOptimizer optimizer(callee_graph);
         optimizer.ApplyICData();
         DEBUG_ASSERT(callee_graph->VerifyUseLists());
       }
@@ -668,6 +668,13 @@ class CallSiteInliner : public ValueObject {
       call_data->callee_graph = callee_graph;
       call_data->parameter_stubs = param_stubs;
       call_data->exit_collector = exit_collector;
+
+      // When inlined, we add the guarded fields of the callee to the caller's
+      // list of guarded fields.
+      for (intptr_t i = 0; i < inlined_guarded_fields.length(); ++i) {
+        caller_graph_->builder().AddToGuardedFields(*inlined_guarded_fields[i]);
+      }
+
       TRACE_INLINING(OS::Print("     Success\n"));
       return true;
     } else {
@@ -998,7 +1005,6 @@ class CallSiteInliner : public ValueObject {
   CallSites* collected_call_sites_;
   CallSites* inlining_call_sites_;
   GrowableArray<ParsedFunction*> function_cache_;
-  GrowableArray<const Field*>* guarded_fields_;
 
   DISALLOW_COPY_AND_ASSIGN(CallSiteInliner);
 };
@@ -1153,8 +1159,7 @@ static Instruction* AppendInstruction(Instruction* first,
 
 
 bool PolymorphicInliner::TryInlineRecognizedMethod(const Function& target) {
-  FlowGraphOptimizer optimizer(owner_->caller_graph(),
-                               NULL);  // No guarded fields needed.
+  FlowGraphOptimizer optimizer(owner_->caller_graph());
   TargetEntryInstr* entry;
   Definition* last;
   if (optimizer.TryInlineRecognizedMethod(target,
@@ -1475,7 +1480,7 @@ void FlowGraphInliner::Inline() {
     printer.PrintBlocks();
   }
 
-  CallSiteInliner inliner(flow_graph_, guarded_fields_);
+  CallSiteInliner inliner(flow_graph_);
   inliner.InlineCalls();
 
   if (inliner.inlined()) {
