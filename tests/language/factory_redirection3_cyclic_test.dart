@@ -8,11 +8,11 @@ class A {
   factory A.foo() = B;
 }
 
-class B<T> implements A {
+class B implements A {
   factory B() = C.bar;
 }
 
-class C<T> implements B {
+class C implements B {
   factory C.bar() = C.foo;
   factory C.foo() = C
     .bar /// 01: compile-time error
@@ -21,5 +21,5 @@ class C<T> implements B {
 }
 
 main() {
-  new A<int>.foo();
+  new A.foo();
 }
