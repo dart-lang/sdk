@@ -205,7 +205,7 @@ class ConstantHandler extends CompilerTask {
                   node, MessageKind.NOT_ASSIGNABLE.error,
                   {'fromType': constantType, 'toType': elementType});
             } else {
-              // If the field can be lazily initialized, we will throw
+              // If the field cannot be lazily initialized, we will throw
               // the exception at runtime.
               value = null;
             }

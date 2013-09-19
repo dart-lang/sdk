@@ -174,6 +174,7 @@ abstract class Node extends TreeElementMixin implements Spannable {
   Modifiers asModifiers() => null;
   NamedArgument asNamedArgument() => null;
   NamedMixinApplication asNamedMixinApplication() => null;
+  NewExpression asNewExpression() => null;
   NodeList asNodeList() => null;
   Operator asOperator() => null;
   ParenthesizedExpression asParenthesizedExpression() => null;
@@ -472,6 +473,8 @@ class NewExpression extends Expression {
   final Send send;
 
   NewExpression([this.newToken, this.send]);
+
+  NewExpression asNewExpression() => this;
 
   accept(Visitor visitor) => visitor.visitNewExpression(this);
 

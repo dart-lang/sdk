@@ -454,7 +454,7 @@ class ResolverTask extends CompilerTask {
 
     if (Elements.isStaticOrTopLevelField(element)) {
       if (tree.asSendSet() != null) {
-        // TODO(ngeoffray): We could do better here by using the
+        // TODO(13429): We could do better here by using the
         // constant handler to figure out if it's a lazy field or not.
         compiler.backend.registerLazyField(visitor.mapping);
       } else {
