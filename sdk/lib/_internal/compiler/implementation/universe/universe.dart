@@ -54,11 +54,14 @@ class Universe {
   final Set<Element> genericCallMethods;
 
   /**
-   * Set of methods in instantiated classes that use type variables in their
-   * signature and have potentially been closurized.
+   * Set of closures that use type variables in their signature.
    */
-  final Set<Element> closurizedGenericMembers;
+  final Set<Element> genericClosures;
 
+  /**
+   * Set of methods in instantiated classes that are potentially
+   * closurized.
+   */
   final Set<Element> closurizedMembers;
 
   bool usingFactoryWithTypeArguments = false;
@@ -73,7 +76,7 @@ class Universe {
                fieldSetters = new Set<Element>(),
                isChecks = new Set<DartType>(),
                genericCallMethods = new Set<Element>(),
-               closurizedGenericMembers = new Set<Element>(),
+               genericClosures = new Set<Element>(),
                closurizedMembers = new Set<Element>();
 
   bool hasMatchingSelector(Set<Selector> selectors,

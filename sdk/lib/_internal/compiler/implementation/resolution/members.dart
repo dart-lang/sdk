@@ -2097,7 +2097,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     scope = oldScope;
     enclosingElement = previousEnclosingElement;
 
-    world.registerClosurizedMember(function, mapping);
+    world.registerClosure(function, mapping);
     world.registerInstantiatedClass(compiler.functionClass, mapping);
   }
 
