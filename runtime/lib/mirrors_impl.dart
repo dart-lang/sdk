@@ -192,7 +192,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
 
   InstanceMirror getField(Symbol memberName) {
     return reflect(this._invokeGetter(_reflectee,
-                                      _n(memberName))); 
+                                      _n(memberName)));
   }
 
   InstanceMirror setField(Symbol memberName, Object value) {
@@ -216,7 +216,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
    try {
       var result = this._invokeGetter(_reflectee,
                                       _n(memberName));
-      return new Future.value(reflect(result)); 
+      return new Future.value(reflect(result));
     } catch(e) {
       return new Future.error(e);
     }
@@ -229,7 +229,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
         unwrappedValue = value;
       } else if(value is InstanceMirror) {
         unwrappedValue = value._reflectee;
-      } else { 
+      } else {
         throw "setter argument ($value) must be"
               "a simple value or InstanceMirror";
       }
@@ -237,7 +237,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
       this._invokeSetter(_reflectee,
                          _n(memberName),
                          unwrappedValue);
-      return new Future.value(reflect(unwrappedValue)); 
+      return new Future.value(reflect(unwrappedValue));
     } catch(e) {
       return new Future.error(e);
     }
@@ -285,7 +285,7 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
       // system to access a private field in a different library.  For
       // some reason, that works.  On the other hand, calling a
       // private method does not work.
-      
+
       _LocalInstanceMirrorImpl mirror =
           reflect(invocation);
       _invokeOnClosure = reflectClass(invocation.runtimeType)
@@ -375,7 +375,7 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
     // replaced with
     //   return this.invoke(#call, positionalArguments, namedArguments);
     // and the native ClosureMirror_apply can be removed.
-    
+
     int numPositionalArguments = positionalArguments.length + 1;  // Receiver.
     int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
     int numArguments = numPositionalArguments + numNamedArguments;
@@ -515,11 +515,11 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
       klass = klass.superclass;
     }
     return _s(
-      _n(klass.qualifiedName) 
+      _n(klass.qualifiedName)
       + ' with '
       + mixins.reversed.map((m)=>_n(m.qualifiedName)).join(', '));
   }
- 
+
   var _mixin;
   ClassMirror get mixin {
     if (_mixin == null) {
@@ -594,34 +594,33 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
       var stringName = _n(simpleName);
       constructorsList.forEach((c) => c._patchConstructorName(stringName));
       _constructors = _makeMemberMap(constructorsList);
-    } 
-    return _constructors;  
+    }
+    return _constructors;
   }
 
-  Map<Symbol, TypeVariableMirror> _typeVariables = null;
-  Map<Symbol, TypeVariableMirror> get typeVariables {
+  List<TypeVariableMirror> _typeVariables = null;
+  List<TypeVariableMirror> get typeVariables {
     if (_typeVariables == null) {
       List params = _ClassMirror_type_variables(_reflectee);
-      _typeVariables = new LinkedHashMap<Symbol, TypeVariableMirror>();
+      _typeVariables = new List<TypeVariableMirror>();
       var mirror;
       for (var i = 0; i < params.length; i += 2) {
         mirror = new _LocalTypeVariableMirrorImpl(
             params[i + 1], params[i], this);
-        _typeVariables[mirror.simpleName] = mirror;
+        _typeVariables.add(mirror);
       }
     }
     return _typeVariables;
   }
 
-  Map<Symbol, TypeMirror> _typeArguments = null;
-  Map<Symbol, TypeMirror> get typeArguments {
+  List<TypeMirror> _typeArguments = null;
+  List<TypeMirror> get typeArguments {
     if(_typeArguments == null) {
       if(_isGenericDeclaration) {
-        _typeArguments = new LinkedHashMap<Symbol, TypeMirror>();
+        _typeArguments = new List<TypeMirror>();
       } else {
         _typeArguments =
-            new LinkedHashMap<Symbol, TypeMirror>.fromIterables(
-                typeVariables.keys, _computeTypeArguments(_reflectedType));
+            new List<TypeMirror>.from(_computeTypeArguments(_reflectedType));
       }
     }
     return _typeArguments;
@@ -705,7 +704,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   _computeMembers(reflectee)
       native "ClassMirror_members";
-  
+
   _computeConstructors(reflectee)
       native "ClassMirror_constructors";
 
@@ -807,7 +806,7 @@ abstract class _LocalDeclarationMirrorImpl extends _LocalMirrorImpl
 
   bool operator ==(other) {
     return this.runtimeType == other.runtimeType &&
-           this._reflectee == other._reflectee; 
+           this._reflectee == other._reflectee;
   }
 
   int get hashCode => simpleName.hashCode;
@@ -988,7 +987,7 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
 
   bool operator ==(other) {
     return this.runtimeType == other.runtimeType &&
-           this._reflectee == other._reflectee; 
+           this._reflectee == other._reflectee;
   }
 
   int get hashCode => simpleName.hashCode;
@@ -1294,7 +1293,7 @@ class _Mirrors {
 
   // Creates a new local mirror for some Object.
   static InstanceMirror reflect(Object reflectee) {
-    return reflectee is Function 
+    return reflectee is Function
         ? new _LocalClosureMirrorImpl(reflectee)
         : new _LocalInstanceMirrorImpl(reflectee);
   }

@@ -7,9 +7,9 @@ import "dart:mirrors";
 import "package:expect/expect.dart";
 
 class C<R,S,T> {
-  R foo(R r) => r; 
-  S bar(S s) => s; 
-  T baz(T t) => t; 
+  R foo(R r) => r;
+  S bar(S s) => s;
+  T baz(T t) => t;
 }
 
 class NoTypeParams {}
@@ -18,10 +18,7 @@ main() {
   ClassMirror cm;
   cm = reflectClass(C);
   Expect.equals(3, cm.typeVariables.length);
-  Expect.equals(true, cm.typeVariables.containsKey(const Symbol("R")));
-  Expect.equals(true, cm.typeVariables.containsKey(const Symbol("S")));
-  Expect.equals(true, cm.typeVariables.containsKey(const Symbol("T")));
-  var values = cm.typeVariables.values;
+  var values = cm.typeVariables;
   values.forEach((e) {
     Expect.equals(true, e is TypeVariableMirror);
   });

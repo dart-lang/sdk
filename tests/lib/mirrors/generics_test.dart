@@ -19,16 +19,12 @@ class H<A,B,C> {}
 
 typeParameters(mirror, parameterNames) {
   Expect.listEquals(parameterNames.map((n) => new Symbol(n)).toList(),
-                    mirror.typeVariables.keys.toList());
+                    mirror.typeVariables.map((v) => v.simpleName).toList());
 }
 
 typeArguments(mirror, argumentMirrors) {
   Expect.listEquals(argumentMirrors,
-                    mirror.typeArguments.values.toList());
-  if (!mirror.isOriginalDeclaration) {
-    Expect.listEquals(mirror.typeVariables.keys.toList(),
-                      mirror.typeArguments.keys.toList());
-  }
+                    mirror.typeArguments);
 }
 
 main() {

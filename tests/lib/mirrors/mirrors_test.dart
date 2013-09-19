@@ -45,7 +45,7 @@ testInvoke(mirrors) {
          equals("DNU"));
   expect(instMirror.invoke(const Symbol("m"), []).reflectee,
          equals("DNU"));  // Wrong arity.
-  // TODO(rmacnak): Implement access to private members. 
+  // TODO(rmacnak): Implement access to private members.
   // expect(instMirror.invoke(const Symbol("_n"), [3, 4]).reflectee,
   //        equals(7));
 
@@ -240,7 +240,7 @@ testNames(mirrors) {
   expect(classMirror.qualifiedName, equals(const Symbol('MirrorsTest.Class')));
 
   if (!isDart2js) { // TODO(ahe): Implement this in dart2js.
-    TypeVariableMirror typeVariable = classMirror.typeVariables.values.single;
+    TypeVariableMirror typeVariable = classMirror.typeVariables.single;
     expect(typeVariable.simpleName, equals(const Symbol('T')));
     expect(typeVariable.qualifiedName,
            equals(const Symbol('MirrorsTest.Class.T')));
