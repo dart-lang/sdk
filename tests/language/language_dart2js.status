@@ -37,7 +37,6 @@ function_subtype_setter0_test: Fail # Issue 11273
 redirecting_factory_malbounded_test/01: Fail # Issue 12825
 
 [ $compiler == dart2js && $unchecked ]
-factory_redirection_test/14: Fail # Issue 10959
 type_checks_in_factory_method_test: Fail # Issue 12746
 assertion_test: Fail # Issue 12748
 double_to_string_as_exponential2_test: Fail # Issue 12749
@@ -292,7 +291,6 @@ factory_redirection_test/02: Crash # Issue 12753
 factory_redirection_test/03: Crash # Issue 12753
 factory_redirection_test/07: Fail # Issue 12753
 factory_redirection_test/09: Fail # Issue 12753
-factory_redirection_test/14: Fail # Issue 10959
 function_type_alias5_test/00: Fail # Issue 12755
 function_type_alias5_test/01: Fail # Issue 12755
 function_type_alias5_test/02: Fail # Issue 12755

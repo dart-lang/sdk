@@ -169,9 +169,18 @@ class MessageKind {
       'Error: Cannot resolve constructor "#{constructorName}".');
 
   static const MessageKind CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT =
-      const MessageKind(
-          'Error: cannot resolve constructor "#{constructorName}" for implicit'
-          'super call.');
+      const MessageKind('Error: cannot resolve constructor "#{constructorName}"'
+          ' for implicit super call.',
+      howToFix: 'Try explicitly invoking a constructor of the super class',
+      examples: const ["""
+class A {
+  A.foo() {}
+}
+class B extends A {
+  B();
+}
+main() => new B();
+"""]);
 
   static const MessageKind INVALID_UNNAMED_CONSTRUCTOR_NAME = const MessageKind(
       'Error: Unnamed constructor name must be "#{name}".');
@@ -265,6 +274,9 @@ export 'future.dart';"""}]);
 
   static const MessageKind CYCLIC_CLASS_HIERARCHY = const MessageKind(
       'Error: "#{className}" creates a cycle in the class hierarchy.');
+
+  static const MessageKind CYCLIC_REDIRECTING_FACTORY = const MessageKind(
+      'Error: Redirecting factory leads to a cyclic redirection.');
 
   static const MessageKind INVALID_RECEIVER_IN_INITIALIZER = const MessageKind(
       'Error: Field initializer expected.');

@@ -1279,22 +1279,20 @@ class FunctionElementX extends ElementX implements FunctionElement {
 
   bool get isRedirectingFactory => defaultImplementation != this;
 
-  FunctionElement get redirectionTarget {
-    if (this == defaultImplementation) return this;
-    var target = defaultImplementation;
-    Set<Element> seen = new Set<Element>();
-    seen.add(target);
-    while (!target.isErroneous() && target != target.defaultImplementation) {
-      target = target.defaultImplementation;
-      if (seen.contains(target)) {
-        // TODO(ahe): This is expedient for now, but it should be
-        // checked by the resolver.  Keeping http://dartbug.com/3970
-        // open to track this.
-        throw new SpannableAssertionFailure(
-            target, 'redirecting factory leads to cycle');
-      }
+  /// This field is set by the post process queue when checking for cycles.
+  FunctionElement internalRedirectionTarget;
+
+  set redirectionTarget(FunctionElement constructor) {
+    assert(constructor != null && internalRedirectionTarget == null);
+    internalRedirectionTarget = constructor;
+  }
+
+  get redirectionTarget {
+    if (Elements.isErroneousElement(defaultImplementation)) {
+      return defaultImplementation;
     }
-    return target;
+    assert(!isRedirectingFactory || internalRedirectionTarget != null);
+    return isRedirectingFactory ? internalRedirectionTarget : this;
   }
 
   InterfaceType computeTargetType(Compiler compiler,
