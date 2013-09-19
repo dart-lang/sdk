@@ -300,6 +300,8 @@ constructor5_test: Fail
 constructor6_test: Fail
 closure_in_initializer_test: Fail
 super_first_constructor_test: Fail
+throwing_lazy_variable_test: Fail # Issue 5802
+
 # Minified mode failures.
 
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
