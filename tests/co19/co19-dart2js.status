@@ -174,8 +174,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail, OK # co19 i
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
-Language/03_Overview/1_Scoping_A01_t40: Fail, OK # co19 issue 188
-Language/03_Overview/1_Scoping_A01_t41: Fail, OK # co19 issue 188
 Language/03_Overview/2_Privacy_A01_t09: Fail, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t11: Pass, OK # co19 issue 316
 Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # http://dartbug.com/5021
@@ -322,7 +320,6 @@ LibTest/math/log_A01_t01: Fail # TODO(kasperl): Please triage.
 # Missing compile-time errors.
 #
 [ $compiler == dart2js ]
-Language/03_Overview/1_Scoping_A01_t39: Fail # dartbug.com/7202
 Language/05_Variables/05_Variables_A01_t04: Fail # Checks that a variable declaration cannot contain both 'final' and 'var'.
 Language/05_Variables/05_Variables_A01_t05: Fail # Checks that a variable declaration cannot contain both 'var' and 'type'.
 Language/05_Variables/05_Variables_A01_t08: Fail # Checks different variables in a single variable declaration must be delimited by commas.
