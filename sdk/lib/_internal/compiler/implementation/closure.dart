@@ -247,10 +247,6 @@ class ClosureClassMap {
 
   final Set<Element> usedVariablesInTry;
 
-  // A map from the parameter element to the variable element that
-  // holds the sentinel check.
-  final Map<Element, Element> parametersWithSentinel;
-
   ClosureClassMap(this.closureElement,
                   this.closureClassElement,
                   this.callElement,
@@ -258,18 +254,25 @@ class ClosureClassMap {
       : this.freeVariableMapping = new Map<Element, Element>(),
         this.capturedFieldMapping = new Map<Element, Element>(),
         this.capturingScopes = new Map<Node, ClosureScope>(),
-        this.usedVariablesInTry = new Set<Element>(),
-        this.parametersWithSentinel = new Map<Element, Element>();
+        this.usedVariablesInTry = new Set<Element>();
 
   bool isClosure() => closureElement != null;
 
   bool isVariableCaptured(Element element) {
-    return freeVariableMapping.containsKey(element);
+    return freeVariableMapping.containsKey(element)
+        || capturingScopesBox(element);
+  }
+
+  bool capturingScopesBox(Element element) {
+    return capturingScopes.values.any((scope) {
+      return scope.boxedLoopVariables.contains(element);
+    });
   }
 
   bool isVariableBoxed(Element element) {
     Element copy = freeVariableMapping[element];
-    return copy != null && !copy.isMember();
+    if (copy != null && !copy.isMember()) return true;
+    return capturingScopesBox(element);
   }
 
   void forEachCapturedVariable(void f(Element local, Element field)) {
@@ -277,12 +280,18 @@ class ClosureClassMap {
       if (variable is BoxElement) return;
       f(variable, copy);
     });
+    capturingScopes.values.forEach((scope) {
+      scope.capturedVariableMapping.forEach(f);
+    });
   }
 
   void forEachBoxedVariable(void f(Element local, Element field)) {
     freeVariableMapping.forEach((variable, copy) {
       if (!isVariableBoxed(variable)) return;
       f(variable, copy);
+    });
+    capturingScopes.values.forEach((scope) {
+      scope.capturedVariableMapping.forEach(f);
     });
   }
 

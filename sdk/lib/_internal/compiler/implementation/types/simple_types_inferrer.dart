@@ -1665,12 +1665,9 @@ class SimpleTypeInferrerVisitor<T>
     ClosureClassMap closureData =
         compiler.closureToClassMapper.computeClosureToClassMapping(
             analyzedElement, node, elements);
-    ClosureScope scopeData = closureData.capturingScopes[node];
-    if (scopeData != null) {
-      scopeData.capturedVariableMapping.forEach((variable, field) {
-        locals.setCapturedAndBoxed(variable, field);
-      });
-    }
+    closureData.forEachBoxedVariable((variable, field) {
+      locals.setCapturedAndBoxed(variable, field);
+    });
     if (analyzedElement.isField()) {
       return visit(node.asSendSet().arguments.head);
     }

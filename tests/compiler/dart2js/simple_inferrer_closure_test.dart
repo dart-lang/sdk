@@ -83,6 +83,16 @@ returnNum1() {
   return a;
 }
 
+returnIntOrNull() {
+  for (var b in [42]) {
+    var bar = 42;
+    f() => bar;
+    bar = null;
+    return f();
+  }
+  return 42;
+}
+
 class A {
   foo() {
     f() => this;
@@ -99,6 +109,7 @@ main() {
   returnDyn3();
   returnInt4();
   returnNum1();
+  returnIntOrNull();
   new A().foo();
 }
 """;
@@ -120,6 +131,7 @@ void main() {
     checkReturn('returnInt2', compiler.typesTask.intType);
     checkReturn('returnInt3', compiler.typesTask.intType);
     checkReturn('returnInt4', compiler.typesTask.intType);
+    checkReturn('returnIntOrNull', compiler.typesTask.intType.nullable());
 
     checkReturn('returnDyn1', compiler.typesTask.dynamicType.nonNullable());
     checkReturn('returnDyn2', compiler.typesTask.dynamicType.nonNullable());
