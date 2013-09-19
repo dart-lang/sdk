@@ -65,6 +65,7 @@ positional_parameters_type_test/02: Fail, OK
 [ $compiler == dart2js && $minified ]
 f_bounded_quantification4_test: Fail # Issue 12605.
 f_bounded_quantification5_test: Fail # Issue 12605.
+mixin_generic_test: Fail # Issue 12605.
 mixin_mixin2_test: Fail # Issue 12605.
 mixin_mixin3_test: Fail # Issue 12605.
 mixin_mixin4_test: Fail # Issue 12605.
