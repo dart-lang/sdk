@@ -494,6 +494,33 @@ class ResolverTask extends CompilerTask {
     return result;
   }
 
+  void resolveRedirectionChain(FunctionElement constructor, Node node) {
+    FunctionElementX current = constructor;
+    List<Element> seen = new List<Element>();
+    // Follow the chain of redirections and check for cycles.
+    while (current != current.defaultImplementation) {
+      if (current.internalRedirectionTarget != null) {
+        // We found a constructor that already has been processed.
+        current = current.internalRedirectionTarget;
+        break;
+      }
+      Element target = current.defaultImplementation;
+      if (seen.contains(target)) {
+        error(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
+        break;
+      }
+      seen.add(current);
+      current = target;
+    }
+    // [current] is now the actual target of the redirections.  Run through
+    // the constructors again and set their [redirectionTarget], so that we
+    // do not have to run the loop for these constructors again.
+    while (!seen.isEmpty) {
+      FunctionElementX factory = seen.removeLast();
+      factory.redirectionTarget = current;
+    }
+  }
+
   /**
    * Load and resolve the supertypes of [cls].
    *
@@ -2671,30 +2698,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     // Register a post process to check for cycles in the redirection chain and
     // set the actual generative constructor at the end of the chain.
     compiler.enqueuer.resolution.addPostProcessAction(constructor, () {
-      FunctionElementX current = constructor;
-      List<Element> seen = new List<Element>();
-      // Follow the chain of redirections and check for cycles.
-      while (current != current.defaultImplementation) {
-        if (current.internalRedirectionTarget != null) {
-          // We found a constructor that already has been processed.
-          current = current.internalRedirectionTarget;
-          break;
-        }
-        Element target = current.defaultImplementation;
-        if (seen.contains(target)) {
-          error(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
-          return;
-        }
-        seen.add(current);
-        current = target;
-      }
-      // [current] is now the actual target of the redirections.  Run through
-      // the constructors again and set their [redirectionTarget], so that we
-      // do not have to run the loop for these constructors again.
-      while (!seen.isEmpty) {
-        FunctionElementX factory = seen.removeLast();
-        factory.redirectionTarget = current;
-      }
+      compiler.resolver.resolveRedirectionChain(constructor, node);
     });
 
     world.registerStaticUse(redirectionTarget);

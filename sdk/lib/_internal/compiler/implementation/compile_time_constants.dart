@@ -720,12 +720,10 @@ class CompileTimeConstantEvaluator extends Visitor {
       type = constructor.computeTargetType(compiler, type);
     }
 
-    FunctionElement target = constructor.redirectionTarget;
-    if (target != null) {
-      constructor = target;
-    } else {
-      constructor = constructor.defaultImplementation;
-    }
+    // The redirection chain of this element may not have been resolved through
+    // a post-process action, so we have to make sure it is done here.
+    compiler.resolver.resolveRedirectionChain(constructor, node);
+    constructor = constructor.redirectionTarget;
     ClassElement classElement = constructor.getEnclosingClass();
     // The constructor must be an implementation to ensure that field
     // initializers are handled correctly.
