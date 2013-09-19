@@ -1023,6 +1023,11 @@ main() {}
           "static foo; main(){}",
           "external foo; main(){}"]);
 
+  static const MessageKind ABSTRACT_CLASS_INSTANTIATION = const MessageKind(
+      "Warning: Can't instantiate abstract class.",
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const ["abstract class A {} main() { new A(); }"]);
+
   static const MessageKind BODY_EXPECTED = const MessageKind(
       "Error: Expected a function body or '=>'.",
       // TODO(ahe): In some scenarios, we can suggest removing the 'static'

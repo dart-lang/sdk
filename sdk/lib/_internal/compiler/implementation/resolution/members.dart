@@ -2751,7 +2751,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (constructor.isFactoryConstructor() && !type.typeArguments.isEmpty) {
       world.registerFactoryWithTypeArguments(mapping);
     }
-    if (cls.isAbstract(compiler)) {
+    if (constructor.isGenerativeConstructor() && cls.isAbstract(compiler)) {
+      warning(node, MessageKind.ABSTRACT_CLASS_INSTANTIATION);
       compiler.backend.registerAbstractClassInstantiation(mapping);
     }
 
