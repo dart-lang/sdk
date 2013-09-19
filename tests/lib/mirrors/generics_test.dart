@@ -10,7 +10,9 @@ import 'package:expect/expect.dart';
 
 class A<T> {}
 class B extends A {}            // Same as class B extends A<dynamic>.
-class C extends A<num, int> {}  // Same as class C extends A<dynamic>.
+class C extends A
+<num, int> // TODO(zarah): Should be "01: static warning".
+{} // Same as class C extends A<dynamic>.
 class D extends A<int> {}
 class E<S> extends A<S> {}
 class F<R> extends A<int> {}
