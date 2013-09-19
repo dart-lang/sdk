@@ -2175,7 +2175,14 @@ class TokenStream : public Object {
   // in a TokenStream object.
   class Iterator : ValueObject {
    public:
-    Iterator(const TokenStream& tokens, intptr_t token_pos);
+    enum StreamType {
+      kNoNewlines,
+      kAllTokens
+    };
+
+    Iterator(const TokenStream& tokens,
+                   intptr_t token_pos,
+                   Iterator::StreamType stream_type = kNoNewlines);
 
     void SetStream(const TokenStream& tokens, intptr_t token_pos);
     bool IsValid() const;
@@ -2212,6 +2219,7 @@ class TokenStream : public Object {
     intptr_t cur_token_pos_;
     Token::Kind cur_token_kind_;
     intptr_t cur_token_obj_index_;
+    Iterator::StreamType stream_type_;
   };
 
  private:

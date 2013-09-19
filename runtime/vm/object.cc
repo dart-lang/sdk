@@ -6052,7 +6052,9 @@ void TokenStream::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
-TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
+TokenStream::Iterator::Iterator(const TokenStream& tokens,
+                                intptr_t token_pos,
+                                Iterator::StreamType stream_type)
     : tokens_(TokenStream::Handle(tokens.raw())),
       data_(ExternalTypedData::Handle(tokens.GetStream())),
       stream_(reinterpret_cast<uint8_t*>(data_.DataAddr(0)), data_.Length()),
@@ -6060,7 +6062,8 @@ TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
       obj_(Object::Handle()),
       cur_token_pos_(token_pos),
       cur_token_kind_(Token::kILLEGAL),
-      cur_token_obj_index_(-1) {
+      cur_token_obj_index_(-1),
+      stream_type_(stream_type) {
   SetCurrentPosition(token_pos);
 }
 
@@ -6092,7 +6095,10 @@ Token::Kind TokenStream::Iterator::LookaheadTokenKind(intptr_t num_tokens) {
   intptr_t count = 0;
   while (count < num_tokens && value != Token::kEOS) {
     value = ReadToken();
-    count += 1;
+    if ((stream_type_ == kAllTokens) ||
+        (static_cast<Token::Kind>(value) != Token::kNEWLINE)) {
+      count += 1;
+    }
   }
   if (value < Token::kNumTokens) {
     kind = static_cast<Token::Kind>(value);
@@ -6124,8 +6130,12 @@ void TokenStream::Iterator::SetCurrentPosition(intptr_t value) {
 
 
 void TokenStream::Iterator::Advance() {
-  cur_token_pos_ = stream_.Position();
-  intptr_t value = ReadToken();
+  intptr_t value;
+  do {
+    cur_token_pos_ = stream_.Position();
+    value = ReadToken();
+  } while ((stream_type_ == kNoNewlines) &&
+           (static_cast<Token::Kind>(value) == Token::kNEWLINE));
   if (value < Token::kNumTokens) {
     cur_token_kind_ = static_cast<Token::Kind>(value);
     cur_token_obj_index_ = -1;

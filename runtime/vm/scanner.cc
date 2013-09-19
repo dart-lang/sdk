@@ -42,10 +42,18 @@ void Scanner::InitKeywordTable() {
 
 
 void Scanner::Reset() {
+  // Non-chaning newline properties.
+  newline_token_.kind = Token::kNEWLINE;
+  newline_token_.literal = NULL;
+  newline_token_.length = 1;
+  // We don't preserve the column information.
+  newline_token_.position.column = 0;
+
   lookahead_pos_ = -1;
   token_start_ = 0;
   c0_ = '\0';
   newline_seen_ = false;
+  prev_token_line_ = 1;
   while (saved_context_ != NULL) {
     ScanContext* ctx = saved_context_;
     saved_context_ = ctx->next;
@@ -863,7 +871,16 @@ void Scanner::ScanAll(GrowableTokenStream* token_stream) {
   Reset();
   do {
     Scan();
+
+    for (intptr_t diff = current_token_.position.line - prev_token_line_;
+         diff > 0;
+         diff--) {
+      newline_token_.position.line = current_token_.position.line - diff;
+      token_stream->Add(newline_token_);
+    }
+
     token_stream->Add(current_token_);
+    prev_token_line_ = current_token_.position.line;
   } while (current_token_.kind != Token::kEOS);
 }
 

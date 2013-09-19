@@ -122,13 +122,14 @@ void CommentTest() {
       Scan("Foo( /*block \n"
            "comment*/ 0xff) // line comment;");
 
-  CheckNumTokens(tokens, 5);
+  CheckNumTokens(tokens, 6);
   CheckIdent(tokens, 0, "Foo");
   CheckLineNumber(tokens, 0, 1);
   CheckKind(tokens, 1, Token::kLPAREN);
-  CheckInteger(tokens, 2, "0xff");
-  CheckKind(tokens, 3, Token::kRPAREN);
-  CheckLineNumber(tokens, 3, 2);
+  CheckKind(tokens, 2, Token::kNEWLINE);
+  CheckInteger(tokens, 3, "0xff");
+  CheckKind(tokens, 4, Token::kRPAREN);
+  CheckLineNumber(tokens, 4, 2);
 }
 
 
@@ -270,14 +271,16 @@ void MultilineString() {
   // |2''';
   const Scanner::GrowableTokenStream& tokens = Scan("mls = '''\n1' x\n2''';");
 
-  EXPECT_EQ(5, tokens.length());
+  EXPECT_EQ(7, tokens.length());
   CheckIdent(tokens, 0, "mls");
   CheckKind(tokens, 1, Token::kASSIGN);
   CheckKind(tokens, 2, Token::kSTRING);
-  CheckKind(tokens, 3, Token::kSEMICOLON);
-  CheckKind(tokens, 4, Token::kEOS);
+  CheckKind(tokens, 3, Token::kNEWLINE);
+  CheckKind(tokens, 4, Token::kNEWLINE);
+  CheckKind(tokens, 5, Token::kSEMICOLON);
+  CheckKind(tokens, 6, Token::kEOS);
   CheckLineNumber(tokens, 0, 1);
-  CheckLineNumber(tokens, 4, 3);  // Semicolon is on line 3.
+  CheckLineNumber(tokens, 5, 3);  // Semicolon is on line 3.
   const char* litchars = (tokens)[2].literal->ToCString();
   EXPECT_EQ(6, (tokens)[2].literal->Length());
 
@@ -429,6 +432,39 @@ void FindLineTest() {
 }
 
 
+void NewlinesTest() {
+  const char* source =
+      "var es = /* a\n"
+      "            b\n"
+      "          */ \"\"\"\n"
+      "c\n"
+      "d\n"
+      "\"\"\";";
+
+  const Scanner::GrowableTokenStream& tokens = Scan(source);
+
+  EXPECT_EQ(11, tokens.length());
+  CheckKind(tokens, 0, Token::kVAR);
+  CheckIdent(tokens, 1, "es");
+  CheckKind(tokens, 2, Token::kASSIGN);
+  CheckKind(tokens, 3, Token::kNEWLINE);
+  CheckKind(tokens, 4, Token::kNEWLINE);
+  CheckKind(tokens, 5, Token::kSTRING);
+  CheckKind(tokens, 6, Token::kNEWLINE);
+  CheckKind(tokens, 7, Token::kNEWLINE);
+  CheckKind(tokens, 8, Token::kNEWLINE);
+  CheckKind(tokens, 9, Token::kSEMICOLON);
+  CheckKind(tokens, 10, Token::kEOS);
+
+  EXPECT_EQ(4, (tokens)[5].literal->Length());
+  const char* litchars = (tokens)[5].literal->ToCString();
+  EXPECT_EQ('c',  litchars[0]);  // First newline is dropped.
+  EXPECT_EQ('\n', litchars[1]);
+  EXPECT_EQ('d',  litchars[2]);
+  EXPECT_EQ('\n', litchars[3]);
+}
+
+
 TEST_CASE(Scanner_Test) {
   ScanLargeText();
 
@@ -444,6 +480,7 @@ TEST_CASE(Scanner_Test) {
   NumberLiteral();
   InvalidText();
   FindLineTest();
+  NewlinesTest();
 }
 
 }  // namespace dart

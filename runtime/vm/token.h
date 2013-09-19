@@ -124,6 +124,7 @@ namespace dart {
   TOK(kAT, "@", 0, kNoAttribute)                                               \
   TOK(kHASH, "#", 0, kNoAttribute)                                             \
                                                                                \
+  TOK(kNEWLINE, "\n", 0, kNoAttribute)                                         \
   TOK(kWHITESP, "", 0, kNoAttribute)                                           \
   TOK(kERROR, "", 0, kNoAttribute)                                             \
   TOK(kILLEGAL, "", 0, kNoAttribute)                                           \

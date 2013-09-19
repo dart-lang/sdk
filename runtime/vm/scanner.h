@@ -203,6 +203,7 @@ class Scanner : ValueObject {
   static void PrintTokens(const GrowableTokenStream& ts);
 
   TokenDescriptor current_token_;  // Current token.
+  TokenDescriptor newline_token_;  // Newline token.
   const String& source_;           // The source text being tokenized.
   intptr_t source_length_;     // The length of the source text.
   intptr_t lookahead_pos_;     // Position of lookahead character
@@ -210,6 +211,7 @@ class Scanner : ValueObject {
   intptr_t token_start_;       // Begin of current token in src_.
   int32_t c0_;                 // Lookahead character.
   bool newline_seen_;          // Newline before current token.
+  intptr_t prev_token_line_;   // Line number of the previous token.
 
   // The following fields keep track whether we are scanning a string literal
   // and its interpolated expressions.

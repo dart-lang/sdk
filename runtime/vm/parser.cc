@@ -1351,12 +1351,16 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
 void Parser::SkipBlock() {
   ASSERT(CurrentToken() == Token::kLBRACE);
   GrowableArray<Token::Kind> token_stack(8);
+  // Adding the first kLBRACE here, because it will be consumed in the loop
+  // right away.
+  token_stack.Add(CurrentToken());
   const intptr_t block_start_pos = TokenPos();
   bool is_match = true;
   bool unexpected_token_found = false;
   Token::Kind token;
   intptr_t token_pos;
   do {
+    ConsumeToken();
     token = CurrentToken();
     token_pos = TokenPos();
     switch (token) {
@@ -1381,7 +1385,6 @@ void Parser::SkipBlock() {
         // nothing.
         break;
     }
-    ConsumeToken();
   } while (!token_stack.is_empty() && is_match && !unexpected_token_found);
   if (!is_match) {
     ErrorMsg(token_pos, "unbalanced '%s'", Token::Str(token));
@@ -2905,6 +2908,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   } else {
     UnexpectedToken();
   }
+
   ASSERT(func.end_token_pos() == func.token_pos() ||
          func.end_token_pos() == end_token_pos);
   func.set_end_token_pos(end_token_pos);
@@ -3188,12 +3192,14 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     }
     if (CurrentToken() == Token::kLBRACE) {
       SkipBlock();
+      method_end_pos = TokenPos();
+      ExpectToken(Token::kRBRACE);
     } else {
       ConsumeToken();
       SkipExpr();
+      method_end_pos = TokenPos();
       ExpectSemicolon();
     }
-    method_end_pos = TokenPos() - 1;
   } else if (IsLiteral("native")) {
     if (method->has_abstract) {
       ErrorMsg(method->name_pos,
@@ -3823,6 +3829,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     ErrorMsg("{ expected");
   }
   SkipBlock();
+  ExpectToken(Token::kRBRACE);
 }
 
 
@@ -4581,7 +4588,8 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     ExpectSemicolon();
   } else if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
-    function_end_pos = TokenPos() - 1;
+    function_end_pos = TokenPos();
+    ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     SkipExpr();
@@ -4709,7 +4717,8 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     ExpectSemicolon();
   } else if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
-    accessor_end_pos = TokenPos() - 1;
+    accessor_end_pos = TokenPos();
+    ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     SkipExpr();
@@ -10200,6 +10209,7 @@ void Parser::SkipFunctionLiteral() {
   }
   if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
+    ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     SkipExpr();
