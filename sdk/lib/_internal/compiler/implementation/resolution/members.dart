@@ -3995,6 +3995,9 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     if (definition is NodeList) {
       cancel(node, 'optional parameters are not implemented');
     }
+    if (node.modifiers.isConst()) {
+      error(node, MessageKind.FORMAL_DECLARED_CONST);
+    }
 
     if (currentDefinitions != null) {
       cancel(node, 'function type parameters not supported');

@@ -550,6 +550,20 @@ main() {
   F f;
 }"""]);
 
+  static const MessageKind FORMAL_DECLARED_CONST = const MessageKind(
+      "Error: A formal parameter can't be declared const.",
+      howToFix: "Try removing 'const'.",
+      examples: const ["""
+foo(const x) {}
+main() => foo(42);
+""", """
+foo({const x}) {}
+main() => foo(42);
+""", """
+foo([const x]) {}
+main() => foo(42);
+"""]);
+
   static const MessageKind CANNOT_INSTANTIATE_TYPE_VARIABLE = const MessageKind(
       'Error: Cannot instantiate type variable "#{typeVariableName}".');
 
