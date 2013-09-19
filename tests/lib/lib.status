@@ -14,7 +14,7 @@ mirrors/class_mirror_type_variables_test: Fail # Issue 12087
 mirrors/equality_test/02: Fail # Issue 12333
 mirrors/fake_function_test: Fail # Issue 11612
 mirrors/function_type_mirror_test: Fail # Issue 12166
-mirrors/generics_test: Fail # Issue 12333
+mirrors/generics_test/01: Fail # Issue 12333
 mirrors/hierarchy_invariants_test: Fail # Issue 11863
 mirrors/invoke_test: Fail # Issue 11954
 mirrors/invoke_named_test: Fail # Issue 10471, 12863
