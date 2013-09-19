@@ -48,10 +48,6 @@ class FlowGraph : public ZoneAllocated {
             GraphEntryInstr* graph_entry,
             intptr_t max_block_id);
 
-  const FlowGraphBuilder& builder() const {
-    return builder_;
-  }
-
   // Function properties.
   const ParsedFunction& parsed_function() const {
     return parsed_function_;
@@ -250,7 +246,6 @@ class FlowGraph : public ZoneAllocated {
   intptr_t max_block_id_;
 
   // Flow graph fields.
-  const FlowGraphBuilder& builder_;
   const ParsedFunction& parsed_function_;
   const intptr_t num_copied_params_;
   const intptr_t num_non_copied_params_;
