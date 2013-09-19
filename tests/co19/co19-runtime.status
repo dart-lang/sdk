@@ -56,10 +56,6 @@ LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 LibTest/math/log_A01_t01: Fail
 LibTest/core/double/toInt_A01_t01: Fail
 
-[ $compiler == none && $runtime == vm && $arch == arm ]
-LibTest/typed_data/Float32List/Float32List.view_A01_t02: Crash  # Issue 12868
-LibTest/typed_data/Float64List/Float64List.view_A01_t02: Crash  # Issue 12868
-
 [ $compiler == none && $runtime == vm && ($arch == simarm || $arch == simmips) ]
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # co19-roll r576: Please triage this failure
 
@@ -152,8 +148,4 @@ LibTest/typed_data/Float32x4List/take_A02_t01: Fail # Dart issue 12861
 [ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
 Language/15_Types/4_Interface_Types_A11_t01: pass, timeout # Issue 13349
 Language/15_Types/4_Interface_Types_A11_t02: pass, timeout # Issue 13349
-
-[ $compiler == none && $runtime == vm && $system == windows ]
-LibTest/core/Uri/toFilePath_A02_t01: fail # co19 Issue 594
-LibTest/core/Uri/Uri.file_A01_t01: fail # co19 Issue 594
 
