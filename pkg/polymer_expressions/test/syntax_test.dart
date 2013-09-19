@@ -5,11 +5,12 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:polymer_expressions/polymer_expressions.dart';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_enhanced_config.dart';
-import 'package:observe/observe.dart';
 import 'package:mdv/mdv.dart' as mdv;
+import 'package:logging/logging.dart';
+import 'package:observe/observe.dart';
+import 'package:polymer_expressions/polymer_expressions.dart';
+import 'package:unittest/html_enhanced_config.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   mdv.initialize();
@@ -55,12 +56,28 @@ main() {
               {{ item }}
             </template>
           </template>'''));
-      query('#test')
-          ..bindingDelegate = new PolymerExpressions(globals: {'items': null})
-          ..model = null;
+      query('#test').bindingDelegate =
+          new PolymerExpressions(globals: {'items': null});
       // the template should be the only node
       expect(testDiv.nodes.length, 1);
       expect(testDiv.nodes[0].id, 'test');
+    });
+
+    test('should silently handle bad variable names', () {
+      var logger = new Logger('polymer_expressions');
+      var logFuture = logger.onRecord.toList();
+      testDiv.nodes.add(new Element.html('''
+          <template id="test" bind>{{ foo }}</template>'''));
+      query('#test').bindingDelegate = new PolymerExpressions();
+      return new Future(() {
+        logger.clearListeners();
+        return logFuture.then((records) {
+          expect(records.length, 1);
+          expect(records.first.message,
+              contains('Error evaluating expression'));
+          expect(records.first.message, contains('foo'));
+        });
+      });
     });
   });
 }
