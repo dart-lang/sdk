@@ -249,6 +249,16 @@ class CodeEmitterTask extends CompilerTask {
     return constantEmitter.initializationExpression(value);
   }
 
+  jsAst.Expression consumeCodeFor(Element element) {
+    jsAst.Expression result = backend.generatedCode[element];
+    // Avoid holding on to the generated code for the given element so it
+    // can be garbage collected once we're done emitting the code for it.
+    // To keep the key set unchanged, we do this by nulling out the
+    // value in the map rather than removing the key.
+    backend.generatedCode[element] = null;
+    return result;
+  }
+
   String get name => 'CodeEmitter';
 
   String get currentGenerateAccessorName
@@ -1285,7 +1295,7 @@ class CodeEmitterTask extends CompilerTask {
         || member.isGenerativeConstructorBody()
         || member.isAccessor()) {
       if (member.isAbstract(compiler)) return;
-      jsAst.Expression code = backend.generatedCode[member];
+      jsAst.Expression code = consumeCodeFor(member);
       if (code == null) return;
       String name = namer.getNameOfInstanceMember(member);
       if (backend.isInterceptedMethod(member)) {
@@ -2349,7 +2359,7 @@ class CodeEmitterTask extends CompilerTask {
 
     for (Element element in Elements.sortedByPosition(elements)) {
       CodeBuffer buffer = bufferForElement(element, eagerBuffer);
-      jsAst.Expression code = backend.generatedCode[element];
+      jsAst.Expression code = consumeCodeFor(element);
       String name = namer.getNameOfGlobalFunction(element);
       code = extendWithMetadata(element, code);
       emitStaticFunction(buffer, name, code);
@@ -2736,7 +2746,7 @@ class CodeEmitterTask extends CompilerTask {
       needsLazyInitializer = true;
       for (VariableElement element in Elements.sortedByPosition(lazyFields)) {
         assert(backend.generatedBailoutCode[element] == null);
-        jsAst.Expression code = backend.generatedCode[element];
+        jsAst.Expression code = consumeCodeFor(element);
         // The code is null if we ended up not needing the lazily
         // initialized field after all because of constant folding
         // before code generation.
