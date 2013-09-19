@@ -1423,9 +1423,6 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     this_seen = true;
     parameter.is_field_initializer = true;
   }
-  if (params->implicitly_final) {
-    parameter.is_final = true;
-  }
   if ((parameter.type == NULL) && (CurrentToken() == Token::kVOID)) {
     ConsumeToken();
     // This must later be changed to a closure type if we recognize
@@ -1584,6 +1581,9 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   }
   if (parameter.type->IsVoidType()) {
     ErrorMsg("parameter '%s' may not be 'void'", parameter.name->ToCString());
+  }
+  if (params->implicitly_final) {
+    parameter.is_final = true;
   }
   params->parameters->Add(parameter);
 }

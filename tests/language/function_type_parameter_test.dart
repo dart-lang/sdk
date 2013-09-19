@@ -10,6 +10,7 @@ import "package:expect/expect.dart";
 class A {
   final f;
   A(int this.f());
+  const A.nother(int this.f());
 
   static Function func;
 
@@ -28,4 +29,5 @@ main() {
   Expect.equals(null, A.func);
 
   Expect.equals(42, new A(() => 42).f());
+  Expect.equals(42, new A.nother(() => 42).f());
 }
