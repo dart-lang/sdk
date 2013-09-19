@@ -52,18 +52,6 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
   bool visitInstruction(HInstruction instruction) => false;
 
-  bool visitInvoke(HInvoke invoke) {
-    if (!invoke.isInterceptedCall) return false;
-    var interceptor = invoke.inputs[0];
-    if (interceptor is! HInterceptor) return false;
-    HInstruction constant = tryComputeConstantInterceptor(
-        invoke.inputs[1], interceptor.interceptedClasses);
-    if (constant != null) {
-      invoke.changeUse(interceptor, constant);
-    }
-    return false;
-  }
-
   bool canUseSelfForInterceptor(HType receiverType,
                                 Set<ClassElement> interceptedClasses) {
     JavaScriptBackend backend = compiler.backend;

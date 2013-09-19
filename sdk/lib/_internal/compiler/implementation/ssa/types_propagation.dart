@@ -337,6 +337,11 @@ class DesiredTypeVisitor extends HBaseVisitor {
   }
 
   HType visitTypeConversion(HTypeConversion check) {
+    // The following checks are inserted by our optimizers, so we
+    // want to optimize them even more.
+    if (check.isArgumentTypeCheck || check.isReceiverTypeCheck) {
+      return visitCheck(check);
+    }
     return HType.UNKNOWN;
   }
 

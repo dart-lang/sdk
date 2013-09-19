@@ -969,8 +969,6 @@ abstract class HInstruction implements Spannable {
     assert(isValid());
   }
 
-  /// Do a in-place change of [from] to [to]. Warning: this function
-  /// does not update [inputs] and [usedBy]. Use [changeUse] instead.
   void rewriteInput(HInstruction from, HInstruction to) {
     for (int i = 0; i < inputs.length; i++) {
       if (identical(inputs[i], from)) inputs[i] = to;
@@ -1302,7 +1300,7 @@ abstract class HInvoke extends HInstruction {
     // We know it's a selector call if it follows the interceptor
     // calling convention, which adds the actual receiver as a
     // parameter to the call.
-    return (selector != null) && (inputs.length - 2 == selector.argumentCount);
+    return inputs.length - 2 == selector.argumentCount;
   }
 }
 
