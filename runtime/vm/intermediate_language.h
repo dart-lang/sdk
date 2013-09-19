@@ -159,7 +159,7 @@ class Range;
   V(_StringBase, get:length, StringBaseLength, 1483490272)                     \
   V(ListIterator, moveNext, ListIteratorMoveNext, 1447977498)                  \
   V(_GrowableObjectArray, get:iterator, GrowableArrayIterator, 132094375)      \
-  V(_GrowableObjectArray, forEach, GrowableArrayForEach, 334448248)
+  V(_GrowableObjectArray, forEach, GrowableArrayForEach, 1001861333)
 
 
 // Class that recognizes the name and owner of a function and returns the
