@@ -12,7 +12,6 @@ built_in_identifier_prefix_test: Fail # Issue 6970
 library_juxtaposition_test: Fail # Issue 6877
 switch_int_double_test/01: Fail # Issue 7307
 switch_int_double_test/02: Fail # Issue 7307
-symbol_literal_test: Fail # Issue 12171
 throwing_lazy_variable_test: Fail # Issue 5802
 
 # These bugs refer currently ongoing language discussions.

@@ -41,6 +41,8 @@ class ObjectPointerVisitor;
   V(AbstractClassInstantiationError, "AbstractClassInstantiationError")        \
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
   V(ThrowNew, "_throwNew")                                                     \
+  V(Symbol, "Symbol")                                                          \
+  V(SymbolCtor, "Symbol.")                                                     \
   V(List, "List")                                                              \
   V(ListLiteralFactory, "List._fromLiteral")                                   \
   V(ListFactory, "List.")                                                      \

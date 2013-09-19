@@ -400,17 +400,11 @@ void Scanner::SkipLine() {
 
 void Scanner::ScanScriptTag() {
   ReadChar();
-  if (c0_ == '!') {
-    Recognize(Token::kSCRIPTTAG);
-    // The script tag extends to the end of the line. Just treat this
-    // similar to a line comment.
-    SkipLine();
-    return;
-  } else {
-    ErrorMsg("unexpected character: '#'");
-    SkipLine();
-    return;
-  }
+  ASSERT(c0_ == '!');
+  Recognize(Token::kSCRIPTTAG);
+  // The script tag extends to the end of the line. Just treat this
+  // similar to a line comment.
+  SkipLine();
 }
 
 
@@ -837,7 +831,11 @@ void Scanner::Scan() {
         break;
 
       case '#':
-        ScanScriptTag();
+        if (LookaheadChar(1) == '!') {
+          ScanScriptTag();
+        } else {
+          Recognize(Token::kHASH);
+        }
         break;
 
       default:

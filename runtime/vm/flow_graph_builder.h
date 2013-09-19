@@ -20,21 +20,21 @@ class ParsedFunction;
 // (factory-name-symbol, result-cid, fingerprint).
 // TODO(srdjan): Store the values in the snapshot instead.
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
-  V(ObjectArrayFactory, kArrayCid, 1930677134)                                 \
-  V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 1012992871)          \
-  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 1707369421)           \
-  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 1340298556)                     \
-  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 1775618642)                   \
-  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 264668024)      \
-  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 1095249987)                   \
-  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 1275304272)                 \
-  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 523449884)                    \
-  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 458531362)                  \
-  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 1753070829)                   \
-  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 1561660391)                 \
-  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 245916452)                \
-  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 368082071)                \
-  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 1674296969)           \
+  V(ObjectArrayFactory, kArrayCid, 670697167)                                  \
+  V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 816479366)           \
+  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 370010252)            \
+  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 1075524700)                     \
+  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 1510844786)                   \
+  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 2147377816)     \
+  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 830476131)                    \
+  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 1010530416)                 \
+  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 258676028)                    \
+  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 193757506)                  \
+  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 1488296973)                   \
+  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 1296886535)                 \
+  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 2128626244)               \
+  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 103308215)                \
+  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 1409523113)           \
 
 
 // A class to collect the exits from an inlined function during graph

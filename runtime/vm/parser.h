@@ -555,6 +555,7 @@ class Parser : public ValueObject {
   AstNode* ParseStringLiteral();
   String* ParseImportStringLiteral();
   AstNode* ParseCompoundLiteral();
+  AstNode* ParseSymbolLiteral();
   AstNode* ParseListLiteral(intptr_t type_pos,
                             bool is_const,
                             const AbstractTypeArguments& type_arguments);

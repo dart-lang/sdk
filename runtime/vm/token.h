@@ -122,6 +122,7 @@ namespace dart {
   TOK(kINTERPOL_END, "}", 0, kNoAttribute)                                     \
                                                                                \
   TOK(kAT, "@", 0, kNoAttribute)                                               \
+  TOK(kHASH, "#", 0, kNoAttribute)                                             \
                                                                                \
   TOK(kWHITESP, "", 0, kNoAttribute)                                           \
   TOK(kERROR, "", 0, kNoAttribute)                                             \

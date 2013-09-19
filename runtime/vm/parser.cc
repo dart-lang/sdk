@@ -9578,6 +9578,50 @@ AstNode* Parser::ParseCompoundLiteral() {
 }
 
 
+AstNode* Parser::ParseSymbolLiteral() {
+  ASSERT(CurrentToken() == Token::kHASH);
+  ConsumeToken();
+  intptr_t symbol_pos = TokenPos();
+  String& symbol = String::Handle();
+  if (IsIdentifier()) {
+    symbol = CurrentLiteral()->raw();
+    ConsumeToken();
+    while (CurrentToken() == Token::kPERIOD) {
+      symbol = String::Concat(symbol, Symbols::Dot());
+      ConsumeToken();
+      symbol = String::Concat(symbol,
+                              *ExpectIdentifier("identifier expected"));
+    }
+  } else if (Token::CanBeOverloaded(CurrentToken())) {
+    symbol = String::New(Token::Str(CurrentToken()));
+    ConsumeToken();
+  } else {
+    ErrorMsg("illegal symbol literal");
+  }
+  // Lookup class Symbol from collection_dev library and call the
+  // constructor to create a symbol instance.
+  const Library& lib = Library::Handle(Library::CollectionDevLibrary());
+  const Class& symbol_class = Class::Handle(lib.LookupClass(Symbols::Symbol()));
+  ASSERT(!symbol_class.IsNull());
+  ArgumentListNode* constr_args = new ArgumentListNode(symbol_pos);
+  constr_args->Add(new LiteralNode(
+      symbol_pos, String::ZoneHandle(Symbols::New(symbol))));
+  const Function& constr = Function::ZoneHandle(
+      symbol_class.LookupConstructor(Symbols::SymbolCtor()));
+  ASSERT(!constr.IsNull());
+  const Object& result = Object::Handle(
+      EvaluateConstConstructorCall(symbol_class,
+                                   TypeArguments::Handle(),
+                                   constr,
+                                   constr_args));
+  if (result.IsUnhandledException()) {
+    return GenerateRethrow(symbol_pos, result);
+  }
+  const Instance& instance = Instance::Cast(result);
+  return new LiteralNode(symbol_pos, Instance::ZoneHandle(instance.raw()));
+}
+
+
 static const String& BuildConstructorName(const String& type_class_name,
                                           const String* named_constructor) {
   // By convention, the static function implementing a named constructor 'C'
@@ -10068,6 +10112,8 @@ AstNode* Parser::ParsePrimary() {
              CurrentToken() == Token::kINDEX ||
              CurrentToken() == Token::kLBRACE) {
     primary = ParseCompoundLiteral();
+  } else if (CurrentToken() == Token::kHASH) {
+    primary = ParseSymbolLiteral();
   } else if (CurrentToken() == Token::kSUPER) {
     if (current_function().is_static()) {
       ErrorMsg("cannot access superclass from static method");
