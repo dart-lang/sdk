@@ -4059,7 +4059,7 @@ if (typeof $printHelperName === "function") {
         mainBuffer.add('})()$n');
       }
       compiler.assembledCode = mainBuffer.getText();
-      outputSourceMap(mainBuffer, compiler.assembledCode, '');
+      outputSourceMap(compiler.assembledCode, '');
 
       emitDeferredCode();
 
@@ -4163,7 +4163,7 @@ if (typeof $printHelperName === "function") {
     compiler.outputProvider('part', 'js')
       ..add(code)
       ..close();
-    outputSourceMap(buffer, compiler.assembledCode, 'part');
+    outputSourceMap(compiler.assembledCode, 'part');
   }
 
   String buildGeneratedBy() {
@@ -4179,7 +4179,7 @@ if (typeof $printHelperName === "function") {
     return sourceMapBuilder.build(compiledFile);
   }
 
-  void outputSourceMap(CodeBuffer buffer, String code, String name) {
+  void outputSourceMap(String code, String name) {
     if (!generateSourceMap) return;
     SourceFile compiledFile = new SourceFile(null, compiler.assembledCode);
     String sourceMap = buildSourceMap(mainBuffer, compiledFile);
