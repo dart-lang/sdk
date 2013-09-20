@@ -10306,6 +10306,22 @@ void Parser::SkipCompoundLiteral() {
 }
 
 
+void Parser::SkipSymbolLiteral() {
+  ConsumeToken();  // Hash sign.
+  if (IsIdentifier()) {
+    ConsumeToken();
+    while (CurrentToken() == Token::kPERIOD) {
+      ConsumeToken();
+      ExpectIdentifier("identifier expected");
+    }
+  } else if (Token::CanBeOverloaded(CurrentToken())) {
+    ConsumeToken();
+  } else {
+    UnexpectedToken();
+  }
+}
+
+
 void Parser::SkipNewOperator() {
   ConsumeToken();  // Skip new or const keyword.
   if (IsIdentifier()) {
@@ -10382,6 +10398,9 @@ void Parser::SkipPrimary() {
     case Token::kLBRACK:
     case Token::kINDEX:
       SkipCompoundLiteral();
+      break;
+    case Token::kHASH:
+      SkipSymbolLiteral();
       break;
     default:
       if (IsIdentifier()) {

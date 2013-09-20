@@ -296,6 +296,7 @@ class Parser : public ValueObject {
   void SkipSelectors();
   void SkipPrimary();
   void SkipCompoundLiteral();
+  void SkipSymbolLiteral();
   void SkipNewOperator();
   void SkipActualParameters();
   void SkipMapLiteral();
