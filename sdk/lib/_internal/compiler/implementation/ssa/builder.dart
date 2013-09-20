@@ -935,7 +935,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       sourceElementStack = <Element>[work.element],
       inliningStack = <InliningState>[],
       rti = builder.backend.rti,
-      super(work.resolutionTree) {
+      super(work.resolutionTree, builder.compiler) {
     localsHandler = new LocalsHandler(this);
   }
 
@@ -3601,6 +3601,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  visitAssert(node) {
+    if (!compiler.enableUserAssertions) {
+      stack.add(graph.addConstantNull(compiler));
+      return;
+    }
+    visitStaticSend(node);
+  }
+
   visitStaticSend(Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
@@ -3612,11 +3620,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       generateThrowNoSuchMethod(node,
                                 getTargetName(element),
                                 argumentNodes: node.arguments);
-      return;
-    }
-    if (identical(element, compiler.assertMethod)
-        && !compiler.enableUserAssertions) {
-      stack.add(graph.addConstantNull(compiler));
       return;
     }
     compiler.ensure(!element.isGenerativeConstructor());

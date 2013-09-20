@@ -1167,14 +1167,17 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerConstantMap(TreeElements elements) {
-    Element e = compiler.findHelper(const SourceString('ConstantMap'));
-    if (e != null) {
-      enqueueClass(compiler.enqueuer.resolution, e, elements);
+    void enqueue(SourceString name) {
+      Element e = compiler.findHelper(name);
+      if (e != null) {
+        enqueueClass(compiler.enqueuer.resolution, e, elements);
+      }
     }
-    e = compiler.findHelper(const SourceString('ConstantProtoMap'));
-    if (e != null) {
-      enqueueClass(compiler.enqueuer.resolution, e, elements);
-    }
+
+    enqueue(MapConstant.DART_CLASS);
+    enqueue(MapConstant.DART_PROTO_CLASS);
+    enqueue(MapConstant.DART_STRING_CLASS);
+    enqueue(MapConstant.DART_GENERAL_CLASS);
   }
 
   void codegen(CodegenWorkItem work) {

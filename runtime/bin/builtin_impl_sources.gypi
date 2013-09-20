@@ -61,5 +61,6 @@
     'utils_linux.cc',
     'utils_macos.cc',
     'utils_win.cc',
+    'utils_win.h',
   ],
 }

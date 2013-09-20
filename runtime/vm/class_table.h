@@ -13,6 +13,7 @@ namespace dart {
 class Class;
 class ObjectPointerVisitor;
 class RawClass;
+class JSONStream;
 
 class ClassTable {
  public:
@@ -40,6 +41,8 @@ class ClassTable {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   void Print();
+
+  void PrintToJSONStream(JSONStream* stream);
 
   static intptr_t table_offset() {
     return OFFSET_OF(ClassTable, table_);

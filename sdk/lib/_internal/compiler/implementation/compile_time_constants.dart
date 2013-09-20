@@ -205,7 +205,7 @@ class ConstantHandler extends CompilerTask {
                   node, MessageKind.NOT_ASSIGNABLE.error,
                   {'fromType': constantType, 'toType': elementType});
             } else {
-              // If the field can be lazily initialized, we will throw
+              // If the field cannot be lazily initialized, we will throw
               // the exception at runtime.
               value = null;
             }
@@ -386,46 +386,53 @@ class CompileTimeConstantEvaluator extends Visitor {
     if (!node.isConst()) {
       return signalNotCompileTimeConstant(node);
     }
-    List<StringConstant> keys = <StringConstant>[];
-    Map<StringConstant, Constant> map = new Map<StringConstant, Constant>();
+    List<Constant> keys = <Constant>[];
+    Map<Constant, Constant> map = new Map<Constant, Constant>();
     for (Link<Node> link = node.entries.nodes;
          !link.isEmpty;
          link = link.tail) {
       LiteralMapEntry entry = link.head;
       Constant key = evaluateConstant(entry.key);
-      if (!key.isString() || entry.key.asStringNode() == null) {
-        compiler.reportFatalError(
-            entry.key, MessageKind.KEY_NOT_A_STRING_LITERAL);
-      }
-      StringConstant keyConstant = key;
       if (!map.containsKey(key)) keys.add(key);
       map[key] = evaluateConstant(entry.value);
     }
-    List<Constant> values = <Constant>[];
+
+    bool onlyStringKeys = true;
     Constant protoValue = null;
-    for (StringConstant key in keys) {
-      if (key.value == MapConstant.PROTO_PROPERTY) {
-        protoValue = map[key];
+    for (var key in keys) {
+      if (key.isString()) {
+        if (key.value == MapConstant.PROTO_PROPERTY) {
+          protoValue = map[key];
+        }
       } else {
-        values.add(map[key]);
+        onlyStringKeys = false;
+        // Don't handle __proto__ values specially in the general map case.
+        protoValue = null;
+        break;
       }
     }
+
     bool hasProtoKey = (protoValue != null);
+    List<Constant> values = map.values.toList();
     InterfaceType sourceType = elements.getType(node);
     Link<DartType> arguments =
         new Link<DartType>.fromList([compiler.stringClass.rawType]);
     DartType keysType = new InterfaceType(compiler.listClass, arguments);
     ListConstant keysList = new ListConstant(keysType, keys);
-    handler.registerCompileTimeConstant(keysList, elements);
-    SourceString className = hasProtoKey
-                             ? MapConstant.DART_PROTO_CLASS
-                             : MapConstant.DART_CLASS;
+    if (onlyStringKeys) {
+      handler.registerCompileTimeConstant(keysList, elements);
+    }
+    SourceString className = onlyStringKeys
+        ? (hasProtoKey ? MapConstant.DART_PROTO_CLASS
+                       : MapConstant.DART_STRING_CLASS)
+        : MapConstant.DART_GENERAL_CLASS;
     ClassElement classElement = compiler.jsHelperLibrary.find(className);
     classElement.ensureResolved(compiler);
-    Link<DartType> typeArgument = sourceType.typeArguments.tail;
+    Link<DartType> typeArgument = sourceType.typeArguments;
     InterfaceType type = new InterfaceType(classElement, typeArgument);
     handler.registerInstantiatedType(type, elements);
-    Constant constant = new MapConstant(type, keysList, values, protoValue);
+    Constant constant =
+        new MapConstant(type, keysList, values, protoValue, onlyStringKeys);
     handler.registerCompileTimeConstant(constant, elements);
     return constant;
   }
@@ -713,6 +720,9 @@ class CompileTimeConstantEvaluator extends Visitor {
       type = constructor.computeTargetType(compiler, type);
     }
 
+    // The redirection chain of this element may not have been resolved through
+    // a post-process action, so we have to make sure it is done here.
+    compiler.resolver.resolveRedirectionChain(constructor, node);
     constructor = constructor.redirectionTarget;
     ClassElement classElement = constructor.getEnclosingClass();
     // The constructor must be an implementation to ensure that field

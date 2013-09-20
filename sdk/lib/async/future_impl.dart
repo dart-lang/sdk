@@ -143,7 +143,8 @@ class _Future<T> implements Future<T> {
       : _onValueCallback = null, _errorTestCallback = null,
         _onErrorCallback = null, _whenCompleteActionCallback = null;
 
-  _Future.immediate(T value)
+  /// Valid types for value: `T` or `Future<T>`.
+  _Future.immediate(value)
         : _onValueCallback = null, _errorTestCallback = null,
           _onErrorCallback = null, _whenCompleteActionCallback = null {
     _asyncComplete(value);
@@ -321,6 +322,14 @@ class _Future<T> implements Future<T> {
     // Otherwise the value could complete with an error and report an
     // unhandled error, even though we know we are already going to listen to
     // it.
+
+    // Assign to typed variables so we get earlier checks in checked mode.
+    if (value is Future) {
+      Future<T> typedFuture = value;
+    } else {
+      T typedValue = value;
+    }
+
     if (value is Future &&
         (value is! _Future || !(value as _Future)._isComplete)) {
       // Case 2 from above. We need to register.

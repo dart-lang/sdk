@@ -17,6 +17,8 @@ import '../lib/markdown.dart';
 import 'markdown_test.dart';
 
 main() {
+  // Some tests take more than the default 20 second unittest timeout.
+  unittestConfiguration.timeout = null;
   group('isAbsolute', () {
     final doc = new dd.Dartdoc();
 

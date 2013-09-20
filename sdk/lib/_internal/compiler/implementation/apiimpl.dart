@@ -164,7 +164,7 @@ class Compiler extends leg.Compiler {
 
     // TODO(johnniwinther): Add [:report(..., {Element element}):] to
     // report methods in Compiler.
-    void reportReadError(String exception) {
+    void reportReadError(exception) {
       withCurrentElement(element, () {
         reportError(node,
                     leg.MessageKind.READ_SCRIPT_ERROR,

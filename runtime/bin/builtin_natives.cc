@@ -54,7 +54,7 @@ namespace bin {
   V(File_DeleteLink, 1)                                                        \
   V(File_Rename, 2)                                                            \
   V(File_RenameLink, 2)                                                        \
-  V(File_FullPath, 1)                                                          \
+  V(File_ResolveSymbolicLinks, 1)                                              \
   V(File_OpenStdio, 1)                                                         \
   V(File_GetStdioHandleType, 1)                                                \
   V(File_GetType, 2)                                                           \

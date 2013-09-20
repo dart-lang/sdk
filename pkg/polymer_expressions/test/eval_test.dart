@@ -371,8 +371,9 @@ expectObserve(String s, {
     mutate(),
     dynamic afterMatcher}) {
 
-  var observer = observe(new Parser(s).parse(),
-      new Scope(model: model, variables: variables));
+  var scope = new Scope(model: model, variables: variables);
+  var observer = observe(new Parser(s).parse(), scope);
+  update(observer, scope);
   expect(observer.currentValue, beforeMatcher);
   var passed = false;
   var future = observer.onUpdate.first.then((value) {

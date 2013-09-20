@@ -554,7 +554,6 @@ abstract class InferrerVisitor
   final Element analyzedElement;
   final TypeSystem<T> types;
   final E inferrer;
-  final Compiler compiler;
   final Map<TargetElement, List<LocalsHandler<T>>> breaksFor =
       new Map<TargetElement, List<LocalsHandler<T>>>();
   final Map<TargetElement, List<LocalsHandler>> continuesFor =
@@ -584,10 +583,10 @@ abstract class InferrerVisitor
                   this.types,
                   Compiler compiler,
                   [LocalsHandler<T> handler])
-    : this.compiler = compiler,
-      this.analyzedElement = analyzedElement,
+    : this.analyzedElement = analyzedElement,
       this.locals = handler,
-      super(compiler.enqueuer.resolution.getCachedElements(analyzedElement)) {
+      super(compiler.enqueuer.resolution.getCachedElements(analyzedElement),
+            compiler) {
     if (handler != null) return;
     Node node = analyzedElement.parseNode(compiler);
     FieldInitializationScope<T> fieldScope =
@@ -614,6 +613,13 @@ abstract class InferrerVisitor
   T visitReturn(Return node);
 
   T visitFunctionExpression(FunctionExpression node);
+
+  T visitAssert(Send node) {
+    if (!compiler.enableUserAssertions) {
+      return types.nullType;
+    }
+    return visitStaticSend(node);
+  }
 
   T visitNode(Node node) {
     node.visitChildren(this);
@@ -975,7 +981,7 @@ abstract class InferrerVisitor
   T visitThrow(Throw node) {
     node.visitChildren(this);
     locals.seenReturnOrThrow = true;
-    return types.dynamicType;
+    return types.nonNullEmpty();
   }
 
   T visitCatchBlock(CatchBlock node) {

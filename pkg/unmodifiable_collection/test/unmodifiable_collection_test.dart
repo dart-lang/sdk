@@ -225,52 +225,52 @@ void testIterable(Iterable original, Iterable wrapped, String name) {
   });
 
   test("$name - skip", () {
-    expect(wrapped.skip(0), equals(original.skip(0)));
-    expect(wrapped.skip(1), equals(original.skip(1)));
-    expect(wrapped.skip(5), equals(original.skip(5)));
+    expect(wrapped.skip(0), orderedEquals(original.skip(0)));
+    expect(wrapped.skip(1), orderedEquals(original.skip(1)));
+    expect(wrapped.skip(5), orderedEquals(original.skip(5)));
   });
 
   test("$name - skipWhile", () {
     expect(wrapped.skipWhile((x) => true),
-           equals(original.skipWhile((x) => true)));
+           orderedEquals(original.skipWhile((x) => true)));
     expect(wrapped.skipWhile((x) => false),
-           equals(original.skipWhile((x) => false)));
+           orderedEquals(original.skipWhile((x) => false)));
     expect(wrapped.skipWhile((x) => x != 42),
-           equals(original.skipWhile((x) => x != 42)));
+           orderedEquals(original.skipWhile((x) => x != 42)));
   });
 
   test("$name - take", () {
-    expect(wrapped.take(0), equals(original.take(0)));
-    expect(wrapped.take(1), equals(original.take(1)));
-    expect(wrapped.take(5), equals(original.take(5)));
+    expect(wrapped.take(0), orderedEquals(original.take(0)));
+    expect(wrapped.take(1), orderedEquals(original.take(1)));
+    expect(wrapped.take(5), orderedEquals(original.take(5)));
   });
 
   test("$name - takeWhile", () {
     expect(wrapped.takeWhile((x) => true),
-           equals(original.takeWhile((x) => true)));
+           orderedEquals(original.takeWhile((x) => true)));
     expect(wrapped.takeWhile((x) => false),
-           equals(original.takeWhile((x) => false)));
+           orderedEquals(original.takeWhile((x) => false)));
     expect(wrapped.takeWhile((x) => x != 42),
-           equals(original.takeWhile((x) => x != 42)));
+           orderedEquals(original.takeWhile((x) => x != 42)));
   });
 
   test("$name - toList", () {
-    expect(wrapped.toList(), equals(original.toList()));
+    expect(wrapped.toList(), orderedEquals(original.toList()));
     expect(wrapped.toList(growable: false),
-           equals(original.toList(growable: false)));
+           orderedEquals(original.toList(growable: false)));
   });
 
   test("$name - toSet", () {
-    expect(wrapped.toSet(), equals(original.toSet()));
+    expect(wrapped.toSet(), unorderedEquals(original.toSet()));
   });
 
   test("$name - where", () {
     expect(wrapped.where((x) => true),
-           equals(original.where((x) => true)));
+           orderedEquals(original.where((x) => true)));
     expect(wrapped.where((x) => false),
-           equals(original.where((x) => false)));
+           orderedEquals(original.where((x) => false)));
     expect(wrapped.where((x) => x != 42),
-           equals(original.where((x) => x != 42)));
+           orderedEquals(original.where((x) => x != 42)));
   });
 }
 
@@ -372,7 +372,7 @@ void testWriteList(List original, List wrapped, String name) {
     List sortCopy = new List.from(original);
     sortCopy.sort();
     wrapped.sort();
-    expect(original, equals(sortCopy));
+    expect(original, orderedEquals(sortCopy));
     original.setAll(0, copy);
   });
 
@@ -475,20 +475,20 @@ void testReadSet(Set original, Set wrapped, String name) {
 
   test("$name - intersection", () {
     expect(wrapped.intersection(new Set()), isEmpty);
-    expect(wrapped.intersection(copy), equals(original));
+    expect(wrapped.intersection(copy), unorderedEquals(original));
     expect(wrapped.intersection(new Set.from([42])),
             new Set.from(original.contains(42) ? [42] : []));
   });
 
   test("$name - union", () {
-    expect(wrapped.union(new Set()), equals(original));
-    expect(wrapped.union(copy), equals(original));
+    expect(wrapped.union(new Set()), unorderedEquals(original));
+    expect(wrapped.union(copy), unorderedEquals(original));
     expect(wrapped.union(new Set.from([42])),
            equals(original.union(new Set.from([42]))));
   });
 
   test("$name - difference", () {
-    expect(wrapped.difference(new Set()), equals(original));
+    expect(wrapped.difference(new Set()), unorderedEquals(original));
     expect(wrapped.difference(copy), isEmpty);
     expect(wrapped.difference(new Set.from([42])),
            equals(original.difference(new Set.from([42]))));
@@ -496,13 +496,13 @@ void testReadSet(Set original, Set wrapped, String name) {
 }
 
 void testNoChangeSet(Set original, Set wrapped, String name) {
-  Set copy = new Set.from(original);
+  List originalElements = original.toList();
 
   testThrows(name, thunk) {
     test(name, () {
       expect(thunk, throwsUnsupportedError);
       // No modifications happened.
-      expect(original, equals(copy));
+      expect(original.toList(), equals(originalElements));
     });
   }
 
@@ -584,11 +584,11 @@ void testReadMap(Map original, Map wrapped, String name) {
   });
 
   test("$name keys", () {
-    expect(wrapped.keys, equals(original.keys));
+    expect(wrapped.keys, orderedEquals(original.keys));
   });
 
   test("$name values", () {
-    expect(wrapped.values, equals(original.values));
+    expect(wrapped.values, orderedEquals(original.values));
   });
 }
 

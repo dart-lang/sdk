@@ -18,4 +18,6 @@ patch Future<MirrorSystem> mirrorSystemOf(SendPort port) {
 
 patch InstanceMirror reflect(Object reflectee) => js.reflect(reflectee);
 
-patch ClassMirror reflectClass(Type key) => js.reflectType(key);
+patch ClassMirror reflectClass(Type key) {
+  return js.reflectType(key).originalDeclaration;
+}

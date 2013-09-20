@@ -1189,28 +1189,32 @@ class FunctionSignatureX implements FunctionSignature {
    * exception/call.
    */
   bool isCompatibleWith(FunctionSignature signature) {
-    if (optionalParametersAreNamed != signature.optionalParametersAreNamed) {
-      return false;
-    }
     if (optionalParametersAreNamed) {
+      if (!signature.optionalParametersAreNamed) {
+        return requiredParameterCount == signature.parameterCount;
+      }
+      // If both signatures have named parameters, then they must have
+      // the same number of required parameters, and the names in
+      // [signature] must all be in [:this:].
       if (requiredParameterCount != signature.requiredParameterCount) {
         return false;
       }
+      Set<String> names = optionalParameters.toList().map(
+          (Element element) => element.name.slowToString()).toSet();
       for (Element namedParameter in signature.optionalParameters) {
-        if (!optionalParameters.contains(namedParameter)) {
+        if (!names.contains(namedParameter.name.slowToString())) {
           return false;
         }
       }
     } else {
+      if (signature.optionalParametersAreNamed) return false;
       // There must be at least as many arguments as in the other signature, but
       // this signature must not have more required parameters.  Having more
       // optional parameters is not a problem, they simply are never provided
       // by call sites of a call to a method with the other signature.
-      if (requiredParameterCount > signature.requiredParameterCount ||
-          requiredParameterCount < signature.parameterCount ||
-          parameterCount < signature.parameterCount) {
-        return false;
-      }
+      int otherTotalCount = signature.parameterCount;
+      return requiredParameterCount <= otherTotalCount
+          && parameterCount >= otherTotalCount;
     }
     return true;
   }
@@ -1275,22 +1279,20 @@ class FunctionElementX extends ElementX implements FunctionElement {
 
   bool get isRedirectingFactory => defaultImplementation != this;
 
-  FunctionElement get redirectionTarget {
-    if (this == defaultImplementation) return this;
-    var target = defaultImplementation;
-    Set<Element> seen = new Set<Element>();
-    seen.add(target);
-    while (!target.isErroneous() && target != target.defaultImplementation) {
-      target = target.defaultImplementation;
-      if (seen.contains(target)) {
-        // TODO(ahe): This is expedient for now, but it should be
-        // checked by the resolver.  Keeping http://dartbug.com/3970
-        // open to track this.
-        throw new SpannableAssertionFailure(
-            target, 'redirecting factory leads to cycle');
-      }
+  /// This field is set by the post process queue when checking for cycles.
+  FunctionElement internalRedirectionTarget;
+
+  set redirectionTarget(FunctionElement constructor) {
+    assert(constructor != null && internalRedirectionTarget == null);
+    internalRedirectionTarget = constructor;
+  }
+
+  get redirectionTarget {
+    if (Elements.isErroneousElement(defaultImplementation)) {
+      return defaultImplementation;
     }
-    return target;
+    assert(!isRedirectingFactory || internalRedirectionTarget != null);
+    return isRedirectingFactory ? internalRedirectionTarget : this;
   }
 
   InterfaceType computeTargetType(Compiler compiler,
@@ -1962,6 +1964,9 @@ abstract class ClassElementX extends BaseClassElementX {
   }
 
   void addToScope(Element element, DiagnosticListener listener) {
+    if (element.isField() && element.name == name) {
+      listener.reportError(element, MessageKind.MEMBER_USES_CLASS_NAME);
+    }
     localScope.add(element, listener);
   }
 

@@ -183,8 +183,7 @@ class RuntimeTypes {
               methodsNeedingRti.add(method);
             }
           }
-          compiler.resolverWorld.closurizedGenericMembers.forEach(
-              analyzeMethod);
+          compiler.resolverWorld.genericClosures.forEach(analyzeMethod);
           compiler.resolverWorld.genericCallMethods.forEach(analyzeMethod);
         }
       }
@@ -198,7 +197,7 @@ class RuntimeTypes {
           methodsNeedingRti.add(method);
         }
       }
-      compiler.resolverWorld.closurizedGenericMembers.forEach(analyzeMethod);
+      compiler.resolverWorld.genericClosures.forEach(analyzeMethod);
       compiler.resolverWorld.genericCallMethods.forEach(analyzeMethod);
     }
     // Add the classes that need RTI because they use a type variable as

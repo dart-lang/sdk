@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library isolate_bad_function_test;
+library isolate_bad_code_test;
 
 import 'dart:async';
 import 'test_helper.dart';
 import 'package:expect/expect.dart';
 
 class NullCollectionTest extends VmServiceRequestHelper {
-  NullCollectionTest(port, id, collection) :
-      super('http://127.0.0.1:$port/isolates/$id/$collection/-99');
+  NullCollectionTest(port, id) :
+      super('http://127.0.0.1:$port/isolates/$id/objects/50');
 
   onRequestCompleted(Map reply) {
     Expect.equals('null', reply['type']);
@@ -18,8 +18,8 @@ class NullCollectionTest extends VmServiceRequestHelper {
 }
 
 class BadCollectionTest extends VmServiceRequestHelper {
-  BadCollectionTest(port, id, collection) :
-      super('http://127.0.0.1:$port/isolates/$id/$collection');
+  BadCollectionTest(port, id) :
+      super('http://127.0.0.1:$port/isolates/$id/objects');
 
   onRequestCompleted(Map reply) {
     Expect.equals('error', reply['type']);
@@ -44,11 +44,9 @@ main() {
     var test = new IsolateListTest(port);
     test.makeRequest().then((_) {
       var badCollectionRequest =
-          new BadCollectionTest(port, test._isolateId,
-                                'functions').makeRequest();
+          new BadCollectionTest(port, test._isolateId).makeRequest();
       var nullCollectionRequest =
-          new NullCollectionTest(port, test._isolateId,
-                                 'functions').makeRequest();
+          new NullCollectionTest(port, test._isolateId).makeRequest();
       var requests = Future.wait([badCollectionRequest, nullCollectionRequest]);
       requests.then((_) {
         process.requestExit();

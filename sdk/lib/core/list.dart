@@ -192,7 +192,7 @@ abstract class List<E> implements Iterable<E> {
    * Removes all objects from this list;
    * the length of the list becomes zero.
    *
-   * Throws an [UnsupportedError], and retains all objects, if this 
+   * Throws an [UnsupportedError], and retains all objects, if this
    * is a fixed-length list.
    */
   void clear();

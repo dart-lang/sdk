@@ -1018,7 +1018,7 @@ intptr_t DeoptInfoBuilder::FindMaterialization(
 }
 
 
-RawDeoptInfo* DeoptInfoBuilder::CreateDeoptInfo() {
+RawDeoptInfo* DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
   // TODO(vegorov): enable compression of deoptimization info containing object
   // materialization instructions.
   const bool disable_compression =
@@ -1054,14 +1054,17 @@ RawDeoptInfo* DeoptInfoBuilder::CreateDeoptInfo() {
     node = new TrieNode(instr, current_info_number_);
     node->AddChild(child);
   }
-  suffix->AddChild(node);
 
   if (suffix_length > 1) {
+    suffix->AddChild(node);
     DeoptInstr* instr =
         new DeoptSuffixInstr(suffix->info_number(), suffix_length);
     deopt_info.SetAt(length - 1, instr->kind(), instr->from_index());
+  } else {
+    trie_root_->AddChild(node);
   }
 
+  ASSERT(deopt_info.VerifyDecompression(instructions_, deopt_table));
   instructions_.Clear();
   materializations_.Clear();
   frame_start_ = -1;

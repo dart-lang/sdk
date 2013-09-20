@@ -1351,12 +1351,16 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
 void Parser::SkipBlock() {
   ASSERT(CurrentToken() == Token::kLBRACE);
   GrowableArray<Token::Kind> token_stack(8);
+  // Adding the first kLBRACE here, because it will be consumed in the loop
+  // right away.
+  token_stack.Add(CurrentToken());
   const intptr_t block_start_pos = TokenPos();
   bool is_match = true;
   bool unexpected_token_found = false;
   Token::Kind token;
   intptr_t token_pos;
   do {
+    ConsumeToken();
     token = CurrentToken();
     token_pos = TokenPos();
     switch (token) {
@@ -1381,7 +1385,6 @@ void Parser::SkipBlock() {
         // nothing.
         break;
     }
-    ConsumeToken();
   } while (!token_stack.is_empty() && is_match && !unexpected_token_found);
   if (!is_match) {
     ErrorMsg(token_pos, "unbalanced '%s'", Token::Str(token));
@@ -1419,9 +1422,6 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     ExpectToken(Token::kPERIOD);
     this_seen = true;
     parameter.is_field_initializer = true;
-  }
-  if (params->implicitly_final) {
-    parameter.is_final = true;
   }
   if ((parameter.type == NULL) && (CurrentToken() == Token::kVOID)) {
     ConsumeToken();
@@ -1581,6 +1581,9 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   }
   if (parameter.type->IsVoidType()) {
     ErrorMsg("parameter '%s' may not be 'void'", parameter.name->ToCString());
+  }
+  if (params->implicitly_final) {
+    parameter.is_final = true;
   }
   params->parameters->Add(parameter);
 }
@@ -1897,7 +1900,7 @@ AstNode* Parser::ParseSuperOperator() {
       negate_result = true;
     }
 
-    ASSERT(Token::Precedence(op) >= Token::Precedence(Token::kBIT_OR));
+    ASSERT(Token::Precedence(op) >= Token::Precedence(Token::kEQ));
     AstNode* other_operand = ParseBinaryExpr(Token::Precedence(op) + 1);
 
     ArgumentListNode* op_arguments = new ArgumentListNode(operator_pos);
@@ -2349,18 +2352,6 @@ void Parser::ParseInitializers(const Class& cls,
   TRACE_PARSER("ParseInitializers");
   bool super_init_seen = false;
   if (CurrentToken() == Token::kCOLON) {
-    if ((LookaheadToken(1) == Token::kTHIS) &&
-        ((LookaheadToken(2) == Token::kLPAREN) ||
-        ((LookaheadToken(2) == Token::kPERIOD) &&
-            (LookaheadToken(4) == Token::kLPAREN)))) {
-      // Either we see this(...) or this.xxx(...) which is a
-      // redirected constructor. We don't need to check whether
-      // const fields are initialized. The other constructor will
-      // guarantee that.
-      ConsumeToken();  // Colon.
-      ParseConstructorRedirection(cls, receiver);
-      return;
-    }
     do {
       ConsumeToken();  // Colon or comma.
       AstNode* init_statement;
@@ -2388,6 +2379,7 @@ void Parser::ParseInitializers(const Class& cls,
 void Parser::ParseConstructorRedirection(const Class& cls,
                                          LocalVariable* receiver) {
   TRACE_PARSER("ParseConstructorRedirection");
+  ExpectToken(Token::kCOLON);
   ASSERT(CurrentToken() == Token::kTHIS);
   const intptr_t call_pos = TokenPos();
   ConsumeToken();
@@ -2568,24 +2560,36 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   // Now populate function scope with the formal parameters.
   AddFormalParamsToScope(&params, current_block_->scope);
 
-  // Initialize instance fields that have an explicit initializer expression.
-  // The formal parameter names must not be visible to the instance
-  // field initializer expressions, yet the parameters must be added to
-  // the scope so the expressions use the correct offsets for 'this' when
-  // storing values. We make the formal parameters temporarily invisible
-  // while parsing the instance field initializer expressions.
-  params.SetInvisible(true);
-  GrowableArray<Field*> initialized_fields;
-  LocalVariable* receiver = current_block_->scope->VariableAt(0);
-  OpenBlock();
-  ParseInitializedInstanceFields(cls, receiver, &initialized_fields);
-  // Make the parameters (which are in the outer scope) visible again.
-  params.SetInvisible(false);
+  const bool is_redirecting_constructor =
+      (CurrentToken() == Token::kCOLON) &&
+          ((LookaheadToken(1) == Token::kTHIS) &&
+              ((LookaheadToken(2) == Token::kLPAREN) ||
+              ((LookaheadToken(2) == Token::kPERIOD) &&
+              (LookaheadToken(4) == Token::kLPAREN))));
 
-  // Turn formal field parameters into field initializers or report error
-  // if the function is not a constructor.
+  GrowableArray<Field*> initialized_fields;
+  LocalVariable* receiver = (*params.parameters)[0].var;
+  OpenBlock();
+
+  // If this is not a redirecting constructor, initialize
+  // instance fields that have an explicit initializer expression.
+  if (!is_redirecting_constructor) {
+    // The formal parameter names must not be visible to the instance
+    // field initializer expressions, yet the parameters must be added to
+    // the scope so the expressions use the correct offsets for 'this' when
+    // storing values. We make the formal parameters temporarily invisible
+    // while parsing the instance field initializer expressions.
+    params.SetInvisible(true);
+    ParseInitializedInstanceFields(cls, receiver, &initialized_fields);
+    // Make the parameters (which are in the outer scope) visible again.
+    params.SetInvisible(false);
+  }
+
+  // Turn formal field parameters into field initializers.
   if (params.has_field_initializer) {
-    for (int i = 0; i < params.parameters->length(); i++) {
+    // First two parameters are implicit receiver and phase.
+    ASSERT(params.parameters->length() >= 2);
+    for (int i = 2; i < params.parameters->length(); i++) {
       ParamDesc& param = (*params.parameters)[i];
       if (param.is_field_initializer) {
         const String& field_name = *param.name;
@@ -2594,6 +2598,11 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
           ErrorMsg(param.name_pos,
                    "unresolved reference to instance field '%s'",
                    field_name.ToCString());
+        }
+        if (is_redirecting_constructor) {
+          ErrorMsg(param.name_pos,
+                   "redirecting constructors may not have "
+                   "initializing formal parameters");
         }
         CheckDuplicateFieldInit(param.name_pos, &initialized_fields, &field);
         AstNode* instance = new LoadLocalNode(param.name_pos, receiver);
@@ -2612,8 +2621,11 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     }
   }
 
-  // Now parse the explicit initializer list or constructor redirection.
-  ParseInitializers(cls, receiver, &initialized_fields);
+  if (is_redirecting_constructor) {
+    ParseConstructorRedirection(cls, receiver);
+  } else {
+    ParseInitializers(cls, receiver, &initialized_fields);
+  }
 
   SequenceNode* init_statements = CloseBlock();
   if (init_statements->length() > 0) {
@@ -2660,6 +2672,11 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     // saves the evaluated actual arguments in temporary variables.
     // The temporary variables are necessary so that the argument
     // expressions are not evaluated twice.
+    // Note: we should never get here in the case of a redirecting
+    // constructor. In that case, the call to the target constructor
+    // is the "super call" and is implicitly at the end of the
+    // initializer list.
+    ASSERT(!is_redirecting_constructor);
     ArgumentListNode* ctor_args = super_call->arguments();
     // The super initializer call has at least 2 arguments: the
     // implicit receiver, and the hidden construction phase.
@@ -2719,6 +2736,9 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   }
 
   if (CurrentToken() == Token::kLBRACE) {
+    // We checked in the top-level parse phase that a redirecting
+    // constructor does not have a body.
+    ASSERT(!is_redirecting_constructor);
     ConsumeToken();
     ParseStatementSequence();
     ExpectToken(Token::kRBRACE);
@@ -2888,6 +2908,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   } else {
     UnexpectedToken();
   }
+
   ASSERT(func.end_token_pos() == func.token_pos() ||
          func.end_token_pos() == end_token_pos);
   func.set_end_token_pos(end_token_pos);
@@ -3171,12 +3192,14 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     }
     if (CurrentToken() == Token::kLBRACE) {
       SkipBlock();
+      method_end_pos = TokenPos();
+      ExpectToken(Token::kRBRACE);
     } else {
       ConsumeToken();
       SkipExpr();
+      method_end_pos = TokenPos();
       ExpectSemicolon();
     }
-    method_end_pos = TokenPos() - 1;
   } else if (IsLiteral("native")) {
     if (method->has_abstract) {
       ErrorMsg(method->name_pos,
@@ -3806,6 +3829,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     ErrorMsg("{ expected");
   }
   SkipBlock();
+  ExpectToken(Token::kRBRACE);
 }
 
 
@@ -4564,7 +4588,8 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     ExpectSemicolon();
   } else if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
-    function_end_pos = TokenPos() - 1;
+    function_end_pos = TokenPos();
+    ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     SkipExpr();
@@ -4692,7 +4717,8 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     ExpectSemicolon();
   } else if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
-    accessor_end_pos = TokenPos() - 1;
+    accessor_end_pos = TokenPos();
+    ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     SkipExpr();
@@ -7345,7 +7371,7 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
 
 AstNode* Parser::ParseBinaryExpr(int min_preced) {
   TRACE_PARSER("ParseBinaryExpr");
-  ASSERT(min_preced >= 4);
+  ASSERT(min_preced >= Token::Precedence(Token::kOR));
   AstNode* left_operand = ParseUnaryExpr();
   if (left_operand->IsPrimaryNode() &&
       (left_operand->AsPrimaryNode()->IsSuper())) {
@@ -9561,6 +9587,50 @@ AstNode* Parser::ParseCompoundLiteral() {
 }
 
 
+AstNode* Parser::ParseSymbolLiteral() {
+  ASSERT(CurrentToken() == Token::kHASH);
+  ConsumeToken();
+  intptr_t symbol_pos = TokenPos();
+  String& symbol = String::Handle();
+  if (IsIdentifier()) {
+    symbol = CurrentLiteral()->raw();
+    ConsumeToken();
+    while (CurrentToken() == Token::kPERIOD) {
+      symbol = String::Concat(symbol, Symbols::Dot());
+      ConsumeToken();
+      symbol = String::Concat(symbol,
+                              *ExpectIdentifier("identifier expected"));
+    }
+  } else if (Token::CanBeOverloaded(CurrentToken())) {
+    symbol = String::New(Token::Str(CurrentToken()));
+    ConsumeToken();
+  } else {
+    ErrorMsg("illegal symbol literal");
+  }
+  // Lookup class Symbol from collection_dev library and call the
+  // constructor to create a symbol instance.
+  const Library& lib = Library::Handle(Library::CollectionDevLibrary());
+  const Class& symbol_class = Class::Handle(lib.LookupClass(Symbols::Symbol()));
+  ASSERT(!symbol_class.IsNull());
+  ArgumentListNode* constr_args = new ArgumentListNode(symbol_pos);
+  constr_args->Add(new LiteralNode(
+      symbol_pos, String::ZoneHandle(Symbols::New(symbol))));
+  const Function& constr = Function::ZoneHandle(
+      symbol_class.LookupConstructor(Symbols::SymbolCtor()));
+  ASSERT(!constr.IsNull());
+  const Object& result = Object::Handle(
+      EvaluateConstConstructorCall(symbol_class,
+                                   TypeArguments::Handle(),
+                                   constr,
+                                   constr_args));
+  if (result.IsUnhandledException()) {
+    return GenerateRethrow(symbol_pos, result);
+  }
+  const Instance& instance = Instance::Cast(result);
+  return new LiteralNode(symbol_pos, Instance::ZoneHandle(instance.raw()));
+}
+
+
 static const String& BuildConstructorName(const String& type_class_name,
                                           const String* named_constructor) {
   // By convention, the static function implementing a named constructor 'C'
@@ -10051,6 +10121,8 @@ AstNode* Parser::ParsePrimary() {
              CurrentToken() == Token::kINDEX ||
              CurrentToken() == Token::kLBRACE) {
     primary = ParseCompoundLiteral();
+  } else if (CurrentToken() == Token::kHASH) {
+    primary = ParseSymbolLiteral();
   } else if (CurrentToken() == Token::kSUPER) {
     if (current_function().is_static()) {
       ErrorMsg("cannot access superclass from static method");
@@ -10137,6 +10209,7 @@ void Parser::SkipFunctionLiteral() {
   }
   if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
+    ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     SkipExpr();
@@ -10233,6 +10306,22 @@ void Parser::SkipCompoundLiteral() {
 }
 
 
+void Parser::SkipSymbolLiteral() {
+  ConsumeToken();  // Hash sign.
+  if (IsIdentifier()) {
+    ConsumeToken();
+    while (CurrentToken() == Token::kPERIOD) {
+      ConsumeToken();
+      ExpectIdentifier("identifier expected");
+    }
+  } else if (Token::CanBeOverloaded(CurrentToken())) {
+    ConsumeToken();
+  } else {
+    UnexpectedToken();
+  }
+}
+
+
 void Parser::SkipNewOperator() {
   ConsumeToken();  // Skip new or const keyword.
   if (IsIdentifier()) {
@@ -10309,6 +10398,9 @@ void Parser::SkipPrimary() {
     case Token::kLBRACK:
     case Token::kINDEX:
       SkipCompoundLiteral();
+      break;
+    case Token::kHASH:
+      SkipSymbolLiteral();
       break;
     default:
       if (IsIdentifier()) {

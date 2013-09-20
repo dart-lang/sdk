@@ -456,8 +456,24 @@ void testNaNKeys(Map map) {
 
 void testLength(int length, Map map) {
   Expect.equals(length, map.length);
-  (length == 0 ? Expect.isTrue : Expect.isFalse)(map.isEmpty);
-  (length != 0 ? Expect.isTrue : Expect.isFalse)(map.isNotEmpty);
+  Expect.equals(length, map.keys.length);
+  Expect.equals(length, map.values.length);
+  // Check being-empty.
+  var ifEmpty = (length == 0) ? Expect.isTrue : Expect.isFalse;
+  var ifNotEmpty = (length != 0) ? Expect.isTrue : Expect.isFalse;
+  ifEmpty(map.isEmpty);
+  ifNotEmpty(map.isNotEmpty);
+  ifEmpty(map.keys.isEmpty);
+  ifNotEmpty(map.keys.isNotEmpty);
+  ifEmpty(map.values.isEmpty);
+  ifNotEmpty(map.values.isNotEmpty);
+  // Test key/value iterators match their isEmpty/isNotEmpty.
+  ifNotEmpty(map.keys.iterator.moveNext());
+  ifNotEmpty(map.values.iterator.moveNext());
+  if (length == 0) {
+    for (var k in map.keys) Expect.fail("contains key when iterating: $k");
+    for (var v in map.values) Expect.fail("contains values when iterating: $v");
+  }
 }
 
 

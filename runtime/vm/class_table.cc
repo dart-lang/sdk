@@ -95,4 +95,20 @@ void ClassTable::Print() {
   }
 }
 
+
+void ClassTable::PrintToJSONStream(JSONStream* stream) {
+  Class& cls = Class::Handle();
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", "ClassList");
+  {
+    JSONArray members(&jsobj, "members");
+    for (intptr_t i = 1; i < top_; i++) {
+      if (HasValidClassAt(i)) {
+        cls = At(i);
+        members.AddValue(cls);
+      }
+    }
+  }
+}
+
 }  // namespace dart

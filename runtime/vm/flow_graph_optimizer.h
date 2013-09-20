@@ -16,11 +16,9 @@ class ParsedFunction;
 
 class FlowGraphOptimizer : public FlowGraphVisitor {
  public:
-  FlowGraphOptimizer(FlowGraph* flow_graph,
-                     GrowableArray<const Field*>* guarded_fields)
+  explicit FlowGraphOptimizer(FlowGraph* flow_graph)
       : FlowGraphVisitor(flow_graph->reverse_postorder()),
-        flow_graph_(flow_graph),
-        guarded_fields_(guarded_fields) { }
+        flow_graph_(flow_graph) { }
   virtual ~FlowGraphOptimizer() {}
 
   FlowGraph* flow_graph() const { return flow_graph_; }
@@ -45,6 +43,12 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void InferSmiRanges();
 
   void AnalyzeTryCatch();
+
+  bool TryInlineRecognizedMethod(const Function& target,
+                                 Instruction* call,
+                                 const ICData& ic_data,
+                                 TargetEntryInstr** entry,
+                                 Definition** last);
 
   // Remove environments from the instructions which do not deoptimize.
   void EliminateEnvironments();
@@ -77,6 +81,11 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                          const ICData& value_check,
                          intptr_t class_id);
   bool TryReplaceWithLoadIndexed(InstanceCallInstr* call);
+  bool TryInlineGetIndexed(MethodRecognizer::Kind kind,
+                           Instruction* call,
+                           const ICData& ic_data,
+                           TargetEntryInstr** entry,
+                           Definition** last);
 
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithUnaryOp(InstanceCallInstr* call, Token::Kind op_kind);
@@ -185,10 +194,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                     Definition* left_instr,
                                     Definition* right_instr);
 
-  void AddToGuardedFields(const Field& field);
-
   FlowGraph* flow_graph_;
-  GrowableArray<const Field*>* guarded_fields_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);
 };

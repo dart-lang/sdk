@@ -2175,7 +2175,14 @@ class TokenStream : public Object {
   // in a TokenStream object.
   class Iterator : ValueObject {
    public:
-    Iterator(const TokenStream& tokens, intptr_t token_pos);
+    enum StreamType {
+      kNoNewlines,
+      kAllTokens
+    };
+
+    Iterator(const TokenStream& tokens,
+                   intptr_t token_pos,
+                   Iterator::StreamType stream_type = kNoNewlines);
 
     void SetStream(const TokenStream& tokens, intptr_t token_pos);
     bool IsValid() const;
@@ -2212,6 +2219,7 @@ class TokenStream : public Object {
     intptr_t cur_token_pos_;
     Token::Kind cur_token_kind_;
     intptr_t cur_token_obj_index_;
+    Iterator::StreamType stream_type_;
   };
 
  private:
@@ -2939,6 +2947,12 @@ class DeoptInfo : public Object {
   // instructions.  This copies any shared suffixes into the array.
   void ToInstructions(const Array& table,
                       GrowableArray<DeoptInstr*>* instructions) const;
+
+
+  // Returns true iff decompression yields the same instructions as the
+  // original.
+  bool VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
+                           const Array& deopt_table) const;
 
  private:
   intptr_t* EntryAddr(intptr_t index, intptr_t entry_offset) const {

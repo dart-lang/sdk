@@ -118,7 +118,6 @@ import 'dart:async';
 
 import "tree/tree.dart" as tree;
 import "dart2jslib.dart" as leg;  // CompilerTask, Compiler.
-import "../compiler.dart" as api;
 import "scanner/scannerlib.dart";  // Scanner, Parsers, Listeners
 import "elements/elements.dart";
 import "elements/modelx.dart" show LibraryElementX, MetadataAnnotationX;

@@ -22,7 +22,7 @@ class HMAC {
   /**
    * Add a list of bytes to the message.
    */
-  add(List<int> data) {
+  void add(List<int> data) {
     if (_isClosed) throw new StateError("HMAC is closed");
     _message.addAll(data);
   }
@@ -110,5 +110,5 @@ class HMAC {
   // HMAC internal state.
   Hash _hash;
   List<int> _key;
-  List<int> _message;
+  final List<int> _message;
 }

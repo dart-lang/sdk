@@ -149,6 +149,14 @@ static void PrintCollectionErrorResponse(const char* collection_name,
 }
 
 
+static void PrintGenericError(JSONStream* js) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "error");
+  jsobj.AddProperty("text", "Invalid request.");
+  PrintArgumentsAndOptions(jsobj, js);
+}
+
+
 static void HandleName(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "IsolateName");
@@ -197,6 +205,7 @@ static void HandleEcho(Isolate* isolate, JSONStream* js) {
   PrintArgumentsAndOptions(jsobj, js);
 }
 
+
 // Print an error message if there is no ID argument.
 #define REQUIRE_COLLECTION_ID(collection)                                      \
   if (js->num_arguments() == 1) {                                              \
@@ -204,46 +213,44 @@ static void HandleEcho(Isolate* isolate, JSONStream* js) {
     return;                                                                    \
   }
 
-// Print a Dart object to the stream if found in ring. Otherwise print null.
-#define PRINT_RING_OBJ(type)                                                   \
-  ASSERT(js->num_arguments() >= 2);                                            \
-  ObjectIdRing* ring = isolate->object_id_ring();                              \
-  ASSERT(ring != NULL);                                                        \
-  intptr_t id = atoi(js->GetArgument(1));                                      \
-  Object& obj = Object::Handle(ring->GetObjectForId(id));                      \
-  if (!obj.Is##type()) {                                                       \
-    /* Object is not type, replace with null. */                               \
-    obj = Object::null();                                                      \
-  }                                                                            \
-  obj.PrintToJSONStream(js, false)
 
-
-static void HandleLibraries(Isolate* isolate, JSONStream* js) {
+static void HandleClasses(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
-    const Library& lib =
-        Library::Handle(isolate->object_store()->root_library());
-    lib.PrintToJSONStream(js, true);
+    ClassTable* table = isolate->class_table();
+    table->PrintToJSONStream(js);
+    return;
+  }
+  ASSERT(js->num_arguments() >= 2);
+  intptr_t id = atoi(js->GetArgument(1));
+  ClassTable* table = isolate->class_table();
+  if (!table->IsValidIndex(id)) {
+    Object::null_object().PrintToJSONStream(js, false);
   } else {
-    PRINT_RING_OBJ(Library);
+    Class& cls = Class::Handle(table->At(id));
+    cls.PrintToJSONStream(js, false);
   }
 }
 
 
-static void HandleFunctions(Isolate* isolate, JSONStream* js) {
-  REQUIRE_COLLECTION_ID("functions");
-  PRINT_RING_OBJ(Function);
+static void HandleLibrary(Isolate* isolate, JSONStream* js) {
+  if (js->num_arguments() == 1) {
+    const Library& lib =
+        Library::Handle(isolate->object_store()->root_library());
+    lib.PrintToJSONStream(js, false);
+    return;
+  }
+  PrintGenericError(js);
 }
 
 
-static void HandleClasses(Isolate* isolate, JSONStream* js) {
-  REQUIRE_COLLECTION_ID("classes");
-  PRINT_RING_OBJ(Class);
-}
-
-
-static void HandleCodes(Isolate* isolate, JSONStream* js) {
-  REQUIRE_COLLECTION_ID("codes");
-  PRINT_RING_OBJ(Code);
+static void HandleObjects(Isolate* isolate, JSONStream* js) {
+  REQUIRE_COLLECTION_ID("objects");
+  ASSERT(js->num_arguments() >= 2);
+  ObjectIdRing* ring = isolate->object_id_ring();
+  ASSERT(ring != NULL);
+  intptr_t id = atoi(js->GetArgument(1));
+  Object& obj = Object::Handle(ring->GetObjectForId(id));
+  obj.PrintToJSONStream(js, false);
 }
 
 
@@ -251,10 +258,9 @@ static ServiceMessageHandlerEntry __message_handlers[] = {
   { "name", HandleName },
   { "stacktrace", HandleStackTrace },
   { "objecthistogram", HandleObjectHistogram},
-  { "libraries", HandleLibraries },
-  { "functions", HandleFunctions },
+  { "library", HandleLibrary },
   { "classes", HandleClasses },
-  { "codes", HandleCodes },
+  { "objects", HandleObjects },
   { "_echo", HandleEcho },
 };
 

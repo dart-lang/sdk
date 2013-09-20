@@ -33,8 +33,9 @@ class MemorySourceFileProvider extends SourceFileProvider {
       return super.readStringFromUri(resourceUri);
     }
     String source = memorySourceFiles[resourceUri.path];
-    // TODO(ahe): Return new Future.error(...) ?
-    if (source == null) return new Future.error('No such file $resourceUri');
+    if (source == null) {
+      return new Future.error(new Exception('No such file $resourceUri'));
+    }
     String resourceName = '$resourceUri';
     this.sourceFiles[resourceName] = new SourceFile(resourceName, source);
     return new Future.value(source);

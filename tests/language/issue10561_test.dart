@@ -9,9 +9,9 @@ import "package:expect/expect.dart";
 
 import 'dart:collection';
 
-class Foo extends HashSet {
+class Foo extends Expando {
 }
 
 main() {
-  Expect.equals(0, new Foo().length);
+  Expect.isNull(new Foo()[new Object()]);
 }

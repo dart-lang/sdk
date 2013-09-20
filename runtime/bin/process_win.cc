@@ -13,6 +13,7 @@
 #include "bin/log.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
+#include "bin/utils_win.h"
 
 
 namespace dart {
@@ -305,21 +306,7 @@ static int SetOsErrorMessage(char** os_error_message) {
   int error_code = GetLastError();
   static const int kMaxMessageLength = 256;
   wchar_t message[kMaxMessageLength];
-  DWORD message_size =
-      FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                     NULL,
-                     error_code,
-                     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                     message,
-                     kMaxMessageLength,
-                     NULL);
-  if (message_size == 0) {
-    if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-      Log::PrintErr("FormatMessage failed %d\n", GetLastError());
-    }
-    _snwprintf(message, kMaxMessageLength, L"OS Error %d", error_code);
-  }
-  message[kMaxMessageLength - 1] = '\0';
+  FormatMessageIntoBuffer(error_code, message, kMaxMessageLength);
   *os_error_message = StringUtils::WideToUtf8(message);
   return error_code;
 }

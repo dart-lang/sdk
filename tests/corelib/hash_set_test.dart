@@ -10,6 +10,7 @@ import "package:expect/expect.dart";
 import 'dart:collection';
 
 testSet(Set newSet(), Set newSetFrom(Set from)) {
+
   Set gen(int from, int to) =>
       new Set.from(new Iterable.generate(to - from, (n) => n + from));
 
@@ -22,6 +23,7 @@ testSet(Set newSet(), Set newSetFrom(Set from)) {
     for (int i = 0; i < 256; i++) {
       set.add(i);
     }
+
     set.addAll(gen(256, 512));
     set.addAll(newSetFrom(gen(512, 1000)));
     Expect.equals(1000, set.length);

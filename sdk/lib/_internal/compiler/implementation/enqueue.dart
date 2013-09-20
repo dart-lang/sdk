@@ -423,7 +423,7 @@ abstract class Enqueuer {
     if (selector.isGetter()) {
       processInstanceFunctions(methodName, (Element member) {
         if (selector.appliesUnnamed(member, compiler)) {
-          registerBoundClosure();
+          registerClosurizedMember(member, compiler.globalDependencies);
           return true;
         }
         return false;
@@ -517,18 +517,22 @@ abstract class Enqueuer {
   }
 
   void registerClosurizedMember(Element element, TreeElements elements) {
-    if (element.computeType(compiler).containsTypeVariables) {
-      registerClosurizedGenericMember(element, elements);
-    } else {
-      registerBoundClosure();
-    }
+    assert(element.isInstanceMember());
+    registerIfGeneric(element, elements);
+    registerBoundClosure();
     universe.closurizedMembers.add(element);
   }
 
-  void registerClosurizedGenericMember(Element element, TreeElements elements) {
-    registerBoundClosure();
-    compiler.backend.registerGenericClosure(element, this, elements);
-    universe.closurizedGenericMembers.add(element);
+
+  void registerIfGeneric(Element element, TreeElements elements) {
+    if (element.computeType(compiler).containsTypeVariables) {
+      compiler.backend.registerGenericClosure(element, this, elements);
+      universe.genericClosures.add(element);
+    }
+  }
+
+  void registerClosure(Element element, TreeElements elements) {
+    registerIfGeneric(element, elements);
   }
 
   void forEach(f(WorkItem work)) {

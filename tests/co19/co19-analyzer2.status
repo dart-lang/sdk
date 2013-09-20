@@ -33,14 +33,11 @@ Language/15_Types/4_Interface_Types_A11_t02: Skip
 LibTest/core/Uri/decodeQueryComponent_A02_t01: fail # co19 Issue 591
 
 # co19 issue #380, Strings class has been removed
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: fail, OK
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: fail, OK
 
 # co19 issue #400, collection library reorg
-LibTest/core/String/String_class_A01_t01: fail, OK
 LibTest/core/String/concat_A01_t01: fail, OK
 LibTest/core/String/concat_A02_t01: fail, OK
-LibTest/core/String/hashCode_A01_t01: fail, OK
 
 # co19 issue #424, Uninitialized finals are warnings not errors
 Language/05_Variables/05_Variables_A07_t05: fail, OK
@@ -55,18 +52,8 @@ Language/05_Variables/05_Variables_A12_t06: fail, OK
 Language/05_Variables/05_Variables_A13_t01: fail, OK
 Language/07_Classes/07_Classes_A02_t11: fail, OK
 
-# co19 issue #464, not initialized final instance variable is warning, not error
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail
-
 # co19 issue #442, undefined name "Expect"
 Language/15_Types/4_Interface_Types_A08_t03: fail, OK
-
-# co19 issue #448, Collection was removed
-LibTest/collection/Queue/Queue.from_A01_t01: fail, OK
-LibTest/collection/Queue/Queue.from_A01_t02: fail, OK
-
-# co19 issue 452, more method in Iterable
-LibTest/core/Set/Set.from_A01_t02: fail, OK
 
 # co19 issue #455, undeclared identifier is static warning
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10: fail, OK
@@ -100,6 +87,10 @@ Language/12_Expressions/30_Identifier_Reference_A14_t03: fail, OK
 # co19 issue #543: invocation of a non-function
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t02: fail, OK
 
+Language/07_Classes/1_Instance_Methods_A03_t06: fail # co19-roll r587: Please triage this failure
+Language/07_Classes/4_Abstract_Instance_Members_A07_t08: fail # co19-roll r587: Please triage this failure
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
 Language/13_Statements/11_Return_A07_t01: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t27: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t47: fail # co19-roll r546: Please triage this failure
@@ -109,78 +100,6 @@ Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail # co19-roll r546: Please 
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail # co19-roll r546: Please triage this failure
 Language/15_Types/6_Type_dynamic_A03_t01: fail # co19-roll r546: Please triage this failure
 Language/15_Types/6_Type_dynamic_A04_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/asBroadcastStream_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/distinct_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/drain_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/drain_A02_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/EventTransformStream_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/expand_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/first_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/handleError_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/listen_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Future/asStream_A01_t02: pass # co19-roll r546: Please triage this failure
 LibTest/async/Future/asStream_A02_t01: pass # co19-roll r546: Please triage this failure
 LibTest/async/Future/whenComplete_A03_t01: pass # co19-roll r546: Please triage this failure
-LibTest/async/Stream/asBroadcastStream_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/asBroadcastStream_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/contains_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/StreamController/hasListener_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/StreamController/hasListener_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/StreamController/isPaused_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/StreamController/isPaused_A01_t03: fail # co19-roll r546: Please triage this failure
-LibTest/async/StreamController/sink_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/StreamController/StreamController.broadcast_A04_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/distinct_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/distinct_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/drain_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/drain_A02_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/StreamEventTransformer/handleData_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/StreamEventTransformer/handleDone_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/StreamEventTransformer/handleError_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/expand_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/handleError_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/isBroadcast_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/isBroadcast_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/StreamIterator/cancel_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/listen_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/Stream_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/Stream.fromFuture_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/Stream.fromFuture_A02_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/Stream.fromIterable_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Timer/cancel_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/DateTime/subtract_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/Duration/operator_div_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/Duration/operator_eq_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/Duration/operator_gt_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/Duration/operator_lt_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/Duration/operator_lte_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/Duration/operator_minus_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/Duration/operator_mult_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/Duration/operator_plus_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/every_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/forEach_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/lastWhere_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/List_A01_t03: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/List.filled_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/List.from_A01_t03: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/List.generate_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/List.generate_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/List.generate_A01_t03: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/map_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/replaceRange_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/replaceRange_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/skipWhile_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/takeWhile_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/toList_A01_t03: fail # co19-roll r546: Please triage this failure
-LibTest/core/StringBuffer/writeAll_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/isolate_api/streamSpawnFunction_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail # co19-roll r576: Please triage this failure
-LibTest/isolate/IsolateSink/add_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateSink/operator_equality_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/asBroadcastStream_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/contains_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/contains_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/isBroadcast_A01_t02: fail # co19-roll r546: Please triage this failure

@@ -418,10 +418,7 @@ InstanceMirror reflect(Object reflectee) {
 }
 
 ClassMirror reflectType(Type key) {
-  // TODO(ahe): Don't discard type arguments to support
-  // [ClassMirror.isOriginalDeclaration] and [ClassMirror.originalDeclaration]
-  // correctly.
-  return reflectClassByMangledName(getMangledTypeName(key).split('<')[0]);
+  return reflectClassByMangledName(getMangledTypeName(key));
 }
 
 ClassMirror reflectClassByMangledName(String mangledName) {
@@ -437,6 +434,15 @@ ClassMirror reflectClassByName(Symbol symbol, String mangledName) {
   var mirror = JsCache.fetch(classMirrors, mangledName);
   if (mirror != null) return mirror;
   disableTreeShaking();
+  int typeArgIndex = mangledName.indexOf("<");
+  if (typeArgIndex != -1) {
+    mirror = new JsTypeBoundClassMirror(
+        reflectClassByMangledName(mangledName.substring(0, typeArgIndex)),
+        // Remove the angle brackets enclosing the type arguments.
+        mangledName.substring(typeArgIndex + 1, mangledName.length - 1));
+    JsCache.update(classMirrors, mangledName, mirror);
+    return mirror;
+  }
   var constructorOrInterceptor =
       Primitives.getConstructorOrInterceptor(mangledName);
   if (constructorOrInterceptor == null) {
@@ -581,11 +587,12 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
 
   ClassMirror get originalDeclaration => this;
 
-  // TODO(ahe): Implement these.
-  Map<Symbol, TypeVariableMirror> get typeVariables {
+  // TODO(ahe): Implement this.
+  List<TypeVariableMirror> get typeVariables {
     throw new UnimplementedError();
   }
-  Map<Symbol, TypeMirror> get typeArguments => throw new UnimplementedError();
+
+  List<TypeMirror> get typeArguments => new List();
 }
 
 abstract class JsObjectMirror implements ObjectMirror {
@@ -709,7 +716,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     // identical. Otherwise, use the primitive identity hash to maintain
     // correctness even if a user-defined hashCode returns different values for
     // successive invocations.
-    var h = ((JS('bool', 'typeof # != "object"', reflectee)) || 
+    var h = ((JS('bool', 'typeof # != "object"', reflectee)) ||
              (reflectee == null))
         ? reflectee.hashCode
         : Primitives.objectHashCode(reflectee);
@@ -722,6 +729,155 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
   // TODO(ahe): Remove this method from the API.
   MirrorSystem get mirrors => currentJsMirrorSystem;
+}
+
+/**
+ * ClassMirror for generic classes where the type parameters are bound.
+ *
+ * [typeArguments] will return a list of the type arguments, in constrast
+ * to JsCLassMirror that returns an empty list since it represents original
+ * declarations and classes that are not generic.
+ */
+class JsTypeBoundClassMirror implements ClassMirror {
+  final JsClassMirror _class;
+
+  /**
+   * When instantiated this field will hold a string representing the list of
+   * type arguments for the class, i.e. what is inside the outermost angle
+   * brackets. Then, when get typeArguments is called the first time, the string
+   * is parsed into the actual list of TypeMirrors, and the field is overridden
+   * with this value.
+   */
+  var _typeArgs;
+
+  JsTypeBoundClassMirror(this._class, this._typeArgs);
+
+  List<TypeVariableMirror> get typeVariables => _class.typeVariables;
+
+  List<TypeMirror> get typeArguments {
+    if (_typeArgs is! String) return _typeArgs;
+    List result = new List();
+    if (_typeArgs.indexOf('<') == -1) {
+      for (String s in _typeArgs.split(',')) {
+        result.add(reflectClassByMangledName(s.trim()));
+      }
+    } else {
+      int level = 0;
+      StringBuffer currentTypeArg = new StringBuffer();
+
+      addCurrentTypeArg() {
+        var classMirror = reflectClassByMangledName(currentTypeArg.toString());
+        result.add(classMirror);
+        currentTypeArg.clear();
+      }
+
+      for (int i = 0; i < _typeArgs.length; i++) {
+        var character = _typeArgs[i];
+        if (character == ' ') {
+          continue;
+        } else if (character == '<') {
+          currentTypeArg.write(character);
+          level++;
+        } else if (character == '>') {
+          currentTypeArg.write(character);
+          level--;
+        } else if (character == ',') {
+          if (level > 0) {
+            currentTypeArg.write(character);
+          } else {
+            addCurrentTypeArg();
+          }
+        } else {
+          currentTypeArg.write(character);
+        }
+      }
+      addCurrentTypeArg();
+    }
+    return _typeArgs = new UnmodifiableListView(result);
+  }
+
+  Map<Symbol, MethodMirror> get constructors => _class.constructors;
+
+  Map<Symbol, MethodMirror> get methods => _class.methods;
+
+  Map<Symbol, MethodMirror> get getters => _class.getters;
+
+  Map<Symbol, MethodMirror> get setters => _class.setters;
+
+  Map<Symbol, VariableMirror> get variables => _class.variables;
+
+  Map<Symbol, Mirror> get members => _class.members;
+
+  InstanceMirror setField(Symbol fieldName, Object arg) {
+    return _class.setField(fieldName, arg);
+  }
+
+  InstanceMirror getField(Symbol fieldName) => _class.getField(fieldName);
+
+  InstanceMirror newInstance(Symbol constructorName,
+                             List positionalArguments,
+                             [Map<Symbol, dynamic> namedArguments]) {
+    return _class.newInstance(constructorName,
+                              positionalArguments,
+                              namedArguments);
+  }
+
+  Future<InstanceMirror> newInstanceAsync(
+      Symbol constructorName,
+      List positionalArguments,
+      [Map<Symbol, dynamic> namedArguments]) {
+    return _class.newInstanceAsync(constructorName,
+                                   positionalArguments,
+                                   namedArguments);
+  }
+
+  JsLibraryMirror get owner => _class.owner;
+
+  List<InstanceMirror> get metadata => _class.metadata;
+
+  ClassMirror get superclass => _class.superclass;
+
+  InstanceMirror invoke(Symbol memberName,
+                        List positionalArguments,
+                        [Map<Symbol,dynamic> namedArguments]) {
+    return _class.invoke(memberName, positionalArguments, namedArguments);
+  }
+
+  bool get isOriginalDeclaration => false;
+
+  ClassMirror get originalDeclaration => _class;
+
+  List<ClassMirror> get superinterfaces => _class.superinterfaces;
+
+  Future<InstanceMirror> getFieldAsync(Symbol fieldName) {
+    return _class.getFieldAsync(fieldName);
+  }
+
+  bool get hasReflectedType => _class.hasReflectedType;
+
+  Future<InstanceMirror> invokeAsync(Symbol memberName,
+                                     List positionalArguments,
+                                     [Map<Symbol, dynamic> namedArguments]) {
+    return _class.invokeAsync(memberName, positionalArguments, namedArguments);
+  }
+
+  bool get isPrivate => _class.isPrivate;
+
+  bool get isTopLevel => _class.isTopLevel;
+
+  SourceLocation get location => _class.location;
+
+  MirrorSystem get mirrors => _class.mirrors;
+
+  Symbol get qualifiedName => _class.qualifiedName;
+
+  Type get reflectedType => _class.reflectedType;
+
+  Future<InstanceMirror> setFieldAsync(Symbol fieldName, Object value) {
+    return _class.setFieldAsync(fieldName, value);
+  }
+
+  Symbol get simpleName => _class.simpleName;
 }
 
 class JsClassMirror extends JsTypeMirror with JsObjectMirror
@@ -1088,9 +1244,9 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   }
 
   // TODO(ahe): Implement these.
-  Map<Symbol, TypeVariableMirror> get typeVariables
+  List<TypeVariableMirror> get typeVariables
       => throw new UnimplementedError();
-  Map<Symbol, TypeMirror> get typeArguments => throw new UnimplementedError();
+  List<TypeMirror> get typeArguments => new List();
 }
 
 class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
@@ -1460,6 +1616,10 @@ class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
   JsFunctionTypeMirror get value => referent;
 
   String get _prettyName => 'TypedefMirror';
+
+  // TODO(zarah): This method doesn't belong here, since TypedefMirror shouldn't
+  // be a subtype of ClassMirror.
+  ClassMirror get originalDeclaration => this;
 }
 
 class JsFunctionTypeMirror implements FunctionTypeMirror {

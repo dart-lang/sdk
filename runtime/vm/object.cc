@@ -2926,15 +2926,48 @@ const char* Class::ToCString() const {
 
 
 void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  const char* class_name = String::Handle(UserVisibleName()).ToCString();
-  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-  intptr_t id = ring->GetIdForObject(raw());
   JSONObject jsobj(stream);
+  if ((raw() == Class::null()) || (id() == kFreeListElement)) {
+    jsobj.AddProperty("type", "Null");
+    return;
+  }
+  const char* internal_class_name = String::Handle(Name()).ToCString();
+  const char* user_visible_class_name =
+      String::Handle(UserVisibleName()).ToCString();
   jsobj.AddProperty("type", JSONType(ref));
-  jsobj.AddProperty("id", id);
-  jsobj.AddProperty("name", class_name);
+  jsobj.AddProperty("id", id());
+  jsobj.AddProperty("name", internal_class_name);
+  jsobj.AddProperty("user_name", user_visible_class_name);
   if (!ref) {
+    jsobj.AddProperty("implemented", is_implemented());
+    jsobj.AddProperty("abstract", is_abstract());
+    jsobj.AddProperty("patch", is_patch());
+    jsobj.AddProperty("finalized", is_finalized());
+    jsobj.AddProperty("const", is_const());
+    jsobj.AddProperty("super", Class::Handle(SuperClass()));
     jsobj.AddProperty("library", Object::Handle(library()));
+    {
+      JSONArray fields_array(&jsobj, "fields");
+      const Array& field_array = Array::Handle(fields());
+      Field& field = Field::Handle();
+      if (!field_array.IsNull()) {
+        for (intptr_t i = 0; i < field_array.Length(); ++i) {
+          field ^= field_array.At(i);
+          fields_array.AddValue(field);
+        }
+      }
+    }
+    {
+      JSONArray functions_array(&jsobj, "functions");
+      const Array& function_array = Array::Handle(functions());
+      Function& function = Function::Handle();
+      if (!function_array.IsNull()) {
+        for (intptr_t i = 0; i < function_array.Length(); i++) {
+          function ^= function_array.At(i);
+          functions_array.AddValue(function);
+        }
+      }
+    }
   }
 }
 
@@ -5090,6 +5123,7 @@ const char* Function::ToCString() const {
 
 
 void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  const char* internal_function_name = String::Handle(name()).ToCString();
   const char* function_name =
       String::Handle(QualifiedUserVisibleName()).ToCString();
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
@@ -5097,7 +5131,8 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddProperty("id", id);
-  jsobj.AddProperty("name", function_name);
+  jsobj.AddProperty("name", internal_function_name);
+  jsobj.AddProperty("user_name", function_name);
   if (ref) return;
   jsobj.AddProperty("is_static", is_static());
   jsobj.AddProperty("is_const", is_const());
@@ -5412,6 +5447,44 @@ const char* Field::ToCString() const {
 
 void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  const char* internal_field_name = String::Handle(name()).ToCString();
+  const char* field_name = String::Handle(UserVisibleName()).ToCString();
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddProperty("id", id);
+  jsobj.AddProperty("name", internal_field_name);
+  jsobj.AddProperty("user_name", field_name);
+  if (ref) {
+    return;
+  }
+  Class& cls = Class::Handle(owner());
+  jsobj.AddProperty("type", "Field");
+  jsobj.AddProperty("id", id);
+  jsobj.AddProperty("name", internal_field_name);
+  jsobj.AddProperty("user_name", field_name);
+  jsobj.AddProperty("class", cls);
+  jsobj.AddProperty("static", is_static());
+  jsobj.AddProperty("final", is_final());
+  jsobj.AddProperty("const", is_const());
+  jsobj.AddProperty("guard_nullable", is_nullable());
+  if (guarded_cid() == kIllegalCid) {
+    jsobj.AddProperty("guard_class", "unknown");
+  } else if (guarded_cid() == kDynamicCid) {
+    jsobj.AddProperty("guard_class", "dynamic");
+  } else {
+    ClassTable* table = Isolate::Current()->class_table();
+    ASSERT(table->IsValidIndex(guarded_cid()));
+    cls ^= table->At(guarded_cid());
+    jsobj.AddProperty("guard_class", cls);
+  }
+  if (guarded_list_length() == kUnknownFixedLength) {
+    jsobj.AddProperty("guard_length", "unknown");
+  } else if (guarded_list_length() == kNoFixedLength) {
+    jsobj.AddProperty("guard_length", "variable");
+  } else {
+    jsobj.AddProperty("guard_length", guarded_list_length());
+  }
 }
 
 
@@ -6052,7 +6125,9 @@ void TokenStream::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
-TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
+TokenStream::Iterator::Iterator(const TokenStream& tokens,
+                                intptr_t token_pos,
+                                Iterator::StreamType stream_type)
     : tokens_(TokenStream::Handle(tokens.raw())),
       data_(ExternalTypedData::Handle(tokens.GetStream())),
       stream_(reinterpret_cast<uint8_t*>(data_.DataAddr(0)), data_.Length()),
@@ -6060,7 +6135,8 @@ TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
       obj_(Object::Handle()),
       cur_token_pos_(token_pos),
       cur_token_kind_(Token::kILLEGAL),
-      cur_token_obj_index_(-1) {
+      cur_token_obj_index_(-1),
+      stream_type_(stream_type) {
   SetCurrentPosition(token_pos);
 }
 
@@ -6092,7 +6168,10 @@ Token::Kind TokenStream::Iterator::LookaheadTokenKind(intptr_t num_tokens) {
   intptr_t count = 0;
   while (count < num_tokens && value != Token::kEOS) {
     value = ReadToken();
-    count += 1;
+    if ((stream_type_ == kAllTokens) ||
+        (static_cast<Token::Kind>(value) != Token::kNEWLINE)) {
+      count += 1;
+    }
   }
   if (value < Token::kNumTokens) {
     kind = static_cast<Token::Kind>(value);
@@ -6124,8 +6203,12 @@ void TokenStream::Iterator::SetCurrentPosition(intptr_t value) {
 
 
 void TokenStream::Iterator::Advance() {
-  cur_token_pos_ = stream_.Position();
-  intptr_t value = ReadToken();
+  intptr_t value;
+  do {
+    cur_token_pos_ = stream_.Position();
+    value = ReadToken();
+  } while ((stream_type_ == kNoNewlines) &&
+           (static_cast<Token::Kind>(value) == Token::kNEWLINE));
   if (value < Token::kNumTokens) {
     cur_token_kind_ = static_cast<Token::Kind>(value);
     cur_token_obj_index_ = -1;
@@ -7839,6 +7922,7 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   RECOGNIZED_LIST(CHECK_FINGERPRINTS);
+  INLINE_WHITE_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
@@ -8564,6 +8648,20 @@ const char* DeoptInfo::ToCString() const {
                          deopt_instrs[i]->ToCString());
   }
   return buffer;
+}
+
+
+// Returns a bool so it can be asserted.
+bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
+                                    const Array& deopt_table) const {
+  intptr_t length = TranslationLength();
+  GrowableArray<DeoptInstr*> unpacked(length);
+  ToInstructions(deopt_table, &unpacked);
+  ASSERT(unpacked.length() == original.length());
+  for (intptr_t i = 0; i < unpacked.length(); ++i) {
+    ASSERT(unpacked[i]->Equals(*original[i]));
+  }
+  return true;
 }
 
 
@@ -9573,6 +9671,7 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
       Array::Handle(arguments_descriptor()),
       deopt_id(),
       kNumArgsTested));
+  result.set_deopt_reason(deopt_reason());
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     const intptr_t class_id = GetClassIdAt(i, arg_nr);

@@ -16,7 +16,7 @@
  * [Polymer.dart](http://www.dartlang.org/polymer-dart/)
  * homepage for example code, project status, and
  * information about how to get started using Polymer.dart in your apps.
- * 
+ *
  * ## Other resources
  *
  * The
@@ -31,10 +31,13 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:observe/observe.dart';
+import 'package:logging/logging.dart';
 
 import 'eval.dart';
 import 'expression.dart';
 import 'parser.dart';
+
+final Logger _logger = new Logger('polymer_expressions');
 
 // TODO(justin): Investigate XSS protection
 Object _classAttributeConverter(v) =>
@@ -86,12 +89,18 @@ class _Binding extends Object with ChangeNotifierMixin {
   final _converter;
   var _value;
 
-
   _Binding(Expression expr, Scope scope, [this._converter])
       : _expr = observe(expr, scope),
         _scope = scope {
-    _expr.onUpdate.listen(_setValue);
-    _setValue(_expr.currentValue);
+    _expr.onUpdate.listen(_setValue).onError((e) {
+      _logger.warning("Error evaluating expression '$_expr': ${e.message}");
+    });
+    try {
+      update(_expr, _scope);
+      _setValue(_expr.currentValue);
+    } on EvalException catch (e) {
+      _logger.warning("Error evaluating expression '$_expr': ${e.message}");
+    }
   }
 
   _setValue(v) {

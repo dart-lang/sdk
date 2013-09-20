@@ -32,17 +32,17 @@ typedef bool Predicate<@m1 @m2 G>(G a);
 main() {
   ClassMirror cm;
   cm = reflectClass(A);
-  checkMetadata(cm.typeVariables[const Symbol('S')], []);
-  checkMetadata(cm.typeVariables[const Symbol('T')], [m1, m2]);
+  checkMetadata(cm.typeVariables[0], []);
+  checkMetadata(cm.typeVariables[1], [m1, m2]);
   // Check for conflicts.
   checkMetadata(cm.methods[const Symbol('T')], [m3]);
 
   cm = reflectClass(B);
-  checkMetadata(cm.typeVariables[const Symbol('T')], [m3]);
+  checkMetadata(cm.typeVariables[0], [m3]);
   // Check for conflicts.
   checkMetadata(cm.members[const Symbol('T')], [m1, m2]);
 
   TypedefMirror tm = reflectClass(Predicate);
   FunctionTypeMirror ftm = tm.referent;
-  checkMetadata(ftm.typeVariables[const Symbol('G')], [m1, m2]);
+  checkMetadata(ftm.typeVariables[0], [m1, m2]);
 }

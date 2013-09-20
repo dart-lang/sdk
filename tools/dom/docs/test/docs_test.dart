@@ -15,6 +15,8 @@ import '../lib/docs.dart';
 final testJsonPath = path.normalize(path.join(scriptDir, 'test.json'));
 
 main() {
+  // Some tests take more than the default 20 second unittest timeout.
+  unittestConfiguration.timeout = null;
   group('docs', () {
     var oldJson = new File(json_path);
     var testJson = new File(testJsonPath);

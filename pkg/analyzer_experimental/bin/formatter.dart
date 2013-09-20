@@ -116,7 +116,7 @@ _printUsage() {
 
 /// Format the given [src] as a compilation unit.
 String _formatCU(src, {options: const FormatterOptions()}) =>
-    new CodeFormatter(options).format(CodeKind.COMPILATION_UNIT, src);
+    new CodeFormatter(options).format(CodeKind.COMPILATION_UNIT, src).source;
 
 /// Log the given [msg].
 _log(String msg) {

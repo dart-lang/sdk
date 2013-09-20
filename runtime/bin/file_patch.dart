@@ -22,7 +22,6 @@ patch class _File {
   /* patch */ static _lastModified(String path) native "File_LastModified";
   /* patch */ static _open(String path, int mode) native "File_Open";
   /* patch */ static int _openStdio(int fd) native "File_OpenStdio";
-  /* patch */ static _fullPath(String path) native "File_FullPath";
 }
 
 patch class _RandomAccessFile {

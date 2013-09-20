@@ -1581,6 +1581,12 @@ class Parser {
         }
         info = token.info;
         tokenLevel = info.precedence;
+        if (level == EQUALITY_PRECEDENCE || level == RELATIONAL_PRECEDENCE) {
+          // We don't allow (a == b == c) or (a < b < c).
+          // Continue the outer loop if we have matched one equality or
+          // relational operator.
+          break;
+        }
       }
     }
     return token;
@@ -1623,23 +1629,8 @@ class Parser {
     String value = token.stringValue;
     // Prefix:
     if (identical(value, '+')) {
-      // Dart only allows "prefix plus" as an initial part of a
-      // decimal literal. We scan it as a separate token and let
-      // the parser listener combine it with the digits.
-      Token next = token.next;
-      if (identical(next.charOffset, token.charOffset + 1)) {
-        if (identical(next.kind, INT_TOKEN)) {
-          listener.handleLiteralInt(token);
-          return next.next;
-        }
-        if (identical(next.kind, DOUBLE_TOKEN)) {
-          listener.handleLiteralDouble(token);
-          return next.next;
-        }
-      }
-      listener.recoverableError("Unexpected token '+'", token: token);
-      return parsePrecedenceExpression(next, POSTFIX_PRECEDENCE,
-                                       allowCascades);
+      // Dart no longer allows prefix-plus.
+      listener.reportError(token, MessageKind.UNSUPPORTED_PREFIX_PLUS);
     } else if ((identical(value, '!')) ||
                (identical(value, '-')) ||
                (identical(value, '~'))) {

@@ -169,9 +169,18 @@ class MessageKind {
       'Error: Cannot resolve constructor "#{constructorName}".');
 
   static const MessageKind CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT =
-      const MessageKind(
-          'Error: cannot resolve constructor "#{constructorName}" for implicit'
-          'super call.');
+      const MessageKind('Error: cannot resolve constructor "#{constructorName}"'
+          ' for implicit super call.',
+      howToFix: 'Try explicitly invoking a constructor of the super class',
+      examples: const ["""
+class A {
+  A.foo() {}
+}
+class B extends A {
+  B();
+}
+main() => new B();
+"""]);
 
   static const MessageKind INVALID_UNNAMED_CONSTRUCTOR_NAME = const MessageKind(
       'Error: Unnamed constructor name must be "#{name}".');
@@ -265,6 +274,9 @@ export 'future.dart';"""}]);
 
   static const MessageKind CYCLIC_CLASS_HIERARCHY = const MessageKind(
       'Error: "#{className}" creates a cycle in the class hierarchy.');
+
+  static const MessageKind CYCLIC_REDIRECTING_FACTORY = const MessageKind(
+      'Error: Redirecting factory leads to a cyclic redirection.');
 
   static const MessageKind INVALID_RECEIVER_IN_INITIALIZER = const MessageKind(
       'Error: Field initializer expected.');
@@ -538,11 +550,51 @@ main() {
   F f;
 }"""]);
 
+  static const MessageKind FORMAL_DECLARED_CONST = const MessageKind(
+      "Error: A formal parameter can't be declared const.",
+      howToFix: "Try removing 'const'.",
+      examples: const ["""
+foo(const x) {}
+main() => foo(42);
+""", """
+foo({const x}) {}
+main() => foo(42);
+""", """
+foo([const x]) {}
+main() => foo(42);
+"""]);
+
   static const MessageKind CANNOT_INSTANTIATE_TYPE_VARIABLE = const MessageKind(
       'Error: Cannot instantiate type variable "#{typeVariableName}".');
 
   static const MessageKind CYCLIC_TYPE_VARIABLE = const MessageKind(
       'Warning: Type variable "#{typeVariableName}" is a supertype of itself.');
+
+  static const CYCLIC_TYPEDEF = const MessageKind(
+      "Error: A typedef can't refer to itself.",
+      howToFix: "Try removing all references to '#{typedefName}' "
+                "in the definition of '#{typedefName}'.",
+      examples: const ["""
+typedef F F(); // The return type 'F' is a self-reference.
+main() { F f = null; }"""]);
+
+  static const CYCLIC_TYPEDEF_ONE = const MessageKind(
+      "Error: A typedef can't refer to itself through another typedef.",
+      howToFix: "Try removing all references to "
+                "'#{otherTypedefName}' in the definition of '#{typedefName}'.",
+      examples: const ["""
+typedef G F(); // The return type 'G' is a self-reference through typedef 'G'.
+typedef F G(); // The return type 'F' is a self-reference through typedef 'F'.
+main() { F f = null; }""",
+"""
+typedef G F(); // The return type 'G' creates a self-reference.
+typedef H G(); // The return type 'H' creates a self-reference.
+typedef H(F f); // The argument type 'F' creates a self-reference.
+main() { F f = null; }"""]);
+
+  static const CYCLIC_TYPEDEF_TYPEVAR = const MessageKind(
+      "Internal Error: Recursive type variable bounds are not "
+      "supported on typedefs.");
 
   static const MessageKind CLASS_NAME_EXPECTED = const MessageKind(
       'Error: Class name expected.');
@@ -757,6 +809,29 @@ foo(t) {
 main() => foo(1);
 """]);
 
+  static const MessageKind CONST_WITHOUT_INITIALIZER = const MessageKind(
+      "Error: A constant variable must be initialized.",
+      howToFix: "Try adding an initializer or "
+                "removing the 'const' modifier.",
+      examples: const ["""
+void main() {
+  const c; // This constant variable must be initialized.
+}"""]);
+
+  static const MessageKind MEMBER_USES_CLASS_NAME = const MessageKind(
+      "Error: Member variable can't have the same name as the class it is "
+      "declared in.",
+      howToFix: "Try renaming the variable.",
+      examples: const ["""
+class A { var A; }
+main() {
+  var a = new A();
+  a.A = 1;
+}
+""", """
+class A { static var A; }
+main() => A.A = 1;
+"""]);
 
   static const MessageKind WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT =
       const MessageKind(
@@ -839,6 +914,13 @@ Error: "#{value}" is not a valid Symbol name because is not:
   static const MessageKind UNSUPPORTED_BANG_EQ_EQ = const MessageKind(
       'Error: "!==" is not an operator. '
       'Did you mean "#{lhs} != #{rhs}" or "!identical(#{lhs}, #{rhs})"?');
+
+  static const MessageKind UNSUPPORTED_PREFIX_PLUS = const MessageKind(
+      "Error: '+' is not a prefix operator. ",
+      howToFix: "Try removing '+'.",
+      examples: const [
+          "main() => +2;  // No longer a valid way to write '2'"
+      ]);
 
   static const MessageKind UNSUPPORTED_THROW_WITHOUT_EXP = const MessageKind(
       'Error: No expression after "throw". '
@@ -987,6 +1069,11 @@ main() {}
           "abstract foo; main(){}",
           "static foo; main(){}",
           "external foo; main(){}"]);
+
+  static const MessageKind ABSTRACT_CLASS_INSTANTIATION = const MessageKind(
+      "Warning: Can't instantiate abstract class.",
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const ["abstract class A {} main() { new A(); }"]);
 
   static const MessageKind BODY_EXPECTED = const MessageKind(
       "Error: Expected a function body or '=>'.",

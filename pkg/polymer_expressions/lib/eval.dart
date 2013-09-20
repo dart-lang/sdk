@@ -47,13 +47,30 @@ final _BOOLEAN_OPERATORS = ['!', '||', '&&'];
 /**
  * Evaluation [expr] in the context of [scope].
  */
-Object eval(Expression expr, Scope scope) => observe(expr, scope)._value;
+Object eval(Expression expr, Scope scope) {
+  var observer = observe(expr, scope);
+  new Updater(scope).visit(observer);
+  return observer._value;
+}
 
-
+/**
+ * Returns an [ExpressionObserver] that evaluates [expr] in the context of
+ * scope] and listens for any changes on [Observable] values that are
+ * returned from sub-expressions. When a value changes the expression is
+ * reevaluated and the new result is sent to the [onUpdate] stream of the
+ * [ExpressionObsserver].
+ */
 ExpressionObserver observe(Expression expr, Scope scope) {
   var observer = new ObserverBuilder(scope).visit(expr);
-  new Updater(scope).visit(observer);
   return observer;
+}
+
+/**
+ * Causes [expr] to be reevaluated a returns it's value.
+ */
+Object update(ExpressionObserver expr, Scope scope) {
+  new Updater(scope).visit(expr);
+  return expr.currentValue;
 }
 
 /**
@@ -166,7 +183,7 @@ class Scope extends Object {
     if (parent != null) {
       return _convert(parent[name]);
     } else {
-      throw new EvalException("variable not found: $name in $hashCode");
+      throw new EvalException("variable '$name' not found");
     }
   }
 
@@ -205,8 +222,6 @@ class Scope extends Object {
     }
     return false;
   }
-
-  String toString() => 'Scope($hashCode $parent)';
 }
 
 Object _convert(v) {

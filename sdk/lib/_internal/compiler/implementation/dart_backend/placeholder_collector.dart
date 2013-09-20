@@ -44,9 +44,9 @@ class DeclarationTypePlaceholder {
 class SendVisitor extends ResolvedVisitor {
   final PlaceholderCollector collector;
 
-  get compiler => collector.compiler;
-
-  SendVisitor(this.collector, TreeElements elements) : super(elements);
+  SendVisitor(collector, TreeElements elements)
+      : this.collector = collector,
+        super(elements, collector.compiler);
 
   visitOperatorSend(Send node) {
   }
@@ -102,6 +102,10 @@ class SendVisitor extends ResolvedVisitor {
         }
       }
     }
+  }
+
+  visitAssert(node) {
+    visitStaticSend(node);
   }
 
   visitStaticSend(Send node) {

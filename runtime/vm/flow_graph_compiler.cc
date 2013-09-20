@@ -468,7 +468,7 @@ void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
   Smi& reason = Smi::Handle();
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
     offset = Smi::New(deopt_infos_[i]->pc_offset());
-    info = deopt_infos_[i]->CreateDeoptInfo(this, &builder);
+    info = deopt_infos_[i]->CreateDeoptInfo(this, &builder, array);
     reason = Smi::New(deopt_infos_[i]->reason());
     DeoptTable::SetEntry(array, i, offset, info, reason);
   }

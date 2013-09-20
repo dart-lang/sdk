@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 class CodeATest extends VmServiceRequestHelper {
   CodeATest(port, id, codeId) :
-      super('http://127.0.0.1:$port/isolates/$id/codes/$codeId');
+      super('http://127.0.0.1:$port/isolates/$id/objects/$codeId');
 
   onRequestCompleted(Map reply) {
     Expect.equals('Code', reply['type']);
@@ -21,11 +21,11 @@ class CodeATest extends VmServiceRequestHelper {
 
 class CodeCTest extends VmServiceRequestHelper {
   CodeCTest(port, id, codeId) :
-      super('http://127.0.0.1:$port/isolates/$id/codes/$codeId');
+      super('http://127.0.0.1:$port/isolates/$id/objects/$codeId');
 
   onRequestCompleted(Map reply) {
     Expect.equals('Code', reply['type']);
-    Expect.equals('C.c', reply['function']['name']);
+    Expect.equals('C.c', reply['function']['user_name']);
     Expect.isTrue(reply['disassembly'].length > 0);
   }
 }

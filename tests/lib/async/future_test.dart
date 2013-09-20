@@ -617,6 +617,19 @@ void testChainedFutureError() {
   completer.complete(21);
 }
 
+void testSyncFuture_i13368() {
+  asyncStart();
+
+  final future = new Future<int>.sync(() {
+      return new Future<int>.value(42);
+    });
+
+  future.then((int val) {
+      Expect.equals(val, 42);
+      asyncEnd();
+    });
+}
+
 main() {
   testValue();
   testSync();
@@ -658,4 +671,6 @@ main() {
   testChainedFutureValue();
   testChainedFutureValueDelay();
   testChainedFutureError();
+
+  testSyncFuture_i13368();
 }

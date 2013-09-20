@@ -767,7 +767,8 @@ main() {
     test('initialIndent', () {
       var formatter = new CodeFormatter(
           new FormatterOptions(initialIndentationLevel: 2));
-      var formattedSource = formatter.format(CodeKind.STATEMENT, 'var x;');
+      var formattedSource = 
+          formatter.format(CodeKind.STATEMENT, 'var x;').source;
       expect(formattedSource, startsWith('    '));
     });
 
@@ -955,10 +956,10 @@ Token chain(List<Token> tokens) {
 }
 
 String formatCU(src, {options: const FormatterOptions()}) =>
-    new CodeFormatter(options).format(CodeKind.COMPILATION_UNIT, src);
+    new CodeFormatter(options).format(CodeKind.COMPILATION_UNIT, src).source;
 
 String formatStatement(src, {options: const FormatterOptions()}) =>
-    new CodeFormatter(options).format(CodeKind.STATEMENT, src);
+    new CodeFormatter(options).format(CodeKind.STATEMENT, src).source;
 
 Token tokenize(String str) => new StringScanner(null, str, null).tokenize();
 

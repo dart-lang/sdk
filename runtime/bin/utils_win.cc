@@ -9,15 +9,14 @@
 #include <time.h>  // NOLINT
 
 #include "bin/utils.h"
+#include "bin/utils_win.h"
 #include "bin/log.h"
 
 
 namespace dart {
 namespace bin {
 
-static void FormatMessageIntoBuffer(DWORD code,
-                                    wchar_t* buffer,
-                                    int buffer_length) {
+void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
   DWORD message_size =
       FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                      NULL,
@@ -28,11 +27,14 @@ static void FormatMessageIntoBuffer(DWORD code,
                      NULL);
   if (message_size == 0) {
     if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-      Log::PrintErr("FormatMessage failed %d\n", GetLastError());
+      Log::PrintErr("FormatMessage failed for error code %d (error %d)\n",
+                    code,
+                    GetLastError());
     }
     _snwprintf(buffer, buffer_length, L"OS Error %d", code);
   }
-  buffer[buffer_length - 1] = '\0';
+  // Ensure string termination.
+  buffer[buffer_length - 1] = 0;
 }
 
 

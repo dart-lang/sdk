@@ -140,6 +140,8 @@ class BigintOperations : public AllStatic {
   }
   static void DivideRemainder(const Bigint& a, const Bigint& b,
                               Bigint* quotient, Bigint* remainder);
+  static Chunk InplaceUnsignedDivideRemainderDigit(
+      const Bigint& dividend_quotient, Chunk divisor_digit);
 
   // Removes leading zero-chunks by adjusting the bigint's length.
   static void Clamp(const Bigint& bigint);

@@ -103,5 +103,5 @@ class SHA256 extends _HashBase {
     _h[7] = _add32(h, _h[7]);
   }
 
-  List<int> _w;
+  final List<int> _w;
 }

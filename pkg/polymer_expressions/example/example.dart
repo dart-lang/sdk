@@ -4,13 +4,18 @@
 
 import 'dart:html';
 
-import 'package:polymer_expressions/polymer_expressions.dart';
+import 'package:logging/logging.dart';
 import 'package:mdv/mdv.dart' as mdv;
+import 'package:polymer_expressions/polymer_expressions.dart';
 
 import 'person.dart';
 
 main() {
   mdv.initialize();
+  new Logger('polymer_expressions').onRecord.listen((LogRecord r) {
+    print("${r.loggerName} ${r.level} ${r.message}");
+  });
+
   var john = new Person('John', 'Messerly', ['A', 'B', 'C']);
   var justin = new Person('Justin', 'Fagnani', ['D', 'E', 'F']);
   var globals = {

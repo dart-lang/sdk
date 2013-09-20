@@ -240,6 +240,7 @@ static const char* F0Mnem(uint8_t f0byte) {
     case 0xA5: return "shld";
     case 0xAD: return "shrd";
     case 0xAB: return "bts";
+    case 0xBD: return "bsr";
     case 0xB1: return "cmpxchg";
     case 0x50: return "movmskps";
     case 0x51: return "sqrtps";
@@ -1301,7 +1302,7 @@ int X86Decoder::InstructionDecode(uword pc) {
         } else if ((f0byte & 0xF0) == 0x80) {
           data += JumpConditional(data, branch_hint);
         } else if (f0byte == 0xBE || f0byte == 0xBF || f0byte == 0xB6 ||
-                   f0byte == 0xB7 || f0byte == 0xAF) {
+                   f0byte == 0xB7 || f0byte == 0xAF || f0byte == 0xBD) {
           data += 2;
           data += PrintOperands(f0mnem, REG_OPER_OP_ORDER, data);
         } else if (f0byte == 0x57) {

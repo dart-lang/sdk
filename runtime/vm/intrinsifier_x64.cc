@@ -915,11 +915,12 @@ void Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
 // can be Smi, Mint, Bigint or double.
 void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   Label fall_through, true_label, check_for_mint;
+  const intptr_t kReceiverOffset = 2;
+  const intptr_t kArgumentOffset = 1;
+
   // For integer receiver '===' check first.
-  // Entering a dart frame so we can use the PP for loading True and False.
-  __ EnterDartFrame(0);
-  __ movq(RAX, Address(RSP, + 4 * kWordSize));
-  __ movq(RCX, Address(RSP, + 5 * kWordSize));
+  __ movq(RAX, Address(RSP, + kArgumentOffset * kWordSize));
+  __ movq(RCX, Address(RSP, + kReceiverOffset * kWordSize));
   __ cmpq(RAX, RCX);
   __ j(EQUAL, &true_label, Assembler::kNearJump);
   __ orq(RAX, RCX);
@@ -927,28 +928,25 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ j(NOT_ZERO, &check_for_mint, Assembler::kNearJump);
   // Both arguments are smi, '===' is good enough.
   __ LoadObject(RAX, Bool::False(), PP);
-  __ LeaveFrameWithPP();
   __ ret();
   __ Bind(&true_label);
   __ LoadObject(RAX, Bool::True(), PP);
-  __ LeaveFrameWithPP();
   __ ret();
 
   // At least one of the arguments was not Smi.
   Label receiver_not_smi;
   __ Bind(&check_for_mint);
-  __ movq(RAX, Address(RSP, + 5 * kWordSize));  // Receiver.
+  __ movq(RAX, Address(RSP, + kReceiverOffset * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &receiver_not_smi);
 
   // Left (receiver) is Smi, return false if right is not Double.
   // Note that an instance of Mint or Bigint never contains a value that can be
   // represented by Smi.
-  __ movq(RAX, Address(RSP, + 4 * kWordSize));
+  __ movq(RAX, Address(RSP, + kArgumentOffset * kWordSize));
   __ CompareClassId(RAX, kDoubleCid);
   __ j(EQUAL, &fall_through);
   __ LoadObject(RAX, Bool::False(), PP);
-  __ LeaveFrameWithPP();
   __ ret();
 
   __ Bind(&receiver_not_smi);
@@ -956,17 +954,15 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ CompareClassId(RAX, kMintCid);
   __ j(NOT_EQUAL, &fall_through);
   // Receiver is Mint, return false if right is Smi.
-  __ movq(RAX, Address(RSP, + 4 * kWordSize));  // Right argument.
+  __ movq(RAX, Address(RSP, + kArgumentOffset * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through);
   // Smi == Mint -> false.
   __ LoadObject(RAX, Bool::False(), PP);
-  __ LeaveFrameWithPP();
   __ ret();
   // TODO(srdjan): Implement Mint == Mint comparison.
 
   __ Bind(&fall_through);
-  __ LeaveFrameWithPP();
 }
 
 
@@ -1351,24 +1347,19 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   __ ret();
 }
 
-
 // Identity comparison.
 void Intrinsifier::Object_equal(Assembler* assembler) {
   Label is_true;
-  // This intrinsic is used from the API even when we have not entered any
-  // Dart frame, yet, so the PP would otherwise be null in this case unless
-  // we enter a Dart frame here.
-  __ EnterDartFrame(0);
-  __ movq(RAX, Address(RSP, + 4 * kWordSize));
-  __ cmpq(RAX, Address(RSP, + 5 * kWordSize));
+  const intptr_t kReceiverOffset = 2;
+  const intptr_t kArgumentOffset = 1;
+
+  __ movq(RAX, Address(RSP, + kArgumentOffset * kWordSize));
+  __ cmpq(RAX, Address(RSP, + kReceiverOffset * kWordSize));
   __ j(EQUAL, &is_true, Assembler::kNearJump);
-  __ movq(RAX, Immediate(reinterpret_cast<int64_t>(Bool::False().raw())));
   __ LoadObject(RAX, Bool::False(), PP);
-  __ LeaveFrameWithPP();
   __ ret();
   __ Bind(&is_true);
   __ LoadObject(RAX, Bool::True(), PP);
-  __ LeaveFrameWithPP();
   __ ret();
 }
 

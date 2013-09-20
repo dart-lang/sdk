@@ -20,21 +20,21 @@ class ParsedFunction;
 // (factory-name-symbol, result-cid, fingerprint).
 // TODO(srdjan): Store the values in the snapshot instead.
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
-  V(ObjectArrayFactory, kArrayCid, 1930677134)                                 \
-  V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 1012992871)          \
-  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 1707369421)           \
-  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 1340298556)                     \
-  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 1775618642)                   \
-  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 264668024)      \
-  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 1095249987)                   \
-  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 1275304272)                 \
-  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 523449884)                    \
-  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 458531362)                  \
-  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 1753070829)                   \
-  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 1561660391)                 \
-  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 245916452)                \
-  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 368082071)                \
-  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 1674296969)           \
+  V(ObjectArrayFactory, kArrayCid, 1558200848)                                 \
+  V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 619965861)           \
+  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 1180134731)           \
+  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 810750844)                      \
+  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 1246070930)                   \
+  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 1882603960)     \
+  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 565702275)                    \
+  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 745756560)                  \
+  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 2141385820)                   \
+  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 2076467298)                 \
+  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 1223523117)                   \
+  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 1032112679)                 \
+  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 1863852388)               \
+  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 1986018007)               \
+  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 1144749257)           \
 
 
 // A class to collect the exits from an inlined function during graph
@@ -98,13 +98,14 @@ class InlineExitCollector: public ZoneAllocated {
 
 
 // Build a flow graph from a parsed function's AST.
-class FlowGraphBuilder: public ValueObject {
+class FlowGraphBuilder: public ZoneAllocated {
  public:
   // The inlining context is NULL if not inlining.  The osr_id is the deopt
   // id of the OSR entry or Isolate::kNoDeoptId if not compiling for OSR.
   FlowGraphBuilder(ParsedFunction* parsed_function,
                    const Array& ic_data_array,
                    InlineExitCollector* exit_collector,
+                   GrowableArray<const Field*>* guarded_fields,
                    intptr_t osr_id);
 
   FlowGraph* BuildGraph();
@@ -147,6 +148,12 @@ class FlowGraphBuilder: public ValueObject {
   bool IsInlining() const { return (exit_collector_ != NULL); }
   InlineExitCollector* exit_collector() const { return exit_collector_; }
 
+  GrowableArray<const Field*>* guarded_fields() const {
+    return guarded_fields_;
+  }
+
+  void AddToGuardedFields(const Field& field) const;
+
   intptr_t args_pushed() const { return args_pushed_; }
   void add_args_pushed(intptr_t n) { args_pushed_ += n; }
 
@@ -169,6 +176,7 @@ class FlowGraphBuilder: public ValueObject {
   const intptr_t num_non_copied_params_;
   const intptr_t num_stack_locals_;  // Does not include any parameters.
   InlineExitCollector* const exit_collector_;
+  GrowableArray<const Field*>* guarded_fields_;
 
   intptr_t last_used_block_id_;
   intptr_t context_level_;

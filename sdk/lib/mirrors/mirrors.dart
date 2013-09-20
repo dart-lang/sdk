@@ -748,32 +748,30 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   Map<Symbol, MethodMirror> get constructors;
 
   /**
-   * An immutable map from names to mirrors for all type variables for
-   * this type.
-   * If this type is a generic declaration or an invocation of
-   * a generic declaration, the returned map has the names of the formal
-   * type parameters of the original declaration as its keys, and
-   * each such key maps to a TypeVariableMirror on the corresponding
-   * type variable. Otherwise, the returned map is empty.
+   * An immutable list with mirrors for all type variables for this type.
    *
-   * This map preserves the order of declaration of the type variables.
+   * If this type is a generic declaration or an invocation of a generic
+   * declaration, the returned list contains mirrors on the type variables.
+   * Otherwise, the returned list is empty.
+   *
+   * This list preserves the order of declaration of the type variables.
    */
-  Map<Symbol, TypeVariableMirror> get typeVariables;
+  List<TypeVariableMirror> get typeVariables;
 
   /**
-   * An immutable map from names to mirrors for all type arguments for
-   * this type.  The keys of the map are the names of the
-   * corresponding type variables.
+   * An immutable list with mirrors for all type arguments for
+   * this type.
    *
    * If the the reflectee is an invocation of a generic class,
    * the type arguments are the bindings of its type parameters.
    * If the reflectee is the original declaration of a generic,
-   * it has no type arguments and this method returns an empty map.
+   * it has no type arguments and this method returns an empty list.
    * If the reflectee is a not generic, then
-   * it has no type arguments and this method returns an empty map.
-   * This map preserves the order of declaration of the type variables.
+   * it has no type arguments and this method returns an empty list.
+   *
+   * This list preserves the order of declaration of the type variables.
    */
-  Map<Symbol, TypeMirror> get typeArguments;
+  List<TypeMirror> get typeArguments;
 
   /**
    * Is this the original declaration of this type?

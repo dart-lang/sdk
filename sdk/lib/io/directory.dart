@@ -88,6 +88,10 @@ abstract class Directory implements FileSystemEntity {
    */
   Directory createTempSync();
 
+  Future<String> resolveSymbolicLinks();
+
+  String resolveSymbolicLinksSync();
+
   /**
    * Renames this directory. Returns a [:Future<Directory>:] that completes
    * with a [Directory] instance for the renamed directory.

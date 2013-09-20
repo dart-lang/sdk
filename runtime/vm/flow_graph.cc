@@ -24,6 +24,7 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
   : parent_(),
     current_ssa_temp_index_(0),
     max_block_id_(max_block_id),
+    builder_(builder),
     parsed_function_(*builder.parsed_function()),
     num_copied_params_(builder.num_copied_params()),
     num_non_copied_params_(builder.num_non_copied_params()),
@@ -94,6 +95,20 @@ void FlowGraph::InsertAfter(Instruction* prev,
   instr->InsertAfter(prev);
   ASSERT(instr->env() == NULL);
   if (env != NULL) env->DeepCopyTo(instr);
+}
+
+
+Instruction* FlowGraph::AppendTo(Instruction* prev,
+                                 Instruction* instr,
+                                 Environment* env,
+                                 Definition::UseKind use_kind) {
+  if (use_kind == Definition::kValue) {
+    ASSERT(instr->IsDefinition());
+    instr->AsDefinition()->set_ssa_temp_index(alloc_ssa_temp_index());
+  }
+  ASSERT(instr->env() == NULL);
+  if (env != NULL) env->DeepCopyTo(instr);
+  return prev->AppendInstruction(instr);
 }
 
 

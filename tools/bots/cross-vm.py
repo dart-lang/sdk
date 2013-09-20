@@ -24,8 +24,8 @@ def run(args):
   sys.stdout.flush()
   bot.RunProcess(args)
 
-def tarball_name(arch, mode):
-  return 'cross_build_%s_%s.tar.bz2' % (arch, mode)
+def tarball_name(arch, mode, revision):
+  return 'cross_build_%s_%s_%s.tar.bz2' % (arch, mode, revision)
 
 def record_names(name, arch, mode):
   return ('record_%s_%s_%s.json' % (name, arch, mode),
@@ -33,8 +33,8 @@ def record_names(name, arch, mode):
 
 def cross_compiling_builder(arch, mode):
   build_py = os.path.join('tools', 'build.py')
-
-  tarball = tarball_name(arch, mode)
+  revision = int(os.environ['BUILDBOT_GOT_REVISION'])
+  tarball = tarball_name(arch, mode, revision)
   temporary_files = [tarball]
   bot.Clobber()
   try:
@@ -76,7 +76,8 @@ def target_builder(arch, mode):
                '--time', '--compiler=none', '--runtime=vm', '--write-debug-log',
                '--mode=' + mode, '--arch=' + arch]
 
-  tarball = tarball_name(arch, mode)
+  revision = int(os.environ['BUILDBOT_GOT_REVISION'])
+  tarball = tarball_name(arch, mode, revision)
   temporary_files = [tarball]
   bot.Clobber()
   try:

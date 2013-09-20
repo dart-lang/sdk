@@ -33,7 +33,7 @@ if test -t 1; then
   # Stdout is a terminal.
   if test 8 -le `tput colors`; then
     # Stdout has at least 8 colors, so enable colors.
-    EXTRA_OPTIONS[${#EXTRA_OPTIONS[@]}]='--enable-diagnostic-colors'
+    EXTRA_OPTIONS+=('--enable-diagnostic-colors')
   fi
 fi
 
@@ -41,7 +41,7 @@ unset EXTRA_VM_OPTIONS
 declare -a EXTRA_VM_OPTIONS
 
 if test -f "$SNAPSHOT"; then
-  EXTRA_OPTIONS[${#EXTRA_OPTIONS[@]}]="--library-root=$SDK_DIR"
+  EXTRA_OPTIONS+=("--library-root=$SDK_DIR")
 fi
 
 # Tell the VM to grow the heap more aggressively. This should only
@@ -52,9 +52,15 @@ EXTRA_VM_OPTIONS[${#EXTRA_VM_OPTIONS[@]}]='--heap_growth_rate=512'
 
 case $0 in
   *_developer)
-    EXTRA_VM_OPTIONS[${#EXTRA_VM_OPTIONS[@]}]='--checked'
+    EXTRA_VM_OPTIONS+=('--checked')
     ;;
 esac
+
+# We allow extra vm options to be passed in through an environment variable.
+if [[ $DART_VM_OPTIONS ]]; then
+  read -a OPTIONS <<< "$DART_VM_OPTIONS"
+  EXTRA_VM_OPTIONS+=("${OPTIONS[@]}")
+fi
 
 if test -f "$SNAPSHOT"; then
   exec "$DART" "${EXTRA_VM_OPTIONS[@]}" "$SNAPSHOT" "${EXTRA_OPTIONS[@]}" "$@"

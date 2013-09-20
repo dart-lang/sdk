@@ -202,7 +202,7 @@ class DeoptInfoBuilder : public ValueObject {
   // Returns the index of the next stack slot. Used for verification.
   intptr_t EmitMaterializationArguments(intptr_t to_index);
 
-  RawDeoptInfo* CreateDeoptInfo();
+  RawDeoptInfo* CreateDeoptInfo(const Array& deopt_table);
 
   // Mark the actual start of the frame description after all materialization
   // instructions were emitted. Used for verification purposes.

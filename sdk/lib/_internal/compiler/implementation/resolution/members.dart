@@ -454,7 +454,7 @@ class ResolverTask extends CompilerTask {
 
     if (Elements.isStaticOrTopLevelField(element)) {
       if (tree.asSendSet() != null) {
-        // TODO(ngeoffray): We could do better here by using the
+        // TODO(13429): We could do better here by using the
         // constant handler to figure out if it's a lazy field or not.
         compiler.backend.registerLazyField(visitor.mapping);
       } else {
@@ -492,6 +492,33 @@ class ResolverTask extends CompilerTask {
       return compiler.types.dynamicType;
     }
     return result;
+  }
+
+  void resolveRedirectionChain(FunctionElement constructor, Node node) {
+    FunctionElementX current = constructor;
+    List<Element> seen = new List<Element>();
+    // Follow the chain of redirections and check for cycles.
+    while (current != current.defaultImplementation) {
+      if (current.internalRedirectionTarget != null) {
+        // We found a constructor that already has been processed.
+        current = current.internalRedirectionTarget;
+        break;
+      }
+      Element target = current.defaultImplementation;
+      if (seen.contains(target)) {
+        error(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
+        break;
+      }
+      seen.add(current);
+      current = target;
+    }
+    // [current] is now the actual target of the redirections.  Run through
+    // the constructors again and set their [redirectionTarget], so that we
+    // do not have to run the loop for these constructors again.
+    while (!seen.isEmpty) {
+      FunctionElementX factory = seen.removeLast();
+      factory.redirectionTarget = current;
+    }
   }
 
   /**
@@ -2097,7 +2124,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     scope = oldScope;
     enclosingElement = previousEnclosingElement;
 
-    world.registerClosurizedMember(function, mapping);
+    world.registerClosure(function, mapping);
     world.registerInstantiatedClass(compiler.functionClass, mapping);
   }
 
@@ -2653,7 +2680,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
     FunctionType targetType = redirectionTarget.computeType(compiler)
         .subst(type.typeArguments, targetClass.typeVariables);
     FunctionType constructorType = constructor.computeType(compiler);
-    if (!compiler.types.isSubtype(targetType, constructorType)) {
+    bool isSubtype = compiler.types.isSubtype(targetType, constructorType);
+    if (!isSubtype) {
       warning(node, MessageKind.NOT_ASSIGNABLE.warning,
               {'fromType': targetType, 'toType': constructorType});
     }
@@ -2663,22 +2691,16 @@ class ResolverVisitor extends MappingVisitor<Element> {
     FunctionSignature constructorSignature =
         constructor.computeSignature(compiler);
     if (!targetSignature.isCompatibleWith(constructorSignature)) {
+      assert(!isSubtype);
       compiler.backend.registerThrowNoSuchMethod(mapping);
     }
 
-    // TODO(ahe): Check that this doesn't lead to a cycle.  For now,
-    // just make sure that the redirection target isn't itself a
-    // redirecting factory.
-    { // This entire block is temporary code per the above TODO.
-      FunctionElement targetImplementation = redirectionTarget.implementation;
-      FunctionExpression function = targetImplementation.parseNode(compiler);
-      if (function != null
-          && function.body != null
-          && function.body.asReturn() != null
-          && function.body.asReturn().isRedirectingFactoryBody) {
-        unimplemented(node.expression, 'redirecting to redirecting factory');
-      }
-    }
+    // Register a post process to check for cycles in the redirection chain and
+    // set the actual generative constructor at the end of the chain.
+    compiler.enqueuer.resolution.addPostProcessAction(constructor, () {
+      compiler.resolver.resolveRedirectionChain(constructor, node);
+    });
+
     world.registerStaticUse(redirectionTarget);
     world.registerInstantiatedClass(
         redirectionTarget.enclosingElement.declaration, mapping);
@@ -2749,7 +2771,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (constructor.isFactoryConstructor() && !type.typeArguments.isEmpty) {
       world.registerFactoryWithTypeArguments(mapping);
     }
-    if (cls.isAbstract(compiler)) {
+    if (constructor.isGenerativeConstructor() && cls.isAbstract(compiler)) {
+      warning(node, MessageKind.ABSTRACT_CLASS_INSTANTIATION);
       compiler.backend.registerAbstractClassInstantiation(mapping);
     }
 
@@ -3340,7 +3363,101 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     element.alias = compiler.computeFunctionType(
         element, element.functionSignature);
 
-    // TODO(johnniwinther): Check for cyclic references in the typedef alias.
+    void checkCyclicReference() {
+      var visitor = new TypedefCyclicVisitor(compiler, element);
+      type.accept(visitor, null);
+    }
+    compiler.enqueuer.resolution.addPostProcessAction(element,
+                                                      checkCyclicReference);
+  }
+}
+
+// TODO(johnniwinther): Replace with a traversal on the AST when the type
+// annotations in typedef alias are stored in a [TreeElements] mapping.
+class TypedefCyclicVisitor extends DartTypeVisitor {
+  final Compiler compiler;
+  final TypedefElement element;
+  bool hasCyclicReference = false;
+
+  /// Counter for how many bounds the visitor currently has on the call-stack.
+  /// Used to detect when to report [Messagekind.CYCLIC_TYPEDEF_TYPEVAR].
+  int seenBoundsCount = 0;
+
+  Link<TypedefElement> seenTypedefs = const Link<TypedefElement>();
+
+  int seenTypedefsCount = 0;
+
+  Link<TypeVariableElement> seenTypeVariables =
+      const Link<TypeVariableElement>();
+
+  TypedefCyclicVisitor(Compiler this.compiler, TypedefElement this.element);
+
+  visitType(DartType type, _) {
+    // Do nothing.
+  }
+
+  visitTypedefType(TypedefType type, _) {
+    TypedefElement typedefElement = type.element;
+    if (seenTypedefs.contains(typedefElement)) {
+      if (!hasCyclicReference && identical(element, typedefElement)) {
+        // Only report an error on the checked typedef to avoid generating
+        // multiple errors for the same cyclicity.
+        hasCyclicReference = true;
+        if (seenBoundsCount > 0) {
+          compiler.reportError(element, MessageKind.CYCLIC_TYPEDEF_TYPEVAR);
+        } else if (seenTypedefsCount == 1) {
+          // Direct cyclicity.
+          compiler.reportError(element,
+              MessageKind.CYCLIC_TYPEDEF,
+              {'typedefName': element.name});
+        } else if (seenTypedefsCount == 2) {
+          // Cyclicity through one other typedef.
+          compiler.reportError(element,
+              MessageKind.CYCLIC_TYPEDEF_ONE,
+              {'typedefName': element.name,
+               'otherTypedefName': seenTypedefs.head.name});
+        } else {
+          // Cyclicity through more than one other typedef.
+          for (TypedefElement cycle in seenTypedefs) {
+            if (!identical(typedefElement, cycle)) {
+              compiler.reportError(element,
+                  MessageKind.CYCLIC_TYPEDEF_ONE,
+                  {'typedefName': element.name,
+                   'otherTypedefName': cycle.name});
+            }
+          }
+        }
+      }
+    } else {
+      seenTypedefs = seenTypedefs.prepend(typedefElement);
+      seenTypedefsCount++;
+      type.visitChildren(this, null);
+      typedefElement.alias.accept(this, null);
+      seenTypedefs = seenTypedefs.tail;
+      seenTypedefsCount--;
+    }
+  }
+
+  visitFunctionType(FunctionType type, _) {
+    type.visitChildren(this, null);
+  }
+
+  visitInterfaceType(InterfaceType type, _) {
+    type.visitChildren(this, null);
+  }
+
+  visitTypeVariableType(TypeVariableType type, _) {
+    TypeVariableElement typeVariableElement = type.element;
+    if (seenTypeVariables.contains(typeVariableElement)) {
+      // Avoid running in cycles on cyclic type variable bounds.
+      // Cyclicity is reported elsewhere.
+      return;
+    }
+    seenTypeVariables = seenTypeVariables.prepend(typeVariableElement);
+    seenBoundsCount++;
+    typeVariableElement.bound.accept(this, null);
+    seenBoundsCount--;
+    seenTypeVariables = seenTypeVariables.tail;
   }
 }
 
@@ -3816,13 +3933,16 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
       resolver.error(identifier, MessageKind.REFERENCE_IN_INITIALIZATION,
                      {'variableName': name.toString()});
     }
-    return visit(node.selector);
+    return name;
   }
 
   SourceString visitIdentifier(Identifier node) {
     // The variable is initialized to null.
     resolver.world.registerInstantiatedClass(compiler.nullClass,
                                              resolver.mapping);
+    if (definitions.modifiers.isConst()) {
+      compiler.reportError(node, MessageKind.CONST_WITHOUT_INITIALIZER);
+    }
     return node.source;
   }
 
@@ -3878,6 +3998,9 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     Node definition = definitions.head;
     if (definition is NodeList) {
       cancel(node, 'optional parameters are not implemented');
+    }
+    if (node.modifiers.isConst()) {
+      error(node, MessageKind.FORMAL_DECLARED_CONST);
     }
 
     if (currentDefinitions != null) {

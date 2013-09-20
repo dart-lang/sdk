@@ -1022,6 +1022,17 @@ class TypeGraphInferrerEngine
         } else {
           recordTypeOfNonFinalField(node, element, type, null);
         }
+        if (Elements.isStaticOrTopLevelField(element)
+            && node.asSendSet() != null
+            && !element.modifiers.isConst()) {
+          var argument = node.asSendSet().arguments.head;
+          // TODO(13429): We could do better here by using the
+          // constant handler to figure out if it's a lazy field or not.
+          if (argument.asSend() != null
+              || (argument.asNewExpression() != null && !argument.isConst())) {
+            recordType(element, types.nullType);
+          }
+        }
       } else {
         recordReturnType(element, type);
       }

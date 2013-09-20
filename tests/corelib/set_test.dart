@@ -9,7 +9,13 @@ import 'package:expect/expect.dart';
 import "dart:collection";
 
 void testMain(Set create()) {
+  testInts(create);
+  testStrings(create);
+}
+
+void testInts(Set create()) {
   Set set = create();
+
   testLength(0, set);
   set.add(1);
   testLength(1, set);
@@ -186,9 +192,145 @@ void testLength(int length, Set set) {
   Expect.equals(length, set.length);
   (length == 0 ? Expect.isTrue : Expect.isFalse)(set.isEmpty);
   (length != 0 ? Expect.isTrue : Expect.isFalse)(set.isNotEmpty);
+  if (length == 0) {
+    for (var e in set) { Expect.fail("contains element when iterated: $e"); }
+  }
+  (length == 0 ? Expect.isFalse : Expect.isTrue)(set.iterator.moveNext());
 }
 
+void testStrings(Set create()) {
+  var set = create();
+  var strings = ["foo", "bar", "baz", "qux", "fisk", "hest", "svin", "pigvar"];
+  set.addAll(strings);
+  testLength(8, set);
+  set.removeAll(strings.where((x) => x.length == 3));
+  testLength(4, set);
+  set.add("bar");
+  set.add("qux");
+  testLength(6, set);
+  set.addAll(strings);
+  testLength(8, set);
+  set.removeWhere((x) => x.length != 3);
+  testLength(4, set);
+  set.retainWhere((x) => x[1] == "a");
+  testLength(2, set);
+  Expect.isTrue(set.containsAll(["baz", "bar"]));
+
+  set = set.union(strings.where((x) => x.length != 3).toSet());
+  testLength(6, set);
+  set = set.intersection(["qux", "baz", "fisk", "egern"].toSet());
+  testLength(2, set);
+  Expect.isTrue(set.containsAll(["baz", "fisk"]));
+}
+
+void testTypeAnnotations(Set<int> set) {
+  set.add(0);
+  set.add(999);
+  set.add(0x800000000);
+  set.add(0x20000000000000);
+  Expect.isFalse(set.contains("not an it"));
+  Expect.isFalse(set.remove("not an it"));
+  Expect.isFalse(set.containsAll(["Not an int", "Also no an int"]));
+
+  testLength(4, set);
+  set.removeAll(["Not an int", 999, "Also no an int"]);
+  testLength(3, set);
+  set.retainAll(["Not an int", 0, "Also no an int"]);
+  testLength(1, set);
+}
+
+void testRetainWhere(Set create([equals, hashCode, validKey])) {
+  // The retainWhere method must not collapse the argument Iterable
+  // in a way that doesn't match the equality of the set.
+  // It must not throw away equal elements that are different in the
+  // equality of the set.
+  // It must not consider objects to be not there if they are equal
+  // in the equality of the set.
+
+  // If set equality is natural equality, using different but equal objects
+  // must work. Can't use an identity set internally (as was done at some point
+  // during development).
+  Set set = create();
+  set.addAll([new EO(0), new EO(1), new EO(2)]);
+  Expect.equals(3, set.length);  // All different.
+  set.retainAll([new EO(0), new EO(2)]);
+  Expect.equals(2, set.length);
+  Expect.isTrue(set.contains(new EO(0)));
+  Expect.isTrue(set.contains(new EO(2)));
+
+  // If equality of set is identity, we can't internally use a non-identity
+  // based set because it might throw away equal objects that are not identical.
+  var elems = [new EO(0), new EO(1), new EO(2), new EO(0)];
+  set = create(identical);
+  set.addAll(elems);
+  Expect.equals(4, set.length);
+  set.retainAll([elems[0], elems[2], elems[3]]);
+  Expect.equals(3, set.length);
+  Expect.isTrue(set.contains(elems[0]));
+  Expect.isTrue(set.contains(elems[2]));
+  Expect.isTrue(set.contains(elems[3]));
+
+  // If set equality is less precise than equality, we must not use equality
+  // internally to see if the element is there:
+  set = create(customEq(3), customHash(3), validKey);
+  set.addAll([new EO(0), new EO(1), new EO(2)]);
+  Expect.equals(3, set.length);
+  set.retainAll([new EO(3), new EO(5)]);
+  Expect.equals(2, set.length);
+  Expect.isTrue(set.contains(new EO(6)));
+  Expect.isTrue(set.contains(new EO(8)));
+
+  // It shouldn't matter if the input is a set.
+  set.clear();
+  set.addAll([new EO(0), new EO(1), new EO(2)]);
+  Expect.equals(3, set.length);
+  set.retainAll(new Set.from([new EO(3), new EO(5)]));
+  Expect.equals(2, set.length);
+  Expect.isTrue(set.contains(new EO(6)));
+  Expect.isTrue(set.contains(new EO(8)));
+}
+
+// Objects that are equal based on data.
+class EO {
+  final int id;
+  const EO(this.id);
+  int get hashCode => id;
+  bool operator==(Object other) => other is EO && id == (other as EO).id;
+}
+
+// Equality of Id objects based on id modulo value.
+Function customEq(int mod) => (EO e1, EO e2) => ((e1.id - e2.id) % mod) == 0;
+Function customHash(int mod) => (EO e) => e.id % mod;
+bool validKey(Object o) => o is EO;
+
+
 main() {
-  testMain(() => new Set());
   testMain(() => new HashSet());
+  testMain(() => new LinkedHashSet());
+  testMain(() => new HashSet(equals: identical));
+  testMain(() => new LinkedHashSet(equals: identical));
+  testMain(() => new HashSet(equals: (a, b) => a == b,
+                             hashCode: (a) => -a.hashCode,
+                             isValidKey: (a) => true));
+  testMain(() => new LinkedHashSet(
+      equals: (a, b) => a == b,
+      hashCode: (a) => -a.hashCode,
+      isValidKey: (a) => true));
+
+  testTypeAnnotations(new HashSet<int>());
+  testTypeAnnotations(new LinkedHashSet<int>());
+  testTypeAnnotations(new HashSet<int>(equals: identical));
+  testTypeAnnotations(new LinkedHashSet<int>(equals: identical));
+  testTypeAnnotations(new HashSet<int>(equals: (int a, int b) => a == b,
+                                       hashCode: (int a) => a.hashCode,
+                                       isValidKey: (a) => a is int));
+  testTypeAnnotations(new LinkedHashSet<int>(equals: (int a, int b) => a == b,
+                                             hashCode: (int a) => a.hashCode,
+                                             isValidKey: (a) => a is int));
+
+  testRetainWhere(([equals, hashCode, validKey]) =>
+      new HashSet(equals: equals, hashCode: hashCode, isValidKey: validKey));
+  testRetainWhere(([equals, hashCode, validKey]) =>
+      new LinkedHashSet(equals: equals, hashCode: hashCode,
+                        isValidKey: validKey));
 }

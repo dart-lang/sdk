@@ -2080,8 +2080,8 @@ TEST_CASE(EmbeddedScript) {
   EXPECT_EQ(0, first_idx);  // Token 'main' is first token.
   EXPECT_EQ(3, last_idx);   // Token { is last token.
   script.TokenRangeAtLine(5, &first_idx, &last_idx);
-  EXPECT_EQ(7, first_idx);  // Token } is first and only token.
-  EXPECT_EQ(7, last_idx);
+  EXPECT_EQ(9, first_idx);  // Token } is first and only token.
+  EXPECT_EQ(9, last_idx);
 }
 
 
