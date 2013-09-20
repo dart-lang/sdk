@@ -918,7 +918,9 @@ Error: "#{value}" is not a valid Symbol name because is not:
   static const MessageKind UNSUPPORTED_PREFIX_PLUS = const MessageKind(
       "Error: '+' is not a prefix operator. ",
       howToFix: "Try removing '+'.",
-      examples: const [ "+2  // No longer a valid way to write '2'" ]);
+      examples: const [
+          "main() => +2;  // No longer a valid way to write '2'"
+      ]);
 
   static const MessageKind UNSUPPORTED_THROW_WITHOUT_EXP = const MessageKind(
       'Error: No expression after "throw". '
