@@ -2449,7 +2449,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HInstruction input = node.checkedInput;
     TypeMask receiver = input.instructionType.computeMask(compiler);
     TypeMask mask = node.instructionType.computeMask(compiler);
-    bool turnIntoNullCheck = mask.nullable() == receiver;
+    // Figure out if it is beneficial to turn this into a null check.
+    // V8 generally prefers 'typeof' checks, but for integers and 
+    // indexable primitives we cannot compile this test into a single
+    // typeof check so the null check is cheaper.
+    bool turnIntoNullCheck = (mask.nullable() == receiver)
+        && (node.isInteger() || node.isIndexablePrimitive(compiler));
     js.Expression test;
     if (turnIntoNullCheck) {
       use(input);
