@@ -196,7 +196,7 @@ char* OS::StrNDup(const char* s, intptr_t n) {
     return NULL;
   }
   result[len] = '\0';
-  return reinterpret_cast<char*>(memcpy(result, s, len));
+  return reinterpret_cast<char*>(memmove(result, s, len));
 }
 
 

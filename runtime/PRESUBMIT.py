@@ -4,6 +4,7 @@
 
 import os
 import cpplint
+import re
 
 
 class PathHackException(Exception):
@@ -54,6 +55,7 @@ def TryGitPathHack(filename, parent_path):
 def RunLint(input_api, output_api):
   result = []
   cpplint._cpplint_state.ResetErrorCounts()
+  memcpy_match_count = 0
   # Find all .cc and .h files in the change list.
   for svn_file in input_api.AffectedTextFiles():
     filename = svn_file.AbsoluteLocalPath()
@@ -71,8 +73,23 @@ def RunLint(input_api, output_api):
       cpplint.ProcessFile(filename, 1)
       if cleanup is not None:
         cleanup()
+      # memcpy does not handle overlapping memory regions. Even though this
+      # is well documented it seems to be used in error quite often. To avoid
+      # problems we disallow the direct use of memcpy.  The exceptions are in
+      # third-party code and in platform/globals.h which uses it to implement
+      # bit_cast and bit_copy.
+      if not filename.endswith(os.path.join('platform', 'globals.h')) and \
+         filename.find('third_party') == -1:
+        fh = open(filename, 'r')
+        content = fh.read()
+        match = re.search('\\bmemcpy\\b', content)
+        if match:
+          line_number = content[0:match.start()].count('\n') + 1
+          print "%s:%d: use of memcpy is forbidden" % (filename, line_number)
+          memcpy_match_count += 1
+
   # Report a presubmit error if any of the files had an error.
-  if cpplint._cpplint_state.error_count > 0:
+  if cpplint._cpplint_state.error_count > 0 or memcpy_match_count > 0:
     result = [output_api.PresubmitError('Failed cpplint check.')]
   return result
 

@@ -814,7 +814,7 @@ bool Process::Wait(intptr_t pid,
   // Calculate the exit code.
   ASSERT(oh[2].GetDataSize() == 8);
   uint32_t exit[2];
-  memcpy(&exit, oh[2].GetFirstDataBuffer(), sizeof(exit));
+  memmove(&exit, oh[2].GetFirstDataBuffer(), sizeof(exit));
   oh[2].FreeDataBuffer();
   intptr_t exit_code = exit[0];
   intptr_t negative = exit[1];

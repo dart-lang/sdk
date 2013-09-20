@@ -77,7 +77,7 @@ int OverlappedBuffer::Read(void* buffer, int num_bytes) {
   if (num_bytes > GetRemainingLength()) {
     num_bytes = GetRemainingLength();
   }
-  memcpy(buffer, GetBufferStart() + index_, num_bytes);
+  memmove(buffer, GetBufferStart() + index_, num_bytes);
   index_ += num_bytes;
   return num_bytes;
 }
@@ -85,7 +85,7 @@ int OverlappedBuffer::Read(void* buffer, int num_bytes) {
 
 int OverlappedBuffer::Write(const void* buffer, int num_bytes) {
   ASSERT(num_bytes == buflen_);
-  memcpy(GetBufferStart(), buffer, num_bytes);
+  memmove(GetBufferStart(), buffer, num_bytes);
   data_length_ = num_bytes;
   return num_bytes;
 }
