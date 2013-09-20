@@ -14,13 +14,11 @@
  * Returns the simple name for the provided type.
  */
 DART_EXPORT Dart_Handle Dart_TypeName(Dart_Handle type);
-DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle type);
 
 /**
  * Returns the qualified name for the provided type.
  */
 DART_EXPORT Dart_Handle Dart_QualifiedTypeName(Dart_Handle type);
-DART_EXPORT Dart_Handle Dart_QualifiedClassName(Dart_Handle type);
 
 /**
  * Returns a list of the names of all functions or methods declared in

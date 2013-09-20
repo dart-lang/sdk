@@ -265,13 +265,13 @@ TEST_CASE(InstanceGetType) {
   const Type& bool_type_obj = Api::UnwrapTypeHandle(isolate, type);
   EXPECT(bool_type_obj.raw() == Type::BoolType());
 
-  Dart_Handle cls_name = Dart_ClassName(type);
+  Dart_Handle cls_name = Dart_TypeName(type);
   EXPECT_VALID(cls_name);
   const char* cls_name_cstr = "";
   EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
   EXPECT_STREQ("bool", cls_name_cstr);
 
-  Dart_Handle qual_cls_name = Dart_QualifiedClassName(type);
+  Dart_Handle qual_cls_name = Dart_QualifiedTypeName(type);
   EXPECT_VALID(qual_cls_name);
   const char* qual_cls_name_cstr = "";
   EXPECT_VALID(Dart_StringToCString(qual_cls_name, &qual_cls_name_cstr));
@@ -2707,7 +2707,7 @@ UNIT_TEST_CASE(SetMessageCallbacks) {
     Dart_Handle tmp = (handle);                                                \
     EXPECT_VALID(tmp);                                                         \
     EXPECT(Dart_IsClass(tmp));                                                 \
-    Dart_Handle intf_name = Dart_ClassName(tmp);                               \
+    Dart_Handle intf_name = Dart_TypeName(tmp);                                \
     EXPECT_VALID(intf_name);                                                   \
     const char* intf_name_cstr = "";                                           \
     EXPECT_VALID(Dart_StringToCString(intf_name, &intf_name_cstr));            \
