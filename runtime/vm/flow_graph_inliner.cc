@@ -542,19 +542,17 @@ class CallSiteInliner : public ValueObject {
       // Build the callee graph.
       InlineExitCollector* exit_collector =
           new InlineExitCollector(caller_graph_, call);
-      GrowableArray<const Field*> inlined_guarded_fields;
-      FlowGraphBuilder* builder = new FlowGraphBuilder(parsed_function,
-                                                       ic_data_array,
-                                                       exit_collector,
-                                                       &inlined_guarded_fields,
-                                                       Isolate::kNoDeoptId);
-      builder->SetInitialBlockId(caller_graph_->max_block_id());
+      FlowGraphBuilder builder(parsed_function,
+                               ic_data_array,
+                               exit_collector,
+                               Isolate::kNoDeoptId);
+      builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
       {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphinliner_build_timer,
                          isolate);
-        callee_graph = builder->BuildGraph();
+        callee_graph = builder.BuildGraph();
       }
 
       // The parameter stubs are a copy of the actual arguments providing
@@ -671,8 +669,9 @@ class CallSiteInliner : public ValueObject {
 
       // When inlined, we add the guarded fields of the callee to the caller's
       // list of guarded fields.
-      for (intptr_t i = 0; i < inlined_guarded_fields.length(); ++i) {
-        caller_graph_->builder().AddToGuardedFields(*inlined_guarded_fields[i]);
+      for (intptr_t i = 0; i < callee_graph->guarded_fields()->length(); ++i) {
+        FlowGraph::AddToGuardedFields(caller_graph_->guarded_fields(),
+                                      (*callee_graph->guarded_fields())[i]);
       }
 
       TRACE_INLINING(OS::Print("     Success\n"));

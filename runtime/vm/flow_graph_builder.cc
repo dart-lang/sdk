@@ -45,7 +45,6 @@ static const String& PrivateCoreLibName(const String& str) {
 FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
                                    const Array& ic_data_array,
                                    InlineExitCollector* exit_collector,
-                                   GrowableArray<const Field*>* guarded_fields,
                                    intptr_t osr_id)
   : parsed_function_(parsed_function),
     ic_data_array_(ic_data_array),
@@ -56,7 +55,7 @@ FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
         : 0),
     num_stack_locals_(parsed_function->num_stack_locals()),
     exit_collector_(exit_collector),
-    guarded_fields_(guarded_fields),
+    guarded_fields_(new ZoneGrowableArray<const Field*>()),
     last_used_block_id_(0),  // 0 is used for the graph entry.
     context_level_(0),
     try_index_(CatchClauseNode::kInvalidTryIndex),
@@ -69,20 +68,6 @@ FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
 
 void FlowGraphBuilder::AddCatchEntry(CatchBlockEntryInstr* entry) {
   graph_entry_->AddCatchEntry(entry);
-}
-
-
-void FlowGraphBuilder::AddToGuardedFields(const Field& field) const {
-  if ((field.guarded_cid() == kDynamicCid) ||
-      (field.guarded_cid() == kIllegalCid)) {
-    return;
-  }
-  for (intptr_t j = 0; j < guarded_fields_->length(); j++) {
-    if ((*guarded_fields_)[j]->raw() == field.raw()) {
-      return;
-    }
-  }
-  guarded_fields_->Add(&field);
 }
 
 
@@ -3063,7 +3048,7 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
           (node->field().guarded_cid() == kNullCid)) {
         load->set_result_cid(node->field().guarded_cid());
       }
-      owner()->AddToGuardedFields(node->field());
+      FlowGraph::AddToGuardedFields(owner()->guarded_fields(), &node->field());
     }
   }
   ReturnDefinition(load);

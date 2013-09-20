@@ -197,6 +197,13 @@ class FlowGraph : public ZoneAllocated {
 
   bool IsCompiledForOsr() const { return graph_entry()->IsCompiledForOsr(); }
 
+  static void AddToGuardedFields(ZoneGrowableArray<const Field*>* array,
+                                 const Field* field);
+
+  ZoneGrowableArray<const Field*>* guarded_fields() const {
+    return guarded_fields_;
+  }
+
  private:
   friend class IfConverter;
   friend class BranchSimplifier;
@@ -269,6 +276,7 @@ class FlowGraph : public ZoneAllocated {
 
   ZoneGrowableArray<BlockEntryInstr*>* loop_headers_;
   ZoneGrowableArray<BitVector*>* loop_invariant_loads_;
+  ZoneGrowableArray<const Field*>* guarded_fields_;
 };
 
 

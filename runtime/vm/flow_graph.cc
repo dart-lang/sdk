@@ -38,8 +38,25 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     licm_allowed_(true),
     use_far_branches_(false),
     loop_headers_(NULL),
-    loop_invariant_loads_(NULL) {
+    loop_invariant_loads_(NULL),
+    guarded_fields_(builder.guarded_fields()) {
   DiscoverBlocks();
+}
+
+
+void FlowGraph::AddToGuardedFields(
+    ZoneGrowableArray<const Field*>* array,
+    const Field* field) {
+  if ((field->guarded_cid() == kDynamicCid) ||
+      (field->guarded_cid() == kIllegalCid)) {
+    return;
+  }
+  for (intptr_t j = 0; j < array->length(); j++) {
+    if ((*array)[j]->raw() == field->raw()) {
+      return;
+    }
+  }
+  array->Add(field);
 }
 
 

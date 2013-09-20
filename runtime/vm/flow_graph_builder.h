@@ -98,14 +98,13 @@ class InlineExitCollector: public ZoneAllocated {
 
 
 // Build a flow graph from a parsed function's AST.
-class FlowGraphBuilder: public ZoneAllocated {
+class FlowGraphBuilder: public ValueObject {
  public:
   // The inlining context is NULL if not inlining.  The osr_id is the deopt
   // id of the OSR entry or Isolate::kNoDeoptId if not compiling for OSR.
   FlowGraphBuilder(ParsedFunction* parsed_function,
                    const Array& ic_data_array,
                    InlineExitCollector* exit_collector,
-                   GrowableArray<const Field*>* guarded_fields,
                    intptr_t osr_id);
 
   FlowGraph* BuildGraph();
@@ -148,11 +147,9 @@ class FlowGraphBuilder: public ZoneAllocated {
   bool IsInlining() const { return (exit_collector_ != NULL); }
   InlineExitCollector* exit_collector() const { return exit_collector_; }
 
-  GrowableArray<const Field*>* guarded_fields() const {
+  ZoneGrowableArray<const Field*>* guarded_fields() const {
     return guarded_fields_;
   }
-
-  void AddToGuardedFields(const Field& field) const;
 
   intptr_t args_pushed() const { return args_pushed_; }
   void add_args_pushed(intptr_t n) { args_pushed_ += n; }
@@ -176,7 +173,7 @@ class FlowGraphBuilder: public ZoneAllocated {
   const intptr_t num_non_copied_params_;
   const intptr_t num_stack_locals_;  // Does not include any parameters.
   InlineExitCollector* const exit_collector_;
-  GrowableArray<const Field*>* guarded_fields_;
+  ZoneGrowableArray<const Field*>* guarded_fields_;
 
   intptr_t last_used_block_id_;
   intptr_t context_level_;

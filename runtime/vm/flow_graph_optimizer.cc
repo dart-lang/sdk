@@ -1596,7 +1596,7 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
     if (!field.is_nullable() || (field.guarded_cid() == kNullCid)) {
       load->set_result_cid(field.guarded_cid());
     }
-    flow_graph_->builder().AddToGuardedFields(field);
+    FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
   }
 
   // Discard the environment from the original instruction because the load

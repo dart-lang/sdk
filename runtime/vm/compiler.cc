@@ -270,9 +270,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
     LongJump bailout_jump;
     isolate->set_long_jump_base(&bailout_jump);
     if (setjmp(*bailout_jump.Set()) == 0) {
-      FlowGraphBuilder* builder = NULL;
       FlowGraph* flow_graph = NULL;
-      GrowableArray<const Field*> guarded_fields;
       // TimerScope needs an isolate to be properly terminated in case of a
       // LongJump.
       {
@@ -292,12 +290,11 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         }
 
         // Build the flow graph.
-        builder = new FlowGraphBuilder(parsed_function,
-                                       ic_data_array,
-                                       NULL,  // NULL = not inlining.
-                                       &guarded_fields,
-                                       osr_id);
-        flow_graph = builder->BuildGraph();
+        FlowGraphBuilder builder(parsed_function,
+                                 ic_data_array,
+                                 NULL,  // NULL = not inlining.
+                                 osr_id);
+        flow_graph = builder.BuildGraph();
       }
 
       if (FLAG_print_flow_graph ||
@@ -551,9 +548,11 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           }
           function.SetCode(code);
 
-          for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-            const Field& field = *guarded_fields[i];
-            field.RegisterDependentCode(code);
+          for (intptr_t i = 0;
+               i < flow_graph->guarded_fields()->length();
+               i++) {
+            const Field* field = (*flow_graph->guarded_fields())[i];
+            field->RegisterDependentCode(code);
           }
         } else {
           function.set_unoptimized_code(code);
