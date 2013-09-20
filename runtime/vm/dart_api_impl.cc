@@ -124,7 +124,9 @@ PersistentHandle* Api::UnwrapAsPersistentHandle(Dart_PersistentHandle object) {
 
 FinalizablePersistentHandle* Api::UnwrapAsWeakPersistentHandle(
     Dart_WeakPersistentHandle object) {
-  ASSERT(Isolate::Current()->api_state()->IsValidWeakPersistentHandle(object));
+  ASSERT(Isolate::Current()->api_state()->IsValidWeakPersistentHandle(object) ||
+         Isolate::Current()->api_state()->
+             IsValidPrologueWeakPersistentHandle(object));
   return reinterpret_cast<FinalizablePersistentHandle*>(object);
 }
 
