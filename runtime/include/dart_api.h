@@ -1143,7 +1143,6 @@ DART_EXPORT bool Dart_IsExternalString(Dart_Handle object);
 DART_EXPORT bool Dart_IsList(Dart_Handle object);
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object);
 DART_EXPORT bool Dart_IsType(Dart_Handle handle);
-DART_EXPORT bool Dart_IsClass(Dart_Handle handle);
 DART_EXPORT bool Dart_IsFunction(Dart_Handle handle);
 DART_EXPORT bool Dart_IsVariable(Dart_Handle handle);
 DART_EXPORT bool Dart_IsTypeVariable(Dart_Handle handle);
@@ -1173,18 +1172,6 @@ DART_EXPORT bool Dart_IsClosure(Dart_Handle object);
  *   error handle is returned.
  */
 DART_EXPORT Dart_Handle Dart_InstanceGetType(Dart_Handle instance);
-
-/**
- * TODO(asiva): Deprecate this method once all use cases have switched
- *              to using Dart_InstanceGetType
- * Gets the class for some Dart language object.
- *
- * \param instance Some Dart object.
- *
- * \return If no error occurs, the class is returned. Otherwise an
- *   error handle is returned.
- */
-DART_EXPORT Dart_Handle Dart_InstanceGetClass(Dart_Handle instance);
 
 
 /*

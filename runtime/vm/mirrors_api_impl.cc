@@ -22,20 +22,23 @@ namespace dart {
 
 // --- Classes and Interfaces Reflection ---
 
-DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle object) {
+DART_EXPORT Dart_Handle Dart_TypeName(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  if (obj.IsType() || obj.IsClass()) {
-    const Class& cls = (obj.IsType()) ?
-        Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
+  if (obj.IsType()) {
+    const Class& cls = Class::Handle(Type::Cast(obj).type_class());
     return Api::NewHandle(isolate, cls.UserVisibleName());
   } else {
     RETURN_TYPE_ERROR(isolate, object, Class/Type);
   }
 }
 
-DART_EXPORT Dart_Handle Dart_QualifiedClassName(Dart_Handle object) {
+DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle object) {
+  return Dart_TypeName(object);
+}
+
+DART_EXPORT Dart_Handle Dart_QualifiedTypeName(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
@@ -46,6 +49,10 @@ DART_EXPORT Dart_Handle Dart_QualifiedClassName(Dart_Handle object) {
   } else {
     RETURN_TYPE_ERROR(isolate, object, Class/Type);
   }
+}
+
+DART_EXPORT Dart_Handle Dart_QualifiedClassName(Dart_Handle object) {
+  return Dart_QualifiedTypeName(object);
 }
 
 // --- Function and Variable Reflection ---
@@ -75,12 +82,8 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
   Function& func = Function::Handle();
   String& name = String::Handle();
 
-  if (obj.IsType() || obj.IsClass()) {
-    // For backwards compatibility we allow class objects to be passed in
-    // for now. This needs to be removed once all code that uses class
-    // objects to invoke Dart_Invoke is removed.
-    const Class& cls = (obj.IsType()) ?
-        Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
+  if (obj.IsType()) {
+    const Class& cls = Class::Handle(Type::Cast(obj).type_class());
     const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
     if (!error.IsNull()) {
       return Api::NewHandle(isolate, error.raw());
@@ -141,12 +144,8 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
 
   Function& func = Function::Handle(isolate);
   String& tmp_name = String::Handle(isolate);
-  if (obj.IsType() || obj.IsClass()) {
-    // For backwards compatibility we allow class objects to be passed in
-    // for now. This needs to be removed once all code that uses class
-    // objects to invoke Dart_Invoke is removed.
-    const Class& cls = (obj.IsType()) ?
-        Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
+  if (obj.IsType()) {
+    const Class& cls = Class::Handle(Type::Cast(obj).type_class());
 
     // Case 1.  Lookup the unmodified function name.
     func = cls.LookupFunctionAllowPrivate(func_name);

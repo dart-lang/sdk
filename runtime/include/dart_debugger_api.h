@@ -517,16 +517,6 @@ DART_EXPORT Dart_Handle Dart_GetObjClassId(Dart_Handle object,
 
 
 /**
- * Returns the superclass of the given class \cls.
- *
- * Requires there to be a current isolate.
- *
- * \return A handle to the class object.
- */
-DART_EXPORT Dart_Handle Dart_GetSuperclass(Dart_Handle cls);
-
-
-/**
  * Returns the supertype of the given instantiated type \cls.
  *
  * Requires there to be a current isolate.

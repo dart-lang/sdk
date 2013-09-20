@@ -189,6 +189,8 @@ TEST_CASE(IdentityEquals) {
   Dart_Handle five = NewString("5");
   Dart_Handle five_again = NewString("5");
   Dart_Handle seven = NewString("7");
+  Dart_Handle dart_core = NewString("dart:core");
+  Dart_Handle dart_mirrors = NewString("dart:mirrors");
 
   // Same objects.
   EXPECT(Dart_IdentityEquals(five, five));
@@ -203,12 +205,12 @@ TEST_CASE(IdentityEquals) {
   {
     Isolate* isolate = Isolate::Current();
     DARTSCOPE(isolate);
-    Dart_Handle class1 = Api::NewHandle(isolate, Object::void_class());
-    Dart_Handle class2 = Api::NewHandle(isolate, Object::class_class());
+    Dart_Handle lib1 = Dart_LookupLibrary(dart_core);
+    Dart_Handle lib2 = Dart_LookupLibrary(dart_mirrors);
 
-    EXPECT(Dart_IdentityEquals(class1, class1));
-
-    EXPECT(!Dart_IdentityEquals(class1, class2));
+    EXPECT(Dart_IdentityEquals(lib1, lib1));
+    EXPECT(Dart_IdentityEquals(lib2, lib2));
+    EXPECT(!Dart_IdentityEquals(lib1, lib2));
   }
 }
 
@@ -263,34 +265,13 @@ TEST_CASE(InstanceGetType) {
   const Type& bool_type_obj = Api::UnwrapTypeHandle(isolate, type);
   EXPECT(bool_type_obj.raw() == Type::BoolType());
 
-  // Errors propagate.
-  Dart_Handle error = Dart_NewApiError("MyError");
-  Dart_Handle error_type = Dart_InstanceGetType(error);
-  EXPECT_ERROR(error_type, "MyError");
-
-  // Get the handle from a non-instance handle
-  Dart_Handle obj = Api::NewHandle(isolate,
-                                   isolate->object_store()->type_class());
-  Dart_Handle type_type = Dart_InstanceGetType(obj);
-  EXPECT_ERROR(type_type,
-               "Dart_InstanceGetType expects argument 'instance' to be of "
-               "type Instance.");
-}
-
-
-TEST_CASE(InstanceGetClass) {
-  // Get the handle from a valid instance handle.
-  Dart_Handle instance = Dart_True();
-  Dart_Handle cls = Dart_InstanceGetClass(instance);
-  EXPECT_VALID(cls);
-  EXPECT(Dart_IsClass(cls));
-  Dart_Handle cls_name = Dart_ClassName(cls);
+  Dart_Handle cls_name = Dart_ClassName(type);
   EXPECT_VALID(cls_name);
   const char* cls_name_cstr = "";
   EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
   EXPECT_STREQ("bool", cls_name_cstr);
 
-  Dart_Handle qual_cls_name = Dart_QualifiedClassName(cls);
+  Dart_Handle qual_cls_name = Dart_QualifiedClassName(type);
   EXPECT_VALID(qual_cls_name);
   const char* qual_cls_name_cstr = "";
   EXPECT_VALID(Dart_StringToCString(qual_cls_name, &qual_cls_name_cstr));
@@ -298,14 +279,15 @@ TEST_CASE(InstanceGetClass) {
 
   // Errors propagate.
   Dart_Handle error = Dart_NewApiError("MyError");
-  Dart_Handle error_cls = Dart_InstanceGetClass(error);
-  EXPECT_ERROR(error_cls, "MyError");
+  Dart_Handle error_type = Dart_InstanceGetType(error);
+  EXPECT_ERROR(error_type, "MyError");
 
-  // Get the handle from a non-instance handle
-  ASSERT(Dart_IsClass(cls));
-  Dart_Handle cls_cls = Dart_InstanceGetClass(cls);
-  EXPECT_ERROR(cls_cls,
-               "Dart_InstanceGetClass expects argument 'instance' to be of "
+  // Get the handle from a non-instance handle.
+  Dart_Handle dart_core = NewString("dart:core");
+  Dart_Handle obj = Dart_LookupLibrary(dart_core);
+  Dart_Handle type_type = Dart_InstanceGetType(obj);
+  EXPECT_ERROR(type_type,
+               "Dart_InstanceGetType expects argument 'instance' to be of "
                "type Instance.");
 }
 

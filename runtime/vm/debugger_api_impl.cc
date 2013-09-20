@@ -459,19 +459,12 @@ DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object_in) {
 DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle target) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(target));
-  // For backwards compatibility we allow class objects to be passed in
-  // for now. This needs to be removed once all code that uses class
-  // objects is removed.
-  Class& cls = Class::Handle();
-  if (obj.IsType()) {
-    cls = Type::Cast(obj).type_class();
-  } else if (obj.IsClass()) {
-    cls = Class::Cast(obj).raw();
-  } else {
+  const Type& type_obj = Api::UnwrapTypeHandle(isolate, target);
+  if (type_obj.IsNull()) {
     return Api::NewError("%s expects argument 'target' to be a type",
                          CURRENT_FUNC);
   }
+  const Class& cls = Class::Handle(isolate, type_obj.type_class());
   return Api::NewHandle(isolate, isolate->debugger()->GetStaticFields(cls));
 }
 
@@ -514,10 +507,11 @@ DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target_in,
                          CURRENT_FUNC);
   }
   UNWRAP_AND_CHECK_PARAM(String, expr, expr_in);
-  if (target.IsInstance()) {
+  if (target.IsType()) {
+    const Class& cls = Class::Handle(isolate, Type::Cast(target).type_class());
+    return Api::NewHandle(isolate, cls.Evaluate(expr));
+  } else if (target.IsInstance()) {
     return Api::NewHandle(isolate, Instance::Cast(target).Evaluate(expr));
-  } else if (target.IsClass()) {
-    return Api::NewHandle(isolate, Class::Cast(target).Evaluate(expr));
   } else if (target.IsLibrary()) {
     return Api::NewHandle(isolate, Library::Cast(target).Evaluate(expr));
   }
@@ -529,7 +523,7 @@ DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
-  return Api::NewHandle(isolate, obj.clazz());
+  return Api::NewHandle(isolate, obj.GetType());
 }
 
 
@@ -552,14 +546,6 @@ DART_EXPORT Dart_Handle Dart_GetClassFromId(intptr_t class_id) {
                          CURRENT_FUNC, class_id);
   }
   return Api::NewHandle(isolate, isolate->class_table()->At(class_id));
-}
-
-
-DART_EXPORT Dart_Handle Dart_GetSuperclass(Dart_Handle cls_in) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  UNWRAP_AND_CHECK_PARAM(Class, cls, cls_in);
-  return Api::NewHandle(isolate, cls.SuperClass());
 }
 
 

@@ -963,7 +963,7 @@ TEST_CASE(Debug_InspectObject) {
   EXPECT_STREQ("blah blah", value);
 
   // Check static field of B's superclass.
-  Dart_Handle class_A = Dart_GetSuperclass(class_B);
+  Dart_Handle class_A = Dart_GetSupertype(class_B);
   EXPECT_VALID(class_A);
   EXPECT(!Dart_IsNull(class_A));
   fields = Dart_GetStaticFields(class_A);
