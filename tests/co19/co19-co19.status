@@ -96,7 +96,7 @@ LibTest/typed_data/Uint8List/retainAll_A01_t01: Fail  # co19 issue 548
 LibTest/core/String/concat_A01_t01: Fail  # co19 issue 561
 LibTest/core/String/concat_A02_t01: Fail  # co19 issue 561
 
-[ $compiler == none || $compiler == dart2dart ]
+[ $compiler != dartanalyzer ]
 # Dart2js/Dart2dart succeedes due to a bug in their parser (issue 13223).
 Language/12_Expressions/21_Bitwise_Expressions_A01_t01: Fail # co19 Issue 595
 

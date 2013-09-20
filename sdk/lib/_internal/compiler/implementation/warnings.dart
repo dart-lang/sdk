@@ -815,7 +815,7 @@ main() => foo(1);
                 "removing the 'const' modifier.",
       examples: const ["""
 void main() {
-  const c; // This constant variable must be initialized. 
+  const c; // This constant variable must be initialized.
 }"""]);
 
   static const MessageKind MEMBER_USES_CLASS_NAME = const MessageKind(
@@ -914,6 +914,11 @@ Error: "#{value}" is not a valid Symbol name because is not:
   static const MessageKind UNSUPPORTED_BANG_EQ_EQ = const MessageKind(
       'Error: "!==" is not an operator. '
       'Did you mean "#{lhs} != #{rhs}" or "!identical(#{lhs}, #{rhs})"?');
+
+  static const MessageKind UNSUPPORTED_PREFIX_PLUS = const MessageKind(
+      "Error: '+' is not a prefix operator. ",
+      howToFix: "Try removing '+'.",
+      examples: const [ "+2  // No longer a valid way to write '2'" ]);
 
   static const MessageKind UNSUPPORTED_THROW_WITHOUT_EXP = const MessageKind(
       'Error: No expression after "throw". '
