@@ -115,8 +115,6 @@ Language/05_Variables/05_Variables_A06_t03: fail # co19-roll r546: Please triage
 Language/05_Variables/05_Variables_A06_t04: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A06_t05: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A06_t06: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/07_Classes_A11_t01: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/07_Classes_A11_t03: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/1_Instance_Methods/2_Operators_A09_t01: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t01: Fail # co19-roll r559: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t02: Fail # co19-roll r559: Please triage this failure

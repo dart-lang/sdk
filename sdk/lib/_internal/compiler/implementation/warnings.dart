@@ -818,6 +818,20 @@ void main() {
   const c; // This constant variable must be initialized. 
 }"""]);
 
+  static const MessageKind MEMBER_USES_CLASS_NAME = const MessageKind(
+      "Error: Member variable can't have the same name as the class it is "
+      "declared in.",
+      howToFix: "Try renaming the variable.",
+      examples: const ["""
+class A { var A; }
+main() {
+  var a = new A();
+  a.A = 1;
+}
+""", """
+class A { static var A; }
+main() => A.A = 1;
+"""]);
 
   static const MessageKind WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT =
       const MessageKind(
