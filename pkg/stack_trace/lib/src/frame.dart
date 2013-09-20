@@ -16,7 +16,8 @@ final _vmFrame = new RegExp(
 //     at VW.call$0 (http://pub.dartlang.org/stuff.dart.js:560:28)
 //     at http://pub.dartlang.org/stuff.dart.js:560:28
 final _v8Frame = new RegExp(
-    r'^\s*at (?:([^\s].*) \((.+):(\d+):(\d+)\)|(.+):(\d+):(\d+))$');
+    r'^\s*at (?:([^\s].*?)(?: \[as [^\]]+\])? '
+    r'\((.+):(\d+):(\d+)\)|(.+):(\d+):(\d+))$');
 
 // .VW.call$0@http://pub.dartlang.org/stuff.dart.js:560
 // .VW.call$0("arg")@http://pub.dartlang.org/stuff.dart.js:560

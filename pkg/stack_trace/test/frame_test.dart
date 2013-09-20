@@ -74,6 +74,18 @@ void main() {
       expect(frame.member, equals('<fn>'));
     });
 
+    test('parses a stack frame with [as ...] correctly', () {
+      // Ignore "[as ...]", since other stack trace formats don't support a
+      // similar construct.
+      var frame = new Frame.parseV8("    at VW.call\$0 [as call\$4] "
+          "(http://pub.dartlang.org/stuff.dart.js:560:28)");
+      expect(frame.uri,
+          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, equals(28));
+      expect(frame.member, equals('VW.call\$0'));
+    });
+
     test('converts "<anonymous>" to "<fn>"', () {
       String parsedMember(String member) =>
           new Frame.parseV8('    at $member (foo:0:0)').member;
