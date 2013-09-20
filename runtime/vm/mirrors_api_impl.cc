@@ -35,7 +35,7 @@ DART_EXPORT Dart_Handle Dart_TypeName(Dart_Handle object) {
 }
 
 DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle object) {
-  return Dart_TypeName(object);
+  return ::Dart_TypeName(object);
 }
 
 DART_EXPORT Dart_Handle Dart_QualifiedTypeName(Dart_Handle object) {
@@ -52,7 +52,7 @@ DART_EXPORT Dart_Handle Dart_QualifiedTypeName(Dart_Handle object) {
 }
 
 DART_EXPORT Dart_Handle Dart_QualifiedClassName(Dart_Handle object) {
-  return Dart_QualifiedTypeName(object);
+  return ::Dart_QualifiedTypeName(object);
 }
 
 // --- Function and Variable Reflection ---
