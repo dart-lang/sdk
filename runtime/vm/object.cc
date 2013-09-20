@@ -5748,7 +5748,7 @@ void TokenStream::SetPrivateKey(const String& value) const {
 
 
 RawString* TokenStream::GenerateSource() const {
-  Iterator iterator(*this, 0);
+  Iterator iterator(*this, 0, Iterator::kAllTokens);
   const ExternalTypedData& data = ExternalTypedData::Handle(GetStream());
   const GrowableObjectArray& literals =
       GrowableObjectArray::Handle(GrowableObjectArray::New(data.Length()));
@@ -5809,35 +5809,47 @@ RawString* TokenStream::GenerateSource() const {
     const String* separator = NULL;
     switch (curr) {
       case Token::kLBRACE:
-        indent++;
-        separator = &Symbols::NewLine();
-        break;
       case Token::kRBRACE:
-        if (indent == 0) {
-          separator = &Symbols::TwoNewlines();
-        } else {
-          separator = &Symbols::NewLine();
-        }
-        break;
-      case Token::kSEMICOLON:
-        separator = &Symbols::NewLine();
-        break;
       case Token::kPERIOD:
-      case Token::kLPAREN:
       case Token::kLBRACK:
       case Token::kINTERPOL_VAR:
       case Token::kINTERPOL_START:
       case Token::kINTERPOL_END:
+      case Token::kBIT_NOT:
+        break;
+      // In case we see an opening parentheses '(' we increase the indent to
+      // align multi-line parameters accordingly. The indent will be removed as
+      // soon as we see the matching closing parentheses ')'.
+      //
+      // Example:
+      // SomeVeryLongMethod(
+      //     "withVeryLongParameter",
+      //     "andAnotherVeryLongParameter",
+      //     "andAnotherVeryLongParameter2") { ...
+      case Token::kLPAREN:
+        indent += 2;
+        break;
+      case Token::kRPAREN:
+        indent -= 2;
+        separator = &Symbols::Blank();
+        break;
+      case Token::kNEWLINE:
+        if (prev == Token::kLBRACE) {
+          indent++;
+        }
+        if (next == Token::kRBRACE) {
+          indent--;
+        }
         break;
       default:
         separator = &Symbols::Blank();
         break;
     }
+
     // Determine whether the separation text needs to be updated based on the
     // next token.
     switch (next) {
       case Token::kRBRACE:
-        indent--;
         break;
       case Token::kSEMICOLON:
       case Token::kPERIOD:
@@ -5853,27 +5865,41 @@ RawString* TokenStream::GenerateSource() const {
         break;
       case Token::kELSE:
         separator = &Symbols::Blank();
+        break;
       default:
         // Do nothing.
         break;
     }
+
     // Update the few cases where both tokens need to be taken into account.
     if (((curr == Token::kIF) || (curr == Token::kFOR)) &&
         (next == Token::kLPAREN)) {
       separator = &Symbols::Blank();
     } else if ((curr == Token::kASSIGN) && (next == Token::kLPAREN)) {
       separator = &Symbols::Blank();
+    } else if ((curr == Token::kRETURN  ||
+                curr == Token::kCONDITIONAL ||
+                Token::IsBinaryOperator(curr) ||
+                Token::IsEqualityOperator(curr)) && (next == Token::kLPAREN)) {
+      separator = &Symbols::Blank();
     } else if ((curr == Token::kLBRACE) && (next == Token::kRBRACE)) {
       separator = NULL;
+    } else if ((curr == Token::kSEMICOLON) && (next != Token::kNEWLINE)) {
+      separator = &Symbols::Blank();
     }
+
+    // Add the separator.
     if (separator != NULL) {
       literals.Add(*separator);
-      if (separator == &Symbols::NewLine()) {
+    }
+
+    // Account for indentation in case we printed a newline.
+    if (curr == Token::kNEWLINE) {
         for (int i = 0; i < indent; i++) {
           literals.Add(Symbols::TwoSpaces());
         }
-      }
     }
+
     // Setup for next iteration.
     prev = curr;
     curr = next;
