@@ -12813,9 +12813,9 @@ class HtmlDocument extends Document native "HTMLDocument" {
    * * UListElement
    * * VideoElement
    */
-  void register(String tag, Type customElementClass, {String nativeTagName}) {
+  void register(String tag, Type customElementClass, {String extendsTag}) {
     _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
-        nativeTagName);
+        extendsTag);
   }
 
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
