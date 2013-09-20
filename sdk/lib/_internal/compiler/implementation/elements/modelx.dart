@@ -1964,7 +1964,7 @@ abstract class ClassElementX extends BaseClassElementX {
   }
 
   void addToScope(Element element, DiagnosticListener listener) {
-    if (element.name == name) {
+    if (element.isField() && element.name == name) {
       listener.reportError(element, MessageKind.MEMBER_USES_CLASS_NAME);
     }
     localScope.add(element, listener);
