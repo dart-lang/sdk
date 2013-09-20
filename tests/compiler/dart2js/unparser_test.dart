@@ -29,13 +29,8 @@ testUnparseTopLevelWithMetadata(String code) {
 }
 
 testSignedConstants() {
-  testUnparse('var x=+42;');
-  testUnparse('var x=+.42;');
   testUnparse('var x=-42;');
   testUnparse('var x=-.42;');
-  testUnparse('var x=+0;');
-  testUnparse('var x=+0.0;');
-  testUnparse('var x=+.0;');
   testUnparse('var x=-0;');
   testUnparse('var x=-0.0;');
   testUnparse('var x=-.0;');
@@ -342,7 +337,7 @@ testParameters() {
 }
 
 testSymbolLiterals() {
-  testUnparse("#+;");  
+  testUnparse("#+;");
   testUnparse("#-;");
   testUnparse("#*;");
   testUnparse("#/;");
@@ -356,7 +351,7 @@ testSymbolLiterals() {
   testUnparse("#&;");
   testUnparse("#|;");
   testUnparse("#^;");
-  
+
   testUnparse("#a;");
   testUnparse("#a.b;");
   testUnparse("#a.b.c;");
