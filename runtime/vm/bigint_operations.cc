@@ -386,25 +386,18 @@ const char* BigintOperations::ToDecimalCString(
   ASSERT(pow(10.0, kChunkDigits) == kChunkDivisor);
   ASSERT(static_cast<Chunk>(kChunkDivisor) < kDigitMaxValue);
   ASSERT(Smi::IsValid(kChunkDivisor));
-  const Bigint& divisor = Bigint::Handle(NewFromInt64(kChunkDivisor));
+  const Chunk divisor = static_cast<Chunk>(kChunkDivisor);
 
   // Rest contains the remaining bigint that needs to be printed.
-  Bigint& rest = Bigint::Handle(bigint.raw());
-  Bigint& quotient = Bigint::Handle();
-  Bigint& remainder = Bigint::Handle();
+  const Bigint& rest = Bigint::Handle(Copy(bigint));
   while (!rest.IsZero()) {
-    HANDLESCOPE(isolate);
-    DivideRemainder(rest, divisor, &quotient, &remainder);
-    ASSERT(remainder.Length() <= 1);
-    intptr_t part = (remainder.Length() == 1)
-        ? static_cast<intptr_t>(remainder.GetChunkAt(0))
-        : 0;
+    Chunk remainder = InplaceUnsignedDivideRemainderDigit(rest, divisor);
+    intptr_t part = static_cast<intptr_t>(remainder);
     for (int i = 0; i < kChunkDigits; i++) {
       result[result_pos++] = '0' + (part % 10);
       part /= 10;
     }
     ASSERT(part == 0);
-    rest = quotient.raw();
   }
   // Move the resulting position back until we don't have any zeroes anymore.
   // This is done so that we can remove all leading zeroes.
@@ -1596,6 +1589,22 @@ void BigintOperations::DivideRemainder(
     return;
   }
 
+  intptr_t b_length = b.Length();
+
+  if (b_length == 1) {
+    const Bigint& dividend_quotient = Bigint::Handle(Copy(a));
+    Chunk remainder_digit =
+        BigintOperations::InplaceUnsignedDivideRemainderDigit(
+            dividend_quotient, b.GetChunkAt(0));
+    dividend_quotient.SetSign(a.IsNegative() != b.IsNegative());
+    *quotient = dividend_quotient.raw();
+    *remainder = Bigint::Allocate(1);
+    remainder->SetChunkAt(0, remainder_digit);
+    remainder->SetSign(a.IsNegative());
+    Clamp(*remainder);
+    return;
+  }
+
   // High level description:
   // The algorithm is basically the algorithm that is taught in school:
   // Let a the dividend and b the divisor. We are looking for
@@ -1614,7 +1623,6 @@ void BigintOperations::DivideRemainder(
   //
   // Instead of working in base 10 we work in base kDigitBitSize.
 
-  intptr_t b_length = b.Length();
   int normalization_shift =
       kDigitBitSize - CountBits(b.GetChunkAt(b_length - 1));
   Bigint& dividend = Bigint::Handle(ShiftLeft(a, normalization_shift));
@@ -1745,6 +1753,24 @@ void BigintOperations::DivideRemainder(
   Clamp(*quotient);
   *remainder = ShiftRight(dividend, normalization_shift);
   remainder->SetSign(a.IsNegative());
+}
+
+
+BigintOperations::Chunk BigintOperations::InplaceUnsignedDivideRemainderDigit(
+    const Bigint& dividend_quotient, Chunk divisor_digit) {
+  Chunk remainder = 0;
+  for (intptr_t i = dividend_quotient.Length() - 1; i >= 0; i--) {
+    DoubleChunk dividend_digit =
+        (static_cast<DoubleChunk>(remainder) << kDigitBitSize) +
+        dividend_quotient.GetChunkAt(i);
+    Chunk quotient_digit = static_cast<Chunk>(dividend_digit / divisor_digit);
+    remainder = static_cast<Chunk>(
+        dividend_digit -
+        static_cast<DoubleChunk>(quotient_digit) * divisor_digit);
+    dividend_quotient.SetChunkAt(i, quotient_digit);
+  }
+  Clamp(dividend_quotient);
+  return remainder;
 }
 
 
