@@ -25,21 +25,21 @@ abstract class VmServiceRequestHelper {
             .fold(new BytesBuilder(), (b, d) => b..add(d))
             .then((builder) {
               print('** GET: $uri');
-              _requestCompleted(builder.takeBytes(), response);
+              return _requestCompleted(builder.takeBytes(), response);
             });
       }).catchError((error) {
         onRequestFailed(error);
       });
   }
 
-  void _requestCompleted(List<int> data, HttpClientResponse response) {
+  Future _requestCompleted(List<int> data, HttpClientResponse response) {
     Expect.equals(200, response.statusCode, 'Invalid HTTP Status Code');
     var replyAsString;
     try {
       replyAsString = UTF8.decode(data);
     } catch (e) {
       onRequestFailed(e);
-      return;
+      return null;
     }
     print('** Response: $replyAsString');
     var reply;
@@ -47,28 +47,30 @@ abstract class VmServiceRequestHelper {
       reply = JSON.decode(replyAsString);
     } catch (e) {
       onRequestFailed(e);
-      return;
+      return null;
     }
     if (reply is! Map) {
       onRequestFailed('Reply was not a map: $reply');
-      return;
+      return null;
     }
     if (reply['type'] == null) {
       onRequestFailed('Reply does not contain a type key: $reply');
-      return;
+      return null;
     }
+    var r;
     try {
-      onRequestCompleted(reply);
+      r = onRequestCompleted(reply);
     } catch (e) {
-      onRequestFailed('Test callback failed: $e');
+      r = onRequestFailed('Test callback failed: $e');
     }
+    return r;
   }
 
-  void onRequestFailed(dynamic error) {
+  Future onRequestFailed(dynamic error) {
     Expect.fail('Failed to make request: $error');
   }
 
-  void onRequestCompleted(Map response);
+  Future onRequestCompleted(Map response);
 }
 
 class TestLauncher {
@@ -177,5 +179,78 @@ class IsolateListTester {
       }
     });
     Expect.isTrue(exists, 'No isolate with id: $id');
+  }
+}
+
+class ClassTableHelper {
+  final Map classTable;
+
+  ClassTableHelper(this.classTable) {
+    Expect.equals('ClassList', classTable['type'], 'Not a ClassTable.');
+  }
+
+  bool classExists(String user_name) {
+    List members = classTable['members'];
+    for (var i = 0; i < members.length; i++) {
+      Map klass = members[i];
+      if (klass['user_name'] == user_name) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  int classId(String user_name) {
+    List members = classTable['members'];
+    for (var i = 0; i < members.length; i++) {
+      Map klass = members[i];
+      if (klass['user_name'] == user_name) {
+        return klass['id'];
+      }
+    }
+    return -1;
+  }
+}
+
+class FieldRequestHelper extends VmServiceRequestHelper {
+  FieldRequestHelper(port, isolate_id, field_id) :
+      super('http://127.0.0.1:$port/isolates/$isolate_id/objects/$field_id');
+  Map field;
+  onRequestCompleted(Map reply) {
+    Expect.equals('Field', reply['type']);
+    field = reply;
+    return this;
+  }
+}
+
+class ClassFieldRequestHelper extends VmServiceRequestHelper {
+  final List<String> fieldNames;
+  int port_;
+  int isolate_id_;
+  ClassFieldRequestHelper(port, isolate_id, class_id, this.fieldNames) :
+      super('http://127.0.0.1:$port/isolates/$isolate_id/classes/$class_id') {
+    port_ = port;
+    isolate_id_ = isolate_id;
+  }
+  final Map<String, Map> fields = new Map<String, Map>();
+
+  onRequestCompleted(Map reply) {
+    Expect.equals('Class', reply['type']);
+    List<Map> class_fields = reply['fields'];
+    List<Future> requests = new List<Future>();
+    fieldNames.forEach((fn) {
+      class_fields.forEach((f) {
+        if (f['user_name'] == fn) {
+          var request = new FieldRequestHelper(port_, isolate_id_, f['id']);
+          requests.add(request.makeRequest());
+        }
+      });
+    });
+    return Future.wait(requests).then((a) {
+      a.forEach((FieldRequestHelper field) {
+        fields[field.field['user_name']] = field.field;
+      });
+      return this;
+    });
   }
 }

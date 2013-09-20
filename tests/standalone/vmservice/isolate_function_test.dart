@@ -10,17 +10,17 @@ import 'package:expect/expect.dart';
 
 class MethodTest extends VmServiceRequestHelper {
   MethodTest(port, id, functionId) :
-      super('http://127.0.0.1:$port/isolates/$id/functions/$functionId');
+      super('http://127.0.0.1:$port/isolates/$id/objects/$functionId');
   onRequestCompleted(Map reply) {
     Expect.equals('Function', reply['type']);
-    Expect.equals('C.c', reply['name']);
+    Expect.equals('C.c', reply['user_name']);
     Expect.equals(false, reply['is_static']);
   }
 }
 
 class FunctionTest extends VmServiceRequestHelper {
   FunctionTest(port, id, functionId) :
-      super('http://127.0.0.1:$port/isolates/$id/functions/$functionId');
+      super('http://127.0.0.1:$port/isolates/$id/objects/$functionId');
 
   onRequestCompleted(Map reply) {
     Expect.equals('Function', reply['type']);

@@ -22,7 +22,7 @@ class ClassTest extends VmServiceRequestHelper {
 
 class LibraryTest extends VmServiceRequestHelper {
   LibraryTest(port, id, libId) :
-      super('http://127.0.0.1:$port/isolates/$id/libraries/$libId');
+      super('http://127.0.0.1:$port/isolates/$id/objects/$libId');
 
   int _classId;
   onRequestCompleted(Map reply) {
@@ -37,11 +37,11 @@ class LibraryTest extends VmServiceRequestHelper {
 
 class RootLibraryTest extends VmServiceRequestHelper {
   RootLibraryTest(port, id) :
-      super('http://127.0.0.1:$port/isolates/$id/libraries');
+      super('http://127.0.0.1:$port/isolates/$id/library');
 
   int _libId;
   onRequestCompleted(Map reply) {
-    Expect.equals('@Library', reply['type']);
+    Expect.equals('Library', reply['type']);
     Expect.equals('isolate_stacktrace_command_script', reply['name']);
     _libId = reply['id'];
   }

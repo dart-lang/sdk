@@ -2926,15 +2926,48 @@ const char* Class::ToCString() const {
 
 
 void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  const char* class_name = String::Handle(UserVisibleName()).ToCString();
-  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-  intptr_t id = ring->GetIdForObject(raw());
   JSONObject jsobj(stream);
+  if ((raw() == Class::null()) || (id() == kFreeListElement)) {
+    jsobj.AddProperty("type", "Null");
+    return;
+  }
+  const char* internal_class_name = String::Handle(Name()).ToCString();
+  const char* user_visible_class_name =
+      String::Handle(UserVisibleName()).ToCString();
   jsobj.AddProperty("type", JSONType(ref));
-  jsobj.AddProperty("id", id);
-  jsobj.AddProperty("name", class_name);
+  jsobj.AddProperty("id", id());
+  jsobj.AddProperty("name", internal_class_name);
+  jsobj.AddProperty("user_name", user_visible_class_name);
   if (!ref) {
+    jsobj.AddProperty("implemented", is_implemented());
+    jsobj.AddProperty("abstract", is_abstract());
+    jsobj.AddProperty("patch", is_patch());
+    jsobj.AddProperty("finalized", is_finalized());
+    jsobj.AddProperty("const", is_const());
+    jsobj.AddProperty("super", Class::Handle(SuperClass()));
     jsobj.AddProperty("library", Object::Handle(library()));
+    {
+      JSONArray fields_array(&jsobj, "fields");
+      const Array& field_array = Array::Handle(fields());
+      Field& field = Field::Handle();
+      if (!field_array.IsNull()) {
+        for (intptr_t i = 0; i < field_array.Length(); ++i) {
+          field ^= field_array.At(i);
+          fields_array.AddValue(field);
+        }
+      }
+    }
+    {
+      JSONArray functions_array(&jsobj, "functions");
+      const Array& function_array = Array::Handle(functions());
+      Function& function = Function::Handle();
+      if (!function_array.IsNull()) {
+        for (intptr_t i = 0; i < function_array.Length(); i++) {
+          function ^= function_array.At(i);
+          functions_array.AddValue(function);
+        }
+      }
+    }
   }
 }
 
@@ -5090,6 +5123,7 @@ const char* Function::ToCString() const {
 
 
 void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  const char* internal_function_name = String::Handle(name()).ToCString();
   const char* function_name =
       String::Handle(QualifiedUserVisibleName()).ToCString();
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
@@ -5097,7 +5131,8 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddProperty("id", id);
-  jsobj.AddProperty("name", function_name);
+  jsobj.AddProperty("name", internal_function_name);
+  jsobj.AddProperty("user_name", function_name);
   if (ref) return;
   jsobj.AddProperty("is_static", is_static());
   jsobj.AddProperty("is_const", is_const());
@@ -5412,6 +5447,44 @@ const char* Field::ToCString() const {
 
 void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  const char* internal_field_name = String::Handle(name()).ToCString();
+  const char* field_name = String::Handle(UserVisibleName()).ToCString();
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddProperty("id", id);
+  jsobj.AddProperty("name", internal_field_name);
+  jsobj.AddProperty("user_name", field_name);
+  if (ref) {
+    return;
+  }
+  Class& cls = Class::Handle(owner());
+  jsobj.AddProperty("type", "Field");
+  jsobj.AddProperty("id", id);
+  jsobj.AddProperty("name", internal_field_name);
+  jsobj.AddProperty("user_name", field_name);
+  jsobj.AddProperty("class", cls);
+  jsobj.AddProperty("static", is_static());
+  jsobj.AddProperty("final", is_final());
+  jsobj.AddProperty("const", is_const());
+  jsobj.AddProperty("guard_nullable", is_nullable());
+  if (guarded_cid() == kIllegalCid) {
+    jsobj.AddProperty("guard_class", "unknown");
+  } else if (guarded_cid() == kDynamicCid) {
+    jsobj.AddProperty("guard_class", "dynamic");
+  } else {
+    ClassTable* table = Isolate::Current()->class_table();
+    ASSERT(table->IsValidIndex(guarded_cid()));
+    cls ^= table->At(guarded_cid());
+    jsobj.AddProperty("guard_class", cls);
+  }
+  if (guarded_list_length() == kUnknownFixedLength) {
+    jsobj.AddProperty("guard_length", "unknown");
+  } else if (guarded_list_length() == kNoFixedLength) {
+    jsobj.AddProperty("guard_length", "variable");
+  } else {
+    jsobj.AddProperty("guard_length", guarded_list_length());
+  }
 }
 
 

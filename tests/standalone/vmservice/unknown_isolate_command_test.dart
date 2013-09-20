@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unknown_isolate_command_test;
+library isolate_class_table_test;
 
+import 'dart:async';
 import 'test_helper.dart';
 import 'package:expect/expect.dart';
 
-class UnknownRequestTest extends VmServiceRequestHelper {
-  UnknownRequestTest(port, id) :
-      super('http://127.0.0.1:$port/isolates/$id/badrequest');
+class ClassTableTest extends VmServiceRequestHelper {
+  ClassTableTest(port, id) :
+      super('http://127.0.0.1:$port/isolates/$id/classes');
 
   onRequestCompleted(Map reply) {
-    Expect.equals('error', reply['type']);
+    ClassTableHelper helper = new ClassTableHelper(reply);
   }
 }
 
@@ -23,19 +24,18 @@ class IsolateListTest extends VmServiceRequestHelper {
   onRequestCompleted(Map reply) {
     IsolateListTester tester = new IsolateListTester(reply);
     tester.checkIsolateCount(1);
-    tester.checkIsolateNameContains('unknown_isolate_command_script.dart');
-    _isolateId = reply['members'][0]['id'];
+    tester.checkIsolateNameContains('field_script.dart');
+    _isolateId = tester.checkIsolateNameContains('field_script');
   }
 }
 
-
 main() {
-  var process = new TestLauncher('unknown_isolate_command_script.dart');
+  var process = new TestLauncher('field_script.dart');
   process.launch().then((port) {
     var test = new IsolateListTest(port);
     test.makeRequest().then((_) {
-      var unknownRequestTest = new UnknownRequestTest(port, test._isolateId);
-      unknownRequestTest.makeRequest().then((_) {
+      var classTableTest = new ClassTableTest(port, test._isolateId);
+      classTableTest.makeRequest().then((_) {
         process.requestExit();
       });
     });

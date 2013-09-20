@@ -45,7 +45,7 @@ main() {
     test.makeRequest().then((_) {
       var badCollectionRequest =
           new BadCollectionTest(port, test._isolateId,
-                                'classes').makeRequest();
+                                'foobar').makeRequest();
       var nullCollectionRequest =
           new NullCollectionTest(port, test._isolateId,
                                  'classes').makeRequest();
