@@ -25,10 +25,18 @@ namespace bin {
 SocketAddress::SocketAddress(struct sockaddr* sockaddr) {
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
   RawAddr* raw = reinterpret_cast<RawAddr*>(sockaddr);
-  const char* result = inet_ntop(sockaddr->sa_family,
-                                 &raw->in.sin_addr,
-                                 as_string_,
-                                 INET6_ADDRSTRLEN);
+  if (sockaddr->sa_family == AF_INET) {
+    result = inet_ntop(sockaddr->sa_family,
+                       &raw->in.sin_addr,
+                       as_string_,
+                       INET_ADDRSTRLEN);
+  } else {
+    ASSERT(sockaddr->sa_family == AF_INET6);
+    result = inet_ntop(sockaddr->sa_family,
+                       &raw->in6.sin6_addr,
+                       as_string_,
+                       INET6_ADDRSTRLEN);
+  }
   if (result == NULL) as_string_[0] = 0;
   memmove(reinterpret_cast<void *>(&addr_),
           sockaddr,

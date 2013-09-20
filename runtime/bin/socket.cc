@@ -55,7 +55,7 @@ void FUNCTION_NAME(InternetAddress_Fixed)(Dart_NativeArguments args) {
     }
     case SocketAddress::ADDRESS_LOOPBACK_IP_V6: {
       raw.in6.sin6_family = AF_INET6;
-      raw.in6.sin6_addr = in6addr_any;
+      raw.in6.sin6_addr = in6addr_loopback;
       break;
     }
     case SocketAddress::ADDRESS_ANY_IP_V4: {
@@ -65,7 +65,7 @@ void FUNCTION_NAME(InternetAddress_Fixed)(Dart_NativeArguments args) {
     }
     case SocketAddress::ADDRESS_ANY_IP_V6: {
       raw.in6.sin6_family = AF_INET6;
-      raw.in6.sin6_addr = in6addr_loopback;
+      raw.in6.sin6_addr = in6addr_any;
       break;
     }
     default:
