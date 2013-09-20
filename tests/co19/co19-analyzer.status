@@ -36,6 +36,9 @@ Language/13_Statements/11_Return_A07_t01: fail
 Language/15_Types/6_Type_dynamic_A03_t01: fail
 Language/15_Types/6_Type_dynamic_A04_t01: fail
 
+# TBF: spec was changed in 7.1 to "It is a static warning if an instance method m1 overrides an instance member m2 and m1 has fewer positional parameters than m2."
+Language/07_Classes/1_Instance_Methods_A03_t06: fail
+
 
 LibTest/core/Uri/decodeQueryComponent_A02_t01: fail # co19 Issue 591
 
@@ -117,8 +120,10 @@ Language/14_Libraries_and_Scripts/2_Exports_A05_t01: fail, OK
 Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail, OK
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
 
-Language/07_Classes/1_Instance_Methods_A03_t06: fail # co19-roll r587: Please triage this failure
-Language/07_Classes/4_Abstract_Instance_Members_A07_t08: fail # co19-roll r587: Please triage this failure
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
+# co19 issue #596: initializing final variable at declaration and in constructor
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail, OK
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail, OK
+
+# co19 issue #597: concrete class with abstract method
+Language/07_Classes/4_Abstract_Instance_Members_A07_t08: fail, OK
 
