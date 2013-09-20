@@ -230,6 +230,11 @@ TEST_CASE(ObjectEquals) {
   // Different objects.
   EXPECT_VALID(Dart_ObjectEquals(five, seven, &equal));
   EXPECT(!equal);
+
+  // Case where identity is not equality.
+  Dart_Handle nan = Dart_NewDouble(NAN);
+  EXPECT_VALID(Dart_ObjectEquals(nan, nan, &equal));
+  EXPECT(!equal);
 }
 
 

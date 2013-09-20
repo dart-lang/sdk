@@ -765,12 +765,20 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 //   RCX : new context containing the current isolate pointer.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save frame pointer coming in.
-  __ EnterStubFrame();
+  __ EnterStubFrameWithPP();
 
+  // At this point, the stack looks like:
+  // | saved RC15/PP                                  | <-- RSP / TOS
+  // | "saved PC area" = 0                            |
+  // | saved RBP                                      | <-- RBP
+  // | saved PC (return to DartEntry::InvokeFunction) |
+
+  // The old frame pointer, the return address, the old R15 (for PP).
+  const intptr_t kInitialOffset = 3;
   // Save arguments descriptor array and new context.
-  const intptr_t kArgumentsDescOffset = -2 * kWordSize;
+  const intptr_t kArgumentsDescOffset = -(kInitialOffset) * kWordSize;
   __ pushq(RSI);
-  const intptr_t kNewContextOffset = -3 * kWordSize;
+  const intptr_t kNewContextOffset = -(kInitialOffset + 1) * kWordSize;
   __ pushq(RCX);
 
   // Save C++ ABI callee-saved registers.
@@ -778,7 +786,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ pushq(R12);
   __ pushq(R13);
   __ pushq(R14);
-  __ pushq(R15);
+  // R15 is already saved above by EnterStubFrameWithPP.
+
+  // If any additional (or fewer) values are pushed, the offsets in
+  // kExitLinkSlotFromEntryFp and kSavedContextSlotFromEntryFp will need to be
+  // changed.
 
   // The new Context structure contains a pointer to the current Isolate
   // structure. Cache the Context pointer in the CTX register so that it is
@@ -866,14 +878,14 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), RDX);
 
   // Restore C++ ABI callee-saved registers.
-  __ popq(R15);
+  // R15 will be restored below by LeaveFrameWithPP.
   __ popq(R14);
   __ popq(R13);
   __ popq(R12);
   __ popq(RBX);
 
   // Restore the frame pointer.
-  __ LeaveFrame();
+  __ LeaveFrameWithPP();
 
   __ ret();
 }
