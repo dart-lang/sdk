@@ -1735,7 +1735,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   cls.Finalize();
   // Mixin typedef classes may still lack their implicit constructor.
   // TODO(regis): Implement mixin typedefs with an alias class.
-  if (cls.is_synthesized_class() &&
+  if (cls.is_mixin_typedef() &&
       (cls.functions() == Object::empty_array().raw())) {
     Parser::AddImplicitConstructor(cls);
   }

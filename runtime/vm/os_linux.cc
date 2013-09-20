@@ -129,10 +129,10 @@ class PerfCodeObserver : public CodeObserver {
     if (file_open == NULL) {
       return;
     }
-    const char* format = "/tmp/perf-%ld.map";
+    const char* format = "/tmp/perf-%"Pd".map";
     intptr_t pid = getpid();
     intptr_t len = OS::SNPrint(NULL, 0, format, pid);
-    char* filename = new char[len + 1];
+    char* filename = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(filename, len + 1, format, pid);
     out_file_ = (*file_open)(filename, true);
   }
@@ -270,6 +270,11 @@ class GdbCodeObserver : public CodeObserver {
 
 const char* OS::Name() {
   return "linux";
+}
+
+
+intptr_t OS::ProcessId() {
+  return static_cast<intptr_t>(getpid());
 }
 
 

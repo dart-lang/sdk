@@ -64,7 +64,7 @@ DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, verbose_stacktrace);
-DECLARE_FLAG(bool, print_coverage);
+DECLARE_FLAG(charp, coverage_dir);
 
 static const char* kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -4166,7 +4166,8 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
 
 
 bool Function::is_optimizable() const {
-  if (FLAG_print_coverage) {
+  if (FLAG_coverage_dir != NULL) {
+    // Do not optimize if collecting coverage data.
     return false;
   }
   if (OptimizableBit::decode(raw_ptr()->kind_tag_) &&

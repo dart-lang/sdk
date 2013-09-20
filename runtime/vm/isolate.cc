@@ -785,9 +785,8 @@ void Isolate::Shutdown() {
       PrintInvokedFunctions();
     }
 
-    if (FLAG_print_coverage) {
-      CodeCoverage::Print(this);
-    }
+    // Write out the coverage data if collection has been enabled.
+    CodeCoverage::Write(this);
 
     // Finalize any weak persistent handles with a non-null referent.
     FinalizeWeakPersistentHandlesVisitor visitor;
