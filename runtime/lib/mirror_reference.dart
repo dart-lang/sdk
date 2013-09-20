@@ -4,8 +4,7 @@
 
 class _MirrorReference {
   factory _MirrorReference._uninstantiable() {
-    throw new UnsupportedError(
-        "class _MirrorReference cannot be instantiated");
+    throw new UnsupportedError("class _MirrorReference cannot be instantiated");
   }
 
   bool operator ==(other) native "MirrorReference_equals";
