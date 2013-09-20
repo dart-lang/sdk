@@ -307,12 +307,14 @@ abstract class CallSiteTypeInformation extends TypeInformation {
   final Element caller;
   final Selector selector;
   final ArgumentsTypes arguments;
+  final bool inLoop;
 
   CallSiteTypeInformation(
       this.call,
       this.caller,
       this.selector,
       this.arguments,
+      this.inLoop,
       TypeMask type) : super(type, null, const <TypeInformation>[]);
 
   String toString() => 'Call site $call';
@@ -333,7 +335,9 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       this.calledElement,
       Selector selector,
       ArgumentsTypes arguments,
-      TypeMask type) : super(call, enclosing, selector, arguments, type);
+      bool inLoop,
+      TypeMask type)
+    : super(call, enclosing, selector, arguments, inLoop, type);
 
   void addToGraph(TypeGraphInferrerEngine inferrer) {
     ElementTypeInformation callee =
@@ -378,7 +382,9 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       Selector selector,
       this.receiver,
       ArgumentsTypes arguments,
-      TypeMask type) : super(call, enclosing, selector, arguments, type);
+      bool inLoop,
+      TypeMask type)
+    : super(call, enclosing, selector, arguments, inLoop, type);
 
   void addToGraph(TypeGraphInferrerEngine inferrer) {
     assert(receiver != null);
@@ -973,6 +979,8 @@ class TypeGraphInferrerEngine
     extends InferrerEngine<TypeInformation, TypeInformationSystem> {
   final Map<Element, ConcreteTypeInformation> defaultTypeOfParameter =
       new Map<Element, ConcreteTypeInformation>();
+  final List<CallSiteTypeInformation> allocatedCalls =
+      <CallSiteTypeInformation>[];
   final WorkQueue workQueue = new WorkQueue();
 
   /// The maximum number of times we allow a node in the graph to
@@ -1063,8 +1071,25 @@ class TypeGraphInferrerEngine
         }
       });
     }
+
+    processLoopInformation();
   }
 
+  void processLoopInformation() {
+    allocatedCalls.forEach((info) {
+      if (!info.inLoop) return;
+      if (info is StaticCallSiteTypeInformation) {
+        compiler.world.addFunctionCalledInLoop(info.calledElement);
+      } else if (info.selector.mask != null
+                 && !info.selector.mask.containsAll(compiler)) {
+        // For instance methods, we only register a selector called in a
+        // loop if it is a typed selector, to avoid marking too many
+        // methods as being called from within a loop. This cuts down
+        // on the code bloat.
+        info.targets.forEach(compiler.world.addFunctionCalledInLoop);
+      }
+    });
+  }
 
   void refineOptimistic() {
     while (!workQueue.isEmpty) {
@@ -1243,11 +1268,10 @@ class TypeGraphInferrerEngine
                                         SideEffects sideEffects,
                                         bool inLoop) {
     CallSiteTypeInformation info = new StaticCallSiteTypeInformation(
-          node, caller, callee, selector, arguments, types.dynamicType.type);
-    if (inLoop) {
-      compiler.world.addFunctionCalledInLoop(callee);
-    }
+          node, caller, callee, selector, arguments, inLoop,
+          types.dynamicType.type);
     info.addToGraph(this);
+    allocatedCalls.add(info);
     updateSideEffects(sideEffects, selector, callee);
     return info;
   }
@@ -1262,26 +1286,15 @@ class TypeGraphInferrerEngine
                                          bool inLoop) {
     if (selector.isClosureCall()) return types.dynamicType;
 
-    if (inLoop && selector.mask != null) {
-      // For instance methods, we only register a selector called in a
-      // loop if it is a typed selector, to avoid marking too many
-      // methods as being called from within a loop. This cuts down
-      // on the code bloat.
-      // TODO(ngeoffray): We should move the filtering on the selector
-      // in the backend. It is not the inferrer role to do this kind
-      // of optimization.
-      compiler.world.allFunctions.filter(selector).forEach((callee) {
-        compiler.world.addFunctionCalledInLoop(callee);
-      });
-    }
     compiler.world.allFunctions.filter(selector).forEach((callee) {
       updateSideEffects(sideEffects, selector, callee);
     });
 
     DynamicCallSiteTypeInformation info = new DynamicCallSiteTypeInformation(
-        node, caller, selector, receiverType, arguments,
+        node, caller, selector, receiverType, arguments, inLoop,
         types.dynamicType.type);
     info.addToGraph(this);
+    allocatedCalls.add(info);
     return info;
   }
 
@@ -1327,6 +1340,7 @@ class TypeGraphInferrerEngine
   }
 
   void clear() {
+    allocatedCalls.clear();
     defaultTypeOfParameter.clear();
     types.typeInformations.values.forEach((info) => info.clear());
     types.allocatedTypes.clear();
