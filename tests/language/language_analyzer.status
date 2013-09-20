@@ -58,10 +58,6 @@ block_scope_test: fail
 lazy_static3_test: fail
 
 field3a_negative_test: Fail # Issue 11124
-const_syntax_test/01: Fail # Issue 11124
-const_syntax_test/04: Fail # Issue 11124
-const_syntax_test/02: Fail # Issue 11124
-const_syntax_test/03: Fail # Issue 11124
 final_syntax_test/01: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
 final_syntax_test/02: Fail # Issue 11124
@@ -155,7 +151,6 @@ prefix11_negative_test: fail
 # test issue 12156, fails only at runtime
 static_call_wrong_argument_count_negative_test: fail
 
-static_final_field2_test/02: Fail # Issue 13018
 constructor9_test/01: Fail # Issue 12157
 
 throw7_test/01: Fail # Issue 12159

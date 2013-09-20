@@ -51,13 +51,6 @@ LibTest/core/String/concat_A02_t01: fail, OK
 LibTest/core/Set/isSubsetOf_A01_t01: fail, OK
 LibTest/core/Set/isSubsetOf_A01_t02: fail, OK
 
-# co19 issue #424, Uninitialized finals are warnings not errors
-Language/05_Variables/05_Variables_A07_t05: fail, OK
-Language/05_Variables/05_Variables_A07_t06: fail, OK
-Language/05_Variables/05_Variables_A07_t07: fail, OK
-Language/05_Variables/05_Variables_A07_t08: fail, OK
-Language/05_Variables/05_Variables_A08_t01: fail, OK
-
 # co19 issue #425, Only static fields can be declared as 'const'
 Language/05_Variables/05_Variables_A12_t01: fail, OK
 Language/05_Variables/05_Variables_A12_t06: fail, OK
