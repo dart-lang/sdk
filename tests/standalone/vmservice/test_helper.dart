@@ -219,7 +219,7 @@ class FieldRequestHelper extends VmServiceRequestHelper {
   onRequestCompleted(Map reply) {
     Expect.equals('Field', reply['type']);
     field = reply;
-    return this;
+    return new Future.value(this);
   }
 }
 
