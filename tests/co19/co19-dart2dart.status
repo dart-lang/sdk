@@ -7,10 +7,15 @@ LibTest/async/Stream/Stream.periodic_A01_t01: Pass, Fail # Issue 12562.
 
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t03: Fail # TODO(dart2dart-team): Please triage this failure.
 
+Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/7202
+
 Language/03_Overview/2_Privacy_A01_t19: Fail # Calling unresolved class constructor.
 Language/03_Overview/2_Privacy_A01_t20: Fail # Calling unresolved class constructor.
 Language/07_Classes/6_Constructors_A03_t03: Fail # Calling unresolved class constructor.
 
+Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/5519
+Language/03_Overview/1_Scoping_A01_t40: Fail # http://dartbug.com/5519
+Language/03_Overview/1_Scoping_A01_t41: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A02_t05: Fail # Inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t06: Fail # inherited from dart2js
 Language/05_Variables/05_Variables_A01_t04: Fail # http://dartbug.com/5519

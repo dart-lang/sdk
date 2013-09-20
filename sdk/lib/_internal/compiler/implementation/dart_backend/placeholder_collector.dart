@@ -244,13 +244,6 @@ class PlaceholderCollector extends Visitor {
     });
   }
 
-  // TODO(karlklose): should we create placeholders for these?
-  bool isTypedefParameter(Element element) {
-    return element != null &&
-        element.enclosingElement != null &&
-        element.enclosingElement.isTypedef();
-  }
-
   void tryMakeLocalPlaceholder(Element element, Identifier node) {
     bool isNamedOptionalParameter() {
       FunctionElement function = element.enclosingElement;
@@ -265,10 +258,9 @@ class PlaceholderCollector extends Visitor {
     // TODO(smok): Maybe we should rename privates as well, their privacy
     // should not matter if they are local vars.
     if (node.source.isPrivate()) return;
-    if (element.isParameter() && isNamedOptionalParameter() &&
-        !isTypedefParameter(element)) {
+    if (element.isParameter() && isNamedOptionalParameter()) {
       currentFunctionScope.registerParameter(node);
-    } else if (Elements.isLocal(element) && !isTypedefParameter(element)) {
+    } else if (Elements.isLocal(element)) {
       makeLocalPlaceholder(node);
     }
   }
