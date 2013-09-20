@@ -23,6 +23,12 @@ class YamlMap implements Map {
 
   YamlMap._wrap(this._map);
 
+  void addAll(Map other) {
+    other.forEach((key, value) {
+      this[key] = value;
+    });
+  }
+
   bool containsValue(value) => _map.containsValue(value);
   bool containsKey(key) => _map.containsKey(_wrapKey(key));
   operator [](key) => _map[_wrapKey(key)];
