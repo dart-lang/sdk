@@ -35,10 +35,6 @@ LibTest/core/Uri/decodeQueryComponent_A02_t01: fail # co19 Issue 591
 # co19 issue #380, Strings class has been removed
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: fail, OK
 
-# co19 issue #400, collection library reorg
-LibTest/core/String/concat_A01_t01: fail, OK
-LibTest/core/String/concat_A02_t01: fail, OK
-
 # co19 issue #424, Uninitialized finals are warnings not errors
 Language/05_Variables/05_Variables_A07_t05: fail, OK
 Language/05_Variables/05_Variables_A07_t06: fail, OK
@@ -60,9 +56,6 @@ Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10:
 Language/13_Statements/04_Local_Function_Declaration_A02_t02: fail, OK
 Language/14_Libraries_and_Scripts/1_Imports_A02_t12: fail, OK
 Language/14_Libraries_and_Scripts/1_Imports_A02_t15: fail, OK
-
-# co19 issue #513, rules for finals were loosened, contradiction in spec was fixed
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: fail, OK
 
 # co19 issue #438, Static variables are initialized lazily, need not be constants
 Language/12_Expressions/01_Constants_A16_t01: fail, OK

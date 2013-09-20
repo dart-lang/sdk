@@ -27,7 +27,6 @@ LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failu
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/List/List_A03_t01: Fail # TODO(kasperl): Please triage this failure.
 LibTest/core/List/sort_A01_t04: Pass, Slow # http://dartbug.com/11846
-LibTest/math/pow_A18_t01: FAIL, OK # co19 issue 507
 
 LibTest/typed_data/ByteData/getFloat32_A02_t02: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/getFloat64_A02_t02: fail # co19-roll r569: Please triage this failure
@@ -111,7 +110,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: F
 
 [ $compiler == dart2js && $checked ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t04: Fail # TODO(ahe): Please triage this failure.
 
 
 [ $compiler == dart2js ]
@@ -426,15 +424,10 @@ Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage
 Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t01: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t02: fail # co19-roll r559: Please triage this failure
-Language/07_Classes/1_Instance_Methods_A01_t03: fail # co19-roll r559: Please triage this failure
-Language/07_Classes/1_Instance_Methods_A01_t04: fail # co19-roll r559: Please triage this failure
-Language/07_Classes/1_Instance_Methods_A01_t05: fail # co19-roll r559: Please triage this failure
-Language/07_Classes/1_Instance_Methods_A01_t06: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t01: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t02: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t03: fail # co19-roll r559: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t04: fail # co19-roll r559: Please triage this failure
-Language/07_Classes/4_Abstract_Instance_Members_A03_t05: fail # co19-roll r559: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A02_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t02: fail # co19-roll r546: Please triage this failure
