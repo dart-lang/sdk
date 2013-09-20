@@ -35,7 +35,6 @@ const int _MODIFICATION_COUNT_MASK = 0x3fffffff;
 class _HashMap<K, V> implements HashMap<K, V> {
   static const int _INITIAL_CAPACITY = 8;
 
-  Type get runtimeType => HashMap;
 
   int _elementCount = 0;
   List<_HashMapEntry> _buckets = new List(_INITIAL_CAPACITY);
@@ -226,7 +225,6 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   _CustomHashMap(this._equals, this._hashCode, validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test;
 
-  Type get runtimeType => HashMap;
 
   bool containsKey(Object key) {
     if (!_validKey(key)) return false;
@@ -320,7 +318,6 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
 }
 
 class _IdentityHashMap<K, V> extends _HashMap<K, V> {
-  Type get runtimeType => HashMap;
 
   bool containsKey(Object key) {
     int hashCode = key.hashCode;
@@ -904,7 +901,6 @@ abstract class _LinkedHashMapMixin<K, V> implements LinkedHashMap<K, V> {
   var _nextEntry;
   var _previousEntry;
 
-  Type get runtimeType => LinkedHashMap;
 
   bool containsValue(Object value) {
     int modificationCount = _modificationCount;

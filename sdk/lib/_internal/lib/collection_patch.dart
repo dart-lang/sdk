@@ -56,7 +56,6 @@ class _HashMap<K, V> implements HashMap<K, V> {
 
   _HashMap();
 
-  Type get runtimeType => HashMap;
 
   int get length => _length;
   bool get isEmpty => _length == 0;
@@ -500,7 +499,6 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
 
   _LinkedHash();
 
-  Type get runtimeType => LinkedHashMap;
 
   int get length => _length;
   bool get isEmpty => _length == 0;
