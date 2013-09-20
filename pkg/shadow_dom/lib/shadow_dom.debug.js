@@ -1,5 +1,4 @@
-if ((!HTMLElement.prototype.createShadowRoot &&
-    !HTMLElement.prototype.webkitCreateShadowRoot) ||
+if ((!HTMLElement.prototype.createShadowRoot) ||
     window.__forceShadowDomPolyfill) {
 
 /*
@@ -725,6 +724,10 @@ if ((!HTMLElement.prototype.createShadowRoot &&
 
     this.observed = [];
     this.values = [];
+    this.value = undefined;
+    this.oldValue = undefined;
+    this.oldValues = undefined;
+    this.changeFlags = undefined;
     this.started = false;
   }
 
@@ -760,6 +763,18 @@ if ((!HTMLElement.prototype.createShadowRoot &&
         var value = path.getValueFrom(object, this.observedSet);
         var oldValue = this.values[i/2];
         if (!areSameValue(value, oldValue)) {
+          if (!anyChanged && !this.valueFn) {
+            this.oldValues = this.oldValues || [];
+            this.changeFlags = this.changeFlags || [];
+            for (var j = 0; j < this.values.length; j++) {
+              this.oldValues[j] = this.values[j];
+              this.changeFlags[j] = false;
+            }
+          }
+
+          if (!this.valueFn)
+            this.changeFlags[i/2] = true;
+
           this.values[i/2] = value;
           anyChanged = true;
         }
@@ -775,22 +790,29 @@ if ((!HTMLElement.prototype.createShadowRoot &&
       if (!this.getValues())
         return;
 
-      this.value = this.valueFn(this.values);
+      if (this.valueFn) {
+        this.value = this.valueFn(this.values);
 
-      if (areSameValue(this.value, this.oldValue))
-        return false;
+        if (areSameValue(this.value, this.oldValue))
+          return false;
 
-      this.reportArgs = [this.value, this.oldValue];
+        this.reportArgs = [this.value, this.oldValue];
+      } else {
+        this.reportArgs = [this.values, this.oldValues, this.changeFlags];
+      }
+
       return true;
     },
 
     sync: function(hard) {
       if (hard) {
         this.getValues();
-        this.value = this.valueFn(this.values);
+        if (this.valueFn)
+          this.value = this.valueFn(this.values);
       }
 
-      this.oldValue = this.value;
+      if (this.valueFn)
+        this.oldValue = this.value;
     },
 
     close: function() {
@@ -2894,7 +2916,11 @@ var ShadowDOMPolyfill = {};
      * the renderer as needed.
      * @private
      */
-    nodeWasAdded_: function() {},
+    nodeWasAdded_: function() {
+      for (var child = this.firstChild; child; child = child.nextSibling) {
+        child.nodeWasAdded_();
+      }
+    },
 
     hasChildNodes: function() {
       return this.firstChild === null;
@@ -3217,9 +3243,7 @@ var ShadowDOMPolyfill = {};
   var registerWrapper = scope.registerWrapper;
   var wrappers = scope.wrappers;
 
-  var shadowRootTable = new WeakMap();
   var OriginalElement = window.Element;
-
 
   var matchesName = oneOf(OriginalElement.prototype, [
     'matches',
@@ -3248,7 +3272,7 @@ var ShadowDOMPolyfill = {};
   mixin(Element.prototype, {
     createShadowRoot: function() {
       var newShadowRoot = new wrappers.ShadowRoot(this);
-      shadowRootTable.set(this, newShadowRoot);
+      this.impl.polymerShadowRoot_ = newShadowRoot;
 
       var renderer = scope.getRendererForHost(this);
       renderer.invalidate();
@@ -3257,7 +3281,7 @@ var ShadowDOMPolyfill = {};
     },
 
     get shadowRoot() {
-      return shadowRootTable.get(this) || null;
+      return this.impl.polymerShadowRoot_ || null;
     },
 
     setAttribute: function(name, value) {
@@ -3872,7 +3896,6 @@ var ShadowDOMPolyfill = {};
   var eventParentsTable = new WeakMap();
   var insertionParentTable = new WeakMap();
   var rendererForHostTable = new WeakMap();
-  var shadowDOMRendererTable = new WeakMap();
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     getDistributedChildNodes(insertionPoint).push(child);
@@ -4325,7 +4348,7 @@ var ShadowDOMPolyfill = {};
     },
 
     associateNode: function(node) {
-      shadowDOMRendererTable.set(node, this);
+      node.impl.polymerShadowRenderer_ = this;
     }
   };
 
@@ -4384,7 +4407,7 @@ var ShadowDOMPolyfill = {};
    * This gets called when a node was added or removed to it.
    */
   Node.prototype.invalidateShadowRenderer = function(force) {
-    var renderer = shadowDOMRendererTable.get(this);
+    var renderer = this.impl.polymerShadowRenderer_;
     if (renderer) {
       renderer.invalidate();
       return true;
@@ -4394,9 +4417,9 @@ var ShadowDOMPolyfill = {};
   };
 
   HTMLContentElement.prototype.getDistributedNodes = function() {
-    var renderer = shadowDOMRendererTable.get(this);
-    if (renderer)
-      renderer.render();
+    // TODO(arv): We should only rerender the dirty ancestor renderers (from
+    // the root and down).
+    renderAllPending();
     return getDistributedChildNodes(this);
   };
 
@@ -4409,7 +4432,7 @@ var ShadowDOMPolyfill = {};
     var renderer;
     if (shadowRoot)
       renderer = getRendererForShadowRoot(shadowRoot);
-    shadowDOMRendererTable.set(this, renderer);
+    this.impl.polymerShadowRenderer_ = renderer;
     if (renderer)
       renderer.invalidate();
   };
@@ -5135,8 +5158,10 @@ var ShadowDOMPolyfill = {};
       // TODO(jmesserly): do we still need these?
       if (obj instanceof NodeList) return 'NodeList';
       if (obj instanceof ShadowRoot) return 'ShadowRoot';
-      if (obj instanceof MutationRecord) return 'MutationRecord';
-      if (obj instanceof MutationObserver) return 'MutationObserver';
+      if (window.MutationRecord && (obj instanceof MutationRecord))
+          return 'MutationRecord';
+      if (window.MutationObserver && (obj instanceof MutationObserver))
+          return 'MutationObserver';
 
       var unwrapped = unwrapIfNeeded(obj);
       if (obj !== unwrapped) {

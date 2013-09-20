@@ -1,3 +1,2 @@
-if ((!HTMLElement.prototype.createShadowRoot &&
-    !HTMLElement.prototype.webkitCreateShadowRoot) ||
+if ((!HTMLElement.prototype.createShadowRoot) ||
     window.__forceShadowDomPolyfill) {
