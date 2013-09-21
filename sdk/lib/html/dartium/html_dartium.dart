@@ -9710,20 +9710,6 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @Experimental()
   void created() {}
 
-  /**
-   * Called by the DOM when this element has been inserted into the live
-   * document.
-   */
-  @Experimental()
-  void enteredView() {}
-
-  /**
-   * Called by the DOM when this element has been removed from the live
-   * document.
-   */
-  @Experimental()
-  void leftView() {}
-
   // Hooks to support custom WebComponents.
 
   Element _xtag;

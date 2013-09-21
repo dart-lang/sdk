@@ -12,7 +12,6 @@ element_offset_test/offset: Pass, Fail # Issue 13296
 [ $compiler == dart2js && $runtime != drt && $browser ]
 custom/document_register_type_extensions_test/namespaces: Fail # Polyfill does not support createElementNS
 custom/document_register_basic_test: Fail # Polyfill is not case-sensitive
-custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 
 [ $compiler == dart2js && $browser ]
 # Issue 9325 failures
@@ -29,7 +28,6 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue
 postmessage_structured_test/typed_arrays: Fail
 xhr_test: Pass, Fail # Issue 12648
 custom/attribute_changed_callback_test: Fail # 12643
-custom/entered_left_document_test: Fail # 13313
 xhr_test/json: Fail # Issue 13069
 
 [ $compiler == none && $runtime == drt && $system == windows ]

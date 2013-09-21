@@ -1000,22 +1000,7 @@ class StandardTestSuite extends TestSuite {
           dartWrapperFilename = '${htmlPath}_bootstrap.dart';
           compiledDartWrapperFilename = '$dartWrapperFilename.js';
         } else {
-          htmlPath = '$tempDir/test.html';
-          dartWrapperFilename = filePath.toNativePath();
-
-          var htmlContents = customHtml.readAsStringSync();
-          if (compiler == 'none') {
-            htmlContents = htmlContents.replaceAll('%TEST_SCRIPTS%',
-              '<script type="application/dart" '
-              'src="${_createUrlPathFromFile(filePath)}"></script>\n'
-              '<script type="text/javascript" '
-                  'src="/packages/browser/dart.js"></script>');
-          } else {
-            htmlContents = htmlContents.replaceAll('%TEST_SCRIPTS%',
-              '<script src="$nameNoExt.js"></script>');
-            compiledDartWrapperFilename = '$tempDir/$nameNoExt.js';
-          }
-          new File(htmlPath).writeAsStringSync(htmlContents);
+          htmlPath = customHtmlPath;
         }
       } else {
         htmlPath = '$tempDir/test.html';

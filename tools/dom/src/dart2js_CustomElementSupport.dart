@@ -8,22 +8,14 @@ _callCreated(receiver) {
   return receiver.created();
 }
 
-_callEnteredView(receiver) {
-  return receiver.enteredView();
-}
-
-_callLeftView(receiver) {
-  return receiver.leftView();
-}
-
-_makeCallbackMethod(callback) {
+_makeCreatedCallbackMethod() {
   return JS('',
       '''((function(invokeCallback) {
              return function() {
                return invokeCallback(this);
              };
           })(#))''',
-      convertDartClosureToJS(callback, 1));
+      convertDartClosureToJS(_callCreated, 1));
 }
 
 const _typeNameToTag = const {
@@ -85,18 +77,10 @@ void _registerCustomElement(context, document, String tag, Type type,
 
   var properties = JS('=Object', '{}');
 
-  JS('void', '#.createdCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callCreated)));
-  JS('void', '#.enteredViewCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callEnteredView)));
-  JS('void', '#.leftViewCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callLeftView)));
+  var jsCreatedCallback = _makeCreatedCallbackMethod();
 
-  // TODO(blois): Bug 13220- remove once transition is complete
-  JS('void', '#.enteredDocumentCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callEnteredView)));
-  JS('void', '#.leftDocumentCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callLeftView)));
+  JS('void', '#.createdCallback = #', properties,
+      JS('=Object', '{value: #}', jsCreatedCallback));
 
   var baseProto = JS('=Object', '#.prototype', baseConstructor);
   var proto = JS('=Object', 'Object.create(#, #)', baseProto, properties);

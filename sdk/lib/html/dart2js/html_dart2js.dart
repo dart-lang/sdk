@@ -9146,20 +9146,6 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @Experimental()
   void created() {}
 
-  /**
-   * Called by the DOM when this element has been inserted into the live
-   * document.
-   */
-  @Experimental()
-  void enteredView() {}
-
-  /**
-   * Called by the DOM when this element has been removed from the live
-   * document.
-   */
-  @Experimental()
-  void leftView() {}
-
   // Hooks to support custom WebComponents.
 
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
@@ -32051,22 +32037,14 @@ _callCreated(receiver) {
   return receiver.created();
 }
 
-_callEnteredView(receiver) {
-  return receiver.enteredView();
-}
-
-_callLeftView(receiver) {
-  return receiver.leftView();
-}
-
-_makeCallbackMethod(callback) {
+_makeCreatedCallbackMethod() {
   return JS('',
       '''((function(invokeCallback) {
              return function() {
                return invokeCallback(this);
              };
           })(#))''',
-      convertDartClosureToJS(callback, 1));
+      convertDartClosureToJS(_callCreated, 1));
 }
 
 const _typeNameToTag = const {
@@ -32128,18 +32106,10 @@ void _registerCustomElement(context, document, String tag, Type type,
 
   var properties = JS('=Object', '{}');
 
-  JS('void', '#.createdCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callCreated)));
-  JS('void', '#.enteredViewCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callEnteredView)));
-  JS('void', '#.leftViewCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callLeftView)));
+  var jsCreatedCallback = _makeCreatedCallbackMethod();
 
-  // TODO(blois): Bug 13220- remove once transition is complete
-  JS('void', '#.enteredDocumentCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callEnteredView)));
-  JS('void', '#.leftDocumentCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callLeftView)));
+  JS('void', '#.createdCallback = #', properties,
+      JS('=Object', '{value: #}', jsCreatedCallback));
 
   var baseProto = JS('=Object', '#.prototype', baseConstructor);
   var proto = JS('=Object', 'Object.create(#, #)', baseProto, properties);

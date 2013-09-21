@@ -25,6 +25,102 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+(function() {
+
+var scope = window.PolymerLoader = {};
+var flags = {};
+
+// convert url arguments to flags
+
+if (!flags.noOpts) {
+  location.search.slice(1).split('&').forEach(function(o) {
+    o = o.split('=');
+    o[0] && (flags[o[0]] = o[1] || true);
+  });
+}
+
+// process global logFlags
+
+parseLogFlags(flags);
+
+function load(scopeName) {
+  // imports
+
+  var scope = window[scopeName];
+  var entryPointName = scope.entryPointName;
+  var processFlags = scope.processFlags;
+
+  // acquire attributes and base path from entry point
+
+  var entryPoint = findScript(entryPointName);
+  var base = entryPoint.basePath;
+
+  // acquire common flags
+  var flags = scope.flags;
+
+  // convert attributes to flags
+  var flags = PolymerLoader.flags;
+  for (var i=0, a; (a=entryPoint.attributes[i]); i++) {
+    if (a.name !== 'src') {
+      flags[a.name] = a.value || true;
+    }
+  }
+
+  // parse log flags into global
+  parseLogFlags(flags);
+
+  // exports
+
+  scope.basePath = base;
+  scope.flags = flags;
+
+  // process flags for dynamic dependencies
+
+  if (processFlags) {
+    processFlags.call(scope, flags);
+  }
+
+  // post-process imports
+
+  var modules = scope.modules || [];
+  var sheets = scope.sheets || [];
+
+  // write script tags for dependencies
+
+  modules.forEach(function(src) {
+    document.write('<script src="' + base + src + '"></script>');
+  });
+
+  // write link tags for styles
+
+  sheets.forEach(function(src) {
+    document.write('<link rel="stylesheet" href="' + base + src + '">');
+  });
+}
+
+// utility method
+
+function findScript(fileName) {
+  var script = document.querySelector('script[src*="' + fileName + '"]');
+  var src = script.attributes.src.value;
+  script.basePath = src.slice(0, src.indexOf(fileName));
+  return script;
+}
+
+function parseLogFlags(flags) {
+  var logFlags = window.logFlags = window.logFlags || {};
+  if (flags.log) {
+    flags.log.split(',').forEach(function(f) {
+      logFlags[f] = true;
+    });
+  }
+}
+
+scope.flags = flags;
+scope.load = load;
+
+})();
+
 window.CustomElements = {flags:{}};
 // SideTable is a weak map where possible. If WeakMap is not available the
 // association is stored as an expando property.
@@ -633,7 +729,7 @@ function findAll(node, find, data) {
 
 // walk all shadowRoots on a given node.
 function forRoots(node, cb) {
-  var root = node.shadowRoot;
+  var root = node.webkitShadowRoot;
   while(root) {
     forSubtree(root, cb);
     root = root.olderShadowRoot;
@@ -700,50 +796,9 @@ function insertedNode(node) {
   }
 }
 
-
-// TODO(sorvell): on platforms without MutationObserver, mutations may not be
-// reliable and therefore entered/leftView are not reliable.
-// To make these callbacks less likely to fail, we defer all inserts and removes
-// to give a chance for elements to be inserted into dom.
-// This ensures enteredViewCallback fires for elements that are created and
-// immediately added to dom.
-var hasPolyfillMutations = (!window.MutationObserver ||
-    (window.MutationObserver === window.JsMutationObserver));
-scope.hasPolyfillMutations = hasPolyfillMutations;
-
-var isPendingMutations = false;
-var pendingMutations = [];
-function deferMutation(fn) {
-  pendingMutations.push(fn);
-  if (!isPendingMutations) {
-    isPendingMutations = true;
-    var async = (window.Platform && window.Platform.endOfMicrotask) ||
-        setTimeout;
-    async(takeMutations);
-  }
-}
-
-function takeMutations() {
-  isPendingMutations = false;
-  var $p = pendingMutations;
-  for (var i=0, l=$p.length, p; (i<l) && (p=$p[i]); i++) {
-    p();
-  }
-  pendingMutations = [];
-}
+// TODO(sjmiles): if there are descents into trees that can never have inDocument(*) true, fix this
 
 function inserted(element) {
-  if (hasPolyfillMutations) {
-    deferMutation(function() {
-      _inserted(element);
-    });
-  } else {
-    _inserted(element);
-  }
-}
-
-// TODO(sjmiles): if there are descents into trees that can never have inDocument(*) true, fix this
-function _inserted(element) {
   // TODO(sjmiles): it's possible we were inserted and removed in the space
   // of one microtask, in which case we won't be 'inDocument' here
   // But there are other cases where we are testing for inserted without
@@ -782,17 +837,6 @@ function removedNode(node) {
   });
 }
 
-
-function removed(element) {
-  if (hasPolyfillMutations) {
-    deferMutation(function() {
-      _removed(element);
-    });
-  } else {
-    _removed(element);
-  }
-}
-
 function removed(element) {
   // TODO(sjmiles): temporary: do work on all custom elements so we can track
   // behavior even when callbacks not defined
@@ -828,10 +872,10 @@ function inDocument(element) {
 }
 
 function watchShadow(node) {
-  if (node.shadowRoot && !node.shadowRoot.__watched) {
+  if (node.webkitShadowRoot && !node.webkitShadowRoot.__watched) {
     logFlags.dom && console.log('watching shadow-root for: ', node.localName);
     // watch all unwatched roots...
-    var root = node.shadowRoot;
+    var root = node.webkitShadowRoot;
     while (root) {
       watchRoot(root);
       root = root.olderShadowRoot;
@@ -903,7 +947,6 @@ var observer = new MutationObserver(handler);
 function takeRecords() {
   // TODO(sjmiles): ask Raf why we have to call handler ourselves
   handler(observer.takeRecords());
-  takeMutations();
 }
 
 var forEach = Array.prototype.forEach.call.bind(Array.prototype.forEach);
@@ -1421,18 +1464,4 @@ if (document.readyState === 'complete') {
   window.addEventListener(loadEvent, bootstrap);
 }
 
-})();
-
-(function() {
-// Patch to allow custom element and shadow dom to work together, from:
-// https://github.com/Polymer/platform/blob/master/src/patches-shadowdom-polyfill.js
-// include .host reference
-if (HTMLElement.prototype.createShadowRoot) {
-  var originalCreateShadowRoot = HTMLElement.prototype.createShadowRoot;
-  HTMLElement.prototype.createShadowRoot = function() {
-    var root = originalCreateShadowRoot.call(this);
-    root.host = this;
-    return root;
-  }
-}
 })();
