@@ -1012,21 +1012,21 @@ abstract class Compiler implements DiagnosticListener {
           reportFatalError(
               mainApp,
               MessageKind.GENERIC,
-              {'text': 'Error: Could not find "${MAIN.slowToString()}".'});
+              {'text': "Error: Could not find '${MAIN.slowToString()}'."});
         } else if (!analyzeAll) {
           reportFatalError(
               mainApp,
               MessageKind.GENERIC,
-              {'text': 'Error: Could not find "${MAIN.slowToString()}". '
-              'No source will be analyzed. '
-              'Use "--analyze-all" to analyze all code in the library.'});
+              {'text': "Error: Could not find '${MAIN.slowToString()}'. "
+              "No source will be analyzed. "
+              "Use '--analyze-all' to analyze all code in the library."});
         }
       } else {
         if (!main.isFunction()) {
           reportFatalError(
               main,
               MessageKind.GENERIC,
-              {'text': 'Error: "${MAIN.slowToString()}" is not a function.'});
+              {'text': "Error: '${MAIN.slowToString()}' is not a function."});
         }
         FunctionElement mainMethod = main;
         FunctionSignature parameters = mainMethod.computeSignature(this);

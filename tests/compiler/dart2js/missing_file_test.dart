@@ -74,5 +74,5 @@ void main() {
               "Error: Can't read 'memory:foo.dart' "
               "(Exception: No such file memory:foo.dart).");
   runCompiler(Uri.parse('dart:foo'),
-              'Error: Library not found "dart:foo".');
+              "Error: Library not found 'dart:foo'.");
 }

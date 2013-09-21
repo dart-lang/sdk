@@ -55,7 +55,7 @@ main() {
     (String code, List errors, List warnings) {
       Expect.isNull(code);
       Expect.equals(1, errors.length);
-      Expect.equals('Error: Could not find "main".', errors[0].toString());
+      Expect.equals("Error: Could not find 'main'.", errors[0].toString());
       Expect.isTrue(warnings.isEmpty);
     });
 
@@ -75,7 +75,7 @@ main() {
       Expect.isNull(code);
       Expect.equals(1, errors.length);
       Expect.isTrue(
-          errors[0].toString().startsWith('Error: Could not find "main".'));
+          errors[0].toString().startsWith("Error: Could not find 'main'."));
       Expect.isTrue(warnings.isEmpty);
     });
 
@@ -95,7 +95,7 @@ main() {
       Expect.isNull(code);
       Expect.equals(1, errors.length);
       Expect.isTrue(
-          errors[0].toString().startsWith('Error: Could not find "main".'));
+          errors[0].toString().startsWith("Error: Could not find 'main'."));
       Expect.isTrue(warnings.isEmpty);
     });
 
@@ -109,7 +109,7 @@ main() {
       Expect.isTrue(errors.isEmpty);
       Expect.equals(1, warnings.length);
       Expect.equals(
-          'Warning: Cannot resolve type "Foo".', warnings[0].toString());
+          "Warning: Cannot resolve type 'Foo'.", warnings[0].toString());
     });
 
   runCompiler(
@@ -130,7 +130,7 @@ main() {
       Expect.isNull(code);
       Expect.isTrue(errors.isEmpty);
       Expect.equals(
-          'Warning: Cannot resolve type "Foo".', warnings[0].toString());
+          "Warning: Cannot resolve type 'Foo'.", warnings[0].toString());
     });
 
   runCompiler(
@@ -142,7 +142,7 @@ main() {
       Expect.isTrue(errors.isEmpty);
       Expect.equals(1, warnings.length);
       Expect.equals(
-          'Warning: Cannot resolve type "Foo".', warnings[0].toString());
+          "Warning: Cannot resolve type 'Foo'.", warnings[0].toString());
     });
 
   runCompiler(
