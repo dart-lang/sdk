@@ -104,18 +104,26 @@ class Printer implements NodeVisitor {
     }
   }
 
-  void recordSourcePosition(var position) {
-    if (position != null) {
-      outBuffer.setSourceLocation(position);
+  void beginSourceRange(Node node) {
+    if (node.sourcePosition != null) {
+      outBuffer.beginMappedRange();
+      outBuffer.setSourceLocation(node.sourcePosition);
+    }
+  }
+
+  void endSourceRange(Node node) {
+    if (node.endSourcePosition != null) {
+      outBuffer.setSourceLocation(node.endSourcePosition);
+    }
+    if (node.sourcePosition != null) {
+      outBuffer.endMappedRange();
     }
   }
 
   visit(Node node) {
-    if (node.sourcePosition != null) outBuffer.beginMappedRange();
-    recordSourcePosition(node.sourcePosition);
+    beginSourceRange(node);
     node.accept(this);
-    recordSourcePosition(node.endSourcePosition);
-    if (node.sourcePosition != null) outBuffer.endMappedRange();
+    endSourceRange(node);
   }
 
   visitCommaSeparated(List<Node> nodes, int hasRequiredType,
@@ -165,8 +173,10 @@ class Printer implements NodeVisitor {
 
   void blockOutWithoutBraces(Node node) {
     if (node is Block) {
+      beginSourceRange(node);
       Block block = node;
       block.statements.forEach(blockOutWithoutBraces);
+      endSourceRange(node);
     } else {
       visit(node);
     }
@@ -174,6 +184,7 @@ class Printer implements NodeVisitor {
 
   void blockOut(Block node, bool shouldIndent, bool needsNewline) {
     if (shouldIndent) indent();
+    beginSourceRange(node);
     out("{");
     lineOut();
     indentLevel++;
@@ -181,6 +192,7 @@ class Printer implements NodeVisitor {
     indentLevel--;
     indent();
     out("}");
+    endSourceRange(node);
     if (needsNewline) lineOut();
   }
 

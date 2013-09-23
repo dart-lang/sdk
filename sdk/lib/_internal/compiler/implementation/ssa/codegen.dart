@@ -15,15 +15,11 @@ class SsaCodeGeneratorTask extends CompilerTask {
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
 
 
-  js.Fun buildJavaScriptFunction(FunctionElement element,
-                                 List<js.Parameter> parameters,
-                                 js.Block body) {
-    js.Fun result = new js.Fun(parameters, body);
-    // TODO(johnniwinther): remove the 'element.patch' hack.
-    Element sourceElement = element.patch == null ? element : element.patch;
-    SourceFile sourceFile = sourceElement.getCompilationUnit().script.file;
-    Node expression =
-        element.implementation.parseNode(backend.compiler);
+  js.Node attachPosition(js.Node node, Element element) {
+    // TODO(sra): Attaching positions might be cleaner if the source position
+    // was on a wrapping node.
+    SourceFile sourceFile = sourceFileOfElement(element);
+    Node expression = element.implementation.parseNode(backend.compiler);
     Token beginToken;
     Token endToken;
     if (expression == null) {
@@ -36,12 +32,27 @@ class SsaCodeGeneratorTask extends CompilerTask {
     // TODO(podivilov): find the right sourceFile here and remove offset checks
     // below.
     if (beginToken.charOffset < sourceFile.text.length) {
-      result.sourcePosition = new SourceFileLocation(sourceFile, beginToken);
+      node.sourcePosition = new SourceFileLocation(sourceFile, beginToken);
     }
     if (endToken.charOffset < sourceFile.text.length) {
-      result.endSourcePosition = new SourceFileLocation(sourceFile, endToken);
+      node.endSourcePosition = new SourceFileLocation(sourceFile, endToken);
     }
-    return result;
+    return node;
+  }
+
+  SourceFile sourceFileOfElement(Element element) {
+    // TODO(johnniwinther): remove the 'element.patch' hack.
+    FunctionElement functionElement = element.asFunctionElement();
+    if (functionElement != null && functionElement.patch != null) {
+      element = functionElement.patch;
+    }
+    return element.getCompilationUnit().script.file;
+  }
+
+  js.Fun buildJavaScriptFunction(FunctionElement element,
+                                 List<js.Parameter> parameters,
+                                 js.Block body) {
+    return attachPosition(new js.Fun(parameters, body), element);
   }
 
   CodeBuffer prettyPrint(js.Node node) {
@@ -63,7 +74,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SsaOptimizedCodeGenerator codegen =
           new SsaOptimizedCodeGenerator(backend, work);
       codegen.visitGraph(graph);
-      return new js.Fun(codegen.parameters, codegen.body);
+      return new js.Fun(codegen.parameters,
+          attachPosition(codegen.body, work.element));
     });
   }
 
