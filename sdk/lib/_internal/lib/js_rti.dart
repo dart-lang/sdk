@@ -66,6 +66,14 @@ class TypeImpl implements Type {
   }
 }
 
+class TypeVariable {
+  final Type owner;
+  final String name;
+  final int upperBound;
+
+  const TypeVariable(this.owner, this.name, this.upperBound);
+}
+
 getMangledTypeName(TypeImpl type) => type._typeName;
 
 /**
