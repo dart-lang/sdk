@@ -1573,6 +1573,7 @@ bool FlowGraphOptimizer::MethodExtractorNeedsClassCheck(
 void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
+  ASSERT(ic_data.HasOneTarget());
   Function& target = Function::Handle();
   GrowableArray<intptr_t> class_ids;
   ic_data.GetCheckAt(0, &class_ids, &target);
@@ -1791,51 +1792,21 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     // No type feedback collected.
     return false;
   }
-  Function& target = Function::Handle(ic_data.GetTargetAt(0));
-  if (target.kind() == RawFunction::kImplicitGetter) {
-    if (!ic_data.HasOneTarget()) {
-      // TODO(srdjan): Implement for mutiple targets.
-      return false;
-    }
-    InlineImplicitInstanceGetter(call);
-    return true;
-  } else if (target.kind() == RawFunction::kMethodExtractor) {
-    return false;
-  } else if (target.kind() == RawFunction::kNoSuchMethodDispatcher) {
+
+  if (!ic_data.HasOneTarget()) {
+    // Polymorphic sites are inlined like normal methods by conventional
+    // inlining in FlowGraphInliner.
     return false;
   }
 
-  // Not an implicit getter.
-  MethodRecognizer::Kind recognized_kind =
-      MethodRecognizer::RecognizeKind(target);
-
-  // VM objects length getter.
-  switch (recognized_kind) {
-    case MethodRecognizer::kFloat32x4ShuffleX:
-    case MethodRecognizer::kFloat32x4ShuffleY:
-    case MethodRecognizer::kFloat32x4ShuffleZ:
-    case MethodRecognizer::kFloat32x4ShuffleW:
-    case MethodRecognizer::kFloat32x4GetSignMask:
-      if (!ic_data.HasReceiverClassId(kFloat32x4Cid) ||
-          !ic_data.HasOneTarget()) {
-        return false;
-      }
-      return InlineFloat32x4Getter(call, recognized_kind);
-    case MethodRecognizer::kUint32x4GetFlagX:
-    case MethodRecognizer::kUint32x4GetFlagY:
-    case MethodRecognizer::kUint32x4GetFlagZ:
-    case MethodRecognizer::kUint32x4GetFlagW:
-    case MethodRecognizer::kUint32x4GetSignMask: {
-      if (!ic_data.HasReceiverClassId(kUint32x4Cid) ||
-          !ic_data.HasOneTarget()) {
-        return false;
-      }
-      return InlineUint32x4Getter(call, recognized_kind);
-    }
-    default:
-      break;
+  const Function& target = Function::Handle(ic_data.GetTargetAt(0));
+  if (target.kind() != RawFunction::kImplicitGetter) {
+    // Non-implicit getters are inlined like normal methods by conventional
+    // inlining in FlowGraphInliner.
+    return false;
   }
-  return false;
+  InlineImplicitInstanceGetter(call);
+  return true;
 }
 
 
@@ -2245,6 +2216,15 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
   }
   ASSERT(call->HasICData());
   switch (recognized_kind) {
+    case MethodRecognizer::kFloat32x4ShuffleX:
+    case MethodRecognizer::kFloat32x4ShuffleY:
+    case MethodRecognizer::kFloat32x4ShuffleZ:
+    case MethodRecognizer::kFloat32x4ShuffleW:
+    case MethodRecognizer::kFloat32x4GetSignMask:
+      ASSERT(call->ic_data()->HasReceiverClassId(kFloat32x4Cid));
+      ASSERT(call->ic_data()->HasOneTarget());
+      return InlineFloat32x4Getter(call, recognized_kind);
+
     case MethodRecognizer::kFloat32x4Equal:
     case MethodRecognizer::kFloat32x4GreaterThan:
     case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
@@ -2424,6 +2404,15 @@ bool FlowGraphOptimizer::TryInlineUint32x4Method(
   }
   ASSERT(call->HasICData());
   switch (recognized_kind) {
+    case MethodRecognizer::kUint32x4GetFlagX:
+    case MethodRecognizer::kUint32x4GetFlagY:
+    case MethodRecognizer::kUint32x4GetFlagZ:
+    case MethodRecognizer::kUint32x4GetFlagW:
+    case MethodRecognizer::kUint32x4GetSignMask:
+      ASSERT(call->ic_data()->HasReceiverClassId(kUint32x4Cid));
+      ASSERT(call->ic_data()->HasOneTarget());
+      return InlineUint32x4Getter(call, recognized_kind);
+
     case MethodRecognizer::kUint32x4Select: {
       Definition* mask = call->ArgumentAt(0);
       Definition* trueValue = call->ArgumentAt(1);
@@ -2960,7 +2949,8 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
       (unary_ic_data.num_args_tested() == 1));
   if (FLAG_enable_type_checks) {
-    // TODO(srdjan): Add assignable check node if --enable_type_checks.
+    // Checked mode setters are inlined like normal methods by conventional
+    // inlining.
     return false;
   }
 
@@ -2970,15 +2960,15 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
     return false;
   }
   if (!unary_ic_data.HasOneTarget()) {
-    // TODO(srdjan): Implement when not all targets are the same.
+    // Polymorphic sites are inlined like normal method calls by conventional
+    // inlining.
     return false;
   }
   Function& target = Function::Handle();
   intptr_t class_id;
   unary_ic_data.GetOneClassCheckAt(0, &class_id, &target);
   if (target.kind() != RawFunction::kImplicitSetter) {
-    // Not an implicit setter.
-    // TODO(srdjan): Inline special setters.
+    // Non-implicit setter are inlined like normal method calls.
     return false;
   }
   // Inline implicit instance setter.
