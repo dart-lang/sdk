@@ -191,6 +191,13 @@ class JsTypeVariableMirror extends JsTypeMirror {
         owner == other.owner);
   }
 
+  int get hashCode {
+    int code = 0x3FFFFFFF & (JsTypeVariableMirror).hashCode;
+    code ^= 17 * simpleName.hashCode;
+    code ^= 19 * owner.hashCode;
+    return code;
+  }
+
   String get _prettyName => 'TypeVariableMirror';
 }
 
