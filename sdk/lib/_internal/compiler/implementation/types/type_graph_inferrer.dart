@@ -1370,16 +1370,11 @@ class TypeGraphInferrer implements TypesInferrer {
 
   TypeMask getReturnTypeOfElement(Element element) {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
-    // Currently, closure calls return dynamic.
-    if (element is! FunctionElement) return compiler.typesTask.dynamicType;
     return inferrer.types.getInferredTypeOf(element).type;
   }
 
   TypeMask getTypeOfElement(Element element) {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
-    // The inferrer stores the return type for a function, so we have to
-    // be careful to not return it here.
-    if (element is FunctionElement) return compiler.typesTask.functionType;
     return inferrer.types.getInferredTypeOf(element).type;
   }
 

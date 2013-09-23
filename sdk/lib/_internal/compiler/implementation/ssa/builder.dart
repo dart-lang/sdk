@@ -3277,7 +3277,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                 List<HInstruction> arguments) {
     SourceString name = selector.name;
 
-    ClassElement cls = currentNonClosureClass;
+    ClassElement cls = currentElement.getEnclosingClass();
     Element element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
     if (element.enclosingElement.declaration != compiler.objectClass) {
       // Register the call as dynamic if [noSuchMethod] on the super
@@ -3286,11 +3286,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // [JSInvocationMirror._invokeOn].
       compiler.enqueuer.codegen.registerSelectorUse(selector);
     }
-    String publicName = name.slowToString();
-    if (selector.isSetter()) publicName += '=';
-
     Constant nameConstant = constantSystem.createString(
-        new DartString.literal(publicName), node);
+        new DartString.literal(name.slowToString()), node);
 
     String internalName = backend.namer.invocationName(selector);
     Constant internalNameConstant =
@@ -3348,19 +3345,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (node.isPropertyAccess) {
       push(buildInvokeSuper(selector, element, inputs));
     } else if (element.isFunction() || element.isGenerativeConstructor()) {
-      if (selector.applies(element, compiler)) {
-        // TODO(5347): Try to avoid the need for calling [implementation] before
-        // calling [addStaticSendArgumentsToList].
-        FunctionElement function = element.implementation;
-        bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
-                                                      function, inputs);
-        assert(succeeded);
-        push(buildInvokeSuper(selector, element, inputs));
-      } else if (element.isGenerativeConstructor()) {
+      // TODO(5347): Try to avoid the need for calling [implementation] before
+      // calling [addStaticSendArgumentsToList].
+      FunctionElement function = element.implementation;
+      bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
+                                                    function, inputs);
+      if (!succeeded) {
         generateWrongArgumentCountError(node, element, node.arguments);
       } else {
-        addGenericSendArgumentsToList(node.arguments, inputs);
-        generateSuperNoSuchMethodSend(node, selector, inputs);
+        push(buildInvokeSuper(selector, element, inputs));
       }
     } else {
       HInstruction target = buildInvokeSuper(selector, element, inputs);
@@ -3936,13 +3929,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         selector,
         inputs,
         isSetter: selector.isSetter() || selector.isIndexSet());
-    if (selector.isGetter()) {
-      instruction.instructionType =
-          new HType.inferredTypeForElement(element, compiler);
-    } else {
-      instruction.instructionType =
-          new HType.inferredReturnTypeForElement(element, compiler);
-    }
+    instruction.instructionType =
+        new HType.inferredReturnTypeForElement(element, compiler);
     instruction.sideEffects = compiler.world.getSideEffectsOfElement(element);
     return instruction;
   }
@@ -4016,8 +4004,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       }
       Selector setterSelector = elements.getSelector(node);
-      if (Elements.isUnresolved(element)
-          || !setterSelector.applies(element, compiler)) {
+      if (Elements.isUnresolved(element)) {
         generateSuperNoSuchMethodSend(
             node, setterSelector, setterInputs);
         pop();
