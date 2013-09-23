@@ -129,17 +129,9 @@ and include the results in a bug report on http://dartbug.com/new.
       if (commandFuture == null) return true;
 
       return commandFuture;
-    }).whenComplete(() => cache.deleteTempDir()).catchError((e) {
-      if (e is PubspecNotFoundException && e.name == null) {
-        e = new ApplicationException('Could not find a file named '
-            '"pubspec.yaml" in the directory ${path.current}.');
-      } else if (e is PubspecHasNoNameException && e.name == null) {
-        e = new ApplicationException('pubspec.yaml is missing the required '
-            '"name" field (e.g. "name: ${path.basename(path.current)}").');
-      }
-
-      return handleError(e);
-    }).then((_) {
+    }).whenComplete(() => cache.deleteTempDir())
+        .catchError(handleError)
+        .then((_) {
       // Explicitly exit on success to ensure that any dangling dart:io handles
       // don't cause the process to never terminate.
       return flushThenExit(0);

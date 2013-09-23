@@ -29,13 +29,33 @@ main() {
     var sources = new SourceRegistry();
     sources.register(new MockSource());
 
-    expectFormatError(String pubspec) {
-      expect(() => new Pubspec.parse(null, pubspec, sources),
-          throwsFormatException);
+    var throwsPubspecException =
+      throwsA(new isInstanceOf<PubspecException>('PubspecException'));
+
+    expectPubspecException(String contents, fn(Pubspec pubspec)) {
+      var pubspec = new Pubspec.parse(contents, sources);
+      expect(() => fn(pubspec), throwsPubspecException);
     }
 
+    test("doesn't eagerly throw an error for an invalid field", () {
+      // Shouldn't throw an error.
+      new Pubspec.parse('version: not a semver', sources);
+    });
+
+    test("eagerly throws an error if the pubspec name doesn't match the "
+        "expected name", () {
+      expect(() => new Pubspec.parse("name: foo", sources, expectedName: 'bar'),
+          throwsPubspecException);
+    });
+
+    test("eagerly throws an error if the pubspec doesn't have a name and an "
+        "expected name is passed", () {
+      expect(() => new Pubspec.parse("{}", sources, expectedName: 'bar'),
+          throwsPubspecException);
+    });
+
     test("allows a version constraint for dependencies", () {
-      var pubspec = new Pubspec.parse(null, '''
+      var pubspec = new Pubspec.parse('''
 dependencies:
   foo:
     mock: ok
@@ -50,7 +70,7 @@ dependencies:
     });
 
     test("allows an empty dependencies map", () {
-      var pubspec = new Pubspec.parse(null, '''
+      var pubspec = new Pubspec.parse('''
 dependencies:
 ''', sources);
 
@@ -58,7 +78,7 @@ dependencies:
     });
 
     test("allows a version constraint for dev dependencies", () {
-      var pubspec = new Pubspec.parse(null, '''
+      var pubspec = new Pubspec.parse('''
 dev_dependencies:
   foo:
     mock: ok
@@ -73,7 +93,7 @@ dev_dependencies:
     });
 
     test("allows an empty dev dependencies map", () {
-      var pubspec = new Pubspec.parse(null, '''
+      var pubspec = new Pubspec.parse('''
 dev_dependencies:
 ''', sources);
 
@@ -81,7 +101,7 @@ dev_dependencies:
     });
 
     test("allows an unknown source", () {
-      var pubspec = new Pubspec.parse(null, '''
+      var pubspec = new Pubspec.parse('''
 dependencies:
   foo:
     unknown: blah
@@ -93,138 +113,90 @@ dependencies:
     });
 
     test("throws if a package is in dependencies and dev_dependencies", () {
-      expectFormatError('''
+      var contents = '''
 dependencies:
   foo:
     mock: ok
 dev_dependencies:
   foo:
     mock: ok
-''');
+''';
+      expectPubspecException(contents, (pubspec) => pubspec.dependencies);
+      expectPubspecException(contents, (pubspec) => pubspec.devDependencies);
     });
 
     test("throws if it dependes on itself", () {
-      expectFormatError('''
+      expectPubspecException('''
 name: myapp
 dependencies:
   myapp:
     mock: ok
-''');
+''', (pubspec) => pubspec.dependencies);
     });
 
     test("throws if it has a dev dependency on itself", () {
-      expectFormatError('''
+      expectPubspecException('''
 name: myapp
 dev_dependencies:
   myapp:
     mock: ok
-''');
+''', (pubspec) => pubspec.devDependencies);
     });
 
     test("throws if the description isn't valid", () {
-      expectFormatError('''
+      expectPubspecException('''
 dependencies:
   foo:
     mock: bad
-''');
+''', (pubspec) => pubspec.dependencies);
     });
 
     test("throws if dependency version is not a string", () {
-      expectFormatError('''
+      expectPubspecException('''
 dependencies:
   foo:
     mock: ok
     version: 1.2
-''');
+''', (pubspec) => pubspec.dependencies);
     });
 
     test("throws if version is not a version constraint", () {
-      expectFormatError('''
+      expectPubspecException('''
 dependencies:
   foo:
     mock: ok
     version: not constraint
-''');
+''', (pubspec) => pubspec.dependencies);
     });
 
     test("throws if 'name' is not a string", () {
-      expectFormatError('name: [not, a, string]');
+      expectPubspecException('name: [not, a, string]',
+          (pubspec) => pubspec.name);
     });
 
     test("throws if version is not a string", () {
-      expectFormatError('''
-version: 1.0
-''');
+      expectPubspecException('version: 1.0', (pubspec) => pubspec.version);
     });
 
     test("throws if version is not a version", () {
-      expectFormatError('''
-version: not version
-''');
-    });
-
-    test("throws if 'homepage' is not a string", () {
-      expectFormatError('homepage:');
-      expectFormatError('homepage: [not, a, string]');
-    });
-
-    test("throws if 'homepage' doesn't have an HTTP scheme", () {
-      new Pubspec.parse(null, 'homepage: http://ok.com', sources);
-      new Pubspec.parse(null, 'homepage: https://also-ok.com', sources);
-
-      expectFormatError('homepage: ftp://badscheme.com');
-      expectFormatError('homepage: javascript:alert("!!!")');
-      expectFormatError('homepage: data:image/png;base64,somedata');
-      expectFormatError('homepage: no-scheme.com');
-    });
-
-    test("throws if 'documentation' is not a string", () {
-      expectFormatError('documentation:');
-      expectFormatError('documentation: [not, a, string]');
-    });
-
-    test("throws if 'documentation' doesn't have an HTTP scheme", () {
-      new Pubspec.parse(null, 'documentation: http://ok.com', sources);
-      new Pubspec.parse(null, 'documentation: https://also-ok.com', sources);
-
-      expectFormatError('documentation: ftp://badscheme.com');
-      expectFormatError('documentation: javascript:alert("!!!")');
-      expectFormatError('documentation: data:image/png;base64,somedata');
-      expectFormatError('documentation: no-scheme.com');
-    });
-
-    test("throws if 'authors' is not a string or a list of strings", () {
-      new Pubspec.parse(null, 'authors: ok fine', sources);
-      new Pubspec.parse(null, 'authors: [also, ok, fine]', sources);
-
-      expectFormatError('authors: 123');
-      expectFormatError('authors: {not: {a: string}}');
-      expectFormatError('authors: [ok, {not: ok}]');
-    });
-
-    test("throws if 'author' is not a string", () {
-      new Pubspec.parse(null, 'author: ok fine', sources);
-
-      expectFormatError('author: 123');
-      expectFormatError('author: {not: {a: string}}');
-      expectFormatError('author: [not, ok]');
-    });
-
-    test("throws if both 'author' and 'authors' are present", () {
-      expectFormatError('{author: abe, authors: ted}');
+      expectPubspecException('version: not version',
+          (pubspec) => pubspec.version);
     });
 
     test("throws if a transformer isn't a string or map", () {
-      expectFormatError('{transformers: 12}');
-      expectFormatError('{transformers: [12]}');
+      expectPubspecException('transformers: 12',
+          (pubspec) => pubspec.transformers);
+      expectPubspecException('transformers: [12]',
+          (pubspec) => pubspec.transformers);
     });
 
     test("throws if a transformer's configuration isn't a map", () {
-      expectFormatError('{transformers: {pkg: 12}}');
+      expectPubspecException('transformers: {pkg: 12}',
+          (pubspec) => pubspec.transformers);
     });
 
     test("allows comment-only files", () {
-      var pubspec = new Pubspec.parse(null, '''
+      var pubspec = new Pubspec.parse('''
 # No external dependencies yet
 # Including for completeness
 # ...and hoping the spec expands to include details about author, version, etc
@@ -236,25 +208,24 @@ version: not version
 
     group("environment", () {
       test("defaults to any SDK constraint if environment is omitted", () {
-        var pubspec = new Pubspec.parse(null, '', sources);
+        var pubspec = new Pubspec.parse('', sources);
         expect(pubspec.environment.sdkVersion, equals(VersionConstraint.any));
       });
 
       test("allows an empty environment map", () {
-        var pubspec = new Pubspec.parse(null, '''
+        var pubspec = new Pubspec.parse('''
 environment:
 ''', sources);
         expect(pubspec.environment.sdkVersion, equals(VersionConstraint.any));
       });
 
       test("throws if the environment value isn't a map", () {
-        expectFormatError('''
-environment: []
-''');
+        expectPubspecException('environment: []',
+            (pubspec) => pubspec.environment);
       });
 
       test("allows a version constraint for the sdk", () {
-        var pubspec = new Pubspec.parse(null, '''
+        var pubspec = new Pubspec.parse('''
 environment:
   sdk: ">=1.2.3 <2.3.4"
 ''', sources);
@@ -263,24 +234,15 @@ environment:
       });
 
       test("throws if the sdk isn't a string", () {
-        expectFormatError('''
-environment:
-  sdk: []
-''');
+        expectPubspecException('environment: {sdk: []}',
+            (pubspec) => pubspec.environment);
+        expectPubspecException('environment: {sdk: 1.0}',
+            (pubspec) => pubspec.environment);
       });
 
-    test("throws if the sdk is not a string", () {
-      expectFormatError('''
-environment:
-  sdk: 1.0
-''');
-    });
-
       test("throws if the sdk isn't a valid version constraint", () {
-        expectFormatError('''
-environment:
-  sdk: "oopies"
-''');
+        expectPubspecException('environment: {sdk: "oopies"}',
+            (pubspec) => pubspec.environment);
       });
     });
   });

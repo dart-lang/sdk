@@ -33,9 +33,8 @@ class TransformerId {
     if (configuration == null) return;
     for (var reserved in ['include', 'exclude']) {
       if (!configuration.containsKey(reserved)) continue;
-      throw new FormatException('Configuration for transformer '
-          '${idToLibraryIdentifier(asset)} may not include reserved key '
-          '"$reserved".');
+      throw new FormatException('Transformer configuration may not include '
+          'reserved key "$reserved".');
     }
   }
 

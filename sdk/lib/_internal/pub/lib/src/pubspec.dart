@@ -16,373 +16,425 @@ import 'source_registry.dart';
 import 'utils.dart';
 import 'version.dart';
 
-/// The parsed and validated contents of a pubspec file.
+import 'log.dart' as log;
+
+/// The parsed contents of a pubspec file.
+///
+/// The fields of a pubspec are, for the most part, validated when they're first
+/// accessed. This allows a partially-invalid pubspec to be used if only the
+/// valid portions are relevant. To get a list of all errors in the pubspec, use
+/// [allErrors].
 class Pubspec {
-  /// This package's name.
-  final String name;
+  // If a new lazily-initialized field is added to this class and the
+  // initialization can throw a [PubspecError], that error should also be
+  // exposed through [allErrors].
 
-  /// This package's version.
-  final Version version;
+  /// The registry of sources to use when parsing [dependencies] and
+  /// [devDependencies].
+  ///
+  /// This will be null if this was created using [new Pubspec] or [new
+  /// Pubspec.empty].
+  final SourceRegistry _sources;
 
-  /// The packages this package depends on.
-  final List<PackageDep> dependencies;
-
-  /// The packages this package depends on when it is the root package.
-  final List<PackageDep> devDependencies;
-
-  /// The ids of the transformers to use for this package.
-  final List<Set<TransformerId>> transformers;
-
-  /// The environment-related metadata.
-  final PubspecEnvironment environment;
+  /// The location from which the pubspec was loaded.
+  ///
+  /// This can be null if the pubspec was created in-memory or if its location
+  /// is unknown or can't be represented by a Uri.
+  final Uri _location;
 
   /// All pubspec fields. This includes the fields from which other properties
   /// are derived.
-  final Map<String, Object> fields;
+  final Map fields;
 
-  /// Loads the pubspec for a package [name] located in [packageDir].
-  factory Pubspec.load(String name, String packageDir, SourceRegistry sources) {
-    var pubspecPath = path.join(packageDir, 'pubspec.yaml');
-    if (!fileExists(pubspecPath)) throw new PubspecNotFoundException(name);
+  /// The package's name.
+  String get name {
+    if (_name != null) return _name;
 
-    try {
-      var pubspec = new Pubspec.parse(pubspecPath, readTextFile(pubspecPath),
-          sources);
-
-      if (pubspec.name == null) {
-        throw new PubspecHasNoNameException(name);
-      }
-
-      if (name != null && pubspec.name != name) {
-        throw new PubspecNameMismatchException(name, pubspec.name);
-      }
-
-      return pubspec;
-    } on FormatException catch (ex) {
-      fail('Could not parse $pubspecPath:\n${ex.message}');
+    var name = fields['name'];
+    if (name == null) {
+      throw new PubspecException(null, _location,
+          'Missing the required "name" field.');
+    } else if (name is! String) {
+      throw new PubspecException(null, _location,
+          '"name" field must be a string, but was "$name".');
     }
+
+    _name = name;
+    return _name;
   }
+  String _name;
 
-  Pubspec(this.name, this.version, this.dependencies, this.devDependencies,
-          this.environment, this.transformers, [Map<String, Object> fields])
-    : this.fields = fields == null ? {} : fields;
+  /// The package's version.
+  Version get version {
+    if (_version != null) return _version;
 
-  Pubspec.empty()
-    : name = null,
-      version = Version.none,
-      dependencies = <PackageDep>[],
-      devDependencies = <PackageDep>[],
-      environment = new PubspecEnvironment(),
-      transformers = <Set<TransformerId>>[],
-      fields = {};
+    var version = fields['version'];
+    if (version == null) {
+      _version = Version.none;
+      return _version;
+    }
+    if (version is! String) {
+      _error('"version" field must be a string, but was "$version".');
+    }
+
+    _version = _wrapFormatException('version number', 'version',
+        () => new Version.parse(version));
+    return _version;
+  }
+  Version _version;
+
+  /// The additional packages this package depends on.
+  List<PackageDep> get dependencies {
+    if (_dependencies != null) return _dependencies;
+    _dependencies = _parseDependencies('dependencies');
+    if (_devDependencies == null) {
+      _checkDependencyOverlap(_dependencies, devDependencies);
+    }
+    return _dependencies;
+  }
+  List<PackageDep> _dependencies;
+
+  /// The packages this package depends on when it is the root package.
+  List<PackageDep> get devDependencies {
+    if (_devDependencies != null) return _devDependencies;
+    _devDependencies = _parseDependencies('dev_dependencies');
+    if (_dependencies == null) {
+      _checkDependencyOverlap(dependencies, _devDependencies);
+    }
+    return _devDependencies;
+  }
+  List<PackageDep> _devDependencies;
+
+  /// The ids of the transformers to use for this package.
+  List<Set<TransformerId>> get transformers {
+    if (_transformers != null) return _transformers;
+
+    var transformers = fields['transformers'];
+    if (transformers == null) {
+      _transformers = [];
+      return _transformers;
+    }
+
+    if (transformers is! List) {
+      _error('"transformers" field must be a list, but was "$transformers".');
+    }
+
+    var i = 0;
+    _transformers = transformers.map((phase) {
+      var field = "transformers";
+      if (phase is! List) {
+        phase = [phase];
+      } else {
+        field = "$field[${i++}]";
+      }
+
+      return phase.map((transformer) {
+        if (transformer is! String && transformer is! Map) {
+          _error('"$field" field must be a string or map, but was '
+              '"$transformer".');
+        }
+
+        var id;
+        var configuration;
+        if (transformer is String) {
+          id = _wrapFormatException('library identifier', field,
+              () => libraryIdentifierToId(transformer));
+        } else {
+          if (transformer.length != 1) {
+            _error('"$field" must have a single key: the library identifier.');
+          } else if (transformer.keys.single is! String) {
+            _error('"$field" library identifier must be a string, but was '
+                '"$id".');
+          }
+
+          id = _wrapFormatException('library identifier', field,
+              () => libraryIdentifierToId(transformer.keys.single));
+          configuration = transformer.values.single;
+          if (configuration is! Map) {
+            _error('"$field.${idToLibraryIdentifier(id)}" field must be a map, '
+                'but was "$configuration".');
+          }
+        }
+
+        if (id.package != name &&
+            !dependencies.any((ref) => ref.name == id.package)) {
+          _error('"$field.${idToLibraryIdentifier(id)}" refers to a package '
+              'that\'s not listed in "dependencies".');
+        }
+
+        return _wrapFormatException("transformer identifier",
+            "$field.${idToLibraryIdentifier(id)}",
+            () => new TransformerId(id, configuration));
+      }).toSet();
+    }).toList();
+    return _transformers;
+  }
+  List<Set<TransformerId>> _transformers;
+
+  /// The environment-related metadata.
+  PubspecEnvironment get environment {
+    if (_environment != null) return _environment;
+
+    var yaml = fields['environment'];
+    if (yaml == null) {
+      _environment = new PubspecEnvironment(VersionConstraint.any);
+      return _environment;
+    }
+
+    if (yaml is! Map) {
+      _error('"environment" field must be a map, but was "$yaml".');
+    }
+
+    _environment = new PubspecEnvironment(
+        _parseVersionConstraint(yaml['sdk'], 'environment.sdk'));
+    return _environment;
+  }
+  PubspecEnvironment _environment;
 
   /// Whether or not the pubspec has no contents.
   bool get isEmpty =>
     name == null && version == Version.none && dependencies.isEmpty;
 
+  /// Loads the pubspec for a package located in [packageDir].
+  ///
+  /// If [expectedName] is passed and the pubspec doesn't have a matching name
+  /// field, this will throw a [PubspecError].
+  factory Pubspec.load(String packageDir, SourceRegistry sources,
+      {String expectedName}) {
+    var pubspecPath = path.join(packageDir, 'pubspec.yaml');
+    var pubspecUri = path.toUri(pubspecPath);
+    if (!fileExists(pubspecPath)) {
+      throw new PubspecException(expectedName, pubspecUri,
+          'Could not find a file named "pubspec.yaml" in "$packageDir".');
+    }
+
+    return new Pubspec.parse(readTextFile(pubspecPath), sources,
+        expectedName: expectedName, location: pubspecUri);
+  }
+
+  Pubspec(this._name, this._version, this._dependencies, this._devDependencies,
+          this._environment, this._transformers, [Map fields])
+    : this.fields = fields == null ? {} : fields,
+      _sources = null,
+      _location = null;
+
+  Pubspec.empty()
+    : _sources = null,
+      _location = null,
+      _name = null,
+      _version = Version.none,
+      _dependencies = <PackageDep>[],
+      _devDependencies = <PackageDep>[],
+      _environment = new PubspecEnvironment(),
+      _transformers = <Set<TransformerId>>[],
+      fields = {};
+
   /// Returns a Pubspec object for an already-parsed map representing its
   /// contents.
   ///
-  /// This will validate that [contents] is a valid pubspec.
-  factory Pubspec.fromMap(Map contents, SourceRegistry sources) =>
-    _parseMap(null, contents, sources);
+  /// If [expectedName] is passed and the pubspec doesn't have a matching name
+  /// field, this will throw a [PubspecError].
+  ///
+  /// [location] is the location from which this pubspec was loaded.
+  Pubspec.fromMap(this.fields, this._sources, {String expectedName,
+      Uri location})
+      : _location = location {
+    if (expectedName == null) return;
 
-  // TODO(rnystrom): Instead of allowing a null argument here, split this up
-  // into load(), parse(), and _parse() like LockFile does.
+    // If [expectedName] is passed, ensure that the actual 'name' field exists
+    // and matches the expectation.
+
+    // If the 'name' field doesn't exist, manually throw an exception rather
+    // than relying on the exception thrown by [name] so that we can provide a
+    // suggested fix.
+    if (fields['name'] == null) {
+      throw new PubspecException(expectedName, _location,
+          'Missing the required "name" field (e.g. "name: $expectedName").');
+    }
+
+    try {
+      if (name == expectedName) return;
+      throw new PubspecException(expectedName, _location,
+          '"name" field "$name" doesn\'t match expected name '
+          '"$expectedName".');
+    } on PubspecException catch (e) {
+      // Catch and re-throw any exceptions thrown by [name] so that they refer
+      // to [expectedName] for additional context.
+      throw new PubspecException(expectedName, e.location,
+          split1(e.message, '\n').last);
+    }
+  }
+
   /// Parses the pubspec stored at [filePath] whose text is [contents]. If the
   /// pubspec doesn't define version for itself, it defaults to [Version.none].
   /// [filePath] may be `null` if the pubspec is not on the user's local
   /// file system.
-  factory Pubspec.parse(String filePath, String contents,
-      SourceRegistry sources) {
+  factory Pubspec.parse(String contents, SourceRegistry sources,
+      {String expectedName, Uri location}) {
     if (contents.trim() == '') return new Pubspec.empty();
 
     var parsedPubspec = loadYaml(contents);
     if (parsedPubspec == null) return new Pubspec.empty();
 
     if (parsedPubspec is! Map) {
-      throw new FormatException('The pubspec must be a YAML mapping.');
+      throw new PubspecException(expectedName, location,
+          'The pubspec must be a YAML mapping.');
     }
 
-    return _parseMap(filePath, parsedPubspec, sources);
-  }
-}
-
-/// Evaluates whether the given [url] for [field] is valid.
-///
-/// Throws [FormatException] on an invalid url.
-void _validateFieldUrl(url, String field) {
-  if (url is! String) {
-    throw new FormatException(
-        'The "$field" field should be a string, but was "$url".');
+    return new Pubspec.fromMap(parsedPubspec, sources,
+        expectedName: expectedName, location: location);
   }
 
-  var goodScheme = new RegExp(r'^https?:');
-  if (!goodScheme.hasMatch(url)) {
-    throw new FormatException(
-        'The "$field" field should be an "http:" or "https:" URL, but '
-        'was "$url".');
-  }
-}
-
-Pubspec _parseMap(String filePath, Map map, SourceRegistry sources) {
-  var name = null;
-
-  if (map.containsKey('name')) {
-    name = map['name'];
-    if (name is! String) {
-      throw new FormatException(
-          'The pubspec "name" field should be a string, but was "$name".');
+  /// Returns a list of most errors in this pubspec.
+  ///
+  /// This will return at most one error for each field.
+  List<PubspecException> get allErrors {
+    var errors = <PubspecException>[];
+    _getError(fn()) {
+      try {
+        fn();
+      } on PubspecException catch (e) {
+        errors.add(e);
+      }
     }
+
+    _getError(() => this.name);
+    _getError(() => this.version);
+    _getError(() => this.dependencies);
+    _getError(() => this.devDependencies);
+    _getError(() => this.transformers);
+    _getError(() => this.environment);
+    return errors;
   }
 
-  var version = _parseVersion(map['version'], (v) =>
-      'The pubspec "version" field should be a semantic version number, '
-      'but was "$v".');
+  /// Parses the dependency field named [field], and returns the corresponding
+  /// list of dependencies.
+  List<PackageDep> _parseDependencies(String field) {
+    var dependencies = <PackageDep>[];
 
-  var dependencies = _parseDependencies(name, filePath, sources,
-      map['dependencies']);
+    var yaml = fields[field];
+    // Allow an empty dependencies key.
+    if (yaml == null) return dependencies;
 
-  var devDependencies = _parseDependencies(name, filePath, sources,
-      map['dev_dependencies']);
+    if (yaml is! Map || yaml.keys.any((e) => e is! String)) {
+      _error('"$field" field should be a map of package names, but was '
+          '"$yaml".');
+    }
+
+    yaml.forEach((name, spec) {
+      if (fields['name'] != null && name == this.name) {
+        _error('"$field.$name": Package may not list itself as a '
+            'dependency.');
+      }
+
+      var description;
+      var sourceName;
+
+      var versionConstraint = new VersionRange();
+      if (spec == null) {
+        description = name;
+        sourceName = _sources.defaultSource.name;
+      } else if (spec is String) {
+        description = name;
+        sourceName = _sources.defaultSource.name;
+        versionConstraint = _parseVersionConstraint(spec, "$field.$name");
+      } else if (spec is Map) {
+        if (spec.containsKey('version')) {
+          versionConstraint = _parseVersionConstraint(spec.remove('version'),
+              "$field.$name.version");
+        }
+
+        var sourceNames = spec.keys.toList();
+        if (sourceNames.length > 1) {
+          _error('"$field.$name" field may only have one source, but it had '
+              '${toSentence(sourceNames)}.');
+        }
+
+        sourceName = sourceNames.single;
+        if (sourceName is! String) {
+          _error('"$field.$name" source name must be a string, but was '
+              '"$sourceName".');
+        }
+
+        description = spec[sourceName];
+      } else {
+        _error('"$field.$name" field must be a string or a mapping.');
+      }
+
+      // If we have a valid source, use it to process the description. Allow
+      // unknown sources so pub doesn't choke on old pubspecs.
+      if (_sources.contains(sourceName)) {
+        var descriptionField = "$field.$name";
+        if (spec is Map) descriptionField = "$descriptionField.$sourceName";
+        _wrapFormatException('description', descriptionField, () {
+          var pubspecPath;
+          if (_location != null && _isFileUri(_location)) {
+            pubspecPath = path.fromUri(_location);
+          }
+          description = _sources[sourceName].parseDescription(
+              pubspecPath, description, fromLockFile: false);
+        });
+      }
+
+      dependencies.add(new PackageDep(
+          name, sourceName, versionConstraint, description));
+    });
+
+    return dependencies;
+  }
+
+  /// Parses [yaml] to a [VersionConstraint].
+  ///
+  /// If [yaml] is `null`, returns [VersionConstraint.any].
+  VersionConstraint _parseVersionConstraint(yaml, String field) {
+    if (yaml == null) return VersionConstraint.any;
+    if (yaml is! String) {
+      _error('"$field" must be a string, but was "$yaml".');
+    }
+
+    return _wrapFormatException('version constraint', field,
+        () => new VersionConstraint.parse(yaml));
+  }
 
   // Make sure the same package doesn't appear as both a regular and dev
   // dependency.
-  var dependencyNames = dependencies.map((dep) => dep.name).toSet();
-  var collisions = dependencyNames.intersection(
-      devDependencies.map((dep) => dep.name).toSet());
+  void _checkDependencyOverlap(List<PackageDep> dependencies,
+      List<PackageDep> devDependencies) {
+    var dependencyNames = dependencies.map((dep) => dep.name).toSet();
+    var collisions = dependencyNames.intersection(
+        devDependencies.map((dep) => dep.name).toSet());
+    if (collisions.isEmpty) return;
 
-  if (!collisions.isEmpty) {
-    var packageNames;
-    if (collisions.length == 1) {
-      packageNames = 'Package "${collisions.first}"';
-    } else {
-      var names = ordered(collisions);
-      var buffer = new StringBuffer();
-      buffer.write("Packages ");
-      for (var i = 0; i < names.length; i++) {
-        buffer.write('"');
-        buffer.write(names[i]);
-        buffer.write('"');
-        if (i == names.length - 2) {
-          buffer.write(", ");
-        } else if (i == names.length - 1) {
-          buffer.write(", and ");
-        }
-      }
-
-      packageNames = buffer.toString();
-    }
-
-    throw new FormatException(
-        '$packageNames cannot appear in both "dependencies" and '
-        '"dev_dependencies".');
+    _error('${pluralize('Package', collisions.length)} '
+        '${toSentence(collisions.map((package) => '"$package"'))} cannot '
+        'appear in both "dependencies" and "dev_dependencies".');
   }
 
-  var transformers = map['transformers'];
-  if (transformers != null) {
-    if (transformers is! List) {
-      throw new FormatException('"transformers" field must be a list, but was '
-          '"$transformers".');
-    }
-
-    transformers = transformers.map((phase) {
-      if (phase is! List) phase = [phase];
-      return phase.map((transformer) {
-        if (transformer is! String && transformer is! Map) {
-          throw new FormatException(
-              'Transformer "$transformer" must be a string or map.');
-        }
-
-        var id;
-        var configuration;
-        if (transformer is String) {
-          id = libraryIdentifierToId(transformer);
-        } else {
-          if (transformer.length != 1) {
-            throw new FormatException('Transformer map "$transformer" must '
-                'have a single key: the library identifier.');
-          }
-
-          id = libraryIdentifierToId(transformer.keys.single);
-          configuration = transformer.values.single;
-          if (configuration is! Map) {
-            throw new FormatException('Configuration for transformer "$id" '
-                'must be a map, but was "$configuration".');
-          }
-        }
-
-        if (id.package != name &&
-            !dependencies.any((ref) => ref.name == id.package)) {
-          throw new FormatException('Could not find package for transformer '
-              '"$transformer".');
-        }
-
-        return new TransformerId(id, configuration);
-      }).toSet();
-    }).toList();
-  } else {
-    transformers = [];
-  }
-
-  var environmentYaml = map['environment'];
-  var sdkConstraint = VersionConstraint.any;
-  if (environmentYaml != null) {
-    if (environmentYaml is! Map) {
-      throw new FormatException(
-          'The pubspec "environment" field should be a map, but was '
-          '"$environmentYaml".');
-    }
-
-    sdkConstraint = _parseVersionConstraint(environmentYaml['sdk'], (v) =>
-        'The "sdk" field of "environment" should be a semantic version '
-        'constraint, but was "$v".');
-  }
-  var environment = new PubspecEnvironment(sdkConstraint);
-
-  // Even though the pub app itself doesn't use these fields, we validate
-  // them here so that users find errors early before they try to upload to
-  // the server:
-  // TODO(rnystrom): We should split this validation into separate layers:
-  // 1. Stuff that is required in any pubspec to perform any command. Things
-  //    like "must have a name". That should go here.
-  // 2. Stuff that is required to upload a package. Things like "homepage
-  //    must use a valid scheme". That should go elsewhere. pub upload should
-  //    call it, and we should provide a separate command to show the user,
-  //    and also expose it to the editor in some way.
-
-  if (map.containsKey('homepage')) {
-    _validateFieldUrl(map['homepage'], 'homepage');
-  }
-  if (map.containsKey('documentation')) {
-    _validateFieldUrl(map['documentation'], 'documentation');
-  }
-
-  if (map.containsKey('author') && map['author'] is! String) {
-    throw new FormatException(
-        'The "author" field should be a string, but was '
-        '${map["author"]}.');
-  }
-
-  if (map.containsKey('authors')) {
-    var authors = map['authors'];
-    if (authors is List) {
-      // All of the elements must be strings.
-      if (!authors.every((author) => author is String)) {
-        throw new FormatException('The "authors" field should be a string '
-            'or a list of strings, but was "$authors".');
-      }
-    } else if (authors is! String) {
-      throw new FormatException('The pubspec "authors" field should be a '
-          'string or a list of strings, but was "$authors".');
-    }
-
-    if (map.containsKey('author')) {
-      throw new FormatException('A pubspec should not have both an "author" '
-          'and an "authors" field.');
+  /// Runs [fn] and wraps any [FormatException] it throws in a
+  /// [PubspecException].
+  ///
+  /// [description] should be a noun phrase that describes whatever's being
+  /// parsed or processed by [fn]. [field] should be the location of whatever's
+  /// being processed within the pubspec.
+  _wrapFormatException(String description, String field, fn()) {
+    try {
+      return fn();
+    } on FormatException catch (e) {
+      _error('Invalid $description for "$field": ${e.message}');
     }
   }
 
-  return new Pubspec(name, version, dependencies, devDependencies,
-      environment, transformers, map);
-}
-
-/// Parses [yaml] to a [Version] or throws a [FormatException] with the result
-/// of calling [message] if it isn't valid.
-///
-/// If [yaml] is `null`, returns [Version.none].
-Version _parseVersion(yaml, String message(yaml)) {
-  if (yaml == null) return Version.none;
-  if (yaml is! String) throw new FormatException(message(yaml));
-
-  try {
-    return new Version.parse(yaml);
-  } on FormatException catch(_) {
-    throw new FormatException(message(yaml));
-  }
-}
-
-/// Parses [yaml] to a [VersionConstraint] or throws a [FormatException] with
-/// the result of calling [message] if it isn't valid.
-///
-/// If [yaml] is `null`, returns [VersionConstraint.any].
-VersionConstraint _parseVersionConstraint(yaml, String getMessage(yaml)) {
-  if (yaml == null) return VersionConstraint.any;
-  if (yaml is! String) throw new FormatException(getMessage(yaml));
-
-  try {
-    return new VersionConstraint.parse(yaml);
-  } on FormatException catch(_) {
-    throw new FormatException(getMessage(yaml));
-  }
-}
-
-List<PackageDep> _parseDependencies(String packageName, String pubspecPath,
-    SourceRegistry sources, yaml) {
-  var dependencies = <PackageDep>[];
-
-  // Allow an empty dependencies key.
-  if (yaml == null) return dependencies;
-
-  if (yaml is! Map || yaml.keys.any((e) => e is! String)) {
-    throw new FormatException(
-        'The pubspec dependencies should be a map of package names, but '
-        'was ${yaml}.');
-  }
-
-  yaml.forEach((name, spec) {
-    if (name == packageName) {
-      throw new FormatException("Package '$name' cannot depend on itself.");
+  /// Throws a [PubspecException] with the given message.
+  void _error(String message) {
+    var name;
+    try {
+      name = this.name;
+    } on PubspecException catch (_) {
+      // [name] is null.
     }
 
-    var description;
-    var sourceName;
-
-    var versionConstraint = new VersionRange();
-    if (spec == null) {
-      description = name;
-      sourceName = sources.defaultSource.name;
-    } else if (spec is String) {
-      description = name;
-      sourceName = sources.defaultSource.name;
-      versionConstraint = new VersionConstraint.parse(spec);
-    } else if (spec is Map) {
-      if (spec.containsKey('version')) {
-        versionConstraint = _parseVersionConstraint(spec.remove('version'),
-            (v) => 'The "version" field for $name should be a semantic '
-                   'version constraint, but was "$v".');
-      }
-
-      var sourceNames = spec.keys.toList();
-      if (sourceNames.length > 1) {
-        throw new FormatException(
-            'Dependency $name may only have one source: $sourceNames.');
-      }
-
-      sourceName = only(sourceNames);
-      if (sourceName is! String) {
-        throw new FormatException(
-            'Source name $sourceName should be a string.');
-      }
-
-      description = spec[sourceName];
-    } else {
-      throw new FormatException(
-          'Dependency specification $spec should be a string or a mapping.');
-    }
-
-    // If we have a valid source, use it to process the description. Allow
-    // unknown sources so pub doesn't choke on old pubspecs.
-    if (sources.contains(sourceName)) {
-      description = sources[sourceName].parseDescription(
-          pubspecPath, description, fromLockFile: false);
-    }
-
-    dependencies.add(new PackageDep(
-        name, sourceName, versionConstraint, description));
-  });
-
-  return dependencies;
+    throw new PubspecException(name, _location, message);
+  }
 }
 
 /// The environment-related metadata in the pubspec. Corresponds to the data
@@ -395,3 +447,54 @@ class PubspecEnvironment {
   PubspecEnvironment([VersionConstraint sdk])
       : sdkVersion = sdk != null ? sdk : VersionConstraint.any;
 }
+
+/// An exception thrown when parsing a pubspec.
+///
+/// These exceptions are often thrown lazily while accessing pubspec properties.
+/// Their string representation contains additional contextual information about
+/// the pubspec for which parsing failed.
+class PubspecException extends ApplicationException {
+  /// The name of the package that the pubspec is for.
+  ///
+  /// This can be null if the pubspec didn't specify a name and no external name
+  /// was provided.
+  final String name;
+
+  /// The location of the pubspec.
+  ///
+  /// This can be null if the pubspec has no physical location, or if the
+  /// location is unknown.
+  final Uri location;
+
+  PubspecException(String name, Uri location, String subMessage)
+      : this.name = name,
+        this.location = location,
+        super(_computeMessage(name, location, subMessage));
+
+  static String _computeMessage(String name, Uri location, String subMessage) {
+    var str = 'Error in';
+
+    if (name != null) {
+      str += ' pubspec for package "$name"';
+      if (location != null) str += ' loaded from';
+    } else if (location == null) {
+      str += ' pubspec for an unknown package';
+    }
+
+    if (location != null) {
+      if (_isFileUri(location)) {
+        str += ' ${nicePath(path.fromUri(location))}';
+      } else {
+        str += ' $location';
+      }
+    }
+
+    return "$str:\n$subMessage";
+  }
+}
+
+/// Returns whether [uri] is a file URI.
+///
+/// This is slightly more complicated than just checking if the scheme is
+/// 'file', since relative URIs also refer to the filesystem on the VM.
+bool _isFileUri(Uri uri) => uri.scheme == 'file' || uri.scheme == '';

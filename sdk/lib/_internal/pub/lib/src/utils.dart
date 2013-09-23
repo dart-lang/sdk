@@ -101,6 +101,16 @@ String toSentence(Iterable iter) {
   return iter.take(iter.length - 1).join(", ") + " and ${iter.last}";
 }
 
+/// Returns [name] if [number] is 1, or the plural of [name] otherwise.
+///
+/// By default, this just adds "s" to the end of [name] to get the plural. If
+/// [plural] is passed, that's used instead.
+String pluralize(String name, int number, {String plural}) {
+  if (number == 1) return name;
+  if (plural != null) return plural;
+  return '${name}s';
+}
+
 /// Flattens nested lists inside an iterable into a single list containing only
 /// non-list elements.
 List flatten(Iterable nested) {
@@ -116,16 +126,6 @@ List flatten(Iterable nested) {
   }
   helper(nested);
   return result;
-}
-
-/// Asserts that [iter] contains only one element, and returns it.
-only(Iterable iter) {
-  var iterator = iter.iterator;
-  var currentIsValid = iterator.moveNext();
-  assert(currentIsValid);
-  var obj = iterator.current;
-  assert(!iterator.moveNext());
-  return obj;
 }
 
 /// Returns a set containing all elements in [minuend] that are not in
@@ -504,6 +504,20 @@ bool urisEqual(Uri uri1, Uri uri2) =>
 /// Return [uri] with redundant port information removed.
 Uri canonicalizeUri(Uri uri) {
   return uri;
+}
+
+/// Returns a human-friendly representation of [inputPath].
+///
+/// If [inputPath] isn't too distant from the current working directory, this
+/// will return the relative path to it. Otherwise, it will return the absolute
+/// path.
+String nicePath(String inputPath) {
+  var relative = path.relative(inputPath);
+  var split = path.split(relative);
+  if (split.length > 1 && split[0] == '..' && split[1] == '..') {
+    return path.absolute(inputPath);
+  }
+  return relative;
 }
 
 /// Decodes a URL-encoded string. Unlike [Uri.decodeComponent], this includes

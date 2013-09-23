@@ -62,7 +62,7 @@ class Package {
   /// `null` if the package being loaded is the entrypoint package.
   Package.load(String name, String packageDir, SourceRegistry sources)
       : dir = packageDir,
-        pubspec = new Pubspec.load(name, packageDir, sources);
+        pubspec = new Pubspec.load(packageDir, sources, expectedName: name);
 
   /// Constructs a package with the given pubspec. The package will have no
   /// directory associated with it.
@@ -189,32 +189,4 @@ class PackageDep extends _PackageName {
            other.source == source &&
            other.constraint == constraint;
   }
-}
-
-class PubspecNotFoundException extends ApplicationException {
-  final String name;
-
-  PubspecNotFoundException(String name)
-      : name = name,
-        super('Package "$name" doesn\'t have a pubspec.yaml file.');
-}
-
-class PubspecHasNoNameException extends ApplicationException {
-  final String name;
-
-  PubspecHasNoNameException(String name)
-      : name = name,
-        super('Package "$name"\'s pubspec.yaml file is missing the '
-              'required "name" field (e.g. "name: $name").');
-}
-
-class PubspecNameMismatchException extends ApplicationException {
-  final String expectedName;
-  final String actualName;
-
-  PubspecNameMismatchException(String expectedName, String actualName)
-      : expectedName = expectedName,
-        actualName = actualName,
-        super('The name you specified for your dependency, "$expectedName", '
-              'doesn\'t match the name "$actualName" in its pubspec.');
 }

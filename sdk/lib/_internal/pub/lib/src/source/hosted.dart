@@ -71,7 +71,8 @@ class HostedSource extends Source {
       // a secondary cache of just pubspecs. This would let us have a
       // persistent cache for pubspecs for packages that haven't actually
       // been installed.
-      return new Pubspec.fromMap(version['pubspec'], systemCache.sources);
+      return new Pubspec.fromMap(version['pubspec'], systemCache.sources,
+          expectedName: id.name, location: url);
     }).catchError((ex) {
       var parsed = _parseDescription(id.description);
       _throwFriendlyError(ex, id, parsed.last);

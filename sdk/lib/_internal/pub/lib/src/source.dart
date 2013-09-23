@@ -95,7 +95,8 @@ abstract class Source {
           return describeUncached(id);
         }
 
-        return new Pubspec.load(id.name, packageDir, _systemCache.sources);
+        return new Pubspec.load(packageDir, _systemCache.sources,
+            expectedName: id.name);
       });
     }
 

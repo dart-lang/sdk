@@ -27,10 +27,11 @@ main() {
     createLockFile('myapp', pkg: ['barback']);
 
     var pub = startPub(args: ['serve', '--port=0']);
-    expect(pub.nextErrLine(), completion(startsWith('Could not parse ')));
-    expect(pub.nextErrLine(), completion(equals('Configuration for '
-        'transformer myapp/src/transformer may not include reserved key '
-        '"include".')));
+    expect(pub.nextErrLine(), completion(equals('Error in pubspec for package '
+        '"myapp" loaded from pubspec.yaml:')));
+    expect(pub.nextErrLine(), completion(equals('Invalid transformer '
+       'identifier for "transformers.myapp/src/transformer": Transformer '
+       'configuration may not include reserved key "include".')));
     pub.shouldExit(1);
   });
 }

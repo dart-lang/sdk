@@ -32,8 +32,8 @@ main() {
       d.libPubspec('zoo', '1.0.0')
     ]).commit();
 
-    pubUpdate(error: 'The name you specified for your dependency, '
-                     '"foo", doesn\'t match the name "zoo" in its pubspec.');
+    pubUpdate(error: new RegExp(r'"name" field "zoo" doesn' "'" r't match '
+        r'expected name "foo"\.'));
 
     d.dir(packagesPath, [
       d.dir('foo', [

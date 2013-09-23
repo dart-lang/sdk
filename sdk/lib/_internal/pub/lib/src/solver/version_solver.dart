@@ -275,7 +275,7 @@ class UnknownSourceException extends SolveFailure {
       : super(package, dependencies);
 
   String toString() {
-    var dep = only(dependencies);
+    var dep = dependencies.single;
     return "Package '${dep.depender}' depends on '${dep.dep.name}' from "
            "unknown source '${dep.dep.source}'.";
   }

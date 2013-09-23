@@ -24,8 +24,7 @@ main() {
       })
     ]).create();
 
-    pubInstall(error:
-        'The name you specified for your dependency, "weirdname", doesn\'t '
-        'match the name "foo" in its pubspec.');
+    pubInstall(error: new RegExp(r'"name" field "foo" doesn' "'" r't match '
+        r'expected name "weirdname"\.'));
   });
 }

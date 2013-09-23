@@ -22,8 +22,8 @@ main() {
     var pub = startPub(args: ['serve', '--port=0']);
     // Ignore the line containing the path to the pubspec.
     expect(pub.nextErrLine(), completes);
-    expect(pub.nextErrLine(),
-        completion(equals('Could not find package for transformer "foo".')));
+    expect(pub.nextErrLine(), completion(equals('"transformers.foo" refers to '
+        'a package that\'s not listed in "dependencies".')));
     pub.shouldExit(1);
   });
 }

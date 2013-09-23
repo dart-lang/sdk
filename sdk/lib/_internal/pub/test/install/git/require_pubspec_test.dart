@@ -18,8 +18,7 @@ main() {
 
     d.appDir({"foo": {"git": "../foo.git"}}).create();
 
-    // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
-    // fixed.
-    pubInstall(error: 'Package "foo" doesn\'t have a pubspec.yaml file.');
+    pubInstall(error: new RegExp(r'Could not find a file named "pubspec\.yaml" '
+        r'in "[^\n]*"\.'));
   });
 }

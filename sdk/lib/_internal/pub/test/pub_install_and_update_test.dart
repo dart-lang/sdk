@@ -18,8 +18,8 @@ main() {
         d.dir(appPath, []).create();
 
         pubCommand(command,
-            error: new RegExp(r'^Could not find a file named "pubspec.yaml" '
-                r'in the directory .*\.$'));
+            error: new RegExp(r'Could not find a file named "pubspec.yaml" '
+                r'in "[^\n]*"\.'));
       });
 
       integration('a pubspec with a "name" key', () {
@@ -27,9 +27,8 @@ main() {
           d.pubspec({"dependencies": {"foo": null}})
         ]).create();
 
-        pubCommand(command, error:
-            'pubspec.yaml is missing the required "name" field '
-            '(e.g. "name: myapp").');
+        pubCommand(command, error: new RegExp(r'Missing the required "name" '
+            r'field\.'));
       });
     });
 
@@ -121,8 +120,8 @@ main() {
         })
       ]).create();
 
-      pubCommand(command,
-          error: new RegExp("Package 'myapp' cannot depend on itself."));
+      pubCommand(command, error: new RegExp(r'"dependencies.myapp": Package '
+          r'may not list itself as a dependency\.'));
     });
 
     integration('does not allow a dev dependency on itself', () {
@@ -135,8 +134,8 @@ main() {
         })
       ]).create();
 
-      pubCommand(command,
-          error: new RegExp("Package 'myapp' cannot depend on itself."));
+      pubCommand(command, error: new RegExp(r'"dev_dependencies.myapp": '
+          r'Package may not list itself as a dependency\.'));
     });
   });
 }
