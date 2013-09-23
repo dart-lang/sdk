@@ -30,8 +30,10 @@
       // TODO(jmesserly): do we still need these?
       if (obj instanceof NodeList) return 'NodeList';
       if (obj instanceof ShadowRoot) return 'ShadowRoot';
-      if (obj instanceof MutationRecord) return 'MutationRecord';
-      if (obj instanceof MutationObserver) return 'MutationObserver';
+      if (window.MutationRecord && (obj instanceof MutationRecord))
+          return 'MutationRecord';
+      if (window.MutationObserver && (obj instanceof MutationObserver))
+          return 'MutationObserver';
 
       var unwrapped = unwrapIfNeeded(obj);
       if (obj !== unwrapped) {
