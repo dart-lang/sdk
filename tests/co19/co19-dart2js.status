@@ -250,6 +250,7 @@ LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 
 [ $compiler == dart2js && $runtime == ie9 ]
+LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # Issue 13511
 LibTest/math/cos_A01_t01: Fail # co19 issue 44
 
 #
