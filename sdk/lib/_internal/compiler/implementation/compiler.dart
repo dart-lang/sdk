@@ -597,7 +597,6 @@ abstract class Compiler implements DiagnosticListener {
             this.enableNativeLiveTypeAnalysis: false,
             bool emitJavaScript: true,
             bool generateSourceMap: true,
-            bool disallowUnsafeEval: false,
             this.analyzeAllFlag: false,
             bool analyzeOnly: false,
             bool analyzeSignaturesOnly: false,
@@ -619,8 +618,7 @@ abstract class Compiler implements DiagnosticListener {
     closureMapping.ClosureNamer closureNamer;
     if (emitJavaScript) {
       js_backend.JavaScriptBackend jsBackend =
-          new js_backend.JavaScriptBackend(this, generateSourceMap,
-                                           disallowUnsafeEval);
+          new js_backend.JavaScriptBackend(this, generateSourceMap);
       closureNamer = jsBackend.namer;
       backend = jsBackend;
     } else {

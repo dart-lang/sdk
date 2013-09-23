@@ -48,7 +48,9 @@ void runCompiler(Uri main, String expectedMessage) {
 
 
   EventSink<String> outputProvider(String name, String extension) {
-    if (name != '') throw 'Attempt to output file "$name.$extension"';
+    if (name != '' && name != 'precompiled') {
+      throw 'Attempt to output file "$name.$extension"';
+    }
     return new NullSink('$name.$extension');
   }
 
@@ -74,5 +76,5 @@ void main() {
               "Error: Can't read 'memory:foo.dart' "
               "(Exception: No such file memory:foo.dart).");
   runCompiler(Uri.parse('dart:foo'),
-              'Error: Library not found "dart:foo".');
+              "Error: Library not found 'dart:foo'.");
 }

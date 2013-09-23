@@ -417,16 +417,14 @@ class JavaScriptBackend extends Backend {
   /// Number of methods compiled before considering reflection.
   int preMirrorsMethodCount = 0;
 
-  JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
+  JavaScriptBackend(Compiler compiler, bool generateSourceMap)
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
         interceptedElements = new Map<SourceString, Set<Element>>(),
         rti = new RuntimeTypes(compiler),
         specializedGetInterceptors = new Map<String, Set<ClassElement>>(),
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
-    emitter = disableEval
-        ? new CodeEmitterNoEvalTask(compiler, namer, generateSourceMap)
-        : new CodeEmitterTask(compiler, namer, generateSourceMap);
+    emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
