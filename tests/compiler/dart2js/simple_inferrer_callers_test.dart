@@ -8,7 +8,7 @@
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/inferrer/simple_types_inferrer.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/inferrer/type_graph_inferrer.dart';
 
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
@@ -30,7 +30,7 @@ main() {
 
 // Create our own type inferrer to avoid clearing out the internal
 // data structures.
-class MyInferrer extends SimpleTypesInferrer {
+class MyInferrer extends TypeGraphInferrer {
   MyInferrer(compiler) : super(compiler);
   clear() {}
 }
