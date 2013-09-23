@@ -499,8 +499,18 @@ DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object) {
 DART_EXPORT bool Dart_IdentityEquals(Dart_Handle obj1, Dart_Handle obj2) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  NoGCScope ngc;
-  return Api::UnwrapHandle(obj1) == Api::UnwrapHandle(obj2);
+  {
+    NoGCScope ngc;
+    if (Api::UnwrapHandle(obj1) == Api::UnwrapHandle(obj2)) {
+      return true;
+    }
+  }
+  const Object& object1 = Object::Handle(isolate, Api::UnwrapHandle(obj1));
+  const Object& object2 = Object::Handle(isolate, Api::UnwrapHandle(obj2));
+  if (object1.IsInstance() && object2.IsInstance()) {
+    return Instance::Cast(object1).IsIdenticalTo(Instance::Cast(object2));
+  }
+  return false;
 }
 
 

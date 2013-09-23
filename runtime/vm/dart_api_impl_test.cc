@@ -201,6 +201,11 @@ TEST_CASE(IdentityEquals) {
   // Different objects.
   EXPECT(!Dart_IdentityEquals(five, seven));
 
+  // Case where identical() is not the same as pointer equality.
+  Dart_Handle nan1 = Dart_NewDouble(NAN);
+  Dart_Handle nan2 = Dart_NewDouble(NAN);
+  EXPECT(Dart_IdentityEquals(nan1, nan2));
+
   // Non-instance objects.
   {
     Isolate* isolate = Isolate::Current();
@@ -211,6 +216,10 @@ TEST_CASE(IdentityEquals) {
     EXPECT(Dart_IdentityEquals(lib1, lib1));
     EXPECT(Dart_IdentityEquals(lib2, lib2));
     EXPECT(!Dart_IdentityEquals(lib1, lib2));
+
+    // Mix instance and non-instance.
+    EXPECT(!Dart_IdentityEquals(lib1, nan1));
+    EXPECT(!Dart_IdentityEquals(nan1, lib1));
   }
 }
 

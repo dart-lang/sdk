@@ -365,7 +365,9 @@ DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object);
 /**
  * Checks to see if two handles refer to identically equal objects.
  *
- * This is equivalent to using the triple-equals (===) operator.
+ * If both handles refer to instances, this is equivalent to using the top-level
+ * function identical() from dart:core. Otherwise, returns whether the two
+ * argument handles refer to the same object.
  *
  * \param obj1 An object to be compared.
  * \param obj2 An object to be compared.
