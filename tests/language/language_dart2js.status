@@ -70,6 +70,7 @@ mixin_mixin2_test: Fail # Issue 12605.
 mixin_mixin3_test: Fail # Issue 12605.
 mixin_mixin4_test: Fail # Issue 12605.
 mixin_mixin5_test: Fail # Issue 12605.
+invocation_mirror_test: Fail # Issue 13503
 
 [ $compiler == dart2js ]
 function_type_alias9_test/00: Crash # Issue 9792
@@ -338,10 +339,6 @@ f_bounded_quantification5_test: Fail # Issue 12605.
 many_overridden_no_such_method_test: Pass, Fail # Issue 13078
 overridden_no_such_method_test: Pass, Fail # Issue 13078
 no_such_method_test: Pass, Fail # Issue 13078
-invocation_mirror_test: Fail # Issue 13503
-
-# TODO(tball): Assign proper bug numbers.
-class_literal_test: Fail
 
 import_core_prefix_test: Pass
 prefix22_test: Pass
