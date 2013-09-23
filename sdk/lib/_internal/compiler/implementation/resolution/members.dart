@@ -2727,6 +2727,27 @@ class ResolverVisitor extends MappingVisitor<Element> {
     } else {
       visitor.variables.type = compiler.types.dynamicType;
     }
+
+    Modifiers modifiers = node.modifiers;
+    void reportExtraModifier(String modifier) {
+      Node modifierNode;
+      for (var nodes = modifiers.nodes; !nodes.isEmpty; nodes = nodes.tail) {
+        if (modifier == nodes.head.asIdentifier().source.stringValue) {
+          modifierNode = nodes.head;
+          break;
+        }
+      }
+      assert(modifierNode != null);
+      compiler.reportError(modifierNode, MessageKind.EXTRANEOUS_MODIFIER,
+          {'modifier': modifier});
+    }
+    if (modifiers.isFinal() && (modifiers.isConst() || modifiers.isVar())) {
+      reportExtraModifier('final');
+    }
+    if (modifiers.isVar() && (modifiers.isConst() || node.type != null)) {
+      reportExtraModifier('var');
+    }
+
     visitor.visit(node.definitions);
   }
 

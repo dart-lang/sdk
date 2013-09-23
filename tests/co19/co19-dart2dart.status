@@ -18,12 +18,6 @@ Language/03_Overview/1_Scoping_A01_t40: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t41: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A02_t05: Fail # Inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t06: Fail # inherited from dart2js
-Language/05_Variables/05_Variables_A01_t04: Fail # http://dartbug.com/5519
-Language/05_Variables/05_Variables_A01_t05: Fail # http://dartbug.com/5519
-Language/05_Variables/05_Variables_A01_t08: Fail # http://dartbug.com/5519
-Language/05_Variables/05_Variables_A01_t12: Fail # http://dartbug.com/5519
-Language/05_Variables/05_Variables_A01_t13: Fail # http://dartbug.com/5519
-Language/05_Variables/05_Variables_A01_t14: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A07_t07: Fail # Inherited from dart2js
 Language/05_Variables/05_Variables_A07_t08: Fail # Inherited from dart2js
 Language/05_Variables/05_Variables_A08_t01: Fail # Inherited from dart2js
