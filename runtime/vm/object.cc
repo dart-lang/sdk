@@ -163,6 +163,29 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, int, _parse)                                                  \
   V(CoreLibrary, StackTrace, _setupFullStackTrace)                             \
   V(CoreLibrary, _OneByteString, _setAt)                                       \
+  V(TypedDataLibrary, _TypedList, _getInt8)                                    \
+  V(TypedDataLibrary, _TypedList, _setInt8)                                    \
+  V(TypedDataLibrary, _TypedList, _getUint8)                                   \
+  V(TypedDataLibrary, _TypedList, _setUint8)                                   \
+  V(TypedDataLibrary, _TypedList, _getInt16)                                   \
+  V(TypedDataLibrary, _TypedList, _setInt16)                                   \
+  V(TypedDataLibrary, _TypedList, _getUint16)                                  \
+  V(TypedDataLibrary, _TypedList, _setUint16)                                  \
+  V(TypedDataLibrary, _TypedList, _getInt32)                                   \
+  V(TypedDataLibrary, _TypedList, _setInt32)                                   \
+  V(TypedDataLibrary, _TypedList, _getUint32)                                  \
+  V(TypedDataLibrary, _TypedList, _setUint32)                                  \
+  V(TypedDataLibrary, _TypedList, _getInt64)                                   \
+  V(TypedDataLibrary, _TypedList, _setInt64)                                   \
+  V(TypedDataLibrary, _TypedList, _getUint64)                                  \
+  V(TypedDataLibrary, _TypedList, _setUint64)                                  \
+  V(TypedDataLibrary, _TypedList, _getFloat32)                                 \
+  V(TypedDataLibrary, _TypedList, _setFloat32)                                 \
+  V(TypedDataLibrary, _TypedList, _getFloat64)                                 \
+  V(TypedDataLibrary, _TypedList, _setFloat64)                                 \
+  V(TypedDataLibrary, _TypedList, _getFloat32x4)                               \
+  V(TypedDataLibrary, _TypedList, _setFloat32x4)                               \
+
 
 
 static void MarkFunctionAsInvisible(const Library& lib,
