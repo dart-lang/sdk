@@ -24,6 +24,7 @@ import 'command/version.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'http.dart';
+import 'io.dart';
 import 'log.dart' as log;
 import 'package.dart';
 import 'system_cache.dart';
@@ -113,7 +114,7 @@ and include the results in a bug report on http://dartbug.com/new.
 """);
       }
 
-      exit(_chooseExitCode(error));
+      return flushThenExit(_chooseExitCode(error));
     }
 
     new Future.sync(() {
@@ -137,11 +138,11 @@ and include the results in a bug report on http://dartbug.com/new.
             '"name" field (e.g. "name: ${path.basename(path.current)}").');
       }
 
-      handleError(e);
+      return handleError(e);
     }).then((_) {
       // Explicitly exit on success to ensure that any dangling dart:io handles
       // don't cause the process to never terminate.
-      exit(0);
+      return flushThenExit(0);
     });
   }
 

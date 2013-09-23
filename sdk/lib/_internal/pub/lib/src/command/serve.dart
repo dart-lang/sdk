@@ -11,6 +11,7 @@ import '../barback.dart' as barback;
 import '../command.dart';
 import '../entrypoint.dart';
 import '../exit_codes.dart' as exit_codes;
+import '../io.dart';
 import '../log.dart' as log;
 import '../utils.dart';
 
@@ -32,7 +33,14 @@ class ServeCommand extends PubCommand {
   }
 
   Future onRun() {
-    var port = parsePort();
+    var port;
+    try {
+      port = int.parse(commandOptions['port']);
+    } on FormatException catch (_) {
+      log.error('Could not parse port "${commandOptions['port']}"');
+      this.printUsage();
+      return flushThenExit(exit_codes.USAGE);
+    }
 
     return ensureLockFileIsUpToDate()
         .then((_) => entrypoint.loadPackageGraph())
@@ -96,16 +104,5 @@ class ServeCommand extends PubCommand {
         });
       }
     });
-  }
-
-  /// Parses the `--port` command-line argument and exits if it isn't valid.
-  int parsePort() {
-    try {
-      return int.parse(commandOptions['port']);
-    } on FormatException catch(_) {
-      log.error('Could not parse port "${commandOptions['port']}"');
-      this.printUsage();
-      exit(exit_codes.USAGE);
-    }
   }
 }

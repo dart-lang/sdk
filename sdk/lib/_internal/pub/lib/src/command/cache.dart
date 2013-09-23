@@ -10,6 +10,7 @@ import 'dart:io';
 
 import '../command.dart';
 import '../exit_codes.dart' as exit_codes;
+import '../io.dart';
 import '../log.dart' as log;
 
 /// Handles the `cache` pub command.
@@ -23,13 +24,13 @@ class CacheCommand extends PubCommand {
     if (commandOptions.rest.length != 1) {
       log.error('The cache command expects one argument.');
       this.printUsage();
-      exit(exit_codes.USAGE);
+      return flushThenExit(exit_codes.USAGE);
     }
 
     if ((commandOptions.rest[0] != 'list')) {
       log.error('Unknown cache command "${commandOptions.rest[0]}".');
       this.printUsage();
-      exit(exit_codes.USAGE);
+      return flushThenExit(exit_codes.USAGE);
     }
 
     // TODO(keertip): Add flag to list packages from non default sources

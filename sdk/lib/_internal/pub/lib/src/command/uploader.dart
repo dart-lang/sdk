@@ -13,6 +13,7 @@ import '../command.dart';
 import '../entrypoint.dart';
 import '../exit_codes.dart' as exit_codes;
 import '../http.dart';
+import '../io.dart';
 import '../log.dart' as log;
 import '../oauth2.dart' as oauth2;
 import '../source/hosted.dart';
@@ -38,7 +39,7 @@ class UploaderCommand extends PubCommand {
     if (commandOptions.rest.isEmpty) {
       log.error('No uploader command given.');
       this.printUsage();
-      exit(exit_codes.USAGE);
+      return flushThenExit(exit_codes.USAGE);
     }
 
     var rest = commandOptions.rest.toList();
@@ -47,11 +48,11 @@ class UploaderCommand extends PubCommand {
     if (!['add', 'remove'].contains(command)) {
       log.error('Unknown uploader command "$command".');
       this.printUsage();
-      exit(exit_codes.USAGE);
+      return flushThenExit(exit_codes.USAGE);
     } else if (rest.isEmpty) {
       log.error('No uploader given for "pub uploader $command".');
       this.printUsage();
-      exit(exit_codes.USAGE);
+      return flushThenExit(exit_codes.USAGE);
     }
 
     return new Future.sync(() {

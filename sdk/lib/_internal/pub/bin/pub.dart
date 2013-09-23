@@ -26,7 +26,8 @@ void main() {
   } on FormatException catch (e) {
     log.error(e.message);
     log.error('Run "pub help" to see available options.');
-    exit(exit_codes.USAGE);
+    flushThenExit(exit_codes.USAGE);
+    return;
   }
 
   if (options['version']) {
@@ -46,7 +47,8 @@ void main() {
     } else {
       log.error('Could not find a command named "${options.rest[0]}".');
       log.error('Run "pub help" to see available commands.');
-      exit(exit_codes.USAGE);
+      flushThenExit(exit_codes.USAGE);
+      return;
     }
     return;
   }
@@ -126,7 +128,7 @@ Future validatePlatform() {
     return runProcess('ver', []).then((result) {
       if (result.stdout.join('\n').contains('XP')) {
         log.error('Sorry, but pub is not supported on Windows XP.');
-        exit(exit_codes.USAGE);
+        return flushThenExit(exit_codes.USAGE);
       }
     });
   });

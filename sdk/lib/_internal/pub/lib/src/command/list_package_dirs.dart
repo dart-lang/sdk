@@ -12,6 +12,7 @@ import 'package:path/path.dart' as path;
 
 import '../command.dart';
 import '../exit_codes.dart' as exit_codes;
+import '../io.dart';
 import '../log.dart' as log;
 
 /// Handles the `list-package-dirs` pub command.
@@ -30,7 +31,7 @@ class ListPackageDirsCommand extends PubCommand {
     if (!entrypoint.lockFileExists) {
       log.error(JSON.encode(
           'Package "myapp" has no lockfile. Please run "pub install" first.'));
-      exit(exit_codes.NO_INPUT);
+      return flushThenExit(exit_codes.NO_INPUT);
     }
 
     var output = {};

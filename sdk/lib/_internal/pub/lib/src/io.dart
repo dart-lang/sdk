@@ -422,6 +422,15 @@ Future drainStream(Stream stream) {
   return stream.fold(null, (x, y) {});
 }
 
+/// Flushes the stdout and stderr streams, then exits the program with the given
+/// status code.
+///
+/// This returns a Future that will never complete, since the program will have
+/// exited already. This is useful to prevent Future chains from proceeding
+/// after you've decided to exit.
+Future flushThenExit(int status) =>
+  Future.wait([stdout.close(), stderr.close()]).then((_) => exit(status));
+
 /// Returns a [EventSink] that pipes all data to [consumer] and a [Future] that
 /// will succeed when [EventSink] is closed or fail with any errors that occur
 /// while writing.
