@@ -162,6 +162,11 @@ mirrors/library_metadata2_test/01: Fail # http://dartbug.com/12950
 mirrors/typedef_test/none: Fail # Issue 13093
 mirrors/generics_test/none: Fail # Issue 13432
 
+mirrors/parameter_metadata_test: Fail # Issue 13510
+mirrors/method_mirror_returntype_test: Fail # Issue 13510
+mirrors/function_type_mirror_test: Fail # Issue 13510
+mirrors/typevariable_mirror_metadata_test: Fail # Issue 13510
+
 [ $compiler == dart2analyzer ]
 mirrors/library_metadata2_test/01: Fail # http://dartbug.com/12950
 
