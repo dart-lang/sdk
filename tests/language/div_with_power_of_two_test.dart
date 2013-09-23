@@ -98,9 +98,8 @@ main() {
         Expect.equals(res, f(arg));
       }
     }
-    try {
-      divBy0(4);
-      Expect.fail("Should have thrown exception.");
-    } on IntegerDivisionByZeroException catch (e) {}
+    Expect.throws(() => divBy0(4),
+                  (e) => e is IntegerDivisionByZeroException
+                         || e is UnsupportedError);
   }
 }
