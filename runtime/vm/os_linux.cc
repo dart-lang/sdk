@@ -132,9 +132,10 @@ class PerfCodeObserver : public CodeObserver {
     const char* format = "/tmp/perf-%"Pd".map";
     intptr_t pid = getpid();
     intptr_t len = OS::SNPrint(NULL, 0, format, pid);
-    char* filename = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+    char* filename = new char[len + 1];
     OS::SNPrint(filename, len + 1, format, pid);
     out_file_ = (*file_open)(filename, true);
+    delete[] filename;
   }
 
   ~PerfCodeObserver() {
