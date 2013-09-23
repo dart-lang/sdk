@@ -75,7 +75,6 @@ mixin_mixin5_test: Fail # Issue 12605.
 function_type_alias9_test/00: Crash # Issue 9792
 branch_canonicalization_test: Fail # Issue 638.
 identical_closure2_test: Fail # Issue 1533, Issue 12596
-invocation_mirror_test: Fail # Issue 12705
 integer_division_by_zero_test: Fail # Issue 8301
 built_in_identifier_prefix_test: Fail # Issue 6972
 number_identity2_test: Fail # Issue 12596
