@@ -483,6 +483,7 @@ class CompileTimeConstantEvaluator extends Visitor {
   }
 
   Constant visitLiteralSymbol(LiteralSymbol node) {
+    handler.registerStringInstance(elements);
     InterfaceType type = compiler.symbolClass.computeType(compiler);
     List<Constant> createArguments(_) {
       return [constantSystem.createString(

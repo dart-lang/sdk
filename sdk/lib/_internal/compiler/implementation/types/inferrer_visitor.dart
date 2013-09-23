@@ -691,7 +691,10 @@ abstract class InferrerVisitor
   }
 
   T visitLiteralSymbol(LiteralSymbol node) {
-    return types.nonNullExact(compiler.symbolClass.rawType);
+    // TODO(kasperl): We should be able to tell that the type of a literal
+    // symbol is always a non-null exact symbol implementation -- not just
+    // any non-null subtype of the symbol interface.
+    return types.nonNullSubtype(compiler.symbolClass.rawType);
   }
 
   T visitTypeReferenceSend(Send node) {
