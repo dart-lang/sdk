@@ -6419,11 +6419,17 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
       const Integer& left_int = Integer::Cast(left);
       const Integer& right_int = Integer::Cast(right);
       switch (op_kind) {
+        case Token::kTRUNCDIV:
+        case Token::kMOD:
+          // Check right value for zero.
+          if (right_int.AsInt64Value() == 0) {
+            SetValue(instr, non_constant_);
+            break;
+          }
+          // Fall through.
         case Token::kADD:
         case Token::kSUB:
-        case Token::kMUL:
-        case Token::kTRUNCDIV:
-        case Token::kMOD: {
+        case Token::kMUL: {
           Instance& result = Integer::ZoneHandle(
               left_int.ArithmeticOp(op_kind, right_int));
           result = result.CheckAndCanonicalize(NULL);
