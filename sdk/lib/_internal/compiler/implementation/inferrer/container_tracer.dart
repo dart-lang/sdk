@@ -11,7 +11,7 @@ import '../universe/universe.dart';
 import '../util/util.dart' show Link;
 import 'simple_types_inferrer.dart'
     show InferrerEngine, InferrerVisitor, LocalsHandler, TypeMaskSystem;
-import 'types.dart';
+import '../types/types.dart';
 import 'inferrer_visitor.dart';
 
 /**

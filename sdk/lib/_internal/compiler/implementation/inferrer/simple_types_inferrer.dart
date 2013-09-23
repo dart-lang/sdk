@@ -13,7 +13,7 @@ import '../elements/elements.dart';
 import '../native_handler.dart' as native;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link, Spannable;
-import 'types.dart'
+import '../types/types.dart'
     show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
          ElementTypeMask, TypeSystem, MinimalInferrerEngine;
 import 'inferrer_visitor.dart';

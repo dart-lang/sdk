@@ -8,7 +8,7 @@ import 'dart:collection' show Queue, LinkedHashSet, IterableBase, HashMap;
 import '../dart_types.dart' show DartType, InterfaceType, TypeKind;
 import '../elements/elements.dart';
 import '../tree/tree.dart' show Node;
-import 'types.dart' show TypeMask, ContainerTypeMask, TypesInferrer;
+import '../types/types.dart' show TypeMask, ContainerTypeMask, TypesInferrer;
 import '../universe/universe.dart' show Selector, TypedSelector, SideEffects;
 import '../dart2jslib.dart' show Compiler, SourceString, TreeElementMapping;
 import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes, CallSite;
