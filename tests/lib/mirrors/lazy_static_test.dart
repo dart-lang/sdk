@@ -19,15 +19,15 @@ class Foo {
 
 void main() {
   expect('Variable(s(hello) in s(Foo), static)',
-         reflectClass(Foo).members[new Symbol('hello')]);
-  var reflectee = reflectClass(Foo).getField(new Symbol('hello')).reflectee;
+         reflectClass(Foo).members[#hello]);
+  var reflectee = reflectClass(Foo).getField(#hello).reflectee;
   Expect.stringEquals('a, c', reflectee.keys.join(', '));
   // Call the lazy getter twice as different things probably happen in the
   // underlying implementation.
-  reflectee = reflectClass(Foo).getField(new Symbol('hello')).reflectee;
+  reflectee = reflectClass(Foo).getField(#hello).reflectee;
   Expect.stringEquals('a, c', reflectee.keys.join(', '));
   var value = 'fisk';
   Foo.hello = value;
-  reflectee = reflectClass(Foo).getField(new Symbol('hello')).reflectee;
+  reflectee = reflectClass(Foo).getField(#hello).reflectee;
   Expect.identical(value, reflectee);
 }

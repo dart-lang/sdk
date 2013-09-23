@@ -99,14 +99,14 @@ main() {
 
     {'currentMirrorSystem().voidType' : currentMirrorSystem().voidType,   /// 02: ok
      'thisLibrary.functions[#subroutine].returnType' :                    /// 02: ok
-          thisLibrary.functions[const Symbol('subroutine')].returnType},  /// 02: ok
+          thisLibrary.functions[#subroutine].returnType},  /// 02: ok
 
     {'currentMirrorSystem().dynamicType' : currentMirrorSystem().dynamicType,
      'thisLibrary.functions[#main].returnType' :
-          thisLibrary.functions[const Symbol('main')].returnType},
+          thisLibrary.functions[#main].returnType},
 
     {'reflectClass(A)' : reflectClass(A),
-     'thisLibrary.classes[#A]' : thisLibrary.classes[const Symbol('A')],
+     'thisLibrary.classes[#A]' : thisLibrary.classes[#A],
      'reflect(new A<int>()).type.originalDeclaration' :
           reflect(new A<int>()).type.originalDeclaration},
 
@@ -114,7 +114,7 @@ main() {
      'reflect(new A<int>()).type' : reflect(new A<int>()).type}, /// 02: ok
 
     {'reflectClass(B)' : reflectClass(B),
-     'thisLibrary.classes[#B]' : thisLibrary.classes[const Symbol('B')],
+     'thisLibrary.classes[#B]' : thisLibrary.classes[#B],
      'reflect(new B()).type' : reflect(new B()).type},
 
     {'thisLibrary' : thisLibrary,

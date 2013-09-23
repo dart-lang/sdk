@@ -53,18 +53,18 @@ main() {
   MirrorSystem mirrors = currentMirrorSystem();
   ClassMirror myClassMirror = reflectClass(MyClass);
   checkMetadata(myClassMirror, [symbol, string]);
-  LibraryMirror lib = mirrors.findLibrary(const Symbol('test.metadata_test')).first;
-  MethodMirror function = lib.functions[const Symbol('main')];
+  LibraryMirror lib = mirrors.findLibrary(#test.metadata_test).first;
+  MethodMirror function = lib.functions[#main];
   checkMetadata(function, [symbol, string, symbol]);
-  MethodMirror method = myClassMirror.methods[const Symbol('myMethod')];
+  MethodMirror method = myClassMirror.methods[#myMethod];
   checkMetadata(method, [string, symbol, string]);
-  method = myClassMirror.methods[const Symbol('myOtherMethod')];
+  method = myClassMirror.methods[#myOtherMethod];
   checkMetadata(method, []);
 
-  VariableMirror xMirror = myClassMirror.variables[const Symbol('x')];
+  VariableMirror xMirror = myClassMirror.variables[#x];
   checkMetadata(xMirror, [hest, hest, symbol]);
 
-  VariableMirror yMirror = myClassMirror.variables[const Symbol('y')];
+  VariableMirror yMirror = myClassMirror.variables[#y];
   checkMetadata(yMirror, []);
 
   // TODO(ahe): Test local functions.

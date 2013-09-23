@@ -19,10 +19,10 @@ set accessor(value) {
 
 main() {
   LibraryMirror library = currentMirrorSystem()
-      .findLibrary(const Symbol('test.top_level_accessors_test')).single;
+      .findLibrary(#test.top_level_accessors_test).single;
   field = 42;
-  Expect.equals(42, library.getField(const Symbol('accessor')).reflectee);
-  Expect.equals(87, library.setField(const Symbol('accessor'), 87).reflectee);
+  Expect.equals(42, library.getField(#accessor).reflectee);
+  Expect.equals(87, library.setField(#accessor, 87).reflectee);
   Expect.equals(87, field);
-  Expect.equals(87, library.getField(const Symbol('accessor')).reflectee);
+  Expect.equals(87, library.getField(#accessor).reflectee);
 }

@@ -19,7 +19,7 @@ class Bar extends Foo {
 
 void main() {
   expect('Variable(s(field) in s(Foo))',
-         reflectClass(Foo).members[new Symbol('field')]);
+         reflectClass(Foo).members[#field]);
   expect('<null>',
-         reflectClass(Bar).members[new Symbol('field')]);
+         reflectClass(Bar).members[#field]);
 }

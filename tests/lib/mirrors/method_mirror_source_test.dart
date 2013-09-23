@@ -55,35 +55,35 @@ class C extends S {
 main() {
   // Top-level members
   LibraryMirror lib = reflectClass(C).owner;
-  expectSource(lib.members[const Symbol("foo1")],
+  expectSource(lib.members[#foo1],
       "foo1() {}");
-  expectSource(lib.members[const Symbol("x")],
+  expectSource(lib.members[#x],
       "int get x => 42;");
   expectSource(lib.members[const Symbol("x=")],
       "set x(value) { }");
 
   // Class members
   ClassMirror cm = reflectClass(C);
-  expectSource(cm.members[const Symbol("foo")],
+  expectSource(cm.members[#foo],
       "static dynamic foo() {\n"
       "    // Happy foo.\n"
       "  }");
-  expectSource(cm.members[const Symbol("bar")],
+  expectSource(cm.members[#bar],
       "void bar() { /* Not so happy bar. */ }");
-  expectSource(cm.members[const Symbol("someX")],
+  expectSource(cm.members[#someX],
       "num get someX =>\n"
       "    181;");
   expectSource(cm.members[const Symbol("someX=")],
       "set someX(v) {\n"
       "    // Discard this one.\n"
       "  }");
-  expectSource(cm.constructors[const Symbol("C")],
+  expectSource(cm.constructors[#C],
       "C(this._x, y)\n"
       "    : _y = y,\n"
       "      super();");
-  expectSource(cm.constructors[const Symbol("C.other")],
+  expectSource(cm.constructors[#C.other],
       "factory C.other(num z) {}");
-  expectSource(cm.constructors[const Symbol("C.other3")],
+  expectSource(cm.constructors[#C.other3],
       "factory C.other3() = C.other2;");
 
   // Closures

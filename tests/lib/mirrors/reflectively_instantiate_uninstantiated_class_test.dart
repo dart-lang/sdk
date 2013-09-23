@@ -18,7 +18,7 @@ main() {
   print(instance);
   bool threw = false;
   try {
-    m.newInstance(const Symbol('noSuchConstructor'), []);
+    m.newInstance(#noSuchConstructor, []);
     throw 'Expected an exception';
   } on NoSuchMethodError catch (e) {
     print(e);
