@@ -13,6 +13,7 @@ library_juxtaposition_test: Fail # Issue 6877
 switch_int_double_test/01: Fail # Issue 7307
 switch_int_double_test/02: Fail # Issue 7307
 throwing_lazy_variable_test: Fail # Issue 5802
+div_with_power_of_two2_test: Crash # Issue 13498
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
