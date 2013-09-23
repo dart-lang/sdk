@@ -1267,13 +1267,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       }
 
-      // Don't inline if the return type was inferred to be non-null empty. This
-      // means that the function always throws an exception.
-      TypeMask returnType =
-          compiler.typesTask.getGuaranteedReturnTypeOfElement(element);
-      if (returnType != null && returnType.isEmpty && !returnType.isNullable) {
-        isReachable = false;
-        return false;
+      // A generative constructor body is not seen by global analysis,
+      // so we should not query for its type.
+      if (!element.isGenerativeConstructorBody()) {
+        // Don't inline if the return type was inferred to be non-null empty.
+        // This means that the function always throws an exception.
+        TypeMask returnType =
+            compiler.typesTask.getGuaranteedReturnTypeOfElement(element);
+        if (returnType != null
+            && returnType.isEmpty
+            && !returnType.isNullable) {
+          isReachable = false;
+          return false;
+        }
       }
 
       return true;

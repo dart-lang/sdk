@@ -23,9 +23,9 @@ class A {
   returnNum3() => --this[index];
   returnNum4() => this[index] -= 42;
 
-  returnDynamic3() => this.bar--;
-  returnNum5() => --this.bar;
-  returnNum6() => this.bar -= 42;
+  returnEmpty3() => this.bar--;
+  returnEmpty1() => --this.bar;
+  returnEmpty2() => this.bar -= 42;
 }
 
 class B extends A {
@@ -72,7 +72,8 @@ void main() {
       var cls = findElement(compiler, className);
       var element = cls.lookupLocalMember(buildSourceString(methodName));
       Expect.equals(type,
-          typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
+          typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
+          methodName);
     }
 
     var subclassOfInterceptor =
@@ -82,11 +83,11 @@ void main() {
     checkReturnInClass('A', 'returnNum2', typesTask.numType);
     checkReturnInClass('A', 'returnNum3', typesTask.numType);
     checkReturnInClass('A', 'returnNum4', typesTask.numType);
-    checkReturnInClass('A', 'returnNum5', typesTask.numType);
-    checkReturnInClass('A', 'returnNum6', typesTask.numType);
+    checkReturnInClass('A', 'returnEmpty1', const TypeMask.nonNullEmpty());
+    checkReturnInClass('A', 'returnEmpty2', const TypeMask.nonNullEmpty());
     checkReturnInClass('A', 'returnDynamic1', subclassOfInterceptor);
     checkReturnInClass('A', 'returnDynamic2', subclassOfInterceptor);
-    checkReturnInClass('A', 'returnDynamic3', typesTask.dynamicType);
+    checkReturnInClass('A', 'returnEmpty3', const TypeMask.nonNullEmpty());
 
     checkReturnInClass('B', 'returnString1', typesTask.stringType);
     checkReturnInClass('B', 'returnString2', typesTask.stringType);

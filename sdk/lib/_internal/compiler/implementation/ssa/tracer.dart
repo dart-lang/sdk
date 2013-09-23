@@ -179,7 +179,11 @@ class HInstructionStringifier implements HVisitor<String> {
   String temporaryId(HInstruction instruction) {
     String prefix;
     HType type = instruction.instructionType;
-    if (type.isExtendableArray(compiler)) {
+    if (type == HType.NULL) {
+      prefix = 'u';
+    } else if (type == HType.CONFLICTING) {
+      prefix = 'c';
+    } else if (type.isExtendableArray(compiler)) {
       prefix = 'e';
     } else if (type.isFixedArray(compiler)) {
       prefix = 'f';
@@ -201,10 +205,6 @@ class HInstructionStringifier implements HVisitor<String> {
       prefix = 'n';
     } else if (type == HType.UNKNOWN) {
       prefix = 'v';
-    } else if (type == HType.CONFLICTING) {
-      prefix = 'c';
-    } else if (type == HType.NULL) {
-      prefix = 'u';
     } else {
       prefix = 'U';
     }
@@ -366,9 +366,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitInvokeSuper(HInvokeSuper invoke) {
     String target = invoke.element.name.slowToString();
-    int offset = HInvoke.ARGUMENTS_OFFSET + 1;
-    List arguments = invoke.inputs.sublist(offset);
-    return visitGenericInvoke("Invoke super", target, arguments);
+    return visitGenericInvoke("Invoke super", target, invoke.inputs);
   }
 
   String visitInvokeConstructorBody(HInvokeConstructorBody invoke) {
