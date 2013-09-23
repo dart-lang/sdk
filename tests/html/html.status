@@ -405,7 +405,3 @@ safe_dom_test: Skip                # Test cannot run under CSP restrictions (tim
 
 [ $compiler == dart2js && $runtime == drt ]
 wheelevent_test: Fail # http://dartbug.com/12958
-
-[ $compiler == dart2js && $runtime == drt && $nocsp ]
-xhr_cross_origin_test: Timeout # Issue 13497
-
