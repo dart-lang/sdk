@@ -304,8 +304,8 @@ class CodeEmitterTask extends CompilerTask {
     String valueParamName = compiler.enableMinification ? "v" : "value";
     String reflectableField = namer.reflectableField;
 
-    // function generateAccessor(field, prototype) {
-    jsAst.Fun fun = js.fun(['field', 'prototype'], [
+    // function generateAccessor(field, prototype, cls) {
+    jsAst.Fun fun = js.fun(['field', 'accessors', 'cls'], [
       js('var len = field.length'),
       js('var code = field.charCodeAt(len - 1)'),
       js('var reflectable = false'),
@@ -340,11 +340,13 @@ class CodeEmitterTask extends CompilerTask {
           js('var args = (getterCode & 2) ? "$receiverParamName" : ""'),
           js('var receiver = (getterCode & 1) ? "this" : "$receiverParamName"'),
           js('var body = "return " + receiver + "." + field'),
-          js('prototype["${namer.getterPrefix}" + accessorName] = '
-                 'new Function(args, body)'),
-          js.if_('reflectable', [
-                 js('prototype["${namer.getterPrefix}" + accessorName].'
-                    '$reflectableField = 1')])
+          js('var property ='
+             ' cls + ".prototype.${namer.getterPrefix}" + accessorName + "="'),
+          js('var fn = "function(" + args + "){" + body + "}"'),
+          js.if_(
+              'reflectable',
+              js('accessors.push(property + "\$reflectable(" + fn + ");\\n")'),
+              js('accessors.push(property + fn + ";\\n")')),
         ]),
 
         // if (needsSetter) {
@@ -354,11 +356,13 @@ class CodeEmitterTask extends CompilerTask {
               '  : "$valueParamName"'),
           js('var receiver = (setterCode & 1) ? "this" : "$receiverParamName"'),
           js('var body = receiver + "." + field + "$_=$_$valueParamName"'),
-          js('prototype["${namer.setterPrefix}" + accessorName] = '
-                 'new Function(args, body)'),
-          js.if_('reflectable', [
-                 js('prototype["${namer.setterPrefix}" + accessorName].'
-                    '$reflectableField = 1')])
+          js('var property ='
+             ' cls + ".prototype.${namer.setterPrefix}" + accessorName + "="'),
+          js('var fn = "function(" + args + "){" + body + "}"'),
+          js.if_(
+              'reflectable',
+              js('accessors.push(property + "\$reflectable(" + fn + ");\\n")'),
+              js('accessors.push(property + fn + ";\\n")')),
         ]),
 
       ]),
@@ -387,33 +391,31 @@ class CodeEmitterTask extends CompilerTask {
     //  },
     // });
 
-    var defineClass = js.fun(['name', 'cls', 'fields', 'prototype'], [
-      js('var constructor'),
+    var defineClass = js.fun(['name', 'cls', 'fields'], [
+      js('var accessors = []'),
 
-      js.if_(js('typeof fields == "function"'), [
-        js('constructor = fields')
-      ], /* else */ [
-        js('var str = "function " + cls + "("'),
-        js('var body = ""'),
+      js('var str = "function " + cls + "("'),
+      js('var body = ""'),
 
-        js.for_('var i = 0', 'i < fields.length', 'i++', [
-          js.if_('i != 0', js('str += ", "')),
+      js.for_('var i = 0', 'i < fields.length', 'i++', [
+        js.if_('i != 0', js('str += ", "')),
 
-          js('var field = generateAccessor(fields[i], prototype)'),
-          js('var parameter = "parameter_" + field'),
-          js('str += parameter'),
-          js('body += ("this." + field + " = " + parameter + ";\\n")')
-        ]),
-
-        js('str += (") {" + body + "}\\nreturn " + cls)'),
-
-        js('constructor = new Function(str)()')
+        js('var field = generateAccessor(fields[i], accessors, cls)'),
+        js('var parameter = "parameter_" + field'),
+        js('str += parameter'),
+        js('body += ("this." + field + " = " + parameter + ";\\n")')
       ]),
+      js('str += ") {\\n" + body + "}\\n"'),
+      js('str += cls + ".builtin\$cls=\\"" + name + "\\";\\n"'),
+      js('str += "\$desc=\$collectedClasses." + cls + ";\\n"'),
+      js('str += "if(\$desc instanceof Array) \$desc = \$desc[1];\\n"'),
+      js('str += cls + ".prototype = \$desc;\\n"'),
+      js.if_(
+          'typeof defineClass.name != "string"',
+          [js('str += cls + ".name=\\"" + cls + "\\";\\n"')]),
+      js('str += accessors.join("")'),
 
-      js('constructor.prototype = prototype'),
-      js(r'constructor.builtin$cls = name'),
-
-      js.return_('constructor')
+      js.return_('str')
     ]);
     // Declare a function called "generateAccessor".  This is used in
     // defineClassFunction (it's a local declaration in init()).
@@ -438,14 +440,13 @@ class CodeEmitterTask extends CompilerTask {
 
     return [
       js('var $supportsProtoName = false'),
-      js('var tmp = defineClass("c", "c", ["f<"], {}).prototype'),
-
-      js.if_(js('tmp.__proto__'), [
-        js('tmp.__proto__ = {}'),
-        js.if_(js(r'typeof tmp.get$f != "undefined"'),
-               js('$supportsProtoName = true'))
-
-      ])
+      // js('var tmp = defineClass("c", "c", ["f<"], {}).prototype'),
+      //
+      // js.if_(js('tmp.__proto__'), [
+      //   js('tmp.__proto__ = {}'),
+      //   js.if_(js(r'typeof tmp.get$f != "undefined"'),
+      //          js('$supportsProtoName = true'))
+      // ])
     ];
   }
 
@@ -695,12 +696,17 @@ class CodeEmitterTask extends CompilerTask {
     // the object literal directly. For other engines we have to create a new
     // object and copy over the members.
 
+    String reflectableField = namer.reflectableField;
     List<jsAst.Node> statements = [
       js('var pendingClasses = {}'),
       js.if_('!init.allClasses', js('init.allClasses = {}')),
       js('var allClasses = init.allClasses'),
 
       js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
+      js('var combinedConstructorFunction = '
+         '"function \$reflectable(fn){fn.$reflectableField=1;return fn};\\n"'
+         '+ "var \$desc;\\n"'),
+      js('var constructorsList = []'),
 
       optional(
           DEBUG_FAST_OBJECTS,
@@ -710,11 +716,7 @@ class CodeEmitterTask extends CompilerTask {
       js.forIn('cls', 'collectedClasses', [
         js.if_('hasOwnProperty.call(collectedClasses, cls)', [
           js('var desc = collectedClasses[cls]'),
-          js('var globalObject = isolateProperties'),
-          js.if_('desc instanceof Array', [
-              js('globalObject = desc[0] || isolateProperties'),
-              js('desc = desc[1]')
-          ]),
+          js.if_('desc instanceof Array', js('desc = desc[1]')),
 
           /* The 'fields' are either a constructor function or a
            * string encoding fields, constructor and superclass.  Get
@@ -761,14 +763,32 @@ class CodeEmitterTask extends CompilerTask {
             ]),
           ])),
 
-          js('var constructor = defineClass(name, cls, fields, desc)'),
-          optional(backend.isTreeShakingDisabled,
-                   js('constructor["${namer.metadataField}"] = desc')),
-          js('allClasses[cls] = constructor'),
-          js('globalObject[cls] = constructor'),
+          js('combinedConstructorFunction += defineClass(name, cls, fields)'),
+          js('constructorsList.push(cls)'),
           js.if_('supr', js('pendingClasses[cls] = supr'))
         ])
       ]),
+      js('combinedConstructorFunction +='
+         ' "return [\\n  " + constructorsList.join(",\\n  ") + "\\n]"'),
+      js('var constructors ='
+         ' new Function("\$collectedClasses", combinedConstructorFunction)'
+         '(collectedClasses)'),
+      js('combinedConstructorFunction = null'),
+      js.for_('var i = 0', 'i < constructors.length', 'i++', [
+        js('var constructor = constructors[i]'),
+        js('var cls = constructor.name'),
+        js('var desc = collectedClasses[cls]'),
+        js('var globalObject = isolateProperties'),
+        js.if_('desc instanceof Array', [
+            js('globalObject = desc[0] || isolateProperties'),
+            js('desc = desc[1]')
+        ]),
+        optional(backend.isTreeShakingDisabled,
+                 js('constructor["${namer.metadataField}"] = desc')),
+        js('allClasses[cls] = constructor'),
+        js('globalObject[cls] = constructor'),
+      ]),
+      js('constructors = null'),
 
       js('var finishedClasses = {}'),
 
