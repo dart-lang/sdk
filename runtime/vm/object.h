@@ -2261,6 +2261,10 @@ class Script : public Object {
   void GetTokenLocation(intptr_t token_pos,
                         intptr_t* line, intptr_t* column) const;
 
+  // Returns index of first and last token on the given line. Returns both
+  // indices < 0 if no token exists on or after the line. If a token exists
+  // after, but not on given line, returns in *first_token_index the index of
+  // the first token after the line, and a negative value in *last_token_index.
   void TokenRangeAtLine(intptr_t line_number,
                         intptr_t* first_token_index,
                         intptr_t* last_token_index) const;

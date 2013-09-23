@@ -6387,17 +6387,31 @@ void Script::SetLocationOffset(intptr_t line_offset,
 void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* line,
                               intptr_t* column) const {
-  const String& src = String::Handle(Source());
+  ASSERT(line != NULL);
   const TokenStream& tkns = TokenStream::Handle(tokens());
-  intptr_t src_pos = tkns.ComputeSourcePosition(token_pos);
-  Scanner scanner(src, Symbols::Empty());
-  scanner.ScanTo(src_pos);
-  intptr_t relative_line = scanner.CurrentPosition().line;
-  *line = relative_line + line_offset();
-  *column = scanner.CurrentPosition().column;
-  // On the first line of the script we must add the column offset.
-  if (relative_line == 1) {
-    *column += col_offset();
+  if (column == NULL) {
+    TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
+    intptr_t cur_line = line_offset() + 1;
+    while (tkit.CurrentPosition() < token_pos &&
+           tkit.CurrentTokenKind() != Token::kEOS) {
+      if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
+        cur_line++;
+      }
+      tkit.Advance();
+    }
+    *line = cur_line;
+  } else {
+    const String& src = String::Handle(Source());
+    intptr_t src_pos = tkns.ComputeSourcePosition(token_pos);
+    Scanner scanner(src, Symbols::Empty());
+    scanner.ScanTo(src_pos);
+    intptr_t relative_line = scanner.CurrentPosition().line;
+    *line = relative_line + line_offset();
+    *column = scanner.CurrentPosition().column;
+    // On the first line of the script we must add the column offset.
+    if (relative_line == 1) {
+      *column += col_offset();
+    }
   }
 }
 
@@ -6405,18 +6419,48 @@ void Script::GetTokenLocation(intptr_t token_pos,
 void Script::TokenRangeAtLine(intptr_t line_number,
                               intptr_t* first_token_index,
                               intptr_t* last_token_index) const {
-  const String& src = String::Handle(Source());
+  ASSERT(first_token_index != NULL && last_token_index != NULL);
+  ASSERT(line_number > 0);
+  *first_token_index = -1;
+  *last_token_index = -1;
   const TokenStream& tkns = TokenStream::Handle(tokens());
   line_number -= line_offset();
   if (line_number < 1) line_number = 1;
-  Scanner scanner(src, Symbols::Empty());
-  scanner.TokenRangeAtLine(line_number, first_token_index, last_token_index);
-  if (*first_token_index >= 0) {
-    *first_token_index = tkns.ComputeTokenPosition(*first_token_index);
+  TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
+  // Scan through the token stream to the required line.
+  intptr_t cur_line = 1;
+  while (cur_line < line_number && tkit.CurrentTokenKind() != Token::kEOS) {
+    if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
+      cur_line++;
+    }
+    tkit.Advance();
   }
-  if (*last_token_index >= 0) {
-    *last_token_index = tkns.ComputeTokenPosition(*last_token_index);
+  if (tkit.CurrentTokenKind() == Token::kEOS) {
+    // End of token stream before reaching required line.
+    return;
   }
+  if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
+    // No tokens on the current line. If there is a valid token afterwards, put
+    // it into first_token_index.
+    while (tkit.CurrentTokenKind() == Token::kNEWLINE &&
+           tkit.CurrentTokenKind() != Token::kEOS) {
+      tkit.Advance();
+    }
+    if (tkit.CurrentTokenKind() != Token::kEOS) {
+      *first_token_index = tkit.CurrentPosition();
+    }
+    return;
+  }
+  *first_token_index = tkit.CurrentPosition();
+  // We cannot do "CurrentPosition() - 1" for the last token, because we do not
+  // know whether the previous token is a simple one or not.
+  intptr_t end_pos = *first_token_index;
+  while (tkit.CurrentTokenKind() != Token::kNEWLINE &&
+         tkit.CurrentTokenKind() != Token::kEOS) {
+    end_pos = tkit.CurrentPosition();
+    tkit.Advance();
+  }
+  *last_token_index = end_pos;
 }
 
 

@@ -2064,24 +2064,50 @@ TEST_CASE(EmbeddedScript) {
   str = script.GetLine(last_dart_line);
   EXPECT_STREQ("  }", str.ToCString());
 
-
   script.Tokenize(String::Handle(String::New("ABC")));
+  // Tokens: 0: kIDENT, 1: kLPAREN, 2: kRPAREN, 3: kLBRACE, 4: kNEWLINE,
+  //         5: kRETURN, 6: kSTRING, 7: kSEMICOLON, 8: kNEWLINE,
+  //         9: kRBRACE, 10: kNEWLINE
+
   intptr_t line, col;
+  intptr_t fast_line;
   script.GetTokenLocation(0, &line, &col);
   EXPECT_EQ(first_dart_line, line);
   EXPECT_EQ(col, col_offset + 1);
 
-  script.GetTokenLocation(4, &line, &col);  // Token 'return'
+  // We allow asking for only the line number, which only scans the token stream
+  // instead of rescanning the script.
+  script.GetTokenLocation(0, &fast_line, NULL);
+  EXPECT_EQ(line, fast_line);
+
+  script.GetTokenLocation(5, &line, &col);  // Token 'return'
   EXPECT_EQ(4, line);  // 'return' is in line 4.
   EXPECT_EQ(5, col);   // Four spaces before 'return'.
+
+  // We allow asking for only the line number, which only scans the token stream
+  // instead of rescanning the script.
+  script.GetTokenLocation(5, &fast_line, NULL);
+  EXPECT_EQ(line, fast_line);
 
   intptr_t first_idx, last_idx;
   script.TokenRangeAtLine(3, &first_idx, &last_idx);
   EXPECT_EQ(0, first_idx);  // Token 'main' is first token.
   EXPECT_EQ(3, last_idx);   // Token { is last token.
+  script.TokenRangeAtLine(4, &first_idx, &last_idx);
+  EXPECT_EQ(5, first_idx);  // Token 'return' is first token.
+  EXPECT_EQ(7, last_idx);   // Token ; is last token.
   script.TokenRangeAtLine(5, &first_idx, &last_idx);
   EXPECT_EQ(9, first_idx);  // Token } is first and only token.
   EXPECT_EQ(9, last_idx);
+  script.TokenRangeAtLine(1, &first_idx, &last_idx);
+  EXPECT_EQ(0, first_idx);
+  EXPECT_EQ(3, last_idx);
+  script.TokenRangeAtLine(6, &first_idx, &last_idx);
+  EXPECT_EQ(-1, first_idx);
+  EXPECT_EQ(-1, last_idx);
+  script.TokenRangeAtLine(1000, &first_idx, &last_idx);
+  EXPECT_EQ(-1, first_idx);
+  EXPECT_EQ(-1, last_idx);
 }
 
 
