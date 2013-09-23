@@ -90,7 +90,6 @@ typedef void SubstitutionEmitter(Element element, {bool emitNull});
  * The code for the containing (used) methods must exist in the [:universe:].
  */
 class CodeEmitterTask extends CompilerTask {
-  bool needsInheritFunction = false;
   bool needsDefineClass = false;
   bool needsMixinSupport = false;
   bool needsLazyInitializer = false;
@@ -166,6 +165,22 @@ class CodeEmitterTask extends CompilerTask {
 
   Set<FunctionType> checkedNonGenericFunctionTypes =
       new Set<FunctionType>();
+
+  /**
+   * List of expressions and statements that will be included in the
+   * precompiled function.
+   *
+   * To save space, dart2js normally generates constructors and accessors
+   * dynamically. This doesn't work in CSP mode, and may impact startup time
+   * negatively. So dart2js will emit these functions to a separate file that
+   * can be optionally included to support CSP mode or for faster startup.
+   */
+  List<jsAst.Node> precompiledFunction = <jsAst.Node>[];
+
+  List<jsAst.Expression> precompiledConstructorNames = <jsAst.Expression>[];
+
+  // True if Isolate.makeConstantList is needed.
+  bool hasMakeConstantList = false;
 
   /**
    * For classes and libraries, record code for static/top-level members.
@@ -263,8 +278,6 @@ class CodeEmitterTask extends CompilerTask {
       => '${namer.isolateName}.\$finishIsolateConstructor';
   String get isolatePropertiesName
       => '${namer.isolateName}.${namer.isolatePropertiesName}';
-  String get supportsProtoName
-      => 'supportsProto';
   String get lazyInitializerName
       => '${namer.isolateName}.\$lazy';
 
@@ -427,27 +440,24 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   /** Needs defineClass to be defined. */
-  List buildProtoSupportCheck() {
-    // On Firefox and Webkit browsers we can manipulate the __proto__
-    // directly. Opera claims to have __proto__ support, but it is buggy.
-    // So we have to do more checks.
-    // Opera bug was filed as DSK-370158, and fixed as CORE-47615
-    // (http://my.opera.com/desktopteam/blog/2012/07/20/more-12-01-fixes).
-    // If the browser does not support __proto__ we need to instantiate an
-    // object with the correct (internal) prototype set up correctly, and then
-    // copy the members.
-    // TODO(8541): Remove this work around.
-
+  List buildInheritFrom() {
     return [
-      js('var $supportsProtoName = false'),
-      // js('var tmp = defineClass("c", "c", ["f<"], {}).prototype'),
-      //
-      // js.if_(js('tmp.__proto__'), [
-      //   js('tmp.__proto__ = {}'),
-      //   js.if_(js(r'typeof tmp.get$f != "undefined"'),
-      //          js('$supportsProtoName = true'))
-      // ])
-    ];
+      js('var inheritFrom = #',
+          js.fun([], [
+              new jsAst.FunctionDeclaration(
+                  new jsAst.VariableDeclaration('tmp'), js.fun([], [])),
+              js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
+              js.return_(js.fun(['constructor', 'superConstructor'], [
+                  js('tmp.prototype = superConstructor.prototype'),
+                  js('var object = new tmp()'),
+                  js('var properties = constructor.prototype'),
+                  js.forIn('member', 'properties',
+                    js.if_('hasOwnProperty.call(properties, member)',
+                           js('object[member] = properties[member]'))),
+                  js('object.constructor = constructor'),
+                  js('constructor.prototype = object'),
+                  js.return_('object')
+              ]))])())];
   }
 
   static const MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING = 4;
@@ -702,17 +712,19 @@ class CodeEmitterTask extends CompilerTask {
       js.if_('!init.allClasses', js('init.allClasses = {}')),
       js('var allClasses = init.allClasses'),
 
-      js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
-      js('var combinedConstructorFunction = '
-         '"function \$reflectable(fn){fn.$reflectableField=1;return fn};\\n"'
-         '+ "var \$desc;\\n"'),
-      js('var constructorsList = []'),
-
       optional(
           DEBUG_FAST_OBJECTS,
           js('print("Number of classes: "'
              r' + Object.getOwnPropertyNames($$).length)')),
 
+      js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
+
+      js.if_('typeof dart_precompiled == "function"',
+          [js('var constructors = dart_precompiled(collectedClasses)')],
+
+          [js('var combinedConstructorFunction = "function \$reflectable(fn){'
+              'fn.$reflectableField=1;return fn};\\n"+ "var \$desc;\\n"'),
+           js('var constructorsList = []')]),
       js.forIn('cls', 'collectedClasses', [
         js.if_('hasOwnProperty.call(collectedClasses, cls)', [
           js('var desc = collectedClasses[cls]'),
@@ -742,14 +754,9 @@ class CodeEmitterTask extends CompilerTask {
             ])
           ]),
 
-          js.if_('typeof fields == "string"', [
-            js('var s = fields.split(";")'),
-            js('fields = s[1] == "" ? [] : s[1].split(",")'),
-            js('supr = s[0]'),
-          ], /* else */ [
-            js('supr = desc.super'),
-            js.if_(r'!!desc.$name', js(r'name = desc.$name'))
-          ]),
+          js('var s = fields.split(";")'),
+          js('fields = s[1] == "" ? [] : s[1].split(",")'),
+          js('supr = s[0]'),
 
           optional(needsMixinSupport, js.if_('supr && supr.indexOf("+") > 0', [
             js('s = supr.split("+")'),
@@ -763,17 +770,20 @@ class CodeEmitterTask extends CompilerTask {
             ]),
           ])),
 
-          js('combinedConstructorFunction += defineClass(name, cls, fields)'),
-          js('constructorsList.push(cls)'),
+          js.if_('typeof dart_precompiled != "function"',
+              [js('combinedConstructorFunction +='
+                  ' defineClass(name, cls, fields)'),
+                 js('constructorsList.push(cls)')]),
           js.if_('supr', js('pendingClasses[cls] = supr'))
         ])
       ]),
-      js('combinedConstructorFunction +='
-         ' "return [\\n  " + constructorsList.join(",\\n  ") + "\\n]"'),
-      js('var constructors ='
-         ' new Function("\$collectedClasses", combinedConstructorFunction)'
-         '(collectedClasses)'),
-      js('combinedConstructorFunction = null'),
+      js.if_('typeof dart_precompiled != "function"',
+          [js('combinedConstructorFunction +='
+              ' "return [\\n  " + constructorsList.join(",\\n  ") + "\\n]"'),
+           js('var constructors ='
+              ' new Function("\$collectedClasses", combinedConstructorFunction)'
+              '(collectedClasses)'),
+           js('combinedConstructorFunction = null')]),
       js.for_('var i = 0', 'i < constructors.length', 'i++', [
         js('var constructor = constructors[i]'),
         js('var cls = constructor.name'),
@@ -841,38 +851,7 @@ class CodeEmitterTask extends CompilerTask {
              js('superConstructor ='
                     'existingIsolateProperties[superclass]')),
 
-      js('var prototype = constructor.prototype'),
-
-      // if ($supportsProtoName) {
-      js.if_(supportsProtoName, [
-        js('prototype.__proto__ = superConstructor.prototype'),
-        js('prototype.constructor = constructor'),
-
-      ], /* else */ [
-        // function tmp() {};
-        new jsAst.FunctionDeclaration(
-            new jsAst.VariableDeclaration('tmp'),
-            js.fun([], [])),
-
-        js('tmp.prototype = superConstructor.prototype'),
-        js('var newPrototype = new tmp()'),
-
-        js('constructor.prototype = newPrototype'),
-        js('newPrototype.constructor = constructor'),
-
-        // for (var member in prototype) {
-        js.forIn('member', 'prototype', [
-          /* Short version of: if (member == '') */
-          // if (!member) continue;
-          js.if_('!member', new jsAst.Continue(null)),
-
-          // if (hasOwnProperty.call(prototype, member)) {
-          js.if_('hasOwnProperty.call(prototype, member)', [
-            js('newPrototype[member] = prototype[member]')
-          ])
-        ])
-
-      ])
+      js('prototype = inheritFrom(constructor, superConstructor)'),
     ]);
 
     return new jsAst.FunctionDeclaration(
@@ -880,7 +859,7 @@ class CodeEmitterTask extends CompilerTask {
         fun);
   }
 
-  jsAst.Fun get finishIsolateConstructorFunction {
+  jsAst.Fun get finishIsolateConstructorFunction_NO_CSP {
     String isolate = namer.isolateName;
     // We replace the old Isolate function with a new one that initializes
     // all its field with the initial (and often final) value of all globals.
@@ -944,14 +923,45 @@ class CodeEmitterTask extends CompilerTask {
     ]));
   }
 
+  jsAst.Fun get finishIsolateConstructorFunction {
+    // We replace the old Isolate function with a new one that initializes
+    // all its fields with the initial (and often final) value of all globals.
+    //
+    // We also copy over old values like the prototype, and the
+    // isolateProperties themselves.
+    return js.fun('oldIsolate', [
+      js('var isolateProperties = oldIsolate.${namer.isolatePropertiesName}'),
+      new jsAst.FunctionDeclaration(
+        new jsAst.VariableDeclaration('Isolate'),
+          js.fun([], [
+            js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
+            js.forIn('staticName', 'isolateProperties',
+              js.if_('hasOwnProperty.call(isolateProperties, staticName)',
+                js('this[staticName] = isolateProperties[staticName]'))),
+            // Use the newly created object as prototype. In Chrome,
+            // this creates a hidden class for the object and makes
+            // sure it is fast to access.
+            new jsAst.FunctionDeclaration(
+              new jsAst.VariableDeclaration('ForceEfficientMap'),
+              js.fun([], [])),
+            js('ForceEfficientMap.prototype = this'),
+            js('new ForceEfficientMap()')])),
+      js('Isolate.prototype = oldIsolate.prototype'),
+      js('Isolate.prototype.constructor = Isolate'),
+      js('Isolate.${namer.isolatePropertiesName} = isolateProperties'),
+      optional(needsDefineClass,
+               js('Isolate.$finishClassesProperty ='
+                  ' oldIsolate.$finishClassesProperty')),
+      optional(hasMakeConstantList,
+               js('Isolate.makeConstantList = oldIsolate.makeConstantList')),
+      js.return_('Isolate')]);
+  }
+
   jsAst.Fun get lazyInitializerFunction {
     // function(prototype, staticName, fieldName, getterName, lazyValue) {
     var parameters = <String>['prototype', 'staticName', 'fieldName',
                               'getterName', 'lazyValue'];
-    return js.fun(parameters, [
-      js('var getter = new Function("{ return this." + fieldName + ";}")'),
-    ]..addAll(addLazyInitializerLogic())
-    );
+    return js.fun(parameters, addLazyInitializerLogic());
   }
 
   List addLazyInitializerLogic() {
@@ -1004,7 +1014,8 @@ class CodeEmitterTask extends CompilerTask {
           js.return_('result')
 
         ], finallyPart: [
-          js('$isolate[getterName] = getter')
+          js('$isolate[getterName] = #',
+             js.fun([], [js.return_('this[fieldName]')]))
         ])
       ]))
     ]);
@@ -1013,7 +1024,7 @@ class CodeEmitterTask extends CompilerTask {
   List buildDefineClassAndFinishClassFunctionsIfNecessary() {
     if (!needsDefineClass) return [];
     return defineClassFunction
-    ..addAll(buildProtoSupportCheck())
+    ..addAll(buildInheritFrom())
     ..addAll([
       js('$finishClassesName = #', finishClassesFunction)
     ]);
@@ -1709,29 +1720,34 @@ class CodeEmitterTask extends CompilerTask {
   void generateGetter(Element member, String fieldName, String accessorName,
                       ClassBuilder builder) {
     String getterName = namer.getterNameFromAccessorName(accessorName);
-    String receiver = backend.isInterceptorClass(member.getEnclosingClass())
-        ? 'receiver' : 'this';
-    List<String> args = backend.isInterceptedMethod(member)
-        ? ['receiver']
-        : [];
-    builder.addProperty(getterName,
-        js.fun(args, js.return_(js('$receiver.$fieldName'))));
-    generateReflectionDataForFieldGetterOrSetter(
-        member, getterName, builder, isGetter: true);
+    ClassElement cls = member.getEnclosingClass();
+    String className = namer.getNameOfClass(cls);
+    String receiver = backend.isInterceptorClass(cls) ? 'receiver' : 'this';
+    List<String> args = backend.isInterceptedMethod(member) ? ['receiver'] : [];
+    precompiledFunction.add(
+        js('$className.prototype.$getterName = #',
+           js.fun(args, js.return_(js('$receiver.$fieldName')))));
+    if (backend.isNeededForReflection(member)) {
+      precompiledFunction.add(
+          js('$className.prototype.$getterName.${namer.reflectableField} = 1'));
+    }
   }
 
   void generateSetter(Element member, String fieldName, String accessorName,
                       ClassBuilder builder) {
     String setterName = namer.setterNameFromAccessorName(accessorName);
-    String receiver = backend.isInterceptorClass(member.getEnclosingClass())
-        ? 'receiver' : 'this';
-    List<String> args = backend.isInterceptedMethod(member)
-        ? ['receiver', 'v']
-        : ['v'];
-    builder.addProperty(setterName,
-        js.fun(args, js('$receiver.$fieldName = v')));
-    generateReflectionDataForFieldGetterOrSetter(
-        member, setterName, builder, isGetter: false);
+    ClassElement cls = member.getEnclosingClass();
+    String className = namer.getNameOfClass(cls);
+    String receiver = backend.isInterceptorClass(cls) ? 'receiver' : 'this';
+    List<String> args =
+        backend.isInterceptedMethod(member) ? ['receiver', 'v'] : ['v'];
+    precompiledFunction.add(
+        js('$className.prototype.$setterName = #',
+           js.fun(args, js.return_(js('$receiver.$fieldName = v')))));
+    if (backend.isNeededForReflection(member)) {
+      precompiledFunction.add(
+          js('$className.prototype.$setterName.${namer.reflectableField} = 1'));
+    }
   }
 
   bool canGenerateCheckedSetter(VariableElement field) {
@@ -1781,8 +1797,52 @@ class CodeEmitterTask extends CompilerTask {
         member, setterName, builder, isGetter: false);
   }
 
-  void emitClassConstructor(ClassElement classElement, ClassBuilder builder) {
-    /* Do nothing. */
+  void emitClassConstructor(ClassElement classElement,
+                            ClassBuilder builder,
+                            String runtimeName) {
+    List<String> fields = <String>[];
+    if (!classElement.isNative()) {
+      visitFields(classElement, false,
+                  (Element member,
+                   String name,
+                   String accessorName,
+                   bool needsGetter,
+                   bool needsSetter,
+                   bool needsCheckedSetter) {
+        fields.add(name);
+      });
+    }
+    String constructorName = namer.getNameOfClass(classElement);
+    precompiledFunction.add(new jsAst.FunctionDeclaration(
+        new jsAst.VariableDeclaration(constructorName),
+        js.fun(fields, fields.map(
+            (name) => js('this.$name = $name')).toList())));
+    if (runtimeName == null) {
+      runtimeName = constructorName;
+    }
+    precompiledFunction.addAll([
+        js('$constructorName.builtin\$cls = "$runtimeName"'),
+        js.if_('!"name" in $constructorName',
+              js('$constructorName.name = "$constructorName"')),
+        js('\$desc=\$collectedClasses.$constructorName'),
+        js.if_('\$desc instanceof Array', js('\$desc = \$desc[1]')),
+        js('$constructorName.prototype = \$desc'),
+    ]);
+
+    precompiledConstructorNames.add(js(constructorName));
+  }
+
+  jsAst.FunctionDeclaration buildPrecompiledFunction() {
+    // TODO(ahe): Compute a hash code.
+    String name = 'dart_precompiled';
+
+    precompiledFunction.add(
+        js.return_(
+            new jsAst.ArrayInitializer.from(precompiledConstructorNames)));
+    precompiledFunction.insert(0, js(r'var $desc'));
+    return new jsAst.FunctionDeclaration(
+        new jsAst.VariableDeclaration(name),
+        js.fun([r'$collectedClasses'], precompiledFunction));
   }
 
   void emitSuper(String superName, ClassBuilder builder) {
@@ -1966,13 +2026,11 @@ class CodeEmitterTask extends CompilerTask {
           assert(!needsSetter);
           generateCheckedSetter(member, name, accessorName, builder);
         }
-        if (!getterAndSetterCanBeImplementedByFieldSpec) {
-          if (needsGetter) {
-            generateGetter(member, name, accessorName, builder);
-          }
-          if (needsSetter) {
-            generateSetter(member, name, accessorName, builder);
-          }
+        if (needsGetter) {
+          generateGetter(member, name, accessorName, builder);
+        }
+        if (needsSetter) {
+          generateSetter(member, name, accessorName, builder);
         }
       });
     });
@@ -2007,7 +2065,7 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     ClassBuilder builder = new ClassBuilder();
-    emitClassConstructor(classElement, builder);
+    emitClassConstructor(classElement, builder, runtimeName);
     emitSuper(superName, builder);
     emitRuntimeName(runtimeName, builder);
     emitFields(classElement, builder, superName, onlyForRti: onlyForRti);
@@ -2074,8 +2132,6 @@ class CodeEmitterTask extends CompilerTask {
       buffer.write(',$n$n"+$reflectionName": $interfaces');
     }
   }
-
-  bool get getterAndSetterCanBeImplementedByFieldSpec => true;
 
   /// If this is true then we can generate the noSuchMethod handlers at startup
   /// time, instead of them being emitted as part of the Object class.
@@ -2493,6 +2549,21 @@ class CodeEmitterTask extends CompilerTask {
                               ClassBuilder builder) {
     builder.addProperty('',
         js.string("$superName;${fieldNames.join(',')}"));
+
+    List<String> fields = fieldNames;
+    String constructorName = mangledName;
+    precompiledFunction.add(new jsAst.FunctionDeclaration(
+        new jsAst.VariableDeclaration(constructorName),
+        js.fun(fields, fields.map(
+            (name) => js('this.$name = $name')).toList())));
+    precompiledFunction.addAll([
+        js('$constructorName.builtin\$cls = "$constructorName"'),
+        js('\$desc=\$collectedClasses.$constructorName'),
+        js.if_('\$desc instanceof Array', js('\$desc = \$desc[1]')),
+        js('$constructorName.prototype = \$desc'),
+    ]);
+
+    precompiledConstructorNames.add(js(constructorName));
   }
 
   /**
@@ -2792,14 +2863,10 @@ class CodeEmitterTask extends CompilerTask {
     ConstantHandler handler = compiler.constantHandler;
     List<Constant> constants = handler.getConstantsForEmission(
         compareConstants);
-    bool addedMakeConstantList = false;
     for (Constant constant in constants) {
       if (isConstantInlinedOrAlreadyEmitted(constant)) continue;
       String name = namer.constantName(constant);
-      if (!addedMakeConstantList && constant.isList()) {
-        addedMakeConstantList = true;
-        emitMakeConstantList(eagerBuffer);
-      }
+      if (constant.isList()) emitMakeConstantListIfNotEmitted(eagerBuffer);
       CodeBuffer buffer = bufferForConstant(constant, eagerBuffer);
       jsAst.Expression init = js(
           '${namer.globalObjectForConstant(constant)}.$name = #',
@@ -2834,9 +2901,12 @@ class CodeEmitterTask extends CompilerTask {
     return namer.constantName(a).compareTo(namer.constantName(b));
   }
 
-  void emitMakeConstantList(CodeBuffer buffer) {
-    buffer.write(namer.isolateName);
-    buffer.write(r'''.makeConstantList = function(list) {
+  void emitMakeConstantListIfNotEmitted(CodeBuffer buffer) {
+    if (hasMakeConstantList) return;
+    hasMakeConstantList = true;
+    buffer
+        ..write(namer.isolateName)
+        ..write(r'''.makeConstantList = function(list) {
   list.immutable$list = true;
   list.fixed$length = true;
   return list;
@@ -3757,7 +3827,7 @@ class CodeEmitterTask extends CompilerTask {
     buffer.write('];$n');
   }
 
-  void emitConvertToFastObjectFunction() {
+  void emitConvertToFastObjectFunction_NO_CSP() {
     mainBuffer.add(r'''
 function convertToFastObject(properties) {
   function makeConstructor() {
@@ -3776,6 +3846,37 @@ function convertToFastObject(properties) {
 }
 ''');
   }
+
+  void emitConvertToFastObjectFunction() {
+    // Create an instance that uses 'properties' as prototype. This should make
+    // 'properties' a fast object.
+    mainBuffer.add(r'''function convertToFastObject(properties) {
+  function MyClass() {};
+  MyClass.prototype = properties;
+  new MyClass();
+''');
+    if (DEBUG_FAST_OBJECTS) {
+      ClassElement primitives =
+          compiler.findHelper(const SourceString('Primitives'));
+      FunctionElement printHelper =
+          compiler.lookupElementIn(
+              primitives, const SourceString('printString'));
+      String printHelperName = namer.isolateAccess(printHelper);
+      mainBuffer.add('''
+// The following only works on V8 when run with option "--allow-natives-syntax".
+if (typeof $printHelperName === "function") {
+  $printHelperName("Size of global object: "
+                   + String(Object.getOwnPropertyNames(properties).length)
+                   + ", fast properties " + %HasFastProperties(properties));
+}
+''');
+    }
+mainBuffer.add(r'''
+  return properties;
+}
+''');
+  }
+
 
   String assembleProgram() {
     measure(() {
@@ -4074,12 +4175,21 @@ if (typeof $printHelperName === "function") {
       }
 
       emitMain(mainBuffer);
+      jsAst.FunctionDeclaration precompiledFunctionAst =
+          buildPrecompiledFunction();
       emitInitFunction(mainBuffer);
       if (!areAnyElementsDeferred) {
         mainBuffer.add('})()$n');
       }
       compiler.assembledCode = mainBuffer.getText();
       outputSourceMap(compiler.assembledCode, '');
+
+      mainBuffer.write(
+          jsAst.prettyPrint(precompiledFunctionAst, compiler).getText());
+
+      compiler.outputProvider('precompiled', 'js')
+          ..add(mainBuffer.getText())
+          ..close();
 
       emitDeferredCode();
 

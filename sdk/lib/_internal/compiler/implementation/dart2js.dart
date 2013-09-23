@@ -253,7 +253,6 @@ Future compile(List<String> argv) {
                       (_) => passThrough('--trust-type-annotations')),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
-    new OptionHandler('--disallow-unsafe-eval', passThrough),
     new OptionHandler('--analyze-all', passThrough),
     new OptionHandler('--analyze-only', setAnalyzeOnly),
     new OptionHandler('--analyze-signatures-only', passThrough),
@@ -484,10 +483,6 @@ Supported options:
 
   --minify
     Generate minified output.
-
-  --disallow-unsafe-eval
-    Disable dynamic generation of code in the generated output. This is
-    necessary to satisfy CSP restrictions (see http://www.w3.org/TR/CSP/).
 
   --suppress-warnings
     Do not display any warnings.

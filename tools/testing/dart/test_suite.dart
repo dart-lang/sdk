@@ -1026,6 +1026,10 @@ class StandardTestSuite extends TestSuite {
           expectedOutput = txtPath;
           content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
         } else {
+          if (compiler == "dart2js" && configuration["csp"]) {
+            scriptPath = scriptPath.replaceFirst('/test.js', '/precompiled.js');
+          }
+
           content = getHtmlContents(filename, scriptType,
               new Path("$scriptPath"));
         }
@@ -1876,9 +1880,6 @@ class TestUtils {
     if ((compiler == "dart2js" || compiler == "dart2dart") &&
         configuration["minified"]) {
       args.add("--minify");
-    }
-    if (compiler == "dart2js" && configuration["csp"]) {
-      args.add("--disallow-unsafe-eval");
     }
     if (compiler == "dartanalyzer" || compiler == "dart2analyzer") {
       args.add("--show-package-warnings");
