@@ -63,9 +63,7 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error, new isInstanceOf<TestFailure>());
+      expect(errors.single, new isInstanceOf<ScheduleError>());
     });
   }, passing: ['test 2']);
 
@@ -143,7 +141,7 @@ void main() {
       // Whether or not this error appears depends on how quickly the "no
       // elements" error is handled.
       if (errors.length == 2) {
-        expect(errors[1].error, matches(r"^Process "
+        expect(errors[1].error.toString(), matches(r"^Process "
             r"'[^']+[\\/]dart(\.exe)? [^']+' ended earlier than scheduled with "
             r"exit code 0\."));
       }
@@ -196,7 +194,7 @@ void main() {
       // Whether or not this error appears depends on how quickly the "no
       // elements" error is handled.
       if (errors.length == 2) {
-        expect(errors[1].error, matches(r"^Process "
+        expect(errors[1].error.toString(), matches(r"^Process "
             r"'[^']+[\\/]dart(\.exe)? [^']+' ended earlier than scheduled with "
             r"exit code 0\."));
       }
@@ -240,7 +238,7 @@ void main() {
       // Whether or not this error appears depends on how quickly the "no
       // elements" error is handled.
       if (errors.length == 2) {
-        expect(errors[1].error, matches(r"^Process "
+        expect(errors[1].error.toString(), matches(r"^Process "
             r"'[^']+[\\/]dart(\.exe)? [^']+' ended earlier than scheduled with "
             r"exit code 0\."));
       }

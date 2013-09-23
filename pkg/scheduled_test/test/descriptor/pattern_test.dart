@@ -66,9 +66,8 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error,
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(),
           matches(r"^No entry found in '[^']+' matching /f\.\./\.$"));
     });
   }, passing: ['test 2']);
@@ -88,9 +87,8 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error,
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(),
           matches(r"^Caught error\n"
               r"| File 'foo' should contain:\n"
               r"| | bar\n"
@@ -121,9 +119,8 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error,
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(),
           matches(r"^Caught error\n"
               r"| File 'bar' should contain:\n"
               r"| | baz\n"
@@ -152,14 +149,13 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error, matches(
-              r"^Multiple valid entries found in '[^']+' matching "
-                  r"\/f\.\./:\n"
-              r"\* faa\n"
-              r"\* fee\n"
-              r"\* foo$"));
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(), matches(
+          r"^Multiple valid entries found in '[^']+' matching "
+          r"\/f\.\./:\n"
+          r"\* faa\n"
+          r"\* fee\n"
+          r"\* foo$"));
     });
   }, passing: ['test 2']);
 }

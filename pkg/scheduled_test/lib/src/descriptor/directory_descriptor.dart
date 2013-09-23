@@ -42,7 +42,7 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
     if (parent == null) parent = defaultRoot;
     var fullPath = path.join(parent, name);
     if (!new Directory(fullPath).existsSync()) {
-      throw "Directory not found: '$fullPath'.";
+      fail("Directory not found: '$fullPath'.");
     }
 
     return Future.wait(contents.map((entry) {
@@ -77,11 +77,11 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
 
       var adjective = requiresReadable ? 'readable' : 'loadable';
       if (matchingEntries.length == 0) {
-        throw "Couldn't find a $adjective entry named '${split.first}' within "
-            "'$name'.";
+        fail("Couldn't find a $adjective entry named '${split.first}' within "
+             "'$name'.");
       } else if (matchingEntries.length > 1) {
-        throw "Found multiple $adjective entries named '${split.first}' within "
-            "'$name'.";
+        fail("Found multiple $adjective entries named '${split.first}' within "
+             "'$name'.");
       } else {
         var remainingPath = split.sublist(1);
         if (remainingPath.isEmpty) {

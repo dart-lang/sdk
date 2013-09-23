@@ -125,9 +125,8 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error.toString(),
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(),
           matches(r"^Directory not found: '[^']+[\\/]dir[\\/]subdir'\.$"));
     });
   }, passing: ['test 2']);
@@ -167,9 +166,8 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error.toString(),
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(),
           matches(r"^File not found: '[^']+[\\/]dir[\\/]file2\.txt'\.$"));
     });
   }, passing: ['test 2']);
@@ -208,9 +206,8 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error.toString(), matches(
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(), matches(
           r"^\* File not found: '[^']+[\\/]dir[\\/]subdir[\\/]subfile1\.txt'\."
               r"\n"
           r"\* File 'subfile2\.txt' should contain:\n"
@@ -259,13 +256,12 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error.toString()), equals([
-        "File 'subfile1.txt' should contain:\n"
-        "| subcontents1\n"
-        "but actually contained:\n"
-        "X wrongtents1"
-      ]));
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(), equals(
+          "File 'subfile1.txt' should contain:\n"
+          "| subcontents1\n"
+          "but actually contained:\n"
+          "X wrongtents1"));
     });
   }, passing: ['test 2']);
 
@@ -300,9 +296,9 @@ void main() {
         d.file('name.txt', 'contents')
       ]);
 
-      expect(dir.load('subdir').toList(),
-          throwsA(equals("Couldn't find a readable entry named 'subdir' within "
-              "'dir'.")));
+      expect(dir.load('subdir').toList(), throwsA(predicate(
+          (x) => x.toString() == "Couldn't find a readable entry named "
+                                 "'subdir' within 'dir'.")));
     });
   });
 
@@ -331,9 +327,9 @@ void main() {
     test('test', () {
       var dir = d.dir('dir', [d.file('name.txt', 'contents')]);
 
-      expect(dir.load('not-name.txt').toList(),
-          throwsA(equals("Couldn't find a readable entry named 'not-name.txt' "
-              "within 'dir'.")));
+      expect(dir.load('not-name.txt').toList(), throwsA(predicate(
+          (x) => x.toString() == "Couldn't find a readable entry named "
+                                 "'not-name.txt' within 'dir'.")));
     });
   });
 
@@ -345,9 +341,9 @@ void main() {
         d.file('name.txt', 'contents')
       ]);
 
-      expect(dir.load('name.txt').toList(),
-          throwsA(equals("Found multiple readable entries named 'name.txt' "
-              "within 'dir'.")));
+      expect(dir.load('name.txt').toList(), throwsA(predicate(
+          (x) => x.toString() == "Found multiple readable entries named "
+                                 "'name.txt' within 'dir'.")));
     });
   });
 

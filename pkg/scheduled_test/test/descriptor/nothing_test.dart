@@ -54,11 +54,10 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error,
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(),
           matches(r"^Expected nothing to exist at '[^']+[\\/]name.txt', but "
-              r"found a file\.$"));
+                  r"found a file\.$"));
     });
   }, passing: ['test 2']);
 
@@ -76,9 +75,8 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error,
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(),
           matches(r"^Expected nothing to exist at '[^']+[\\/]dir', but found a "
               r"directory\.$"));
     });

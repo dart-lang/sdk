@@ -59,7 +59,7 @@ abstract class FileDescriptor extends Descriptor implements ReadableDescriptor {
     if (parent == null) parent = defaultRoot;
     var fullPath = path.join(parent, name);
     if (!new File(fullPath).existsSync()) {
-      throw "File not found: '$fullPath'.";
+      fail("File not found: '$fullPath'.");
     }
 
     return new File(fullPath).readAsBytes().then(_validateNow);
@@ -84,7 +84,7 @@ class _BinaryFileDescriptor extends FileDescriptor {
   Future _validateNow(List<int> actualContents) {
     if (orderedIterableEquals(contents, actualContents)) return null;
     // TODO(nweiz): show a hex dump here if the data is small enough.
-    throw "File '$name' didn't contain the expected binary data.";
+    fail("File '$name' didn't contain the expected binary data.");
   }
 }
 
