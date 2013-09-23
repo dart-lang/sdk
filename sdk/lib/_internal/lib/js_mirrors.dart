@@ -178,7 +178,7 @@ abstract class JsDeclarationMirror extends JsMirror
   SourceLocation get location => throw new UnimplementedError();
 }
 
-class JsTypeVariableMirror extends JsTypeMirror {
+class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
   final TypeMirror upperBound;
   final DeclarationMirror owner;
 
