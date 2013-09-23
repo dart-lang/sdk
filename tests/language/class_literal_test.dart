@@ -48,10 +48,6 @@ main() {
   Expect.throws(() { Class / 3; }, (e) => e is NoSuchMethodError);
   Expect.throws(() { Class += 3; }, (e) => e is NoSuchMethodError);
 
-  // Verify that a class literal is its runtimeType.
-  var obj = new Class();
-  Expect.identical(Class, obj.runtimeType);
-  
   // Verify that a class literal isn't a string literal.
   Expect.notEquals(Class, "Class");
    
