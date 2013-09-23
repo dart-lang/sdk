@@ -78,8 +78,12 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
 void Zone::DeleteAll() {
   // Traverse the chained list of segments, zapping (in debug mode)
   // and freeing every zone segment.
-  Segment::DeleteSegmentList(head_);
-  Segment::DeleteSegmentList(large_segments_);
+  if (head_ != NULL) {
+    Segment::DeleteSegmentList(head_);
+  }
+  if (large_segments_ != NULL) {
+    Segment::DeleteSegmentList(large_segments_);
+  }
 
   // Reset zone state.
 #ifdef DEBUG

@@ -1957,6 +1957,11 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
 typedef struct _Dart_NativeArguments* Dart_NativeArguments;
 
 /**
+ * Extracts current isolate data from the native arguments structure.
+ */
+DART_EXPORT void* Dart_GetNativeIsolateData(Dart_NativeArguments args);
+
+/**
  * Gets the native argument at some index.
  */
 DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,

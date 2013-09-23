@@ -3554,6 +3554,14 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
 }
 
 
+DART_EXPORT void* Dart_GetNativeIsolateData(Dart_NativeArguments args) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  Isolate* isolate = arguments->isolate();
+  ASSERT(isolate);
+  return isolate->init_callback_data();
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
                                                int index) {
   TRACE_API_CALL(CURRENT_FUNC);
