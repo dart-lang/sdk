@@ -178,6 +178,22 @@ abstract class JsDeclarationMirror extends JsMirror
   SourceLocation get location => throw new UnimplementedError();
 }
 
+class JsTypeVariableMirror extends JsTypeMirror {
+  final TypeMirror upperBound;
+  final DeclarationMirror owner;
+
+  JsTypeVariableMirror(Symbol simpleName, this.upperBound, this.owner)
+      : super(simpleName);
+
+  bool operator ==(other) {
+    return (other is JsTypeVariableMirror &&
+        simpleName == other.simpleName &&
+        owner == other.owner);
+  }
+
+  String get _prettyName => 'TypeVariableMirror';
+}
+
 class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
   JsTypeMirror(Symbol simpleName)
       : super(simpleName);
@@ -899,6 +915,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   UnmodifiableMapView<Symbol, Mirror> _cachedMembers;
   UnmodifiableListView<InstanceMirror> _cachedMetadata;
   UnmodifiableListView<ClassMirror> _cachedSuperinterfaces;
+  UnmodifiableListView<TypeVariableMirror> _cachedTypeVariables;
 
   // Set as side-effect of accessing JsLibraryMirror.classes.
   JsLibraryMirror _owner;
@@ -1243,9 +1260,23 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
         new UnmodifiableListView<ClassMirror>(result);
   }
 
-  // TODO(ahe): Implement these.
-  List<TypeVariableMirror> get typeVariables
-      => throw new UnimplementedError();
+  List<TypeVariableMirror> get typeVariables {
+   if (_cachedTypeVariables != null) return _cachedTypeVariables;
+   List result = new List();
+   List typeVars =
+        JS('JSExtendableArray|Null', '#.prototype["<>"]', _jsConstructor);
+    if (typeVars == null) return result;
+    for (int i = 0; i < typeVars.length; i += 2) {
+      TypeMirror upperBound =
+         typeMirrorFromRuntimeTypeRepresentation(JS('', 'init.metadata[#]',
+                                                    typeVars[i+1]));
+      var typeMirror =
+          new JsTypeVariableMirror(s(typeVars[i]), upperBound, this);
+      result.add(typeMirror);
+    }
+    return _cachedTypeVariables = new UnmodifiableListView(result);
+  }
+
   List<TypeMirror> get typeArguments => new List();
 }
 

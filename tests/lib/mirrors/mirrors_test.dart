@@ -239,12 +239,12 @@ testNames(mirrors) {
   expect(classMirror.simpleName, equals(const Symbol('Class')));
   expect(classMirror.qualifiedName, equals(const Symbol('MirrorsTest.Class')));
 
-  if (!isDart2js) { // TODO(ahe): Implement this in dart2js.
-    TypeVariableMirror typeVariable = classMirror.typeVariables.single;
-    expect(typeVariable.simpleName, equals(const Symbol('T')));
-    expect(typeVariable.qualifiedName,
-           equals(const Symbol('MirrorsTest.Class.T')));
+  TypeVariableMirror typeVariable = classMirror.typeVariables.single;
+  expect(typeVariable.simpleName, equals(const Symbol('T')));
+  expect(typeVariable.qualifiedName,
+      equals(const Symbol('MirrorsTest.Class.T')));
 
+  if (!isDart2js) { // TODO(ahe): Implement this in dart2js.
     expect(typedefMirror.simpleName, equals(const Symbol('Typedef')));
     expect(typedefMirror.qualifiedName,
            equals(const Symbol('MirrorsTest.Typedef')));

@@ -2088,6 +2088,21 @@ class CodeEmitterTask extends CompilerTask {
       builder.addProperty("@", metadata);
     }
 
+    if (backend.isNeededForReflection(classElement)) {
+      Link typeVars = classElement.typeVariables;
+      List properties = [];
+      for (TypeVariableType typeVar in typeVars) {
+        properties.add(js.string(typeVar.name.slowToString()));
+        properties.add(js.toExpression(reifyType(typeVar.element.bound)));
+      }
+
+      ClassElement superclass = classElement.superclass;
+      bool hasSuper = superclass != null;
+      if ((!properties.isEmpty && !hasSuper) ||
+          (hasSuper && superclass.typeVariables != typeVars)) {
+        builder.addProperty('<>', new jsAst.ArrayInitializer.from(properties));
+      }
+    }
     List<CodeBuffer> classBuffers = elementBuffers[classElement];
     if (classBuffers == null) {
       classBuffers = [];

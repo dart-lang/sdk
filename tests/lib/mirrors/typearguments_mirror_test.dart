@@ -23,8 +23,6 @@ main() {
 
   Expect.equals(cm, reflectClass(Foo));
   Expect.equals(cm, reflectClass((new Foo().runtimeType)));
-  print((reflect(new Foo()).type).runtimeType);
-  print(cm.runtimeType);
   Expect.equals(cm1, reflect(new Foo<String>()).type);
 
   expect('[]', cm.typeArguments);
