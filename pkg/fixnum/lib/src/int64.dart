@@ -118,14 +118,9 @@ class Int64 implements IntX {
   //
 
   /**
-   * Constructs an [Int64] equal to 0.
+   * Constructs an [Int64] with a given [int] value; zero by default.
    */
-  Int64() : _l = 0, _m = 0, _h = 0;
-
-  /**
-   * Constructs an [Int64] with a given [int] value.
-   */
-  factory Int64.fromInt(int value) {
+  factory Int64([int value=0]) {
     int v0 = 0, v1 = 0, v2 = 0;
     bool negative = false;
     if (value < 0) {
@@ -152,6 +147,12 @@ class Int64 implements IntX {
     }
     return new Int64._bits(v0, v1, v2);
   }
+
+  /**
+   * Constructs an [Int64] with a given [int] value.
+   */
+  @deprecated
+  factory Int64.fromInt(int value) => new Int64(value);
 
   factory Int64.fromBytes(List<int> bytes) {
     int top = bytes[7] & 0xff;
@@ -212,7 +213,7 @@ class Int64 implements IntX {
     if (val is Int64) {
       return val;
     } else if (val is int) {
-      return new Int64.fromInt(val);
+      return new Int64(val);
     } else if (val is Int32) {
       return val.toInt64();
     }
@@ -457,7 +458,7 @@ class Int64 implements IntX {
       // Since we know one of [_h] or [_m] is non-zero, if [other] fits in the
       // low word then it can't be numerically equal.
       if ((_MASK & other) == other) return false;
-      o = new Int64.fromInt(other);
+      o = new Int64(other);
     } else if (other is Int32) {
       o = other.toInt64();
     }
@@ -520,7 +521,7 @@ class Int64 implements IntX {
    */
   int get hashCode {
     // TODO(sra): Should we ensure that hashCode values match corresponding int?
-    // i.e. should `new Int64.fromInt(x).hashCode == x.hashCode`?
+    // i.e. should `new Int64(x).hashCode == x.hashCode`?
     int bottom = ((_m & 0x3ff) << _BITS) | _l;
     int top = (_h << 12) | ((_m >> 10) & 0xfff);
     return bottom ^ top;
@@ -609,7 +610,7 @@ class Int64 implements IntX {
    * Returns an [Int32] containing the low 32 bits of this [Int64].
    */
   Int32 toInt32() {
-    return new Int32.fromInt(((_m & 0x3ff) << _BITS) | _l);
+    return new Int32(((_m & 0x3ff) << _BITS) | _l);
   }
 
   /**
@@ -627,7 +628,7 @@ class Int64 implements IntX {
     if (isZero) return "0";
     Int64 x = this;
     String hexStr = "";
-    Int64 digit_f = new Int64.fromInt(0xf);
+    Int64 digit_f = new Int64(0xf);
     while (!x.isZero) {
       int digit = x._l & 0xf;
       hexStr = "${_hexDigit(digit)}$hexStr";
