@@ -1516,19 +1516,18 @@ class CodeEmitterTask extends CompilerTask {
       builder.addProperty(operatorSignature, encoding);
     }
 
-    void generateSubstitution(Element other, {bool emitNull: false}) {
+    void generateSubstitution(ClassElement cls, {bool emitNull: false}) {
+      if (cls.typeVariables.isEmpty) return;
       RuntimeTypes rti = backend.rti;
       jsAst.Expression expression;
-      bool needsNativeCheck = nativeEmitter.requiresNativeIsCheck(other);
-      if (other.kind == ElementKind.CLASS) {
-        expression = rti.getSupertypeSubstitution(
-            classElement, other, alwaysGenerateFunction: true);
-        if (expression == null && (emitNull || needsNativeCheck)) {
-          expression = new jsAst.LiteralNull();
-        }
+      bool needsNativeCheck = nativeEmitter.requiresNativeIsCheck(cls);
+      expression = rti.getSupertypeSubstitution(
+          classElement, cls, alwaysGenerateFunction: true);
+      if (expression == null && (emitNull || needsNativeCheck)) {
+        expression = new jsAst.LiteralNull();
       }
       if (expression != null) {
-        builder.addProperty(namer.substitutionName(other), expression);
+        builder.addProperty(namer.substitutionName(cls), expression);
       }
     }
 
