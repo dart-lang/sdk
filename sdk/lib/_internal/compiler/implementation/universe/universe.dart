@@ -167,24 +167,37 @@ class Selector {
     assert(!name.isPrivate() || library != null);
   }
 
+  static Map<int, List<Selector>> canonicalizedValues =
+      new Map<int, List<Selector>>();
+
   factory Selector(SelectorKind kind,
                    SourceString name,
                    LibraryElement library,
                    int argumentCount,
                    [List<SourceString> namedArguments]) {
     if (!name.isPrivate()) library = null;
-    List<SourceString> orderedNamedArguments = const <SourceString>[];
-    if (namedArguments == null) {
-      namedArguments = const <SourceString>[];
-    } else if (!namedArguments.isEmpty) {
-      orderedNamedArguments = <SourceString>[];
-    }
+    if (namedArguments == null) namedArguments = const <SourceString>[];
     int hashCode = computeHashCode(
         kind, name, library, argumentCount, namedArguments);
-    return new Selector.internal(
+    List<Selector> list = canonicalizedValues.putIfAbsent(hashCode,
+        () => <Selector>[]);
+    for (int i = 0; i < list.length; i++) {
+      Selector existing = list[i];
+      if (existing.match(kind, name, library, argumentCount, namedArguments)) {
+        assert(existing.hashCode == hashCode);
+        assert(existing.mask == null);
+        return existing;
+      }
+    }
+    List<SourceString> orderedNamedArguments = namedArguments.isEmpty
+        ? const <SourceString>[]
+        : <SourceString>[];
+    Selector result = new Selector.internal(
         kind, name, library, argumentCount,
         namedArguments, orderedNamedArguments,
         hashCode);
+    list.add(result);
+    return result;
   }
 
   factory Selector.fromElement(Element element, Compiler compiler) {
@@ -510,17 +523,17 @@ class Selector {
     return true;
   }
 
-  bool operator ==(other) {
-    if (other is !Selector) return false;
-    if (identical(this, other)) return true;
-    return hashCode == other.hashCode  // Fast because it is cached.
-        && kind == other.kind
-        && name == other.name
-        && mask == other.mask
-        && identical(library, other.library)
-        && argumentCount == other.argumentCount
-        && namedArguments.length == other.namedArguments.length
-        && sameNames(namedArguments, other.namedArguments);
+  bool match(SelectorKind kind,
+             SourceString name,
+             LibraryElement library,
+             int argumentCount,
+             List<SourceString> namedArguments) {
+    return this.kind == kind
+        && this.name == name
+        && identical(this.library, library)
+        && this.argumentCount == argumentCount
+        && this.namedArguments.length == namedArguments.length
+        && sameNames(this.namedArguments, namedArguments);
   }
 
   static int computeHashCode(SelectorKind kind,
@@ -610,10 +623,19 @@ class TypedSelector extends Selector {
     assert(asUntyped.mask == null);
   }
 
+  static Map<Selector, Map<TypeMask, TypedSelector>> canonicalizedValues =
+      new Map<Selector, Map<TypeMask, TypedSelector>>();
+
   factory TypedSelector(TypeMask mask, Selector selector) {
     Selector untyped = selector.asUntyped;
-    int hashCode = Selector.mixHashCodeBits(untyped.hashCode, mask.hashCode);
-    return new TypedSelector.internal(mask, untyped, hashCode);
+    Map<TypeMask, TypedSelector> map = canonicalizedValues.putIfAbsent(untyped,
+        () => new Map<TypeMask, TypedSelector>());
+    TypedSelector result = map[mask];
+    if (result == null) {
+      int hashCode = Selector.mixHashCodeBits(untyped.hashCode, mask.hashCode);
+      result = map[mask] = new TypedSelector.internal(mask, untyped, hashCode);
+    }
+    return result;
   }
 
   factory TypedSelector.exact(DartType base, Selector selector)

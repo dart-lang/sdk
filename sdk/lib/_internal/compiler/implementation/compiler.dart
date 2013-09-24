@@ -970,9 +970,12 @@ abstract class Compiler implements DiagnosticListener {
 
   Future runCompiler(Uri uri) {
     // TODO(ahe): This prevents memory leaks when invoking the compiler
-    // multiple times.  Implement a better mechanism where StringWrapper
-    // instances are shared on a per library basis.
+    // multiple times. Implement a better mechanism where we can store
+    // such caches in the compiler and get access to them through a
+    // suitably maintained static reference to the current compiler.
     SourceString.canonicalizedValues.clear();
+    Selector.canonicalizedValues.clear();
+    TypedSelector.canonicalizedValues.clear();
 
     assert(uri != null || analyzeOnly);
     return scanBuiltinLibraries().then((_) {
