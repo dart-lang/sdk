@@ -36,9 +36,6 @@ Language/13_Statements/11_Return_A07_t01: fail
 Language/15_Types/6_Type_dynamic_A03_t01: fail
 Language/15_Types/6_Type_dynamic_A04_t01: fail
 
-# TBF: spec was changed in 7.1 to "It is a static warning if an instance method m1 overrides an instance member m2 and m1 has fewer positional parameters than m2."
-Language/07_Classes/1_Instance_Methods_A03_t06: fail
-
 
 LibTest/core/Uri/decodeQueryComponent_A02_t01: fail # co19 Issue 591
 
