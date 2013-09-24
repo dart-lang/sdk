@@ -968,6 +968,7 @@ class StandardTestSuite extends TestSuite {
 
       String dartWrapperFilename = '$tempDir/test.dart';
       String compiledDartWrapperFilename = '$tempDir/test.js';
+      String precompiledDartWrapperFilename = '$tempDir/test.precompiled.js';
 
       String content = null;
       Path dir = filePath.directoryPath;
@@ -1015,8 +1016,13 @@ class StandardTestSuite extends TestSuite {
         RandomAccessFile htmlTest =
             new File(htmlPath).openSync(mode: FileMode.WRITE);
 
-        String scriptPath = (compiler == 'none') ?
-            dartWrapperFilename : compiledDartWrapperFilename;
+        String scriptPath = dartWrapperFilename;
+        if (compiler != 'none') {
+          scriptPath = compiledDartWrapperFilename;
+          if (configuration['csp']) {
+            scriptPath = precompiledDartWrapperFilename;
+          }
+        }
         scriptPath = _createUrlPathFromFile(new Path(scriptPath));
 
         if (new File(pngPath.toNativePath()).existsSync()) {
@@ -1026,11 +1032,6 @@ class StandardTestSuite extends TestSuite {
           expectedOutput = txtPath;
           content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
         } else {
-          if (compiler == "dart2js" && configuration["csp"]) {
-            scriptPath =
-                scriptPath.replaceFirst('/test.js', '/test.precompiled.js');
-          }
-
           content = getHtmlContents(filename, scriptType,
               new Path("$scriptPath"));
         }
