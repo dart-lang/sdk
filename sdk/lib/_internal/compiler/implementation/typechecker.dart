@@ -195,7 +195,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   reportTypeInfo(Spannable node, MessageKind kind, [Map arguments = const {}]) {
     compiler.reportDiagnostic(compiler.spanFromSpannable(node),
-        'Info: ${kind.message(arguments)}', api.Diagnostic.INFO);
+        '${kind.message(arguments)}', api.Diagnostic.INFO);
   }
 
   // TODO(karlklose): remove these functions.

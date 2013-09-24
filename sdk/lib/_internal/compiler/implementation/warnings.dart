@@ -122,7 +122,7 @@ class MessageKind {
       error: const MessageKind(
           "Error: No member named '#{memberName}' in class '#{className}'."),
       warning: const MessageKind(
-          "Warning: No member named ;#{memberName}' in class '#{className}'."));
+          "Warning: No member named '#{memberName}' in class '#{className}'."));
 
   static const MessageKind METHOD_NOT_FOUND = const MessageKind(
       "Warning: No method named '#{memberName}' in class '#{className}'.");
