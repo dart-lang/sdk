@@ -69,6 +69,10 @@ LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail, OK # Problems with the test:
 LibTest/math/exp_A01_t01: Fail # Issue co19 - 44
 LibTest/math/sin_A01_t01: Fail # Inherited from VM.
 LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
+LibTest/typed_data/Float32x4/toUint32x4_A01_t01: Fail # co19 Issue 601
+LibTest/typed_data/Float32x4/toUint32x4_A01_t02: Fail # co19 Issue 601
+LibTest/typed_data/Uint32x4/toFloat32x4_A01_t01: Fail # co19 Issue 601
+LibTest/typed_data/Uint32x4/toFloat32x4_A01_t02: Fail # co19 Issue 601
 
 
 [ $compiler == dart2dart && $system == windows ]
