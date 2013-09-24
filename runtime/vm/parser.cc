@@ -6996,12 +6996,8 @@ AstNode* Parser::ParseStatement() {
   } else if (CurrentToken() == Token::kSEMICOLON) {
     // Empty statement, nothing to do.
     ConsumeToken();
-  } else if ((CurrentToken() == Token::kRETHROW) ||
-            ((CurrentToken() == Token::kTHROW) &&
-             (LookaheadToken(1) == Token::kSEMICOLON))) {
-    // Rethrow of current exception. Throwing of an exception object
-    // is an expression and is handled in ParseExpr().
-    // TODO(hausner): remove support for 'throw;'.
+  } else if (CurrentToken() == Token::kRETHROW) {
+    // Rethrow of current exception.
     ConsumeToken();
     ExpectSemicolon();
     // Check if it is ok to do a rethrow.
@@ -7747,7 +7743,9 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
 
   if (CurrentToken() == Token::kTHROW) {
     ConsumeToken();
-    ASSERT(CurrentToken() != Token::kSEMICOLON);
+    if (CurrentToken() == Token::kSEMICOLON) {
+      ErrorMsg("expression expected after throw");
+    }
     AstNode* expr = ParseExpr(require_compiletime_const, consume_cascades);
     return new ThrowNode(expr_pos, expr, NULL);
   }

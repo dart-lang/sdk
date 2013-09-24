@@ -28,7 +28,7 @@ TEST_CASE(IsolateSpawn) {
       "  try {\n"
       "    spawnFunction(entry);\n"
       "  } catch (e) {\n"
-      "    throw;\n"
+      "    rethrow;\n"
       "  }\n"
       "  return 0;\n"
       "}\n";
