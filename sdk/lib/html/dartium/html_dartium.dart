@@ -9530,6 +9530,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   /// This is identical to calling `new Element.tag('video')`.
   factory Element.video() => new Element.tag('video');
 
+  Map<String, String> _cachedAttributeMap;
   /**
    * All attributes on this element.
    *
@@ -9540,7 +9541,12 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    * (such as 'xlink:href'), additional attributes can be accessed via
    * [getNamespacedAttributes].
    */
-  Map<String, String> get attributes => new _ElementAttributeMap(this);
+  Map<String, String> get attributes {
+    if (_cachedAttributeMap == null) {
+      _cachedAttributeMap = new _ElementAttributeMap(this);
+    }
+    return _cachedAttributeMap;
+  }
 
   void set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
@@ -34743,39 +34749,15 @@ class _Utils {
   static void register(Document document, String tag, Type type,
       String extendsTagName) {
     // TODO(vsm): Move these checks into native code.
-    if (type == null) {
-      throw new UnsupportedError("Invalid null type.");
-    }
     ClassMirror cls = reflectClass(type);
     if (_isBuiltinType(cls)) {
       throw new UnsupportedError("Invalid custom element from $libName.");
     }
-    ClassMirror superClass = cls.superclass;
-
-    Symbol objectName = reflectClass(Object).qualifiedName;
-    bool isRoot(ClassMirror cls) =>
-      cls == null || cls.qualifiedName == objectName;
-    // TODO(vsm): Support extending SvgElement as well.
-    Symbol elementName = reflectClass(HtmlElement).qualifiedName;
-    bool isElement(ClassMirror cls) =>
-      cls != null && cls.qualifiedName == elementName;
-
-    ClassMirror nativeClass = _isBuiltinType(superClass) ? superClass : null;
-    while(!isRoot(superClass) && !isElement(superClass)) {
-      superClass = superClass.superclass;
-      if (nativeClass == null && _isBuiltinType(superClass)) {
-        nativeClass = superClass;
-      }
-    }
-
-    if (isRoot(superClass)) {
-      throw new UnsupportedError("Invalid custom element doesn't inherit from HtmlElement.");
-    }
-    _register(document, tag, type, extendsTagName, nativeClass.reflectedType);
+    _register(document, tag, type, extendsTagName);
   }
 
   static void _register(Document document, String tag, Type customType,
-      String extendsTagName, Type nativeType) native "Utils_register";
+      String extendsTagName) native "Utils_register";
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {
