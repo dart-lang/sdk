@@ -4857,13 +4857,13 @@ RawString* Function::UserVisibleFormalParameters() const {
   const GrowableObjectArray& pieces =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   const TypeArguments& instantiator = TypeArguments::Handle();
-  BuildSinatureParameters(false, kUserVisibleName, instantiator, pieces);
+  BuildSignatureParameters(false, kUserVisibleName, instantiator, pieces);
   const Array& strings = Array::Handle(Array::MakeArray(pieces));
   return String::ConcatAll(strings);
 }
 
 
-void Function::BuildSinatureParameters(
+void Function::BuildSignatureParameters(
     bool instantiate,
     NameVisibility name_visibility,
     const AbstractTypeArguments& instantiator,
@@ -4969,10 +4969,10 @@ RawString* Function::BuildSignature(
     }
   }
   pieces.Add(Symbols::LParen());
-  BuildSinatureParameters(instantiate,
-                         name_visibility,
-                         instantiator,
-                         pieces);
+  BuildSignatureParameters(instantiate,
+                           name_visibility,
+                           instantiator,
+                           pieces);
   pieces.Add(Symbols::RParenArrow());
   AbstractType& res_type = AbstractType::Handle(result_type());
   if (instantiate && !res_type.IsInstantiated()) {

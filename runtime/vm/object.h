@@ -1867,10 +1867,10 @@ class Function : public Object {
   void set_data(const Object& value) const;
   static RawFunction* New();
 
-  void BuildSinatureParameters(bool instantiate,
-                               NameVisibility name_visibility,
-                               const AbstractTypeArguments& instantiator,
-                               const GrowableObjectArray& pieces) const;
+  void BuildSignatureParameters(bool instantiate,
+                                NameVisibility name_visibility,
+                                const AbstractTypeArguments& instantiator,
+                                const GrowableObjectArray& pieces) const;
   RawString* BuildSignature(bool instantiate,
                             NameVisibility name_visibility,
                             const AbstractTypeArguments& instantiator) const;

@@ -1436,6 +1436,57 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
 }
 
 
+/* Support for mixin typedef.
+Consider the following example:
+
+class I<T> { }
+class J<T> { }
+class S<T> { }
+class M<T> { }
+typedef A<U, V> = Object with M<Map<U, V>> implements I<V>;
+typedef C<T, K> = S<T> with A<T, List<K>> implements J<K>;
+
+Before the call to ApplyMixinTypedef, the VM has already synthesized 2 mixin
+application classes Object&M and S&A:
+
+Object&M<T> extends Object implements M<T> { ... members of M applied here ... }
+A<U, V> extends Object&M<Map<U, V>> implements I<V> { }
+
+S&A<T`, U, V> extends S<T`> implements A<U, V> { }
+C<T, K> extends S&A<T, T, List<K>> implements J<K> { }
+
+In theory, class A should be an alias of Object&M instead of extending it.
+In practice, the additional class provides a hook for implemented interfaces
+(e.g. I<V>) and for type argument substitution via the super type relation (e.g.
+type parameter T of Object&M is substituted with Map<U, V>, U and V being the
+type parameters of the typedef A).
+
+Similarly, class C should be an alias of S&A instead of extending it.
+
+Since A is used as a mixin, it must extend Object. The fact that it extends
+Object&M must be hidden so that no error is wrongly reported.
+
+Now, A does not have any members to be mixed into S&A, because A is a typedef.
+The members to be mixed in are actually those of M, and they should appear in a
+scope where the type parameter T is visible. The class S&A declares the type
+parameters of A, i.e. U and V, but not T.
+
+Therefore, the call to ApplyMixinTypedef inserts another synthesized class S&A`
+as the superclass of S&A. The class S&A` declares a type argument T:
+
+Instead of
+S&A<T`, U, V> extends S<T`> implements A<U, V> { }
+
+We now have:
+S&A`<T`, T> extends S<T`> implements M<T> { ... members of M applied here ... }
+S&A<T`, U, V> extends S&A`<T`, Map<U, V>> implements A<U, V> { }
+
+The main implementation difficulty resides in the fact that the type parameters
+U and V in the super type S&A`<T`, Map<U, V>> of S&A refer to the type
+parameters U and V of S&A, not to U and V of A. An instantiation step with
+a properly crafted instantiator vector takes care of the required type parameter
+substitution.
+*/
 void ClassFinalizer::ApplyMixinTypedef(const Class& mixin_app_class) {
   // If this mixin typedef is aliasing another mixin typedef, another class
   // will be inserted via recursion. No need to check here.
@@ -1576,13 +1627,16 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class) {
   ASSERT(!mixin_type.IsNull());
   ASSERT(mixin_type.HasResolvedTypeClass());
   const Class& mixin_class = Class::Handle(mixin_type.type_class());
-  if (mixin_class.IsNullClass()) {
-    const Script& script = Script::Handle(mixin_app_class.script());
-    ReportError(Error::Handle(),  // No previous error.
-                script, mixin_app_class.token_pos(),
-                "illegal mixin of 'Null'");
+
+  if (FLAG_trace_class_finalization) {
+    OS::Print("Applying mixin type '%s' to %s at pos %" Pd "\n",
+              String::Handle(mixin_type.Name()).ToCString(),
+              mixin_app_class.ToCString(),
+              mixin_app_class.token_pos());
   }
-  // Check for illegal self references.
+
+  // Check for illegal self references. This has to be done before checking
+  // that the super class of the mixin class is class Object.
   GrowableArray<intptr_t> visited_mixins;
   if (!IsMixinCycleFree(mixin_class, &visited_mixins)) {
     const Script& script = Script::Handle(mixin_class.script());
@@ -1591,13 +1645,6 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class) {
                 script, mixin_class.token_pos(),
                 "mixin class '%s' illegally refers to itself",
                 class_name.ToCString());
-  }
-
-  if (FLAG_trace_class_finalization) {
-    OS::Print("Applying mixin type '%s' to %s at pos %" Pd "\n",
-              String::Handle(mixin_type.Name()).ToCString(),
-              mixin_app_class.ToCString(),
-              mixin_app_class.token_pos());
   }
 
   // Check that the super class of the mixin class is class Object.
@@ -1621,6 +1668,11 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class) {
 
   // Copy type parameters to mixin application class.
   CloneMixinAppTypeParameters(mixin_app_class);
+
+  // Verify that no restricted class is used as a mixin by checking the
+  // interfaces of the mixin application class, which implements its mixin.
+  GrowableArray<intptr_t> visited_interfaces;
+  ResolveSuperTypeAndInterfaces(mixin_app_class, &visited_interfaces);
 
   if (FLAG_trace_class_finalization) {
     OS::Print("Done applying mixin type '%s' to class '%s' %s extending '%s'\n",
@@ -2280,10 +2332,8 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
                   "function type alias '%s' may not be used as interface",
                   String::Handle(interface_class.Name()).ToCString());
     }
-    // Verify that unless cls belongs to core lib, it cannot extend or implement
-    // any of Null, bool, num, int, double, String, Function, dynamic.
-    // The exception is signature classes, which are compiler generated and
-    // represent a function type, therefore implementing the Function interface.
+    // Verify that unless cls belongs to core lib, it cannot extend, implement,
+    // or mixin any of Null, bool, num, int, double, String, dynamic.
     if (!cls_belongs_to_core_lib) {
       if (interface.IsBoolType() ||
           interface.IsNullType() ||
@@ -2293,11 +2343,19 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
           interface.IsStringType() ||
           interface.IsDynamicType()) {
         const Script& script = Script::Handle(cls.script());
-        ReportError(Error::Handle(),  // No previous error.
-                    script, cls.token_pos(),
-                    "'%s' is not allowed to extend or implement '%s'",
-                    String::Handle(cls.Name()).ToCString(),
-                    String::Handle(interface_class.Name()).ToCString());
+        const String& interface_name = String::Handle(interface_class.Name());
+        if (cls.IsMixinApplication()) {
+          ReportError(Error::Handle(),  // No previous error.
+                      script, cls.token_pos(),
+                      "illegal mixin of '%s'",
+                      interface_name.ToCString());
+        } else {
+          ReportError(Error::Handle(),  // No previous error.
+                      script, cls.token_pos(),
+                      "'%s' is not allowed to extend or implement '%s'",
+                      String::Handle(cls.Name()).ToCString(),
+                      interface_name.ToCString());
+        }
       }
     }
     interface_class.set_is_implemented();
