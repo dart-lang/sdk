@@ -9530,7 +9530,6 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   /// This is identical to calling `new Element.tag('video')`.
   factory Element.video() => new Element.tag('video');
 
-  Map<String, String> _cachedAttributeMap;
   /**
    * All attributes on this element.
    *
@@ -9541,12 +9540,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    * (such as 'xlink:href'), additional attributes can be accessed via
    * [getNamespacedAttributes].
    */
-  Map<String, String> get attributes {
-    if (_cachedAttributeMap == null) {
-      _cachedAttributeMap = new _ElementAttributeMap(this);
-    }
-    return _cachedAttributeMap;
-  }
+  Map<String, String> get attributes => new _ElementAttributeMap(this);
 
   void set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
