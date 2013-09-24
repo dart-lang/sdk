@@ -17,7 +17,7 @@ package/invalid_uri_test: Fail, OK # Fails intentionally
 
 [ $runtime == vm && $system == windows ]
 io/file_system_watcher_test: Pass, Timeout # Issue 13228
-io/process_sync_test: Pass, Timeout # Issue 13541
+io/process_sync_test: Skip # Issue 13541
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
