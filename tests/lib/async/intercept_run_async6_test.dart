@@ -50,8 +50,7 @@ main() {
          "async handler", "async handler done",
          "after",
          "run async body",
-         "error: foo",
-         "done"],
+         "error: foo"],
         events);
     asyncEnd();
  });

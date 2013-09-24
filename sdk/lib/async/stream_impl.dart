@@ -80,7 +80,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
   _DataHandler<T> _onData;
   _ErrorHandler _onError;
   _DoneHandler _onDone;
-  final _Zone _zone = _Zone.current;
+  final Zone _zone = Zone.current;
 
   /** Bit vector based on state-constants above. */
   int _state;
@@ -92,15 +92,17 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
    */
   _PendingEvents _pending;
 
-  _BufferingStreamSubscription(this._onData,
-                               this._onError,
-                               this._onDone,
+  _BufferingStreamSubscription(void onData(T data),
+                               void onError(error),
+                               void onDone(),
                                bool cancelOnError)
-      : _state = (cancelOnError ? _STATE_CANCEL_ON_ERROR : 0) {
+      : _onData = Zone.current.registerUnaryCallback(onData),
+        _onError = Zone.current.registerUnaryCallback(onError),
+        _onDone = Zone.current.registerCallback(onDone),
+        _state = (cancelOnError ? _STATE_CANCEL_ON_ERROR : 0) {
     assert(_onData != null);
     assert(_onError != null);
     assert(_onDone != null);
-    _zone.expectCallback();
   }
 
   /**
@@ -219,7 +221,6 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
 
   void _cancel() {
     _state |= _STATE_CANCELED;
-    _zone.cancelCallbackExpectation();
     if (_hasPending) {
       _pending.cancelSchedule();
     }
@@ -322,7 +323,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     assert(!_inCallback);
     bool wasInputPaused = _isInputPaused;
     _state |= _STATE_IN_CALLBACK;
-    _zone.executePeriodicCallbackGuarded(() => _onData(data));
+    _zone.runUnaryGuarded(_onData, data);
     _state &= ~_STATE_IN_CALLBACK;
     _checkState(wasInputPaused);
   }
@@ -333,11 +334,11 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     assert(!_inCallback);
     bool wasInputPaused = _isInputPaused;
     _state |= _STATE_IN_CALLBACK;
-    if (!_zone.inSameErrorZone(_Zone.current)) {
+    if (!_zone.inSameErrorZone(Zone.current)) {
       // Errors are not allowed to traverse zone boundaries.
-      _Zone.current.handleUncaughtError(error);
+      Zone.current.handleUncaughtError(error);
     } else {
-      _zone.executePeriodicCallbackGuarded(() => _onError(error));
+      _zone.runUnaryGuarded(_onError, error);
     }
     _state &= ~_STATE_IN_CALLBACK;
     if (_cancelOnError) {
@@ -351,7 +352,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     assert(!_isPaused);
     assert(!_inCallback);
     _state |= (_STATE_CANCELED | _STATE_CLOSED | _STATE_IN_CALLBACK);
-    _zone.executeCallbackGuarded(_onDone);
+    _zone.runGuarded(_onDone);
     _onCancel();  // No checkState after cancel, it is always the last event.
     _state &= ~_STATE_IN_CALLBACK;
   }
@@ -532,7 +533,7 @@ void _nullDataHandler(var value) {}
 
 /** Default error handler, reports the error to the global handler. */
 void _nullErrorHandler(error) {
-  _Zone.current.handleUncaughtError(error);
+  Zone.current.handleUncaughtError(error);
 }
 
 /** Default done handler, does nothing. */
@@ -723,18 +724,18 @@ class _AsBroadcastStream<T> extends Stream<T> {
   final Stream<T> _source;
   final _broadcastCallback _onListenHandler;
   final _broadcastCallback _onCancelHandler;
-  final _Zone _zone;
+  final Zone _zone;
 
   _AsBroadcastStreamController<T> _controller;
   StreamSubscription<T> _subscription;
 
   _AsBroadcastStream(this._source,
-                     this._onListenHandler,
-                     this._onCancelHandler)
-      : _zone = _Zone.current {
+                     void onListenHandler(StreamSubscription subscription),
+                     void onCancelHandler(StreamSubscription subscription))
+      : _onListenHandler = Zone.current.registerUnaryCallback(onListenHandler),
+        _onCancelHandler = Zone.current.registerUnaryCallback(onCancelHandler),
+        _zone = Zone.current {
     _controller = new _AsBroadcastStreamController<T>(_onListen, _onCancel);
-    // Keep zone alive until we are done doing callbacks.
-    _zone.expectCallback();
   }
 
   bool get isBroadcast => true;
@@ -763,22 +764,19 @@ class _AsBroadcastStream<T> extends Stream<T> {
   void _onCancel() {
     bool shutdown = (_controller == null) || _controller.isClosed;
     if (_onCancelHandler != null) {
-      _zone.executePeriodicCallbackGuarded(
-          () => _onCancelHandler(new _BroadcastSubscriptionWrapper(this)));
+      _zone.runUnary(_onCancelHandler, new _BroadcastSubscriptionWrapper(this));
     }
     if (shutdown) {
       if (_subscription != null) {
         _subscription.cancel();
         _subscription = null;
       }
-      _zone.cancelCallbackExpectation();
     }
   }
 
   void _onListen() {
     if (_onListenHandler != null) {
-      _zone.executePeriodicCallbackGuarded(
-          () => _onListenHandler(new _BroadcastSubscriptionWrapper(this)));
+      _zone.runUnary(_onListenHandler, new _BroadcastSubscriptionWrapper(this));
     }
   }
 
@@ -788,9 +786,6 @@ class _AsBroadcastStream<T> extends Stream<T> {
     // Called by [_controller] when it has no subscribers left.
     StreamSubscription subscription = _subscription;
     _subscription = null;
-    if (_controller._isEmpty) {
-      _zone.cancelCallbackExpectation();
-    }
     _controller = null;  // Marks the stream as no longer listenable.
     subscription.cancel();
   }

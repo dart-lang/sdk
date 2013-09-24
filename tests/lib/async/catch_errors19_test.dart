@@ -9,6 +9,8 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+  Completer done = new Completer();
+
   var events = [];
   Stream stream = new Stream.periodic(const Duration(milliseconds: 20),
                                       (x) => x);
@@ -21,11 +23,17 @@ main() {
     }, onDone: () {
       new Future.delayed(const Duration(milliseconds: 30), () {
         events.add(499);
+        done.complete(true);
       });
     });
   }).listen((x) { events.add("outer: $x"); },
-            onDone: () {
-              Expect.listEquals([0, 1, 2, 3, 4, 499], events);
-              asyncEnd();
-            });
+            onDone: () { Expect.fail("Unexpected callback"); });
+
+  done.future.whenComplete(() {
+    // Give handlers time to run.
+    Timer.run(() {
+      Expect.listEquals([0, 1, 2, 3, 4, 499], events);
+      asyncEnd();
+    });
+  });
 }

@@ -194,12 +194,15 @@ abstract class Future<T> {
     // List collecting values from the futures.
     // Set to null if an error occurs.
     List values;
-    void handleError(error) {
+
+    dynamic handleError(error) {
       if (values != null) {
         values = null;
         completer.completeError(error);
       }
+      return null;
     }
+
     // As each future completes, put its value into the corresponding
     // position in the list of values.
     int remaining = 0;

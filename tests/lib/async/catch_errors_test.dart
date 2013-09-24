@@ -9,14 +9,12 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
-  // Make sure `catchErrors` shuts down the error stream when the synchronous
-  // operation is done and there isn't any asynchronous pending callback.
+
+  // Make sure `catchErrors` does not execute the error callback.
   catchErrors(() {
     return 'allDone';
-  }).listen((x) {
-      Expect.fail("Unexpected callback");
-    },
-    onDone: () {
-      asyncEnd();
-    });
+  }).listen((x) { Expect.fail("Unexpected callback"); });
+
+  // Wait one cycle before shutting down the test.
+  Timer.run(asyncEnd);
 }

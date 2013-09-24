@@ -18,6 +18,7 @@
 library dart.async;
 
 import "dart:collection";
+import "dart:_collection-dev" show deprecated;
 
 part 'async_error.dart';
 part 'broadcast_stream_controller.dart';

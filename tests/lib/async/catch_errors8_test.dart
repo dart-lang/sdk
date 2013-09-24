@@ -9,6 +9,8 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+  Completer done = new Completer();
+
   var events = [];
   // Test nested `catchErrors`.
   // The nested `catchErrors` throws all kinds of different errors (synchronous
@@ -25,31 +27,37 @@ main() {
         throw "delayed error";
       });
       throw "catch error";
-    }).listen((x) { events.add(x); })
-      .asFuture()
-      .then((_) => events.add("inner done"))
-      .then((_) { throw "inner done throw"; });
+    }).listen((x) {
+      events.add(x);
+      if (x == "delayed error") {
+        throw "inner done throw";
+      }
+    });
     events.add("after inner");
     throw "inner throw";
   }).listen((x) {
       events.add(x);
+      if (x == "inner done throw") {
+        done.complete(true);
+      }
     },
-    onDone: () {
-      Expect.listEquals(["catch error entry",
-                         "catch error entry2",
-                         "after inner",
-                         "main exit",
-                         "catch error",
-                         "inner throw",
-                         "future error",
-                         "future error2",
-                         499,
-                         "delayed error",
-                         "inner done",
-                         "inner done throw"
-                         ],
-                         events);
-      asyncEnd();
-    });
+    onDone: () { Expect.fail("Unexpected callback"); });
+
+  done.future.whenComplete(() {
+    Expect.listEquals(["catch error entry",
+                        "catch error entry2",
+                        "after inner",
+                        "main exit",
+                        "catch error",
+                        "inner throw",
+                        "future error",
+                        "future error2",
+                        499,
+                        "delayed error",
+                        "inner done throw"
+                        ],
+                        events);
+    asyncEnd();
+  });
   events.add("main exit");
 }

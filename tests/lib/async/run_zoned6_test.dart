@@ -11,13 +11,13 @@ main() {
   // Ensure that `runZoned`'s onError handles synchronous errors but delegates
   // to the top-level when the handler returns false.
   try {
-    runZonedExperimental(() { throw 0; },
-                        onError: (e) {
-                          Expect.equals(0, e);
-                          if (false) /// 01: runtime error
-                            asyncEnd();
-                          throw e;  /// 01: runtime error
-                        });
+    runZoned(() { throw 0; },
+             onError: (e) {
+               Expect.equals(0, e);
+               if (false) /// 01: runtime error
+                 asyncEnd();
+               throw e;  /// 01: runtime error
+             });
   } catch (e) {
     // We should never see an error here.
     if (false)  /// 01: continued

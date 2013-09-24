@@ -9,11 +9,11 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+  Completer done = new Completer();
   bool futureWasExecuted = false;
   bool future2WasExecuted = false;
 
-  // Make sure `catchErrors` doesn't close its error stream before all
-  // asynchronous operations are done.
+  // Make sure `catchErrors` never closes its stream.
   catchErrors(() {
     new Future(() => 499).then((x) {
       futureWasExecuted = true;
@@ -21,6 +21,8 @@ main() {
     runAsync(() {
       new Future(() => 42).then((x) {
         future2WasExecuted = true;
+        Expect.isTrue(futureWasExecuted);
+        done.complete(true);
       });
     });
     return 'allDone';
@@ -28,8 +30,7 @@ main() {
       Expect.fail("Unexpected callback");
     },
     onDone: () {
-      Expect.isTrue(futureWasExecuted);
-      Expect.isTrue(future2WasExecuted);
-      asyncEnd();
+      Expect.fail("Unexpected callback");
     });
+  done.future.whenComplete(asyncEnd);
 }

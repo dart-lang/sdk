@@ -9,6 +9,6 @@ main() {
   // Make sure `runZoned` returns the result of a synchronous call when an
   // error handler is defined.
   Expect.equals(499,
-                runZonedExperimental(() => 499,
-                                     onError: (e) { throw "Unexpected"; }));
+                runZoned(() => 499,
+                         onError: (e) { throw "Unexpected"; }));
 }

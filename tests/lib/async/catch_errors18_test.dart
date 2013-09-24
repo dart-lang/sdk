@@ -9,6 +9,8 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+  Completer done = new Completer();
+
   var events = [];
   Stream stream = new Stream.periodic(const Duration(milliseconds: 20),
                                       (x) => x);
@@ -19,13 +21,19 @@ main() {
       if (x == 5) {
         events.add("cancel");
         subscription.cancel();
+        done.complete(true);
         return;
       }
       events.add(x);
     });
   }).listen((x) { events.add("outer: $x"); },
-            onDone: () {
-              Expect.listEquals([0, 1, 2, 3, 4, "cancel"], events);
-              asyncEnd();
-            });
+            onDone: () { Expect.fail("Unexpected callback"); });
+
+  done.future.whenComplete(() {
+    // Give handlers time to run.
+    Timer.run(() {
+      Expect.listEquals([0, 1, 2, 3, 4, "cancel"], events);
+      asyncEnd();
+    });
+  });
 }

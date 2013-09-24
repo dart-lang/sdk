@@ -9,9 +9,9 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+  Completer done = new Completer();
   var events = [];
-  // Test that the outer `catchErrors` waits for the nested `catchErrors` stream
-  // to be done.
+
   catchErrors(() {
     events.add("catch error entry");
     catchErrors(() {
@@ -23,14 +23,20 @@ main() {
         throw "delayed error";
       });
       throw "catch error";
-    }).listen((x) { events.add("i $x"); },
-              onDone: () => events.add("inner done"));
+    }).listen((x) {
+                events.add("i $x");
+                if (x == "delayed error") done.complete(true);
+              },
+              onDone: () { Expect.fail("Unexpected callback"); });
     events.add("after inner");
     throw "inner throw";
   }).listen((x) {
       events.add("o $x");
     },
-    onDone: () {
+    onDone: () { Expect.fail("Unexpected callback"); });
+  done.future.whenComplete(() {
+    // Give some time to run the handlers.
+    Timer.run(() {
       Expect.listEquals(["catch error entry",
                          "catch error entry2",
                          "after inner",
@@ -43,10 +49,10 @@ main() {
                          "i future error2",
                          "i 499",
                          "i delayed error",
-                         "inner done",
                          ],
                          events);
       asyncEnd();
     });
+  });
   events.add("main exit");
 }

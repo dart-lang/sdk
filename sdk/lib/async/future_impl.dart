@@ -76,7 +76,7 @@ class _Future<T> implements Future<T> {
   /** Whether the future is complete, and as what. */
   int _state = _INCOMPLETE;
 
-  final _Zone _zone = _Zone.current.fork();
+  final Zone _zone;
 
   bool get _mayComplete => _state == _INCOMPLETE;
   bool get _isChained => _state == _CHAINED;
@@ -140,37 +140,46 @@ class _Future<T> implements Future<T> {
       => _isChained ? null : _whenCompleteActionCallback;
 
   _Future()
-      : _onValueCallback = null, _errorTestCallback = null,
+      : _zone = Zone.current,
+        _onValueCallback = null, _errorTestCallback = null,
         _onErrorCallback = null, _whenCompleteActionCallback = null;
 
   /// Valid types for value: `T` or `Future<T>`.
   _Future.immediate(value)
-        : _onValueCallback = null, _errorTestCallback = null,
+        : _zone = Zone.current,
+          _onValueCallback = null, _errorTestCallback = null,
           _onErrorCallback = null, _whenCompleteActionCallback = null {
     _asyncComplete(value);
   }
 
   _Future.immediateError(var error, [Object stackTrace])
-      : _onValueCallback = null, _errorTestCallback = null,
+      : _zone = Zone.current,
+        _onValueCallback = null, _errorTestCallback = null,
         _onErrorCallback = null, _whenCompleteActionCallback = null {
     _asyncCompleteError(error, stackTrace);
   }
 
-  _Future._then(this._onValueCallback, this._onErrorCallback)
-      : _errorTestCallback = null, _whenCompleteActionCallback = null {
-    _zone.expectCallback();
-  }
+  _Future._then(onValueCallback(value), onErrorCallback(e))
+      : _zone = Zone.current,
+        _onValueCallback = Zone.current.registerUnaryCallback(onValueCallback),
+        _onErrorCallback = Zone.current.registerUnaryCallback(onErrorCallback),
+        _errorTestCallback = null,
+        _whenCompleteActionCallback = null;
 
-  _Future._catchError(this._onErrorCallback, this._errorTestCallback)
-    : _onValueCallback = null, _whenCompleteActionCallback = null {
-    _zone.expectCallback();
-  }
+  _Future._catchError(onErrorCallback(e), bool errorTestCallback(e))
+    : _zone = Zone.current,
+      _onErrorCallback = Zone.current.registerUnaryCallback(onErrorCallback),
+      _errorTestCallback = Zone.current.registerUnaryCallback(errorTestCallback),
+      _onValueCallback = null,
+      _whenCompleteActionCallback = null;
 
-  _Future._whenComplete(this._whenCompleteActionCallback)
-      : _onValueCallback = null, _errorTestCallback = null,
-        _onErrorCallback = null {
-    _zone.expectCallback();
-  }
+  _Future._whenComplete(whenCompleteActionCallback())
+      : _zone = Zone.current,
+        _whenCompleteActionCallback =
+            Zone.current.registerCallback(whenCompleteActionCallback),
+        _onValueCallback = null,
+        _errorTestCallback = null,
+        _onErrorCallback = null;
 
   Future then(f(T value), { onError(error) }) {
     _Future result;
@@ -224,7 +233,7 @@ class _Future<T> implements Future<T> {
     assert(listener._nextListener == null);
     if (_isComplete) {
       // Handle late listeners asynchronously.
-      runAsync(() {
+      _zone.scheduleMicrotask(() {
         _propagateToListeners(this, listener);
       });
     } else {
@@ -341,7 +350,7 @@ class _Future<T> implements Future<T> {
     }
 
     _markPendingCompletion();
-    runAsync(() {
+    _zone.scheduleMicrotask(() {
       _complete(value);
     });
   }
@@ -354,7 +363,7 @@ class _Future<T> implements Future<T> {
     assert(_errorTest == null);
 
     _markPendingCompletion();
-    runAsync(() {
+    _zone.scheduleMicrotask(() {
       _completeError(error, stackTrace);
     });
   }
@@ -405,11 +414,11 @@ class _Future<T> implements Future<T> {
         source._zone.handleUncaughtError(source._error);
         return;
       }
-      if (!identical(_Zone.current, listener._zone)) {
+      if (!identical(Zone.current, listener._zone)) {
         // Run the propagation in the listener's zone to avoid
         // zone transitions. The idea is that many chained futures will
         // be in the same zone.
-        listener._zone.executePeriodicCallback(() {
+        listener._zone.run(() {
           _propagateToListeners(source, listener);
         });
         return;
@@ -429,7 +438,7 @@ class _Future<T> implements Future<T> {
       // zone.
       // TODO(floitsch): only run callbacks in the zone, not the whole
       // handling code.
-      listener._zone.executeCallback(() {
+      listener._zone.run(() {
         // TODO(floitsch): mark the listener as pending completion. Currently
         // we can't do this, since the markPendingCompletion verifies that
         // the future is not already marked (or chained).
@@ -479,18 +488,12 @@ class _Future<T> implements Future<T> {
                 _propagateToListeners(completeResult, listener);
               });
               isPropagationAborted = true;
-              // We will reenter the listener's zone.
-              listener._zone.expectCallback();
             }
           }
         } catch (e, s) {
           // Set the exception as error.
           listenerValueOrError = _asyncError(e, s);
           listenerHasValue = false;
-        }
-        if (listenerHasValue && listenerValueOrError is Future) {
-          // We are going to reenter the zone to finish what we started.
-          listener._zone.expectCallback();
         }
       });
       if (isPropagationAborted) return;

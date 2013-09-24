@@ -32,7 +32,7 @@ part of dart.async;
  *
  * Note: If Dart code using Timer is compiled to JavaScript, the finest
  * granularity available in the browser is 4 milliseconds.
- * 
+ *
  * See [Stopwatch] for measuring elapsed time.
  */
 abstract class Timer {
@@ -44,7 +44,13 @@ abstract class Timer {
    *
    */
   factory Timer(Duration duration, void callback()) {
-    return _Zone.current.createTimer(duration, callback);
+    if (Zone.current == Zone.ROOT) {
+      // No need to bind the callback. We know that the root's timer will
+      // be invoked in the root zone.
+      return Zone.current.createTimer(duration, callback);
+    }
+    return Zone.current.createTimer(
+        duration, Zone.current.bindCallback(callback, runGuarded: true));
   }
 
   /**
@@ -55,7 +61,13 @@ abstract class Timer {
    */
   factory Timer.periodic(Duration duration,
                                   void callback(Timer timer)) {
-    return _Zone.current.createPeriodicTimer(duration, callback);
+    if (Zone.current == Zone.ROOT) {
+      // No need to bind the callback. We know that the root's timer will
+      // be invoked in the root zone.
+      return Zone.current.createPeriodicTimer(duration, callback);
+    }
+    return Zone.current.createPeriodicTimer(
+        duration, Zone.current.bindUnaryCallback(callback, runGuarded: true));
   }
 
   /**

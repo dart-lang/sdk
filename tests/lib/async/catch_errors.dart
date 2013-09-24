@@ -10,20 +10,10 @@ Stream catchErrors(void body()) {
     return true;
   }
 
-  void onDone() {
-    controller.close();
-  }
-
   void onListen() {
-    runZonedExperimental(body, onError: onError, onDone: onDone);
+    runZoned(body, onError: onError);
   }
 
   controller = new StreamController(onListen: onListen);
   return controller.stream;
-}
-
-Future waitForCompletion(void body()) {
-  Completer completer = new Completer.sync();
-  runZonedExperimental(body, onDone: completer.complete);
-  return completer.future;
 }

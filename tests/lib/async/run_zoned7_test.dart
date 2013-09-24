@@ -9,22 +9,29 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+  Completer done = new Completer();
+
   var events = [];
   // Test runZoned with periodic Timers.
-  runZonedExperimental(() {
+  runZoned(() {
     int counter = 0;
     new Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (counter == 5) timer.cancel();
+      if (counter == 5) {
+        timer.cancel();
+        done.complete(true);
+      }
       counter++;
       events.add(counter);
     });
-  }, onDone: () {
-      Expect.listEquals([
-                         "main exit",
-                         1, 2, 3, 4, 5, 6,
-                         ],
-                         events);
-      asyncEnd();
-    });
+  });
+
+  done.future.whenComplete(() {
+    Expect.listEquals([
+                        "main exit",
+                        1, 2, 3, 4, 5, 6,
+                        ],
+                        events);
+    asyncEnd();
+  });
   events.add("main exit");
 }
