@@ -4023,6 +4023,9 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     if (node.modifiers.isConst()) {
       error(node, MessageKind.FORMAL_DECLARED_CONST);
     }
+    if (node.modifiers.isStatic()) {
+      error(node, MessageKind.FORMAL_DECLARED_STATIC);
+    }
 
     if (currentDefinitions != null) {
       cancel(node, 'function type parameters not supported');

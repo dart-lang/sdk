@@ -564,6 +564,20 @@ foo([const x]) {}
 main() => foo(42);
 """]);
 
+  static const MessageKind FORMAL_DECLARED_STATIC = const MessageKind(
+      "Error: A formal parameter can't be declared static.",
+      howToFix: "Try removing 'static'.",
+      examples: const ["""
+foo(static x) {}
+main() => foo(42);
+""", """
+foo({static x}) {}
+main() => foo(42);
+""", """
+foo([static x]) {}
+main() => foo(42);
+"""]);
+
   static const MessageKind CANNOT_INSTANTIATE_TYPE_VARIABLE = const MessageKind(
       "Error: Cannot instantiate type variable '#{typeVariableName}'.");
 
