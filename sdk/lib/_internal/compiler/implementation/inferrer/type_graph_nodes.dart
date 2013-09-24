@@ -509,6 +509,28 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   String toString() => 'Call site $call ${receiver.type} $type';
 }
 
+class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
+  final TypeInformation closure;
+
+  ClosureCallSiteTypeInformation(
+      Spannable call,
+      Element enclosing,
+      Selector selector,
+      this.closure,
+      ArgumentsTypes arguments,
+      bool inLoop) : super(call, enclosing, selector, arguments, inLoop);
+
+  void addToGraph(TypeGraphInferrerEngine inferrer) {
+    arguments.forEach((info) => info.addUser(this));
+  }
+
+  TypeMask refine(TypeGraphInferrerEngine inferrer) {
+    return inferrer.types.dynamicType.type;
+  }
+
+  String toString() => 'Closure call $call on $closure';
+}
+
 /**
  * A [ConcreteTypeInformation] represents a type that needed
  * to be materialized during the creation of the graph. For example,

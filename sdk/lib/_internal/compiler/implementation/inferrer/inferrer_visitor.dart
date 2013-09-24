@@ -254,14 +254,6 @@ class ArgumentsTypes<T> {
   }
 }
 
-class CallSite {
-  final Selector selector;
-  final ArgumentsTypes arguments;
-  CallSite(this.selector, this.arguments) {
-    assert(selector != null);
-  }
-}
-
 abstract class MinimalInferrerEngine<T> {
   /**
    * Returns the type of [element].
@@ -271,14 +263,8 @@ abstract class MinimalInferrerEngine<T> {
   /**
    * Records that [node] sets non-final field [element] to be of type
    * [type].
-   *
-   * [constraint] is a field assignment constraint, as described in
-   * [InternalSimpleTypesInferrer].
    */
-  void recordTypeOfNonFinalField(Node node,
-                                 Element field,
-                                 T type,
-                                 CallSite constraint);
+  void recordTypeOfNonFinalField(Node node, Element field, T type);
 }
 
 /**
@@ -343,7 +329,7 @@ class LocalsHandler<T> {
     }
     if (capturedAndBoxed.containsKey(local)) {
       inferrer.recordTypeOfNonFinalField(
-          node, capturedAndBoxed[local], type, null);
+          node, capturedAndBoxed[local], type);
     } else if (inTryBlock) {
       // We don't know if an assignment in a try block
       // will be executed, so all assigments in that block are

@@ -164,8 +164,7 @@ class InferrerEngineForContainerTracer
 
   void recordTypeOfNonFinalField(Node node,
                                  Element field,
-                                 TypeMask type,
-                                 CallSite constraint) {}
+                                 TypeMask type) {}
 }
 
 /**

@@ -11,7 +11,7 @@ import '../tree/tree.dart' show Node;
 import '../types/types.dart' show TypeMask, ContainerTypeMask, TypesInferrer;
 import '../universe/universe.dart' show Selector, TypedSelector, SideEffects;
 import '../dart2jslib.dart' show Compiler, SourceString, TreeElementMapping;
-import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes, CallSite;
+import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes;
 import '../native_handler.dart' as native;
 import '../util/util.dart' show Spannable;
 import 'simple_types_inferrer.dart';
@@ -414,10 +414,10 @@ class TypeGraphInferrerEngine
           // Only update types of static fields if there is no
           // assignment. Instance fields are dealt with in the constructor.
           if (Elements.isStaticOrTopLevelField(element)) {
-            recordTypeOfNonFinalField(node, element, type, null);
+            recordTypeOfNonFinalField(node, element, type);
           }
         } else {
-          recordTypeOfNonFinalField(node, element, type, null);
+          recordTypeOfNonFinalField(node, element, type);
         }
         if (Elements.isStaticOrTopLevelField(element)
             && node.asSendSet() != null
@@ -566,9 +566,6 @@ class TypeGraphInferrerEngine
     }
   }
 
-  void updateAllParametersOf(FunctionElement function) {}
-  void onGenerativeConstructorAnalyzed(Element element) {}
-
   void setDefaultTypeOfParameter(Element parameter, TypeInformation type) {
     assert(parameter.enclosingElement.isImplementation);
     TypeInformation existing = defaultTypeOfParameter[parameter];
@@ -614,15 +611,13 @@ class TypeGraphInferrerEngine
   void recordTypeOfFinalField(Spannable node,
                               Element analyzed,
                               Element element,
-                              TypeInformation type,
-                              CallSite constraint) {
+                              TypeInformation type) {
     types.getInferredTypeOf(element).addAssignment(type);
   }
 
   void recordTypeOfNonFinalField(Spannable node,
                                  Element element,
-                                 TypeInformation type,
-                                 CallSite constraint) {
+                                 TypeInformation type) {
     types.getInferredTypeOf(element).addAssignment(type);
   }
 
@@ -658,7 +653,6 @@ class TypeGraphInferrerEngine
                                         Element caller,
                                         Element callee,
                                         ArgumentsTypes arguments,
-                                        CallSite constraint,
                                         SideEffects sideEffects,
                                         bool inLoop) {
     CallSiteTypeInformation info = new StaticCallSiteTypeInformation(
@@ -674,17 +668,36 @@ class TypeGraphInferrerEngine
                                          TypeInformation receiverType,
                                          Element caller,
                                          ArgumentsTypes arguments,
-                                         CallSite constraint,
                                          SideEffects sideEffects,
                                          bool inLoop) {
-    if (selector.isClosureCall()) return types.dynamicType;
+    if (selector.isClosureCall()) {
+      return registerCalledClosure(
+          node, selector, receiverType, caller, arguments, sideEffects, inLoop);
+    }
 
     compiler.world.allFunctions.filter(selector).forEach((callee) {
       updateSideEffects(sideEffects, selector, callee);
     });
 
-    DynamicCallSiteTypeInformation info = new DynamicCallSiteTypeInformation(
-        node, caller, selector, receiverType, arguments, inLoop);
+    CallSiteTypeInformation info = new DynamicCallSiteTypeInformation(
+          node, caller, selector, receiverType, arguments, inLoop);
+
+    info.addToGraph(this);
+    allocatedCalls.add(info);
+    return info;
+  }
+
+  TypeInformation registerCalledClosure(Node node,
+                                        Selector selector,
+                                        TypeInformation closure,
+                                        Element caller,
+                                        ArgumentsTypes arguments,
+                                        SideEffects sideEffects,
+                                        bool inLoop) {
+    sideEffects.setDependsOnSomething();
+    sideEffects.setAllSideEffects();
+    CallSiteTypeInformation info = new ClosureCallSiteTypeInformation(
+          node, caller, selector, closure, arguments, inLoop);
     info.addToGraph(this);
     allocatedCalls.add(info);
     return info;
@@ -745,6 +758,38 @@ class TypeGraphInferrerEngine
           "Cannot query the type inferrer when type inference is disabled.");
     }
     return types.getInferredTypeOf(element).callers.keys;
+  }
+
+  /**
+   * Returns the type of [element] when being called with [selector].
+   */
+  TypeInformation typeOfElementWithSelector(Element element,
+                                            Selector selector) {
+    if (element.name == Compiler.NO_SUCH_METHOD
+        && selector.name != element.name) {
+      // An invocation can resolve to a [noSuchMethod], in which case
+      // we get the return type of [noSuchMethod].
+      return returnTypeOfElement(element);
+    } else if (selector.isGetter()) {
+      if (element.isFunction()) {
+        // [functionType] is null if the inferrer did not run.
+        return types.functionType == null
+            ? types.dynamicType
+            : types.functionType;
+      } else if (element.isField()) {
+        return typeOfElement(element);
+      } else if (Elements.isUnresolved(element)) {
+        return types.dynamicType;
+      } else {
+        assert(element.isGetter());
+        return returnTypeOfElement(element);
+      }
+    } else if (element.isGetter() || element.isField()) {
+      assert(selector.isCall() || selector.isSetter());
+      return types.dynamicType;
+    } else {
+      return returnTypeOfElement(element);
+    }
   }
 }
 
