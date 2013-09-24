@@ -71,7 +71,6 @@ mixin_mixin3_test: Fail # Issue 12605.
 mixin_mixin4_test: Fail # Issue 12605.
 mixin_mixin5_test: Fail # Issue 12605.
 mixin_mixin6_test: Fail # Issue 12605.
-invocation_mirror_test: Fail # Issue 13503
 
 [ $compiler == dart2js ]
 function_type_alias9_test/00: Crash # Issue 9792
