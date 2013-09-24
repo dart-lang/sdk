@@ -233,30 +233,37 @@ class _Smi extends _IntegerImplementation implements int {
 
   String toString() {
     if (this == 0) return "0";
-    var reversed = new List();
-    var val = this < 0 ? -this : this;
+    var reversed = _toStringBuffer;
+    var negative = false;
+    var val = this;
+    int index = 0;
+
+    if (this < 0) {
+      negative = true;
+      // Handle the first digit as negative to avoid negating the minimum
+      // smi, for which the negation is not a smi.
+      int digit = -(val.remainder(10));
+      reversed[index++] = digit + 0x30;
+      val = -(val ~/ 10);
+    }
+
     while (val > 0) {
-      reversed.add((val % 10) + 0x30);
+      int digit = val % 10;
+      reversed[index++] = (digit + 0x30);
       val = val ~/ 10;
     }
-    final int numDigits = reversed.length;
-    List digits;
-    int i;
-    if (this < 0) {
-      digits = new List(numDigits + 1);
-      digits[0] = 0x2D;  // '-'.
-      i = 1;
-    } else {
-      digits = new List(numDigits);
-      i = 0;
+    if (negative) reversed[index++] = 0x2D;  // '-'.
+
+    _OneByteString string = _OneByteString._allocate(index);
+    for (int i = 0, j = index; i < index; i++) {
+      string._setAt(i, reversed[--j]);
     }
-    int ri = reversed.length - 1;
-    for (; i < digits.length; i++, ri--) {
-      digits[i] = reversed[ri];
-    }
-    return _StringBase.createFromCharCodes(digits);
+    return string;
   }
 }
+
+// Reusable buffer used by smi.toString.
+List _toStringBuffer = new Uint8List(20);
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
 class _Mint extends _IntegerImplementation implements int {
