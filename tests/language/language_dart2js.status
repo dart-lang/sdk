@@ -70,6 +70,7 @@ mixin_mixin2_test: Fail # Issue 12605.
 mixin_mixin3_test: Fail # Issue 12605.
 mixin_mixin4_test: Fail # Issue 12605.
 mixin_mixin5_test: Fail # Issue 12605.
+mixin_mixin6_test: Fail # Issue 12605.
 invocation_mirror_test: Fail # Issue 13503
 
 [ $compiler == dart2js ]
@@ -114,6 +115,7 @@ infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # Issue 12795
 mixin_mixin2_test: Fail # Issue 13109.
 mixin_mixin3_test: Fail # Issue 13109.
+mixin_mixin7_test: Fail # Issue 13109.
 
 # Compilation errors.
 const_var_test: Fail # Issue 12793
@@ -205,12 +207,6 @@ type_checks_in_factory_method_test: Fail # Issue 12747
 on_catch_malformed_type_test: Fail # Issue 8601
 
 # Mixins fail on the VM.
-mixin_mixin_test: Fail # Issue 9683
-mixin_mixin2_test: Fail # Issue 9683
-mixin_mixin3_test: Fail # Issue 9683
-mixin_mixin4_test: Fail # Issue 9683
-mixin_mixin5_test: Fail # Issue 9683
-mixin_issue10216_2_test: Fail # Issue 9683
 mixin_forwarding_constructor2_test: Fail # Issue 11888
 mixin_typedef_constructor_test: Fail # Issue 11888
 mixin_type_parameter2_test: Fail # Issue 11888

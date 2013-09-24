@@ -3793,7 +3793,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                String::Handle(super_type.UserVisibleName()).ToCString());
     }
     if (CurrentToken() == Token::kWITH) {
-      super_type = ParseMixins(super_type);
+      super_type = ParseMixins(pending_classes, super_type);
     }
   } else {
     // No extends clause: implicitly extend Object, unless Object itself.
@@ -4003,7 +4003,7 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   if (CurrentToken() != Token::kWITH) {
     ErrorMsg("mixin application 'with Type' expected");
   }
-  type = ParseMixins(type);
+  type = ParseMixins(pending_classes, type);
 
   // TODO(12773): Treat the mixin application as an alias, not as a base
   // class whose super class is the mixin application! This is difficult because
@@ -4389,7 +4389,8 @@ void Parser::ParseInterfaceList(const Class& cls) {
 }
 
 
-RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
+RawAbstractType* Parser::ParseMixins(const GrowableObjectArray& pending_classes,
+                                     const AbstractType& super_type) {
   TRACE_PARSER("ParseMixins");
   ASSERT(CurrentToken() == Token::kWITH);
   ASSERT(super_type.IsType());  // TODO(regis): Could be a BoundedType.
@@ -4399,7 +4400,6 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   AbstractType& mixin_type = AbstractType::Handle();
   Class& mixin_app_class = Class::Handle();
-  Array& mixin_app_interfaces = Array::Handle();
   String& mixin_app_class_name = String::Handle();
   String& mixin_type_class_name = String::Handle();
   do {
@@ -4427,12 +4427,12 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
     mixin_app_class.set_mixin(Type::Cast(mixin_type));
     mixin_app_class.set_library(library_);
     mixin_app_class.set_is_synthesized_class();
+    pending_classes.Add(mixin_app_class, Heap::kOld);
 
-    // Add the mixin type to the interfaces that the mixin application
-    // class implements. This is necessary so that type tests work.
-    mixin_app_interfaces = Array::New(1);
-    mixin_app_interfaces.SetAt(0, mixin_type);
-    mixin_app_class.set_interfaces(mixin_app_interfaces);
+    // The class finalizer will add the mixin type to the interfaces that the
+    // mixin application class implements. This is necessary so that type tests
+    // work. The mixin class may not be resolved yet, so it is not possible to
+    // add the interface with the correct type arguments here.
 
     // Add the synthesized class to the list of mixin apps.
     mixin_apps.Add(mixin_app_class);

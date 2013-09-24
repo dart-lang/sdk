@@ -1728,7 +1728,6 @@ intptr_t Class::NumTypeArguments() const {
       type_params ^= cls.type_parameters();
       num_type_args += type_params.Length();
     }
-
     // Super type of Object class is null.
     if (cls.super_type() == AbstractType::null() ||
         cls.super_type() == isolate->object_store()->object_type()) {
@@ -1756,10 +1755,7 @@ RawClass* Class::SuperClass() const {
   if (super_type() == AbstractType::null()) {
     return Class::null();
   }
-  Isolate* isolate = Isolate::Current();
-  ReusableHandleScope reused_handles(isolate);
-  AbstractType& sup_type = reused_handles.AbstractTypeHandle();
-  sup_type ^= super_type();
+  const AbstractType& sup_type = AbstractType::Handle(super_type());
   return sup_type.type_class();
 }
 
@@ -11881,9 +11877,7 @@ RawAbstractType* MixinAppType::SuperType() const {
 
 
 RawClass* MixinAppType::MixinAppAt(intptr_t depth) const {
-  Class& mixin_app = Class::Handle();
-  mixin_app ^= Array::Handle(mixins()).At(depth);
-  return mixin_app.raw();
+  return Class::RawCast(Array::Handle(mixins()).At(depth));
 }
 
 

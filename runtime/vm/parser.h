@@ -420,7 +420,8 @@ class Parser : public ValueObject {
                          GrowableArray<Field*>* initialized_fields);
   String& ParseNativeDeclaration();
   void ParseInterfaceList(const Class& cls);
-  RawAbstractType* ParseMixins(const AbstractType& super_type);
+  RawAbstractType* ParseMixins(const GrowableObjectArray& pending_classes,
+                               const AbstractType& super_type);
   static StaticCallNode* BuildInvocationMirrorAllocation(
       intptr_t call_pos,
       const String& function_name,
