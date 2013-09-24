@@ -4,36 +4,36 @@
 // Immutable map class for compiler generated map literals.
 
 class ImmutableMap<K, V> implements Map<K, V> {
-  final _ImmutableArray kvPairs_;
+  final _ImmutableArray _kvPairs;
 
   const ImmutableMap._create(_ImmutableArray keyValuePairs)
-      : kvPairs_ = keyValuePairs;
+      : _kvPairs = keyValuePairs;
 
 
   V operator [](Object key) {
     // TODO(hausner): Since the keys are sorted, we could do a binary
     // search. But is it worth it?
-    for (int i = 0; i < kvPairs_.length - 1; i += 2) {
-      if (key == kvPairs_[i]) {
-        return kvPairs_[i+1];
+    for (int i = 0; i < _kvPairs.length - 1; i += 2) {
+      if (key == _kvPairs[i]) {
+        return _kvPairs[i+1];
       }
     }
     return null;
   }
 
   bool get isEmpty {
-    return kvPairs_.length == 0;
+    return _kvPairs.length == 0;
   }
 
   bool get isNotEmpty => !isEmpty;
 
   int get length {
-    return kvPairs_.length ~/ 2;
+    return _kvPairs.length ~/ 2;
   }
 
   void forEach(void f(K key, V value)) {
-    for (int i = 0; i < kvPairs_.length; i += 2) {
-      f(kvPairs_[i], kvPairs_[i+1]);
+    for (int i = 0; i < _kvPairs.length; i += 2) {
+      f(_kvPairs[i], _kvPairs[i+1]);
     }
   }
 
@@ -46,8 +46,8 @@ class ImmutableMap<K, V> implements Map<K, V> {
   }
 
   bool containsKey(Object key) {
-    for (int i = 0; i < kvPairs_.length; i += 2) {
-      if (key == kvPairs_[i]) {
+    for (int i = 0; i < _kvPairs.length; i += 2) {
+      if (key == _kvPairs[i]) {
         return true;
       }
     }
@@ -55,8 +55,8 @@ class ImmutableMap<K, V> implements Map<K, V> {
   }
 
   bool containsValue(Object value) {
-    for (int i = 1; i < kvPairs_.length; i += 2) {
-      if (value == kvPairs_[i]) {
+    for (int i = 1; i < _kvPairs.length; i += 2) {
+      if (value == _kvPairs[i]) {
         return true;
       }
     }
@@ -113,7 +113,7 @@ class _ImmutableMapKeyIterator<E> implements Iterator<E> {
     int newIndex = _index + 1;
     if (newIndex < _map.length) {
       _index = newIndex;
-      _current = _map.kvPairs_[newIndex * 2];
+      _current = _map._kvPairs[newIndex * 2];
       return true;
     }
     _current = null;
@@ -135,7 +135,7 @@ class _ImmutableMapValueIterator<E> implements Iterator<E> {
     int newIndex = _index + 1;
     if (newIndex < _map.length) {
       _index = newIndex;
-      _current = _map.kvPairs_[newIndex * 2 + 1];
+      _current = _map._kvPairs[newIndex * 2 + 1];
       return true;
     }
     _current = null;
