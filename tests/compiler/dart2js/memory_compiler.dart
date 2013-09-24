@@ -88,9 +88,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
       createDiagnosticHandler(diagnosticHandler, provider, showDiagnostics);
 
   EventSink<String> outputProvider(String name, String extension) {
-    if (name != '' && name != 'precompiled') {
-      throw 'Attempt to output file "$name.$extension"';
-    }
+    if (name != '') throw 'Attempt to output file "$name.$extension"';
     return new NullSink('$name.$extension');
   }
 

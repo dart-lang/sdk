@@ -1027,7 +1027,8 @@ class StandardTestSuite extends TestSuite {
           content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
         } else {
           if (compiler == "dart2js" && configuration["csp"]) {
-            scriptPath = scriptPath.replaceFirst('/test.js', '/precompiled.js');
+            scriptPath =
+                scriptPath.replaceFirst('/test.js', '/test.precompiled.js');
           }
 
           content = getHtmlContents(filename, scriptType,

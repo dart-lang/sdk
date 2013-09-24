@@ -8,13 +8,20 @@
 // OtherScripts=spawn_uri_child_isolate.dart
 library spawn_tests;
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+
+/* Dummy import so multi-test copies the file.
+import 'spawn_uri_child_isolate.dart';
+*/
 
 main() {
   test('isolate fromUri - negative test', () {
     ReceivePort port = new ReceivePort();
     port.receive(expectAsync2((msg, _) {
-      expect(msg, equals('re: hello')); // should be hi, not hello
+      String expectedMessage = 're: hi';
+      // Should be hi, not hello.
+      expectedMessage = 're: hello'; /// 01: runtime error
+      expect(msg, equals(expectedMessage));
       port.close();
     }));
 

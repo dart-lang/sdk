@@ -313,7 +313,7 @@ Future compile(List<String> argv) {
     if (!explicitOut) {
       String input = uriPathToNative(arguments[0]);
       String output = relativize(currentDirectory, out, isWindows);
-      print('Dart file $input compiled to $outputLanguage: $output');
+      print('Dart file ($input) compiled to $outputLanguage: $output');
     }
   }
 
@@ -327,6 +327,17 @@ Future compile(List<String> argv) {
         uri = out;
         sourceMapFileName =
             sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
+      } else if (extension == 'precompiled.js') {
+        String outPath = out.path;
+        if (outPath.endsWith('.js')) {
+          outPath = outPath.substring(0, outPath.length - 3);
+          uri = out.resolve('$outPath.$extension');
+        } else {
+          uri = out.resolve(extension);
+        }
+        diagnosticHandler.info(
+            "File ($uri) is compatible with header"
+            " \"Content-Security-Policy: script-src 'self'\"");
       } else if (extension == 'js.map' || extension == 'dart.map') {
         uri = sourceMapOut;
       } else {
