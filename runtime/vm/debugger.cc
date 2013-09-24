@@ -102,8 +102,7 @@ intptr_t SourceBreakpoint::LineNumber() {
   // Compute line number lazily since it causes scanning of the script.
   if (line_number_ < 0) {
     const Script& script = Script::Handle(SourceCode());
-    intptr_t ignore_column;
-    script.GetTokenLocation(token_pos_, &line_number_, &ignore_column);
+    script.GetTokenLocation(token_pos_, &line_number_, NULL);
   }
   return line_number_;
 }
@@ -280,8 +279,7 @@ intptr_t ActivationFrame::LineNumber() {
   // Compute line number lazily since it causes scanning of the script.
   if ((line_number_ < 0) && (TokenPos() >= 0)) {
     const Script& script = Script::Handle(SourceScript());
-    intptr_t ignore_column;
-    script.GetTokenLocation(TokenPos(), &line_number_, &ignore_column);
+    script.GetTokenLocation(TokenPos(), &line_number_, NULL);
   }
   return line_number_;
 }
@@ -664,8 +662,7 @@ intptr_t CodeBreakpoint::LineNumber() {
   // Compute line number lazily since it causes scanning of the script.
   if (line_number_ < 0) {
     const Script& script = Script::Handle(SourceCode());
-    intptr_t ignore_column;
-    script.GetTokenLocation(token_pos_, &line_number_, &ignore_column);
+    script.GetTokenLocation(token_pos_, &line_number_, NULL);
   }
   return line_number_;
 }

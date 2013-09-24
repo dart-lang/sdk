@@ -44,8 +44,6 @@ void main() {
       expect(() => new Frame.parseVM('#1      Foo'), throwsFormatException);
       expect(() => new Frame.parseVM('#1      Foo (dart:async/future.dart)'),
           throwsFormatException);
-      expect(() => new Frame.parseVM('#1      Foo (dart:async/future.dart:10)'),
-          throwsFormatException);
       expect(() => new Frame.parseVM('#1      (dart:async/future.dart:10:15)'),
           throwsFormatException);
       expect(() => new Frame.parseVM('Foo (dart:async/future.dart:10:15)'),

@@ -14872,7 +14872,8 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
                                    const Function& function,
                                    const Code& code,
                                    intptr_t frame_index) {
-  const char* kFormat = "#%-6d %s (%s:%d:%d)\n";
+  const char* kFormatWithCol = "#%-6d %s (%s:%d:%d)\n";
+  const char* kFormatNoCol = "#%-6d %s (%s:%d)\n";
   const intptr_t token_pos = code.GetTokenIndexOfPC(pc);
   const Script& script = Script::Handle(isolate, function.script());
   const String& function_name =
@@ -14881,19 +14882,32 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
   intptr_t line = -1;
   intptr_t column = -1;
   if (token_pos >= 0) {
-    script.GetTokenLocation(token_pos, &line, &column);
+    if (script.HasSource()) {
+      script.GetTokenLocation(token_pos, &line, &column);
+    } else {
+      script.GetTokenLocation(token_pos, &line, NULL);
+    }
   }
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat,
-                             frame_index,
-                             function_name.ToCString(),
-                             url.ToCString(),
-                             line, column);
-  char* chars = isolate->current_zone()->Alloc<char>(len + 1);
-  OS::SNPrint(chars, (len + 1), kFormat,
-              frame_index,
-              function_name.ToCString(),
-              url.ToCString(),
-              line, column);
+  intptr_t len = 0;
+  char* chars = NULL;
+  if (column >= 0) {
+    len = OS::SNPrint(NULL, 0, kFormatWithCol,
+                      frame_index, function_name.ToCString(),
+                      url.ToCString(), line, column);
+    chars = isolate->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(chars, (len + 1), kFormatWithCol,
+                frame_index,
+                function_name.ToCString(),
+                url.ToCString(), line, column);
+  } else {
+    len = OS::SNPrint(NULL, 0, kFormatNoCol,
+                      frame_index, function_name.ToCString(),
+                      url.ToCString(), line);
+    chars = isolate->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(chars, (len + 1), kFormatNoCol,
+                frame_index, function_name.ToCString(),
+                url.ToCString(), line);
+  }
   frame_strings->Add(chars);
   return len;
 }

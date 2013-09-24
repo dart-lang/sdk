@@ -11,7 +11,7 @@ import 'trace.dart';
 
 // #1      Foo._bar (file:///home/nweiz/code/stuff.dart:42:21)
 final _vmFrame = new RegExp(
-    r'^#\d+\s+([^\s].*) \((.+):(\d+):(\d+)\)$');
+    r'^#\d+\s+([^\s].*) \((.+?):(\d+)(?::(\d+))?\)$');
 
 //     at VW.call$0 (http://pub.dartlang.org/stuff.dart.js:560:28)
 //     at http://pub.dartlang.org/stuff.dart.js:560:28
@@ -109,9 +109,17 @@ class Frame {
       throw new FormatException("Couldn't parse VM stack trace line '$frame'.");
     }
 
-    var uri = Uri.parse(match[2]);
+    // Get the pieces out of the regexp match. Function, URI and line should
+    // always be found. The column is optional.
     var member = match[1].replaceAll("<anonymous closure>", "<fn>");
-    return new Frame(uri, int.parse(match[3]), int.parse(match[4]), member);
+    var uri = Uri.parse(match[2]);
+    var line = int.parse(match[3]);
+    var col = null;
+    var col_match = match[4];
+    if (col_match != null) {
+      col = int.parse(col_match);
+    }
+    return new Frame(uri, line, col, member);
   }
 
   /// Parses a string representation of a Chrome/V8 stack frame.
