@@ -455,7 +455,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
             this, element, arguments, typedSelector, remove: false);
       }
       
-      if (receiver.type.isContainer && selector.isIndex()) {
+      if (returnsElementType(typedSelector)) {
         // Find the [ElementInContainerTypeInformation] node and tell
         // that this node is a user of it. Later, when the element
         // type changes, this node will be notified.

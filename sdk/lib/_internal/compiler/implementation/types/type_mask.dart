@@ -50,7 +50,6 @@ abstract class TypeMask {
   bool get isUnion;
   bool get isContainer;
   bool get isForwarding;
-  bool get isElement;
 
   bool containsOnlyInt(Compiler compiler);
   bool containsOnlyDouble(Compiler compiler);

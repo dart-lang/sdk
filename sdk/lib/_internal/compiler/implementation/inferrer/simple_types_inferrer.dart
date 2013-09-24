@@ -120,10 +120,6 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   }
 
   TypeMask refineReceiver(Selector selector, TypeMask receiverType) {
-    // If the receiver is based on an element, we let the type
-    // inferrer handle it. Otherwise, we might prevent it from finding
-    // one-level cycles in the inference graph.
-    if (receiverType.isElement) return receiverType;
     TypeMask newType = compiler.world.allFunctions.receiverType(selector);
     return receiverType.intersection(newType, compiler);
   }

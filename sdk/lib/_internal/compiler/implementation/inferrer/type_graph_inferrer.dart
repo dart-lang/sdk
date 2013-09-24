@@ -19,6 +19,28 @@ import '../dart2jslib.dart' show invariant;
 
 part 'type_graph_nodes.dart';
 
+/**
+ * A set of selector names that [List] implements, that we know return
+ * their element type.
+ */
+Set<String> returnsElementTypeSet = new Set<String>.from(
+  const <String>[
+    'first',
+    'last',
+    'single',
+    'singleWhere',
+    'elementAt',
+    '[]',
+    'removeAt',
+    'removeLast'
+  ]);
+
+bool returnsElementType(Selector selector) {
+  return (selector.mask != null)
+         && selector.mask.isContainer
+         && returnsElementTypeSet.contains(selector.name.slowToString());
+}
+
 class TypeInformationSystem extends TypeSystem<TypeInformation> {
   final Compiler compiler;
 
@@ -766,9 +788,7 @@ class TypeGraphInferrer implements TypesInferrer {
     if (selector.isSetter() || selector.isIndexSet()) {
       return compiler.typesTask.dynamicType;
     }
-    if (selector.isIndex()
-        && selector.mask != null
-        && selector.mask.isContainer) {
+    if (returnsElementType(selector)) {
       ContainerTypeMask mask = selector.mask;
       TypeMask elementType = mask.elementType;
       return elementType == null ? compiler.typesTask.dynamicType : elementType;
