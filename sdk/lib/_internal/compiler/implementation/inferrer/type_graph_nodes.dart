@@ -528,6 +528,10 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
     return inferrer.types.dynamicType.type;
   }
 
+  Iterable<Element> get callees {
+    throw new UnsupportedError("Cannot compute callees of a closure.");
+  }
+
   String toString() => 'Closure call $call on $closure';
 }
 
