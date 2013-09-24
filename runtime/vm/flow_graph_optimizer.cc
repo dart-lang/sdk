@@ -2183,6 +2183,12 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
                                       call->deopt_id());
     ReplaceCall(call, con);
     return true;
+  } else if (recognized_kind == MethodRecognizer::kFloat32x4FromUint32x4Bits) {
+    Uint32x4ToFloat32x4Instr* cast =
+        new Uint32x4ToFloat32x4Instr(new Value(call->ArgumentAt(1)),
+                                    call->deopt_id());
+    ReplaceCall(call, cast);
+    return true;
   }
   return false;
 }
@@ -2202,6 +2208,12 @@ bool FlowGraphOptimizer::TryInlineUint32x4Constructor(
         new Value(call->ArgumentAt(4)),
         call->deopt_id());
     ReplaceCall(call, con);
+    return true;
+  } else if (recognized_kind == MethodRecognizer::kUint32x4FromFloat32x4Bits) {
+    Float32x4ToUint32x4Instr* cast =
+        new Float32x4ToUint32x4Instr(new Value(call->ArgumentAt(1)),
+                                     call->deopt_id());
+    ReplaceCall(call, cast);
     return true;
   }
   return false;
@@ -2373,20 +2385,6 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
       ReplaceCall(call, clamp);
       return true;
     }
-    case MethodRecognizer::kFloat32x4ToUint32x4: {
-      Definition* left = call->ArgumentAt(0);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
-      Float32x4ToUint32x4Instr* cast =
-          new Float32x4ToUint32x4Instr(new Value(left), call->deopt_id());
-      ReplaceCall(call, cast);
-      return true;
-    }
     case MethodRecognizer::kFloat32x4Shuffle: {
       return InlineFloat32x4Getter(call, recognized_kind);
     }
@@ -2430,20 +2428,6 @@ bool FlowGraphOptimizer::TryInlineUint32x4Method(
           new Value(falseValue),
           call->deopt_id());
       ReplaceCall(call, select);
-      return true;
-    }
-    case MethodRecognizer::kUint32x4ToUint32x4: {
-      Definition* left = call->ArgumentAt(0);
-      // Type check left.
-      AddCheckClass(left,
-                    ICData::ZoneHandle(
-                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                    call->deopt_id(),
-                    call->env(),
-                    call);
-      Uint32x4ToFloat32x4Instr* cast =
-          new Uint32x4ToFloat32x4Instr(new Value(left), call->deopt_id());
-      ReplaceCall(call, cast);
       return true;
     }
     case MethodRecognizer::kUint32x4WithFlagX:

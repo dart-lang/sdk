@@ -186,6 +186,7 @@ namespace dart {
   V(ByteData_ToEndianFloat64, 2)                                               \
   V(Float32x4_fromDoubles, 5)                                                  \
   V(Float32x4_splat, 2)                                                        \
+  V(Float32x4_fromUint32x4Bits, 2)                                             \
   V(Float32x4_zero, 1)                                                         \
   V(Float32x4_add, 2)                                                          \
   V(Float32x4_negate, 1)                                                       \
@@ -221,9 +222,9 @@ namespace dart {
   V(Float32x4_sqrt, 1)                                                         \
   V(Float32x4_reciprocal, 1)                                                   \
   V(Float32x4_reciprocalSqrt, 1)                                               \
-  V(Float32x4_toUint32x4, 1)                                                   \
   V(Uint32x4_fromInts, 5)                                                      \
   V(Uint32x4_fromBools, 5)                                                     \
+  V(Uint32x4_fromFloat32x4Bits, 2)                                             \
   V(Uint32x4_or, 2)                                                            \
   V(Uint32x4_and, 2)                                                           \
   V(Uint32x4_xor, 2)                                                           \
@@ -247,7 +248,6 @@ namespace dart {
   V(Uint32x4_setFlagZ, 2)                                                      \
   V(Uint32x4_setFlagW, 2)                                                      \
   V(Uint32x4_select, 3)                                                        \
-  V(Uint32x4_toFloat32x4, 1)                                                   \
   V(isolate_getPortInternal, 0)                                                \
   V(isolate_spawnFunction, 2)                                                  \
   V(isolate_spawnUri, 1)                                                       \

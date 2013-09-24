@@ -88,7 +88,9 @@ class Range;
   V(::, _doublePow, MathDoublePow, 1728171041)                                 \
   V(Float32x4, Float32x4., Float32x4Constructor, 786169160)                    \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 1589383280)                      \
-  V(Float32x4, Float32x4.splat, Float32x4Splat, 62513275)                    \
+  V(Float32x4, Float32x4.splat, Float32x4Splat, 62513275)                      \
+  V(Float32x4, Float32x4.fromUint32x4Bits, Float32x4FromUint32x4Bits,          \
+      770033146)                                                               \
   V(_Float32x4, shuffle, Float32x4Shuffle, 1178727105)                         \
   V(_Float32x4, get:x, Float32x4ShuffleX, 1351717838)                          \
   V(_Float32x4, get:y, Float32x4ShuffleY, 217386410)                           \
@@ -114,13 +116,14 @@ class Range;
   V(_Float32x4, withY, Float32x4WithY, 1806065938)                             \
   V(_Float32x4, withZ, Float32x4WithZ, 320659034)                              \
   V(_Float32x4, withW, Float32x4WithW, 1108437255)                             \
-  V(_Float32x4, _toUint32x4, Float32x4ToUint32x4, 754564339)                   \
   V(_Float32x4, withZWInXY, Float32x4WithZWInXY, 1198101679)                   \
   V(_Float32x4, interleaveXY, Float32x4InterleaveXY, 2001324072)               \
   V(_Float32x4, interleaveZW, Float32x4InterleaveZW, 928280031)                \
   V(_Float32x4, interleaveXYPairs, Float32x4InterleaveXYPairs, 1046078993)     \
   V(_Float32x4, interleaveZWPairs, Float32x4InterleaveZWPairs, 1001751955)     \
   V(Uint32x4, Uint32x4.bool, Uint32x4BoolConstructor, 517444095)               \
+  V(Uint32x4, Uint32x4.fromFloat32x4Bits, Uint32x4FromFloat32x4Bits,           \
+      1080034855)                                                              \
   V(_Uint32x4, get:flagX, Uint32x4GetFlagX, 1674696792)                        \
   V(_Uint32x4, get:flagY, Uint32x4GetFlagY, 2013200152)                        \
   V(_Uint32x4, get:flagZ, Uint32x4GetFlagZ, 944733935)                         \
@@ -131,7 +134,6 @@ class Range;
   V(_Uint32x4, withFlagY, Uint32x4WithFlagY, 830610988)                        \
   V(_Uint32x4, withFlagZ, Uint32x4WithFlagZ, 1714792414)                       \
   V(_Uint32x4, withFlagW, Uint32x4WithFlagW, 1516924162)                       \
-  V(_Uint32x4, _toFloat32x4, Uint32x4ToUint32x4, 2054503505)                   \
   V(_ObjectArray, [], ObjectArrayGetIndexed, 544020319)                        \
   V(_ImmutableArray, [], ImmutableArrayGetIndexed, 1345387065)                 \
   V(_GrowableObjectArray, [], GrowableArrayGetIndexed, 951312767)              \

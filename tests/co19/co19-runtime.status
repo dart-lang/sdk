@@ -154,4 +154,8 @@ LibTest/typed_data/Float32x4/clamp_A01_t01: Pass, Fail # Issue 13543
 LibTest/typed_data/Float32x4/clamp_A02_t01: Pass, Fail # Issue 13543
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # Issue 13543
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # Issue 13543
+LibTest/typed_data/Float32x4/toUint32x4_A01_t01: Fail # co19 Issue 601
+LibTest/typed_data/Float32x4/toUint32x4_A01_t02: Fail # co19 Issue 601
+LibTest/typed_data/Uint32x4/toFloat32x4_A01_t01: Fail # co19 Issue 601
+LibTest/typed_data/Uint32x4/toFloat32x4_A01_t02: Fail # co19 Issue 601
 

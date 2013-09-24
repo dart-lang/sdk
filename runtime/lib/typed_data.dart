@@ -254,6 +254,9 @@ patch class Float32x4 {
   /* patch */ factory Float32x4.zero() {
     return new _Float32x4.zero();
   }
+  /* patch */ factory Float32x4.fromUint32x4Bits(Uint32x4 x) {
+    return new _Float32x4.fromUint32x4Bits(x);
+  }
 }
 
 
@@ -263,6 +266,9 @@ patch class Uint32x4 {
   }
   /* patch */ factory Uint32x4.bool(bool x, bool y, bool z, bool w) {
     return new _Uint32x4.bool(x, y, z, w);
+  }
+  /* patch */ factory Uint32x4.fromFloat32x4Bits(Float32x4 x) {
+    return new _Uint32x4.fromFloat32x4Bits(x);
   }
 }
 
@@ -1947,6 +1953,8 @@ class _Float32x4 implements Float32x4 {
       native "Float32x4_fromDoubles";
   factory _Float32x4.splat(double v) native "Float32x4_splat";
   factory _Float32x4.zero() native "Float32x4_zero";
+  factory _Float32x4.fromUint32x4Bits(Uint32x4 x)
+      native "Float32x4_fromUint32x4Bits";
   Float32x4 operator +(Float32x4 other) {
     return _add(other);
   }
@@ -2048,10 +2056,6 @@ class _Float32x4 implements Float32x4 {
     return _reciprocalSqrt();
   }
   Float32x4 _reciprocalSqrt() native "Float32x4_reciprocalSqrt";
-  Uint32x4 toUint32x4() {
-      return _toUint32x4();
-  }
-  Uint32x4 _toUint32x4() native "Float32x4_toUint32x4";
 }
 
 
@@ -2060,6 +2064,8 @@ class _Uint32x4 implements Uint32x4 {
       native "Uint32x4_fromInts";
   factory _Uint32x4.bool(bool x, bool y, bool z, bool w)
       native "Uint32x4_fromBools";
+  factory _Uint32x4.fromFloat32x4Bits(Float32x4 x)
+      native "Uint32x4_fromFloat32x4Bits";
   Uint32x4 operator |(Uint32x4 other) {
     return _or(other);
   }
@@ -2104,10 +2110,6 @@ class _Uint32x4 implements Uint32x4 {
   Float32x4 _select(Float32x4 trueValue,
                            Float32x4 falseValue)
       native "Uint32x4_select";
-  Float32x4 toFloat32x4() {
-      return _toFloat32x4();
-  }
-  Float32x4 _toFloat32x4() native "Uint32x4_toFloat32x4";
 }
 
 class _TypedListIterator<E> implements Iterator<E> {

@@ -834,6 +834,7 @@ abstract class Float32x4 {
   external factory Float32x4(double x, double y, double z, double w);
   external factory Float32x4.splat(double v);
   external factory Float32x4.zero();
+  external factory Float32x4.fromUint32x4Bits(Uint32x4 x);
 
   /// Addition operator.
   Float32x4 operator+(Float32x4 other);
@@ -1183,9 +1184,6 @@ abstract class Float32x4 {
 
   /// Returns the square root of the reciprocal of [this].
   Float32x4 reciprocalSqrt();
-
-  /// Returns a bit-wise copy of [this] as a [Uint32x4].
-  Uint32x4 toUint32x4();
 }
 
 
@@ -1197,6 +1195,7 @@ abstract class Float32x4 {
 abstract class Uint32x4 {
   external factory Uint32x4(int x, int y, int z, int w);
   external factory Uint32x4.bool(bool x, bool y, bool z, bool w);
+  external factory Uint32x4.fromFloat32x4Bits(Float32x4 x);
 
   /// The bit-wise or operator.
   Uint32x4 operator|(Uint32x4 other);
@@ -1252,7 +1251,4 @@ abstract class Uint32x4 {
   /// Select bit from [trueValue] when bit in [this] is on.
   /// Select bit from [falseValue] when bit in [this] is off.
   Float32x4 select(Float32x4 trueValue, Float32x4 falseValue);
-
-  /// Returns a bit-wise copy of [this] as a [Float32x4].
-  Float32x4 toFloat32x4();
 }
