@@ -178,7 +178,7 @@ class ExitCodeSetter extends EventListener {
 
 class FlakyLogWriter extends EventListener {
   void done(TestCase test) {
-    if (test.isFlaky && test.result != PASS) {
+    if (test.isFlaky && test.result != Expectation.PASS) {
       var buf = new StringBuffer();
       for (var l in _buildFailureOutput(test)) {
         buf.write("$l\n");

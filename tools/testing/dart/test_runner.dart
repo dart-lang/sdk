@@ -379,6 +379,26 @@ class AnalysisCommand extends Command {
   }
 }
 
+class VmCommand extends Command {
+  VmCommand._(String executable,
+              List<String> arguments,
+              String configurationDir)
+      : super._("vm", executable, arguments, configurationDir);
+}
+
+class JSCommandlineCommand extends Command {
+  JSCommandlineCommand._(String displayName,
+                         String executable,
+                         List<String> arguments,
+                         String configurationDir,
+                         [Map<String, String> environmentOverrides = null])
+      : super._(displayName,
+                executable,
+                arguments,
+                configurationDir,
+                environmentOverrides);
+}
+
 class CommandBuilder {
   static final instance = new CommandBuilder._();
 
@@ -440,6 +460,20 @@ class CommandBuilder {
     return _getUniqueCommand(command);
   }
 
+  VmCommand getVmCommand(String executable,
+                         List<String> arguments,
+                         String configurationDir) {
+    var command = new VmCommand._(executable, arguments, configurationDir);
+    return _getUniqueCommand(command);
+  }
+
+  Command getJSCommandlineCommand(String displayName, executable, arguments,
+                     String configurationDir, [environment = null]) {
+    var command = new JSCommandlineCommand._(displayName, executable, arguments,
+                                             configurationDir, environment);
+    return _getUniqueCommand(command);
+  }
+
   Command getCommand(String displayName, executable, arguments,
                      String configurationDir, [environment = null]) {
     var command = new Command._(displayName, executable, arguments,
@@ -490,7 +524,7 @@ class TestCase extends UniqueObject {
   Map configuration;
   String displayName;
   bool isNegative;
-  Set<String> expectedOutcomes;
+  Set<Expectation> expectedOutcomes;
   TestInformation info;
 
   TestCase(this.displayName,
@@ -505,10 +539,13 @@ class TestCase extends UniqueObject {
   }
 
   bool get unexpectedOutput {
-    return !expectedOutcomes.contains(lastCommandOutput.result(this));
+    var outcome = lastCommandOutput.result(this);
+    return !expectedOutcomes.any((expectation) {
+      return outcome.canBeOutcomeOf(expectation);
+    });
   }
 
-  String get result => lastCommandOutput.result(this);
+  Expectation get result => lastCommandOutput.result(this);
 
   CommandOutput get lastCommandOutput {
     if (commandOutputs.length == 0) {
@@ -520,7 +557,7 @@ class TestCase extends UniqueObject {
   }
 
   int get timeout {
-    if (expectedOutcomes.contains(SLOW)) {
+    if (expectedOutcomes.contains(Expectation.SLOW)) {
       return configuration['timeout'] * SLOW_TIMEOUT_MULTIPLIER;
     } else {
       return configuration['timeout'];
@@ -541,15 +578,13 @@ class TestCase extends UniqueObject {
   bool get usesWebDriver => TestUtils.usesWebDriver(configuration['runtime']);
 
   bool get isFlaky {
-      if (expectedOutcomes.contains(SKIP) ||
-          expectedOutcomes.contains(SKIP_BY_DESIGN)) {
+      if (expectedOutcomes.contains(Expectation.SKIP) ||
+          expectedOutcomes.contains(Expectation.SKIP_BY_DESIGN)) {
         return false;
       }
 
-      var flags = new Set.from(expectedOutcomes);
-      flags..remove(OK)
-           ..remove(SLOW);
-      return flags.length > 1;
+      return expectedOutcomes
+        .where((expectation) => !expectation.isMetaExpectation).length > 1;
   }
 
   bool get isFinished {
@@ -585,7 +620,7 @@ class BrowserTestCase extends TestCase {
 abstract class CommandOutput {
   Command get command;
 
-  String result(TestCase testCase);
+  Expectation result(TestCase testCase);
 
   bool get hasCrashed;
 
@@ -640,8 +675,11 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
     diagnostics = [];
   }
 
-  String result(TestCase testCase) => hasCrashed ? CRASH :
-      (hasTimedOut ? TIMEOUT : (hasFailed(testCase) ? FAIL : PASS));
+  Expectation result(TestCase testCase) {
+    if (hasCrashed) return Expectation.CRASH;
+    if (hasTimedOut) return Expectation.TIMEOUT;
+    return hasFailed(testCase) ? Expectation.FAIL : Expectation.PASS;
+  }
 
   bool get hasCrashed {
     // The Java dartc runner and dart2js exits with code 253 in case
@@ -687,14 +725,17 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
 
   // Reverse result of a negative test.
   bool hasFailed(TestCase testCase) {
-    // FIXME(kustermann): this is a hack, remove it
-    bool isCompilationCommand = testCase.commands.first == command
-        && testCase.commands.length > 1;
-    if (isCompilationCommand &&
-        testCase.info != null && testCase.info.hasRuntimeError) {
-      return exitCode != 0;
-    }
     return testCase.isNegative ? !didFail(testCase) : didFail(testCase);
+  }
+
+  Expectation _negateOutcomeIfNegativeTest(Expectation outcome,
+                                           bool isNegative) {
+    if (!isNegative) return outcome;
+
+    if (outcome.canBeOutcomeOf(Expectation.FAIL)) {
+      return Expectation.PASS;
+    }
+    return Expectation.FAIL;
   }
 }
 
@@ -724,6 +765,26 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     }
   }
 
+  Expectation result(TestCase testCase) {
+    // Handle crashes and timeouts first
+    if (hasCrashed) return Expectation.CRASH;
+    if (hasTimedOut) return Expectation.TIMEOUT;
+
+    var outcome = _getOutcome();
+
+    if (testCase.info != null && testCase.info.hasRuntimeError) {
+      if (!outcome.canBeOutcomeOf(Expectation.RUNTIME_ERROR)) {
+        return Expectation.MISSING_RUNTIME_ERROR;
+      }
+    }
+
+    if (testCase.isNegative) {
+      if (outcome.canBeOutcomeOf(Expectation.FAIL)) return Expectation.PASS;
+      return Expectation.FAIL;
+    }
+    return outcome;
+  }
+
   bool get successful => canRunDependendCommands;
 
   bool get canRunDependendCommands {
@@ -732,16 +793,21 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     return super.canRunDependendCommands && !didFail(null);
   }
 
-  bool didFail(TestCase _) {
+  Expectation _getOutcome() {
     if (_failedBecauseOfMissingXDisplay) {
-      return true;
+      return Expectation.FAIL;
     }
 
     if (command.expectedOutputFile != null) {
       // We are either doing a pixel test or a layout test with content shell
-      return _failedBecauseOfUnexpectedDRTOutput;
+      if (_failedBecauseOfUnexpectedDRTOutput) {
+        return Expectation.FAIL;
+      }
     }
-    return _browserTestFailure;
+    if (_browserTestFailure) {
+      return Expectation.RUNTIME_ERROR;
+    }
+    return Expectation.PASS;
   }
 
   bool _didFailBecauseOfMissingXDisplay() {
@@ -1043,6 +1109,126 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
   }
 }
 
+class VmCommandOutputImpl extends CommandOutputImpl {
+  static const DART_VM_EXITCODE_COMPILE_TIME_ERROR = 254;
+  static const DART_VM_EXITCODE_UNCAUGHT_EXCEPTION = 255;
+
+  VmCommandOutputImpl(Command command, int exitCode, bool timedOut,
+      List<int> stdout, List<int> stderr, Duration time)
+      : super(command, exitCode, timedOut, stdout, stderr, time, false);
+
+  Expectation result(TestCase testCase) {
+    // Handle crashes and timeouts first
+    if (hasCrashed) return Expectation.CRASH;
+    if (hasTimedOut) return Expectation.TIMEOUT;
+
+    // Multitests are handled specially
+    if (testCase.info != null) {
+      if (testCase.info.hasCompileError) {
+        if (exitCode == DART_VM_EXITCODE_COMPILE_TIME_ERROR) {
+          return Expectation.PASS;
+        }
+
+        // We're not as strict, if the exitCode indicated an uncaught exception
+        // we say it passed nonetheless
+        // TODO(kustermann): As soon as the VM team makes sure we get correct
+        // exit codes, we should remove this.
+        if (exitCode == DART_VM_EXITCODE_UNCAUGHT_EXCEPTION) {
+          return Expectation.PASS;
+        }
+
+        return Expectation.MISSING_COMPILETIME_ERROR;
+      }
+      if (testCase.info.hasRuntimeError) {
+        // TODO(kustermann): Do we consider a "runtimeError" only an uncaught
+        // exception or does any nonzero exit code fullfil this requirement?
+        if (exitCode != 0) {
+          return Expectation.PASS;
+        }
+        return Expectation.MISSING_RUNTIME_ERROR;
+      }
+    }
+
+    // The actual outcome depends on the exitCode
+    Expectation outcome;
+    if (exitCode == DART_VM_EXITCODE_COMPILE_TIME_ERROR) {
+      outcome = Expectation.COMPILETIME_ERROR;
+    } else if (exitCode == DART_VM_EXITCODE_UNCAUGHT_EXCEPTION) {
+      outcome = Expectation.RUNTIME_ERROR;
+    } else if (exitCode != 0) {
+      // This is a general fail, in case we get an unknown nonzero exitcode.
+      outcome = Expectation.FAIL;
+    } else {
+      outcome = Expectation.PASS;
+    }
+    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
+  }
+}
+
+class CompilationCommandOutputImpl extends CommandOutputImpl {
+  static const DART2JS_EXITCODE_CRASH = 253;
+
+  CompilationCommandOutputImpl(Command command, int exitCode, bool timedOut,
+      List<int> stdout, List<int> stderr, Duration time)
+      : super(command, exitCode, timedOut, stdout, stderr, time, false);
+
+  Expectation result(TestCase testCase) {
+    // Handle general crash/timeout detection.
+    if (hasCrashed) return Expectation.CRASH;
+    if (hasTimedOut) return Expectation.TIMEOUT;
+
+    // Handle dart2js/dart2dart specific crash detection
+    if (exitCode == DART2JS_EXITCODE_CRASH ||
+        exitCode == VmCommandOutputImpl.DART_VM_EXITCODE_COMPILE_TIME_ERROR ||
+        exitCode == VmCommandOutputImpl.DART_VM_EXITCODE_UNCAUGHT_EXCEPTION) {
+      return Expectation.CRASH;
+    }
+
+    // Multitests are handled specially
+    if (testCase.info != null) {
+      if (testCase.info.hasCompileError) {
+        // Nonzero exit code of the compiler means compilation failed
+        // TODO(kustermann): Do we have a special exit code in that case???
+        if (exitCode != 0) {
+          return Expectation.PASS;
+        }
+        return Expectation.MISSING_COMPILETIME_ERROR;
+      }
+
+      // TODO(kustermann): This is a hack, remove it
+      if (testCase.info.hasRuntimeError && testCase.commands.length > 1) {
+        // We expected to run the test, but we got an compile time error.
+        // If the compilation succeeded, we wouldn't be in here!
+        assert(exitCode != 0);
+        return Expectation.COMPILETIME_ERROR;
+      }
+    }
+
+    Expectation outcome =
+        exitCode == 0 ? Expectation.PASS : Expectation.COMPILETIME_ERROR;
+    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
+  }
+}
+
+class JsCommandlineOutputImpl extends CommandOutputImpl {
+  JsCommandlineOutputImpl(Command command, int exitCode, bool timedOut,
+      List<int> stdout, List<int> stderr, Duration time)
+      : super(command, exitCode, timedOut, stdout, stderr, time, false);
+
+  Expectation result(TestCase testCase) {
+    // Handle crashes and timeouts first
+    if (hasCrashed) return Expectation.CRASH;
+    if (hasTimedOut) return Expectation.TIMEOUT;
+
+    if (testCase.info != null && testCase.info.hasRuntimeError) {
+      if (exitCode != 0) return Expectation.PASS;
+      return Expectation.MISSING_RUNTIME_ERROR;
+    }
+
+    var outcome = exitCode == 0 ? Expectation.PASS : Expectation.RUNTIME_ERROR;
+    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
+  }
+}
 
 CommandOutput createCommandOutput(Command command,
                                   int exitCode,
@@ -1067,7 +1253,17 @@ CommandOutput createCommandOutput(Command command,
     return new AnalysisCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr,
         time, compilationSkipped);
+  } else if (command is VmCommand) {
+    return new VmCommandOutputImpl(
+        command, exitCode, timedOut, stdout, stderr, time);
+  } else if (command is CompilationCommand) {
+    return new CompilationCommandOutputImpl(
+        command, exitCode, timedOut, stdout, stderr, time);
+  } else if (command is JSCommandlineCommand) {
+    return new JsCommandlineOutputImpl(
+        command, exitCode, timedOut, stdout, stderr, time);
   }
+
   return new CommandOutputImpl(
       command, exitCode, timedOut, stdout, stderr,
       time, compilationSkipped);

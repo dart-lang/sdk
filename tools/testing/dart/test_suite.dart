@@ -298,8 +298,8 @@ abstract class TestSuite {
     }
 
     // Handle skipped tests
-    if (expectations.contains(SKIP) ||
-        expectations.contains(SKIP_BY_DESIGN)) {
+    if (expectations.contains(Expectation.SKIP) ||
+        expectations.contains(Expectation.SKIP_BY_DESIGN)) {
       return;
     }
 
@@ -704,7 +704,7 @@ class StandardTestSuite extends TestSuite {
     String testName = buildTestCaseDisplayName(suiteDir, info.originTestPath,
         multitestName: optionsFromFile['isMultitest'] ? info.multitestKey : "");
 
-    Set<String> expectations = testExpectations.expectations(testName);
+    Set<Expectation> expectations = testExpectations.expectations(testName);
     if (configuration['compiler'] != 'none' && info.hasCompileError) {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
@@ -716,7 +716,7 @@ class StandardTestSuite extends TestSuite {
         // A browser multi-test has multiple expectations for one test file.
         // Find all the different sub-test expecations for one entire test file.
         List<String> subtestNames = info.optionsFromFile['subtestNames'];
-        Map<String, Set<String>> multiHtmlTestExpectations = {};
+        Map<String, Set<Expectation>> multiHtmlTestExpectations = {};
         for (String name in subtestNames) {
           String fullTestName = '$testName/$name';
           multiHtmlTestExpectations[fullTestName] =
@@ -734,7 +734,7 @@ class StandardTestSuite extends TestSuite {
 
   void enqueueStandardTest(TestInformation info,
                            String testName,
-                           Set<String> expectations) {
+                           Set<Expectation> expectations) {
     var commonArguments = commonArgumentsFromFile(info.filePath,
                                                   info.optionsFromFile);
 
@@ -790,10 +790,10 @@ class StandardTestSuite extends TestSuite {
         // Do not attempt to run the compiled result. A compilation
         // error should be reported by the compilation command.
       } else if (configuration['runtime'] == 'd8') {
-        commands.add(CommandBuilder.instance.getCommand(
+        commands.add(CommandBuilder.instance.getJSCommandlineCommand(
             "d8", d8FileName, ['$tempDir/out.js'], configurationDir));
       } else if (configuration['runtime'] == 'jsshell') {
-        commands.add(CommandBuilder.instance.getCommand(
+        commands.add(CommandBuilder.instance.getJSCommandlineCommand(
             "jsshell", jsShellFileName, ['$tempDir/out.js'], configurationDir));
       }
       return commands;
@@ -817,8 +817,8 @@ class StandardTestSuite extends TestSuite {
         var vmArguments = new List.from(vmOptions);
         vmArguments.addAll([
             '--ignore-unrecognized-flags', '$tempDir/out.dart']);
-        commands.add(CommandBuilder.instance.getCommand(
-            "vm", vmFileName, vmArguments, configurationDir));
+        commands.add(CommandBuilder.instance.getVmCommand(
+            vmFileName, vmArguments, configurationDir));
       } else {
         throw 'Unsupported runtime ${configuration["runtime"]} for dart2dart';
       }
@@ -827,8 +827,8 @@ class StandardTestSuite extends TestSuite {
     case 'none':
       var arguments = new List.from(vmOptions);
       arguments.addAll(args);
-      return <Command>[CommandBuilder.instance.getCommand(
-          'vm', dartShellFileName, arguments, configurationDir)];
+      return <Command>[CommandBuilder.instance.getVmCommand(
+          dartShellFileName, arguments, configurationDir)];
 
     case 'dartanalyzer':
     case 'dart2analyzer':
@@ -1968,8 +1968,6 @@ class TestUtils {
     }
     return extraVmOptions;
   }
-
-
 }
 
 class SummaryReport {
@@ -1984,31 +1982,35 @@ class SummaryReport {
   static int timeout = 0;
   static int compileErrorSkip = 0;
 
-  static void add(Set<String> expectations) {
+  static void add(Set<Expectation> expectations) {
     ++total;
-    if (expectations.contains(SKIP)) {
+    if (expectations.contains(Expectation.SKIP)) {
       ++skipped;
-    } else if (expectations.contains(SKIP_BY_DESIGN)) {
+    } else if (expectations.contains(Expectation.SKIP_BY_DESIGN)) {
       ++skipped;
       ++skippedByDesign;
     } else {
-      if (expectations.contains(PASS) && expectations.contains(FAIL) &&
-          !expectations.contains(CRASH) && !expectations.contains(OK)) {
+      if (expectations.contains(Expectation.PASS) &&
+          expectations.contains(Expectation.FAIL) &&
+          !expectations.contains(Expectation.CRASH) &&
+          !expectations.contains(Expectation.OK)) {
         ++noCrash;
       }
-      if (expectations.contains(PASS) && expectations.length == 1) {
+      if (expectations.contains(Expectation.PASS) && expectations.length == 1) {
         ++pass;
       }
-      if (expectations.containsAll([FAIL, OK]) && expectations.length == 2) {
+      if (expectations.containsAll([Expectation.FAIL, Expectation.OK]) &&
+          expectations.length == 2) {
         ++failOk;
       }
-      if (expectations.contains(FAIL) && expectations.length == 1) {
+      if (expectations.contains(Expectation.FAIL) && expectations.length == 1) {
         ++fail;
       }
-      if (expectations.contains(CRASH) && expectations.length == 1) {
+      if (expectations.contains(Expectation.CRASH) &&
+          expectations.length == 1) {
         ++crash;
       }
-      if (expectations.contains(TIMEOUT)) {
+      if (expectations.contains(Expectation.TIMEOUT)) {
         ++timeout;
       }
     }
