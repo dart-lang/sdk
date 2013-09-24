@@ -48,7 +48,6 @@ void main() {
       log.error('Could not find a command named "${options.rest[0]}".');
       log.error('Run "pub help" to see available commands.');
       flushThenExit(exit_codes.USAGE);
-      return;
     }
     return;
   }

@@ -107,6 +107,7 @@ Handle::Handle(HANDLE handle)
       pending_read_(NULL),
       pending_write_(NULL),
       last_error_(NOERROR),
+      thread_wrote_(0),
       flags_(0) {
   InitializeCriticalSection(&cs_);
 }
@@ -122,6 +123,7 @@ Handle::Handle(HANDLE handle, Dart_Port port)
       pending_read_(NULL),
       pending_write_(NULL),
       last_error_(NOERROR),
+      thread_wrote_(0),
       flags_(0) {
   InitializeCriticalSection(&cs_);
 }
@@ -332,7 +334,7 @@ bool FileHandle::IsClosed() {
 
 
 void FileHandle::DoClose() {
-  if (GetStdHandle(STD_OUTPUT_HANDLE) == handle_) {
+  if (handle_ == GetStdHandle(STD_OUTPUT_HANDLE)) {
     int fd = _open("NUL", _O_WRONLY);
     ASSERT(fd >= 0);
     _dup2(fd, _fileno(stdout));
@@ -357,10 +359,6 @@ bool DirectoryWatchHandle::IsClosed() {
   return IsClosing() && pending_read_ == NULL;
 }
 
-
-void DirectoryWatchHandle::DoClose() {
-  Handle::DoClose();
-}
 
 bool DirectoryWatchHandle::IssueRead() {
   ScopedLock lock(this);
@@ -562,30 +560,72 @@ int Handle::Read(void* buffer, int num_bytes) {
 }
 
 
+static unsigned int __stdcall WriteFileThread(void* args) {
+  Handle* handle = reinterpret_cast<Handle*>(args);
+  handle->WriteSyncCompleteAsync();
+  return 0;
+}
+
+
+void Handle::WriteSyncCompleteAsync() {
+  ASSERT(pending_write_ != NULL);
+
+  DWORD bytes_written = -1;
+  BOOL ok = WriteFile(handle_,
+                      pending_write_->GetBufferStart(),
+                      pending_write_->GetBufferSize(),
+                      &bytes_written,
+                      NULL);
+  if (!ok) {
+    if (GetLastError() != ERROR_BROKEN_PIPE) {
+      Log::PrintErr("WriteFile failed %d\n", GetLastError());
+    }
+    bytes_written = 0;
+  }
+  thread_wrote_ += bytes_written;
+  OVERLAPPED* overlapped = pending_write_->GetCleanOverlapped();
+  ok = PostQueuedCompletionStatus(event_handler_->completion_port(),
+                                  bytes_written,
+                                  reinterpret_cast<ULONG_PTR>(this),
+                                  overlapped);
+  if (!ok) {
+    FATAL("PostQueuedCompletionStatus failed");
+  }
+}
+
+
 int Handle::Write(const void* buffer, int num_bytes) {
   ScopedLock lock(this);
+  if (pending_write_ != NULL) return 0;
+  if (num_bytes > kBufferSize) num_bytes = kBufferSize;
   if (SupportsOverlappedIO()) {
-    if (pending_write_ != NULL) return 0;
     if (completion_port_ == INVALID_HANDLE_VALUE) return 0;
-    if (num_bytes > kBufferSize) num_bytes = kBufferSize;
     pending_write_ = OverlappedBuffer::AllocateWriteBuffer(num_bytes);
     pending_write_->Write(buffer, num_bytes);
     if (!IssueWrite()) return -1;
     return num_bytes;
   } else {
-    DWORD bytes_written = -1;
-    BOOL ok = WriteFile(handle_,
-                        buffer,
-                        num_bytes,
-                        &bytes_written,
-                        NULL);
-    if (!ok) {
-      if (GetLastError() != ERROR_BROKEN_PIPE) {
-        Log::PrintErr("WriteFile failed: %d\n", GetLastError());
-      }
-      event_handler_->HandleClosed(this);
+    // In the case of stdout and stderr, OverlappedIO is not supported.
+    // Here we'll instead spawn a new thread for each write, to make it async.
+    // This code is actually never exposed to the user, as stdout and stderr is
+    // not available as a RawSocket, but only wrapped in a Socket.
+    // Note that we return '0', unless a thread have already completed a write.
+    // TODO(ajohnsen): Don't spawn a new thread per write. Issue 13541.
+    if (thread_wrote_ > 0) {
+      if (num_bytes > thread_wrote_) num_bytes = thread_wrote_;
+      thread_wrote_ -= num_bytes;
+      return num_bytes;
     }
-    return bytes_written;
+    pending_write_ = OverlappedBuffer::AllocateWriteBuffer(num_bytes);
+    pending_write_->Write(buffer, num_bytes);
+    // Completing asynchronously through thread.
+    uint32_t tid;
+    uintptr_t thread_handle =
+        _beginthreadex(NULL, 32 * 1024, WriteFileThread, this, 0, &tid);
+    if (thread_handle == -1) {
+      FATAL("Failed to start write file thread");
+    }
+    return 0;
   }
 }
 
