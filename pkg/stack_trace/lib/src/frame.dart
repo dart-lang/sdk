@@ -117,9 +117,9 @@ class Frame {
     var column = null;
     var columnMatch = match[4];
     if (columnMatch != null) {
-      col = int.parse(columnMatch);
+      column = int.parse(columnMatch);
     }
-    return new Frame(uri, line, col, member);
+    return new Frame(uri, line, column, member);
   }
 
   /// Parses a string representation of a Chrome/V8 stack frame.
