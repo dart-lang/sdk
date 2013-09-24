@@ -19,3 +19,6 @@ txt_layout_test: Skip # Might just go away.
 
 [ $system == macos || $system == windows ]
 *_layout_test: Skip
+
+[ $compiler == none && $runtime == drt && $system == linux ]
+png_layout_test: Fail # Issue 13540
