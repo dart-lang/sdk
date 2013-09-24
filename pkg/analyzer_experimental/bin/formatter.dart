@@ -4,6 +4,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:utf';
 
@@ -17,7 +18,9 @@ const BINARY_NAME = 'dartfmt';
 final dartFileRegExp = new RegExp(r'^[^.].*\.dart$', caseSensitive: false);
 final argParser = _initArgParser();
 
+bool machineFormat;
 bool overwriteFileContents;
+Selection selection;
 const followLinks = false;
 
 main() {
@@ -26,14 +29,38 @@ main() {
     _printUsage();
     return;
   }
-  overwriteFileContents = options['write'];
 
+  _readOptions(options);
+  
   if (options.rest.isEmpty) {
     _formatStdin(options);
   } else {
     _formatPaths(options.rest);
   }
 }
+
+_readOptions(options) {
+  machineFormat = options['machine'];
+  overwriteFileContents = options['write'];
+  selection = _parseSelection(options['selection']);
+}
+
+Selection _parseSelection(selectionOption) {
+  if (selectionOption != null) {
+    var units = selectionOption.split(',');
+    if (units.length == 2) {
+      var offset = _toInt(units[0]);
+      var length = _toInt(units[1]);
+      if (offset != null && length != null) {
+        return new Selection(offset, length);
+      }
+    }
+    throw new FormatterException('Selections are specified as integer pairs '
+                                 '(e.g., "(offset, length)".');
+  }
+}
+
+int _toInt(str) => int.parse(str, onError: (_) => null);
 
 _formatPaths(paths) {
   paths.forEach((path) {
@@ -90,6 +117,11 @@ ArgParser _initArgParser() {
   parser.addFlag('write', abbr: 'w', negatable: false,
       help: 'Write reformatted sources to files (overwriting contents).  '
             'Do not print reformatted sources to standard output.');
+  parser.addFlag('machine', abbr: 'm', negatable: false,
+      help: 'Produce output in a format suitable for parsing.');
+  parser.addOption('selection', abbr: 's',
+      help: 'Specify selection information as an offset,length pair '
+            '(e.g., -s "0,4").');
   parser.addFlag('help', abbr: 'h', negatable: false,
       help: 'Print this usage information.');
   return parser;
@@ -115,8 +147,19 @@ _printUsage() {
 }
 
 /// Format the given [src] as a compilation unit.
-String _formatCU(src, {options: const FormatterOptions()}) =>
-    new CodeFormatter(options).format(CodeKind.COMPILATION_UNIT, src).source;
+String _formatCU(src, {options: const FormatterOptions()}) {
+  var formatResult = new CodeFormatter(options).format(
+      CodeKind.COMPILATION_UNIT, src, selection: selection);
+  if (machineFormat) {
+    return _toJson(formatResult);
+  }
+  return formatResult.source;
+}
+
+_toJson(formatResult) => 
+    // Actual JSON format TBD
+    JSON.encode({'source': formatResult.source,
+                 'selection': formatResult.selection.toString()});
 
 /// Log the given [msg].
 _log(String msg) {

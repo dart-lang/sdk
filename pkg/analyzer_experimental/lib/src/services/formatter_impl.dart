@@ -93,6 +93,8 @@ class Selection {
   final int length;
   
   Selection(this.offset, this.length);
+  
+  String toString() => 'Selection (offset: $offset, length: $length)';
 }
 
 /// Formatted source.
@@ -128,14 +130,14 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
     var node = parse(kind, startToken);
     checkForErrors();
 
-    var formatter = new SourceVisitor(options, lineInfo);
+    var formatter = new SourceVisitor(options, lineInfo, selection);
     node.accept(formatter);
 
     var formattedSource = formatter.writer.toString();
     
     checkTokenStreams(startToken, tokenize(formattedSource));
 
-    return new FormattedSource(formattedSource);
+    return new FormattedSource(formattedSource, formatter.selection);
   }
 
   checkTokenStreams(Token t1, Token t2) =>
@@ -309,10 +311,16 @@ class SourceVisitor implements ASTVisitor {
 
   /// Used for matching EOL comments
   final twoSlashes = new RegExp(r'//[^/]');
+  
+  /// Original pre-format selection information (may be null).
+  final Selection preSelection;
+  
+  /// Post format selection information.
+  Selection selection;
 
   /// Initialize a newly created visitor to write source code representing
   /// the visited nodes to the given [writer].
-  SourceVisitor(FormatterOptions options, this.lineInfo) :
+  SourceVisitor(FormatterOptions options, this.lineInfo, this.preSelection) :
       writer = new SourceWriter(indentCount: options.initialIndentationLevel,
                                 lineSeparator: options.lineSeparator);
 
@@ -1209,11 +1217,25 @@ class SourceVisitor implements ASTVisitor {
       if (precededBy != null) {
         precededBy();
       }
+      checkForSelectionUpdate(token);
       append(token.lexeme);
       if (followedBy != null) {
         followedBy();
       }
       previousToken = token;
+    }
+  }
+  
+  checkForSelectionUpdate(Token token) {
+    // Cache the first token on or AFTER the selection offset
+    if (preSelection != null && selection == null) {
+      // Check for overshots
+      var overshot = token.offset - preSelection.offset;
+      if (overshot >= 0) {
+        //TODO(pquitslund): update length (may need truncating)
+        selection = new Selection(writer.toString().length - overshot, 
+            preSelection.length);
+      }
     }
   }
 
