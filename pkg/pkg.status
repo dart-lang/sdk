@@ -14,7 +14,7 @@
 scheduled_test/lib/*: Skip
 polymer/example/scoped_style/*: Skip
 
-scheduled_test/test/scheduled_server_test: Pass, Slow # Issue 9231
+scheduled_test/test/scheduled_server_test: Pass, Slow, Fail # Issue 9231, 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
 # Skip test not runnable via test.dart
@@ -155,7 +155,6 @@ scheduled_test/test/descriptor/nothing_test: Fail # http://dartbug.com/8440
 scheduled_test/test/descriptor/pattern_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_future_matchers_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_process_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_server_test: Fail # http://dartbug.com/8440, dart:io
 scheduled_test/test/scheduled_test/abort_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/current_schedule_current_task_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/current_schedule_errors_test: Fail # http://dartbug.com/8440
