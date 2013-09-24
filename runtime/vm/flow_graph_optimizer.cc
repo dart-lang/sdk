@@ -2624,9 +2624,27 @@ void FlowGraphOptimizer::PrepareByteArrayViewOp(
                            call->deopt_id());
   InsertBefore(call, len_in_bytes, call->env(), Definition::kValue);
 
-    // Check byte_index < len_in_bytes.
+  ConstantInstr* length_adjustment =
+      flow_graph()->GetConstant(Smi::Handle(Smi::New(
+          FlowGraphCompiler::ElementSizeFor(view_cid) - 1)));
+  // adjusted_length = len_in_bytes - (element_size - 1).
+  BinarySmiOpInstr* adjusted_length =
+      new BinarySmiOpInstr(Token::kSUB,
+                           new Value(len_in_bytes),
+                           new Value(length_adjustment),
+                           call->deopt_id());
+  InsertBefore(call, adjusted_length, call->env(), Definition::kValue);
+  // Check adjusted_length > 0.
+  ConstantInstr* zero = flow_graph()->GetConstant(Smi::Handle(Smi::New(0)));
   InsertBefore(call,
-               new CheckArrayBoundInstr(new Value(len_in_bytes),
+               new CheckArrayBoundInstr(new Value(adjusted_length),
+                                        new Value(zero),
+                                        call->deopt_id()),
+               call->env(),
+               Definition::kEffect);
+  // Check 0 <= byte_index < adjusted_length.
+  InsertBefore(call,
+               new CheckArrayBoundInstr(new Value(adjusted_length),
                                         new Value(byte_index),
                                         call->deopt_id()),
                call->env(),

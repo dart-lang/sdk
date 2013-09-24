@@ -15,23 +15,15 @@ namespace dart {
 
 // TypedData.
 
-// Checks to see if offset_in_bytes is in the range.
-static bool RangeCheck(intptr_t offset_in_bytes, intptr_t length_in_bytes) {
-  return ((offset_in_bytes >= 0) &&
-          (length_in_bytes > 0) &&
-          (offset_in_bytes < length_in_bytes));
-}
-
-
 // Checks to see if offsetInBytes + num_bytes is in the range.
-static void SetRangeCheck(intptr_t offset_in_bytes,
-                          intptr_t num_bytes,
-                          intptr_t length_in_bytes,
-                          intptr_t element_size_in_bytes) {
-  if (!Utils::RangeCheck(offset_in_bytes, num_bytes, length_in_bytes)) {
+static void RangeCheck(intptr_t offset_in_bytes,
+                       intptr_t access_size,
+                       intptr_t length_in_bytes,
+                       intptr_t element_size_in_bytes) {
+  if (!Utils::RangeCheck(offset_in_bytes, access_size, length_in_bytes)) {
     const String& error = String::Handle(String::NewFormatted(
         "index (%" Pd ") must be in the range [0..%" Pd ")",
-        (offset_in_bytes / element_size_in_bytes),
+        (offset_in_bytes + access_size) / element_size_in_bytes,
         (length_in_bytes / element_size_in_bytes)));
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, error);
@@ -90,14 +82,14 @@ static RawBool* CopyData(const Instance& dst, const Instance& src,
   if (dst_array.ElementType() != src_array.ElementType()) {
     return Bool::False().raw();
   }
-  SetRangeCheck(src_offset_in_bytes,
-                length_in_bytes,
-                src_array.LengthInBytes(),
-                element_size_in_bytes);
-  SetRangeCheck(dst_offset_in_bytes,
-                length_in_bytes,
-                dst_array.LengthInBytes(),
-                element_size_in_bytes);
+  RangeCheck(src_offset_in_bytes,
+             length_in_bytes,
+             src_array.LengthInBytes(),
+             element_size_in_bytes);
+  RangeCheck(dst_offset_in_bytes,
+             length_in_bytes,
+             dst_array.LengthInBytes(),
+             element_size_in_bytes);
   TypedData::Copy<DstType, SrcType>(dst_array, dst_offset_in_bytes,
                                     src_array, src_offset_in_bytes,
                                     length_in_bytes);
@@ -183,18 +175,20 @@ DEFINE_NATIVE_ENTRY(ExternalTypedData_##name##_new, 1) {                       \
 
 CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 
-#define TYPED_DATA_GETTER(getter, object)                                      \
+#define TYPED_DATA_GETTER(getter, object, access_size)                         \
 DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0)); \
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes, arguments->NativeArgAt(1)); \
   if (instance.IsTypedData()) {                                                \
     const TypedData& array = TypedData::Cast(instance);                        \
-    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    RangeCheck(offsetInBytes.Value(), access_size,                             \
+               array.LengthInBytes(), access_size);                            \
     return object::New(array.getter(offsetInBytes.Value()));                   \
   }                                                                            \
   if (instance.IsExternalTypedData()) {                                        \
     const ExternalTypedData& array = ExternalTypedData::Cast(instance);        \
-    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    RangeCheck(offsetInBytes.Value(), access_size,                             \
+               array.LengthInBytes(), access_size);                            \
     return object::New(array.getter(offsetInBytes.Value()));                   \
   }                                                                            \
   const String& error = String::Handle(String::NewFormatted(                   \
@@ -206,18 +200,20 @@ DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
 }                                                                              \
 
 
-#define TYPED_DATA_SETTER(setter, object, get_object_value)                    \
+#define TYPED_DATA_SETTER(setter, object, get_object_value, access_size)       \
 DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0)); \
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes, arguments->NativeArgAt(1)); \
   GET_NON_NULL_NATIVE_ARGUMENT(object, value, arguments->NativeArgAt(2));      \
   if (instance.IsTypedData()) {                                                \
     const TypedData& array = TypedData::Cast(instance);                        \
-    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    RangeCheck(offsetInBytes.Value(), access_size,                             \
+               array.LengthInBytes(), access_size);                            \
     array.setter(offsetInBytes.Value(), value.get_object_value());             \
   } else if (instance.IsExternalTypedData()) {                                 \
     const ExternalTypedData& array = ExternalTypedData::Cast(instance);        \
-    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    RangeCheck(offsetInBytes.Value(), access_size,                             \
+               array.LengthInBytes(), access_size);                            \
     array.setter(offsetInBytes.Value(), value.get_object_value());             \
   } else {                                                                     \
     const String& error = String::Handle(String::NewFormatted(                 \
@@ -237,11 +233,11 @@ DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
   uint64_t value = 0;                                                          \
   if (instance.IsTypedData()) {                                                \
     const TypedData& array = TypedData::Cast(instance);                        \
-    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    RangeCheck(offsetInBytes.Value(), 8, array.LengthInBytes(), 8);            \
     value = array.getter(offsetInBytes.Value());                               \
   } else if (instance.IsExternalTypedData()) {                                 \
     const ExternalTypedData& array = ExternalTypedData::Cast(instance);        \
-    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    RangeCheck(offsetInBytes.Value(), 8, array.LengthInBytes(), 8);            \
     value = array.getter(offsetInBytes.Value());                               \
   } else {                                                                     \
     const String& error = String::Handle(String::NewFormatted(                 \
@@ -272,11 +268,11 @@ DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
   }                                                                            \
   if (instance.IsTypedData()) {                                                \
     const TypedData& array = TypedData::Cast(instance);                        \
-    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    RangeCheck(offsetInBytes.Value(), 8, array.LengthInBytes(), 8);            \
     array.setter(offsetInBytes.Value(), object_value);                         \
   } else if (instance.IsExternalTypedData()) {                                 \
     const ExternalTypedData& array = ExternalTypedData::Cast(instance);        \
-    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    RangeCheck(offsetInBytes.Value(), 8, array.LengthInBytes(), 8);            \
     array.setter(offsetInBytes.Value(), object_value);                         \
   } else {                                                                     \
     const String& error = String::Handle(String::NewFormatted(                 \
@@ -289,9 +285,13 @@ DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
 }
 
 
-#define TYPED_DATA_NATIVES(getter, setter, object, get_object_value)           \
-  TYPED_DATA_GETTER(getter, object)                                            \
-  TYPED_DATA_SETTER(setter, object, get_object_value)                          \
+#define TYPED_DATA_NATIVES(getter,                                             \
+                           setter,                                             \
+                           object,                                             \
+                           get_object_value,                                   \
+                           access_size)                                        \
+  TYPED_DATA_GETTER(getter, object, access_size)                               \
+  TYPED_DATA_SETTER(setter, object, get_object_value, access_size)             \
 
 
 #define TYPED_DATA_UINT64_NATIVES(getter, setter, object)                      \
@@ -299,17 +299,17 @@ DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
   TYPED_DATA_UINT64_SETTER(setter, object)                                     \
 
 
-TYPED_DATA_NATIVES(GetInt8, SetInt8, Smi, Value)
-TYPED_DATA_NATIVES(GetUint8, SetUint8, Smi, Value)
-TYPED_DATA_NATIVES(GetInt16, SetInt16, Smi, Value)
-TYPED_DATA_NATIVES(GetUint16, SetUint16, Smi, Value)
-TYPED_DATA_NATIVES(GetInt32, SetInt32, Integer, AsInt64Value)
-TYPED_DATA_NATIVES(GetUint32, SetUint32, Integer, AsInt64Value)
-TYPED_DATA_NATIVES(GetInt64, SetInt64, Integer, AsInt64Value)
+TYPED_DATA_NATIVES(GetInt8, SetInt8, Smi, Value, 1)
+TYPED_DATA_NATIVES(GetUint8, SetUint8, Smi, Value, 1)
+TYPED_DATA_NATIVES(GetInt16, SetInt16, Smi, Value, 2)
+TYPED_DATA_NATIVES(GetUint16, SetUint16, Smi, Value, 2)
+TYPED_DATA_NATIVES(GetInt32, SetInt32, Integer, AsInt64Value, 4)
+TYPED_DATA_NATIVES(GetUint32, SetUint32, Integer, AsInt64Value, 4)
+TYPED_DATA_NATIVES(GetInt64, SetInt64, Integer, AsInt64Value, 8)
 TYPED_DATA_UINT64_NATIVES(GetUint64, SetUint64, Integer)
-TYPED_DATA_NATIVES(GetFloat32, SetFloat32, Double, value)
-TYPED_DATA_NATIVES(GetFloat64, SetFloat64, Double, value)
-TYPED_DATA_NATIVES(GetFloat32x4, SetFloat32x4, Float32x4, value)
+TYPED_DATA_NATIVES(GetFloat32, SetFloat32, Double, value, 4)
+TYPED_DATA_NATIVES(GetFloat64, SetFloat64, Double, value, 8)
+TYPED_DATA_NATIVES(GetFloat32x4, SetFloat32x4, Float32x4, value, 16)
 
 
 DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt16, 2) {

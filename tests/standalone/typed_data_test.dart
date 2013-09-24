@@ -143,8 +143,17 @@ void testSetRange() {
   testSetRangeHelper(new Uint8ClampedList(3));
 }
 
-void testIndexOutOfRangeHelper(typed_data) {
-  List<int> list = const [0, 1, 2, 3];
+class C {
+  final x;
+  C(this.x);
+  operator<(o) => false;
+  operator>=(o) => false;
+  operator*(o) => x;
+}
+
+void testIndexOutOfRangeHelper(typed_data, value) {
+  List<int> list = new List<int>(typed_data.length + 1);
+  for (int i = 0; i < list.length; i++) list[i] = i;
 
   Expect.throws(() {
     typed_data.setRange(0, 4, list);
@@ -153,11 +162,36 @@ void testIndexOutOfRangeHelper(typed_data) {
   Expect.throws(() {
     typed_data.setRange(3, 4, list);
   });
+
+  Expect.throws(() {
+    typed_data[new C(-4000000)] = value;
+  });
+
+  Expect.throws(() {
+    var size = typed_data.elementSizeInBytes;
+    var i = (typed_data.length - 1) * size + 1; 
+    typed_data[new C(i)] = value;
+  });
+
+  Expect.throws(() {
+    typed_data[new C(-1)] = value;
+  });
 }
 
 void testIndexOutOfRange() {
-  testIndexOutOfRangeHelper(new Uint8List(3));
-  testIndexOutOfRangeHelper(new Uint8ClampedList(3));
+  testIndexOutOfRangeHelper(new Int8List(3), 0);
+  testIndexOutOfRangeHelper(new Uint8List(3), 0);
+  testIndexOutOfRangeHelper(new Uint8ClampedList(3), 0);
+  testIndexOutOfRangeHelper(new Int16List(3), 0);
+  testIndexOutOfRangeHelper(new Uint16List(3), 0);
+  testIndexOutOfRangeHelper(new Int32List(3), 0);
+  testIndexOutOfRangeHelper(new Uint32List(3), 0);
+  testIndexOutOfRangeHelper(new Int64List(3), 0);
+  testIndexOutOfRangeHelper(new Uint64List(3), 0);
+  testIndexOutOfRangeHelper(new Float32List(3), 0.0);
+  testIndexOutOfRangeHelper(new Float64List(3), 0.0);
+  testIndexOutOfRangeHelper(new Int64List(3), 0);
+  testIndexOutOfRangeHelper(new Uint64List(3), 0);
 }
 
 void testIndexOfHelper(list) {
