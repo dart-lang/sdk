@@ -5,7 +5,7 @@
 ///
 /// For more information on these APIs, see the
 /// [chrome.* API documentation](http://developer.chrome.com/apps/api_index.html).
-library chrome;
+library _chrome;
 
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper';
@@ -17,7 +17,7 @@ import 'dart:html';
 // BSD-style license that can be found in the LICENSE file.
 
 // DO NOT EDIT
-// Auto-generated dart:chrome library.
+// Auto-generated dart:_chrome library.
 
 
 /* TODO(sashab): Add "show convertDartClosureToJS" once 'show' works. */

@@ -5,19 +5,19 @@
 library sample_test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
-import 'dart:chrome' as chrome;
+import 'dart:_chrome' as _chrome;
 
 main() {
   useHtmlConfiguration();
   test('access', () {
-    var window = chrome.app.window;
-    expect(window is chrome.WindowModule, true);
+    var window = _chrome.app.window;
+    expect(window is _chrome.WindowModule, true);
   });
 
   test('fails from browser', () {
     // APIs should not work in standard browser apps.
     expect(() {
-      chrome.app.window.create('foo.html');
+      _chrome.app.window.create('foo.html');
     }, throws);
   });
 }

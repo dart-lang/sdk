@@ -17,10 +17,10 @@ COMPILER = "../../../third_party/chrome/tools/json_schema_compiler/compiler.py"
 API_DIR = "../../../third_party/chrome/idl/"
 
 # The path to the custom overrides directory, containing override files.
-OVERRIDES_DIR = "../src/chrome/custom_dart/"
+OVERRIDES_DIR = "../src/_chrome/custom_dart/"
 
 # The path to where the generated .dart files should be saved.
-OUTPUT_DIR = "../src/chrome/"
+OUTPUT_DIR = "../src/_chrome/"
 
 # The path to where the output template file is. This file will be populated
 # with TEMPLATE_CONTENT, followed by the list of generated .dart files.
@@ -34,7 +34,7 @@ TEMPLATE_CONTENT = """
 // BSD-style license that can be found in the LICENSE file.
 
 // DO NOT EDIT
-// Auto-generated dart:chrome library.
+// Auto-generated dart:_chrome library.
 
 /// Native wrappers for the Chrome packaged app APIs.
 ///
@@ -43,7 +43,7 @@ TEMPLATE_CONTENT = """
 ///
 /// For more information on these APIs, see the
 /// [chrome.* API documentation](http://developer.chrome.com/apps/api_index.html).
-library chrome;
+library _chrome;
 
 import 'dart:_foreign_helper' show JS;
 /* TODO(sashab): Add "show convertDartClosureToJS" once 'show' works. */
@@ -51,15 +51,15 @@ import 'dart:_js_helper';
 import 'dart:html_common';
 import 'dart:html';
 
-part "$AUXILIARY_DIR/chrome/utils.dart";
-part "$AUXILIARY_DIR/chrome/chrome.dart";
+part "$AUXILIARY_DIR/_chrome/utils.dart";
+part "$AUXILIARY_DIR/_chrome/_chrome.dart";
 
 // Generated files below this line.
 """
 
 # The format for adding files to TEMPLATE_CONTENT. Will be substituted with the
 # filename (not including the extension) of the IDL/JSON file.
-TEMPLATE_FILE_FORMAT = 'part "$AUXILIARY_DIR/chrome/%s.dart";'
+TEMPLATE_FILE_FORMAT = 'part "$AUXILIARY_DIR/_chrome/%s.dart";'
 
 # A list of schema files to generate.
 # TODO(sashab): Later, use the ones from API_DIR/api.gyp and
