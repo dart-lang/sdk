@@ -114,10 +114,10 @@ class Frame {
     var member = match[1].replaceAll("<anonymous closure>", "<fn>");
     var uri = Uri.parse(match[2]);
     var line = int.parse(match[3]);
-    var col = null;
-    var col_match = match[4];
-    if (col_match != null) {
-      col = int.parse(col_match);
+    var column = null;
+    var columnMatch = match[4];
+    if (columnMatch != null) {
+      col = int.parse(columnMatch);
     }
     return new Frame(uri, line, col, member);
   }

@@ -10,13 +10,23 @@ import 'package:unittest/unittest.dart';
 
 void main() {
   group('.parseVM', () {
-    test('parses a stack frame correctly', () {
+    test('parses a stack frame with column correctly', () {
       var frame = new Frame.parseVM("#1      Foo._bar "
           "(file:///home/nweiz/code/stuff.dart:42:21)");
       expect(frame.uri,
           equals(Uri.parse("file:///home/nweiz/code/stuff.dart")));
       expect(frame.line, equals(42));
       expect(frame.column, equals(21));
+      expect(frame.member, equals('Foo._bar'));
+    });
+
+    test('parses a stack frame without column correctly', () {
+      var frame = new Frame.parseVM("#1      Foo._bar "
+          "(file:///home/nweiz/code/stuff.dart:24)");
+      expect(frame.uri,
+          equals(Uri.parse("file:///home/nweiz/code/stuff.dart")));
+      expect(frame.line, equals(24));
+      expect(frame.column, null);
       expect(frame.member, equals('Foo._bar'));
     });
 
