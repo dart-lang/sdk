@@ -859,70 +859,6 @@ class CodeEmitterTask extends CompilerTask {
         fun);
   }
 
-  jsAst.Fun get finishIsolateConstructorFunction_NO_CSP {
-    String isolate = namer.isolateName;
-    // We replace the old Isolate function with a new one that initializes
-    // all its field with the initial (and often final) value of all globals.
-    // This has two advantages:
-    //   1. the properties are in the object itself (thus avoiding to go through
-    //      the prototype when looking up globals.
-    //   2. a new isolate goes through a (usually well optimized) constructor
-    //      function of the form: "function() { this.x = ...; this.y = ...; }".
-    //
-    // Example: If [isolateProperties] is an object containing: x = 3 and
-    // A = function A() { /* constructor of class A. */ }, then we generate:
-    // str = "{
-    //   var isolateProperties = Isolate.$isolateProperties;
-    //   this.x = isolateProperties.x;
-    //   this.A = isolateProperties.A;
-    // }";
-    // which is then dynamically evaluated:
-    //   var newIsolate = new Function(str);
-    //
-    // We also copy over old values like the prototype, and the
-    // isolateProperties themselves.
-
-    List copyFinishClasses = [];
-    if (needsDefineClass) {
-      copyFinishClasses.add(
-          js('newIsolate.$finishClassesProperty = '
-             '    oldIsolate.$finishClassesProperty'));
-    }
-
-    // function(oldIsolate) {
-    return js.fun('oldIsolate', [
-      js('var isolateProperties = oldIsolate.${namer.isolatePropertiesName}'),
-
-      js('var isolatePrototype = oldIsolate.prototype'),
-      js('var str = "{\\n"'),
-      js('str += "var properties = '
-                     'arguments.callee.${namer.isolatePropertiesName};\\n"'),
-      js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
-
-      // for (var staticName in isolateProperties) {
-      js.forIn('staticName', 'isolateProperties', [
-        js.if_('hasOwnProperty.call(isolateProperties, staticName)', [
-          js('str += ("this." + staticName + "= properties." + staticName + '
-                          '";\\n")')
-        ])
-      ]),
-
-      js('str += "}\\n"'),
-
-      js('var newIsolate = new Function(str)'),
-      js('newIsolate.prototype = isolatePrototype'),
-      js('isolatePrototype.constructor = newIsolate'),
-      js('newIsolate.${namer.isolatePropertiesName} = isolateProperties'),
-      // TODO(ahe): Only copy makeConstantList when it is used.
-      js('newIsolate.makeConstantList = oldIsolate.makeConstantList'),
-    ]..addAll(copyFinishClasses)
-     ..addAll([
-
-      // return newIsolate;
-      js.return_('newIsolate')
-    ]));
-  }
-
   jsAst.Fun get finishIsolateConstructorFunction {
     // We replace the old Isolate function with a new one that initializes
     // all its fields with the initial (and often final) value of all globals.
@@ -3839,26 +3775,6 @@ class CodeEmitterTask extends CompilerTask {
       buffer.write(',$n');
     }
     buffer.write('];$n');
-  }
-
-  void emitConvertToFastObjectFunction_NO_CSP() {
-    mainBuffer.add(r'''
-function convertToFastObject(properties) {
-  function makeConstructor() {
-    var str = "{\n";
-    var hasOwnProperty = Object.prototype.hasOwnProperty;
-    for (var property in properties) {
-      if (hasOwnProperty.call(properties, property)) {
-        str += "this." + property + "= properties." + property + ";\n";
-      }
-    }
-    str += "}\n";
-    return new Function("properties", str);
-  };
-  var constructor = makeConstructor();
-  return makeConstructor.prototype = new constructor(properties);
-}
-''');
   }
 
   void emitConvertToFastObjectFunction() {
