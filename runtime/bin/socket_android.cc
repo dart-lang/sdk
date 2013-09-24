@@ -25,6 +25,7 @@ namespace bin {
 SocketAddress::SocketAddress(struct sockaddr* sockaddr) {
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
   RawAddr* raw = reinterpret_cast<RawAddr*>(sockaddr);
+  const char* result;
   if (sockaddr->sa_family == AF_INET) {
     result = inet_ntop(sockaddr->sa_family,
                        &raw->in.sin_addr,
