@@ -4,6 +4,17 @@
 
 [ $compiler == dartanalyzer ]
 
+# Missing compile-time errors for parameters marked static.
+language/static_parameter_test/02: Fail
+language/static_parameter_test/03: Fail
+language/static_parameter_test/04: Fail
+language/static_parameter_test/06: Fail
+language/static_parameter_test/07: Fail
+language/static_parameter_test/08: Fail
+language/static_parameter_test/10: Fail
+language/static_parameter_test/11: Fail
+language/static_parameter_test/12: Fail
+
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
