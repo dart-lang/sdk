@@ -179,6 +179,7 @@ class ContainerTracer extends CompilerTask {
 
   bool analyze() {
     measure(() {
+      if (compiler.disableTypeInference) return;
       TypesInferrer inferrer = compiler.typesTask.typesInferrer;
       InferrerEngineForContainerTracer engine =
           new InferrerEngineForContainerTracer(compiler);
