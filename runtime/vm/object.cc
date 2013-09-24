@@ -4853,46 +4853,21 @@ RawFunction* Function::ImplicitClosureFunction() const {
 }
 
 
-RawString* Function::BuildSignature(
-    bool instantiate,
-    NameVisibility name_visibility,
-    const AbstractTypeArguments& instantiator) const {
+RawString* Function::UserVisibleFormalParameters() const {
   const GrowableObjectArray& pieces =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
-  String& name = String::Handle();
-  if (!instantiate && !is_static() && (name_visibility == kInternalName)) {
-    // Prefix the signature with its signature class and type parameters, if any
-    // (e.g. "Map<K, V>(K) => bool"). In case of a function type alias, the
-    // signature class name is the alias name.
-    // The signature of static functions cannot be type parameterized.
-    const Class& function_class = Class::Handle(Owner());
-    ASSERT(!function_class.IsNull());
-    const TypeArguments& type_parameters = TypeArguments::Handle(
-        function_class.type_parameters());
-    if (!type_parameters.IsNull()) {
-      const String& function_class_name = String::Handle(function_class.Name());
-      pieces.Add(function_class_name);
-      const intptr_t num_type_parameters = type_parameters.Length();
-      pieces.Add(Symbols::LAngleBracket());
-      TypeParameter& type_parameter = TypeParameter::Handle();
-      AbstractType& bound = AbstractType::Handle();
-      for (intptr_t i = 0; i < num_type_parameters; i++) {
-        type_parameter ^= type_parameters.TypeAt(i);
-        name = type_parameter.name();
-        pieces.Add(name);
-        bound = type_parameter.bound();
-        if (!bound.IsNull() && !bound.IsObjectType()) {
-          pieces.Add(Symbols::SpaceExtendsSpace());
-          name = bound.BuildName(name_visibility);
-          pieces.Add(name);
-        }
-        if (i < num_type_parameters - 1) {
-          pieces.Add(Symbols::CommaSpace());
-        }
-      }
-      pieces.Add(Symbols::RAngleBracket());
-    }
-  }
+  const TypeArguments& instantiator = TypeArguments::Handle();
+  BuildSinatureParameters(false, kUserVisibleName, instantiator, pieces);
+  const Array& strings = Array::Handle(Array::MakeArray(pieces));
+  return String::ConcatAll(strings);
+}
+
+
+void Function::BuildSinatureParameters(
+    bool instantiate,
+    NameVisibility name_visibility,
+    const AbstractTypeArguments& instantiator,
+    const GrowableObjectArray& pieces) const {
   AbstractType& param_type = AbstractType::Handle();
   const intptr_t num_params = NumParameters();
   const intptr_t num_fixed_params = num_fixed_parameters();
@@ -4900,7 +4875,7 @@ RawString* Function::BuildSignature(
   const intptr_t num_opt_named_params = NumOptionalNamedParameters();
   const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
   ASSERT((num_fixed_params + num_opt_params) == num_params);
-  pieces.Add(Symbols::LParen());
+  String& name = String::Handle();
   intptr_t i = 0;
   if (name_visibility == kUserVisibleName) {
     // Hide implicit parameters.
@@ -4950,6 +4925,54 @@ RawString* Function::BuildSignature(
       pieces.Add(Symbols::RBrace());
     }
   }
+}
+
+
+RawString* Function::BuildSignature(
+    bool instantiate,
+    NameVisibility name_visibility,
+    const AbstractTypeArguments& instantiator) const {
+  const GrowableObjectArray& pieces =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  String& name = String::Handle();
+  if (!instantiate && !is_static() && (name_visibility == kInternalName)) {
+    // Prefix the signature with its signature class and type parameters, if any
+    // (e.g. "Map<K, V>(K) => bool"). In case of a function type alias, the
+    // signature class name is the alias name.
+    // The signature of static functions cannot be type parameterized.
+    const Class& function_class = Class::Handle(Owner());
+    ASSERT(!function_class.IsNull());
+    const TypeArguments& type_parameters = TypeArguments::Handle(
+        function_class.type_parameters());
+    if (!type_parameters.IsNull()) {
+      const String& function_class_name = String::Handle(function_class.Name());
+      pieces.Add(function_class_name);
+      const intptr_t num_type_parameters = type_parameters.Length();
+      pieces.Add(Symbols::LAngleBracket());
+      TypeParameter& type_parameter = TypeParameter::Handle();
+      AbstractType& bound = AbstractType::Handle();
+      for (intptr_t i = 0; i < num_type_parameters; i++) {
+        type_parameter ^= type_parameters.TypeAt(i);
+        name = type_parameter.name();
+        pieces.Add(name);
+        bound = type_parameter.bound();
+        if (!bound.IsNull() && !bound.IsObjectType()) {
+          pieces.Add(Symbols::SpaceExtendsSpace());
+          name = bound.BuildName(name_visibility);
+          pieces.Add(name);
+        }
+        if (i < num_type_parameters - 1) {
+          pieces.Add(Symbols::CommaSpace());
+        }
+      }
+      pieces.Add(Symbols::RAngleBracket());
+    }
+  }
+  pieces.Add(Symbols::LParen());
+  BuildSinatureParameters(instantiate,
+                         name_visibility,
+                         instantiator,
+                         pieces);
   pieces.Add(Symbols::RParenArrow());
   AbstractType& res_type = AbstractType::Handle(result_type());
   if (instantiate && !res_type.IsInstantiated()) {

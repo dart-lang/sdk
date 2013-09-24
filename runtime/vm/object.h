@@ -1416,6 +1416,10 @@ class Function : public Object {
   // does not involve generic parameter types or generic result type.
   bool HasInstantiatedSignature() const;
 
+  // Build a string of the form 'T, {b: B, c: C} representing the user
+  // visible formal parameters of the function.
+  RawString* UserVisibleFormalParameters() const;
+
   RawClass* Owner() const;
   RawClass* origin() const;
   RawScript* script() const;
@@ -1863,6 +1867,10 @@ class Function : public Object {
   void set_data(const Object& value) const;
   static RawFunction* New();
 
+  void BuildSinatureParameters(bool instantiate,
+                               NameVisibility name_visibility,
+                               const AbstractTypeArguments& instantiator,
+                               const GrowableObjectArray& pieces) const;
   RawString* BuildSignature(bool instantiate,
                             NameVisibility name_visibility,
                             const AbstractTypeArguments& instantiator) const;

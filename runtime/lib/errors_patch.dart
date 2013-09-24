@@ -229,7 +229,7 @@ patch class NoSuchMethodError {
         break;
       }
       case _InvocationMirror._CONSTRUCTOR: {
-        msg = "No constructor '$memberName' declared in class '$_receiver'.";
+        msg = "No constructor '$memberName'$args_message declared in class '$_receiver'.";
         break;
       }
       case _InvocationMirror._TOP_LEVEL: {

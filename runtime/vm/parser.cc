@@ -2903,7 +2903,8 @@ SequenceNode* Parser::ParseFunc(const Function& func,
                                func.is_static() ?
                                    InvocationMirror::kStatic :
                                    InvocationMirror::kDynamic,
-                               InvocationMirror::kMethod));
+                               InvocationMirror::kMethod,
+                               NULL));  // No existing function.
     end_token_pos = TokenPos();
   } else {
     UnexpectedToken();
@@ -7311,7 +7312,8 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
                                         const String& function_name,
                                         ArgumentListNode* function_arguments,
                                         InvocationMirror::Call im_call,
-                                        InvocationMirror::Type im_type) {
+                                        InvocationMirror::Type im_type,
+                                        Function* func) {
   ArgumentListNode* arguments = new ArgumentListNode(call_pos);
   // Object receiver.
   // TODO(regis): For now, we pass a class literal of the unresolved
@@ -7347,22 +7349,37 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
   } else {
     arguments->Add(new LiteralNode(call_pos, function_arguments->names()));
   }
+
   // List existingArgumentNames.
-  // Check if there exists a function with the same name.
-  Function& function =
-     Function::Handle(cls.LookupStaticFunction(function_name));
-  if (function.IsNull()) {
-    arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
+  // Check if there exists a function with the same name unless caller
+  // has done the lookup already. If there is a function with the same
+  // name but incompatible parameters, inform the NoSuchMethodError what the
+  // expected parameters are.
+  Function& function = Function::Handle();
+  if (func != NULL) {
+    function = func->raw();
   } else {
-    const int total_num_parameters = function.NumParameters();
-    Array& array =
-        Array::ZoneHandle(Array::New(total_num_parameters, Heap::kOld));
-    // Skip receiver.
-    for (int i = 0; i < total_num_parameters; i++) {
-      array.SetAt(i, String::Handle(function.ParameterNameAt(i)));
-    }
-    arguments->Add(new LiteralNode(call_pos, array));
+    function = cls.LookupStaticFunction(function_name);
   }
+  Array& array = Array::ZoneHandle();
+  if (!function.IsNull()) {
+    // The constructor for NoSuchMethodError takes a list of existing
+    // parameter names to produce a descriptive error message explaining
+    // the parameter mismatch. The problem is that the array of names
+    // does not describe which parameters are optional positional or
+    // named, which can lead to confusing error messages.
+    // Since the NoSuchMethodError class only uses the list to produce
+    // a string describing the expected parameters, we construct a more
+    // descriptive string here and pass it as the only element of the
+    // "existingArgumentNames" array of the NoSuchMethodError constructor.
+    // TODO(13471): Separate the implementations of NoSuchMethodError
+    // between dart2js and VM. Update the constructor to accept a string
+    // describing the formal parameters of an incompatible call target.
+    array = Array::New(1, Heap::kOld);
+    array.SetAt(0, String::Handle(function.UserVisibleFormalParameters()));
+  }
+  arguments->Add(new LiteralNode(call_pos, array));
+
   return MakeStaticCall(Symbols::NoSuchMethodError(),
                         PrivateCoreLibName(Symbols::ThrowNew()),
                         arguments);
@@ -7650,7 +7667,8 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
                                     name,
                                     NULL,  // No arguments.
                                     InvocationMirror::kStatic,
-                                    InvocationMirror::kSetter);
+                                    InvocationMirror::kSetter,
+                                    NULL);  // No existing function.
   } else if (result->IsStoreIndexedNode() ||
              result->IsInstanceSetterNode() ||
              result->IsStaticSetterNode() ||
@@ -7944,7 +7962,8 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
                                   func_name,
                                   arguments,
                                   InvocationMirror::kStatic,
-                                  InvocationMirror::kMethod);
+                                  InvocationMirror::kMethod,
+                                  NULL);  // No existing function.
   } else if (cls.IsTopLevel() &&
       (cls.library() == Library::CoreLibrary()) &&
       (func.name() == Symbols::Identical().raw())) {
@@ -8045,7 +8064,8 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
                                       field_name,
                                       NULL,  // No arguments.
                                       InvocationMirror::kStatic,
-                                      InvocationMirror::kField);
+                                      InvocationMirror::kField,
+                                      NULL);  // No existing function.
       }
 
       // Explicit setter function for the field found, field does not exist.
@@ -8090,7 +8110,8 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
                                         field_name,
                                         NULL,  // No arguments.
                                         InvocationMirror::kStatic,
-                                        InvocationMirror::kGetter);
+                                        InvocationMirror::kGetter,
+                                        NULL);  // No existing function.
         }
         access = CreateImplicitClosureNode(func, call_pos, NULL);
       } else {
@@ -8130,7 +8151,8 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
                                     name,
                                     NULL,  // No arguments.
                                     InvocationMirror::kStatic,
-                                    InvocationMirror::kField);
+                                    InvocationMirror::kField,
+                                    NULL);  // No existing function.
     } else {
       AstNode* receiver = LoadReceiver(primary->token_pos());
       return CallGetter(node->token_pos(), receiver, name);
@@ -8302,7 +8324,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                               name,
                                               NULL,  // No arguments.
                                               InvocationMirror::kStatic,
-                                              InvocationMirror::kMethod);
+                                              InvocationMirror::kMethod,
+                                              NULL);  // No existing function.
           } else {
             // Treat as call to unresolved (instance) method.
             AstNode* receiver = LoadReceiver(primary->token_pos());
@@ -8318,7 +8341,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                             name,
                                             NULL,  // No arguments.
                                             InvocationMirror::kStatic,
-                                            InvocationMirror::kMethod);
+                                            InvocationMirror::kMethod,
+                                            NULL);  // No existing function.
         } else if (primary->primary().IsClass()) {
           const Class& type_class = Class::Cast(primary->primary());
           Type& type = Type::ZoneHandle(
@@ -9052,7 +9076,8 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
                                           ident,
                                           NULL,  // No arguments.
                                           InvocationMirror::kStatic,
-                                          InvocationMirror::kField);
+                                          InvocationMirror::kField,
+                                          NULL);  // No existing function.
       } else {
         // Treat as call to unresolved instance field.
         resolved = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
@@ -9754,7 +9779,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                                     external_constructor_name,
                                     arguments,
                                     InvocationMirror::kConstructor,
-                                    InvocationMirror::kMethod);
+                                    InvocationMirror::kMethod,
+                                    &constructor);
     } else if (constructor.IsRedirectingFactory()) {
       ClassFinalizer::ResolveRedirectingFactory(type_class, constructor);
       Type& redirect_type = Type::Handle(constructor.RedirectionType());
@@ -9822,7 +9848,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                                   external_constructor_name,
                                   arguments,
                                   InvocationMirror::kConstructor,
-                                  InvocationMirror::kMethod);
+                                  InvocationMirror::kMethod,
+                                  &constructor);
   }
 
   // Return a throw in case of a malformed type or report a compile-time error
@@ -9839,8 +9866,11 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   AstNode* new_object = NULL;
   if (is_const) {
     if (!constructor.is_const()) {
-      ErrorMsg("'const' requires const constructor: '%s'",
-          String::Handle(constructor.name()).ToCString());
+      const String& external_constructor_name =
+          (named_constructor ? constructor_name : type_class_name);
+      ErrorMsg("non-const constructor '%s' cannot be used in "
+               "const object creation",
+               external_constructor_name.ToCString());
     }
     const Object& constructor_result = Object::Handle(
         EvaluateConstConstructorCall(type_class,
@@ -10064,7 +10094,8 @@ AstNode* Parser::ParsePrimary() {
                                         unresolved_name,
                                         NULL,  // No arguments.
                                         InvocationMirror::kTopLevel,
-                                        call_type);
+                                        call_type,
+                                        NULL);  // No existing function.
       }
     }
     ASSERT(primary != NULL);
