@@ -91,8 +91,8 @@ class ScheduledServer {
   void _handleRequest(HttpRequest request) {
     wrapFuture(new Future.sync(() {
       if (_handlers.isEmpty) {
-        throw "'$description' received ${request.method} ${request.uri.path} "
-            "when no more requests were expected.";
+        fail("'$description' received ${request.method} ${request.uri.path} "
+             "when no more requests were expected.");
       }
       return _handlers.removeFirst().fn(request);
     }).catchError((e) {

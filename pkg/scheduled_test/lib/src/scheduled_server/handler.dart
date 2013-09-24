@@ -45,8 +45,8 @@ class Handler {
     _fn = (request) {
       return _waitForTask().then((_) {
         if (!ready) {
-          throw "'${server.description}' received $method $path earlier than "
-              "expected.";
+          fail("'${server.description}' received "
+               "$method $path earlier than expected.");
         }
 
         // Use a nested call to [schedule] to help the user tell the difference
@@ -55,8 +55,8 @@ class Handler {
         chainToCompleter(schedule(() {
           return new Future.sync(() {
             if (request.method != method || request.uri.path != path) {
-              throw "'${server.description}' expected $method $path, "
-                  "but got ${request.method} ${request.uri.path}.";
+              fail("'${server.description}' expected $method $path, "
+                   "but got ${request.method} ${request.uri.path}.");
             }
 
             return fn(request);
