@@ -165,7 +165,6 @@ Language/12_Expressions/01_Constants_A20_t03: fail # co19-roll r546: Please tria
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t09: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/05_Strings_A02_t46: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/05_Strings_A02_t48: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/05_Strings_A20_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/06_Lists_A03_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/06_Lists_A03_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/07_Maps_A02_t01: fail # co19-roll r546: Please triage this failure
