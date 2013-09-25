@@ -5745,9 +5745,12 @@ UNIT_TEST_CASE(NewNativePort) {
   const char* kScriptChars =
       "import 'dart:isolate';\n"
       "void callPort(SendPort port) {\n"
-      "    port.call(null).then((message) {\n"
-      "      throw new Exception(message);\n"
-      "    });\n"
+      "  var receivePort = new ReceivePort();\n"
+      "  port.send(null, receivePort.toSendPort());\n"
+      "  receivePort.receive((message, _) {\n"
+      "    receivePort.close();\n"
+      "    throw new Exception(message);\n"
+      "  });\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_EnterScope();
@@ -5809,7 +5812,10 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
       "\n"
       "void main(exc_child, exc_parent) {\n"
       "  var port = spawnFunction(entry);\n"
-      "  port.call(exc_child).then((message) {\n"
+      "  var receivePort = new ReceivePort();\n"
+      "  port.send(exc_child, receivePort.toSendPort());\n"
+      "  receivePort.receive((message, _) {\n"
+      "    receivePort.close();\n"
       "    if (message != 'hello') throw new Exception('ShouldNotHappen');\n"
       "    if (exc_parent) throw new Exception('MakeParentExit');\n"
       "  });\n"

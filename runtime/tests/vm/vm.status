@@ -61,9 +61,6 @@ cc/Cop1CvtDL_neg: Crash
 
 # TODO(ajohnsen): Fix this as part of library changes.
 [ $compiler == none ]
-cc/CustomIsolates: Fail, Crash # Bug 6890
-cc/NewNativePort: Fail # Bug 6890
-cc/RunLoop_ExceptionParent: Fail # Bug 6890
 
 [ $compiler == dartanalyzer ]
 # has compilation error, as designed

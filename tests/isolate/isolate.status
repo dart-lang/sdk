@@ -4,7 +4,6 @@
 
 [ $runtime == vm ]
 browser/*: SkipByDesign  # Browser specific tests
-unresolved_ports_negative_test: Skip # Issue 6839
 isolate_stress_test: Fail # Issue 12588: This should be able to pass when we have wrapper-less tests.
 
 [ $compiler == none ]
