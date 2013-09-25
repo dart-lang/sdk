@@ -3661,6 +3661,9 @@ DART_EXPORT Dart_Handle Dart_GetNativeStringArgument(Dart_NativeArguments args,
   if (RawObject::IsStringClassId(obj.GetClassId())) {
     return Api::NewHandle(isolate, obj.raw());
   }
+  if (obj.IsNull()) {
+    return Api::Null();
+  }
   return Api::NewError("%s expects argument to be of"
                        " type String.", CURRENT_FUNC);
 }
