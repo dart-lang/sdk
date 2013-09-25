@@ -332,13 +332,37 @@ class Int32 implements IntX {
   bool get isNegative => _i < 0;
   bool get isOdd => (_i & 0x1) == 1;
   bool get isZero => _i == 0;
+  int get bitLength => _i.bitLength;
 
   int get hashCode => _i;
 
   Int32 abs() => _i < 0 ? new Int32(-_i) : this;
 
+  Int32 clamp(lowerLimit, upperLimit) {
+    if (this < lowerLimit) {
+      if (lowerLimit is IntX) return lowerLimit.toInt32();
+      if (lowerLimit is int) return new Int32(lowerLimit);
+      throw new ArgumentError(lowerLimit);
+    } else if (this > upperLimit) {
+      if (upperLimit is IntX) return upperLimit.toInt32();
+      if (upperLimit is int) return new Int32(upperLimit);
+      throw new ArgumentError(upperLimit);
+    }
+    return this;
+  }
+
   int numberOfLeadingZeros() => _numberOfLeadingZeros(_i);
   int numberOfTrailingZeros() => _numberOfTrailingZeros(_i);
+
+  Int32 toSigned(int width) {
+    if (width < 1 || width > 32) throw new ArgumentError(width);
+    return new Int32(_i.toSigned(width));
+  }
+
+  Int32 toUnsigned(int width) {
+    if (width < 0 || width > 32) throw new ArgumentError(width);
+    return new Int32(_i.toUnsigned(width));
+  }
 
   List<int> toBytes() {
     List<int> result = new List<int>(4);
@@ -349,6 +373,7 @@ class Int32 implements IntX {
     return result;
   }
 
+  double toDouble() => _i.toDouble();
   int toInt() => _i;
   Int32 toInt32() => this;
   Int64 toInt64() => new Int64(_i);

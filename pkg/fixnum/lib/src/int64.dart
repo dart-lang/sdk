@@ -516,6 +516,19 @@ class Int64 implements IntX {
   bool get isOdd => (_l & 0x1) == 1;
   bool get isZero => _h == 0 && _m == 0 && _l == 0;
 
+  int get bitLength {
+    if (isZero) return 0;
+    int a0 = _l, a1 = _m, a2 = _h;
+    if (isNegative) {
+      a0 = _MASK & ~a0;
+      a1 = _MASK & ~a1;
+      a2 = _MASK2 & ~a2;
+    }
+    if (a2 != 0) return _BITS01 + a2.bitLength;
+    if (a1 != 0) return _BITS + a1.bitLength;
+    return a0.bitLength;
+  }
+
   /**
    * Returns a hash code based on all the bits of this [Int64].
    */
@@ -529,6 +542,14 @@ class Int64 implements IntX {
 
   Int64 abs() {
     return this.isNegative ? -this : this;
+  }
+
+  Int64 clamp(lowerLimit, upperLimit) {
+    Int64 lower = _promote(lowerLimit);
+    Int64 upper = _promote(upperLimit);
+    if (this < lower) return lower;
+    if (this > upper) return upper;
+    return this;
   }
 
   /**
@@ -572,6 +593,35 @@ class Int64 implements IntX {
     return 64;
   }
 
+  Int64 toSigned(int width) {
+    if (width < 1 || width > 64) throw new ArgumentError(width);
+    if (width > _BITS01) {
+      return Int64._masked(_l, _m, _h.toSigned(width - _BITS01));
+    } else if (width > _BITS) {
+      int m = _m.toSigned(width - _BITS);
+      return m.isNegative ? Int64._masked(_l, m, _MASK2) :
+          new Int64._bits(_l, m, 0);
+    } else {
+      int l = _l.toSigned(width);
+      return l.isNegative ? Int64._masked(l, _MASK, _MASK2) :
+          new Int64._bits(l, 0, 0);
+    }
+  }
+
+  Int64 toUnsigned(int width) {
+    if (width < 0 || width > 64) throw new ArgumentError(width);
+    if (width > _BITS01) {
+      int h = _h.toUnsigned(width - _BITS01);
+      return Int64._masked(_l, _m, h);
+    } else if (width > _BITS) {
+      int m = _m.toUnsigned(width - _BITS);
+      return Int64._masked(_l, m, 0);
+    } else {
+      int l = _l.toUnsigned(width);
+      return Int64._masked(l, 0, 0);
+    }
+  }
+
   List<int> toBytes() {
     List<int> result = new List<int>(8);
     result[0] = _l & 0xff;
@@ -585,25 +635,30 @@ class Int64 implements IntX {
     return result;
   }
 
+  double toDouble() => toInt().toDouble();
+
   int toInt() {
     int l = _l;
     int m = _m;
     int h = _h;
     bool negative = false;
     if ((_h & _SIGN_BIT_MASK) != 0) {
-      l = ~_l & _MASK;
-      m = ~_m & _MASK;
-      h = ~_h & _MASK2;
+      l = _MASK & ~_l;
+      m = _MASK & ~_m;
+      h = _MASK2 & ~_h;
       negative = true;
     }
 
-    int result;
     if (_haveBigInts) {
-      result = (h << _BITS01) | (m << _BITS) | l;
+      int result = (h << _BITS01) | (m << _BITS) | l;
+      return negative ? -result - 1 : result;
     } else {
-      result = (h * 17592186044416) + (m * 4194304) + l;
+      if (negative) {
+        return -((l + 1) + (m * 4194304) + (h * 17592186044416));
+      } else {
+        return (l + (m * 4194304)) + (h * 17592186044416);
+      }
     }
-    return negative ? -result - 1 : result;
   }
 
   /**

@@ -7,6 +7,53 @@ import 'package:fixnum/fixnum.dart';
 import 'package:unittest/unittest.dart';
 
 void main() {
+  group("is-tests", () {
+    test("isEven", () {
+      expect((-Int64.ONE).isEven, false);
+      expect(Int64.ZERO.isEven, true);
+      expect(Int64.ONE.isEven, false);
+      expect(Int64.TWO.isEven, true);
+    });
+    test("isMaxValue", () {
+      expect(Int64.MIN_VALUE.isMaxValue, false);
+      expect(Int64.ZERO.isMaxValue, false);
+      expect(Int64.MAX_VALUE.isMaxValue, true);
+    });
+    test("isMinValue", () {
+      expect(Int64.MIN_VALUE.isMinValue, true);
+      expect(Int64.ZERO.isMinValue, false);
+      expect(Int64.MAX_VALUE.isMinValue, false);
+    });
+    test("isNegative", () {
+      expect(Int64.MIN_VALUE.isNegative, true);
+      expect(Int64.ZERO.isNegative, false);
+      expect(Int64.ONE.isNegative, false);
+    });
+    test("isOdd", () {
+      expect((-Int64.ONE).isOdd, true);
+      expect(Int64.ZERO.isOdd, false);
+      expect(Int64.ONE.isOdd, true);
+      expect(Int64.TWO.isOdd, false);
+    });
+    test("isZero", () {
+      expect(Int64.MIN_VALUE.isZero, false);
+      expect(Int64.ZERO.isZero, true);
+      expect(Int64.MAX_VALUE.isZero, false);
+    });
+    test("bitLength", () {
+      expect(new Int64(-2).bitLength, 1);
+      expect((-Int64.ONE).bitLength, 0);
+      expect(Int64.ZERO.bitLength, 0);
+      expect((Int64.ONE << 21).bitLength, 22);
+      expect((Int64.ONE << 22).bitLength, 23);
+      expect((Int64.ONE << 43).bitLength, 44);
+      expect((Int64.ONE << 44).bitLength, 45);
+      expect(new Int64(2).bitLength, 2);
+      expect(Int64.MAX_VALUE.bitLength, 63);
+      expect(Int64.MIN_VALUE.bitLength, 63);
+    });
+  });
+
   group("arithmetic operators", () {
     Int64 n1 = new Int64(1234);
     Int64 n2 = new Int64(9876);
@@ -178,6 +225,26 @@ void main() {
           new Int64(-0x12345678.remainder(0x22)));
       expect(new Int32(0x12345678).remainder(new Int64(0x22)),
           new Int64(0x12345678.remainder(0x22)));
+    });
+
+    test("clamp", () {
+      Int64 val = new Int64(17);
+      expect(val.clamp(20, 30), new Int64(20));
+      expect(val.clamp(10, 20), new Int64(17));
+      expect(val.clamp(10, 15), new Int64(15));
+
+      expect(val.clamp(new Int32(20), new Int32(30)), new Int64(20));
+      expect(val.clamp(new Int32(10), new Int32(20)), new Int64(17));
+      expect(val.clamp(new Int32(10), new Int32(15)), new Int64(15));
+
+      expect(val.clamp(new Int64(20), new Int64(30)), new Int64(20));
+      expect(val.clamp(new Int64(10), new Int64(20)), new Int64(17));
+      expect(val.clamp(new Int64(10), new Int64(15)), new Int64(15));
+      expect(val.clamp(Int64.MIN_VALUE, new Int64(30)), new Int64(17));
+      expect(val.clamp(new Int64(10), Int64.MAX_VALUE), new Int64(17));
+
+      expect(() => val.clamp(1, 'b'), throwsA(isArgumentError));
+      expect(() => val.clamp('a', 1), throwsA(isArgumentError));
     });
   });
 
@@ -444,7 +511,69 @@ void main() {
     });
   });
 
-  group("type conversions", () {
+  group("conversions", () {
+    test("toSigned", () {
+      expect((Int64.ONE << 44).toSigned(46), Int64.ONE << 44);
+      expect((Int64.ONE << 44).toSigned(45), -(Int64.ONE << 44));
+      expect((Int64.ONE << 22).toSigned(24), Int64.ONE << 22);
+      expect((Int64.ONE << 22).toSigned(23), -(Int64.ONE << 22));
+      expect(Int64.ONE.toSigned(2), Int64.ONE);
+      expect(Int64.ONE.toSigned(1), -Int64.ONE);
+      expect(Int64.MAX_VALUE.toSigned(64), Int64.MAX_VALUE);
+      expect(Int64.MIN_VALUE.toSigned(64), Int64.MIN_VALUE);
+      expect(Int64.MAX_VALUE.toSigned(63), -Int64.ONE);
+      expect(Int64.MIN_VALUE.toSigned(63), Int64.ZERO);
+      expect(() => Int64.ONE.toSigned(0), throws);
+      expect(() => Int64.ONE.toSigned(65), throws);
+    });
+    test("toUnsigned", () {
+      expect((Int64.ONE << 44).toUnsigned(45), Int64.ONE << 44);
+      expect((Int64.ONE << 44).toUnsigned(44), Int64.ZERO);
+      expect((Int64.ONE << 22).toUnsigned(23), Int64.ONE << 22);
+      expect((Int64.ONE << 22).toUnsigned(22), Int64.ZERO);
+      expect(Int64.ONE.toUnsigned(1), Int64.ONE);
+      expect(Int64.ONE.toUnsigned(0), Int64.ZERO);
+      expect(Int64.MAX_VALUE.toUnsigned(64), Int64.MAX_VALUE);
+      expect(Int64.MIN_VALUE.toUnsigned(64), Int64.MIN_VALUE);
+      expect(Int64.MAX_VALUE.toUnsigned(63), Int64.MAX_VALUE);
+      expect(Int64.MIN_VALUE.toUnsigned(63), Int64.ZERO);
+      expect(() => Int64.ONE.toUnsigned(-1), throws);
+      expect(() => Int64.ONE.toUnsigned(65), throws);
+    });
+    test("toDouble", () {
+      expect(new Int64(0).toDouble(), same(0.0));
+      expect(new Int64(100).toDouble(), same(100.0));
+      expect(new Int64(-100).toDouble(), same(-100.0));
+      expect(new Int64(2147483647).toDouble(), same(2147483647.0));
+      expect(new Int64(2147483648).toDouble(), same(2147483648.0));
+      expect(new Int64(-2147483647).toDouble(), same(-2147483647.0));
+      expect(new Int64(-2147483648).toDouble(), same(-2147483648.0));
+      expect(new Int64(4503599627370495).toDouble(), same(4503599627370495.0));
+      expect(new Int64(4503599627370496).toDouble(), same(4503599627370496.0));
+      expect(new Int64(-4503599627370495).toDouble(),
+          same(-4503599627370495.0));
+      expect(new Int64(-4503599627370496).toDouble(),
+          same(-4503599627370496.0));
+      expect(Int64.parseInt("-10000000000000000").toDouble().toStringAsFixed(1),
+          "-10000000000000000.0");
+      expect(Int64.parseInt("-10000000000000001").toDouble().toStringAsFixed(1),
+          "-10000000000000000.0");
+      expect(Int64.parseInt("-10000000000000002").toDouble().toStringAsFixed(1),
+          "-10000000000000002.0");
+      expect(Int64.parseInt("-10000000000000003").toDouble().toStringAsFixed(1),
+          "-10000000000000004.0");
+      expect(Int64.parseInt("-10000000000000004").toDouble().toStringAsFixed(1),
+          "-10000000000000004.0");
+      expect(Int64.parseInt("-10000000000000005").toDouble().toStringAsFixed(1),
+          "-10000000000000004.0");
+      expect(Int64.parseInt("-10000000000000006").toDouble().toStringAsFixed(1),
+          "-10000000000000006.0");
+      expect(Int64.parseInt("-10000000000000007").toDouble().toStringAsFixed(1),
+          "-10000000000000008.0");
+      expect(Int64.parseInt("-10000000000000008").toDouble().toStringAsFixed(1),
+          "-10000000000000008.0");
+    });
+
     test("toInt", () {
       expect(new Int64(0).toInt(), 0);
       expect(new Int64(100).toInt(), 100);
@@ -457,6 +586,24 @@ void main() {
       expect(new Int64(4503599627370496).toInt(), 4503599627370496);
       expect(new Int64(-4503599627370495).toInt(), -4503599627370495);
       expect(new Int64(-4503599627370496).toInt(), -4503599627370496);
+      expect(Int64.parseInt("-10000000000000000").toInt(),
+          same(-10000000000000000));
+      expect(Int64.parseInt("-10000000000000001").toInt(),
+          same(-10000000000000001));
+      expect(Int64.parseInt("-10000000000000002").toInt(),
+          same(-10000000000000002));
+      expect(Int64.parseInt("-10000000000000003").toInt(),
+          same(-10000000000000003));
+      expect(Int64.parseInt("-10000000000000004").toInt(),
+          same(-10000000000000004));
+      expect(Int64.parseInt("-10000000000000005").toInt(),
+          same(-10000000000000005));
+      expect(Int64.parseInt("-10000000000000006").toInt(),
+          same(-10000000000000006));
+      expect(Int64.parseInt("-10000000000000007").toInt(),
+          same(-10000000000000007));
+      expect(Int64.parseInt("-10000000000000008").toInt(),
+          same(-10000000000000008));
     });
 
     test("toInt32", () {
