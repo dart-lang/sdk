@@ -7707,14 +7707,33 @@ class Document extends Node
   @DocsEditable()
   DocumentFragment createDocumentFragment() native "Document_createDocumentFragment_Callback";
 
-  /// Deprecated: use new Element.tag(tagName) instead.
-  @DomName('Document.createElement')
-  @DocsEditable()
-  Element createElement(String localName_OR_tagName, [String typeExtension]) native "Document_createElement_Callback";
+  Element createElement(String localName_OR_tagName, [String typeExtension]) {
+    if ((localName_OR_tagName is String || localName_OR_tagName == null) && typeExtension == null) {
+      return _createElement_1(localName_OR_tagName);
+    }
+    if ((typeExtension is String || typeExtension == null) && (localName_OR_tagName is String || localName_OR_tagName == null)) {
+      return _createElement_2(localName_OR_tagName, typeExtension);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  @DomName('Document.createElementNS')
-  @DocsEditable()
-  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) native "Document_createElementNS_Callback";
+  Element _createElement_1(localName_OR_tagName) native "Document__createElement_1_Callback";
+
+  Element _createElement_2(localName_OR_tagName, typeExtension) native "Document__createElement_2_Callback";
+
+  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
+    if ((qualifiedName is String || qualifiedName == null) && (namespaceURI is String || namespaceURI == null) && typeExtension == null) {
+      return _createElementNS_1(namespaceURI, qualifiedName);
+    }
+    if ((typeExtension is String || typeExtension == null) && (qualifiedName is String || qualifiedName == null) && (namespaceURI is String || namespaceURI == null)) {
+      return _createElementNS_2(namespaceURI, qualifiedName, typeExtension);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  Element _createElementNS_1(namespaceURI, qualifiedName) native "Document__createElementNS_1_Callback";
+
+  Element _createElementNS_2(namespaceURI, qualifiedName, typeExtension) native "Document__createElementNS_2_Callback";
 
   @DomName('Document.createEvent')
   @DocsEditable()
@@ -13347,8 +13366,8 @@ class HtmlDocument extends Document {
    * * UListElement
    * * VideoElement
    */
-  void register(String tag, Type customElementClass, {String extendsTag}) {
-    _Utils.register(this, tag, customElementClass, extendsTag);
+  void register(String tag, Type customElementClass, {String nativeTagName}) {
+    _Utils.register(tag, customElementClass);
   }
 
   // Note: used to polyfill <template>
@@ -26119,13 +26138,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -34464,7 +34483,7 @@ class TestRunner {
 
 class _ConsoleVariables {
   Map<String, Object> _data = new Map<String, Object>();
-
+  
   /**
    * Forward member accesses to the backing JavaScript object.
    */
@@ -34480,7 +34499,7 @@ class _ConsoleVariables {
       return Function.apply(_data[member], invocation.positionalArguments, invocation.namedArguments);
     }
   }
-
+  
   void clear() => _data.clear();
 
   /**
@@ -34551,17 +34570,6 @@ class _Utils {
     return new UnsupportedError('[info: $fileName:$lineNo]');
   }
 
-  static bool isTypeSubclassOf(Type type, Type other) {
-    if (type == other) {
-      return true;
-    }
-    var superclass = reflectClass(type).superclass;
-    if (superclass != null) {
-      return isTypeSubclassOf(superclass.reflectedType, other);
-    }
-    return false;
-  }
-
   static window() native "Utils_window";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
   static void spawnDomFunction(Function f, int replyTo) native "Utils_spawnDomFunction";
@@ -34630,13 +34638,13 @@ class _Utils {
       sb.write("final $arg");
       args[arg] = value;
     }
-
+    
     addArg("\$var", _consoleTempVariables);
-
+    
     for (int i = 0; i < locals.length; i+= 2) {
       addArg(locals[i], locals[i+1]);
     }
-    sb..write(')=>\n$expression');
+    sb..write(')=>\n$expression'); 
     return [sb.toString(), args.values.toList(growable: false)];
   }
 
@@ -34653,10 +34661,10 @@ class _Utils {
    * prepended to disambuguate. This scheme is simplistic but easy to encode and
    * decode. The use case for this method is displaying all map keys in a human
    * readable way in debugging tools.
-   */
+   */ 
   static List<String> getEncodedMapKeyList(dynamic obj) {
     if (obj is! Map) return null;
-
+    
     var ret = new List<String>();
     int i = 0;
     return obj.keys.map((key) {
@@ -34740,18 +34748,38 @@ class _Utils {
     return libName.startsWith('dart:');
   }
 
-  static void register(Document document, String tag, Type type,
-      String extendsTagName) {
+  static void register(String tag, Type type) {
     // TODO(vsm): Move these checks into native code.
     ClassMirror cls = reflectClass(type);
     if (_isBuiltinType(cls)) {
       throw new UnsupportedError("Invalid custom element from $libName.");
     }
-    _register(document, tag, type, extendsTagName);
+    ClassMirror superClass = cls.superclass;
+
+    Symbol objectName = reflectClass(Object).qualifiedName;
+    bool isRoot(ClassMirror cls) =>
+      cls == null || cls.qualifiedName == objectName;
+    // TODO(vsm): Support extending SvgElement as well.
+    Symbol elementName = reflectClass(HtmlElement).qualifiedName;
+    bool isElement(ClassMirror cls) =>
+      cls != null && cls.qualifiedName == elementName;
+
+    ClassMirror nativeClass = _isBuiltinType(superClass) ? superClass : null;
+    while(!isRoot(superClass) && !isElement(superClass)) {
+      superClass = superClass.superclass;
+      if (nativeClass == null && _isBuiltinType(superClass)) {
+        nativeClass = superClass;
+      }
+    }
+
+    if (isRoot(superClass)) {
+      throw new UnsupportedError("Invalid custom element doesn't inherit from HtmlElement.");
+    }
+    _register(document, tag, type, extendsTagName, nativeClass.reflectedType);
   }
 
   static void _register(Document document, String tag, Type customType,
-      String extendsTagName) native "Utils_register";
+      String extendsTagName, Type nativeType) native "Utils_register";
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {

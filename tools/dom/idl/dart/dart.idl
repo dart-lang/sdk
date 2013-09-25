@@ -32,10 +32,6 @@ interface Clipboard {
 interface Document {
   [Suppressed] DOMObject getCSSCanvasContext(DOMString contextId, DOMString name, long width, long height);
   CanvasRenderingContext getCSSCanvasContext(DOMString contextId, DOMString name, long width, long height);
-  [Custom] Element createElement(DOMString tagName);
-  [Custom] Element createElement(DOMString localName, DOMString typeExtension);
-  [Custom] Element createElementNS(DOMString namespaceURI, DOMString qualifiedName);
-  [Custom] Element createElementNS(DOMString namespaceURI, DOMString qualifiedName, DOMString typeExtension);
 };
 
 [Supplemental]

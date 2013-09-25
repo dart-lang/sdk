@@ -60,9 +60,9 @@ main() {
     }
     registeredTypes = true;
     document.register(Foo.tag, Foo);
-    document.register(Bar.tag, Bar, extendsTag: 'input');
+    document.register(Bar.tag, Bar);
     document.register(Baz.tag, Baz);
-    document.register(Qux.tag, Qux, extendsTag: 'input');
+    document.register(Qux.tag, Qux);
   }
 
   setUp(loadPolyfills);
