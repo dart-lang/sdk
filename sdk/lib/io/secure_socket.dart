@@ -1194,8 +1194,6 @@ class _ExternalBuffer {
 abstract class _SecureFilter {
   external factory _SecureFilter();
 
-  external static SendPort _newServicePort();
-
   void connect(String hostName,
                Uint8List addr,
                int port,
