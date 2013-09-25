@@ -738,19 +738,8 @@ void SSLFilter::Connect(const char* host_name,
     }
   } else {  // Client.
     if (SSL_SetURL(filter_, host_name) == -1) {
-      ThrowPRException("TlsException",
-                       "Failed SetURL call");
+      ThrowPRException("TlsException", "Failed SetURL call");
     }
-
-    // This disables the SSL session cache for client connections.
-    // This resolves issue 7208, but degrades performance.
-    // TODO(7230): Reenable session cache, without breaking client connections.
-    status = SSL_OptionSet(filter_, SSL_NO_CACHE, PR_TRUE);
-    if (status != SECSuccess) {
-      ThrowPRException("TlsException",
-                       "Failed SSL_OptionSet(NO_CACHE) call");
-    }
-
     if (send_client_certificate) {
       SSL_SetPKCS11PinArg(filter_, const_cast<char*>(password_));
       status = SSL_GetClientAuthDataHook(
