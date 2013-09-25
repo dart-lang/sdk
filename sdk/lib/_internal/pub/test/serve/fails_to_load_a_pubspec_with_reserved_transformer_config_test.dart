@@ -26,7 +26,7 @@ main() {
 
     createLockFile('myapp', pkg: ['barback']);
 
-    var pub = startPub(args: ['serve', '--port=0']);
+    var pub = startPub(args: ['serve', '--port=0', "--hostname=127.0.0.1"]);
     expect(pub.nextErrLine(), completion(equals('Error in pubspec for package '
         '"myapp" loaded from pubspec.yaml:')));
     expect(pub.nextErrLine(), completion(equals('Invalid transformer '

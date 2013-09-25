@@ -21,7 +21,7 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
       'upload packages on your behalf.')));
 
   expect(pub.nextLine().then((line) {
-    var match = new RegExp(r'[?&]redirect_uri=([0-9a-zA-Z%+-]+)[$&]')
+    var match = new RegExp(r'[?&]redirect_uri=([0-9a-zA-Z.%+-]+)[$&]')
         .firstMatch(line);
     expect(match, isNotNull);
 

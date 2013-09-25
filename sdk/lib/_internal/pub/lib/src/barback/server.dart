@@ -29,6 +29,11 @@ class BarbackServer {
   /// The server's port.
   final int port;
 
+  /// The server's hostname.
+  final String host;
+  // TODO(whesse): replace this with the InternetAddress of the HttpServer, when
+  // that is exposed.
+
   /// The results of requests handled by the server.
   ///
   /// These can be used to provide visual feedback for the server's processing.
@@ -45,10 +50,10 @@ class BarbackServer {
   static Future<BarbackServer> bind(String host, int port, Barback barback,
       String rootPackage) {
     return HttpServer.bind(host, port)
-        .then((server) => new BarbackServer._(server, barback, rootPackage));
+        .then((server) => new BarbackServer._(server, barback, rootPackage, host));
   }
 
-  BarbackServer._(HttpServer server, this.barback, this._rootPackage)
+  BarbackServer._(HttpServer server, this.barback, this._rootPackage, this.host)
       : _server = server,
         port = server.port {
     _server.listen(_handleRequest, onError: (error) {

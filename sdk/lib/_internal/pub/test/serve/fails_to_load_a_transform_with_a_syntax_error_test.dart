@@ -27,7 +27,7 @@ main() {
 
     createLockFile('myapp', pkg: ['barback']);
 
-    var pub = startPub(args: ['serve', '--port=0']);
+    var pub = startPub(args: ['serve', '--port=0', "--hostname=127.0.0.1"]);
     expect(pub.nextErrLine(), completion(startsWith('Error on line')));
     pub.shouldExit(1);
     expect(pub.remainingStderr(),

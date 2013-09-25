@@ -94,7 +94,7 @@ void serve([List<d.Descriptor> contents]) {
 
   schedule(() {
     return _closeServer().then((_) {
-      return SafeHttpServer.bind("localhost", 0).then((server) {
+      return SafeHttpServer.bind("127.0.0.1", 0).then((server) {
         _server = server;
         server.listen((request) {
           currentSchedule.heartbeat();
@@ -485,7 +485,7 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
     // dependencies will look there.
     if (_hasServer) {
       return port.then((p) {
-        environment['PUB_HOSTED_URL'] = "http://localhost:$p";
+        environment['PUB_HOSTED_URL'] = "http://127.0.0.1:$p";
         return environment;
       });
     }

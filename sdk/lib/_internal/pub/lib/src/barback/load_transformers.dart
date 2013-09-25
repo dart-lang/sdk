@@ -25,7 +25,7 @@ import 'dart:isolate';
 import 'dart:convert';
 import 'dart:mirrors';
 
-import 'http://localhost:<<PORT>>/packages/barback/barback.dart';
+import 'http://<<HOST_AND_PORT>>/packages/barback/barback.dart';
 
 /// Sets up the initial communication with the host isolate.
 void main() {
@@ -47,7 +47,7 @@ Iterable<Transformer> initialize(Uri uri, Map configuration) {
   var mirrors = currentMirrorSystem();
   // TODO(nweiz): look this up by name once issue 5897 is fixed.
   var transformerUri = Uri.parse(
-      'http://localhost:<<PORT>>/packages/barback/src/transformer.dart');
+      'http://<<HOST_AND_PORT>>/packages/barback/src/transformer.dart');
   var transformerClass = mirrors.libraries[transformerUri]
       .classes[const Symbol('Transformer')];
 
@@ -288,10 +288,10 @@ Future<Set<Transformer>> loadTransformers(BarbackServer server,
     TransformerId id) {
   var path = id.asset.path.replaceFirst('lib/', '');
   // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
-  var uri = 'http://localhost:${server.port}/packages/${id.asset.package}/'
-      '$path';
+  var hostAndPort = '${server.host}:${server.port}';
+  var uri = 'http://$hostAndPort/packages/${id.asset.package}/$path';
   var code = 'import "$uri";' +
-      _TRANSFORMER_ISOLATE.replaceAll('<<PORT>>', server.port.toString());
+      _TRANSFORMER_ISOLATE.replaceAll('<<HOST_AND_PORT>>', hostAndPort);
   log.fine("Loading transformers from ${id.asset}");
   return dart.runInIsolate(code).then((sendPort) {
     return _receiveFuture(sendPort.call({

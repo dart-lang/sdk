@@ -168,9 +168,9 @@ Future<Client> _authorize() {
   // Spin up a one-shot HTTP server to receive the authorization code from the
   // Google OAuth2 server via redirect. This server will close itself as soon as
   // the code is received.
-  return SafeHttpServer.bind('localhost', 0).then((server) {
+  return SafeHttpServer.bind('127.0.0.1', 0).then((server) {
     var authUrl = grant.getAuthorizationUrl(
-        Uri.parse('http://localhost:${server.port}'), scopes: _scopes);
+        Uri.parse('http://127.0.0.1:${server.port}'), scopes: _scopes);
 
     log.message(
         'Pub needs your authorization to upload packages on your behalf.\n'

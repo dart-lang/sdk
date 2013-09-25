@@ -38,7 +38,7 @@ class ScheduledServer {
   ScheduledServer._(this._server, this.description);
 
   /// Creates a new server listening on an automatically-allocated port on
-  /// localhost. [description] is used to refer to the server in debugging
+  /// 127.0.0.1. [description] is used to refer to the server in debugging
   /// messages.
   factory ScheduledServer([String description]) {
     var id = _count++;
@@ -46,7 +46,7 @@ class ScheduledServer {
 
     var scheduledServer;
     scheduledServer = new ScheduledServer._(schedule(() {
-      return SafeHttpServer.bind("localhost", 0).then((server) {
+      return SafeHttpServer.bind("127.0.0.1", 0).then((server) {
         server.listen(scheduledServer._handleRequest,
             onError: (e) => currentSchedule.signalError(e));
         currentSchedule.onComplete.schedule(server.close);
@@ -60,7 +60,7 @@ class ScheduledServer {
   Future<int> get port => _server.then((s) => s.port);
 
   /// The base URL of the server, including its port.
-  Future<Uri> get url => port.then((p) => Uri.parse("http://localhost:$p"));
+  Future<Uri> get url => port.then((p) => Uri.parse("http://127.0.0.1:$p"));
 
   /// Schedules [handler] to handle a request to the server with [method] and
   /// [path]. The schedule will wait until an HTTP request is received. If that
