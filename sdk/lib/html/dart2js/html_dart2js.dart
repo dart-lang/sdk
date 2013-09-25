@@ -7169,10 +7169,11 @@ class Document extends Node  native "Document"
   @DocsEditable()
   DocumentFragment createDocumentFragment() native;
 
+  @JSName('createElement')
   /// Deprecated: use new Element.tag(tagName) instead.
   @DomName('Document.createElement')
   @DocsEditable()
-  Element createElement(String localName_OR_tagName, [String typeExtension]) native;
+  Element _createElement(String localName_OR_tagName, [String typeExtension]) native;
 
   @DomName('Document.createElementNS')
   @DocsEditable()
@@ -7625,6 +7626,11 @@ class Document extends Node  native "Document"
   /// Checks if [register] is supported on the current platform.
   bool get supportsRegister {
     return JS('bool', '("register" in #)', this);
+  }
+
+  @DomName('Document.createElement')
+  Element createElement(String tagName, [String typeExtension]) {
+    return _createElement(tagName, typeExtension);
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -12827,9 +12833,9 @@ class HtmlDocument extends Document native "HTMLDocument" {
    * * UListElement
    * * VideoElement
    */
-  void register(String tag, Type customElementClass, {String nativeTagName}) {
+  void register(String tag, Type customElementClass, {String extendsTag}) {
     _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
-        nativeTagName);
+        extendsTag);
   }
 
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.

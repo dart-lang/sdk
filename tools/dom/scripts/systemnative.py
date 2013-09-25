@@ -789,12 +789,12 @@ class DartiumBackend(HtmlDartGenerator):
     if 'Reflect' in ext_attrs:
       cpp_arguments = [self._GenerateWebCoreReflectionAttributeName(node)]
 
-    if return_type_is_nullable:
-      cpp_arguments = ['isNull']
-
     if ext_attrs.get('CustomElementCallbacks') == 'Enable':
       self._cpp_impl_includes.add('"core/dom/CustomElementCallbackDispatcher.h"')
       needs_custom_element_callbacks = True
+
+    if return_type_is_nullable:
+      cpp_arguments = ['isNull']
 
     v8EnabledPerContext = ext_attrs.get('synthesizedV8EnabledPerContext', ext_attrs.get('V8EnabledPerContext'))
     v8EnabledAtRuntime = ext_attrs.get('synthesizedV8EnabledAtRuntime', ext_attrs.get('V8EnabledAtRuntime'))

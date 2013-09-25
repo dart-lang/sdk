@@ -242,13 +242,13 @@ $endif
    * * VideoElement
    */
 $if DART2JS
-  void register(String tag, Type customElementClass, {String nativeTagName}) {
+  void register(String tag, Type customElementClass, {String extendsTag}) {
     _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
-        nativeTagName);
+        extendsTag);
   }
 $else
-  void register(String tag, Type customElementClass, {String nativeTagName}) {
-    _Utils.register(tag, customElementClass);
+  void register(String tag, Type customElementClass, {String extendsTag}) {
+    _Utils.register(this, tag, customElementClass, extendsTag);
   }
 $endif
 
