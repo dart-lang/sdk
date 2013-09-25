@@ -27,6 +27,14 @@ void _logResolution(String msg) {
 }
 
 
+// Corelib 'Uri.base' implementation.
+Uri _uriBase() {
+  return new Uri.file(Directory.current.path + "/");
+}
+
+_getUriBaseClosure() => _uriBase;
+
+
 var _httpRequestResponseCode = 0;
 var _httpRequestStatusString;
 var _httpRequestResponse;

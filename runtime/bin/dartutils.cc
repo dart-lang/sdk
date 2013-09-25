@@ -659,13 +659,16 @@ Dart_Handle DartUtils::LoadSource(CommandLineOptions* url_mapping,
 
 Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                                Dart_Handle builtin_lib) {
+  Dart_Handle corelib = Dart_LookupLibrary(NewString("dart:core"));
+  DART_CHECK_VALID(corelib);
+
   // Setup the corelib 'print' function.
   Dart_Handle print = Dart_Invoke(
       builtin_lib, NewString("_getPrintClosure"), 0, NULL);
-  Dart_Handle corelib = Dart_LookupLibrary(NewString("dart:core"));
   Dart_Handle result = Dart_SetField(corelib,
                                      NewString("_printClosure"),
                                      print);
+  DART_CHECK_VALID(result);
 
   // Setup the 'timer' factory.
   Dart_Handle url = NewString(kAsyncLibURL);
@@ -680,6 +683,14 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
   DART_CHECK_VALID(Dart_Invoke(
       async_lib, NewString("_setTimerFactoryClosure"), 1, args));
 
+  // Setup the corelib 'Uri.base' getter.
+  Dart_Handle uri_base = Dart_Invoke(
+      builtin_lib, NewString("_getUriBaseClosure"), 0, NULL);
+  DART_CHECK_VALID(uri_base);
+  result = Dart_SetField(corelib,
+                         NewString("_uriBaseClosure"),
+                         uri_base);
+  DART_CHECK_VALID(result);
 
   if (IsWindowsHost()) {
     // Set running on Windows flag.

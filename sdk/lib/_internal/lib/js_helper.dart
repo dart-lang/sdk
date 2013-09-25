@@ -470,6 +470,45 @@ class Primitives {
     return 1000 * dateNow();
   }
 
+  static bool get isD8 {
+    return JS('bool',
+              'typeof version == "function"'
+              ' && typeof os == "object" && "system" in os');
+  }
+
+  static bool get isJsshell {
+    return JS('bool',
+              'typeof version == "function" && typeof system == "function"');
+  }
+
+  static String currentUri() {
+    // In a browser return self.location.href.
+    if (JS('bool', 'typeof self != "undefined"')) {
+      return JS('String', 'self.location.href');
+    }
+
+    // In JavaScript shells try to determine the current working
+    // directory.
+    var workingDirectory;
+    if (isD8) {
+      // TODO(sgjesse): This does not work on Windows.
+      workingDirectory = JS('String', 'os.system("pwd")');
+      var length = workingDirectory.length;
+      if (workingDirectory[length - 1] == '\n') {
+        workingDirectory = workingDirectory.substring(0, length - 1);
+      }
+    }
+
+    if (isJsshell) {
+      // TODO(sgjesse): This does not work on Windows.
+      workingDirectory = JS('String', 'environment["PWD"]');
+    }
+
+    return workingDirectory != null
+        ? "file://" + workingDirectory + "/"
+        : null;
+  }
+
   // This is to avoid stack overflows due to very large argument arrays in
   // apply().  It fixes http://dartbug.com/6919
   static String _fromCharCodeApply(List<int> array) {

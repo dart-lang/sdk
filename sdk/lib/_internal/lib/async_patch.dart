@@ -4,6 +4,7 @@
 
 // Patch file for the dart:async library.
 
+import 'dart:_js_helper' show Primitives;
 import 'dart:_isolate_helper' show IsolateNatives, TimerImpl;
 import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
 
@@ -45,7 +46,7 @@ Future<bool> _load(String libraryName, String uri) {
     return future.then((_) => false);
   }
 
-  if (IsolateNatives.isJsshell) {
+  if (Primitives.isJsshell) {
     // TODO(ahe): Move this code to a JavaScript command helper script that is
     // not included in generated output.
     return _loadedLibraries[libraryName] = new Future<bool>(() {
@@ -55,7 +56,7 @@ Future<bool> _load(String libraryName, String uri) {
       JS('void', '(new Function(#))()', 'loadRelativeToScript("$uri")');
       return true;
     });
-  } else if (IsolateNatives.isD8) {
+  } else if (Primitives.isD8) {
     // TODO(ahe): Move this code to a JavaScript command helper script that is
     // not included in generated output.
     return _loadedLibraries[libraryName] = new Future<bool>(() {

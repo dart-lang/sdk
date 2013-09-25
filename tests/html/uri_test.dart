@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library WindowTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
@@ -10,8 +9,8 @@ import 'dart:html';
 main() {
   useHtmlConfiguration();
 
-  test('scrollXY', () {
-    expect(window.scrollX, 0);
-    expect(window.scrollY, 0);
+  test('Uri.base', () {
+    expect(Uri.base.scheme, "http");
+    expect(Uri.base.toString(), window.location.href);
   });
 }

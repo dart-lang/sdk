@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Patch file for dart:core classes.
+import "dart:_collection-dev" as _symbol_dev;
 import 'dart:_interceptors';
 import 'dart:_js_helper' show checkNull,
                               getRuntimeType,
@@ -315,4 +316,10 @@ patch class NoSuchMethodError {
 
 patch class Uri {
   patch static bool get _isWindows => false;
+
+  patch static Uri get base {
+    String uri = Primitives.currentUri();
+    if (uri != null) return Uri.parse(uri);
+    throw new UnsupportedError("'Uri.base' is not supported");
+  }
 }

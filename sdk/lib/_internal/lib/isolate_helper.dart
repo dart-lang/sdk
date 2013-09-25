@@ -424,17 +424,6 @@ class IsolateNatives {
   /// Associates an ID with a native worker object.
   static final Expando<int> workerIds = new Expando<int>();
 
-  static bool get isD8 {
-    return JS('bool',
-              'typeof version == "function"'
-              ' && typeof os == "object" && "system" in os');
-  }
-
-  static bool get isJsshell {
-    return JS('bool',
-              'typeof version == "function" && typeof system == "function"');
-  }
-
   /**
    * The src url for the script tag that loaded this code. Used to create
    * JavaScript workers.
@@ -444,8 +433,8 @@ class IsolateNatives {
     if (currentScript != null) {
       return JS('String', 'String(#.src)', currentScript);
     }
-    if (isD8) return computeThisScriptD8();
-    if (isJsshell) return computeThisScriptJsshell();
+    if (Primitives.isD8) return computeThisScriptD8();
+    if (Primitives.isJsshell) return computeThisScriptJsshell();
     return null;
   }
 

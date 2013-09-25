@@ -358,6 +358,17 @@ class Uri {
     return windows ? _makeWindowsFileUrl(path) : _makeFileUri(path);
   }
 
+  /**
+   * Returns the natural base URI for the current platform.
+   *
+   * When running in a browser this is the current URL (from
+   * `window.location.href`).
+   *
+   * When not running in a browser this is the file URI referencing
+   * the current working directory.
+   */
+  external static Uri get base;
+
   external static bool get _isWindows;
 
   static _checkNonWindowsPathReservedCharacters(List<String> segments,
