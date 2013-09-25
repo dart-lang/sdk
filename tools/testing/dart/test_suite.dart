@@ -1312,6 +1312,7 @@ class StandardTestSuite extends TestSuite {
     args.addAll(additionalOptions(filePath));
     if (configuration['analyzer']) {
       args.add('--machine');
+      args.add('--no-hints');
     }
 
     bool isMultitest = optionsFromFile["isMultitest"];
