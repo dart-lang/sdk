@@ -5,7 +5,7 @@
 // VM implementation of Uri.
 typedef Uri _UriBaseClosure();
 
-void _unsupportedUriBase() {
+Uri _unsupportedUriBase() {
   throw new UnsupportedError("'Uri.base' is not supported");
 }
 
