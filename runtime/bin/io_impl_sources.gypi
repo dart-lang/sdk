@@ -25,6 +25,7 @@
     'filter_unsupported.cc',
     'io_service.cc',
     'io_service.h',
+    'io_service_unsupported.cc',
     'net/nss_memio.cc',
     'net/nss_memio.h',
     'platform.cc',
@@ -60,11 +61,14 @@
       'sources!' : [
         'filter_unsupported.cc',
         'secure_socket_unsupported.cc',
+        'io_service_unsupported.cc',
       ],
     },{  # else dart_io_support == 0
       'sources!' : [
         'filter.cc',
         'filter.h',
+        'io_service.cc',
+        'io_service.h',
         'net/nss_memio.cc',
         'net/nss_memio.h',
         'secure_socket.cc',
