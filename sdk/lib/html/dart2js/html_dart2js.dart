@@ -12963,8 +12963,9 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
   /**
    * Makes a server POST request with the specified data encoded as form data.
    *
-   * This is similar to sending a FormData object with broader browser
-   * support but limited to string values.
+   * This is roughly the POST equivalent of getString. This method is similar 
+   * to sending a FormData object with broader browser support but limited to 
+   * String values.
    *
    * See also:
    *
@@ -12997,10 +12998,14 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
   /**
    * Creates a URL request for the specified [url].
    *
-   * By default this will do an HTTP GET request, this can be overridden with
-   * [method].
+   * By default `request` will perform an HTTP GET request, but a different
+   * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the 
+   * [method] parameter.
    *
    * The Future is completed when the response is available.
+   *
+   * If specified, `sendData` will send data in the form of a [ByteBuffer],
+   * [Blob], [Document], [String], or [FormData] along with the HttpRequest.
    *
    * The [withCredentials] parameter specified that credentials such as a cookie
    * (already) set in the header or

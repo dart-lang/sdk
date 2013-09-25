@@ -13648,8 +13648,9 @@ class HttpRequest extends XmlHttpRequestEventTarget {
   /**
    * Makes a server POST request with the specified data encoded as form data.
    *
-   * This is similar to sending a FormData object with broader browser
-   * support but limited to string values.
+   * This is roughly the POST equivalent of getString. This method is similar 
+   * to sending a FormData object with broader browser support but limited to 
+   * String values.
    *
    * See also:
    *
@@ -13682,10 +13683,14 @@ class HttpRequest extends XmlHttpRequestEventTarget {
   /**
    * Creates a URL request for the specified [url].
    *
-   * By default this will do an HTTP GET request, this can be overridden with
-   * [method].
+   * By default `request` will perform an HTTP GET request, but a different
+   * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the 
+   * [method] parameter.
    *
    * The Future is completed when the response is available.
+   *
+   * If specified, `sendData` will send data in the form of a [ByteBuffer],
+   * [Blob], [Document], [String], or [FormData] along with the HttpRequest.
    *
    * The [withCredentials] parameter specified that credentials such as a cookie
    * (already) set in the header or
@@ -26119,13 +26124,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -34746,6 +34751,9 @@ class _Utils {
 
   static void register(String tag, Type type) {
     // TODO(vsm): Move these checks into native code.
+    if (type == null) {
+      throw new UnsupportedError("Invalid null type.");
+    }
     ClassMirror cls = reflectClass(type);
     if (_isBuiltinType(cls)) {
       throw new UnsupportedError("Invalid custom element from $libName.");
@@ -34771,11 +34779,10 @@ class _Utils {
     if (isRoot(superClass)) {
       throw new UnsupportedError("Invalid custom element doesn't inherit from HtmlElement.");
     }
-    _register(document, tag, type, extendsTagName, nativeClass.reflectedType);
+    _register(tag, type, nativeClass.reflectedType);
   }
 
-  static void _register(Document document, String tag, Type customType,
-      String extendsTagName, Type nativeType) native "Utils_register";
+  static void _register(String tag, Type customType, Type nativeType) native "Utils_register";
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {
