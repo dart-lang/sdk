@@ -245,57 +245,25 @@ class CharBufferScannerTest extends AbstractScannerTest {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_double_fraction);
       });
-      _ut.test('test_double_fraction_D', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_fraction_D);
-      });
       _ut.test('test_double_fraction_E', () {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_double_fraction_E);
-      });
-      _ut.test('test_double_fraction_Ed', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_fraction_Ed);
-      });
-      _ut.test('test_double_fraction_d', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_fraction_d);
       });
       _ut.test('test_double_fraction_e', () {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_double_fraction_e);
       });
-      _ut.test('test_double_fraction_ed', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_fraction_ed);
-      });
       _ut.test('test_double_missingDigitInExponent', () {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_double_missingDigitInExponent);
-      });
-      _ut.test('test_double_whole_D', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_whole_D);
       });
       _ut.test('test_double_whole_E', () {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_double_whole_E);
       });
-      _ut.test('test_double_whole_Ed', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_whole_Ed);
-      });
-      _ut.test('test_double_whole_d', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_whole_d);
-      });
       _ut.test('test_double_whole_e', () {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_double_whole_e);
-      });
-      _ut.test('test_double_whole_ed', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_whole_ed);
       });
       _ut.test('test_eq', () {
         final __test = new CharBufferScannerTest();
@@ -932,57 +900,25 @@ class StringScannerTest extends AbstractScannerTest {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_double_fraction);
       });
-      _ut.test('test_double_fraction_D', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_fraction_D);
-      });
       _ut.test('test_double_fraction_E', () {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_double_fraction_E);
-      });
-      _ut.test('test_double_fraction_Ed', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_fraction_Ed);
-      });
-      _ut.test('test_double_fraction_d', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_fraction_d);
       });
       _ut.test('test_double_fraction_e', () {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_double_fraction_e);
       });
-      _ut.test('test_double_fraction_ed', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_fraction_ed);
-      });
       _ut.test('test_double_missingDigitInExponent', () {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_double_missingDigitInExponent);
-      });
-      _ut.test('test_double_whole_D', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_whole_D);
       });
       _ut.test('test_double_whole_E', () {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_double_whole_E);
       });
-      _ut.test('test_double_whole_Ed', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_whole_Ed);
-      });
-      _ut.test('test_double_whole_d', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_whole_d);
-      });
       _ut.test('test_double_whole_e', () {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_double_whole_e);
-      });
-      _ut.test('test_double_whole_ed', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_whole_ed);
       });
       _ut.test('test_eq', () {
         final __test = new StringScannerTest();
@@ -1641,44 +1577,20 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   void test_double_fraction() {
     assertToken(TokenType.DOUBLE, ".123");
   }
-  void test_double_fraction_d() {
-    assertToken(TokenType.DOUBLE, ".123d");
-  }
-  void test_double_fraction_D() {
-    assertToken(TokenType.DOUBLE, ".123D");
-  }
   void test_double_fraction_e() {
     assertToken(TokenType.DOUBLE, ".123e4");
   }
   void test_double_fraction_E() {
     assertToken(TokenType.DOUBLE, ".123E4");
   }
-  void test_double_fraction_ed() {
-    assertToken(TokenType.DOUBLE, ".123e4d");
-  }
-  void test_double_fraction_Ed() {
-    assertToken(TokenType.DOUBLE, ".123E4d");
-  }
   void test_double_missingDigitInExponent() {
     assertError(ScannerErrorCode.MISSING_DIGIT, 1, "1e");
-  }
-  void test_double_whole_d() {
-    assertToken(TokenType.DOUBLE, "12d");
-  }
-  void test_double_whole_D() {
-    assertToken(TokenType.DOUBLE, "12D");
   }
   void test_double_whole_e() {
     assertToken(TokenType.DOUBLE, "12e4");
   }
   void test_double_whole_E() {
     assertToken(TokenType.DOUBLE, "12E4");
-  }
-  void test_double_whole_ed() {
-    assertToken(TokenType.DOUBLE, "12e4d");
-  }
-  void test_double_whole_Ed() {
-    assertToken(TokenType.DOUBLE, "12E4d");
   }
   void test_eq() {
     assertToken(TokenType.EQ, "=");
@@ -2243,6 +2155,19 @@ abstract class AbstractScannerTest extends JUnitTestCase {
       JUnitTestCase.assertEquals(source.length, tokenWithSpaces.length);
       JUnitTestCase.assertEquals(source, tokenWithSpaces.lexeme);
       return originalToken;
+    } else if (identical(expectedType, TokenType.INT) || identical(expectedType, TokenType.DOUBLE)) {
+      Token tokenWithLowerD = scan2("${source}d");
+      JUnitTestCase.assertNotNull(tokenWithLowerD);
+      JUnitTestCase.assertEquals(expectedType, tokenWithLowerD.type);
+      JUnitTestCase.assertEquals(0, tokenWithLowerD.offset);
+      JUnitTestCase.assertEquals(source.length, tokenWithLowerD.length);
+      JUnitTestCase.assertEquals(source, tokenWithLowerD.lexeme);
+      Token tokenWithUpperD = scan2("${source}D");
+      JUnitTestCase.assertNotNull(tokenWithUpperD);
+      JUnitTestCase.assertEquals(expectedType, tokenWithUpperD.type);
+      JUnitTestCase.assertEquals(0, tokenWithUpperD.offset);
+      JUnitTestCase.assertEquals(source.length, tokenWithUpperD.length);
+      JUnitTestCase.assertEquals(source, tokenWithUpperD.lexeme);
     }
     Token tokenWithSpaces = scan2(" ${source} ");
     JUnitTestCase.assertNotNull(tokenWithSpaces);

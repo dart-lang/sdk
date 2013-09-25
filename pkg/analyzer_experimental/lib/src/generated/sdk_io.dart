@@ -199,11 +199,7 @@ class DirectoryBasedDartSdk implements DartSdk {
     this.directory = sdkDirectory.getAbsoluteFile();
     initializeSdk();
     initializeLibraryMap();
-    if (AnalysisEngine.instance.useExperimentalContext) {
-      _analysisContext = new AnalysisContextImpl2();
-    } else {
-      _analysisContext = new AnalysisContextImpl();
-    }
+    _analysisContext = new AnalysisContextImpl();
     _analysisContext.sourceFactory = new SourceFactory.con2([new DartUriResolver(this)]);
     List<String> uris = this.uris;
     ChangeSet changeSet = new ChangeSet();
@@ -224,7 +220,7 @@ class DirectoryBasedDartSdk implements DartSdk {
     this.directory = sdkDirectory.getAbsoluteFile();
     initializeSdk();
     initializeLibraryMap();
-    _analysisContext = new AnalysisContextImpl2();
+    _analysisContext = new AnalysisContextImpl();
     _analysisContext.sourceFactory = new SourceFactory.con2([new DartUriResolver(this)]);
     List<String> uris = this.uris;
     ChangeSet changeSet = new ChangeSet();
@@ -469,7 +465,7 @@ class SdkLibrariesReader {
    */
   LibraryMap readFrom(JavaFile librariesFile, String libraryFileContents) {
     List<bool> foundError = [false];
-    AnalysisErrorListener errorListener = new AnalysisErrorListener_9(foundError);
+    AnalysisErrorListener errorListener = new AnalysisErrorListener_8(foundError);
     Source source = new FileBasedSource.con2(null, librariesFile, UriKind.FILE_URI);
     StringScanner scanner = new StringScanner(source, libraryFileContents, errorListener);
     Parser parser = new Parser(source, errorListener);
@@ -561,9 +557,9 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
     return null;
   }
 }
-class AnalysisErrorListener_9 implements AnalysisErrorListener {
+class AnalysisErrorListener_8 implements AnalysisErrorListener {
   List<bool> foundError;
-  AnalysisErrorListener_9(this.foundError);
+  AnalysisErrorListener_8(this.foundError);
   void onError(AnalysisError error) {
     foundError[0] = true;
   }

@@ -19,7 +19,7 @@ import 'engine.dart' show AnalysisEngine;
  * to a numeric, string or boolean value or to `null`.
  * * `null`.
  * * A reference to a static constant variable.
- * * An identifier expression that denotes a constant variable, a class or a type variable.
+ * * An identifier expression that denotes a constant variable, a class or a type parameter.
  * * A constant constructor invocation.
  * * A constant list literal.
  * * A constant map literal.
@@ -270,7 +270,7 @@ class ConstantValueComputer {
  * to a numeric, string or boolean value or to `null`.
  * * `null`.
  * * A reference to a static constant variable.
- * * An identifier expression that denotes a constant variable, a class or a type variable.
+ * * An identifier expression that denotes a constant variable, a class or a type parameter.
  * * A constant constructor invocation.
  * * A constant list literal.
  * * A constant map literal.
@@ -358,6 +358,23 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
     return error(node, null);
   }
   EvaluationResultImpl visitBooleanLiteral(BooleanLiteral node) => node.value ? ValidResult.RESULT_TRUE : ValidResult.RESULT_FALSE;
+  EvaluationResultImpl visitConditionalExpression(ConditionalExpression node) {
+    Expression condition = node.condition;
+    EvaluationResultImpl conditionResult = condition.accept(this);
+    conditionResult = conditionResult.applyBooleanConversion(condition);
+    if (conditionResult is ErrorResult) {
+      return conditionResult;
+    }
+    EvaluationResultImpl thenResult = node.thenExpression.accept(this);
+    if (thenResult is ErrorResult) {
+      return thenResult;
+    }
+    EvaluationResultImpl elseResult = node.elseExpression.accept(this);
+    if (elseResult is ErrorResult) {
+      return elseResult;
+    }
+    return (identical(conditionResult, ValidResult.RESULT_TRUE)) ? thenResult : elseResult;
+  }
   EvaluationResultImpl visitDoubleLiteral(DoubleLiteral node) => new ValidResult(node.value);
   EvaluationResultImpl visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!node.isConst) {
@@ -719,6 +736,7 @@ class ErrorResult extends EvaluationResultImpl {
     errorData.addAll(secondResult.errorData);
   }
   EvaluationResultImpl add(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToError(node, this);
+  EvaluationResultImpl applyBooleanConversion(ASTNode node) => this;
   EvaluationResultImpl bitAnd(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitAndError(node, this);
   EvaluationResultImpl bitNot(Expression node) => this;
   EvaluationResultImpl bitOr(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitOrError(node, this);
@@ -814,6 +832,14 @@ class ErrorResult_ErrorData {
  */
 abstract class EvaluationResultImpl {
   EvaluationResultImpl add(BinaryExpression node, EvaluationResultImpl rightOperand);
+
+  /**
+   * Return the result of applying boolean conversion to this result.
+   *
+   * @param node the node against which errors should be reported
+   * @return the result of applying boolean conversion to the given value
+   */
+  EvaluationResultImpl applyBooleanConversion(ASTNode node);
   EvaluationResultImpl bitAnd(BinaryExpression node, EvaluationResultImpl rightOperand);
   EvaluationResultImpl bitNot(Expression node);
   EvaluationResultImpl bitOr(BinaryExpression node, EvaluationResultImpl rightOperand);
@@ -993,6 +1019,14 @@ class ValidResult extends EvaluationResultImpl {
     this.value = value;
   }
   EvaluationResultImpl add(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToValid(node, this);
+
+  /**
+   * Return the result of applying boolean conversion to this result.
+   *
+   * @param node the node against which errors should be reported
+   * @return the result of applying boolean conversion to the given value
+   */
+  EvaluationResultImpl applyBooleanConversion(ASTNode node) => booleanConversion(node, value);
   EvaluationResultImpl bitAnd(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitAndValid(node, this);
   EvaluationResultImpl bitNot(Expression node) {
     if (isSomeInt) {

@@ -55,7 +55,7 @@ class _GatheringErrorListener implements AnalysisErrorListener {
     var builder = new StringBuffer();
     var expectedCounts = new Map<ErrorCode, int>();
 
-    for (code in expectedErrorCodes) {
+    for (var code in expectedErrorCodes) {
       var count = expectedCounts[code];
       if (count == null) {
         count = 1;
@@ -66,7 +66,7 @@ class _GatheringErrorListener implements AnalysisErrorListener {
     }
 
     var errorsByCode = new Map<ErrorCode, List<AnalysisError>>();
-    for (error in _errors) {
+    for (var error in _errors) {
       var code = error.errorCode;
       var list = errorsByCode[code];
       if (list == null) {
@@ -76,7 +76,7 @@ class _GatheringErrorListener implements AnalysisErrorListener {
       list.add(error);
     }
 
-    for (entry in _getMapEntrySet(expectedCounts)) {
+    for (var entry in _getMapEntrySet(expectedCounts)) {
       var code = entry.getKey();
       var expectedCount = entry.getValue();
       var actualCount;
@@ -102,7 +102,7 @@ class _GatheringErrorListener implements AnalysisErrorListener {
       }
     }
 
-    for (entry in _getMapEntrySet(errorsByCode)) {
+    for (var entry in _getMapEntrySet(errorsByCode)) {
       var code = entry.getKey();
       var actualErrors = entry.getValue();
       var actualCount = actualErrors.length;

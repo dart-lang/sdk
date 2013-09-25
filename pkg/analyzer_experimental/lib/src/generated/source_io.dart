@@ -66,14 +66,12 @@ class FileBasedSource implements Source {
   bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && file == ((object as FileBasedSource)).file;
   bool exists() => _contentCache.getContents(this) != null || (file.exists() && !file.isDirectory());
   void getContents(Source_ContentReceiver receiver) {
-    {
-      String contents = _contentCache.getContents(this);
-      if (contents != null) {
-        receiver.accept2(contents, _contentCache.getModificationStamp(this));
-        return;
-      }
+    String contents = _contentCache.getContents(this);
+    if (contents != null) {
+      receiver.accept2(contents, _contentCache.getModificationStamp(this));
+      return;
     }
-    receiver.accept2(file.readAsStringSync(), file.lastModified());
+    getContentsFromFile(receiver);
   }
   String get encoding {
     if (_encoding == null) {
@@ -106,6 +104,22 @@ class FileBasedSource implements Source {
       return "<unknown source>";
     }
     return file.getAbsolutePath();
+  }
+
+  /**
+   * Get the contents of underlying file and pass it to the given receiver. Exactly one of the
+   * methods defined on the receiver will be invoked unless an exception is thrown. The method that
+   * will be invoked depends on which of the possible representations of the contents is the most
+   * efficient. Whichever method is invoked, it will be invoked before this method returns.
+   *
+   * @param receiver the content receiver to which the content of this source will be passed
+   * @throws Exception if the contents of this source could not be accessed
+   * @see #getContents(com.google.dart.engine.source.Source.ContentReceiver)
+   */
+  void getContentsFromFile(Source_ContentReceiver receiver) {
+    {
+    }
+    receiver.accept2(file.readAsStringSync(), file.lastModified());
   }
 }
 /**
@@ -157,7 +171,7 @@ class PackageUriResolver extends UriResolver {
     this._packagesDirectories = packagesDirectories;
   }
   Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) {
-    if (identical(kind, UriKind.PACKAGE_URI)) {
+    if (identical(kind, UriKind.PACKAGE_SELF_URI) || identical(kind, UriKind.PACKAGE_URI)) {
       return new FileBasedSource.con2(contentCache, new JavaFile.fromUri(uri), kind);
     }
     return null;
@@ -188,7 +202,9 @@ class PackageUriResolver extends UriResolver {
     for (JavaFile packagesDirectory in _packagesDirectories) {
       JavaFile resolvedFile = new JavaFile.relative(packagesDirectory, path);
       if (resolvedFile.exists()) {
-        return new FileBasedSource.con2(contentCache, getCanonicalFile(packagesDirectory, pkgName, relPath), UriKind.PACKAGE_URI);
+        JavaFile canonicalFile = getCanonicalFile(packagesDirectory, pkgName, relPath);
+        UriKind uriKind = isSelfReference(packagesDirectory, canonicalFile) ? UriKind.PACKAGE_SELF_URI : UriKind.PACKAGE_URI;
+        return new FileBasedSource.con2(contentCache, canonicalFile, uriKind);
       }
     }
     return new FileBasedSource.con2(contentCache, getCanonicalFile(_packagesDirectories[0], pkgName, relPath), UriKind.PACKAGE_URI);
@@ -237,6 +253,17 @@ class PackageUriResolver extends UriResolver {
       }
     }
     return new JavaFile.relative(pkgDir, relPath.replaceAll('/', new String.fromCharCode(JavaFile.separatorChar)));
+  }
+
+  /**
+   * @return `true` if "file" was found in "packagesDir", and it is part of the "lib" folder
+   *         of the application that contains in this "packagesDir".
+   */
+  bool isSelfReference(JavaFile packagesDir, JavaFile file) {
+    JavaFile rootDir = packagesDir.getParentFile();
+    String rootPath = rootDir.getAbsolutePath();
+    String filePath = file.getAbsolutePath();
+    return filePath.startsWith("${rootPath}/lib");
   }
 }
 /**
