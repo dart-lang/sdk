@@ -232,6 +232,7 @@ LibTest/typed_data/Float32x4/toUint32x4_A01_t01: RuntimeError # co19 Issue 601
 LibTest/typed_data/Float32x4/toUint32x4_A01_t02: RuntimeError # co19 Issue 601
 LibTest/typed_data/Uint32x4/toFloat32x4_A01_t01: RuntimeError # co19 Issue 601
 LibTest/typed_data/Uint32x4/toFloat32x4_A01_t02: RuntimeError # co19 Issue 601
+LibTest/typed_data/Float32x4/clamp_A02_t01: RuntimeError # co19 Issue 600
 
 
 [ $compiler == dart2js && $jscl ]
