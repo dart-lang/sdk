@@ -1014,9 +1014,13 @@ class StandardTestSuite extends TestSuite {
               '<script type="text/javascript" '
                   'src="/packages/browser/dart.js"></script>');
           } else {
-            htmlContents = htmlContents.replaceAll('%TEST_SCRIPTS%',
-              '<script src="$nameNoExt.js"></script>');
             compiledDartWrapperFilename = '$tempDir/$nameNoExt.js';
+            var jsFile = '$nameNoExt.js';
+            if (configuration['csp']) {
+              jsFile = '$nameNoExt.precompiled.js';
+            }
+            htmlContents = htmlContents.replaceAll('%TEST_SCRIPTS%',
+              '<script src="$jsFile"></script>');
           }
           new File(htmlPath).writeAsStringSync(htmlContents);
         }
