@@ -13394,6 +13394,11 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
    *
    * Calling `open` again on a currently active request is equivalent to
    * calling `abort`.
+   *
+   * Note: Most simple HTTP requests can be accomplished using the [getString],
+   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
+   * `open` method is intended only for more complext HTTP requests where
+   * finer-grained control is needed.
    */
   @DomName('XMLHttpRequest.open')
   @DocsEditable()
@@ -13415,6 +13420,11 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
 
   /**
    * Send the request with any given `data`.
+   *
+   * Note: Most simple HTTP requests can be accomplished using the [getString],
+   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
+   * `send` method is intended only for more complext HTTP requests where
+   * finer-grained control is needed.
    *
    * See also:
    *
