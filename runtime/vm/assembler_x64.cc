@@ -2225,9 +2225,12 @@ intptr_t Assembler::FindExternalLabel(const ExternalLabel* label,
 
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) {
-  // TODO(zra, kmillikin): Move the use of large Smis into the constant pool.
+  // TODO(zra, kmillikin): Also load other large immediates from the object
+  // pool
   if (object.IsSmi()) {
-    return false;
+    // If the raw smi does not fit into a 32-bit signed int, then we'll keep
+    // the raw value in the object pool.
+    return !Utils::IsInt(32, reinterpret_cast<int64_t>(object.raw()));
   }
   ASSERT(object.IsNotTemporaryScopedHandle());
   ASSERT(object.IsOld());
