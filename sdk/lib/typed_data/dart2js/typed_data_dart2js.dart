@@ -969,14 +969,15 @@ class Float32x4 {
     double _y = _storage[1];
     double _z = _storage[2];
     double _w = _storage[3];
-    _x = _x < _lx ? _lx : _x;
+    // MAX(MIN(self, upper), lower).
     _x = _x > _ux ? _ux : _x;
-    _y = _y < _ly ? _ly : _y;
     _y = _y > _uy ? _uy : _y;
-    _z = _z < _lz ? _lz : _z;
     _z = _z > _uz ? _uz : _z;
-    _w = _w < _lw ? _lw : _w;
     _w = _w > _uw ? _uw : _w;
+    _x = _x < _lx ? _lx : _x;
+    _y = _y < _ly ? _ly : _y;
+    _z = _z < _lz ? _lz : _z;
+    _w = _w < _lw ? _lw : _w;
     return new Float32x4(_x, _y, _z, _w);
   }
 
