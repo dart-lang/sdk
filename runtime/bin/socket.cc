@@ -353,12 +353,12 @@ void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
 }
 
 
-static CObject* LookupRequest(const CObjectArray& request) {
-  if (request.Length() == 3 &&
-      request[1]->IsString() &&
-      request[2]->IsInt32()) {
-    CObjectString host(request[1]);
-    CObjectInt32 type(request[2]);
+CObject* Socket::LookupRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[0]->IsString() &&
+      request[1]->IsInt32()) {
+    CObjectString host(request[0]);
+    CObjectInt32 type(request[1]);
     CObject* result = NULL;
     OSError* os_error = NULL;
     AddressList<SocketAddress>* addresses =
@@ -401,10 +401,10 @@ static CObject* LookupRequest(const CObjectArray& request) {
 }
 
 
-static CObject* ReverseLookupRequest(const CObjectArray& request) {
-  if (request.Length() == 2 &&
-      request[1]->IsTypedData()) {
-    CObjectUint8Array addr_object(request[1]);
+CObject* Socket::ReverseLookupRequest(const CObjectArray& request) {
+  if (request.Length() == 1 &&
+      request[0]->IsTypedData()) {
+    CObjectUint8Array addr_object(request[0]);
     RawAddr addr;
     memmove(reinterpret_cast<void *>(&addr),
             addr_object.Buffer(),
@@ -425,10 +425,10 @@ static CObject* ReverseLookupRequest(const CObjectArray& request) {
 
 
 
-static CObject* ListInterfacesRequest(const CObjectArray& request) {
-  if (request.Length() == 2 &&
-      request[1]->IsInt32()) {
-    CObjectInt32 type(request[1]);
+CObject* Socket::ListInterfacesRequest(const CObjectArray& request) {
+  if (request.Length() == 1 &&
+      request[0]->IsInt32()) {
+    CObjectInt32 type(request[0]);
     CObject* result = NULL;
     OSError* os_error = NULL;
     AddressList<InterfaceSocketAddress>* addresses = Socket::ListInterfaces(
@@ -473,70 +473,6 @@ static CObject* ListInterfacesRequest(const CObjectArray& request) {
     return result;
   }
   return CObject::IllegalArgumentError();
-}
-
-
-void SocketService(Dart_Port dest_port_id,
-                   Dart_Port reply_port_id,
-                   Dart_CObject* message) {
-  CObject* response = CObject::IllegalArgumentError();
-  CObjectArray request(message);
-  if (message->type == Dart_CObject_kArray) {
-    if (request.Length() > 1 && request[0]->IsInt32()) {
-      CObjectInt32 request_type(request[0]);
-      switch (request_type.Value()) {
-        case Socket::kLookupRequest:
-          response = LookupRequest(request);
-          break;
-        case Socket::kListInterfacesRequest:
-          response = ListInterfacesRequest(request);
-          break;
-        case Socket::kReverseLookupRequest:
-          response = ReverseLookupRequest(request);
-          break;
-        default:
-          UNREACHABLE();
-      }
-    }
-  }
-
-  Dart_PostCObject(reply_port_id, response->AsApiCObject());
-}
-
-
-Dart_Port Socket::GetServicePort() {
-  MutexLocker lock(mutex_);
-  if (service_ports_size_ == 0) {
-    ASSERT(service_ports_ == NULL);
-    service_ports_size_ = 16;
-    service_ports_ = new Dart_Port[service_ports_size_];
-    service_ports_index_ = 0;
-    for (int i = 0; i < service_ports_size_; i++) {
-      service_ports_[i] = ILLEGAL_PORT;
-    }
-  }
-
-  Dart_Port result = service_ports_[service_ports_index_];
-  if (result == ILLEGAL_PORT) {
-    result = Dart_NewNativePort("SocketService",
-                                SocketService,
-                                true);
-    ASSERT(result != ILLEGAL_PORT);
-    service_ports_[service_ports_index_] = result;
-  }
-  service_ports_index_ = (service_ports_index_ + 1) % service_ports_size_;
-  return result;
-}
-
-
-void FUNCTION_NAME(Socket_NewServicePort)(Dart_NativeArguments args) {
-  Dart_SetReturnValue(args, Dart_Null());
-  Dart_Port service_port = Socket::GetServicePort();
-  if (service_port != ILLEGAL_PORT) {
-    // Return a send port for the service port.
-    Dart_Handle send_port = Dart_NewSendPort(service_port);
-    Dart_SetReturnValue(args, send_port);
-  }
 }
 
 

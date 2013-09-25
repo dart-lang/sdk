@@ -53,8 +53,6 @@
     'fdutils_macos.cc',
     'hashmap_test.cc',
     'isolate_data.h',
-    'native_service.h',
-    'native_service.cc',
     'thread.h',
     'utils.h',
     'utils_android.cc',

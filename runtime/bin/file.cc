@@ -17,11 +17,6 @@ namespace bin {
 
 static const int kMSPerSecond = 1000;
 
-// Forward declaration.
-static void FileService(Dart_Port, Dart_Port, Dart_CObject*);
-
-NativeService File::file_service_("FileService", FileService, 16);
-
 
 // The file pointer has been passed into Dart as an intptr_t and it is safe
 // to pull it out of Dart as a 64-bit integer, cast it to an intptr_t and
@@ -638,9 +633,9 @@ File* CObjectToFilePointer(CObject* cobject) {
 }
 
 
-static CObject* FileExistsRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString filename(request[1]);
+CObject* File::ExistsRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsString()) {
+    CObjectString filename(request[0]);
     bool result = File::Exists(filename.CString());
     return CObject::Bool(result);
   }
@@ -648,9 +643,9 @@ static CObject* FileExistsRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileCreateRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString filename(request[1]);
+CObject* File::CreateRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsString()) {
+    CObjectString filename(request[0]);
     bool result = File::Create(filename.CString());
     if (result) {
       return CObject::True();
@@ -661,13 +656,13 @@ static CObject* FileCreateRequest(const CObjectArray& request) {
   return CObject::IllegalArgumentError();
 }
 
-static CObject* FileOpenRequest(const CObjectArray& request) {
+CObject* File::OpenRequest(const CObjectArray& request) {
   File* file = NULL;
-  if (request.Length() == 3 &&
-      request[1]->IsString() &&
-      request[2]->IsInt32()) {
-    CObjectString filename(request[1]);
-    CObjectInt32 mode(request[2]);
+  if (request.Length() == 2 &&
+      request[0]->IsString() &&
+      request[1]->IsInt32()) {
+    CObjectString filename(request[0]);
+    CObjectInt32 mode(request[1]);
     File::DartFileOpenMode dart_file_mode =
         static_cast<File::DartFileOpenMode>(mode.Value());
     File::FileOpenMode file_mode = File::DartModeToFileMode(dart_file_mode);
@@ -683,9 +678,9 @@ static CObject* FileOpenRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileDeleteRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString filename(request[1]);
+CObject* File::DeleteRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsString()) {
+    CObjectString filename(request[0]);
     bool result = File::Delete(filename.CString());
     if (result) {
       return CObject::True();
@@ -697,12 +692,12 @@ static CObject* FileDeleteRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileRenameRequest(const CObjectArray& request) {
-  if (request.Length() == 3 &&
-      request[1]->IsString() &&
-      request[2]->IsString()) {
-    CObjectString old_path(request[1]);
-    CObjectString new_path(request[2]);
+CObject* File::RenameRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[0]->IsString() &&
+      request[1]->IsString()) {
+    CObjectString old_path(request[0]);
+    CObjectString new_path(request[1]);
     bool completed = File::Rename(old_path.CString(), new_path.CString());
     if (completed) return CObject::True();
     return CObject::NewOSError();
@@ -711,9 +706,9 @@ static CObject* FileRenameRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileResolveSymbolicLinksRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString filename(request[1]);
+CObject* File::ResolveSymbolicLinksRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsString()) {
+    CObjectString filename(request[0]);
     char* result = File::GetCanonicalPath(filename.CString());
     if (result != NULL) {
       CObject* path = new CObjectString(CObject::NewString(result));
@@ -727,10 +722,10 @@ static CObject* FileResolveSymbolicLinksRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileCloseRequest(const CObjectArray& request) {
+CObject* File::CloseRequest(const CObjectArray& request) {
   intptr_t return_value = -1;
-  if (request.Length() == 2 && request[1]->IsIntptr()) {
-    File* file = CObjectToFilePointer(request[1]);
+  if (request.Length() == 1 && request[0]->IsIntptr()) {
+    File* file = CObjectToFilePointer(request[0]);
     ASSERT(file != NULL);
     delete file;
     return_value = 0;
@@ -739,9 +734,9 @@ static CObject* FileCloseRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FilePositionRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsIntptr()) {
-    File* file = CObjectToFilePointer(request[1]);
+CObject* File::PositionRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsIntptr()) {
+    File* file = CObjectToFilePointer(request[0]);
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
       intptr_t return_value = file->Position();
@@ -758,14 +753,14 @@ static CObject* FilePositionRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileSetPositionRequest(const CObjectArray& request) {
-  if (request.Length() == 3 &&
-      request[1]->IsIntptr() &&
-      request[2]->IsInt32OrInt64()) {
-    File* file = CObjectToFilePointer(request[1]);
+CObject* File::SetPositionRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[0]->IsIntptr() &&
+      request[1]->IsInt32OrInt64()) {
+    File* file = CObjectToFilePointer(request[0]);
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
-      int64_t position = CObjectInt32OrInt64ToInt64(request[2]);
+      int64_t position = CObjectInt32OrInt64ToInt64(request[1]);
       if (file->SetPosition(position)) {
         return CObject::True();
       } else {
@@ -779,14 +774,14 @@ static CObject* FileSetPositionRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileTruncateRequest(const CObjectArray& request) {
-  if (request.Length() == 3 &&
-      request[1]->IsIntptr() &&
-      request[2]->IsInt32OrInt64()) {
-    File* file = CObjectToFilePointer(request[1]);
+CObject* File::TruncateRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[0]->IsIntptr() &&
+      request[1]->IsInt32OrInt64()) {
+    File* file = CObjectToFilePointer(request[0]);
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
-      int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
+      int64_t length = CObjectInt32OrInt64ToInt64(request[1]);
       if (file->Truncate(length)) {
         return CObject::True();
       } else {
@@ -800,14 +795,14 @@ static CObject* FileTruncateRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileLengthRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsIntptr()) {
-    File* file = CObjectToFilePointer(request[1]);
+CObject* File::LengthRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsIntptr()) {
+    File* file = CObjectToFilePointer(request[0]);
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
-      intptr_t return_value = file->Length();
+      off_t return_value = file->Length();
       if (return_value >= 0) {
-        return new CObjectIntptr(CObject::NewIntptr(return_value));
+        return new CObjectInt64(CObject::NewInt64(return_value));
       } else {
         return CObject::NewOSError();
       }
@@ -819,12 +814,12 @@ static CObject* FileLengthRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileLengthFromPathRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString filepath(request[1]);
-    intptr_t return_value = File::LengthFromPath(filepath.CString());
+CObject* File::LengthFromPathRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsString()) {
+    CObjectString filepath(request[0]);
+    off_t return_value = File::LengthFromPath(filepath.CString());
     if (return_value >= 0) {
-      return new CObjectIntptr(CObject::NewIntptr(return_value));
+      return new CObjectInt64(CObject::NewInt64(return_value));
     } else {
       return CObject::NewOSError();
     }
@@ -833,9 +828,9 @@ static CObject* FileLengthFromPathRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileLastModifiedRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString filepath(request[1]);
+CObject* File::LastModifiedRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsString()) {
+    CObjectString filepath(request[0]);
     int64_t return_value = File::LastModified(filepath.CString());
     if (return_value >= 0) {
       return new CObjectIntptr(CObject::NewInt64(return_value * kMSPerSecond));
@@ -847,9 +842,9 @@ static CObject* FileLastModifiedRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileFlushRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsIntptr()) {
-    File* file = CObjectToFilePointer(request[1]);
+CObject* File::FlushRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsIntptr()) {
+    File* file = CObjectToFilePointer(request[0]);
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
       if (file->Flush()) {
@@ -865,9 +860,9 @@ static CObject* FileFlushRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileReadByteRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsIntptr()) {
-    File* file = CObjectToFilePointer(request[1]);
+CObject* File::ReadByteRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsIntptr()) {
+    File* file = CObjectToFilePointer(request[0]);
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
       uint8_t buffer;
@@ -887,14 +882,14 @@ static CObject* FileReadByteRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileWriteByteRequest(const CObjectArray& request) {
-  if (request.Length() == 3 &&
-      request[1]->IsIntptr() &&
-      request[2]->IsInt32OrInt64()) {
-    File* file = CObjectToFilePointer(request[1]);
+CObject* File::WriteByteRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[0]->IsIntptr() &&
+      request[1]->IsInt32OrInt64()) {
+    File* file = CObjectToFilePointer(request[0]);
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
-      int64_t byte = CObjectInt32OrInt64ToInt64(request[2]);
+      int64_t byte = CObjectInt32OrInt64ToInt64(request[1]);
       uint8_t buffer = static_cast<uint8_t>(byte & 0xff);
       int64_t bytes_written = file->Write(reinterpret_cast<void*>(&buffer), 1);
       if (bytes_written > 0) {
@@ -910,14 +905,14 @@ static CObject* FileWriteByteRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileReadRequest(const CObjectArray& request) {
-  if (request.Length() == 3 &&
-      request[1]->IsIntptr() &&
-      request[2]->IsInt32OrInt64()) {
-    File* file = CObjectToFilePointer(request[1]);
+CObject* File::ReadRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[0]->IsIntptr() &&
+      request[1]->IsInt32OrInt64()) {
+    File* file = CObjectToFilePointer(request[0]);
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
-      int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
+      int64_t length = CObjectInt32OrInt64ToInt64(request[1]);
       Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
       ASSERT(io_buffer != NULL);
       uint8_t* data = io_buffer->value.as_external_typed_data.data;
@@ -942,14 +937,14 @@ static CObject* FileReadRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileReadIntoRequest(const CObjectArray& request) {
-  if (request.Length() == 3 &&
-      request[1]->IsIntptr() &&
-      request[2]->IsInt32OrInt64()) {
-    File* file = CObjectToFilePointer(request[1]);
+CObject* File::ReadIntoRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[0]->IsIntptr() &&
+      request[1]->IsInt32OrInt64()) {
+    File* file = CObjectToFilePointer(request[0]);
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
-      int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
+      int64_t length = CObjectInt32OrInt64ToInt64(request[1]);
       Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
       ASSERT(io_buffer != NULL);
       uint8_t* data = io_buffer->value.as_external_typed_data.data;
@@ -1000,26 +995,26 @@ static int SizeInBytes(Dart_TypedData_Type type) {
 }
 
 
-static CObject* FileWriteFromRequest(const CObjectArray& request) {
-  if (request.Length() == 5 &&
-      request[1]->IsIntptr() &&
-      (request[2]->IsTypedData() || request[2]->IsArray()) &&
-      request[3]->IsInt32OrInt64() &&
-      request[4]->IsInt32OrInt64()) {
-    File* file = CObjectToFilePointer(request[1]);
+CObject* File::WriteFromRequest(const CObjectArray& request) {
+  if (request.Length() == 4 &&
+      request[0]->IsIntptr() &&
+      (request[1]->IsTypedData() || request[1]->IsArray()) &&
+      request[2]->IsInt32OrInt64() &&
+      request[3]->IsInt32OrInt64()) {
+    File* file = CObjectToFilePointer(request[0]);
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
-      int64_t start = CObjectInt32OrInt64ToInt64(request[3]);
-      int64_t end = CObjectInt32OrInt64ToInt64(request[4]);
+      int64_t start = CObjectInt32OrInt64ToInt64(request[2]);
+      int64_t end = CObjectInt32OrInt64ToInt64(request[3]);
       int64_t length = end - start;
       uint8_t* buffer_start;
-      if (request[2]->IsTypedData()) {
-        CObjectTypedData typed_data(request[2]);
+      if (request[1]->IsTypedData()) {
+        CObjectTypedData typed_data(request[1]);
         start = start * SizeInBytes(typed_data.Type());
         length = length * SizeInBytes(typed_data.Type());
         buffer_start = typed_data.Buffer() + start;
       } else {
-        CObjectArray array(request[2]);
+        CObjectArray array(request[1]);
         buffer_start = new uint8_t[length];
         for (int i = 0; i < length; i++) {
           if (array[i + start]->IsInt32OrInt64()) {
@@ -1035,7 +1030,7 @@ static CObject* FileWriteFromRequest(const CObjectArray& request) {
       }
       int64_t bytes_written =
           file->Write(reinterpret_cast<void*>(buffer_start), length);
-      if (!request[2]->IsTypedData()) {
+      if (!request[1]->IsTypedData()) {
         delete[] buffer_start;
       }
       if (bytes_written >= 0) {
@@ -1051,14 +1046,14 @@ static CObject* FileWriteFromRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileCreateLinkRequest(const CObjectArray& request) {
-  if (request.Length() != 3 ||
-      !request[1]->IsString() ||
-      !request[2]->IsString()) {
+CObject* File::CreateLinkRequest(const CObjectArray& request) {
+  if (request.Length() != 2 ||
+      !request[0]->IsString() ||
+      !request[1]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectString link_name(request[1]);
-  CObjectString target_name(request[2]);
+  CObjectString link_name(request[0]);
+  CObjectString target_name(request[1]);
   if (File::CreateLink(link_name.CString(), target_name.CString())) {
     return CObject::True();
   } else {
@@ -1067,9 +1062,9 @@ static CObject* FileCreateLinkRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileDeleteLinkRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString link_path(request[1]);
+CObject* File::DeleteLinkRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsString()) {
+    CObjectString link_path(request[0]);
     bool result = File::DeleteLink(link_path.CString());
     if (result) {
       return CObject::True();
@@ -1081,12 +1076,12 @@ static CObject* FileDeleteLinkRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileRenameLinkRequest(const CObjectArray& request) {
-  if (request.Length() == 3 &&
-      request[1]->IsString() &&
-      request[2]->IsString()) {
-    CObjectString old_path(request[1]);
-    CObjectString new_path(request[2]);
+CObject* File::RenameLinkRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[0]->IsString() &&
+      request[1]->IsString()) {
+    CObjectString old_path(request[0]);
+    CObjectString new_path(request[1]);
     bool completed = File::RenameLink(old_path.CString(), new_path.CString());
     if (completed) return CObject::True();
     return CObject::NewOSError();
@@ -1095,9 +1090,9 @@ static CObject* FileRenameLinkRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileLinkTargetRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString link_path(request[1]);
+CObject* File::LinkTargetRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsString()) {
+    CObjectString link_path(request[0]);
     char* target = File::LinkTarget(link_path.CString());
     if (target != NULL) {
       CObject* result = new CObjectString(CObject::NewString(target));
@@ -1111,12 +1106,12 @@ static CObject* FileLinkTargetRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileTypeRequest(const CObjectArray& request) {
-  if (request.Length() == 3 &&
-      request[1]->IsString() &&
-      request[2]->IsBool()) {
-    CObjectString path(request[1]);
-    CObjectBool follow_links(request[2]);
+CObject* File::TypeRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[0]->IsString() &&
+      request[1]->IsBool()) {
+    CObjectString path(request[0]);
+    CObjectBool follow_links(request[1]);
     File::Type type = File::GetType(path.CString(), follow_links.Value());
     return new CObjectInt32(CObject::NewInt32(type));
   }
@@ -1124,12 +1119,12 @@ static CObject* FileTypeRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileIdenticalRequest(const CObjectArray& request) {
-  if (request.Length() == 3 &&
-      request[1]->IsString() &&
-      request[2]->IsString()) {
-    CObjectString path1(request[1]);
-    CObjectString path2(request[2]);
+CObject* File::IdenticalRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[0]->IsString() &&
+      request[1]->IsString()) {
+    CObjectString path1(request[0]);
+    CObjectString path2(request[1]);
     File::Identical result = File::AreIdentical(path1.CString(),
                                                 path2.CString());
     if (result == File::kError) {
@@ -1144,11 +1139,11 @@ static CObject* FileIdenticalRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileStatRequest(const CObjectArray& request) {
-  if (request.Length() == 2 &&
-      request[1]->IsString()) {
+CObject* File::StatRequest(const CObjectArray& request) {
+  if (request.Length() == 1 &&
+      request[0]->IsString()) {
     int64_t data[File::kStatSize];
-    CObjectString path(request[1]);
+    CObjectString path(request[0]);
     File::Stat(path.CString(), data);
     if (data[File::kType] == File::kDoesNotExist) {
       return CObject::NewOSError();
@@ -1164,119 +1159,6 @@ static CObject* FileStatRequest(const CObjectArray& request) {
     return wrapper;
   }
   return CObject::IllegalArgumentError();
-}
-
-
-static void FileService(Dart_Port dest_port_id,
-                        Dart_Port reply_port_id,
-                        Dart_CObject* message) {
-  CObject* response = CObject::IllegalArgumentError();
-  CObjectArray request(message);
-  if (message->type == Dart_CObject_kArray) {
-    if (request.Length() > 1 && request[0]->IsInt32()) {
-      CObjectInt32 requestType(request[0]);
-      switch (requestType.Value()) {
-        case File::kExistsRequest:
-          response = FileExistsRequest(request);
-          break;
-        case File::kCreateRequest:
-          response = FileCreateRequest(request);
-          break;
-        case File::kOpenRequest:
-          response = FileOpenRequest(request);
-          break;
-        case File::kDeleteRequest:
-          response = FileDeleteRequest(request);
-          break;
-        case File::kRenameRequest:
-          response = FileRenameRequest(request);
-          break;
-        case File::kResolveSymbolicLinksRequest:
-          response = FileResolveSymbolicLinksRequest(request);
-          break;
-        case File::kCloseRequest:
-          response = FileCloseRequest(request);
-          break;
-        case File::kPositionRequest:
-          response = FilePositionRequest(request);
-          break;
-        case File::kSetPositionRequest:
-          response = FileSetPositionRequest(request);
-          break;
-        case File::kTruncateRequest:
-          response = FileTruncateRequest(request);
-          break;
-        case File::kLengthRequest:
-          response = FileLengthRequest(request);
-          break;
-        case File::kLengthFromPathRequest:
-          response = FileLengthFromPathRequest(request);
-          break;
-        case File::kLastModifiedRequest:
-          response = FileLastModifiedRequest(request);
-          break;
-        case File::kFlushRequest:
-          response = FileFlushRequest(request);
-          break;
-        case File::kReadByteRequest:
-          response = FileReadByteRequest(request);
-          break;
-        case File::kWriteByteRequest:
-          response = FileWriteByteRequest(request);
-          break;
-        case File::kReadRequest:
-          response = FileReadRequest(request);
-          break;
-        case File::kReadIntoRequest:
-          response = FileReadIntoRequest(request);
-          break;
-        case File::kWriteFromRequest:
-          response = FileWriteFromRequest(request);
-          break;
-        case File::kDeleteLinkRequest:
-          response = FileDeleteLinkRequest(request);
-          break;
-        case File::kRenameLinkRequest:
-          response = FileRenameLinkRequest(request);
-          break;
-        case File::kCreateLinkRequest:
-          response = FileCreateLinkRequest(request);
-          break;
-        case File::kLinkTargetRequest:
-          response = FileLinkTargetRequest(request);
-          break;
-        case File::kTypeRequest:
-          response = FileTypeRequest(request);
-          break;
-        case File::kIdenticalRequest:
-          response = FileIdenticalRequest(request);
-          break;
-        case File::kStatRequest:
-          response = FileStatRequest(request);
-          break;
-        default:
-          UNREACHABLE();
-      }
-    }
-  }
-
-  Dart_PostCObject(reply_port_id, response->AsApiCObject());
-}
-
-
-Dart_Port File::GetServicePort() {
-  return file_service_.GetServicePort();
-}
-
-
-void FUNCTION_NAME(File_NewServicePort)(Dart_NativeArguments args) {
-  Dart_SetReturnValue(args, Dart_Null());
-  Dart_Port service_port = File::GetServicePort();
-  if (service_port != ILLEGAL_PORT) {
-    // Return a send port for the service port.
-    Dart_Handle send_port = Dart_NewSendPort(service_port);
-    Dart_SetReturnValue(args, send_port);
-  }
 }
 
 }  // namespace bin

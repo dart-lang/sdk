@@ -23,6 +23,8 @@
     'filter.cc',
     'filter.h',
     'filter_unsupported.cc',
+    'io_service.cc',
+    'io_service.h',
     'net/nss_memio.cc',
     'net/nss_memio.h',
     'platform.cc',

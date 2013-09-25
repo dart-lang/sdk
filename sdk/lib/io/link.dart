@@ -125,8 +125,6 @@ abstract class Link implements FileSystemEntity {
 class _Link extends FileSystemEntity implements Link {
   final String path;
 
-  SendPort _fileService;
-
   _Link(String this.path) {
     if (path is! String) {
       throw new ArgumentError('${Error.safeToString(path)} '
@@ -148,21 +146,17 @@ class _Link extends FileSystemEntity implements Link {
   FileStat statSync() => FileStat.statSync(path);
 
   Future<Link> create(String target) {
-    _ensureFileService();
     if (Platform.operatingSystem == 'windows') {
       target = _makeWindowsLinkTarget(target);
     }
-    List request = new List(3);
-    request[0] = _CREATE_LINK_REQUEST;
-    request[1] = path;
-    request[2] = target;
-    return _fileService.call(request).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(
-            response, "Cannot create link to target '$target'", path);
-      }
-      return this;
-    });
+    return IOService.dispatch(FILE_CREATE_LINK, [path, target])
+        .then((response) {
+          if (_isErrorResponse(response)) {
+            throw _exceptionFromResponse(
+                response, "Cannot create link to target '$target'", path);
+          }
+          return this;
+        });
   }
 
   void createSync(String target) {
@@ -209,11 +203,7 @@ class _Link extends FileSystemEntity implements Link {
     if (recursive) {
       return new Directory(path).delete(recursive: true).then((_) => this);
     }
-    _ensureFileService();
-    List request = new List(2);
-    request[0] = _DELETE_LINK_REQUEST;
-    request[1] = path;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_DELETE_LINK, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot delete link", path);
       }
@@ -230,18 +220,14 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Future<Link> rename(String newPath) {
-    _ensureFileService();
-    List request = new List(3);
-    request[0] = _RENAME_LINK_REQUEST;
-    request[1] = path;
-    request[2] = newPath;
-    return _fileService.call(request).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(
-            response, "Cannot rename link to '$newPath'", path);
-      }
-      return new Link(newPath);
-    });
+    return IOService.dispatch(FILE_RENAME_LINK, [path, newPath])
+        .then((response) {
+          if (_isErrorResponse(response)) {
+            throw _exceptionFromResponse(
+                response, "Cannot rename link to '$newPath'", path);
+          }
+          return new Link(newPath);
+        });
   }
 
   Link renameSync(String newPath) {
@@ -251,11 +237,7 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Future<String> target() {
-    _ensureFileService();
-    List request = new List(2);
-    request[0] = _LINK_TARGET_REQUEST;
-    request[1] = path;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_LINK_TARGET, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot get target of link", path);
@@ -278,12 +260,6 @@ class _Link extends FileSystemEntity implements Link {
 
   bool _isErrorResponse(response) {
     return response is List && response[0] != _SUCCESS_RESPONSE;
-  }
-
-  void _ensureFileService() {
-    if (_fileService == null) {
-      _fileService = _FileUtils._newServicePort();
-    }
   }
 
   _exceptionFromResponse(response, String message, String path) {

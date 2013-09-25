@@ -15,9 +15,6 @@ patch class SecureSocket {
 
 patch class _SecureFilter {
   /* patch */ factory _SecureFilter() => new _SecureFilterImpl();
-
-  /* patch */ static SendPort _newServicePort()
-      native "SecureSocket_NewServicePort";
 }
 
 

@@ -28,6 +28,7 @@ namespace bin {
   V(Filter_Process, 4)                                                         \
   V(Filter_Processed, 3)                                                       \
   V(InternetAddress_Fixed, 1)                                                  \
+  V(IOService_NewServicePort, 0)                                               \
   V(Platform_NumberOfProcessors, 0)                                            \
   V(Platform_OperatingSystem, 0)                                               \
   V(Platform_PathSeparator, 0)                                                 \
@@ -53,7 +54,6 @@ namespace bin {
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
   V(SecureSocket_Renegotiate, 4)                                               \
   V(SecureSocket_InitializeLibrary, 3)                                         \
-  V(SecureSocket_NewServicePort, 0)                                            \
   V(SecureSocket_FilterPointer, 1)                                             \
   V(ServerSocket_CreateBindListen, 5)                                          \
   V(ServerSocket_Accept, 2)                                                    \
@@ -65,7 +65,6 @@ namespace bin {
   V(Socket_GetRemotePeer, 1)                                                   \
   V(Socket_GetError, 1)                                                        \
   V(Socket_GetStdioHandle, 2)                                                  \
-  V(Socket_NewServicePort, 0)                                                  \
   V(Socket_GetType, 1)                                                         \
   V(Socket_SetOption, 3)                                                       \
   V(Socket_SetSocketId, 2)                                                     \

@@ -42,13 +42,6 @@ dart::Mutex* SSLFilter::mutex_ = new dart::Mutex();
 // be null if only secure client sockets are used.
 const char* SSLFilter::password_ = NULL;
 
-// Forward declaration.
-static void ProcessFilter(Dart_Port dest_port_id,
-                          Dart_Port reply_port_id,
-                          Dart_CObject* message);
-
-NativeService SSLFilter::filter_service_("FilterService", ProcessFilter, 16);
-
 static const int kSSLFilterNativeFieldIndex = 0;
 
 
@@ -295,33 +288,32 @@ void FUNCTION_NAME(SecureSocket_FilterPointer)(Dart_NativeArguments args) {
  * the updated pointers from Dart and C++, to make the new valid state of
  * the circular buffer.
  */
-static void ProcessFilter(Dart_Port dest_port_id,
-                          Dart_Port reply_port_id,
-                          Dart_CObject* message) {
-  CObjectArray args(message);
-  CObjectIntptr filter_object(args[0]);
+CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
+  CObjectIntptr filter_object(request[0]);
   SSLFilter* filter = reinterpret_cast<SSLFilter*>(filter_object.Value());
-  bool in_handshake = CObjectBool(args[1]).Value();
+  bool in_handshake = CObjectBool(request[1]).Value();
   int starts[SSLFilter::kNumBuffers];
   int ends[SSLFilter::kNumBuffers];
   for (int i = 0; i < SSLFilter::kNumBuffers; ++i) {
-    starts[i] = CObjectInt32(args[2 * i + 2]).Value();
-    ends[i] = CObjectInt32(args[2 * i + 3]).Value();
+    starts[i] = CObjectInt32(request[2 * i + 2]).Value();
+    ends[i] = CObjectInt32(request[2 * i + 3]).Value();
   }
 
   if (filter->ProcessAllBuffers(starts, ends, in_handshake)) {
+    CObjectArray* result = new CObjectArray(
+        CObject::NewArray(SSLFilter::kNumBuffers * 2));
     for (int i = 0; i < SSLFilter::kNumBuffers; ++i) {
-      args[2 * i + 2]->AsApiCObject()->value.as_int32 = starts[i];
-      args[2 * i + 3]->AsApiCObject()->value.as_int32 = ends[i];
+      result->SetAt(2 * i, new CObjectInt32(CObject::NewInt32(starts[i])));
+      result->SetAt(2 * i + 1, new CObjectInt32(CObject::NewInt32(ends[i])));
     }
-    Dart_PostCObject(reply_port_id, args.AsApiCObject());
+    return result;
   } else {
     PRErrorCode error_code = PR_GetError();
     const char* error_message = PR_ErrorToString(error_code, PR_LANGUAGE_EN);
     CObjectArray* result = new CObjectArray(CObject::NewArray(2));
     result->SetAt(0, new CObjectInt32(CObject::NewInt32(error_code)));
     result->SetAt(1, new CObjectString(CObject::NewString(error_message)));
-    Dart_PostCObject(reply_port_id, result->AsApiCObject());
+    return result;
   }
 }
 
@@ -952,23 +944,6 @@ intptr_t SSLFilter::ProcessWriteEncryptedBuffer(int start, int end) {
   }
   return bytes_processed;
 }
-
-
-Dart_Port SSLFilter::GetServicePort() {
-  return filter_service_.GetServicePort();
-}
-
-
-void FUNCTION_NAME(SecureSocket_NewServicePort)(Dart_NativeArguments args) {
-  Dart_SetReturnValue(args, Dart_Null());
-  Dart_Port service_port = SSLFilter::GetServicePort();
-  if (service_port != ILLEGAL_PORT) {
-    // Return a send port for the service port.
-    Dart_Handle send_port = Dart_NewSendPort(service_port);
-    Dart_SetReturnValue(args, send_port);
-  }
-}
-
 
 }  // namespace bin
 }  // namespace dart

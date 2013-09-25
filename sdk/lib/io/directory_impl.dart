@@ -15,7 +15,6 @@ class _Directory extends FileSystemEntity implements Directory {
   static const RENAME_REQUEST = 7;
 
   final String path;
-  SendPort _directoryService;
 
   _Directory(String this.path) {
     if (path is! String) {
@@ -32,7 +31,6 @@ class _Directory extends FileSystemEntity implements Directory {
   external static _deleteNative(String path, bool recursive);
   external static _rename(String path, String newPath);
   external static List _list(String path, bool recursive, bool followLinks);
-  external static SendPort _newServicePort();
 
   static Directory get current {
     var result = _current();
@@ -54,11 +52,7 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Future<bool> exists() {
-    _ensureDirectoryService();
-    List request = new List(2);
-    request[0] = EXISTS_REQUEST;
-    request[1] = path;
-    return _directoryService.call(request).then((response) {
+    return IOService.dispatch(DIRECTORY_EXISTS, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Exists failed");
       }
@@ -133,11 +127,7 @@ class _Directory extends FileSystemEntity implements Directory {
 
   Future<Directory> create({recursive: false}) {
     if (recursive) return createRecursively();
-    _ensureDirectoryService();
-    List request = new List(2);
-    request[0] = CREATE_REQUEST;
-    request[1] = path;
-    return _directoryService.call(request).then((response) {
+    return IOService.dispatch(DIRECTORY_CREATE, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Creation failed");
       }
@@ -169,11 +159,7 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Future<Directory> createTemp() {
-    _ensureDirectoryService();
-    List request = new List(2);
-    request[0] = CREATE_TEMP_REQUEST;
-    request[1] = path;
-    return _directoryService.call(request).then((response) {
+    return IOService.dispatch(DIRECTORY_CREATE_TEMP, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(
             response, "Creation of temporary directory failed");
@@ -193,17 +179,13 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Future<Directory> _delete({recursive: false}) {
-    _ensureDirectoryService();
-    List request = new List(3);
-    request[0] = DELETE_REQUEST;
-    request[1] = path;
-    request[2] = recursive;
-    return _directoryService.call(request).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionOrErrorFromResponse(response, "Deletion failed");
-      }
-      return this;
-    });
+    return IOService.dispatch(DIRECTORY_DELETE, [path, recursive])
+        .then((response) {
+          if (_isErrorResponse(response)) {
+            throw _exceptionOrErrorFromResponse(response, "Deletion failed");
+          }
+          return this;
+        });
   }
 
   void _deleteSync({recursive: false}) {
@@ -214,17 +196,13 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Future<Directory> rename(String newPath) {
-    _ensureDirectoryService();
-    List request = new List(3);
-    request[0] = RENAME_REQUEST;
-    request[1] = path;
-    request[2] = newPath;
-    return _directoryService.call(request).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionOrErrorFromResponse(response, "Rename failed");
-      }
-      return new Directory(newPath);
-    });
+    return IOService.dispatch(DIRECTORY_RENAME, [path, newPath])
+        .then((response) {
+          if (_isErrorResponse(response)) {
+            throw _exceptionOrErrorFromResponse(response, "Rename failed");
+          }
+          return new Directory(newPath);
+        });
   }
 
   Directory renameSync(String newPath) {
@@ -275,12 +253,6 @@ class _Directory extends FileSystemEntity implements Directory {
         return new Exception("Unknown error");
     }
   }
-
-  void _ensureDirectoryService() {
-    if (_directoryService == null) {
-      _directoryService = _newServicePort();
-    }
-  }
 }
 
 class _AsyncDirectoryLister {
@@ -317,8 +289,7 @@ class _AsyncDirectoryLister {
   Stream get stream => controller.stream;
 
   void onListen() {
-    var request = [_Directory.LIST_START_REQUEST, path, recursive, followLinks];
-    _Directory._newServicePort().call(request)
+    IOService.dispatch(DIRECTORY_LIST_START, [path, recursive, followLinks])
         .then((response) {
           if (response is int) {
             id = response;
@@ -351,46 +322,44 @@ class _AsyncDirectoryLister {
     if (controller.isPaused) return;
     assert(!nextRunning);
     nextRunning = true;
-    _Directory._newServicePort().call([_Directory.LIST_NEXT_REQUEST, id])
-        .then((result) {
-          if (result is List) {
-            assert(result.length % 2 == 0);
-            for (int i = 0; i < result.length; i++) {
-              assert(i % 2 == 0);
-              switch (result[i++]) {
-                case LIST_FILE:
-                  controller.add(new File(result[i]));
-                  break;
-                case LIST_DIRECTORY:
-                  controller.add(new Directory(result[i]));
-                  break;
-                case LIST_LINK:
-                  controller.add(new Link(result[i]));
-                  break;
-                case LIST_ERROR:
-                  error(result[i]);
-                  break;
-                case LIST_DONE:
-                  close();
-                  return;
-              }
-            }
-          } else {
-            controller.addError(new DirectoryException("Internal error"));
+    IOService.dispatch(DIRECTORY_LIST_NEXT, [id]).then((result) {
+      if (result is List) {
+        assert(result.length % 2 == 0);
+        for (int i = 0; i < result.length; i++) {
+          assert(i % 2 == 0);
+          switch (result[i++]) {
+            case LIST_FILE:
+              controller.add(new File(result[i]));
+              break;
+            case LIST_DIRECTORY:
+              controller.add(new Directory(result[i]));
+              break;
+            case LIST_LINK:
+              controller.add(new Link(result[i]));
+              break;
+            case LIST_ERROR:
+              error(result[i]);
+              break;
+            case LIST_DONE:
+              close();
+              return;
           }
-          nextRunning = false;
-          next();
-        });
+        }
+      } else {
+        controller.addError(new DirectoryException("Internal error"));
+      }
+      nextRunning = false;
+      next();
+    });
   }
 
   void close() {
     if (closed) return;
     if (id == null) return;
     closed = true;
-    _Directory._newServicePort().call([_Directory.LIST_STOP_REQUEST, id])
-        .then((_) {
-          controller.close();
-        });
+    IOService.dispatch(DIRECTORY_LIST_STOP, [id]).then((_) {
+      controller.close();
+    });
   }
 
   void error(message) {

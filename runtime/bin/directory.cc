@@ -13,14 +13,6 @@
 namespace dart {
 namespace bin {
 
-// Forward declaration.
-static void DirectoryService(Dart_Port, Dart_Port, Dart_CObject*);
-
-NativeService Directory::directory_service_("DirectoryService",
-                                            DirectoryService,
-                                            16);
-
-
 void FUNCTION_NAME(Directory_Current)(Dart_NativeArguments args) {
   char* current = Directory::Current();
   if (current != NULL) {
@@ -148,9 +140,9 @@ void FUNCTION_NAME(Directory_List)(Dart_NativeArguments args) {
 }
 
 
-static CObject* DirectoryCreateRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString path(request[1]);
+CObject* Directory::CreateRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsString()) {
+    CObjectString path(request[0]);
     if (Directory::Create(path.CString())) {
       return CObject::True();
     } else {
@@ -161,10 +153,10 @@ static CObject* DirectoryCreateRequest(const CObjectArray& request) {
 }
 
 
-static CObject* DirectoryDeleteRequest(const CObjectArray& request) {
-  if (request.Length() == 3 && request[1]->IsString() && request[2]->IsBool()) {
-    CObjectString path(request[1]);
-    CObjectBool recursive(request[2]);
+CObject* Directory::DeleteRequest(const CObjectArray& request) {
+  if (request.Length() == 2 && request[0]->IsString() && request[1]->IsBool()) {
+    CObjectString path(request[0]);
+    CObjectBool recursive(request[1]);
     if (Directory::Delete(path.CString(), recursive.Value())) {
       return CObject::True();
     } else {
@@ -175,11 +167,11 @@ static CObject* DirectoryDeleteRequest(const CObjectArray& request) {
 }
 
 
-static CObject* DirectoryExistsRequest(const CObjectArray& request) {
+CObject* Directory::ExistsRequest(const CObjectArray& request) {
   static const int kExists = 1;
   static const int kDoesNotExist = 0;
-  if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString path(request[1]);
+  if (request.Length() == 1 && request[0]->IsString()) {
+    CObjectString path(request[0]);
     Directory::ExistsResult result = Directory::Exists(path.CString());
     if (result == Directory::EXISTS) {
       return new CObjectInt32(CObject::NewInt32(kExists));
@@ -193,9 +185,9 @@ static CObject* DirectoryExistsRequest(const CObjectArray& request) {
 }
 
 
-static CObject* DirectoryCreateTempRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString path(request[1]);
+CObject* Directory::CreateTempRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsString()) {
+    CObjectString path(request[0]);
     char* result = Directory::CreateTemp(path.CString());
     if (result != NULL) {
       CObject* temp_dir = new CObjectString(CObject::NewString(result));
@@ -218,14 +210,14 @@ static CObject* CreateIllegalArgumentError() {
   return error;
 }
 
-static CObject* DirectoryListStartRequest(const CObjectArray& request) {
-  if (request.Length() == 4 &&
-      request[1]->IsString() &&
-      request[2]->IsBool() &&
-      request[3]->IsBool()) {
-    CObjectString path(request[1]);
-    CObjectBool recursive(request[2]);
-    CObjectBool follow_links(request[3]);
+CObject* Directory::ListStartRequest(const CObjectArray& request) {
+  if (request.Length() == 3 &&
+      request[0]->IsString() &&
+      request[1]->IsBool() &&
+      request[2]->IsBool()) {
+    CObjectString path(request[0]);
+    CObjectBool recursive(request[1]);
+    CObjectBool follow_links(request[2]);
     AsyncDirectoryListing* dir_listing =
         new AsyncDirectoryListing(path.CString(),
                                   recursive.Value(),
@@ -237,7 +229,7 @@ static CObject* DirectoryListStartRequest(const CObjectArray& request) {
       CObjectArray* error = new CObjectArray(CObject::NewArray(3));
       error->SetAt(0, new CObjectInt32(
           CObject::NewInt32(AsyncDirectoryListing::kListError)));
-      error->SetAt(1, request[1]);
+      error->SetAt(1, request[0]);
       error->SetAt(2, err);
       return error;
     }
@@ -249,10 +241,10 @@ static CObject* DirectoryListStartRequest(const CObjectArray& request) {
 }
 
 
-static CObject* DirectoryListNextRequest(const CObjectArray& request) {
-  if (request.Length() == 2 &&
-      request[1]->IsIntptr()) {
-    CObjectIntptr ptr(request[1]);
+CObject* Directory::ListNextRequest(const CObjectArray& request) {
+  if (request.Length() == 1 &&
+      request[0]->IsIntptr()) {
+    CObjectIntptr ptr(request[0]);
     AsyncDirectoryListing* dir_listing =
         reinterpret_cast<AsyncDirectoryListing*>(ptr.Value());
     const int kArraySize = 128;
@@ -268,9 +260,9 @@ static CObject* DirectoryListNextRequest(const CObjectArray& request) {
 }
 
 
-static CObject* DirectoryListStopRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsIntptr()) {
-    CObjectIntptr ptr(request[1]);
+CObject* Directory::ListStopRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsIntptr()) {
+    CObjectIntptr ptr(request[0]);
     AsyncDirectoryListing* dir_listing =
         reinterpret_cast<AsyncDirectoryListing*>(ptr.Value());
     delete dir_listing;
@@ -280,77 +272,17 @@ static CObject* DirectoryListStopRequest(const CObjectArray& request) {
 }
 
 
-static CObject* DirectoryRenameRequest(const CObjectArray& request,
-                                       Dart_Port response_port) {
-  if (request.Length() == 3 &&
-      request[1]->IsString() &&
-      request[2]->IsString()) {
-    CObjectString path(request[1]);
-    CObjectString new_path(request[2]);
+CObject* Directory::RenameRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[0]->IsString() &&
+      request[1]->IsString()) {
+    CObjectString path(request[0]);
+    CObjectString new_path(request[1]);
     bool completed = Directory::Rename(path.CString(), new_path.CString());
     if (completed) return CObject::True();
     return CObject::NewOSError();
   }
   return CObject::IllegalArgumentError();
-}
-
-
-static void DirectoryService(Dart_Port dest_port_id,
-                             Dart_Port reply_port_id,
-                             Dart_CObject* message) {
-  CObject* response = CObject::IllegalArgumentError();
-  CObjectArray request(message);
-  if (message->type == Dart_CObject_kArray) {
-    if (request.Length() > 1 && request[0]->IsInt32()) {
-      CObjectInt32 requestType(request[0]);
-      switch (requestType.Value()) {
-        case Directory::kCreateRequest:
-          response = DirectoryCreateRequest(request);
-          break;
-        case Directory::kDeleteRequest:
-          response = DirectoryDeleteRequest(request);
-          break;
-        case Directory::kExistsRequest:
-          response = DirectoryExistsRequest(request);
-          break;
-        case Directory::kCreateTempRequest:
-          response = DirectoryCreateTempRequest(request);
-          break;
-        case Directory::kListStartRequest:
-          response = DirectoryListStartRequest(request);
-          break;
-        case Directory::kListNextRequest:
-          response = DirectoryListNextRequest(request);
-          break;
-        case Directory::kListStopRequest:
-          response = DirectoryListStopRequest(request);
-          break;
-        case Directory::kRenameRequest:
-          response = DirectoryRenameRequest(request, reply_port_id);
-          break;
-        default:
-          UNREACHABLE();
-      }
-    }
-  }
-
-  Dart_PostCObject(reply_port_id, response->AsApiCObject());
-}
-
-
-Dart_Port Directory::GetServicePort() {
-  return directory_service_.GetServicePort();
-}
-
-
-void FUNCTION_NAME(Directory_NewServicePort)(Dart_NativeArguments args) {
-  Dart_SetReturnValue(args, Dart_Null());
-  Dart_Port service_port = Directory::GetServicePort();
-  if (service_port != ILLEGAL_PORT) {
-    // Return a send port for the service port.
-    Dart_Handle send_port = Dart_NewSendPort(service_port);
-    Dart_SetReturnValue(args, send_port);
-  }
 }
 
 

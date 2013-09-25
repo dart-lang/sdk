@@ -220,13 +220,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   // Holds the address used to connect or bind the socket.
   InternetAddress address;
 
-  // Native port for socket services.
-  static SendPort socketService;
-
   static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
-    ensureSocketService();
-    return socketService.call([HOST_NAME_LOOKUP, host, type._value])
+    return IOService.dispatch(SOCKET_LOOKUP, [host, type._value])
         .then((response) {
           if (isErrorResponse(response)) {
             throw createError(response, "Failed host lookup: '$host'");
@@ -240,8 +236,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   }
 
   static Future<InternetAddress> reverseLookup(InternetAddress addr) {
-    ensureSocketService();
-    return socketService.call([REVERSE_LOOKUP, addr._sockaddr_storage])
+    return IOService.dispatch(SOCKET_REVERSE_LOOKUP, [addr._sockaddr_storage])
         .then((response) {
           if (isErrorResponse(response)) {
             throw createError(response, "Failed reverse host lookup", addr);
@@ -255,8 +250,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
       bool includeLoopback: false,
       bool includeLinkLocal: false,
       InternetAddressType type: InternetAddressType.ANY}) {
-    ensureSocketService();
-    return socketService.call([LIST_INTERFACES, type._value])
+    return IOService.dispatch(SOCKET_LIST_INTERFACES, [type._value])
         .then((response) {
           if (isErrorResponse(response)) {
             throw createError(response, "Failed listing interfaces");
@@ -295,7 +289,6 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
               });
         })
         .then((address) {
-          ensureSocketService();
           var socket = new _NativeSocket.normal();
           socket.address = address;
           var result = socket.nativeCreateConnect(
@@ -605,12 +598,6 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     }
   }
 
-  static void ensureSocketService() {
-    if (socketService == null) {
-      socketService = _NativeSocket.newServicePort();
-    }
-  }
-
   // Check whether this is an error response from a native port call.
   static bool isErrorResponse(response) {
     return response is List && response[0] != _SUCCESS_RESPONSE;
@@ -673,8 +660,6 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   List nativeGetRemotePeer() native "Socket_GetRemotePeer";
   OSError nativeGetError() native "Socket_GetError";
   bool nativeSetOption(int option, bool enabled) native "Socket_SetOption";
-
-  static SendPort newServicePort() native "Socket_NewServicePort";
 }
 
 

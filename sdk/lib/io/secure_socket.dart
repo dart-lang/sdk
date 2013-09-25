@@ -447,7 +447,6 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   _SecureFilter _secureFilter = new _SecureFilter();
   int _filterPointer;
-  SendPort _filterService;
 
   static Future<_RawSecureSocket> connect(
       host,
@@ -988,23 +987,22 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   Future<_FilterStatus> _pushAllFilterStages() {
-    if (_filterService == null) {
-      _filterService = _SecureFilter._newServicePort();
-    }
-    List args = [_filterPointer, _status != CONNECTED];
+    bool wasInHandshake = _status != CONNECTED;
+    List args = new List(2 + NUM_BUFFERS * 2);
+    args[0] = _filterPointer;
+    args[1] = wasInHandshake;
     var bufs = _secureFilter.buffers;
     for (var i = 0; i < NUM_BUFFERS; ++i) {
-      args.add(bufs[i].start);
-      args.add(bufs[i].end);
+      args[2 * i + 2] = bufs[i].start;
+      args[2 * i + 3] = bufs[i].end;
     }
 
-    return _filterService.call(args).then((response) {
+    return IOService.dispatch(SSL_PROCESS_FILTER, args).then((response) {
       if (response.length == 2) {
         _reportError(new TlsException('${response[1]} error ${response[0]}'));
       }
-      bool wasInHandshake = response[1];
-      int start(int index) => response[2 * index + 2];
-      int end(int index) => response[2 * index + 3];
+      int start(int index) => response[2 * index];
+      int end(int index) => response[2 * index + 1];
 
       _FilterStatus status = new _FilterStatus();
       // Compute writeEmpty as "write plaintext buffer and write encrypted

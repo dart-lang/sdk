@@ -71,12 +71,7 @@ class FileStat {
    * .type set to FileSystemEntityType.NOT_FOUND and the other fields invalid.
    */
   static Future<FileStat> stat(String path) {
-    // Get a new file service port for each request.  We could also cache one.
-    var service = _FileUtils._newServicePort();
-    List request = new List(2);
-    request[0] = _STAT_REQUEST;
-    request[1] = path;
-    return service.call(request).then((response) {
+    return IOService.dispatch(FILE_STAT, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
                                      "Error getting stat",
@@ -241,19 +236,15 @@ abstract class FileSystemEntity {
    * since [resolve] removes '..' segments.
    */
   Future<String> resolveSymbolicLinks() {
-    // Get a new file service port for each request.  We could also cache one.
-    var service = _FileUtils._newServicePort();
-    List request = new List(2);
-    request[0] = _RESOLVE_SYMBOLIC_LINKS_REQUEST;
-    request[1] = path;
-    return service.call(request).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response,
-                                     "Cannot resolve symbolic links",
-                                     path);
-      }
-      return response;
-    });
+    return IOService.dispatch(FILE_RESOLVE_SYMBOLIC_LINKS, [path])
+        .then((response) {
+          if (_isErrorResponse(response)) {
+            throw _exceptionFromResponse(response,
+                                         "Cannot resolve symbolic links",
+                                         path);
+          }
+          return response;
+        });
   }
 
   /**
@@ -390,13 +381,7 @@ abstract class FileSystemEntity {
    * to an object that does not exist.
    */
   static Future<bool> identical(String path1, String path2) {
-    // Get a new file service port for each request.  We could also cache one.
-    var service = _FileUtils._newServicePort();
-    List request = new List(3);
-    request[0] = _IDENTICAL_REQUEST;
-    request[1] = path1;
-    request[2] = path2;
-    return service.call(request).then((response) {
+    return IOService.dispatch(FILE_IDENTICAL, [path1, path2]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
             "Error in FileSystemEntity.identical($path1, $path2)", "");
@@ -552,13 +537,7 @@ abstract class FileSystemEntity {
   }
 
   static Future<int> _getTypeAsync(String path, bool followLinks) {
-    // Get a new file service port for each request.  We could also cache one.
-    var service = _FileUtils._newServicePort();
-    List request = new List(3);
-    request[0] = _TYPE_REQUEST;
-    request[1] = path;
-    request[2] = followLinks;
-    return service.call(request).then((response) {
+    return IOService.dispatch(FILE_TYPE, [path, followLinks]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Error getting type", path);
       }

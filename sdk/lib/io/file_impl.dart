@@ -199,44 +199,9 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
 }
 
 
-const int _EXISTS_REQUEST = 0;
-const int _CREATE_REQUEST = 1;
-const int _DELETE_REQUEST = 2;
-const int _RENAME_REQUEST = 3;
-const int _OPEN_REQUEST = 4;
-const int _RESOLVE_SYMBOLIC_LINKS_REQUEST = 5;
-const int _CLOSE_REQUEST = 6;
-const int _POSITION_REQUEST = 7;
-const int _SET_POSITION_REQUEST = 8;
-const int _TRUNCATE_REQUEST = 9;
-const int _LENGTH_REQUEST = 10;
-const int _LENGTH_FROM_PATH_REQUEST = 11;
-const int _LAST_MODIFIED_REQUEST = 12;
-const int _FLUSH_REQUEST = 13;
-const int _READ_BYTE_REQUEST = 14;
-const int _WRITE_BYTE_REQUEST = 15;
-const int _READ_REQUEST = 16;
-const int _READ_LIST_REQUEST = 17;
-const int _WRITE_LIST_REQUEST = 18;
-const int _CREATE_LINK_REQUEST = 19;
-const int _DELETE_LINK_REQUEST = 20;
-const int _RENAME_LINK_REQUEST = 21;
-const int _LINK_TARGET_REQUEST = 22;
-const int _TYPE_REQUEST = 23;
-const int _IDENTICAL_REQUEST = 24;
-const int _STAT_REQUEST = 25;
-
-// TODO(ager): The only reason for this class is that the patching
-// mechanism doesn't seem to like patching a private top level
-// function.
-class _FileUtils {
-  external static SendPort _newServicePort();
-}
-
 // Class for encapsulating the native implementation of files.
 class _File extends FileSystemEntity implements File {
   final String path;
-  SendPort _fileService;
 
   // Constructor for file.
   _File(String this.path) {
@@ -247,11 +212,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<bool> exists() {
-    _ensureFileService();
-    List request = new List(2);
-    request[0] = _EXISTS_REQUEST;
-    request[1] = path;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_EXISTS, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot check existence", path);
       }
@@ -274,11 +235,7 @@ class _File extends FileSystemEntity implements File {
   FileStat statSync() => FileStat.statSync(path);
 
   Future<File> create() {
-    _ensureFileService();
-    List request = new List(2);
-    request[0] = _CREATE_REQUEST;
-    request[1] = path;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_CREATE, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot create file", path);
       }
@@ -301,11 +258,7 @@ class _File extends FileSystemEntity implements File {
     if (recursive) {
       return new Directory(path).delete(recursive: true).then((_) => this);
     }
-    _ensureFileService();
-    List request = new List(2);
-    request[0] = _DELETE_REQUEST;
-    request[1] = path;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_DELETE, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot delete file", path);
       }
@@ -326,12 +279,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<File> rename(String newPath) {
-    _ensureFileService();
-    List request = new List(3);
-    request[0] = _RENAME_REQUEST;
-    request[1] = path;
-    request[2] = newPath;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_RENAME, [path, newPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot rename file to '$newPath'", path);
@@ -356,17 +304,12 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<RandomAccessFile> open({FileMode mode: FileMode.READ}) {
-    _ensureFileService();
     if (mode != FileMode.READ &&
         mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
       return new Future.error(new ArgumentError());
     }
-    List request = new List(3);
-    request[0] = _OPEN_REQUEST;
-    request[1] = path;
-    request[2] = mode._mode;  // Direct int value for serialization.
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_OPEN, [path, mode._mode]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot open file", path);
       }
@@ -375,11 +318,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<int> length() {
-    _ensureFileService();
-    List request = new List(2);
-    request[0] = _LENGTH_FROM_PATH_REQUEST;
-    request[1] = path;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_LENGTH_FROM_PATH, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
                                      "Cannot retrieve length of file",
@@ -399,11 +338,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<DateTime> lastModified() {
-    _ensureFileService();
-    List request = new List(2);
-    request[0] = _LAST_MODIFIED_REQUEST;
-    request[1] = path;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_LAST_MODIFIED, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
                                      "Cannot retrieve modification time",
@@ -466,7 +401,6 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<List<int>> readAsBytes() {
-    _ensureFileService();
     Completer<List<int>> completer = new Completer<List<int>>();
     var builder = new BytesBuilder();
     openRead().listen(
@@ -502,7 +436,6 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<String> readAsString({Encoding encoding: UTF8}) {
-    _ensureFileService();
     return readAsBytes().then((bytes) {
       return _tryDecode(bytes, encoding);
     });
@@ -532,7 +465,6 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<List<String>> readAsLines({Encoding encoding: UTF8}) {
-    _ensureFileService();
     return readAsBytes().then((bytes) {
       return _decodeLines(bytes, encoding);
     });
@@ -578,12 +510,6 @@ class _File extends FileSystemEntity implements File {
 
   String toString() => "File: '$path'";
 
-  void _ensureFileService() {
-    if (_fileService == null) {
-      _fileService = _FileUtils._newServicePort();
-    }
-  }
-
   static throwIfError(Object result, String msg, String path) {
     if (result is OSError) {
       throw new FileException(msg, path, result);
@@ -601,14 +527,11 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<RandomAccessFile> close() {
     if (closed) return _closedException();
-    _ensureFileService();
-    List request = new List(2);
-    request[0] = _CLOSE_REQUEST;
-    request[1] = _id;
     // Set the id_ to 0 (NULL) to ensure the no more async requests
     // can be issued for this file.
+    int id = _id;
     _id = 0;
-    return _fileService.call(request).then((result) {
+    return IOService.dispatch(FILE_CLOSE, [id]).then((result) {
       if (result != -1) {
         _id = result;
         return this;
@@ -630,12 +553,8 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<int> readByte() {
-    _ensureFileService();
     if (closed) return _closedException();
-    List request = new List(2);
-    request[0] = _READ_BYTE_REQUEST;
-    request[1] = _id;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_READ_BYTE, [_id]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readByte failed", path);
       }
@@ -655,16 +574,11 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<List<int>> read(int bytes) {
-    _ensureFileService();
     if (bytes is !int) {
       throw new ArgumentError(bytes);
     }
     if (closed) return _closedException();
-    List request = new List(3);
-    request[0] = _READ_REQUEST;
-    request[1] = _id;
-    request[2] = bytes;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_READ, [_id, bytes]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "read failed", path);
       }
@@ -687,20 +601,16 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<int> readInto(List<int> buffer, [int start, int end]) {
-    _ensureFileService();
     if (buffer is !List ||
         (start != null && start is !int) ||
         (end != null && end is !int)) {
       throw new ArgumentError();
     }
     if (closed) return _closedException();
-    List request = new List(3);
     if (start == null) start = 0;
     if (end == null) end = buffer.length;
-    request[0] = _READ_LIST_REQUEST;
-    request[1] = _id;
-    request[2] = end - start;
-    return _fileService.call(request).then((response) {
+    int length = end - start;
+    return IOService.dispatch(FILE_READ_INTO, [_id, length]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readInto failed", path);
       }
@@ -740,16 +650,11 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> writeByte(int value) {
-    _ensureFileService();
     if (value is !int) {
       throw new ArgumentError(value);
     }
     if (closed) return _closedException();
-    List request = new List(3);
-    request[0] = _WRITE_BYTE_REQUEST;
-    request[1] = _id;
-    request[2] = value;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_WRITE_BYTE, [_id, value]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeByte failed", path);
       }
@@ -772,7 +677,6 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> writeFrom(List<int> buffer, [int start, int end]) {
-    _ensureFileService();
     if ((buffer is !List && buffer is !ByteData) ||
         (start != null && start is !int) ||
         (end != null && end is !int)) {
@@ -788,13 +692,12 @@ class _RandomAccessFile implements RandomAccessFile {
       return new Future.error(e);
     }
 
-    List request = new List(5);
-    request[0] = _WRITE_LIST_REQUEST;
-    request[1] = _id;
-    request[2] = result.buffer;
-    request[3] = result.start;
-    request[4] = end - (start - result.start);
-    return _fileService.call(request).then((response) {
+    List request = new List(4);
+    request[0] = _id;
+    request[1] = result.buffer;
+    request[2] = result.start;
+    request[3] = end - (start - result.start);
+    return IOService.dispatch(FILE_WRITE_FROM, request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeFrom failed", path);
       }
@@ -844,12 +747,8 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<int> position() {
-    _ensureFileService();
     if (closed) return _closedException();
-    List request = new List(2);
-    request[0] = _POSITION_REQUEST;
-    request[1] = _id;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_POSITION, [_id]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "position failed", path);
       }
@@ -869,18 +768,14 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> setPosition(int position) {
-    _ensureFileService();
     if (closed) return _closedException();
-    List request = new List(3);
-    request[0] = _SET_POSITION_REQUEST;
-    request[1] = _id;
-    request[2] = position;
-    return _fileService.call(request).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "setPosition failed", path);
-      }
-      return this;
-    });
+    return IOService.dispatch(FILE_SET_POSITION, [_id, position])
+        .then((response) {
+          if (_isErrorResponse(response)) {
+            throw _exceptionFromResponse(response, "setPosition failed", path);
+          }
+          return this;
+        });
   }
 
   external static _setPosition(int id, int position);
@@ -894,13 +789,8 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> truncate(int length) {
-    _ensureFileService();
     if (closed) return _closedException();
-    List request = new List(3);
-    request[0] = _TRUNCATE_REQUEST;
-    request[1] = _id;
-    request[2] = length;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_TRUNCATE, [_id, length]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "truncate failed", path);
       }
@@ -919,12 +809,8 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<int> length() {
-    _ensureFileService();
     if (closed) return _closedException();
-    List request = new List(2);
-    request[0] = _LENGTH_REQUEST;
-    request[1] = _id;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_LENGTH, [_id]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "length failed", path);
       }
@@ -944,12 +830,8 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> flush() {
-    _ensureFileService();
     if (closed) return _closedException();
-    List request = new List(2);
-    request[0] = _FLUSH_REQUEST;
-    request[1] = _id;
-    return _fileService.call(request).then((response) {
+    return IOService.dispatch(FILE_FLUSH, [_id]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
                                      "flush failed",
@@ -966,12 +848,6 @@ class _RandomAccessFile implements RandomAccessFile {
     var result = _flush(_id);
     if (result is OSError) {
       throw new FileException("flush failed", path, result);
-    }
-  }
-
-  void _ensureFileService() {
-    if (_fileService == null) {
-      _fileService = _FileUtils._newServicePort();
     }
   }
 
