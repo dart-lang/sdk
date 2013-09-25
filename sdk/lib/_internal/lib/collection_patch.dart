@@ -14,12 +14,15 @@ patch class HashMap<K, V> {
         if (equals == null) {
           return new _HashMap<K, V>();
         }
-        if (identical(identical, equals)) {
+        hashCode = _defaultHashCode;
+      } else {
+        if (identical(identityHashCode, hashCode) &&
+            identical(identical, equals)) {
           return new _IdentityHashMap<K, V>();
         }
-        hashCode = _defaultHashCode;
-      } else if (equals == null) {
-        equals = _defaultEquals;
+        if (equals == null) {
+          equals = _defaultEquals;
+        }
       }
     } else {
       if (hashCode == null) {
@@ -31,6 +34,8 @@ patch class HashMap<K, V> {
     }
     return new _CustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
+
+  patch factory HashMap.identity() = _IdentityHashMap<K, V>;
 }
 
 class _HashMap<K, V> implements HashMap<K, V> {
@@ -338,6 +343,13 @@ class _HashMap<K, V> implements HashMap<K, V> {
 }
 
 class _IdentityHashMap<K, V> extends _HashMap<K, V> {
+  int _computeHashCode(var key) {
+    // We force the hash codes to be unsigned 30-bit integers to avoid
+    // issues with problematic keys like '__proto__'. Another option
+    // would be to throw an exception if the hash code isn't a number.
+    return JS('int', '# & 0x3ffffff', identityHashCode(key));
+  }
+
   int _findBucketIndex(var bucket, var key) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
@@ -453,12 +465,15 @@ patch class LinkedHashMap<K, V> {
         if (equals == null) {
           return new _LinkedHashMap<K, V>();
         }
-        if (identical(identical, equals)) {
+        hashCode = _defaultHashCode;
+      } else {
+        if (identical(identityHashCode, hashCode) &&
+            identical(identical, equals)) {
           return new _LinkedIdentityHashMap<K, V>();
         }
-        hashCode = _defaultHashCode;
-      } else if (equals == null) {
-        equals = _defaultEquals;
+        if (equals == null) {
+          equals = _defaultEquals;
+        }
       }
     } else {
       if (hashCode == null) {
@@ -470,6 +485,8 @@ patch class LinkedHashMap<K, V> {
     }
     return new _LinkedCustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
+
+  patch factory LinkedHashMap.identity() = _LinkedIdentityHashMap<K, V>;
 }
 
 class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
@@ -764,6 +781,13 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
 }
 
 class _LinkedIdentityHashMap<K, V> extends _LinkedHashMap<K, V> {
+  int _computeHashCode(var key) {
+    // We force the hash codes to be unsigned 30-bit integers to avoid
+    // issues with problematic keys like '__proto__'. Another option
+    // would be to throw an exception if the hash code isn't a number.
+    return JS('int', '# & 0x3ffffff', identityHashCode(key));
+  }
+
   int _findBucketIndex(var bucket, var key) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
@@ -889,19 +913,28 @@ patch class HashSet<E> {
         if (equals == null) {
           return new _HashSet<E>();
         }
-        if (identical(identical, equals)) {
+        hashCode = _defaultHashCode;
+      } else {
+        if (identical(identityHashCode, hashCode) &&
+            identical(identical, equals)) {
           return new _IdentityHashSet<E>();
         }
-        hashCode = _defaultHashCode;
-      } else if (equals == null) {
-        equals = _defaultEquals;
+        if (equals == null) {
+          equals = _defaultEquals;
+        }
       }
     } else {
-      if (hashCode == null) hashCode = _defaultHashCode;
-      if (equals == null) equals = _defaultEquals;
+      if (hashCode == null) {
+        hashCode = _defaultHashCode;
+      }
+      if (equals == null) {
+        equals = _defaultEquals;
+      }
     }
     return new _CustomHashSet<E>(equals, hashCode, isValidKey);
   }
+
+  patch factory HashSet.identity() = _IdentityHashSet<E>;
 }
 
 class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
@@ -1170,6 +1203,13 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
 class _IdentityHashSet<E> extends _HashSet<E> {
   Set<E> _newSet() => new _IdentityHashSet<E>();
 
+  int _computeHashCode(var key) {
+    // We force the hash codes to be unsigned 30-bit integers to avoid
+    // issues with problematic keys like '__proto__'. Another option
+    // would be to throw an exception if the hash code isn't a number.
+    return JS('int', '# & 0x3ffffff', identityHashCode(key));
+  }
+
   int _findBucketIndex(var bucket, var element) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
@@ -1275,19 +1315,28 @@ patch class LinkedHashSet<E> {
         if (equals == null) {
           return new _LinkedHashSet<E>();
         }
-        if (identical(identical, equals)) {
+        hashCode = _defaultHashCode;
+      } else {
+        if (identical(identityHashCode, hashCode) &&
+            identical(identical, equals)) {
           return new _LinkedIdentityHashSet<E>();
         }
-        hashCode = _defaultHashCode;
-      } else if (equals == null) {
-        equals = _defaultEquals;
+        if (equals == null) {
+          equals = _defaultEquals;
+        }
       }
     } else {
-      if (hashCode == null) hashCode = _defaultHashCode;
-      if (equals == null) equals = _defaultEquals;
+      if (hashCode == null) {
+        hashCode = _defaultHashCode;
+      }
+      if (equals == null) {
+        equals = _defaultEquals;
+      }
     }
     return new _LinkedCustomHashSet<E>(equals, hashCode, isValidKey);
   }
+
+  patch factory LinkedHashSet.identity() = _LinkedIdentityHashSet<E>;
 }
 
 class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
@@ -1588,6 +1637,13 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
 
 class _LinkedIdentityHashSet<E> extends _LinkedHashSet<E> {
   Set<E> _newSet() => new _LinkedIdentityHashSet<E>();
+
+  int _computeHashCode(var key) {
+    // We force the hash codes to be unsigned 30-bit integers to avoid
+    // issues with problematic keys like '__proto__'. Another option
+    // would be to throw an exception if the hash code isn't a number.
+    return JS('int', '# & 0x3ffffff', identityHashCode(key));
+  }
 
   int _findBucketIndex(var bucket, var element) {
     if (bucket == null) return -1;

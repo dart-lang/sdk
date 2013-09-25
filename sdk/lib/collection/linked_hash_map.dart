@@ -24,6 +24,15 @@ abstract class LinkedHashMap<K, V> implements HashMap<K, V> {
                                    bool isValidKey(potentialKey) });
 
   /**
+   * Creates an insertion-ordered identity-based map.
+   *
+   * Effectively a shorthand for:
+   *
+   *     new LinkedHashMap(equals: identical, hashCode: identityHashCodeOf)
+   */
+  external factory LinkedHashMap.identity();
+
+  /**
    * Creates a [LinkedHashMap] that contains all key value pairs of [other].
    */
   factory LinkedHashMap.from(Map<K, V> other) {

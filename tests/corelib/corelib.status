@@ -39,6 +39,7 @@ unicode_test: Fail
 
 [ $compiler == dart2js ]
 error_stack_trace1_test: Fail # Issue 12399
+hash_set_test/01: Fail # Issue 11551
 
 big_integer_vm_test: Fail, OK # VM specific test.
 bit_twiddling_bigint_test: Fail # Requires bigint support.

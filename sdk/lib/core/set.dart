@@ -8,7 +8,7 @@ part of dart.core;
  * A collection of objects in which each object can occur only once.
  *
  * That is, for each object of the element type, the object is either considered
- * to be in the set, or to _not_ be in the set. 
+ * to be in the set, or to _not_ be in the set.
  *
  * Set implementations may consider some elements indistinguishable. These
  * elements are treated as being the same for any operation on the set.
@@ -24,11 +24,19 @@ abstract class Set<E> extends IterableBase<E> {
   /**
    * Creates an empty [Set].
    *
-   * The created `Set` is a [HashSet]. As such, it considers elements that
-   * are equal (using `==`) to be undistinguishable, and requires them to
+   * The created `Set` is a [LinkedHashSet]. As such, it considers elements that
+   * are equal (using `==`) to be indistinguishable, and requires them to
    * have a compatible [Object.hashCode] implementation.
    */
-  factory Set() => new HashSet<E>();
+  factory Set() = LinkedHashSet<E>;
+
+  /**
+   * Creates an empty identity [Set].
+   *
+   * The created `Set` is a [LinkedHashSet] that uses identity as equality
+   * relation.
+   */
+  factory Set.identity() = LinkedHashSet<E>.identity;
 
   /**
    * Creates a [Set] that contains all elements of [other].
@@ -37,7 +45,7 @@ abstract class Set<E> extends IterableBase<E> {
    * are equal (using `==`) to be undistinguishable, and requires them to
    * have a compatible [Object.hashCode] implementation.
    */
-  factory Set.from(Iterable<E> other) => new HashSet<E>.from(other);
+  factory Set.from(Iterable<E> other) = LinkedHashSet<E>.from;
 
   /**
    * Returns true if [value] is in the set.

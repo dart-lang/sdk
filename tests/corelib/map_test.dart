@@ -29,12 +29,12 @@ void main() {
   testNumericKeys(new Map<num, String>());
   testNumericKeys(new HashMap());
   testNumericKeys(new HashMap<num, String>());
-  testNumericKeys(new HashMap(equals: identical));
-  testNumericKeys(new HashMap<num, String>(equals: identical));
+  testNumericKeys(new HashMap.identity());
+  testNumericKeys(new HashMap<num, String>.identity());
   testNumericKeys(new LinkedHashMap());
   testNumericKeys(new LinkedHashMap<num, String>());
-  testNumericKeys(new LinkedHashMap(equals: identical));
-  testNumericKeys(new LinkedHashMap<num, String>(equals: identical));
+  testNumericKeys(new LinkedHashMap.identity());
+  testNumericKeys(new LinkedHashMap<num, String>.identity());
 
   testNaNKeys(new Map());
   testNaNKeys(new Map<num, String>());
@@ -45,8 +45,17 @@ void main() {
   // Identity maps fail the NaN-keys tests because the test assumes that
   // NaN is not equal to NaN.
 
-  testIdentityMap(new HashMap(equals: identical));
-  testIdentityMap(new LinkedHashMap(equals: identical));
+  testIdentityMap(new Map.identity());
+  testIdentityMap(new HashMap.identity());
+  testIdentityMap(new LinkedHashMap.identity());
+  testIdentityMap(new HashMap(equals: identical,
+                              hashCode: identityHashCode));
+  testIdentityMap(new LinkedHashMap(equals: identical,
+                                    hashCode: identityHashCode));
+  testIdentityMap(new HashMap(equals: (x, y) => identical(x, y),
+                              hashCode: (x) => identityHashCode(x)));
+  testIdentityMap(new LinkedHashMap(equals: (x, y) => identical(x, y),
+                                    hashCode: (x) => identityHashCode(x)));
 
   testCustomMap(new HashMap(equals: myEquals, hashCode: myHashCode,
                             isValidKey: (v) => v is Customer));
@@ -59,7 +68,7 @@ void main() {
                                                     hashCode: myHashCode));
 
   testIterationOrder(new LinkedHashMap());
-  testIterationOrder(new LinkedHashMap(equals: identical));
+  testIterationOrder(new LinkedHashMap.identity());
 
   testOtherKeys(new SplayTreeMap<int, int>());
   testOtherKeys(new SplayTreeMap<int, int>((int a, int b) => a - b,
@@ -67,14 +76,14 @@ void main() {
   testOtherKeys(new SplayTreeMap((int a, int b) => a - b,
                                  (v) => v is int));
   testOtherKeys(new HashMap<int, int>());
-  testOtherKeys(new HashMap<int, int>(equals: identical));
+  testOtherKeys(new HashMap<int, int>.identity());
   testOtherKeys(new HashMap<int, int>(hashCode: (v) => v.hashCode,
                                       isValidKey: (v) => v is int));
   testOtherKeys(new HashMap(equals: (int x, int y) => x == y,
                             hashCode: (int v) => v.hashCode,
                             isValidKey: (v) => v is int));
   testOtherKeys(new LinkedHashMap<int, int>());
-  testOtherKeys(new LinkedHashMap<int, int>(equals: identical));
+  testOtherKeys(new LinkedHashMap<int, int>.identity());
   testOtherKeys(new LinkedHashMap<int, int>(hashCode: (v) => v.hashCode,
                                        isValidKey: (v) => v is int));
   testOtherKeys(new LinkedHashMap(equals: (int x, int y) => x == y,
@@ -584,6 +593,26 @@ testIdentityMap(Map map) {
   Expect.isTrue(eqMap.containsKey(eq02));
   Expect.isTrue(eqMap.containsKey(eq11));
   Expect.isTrue(eqMap.containsKey(eq12));
+
+  // Changing objects will not affect identity map.
+  map.clear();
+  var m1 = new Mutable(1);
+  var m2 = new Mutable(2);
+  var m3 = new Mutable(3);
+  map[m1] = 1;
+  map[m2] = 2;
+  map[m3] = 3;
+  Expect.equals(3, map.length);
+  Expect.isTrue(map.containsKey(m1));
+  Expect.isTrue(map.containsKey(m2));
+  Expect.isTrue(map.containsKey(m3));
+  Expect.notEquals(m1, m3);
+  m3.id = 1;
+  Expect.equals(m1, m3);
+  // Even if keys are equal, they are still not identical.
+  // Even if hashcode of m3 changed, it can still be found.
+  Expect.equals(1, map[m1]);
+  Expect.equals(3, map[m3]);
 }
 
 /** Class of objects that are equal if they hold the same id. */
@@ -712,4 +741,11 @@ void testOtherKeys(Map<int, int> map) {
   Expect.isNull(map.remove(1.5));
   Expect.isNull(map["not an int"]);
   Expect.isNull(map[1.5]);
+}
+
+class Mutable {
+  int id;
+  Mutable(this.id);
+  int get hashCode => id;
+  bool operator==(other) => other is Mutable && other.id == id;
 }

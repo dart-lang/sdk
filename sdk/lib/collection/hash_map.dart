@@ -63,6 +63,15 @@ abstract class HashMap<K, V> implements Map<K, V> {
                             bool isValidKey(potentialKey)});
 
   /**
+   * Creates an unordered identity-based map.
+   *
+   * Effectively a shorthand for:
+   *
+   *     new HashMap(equals: identical, hashCode: identityHashCodeOf)
+   */
+  external factory HashMap.identity();
+
+  /**
    * Creates a [HashMap] that contains all key value pairs of [other].
    */
   factory HashMap.from(Map<K, V> other) {

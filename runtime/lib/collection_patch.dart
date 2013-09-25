@@ -11,12 +11,15 @@ patch class HashMap<K, V> {
         if (equals == null) {
           return new _HashMap<K, V>();
         }
-        if (identical(identical, equals)) {
+        hashCode = _defaultHashCode;
+      } else {
+        if (identical(identityHashCode, hashCode) &&
+            identical(identical, equals)) {
           return new _IdentityHashMap<K, V>();
         }
-        hashCode = _defaultHashCode;
-      } else if (equals == null) {
-        equals = _defaultEquals;
+        if (equals == null) {
+          equals = _defaultEquals;
+        }
       }
     } else {
       if (hashCode == null) {
@@ -28,7 +31,10 @@ patch class HashMap<K, V> {
     }
     return new _CustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
+
+  /* patch */ factory HashMap.identity() = _IdentityHashMap<K, V>;
 }
+
 
 const int _MODIFICATION_COUNT_MASK = 0x3fffffff;
 
@@ -320,7 +326,7 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
 class _IdentityHashMap<K, V> extends _HashMap<K, V> {
 
   bool containsKey(Object key) {
-    int hashCode = key.hashCode;
+    int hashCode = identityHashCode(key);
     List buckets = _buckets;
     int index = hashCode & (buckets.length - 1);
     _HashMapEntry entry = buckets[index];
@@ -332,7 +338,7 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   }
 
   V operator[](Object key) {
-    int hashCode = key.hashCode;
+    int hashCode = identityHashCode(key);
     List buckets = _buckets;
     int index = hashCode & (buckets.length - 1);
     _HashMapEntry entry = buckets[index];
@@ -346,7 +352,7 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   }
 
   void operator []=(K key, V value) {
-    int hashCode = key.hashCode;
+    int hashCode = identityHashCode(key);
     List buckets = _buckets;
     int length = buckets.length;
     int index = hashCode & (length - 1);
@@ -362,7 +368,7 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
-    int hashCode = key.hashCode;
+    int hashCode = identityHashCode(key);
     List buckets = _buckets;
     int length = buckets.length;
     int index = hashCode & (length - 1);
@@ -384,7 +390,7 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   }
 
   V remove(Object key) {
-    int hashCode = key.hashCode;
+    int hashCode = identityHashCode(key);
     List buckets = _buckets;
     int index = hashCode & (buckets.length - 1);
     _HashMapEntry entry = buckets[index];
@@ -509,20 +515,28 @@ patch class HashSet<E> {
         if (equals == null) {
           return new _HashSet<E>();
         }
-        if (identical(identical, equals)) {
+        hashCode = _defaultHashCode;
+      } else {
+        if (identical(identityHashCode, hashCode) &&
+            identical(identical, equals)) {
           return new _IdentityHashSet<E>();
         }
-        _hashCode = _defaultHashCode;
-      } else if (equals == null) {
-        _equals = _defaultEquals;
+        if (equals == null) {
+          equals = _defaultEquals;
+        }
       }
-      isValidKey = new _TypeTest<E>().test;
     } else {
-      if (hashCode == null) hashCode = _defaultHashCode;
-      if (equals == null) equals = _defaultEquals;
+      if (hashCode == null) {
+        hashCode = _defaultHashCode;
+      }
+      if (equals == null) {
+        equals = _defaultEquals;
+      }
     }
     return new _CustomHashSet<E>(equals, hashCode, isValidKey);
   }
+
+  /* patch */ factory HashSet.identity() = _IdentityHashSet<E>;
 }
 
 class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
@@ -688,6 +702,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
 }
 
 class _IdentityHashSet<E> extends _HashSet<E> {
+  int _hashCode(e) => identityHashCode(e);
   bool _equals(e1, e2) => identical(e1, e2);
   HashSet<E> _newSet() => new _IdentityHashSet<E>();
 }
@@ -696,7 +711,8 @@ class _CustomHashSet<E> extends _HashSet<E> {
   final _Equality<E> _equality;
   final _Hasher<E> _hasher;
   final _Predicate _validKey;
-  _CustomHashSet(this._equality, this._hasher, this._validKey);
+  _CustomHashSet(this._equality, this._hasher, bool validKey(Object o))
+      : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;
 
   bool remove(Object element) {
     if (!_validKey(element)) return false;
@@ -877,12 +893,15 @@ patch class LinkedHashMap<K, V> {
         if (equals == null) {
           return new _LinkedHashMap<K, V>();
         }
-        if (identical(identical, equals)) {
+        hashCode = _defaultHashCode;
+      } else {
+        if (identical(identityHashCode, hashCode) &&
+            identical(identical, equals)) {
           return new _LinkedIdentityHashMap<K, V>();
         }
-        hashCode = _defaultHashCode;
-      } else if (equals == null) {
-        equals = _defaultEquals;
+        if (equals == null) {
+          equals = _defaultEquals;
+        }
       }
     } else {
       if (hashCode == null) {
@@ -894,6 +913,8 @@ patch class LinkedHashMap<K, V> {
     }
     return new _LinkedCustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
+
+  /* patch */ factory LinkedHashMap.identity() = _LinkedIdentityHashMap<K, V>;
 }
 
 // Methods that are exactly the same in all three linked hash map variants.
@@ -1004,20 +1025,28 @@ patch class LinkedHashSet<E> {
         if (equals == null) {
           return new _LinkedHashSet<E>();
         }
-        if (identical(identical, equals)) {
+        hashCode = _defaultHashCode;
+      } else {
+        if (identical(identityHashCode, hashCode) &&
+            identical(identical, equals)) {
           return new _LinkedIdentityHashSet<E>();
         }
-        _hashCode = _defaultHashCode;
-      } else if (equals == null) {
-        _equals = _defaultEquals;
+        if (equals == null) {
+          equals = _defaultEquals;
+        }
       }
-      isValidKey = new _TypeTest<E>().test;
     } else {
-      if (hashCode == null) hashCode = _defaultHashCode;
-      if (equals == null) equals = _defaultEquals;
+      if (hashCode == null) {
+        hashCode = _defaultHashCode;
+      }
+      if (equals == null) {
+        equals = _defaultEquals;
+      }
     }
     return new _LinkedCustomHashSet<E>(equals, hashCode, isValidKey);
   }
+
+  /* patch */ factory LinkedHashSet.identity() = _LinkedIdentityHashSet<E>;
 }
 
 class _LinkedHashSetEntry extends _HashSetEntry {
@@ -1129,6 +1158,7 @@ class _LinkedHashSet<E> extends _HashSet<E>
 }
 
 class _LinkedIdentityHashSet<E> extends _LinkedHashSet<E> {
+  int _hashCode(e) => identityHashCode(e);
   bool _equals(e1, e2) => identical(e1, e2);
   HashSet<E> _newSet() => new _LinkedIdentityHashSet<E>();
 }
@@ -1138,7 +1168,7 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
   final _Hasher<E> _hasher;
   final _Predicate _validKey;
 
-  _LinkedCustomHashSet(this._equality, this._hasher, bool validKey(object))
+  _LinkedCustomHashSet(this._equality, this._hasher, bool validKey(Object o))
       : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;
 
   bool _equals(e1, e2) => _equality(e1, e2);

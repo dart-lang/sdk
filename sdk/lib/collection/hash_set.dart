@@ -110,6 +110,15 @@ class HashSet<E> implements Set<E> {
                              bool isValidKey(potentialKey) });
 
   /**
+   * Creates an unordered identity-based set.
+   *
+   * Effectively a shorthand for:
+   *
+   *     new HashSet(equals: identical, hashCode: identityHashCodeOf)
+   */
+  external factory HashSet.identity();
+
+  /**
    * Create a hash set containing the elements of [iterable].
    *
    * Creates a hash set as by `new HashSet<E>()` and adds each element of

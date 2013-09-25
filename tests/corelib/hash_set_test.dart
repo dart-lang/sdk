@@ -9,7 +9,7 @@ library hash_map2_test;
 import "package:expect/expect.dart";
 import 'dart:collection';
 
-testSet(Set newSet(), Set newSetFrom(Set from)) {
+testSet(Set newSet(), Set newSetFrom(Iterable from)) {
 
   Set gen(int from, int to) =>
       new Set.from(new Iterable.generate(to - from, (n) => n + from));
@@ -220,9 +220,60 @@ testSet(Set newSet(), Set newSetFrom(Set from)) {
   }
 }
 
+
+void testIdentitySet(Set create()) {
+  Set set = create();
+  set.add(1);
+  set.add(2);
+  set.add(1);  // Integers are identical if equal.
+  Expect.equals(2, set.length);
+  var complex = 4;
+  complex = set.length == 2 ? complex ~/ 4 : 87;  // Avoid compile-time constant.
+  Expect.isTrue(set.contains(complex));  // 1 is in set, even if computed.
+  set.clear();
+
+  // All compile time constants are identical to themselves.
+  var constants = [double.INFINITY,
+                   double.NAN, -0.0, /// 01: ok
+                   0.0, 42, "", null, false, true, #bif, testIdentitySet];
+  set.addAll(constants);
+  Expect.equals(constants.length, set.length);
+  for (var c in constants) {
+    Expect.isTrue(set.contains(c), "constant: $c");
+  }
+  Expect.isTrue(set.containsAll(constants), "constants: $set");
+  set.clear();
+
+  var m1 = new Mutable(1);
+  var m2 = new Mutable(2);
+  var m3 = new Mutable(3);
+  var m4 = new Mutable(2);  // Equal to m2, but not identical.
+  set.addAll([m1, m2, m3, m4]);
+  Expect.equals(4, set.length);
+  Expect.equals(3, m3.hashCode);
+  m3.id = 1;
+  Expect.equals(1, m3.hashCode);
+  // Changing hashCode doesn't affect lookup.
+  Expect.isTrue(set.contains(m3));
+  Expect.isTrue(set.contains(m1));
+  set.remove(m3);
+  Expect.isFalse(set.contains(m3));
+  Expect.isTrue(set.contains(m1));
+}
+
+
 void main() {
+  testSet(() => new Set(), (m) => new Set.from(m));
   testSet(() => new HashSet(), (m) => new HashSet.from(m));
   testSet(() => new LinkedHashSet(), (m) => new LinkedHashSet.from(m));
+  testIdentitySet(() => new Set.identity());
+  testIdentitySet(() => new HashSet.identity());
+  testIdentitySet(() => new LinkedHashSet.identity());
+  testIdentitySet(() => new HashSet(equals: (x, y) => identical(x, y),
+                                    hashCode: (x) => identityHashCode(x)));
+  testIdentitySet(
+      () => new LinkedHashSet(equals: (x, y) => identical(x, y),
+                              hashCode: (x) => identityHashCode(x)));
 }
 
 
@@ -234,4 +285,11 @@ class BadHashCode {
   // operator == is identity.
   // Can't make a bad compareTo that isn't invalid.
   int compareTo(BadHashCode other) => id - other.id;
+}
+
+class Mutable {
+  int id;
+  Mutable(this.id);
+  int get hashCode => id;
+  bool operator==(other) => other is Mutable && id == other.id;
 }
