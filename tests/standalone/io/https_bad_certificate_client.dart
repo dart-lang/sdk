@@ -62,7 +62,7 @@ Future runHttpClient(int port, result) {
   client.badCertificateCallback = null;
   testFutures.add(client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
     .then((HttpClientRequest request) {
-      expect(false);
+      expect(result == 'true');  // The session cache may keep the last connection.
     }, onError: (e) {
       expect(e is HandshakeException || e is SocketException);
     }));
