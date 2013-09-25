@@ -127,9 +127,6 @@
         " */"
       ],
       "members": {
-        "createElement": [
-          "/// Deprecated: use new Element.tag(tagName) instead."
-        ],
         "querySelector": [
           "/**",
           " * Finds the first descendant element of this document that matches the",
