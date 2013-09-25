@@ -165,8 +165,10 @@ class Scanner : ValueObject {
   // Starts reading a string literal.
   void ScanLiteralString(bool is_raw);
 
-  // Read the characters of a string literal.
-  void ScanLiteralStringChars(bool is_raw);
+  // Read the characters of a string literal. Remove whitespace up to
+  // and including the first newline character if remove_whitespace
+  // is true.
+  void ScanLiteralStringChars(bool is_raw, bool remove_whitespace);
 
   // Reads a fixed number of hexadecimal digits.
   bool ScanHexDigits(int digits, int32_t* value);
