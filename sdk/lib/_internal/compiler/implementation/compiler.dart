@@ -1193,6 +1193,14 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   TreeElements analyzeElement(Element element) {
+    assert(invariant(element,
+           element.impliesType() ||
+           element.isField() ||
+           element.isFunction() ||
+           element.isGenerativeConstructor() ||
+           element.isGetter() ||
+           element.isSetter(),
+           message: 'Unexpected element kind: ${element.kind}'));
     assert(invariant(element, element.isDeclaration));
     ResolutionEnqueuer world = enqueuer.resolution;
     TreeElements elements = world.getCachedElements(element);
