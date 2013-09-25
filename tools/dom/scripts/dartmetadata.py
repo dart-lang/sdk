@@ -511,7 +511,6 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   'XMLHttpRequest.response': _all_but_ie9_annotations,
   'XMLHttpRequestEventTarget.onloadend': _all_but_ie9_annotations,
   'XMLHttpRequestEventTarget.onprogress': _all_but_ie9_annotations,
-  'XMLHttpRequestProgressEvent': _webkit_experimental_annotations,
   'XSLTProcessor': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",

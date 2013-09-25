@@ -37,12 +37,6 @@ main() {
     expect(xhr.responseText, equals(''));
   }
 
-  group('supported_HttpRequestProgressEvent', () {
-    test('supported', () {
-      expect(HttpRequestProgressEvent.supported, isTrue);
-    });
-  });
-
   group('supported_onProgress', () {
     test('supported', () {
       expect(HttpRequest.supportsProgressEvent, isTrue);
@@ -164,15 +158,6 @@ main() {
             expect(byteBuffer, isNotNull);
           }));
       }
-    });
-
-    test('HttpRequestProgressEvent', () {
-      var expectation = HttpRequestProgressEvent.supported ?
-          returnsNormally : throws;
-      expect(() {
-        var event = new Event.eventType('XMLHttpRequestProgressEvent', '');
-        expect(event is HttpRequestProgressEvent, isTrue);
-      }, expectation);
     });
 
     test('overrideMimeType', () {

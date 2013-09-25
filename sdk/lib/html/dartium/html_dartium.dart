@@ -14111,35 +14111,6 @@ class HttpRequest extends XmlHttpRequestEventTarget {
 
 
 @DocsEditable()
-@DomName('XMLHttpRequestProgressEvent')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-@Experimental() // nonstandard
-class HttpRequestProgressEvent extends ProgressEvent {
-  // To suppress missing implicit constructor warnings.
-  factory HttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => true;
-
-  @DomName('XMLHttpRequestProgressEvent.position')
-  @DocsEditable()
-  int get position native "XMLHttpRequestProgressEvent_position_Getter";
-
-  @DomName('XMLHttpRequestProgressEvent.totalSize')
-  @DocsEditable()
-  int get totalSize native "XMLHttpRequestProgressEvent_totalSize_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('XMLHttpRequestUpload')
 // http://xhr.spec.whatwg.org/#xmlhttprequestupload
 @Experimental()
@@ -29687,6 +29658,21 @@ abstract class _WorkerLocation extends NativeFieldWrapperClass1 {
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workernavigator
 @Experimental()
 abstract class _WorkerNavigator extends NativeFieldWrapperClass1 implements NavigatorOnLine, NavigatorID {
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('XMLHttpRequestProgressEvent')
+@Experimental() // nonstandard
+abstract class _XMLHttpRequestProgressEvent extends ProgressEvent {
+  // To suppress missing implicit constructor warnings.
+  factory _XMLHttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

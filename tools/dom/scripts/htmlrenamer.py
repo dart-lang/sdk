@@ -60,7 +60,6 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'StringCallback': '_StringCallback',
     'WebGLVertexArrayObjectOES': 'VertexArrayObject',
     'XMLHttpRequest': 'HttpRequest',
-    'XMLHttpRequestProgressEvent': 'HttpRequestProgressEvent',
     'XMLHttpRequestUpload': 'HttpRequestUpload',
 }, **typed_array_renames))
 
@@ -121,6 +120,7 @@ _removed_html_interfaces = [
   'WebKitSourceBufferList',
   'WorkerLocation', # Workers
   'WorkerNavigator', # Workers
+  'XMLHttpRequestProgressEvent',
 ]
 
 for interface in _removed_html_interfaces:

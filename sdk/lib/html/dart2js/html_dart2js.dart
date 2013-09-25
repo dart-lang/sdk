@@ -13444,32 +13444,6 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
 
 
 @DocsEditable()
-@DomName('XMLHttpRequestProgressEvent')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-@Experimental() // nonstandard
-class HttpRequestProgressEvent extends ProgressEvent native "XMLHttpRequestProgressEvent" {
-  // To suppress missing implicit constructor warnings.
-  factory HttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => Device.isEventTypeSupported('XMLHttpRequestProgressEvent');
-
-  @DomName('XMLHttpRequestProgressEvent.position')
-  @DocsEditable()
-  final int position;
-
-  @DomName('XMLHttpRequestProgressEvent.totalSize')
-  @DocsEditable()
-  final int totalSize;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('XMLHttpRequestUpload')
 // http://xhr.spec.whatwg.org/#xmlhttprequestupload
 @Experimental()
@@ -27582,6 +27556,18 @@ abstract class _WorkerNavigator extends Interceptor implements NavigatorOnLine, 
   // From NavigatorID
 
   // From NavigatorOnLine
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('XMLHttpRequestProgressEvent')
+@Experimental() // nonstandard
+abstract class _XMLHttpRequestProgressEvent extends ProgressEvent native "XMLHttpRequestProgressEvent" {
+  // To suppress missing implicit constructor warnings.
+  factory _XMLHttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

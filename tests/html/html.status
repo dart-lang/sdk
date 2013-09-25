@@ -161,7 +161,6 @@ touchevent_test/supported: Fail
 webgl_1_test/supported: Fail
 websql_test/supported: Fail
 xhr_test/json: Fail # IE10 returns string, not JSON object
-xhr_test/supported_HttpRequestProgressEvent: Fail
 xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
 
@@ -268,7 +267,6 @@ webgl_1_test/supported: Fail
 websocket_test/supported: Fail
 websql_test/supported: Fail
 worker_test/supported: Fail
-xhr_test/supported_HttpRequestProgressEvent: Fail
 xhr_test/supported_onLoadEnd: Fail
 xhr_test/supported_onProgress: Fail
 xhr_test/supported_overrideMimeType: Fail
@@ -387,7 +385,6 @@ shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
 websql_test/supported: Fail
-xhr_test/supported_HttpRequestProgressEvent: Fail
 
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
