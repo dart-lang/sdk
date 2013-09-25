@@ -13,6 +13,7 @@ import 'dart:io';
 
 import 'package:analyzer_experimental/src/generated/engine.dart';
 import 'package:analyzer_experimental/src/generated/error.dart';
+import 'package:analyzer_experimental/src/generated/java_core.dart' show JavaSystem;
 import 'package:analyzer_experimental/options.dart';
 
 import 'package:analyzer_experimental/src/analyzer_impl.dart';
@@ -27,7 +28,20 @@ void main() {
       return _runAnalyzer(options);
     });
   } else {
+    int startTime = JavaSystem.currentTimeMillis();
+
     ErrorSeverity result = _runAnalyzer(options);
+
+    if (options.perf) {
+      int totalTime = JavaSystem.currentTimeMillis() - startTime;
+      print("scan:${PerformanceStatistics.scan.result}");
+      print("parse:${PerformanceStatistics.parse.result}");
+      print("resolve:${PerformanceStatistics.resolve.result}");
+      print("errors:${PerformanceStatistics.errors.result}");
+      print("hints:${PerformanceStatistics.hints.result}");
+      print("total:$totalTime");
+    }
+
     exit(result.ordinal);
   }
 }
