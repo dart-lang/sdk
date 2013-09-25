@@ -37,6 +37,11 @@ class Resolver : public AllStatic {
       const Class& receiver_class,
       const String& function_name);
 
+  // TODO(13355): Remove.
+  static RawFunction* ResolveDynamicAnyArgsAllowPrivate(
+      const Class& receiver_class,
+      const String& function_name);
+
   enum StaticResolveType {
     kIsQualified,
     kNotQualified

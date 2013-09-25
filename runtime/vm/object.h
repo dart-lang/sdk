@@ -1468,9 +1468,6 @@ class Function : public Object {
   RawClass* signature_class() const;
   void set_signature_class(const Class& value) const;
 
-  RawInstance* implicit_static_closure() const;
-  void set_implicit_static_closure(const Instance& closure) const;
-
   RawCode* closure_allocation_stub() const;
   void set_closure_allocation_stub(const Code& value) const;
 
@@ -1501,6 +1498,10 @@ class Function : public Object {
   // Return the closure function implicitly created for this function.
   // If none exists yet, create one and remember it.
   RawFunction* ImplicitClosureFunction() const;
+
+  // Return the closure implicitly created for this function.
+  // If none exists yet, create one and remember it.
+  RawInstance* ImplicitStaticClosure() const;
 
   // Redirection information for a redirecting factory.
   bool IsRedirectingFactory() const;
@@ -1862,6 +1863,8 @@ class Function : public Object {
   void set_owner(const Object& value) const;
   RawFunction* implicit_closure_function() const;
   void set_implicit_closure_function(const Function& value) const;
+  RawInstance* implicit_static_closure() const;
+  void set_implicit_static_closure(const Instance& closure) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(intptr_t value) const;
   void set_data(const Object& value) const;

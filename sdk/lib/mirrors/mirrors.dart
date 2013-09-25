@@ -339,6 +339,19 @@ abstract class ObjectMirror implements Mirror {
    * in a scope that has access to the private members
    * of *o* (if *o* is a class or library) or the private members of the
    * class of *o* (otherwise).
+   *
+   * If this mirror is an [InstanceMirror], and [fieldName] denotes an instance
+   * method on its reflectee, the result of the invocation is an instance
+   * mirror on a closure corresponding to that method.
+   *
+   * If this mirror is a [LibraryMirror], and [fieldName] denotes a top-level
+   * method in the corresponding library, the result of the invocation is an
+   * instance mirror on a closure corresponding to that method.
+   *
+   * If this mirror is a [ClassMirror], and [fieldName] denotes a static method
+   * in the corresponding class, the result of the invocation is an instance
+   * mirror on a closure corresponding to that method.
+   *
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect](*r*).
    * If the invocation causes a compilation error
@@ -421,6 +434,19 @@ abstract class ObjectMirror implements Mirror {
    * in a scope that has access to the private members
    * of *o* (if *o* is a class or library) or the private members of the
    * class of *o*(otherwise).
+   *
+   * If this mirror is an [InstanceMirror], and [fieldName] denotes an instance
+   * method on its reflectee, the result of the invocation is an instance
+   * mirror on a closure corresponding to that method.
+   *
+   * If this mirror is a [LibraryMirror], and [fieldName] denotes a top-level
+   * method in the corresponding library, the result of the invocation is an
+   * instance mirror on a closure corresponding to that method.
+   *
+   * If this mirror is a [ClassMirror], and [fieldName] denotes a static method
+   * in the corresponding class, the result of the invocation is an instance
+   * mirror on a closure corresponding to that method.
+   *
    * The method returns a future *k*.
    * If the invocation returns a result *r*, *k* will be completed
    * with the result of calling [reflect](*r*).

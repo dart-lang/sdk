@@ -4928,6 +4928,18 @@ void Function::BuildSignatureParameters(
 }
 
 
+RawInstance* Function::ImplicitStaticClosure() const {
+  if (implicit_static_closure() == Instance::null()) {
+    ObjectStore* object_store = Isolate::Current()->object_store();
+    const Context& context = Context::Handle(object_store->empty_context());
+    const Instance& closure =
+        Instance::Handle(Closure::New(*this, context, Heap::kOld));
+    set_implicit_static_closure(closure);
+  }
+  return implicit_static_closure();
+}
+
+
 RawString* Function::BuildSignature(
     bool instantiate,
     NameVisibility name_visibility,

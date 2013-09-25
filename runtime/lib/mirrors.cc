@@ -10,6 +10,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
+#include "vm/resolver.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -789,6 +790,7 @@ static RawObject* ReflectivelyInvokeDynamicFunction(
   return result.raw();
 }
 
+
 DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
@@ -799,18 +801,12 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
 
+  Class& klass = Class::Handle(reflectee.clazz());
+  Function& function = Function::Handle(
+      Resolver::ResolveDynamicAnyArgsAllowPrivate(klass, function_name));
+
   const Array& args_descriptor =
       Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
-
-  Class& klass = Class::Handle(reflectee.clazz());
-  Function& function = Function::Handle();
-  while (!klass.IsNull()) {
-    function = klass.LookupDynamicFunctionAllowPrivate(function_name);
-    if (!function.IsNull()) {
-      break;
-    }
-    klass = klass.SuperClass();
-  }
 
   return ReflectivelyInvokeDynamicFunction(reflectee,
                                            function,
@@ -827,21 +823,10 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 3) {
   GET_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
 
-  // Every instance field has a getter Function.  Try to find the
-  // getter in any superclass and use that function to access the
-  // field.
-  // NB: We do not use Resolver::ResolveDynamic because we want to find private
-  // members.
   Class& klass = Class::Handle(reflectee.clazz());
   String& internal_getter_name = String::Handle(Field::GetterName(getter_name));
-  Function& getter = Function::Handle();
-  while (!klass.IsNull()) {
-    getter = klass.LookupDynamicFunctionAllowPrivate(internal_getter_name);
-    if (!getter.IsNull()) {
-      break;
-    }
-    klass = klass.SuperClass();
-  }
+  Function& function = Function::Handle(
+      Resolver::ResolveDynamicAnyArgsAllowPrivate(klass, internal_getter_name));
 
   const int kNumArgs = 1;
   const Array& args = Array::Handle(Array::New(kNumArgs));
@@ -850,7 +835,7 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 3) {
       Array::Handle(ArgumentsDescriptor::New(args.Length()));
 
   return ReflectivelyInvokeDynamicFunction(reflectee,
-                                           getter,
+                                           function,
                                            internal_getter_name,
                                            args,
                                            args_descriptor);
@@ -989,10 +974,19 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 3) {
   if (field.IsNull() || FieldIsUninitialized(field)) {
     const String& internal_getter_name = String::Handle(
         Field::GetterName(getter_name));
-    const Function& getter = Function::Handle(
+    Function& getter = Function::Handle(
         klass.LookupStaticFunctionAllowPrivate(internal_getter_name));
 
     if (getter.IsNull() || !getter.is_visible()) {
+      if (getter.IsNull()) {
+        getter = klass.LookupStaticFunctionAllowPrivate(getter_name);
+        if (!getter.IsNull()) {
+          // Looking for a getter but found a regular method: closurize.
+          const Function& closure_function =
+              Function::Handle(getter.ImplicitClosureFunction());
+          return closure_function.ImplicitStaticClosure();
+        }
+      }
       ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                         getter_name,
                         getter,
@@ -1249,6 +1243,15 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
     const String& internal_getter_name =
         String::Handle(Field::GetterName(getter_name));
     getter = library.LookupFunctionAllowPrivate(internal_getter_name);
+    if (getter.IsNull()) {
+      getter = library.LookupFunctionAllowPrivate(getter_name);
+      if (!getter.IsNull()) {
+        // Looking for a getter but found a regular method: closurize.
+        const Function& closure_function =
+            Function::Handle(getter.ImplicitClosureFunction());
+        return closure_function.ImplicitStaticClosure();
+      }
+    }
   } else if (!field.IsNull() && FieldIsUninitialized(field)) {
     // A field was found.  Check for a getter in the field's owner classs.
     const Class& klass = Class::Handle(field.owner());

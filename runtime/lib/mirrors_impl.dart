@@ -321,7 +321,6 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
                         [Map<Symbol, dynamic> namedArguments]) {
-
     int numPositionalArguments = positionalArguments.length + 1;  // Receiver.
     int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
     int numArguments = numPositionalArguments + numNamedArguments;
@@ -375,7 +374,6 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
     // replaced with
     //   return this.invoke(#call, positionalArguments, namedArguments);
     // and the native ClosureMirror_apply can be removed.
-
     int numPositionalArguments = positionalArguments.length + 1;  // Receiver.
     int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
     int numArguments = numPositionalArguments + numNamedArguments;

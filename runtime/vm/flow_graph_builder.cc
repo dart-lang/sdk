@@ -2029,14 +2029,8 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
 
   if (function.IsImplicitStaticClosureFunction()) {
-    Instance& closure = Instance::ZoneHandle();
-    closure ^= function.implicit_static_closure();
-    if (closure.IsNull()) {
-      ObjectStore* object_store = Isolate::Current()->object_store();
-      const Context& context = Context::Handle(object_store->empty_context());
-      closure ^= Closure::New(function, context, Heap::kOld);
-      function.set_implicit_static_closure(closure);
-    }
+    const Instance& closure =
+        Instance::ZoneHandle(function.ImplicitStaticClosure());
     ReturnDefinition(new ConstantInstr(closure));
     return;
   }
