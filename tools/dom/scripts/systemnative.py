@@ -737,6 +737,7 @@ class DartiumBackend(HtmlDartGenerator):
     cpp_arguments = []
     runtime_check = None
     raises_exceptions = raises_dom_exception or arguments
+    needs_custom_element_callbacks = False
 
     # TODO(antonm): unify with ScriptState below.
     requires_stack_info = (ext_attrs.get('CallWith') == 'ScriptArguments|ScriptState' or
@@ -790,6 +791,10 @@ class DartiumBackend(HtmlDartGenerator):
 
     if return_type_is_nullable:
       cpp_arguments = ['isNull']
+
+    if ext_attrs.get('CustomElementCallbacks') == 'Enable':
+      self._cpp_impl_includes.add('"core/dom/CustomElementCallbackDispatcher.h"')
+      needs_custom_element_callbacks = True
 
     v8EnabledPerContext = ext_attrs.get('synthesizedV8EnabledPerContext', ext_attrs.get('V8EnabledPerContext'))
     v8EnabledAtRuntime = ext_attrs.get('synthesizedV8EnabledAtRuntime', ext_attrs.get('V8EnabledAtRuntime'))
@@ -909,6 +914,9 @@ class DartiumBackend(HtmlDartGenerator):
           '        if (!scriptCallStack->size())\n'
           '            return;\n',
           INDEX=len(arguments) + 1)
+
+    if needs_custom_element_callbacks:
+      body_emitter.Emit('        CustomElementCallbackDispatcher::CallbackDeliveryScope deliveryScope;\n');
 
     # Emit arguments.
     start_index = 1 if needs_receiver else 0
