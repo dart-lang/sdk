@@ -78,7 +78,12 @@ void ObjectHistogram::Add(RawObject* obj) {
 
 
 int ObjectHistogram::compare(const Element** a, const Element** b) {
-  return (*b)->size_ - (*a)->size_;
+  // Be careful to return a 32bit integer.
+  intptr_t a_size = (*a)->size_;
+  intptr_t b_size = (*b)->size_;
+  if (a_size > b_size) return -1;
+  if (a_size < b_size) return  1;
+  return 0;
 }
 
 
