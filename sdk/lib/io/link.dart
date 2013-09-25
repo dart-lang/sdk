@@ -149,7 +149,7 @@ class _Link extends FileSystemEntity implements Link {
     if (Platform.operatingSystem == 'windows') {
       target = _makeWindowsLinkTarget(target);
     }
-    return IOService.dispatch(FILE_CREATE_LINK, [path, target])
+    return _IOService.dispatch(_FILE_CREATE_LINK, [path, target])
         .then((response) {
           if (_isErrorResponse(response)) {
             throw _exceptionFromResponse(
@@ -203,7 +203,7 @@ class _Link extends FileSystemEntity implements Link {
     if (recursive) {
       return new Directory(path).delete(recursive: true).then((_) => this);
     }
-    return IOService.dispatch(FILE_DELETE_LINK, [path]).then((response) {
+    return _IOService.dispatch(_FILE_DELETE_LINK, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot delete link", path);
       }
@@ -220,7 +220,7 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Future<Link> rename(String newPath) {
-    return IOService.dispatch(FILE_RENAME_LINK, [path, newPath])
+    return _IOService.dispatch(_FILE_RENAME_LINK, [path, newPath])
         .then((response) {
           if (_isErrorResponse(response)) {
             throw _exceptionFromResponse(
@@ -237,7 +237,7 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Future<String> target() {
-    return IOService.dispatch(FILE_LINK_TARGET, [path]).then((response) {
+    return _IOService.dispatch(_FILE_LINK_TARGET, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot get target of link", path);

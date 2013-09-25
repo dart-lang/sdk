@@ -21,6 +21,7 @@
     'http_parser.dart',
     'http_session.dart',
     'io_sink.dart',
+    'io_service.dart',
     'link.dart',
     'options.dart',
     'path.dart',

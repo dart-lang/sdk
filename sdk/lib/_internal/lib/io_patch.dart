@@ -346,3 +346,9 @@ patch class _FileSystemWatcher {
     throw new UnsupportedError("_FileSystemWatcher.isSupported");
   }
 }
+
+patch class _IOService {
+  patch static Future dispatch(int request, List data) {
+    throw new UnsupportedError("_IOService.dispatch");
+  }
+}

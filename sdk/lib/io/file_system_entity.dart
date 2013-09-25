@@ -71,7 +71,7 @@ class FileStat {
    * .type set to FileSystemEntityType.NOT_FOUND and the other fields invalid.
    */
   static Future<FileStat> stat(String path) {
-    return IOService.dispatch(FILE_STAT, [path]).then((response) {
+    return _IOService.dispatch(_FILE_STAT, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
                                      "Error getting stat",
@@ -236,7 +236,7 @@ abstract class FileSystemEntity {
    * since [resolve] removes '..' segments.
    */
   Future<String> resolveSymbolicLinks() {
-    return IOService.dispatch(FILE_RESOLVE_SYMBOLIC_LINKS, [path])
+    return _IOService.dispatch(_FILE_RESOLVE_SYMBOLIC_LINKS, [path])
         .then((response) {
           if (_isErrorResponse(response)) {
             throw _exceptionFromResponse(response,
@@ -381,7 +381,7 @@ abstract class FileSystemEntity {
    * to an object that does not exist.
    */
   static Future<bool> identical(String path1, String path2) {
-    return IOService.dispatch(FILE_IDENTICAL, [path1, path2]).then((response) {
+    return _IOService.dispatch(_FILE_IDENTICAL, [path1, path2]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
             "Error in FileSystemEntity.identical($path1, $path2)", "");
@@ -537,7 +537,7 @@ abstract class FileSystemEntity {
   }
 
   static Future<int> _getTypeAsync(String path, bool followLinks) {
-    return IOService.dispatch(FILE_TYPE, [path, followLinks]).then((response) {
+    return _IOService.dispatch(_FILE_TYPE, [path, followLinks]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Error getting type", path);
       }

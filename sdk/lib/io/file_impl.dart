@@ -212,7 +212,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<bool> exists() {
-    return IOService.dispatch(FILE_EXISTS, [path]).then((response) {
+    return _IOService.dispatch(_FILE_EXISTS, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot check existence", path);
       }
@@ -235,7 +235,7 @@ class _File extends FileSystemEntity implements File {
   FileStat statSync() => FileStat.statSync(path);
 
   Future<File> create() {
-    return IOService.dispatch(FILE_CREATE, [path]).then((response) {
+    return _IOService.dispatch(_FILE_CREATE, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot create file", path);
       }
@@ -258,7 +258,7 @@ class _File extends FileSystemEntity implements File {
     if (recursive) {
       return new Directory(path).delete(recursive: true).then((_) => this);
     }
-    return IOService.dispatch(FILE_DELETE, [path]).then((response) {
+    return _IOService.dispatch(_FILE_DELETE, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot delete file", path);
       }
@@ -279,7 +279,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<File> rename(String newPath) {
-    return IOService.dispatch(FILE_RENAME, [path, newPath]).then((response) {
+    return _IOService.dispatch(_FILE_RENAME, [path, newPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot rename file to '$newPath'", path);
@@ -309,7 +309,7 @@ class _File extends FileSystemEntity implements File {
         mode != FileMode.APPEND) {
       return new Future.error(new ArgumentError());
     }
-    return IOService.dispatch(FILE_OPEN, [path, mode._mode]).then((response) {
+    return _IOService.dispatch(_FILE_OPEN, [path, mode._mode]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot open file", path);
       }
@@ -318,7 +318,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<int> length() {
-    return IOService.dispatch(FILE_LENGTH_FROM_PATH, [path]).then((response) {
+    return _IOService.dispatch(_FILE_LENGTH_FROM_PATH, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
                                      "Cannot retrieve length of file",
@@ -338,7 +338,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<DateTime> lastModified() {
-    return IOService.dispatch(FILE_LAST_MODIFIED, [path]).then((response) {
+    return _IOService.dispatch(_FILE_LAST_MODIFIED, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
                                      "Cannot retrieve modification time",
@@ -531,7 +531,7 @@ class _RandomAccessFile implements RandomAccessFile {
     // can be issued for this file.
     int id = _id;
     _id = 0;
-    return IOService.dispatch(FILE_CLOSE, [id]).then((result) {
+    return _IOService.dispatch(_FILE_CLOSE, [id]).then((result) {
       if (result != -1) {
         _id = result;
         return this;
@@ -554,7 +554,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<int> readByte() {
     if (closed) return _closedException();
-    return IOService.dispatch(FILE_READ_BYTE, [_id]).then((response) {
+    return _IOService.dispatch(_FILE_READ_BYTE, [_id]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readByte failed", path);
       }
@@ -578,7 +578,7 @@ class _RandomAccessFile implements RandomAccessFile {
       throw new ArgumentError(bytes);
     }
     if (closed) return _closedException();
-    return IOService.dispatch(FILE_READ, [_id, bytes]).then((response) {
+    return _IOService.dispatch(_FILE_READ, [_id, bytes]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "read failed", path);
       }
@@ -610,7 +610,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if (start == null) start = 0;
     if (end == null) end = buffer.length;
     int length = end - start;
-    return IOService.dispatch(FILE_READ_INTO, [_id, length]).then((response) {
+    return _IOService.dispatch(_FILE_READ_INTO, [_id, length]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readInto failed", path);
       }
@@ -654,7 +654,7 @@ class _RandomAccessFile implements RandomAccessFile {
       throw new ArgumentError(value);
     }
     if (closed) return _closedException();
-    return IOService.dispatch(FILE_WRITE_BYTE, [_id, value]).then((response) {
+    return _IOService.dispatch(_FILE_WRITE_BYTE, [_id, value]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeByte failed", path);
       }
@@ -697,7 +697,7 @@ class _RandomAccessFile implements RandomAccessFile {
     request[1] = result.buffer;
     request[2] = result.start;
     request[3] = end - (start - result.start);
-    return IOService.dispatch(FILE_WRITE_FROM, request).then((response) {
+    return _IOService.dispatch(_FILE_WRITE_FROM, request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeFrom failed", path);
       }
@@ -748,7 +748,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<int> position() {
     if (closed) return _closedException();
-    return IOService.dispatch(FILE_POSITION, [_id]).then((response) {
+    return _IOService.dispatch(_FILE_POSITION, [_id]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "position failed", path);
       }
@@ -769,7 +769,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<RandomAccessFile> setPosition(int position) {
     if (closed) return _closedException();
-    return IOService.dispatch(FILE_SET_POSITION, [_id, position])
+    return _IOService.dispatch(_FILE_SET_POSITION, [_id, position])
         .then((response) {
           if (_isErrorResponse(response)) {
             throw _exceptionFromResponse(response, "setPosition failed", path);
@@ -790,7 +790,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<RandomAccessFile> truncate(int length) {
     if (closed) return _closedException();
-    return IOService.dispatch(FILE_TRUNCATE, [_id, length]).then((response) {
+    return _IOService.dispatch(_FILE_TRUNCATE, [_id, length]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "truncate failed", path);
       }
@@ -810,7 +810,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<int> length() {
     if (closed) return _closedException();
-    return IOService.dispatch(FILE_LENGTH, [_id]).then((response) {
+    return _IOService.dispatch(_FILE_LENGTH, [_id]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "length failed", path);
       }
@@ -831,7 +831,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<RandomAccessFile> flush() {
     if (closed) return _closedException();
-    return IOService.dispatch(FILE_FLUSH, [_id]).then((response) {
+    return _IOService.dispatch(_FILE_FLUSH, [_id]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
                                      "flush failed",
