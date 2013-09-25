@@ -1173,7 +1173,7 @@ void Assembler::pxor(XmmRegister dst, XmmRegister src) {
   EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0xEF);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
@@ -1186,7 +1186,7 @@ void Assembler::roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode) {
   EmitUint8(0x0F);
   EmitUint8(0x3A);
   EmitUint8(0x0B);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
   // Mask precision exeption.
   EmitUint8(static_cast<uint8_t>(mode) | 0x8);
 }
