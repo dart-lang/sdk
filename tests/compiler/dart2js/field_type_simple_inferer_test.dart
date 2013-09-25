@@ -446,6 +446,18 @@ const String TEST_25 = r"""
   }
 """;
 
+const String TEST_26 = r"""
+  class A {
+    var f1 = 42;
+  }
+  class B {
+    var f1 = 54;
+  }
+  main() {
+    new A().f1 = [new B(), new A()][0].f1 + 42;
+  }
+""";
+
 void doTest(String test, bool disableInlining, Map<String, Function> fields) {
   fields.forEach((String name, Function f) {
     compileAndFind(
@@ -533,6 +545,7 @@ void test() {
                     'f6': (compiler) => compiler.typesTask.stringType.nullable()});
 
   runTest(TEST_25, {'f1': (compiler) => compiler.typesTask.intType });
+  runTest(TEST_26, {'f1': (compiler) => compiler.typesTask.intType });
 }
 
 void main() {
