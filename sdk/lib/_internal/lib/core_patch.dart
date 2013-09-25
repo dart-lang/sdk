@@ -8,7 +8,8 @@ import 'dart:_js_helper' show checkNull,
                               getRuntimeType,
                               JSSyntaxRegExp,
                               Primitives,
-                              stringJoinUnchecked;
+                              stringJoinUnchecked,
+                              objectHashCode;
 import "dart:_collection-dev" as _symbol_dev;
 
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
@@ -26,9 +27,12 @@ patch void print(Object object) {
   Primitives.printString(object.toString());
 }
 
+patch int identityHashCode(Object object) => objectHashCode(object);
+
 // Patch for Object implementation.
 patch class Object {
   patch int get hashCode => Primitives.objectHashCode(this);
+
 
   patch String toString() => Primitives.objectToString(this);
 

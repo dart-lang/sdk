@@ -3,3 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch bool identical(Object a, Object b) native "Identical_comparison";
+
+patch int identityHashCode(Object object) => object._identityHashCode;

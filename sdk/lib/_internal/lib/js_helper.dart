@@ -1422,7 +1422,7 @@ class _StackTrace implements StackTrace {
   }
 }
 
-int _objectHashCode(var object) {
+int objectHashCode(var object) {
   if (object == null || JS('bool', "typeof # != 'object'", object)) {
     return object.hashCode;
   } else {
@@ -1440,7 +1440,7 @@ makeLiteralMap(keyValuePairs) {
 
 makeConstantMap(keyValuePairs) {
   return fillLiteralMap(keyValuePairs,
-      new LinkedHashMap(equals: identical, hashCode: _objectHashCode));
+      new LinkedHashMap(equals: identical, hashCode: objectHashCode));
 }
 
 fillLiteralMap(keyValuePairs, Map result) {
