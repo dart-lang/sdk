@@ -3,16 +3,16 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js || $compiler == dart2dart ]
-block_scope_test: Fail # Issue 13204.
-null_test/03: Fail # Issue 12445.
-black_listed_test/none: Fail # Issue 12446.
-malformed_test/none: Fail # Issue 12695
-malformed_test/05: Fail # Issue 12695
-malformed_test/06: Fail # Issue 12695
-full_stacktrace1_test: Pass, Fail # Issue 12698
-full_stacktrace2_test: Pass, Fail # Issue 12698
-full_stacktrace3_test: Pass, Fail # Issue 12698
-stacktrace_test: Pass, Fail # # Issue 12698
+block_scope_test: CompileTimeError # Issue 13204.
+null_test/03: MissingCompileTimeError # Issue 12445.
+black_listed_test/none: CompileTimeError # Issue 12446.
+malformed_test/none: RuntimeError # Issue 12695
+malformed_test/05: MissingCompileTimeError # Issue 12695
+malformed_test/06: MissingCompileTimeError # Issue 12695
+full_stacktrace1_test: Pass, RuntimeError # Issue 12698
+full_stacktrace2_test: Pass, RuntimeError # Issue 12698
+full_stacktrace3_test: Pass, RuntimeError # Issue 12698
+stacktrace_test: Pass, RuntimeError # # Issue 12698
 
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
@@ -37,30 +37,30 @@ function_subtype_setter0_test: Fail # Issue 11273
 redirecting_factory_malbounded_test/01: Fail # Issue 12825
 
 [ $compiler == dart2js && $unchecked ]
-type_checks_in_factory_method_test: Fail # Issue 12746
-assertion_test: Fail # Issue 12748
-double_to_string_as_exponential2_test: Fail # Issue 12749
-double_to_string_as_fixed2_test: Fail # Issue 12749
-double_to_string_as_precision2_test: Fail # Issue 12749
-compile_time_constant_checked_test/02: Fail, OK
-compile_time_constant_checked2_test/01: Fail, OK
-compile_time_constant_checked2_test/02: Fail, OK
-compile_time_constant_checked2_test/03: Fail, OK
-compile_time_constant_checked2_test/04: Fail, OK
-compile_time_constant_checked2_test/05: Fail, OK
-compile_time_constant_checked2_test/06: Fail, OK
-compile_time_constant_checked3_test/01: Fail, OK
-compile_time_constant_checked3_test/02: Fail, OK
-compile_time_constant_checked3_test/03: Fail, OK
-compile_time_constant_checked3_test/04: Fail, OK
-compile_time_constant_checked3_test/05: Fail, OK
-compile_time_constant_checked3_test/06: Fail, OK
-generic_test: Fail, OK
-named_parameters_type_test/01: Fail, OK
-named_parameters_type_test/02: Fail, OK
-named_parameters_type_test/03: Fail, OK
-positional_parameters_type_test/01: Fail, OK
-positional_parameters_type_test/02: Fail, OK
+type_checks_in_factory_method_test: RuntimeError # Issue 12746
+assertion_test: RuntimeError # Issue 12748
+double_to_string_as_exponential2_test: RuntimeError # Issue 12749
+double_to_string_as_fixed2_test: RuntimeError # Issue 12749
+double_to_string_as_precision2_test: RuntimeError # Issue 12749
+compile_time_constant_checked_test/02: MissingCompileTimeError, OK
+compile_time_constant_checked2_test/01: MissingCompileTimeError, OK
+compile_time_constant_checked2_test/02: MissingCompileTimeError, OK
+compile_time_constant_checked2_test/03: MissingCompileTimeError, OK
+compile_time_constant_checked2_test/04: MissingCompileTimeError, OK
+compile_time_constant_checked2_test/05: MissingCompileTimeError, OK
+compile_time_constant_checked2_test/06: MissingCompileTimeError, OK
+compile_time_constant_checked3_test/01: MissingCompileTimeError, OK
+compile_time_constant_checked3_test/02: MissingCompileTimeError, OK
+compile_time_constant_checked3_test/03: MissingCompileTimeError, OK
+compile_time_constant_checked3_test/04: MissingCompileTimeError, OK
+compile_time_constant_checked3_test/05: MissingCompileTimeError, OK
+compile_time_constant_checked3_test/06: MissingCompileTimeError, OK
+generic_test: RuntimeError, OK
+named_parameters_type_test/01: MissingRuntimeError, OK
+named_parameters_type_test/02: MissingRuntimeError, OK
+named_parameters_type_test/03: MissingRuntimeError, OK
+positional_parameters_type_test/01: MissingRuntimeError, OK
+positional_parameters_type_test/02: MissingRuntimeError, OK
 
 [ $compiler == dart2js && $minified ]
 f_bounded_quantification4_test: Fail # Issue 12605.
@@ -74,91 +74,91 @@ mixin_mixin6_test: Fail # Issue 12605.
 
 [ $compiler == dart2js ]
 function_type_alias9_test/00: Crash # Issue 9792
-branch_canonicalization_test: Fail # Issue 638.
-identical_closure2_test: Fail # Issue 1533, Issue 12596
-integer_division_by_zero_test: Fail # Issue 8301
-built_in_identifier_prefix_test: Fail # Issue 6972
-number_identity2_test: Fail # Issue 12596
-new_expression_type_args_test/00: Fail # Issue 5519
-new_expression_type_args_test/01: Fail # Issue 5519
-double_int_to_string_test: Fail # Issue 1533
-mint_arithmetic_test: Fail # Issue 1533
-left_shift_test: Fail # Issue 1533
-factory_redirection_test/01: Fail # Issue 12752
-factory_redirection_test/07: Fail # Issue 12752
-bad_override_test/01: Fail # Issue 11496
-bad_override_test/02: Fail # Issue 11496
-bad_override_test/06: Fail # Issue 11496
-class_override_test/00: Fail # Issue 11496
-field_override3_test/00: Fail # Issue 11496
-field_override3_test/01: Fail # Issue 11496
-field_override3_test/02: Fail # Issue 11496
-field_override3_test/03: Fail # Issue 11496
-getter_override_test/00: Fail # Issue 11496
-getter_override_test/01: Fail # Issue 11496
-getter_override_test/02: Fail # Issue 11496
-method_override7_test/00: Fail # Issue 11496
-method_override7_test/01: Fail # Issue 11496
-method_override7_test/02: Fail # Issue 11496
-method_override8_test/03: Fail # Issue 11496
-setter_override_test/00: Fail # Issue 11496
-setter_override_test/03: Fail # Issue 11496
-setter_override2_test/02: Fail # Issue 11496
-constructor_named_arguments_test/01: Fail # Issue 5519
-getter_no_setter_test/01: Fail # Issue 5519
-not_enough_positional_arguments_test/01: Fail # Issue 12838
-not_enough_positional_arguments_test/02: Fail # Issue 12838
-not_enough_positional_arguments_test/05: Fail # Issue 12838
-metadata_test: Fail # Issue 5841
-infinity_test: Fail # Issue 4984
-positive_bit_operations_test: Fail # Issue 12795
-mixin_mixin2_test: Fail # Issue 13109.
-mixin_mixin3_test: Fail # Issue 13109.
-mixin_mixin7_test: Fail # Issue 13109.
+branch_canonicalization_test: RuntimeError # Issue 638.
+identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
+integer_division_by_zero_test: RuntimeError # Issue 8301
+built_in_identifier_prefix_test: CompileTimeError # Issue 6972
+number_identity2_test: RuntimeError # Issue 12596
+new_expression_type_args_test/00: CompileTimeError # Issue 5519
+new_expression_type_args_test/01: CompileTimeError # Issue 5519
+double_int_to_string_test: RuntimeError # Issue 1533
+mint_arithmetic_test: RuntimeError # Issue 1533
+left_shift_test: RuntimeError # Issue 1533
+factory_redirection_test/01: CompileTimeError # Issue 12752
+factory_redirection_test/07: MissingCompileTimeError # Issue 12752
+bad_override_test/01: CompileTimeError # Issue 11496
+bad_override_test/02: CompileTimeError # Issue 11496
+bad_override_test/06: CompileTimeError # Issue 11496
+class_override_test/00: CompileTimeError # Issue 11496
+field_override3_test/00: MissingCompileTimeError # Issue 11496
+field_override3_test/01: MissingCompileTimeError # Issue 11496
+field_override3_test/02: MissingCompileTimeError # Issue 11496
+field_override3_test/03: MissingCompileTimeError # Issue 11496
+getter_override_test/00: MissingCompileTimeError # Issue 11496
+getter_override_test/01: MissingCompileTimeError # Issue 11496
+getter_override_test/02: MissingCompileTimeError # Issue 11496
+method_override7_test/00: MissingCompileTimeError # Issue 11496
+method_override7_test/01: MissingCompileTimeError # Issue 11496
+method_override7_test/02: MissingCompileTimeError # Issue 11496
+method_override8_test/03: CompileTimeError # Issue 11496
+setter_override_test/00: MissingCompileTimeError # Issue 11496
+setter_override_test/03: MissingCompileTimeError # Issue 11496
+setter_override2_test/02: CompileTimeError # Issue 11496
+constructor_named_arguments_test/01: CompileTimeError # Issue 5519
+getter_no_setter_test/01: MissingCompileTimeError # Issue 5519
+not_enough_positional_arguments_test/01: CompileTimeError # Issue 12838
+not_enough_positional_arguments_test/02: CompileTimeError # Issue 12838
+not_enough_positional_arguments_test/05: CompileTimeError # Issue 12838
+metadata_test: CompileTimeError # Issue 5841
+infinity_test: RuntimeError # Issue 4984
+positive_bit_operations_test: RuntimeError # Issue 12795
+mixin_mixin2_test: RuntimeError # Issue 13109.
+mixin_mixin3_test: RuntimeError # Issue 13109.
+mixin_mixin7_test: RuntimeError # Issue 13109.
 
 # Compilation errors.
-const_var_test: Fail # Issue 12793
-map_literal3_test: Fail # Issue 12793
-function_type_alias5_test/00: Fail # Issue 12754
-function_type_alias5_test/01: Fail # Issue 12754
-function_type_alias5_test/02: Fail # Issue 12754
-method_override5_test: Fail # Issue 12809
+const_var_test: CompileTimeError # Issue 12793
+map_literal3_test: CompileTimeError # Issue 12793
+function_type_alias5_test/00: MissingCompileTimeError # Issue 12754
+function_type_alias5_test/01: MissingCompileTimeError # Issue 12754
+function_type_alias5_test/02: MissingCompileTimeError # Issue 12754
+method_override5_test: RuntimeError # Issue 12809
 parameter_initializer6_negative_test: Fail # Issue 3502
-named_parameters_aggregated_test/03: Fail # Issue 12812
-external_test/11: Fail # Issue 12887
-external_test/12: Fail # Issue 12887
-external_test/13: Fail # Issue 12887
-external_test/21: Fail # Issue 12887
-external_test/22: Fail # Issue 12887
-external_test/23: Fail # Issue 12887
-external_test/30: Fail # Issue 12887
-external_test/31: Fail # Issue 12887
-instanceof4_test/01: Fail # Issue 12889
-list_literal4_test: Fail # Issue 12890
-map_literal4_test: Fail # Issue 12891
-built_in_identifier_test/01: Fail # Issue 13022
+named_parameters_aggregated_test/03: MissingCompileTimeError # Issue 12812
+external_test/11: MissingCompileTimeError # Issue 12887
+external_test/12: MissingCompileTimeError # Issue 12887
+external_test/13: CompileTimeError # Issue 12887
+external_test/21: MissingCompileTimeError # Issue 12887
+external_test/22: MissingCompileTimeError # Issue 12887
+external_test/23: MissingCompileTimeError # Issue 12887
+external_test/30: MissingCompileTimeError # Issue 12887
+external_test/31: MissingCompileTimeError # Issue 12887
+instanceof4_test/01: RuntimeError # Issue 12889
+list_literal4_test: RuntimeError # Issue 12890
+map_literal4_test: RuntimeError # Issue 12891
+built_in_identifier_test/01: CompileTimeError # Issue 13022
 
-const_syntax_test/03: Fail # Issue 12932
-const_syntax_test/04: Fail # Issue 12932
-constructor9_test/01: Fail # Issue 12934
-list_literal1_test/01: Fail # Issue 12993
-map_literal1_test/01: Fail # Issue 12993
-scope_variable_test/01: Fail # Issue 13016
-static_final_field2_test/02: Fail # Issue 13017
-throw7_test/01: Fail # Issue 13019
+const_syntax_test/03: MissingCompileTimeError # Issue 12932
+const_syntax_test/04: MissingCompileTimeError # Issue 12932
+constructor9_test/01: MissingCompileTimeError # Issue 12934
+list_literal1_test/01: MissingCompileTimeError # Issue 12993
+map_literal1_test/01: MissingCompileTimeError # Issue 12993
+scope_variable_test/01: MissingCompileTimeError # Issue 13016
+static_final_field2_test/02: MissingCompileTimeError # Issue 13017
+throw7_test/01: MissingCompileTimeError # Issue 13019
 
-numbers_test: Fail, OK # Issue 1533
-canonical_const2_test: Fail, OK # Issue 1533
-bit_operations_test: Fail, OK # Issue 1533
-expect_test: Fail, OK # Issue 13080
+numbers_test: RuntimeError, OK # Issue 1533
+canonical_const2_test: RuntimeError, OK # Issue 1533
+bit_operations_test: RuntimeError, OK # Issue 1533
+expect_test: RuntimeError, OK # Issue 13080
 
-final_syntax_test/01: Fail # Issue 13020
-final_syntax_test/02: Fail # Issue 13020
-final_syntax_test/03: Fail # Issue 13020
-final_syntax_test/04: Fail # Issue 13020
+final_syntax_test/01: MissingCompileTimeError # Issue 13020
+final_syntax_test/02: MissingCompileTimeError # Issue 13020
+final_syntax_test/03: MissingCompileTimeError # Issue 13020
+final_syntax_test/04: MissingCompileTimeError # Issue 13020
 
-assign_top_method_test: Fail # Issue 13075
-null_test/none: Fail  # Issue 12482
+assign_top_method_test: RuntimeError # Issue 13075
+null_test/none: RuntimeError  # Issue 12482
 
 
 [ $compiler == dart2js && $runtime == none ]

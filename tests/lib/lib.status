@@ -7,77 +7,77 @@ convert/chunked_conversion_utf87_test: Pass, Fail # v8 bug: Issue 12293
 typed_data/byte_data_test: Pass, Fail # v8 bug: Issue 12293
 
 [ $compiler == dart2js ]
-math/double_pow_test: Fail
-math/low_test: Fail
-math/random_test: Fail
-mirrors/equality_test/02: Fail # Issue 12333
-mirrors/fake_function_test: Fail # Issue 11612
-mirrors/function_type_mirror_test: Fail # Issue 12166
-mirrors/generics_test/01: Fail # Issue 12333
-mirrors/hierarchy_invariants_test: Fail # Issue 11863
-mirrors/invoke_test: Fail # Issue 11954
-mirrors/invoke_named_test: Fail # Issue 10471, 12863
-mirrors/invoke_private_test: Fail # Issue 12164
-mirrors/invoke_throws_test: Fail # Issue 11954
+math/double_pow_test: RuntimeError
+math/low_test: RuntimeError
+math/random_test: RuntimeError
+mirrors/equality_test/02: RuntimeError # Issue 12333
+mirrors/fake_function_test: RuntimeError # Issue 11612
+mirrors/function_type_mirror_test: RuntimeError # Issue 12166
+mirrors/generics_test/01: RuntimeError # Issue 12333
+mirrors/hierarchy_invariants_test: RuntimeError # Issue 11863
+mirrors/invoke_test: RuntimeError # Issue 11954
+mirrors/invoke_named_test: RuntimeError # Issue 10471, 12863
+mirrors/invoke_private_test: CompileTimeError # Issue 12164
+mirrors/invoke_throws_test: RuntimeError # Issue 11954
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
-mirrors/method_mirror_name_test: Fail # Issue 6335
-mirrors/method_mirror_properties_test: Fail # Issue 11861
-mirrors/method_mirror_returntype_test : Fail # Issue 11928
-mirrors/method_mirror_source_test : Fail # Issue 6490
-mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
-mirrors/mixin_test/none: Fail # Issue 12464
-mirrors/new_instance_with_type_arguments_test: Fail # Issue 12333
-mirrors/null_test : Fail # Issue 12129
-mirrors/parameter_test/none: Fail # Issue 6490
-mirrors/parameter_metadata_test: Fail # Issue 10905
-mirrors/reflected_type_test: Fail # Issue 12607
-mirrors/typedef_metadata_test: Fail # Issue 12785
-mirrors/typevariable_mirror_metadata_test: Fail # Issue 10905
-mirrors/unnamed_library_test: Fail # Issue 10580
-async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
-async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
-async/run_async6_test: Fail # global error handling is not supported. http://dartbug.com/5958
-async/stream_controller_async_test: Fail, Pass # http://dartbug.com/11953
-mirrors/typedef_test/none: Fail # http://dartbug.com/6490
-mirrors/redirecting_factory_test/none: Fail # Issue 6490
-mirrors/redirecting_factory_test/02: Fail # Issue 6490
-mirrors/closures_test/none: Fail # Issue 6490
+mirrors/method_mirror_name_test: RuntimeError # Issue 6335
+mirrors/method_mirror_properties_test: RuntimeError # Issue 11861
+mirrors/method_mirror_returntype_test : RuntimeError # Issue 11928
+mirrors/method_mirror_source_test : RuntimeError # Issue 6490
+mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this.
+mirrors/mixin_test/none: RuntimeError # Issue 12464
+mirrors/new_instance_with_type_arguments_test: RuntimeError # Issue 12333
+mirrors/null_test : RuntimeError # Issue 12129
+mirrors/parameter_test/none: RuntimeError # Issue 6490
+mirrors/parameter_metadata_test: CompileTimeError # Issue 10905
+mirrors/reflected_type_test: RuntimeError # Issue 12607
+mirrors/typedef_metadata_test: RuntimeError # Issue 12785
+mirrors/typevariable_mirror_metadata_test: CompileTimeError # Issue 10905
+mirrors/unnamed_library_test: RuntimeError # Issue 10580
+async/run_async3_test: RuntimeError # _enqueueImmediate runs after Timer. http://dartbug.com/9002
+async/run_async4_test: Pass, RuntimeError # no global exception handler in isolates. http://dartbug.com/9012
+async/run_async6_test: RuntimeError # global error handling is not supported. http://dartbug.com/5958
+async/stream_controller_async_test: RuntimeError, Pass # http://dartbug.com/11953
+mirrors/typedef_test/none: RuntimeError # http://dartbug.com/6490
+mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
+mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490
+mirrors/closures_test/none: RuntimeError # Issue 6490
 
 [ $runtime == safari ]
 mirrors/return_type_test: Pass, Timeout # Issue 12858
 
 [ $compiler == dart2js && $runtime != jsshell && $runtime != safari && $runtime != ff && $runtime != ie9 && $runtime != ie10]
-math/math_test: Fail
-math/math2_test: Fail
+math/math_test: RuntimeError
+math/math2_test: RuntimeError
 
 [ $compiler == dart2js && $jscl ]
-async/future_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/slow_consumer2_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/slow_consumer3_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/slow_consumer_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/stream_from_iterable_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/stream_state_nonzero_timer_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/multiple_timer_test: Fail,OK # Needs Timer to run.
-async/timer_cancel_test: Fail,OK # Needs Timer to run.
-async/timer_cancel1_test: Fail,OK # Needs Timer to run.
-async/timer_cancel2_test: Fail,OK # Needs Timer to run.
-async/timer_isolate_test: Fail, OK # Needs Timer to run.
-async/timer_repeat_test: Fail,OK # Needs Timer to run.
-async/timer_test: Fail,OK # Needs Timer to run.
+async/future_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
+async/slow_consumer2_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
+async/slow_consumer3_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
+async/slow_consumer_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
+async/stream_from_iterable_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
+async/stream_state_nonzero_timer_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
+async/multiple_timer_test: RuntimeError,OK # Needs Timer to run.
+async/timer_cancel_test: RuntimeError,OK # Needs Timer to run.
+async/timer_cancel1_test: RuntimeError,OK # Needs Timer to run.
+async/timer_cancel2_test: RuntimeError,OK # Needs Timer to run.
+async/timer_isolate_test: RuntimeError, OK # Needs Timer to run.
+async/timer_repeat_test: RuntimeError,OK # Needs Timer to run.
+async/timer_test: RuntimeError,OK # Needs Timer to run.
 
 [ $compiler == dart2js && ($jscl || $runtime == d8) ]
-async/stream_controller_async_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/stream_periodic_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/stream_periodic2_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/stream_periodic3_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/stream_periodic4_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/stream_periodic5_test: Fail # Timer interface not supported; dartbug.com/7728.
-async/run_zoned7_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/catch_errors22_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/timer_isActive_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/zone_empty_description2_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/zone_create_timer2_test: Fail # Timer interface not supported: dartbug.com/7728.
-async/zone_create_periodic_timer_test: Fail # Timer interface not supported: dartbug.com/7728.
+async/stream_controller_async_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
+async/stream_periodic_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
+async/stream_periodic2_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
+async/stream_periodic3_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
+async/stream_periodic4_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
+async/stream_periodic5_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
+async/run_zoned7_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
+async/catch_errors22_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
+async/timer_isActive_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
+async/zone_empty_description2_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
+async/zone_create_timer2_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
+async/zone_create_periodic_timer_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
 
 [ $compiler == dart2js && $browser ]
 async/timer_not_available_test: Fail, OK # only meant to test when there is no way to
@@ -111,7 +111,7 @@ async/deferred/deferred_api_test: Pass, Timeout # http://dartbug.com/12635
 convert/streamed_conversion_utf8_decode_test: Pass, Timeout # http://dartbug.com/12768
 
 [ $compiler == dart2js ]
-typed_data/typed_data_hierarchy_int64_test: Fail # Issue 10275
+typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
 
 [ $runtime == opera ]
 async/multiple_timer_test: Pass, Fail

@@ -13,7 +13,7 @@ io/skipping_dart2js_compilations_test: Skip # http/dartbug.com/12449
 io/dependency_graph_test: Skip # http/dartbug.com/12449
 io/status_file_parser_test: Skip # http/dartbug.com/12449
 
-package/invalid_uri_test: Fail, OK # Fails intentionally
+package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 
 [ $runtime == vm && $system == windows ]
 io/file_system_watcher_test: Pass, Timeout # Issue 13228
@@ -121,7 +121,7 @@ float_array_test: Skip # dart:typed_data support needed.
 int_array_test: Skip  # dart:typed_data support needed.
 io/web_socket_protocol_processor_test: Skip  # Importing code with external keyword
 int_array_load_elimination_test: Skip  # This is a VM test
-medium_integer_test: Fail, OK # Test fails with JS number semantics: issue 1533.
+medium_integer_test: RuntimeError, OK # Test fails with JS number semantics: issue 1533.
 io/process_exit_negative_test: Fail, OK # relies on a static error that is a warning now.
 package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issue 3051
 debugger/*: Skip # Do not run standalone vm debugger tests with dart2js.
@@ -131,15 +131,15 @@ double_smi_comparison_test: Skip # Precision > 53 bits.
 http_launch_test: Skip
 javascript_int_overflow_test: Skip
 javascript_int_overflow_literal_test: Skip
-oom_error_stacktrace_test: Fail, OK # (OOM on JS may produce a stacktrace).
+oom_error_stacktrace_test: RuntimeError, OK # (OOM on JS may produce a stacktrace).
 vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 
 
 [ $compiler == dart2js && $jscl ]
-assert_test: Fail, OK # Assumes unspecified fields on the AssertionError.
-deoptimization_test: Fail, OK # Requires bigint.
-out_of_memory_test: Fail, OK # d8 handles much larger arrays than Dart VM.
-io/options_test: Fail, OK # Cannot pass options to d8.
+assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
+deoptimization_test: RuntimeError, OK # Requires bigint.
+out_of_memory_test: RuntimeError, OK # d8 handles much larger arrays than Dart VM.
+io/options_test: CompileTimeError, OK # Cannot pass options to d8.
 
 [ $compiler == dart2js && $runtime == none ]
 io/options_test: Fail

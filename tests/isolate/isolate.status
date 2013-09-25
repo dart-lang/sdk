@@ -22,7 +22,7 @@ unresolved_ports_negative_test: Fail
 
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests
-illegal_msg_stream_test: Fail # Issue 6750
+illegal_msg_stream_test: RuntimeError # Issue 6750
 
 [ $compiler == dart2js && $browser ]
 illegal_msg_stream_test: Fail, Pass # Issue 6750
@@ -31,14 +31,14 @@ illegal_msg_stream_test: Fail, Pass # Issue 6750
 unresolved_ports_negative_test: Pass, Crash # Issue 10613
 
 [ $compiler == dart2js ]
-serialization_test: Fail # Issue 1882, tries to access class TestingOnly declared in isolate_patch.dart
-illegal_msg_test: Fail # Issue 6750
-stream_mangling_test: Fail # Issue 9245
+serialization_test: RuntimeError # Issue 1882, tries to access class TestingOnly declared in isolate_patch.dart
+illegal_msg_test: RuntimeError # Issue 6750
+stream_mangling_test: RuntimeError # Issue 9245
 
-global_error_handler_test: Pass, Fail # Issue 9012, Issue 9024
-global_error_handler_stream_test: Pass, Fail # Issue 9012, Issue 9024
-global_error_handler2_test: Pass, Fail # Issue 9012, Issue 9024
-global_error_handler_stream2_test: Pass, Fail # Issue 9012, Issue 9024
+global_error_handler_test: Pass, RuntimeError # Issue 9012, Issue 9024
+global_error_handler_stream_test: Pass, RuntimeError # Issue 9012, Issue 9024
+global_error_handler2_test: Pass, RuntimeError # Issue 9012, Issue 9024
+global_error_handler_stream2_test: Pass, RuntimeError # Issue 9012, Issue 9024
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ie9 || $runtime == ie10 || $runtime == safari) ]
 browser/typed_data_message_test: Fail # Issue 12624
@@ -99,4 +99,4 @@ spawn_uri_multi_test/none: Fail # http://dartbug.com/13454
 spawn_uri_test: Fail # http://dartbug.com/13454
 
 [ $jscl || $runtime == ie9 ]
-spawn_uri_multi_test/none: Fail # http://dartbug.com/13544
+spawn_uri_multi_test/none: RuntimeError # http://dartbug.com/13544

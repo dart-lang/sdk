@@ -38,13 +38,13 @@ date_time7_test: Fail
 unicode_test: Fail
 
 [ $compiler == dart2js ]
-error_stack_trace1_test: Fail # Issue 12399
-hash_set_test/01: Fail # Issue 11551
+error_stack_trace1_test: RuntimeError # Issue 12399
+hash_set_test/01: RuntimeError # Issue 11551
 
-big_integer_vm_test: Fail, OK # VM specific test.
-bit_twiddling_bigint_test: Fail # Requires bigint support.
-compare_to2_test: Fail, OK    # Requires bigint support.
-string_base_vm_test: Fail, OK # VM specific test.
+big_integer_vm_test: RuntimeError, OK # VM specific test.
+bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
+compare_to2_test: RuntimeError, OK    # Requires bigint support.
+string_base_vm_test: RuntimeError, OK # VM specific test.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
@@ -66,16 +66,16 @@ unicode_test: Fail # inherited from VM
 
 # Library changes
 [ $compiler == none || $compiler == dart2js || $compiler == dart2dart ]
-map_keys2_test: Fail # Generic types aren't right.
+map_keys2_test: RuntimeError # Generic types aren't right.
 
 [ $compiler == dart2js ]
-map_values2_test: Fail # Generic types aren't right
+map_values2_test: RuntimeError # Generic types aren't right
 
 ## Tests failing after merge of experimental library branch.
 [ $compiler == dart2js ]
 # Tests fail due to bug in generics on constants, issue 6827
-iterable_to_list_test: Fail
-iterable_to_set_test: Fail
+iterable_to_list_test: RuntimeError
+iterable_to_set_test: RuntimeError
 
 [ $compiler == dart2dart && $minified ]
 error_stack_trace1_test: Fail # Fails in minified mode, test depends on method names.
