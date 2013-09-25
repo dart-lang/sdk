@@ -73,6 +73,10 @@ ZoneGrowableArray<intptr_t>* CHA::GetSubclassIdsOf(intptr_t cid) {
 bool CHA::HasOverride(const Class& cls, const String& function_name) {
   const GrowableObjectArray& cls_direct_subclasses =
       GrowableObjectArray::Handle(cls.direct_subclasses());
+  // Subclasses of Object are not tracked by CHA. Safely assume that overrides
+  // exist.
+  if (cls.IsObjectClass()) return true;
+
   if (cls_direct_subclasses.IsNull()) {
     return false;
   }
