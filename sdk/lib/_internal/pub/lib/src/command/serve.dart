@@ -27,17 +27,9 @@ class ServeCommand extends PubCommand {
 
   PubPackageProvider _provider;
 
-  String get hostname => commandOptions['hostname'];
-
   ServeCommand() {
     commandParser.addOption('port', defaultsTo: '8080',
         help: 'The port to listen on.');
-
-    // A hidden option for the tests to work around a bug in some of the OS X
-    // bots where "localhost" very rarely resolves to the IPv4 loopback address
-    // instead of IPv6 (or vice versa). The tests will always set this to
-    // 127.0.0.1.
-    commandParser.addOption('hostname', defaultsTo: 'localhost', hide: true);
   }
 
   Future onRun() {
@@ -52,7 +44,7 @@ class ServeCommand extends PubCommand {
 
     return ensureLockFileIsUpToDate()
         .then((_) => entrypoint.loadPackageGraph())
-        .then((graph) => barback.createServer(hostname, port, graph))
+        .then((graph) => barback.createServer("localhost", port, graph))
         .then((server) {
       /// This completer is used to keep pub running (by not completing) and
       /// to pipe fatal errors to pub's top-level error-handling machinery.
@@ -93,7 +85,7 @@ class ServeCommand extends PubCommand {
       });
 
       log.message("Serving ${entrypoint.root.name} "
-          "on http://$hostname:${server.port}");
+          "on http://localhost:${server.port}");
 
       return completer.future;
     });
