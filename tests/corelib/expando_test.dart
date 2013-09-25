@@ -21,6 +21,7 @@ class ExpandoTest {
       Expect.equals(2, visits[object]);
     }
     testIllegal();
+    testIdentity();
   }
 
   static visit(object) {
@@ -78,6 +79,31 @@ class ExpandoTest {
     Expect.throws(() => expando[false], (exception)
                   => exception is ArgumentError);
   }
+
+  static testIdentity() {
+    // Expando only depends on identity of object.
+    Expando<int> expando = new Expando<int>();
+    var m1 = new Mutable(1);
+    var m2 = new Mutable(7);
+    var m3 = new Mutable(13);
+    expando[m1] = 42;
+    Expect.equals(42, expando[m1]);
+    m1.id = 37;
+    Expect.equals(42, expando[m1]);
+    expando[m2] = 37;
+    expando[m3] = 10;
+    m3.id = 1;
+    Expect.equals(42, expando[m1]);
+    Expect.equals(37, expando[m2]);
+    Expect.equals(10, expando[m3]);
+  }
 }
 
 main() => ExpandoTest.testMain();
+
+class Mutable {
+  int id;
+  Mutable(this.id);
+  int get hashCode => id;
+  bool operator==(other) => other is Mutable && other.id == id;
+}
