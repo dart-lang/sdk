@@ -26,7 +26,7 @@ def makeResources(root_dir, input_files):
     resource_url = '/%s' % resource_file_name
     result += '// %s\n' % resource_file
     result += 'const char '
-    resource_name = re.sub(r'(/|\.)', '_', resource_file_name) + '_'
+    resource_name = re.sub(r'(/|\.|-)', '_', resource_file_name) + '_'
     result += resource_name
     result += '[] = {\n   '
     fileHandle = open(resource_file, 'rb')
