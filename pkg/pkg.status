@@ -34,6 +34,7 @@ crypto/test/base64_test: Timeout # Issue 12486
 unittest/test/unittest_nested_groups_setup_teardown_test: Pass, RuntimeError # http://dartbug.com/10109
 stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
 sequence_zip/test/stream_test: RuntimeError, OK # Timers are not supported.
+unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
 
 [$compiler == dart2dart]
 *: Skip

@@ -60,8 +60,6 @@ async/timer_cancel2_test: RuntimeError,OK # Needs Timer to run.
 async/timer_isolate_test: RuntimeError, OK # Needs Timer to run.
 async/timer_repeat_test: RuntimeError,OK # Needs Timer to run.
 async/timer_test: RuntimeError,OK # Needs Timer to run.
-
-[ $compiler == dart2js && ($jscl || $runtime == d8) ]
 async/stream_controller_async_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
 async/stream_periodic_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
 async/stream_periodic2_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
@@ -74,6 +72,17 @@ async/timer_isActive_test: RuntimeError # Timer interface not supported: dartbug
 async/zone_empty_description2_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
 async/zone_create_timer2_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
 async/zone_create_periodic_timer_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
+async/catch_errors12_test: Fail # Timer interface not supported: dartbug.com/7728.
+async/catch_errors13_test: Fail # Timer interface not supported: dartbug.com/7728.
+async/catch_errors14_test: Fail # Timer interface not supported: dartbug.com/7728.
+async/catch_errors15_test: Fail # Timer interface not supported: dartbug.com/7728.
+async/catch_errors18_test: Fail # Timer interface not supported: dartbug.com/7728.
+async/catch_errors19_test: Fail # Timer interface not supported: dartbug.com/7728.
+async/catch_errors20_test: Fail # Timer interface not supported: dartbug.com/7728.
+async/catch_errors28_test: Fail # Timer interface not supported: dartbug.com/7728.
+async/catch_errors8_test: Fail # Timer interface not supported: dartbug.com/7728.
+async/run_zoned8_test: Fail # Timer interface not supported: dartbug.com/7728.
+
 
 [ $compiler == dart2js && $browser ]
 async/timer_not_available_test: Fail, OK # only meant to test when there is no way to

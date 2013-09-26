@@ -611,6 +611,30 @@ class BrowserTestCase extends TestCase {
   String get testingUrl => _testingUrl;
 }
 
+class UnittestSuiteMessagesMixin {
+  bool _isAsyncTest(String testOutput) {
+    return testOutput.contains("unittest-suite-wait-for-done");
+  }
+
+  bool _isAsyncTestSuccessfull(String testOutput) {
+    return testOutput.contains("unittest-suite-success");
+  }
+
+  Expectation _negateOutcomeIfIncompleteAsyncTest(Expectation outcome,
+                                                  String testOutput) {
+    // If this is an asynchronous test and the asynchronous operation didn't
+    // complete successfully, it's outcome is Expectation.FAIL.
+    // TODO: maybe we should introduce a AsyncIncomplete marker or so
+    if (outcome == Expectation.PASS) {
+      if (_isAsyncTest(testOutput) &&
+          !_isAsyncTestSuccessfull(testOutput)) {
+        return Expectation.FAIL;
+      }
+    }
+    return outcome;
+  }
+}
+
 /**
  * CommandOutput records the output of a completed command: the process's exit
  * code, the standard output and standard error, whether the process timed out,
@@ -1109,7 +1133,8 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
   }
 }
 
-class VmCommandOutputImpl extends CommandOutputImpl {
+class VmCommandOutputImpl extends CommandOutputImpl
+                          with UnittestSuiteMessagesMixin {
   static const DART_VM_EXITCODE_COMPILE_TIME_ERROR = 254;
   static const DART_VM_EXITCODE_UNCAUGHT_EXCEPTION = 255;
 
@@ -1161,6 +1186,7 @@ class VmCommandOutputImpl extends CommandOutputImpl {
     } else {
       outcome = Expectation.PASS;
     }
+    outcome = _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
     return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
   }
 }
@@ -1210,7 +1236,8 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
   }
 }
 
-class JsCommandlineOutputImpl extends CommandOutputImpl {
+class JsCommandlineOutputImpl extends CommandOutputImpl
+                              with UnittestSuiteMessagesMixin {
   JsCommandlineOutputImpl(Command command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time)
       : super(command, exitCode, timedOut, stdout, stderr, time, false);
@@ -1226,6 +1253,7 @@ class JsCommandlineOutputImpl extends CommandOutputImpl {
     }
 
     var outcome = exitCode == 0 ? Expectation.PASS : Expectation.RUNTIME_ERROR;
+    outcome = _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
     return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
   }
 }
