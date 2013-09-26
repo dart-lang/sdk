@@ -8,15 +8,15 @@ import 'dart:convert';
 
 const _NOOP = 'Nothing_to_escape';
 
-const _TEST_INPUT = '<A <test> of \u00A0 "double" & \'single\' values>';
+const _TEST_INPUT = '<A </test> of \u00A0 "double" & \'single\' values>';
 
-const _OUTPUT_UNKNOWN = '&lt;A &lt;test&gt; of &nbsp; &quot;double&quot; &amp; '
-  '&apos;single&apos; values&gt;';
+const _OUTPUT_UNKNOWN = '&lt;A &lt;&#x2F;test&gt; of &nbsp; &quot;double&quot; &amp; '
+  '&#x27;single&#x27; values&gt;';
 
-const _OUTPUT_ATTRIBUTE = "<A <test> of &nbsp; &quot;double&quot; &amp; "
+const _OUTPUT_ATTRIBUTE = "<A </test> of &nbsp; &quot;double&quot; &amp; "
   "\'single\' values>";
 
-const _OUTPUT_ELEMENT = '&lt;A &lt;test&gt; of &nbsp; "double" &amp; '
+const _OUTPUT_ELEMENT = '&lt;A &lt;&#x2F;test&gt; of &nbsp; "double" &amp; '
   '\'single\' values&gt;';
 
 void _testMode(HtmlEscape escape, String input, String expected) {

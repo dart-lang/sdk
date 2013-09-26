@@ -12,22 +12,23 @@ class HtmlEscapeMode {
   final bool escapeLtGt;
   final bool escapeQuot;
   final bool escapeApos;
+  final bool escapeSlash;
 
   // TODO(floitsch) - Document - Issue 13097
   static const HtmlEscapeMode UNKNOWN =
-    const HtmlEscapeMode._('unknown', true, true, true);
+    const HtmlEscapeMode._('unknown', true, true, true, true);
 
   // TODO(floitsch) - Document - Issue 13097
   static const HtmlEscapeMode ATTRIBUTE =
-    const HtmlEscapeMode._('attribute', false, true, false);
+    const HtmlEscapeMode._('attribute', false, true, false, false);
 
   // TODO(floitsch) - Document - Issue 13097
   static const HtmlEscapeMode ELEMENT =
-    const HtmlEscapeMode._('element', true, false, false);
+    const HtmlEscapeMode._('element', true, false, false, true);
 
   // TODO(floitsch) - Document - Issue 13097
   const HtmlEscapeMode._(this._name, this.escapeLtGt, this.escapeQuot,
-    this.escapeApos);
+    this.escapeApos, this.escapeSlash);
 
   String toString() => _name;
 }
@@ -55,9 +56,10 @@ class HtmlEscape extends Converter<String, String> {
         case '&': replace = '&amp;'; break;
         case '\u00A0'/*NO-BREAK SPACE*/: replace = '&nbsp;'; break;
         case '"': if (mode.escapeQuot) replace = '&quot;'; break;
-        case "'": if (mode.escapeApos) replace = '&apos;'; break;
+        case "'": if (mode.escapeApos) replace = '&#x27;'; break;
         case '<': if (mode.escapeLtGt) replace = '&lt;'; break;
         case '>': if (mode.escapeLtGt) replace = '&gt;'; break;
+        case '/': if (mode.escapeSlash) replace = '&#x2F;'; break;
       }
       if (replace != null) {
         if (result == null) result = new StringBuffer(text.substring(start, i));
