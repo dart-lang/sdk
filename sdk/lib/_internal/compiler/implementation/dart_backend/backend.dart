@@ -211,7 +211,18 @@ class DartBackend extends Backend {
       ClassElement classElement = coreLibrary.findLocal(new SourceString(name));
       classElement.ensureResolved(compiler);
     }
+    // Enqueue the methods that the VM might invoke on user objects because
+    // we don't trust the resolution to always get these included.
+    world.registerInvocation(
+        new Selector.call(const SourceString("toString"), null, 0));
+    world.registerInvokedGetter(
+        new Selector.getter(const SourceString("hashCode"), null));
+    world.registerInvocation(
+        new Selector.binaryOperator(const SourceString("==")));
+    world.registerInvocation(
+        new Selector.call(const SourceString("compareTo"), null, 1));
   }
+
   void codegen(CodegenWorkItem work) { }
   void processNativeClasses(Enqueuer world,
                             Iterable<LibraryElement> libraries) { }
