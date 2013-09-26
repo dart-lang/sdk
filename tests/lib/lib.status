@@ -34,7 +34,6 @@ mirrors/unnamed_library_test: RuntimeError # Issue 10580
 async/run_async3_test: RuntimeError # _enqueueImmediate runs after Timer. http://dartbug.com/9002
 async/run_async4_test: Pass, RuntimeError # no global exception handler in isolates. http://dartbug.com/9012
 async/run_async6_test: RuntimeError # global error handling is not supported. http://dartbug.com/5958
-async/stream_controller_async_test: RuntimeError, Pass # http://dartbug.com/11953
 mirrors/typedef_test/none: RuntimeError # http://dartbug.com/6490
 mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490

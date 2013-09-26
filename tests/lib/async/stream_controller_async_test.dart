@@ -659,7 +659,7 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
           return sink.close();
         })
         .then((_) {
-          if (asBroadcast) {
+          if (asBroadcast || broadcast) {
             // The done-future of the sink completes when it passes
             // the done event to the asBroadcastStream controller, which is
             // before the final listener gets the event.
