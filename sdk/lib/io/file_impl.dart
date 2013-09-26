@@ -17,6 +17,7 @@ class _FileStream extends Stream<List<int>> {
   RandomAccessFile _openedFile;
   int _position;
   int _end;
+  final Completer _closeCompleter = new Completer();
 
   // Has the stream been paused or unsubscribed?
   bool _paused = false;
@@ -58,14 +59,16 @@ class _FileStream extends Stream<List<int>> {
   }
 
   Future _closeFile() {
-    Future closeFuture;
-    if (_openedFile != null) {
-      Future closeFuture = _openedFile.close();
-      _openedFile = null;
-      return closeFuture;
-    } else {
-      return new Future.value();
+    if (_readInProgress) {
+      return _closeCompleter.future;
     }
+    if (_openedFile != null) {
+      _openedFile.close()
+          .then(_closeCompleter.complete,
+                onError: _closeCompleter.completeError);
+      _openedFile = null;
+    }
+    return _closeCompleter.future;
   }
 
   void _readBlock() {
@@ -76,6 +79,7 @@ class _FileStream extends Stream<List<int>> {
     if (_end != null) {
       readBytes = min(readBytes, _end - _position);
       if (readBytes < 0) {
+        _readInProgress = false;
         if (!_unsubscribed) {
           _controller.addError(new RangeError("Bad end position: $_end"));
           _closeFile().then((_) { _controller.close(); });
@@ -85,8 +89,14 @@ class _FileStream extends Stream<List<int>> {
       }
     }
     _openedFile.read(readBytes)
-      .then((block) {
+      .whenComplete(() {
         _readInProgress = false;
+      })
+      .then((block) {
+        if (_unsubscribed) {
+          _closeFile();
+          return;
+        }
         if (block.length == 0) {
           if (!_unsubscribed) {
             _closeFile().then((_) { _controller.close(); });
