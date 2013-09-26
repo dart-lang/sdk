@@ -38,10 +38,10 @@ Future runHttpClient(int port, result) {
 
   HttpClient client = new HttpClient();
 
-  var testFutures = [];
+  var testFutures = [];  // The three async getUrl calls run simultaneously.
   testFutures.add(client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
     .then((HttpClientRequest request) {
-      expect(false);
+      expect(result == 'true');  // The session cache may keep the session.
     }, onError: (e) {
       expect(e is HandshakeException || e is SocketException);
     }));
