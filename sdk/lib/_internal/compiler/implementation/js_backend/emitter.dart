@@ -4134,7 +4134,9 @@ if (typeof $printHelperName === "function") {
           buildPrecompiledFunction();
       emitInitFunction(mainBuffer);
       if (!areAnyElementsDeferred) {
-        mainBuffer.add('})()$n');
+        mainBuffer.add('})()\n');
+      } else {
+        mainBuffer.add('\n');
       }
       compiler.assembledCode = mainBuffer.getText();
       outputSourceMap(compiler.assembledCode, '');
