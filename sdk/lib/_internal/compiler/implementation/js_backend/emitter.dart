@@ -1134,8 +1134,10 @@ class CodeEmitterTask extends CompilerTask {
     // canonicalized, we would still need this cache: a typed selector
     // on A and a typed selector on B could yield the same stub.
     Set<String> generatedStubNames = new Set<String>();
-    if (compiler.enabledFunctionApply
-        && member.name == namer.closureInvocationSelectorName) {
+    bool isClosureInvocation =
+        member.name == namer.closureInvocationSelectorName;
+    if (backend.isNeededForReflection(member) ||
+        (compiler.enabledFunctionApply && isClosureInvocation)) {
       // If [Function.apply] is called, we pessimistically compile all
       // possible stubs for this closure.
       FunctionSignature signature = member.computeSignature(compiler);
@@ -1145,7 +1147,7 @@ class CodeEmitterTask extends CompilerTask {
       for (Selector selector in selectors) {
         addParameterStub(member, selector, defineStub, generatedStubNames);
       }
-      if (signature.optionalParametersAreNamed) {
+      if (signature.optionalParametersAreNamed && isClosureInvocation) {
         addCatchAllParameterStub(member, signature, defineStub);
       }
     } else {
@@ -1160,8 +1162,8 @@ class CodeEmitterTask extends CompilerTask {
 
   Set<Selector> computeSeenNamedSelectors(FunctionElement element) {
     Set<Selector> selectors = compiler.codegenWorld.invokedNames[element.name];
-    if (selectors == null) return null;
     Set<Selector> result = new Set<Selector>();
+    if (selectors == null) return result;
     for (Selector selector in selectors) {
       if (!selector.applies(element, compiler)) continue;
       result.add(selector);
@@ -1361,9 +1363,19 @@ class CodeEmitterTask extends CompilerTask {
               requiredParameterCount,
               names);
           namedArguments = namedParametersAsReflectionNames(selector);
+        } else {
+          // Named parameters are handled differently by mirrors.  For unnamed
+          // parameters, they are actually required if invoked
+          // reflectively. Also, if you have a method c(x) and c([x]) they both
+          // get the same mangled name, so they must have the same reflection
+          // name.
+          requiredParameterCount += optionalParameterCount;
+          optionalParameterCount = 0;
         }
       }
       String suffix =
+          // TODO(ahe): We probably don't need optionalParameterCount in the
+          // reflection name.
           '$name:$requiredParameterCount:$optionalParameterCount'
           '$namedArguments';
       return (isConstructor) ? 'new $suffix' : suffix;
