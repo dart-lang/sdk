@@ -397,7 +397,10 @@ class DesiredTypeVisitor extends HBaseVisitor {
 
   HType computeDesiredTypeForInput(HInstruction user, HInstruction input) {
     this.input = input;
-    HType desired = user.accept(this);
+    // We simplify the desired type to avoid requesting the type of an
+    // instantiation node, for example [ContainerTypeMask].
+    HType desired = user.accept(this).simplify(compiler);
+    assert(!desired.computeMask(compiler).isContainer);
     this.input = null;
     return desired;
   }
