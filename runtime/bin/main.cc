@@ -407,6 +407,7 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
     *error = strdup(Dart_GetError(result));                                    \
+    *is_compile_error = Dart_IsCompilationError(result);                       \
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
     return NULL;                                                               \
@@ -417,7 +418,8 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
 static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 const char* main,
                                                 void* data,
-                                                char** error) {
+                                                char** error,
+                                                bool* is_compile_error) {
   Dart_Isolate isolate =
       Dart_CreateIsolate(script_uri, main, snapshot_buffer, data, error);
   if (isolate == NULL) {
@@ -503,10 +505,12 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
 static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                           const char* main,
                                           void* data, char** error) {
+  bool is_compile_error = false;
   return CreateIsolateAndSetupHelper(script_uri,
                                      main,
                                      new IsolateData(),
-                                     error);
+                                     error,
+                                     &is_compile_error);
 }
 
 
@@ -765,16 +769,18 @@ int main(int argc, char** argv) {
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
   char* error = NULL;
+  bool is_compile_error = false;
   char* isolate_name = BuildIsolateName(script_name, "main");
   Dart_Isolate isolate = CreateIsolateAndSetupHelper(script_name,
                                                      "main",
                                                      new IsolateData(),
-                                                     &error);
+                                                     &error,
+                                                     &is_compile_error);
   if (isolate == NULL) {
     Log::PrintErr("%s\n", error);
     free(error);
     delete [] isolate_name;
-    return kErrorExitCode;  // Indicates we encountered an error.
+    return is_compile_error ? kCompilationErrorExitCode : kErrorExitCode;
   }
   delete [] isolate_name;
 
@@ -795,7 +801,7 @@ int main(int argc, char** argv) {
       Log::PrintErr("%s\n", Dart_GetError(result));
       Dart_ExitScope();
       Dart_ShutdownIsolate();
-      return kErrorExitCode;  // Indicates we encountered an error.
+      return DartErrorExit(result);
     }
 
     // Write the magic number to indicate file is a script snapshot.
