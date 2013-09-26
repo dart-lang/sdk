@@ -595,7 +595,13 @@ class IsolateNatives {
 
   // TODO(sigmund): clean up above, after we make the new API the default:
 
+  /// If [uri] is `null` it is replaced with the current script.
   static spawn(String functionName, String uri, bool isLight) {
+    // Assume that the compiled version of the Dart file lives just next to the
+    // dart file.
+    // TODO(floitsch): support precompiled version of dart2js output.
+    if (uri != null && uri.endsWith(".dart")) uri += ".js";
+
     Completer<SendPort> completer = new Completer.sync<SendPort>();
     ReceivePort port = new ReceivePort();
     port.receive((msg, SendPort replyPort) {

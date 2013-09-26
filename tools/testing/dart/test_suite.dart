@@ -1070,12 +1070,12 @@ class StandardTestSuite extends TestSuite {
       List<String> otherScripts = optionsFromFile['otherScripts'];
       for (String name in otherScripts) {
         Path namePath = new Path(name);
-        String baseName = namePath.filenameWithoutExtension;
+        String fileName = namePath.filename;
         Path fromPath = filePath.directoryPath.join(namePath);
         if (compiler != 'none') {
           assert(namePath.extension == 'dart');
           commands.add(_compileCommand(
-              fromPath.toNativePath(), '$tempDir/$baseName.js',
+              fromPath.toNativePath(), '$tempDir/$fileName.js',
               compiler, tempDir, vmOptions, optionsFromFile));
         }
         if (compiler == 'none') {
@@ -1083,7 +1083,7 @@ class StandardTestSuite extends TestSuite {
           // compiled, move the input scripts over with the script so they can
           // be accessed.
           String result = new File(fromPath.toNativePath()).readAsStringSync();
-          new File('$tempDir/$baseName.dart').writeAsStringSync(result);
+          new File('$tempDir/$fileName').writeAsStringSync(result);
         }
       }
 

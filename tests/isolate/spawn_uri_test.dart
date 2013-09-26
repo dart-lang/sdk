@@ -18,8 +18,7 @@ main() {
       port.close();
     }));
 
-    // TODO(eub): make this work for non-JS targets.
-    SendPort s = spawnUri('spawn_uri_child_isolate.js');
+    SendPort s = spawnUri('spawn_uri_child_isolate.dart');
     s.send('hi', port.toSendPort());
   });
 }
