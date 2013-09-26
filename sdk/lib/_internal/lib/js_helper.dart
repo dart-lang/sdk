@@ -706,7 +706,6 @@ class Primitives {
       arguments.addAll(positionalArguments);
     }
 
-    // TODO(ahe): Use JS_SOMETHING to get name from Namer.
     if (JS('bool', r'# in #', JS_GET_NAME('CALL_CATCH_ALL'), function)) {
       // We expect the closure to have a "call$catchAll" (the value of
       // JS_GET_NAME('CALL_CATCH_ALL')) function that returns all the expected

@@ -1265,6 +1265,11 @@ class CodeEmitterTask extends CompilerTask {
         var reflectable =
             js(backend.isAccessibleByReflection(member) ? '1' : '0');
         builder.addProperty('+$reflectionName', reflectable);
+        jsAst.Node defaultValues = reifyDefaultArguments(member);
+        if (defaultValues != null) {
+          String unmangledName = member.name.slowToString();
+          builder.addProperty('*$unmangledName', defaultValues);
+        }
       }
       code = backend.generatedBailoutCode[member];
       if (code != null) {
@@ -1273,7 +1278,7 @@ class CodeEmitterTask extends CompilerTask {
       FunctionElement function = member;
       FunctionSignature parameters = function.computeSignature(compiler);
       if (!parameters.optionalParameters.isEmpty) {
-        addParameterStubs(member, builder.addProperty);
+        addParameterStubs(function, builder.addProperty);
       }
     } else if (!member.isField()) {
       compiler.internalError('unexpected kind: "${member.kind}"',
@@ -1376,9 +1381,9 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   String namedParametersAsReflectionNames(Selector selector) {
-    if (selector.orderedNamedArguments.isEmpty) return '';
-    String names =
-        selector.orderedNamedArguments.map((x) => x.slowToString()).join(':');
+    if (selector.getOrderedNamedArguments().isEmpty) return '';
+    String names = selector.getOrderedNamedArguments().map(
+        (x) => x.slowToString()).join(':');
     return ':$names';
   }
 
@@ -2383,6 +2388,12 @@ class CodeEmitterTask extends CompilerTask {
       if (reflectionName != null) {
         var reflectable = backend.isAccessibleByReflection(element) ? 1 : 0;
         buffer.write(',$n$n"+$reflectionName":${_}$reflectable');
+        jsAst.Node defaultValues = reifyDefaultArguments(element);
+        if (defaultValues != null) {
+          String unmangledName = element.name.slowToString();
+          buffer.write(',$n$n"*$unmangledName":${_}');
+          buffer.write(jsAst.prettyPrint(defaultValues, compiler));
+        }
       }
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       if (bailoutCode != null) {
@@ -3695,6 +3706,20 @@ class CodeEmitterTask extends CompilerTask {
     });
   }
 
+  jsAst.Node reifyDefaultArguments(FunctionElement function) {
+    FunctionSignature signature = function.computeSignature(compiler);
+    if (signature.optionalParameterCount == 0) return null;
+    List<int> defaultValues = <int>[];
+    for (Element element in signature.orderedOptionalParameters) {
+      Constant value =
+          compiler.constantHandler.initialVariableValues[element];
+      String stringRepresentation = (value == null) ? "null"
+          : jsAst.prettyPrint(constantReference(value), compiler).getText();
+      defaultValues.add(addGlobalMetadata(stringRepresentation));
+    }
+    return js.toExpression(defaultValues);
+  }
+
   int reifyMetadata(MetadataAnnotation annotation) {
     Constant value = annotation.value;
     if (value == null) {
@@ -4267,6 +4292,9 @@ if (typeof $printHelperName === "function") {
   String getReflectionDataParser() {
     String metadataField = '"${namer.metadataField}"';
     String reflectableField = namer.reflectableField;
+    String defaultValuesField = namer.defaultValuesField;
+    String methodsWithOptionalArgumentsField =
+        namer.methodsWithOptionalArgumentsField;
     return '''
 (function (reflectionData) {
 '''
@@ -4325,6 +4353,13 @@ if (typeof $printHelperName === "function") {
         } else if (firstChar === "@") {
           property = property.substring(1);
           ${namer.CURRENT_ISOLATE}[property][$metadataField] = element;
+        } else if (firstChar === "*") {
+          globalObject[previousProperty].$defaultValuesField = element;
+          var optionalMethods = descriptor.$methodsWithOptionalArgumentsField;
+          if (!optionalMethods) {
+            descriptor.$methodsWithOptionalArgumentsField = optionalMethods = {}
+          }
+          optionalMethods[property] = previousProperty;
         } else if (typeof element === "function") {
           globalObject[previousProperty = property] = element;
           functions.push(property);
@@ -4344,6 +4379,13 @@ if (typeof $printHelperName === "function") {
 '''element[previousProp].$reflectableField = 1;
             } else if (firstChar === "@" && prop !== "@") {
               newDesc[prop.substring(1)][$metadataField] = element[prop];
+            } else if (firstChar === "*") {
+              newDesc[previousProp].$defaultValuesField = element[prop];
+              var optionalMethods = newDesc.$methodsWithOptionalArgumentsField;
+              if (!optionalMethods) {
+                newDesc.$methodsWithOptionalArgumentsField = optionalMethods={}
+              }
+              optionalMethods[prop] = previousProp;
             } else {
               newDesc[previousProp = prop] = element[prop];
             }

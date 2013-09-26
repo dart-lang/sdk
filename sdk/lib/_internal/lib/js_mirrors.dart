@@ -647,9 +647,6 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   Future<InstanceMirror> invokeAsync(Symbol memberName,
                                      List<Object> positionalArguments,
                                      [Map<Symbol, dynamic> namedArguments]) {
-    if (namedArguments != null && !namedArguments.isEmpty) {
-      throw new UnsupportedError('Named arguments are not implemented.');
-    }
     return
         new Future<InstanceMirror>(
             () => invoke(memberName, positionalArguments, namedArguments));
@@ -658,12 +655,55 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
                         [Map<Symbol,dynamic> namedArguments]) {
+    String name = n(memberName);
+    String reflectiveName;
     if (namedArguments != null && !namedArguments.isEmpty) {
-      throw new UnsupportedError('Named arguments are not implemented.');
+      var methodsWithOptionalArguments =
+          JS('=Object', '#.\$methodsWithOptionalArguments', reflectee);
+      String mangledName =
+          JS('String|Null', '#[#]', methodsWithOptionalArguments, '*$name');
+      if (mangledName == null) {
+        // TODO(ahe): Invoke noSuchMethod.
+        throw new UnimplementedNoSuchMethodError(
+            'Invoking noSuchMethod with named arguments not implemented');
+      }
+      var defaultValueIndices =
+          JS('List|Null', '#[#].\$defaultValues', reflectee, mangledName);
+      var defaultValues =
+          defaultValueIndices.map((int i) => JS('', 'init.metadata[#]', i))
+          .iterator;
+      var defaultArguments = new Map();
+      reflectiveName = mangledNames[mangledName];
+      var reflectiveNames = reflectiveName.split(':');
+      int requiredPositionalArgumentCount =
+          int.parse(reflectiveNames.elementAt(1));
+      positionalArguments = new List.from(positionalArguments);
+      // Check the number of positional arguments is valid.
+      if (requiredPositionalArgumentCount != positionalArguments.length) {
+        // TODO(ahe): Invoke noSuchMethod.
+        throw new UnimplementedNoSuchMethodError(
+            'Invoking noSuchMethod with named arguments not implemented');
+      }
+      for (String parameter in reflectiveNames.skip(3)) {
+        defaultValues.moveNext();
+        defaultArguments[parameter] = defaultValues.current;
+      }
+      namedArguments.forEach((Symbol symbol, value) {
+        String parameter = n(symbol);
+        if (defaultArguments.containsKey(parameter)) {
+          defaultArguments[parameter] = value;
+        } else {
+          // Extraneous named argument.
+          // TODO(ahe): Invoke noSuchMethod.
+          throw new UnimplementedNoSuchMethodError(
+              'Invoking noSuchMethod with named arguments not implemented');
+        }
+      });
+      positionalArguments.addAll(defaultArguments.values);
+    } else {
+      reflectiveName =
+          JS('String', '# + ":" + # + ":0"', name, positionalArguments.length);
     }
-    String reflectiveName =
-        JS('String', '# + ":" + # + ":0"',
-           n(memberName), positionalArguments.length);
     // We can safely pass positionalArguments to _invoke as it will wrap it in
     // a JSArray if needed.
     return _invoke(memberName, JSInvocationMirror.METHOD, reflectiveName,
@@ -686,8 +726,13 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     if (cacheEntry == null) {
       disableTreeShaking();
       String mangledName = reflectiveNames[reflectiveName];
-      // TODO(ahe): Get the argument names.
-      List<String> argumentNames = [];
+      List<String> argumentNames = const [];
+      if (type == JSInvocationMirror.METHOD) {
+        // Note: [argumentNames] are not what the user actually provided, it is
+        // always all the named paramters.
+        argumentNames = reflectiveName.split(':').skip(3).toList();
+      }
+
       // TODO(ahe): We don't need to create an invocation mirror here. The
       // logic from JSInvocationMirror.getCachedInvocation could easily be
       // inlined here.
@@ -1888,4 +1933,14 @@ class UnmodifiableMapView<K, V> implements Map<K, V> {
   V remove(K key) { _throw(); }
 
   void clear() => _throw();
+}
+
+// TODO(ahe): Remove this class and call noSuchMethod instead.
+class UnimplementedNoSuchMethodError extends Error
+    implements NoSuchMethodError {
+  final String _message;
+
+  UnimplementedNoSuchMethodError(this._message);
+
+  String toString() => "Unsupported operation: $_message";
 }

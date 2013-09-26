@@ -6,8 +6,13 @@ library test.invoke_named_test;
 
 import 'dart:mirrors';
 
+import 'dart:async' show Future;
+
 import 'package:expect/expect.dart';
 import 'invoke_test.dart';
+
+// TODO(ahe): Remove this variable (http://dartbug.com/12863).
+bool isDart2js = false;
 
 class C {
   a(a, {b:'B', c}) => "$a-$b-$c";
@@ -58,7 +63,7 @@ testSyncInvoke(ObjectMirror om) {
   Expect.throws(() => om.invoke(const Symbol('a'), ['X'], {const Symbol('undef') : 'Y'}),
                 isNoSuchMethodError,
                 'Unmatched named argument');
- 
+
   result = om.invoke(const Symbol('b'), []);
   Expect.equals('A-null-null', result.reflectee);
   result = om.invoke(const Symbol('b'), [], {const Symbol('a') : 'X'});
@@ -72,6 +77,7 @@ testSyncInvoke(ObjectMirror om) {
                 isNoSuchMethodError,
                 'Unmatched named argument');
 
+  if (!isDart2js) {
   result = om.invoke(const Symbol('c'), ['X']);
   Expect.equals('X-null-C', result.reflectee);
   result = om.invoke(const Symbol('c'), ['X', 'Y']);
@@ -102,6 +108,7 @@ testSyncInvoke(ObjectMirror om) {
   Expect.throws(() => om.invoke(const Symbol('d'), ['X'], {const Symbol('undef'): 'Y'}),
                 isNoSuchMethodError,
                 'Unmatched named argument');
+  }
 
   result = om.invoke(const Symbol('e'), ['X', 'Y', 'Z']);
   Expect.equals('X-Y-Z', result.reflectee);
@@ -137,8 +144,8 @@ testAsyncInvoke(ObjectMirror om) {
   expectError(future, isNoSuchMethodError, 'Extra positional arguments');
   future = om.invokeAsync(const Symbol('a'), ['X'], {const Symbol('undef') : 'Y'});
   expectError(future, isNoSuchMethodError, 'Unmatched named argument');
- 
- 
+
+
   future = om.invokeAsync(const Symbol('b'), []);
   expectValueThen(future, (result) {
     Expect.equals('A-null-null', result.reflectee);
@@ -156,7 +163,7 @@ testAsyncInvoke(ObjectMirror om) {
   future = om.invokeAsync(const Symbol('b'), ['X'], {const Symbol('undef'): 'Y'});
   expectError(future, isNoSuchMethodError, 'Unmatched named argument');
 
-
+  if (!isDart2js) {
   future = om.invokeAsync(const Symbol('c'), ['X']);
   expectValueThen(future, (result) {
     Expect.equals('X-null-C', result.reflectee);
@@ -197,7 +204,7 @@ testAsyncInvoke(ObjectMirror om) {
   expectError(future, isNoSuchMethodError, 'Extra positional arguments');
   future = om.invokeAsync(const Symbol('d'), ['X'], {const Symbol('undef'): 'Y'});
   expectError(future, isNoSuchMethodError, 'Unmatched named argument');
-
+  }
 
   future = om.invokeAsync(const Symbol('e'), ['X', 'Y', 'Z']);
   expectValueThen(future, (result) {
@@ -230,7 +237,7 @@ testSyncNewInstance() {
   Expect.throws(() => cm.newInstance(const Symbol(''), ['X'], {const Symbol('undef') : 'Y'}),
                 isNoSuchMethodError,
                 'Unmatched named argument');
- 
+
   result = cm.newInstance(const Symbol('b'), []);
   Expect.equals('A-null-null', result.reflectee.field);
   result = cm.newInstance(const Symbol('b'), [], {const Symbol('a') : 'X'});
@@ -310,8 +317,8 @@ testAsyncNewInstance() {
   expectError(future, isNoSuchMethodError, 'Extra positional arguments');
   future = cm.newInstanceAsync(const Symbol(''), ['X'], {const Symbol('undef') : 'Y'});
   expectError(future, isNoSuchMethodError, 'Unmatched named argument');
- 
- 
+
+
   future = cm.newInstanceAsync(const Symbol('b'), []);
   expectValueThen(future, (result) {
     Expect.equals('A-null-null', result.reflectee.field);
@@ -404,7 +411,7 @@ testSyncApply() {
   Expect.throws(() => cm.apply(['X'], {const Symbol('undef') : 'Y'}),
                 isNoSuchMethodError,
                 'Unmatched named argument');
- 
+
   cm = reflect(b);
   result = cm.apply([]);
   Expect.equals('A-null-null', result.reflectee);
@@ -489,7 +496,7 @@ testAsyncApply() {
   expectError(future, isNoSuchMethodError, 'Extra positional arguments');
   future = cm.applyAsync(['X'], {const Symbol('undef') : 'Y'});
   expectError(future, isNoSuchMethodError, 'Unmatched named argument');
- 
+
 
   cm = reflect(b);
   future = cm.applyAsync([]);
@@ -568,17 +575,23 @@ testAsyncApply() {
 }
 
 main() {
-  testSyncInvoke(reflect(new C()));       // InstanceMirror
-  testSyncInvoke(reflectClass(D));        // ClassMirror
-  testSyncInvoke(reflectClass(D).owner);  // LibraryMirror
+  isDart2js = true; /// 01: ok
 
-  testAsyncInvoke(reflect(new C()));       // InstanceMirror
-  testAsyncInvoke(reflectClass(D));        // ClassMirror
-  testAsyncInvoke(reflectClass(D).owner);  // LibraryMirror
+  testSyncInvoke(reflect(new C())); // InstanceMirror
+  if (!isDart2js) testSyncInvoke(reflectClass(D)); // ClassMirror
+  LibraryMirror lib = reflectClass(D).owner;
+  if (!isDart2js) testSyncInvoke(lib); // LibraryMirror
+
+  testAsyncInvoke(reflect(new C())); // InstanceMirror
+
+  if (isDart2js) return;
+
+  testAsyncInvoke(reflectClass(D)); // ClassMirror
+  testAsyncInvoke(lib); // LibraryMirror
 
   testSyncNewInstance();
   testAsyncNewInstance();
-  
+
   testSyncApply();
   testAsyncApply();
 }

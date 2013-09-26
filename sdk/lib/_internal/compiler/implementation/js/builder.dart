@@ -129,6 +129,14 @@ class JsBuilder {
         throw new ArgumentError('expression should be an empty Map');
       }
       return new ObjectInitializer([]);
+    } else if (expression is List) {
+      var values = new List<ArrayElement>(expression.length);
+      int index = 0;
+      for (var entry in expression) {
+        values[index] = new ArrayElement(index, toExpression(entry));
+        index++;
+      }
+      return new ArrayInitializer(values.length, values);
     } else {
       throw new ArgumentError('expression should be an Expression, '
                               'a String, a num, a bool, or a Map');

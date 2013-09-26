@@ -13,7 +13,7 @@ mirrors/generics_test/01: RuntimeError # Issue 12333
 mirrors/hierarchy_invariants_test: RuntimeError # Issue 11863
 mirrors/invoke_test: RuntimeError # Issue 11954
 mirrors/invoke_closurization_test: RuntimeError # Issue 13002
-mirrors/invoke_named_test: RuntimeError # Issue 10471, 12863
+mirrors/invoke_named_test/none: RuntimeError # Issue 10471, 12863
 mirrors/invoke_private_test: CompileTimeError # Issue 12164
 mirrors/invoke_throws_test: RuntimeError # Issue 11954
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
