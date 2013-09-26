@@ -251,6 +251,9 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
         size = element->Size();
         break;
       }
+      case kNullCid:
+        size = Size();
+        break;
       default:
         OS::Print("Class Id: %" Pd "\n", class_id);
         UNREACHABLE();
