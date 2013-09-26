@@ -154,6 +154,7 @@ class SocketExceptionTest {
   }
 
   static void clientSocketAddCloseErrorTest() {
+    asyncStart();
     ServerSocket.bind("127.0.0.1", 0).then((server) {
       var completer = new Completer();
       server.listen((socket) {
@@ -179,7 +180,6 @@ class SocketExceptionTest {
         client.add(new List.filled(SIZE, 0));
         // Destroy other socket now.
         completer.complete(null);
-        asyncStart();
         client.done.then(
             (_) {
               Expect.fail("Expected error");
