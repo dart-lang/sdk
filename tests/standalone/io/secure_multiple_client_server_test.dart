@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // VMOptions=
-// VMOptions=--short_socket_read
 // VMOptions=--short_socket_write
-// VMOptions=--short_socket_read --short_socket_write
+// Tests multiple secure connections from a client to a server, hitting
+// the secure connection cache.
 
 import "package:expect/expect.dart";
 import "package:path/path.dart";
@@ -33,8 +33,15 @@ Future<SecureServerSocket> startServer() {
   });
 }
 
+// A delay is inserted so that later connections use the secure
+// connection cache to reestablish connection with a shorter handshake.
+Duration delay = new Duration(milliseconds: 0);
+Duration betweenTests = new Duration(milliseconds: 200);
 Future testClient(server, name) {
-  return SecureSocket.connect(HOST_NAME, server.port).then((socket) {
+  delay += betweenTests;
+  return new Future.delayed(delay).then((_) {
+    return SecureSocket.connect(HOST_NAME, server.port);
+  }).then((socket) {
     socket.add("Hello from client $name".codeUnits);
     socket.close();
     return socket.fold(<int>[], (message, data) => message..addAll(data))
