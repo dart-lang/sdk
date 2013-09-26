@@ -42,6 +42,7 @@ Future runHttpClient(int port, result) {
   testFutures.add(client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
     .then((HttpClientRequest request) {
       expect(result == 'true');  // The session cache may keep the session.
+      return request.close();
     }, onError: (e) {
       expect(e is HandshakeException || e is SocketException);
     }));
@@ -50,7 +51,7 @@ Future runHttpClient(int port, result) {
   testFutures.add(client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
     .then((HttpClientRequest request) {
       expect(result == 'true');
-      request.close().then((result) { });
+      return request.close();
     }, onError: (e) {
       if (result == 'false') expect (e is HandshakeException ||
                                      e is SocketException);
@@ -63,6 +64,7 @@ Future runHttpClient(int port, result) {
   testFutures.add(client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
     .then((HttpClientRequest request) {
       expect(result == 'true');  // The session cache may keep the session.
+      return request.close();
     }, onError: (e) {
       expect(e is HandshakeException || e is SocketException);
     }));

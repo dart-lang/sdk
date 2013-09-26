@@ -53,7 +53,6 @@ io/process_non_ascii_test: Pass, Fail
 
 [ $runtime == vm ]
 io/http_server_early_client_close_test: Crash, Pass # Issue 12982
-io/https_bad_certificate_test: Pass, Timeout # Issue 13609
 io/secure_socket_bad_data_test: Crash, Pass # 12982
 
 [ $compiler == none && $runtime == drt ]
