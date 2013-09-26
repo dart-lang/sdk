@@ -7170,7 +7170,6 @@ class Document extends Node  native "Document"
   DocumentFragment createDocumentFragment() native;
 
   @JSName('createElement')
-  /// Deprecated: use new Element.tag(tagName) instead.
   @DomName('Document.createElement')
   @DocsEditable()
   Element _createElement(String localName_OR_tagName, [String typeExtension]) native;
@@ -28644,9 +28643,15 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   var _onData;
   final bool _useCapture;
 
-  _EventStreamSubscription(this._target, this._eventType, this._onData,
-      this._useCapture) {
+  _EventStreamSubscription(this._target, this._eventType, onData,
+      this._useCapture) : _onData = _wrapZone(onData) {
     _tryResume();
+  }
+
+  static _wrapZone(callback) {
+    // For performance reasons avoid wrapping if we are in the root zone.
+    if (Zone.current == Zone.ROOT) return callback;
+    return Zone.current.bindUnaryCallback(callback, runGuarded: true);
   }
 
   void cancel() {
@@ -28667,7 +28672,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     // Remove current event listener.
     _unlisten();
 
-    _onData = handleData;
+    _onData = _wrapZone(handleData);
     _tryResume();
   }
 
