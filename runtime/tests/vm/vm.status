@@ -59,9 +59,6 @@ cc/Sdc1Ldc1: Crash # Illegal instructions
 cc/Cop1CvtDL: Crash
 cc/Cop1CvtDL_neg: Crash
 
-# TODO(ajohnsen): Fix this as part of library changes.
-[ $compiler == none ]
-
 [ $compiler == dartanalyzer ]
 # has compilation error, as designed
 dart/isolate_mirror_local_test: fail
