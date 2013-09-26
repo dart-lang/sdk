@@ -4154,7 +4154,9 @@ if (typeof $printHelperName === "function") {
       outputSourceMap(compiler.assembledCode, '');
 
       mainBuffer.write(
-          jsAst.prettyPrint(precompiledFunctionAst, compiler).getText());
+          jsAst.prettyPrint(
+              precompiledFunctionAst, compiler,
+              allowVariableMinification: false).getText());
 
       compiler.outputProvider('', 'precompiled.js')
           ..add(mainBuffer.getText())
