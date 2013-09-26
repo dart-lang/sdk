@@ -882,11 +882,11 @@ abstract class ClassElement extends TypeDeclarationElement
                                    [Element noMatch(Element)]);
 
   void forEachMember(void f(ClassElement enclosingClass, Element member),
-                     {includeBackendMembers: false,
-                      includeSuperAndInjectedMembers: false});
+                     {bool includeBackendMembers: false,
+                      bool includeSuperAndInjectedMembers: false});
 
   void forEachInstanceField(void f(ClassElement enclosingClass, Element field),
-                            {includeSuperAndInjectedMembers: false});
+                            {bool includeSuperAndInjectedMembers: false});
 
   /// Similar to [forEachInstanceField] but visits static fields.
   void forEachStaticField(void f(ClassElement enclosingClass, Element field));

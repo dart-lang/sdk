@@ -316,7 +316,7 @@ abstract class FileSystemEntity {
    * [FileSystemEntity] when the deletion is done. If the [FileSystemEntity]
    * cannot be deleted, the future completes with an exception.
    */
-  Future<FileSystemEntity> delete({recursive: false})
+  Future<FileSystemEntity> delete({bool recursive: false})
       => _delete(recursive: recursive);
 
   /**
@@ -335,7 +335,7 @@ abstract class FileSystemEntity {
    *
    * Throws an exception if the [FileSystemEntity] cannot be deleted.
    */
-  void deleteSync({recursive: false})
+  void deleteSync({bool recursive: false})
       => _deleteSync(recursive: recursive);
 
 
@@ -365,8 +365,8 @@ abstract class FileSystemEntity {
                                events,
                                recursive).stream;
 
-  Future<FileSystemEntity> _delete({recursive: false});
-  void _deleteSync({recursive: false});
+  Future<FileSystemEntity> _delete({bool recursive: false});
+  void _deleteSync({bool recursive: false});
 
   /**
    * Checks whether two paths refer to the same object in the

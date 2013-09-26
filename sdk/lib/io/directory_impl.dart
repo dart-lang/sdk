@@ -125,7 +125,7 @@ class _Directory extends FileSystemEntity implements Directory {
     });
   }
 
-  Future<Directory> create({recursive: false}) {
+  Future<Directory> create({bool recursive: false}) {
     if (recursive) return createRecursively();
     return _IOService.dispatch(_DIRECTORY_CREATE, [path]).then((response) {
       if (_isErrorResponse(response)) {
@@ -150,7 +150,7 @@ class _Directory extends FileSystemEntity implements Directory {
     }
   }
 
-  void createSync({recursive: false}) {
+  void createSync({bool recursive: false}) {
     if (recursive) return createRecursivelySync();
     var result = _create(path);
     if (result is OSError) {
@@ -178,7 +178,7 @@ class _Directory extends FileSystemEntity implements Directory {
     return new Directory(result);
   }
 
-  Future<Directory> _delete({recursive: false}) {
+  Future<Directory> _delete({bool recursive: false}) {
     return _IOService.dispatch(_DIRECTORY_DELETE, [path, recursive])
         .then((response) {
           if (_isErrorResponse(response)) {
@@ -188,7 +188,7 @@ class _Directory extends FileSystemEntity implements Directory {
         });
   }
 
-  void _deleteSync({recursive: false}) {
+  void _deleteSync({bool recursive: false}) {
     var result = _deleteNative(path, recursive);
     if (result is OSError) {
       throw new DirectoryException("Deletion failed", path, result);

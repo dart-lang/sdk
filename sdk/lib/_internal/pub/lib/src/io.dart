@@ -150,7 +150,8 @@ List<int> readBinaryFile(String file) {
 /// Creates [file] and writes [contents] to it.
 ///
 /// If [dontLogContents] is true, the contents of the file will never be logged.
-String writeTextFile(String file, String contents, {dontLogContents: false}) {
+String writeTextFile(String file, String contents,
+  {bool dontLogContents: false}) {
   // Sanity check: don't spew a huge file.
   log.io("Writing ${contents.length} characters to text file $file.");
   if (!dontLogContents && contents.length < 1024 * 1024) {
@@ -451,7 +452,7 @@ Pair<EventSink, Future> consumerToSink(StreamConsumer consumer) {
 /// [cancelOnError] and [closeSink] are both true, [sink] will then be
 /// closed.
 Future store(Stream stream, EventSink sink,
-    {bool cancelOnError: true, closeSink: true}) {
+    {bool cancelOnError: true, bool closeSink: true}) {
   var completer = new Completer();
   stream.listen(sink.add,
       onError: (e) {

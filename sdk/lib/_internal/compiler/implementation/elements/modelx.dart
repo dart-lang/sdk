@@ -1889,7 +1889,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    * origin and in the patch are included.
    */
   void forEachInstanceField(void f(ClassElement enclosingClass, Element field),
-                            {includeSuperAndInjectedMembers: false}) {
+                            {bool includeSuperAndInjectedMembers: false}) {
     // Filters so that [f] is only invoked with instance fields.
     void fieldFilter(ClassElement enclosingClass, Element member) {
       if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
