@@ -160,6 +160,7 @@ async/run_zoned9_test/01: fail # Issue 12756.
 mirrors/library_metadata2_test/01: Fail # http://dartbug.com/12950
 mirrors/typedef_test/none: Fail # Issue 13093
 mirrors/generics_test/none: Fail # Issue 13432
+mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
 
 mirrors/parameter_metadata_test: Fail # Issue 13510
 mirrors/method_mirror_returntype_test: Fail # Issue 13510

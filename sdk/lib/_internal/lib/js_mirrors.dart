@@ -33,6 +33,8 @@ import 'dart:_interceptors' show
     JSExtendableArray;
 import 'dart:_js_names';
 
+const String METHODS_WITH_OPTIONAL_ARGUMENTS = r'$methodsWithOptionalArguments';
+
 /// No-op method that is called to inform the compiler that tree-shaking needs
 /// to be disabled.
 disableTreeShaking() => preserveNames();
@@ -1007,7 +1009,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     List<String> keys = extractKeys(prototype);
     var result = <JsMethodMirror>[];
     for (String key in keys) {
-      if (key == '') continue;
+      if (isReflectiveDataInPrototype(key)) continue;
       String simpleName = mangledNames[key];
       // [simpleName] can be null if [key] represents an implementation
       // detail, for example, a bailout method, or runtime type support.
@@ -1026,7 +1028,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     int length = keys.length;
     for (int i = 0; i < length; i++) {
       String mangledName = keys[i];
-      if (mangledName == '') continue; // Skip static field descriptor.
+      if (isReflectiveDataInPrototype(mangledName)) continue;
       String unmangledName = mangledName;
       var jsFunction = JS('', '#[#]', owner._globalObject, mangledName);
 
@@ -1893,6 +1895,14 @@ bool isOperatorName(String name) {
   default:
     return false;
   }
+}
+
+/// Returns true if the key represent ancillary reflection data, that is, not a
+/// method.
+bool isReflectiveDataInPrototype(String key) {
+  if (key == '' || key == METHODS_WITH_OPTIONAL_ARGUMENTS) return true;
+  String firstChar = key[0];
+  return firstChar == '*' || firstChar == '+';
 }
 
 // Copied from package "unmodifiable_collection".
