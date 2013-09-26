@@ -175,7 +175,3 @@ mirrors/parameter_metadata_test: Fail # Issue 13510
 mirrors/method_mirror_returntype_test: Fail # Issue 13510
 mirrors/function_type_mirror_test: Fail # Issue 13510
 mirrors/typevariable_mirror_metadata_test: Fail # Issue 13510
-
-[ $arch == x64 && $compiler == none && $runtime == vm ]
-math/double_pow_test: Pass, Fail # Issue 13543
-
