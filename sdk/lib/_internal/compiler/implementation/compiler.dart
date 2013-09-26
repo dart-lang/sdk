@@ -1281,17 +1281,14 @@ abstract class Compiler implements DiagnosticListener {
         () => resolver.computeFunctionType(element, signature));
   }
 
-  reportWarning(Node node, var message) {
+  reportWarning(Spannable node, var message) {
     if (message is TypeWarning) {
       // TODO(ahe): Don't supress these warning when the type checker
       // is more complete.
-      if (identical(message.message.kind, MessageKind.MISSING_RETURN)) return;
-      if (identical(message.message.kind, MessageKind.MAYBE_MISSING_RETURN)) {
-        return;
-      }
+      if (message.message.kind == MessageKind.MISSING_RETURN) return;
+      if (message.message.kind == MessageKind.MAYBE_MISSING_RETURN) return;
     }
-    SourceSpan span = spanFromNode(node);
-
+    SourceSpan span = spanFromSpannable(node);
     reportDiagnostic(span, '$message', api.Diagnostic.WARNING);
   }
 
