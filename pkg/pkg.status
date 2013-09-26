@@ -30,12 +30,6 @@ docgen/test/single_library_test: Crash # Issue 13542
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
 
-[ $compiler == dart2js && $runtime == drt ]
-crypto/test/hmac_sha256_test: Pass, Fail # v8 bug: Issue 12293
-crypto/test/sha1_test: Pass, Fail # v8 bug: Issue 12293
-crypto/test/sha256_test: Pass, Fail # v8 bug: Issue 12293
-path/test/relative_test: Pass, Fail # v8 bug: Issue 12293
-
 [ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_nested_groups_setup_teardown_test: Pass, RuntimeError # http://dartbug.com/10109
 stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces

@@ -2,10 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js && $runtime == drt ]
-convert/chunked_conversion_utf87_test: Pass, Fail # v8 bug: Issue 12293
-typed_data/byte_data_test: Pass, Fail # v8 bug: Issue 12293
-
 [ $compiler == dart2js ]
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError

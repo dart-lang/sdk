@@ -2,11 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js && $runtime == drt ]
-hash_set_test: Pass, Fail # v8 bug: Issue 12293
-list_test: Pass, Fail # v8 bug: Issue 12293
-
-
 [ $compiler == none ]
 unicode_test: Fail        # Bug 6706
 compare_to2_test: Fail    # Bug 4018
