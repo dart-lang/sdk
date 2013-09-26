@@ -6044,7 +6044,55 @@ AstNode* Parser::ParseIfStatement(String* label_name) {
 }
 
 
+// Check that all case expressions are of the same type, either int, String,
+// double or any other class that does not override the == operator.
+// The expressions are compile-time constants and are thus in the form
+// of a LiteralNode.
+void Parser::CheckCaseExpressions(const GrowableArray<LiteralNode*>& values) {
+  const intptr_t num_expressions = values.length();
+  if (num_expressions == 0) {
+    return;
+  }
+  const Instance& first_value = values[0]->literal();
+  for (intptr_t i = 0; i < num_expressions; i++) {
+    const Instance& val = values[i]->literal();
+    const intptr_t val_pos = values[i]->token_pos();
+    if (first_value.IsInteger()) {
+      if (!val.IsInteger()) {
+        ErrorMsg(val_pos, "expected case expression of type int");
+      }
+      continue;
+    }
+    if (first_value.IsString()) {
+      if (!val.IsString()) {
+        ErrorMsg(val_pos, "expected case expression of type String");
+      }
+      continue;
+    }
+    if (first_value.IsDouble()) {
+      if (!val.IsDouble()) {
+        ErrorMsg(val_pos, "expected case expression of type double");
+      }
+      continue;
+    }
+    if (val.clazz() != first_value.clazz()) {
+      ErrorMsg(val_pos, "all case expressions must be of same type");
+    }
+    Class& cls = Class::Handle(val.clazz());
+    const Function& equal_op = Function::Handle(
+        Resolver::ResolveDynamicAnyArgs(cls, Symbols::EqualOperator()));
+    ASSERT(!equal_op.IsNull());
+    cls = equal_op.Owner();
+    if (!cls.IsObjectClass()) {
+      ErrorMsg(val_pos,
+               "type class of case expression must not implement operator ==");
+    }
+  }
+}
+
+
 CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
+                                  GrowableArray<LiteralNode*>* case_expr_values,
                                   SourceLabel* case_label) {
   TRACE_PARSER("ParseCaseClause");
   bool default_seen = false;
@@ -6059,6 +6107,9 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
       ConsumeToken();  // Keyword case.
       const intptr_t expr_pos = TokenPos();
       AstNode* expr = ParseExpr(kRequireConst, kConsumeCascades);
+      ASSERT(expr->IsLiteralNode());
+      case_expr_values->Add(expr->AsLiteralNode());
+
       AstNode* switch_expr_load = new LoadLocalNode(case_pos,
                                                     switch_expr_value);
       AstNode* case_comparison = new ComparisonNode(expr_pos,
@@ -6147,6 +6198,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
 
   // Parse case clauses
   bool default_seen = false;
+  GrowableArray<LiteralNode*> case_expr_values;
   while (true) {
     // Check for statement label
     SourceLabel* case_label = NULL;
@@ -6177,7 +6229,8 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
       if (default_seen) {
         ErrorMsg("no case clauses allowed after default clause");
       }
-      CaseNode* case_clause = ParseCaseClause(temp_variable, case_label);
+      CaseNode* case_clause =
+          ParseCaseClause(temp_variable, &case_expr_values, case_label);
       default_seen = case_clause->contains_default();
       current_block_->statements->Add(case_clause);
     } else if (CurrentToken() != Token::kRBRACE) {
@@ -6189,8 +6242,9 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
     }
   }
 
-  // TODO(hausner): Check that all expressions in case clauses are
-  // of the same class, or implement int or String (issue 7307).
+  // Check that all expressions in case clauses are of the same class,
+  // or implement int, double or String.
+  CheckCaseExpressions(case_expr_values);
 
   // Check for unresolved label references.
   SourceLabel* unresolved_label =
