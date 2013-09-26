@@ -677,6 +677,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
     SourceString name = element.name;
     Element existing = importScope.putIfAbsent(name, () => element);
     if (existing != element) {
+      // TODO(johnniwinther): Only emit these warnings if [element] is used.
       if (existing.getLibrary().isPlatformLibrary &&
           !element.getLibrary().isPlatformLibrary) {
         // [existing] is implicitly hidden.
@@ -688,10 +689,19 @@ class LibraryElementX extends ElementX implements LibraryElement {
       } else if (!existing.getLibrary().isPlatformLibrary &&
                  element.getLibrary().isPlatformLibrary) {
         // [element] is implicitly hidden.
-        listener.reportWarningCode(import, MessageKind.HIDDEN_IMPORT,
-            {'name': name,
-             'hiddenUri': element.getLibrary().canonicalUri,
-             'hidingUri': existing.getLibrary().canonicalUri});
+        if (import == null) {
+          // [element] is imported implicitly (probably through dart:core).
+          listener.reportWarningCode(importers[existing].head,
+              MessageKind.HIDDEN_IMPLICIT_IMPORT,
+              {'name': name,
+               'hiddenUri': element.getLibrary().canonicalUri,
+               'hidingUri': existing.getLibrary().canonicalUri});
+        } else {
+          listener.reportWarningCode(import, MessageKind.HIDDEN_IMPORT,
+              {'name': name,
+               'hiddenUri': element.getLibrary().canonicalUri,
+               'hidingUri': existing.getLibrary().canonicalUri});
+        }
       } else {
         // TODO(johnniwinther): Provide access to the import tags from which
         // the elements came.

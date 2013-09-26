@@ -204,7 +204,7 @@ main() => new B();
       warning: const MessageKind("Warning: Duplicate import of '#{name}'."));
 
   static const MessageKind HIDDEN_IMPORT = const MessageKind(
-      "Warning: '#{name}' from library '#{hiddenUri}' by '#{name}' "
+      "Warning: '#{name}' from library '#{hiddenUri}' is hidden by '#{name}' "
       "from library '#{hidingUri}'.",
       howToFix: "Try adding 'hide #{name}' to the import of '#{hiddenUri}'.",
       examples: const [
@@ -255,6 +255,27 @@ class Future {}""",
 library export;
 
 export 'future.dart';"""}]);
+
+
+  static const MessageKind HIDDEN_IMPLICIT_IMPORT = const MessageKind(
+      "Warning: '#{name}' from library '#{hiddenUri}' is hidden by '#{name}' "
+      "from library '#{hidingUri}'.",
+      howToFix: "Try adding an explicit "
+                "'import \"#{hiddenUri}\" hide #{name}'.",
+      examples: const [
+          const {
+'main.dart':
+"""
+// This hides the implicit import of class Type from dart:core.
+import 'type.dart';
+
+void main() {}""",
+
+'type.dart':
+"""
+library type;
+
+class Type {}"""}]);
 
   static const MessageKind DUPLICATE_EXPORT = const MessageKind(
       "Error: Duplicate export of '#{name}'.");
