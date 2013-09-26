@@ -29,7 +29,7 @@ class Example {
     }
   }
   static test() {
-    nextVar = 0;  /// 01: compile-time error
+    nextVar = 0;  /// 01: runtime error
     this.nextVar = 0;  /// 02: compile-time error
   }
 }

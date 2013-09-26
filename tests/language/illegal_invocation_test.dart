@@ -6,7 +6,7 @@
 // Test for issue 1393.  Invoking a library prefix name caused an internal error
 // in dartc.
 
-import "illegal_invocation_lib.dart" as foo;  /// 01: compile-time error
+import "illegal_invocation_lib.dart" as foo;  /// 01: runtime error
 
 main() {
   // probably what the user meant was foo.foo(), but the qualifier refers

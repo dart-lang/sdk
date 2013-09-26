@@ -1,7 +1,6 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--constructor_name_check
 
 class A {
   // Constructor may not be static.
@@ -14,8 +13,9 @@ class A {
   var m;
   A.m() { m = 0; }  /// 04: compile-time error
 
-  set q(var value) { m = q; }
-  A.q();   /// 05: compile-time error
+  set q(var value) { m = q; }  // No name conflict with q=.
+  // The runtime error occurs because main calls new A() instead of new A.q().
+  A.q();   /// 05: runtime error
 
   A.foo() : m = 0;  /// 06: compile-time error
   int foo(int a, int b) => a + b * m;
