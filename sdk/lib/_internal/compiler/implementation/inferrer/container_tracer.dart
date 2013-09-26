@@ -588,24 +588,27 @@ class ContainerTracerVisitor
       }
     }
 
-    if (Elements.isLocal(element)) {
-      locals.update(element, rhsType, node);
-    }
-
+    TypeMask result;
     if (node.isPostfix) {
       // We don't check if [getterSelector] could be the container because
       // a list++ will always throw.
-      return inferrer.returnTypeOfSelector(getterSelector);
+      result = inferrer.returnTypeOfSelector(getterSelector);
     } else if (op != '=') {
       // We don't check if [getterSelector] could be the container because
       // a list += 42 will always throw.
-      return inferrer.returnTypeOfSelector(operatorSelector);
+      result = inferrer.returnTypeOfSelector(operatorSelector);
     } else {
       if (isValueEscaping) {
         escaping = true;
       }
-      return rhsType;
+      result = rhsType;
     }
+
+    if (Elements.isLocal(element)) {
+      locals.update(element, result, node);
+    }
+
+    return result;
   }
 
   TypeMask visitSuperSend(Send node) {
