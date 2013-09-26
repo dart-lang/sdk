@@ -9,11 +9,12 @@ import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:barback/barback.dart';
-import 'package:stack_trace/stack_trace.dart';
 
+import '../barback.dart';
 import '../dart.dart' as dart;
 import '../log.dart' as log;
 import '../utils.dart';
+import 'server.dart';
 
 /// A Dart script to run in an isolate.
 ///
@@ -306,7 +307,7 @@ Future<Set<Transformer>> loadTransformers(BarbackServer server,
       return transformers;
     });
   }).catchError((error) {
-    if (error is! CrossIsolateException) throw error;
+    if (error is! dart.CrossIsolateException) throw error;
     if (error.type != 'IsolateSpawnException') throw error;
     // TODO(nweiz): don't parse this as a string once issues 12617 and 12689 are
     // fixed.
@@ -322,7 +323,7 @@ Future<Set<Transformer>> loadTransformers(BarbackServer server,
 }
 
 /// A wrapper for a transformer that's in a different isolate.
-class _ForeignTransformer implements Transformer {
+class _ForeignTransformer extends Transformer {
   /// The port with which we communicate with the child isolate.
   ///
   /// This port and all messages sent across it are specific to this
@@ -407,13 +408,13 @@ Map _serializeId(AssetId id) => {'package': id.package, 'path': id.path};
 /// Sends the result of [future] through [port].
 ///
 /// This should be received on the other end using [_receiveFuture]. It
-/// re-raises any exceptions on the other side as [CrossIsolateException]s.
+/// re-raises any exceptions on the other side as [dart.CrossIsolateException]s.
 void _sendFuture(SendPort port, Future future) {
   future.then((result) {
     port.send({'success': result});
   }).catchError((error) {
     // TODO(nweiz): at least MissingInputException should be preserved here.
-    port.send({'error': CrossIsolateException.serialize(error)});
+    port.send({'error': dart.CrossIsolateException.serialize(error)});
   });
 }
 

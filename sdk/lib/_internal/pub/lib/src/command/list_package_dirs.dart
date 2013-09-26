@@ -6,7 +6,6 @@ library pub.command.list_package_dirs;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:path/path.dart' as path;
 

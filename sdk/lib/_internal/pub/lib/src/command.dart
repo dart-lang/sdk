@@ -26,7 +26,6 @@ import 'exit_codes.dart' as exit_codes;
 import 'http.dart';
 import 'io.dart';
 import 'log.dart' as log;
-import 'package.dart';
 import 'system_cache.dart';
 import 'utils.dart';
 

@@ -4,7 +4,6 @@
 
 library pub.pubspec;
 
-import 'package:barback/barback.dart';
 import 'package:yaml/yaml.dart';
 import 'package:path/path.dart' as path;
 
@@ -15,8 +14,6 @@ import 'source.dart';
 import 'source_registry.dart';
 import 'utils.dart';
 import 'version.dart';
-
-import 'log.dart' as log;
 
 /// The parsed contents of a pubspec file.
 ///

@@ -39,6 +39,16 @@ class SafeHttpServer extends StreamView<HttpRequest> implements HttpServer {
     _inner.sessionTimeout = timeout;
   }
 
+  String get serverHeader => _inner.serverHeader;
+  set serverHeader(String value) {
+    _inner.serverHeader = value;
+  }
+
+  Duration get idleTimeout => _inner.idleTimeout;
+  set idleTimeout(Duration value) {
+    _inner.idleTimeout = value;
+  }
+
   HttpConnectionsInfo connectionsInfo() => _inner.connectionsInfo();
 
   StreamSubscription<HttpRequest> listen(void onData(HttpRequest value),
@@ -139,4 +149,12 @@ class _HttpResponseWrapper implements HttpResponse {
   void writeCharCode(int charCode) => _inner.writeCharCode(charCode);
   void writeln([Object obj = ""]) => _inner.writeln(obj);
   void addError(error) => _inner.addError(error);
+
+  Duration get deadline => _inner.deadline;
+  set deadline(Duration value) {
+    _inner.deadline = value;
+  }
+
+  Future redirect(Uri location, {int status: HttpStatus.MOVED_TEMPORARILY}) =>
+      _inner.redirect(location, status: status);
 }

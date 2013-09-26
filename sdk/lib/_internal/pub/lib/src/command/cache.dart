@@ -6,7 +6,6 @@ library pub.command.cache;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import '../command.dart';
 import '../exit_codes.dart' as exit_codes;

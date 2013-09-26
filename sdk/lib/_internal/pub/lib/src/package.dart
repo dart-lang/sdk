@@ -9,7 +9,6 @@ import 'package:path/path.dart' as path;
 import 'io.dart';
 import 'pubspec.dart';
 import 'source_registry.dart';
-import 'utils.dart';
 import 'version.dart';
 
 final _README_REGEXP = new RegExp(r"^README($|\.)", caseSensitive: false);

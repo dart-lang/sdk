@@ -209,7 +209,7 @@ class BarbackServer {
 /// result. Malformed requests will be handled internally.
 class BarbackServerResult {
   /// The requested url.
-  final Url url;
+  final Uri url;
 
   /// The id that [url] identifies.
   final AssetId id;

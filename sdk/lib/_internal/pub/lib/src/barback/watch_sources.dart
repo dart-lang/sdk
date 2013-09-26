@@ -10,6 +10,7 @@ import 'package:watcher/watcher.dart';
 
 import '../entrypoint.dart';
 import '../io.dart';
+import '../package.dart';
 import '../package_graph.dart';
 
 /// Adds all of the source assets in the provided packages to barback and

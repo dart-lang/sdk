@@ -6,9 +6,10 @@
 library pub.utils;
 
 import 'dart:async';
-import 'dart:io';
 import "dart:collection";
 import "dart:convert";
+import 'dart:io';
+import 'dart:isolate';
 import 'dart:mirrors';
 
 import "package:analyzer_experimental/analyzer.dart";
