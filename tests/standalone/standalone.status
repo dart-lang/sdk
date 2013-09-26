@@ -52,13 +52,11 @@ io/directory_non_ascii_test: Pass, Fail
 io/process_non_ascii_test: Pass, Fail
 
 [ $runtime == vm ]
-io/http_server_early_client_close_test: Crash, Fail, Pass # Issue 12982
-io/http_server_early_client_close2_test: Crash, Fail, Pass # Issue 12982
+io/http_server_early_client_close_test: Crash, Fail, Pass, Timeout # Issue 12982
+io/http_server_early_client_close2_test: Crash, Fail, Pass, Timeout # Issue 12982
 io/http_server_response_test: Crash, Fail, Pass # Issue 12982
-io/https_bad_certificate_test: Pass, Fail # Issue 13609
-
-[ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
-io/secure_socket_bad_data_test: Crash, Pass # co19-roll r576: Please triage this failure
+io/https_bad_certificate_test: Pass, Timeout # Issue 13609
+io/secure_socket_bad_data_test: Crash, Pass # 12982
 
 [ $compiler == none && $runtime == drt ]
 typed_data_isolate_test: Skip # This test uses dart:io
