@@ -448,9 +448,14 @@ class ResolverTask extends CompilerTask {
     ResolverVisitor visitor = visitorFor(element);
     visitor.useElement(tree, element);
 
-    // TODO(johnniwinther): Avoid analyzing initializers if
-    // [Compiler.analyzeSignaturesOnly] is set.
-    initializerDo(tree, visitor.visit);
+    SendSet send = tree.asSendSet();
+    if (send != null) {
+      if (!compiler.analyzeSignaturesOnly) {
+        visitor.visit(send.arguments.head);
+      }
+    } else if (element.modifiers.isConst()) {
+      compiler.reportError(element, MessageKind.CONST_WITHOUT_INITIALIZER);
+    }
 
     if (Elements.isStaticOrTopLevelField(element)) {
       if (tree.asSendSet() != null) {

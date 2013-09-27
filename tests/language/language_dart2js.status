@@ -144,8 +144,6 @@ list_literal4_test: RuntimeError # Issue 12890
 map_literal4_test: RuntimeError # Issue 12891
 built_in_identifier_test/01: CompileTimeError # Issue 13022
 
-const_syntax_test/03: MissingCompileTimeError # Issue 12932
-const_syntax_test/04: MissingCompileTimeError # Issue 12932
 constructor9_test/01: MissingCompileTimeError # Issue 12934
 list_literal1_test/01: MissingCompileTimeError # Issue 12993
 map_literal1_test/01: MissingCompileTimeError # Issue 12993
@@ -250,8 +248,6 @@ compile_time_constant_arguments_test/02: Fail # Issue 5519
 compile_time_constant_arguments_test/03: Fail # Issue 5519
 compile_time_constant_arguments_test/05: Fail # Issue 5519
 compile_time_constant_arguments_test/06: Fail # Issue 5519
-const_syntax_test/03: Fail # Issue 12933
-const_syntax_test/04: Fail # Issue 12933
 const_syntax_test/05: Fail # Issue 12933
 const_syntax_test/06: Fail # Issue 12933
 const_syntax_test/07: Fail # Issue 12933
