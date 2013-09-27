@@ -182,17 +182,8 @@ crypto/test/hmac_md5_test: Fail, Pass
 # not minified.
 unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 
-[ $arch == arm ]
-*: Skip
-
-[ $arch == simarm ]
-*: Skip
-
 [ $arch == mips ]
-*: Skip
-
-[ $arch == simmips ]
-*: Skip
+*: Skip  # Issue 13650
 
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
