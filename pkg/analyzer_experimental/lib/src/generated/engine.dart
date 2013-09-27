@@ -4102,7 +4102,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   DartEntry recordGenerateDartHintsTask(GenerateDartHintsTask task) {
     Source librarySource = task.libraryElement.source;
-    AnalysisException thrownException = task.exception;
+    AnalysisException thrownException = task.thrownException;
     DartEntry libraryEntry = null;
     Map<Source, TimestampedData<List<AnalysisError>>> hintMap = task.hintMap;
     if (hintMap == null) {
@@ -4186,7 +4186,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   DartEntry recordParseDartTaskResults(ParseDartTask task) {
     Source source = task.source;
-    AnalysisException thrownException = task.exception;
+    AnalysisException thrownException = task.thrownException;
     DartEntry dartEntry = null;
     {
       SourceEntry sourceEntry = _cache.get(source);
@@ -4253,7 +4253,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   HtmlEntry recordParseHtmlTaskResults(ParseHtmlTask task) {
     Source source = task.source;
-    AnalysisException thrownException = task.exception;
+    AnalysisException thrownException = task.thrownException;
     HtmlEntry htmlEntry = null;
     {
       SourceEntry sourceEntry = _cache.get(source);
@@ -4327,7 +4327,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   DartEntry recordResolveDartLibraryTaskResults(ResolveDartLibraryTask task) {
     LibraryResolver resolver = task.libraryResolver;
-    AnalysisException thrownException = task.exception;
+    AnalysisException thrownException = task.thrownException;
     DartEntry unitEntry = null;
     Source unitSource = task.unitSource;
     if (resolver != null) {
@@ -4419,7 +4419,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   SourceEntry recordResolveDartUnitTaskResults(ResolveDartUnitTask task) {
     Source unitSource = task.source;
     Source librarySource = task.librarySource;
-    AnalysisException thrownException = task.exception;
+    AnalysisException thrownException = task.thrownException;
     DartEntry dartEntry = null;
     {
       SourceEntry sourceEntry = _cache.get(unitSource);
@@ -4477,7 +4477,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   SourceEntry recordResolveHtmlTaskResults(ResolveHtmlTask task) {
     Source source = task.source;
-    AnalysisException thrownException = task.exception;
+    AnalysisException thrownException = task.thrownException;
     HtmlEntry htmlEntry = null;
     {
       SourceEntry sourceEntry = _cache.get(source);
@@ -5927,7 +5927,7 @@ abstract class AnalysisTask {
    * The exception that was thrown while performing this task, or `null` if the task completed
    * successfully.
    */
-  AnalysisException exception;
+  AnalysisException thrownException;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -5958,7 +5958,7 @@ abstract class AnalysisTask {
     try {
       safelyPerform();
     } on AnalysisException catch (exception) {
-      exception = exception;
+      thrownException = exception;
       AnalysisEngine.instance.logger.logInformation2("Task failed: ${taskDescription}", exception);
     }
     return accept(visitor);
