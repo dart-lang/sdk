@@ -5258,7 +5258,7 @@ TEST_CASE(LoadPatch) {
   url = NewString("patch_url");
   source = NewString(kPatchChars);
 
-  result = Dart_LoadPatch(lib, url, source);
+  result = Dart_LibraryLoadPatch(lib, url, source);
   EXPECT_VALID(result);
 
   result = Dart_Invoke(lib, NewString("foo"), 0, NULL);

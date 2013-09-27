@@ -4208,9 +4208,9 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
 }
 
 
-DART_EXPORT Dart_Handle Dart_LoadPatch(Dart_Handle library,
-                                       Dart_Handle url,
-                                       Dart_Handle patch_source) {
+DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
+                                              Dart_Handle url,
+                                              Dart_Handle patch_source) {
   TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);

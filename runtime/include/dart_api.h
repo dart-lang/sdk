@@ -2241,9 +2241,9 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
  * \param url A url identifying the origin of the patch source
  * \param source A string of Dart patch source
  */
-DART_EXPORT Dart_Handle Dart_LoadPatch(Dart_Handle library,
-                                       Dart_Handle url,
-                                       Dart_Handle patch_source);
+DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
+                                              Dart_Handle url,
+                                              Dart_Handle patch_source);
 
 
 /*
