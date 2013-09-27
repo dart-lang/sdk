@@ -188,6 +188,9 @@ unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2J
 [ $arch == arm ]
 *: Skip  # Issue 13624
 
+[ $arch == simarm ]
+third_party/html5lib/test/tokenizer_test: Slow
+
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
