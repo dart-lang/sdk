@@ -10979,7 +10979,7 @@ class LibraryImportScope extends Scope {
       if (enclosingLibrary != null) {
         libName2 = enclosingLibrary.definingCompilationUnit.displayName;
       }
-      _errorListener.onError(new AnalysisError.con2(source, identifier.offset, identifier.length, StaticWarningCode.AMBIGUOUS_IMPORT, [foundEltName, libName1, libName2]));
+      _errorListener.onError(new AnalysisError.con2(source2, identifier.offset, identifier.length, StaticWarningCode.AMBIGUOUS_IMPORT, [foundEltName, libName1, libName2]));
       return foundElement;
     }
     if (foundElement != null) {
@@ -11057,7 +11057,7 @@ class LibraryScope extends EnclosedScope {
           offset = accessor.variable.nameOffset;
         }
       }
-      return new AnalysisError.con2(source, offset, duplicate.displayName.length, CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, [existing.displayName]);
+      return new AnalysisError.con2(source2, offset, duplicate.displayName.length, CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, [existing.displayName]);
     }
     return super.getErrorForDuplicate(existing, duplicate);
   }
@@ -11477,7 +11477,7 @@ abstract class Scope {
   AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
     Source source = duplicate.source;
     if (source == null) {
-      source = source;
+      source = source2;
     }
     return new AnalysisError.con2(source, duplicate.nameOffset, duplicate.displayName.length, CompileTimeErrorCode.DUPLICATE_DEFINITION, [existing.displayName]);
   }
@@ -11495,7 +11495,7 @@ abstract class Scope {
    *
    * @return the source object with which errors should be associated
    */
-  Source get source => definingLibrary.definingCompilationUnit.source;
+  Source get source2 => definingLibrary.definingCompilationUnit.source;
 
   /**
    * Return the element with which the given name is associated, or `null` if the name is not
