@@ -15,7 +15,7 @@ class A {
   static const i = false;
   static const j = n;
   static const k = 4.99;
-  static const l;
+  static const l = null;
   static const m = l;
   static const n = 42;
 }
