@@ -62,7 +62,7 @@ main() {
   });
 
   group('standard_events', () {
-    var a = new Element.tag('x-a');
+    var a;
     setUp(() {
       invocations = [];
     });
@@ -105,7 +105,7 @@ main() {
   });
 
   group('viewless_document', () {
-    var a = docB.createElement('x-a');
+    var a;
     setUp(() {
       invocations = [];
     });
