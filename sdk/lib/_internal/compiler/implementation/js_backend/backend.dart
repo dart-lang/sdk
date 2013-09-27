@@ -660,17 +660,17 @@ class JavaScriptBackend extends Backend {
     validateInterceptorImplementsAllObjectMethods(jsInterceptorClass);
 
     stringType = new HBoundedType(
-        new TypeMask.nonNullExact(jsStringClass.rawType));
+        new TypeMask.nonNullExact(jsStringClass));
     indexablePrimitiveType = new HBoundedType(
-        new TypeMask.nonNullSubtype(jsIndexableClass.rawType));
+        new TypeMask.nonNullSubtype(jsIndexableClass));
     readableArrayType = new HBoundedType(
-        new TypeMask.nonNullSubclass(jsArrayClass.rawType));
+        new TypeMask.nonNullSubclass(jsArrayClass));
     mutableArrayType = new HBoundedType(
-        new TypeMask.nonNullSubclass(jsMutableArrayClass.rawType));
+        new TypeMask.nonNullSubclass(jsMutableArrayClass));
     fixedArrayType = new HBoundedType(
-        new TypeMask.nonNullExact(jsFixedArrayClass.rawType));
+        new TypeMask.nonNullExact(jsFixedArrayClass));
     extendableArrayType = new HBoundedType(
-        new TypeMask.nonNullExact(jsExtendableArrayClass.rawType));
+        new TypeMask.nonNullExact(jsExtendableArrayClass));
   }
 
   void validateInterceptorImplementsAllObjectMethods(

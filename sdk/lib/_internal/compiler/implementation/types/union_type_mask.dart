@@ -37,8 +37,7 @@ class UnionTypeMask implements TypeMask {
         continue;
       } else {
         FlatTypeMask flatMask = mask;
-        assert(flatMask.base == null
-               || flatMask.base.element != compiler.dynamicClass);
+        assert(flatMask.base == null || flatMask.base != compiler.dynamicClass);
         int inListIndex = -1;
         bool covered = false;
 
@@ -87,13 +86,13 @@ class UnionTypeMask implements TypeMask {
     bool isNullable = masks.any((e) => e.isNullable);
 
     // Compute the common supertypes of the two types.
-    ClassElement firstElement = masks[0].base.element;
-    ClassElement secondElement = masks[1].base.element;
+    ClassElement firstElement = masks[0].base;
+    ClassElement secondElement = masks[1].base;
     Iterable<ClassElement> candidates =
         compiler.world.commonSupertypesOf(firstElement, secondElement);
     bool unseenType = false;
     for (int i = 2; i < masks.length; i++) {
-      ClassElement element = masks[i].base.element;
+      ClassElement element = masks[i].base;
       Set<ClassElement> supertypes = compiler.world.supertypesOf(element);
       if (supertypes == null) {
         unseenType = true;
@@ -105,7 +104,7 @@ class UnionTypeMask implements TypeMask {
     if (candidates.isEmpty || unseenType) {
       // TODO(kasperl): Get rid of this check. It can only happen when
       // at least one of the two base types is 'unseen'.
-      return new TypeMask(compiler.objectClass.rawType,
+      return new TypeMask(compiler.objectClass,
                           FlatTypeMask.SUBCLASS,
                           isNullable);
     }
@@ -120,7 +119,7 @@ class UnionTypeMask implements TypeMask {
       int size;
       int kind;
       if (subclasses != null
-          && masks.every((t) => subclasses.contains(t.base.element))) {
+          && masks.every((t) => subclasses.contains(t.base))) {
         // If both [this] and [other] are subclasses of the supertype,
         // then we prefer to construct a subclass type mask because it
         // will always be at least as small as the corresponding
@@ -140,9 +139,7 @@ class UnionTypeMask implements TypeMask {
       }
     }
     if (bestElement == compiler.objectClass) bestKind = FlatTypeMask.SUBCLASS;
-    return new TypeMask(bestElement.computeType(compiler),
-                        bestKind,
-                        isNullable);
+    return new TypeMask(bestElement, bestKind, isNullable);
   }
 
   TypeMask union(var other, Compiler compiler) {
@@ -217,7 +214,7 @@ class UnionTypeMask implements TypeMask {
     return disjointMasks.every((mask) => mask.satisfies(cls, compiler));
   }
 
-  bool contains(DartType type, Compiler compiler) {
+  bool contains(ClassElement type, Compiler compiler) {
     return disjointMasks.any((e) => e.contains(type, compiler));
   }
 

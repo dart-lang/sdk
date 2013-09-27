@@ -48,7 +48,7 @@ abstract class TypeInformation {
   TypeInformation([users, assignments])
       : users = (users == null) ? new Set<TypeInformation>() : users,
         assignments = (assignments == null) ? <TypeInformation>[] : assignments;
-      
+
 
   void addUser(TypeInformation user) {
     assert(!user.isConcrete);
@@ -157,7 +157,7 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
  * - Native functions and fields: because native methods contain no Dart
  *   code, and native fields do not have Dart assignments, we just
  *   trust their type annotation.
- *   
+ *
  */
 class ElementTypeInformation extends TypeInformation {
   final Element element;
@@ -227,7 +227,7 @@ class ElementTypeInformation extends TypeInformation {
         InterfaceType rawType = element.computeType(inferrer.compiler).asRaw();
         return rawType.treatAsDynamic
             ? inferrer.types.dynamicType.type
-            : new TypeMask.subtype(rawType);
+            : new TypeMask.subtype(rawType.element);
       } else {
         assert(element.isFunction()
                || element.isGetter()
@@ -454,7 +454,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         inferrer.updateParameterAssignments(
             this, element, arguments, typedSelector, remove: false);
       }
-      
+
       if (returnsElementType(typedSelector)) {
         // Find the [ElementInContainerTypeInformation] node and tell
         // that this node is a user of it. Later, when the element

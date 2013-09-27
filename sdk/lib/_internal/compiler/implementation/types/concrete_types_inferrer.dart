@@ -533,7 +533,7 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  bool contains(DartType type, Compiler compiler) {
+  bool contains(ClassElement type, Compiler compiler) {
     throw new UnsupportedError("");
   }
 
@@ -816,7 +816,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
       Element enclosing = field.enclosingElement;
       if (enclosing.isClass()) {
         ClassElement cls = enclosing;
-        TypeMask receiverMask = new TypeMask.exact(cls.rawType);
+        TypeMask receiverMask = new TypeMask.exact(cls);
         TypeMask resultMask = concreteTypeToTypeMask(result);
         augmentInferredSelectorType(selector, receiverMask, resultMask);
       }
@@ -974,11 +974,11 @@ class ConcreteTypesInferrer extends TypesInferrer {
       assert(element != null);
       if (element == compiler.backend.numImplementation) {
         return new TypeMask.nonNullSubclass(
-            compiler.backend.numImplementation.rawType);
+            compiler.backend.numImplementation);
       } else if (element == compiler.dynamicClass) {
-        return new TypeMask.nonNullSubclass(compiler.objectClass.rawType);
+        return new TypeMask.nonNullSubclass(compiler.objectClass);
       } else {
-        return new TypeMask.nonNullExact(element.rawType);
+        return new TypeMask.nonNullExact(element);
       }
     }
   }
@@ -1104,8 +1104,8 @@ class ConcreteTypesInferrer extends TypesInferrer {
       // abstract classes than num.
       TypeMask receiverMask =
           (receiverType == compiler.backend.numImplementation)
-              ? new TypeMask.nonNullSubclass(receiverType.rawType)
-              : new TypeMask.nonNullExact(receiverType.rawType);
+              ? new TypeMask.nonNullSubclass(receiverType)
+              : new TypeMask.nonNullExact(receiverType);
       TypeMask resultMask = concreteTypeToTypeMask(result);
       augmentInferredSelectorType(selector, receiverMask, resultMask);
     }

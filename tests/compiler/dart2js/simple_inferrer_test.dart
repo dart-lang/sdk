@@ -692,7 +692,7 @@ void main() {
     checkReturn('returnInt8', typesTask.intType);
     checkReturn('returnEmpty1', const TypeMask.nonNullEmpty());
     checkReturn('returnEmpty2', const TypeMask.nonNullEmpty());
-    TypeMask intType = new TypeMask.nonNullSubtype(compiler.intClass.rawType);
+    TypeMask intType = new TypeMask.nonNullSubtype(compiler.intClass);
     checkReturn('testIsCheck1', intType);
     checkReturn('testIsCheck2', intType);
     checkReturn('testIsCheck3', intType.nullable());
@@ -725,7 +725,7 @@ void main() {
     checkReturn('testIf1', typesTask.intType.nullable());
     checkReturn('testIf2', typesTask.intType.nullable());
     checkReturn('returnAsString',
-        new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
+        new TypeMask.subtype(compiler.stringClass));
     checkReturn('returnIntAsNum', typesTask.intType);
     checkReturn('returnAsTypedef', typesTask.functionType.nullable());
     checkReturn('returnTopLevelGetter', typesTask.intType);
@@ -780,14 +780,14 @@ void main() {
     checkFactoryConstructor(String className, String factoryName) {
       var cls = findElement(compiler, className);
       var element = cls.localLookup(buildSourceString(factoryName));
-      Expect.equals(new TypeMask.nonNullExact(cls.rawType),
+      Expect.equals(new TypeMask.nonNullExact(cls),
                     typesInferrer.getReturnTypeOfElement(element));
     }
     checkFactoryConstructor('A', '');
 
     checkReturn('testCascade1', typesTask.growableListType);
     checkReturn('testCascade2', new TypeMask.nonNullExact(
-        findElement(compiler, 'CascadeHelper').rawType));
+        findElement(compiler, 'CascadeHelper')));
     checkReturn('testSpecialization1', typesTask.numType);
     checkReturn('testSpecialization2', typesTask.dynamicType);
     checkReturn('testSpecialization3', typesTask.intType.nullable());

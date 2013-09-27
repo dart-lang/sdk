@@ -201,11 +201,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HType type = input.instructionType;
     if (type.isBoolean()) return input;
     // All values that cannot be 'true' are boolified to false.
-    DartType booleanType = backend.jsBoolClass.computeType(compiler);
     TypeMask mask = type.computeMask(compiler);
     // TODO(kasperl): Get rid of the null check here once all HTypes
     // have a proper mask.
-    if (mask != null && !mask.contains(booleanType, compiler)) {
+    if (mask != null && !mask.contains(backend.jsBoolClass, compiler)) {
       return graph.addConstantBool(false, compiler);
     }
     return node;
@@ -637,7 +636,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     } else if (!RuntimeTypes.hasTypeArguments(type)) {
       TypeMask expressionMask = expressionType.computeMask(compiler);
       TypeMask typeMask = (element == compiler.nullClass)
-          ? new TypeMask.subtype(type) : new TypeMask.nonNullSubtype(type);
+          ? new TypeMask.subtype(element)
+          : new TypeMask.nonNullSubtype(element);
       if (expressionMask.union(typeMask, compiler) == typeMask) {
         return graph.addConstantBool(true, compiler);
       } else if (expressionMask.intersection(typeMask, compiler).isEmpty) {
@@ -1513,7 +1513,6 @@ class SsaTypeConversionInserter extends HBaseVisitor
     visitDominatorTree(graph);
   }
 
-
   // Update users of [input] that are dominated by [:dominator.first:]
   // to use [newInput] instead.
   void changeUsesDominatedBy(HBasicBlock dominator,
@@ -1553,7 +1552,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
     if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
 
-    HType convertedType = new HType.nonNullSubtype(type, compiler);
+    HType convertedType = new HType.nonNullSubtype(element, compiler);
     HInstruction input = instruction.expression;
     for (HIf ifUser in ifUsers) {
       changeUsesDominatedBy(ifUser.thenBlock, input, convertedType);

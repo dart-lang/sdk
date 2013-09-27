@@ -44,7 +44,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
       return type;
     } else {
       assert(annotation.kind == TypeKind.INTERFACE);
-      otherType = new TypeMask.nonNullSubtype(annotation);
+      otherType = new TypeMask.nonNullSubtype(annotation.element);
     }
     if (isNullable) otherType = otherType.nullable();
     if (type == null) return otherType;
@@ -86,9 +86,12 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask get stringType => compiler.typesTask.stringType;
   TypeMask get typeType => compiler.typesTask.typeType;
 
-  TypeMask nonNullSubtype(DartType type) => new TypeMask.nonNullSubtype(type);
-  TypeMask nonNullSubclass(DartType type) => new TypeMask.nonNullSubclass(type);
-  TypeMask nonNullExact(DartType type) => new TypeMask.nonNullExact(type);
+  TypeMask nonNullSubtype(ClassElement type)
+      => new TypeMask.nonNullSubtype(type.declaration);
+  TypeMask nonNullSubclass(ClassElement type)
+      => new TypeMask.nonNullSubclass(type.declaration);
+  TypeMask nonNullExact(ClassElement type)
+      => new TypeMask.nonNullExact(type.declaration);
   TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
 
   TypeMask allocateContainer(TypeMask type,
@@ -296,7 +299,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     for (var type in typesReturned) {
       T mappedType;
       if (type == native.SpecialType.JsObject) {
-        mappedType = types.nonNullExact(compiler.objectClass.rawType);
+        mappedType = types.nonNullExact(compiler.objectClass);
       } else if (type.element == compiler.stringClass) {
         mappedType = types.stringType;
       } else if (type.element == compiler.intClass) {
@@ -314,15 +317,15 @@ abstract class InferrerEngine<T, V extends TypeSystem>
       } else if (type.isDynamic) {
         return types.dynamicType;
       } else if (!compiler.world.hasAnySubtype(type.element)) {
-        mappedType = types.nonNullExact(type.element.rawType);
+        mappedType = types.nonNullExact(type.element);
       } else {
         ClassElement element = type.element;
         Set<ClassElement> subtypes = compiler.world.subtypesOf(element);
         Set<ClassElement> subclasses = compiler.world.subclassesOf(element);
         if (subclasses != null && subtypes.length == subclasses.length) {
-          mappedType = types.nonNullSubclass(element.rawType);
+          mappedType = types.nonNullSubclass(element);
         } else {
-          mappedType = types.nonNullSubtype(element.rawType);
+          mappedType = types.nonNullSubtype(element);
         }
       }
       returnType = types.computeLUB(returnType, mappedType);
@@ -474,7 +477,7 @@ class SimpleTypeInferrerVisitor<T>
           }
         });
       }
-      returnType = types.nonNullExact(cls.rawType);
+      returnType = types.nonNullExact(cls);
     } else {
       signature.forEachParameter((element) {
         locals.update(element, inferrer.typeOfElement(element), node);

@@ -175,7 +175,8 @@ class HGraph {
     // TODO(sra): What is the type of the prototype of an interceptor?
     if (constant.isInterceptor()) return HType.UNKNOWN;
     ObjectConstant objectConstant = constant;
-    return new HBoundedType(new TypeMask.nonNullExact(objectConstant.type));
+    TypeMask mask = new TypeMask.nonNullExact(objectConstant.type.element);
+    return new HBoundedType(mask);
   }
 
   HConstant addConstant(Constant constant, Compiler compiler) {
@@ -1126,7 +1127,8 @@ abstract class HInstruction implements Spannable {
     assert(type.kind != TypeKind.TYPE_VARIABLE);
     assert(type.isRaw || type.kind == TypeKind.FUNCTION);
     if (type.treatAsDynamic) return this;
-    if (identical(type.element, compiler.objectClass)) return this;
+    ClassElement element = type.element;
+    if (identical(element, compiler.objectClass)) return this;
     if (type.kind != TypeKind.INTERFACE) {
       return new HTypeConversion(type, kind, HType.UNKNOWN, this);
     } else if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
@@ -1135,7 +1137,7 @@ abstract class HInstruction implements Spannable {
     } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.isRaw) {
         throw 'creating compound check to $type (this = ${this})';
     } else {
-      HType subtype = new HType.subtype(type, compiler);
+      HType subtype = new HType.subtype(element, compiler);
       return new HTypeConversion(type, kind, subtype, this);
     }
   }

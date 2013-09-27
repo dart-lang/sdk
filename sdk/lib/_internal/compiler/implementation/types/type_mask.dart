@@ -10,21 +10,24 @@ part of types;
  * yield conservative answers that contain too many classes.
  */
 abstract class TypeMask {
-  factory TypeMask(DartType base, int kind, bool isNullable)
+  factory TypeMask(ClassElement base, int kind, bool isNullable)
       => new FlatTypeMask(base, kind, isNullable);
 
   const factory TypeMask.empty() = FlatTypeMask.empty;
 
-  factory TypeMask.exact(DartType base) => new FlatTypeMask.exact(base);
-  factory TypeMask.subclass(DartType base) => new FlatTypeMask.subclass(base);
-  factory TypeMask.subtype(DartType base) => new FlatTypeMask.subtype(base);
+  factory TypeMask.exact(ClassElement base)
+      => new FlatTypeMask.exact(base);
+  factory TypeMask.subclass(ClassElement base)
+      => new FlatTypeMask.subclass(base);
+  factory TypeMask.subtype(ClassElement base)
+      => new FlatTypeMask.subtype(base);
 
   const factory TypeMask.nonNullEmpty() = FlatTypeMask.nonNullEmpty;
-  factory TypeMask.nonNullExact(DartType base)
+  factory TypeMask.nonNullExact(ClassElement base)
       => new FlatTypeMask.nonNullExact(base);
-  factory TypeMask.nonNullSubclass(DartType base)
+  factory TypeMask.nonNullSubclass(ClassElement base)
       => new FlatTypeMask.nonNullSubclass(base);
-  factory TypeMask.nonNullSubtype(DartType base)
+  factory TypeMask.nonNullSubtype(ClassElement base)
       => new FlatTypeMask.nonNullSubtype(base);
 
   factory TypeMask.unionOf(Iterable<TypeMask> masks, Compiler compiler) {
@@ -58,7 +61,7 @@ abstract class TypeMask {
   bool containsOnlyBool(Compiler compiler);
   bool containsOnlyString(Compiler compiler);
   bool containsOnly(ClassElement element);
-  
+
   /**
    * Returns whether this type mask is an instance of [cls].
    */
@@ -67,7 +70,7 @@ abstract class TypeMask {
   /**
    * Returns whether or not this type mask contains the given type.
    */
-  bool contains(DartType type, Compiler compiler);
+  bool contains(ClassElement type, Compiler compiler);
 
   /**
    * Returns whether or not this type mask contains all types.

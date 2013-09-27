@@ -148,14 +148,13 @@ types.TypeMask findTypeMask(compiler, String name,
     element = compiler.coreLibrary.find(sourceName);
   }
   Expect.isNotNull(element, 'Could not locate $name');
-  var dartType = element.computeType(compiler);
   switch (how) {
-    case 'exact': return new types.TypeMask.exact(dartType);
-    case 'nonNullExact': return new types.TypeMask.nonNullExact(dartType);
-    case 'subclass': return new types.TypeMask.subclass(dartType);
-    case 'nonNullSubclass': return new types.TypeMask.nonNullSubclass(dartType);
-    case 'subtype': return new types.TypeMask.subtype(dartType);
-    case 'nonNullSubtype': return new types.TypeMask.nonNullSubtype(dartType);
+    case 'exact': return new types.TypeMask.exact(element);
+    case 'nonNullExact': return new types.TypeMask.nonNullExact(element);
+    case 'subclass': return new types.TypeMask.subclass(element);
+    case 'nonNullSubclass': return new types.TypeMask.nonNullSubclass(element);
+    case 'subtype': return new types.TypeMask.subtype(element);
+    case 'nonNullSubtype': return new types.TypeMask.nonNullSubtype(element);
   }
   Expect.fail('Unknown HType constructor $how');
 }

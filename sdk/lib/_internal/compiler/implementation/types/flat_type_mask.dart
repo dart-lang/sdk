@@ -15,46 +15,31 @@ class FlatTypeMask implements TypeMask {
   static const int SUBCLASS = 2;
   static const int SUBTYPE  = 3;
 
-  final DartType base;
+  final ClassElement base;
   final int flags;
 
-  FlatTypeMask(DartType base, int kind, bool isNullable)
+  FlatTypeMask(ClassElement base, int kind, bool isNullable)
       : this.internal(base, (kind << 1) | (isNullable ? 1 : 0));
 
-  FlatTypeMask.exact(DartType base)
+  FlatTypeMask.exact(ClassElement base)
       : this.internal(base, (EXACT << 1) | 1);
-  FlatTypeMask.subclass(DartType base)
+  FlatTypeMask.subclass(ClassElement base)
       : this.internal(base, (SUBCLASS << 1) | 1);
-  FlatTypeMask.subtype(DartType base)
+  FlatTypeMask.subtype(ClassElement base)
       : this.internal(base, (SUBTYPE << 1) | 1);
 
   const FlatTypeMask.nonNullEmpty(): base = null, flags = 0;
   const FlatTypeMask.empty() : base = null, flags = 1;
 
-  FlatTypeMask.nonNullExact(DartType base)
+  FlatTypeMask.nonNullExact(ClassElement base)
       : this.internal(base, EXACT << 1);
-  FlatTypeMask.nonNullSubclass(DartType base)
+  FlatTypeMask.nonNullSubclass(ClassElement base)
       : this.internal(base, SUBCLASS << 1);
-  FlatTypeMask.nonNullSubtype(DartType base)
+  FlatTypeMask.nonNullSubtype(ClassElement base)
       : this.internal(base, SUBTYPE << 1);
 
-  FlatTypeMask.internal(DartType base, this.flags)
-      : this.base = transformBase(base) {
-    assert(base == null || !(isExact && base.treatAsDynamic));
-  }
-
-  // TODO(kasperl): We temporarily transform the base to be the raw
-  // variant of the type. Long term, we're going to keep the class
-  // element corresponding to the type in the mask instead.
-  static DartType transformBase(DartType base) {
-    if (base == null) {
-      return null;
-    } else if (base.kind != TypeKind.INTERFACE) {
-      assert(base.kind == TypeKind.INTERFACE);
-      return null;
-    } else {
-      return base.asRaw();
-    }
+  FlatTypeMask.internal(this.base, this.flags) {
+    assert(base == null || base.isDeclaration);
   }
 
   bool get isEmpty => (flags >> 1) == EMPTY;
@@ -81,10 +66,11 @@ class FlatTypeMask implements TypeMask {
 
   TypeMask simplify(Compiler compiler) => this;
 
-  bool contains(DartType type, Compiler compiler) {
+  bool contains(ClassElement type, Compiler compiler) {
+    assert(type.isDeclaration);
     if (isEmpty) {
       return false;
-    } else if (identical(base.element, type.element)) {
+    } else if (identical(base, type)) {
       return true;
     } else if (isExact) {
       return false;
@@ -97,43 +83,44 @@ class FlatTypeMask implements TypeMask {
   }
 
   bool containsOnlyInt(Compiler compiler) {
-    return base.element == compiler.intClass
-        || base.element == compiler.backend.intImplementation;
+    return base == compiler.intClass
+        || base == compiler.backend.intImplementation;
   }
 
   bool containsOnlyDouble(Compiler compiler) {
-    return base.element == compiler.doubleClass
-        || base.element == compiler.backend.doubleImplementation;
+    return base == compiler.doubleClass
+        || base == compiler.backend.doubleImplementation;
   }
 
   bool containsOnlyNum(Compiler compiler) {
-    return base.element == compiler.numClass
-        || base.element == compiler.backend.numImplementation;
+    return base == compiler.numClass
+        || base == compiler.backend.numImplementation;
   }
 
   bool containsOnlyNull(Compiler compiler) {
-    return base.element == compiler.nullClass
-        || base.element == compiler.backend.nullImplementation;
+    return base == compiler.nullClass
+        || base == compiler.backend.nullImplementation;
   }
 
   bool containsOnlyBool(Compiler compiler) {
-    return base.element == compiler.boolClass
-        || base.element == compiler.backend.boolImplementation;
+    return base == compiler.boolClass
+        || base == compiler.backend.boolImplementation;
   }
 
   bool containsOnlyString(Compiler compiler) {
-    return base.element == compiler.stringClass
-        || base.element == compiler.backend.stringImplementation;
+    return base == compiler.stringClass
+        || base == compiler.backend.stringImplementation;
   }
 
   bool containsOnly(ClassElement cls) {
-    return base.element == cls;
+    assert(cls.isDeclaration);
+    return base == cls;
   }
 
   bool satisfies(ClassElement cls, Compiler compiler) {
+    assert(cls.isDeclaration);
     if (isEmpty) return false;
-    return base.element == cls
-        || isSubtypeOf(base, cls.computeType(compiler).asRaw(), compiler);
+    return base == cls || isSubtypeOf(base, cls, compiler);
   }
 
   /**
@@ -143,11 +130,10 @@ class FlatTypeMask implements TypeMask {
   ClassElement singleClass(Compiler compiler) {
     if (isEmpty) return null;
     if (isNullable) return null;  // It is Null and some other class.
-    ClassElement element = base.element;
     if (isExact) {
-      return element;
+      return base;
     } else if (isSubclass) {
-      return compiler.world.hasAnySubclass(element) ? null : element;
+      return compiler.world.hasAnySubclass(base) ? null : base;
     } else {
       assert(isSubtype);
       return null;
@@ -159,8 +145,8 @@ class FlatTypeMask implements TypeMask {
    */
   bool containsAll(Compiler compiler) {
     if (isEmpty || isExact) return false;
-    return identical(base.element, compiler.objectClass)
-        || identical(base.element, compiler.dynamicClass);
+    return identical(base, compiler.objectClass)
+        || identical(base, compiler.dynamicClass);
   }
 
   TypeMask union(TypeMask other, Compiler compiler) {
@@ -348,7 +334,7 @@ class FlatTypeMask implements TypeMask {
     int combined = (kind << 1) | (flags & other.flags & 1);
     TypeMask result;
     for (ClassElement each in candidates) {
-      TypeMask mask = new FlatTypeMask.internal(each.rawType, combined);
+      TypeMask mask = new FlatTypeMask.internal(each, combined);
       result = (result == null) ? mask : result.union(mask, compiler);
     }
     return result;
@@ -359,7 +345,7 @@ class FlatTypeMask implements TypeMask {
   }
 
   Iterable<ClassElement> containedClasses(Compiler compiler) {
-    Iterable<ClassElement> self = [ base.element ];
+    Iterable<ClassElement> self = [ base ];
     if (isExact) {
       return self;
     } else {
@@ -408,7 +394,7 @@ class FlatTypeMask implements TypeMask {
 
     // TODO(kasperl): Can't we just avoid creating typed selectors
     // based of function types?
-    Element self = base.element;
+    Element self = base;
     if (self.isTypedef()) {
       // A typedef is a function type that doesn't have any
       // user-defined members.
@@ -468,7 +454,7 @@ class FlatTypeMask implements TypeMask {
       if (!isNullable) return false;
       cls = compiler.backend.nullImplementation;
     } else {
-      cls = base.element;
+      cls = base;
     }
 
     // Use [lookupMember] because finding abstract members is okay.
@@ -481,7 +467,7 @@ class FlatTypeMask implements TypeMask {
     // `null`.
     if (isEmpty) return false;
     // A call on an exact mask for an abstract class is dead code.
-    if (isExact && base.element.isAbstract(compiler)) return false;
+    if (isExact && base.isAbstract(compiler)) return false;
     // If the receiver is guaranteed to have a member that
     // matches what we're looking for, there's no need to
     // introduce a noSuchMethod handler. It will never be called.
@@ -524,17 +510,16 @@ class FlatTypeMask implements TypeMask {
     // handler because we may have to call B.noSuchMethod since B
     // does not implement bar.
 
-    Element cls = base.element;
-    bool hasMatch = hasConcreteMatch(cls, selector, compiler);
+    bool hasMatch = hasConcreteMatch(base, selector, compiler);
     if (isExact) return !hasMatch;
-    if (!cls.isAbstract(compiler) && !hasMatch) return true;
+    if (!base.isAbstract(compiler) && !hasMatch) return true;
 
     Set<ClassElement> subtypesToCheck;
     if (isSubtype) {
-      subtypesToCheck = compiler.world.subtypesOf(cls);
+      subtypesToCheck = compiler.world.subtypesOf(base);
     } else {
       assert(isSubclass);
-      subtypesToCheck = compiler.world.subclassesOf(cls);
+      subtypesToCheck = compiler.world.subclassesOf(base);
     }
 
     return subtypesToCheck != null
@@ -558,8 +543,7 @@ class FlatTypeMask implements TypeMask {
     // implemented on the exact receiver type. It could be found in a
     // subclass or in an inheritance-wise unrelated class in case of
     // subtype selectors.
-    ClassElement cls = base.element;
-    return (cls.isSubclassOf(enclosing)) ? result : null;
+    return (base.isSubclassOf(enclosing)) ? result : null;
   }
 
   bool operator ==(var other) {
@@ -579,22 +563,20 @@ class FlatTypeMask implements TypeMask {
     if (isExact) buffer.write('exact=');
     if (isSubclass) buffer.write('subclass=');
     if (isSubtype) buffer.write('subtype=');
-    buffer.write(base.element.name.slowToString());
+    buffer.write(base.name.slowToString());
     return "[$buffer]";
   }
 
-  static bool isSubclassOf(DartType x, DartType y, Compiler compiler) {
-    ClassElement xElement = x.element;
-    ClassElement yElement = y.element;
-    Set<ClassElement> subclasses = compiler.world.subclassesOf(yElement);
-    return (subclasses != null) ? subclasses.contains(xElement) : false;
+  static bool isSubclassOf(ClassElement x, ClassElement y, Compiler compiler) {
+    assert(x.isDeclaration && y.isDeclaration);
+    Set<ClassElement> subclasses = compiler.world.subclassesOf(y);
+    return (subclasses != null) ? subclasses.contains(x) : false;
   }
 
-  static bool isSubtypeOf(DartType x, DartType y, Compiler compiler) {
-    ClassElement xElement = x.element;
-    ClassElement yElement = y.element;
-    Set<ClassElement> subtypes = compiler.world.subtypesOf(yElement);
-    return (subtypes != null) ? subtypes.contains(xElement) : false;
+  static bool isSubtypeOf(ClassElement x, ClassElement y, Compiler compiler) {
+    assert(x.isDeclaration && y.isDeclaration);
+    Set<ClassElement> subtypes = compiler.world.subtypesOf(y);
+    return (subtypes != null) ? subtypes.contains(x) : false;
   }
 
   static Set<ClassElement> commonContainedClasses(FlatTypeMask x,
@@ -617,7 +599,7 @@ class FlatTypeMask implements TypeMask {
   }
 
   static Set<ClassElement> containedSubset(FlatTypeMask x, Compiler compiler) {
-    ClassElement element = x.base.element;
+    ClassElement element = x.base;
     if (x.isExact) {
       return null;
     } else if (x.isSubclass) {

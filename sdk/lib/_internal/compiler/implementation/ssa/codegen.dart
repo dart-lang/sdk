@@ -1570,8 +1570,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // [node.element] will be enqueued. We're not using the receiver
       // type because our optimizations might end up in a state where the
       // invoke dynamic knows more than the receiver.
+      ClassElement enclosing = node.element.getEnclosingClass();
       HType receiverType = new HType.fromMask(
-          new TypeMask.nonNullExact(node.element.getEnclosingClass().rawType),
+          new TypeMask.nonNullExact(enclosing.declaration),
           compiler);
       return receiverType.refine(selector, compiler);
     }
@@ -1679,7 +1680,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // If the selector we need to register a typed getter to the
         // [world]. The emitter needs to know if it needs to emit a
         // bound closure for a method.
-        TypeMask receiverType = new TypeMask.nonNullExact(superClass.rawType);
+        TypeMask receiverType = new TypeMask.nonNullExact(superClass);
         selector = new TypedSelector(receiverType, selector);
         world.registerDynamicGetter(selector);
         methodName = backend.namer.invocationName(selector);
@@ -2462,7 +2463,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     TypeMask receiver = input.instructionType.computeMask(compiler);
     TypeMask mask = node.instructionType.computeMask(compiler);
     // Figure out if it is beneficial to turn this into a null check.
-    // V8 generally prefers 'typeof' checks, but for integers and 
+    // V8 generally prefers 'typeof' checks, but for integers and
     // indexable primitives we cannot compile this test into a single
     // typeof check so the null check is cheaper.
     bool turnIntoNullCheck = (mask.nullable() == receiver)

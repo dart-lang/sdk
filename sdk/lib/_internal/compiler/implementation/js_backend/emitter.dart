@@ -2948,7 +2948,7 @@ class CodeEmitterTask extends CompilerTask {
       for (Selector selector in selectors) {
         TypeMask mask = selector.mask;
         if (mask == null) {
-          mask = new TypeMask.subclass(compiler.objectClass.rawType);
+          mask = new TypeMask.subclass(compiler.objectClass);
         }
 
         if (!mask.needsNoSuchMethodHandling(selector, compiler)) continue;

@@ -85,8 +85,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     return interceptedClasses
         .where((cls) => cls != compiler.objectClass)
         .map((cls) => backend.classesMixedIntoNativeClasses.contains(cls)
-            ? new TypeMask.subtype(cls.rawType)
-            : new TypeMask.subclass(cls.rawType))
+            ? new TypeMask.subtype(cls)
+            : new TypeMask.subclass(cls))
         .every((mask) => receiverMask.intersection(mask, compiler).isEmpty);
   }
 

@@ -978,17 +978,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (result == null) {
       Element element = localsHandler.closureData.thisElement;
       ClassElement cls = element.enclosingElement.getEnclosingClass();
-      // Use the raw type because we don't have the type context for the
-      // type parameters.
-      DartType type = cls.rawType;
       if (compiler.world.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be
         // of the class that mixins the enclosing class. These two
         // classes do not have a subclass relationship, so, for
         // simplicity, we mark the type as an interface type.
-        result = new HType.nonNullSubtype(type, compiler);
+        result = new HType.nonNullSubtype(cls, compiler);
       } else {
-        result = new HType.nonNullSubclass(type, compiler);
+        result = new HType.nonNullSubclass(cls, compiler);
       }
       cachedTypeOfThis = result;
     }
@@ -1661,7 +1658,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         includeSuperAndInjectedMembers: true);
 
     InterfaceType type = classElement.computeType(compiler);
-    HType ssaType = new HType.nonNullExact(type, compiler);
+    HType ssaType = new HType.nonNullExact(classElement, compiler);
     List<DartType> instantiatedTypes;
     addInlinedInstantiation(type);
     if (!currentInlinedInstantiations.isEmpty) {
@@ -1808,7 +1805,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (type == null) return original;
     type = type.unalias(compiler);
     if (type.kind == TypeKind.INTERFACE && !type.isRaw) {
-     HType subtype = new HType.subtype(type, compiler);
+     HType subtype = new HType.subtype(type.element, compiler);
      HInstruction representations = buildTypeArgumentRepresentations(type);
      add(representations);
      return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
@@ -2495,9 +2492,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     });
 
-    HType type = new HType.nonNullExact(
-        compiler.functionClass.computeType(compiler),
-        compiler);
+    HType type = new HType.nonNullExact(compiler.functionClass, compiler);
     push(new HForeignNew(closureClassElement, type, capturedVariables));
 
     Element methodElement = nestedClosureData.closureElement;
@@ -3531,7 +3526,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         return inferred.isUnknown() ? backend.extendableArrayType : inferred;
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.getEnclosingClass();
-        return new HType.nonNullExact(cls.thisType, compiler);
+        return new HType.nonNullExact(cls.thisType.element, compiler);
       } else {
         return new HType.inferredReturnTypeForElement(
             originalElement, compiler);
@@ -3834,12 +3829,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       bool isLength = selector.isGetter()
           && selector.name == const SourceString("length");
       if (isLength || selector.isIndex()) {
-        DartType classType = element.getEnclosingClass().computeType(compiler);
-        HType type = new HType.nonNullExact(classType, compiler);
+        HType type = new HType.nonNullExact(
+            element.getEnclosingClass(), compiler);
         return type.isIndexable(compiler);
       } else if (selector.isIndexSet()) {
-        DartType classType = element.getEnclosingClass().computeType(compiler);
-        HType type = new HType.nonNullExact(classType, compiler);
+        HType type = new HType.nonNullExact(
+            element.getEnclosingClass(), compiler);
         return type.isMutableIndexable(compiler);
       } else {
         return false;
@@ -4502,8 +4497,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HLiteralList keyValuePairs = buildLiteralList(inputs);
     add(keyValuePairs);
-    HType mapType = new HType.nonNullSubtype(
-        backend.mapLiteralClass.computeType(compiler), compiler);
+    HType mapType = new HType.nonNullSubtype(backend.mapLiteralClass, compiler);
     pushInvokeStatic(node, backend.getMapMaker(), [keyValuePairs], mapType);
   }
 

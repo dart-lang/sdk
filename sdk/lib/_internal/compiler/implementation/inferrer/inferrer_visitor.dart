@@ -31,9 +31,9 @@ abstract class TypeSystem<T> {
   T get stringType;
   T get typeType;
 
-  T nonNullSubtype(DartType type);
-  T nonNullSubclass(DartType type);
-  T nonNullExact(DartType type);
+  T nonNullSubtype(ClassElement type);
+  T nonNullSubclass(ClassElement type);
+  T nonNullExact(ClassElement type);
   T nonNullEmpty();
   Selector newTypedSelector(T receiver, Selector selector);
 
@@ -680,7 +680,7 @@ abstract class InferrerVisitor
     // TODO(kasperl): We should be able to tell that the type of a literal
     // symbol is always a non-null exact symbol implementation -- not just
     // any non-null subtype of the symbol interface.
-    return types.nonNullSubtype(compiler.symbolClass.rawType);
+    return types.nonNullSubtype(compiler.symbolClass);
   }
 
   T visitTypeReferenceSend(Send node) {
@@ -701,11 +701,11 @@ abstract class InferrerVisitor
     if (_thisType != null) return _thisType;
     ClassElement cls = outermostElement.getEnclosingClass();
     if (compiler.world.isUsedAsMixin(cls)) {
-      return _thisType = types.nonNullSubtype(cls.rawType);
+      return _thisType = types.nonNullSubtype(cls);
     } else if (compiler.world.hasAnySubclass(cls)) {
-      return _thisType = types.nonNullSubclass(cls.rawType);
+      return _thisType = types.nonNullSubclass(cls);
     } else {
-      return _thisType = types.nonNullExact(cls.rawType);
+      return _thisType = types.nonNullExact(cls);
     }
   }
 
@@ -713,7 +713,7 @@ abstract class InferrerVisitor
   T get superType {
     if (_superType != null) return _superType;
     return _superType = types.nonNullExact(
-        outermostElement.getEnclosingClass().superclass.rawType);
+        outermostElement.getEnclosingClass().superclass);
   }
 
   T visitIdentifier(Identifier node) {
@@ -979,7 +979,7 @@ abstract class InferrerVisitor
       DartType type = elements.getType(node.type);
       T mask = type == null || type.treatAsDynamic
           ? types.dynamicType
-          : types.nonNullSubtype(type.asRaw());
+          : types.nonNullSubtype(type.element);
       locals.update(elements[exception], mask, node);
     }
     Node trace = node.trace;

@@ -203,7 +203,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       return type;
     } else {
       assert(annotation.kind == TypeKind.INTERFACE);
-      otherType = new TypeMask.nonNullSubtype(annotation);
+      otherType = new TypeMask.nonNullSubtype(annotation.element);
     }
     if (isNullable) otherType = otherType.nullable();
     if (type.type.isExact) {
@@ -228,16 +228,16 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     });
   }
 
-  TypeInformation nonNullSubtype(DartType type) {
-    return getConcreteTypeFor(new TypeMask.nonNullSubtype(type));
+  TypeInformation nonNullSubtype(ClassElement type) {
+    return getConcreteTypeFor(new TypeMask.nonNullSubtype(type.declaration));
   }
 
-  TypeInformation nonNullSubclass(DartType type) {
-    return getConcreteTypeFor(new TypeMask.nonNullSubclass(type));
+  TypeInformation nonNullSubclass(ClassElement type) {
+    return getConcreteTypeFor(new TypeMask.nonNullSubclass(type.declaration));
   }
 
-  TypeInformation nonNullExact(DartType type) {
-    return getConcreteTypeFor(new TypeMask.nonNullExact(type));
+  TypeInformation nonNullExact(ClassElement type) {
+    return getConcreteTypeFor(new TypeMask.nonNullExact(type.declaration));
   }
 
   TypeInformation nonNullEmpty() {
@@ -388,7 +388,7 @@ class TypeGraphInferrerEngine
         compiler.log('Added $addedInGraph elements in inferencing graph.');
         compiler.progress.reset();
       }
-      // Force the creation of the [ElementTypeInformation] to ensure it is 
+      // Force the creation of the [ElementTypeInformation] to ensure it is
       // in the graph.
       types.getInferredTypeOf(element);
 
