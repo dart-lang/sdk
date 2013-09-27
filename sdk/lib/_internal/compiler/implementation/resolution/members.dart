@@ -2510,7 +2510,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
         }
       } else if (target.impliesType()) {
         compiler.backend.registerThrowNoSuchMethod(mapping);
-      } else if (target.modifiers.isFinal() || target.modifiers.isConst()) {
+      } else if (target.modifiers.isFinal() ||
+                 target.modifiers.isConst() ||
+                 (target.isFunction() &&
+                     Elements.isStaticOrTopLevelFunction(target) &&
+                     !target.isSetter())) {
         setter = warnAndCreateErroneousElement(
             node.selector, target.name, MessageKind.CANNOT_RESOLVE_SETTER);
         compiler.backend.registerThrowNoSuchMethod(mapping);

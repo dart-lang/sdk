@@ -163,7 +163,6 @@ final_syntax_test/02: MissingCompileTimeError # Issue 13020
 final_syntax_test/03: MissingCompileTimeError # Issue 13020
 final_syntax_test/04: MissingCompileTimeError # Issue 13020
 
-assign_top_method_test: RuntimeError # Issue 13075
 null_test/none: RuntimeError  # Issue 12482
 
 
