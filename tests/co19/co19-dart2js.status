@@ -310,8 +310,6 @@ LibTest/math/log_A01_t01: Fail # TODO(kasperl): Please triage.
 # Missing compile-time errors.
 #
 [ $compiler == dart2js ]
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t06: MissingCompileTimeError # Checks that a functionSignature parameter cannot be final.
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t07: MissingCompileTimeError # Checks that a functionSignature parameter cannot be declared as variable.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: MissingCompileTimeError # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: MissingCompileTimeError # TODO(ahe): Enforce optional parameter semantics.
 Language/07_Classes/07_Classes_A02_t11: MissingCompileTimeError # Checks that it is a compile-time error if a static final variable declaration does not include explicit initializer.

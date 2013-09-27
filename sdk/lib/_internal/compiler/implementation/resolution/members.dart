@@ -4132,6 +4132,14 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   }
 
   Element visitFunctionExpression(FunctionExpression node) {
+    Modifiers modifiers = currentDefinitions.modifiers;
+    if (modifiers.isFinal()) {
+      compiler.reportError(modifiers,
+          MessageKind.FINAL_FUNCTION_TYPE_PARAMETER);
+    }
+    if (modifiers.isVar()) {
+      compiler.reportError(modifiers, MessageKind.VAR_FUNCTION_TYPE_PARAMETER);
+    }
     // This is a function typed parameter.
     // TODO(ahe): Resolve the function type.
     return visit(node.name);

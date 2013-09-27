@@ -599,6 +599,34 @@ foo([static x]) {}
 main() => foo(42);
 """]);
 
+  static const MessageKind FINAL_FUNCTION_TYPE_PARAMETER = const MessageKind(
+      "Error: A function type parameter can't be declared final.",
+      howToFix: "Try removing 'final'.",
+      examples: const ["""
+foo(final int x(int a)) {}
+main() => foo((y) => 42);
+""", """
+foo({final int x(int a)}) {}
+main() => foo((y) => 42);
+""", """
+foo([final int x(int a)]) {}
+main() => foo((y) => 42);
+"""]);
+
+  static const MessageKind VAR_FUNCTION_TYPE_PARAMETER = const MessageKind(
+      "Error: A function type parameter can't be declared with 'var'.",
+      howToFix: "Try removing 'var'.",
+      examples: const ["""
+foo(var int x(int a)) {}
+main() => foo((y) => 42);
+""", """
+foo({var int x(int a)}) {}
+main() => foo((y) => 42);
+""", """
+foo([var int x(int a)]) {}
+main() => foo((y) => 42);
+"""]);
+
   static const MessageKind CANNOT_INSTANTIATE_TYPE_VARIABLE = const MessageKind(
       "Error: Cannot instantiate type variable '#{typeVariableName}'.");
 
