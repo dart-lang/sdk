@@ -6081,14 +6081,20 @@ void Parser::CheckCaseExpressions(const GrowableArray<LiteralNode*>& values) {
     if (val.clazz() != first_value.clazz()) {
       ErrorMsg(val_pos, "all case expressions must be of same type");
     }
-    Class& cls = Class::Handle(val.clazz());
-    const Function& equal_op = Function::Handle(
-        Resolver::ResolveDynamicAnyArgs(cls, Symbols::EqualOperator()));
-    ASSERT(!equal_op.IsNull());
-    cls = equal_op.Owner();
-    if (!cls.IsObjectClass()) {
-      ErrorMsg(val_pos,
-               "type class of case expression must not implement operator ==");
+    if (i == 0) {
+      // The value is of some type other than int, String or double.
+      // Check that the type class does not override the == operator.
+      // Check this only in the first loop iteration since all values
+      // are of the same type, which we check above.
+      Class& cls = Class::Handle(val.clazz());
+      const Function& equal_op = Function::Handle(
+          Resolver::ResolveDynamicAnyArgs(cls, Symbols::EqualOperator()));
+      ASSERT(!equal_op.IsNull());
+      cls = equal_op.Owner();
+      if (!cls.IsObjectClass()) {
+        ErrorMsg(val_pos,
+            "type class of case expression must not implement operator ==");
+      }
     }
   }
 }
