@@ -724,7 +724,7 @@ class PhiElementTypeInformation extends TypeInformation {
   }
 }
 
-class TypeInformationVisitor<T> {
+abstract class TypeInformationVisitor<T> {
   T visitNarrowTypeInformation(NarrowTypeInformation info);
   T visitPhiElementTypeInformation(PhiElementTypeInformation info);
   T visitElementInContainerTypeInformation(
