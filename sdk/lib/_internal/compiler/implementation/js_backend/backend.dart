@@ -990,7 +990,7 @@ class JavaScriptBackend extends Backend {
       }
     }
     bool isTypeVariable = type.kind == TypeKind.TYPE_VARIABLE;
-    if (!type.isRaw || type.containsTypeVariables) {
+    if (!type.treatAsRaw || type.containsTypeVariables) {
       enqueueInResolution(getSetRuntimeTypeInfo(), elements);
       enqueueInResolution(getGetRuntimeTypeInfo(), elements);
       enqueueInResolution(getGetRuntimeTypeArgument(), elements);
@@ -1372,7 +1372,7 @@ class JavaScriptBackend extends Backend {
             : 'stringSuperTypeCheck';
       }
     } else if ((element == compiler.listClass || element == jsArrayClass) &&
-               type.isRaw) {
+               type.treatAsRaw) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? 'listTypeCast'
@@ -1396,7 +1396,7 @@ class JavaScriptBackend extends Backend {
               ? 'interceptedTypeCast'
               : 'interceptedTypeCheck';
         } else {
-          if (type.kind == TypeKind.INTERFACE && !type.isRaw) {
+          if (type.kind == TypeKind.INTERFACE && !type.treatAsRaw) {
             return typeCast
                 ? 'subtypeCast'
                 : 'assertSubtype';

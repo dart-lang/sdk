@@ -90,7 +90,7 @@ void renamePlaceholders(
     StringBuffer result = new StringBuffer(renameElement(type.element));
     if (type is InterfaceType) {
       InterfaceType interfaceType = type;
-      if (!interfaceType.isRaw) {
+      if (!interfaceType.treatAsRaw) {
         result.write('<');
         Link<DartType> argumentsLink = interfaceType.typeArguments;
         result.write(renameType(argumentsLink.head, renameElement));

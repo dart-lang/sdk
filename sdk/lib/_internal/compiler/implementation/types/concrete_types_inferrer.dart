@@ -414,7 +414,7 @@ class ConcreteTypesEnvironment {
     Types types = inferrer.compiler.types;
     bool paramMatches(ConcreteType concrete, VariableElement parameter) {
       DartType parameterType = parameter.variables.type;
-      if (parameterType.treatAsDynamic || parameterType.isRaw) {
+      if (parameterType.treatAsDynamic || parameterType.treatAsRaw) {
         return true;
       }
       for (BaseType baseType in concrete.baseTypes) {

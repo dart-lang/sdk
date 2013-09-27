@@ -65,7 +65,7 @@ class ConstantHandler extends CompilerTask {
     }
     compiler.enqueuer.codegen.registerInstantiatedType(type, elements);
     if (type is InterfaceType &&
-        !type.isRaw &&
+        !type.treatAsRaw &&
         compiler.backend.classNeedsRti(type.element)) {
       registerSetRuntimeTypeInfoFunction();
     }
@@ -422,9 +422,14 @@ class CompileTimeConstantEvaluator extends Visitor {
     bool hasProtoKey = (protoValue != null);
     List<Constant> values = map.values.toList();
     InterfaceType sourceType = elements.getType(node);
-    Link<DartType> arguments =
-        new Link<DartType>.fromList([compiler.stringClass.rawType]);
-    DartType keysType = new InterfaceType(compiler.listClass, arguments);
+    DartType keysType;
+    if (sourceType.treatAsRaw) {
+      keysType = compiler.listClass.rawType;
+    } else {
+      Link<DartType> arguments =
+          new Link<DartType>.fromList([sourceType.typeArguments.head]);
+      keysType = new InterfaceType(compiler.listClass, arguments);
+    }
     ListConstant keysList = new ListConstant(keysType, keys);
     if (onlyStringKeys) {
       handler.registerCompileTimeConstant(keysList, elements);
@@ -436,8 +441,12 @@ class CompileTimeConstantEvaluator extends Visitor {
     ClassElement classElement = compiler.jsHelperLibrary.find(className);
     classElement.ensureResolved(compiler);
     Link<DartType> typeArgument = sourceType.typeArguments;
-    InterfaceType type = new InterfaceType(classElement, typeArgument);
-    handler.registerInstantiatedType(type, elements);
+    InterfaceType type;
+    if (sourceType.treatAsRaw) {
+      type = classElement.rawType;
+    } else {
+      type = new InterfaceType(classElement, typeArgument);
+    }
     Constant constant =
         new MapConstant(type, keysList, values, protoValue, onlyStringKeys);
     handler.registerCompileTimeConstant(constant, elements);

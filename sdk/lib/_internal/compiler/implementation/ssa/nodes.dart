@@ -1125,7 +1125,7 @@ abstract class HInstruction implements Spannable {
     // instructions with generics. It has the generic type context
     // available.
     assert(type.kind != TypeKind.TYPE_VARIABLE);
-    assert(type.isRaw || type.kind == TypeKind.FUNCTION);
+    assert(type.treatAsRaw || type.kind == TypeKind.FUNCTION);
     if (type.treatAsDynamic) return this;
     // The type element is either a class or the void element.
     Element element = type.element;
@@ -1135,7 +1135,7 @@ abstract class HInstruction implements Spannable {
     } else if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
       // Boolean conversion checks work on non-nullable booleans.
       return new HTypeConversion(type, kind, HType.BOOLEAN, this);
-    } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.isRaw) {
+    } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
       HType subtype = new HType.subtype(element, compiler);

@@ -1804,11 +1804,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                    int kind) {
     if (type == null) return original;
     type = type.unalias(compiler);
-    if (type.kind == TypeKind.INTERFACE && !type.isRaw) {
-     HType subtype = new HType.subtype(type.element, compiler);
-     HInstruction representations = buildTypeArgumentRepresentations(type);
-     add(representations);
-     return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
+    if (type.kind == TypeKind.INTERFACE && !type.treatAsRaw) {
+      HType subtype = new HType.subtype(type.element, compiler);
+      HInstruction representations = buildTypeArgumentRepresentations(type);
+      add(representations);
+      return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
           original, representations);
     } else if (type.kind == TypeKind.TYPE_VARIABLE) {
       HType subtype = original.instructionType;
@@ -3476,7 +3476,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              Node currentNode,
                              HInstruction newObject) {
     if (!backend.classNeedsRti(type.element)) return;
-    if (!type.isRaw) {
+    if (!type.treatAsRaw) {
       List<HInstruction> inputs = <HInstruction>[];
       type.typeArguments.forEach((DartType argument) {
         inputs.add(analyzeTypeArgument(argument));

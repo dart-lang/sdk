@@ -651,7 +651,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction value = node.inputs[0];
     DartType type = node.typeExpression;
     if (type != null) {
-      if (!type.isRaw || type.kind == TypeKind.TYPE_VARIABLE) {
+      if (!type.treatAsRaw || type.kind == TypeKind.TYPE_VARIABLE) {
         return node;
       }
       if (type.kind == TypeKind.FUNCTION) {
@@ -779,7 +779,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction value = node.inputs.last;
     if (compiler.enableTypeAssertions) {
       DartType type = field.computeType(compiler);
-      if (!type.isRaw || type.kind == TypeKind.TYPE_VARIABLE) {
+      if (!type.treatAsRaw || type.kind == TypeKind.TYPE_VARIABLE) {
         // We cannot generate the correct type representation here, so don't
         // inline this access.
         return node;
