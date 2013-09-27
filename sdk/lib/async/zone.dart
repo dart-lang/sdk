@@ -251,23 +251,44 @@ abstract class Zone {
    */
   dynamic runUnaryGuarded(f(arg), var arg);
 
-  ZoneCallback registerCallback(f());
-  ZoneUnaryCallback registerUnaryCallback(f(arg));
+  /**
+   * Registers the given callback in this zone.
+   *
+   * It is good practice to register asynchronous or delayed callbacks before
+   * invoking [run]. This gives the zone a chance to wrap the callback and
+   * to store information with the callback. For example, a zone may decide
+   * to store the stack trace (at the time of the registration) with the
+   * callback.
+   *
+   * Returns a potentially new callback that should be used in place of the
+   * given [callback].
+   */
+  ZoneCallback registerCallback(callback());
+
+  /**
+   * Registers the given callback in this zone.
+   *
+   * Similar to [registerCallback] but with a unary callback.
+   */
+  ZoneUnaryCallback registerUnaryCallback(callback(arg));
 
   /**
    *  Equivalent to:
    *
    *      ZoneCallback registered = registerCallback(f);
+   *      if (runGuarded) return () => this.runGuarded(registered);
    *      return () => this.run(registered);
+   *
    */
-  ZoneCallback bindCallback(f(), { bool runGuarded });
+  ZoneCallback bindCallback(f(), { bool runGuarded: true });
   /**
    *  Equivalent to:
    *
    *      ZoneCallback registered = registerCallback1(f);
-   *      return (arg) => this.run1(registered, arg);
+   *      if (runGuarded) return (arg) => this.runUnaryGuarded(registered, arg);
+   *      return (arg) => thin.runUnary(registered, arg);
    */
-  ZoneUnaryCallback bindUnaryCallback(f(arg), { bool runGuarded });
+  ZoneUnaryCallback bindUnaryCallback(f(arg), { bool runGuarded: true });
 
   /**
    * Runs [f] asynchronously.
@@ -427,7 +448,7 @@ class _CustomizedZone implements Zone {
     }
   }
 
-  ZoneCallback bindCallback(f(), { bool runGuarded }) {
+  ZoneCallback bindCallback(f(), { bool runGuarded: true }) {
     ZoneCallback registered = registerCallback(f);
     if (runGuarded) {
       return () => this.runGuarded(registered);
@@ -436,7 +457,7 @@ class _CustomizedZone implements Zone {
     }
   }
 
-  ZoneUnaryCallback bindUnaryCallback(f(arg), { bool runGuarded }) {
+  ZoneUnaryCallback bindUnaryCallback(f(arg), { bool runGuarded: true }) {
     ZoneUnaryCallback registered = registerUnaryCallback(f);
     if (runGuarded) {
       return (arg) => this.runUnaryGuarded(registered, arg);
