@@ -450,9 +450,9 @@ class ResolverTask extends CompilerTask {
 
     SendSet send = tree.asSendSet();
     if (send != null) {
-      if (!compiler.analyzeSignaturesOnly) {
-        visitor.visit(send.arguments.head);
-      }
+      // TODO(johnniwinther): Avoid analyzing initializers if
+      // [Compiler.analyzeSignaturesOnly] is set.
+      visitor.visit(send.arguments.head);
     } else if (element.modifiers.isConst()) {
       compiler.reportError(element, MessageKind.CONST_WITHOUT_INITIALIZER);
     }
