@@ -403,9 +403,16 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
     });
   }
 
-  Future<InstanceMirror> findInContext(Symbol name) {
-    throw new UnimplementedError(
-        'ClosureMirror.findInContext() is not implemented');
+  InstanceMirror findInContext(Symbol name, {ifAbsent: null}) {
+    List<String> parts = _n(name).split(".").toList(growable: false);
+    if (parts.length > 3) {
+      throw new ArgumentError("Invalid symbol: ${name}");
+    }
+    List tuple = _computeFindInContext(_reflectee, parts);
+    if (tuple[0]) {
+      return reflect(tuple[1]);
+    }
+    return ifAbsent == null ? null : ifAbsent();
   }
 
   String toString() => "ClosureMirror on '${Error.safeToString(_reflectee)}'";
@@ -415,6 +422,9 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
 
   static _computeFunction(reflectee)
       native 'ClosureMirror_function';
+
+  static _computeFindInContext(reflectee, name)
+      native 'ClosureMirror_find_in_context';
 }
 
 class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl

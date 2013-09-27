@@ -54,7 +54,7 @@ static void ThrowInvokeError(const Error& error) {
 
 // Conventions:
 // * For throwing a NSM in a class klass we use its runtime type as receiver,
-//   i.e., RawTypeOfClass(klass).
+//   i.e., klass.RareType().
 // * For throwing a NSM in a library, we just pass the null instance as
 //   receiver.
 static void ThrowNoSuchMethod(const Instance& receiver,
@@ -399,6 +399,339 @@ static RawInstance* CreateMirrorSystem() {
 }
 
 
+static RawInstance* ReturnResult(const Object& result) {
+  if (result.IsError()) {
+    ThrowInvokeError(Error::Cast(result));
+    UNREACHABLE();
+  }
+  if (result.IsInstance()) {
+    return Instance::Cast(result).raw();
+  }
+  ASSERT(result.IsNull());
+  return Instance::null();
+}
+
+
+// Invoke the function, or noSuchMethod if it is null. Propagate any unhandled
+// exceptions. Wrap and propagate any compilation errors.
+static RawInstance* InvokeDynamicFunction(
+    const Instance& receiver,
+    const Function& function,
+    const String& target_name,
+    const Array& args,
+    const Array& args_descriptor_array) {
+  // Note "args" is already the internal arguments with the receiver as the
+  // first element.
+  Object& result = Object::Handle();
+  ArgumentsDescriptor args_descriptor(args_descriptor_array);
+  if (function.IsNull() ||
+      !function.is_visible() ||
+      !function.AreValidArguments(args_descriptor, NULL)) {
+    result = DartEntry::InvokeNoSuchMethod(receiver,
+                                           target_name,
+                                           args,
+                                           args_descriptor_array);
+  } else {
+    result = DartEntry::InvokeFunction(function,
+                                       args,
+                                       args_descriptor_array);
+  }
+  return ReturnResult(result);
+}
+
+
+static RawInstance* InvokeLibraryGetter(const Library& library,
+                                        const String& getter_name,
+                                        const bool throw_nsm_if_absent) {
+  // To access a top-level we may need to use the Field or the getter Function.
+  // The getter function may either be in the library or in the field's owner
+  // class, depending on whether it was an actual getter, or an uninitialized
+  // field.
+  const Field& field = Field::Handle(
+      library.LookupFieldAllowPrivate(getter_name));
+  Function& getter = Function::Handle();
+  if (field.IsNull()) {
+    // No field found. Check for a getter in the lib.
+    const String& internal_getter_name =
+        String::Handle(Field::GetterName(getter_name));
+    getter = library.LookupFunctionAllowPrivate(internal_getter_name);
+    if (getter.IsNull()) {
+      getter = library.LookupFunctionAllowPrivate(getter_name);
+      if (!getter.IsNull()) {
+        // Looking for a getter but found a regular method: closurize it.
+        const Function& closure_function =
+            Function::Handle(getter.ImplicitClosureFunction());
+        return closure_function.ImplicitStaticClosure();
+      }
+    }
+  } else {
+    if (!field.IsUninitialized()) {
+      return field.value();
+    }
+    // An uninitialized field was found.  Check for a getter in the field's
+    // owner classs.
+    const Class& klass = Class::Handle(field.owner());
+    const String& internal_getter_name =
+        String::Handle(Field::GetterName(getter_name));
+    getter = klass.LookupStaticFunctionAllowPrivate(internal_getter_name);
+  }
+
+  if (!getter.IsNull() && getter.is_visible()) {
+    // Invoke the getter and return the result.
+    const Object& result = Object::Handle(
+        DartEntry::InvokeFunction(getter, Object::empty_array()));
+    return ReturnResult(result);
+  }
+
+  if (throw_nsm_if_absent) {
+    ThrowNoSuchMethod(Instance::null_instance(),
+                      getter_name,
+                      getter,
+                      InvocationMirror::kTopLevel,
+                      InvocationMirror::kGetter);
+    UNREACHABLE();
+  }
+
+  // Fall through case: Indicate that we didn't find any function or field using
+  // a special null instance. This is different from a field being null. Callers
+  // make sure that this null does not leak into Dartland.
+  return Object::sentinel().raw();
+}
+
+
+static RawInstance* InvokeClassGetter(const Class& klass,
+                                      const String& getter_name,
+                                      const bool throw_nsm_if_absent) {
+  // Note static fields do not have implicit getters.
+  const Field& field = Field::Handle(klass.LookupStaticField(getter_name));
+  if (field.IsNull() || field.IsUninitialized()) {
+    const String& internal_getter_name = String::Handle(
+        Field::GetterName(getter_name));
+    Function& getter = Function::Handle(
+        klass.LookupStaticFunctionAllowPrivate(internal_getter_name));
+
+    if (getter.IsNull() || !getter.is_visible()) {
+      if (getter.IsNull()) {
+        getter = klass.LookupStaticFunctionAllowPrivate(getter_name);
+        if (!getter.IsNull()) {
+          // Looking for a getter but found a regular method: closurize it.
+          const Function& closure_function =
+              Function::Handle(getter.ImplicitClosureFunction());
+          return closure_function.ImplicitStaticClosure();
+        }
+      }
+      if (throw_nsm_if_absent) {
+        ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
+                          getter_name,
+                          getter,
+                          InvocationMirror::kStatic,
+                          InvocationMirror::kGetter);
+        UNREACHABLE();
+      }
+      // Fall through case: Indicate that we didn't find any function or field
+      // using a special null instance. This is different from a field being
+      // null. Callers make sure that this null does not leak into Dartland.
+      return Object::sentinel().raw();
+    }
+
+    // Invoke the getter and return the result.
+    const Object& result = Object::Handle(
+        DartEntry::InvokeFunction(getter, Object::empty_array()));
+    return ReturnResult(result);
+  }
+  return field.value();
+}
+
+
+
+
+static RawInstance* InvokeInstanceGetter(const Class& klass,
+                                         const Instance& reflectee,
+                                         const String& getter_name,
+                                         const bool throw_nsm_if_absent) {
+  const String& internal_getter_name = String::Handle(
+      Field::GetterName(getter_name));
+  Function& function = Function::Handle(
+      Resolver::ResolveDynamicAnyArgsAllowPrivate(klass, internal_getter_name));
+
+  if (!function.IsNull() || throw_nsm_if_absent) {
+    const int kNumArgs = 1;
+    const Array& args = Array::Handle(Array::New(kNumArgs));
+    args.SetAt(0, reflectee);
+    const Array& args_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(args.Length()));
+
+    // InvokeDynamic invokes NoSuchMethod if the provided function is null.
+    return InvokeDynamicFunction(reflectee,
+                                 function,
+                                 internal_getter_name,
+                                 args,
+                                 args_descriptor);
+  }
+
+  // Fall through case: Indicate that we didn't find any function or field using
+  // a special null instance. This is different from a field being null. Callers
+  // make sure that this null does not leak into Dartland.
+  return Object::sentinel().raw();
+}
+
+
+static RawInstance* LookupFunctionOrFieldInLibraryPrefix(
+    const LibraryPrefix& prefix,
+    const String& lookup_name) {
+  const Object& entry = Object::Handle(prefix.LookupObject(lookup_name));
+  if (!entry.IsNull()) {
+    if (entry.IsField()) {
+      const Field& field = Field::Cast(entry);
+      const Class& field_owner = Class::Handle(field.owner());
+      const Library& field_library = Library::Handle(field_owner.library());
+      const Instance& result = Instance::Handle(
+          InvokeLibraryGetter(field_library, lookup_name, false));
+      if (result.raw() != Object::sentinel().raw()) {
+        return result.raw();
+      }
+    } else if (entry.IsFunction()) {
+      const Function& func = Function::Cast(entry);
+      const Function& closure_function = Function::Handle(
+          func.ImplicitClosureFunction());
+      return closure_function.ImplicitStaticClosure();
+    }
+  }
+
+  // Fall through case: Indicate that we didn't find any function or field using
+  // a special null instance. This is different from a field being null. Callers
+  // make sure that this null does not leak into Dartland.
+  return Object::sentinel().raw();
+}
+
+
+static RawInstance* LookupStaticFunctionOrFieldInClass(
+    const Class& klass,
+    const String& lookup_name) {
+  Instance& result = Instance::Handle(
+      InvokeClassGetter(klass, lookup_name, false));
+  if (result.raw() != Object::sentinel().raw()) {
+    return result.raw();
+  }
+
+  Function& func = Function::Handle();
+  Class& lookup_class = Class::Handle(klass.raw());
+  while (func.IsNull() && !lookup_class.IsNull()) {
+    func ^= lookup_class.LookupStaticFunctionAllowPrivate(lookup_name);
+    lookup_class = lookup_class.SuperClass();
+  }
+  if (!func.IsNull()) {
+    const Function& closure_function = Function::Handle(
+        func.ImplicitClosureFunction());
+    ASSERT(!closure_function.IsNull());
+    return closure_function.ImplicitStaticClosure();
+  }
+
+  // Fall through case: Indicate that we didn't find any function or field using
+  // a special null instance. This is different from a field being null. Callers
+  // make sure that this null does not leak into Dartland.
+  return Object::sentinel().raw();
+}
+
+
+static RawInstance* LookupFunctionOrFieldInFunctionContext(
+    const Function& func,
+    const Context& ctx,
+    const String& lookup_name) {
+  const ContextScope& ctx_scope = ContextScope::Handle(func.context_scope());
+  intptr_t this_index = -1;
+
+  // Search local context.
+  String& name = String::Handle();
+  for (intptr_t i = 0; i < ctx_scope.num_variables(); i++) {
+    name ^= ctx_scope.NameAt(i);
+    if (name.Equals(lookup_name)) {
+      return ctx.At(i);
+    } else if (name.Equals(Symbols::This())) {
+      // Record instance index to search for the field in the instance
+      // afterwards.
+      this_index = i;
+    }
+  }
+
+  // Search the instance this function is attached to.
+  if (this_index >= 0) {
+    // Since we want the closurized version of a function, we can access, both,
+    // functions and fields through their implicit getter name. If the implicit
+    // getter does not exist for the function, a method extractor will be
+    // created.
+    const Class& owner = Class::Handle(func.Owner());
+    const Instance& receiver = Instance::Handle(ctx.At(this_index));
+    return InvokeInstanceGetter(owner, receiver, lookup_name, false);
+  }
+
+  // Fall through case: Indicate that we didn't find any function or field using
+  // a special null instance. This is different from a field being null. Callers
+  // make sure that this null does not leak into Dartland.
+  return Object::sentinel().raw();
+}
+
+
+static RawInstance* LookupFunctionOrFieldInLibraryHelper(
+    const Library& library,
+    const String& class_name,
+    const String& lookup_name) {
+  if (class_name.IsNull()) {
+    const Instance& result = Instance::Handle(
+        InvokeLibraryGetter(library, lookup_name, false));
+    if (result.raw() != Object::sentinel().raw()) {
+      return result.raw();
+    }
+    const Function& func = Function::Handle(
+        library.LookupFunctionAllowPrivate(lookup_name));
+    if (!func.IsNull()) {
+      const Function& closure_function = Function::Handle(
+          func.ImplicitClosureFunction());
+      return closure_function.ImplicitStaticClosure();
+    }
+  } else {
+    const Class& cls = Class::Handle(
+        library.LookupClassAllowPrivate(class_name));
+    if (!cls.IsNull()) {
+      return LookupStaticFunctionOrFieldInClass(cls, lookup_name);
+    }
+  }
+
+  // Fall through case: Indicate that we didn't find any function or field using
+  // a special null instance. This is different from a field being null. Callers
+  // make sure that this null does not leak into Dartland.
+  return Object::sentinel().raw();
+}
+
+
+static RawInstance* LookupFunctionOrFieldInLibrary(const Library& library,
+                                                   const String& class_name,
+                                                   const String& lookup_name) {
+  Instance& result = Instance::Handle();
+  // Check current library.
+  result ^= LookupFunctionOrFieldInLibraryHelper(
+      library, class_name, lookup_name);
+  if (result.raw() != Object::sentinel().raw()) {
+    return result.raw();
+  }
+  // Check all imports.
+  Library& lib_it = Library::Handle();
+  for (intptr_t i = 0; i < library.num_imports(); i++) {
+    lib_it ^= library.ImportLibraryAt(i);
+    result ^= LookupFunctionOrFieldInLibraryHelper(
+        lib_it, class_name, lookup_name);
+    if (result.raw() != Object::sentinel().raw()) {
+      return result.raw();
+    }
+  }
+
+  // Fall through case: Indicate that we didn't find any function or field using
+  // a special null instance. This is different from a field being null. Callers
+  // make sure that this null does not leak into Dartland.
+  return Object::sentinel().raw();
+}
+
+
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalMirrorSystem, 0) {
   return CreateMirrorSystem();
 }
@@ -503,18 +836,6 @@ DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 1) {
   const Function& func = Function::Handle(CallMethod(cls));
   ASSERT(!func.IsNull());
   return func.result_type();
-}
-
-
-static bool FieldIsUninitialized(const Field& field) {
-  ASSERT(!field.IsNull());
-
-  // Return getter method for uninitialized fields, rather than the
-  // field object, since the value in the field object will not be
-  // initialized until the first time the getter is invoked.
-  const Instance& value = Instance::Handle(field.value());
-  ASSERT(value.raw() != Object::transition_sentinel().raw());
-  return value.raw() == Object::sentinel().raw();
 }
 
 
@@ -757,40 +1078,6 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_identityHash, 1) {
 }
 
 
-// Invoke the function, or noSuchMethod if it is null. Propagate any unhandled
-// exceptions. Wrap and propagate any compilation errors.
-static RawObject* ReflectivelyInvokeDynamicFunction(
-    const Instance& receiver,
-    const Function& function,
-    const String& target_name,
-    const Array& args,
-    const Array& args_descriptor_array) {
-  // Note "args" is already the internal arguments with the receiver as the
-  // first element.
-  Object& result = Object::Handle();
-
-  ArgumentsDescriptor args_descriptor(args_descriptor_array);
-  if (function.IsNull() ||
-      !function.is_visible() ||
-      !function.AreValidArguments(args_descriptor, NULL)) {
-    result = DartEntry::InvokeNoSuchMethod(receiver,
-                                           target_name,
-                                           args,
-                                           args_descriptor_array);
-  } else {
-    result = DartEntry::InvokeFunction(function,
-                                       args,
-                                       args_descriptor_array);
-  }
-
-  if (result.IsError()) {
-    ThrowInvokeError(Error::Cast(result));
-    UNREACHABLE();
-  }
-  return result.raw();
-}
-
-
 DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
@@ -808,11 +1095,11 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
   const Array& args_descriptor =
       Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
 
-  return ReflectivelyInvokeDynamicFunction(reflectee,
-                                           function,
-                                           function_name,
-                                           args,
-                                           args_descriptor);
+  return InvokeDynamicFunction(reflectee,
+                               function,
+                               function_name,
+                               args,
+                               args_descriptor);
 }
 
 
@@ -822,23 +1109,8 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 3) {
   // with its cousins.
   GET_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
-
   Class& klass = Class::Handle(reflectee.clazz());
-  String& internal_getter_name = String::Handle(Field::GetterName(getter_name));
-  Function& function = Function::Handle(
-      Resolver::ResolveDynamicAnyArgsAllowPrivate(klass, internal_getter_name));
-
-  const int kNumArgs = 1;
-  const Array& args = Array::Handle(Array::New(kNumArgs));
-  args.SetAt(0, reflectee);
-  const Array& args_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(args.Length()));
-
-  return ReflectivelyInvokeDynamicFunction(reflectee,
-                                           function,
-                                           internal_getter_name,
-                                           args,
-                                           args_descriptor);
+  return InvokeInstanceGetter(klass, reflectee, getter_name, true);
 }
 
 
@@ -882,11 +1154,11 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
   const Array& args_descriptor =
       Array::Handle(ArgumentsDescriptor::New(args.Length()));
 
-  return ReflectivelyInvokeDynamicFunction(reflectee,
-                                           setter,
-                                           internal_setter_name,
-                                           args,
-                                           args_descriptor);
+  return InvokeDynamicFunction(reflectee,
+                               setter,
+                               internal_setter_name,
+                               args,
+                               args_descriptor);
 }
 
 
@@ -906,6 +1178,80 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_apply, 3) {
     UNREACHABLE();
   }
   return result.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(ClosureMirror_find_in_context, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, lookup_parts, arguments->NativeArgAt(1));
+  ASSERT(lookup_parts.Length() >= 1 && lookup_parts.Length() <= 3);
+
+  Function& function = Function::Handle();
+  const bool callable = closure.IsCallable(&function, NULL);
+  ASSERT(callable);
+
+  const int parts_len = lookup_parts.Length();
+  // Lookup name is always the last part.
+  const String& lookup_name = String::Handle(String::RawCast(
+      lookup_parts.At(parts_len - 1)));
+
+  String& part_name = String::Handle();
+  Class& owner = Class::Handle(function.Owner());
+  LibraryPrefix& prefix = LibraryPrefix::Handle();
+  Library& this_library = Library::Handle(owner.library());
+  Instance& result = Instance::Handle(Object::sentinel().raw());
+  if (parts_len == 1) {
+    // Could be either a field in context, an instance or static field of the
+    // enclosing class, or a field in the current library or any imported
+    // library.
+    result ^= LookupFunctionOrFieldInFunctionContext(
+        function, Context::Handle(Closure::context(closure)), lookup_name);
+    if (result.raw() == Object::sentinel().raw()) {
+      result ^= LookupStaticFunctionOrFieldInClass(owner, lookup_name);
+    }
+    if (result.raw() == Object::sentinel().raw()) {
+      result ^= LookupFunctionOrFieldInLibrary(this_library,
+                                               part_name,
+                                               lookup_name);
+    }
+  } else if (parts_len == 2) {
+    // Could be either library.field or class.staticfield.
+    part_name ^= lookup_parts.At(0);
+    prefix ^= this_library.LookupLocalLibraryPrefix(part_name);
+    if (prefix.IsNull()) {
+      result ^= LookupFunctionOrFieldInLibrary(this_library,
+                                               part_name,
+                                               lookup_name);
+    } else {
+      result ^= LookupFunctionOrFieldInLibraryPrefix(prefix, lookup_name);
+    }
+  } else {
+    ASSERT(parts_len == 3);
+    // Can only be library.class.staticfield.
+    part_name ^= lookup_parts.At(0);
+    prefix ^= this_library.LookupLocalLibraryPrefix(part_name);
+    if (!prefix.IsNull()) {
+      part_name ^= lookup_parts.At(1);
+      owner ^= prefix.LookupClass(part_name);
+      if (!owner.IsNull()) {
+        result ^= LookupStaticFunctionOrFieldInClass(owner, lookup_name);
+      }
+    }
+  }
+
+  // We return a tuple (list) where the first slot is a boolean indicates
+  // whether we found a field or function and the second slot contains the
+  // result. This is needed to distinguish between not finding a field and a
+  // field containing null as value.
+  const Array& result_tuple = Array::Handle(Array::New(2));
+  if (result.raw() == Object::sentinel().raw()) {
+    result_tuple.SetAt(0, Bool::False());
+    // No need to set the value.
+  } else {
+    result_tuple.SetAt(0, Bool::True());
+    result_tuple.SetAt(1, result);
+  }
+  return result_tuple.raw();
 }
 
 
@@ -968,43 +1314,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Class& klass = Class::Handle(ref.GetClassReferent());
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
-
-  // Note static fields do not have implicit getters.
-  const Field& field = Field::Handle(klass.LookupStaticField(getter_name));
-  if (field.IsNull() || FieldIsUninitialized(field)) {
-    const String& internal_getter_name = String::Handle(
-        Field::GetterName(getter_name));
-    Function& getter = Function::Handle(
-        klass.LookupStaticFunctionAllowPrivate(internal_getter_name));
-
-    if (getter.IsNull() || !getter.is_visible()) {
-      if (getter.IsNull()) {
-        getter = klass.LookupStaticFunctionAllowPrivate(getter_name);
-        if (!getter.IsNull()) {
-          // Looking for a getter but found a regular method: closurize.
-          const Function& closure_function =
-              Function::Handle(getter.ImplicitClosureFunction());
-          return closure_function.ImplicitStaticClosure();
-        }
-      }
-      ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
-                        getter_name,
-                        getter,
-                        InvocationMirror::kStatic,
-                        InvocationMirror::kGetter);
-      UNREACHABLE();
-    }
-
-    // Invoke the getter and return the result.
-    Object& result = Object::Handle(
-        DartEntry::InvokeFunction(getter, Object::empty_array()));
-    if (result.IsError()) {
-      ThrowInvokeError(Error::Cast(result));
-      UNREACHABLE();
-    }
-    return result.raw();
-  }
-  return field.value();
+  return InvokeClassGetter(klass, getter_name, true);
 }
 
 
@@ -1231,55 +1541,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Library& library = Library::Handle(ref.GetLibraryReferent());
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
-
-  // To access a top-level we may need to use the Field or the
-  // getter Function.  The getter function may either be in the
-  // library or in the field's owner class, depending.
-  const Field& field = Field::Handle(
-      library.LookupFieldAllowPrivate(getter_name));
-  Function& getter = Function::Handle();
-  if (field.IsNull()) {
-    // No field found and no ambiguity error.  Check for a getter in the lib.
-    const String& internal_getter_name =
-        String::Handle(Field::GetterName(getter_name));
-    getter = library.LookupFunctionAllowPrivate(internal_getter_name);
-    if (getter.IsNull()) {
-      getter = library.LookupFunctionAllowPrivate(getter_name);
-      if (!getter.IsNull()) {
-        // Looking for a getter but found a regular method: closurize.
-        const Function& closure_function =
-            Function::Handle(getter.ImplicitClosureFunction());
-        return closure_function.ImplicitStaticClosure();
-      }
-    }
-  } else if (!field.IsNull() && FieldIsUninitialized(field)) {
-    // A field was found.  Check for a getter in the field's owner classs.
-    const Class& klass = Class::Handle(field.owner());
-    const String& internal_getter_name =
-        String::Handle(Field::GetterName(getter_name));
-    getter = klass.LookupStaticFunctionAllowPrivate(internal_getter_name);
-  }
-
-  if (!getter.IsNull() && getter.is_visible()) {
-    // Invoke the getter and return the result.
-    const Object& result = Object::Handle(
-        DartEntry::InvokeFunction(getter, Object::empty_array()));
-    if (result.IsError()) {
-      ThrowInvokeError(Error::Cast(result));
-      UNREACHABLE();
-    }
-    return result.raw();
-  }
-  if (!field.IsNull()) {
-    return field.value();
-  }
-  ThrowNoSuchMethod(Instance::null_instance(),
-                    getter_name,
-                    getter,
-                    InvocationMirror::kTopLevel,
-                    InvocationMirror::kGetter);
-  UNREACHABLE();
-  return Instance::null();
+  return InvokeLibraryGetter(library, getter_name, true);
 }
 
 

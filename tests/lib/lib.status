@@ -6,6 +6,7 @@
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 math/random_test: RuntimeError
+mirrors/closure_mirror_find_in_context_test: Fail # Issue 6490
 mirrors/equality_test/02: RuntimeError # Issue 12333
 mirrors/fake_function_test: RuntimeError # Issue 11612
 mirrors/function_type_mirror_test: RuntimeError # Issue 12166

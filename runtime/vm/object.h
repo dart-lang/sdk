@@ -2085,6 +2085,8 @@ class Field : public Object {
   // Deoptimize all dependent code objects.
   void DeoptimizeDependentCode() const;
 
+  bool IsUninitialized() const;
+
   // Constructs getter and setter names for fields and vice versa.
   static RawString* GetterName(const String& field_name);
   static RawString* GetterSymbol(const String& field_name);

@@ -5653,6 +5653,13 @@ void Field::DeoptimizeDependentCode() const {
 }
 
 
+bool Field::IsUninitialized() const {
+  const Instance& value = Instance::Handle(raw_ptr()->value_);
+  ASSERT(value.raw() != Object::transition_sentinel().raw());
+  return value.raw() == Object::sentinel().raw();
+}
+
+
 void Field::UpdateCid(intptr_t cid) const {
   if (guarded_cid() == kIllegalCid) {
     // Field is assigned first time.

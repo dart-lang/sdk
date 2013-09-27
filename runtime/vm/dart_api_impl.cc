@@ -3116,18 +3116,6 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
 }
 
 
-static bool FieldIsUninitialized(Isolate* isolate, const Field& fld) {
-  ASSERT(!fld.IsNull());
-
-  // Return getter method for uninitialized fields, rather than the
-  // field object, since the value in the field object will not be
-  // initialized until the first time the getter is invoked.
-  const Instance& value = Instance::Handle(isolate, fld.value());
-  ASSERT(value.raw() != Object::transition_sentinel().raw());
-  return value.raw() == Object::sentinel().raw();
-}
-
-
 DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -3156,7 +3144,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     Class& cls = Class::Handle(isolate, Type::Cast(obj).type_class());
 
     field = cls.LookupStaticField(field_name);
-    if (field.IsNull() || FieldIsUninitialized(isolate, field)) {
+    if (field.IsNull() || field.IsUninitialized()) {
       const String& getter_name =
           String::Handle(isolate, Field::GetterName(field_name));
       getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
@@ -3215,7 +3203,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       const String& getter_name =
           String::Handle(isolate, Field::GetterName(field_name));
       getter = lib.LookupFunctionAllowPrivate(getter_name);
-    } else if (!field.IsNull() && FieldIsUninitialized(isolate, field)) {
+    } else if (!field.IsNull() && field.IsUninitialized()) {
       // A field was found.  Check for a getter in the field's owner classs.
       const Class& cls = Class::Handle(isolate, field.owner());
       const String& getter_name =

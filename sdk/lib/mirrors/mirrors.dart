@@ -626,7 +626,7 @@ abstract class ClosureMirror implements InstanceMirror {
    * The returned value is the result of invoking the method [reflect] on
    * *v*.
    */
-  Future<InstanceMirror> findInContext(Symbol name);
+  InstanceMirror findInContext(Symbol name, {ifAbsent: null});
 }
 
 /**
