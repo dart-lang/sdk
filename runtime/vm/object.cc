@@ -9803,7 +9803,6 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
       Array::Handle(arguments_descriptor()),
       deopt_id(),
       kNumArgsTested));
-  result.set_deopt_reason(deopt_reason());
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     const intptr_t class_id = GetClassIdAt(i, arg_nr);
@@ -9829,7 +9828,7 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
     }
   }
   // Copy deoptimization reason.
-  result.set_deopt_reason(this->deopt_reason());
+  result.set_deopt_reason(deopt_reason());
 
   return result.raw();
 }

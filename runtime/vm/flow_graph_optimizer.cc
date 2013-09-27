@@ -692,8 +692,6 @@ static intptr_t ReceiverClassId(InstanceCallInstr* call) {
 
   const ICData& ic_data = ICData::Handle(call->ic_data()->AsUnaryClassChecks());
 
-  if (ic_data.NumberOfChecks() == 0) return kIllegalCid;
-  // TODO(vegorov): Add multiple receiver type support.
   if (ic_data.NumberOfChecks() != 1) return kIllegalCid;
   ASSERT(ic_data.HasOneTarget());
 
@@ -1069,9 +1067,13 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(const Function& target,
     case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
     case MethodRecognizer::kInt16ArrayGetIndexed:
     case MethodRecognizer::kUint16ArrayGetIndexed:
+      return TryInlineGetIndexed(kind, call, ic_data, entry, last);
+    case MethodRecognizer::kFloat32x4ArrayGetIndexed:
+      if (!ShouldInlineSimd()) return false;
+      return TryInlineGetIndexed(kind, call, ic_data, entry, last);
     case MethodRecognizer::kInt32ArrayGetIndexed:
     case MethodRecognizer::kUint32ArrayGetIndexed:
-    case MethodRecognizer::kFloat32x4ArrayGetIndexed:
+      if (!CanUnboxInt32()) return false;
       return TryInlineGetIndexed(kind, call, ic_data, entry, last);
     default:
       return false;
@@ -1176,44 +1178,22 @@ bool FlowGraphOptimizer::TryInlineGetIndexed(MethodRecognizer::Kind kind,
 
 
 bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
-  const intptr_t class_id = ReceiverClassId(call);
-  switch (class_id) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-    case kGrowableObjectArrayCid:
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
-      break;
-    case kTypedDataFloat32x4ArrayCid:
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      break;
-    case kTypedDataInt32ArrayCid:
-    case kTypedDataUint32ArrayCid:
-        if (!CanUnboxInt32()) return false;
-      break;
-    default:
-      return false;
-  }
+  // Check for monomorphic IC data.
+  if (!call->HasICData()) return false;
+  const ICData& ic_data = ICData::Handle(call->ic_data()->AsUnaryClassChecks());
+  if (ic_data.NumberOfChecks() != 1) return false;
+  ASSERT(ic_data.HasOneTarget());
 
-  const Function& target =
-      Function::Handle(call->ic_data()->GetTargetAt(0));
+  const Function& target = Function::Handle(ic_data.GetTargetAt(0));
   TargetEntryInstr* entry;
   Definition* last;
-  ASSERT(class_id == MethodKindToCid(MethodRecognizer::RecognizeKind(target)));
-  bool success = TryInlineRecognizedMethod(target,
-                                           call,
-                                           *call->ic_data(),
-                                           &entry, &last);
-  ASSERT(success);
+  if (!TryInlineRecognizedMethod(target,
+                                 call,
+                                 *call->ic_data(),
+                                 &entry, &last)) {
+    return false;
+  }
+
   // Insert receiver class check.
   AddReceiverCheck(call);
   // Remove the original push arguments.
