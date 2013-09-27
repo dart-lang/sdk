@@ -14,6 +14,7 @@ DECLARE_FLAG(charp, coverage_dir);
 
 // Forward declarations.
 class Class;
+class Function;
 class Isolate;
 class JSONArray;
 
@@ -23,6 +24,8 @@ class CodeCoverage : public AllStatic {
 
  private:
   static void PrintClass(const Class& cls, const JSONArray& arr);
+  static void CompileAndAdd(const Function& function,
+                            const JSONArray& hits_arr);
 };
 
 }  // namespace dart

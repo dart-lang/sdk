@@ -6,6 +6,7 @@
 
 #include "include/dart_api.h"
 
+#include "vm/compiler.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/object.h"
@@ -16,64 +17,99 @@ namespace dart {
 DEFINE_FLAG(charp, coverage_dir, NULL,
             "Enable writing coverage data into specified directory.");
 
+
+void CodeCoverage::CompileAndAdd(const Function& function,
+                                 const JSONArray& hits_arr) {
+  if (!function.HasCode()) {
+    if (Compiler::CompileFunction(function) != Error::null()) {
+      return;
+    }
+  }
+  ASSERT(function.HasCode());
+
+  Isolate* isolate = Isolate::Current();
+  // Print the hit counts for all IC datas.
+  const Script& script = Script::Handle(function.script());
+  const Code& code = Code::Handle(function.unoptimized_code());
+  const Array& ic_array = Array::Handle(code.ExtractTypeFeedbackArray());
+  const PcDescriptors& descriptors = PcDescriptors::Handle(
+      code.pc_descriptors());
+  ICData& ic_data = ICData::Handle();
+
+  for (int j = 0; j < descriptors.Length(); j++) {
+    HANDLESCOPE(isolate);
+    PcDescriptors::Kind kind = descriptors.DescriptorKind(j);
+    // Only IC based calls have counting.
+    if ((kind == PcDescriptors::kIcCall) ||
+        (kind == PcDescriptors::kUnoptStaticCall)) {
+      intptr_t deopt_id = descriptors.DeoptId(j);
+      ic_data ^= ic_array.At(deopt_id);
+      if (!ic_data.IsNull()) {
+        intptr_t token_pos = descriptors.TokenPos(j);
+        intptr_t line = -1;
+        script.GetTokenLocation(token_pos, &line, NULL);
+        hits_arr.AddValue(line);
+        hits_arr.AddValue(ic_data.AggregateCount());
+      }
+    }
+  }
+}
+
+
 void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
-  const Array& functions = Array::Handle(cls.functions());
+  Isolate* isolate = Isolate::Current();
+  Array& functions = Array::Handle(cls.functions());
   ASSERT(!functions.IsNull());
   Function& function = Function::Handle();
-  Code& code = Code::Handle();
   Script& script = Script::Handle();
+  String& saved_url = String::Handle();
   String& url = String::Handle();
-  String& name = String::Handle();
-  PcDescriptors& descriptors = PcDescriptors::Handle();
-  Array& ic_array = Array::Handle();
-  ICData& ic_data = ICData::Handle();
-  for (int i = 0; i < functions.Length(); i++) {
-    function ^= functions.At(i);
 
+  int i = 0;
+  while (i < functions.Length()) {
+    HANDLESCOPE(isolate);
+    function ^= functions.At(i);
     JSONObject jsobj(&jsarr);
     script = function.script();
-    url = script.url();
-    name = function.QualifiedUserVisibleName();
-    jsobj.AddProperty("source", url.ToCString());
-    jsobj.AddProperty("function", name.ToCString());
+    saved_url = script.url();
+    jsobj.AddProperty("source", saved_url.ToCString());
+    JSONArray hits_arr(&jsobj, "hits");
 
-    JSONArray jsarr(&jsobj, "hits");
-
-    if (function.HasCode()) {
-      // Print the hit counts for all IC datas.
-      code = function.unoptimized_code();
-      ic_array = code.ExtractTypeFeedbackArray();
-      descriptors = code.pc_descriptors();
-
-      for (int j = 0; j < descriptors.Length(); j++) {
-        PcDescriptors::Kind kind = descriptors.DescriptorKind(j);
-        // Only IC based calls have counting.
-        if ((kind == PcDescriptors::kIcCall) ||
-            (kind == PcDescriptors::kUnoptStaticCall)) {
-          intptr_t deopt_id = descriptors.DeoptId(j);
-          ic_data ^= ic_array.At(deopt_id);
-          if (!ic_data.IsNull()) {
-            intptr_t token_pos = descriptors.TokenPos(j);
-            intptr_t line = -1;
-            intptr_t col = -1;
-            script.GetTokenLocation(token_pos, &line, &col);
-            JSONObject ic_info(&jsarr);
-            ic_info.AddProperty("line", line);
-            ic_info.AddProperty("col", col);
-            ic_info.AddProperty("count", ic_data.AggregateCount());
-          }
-        }
+    while (i < functions.Length()) {
+      function ^= functions.At(i);
+      script = function.script();
+      url = script.url();
+      if (!url.Equals(saved_url)) {
+        break;
       }
-    } else {
-      // The function has no code so it was never executed and thus we add one
-      // zero count hit at the first token index.
-      intptr_t line = -1;
-      intptr_t col = -1;
-      script.GetTokenLocation(function.token_pos(), &line, &col);
-      JSONObject func_info(&jsarr);
-      func_info.AddProperty("line", line);
-      func_info.AddProperty("col", col);
-      func_info.AddProperty("count", static_cast<intptr_t>(0));
+      CompileAndAdd(function, hits_arr);
+      i++;
+    }
+  }
+
+  GrowableObjectArray& closures = GrowableObjectArray::Handle(
+      cls.closures());
+  if (!closures.IsNull()) {
+    i = 0;
+    while (i < closures.Length()) {
+      HANDLESCOPE(isolate);
+      function ^= closures.At(i);
+      JSONObject jsobj(&jsarr);
+      script = function.script();
+      saved_url = script.url();
+      jsobj.AddProperty("source", saved_url.ToCString());
+      JSONArray hits_arr(&jsobj, "hits");
+
+      while (i < closures.Length()) {
+        function ^= closures.At(i);
+        script = function.script();
+        url = script.url();
+        if (!url.Equals(saved_url)) {
+          break;
+        }
+        CompileAndAdd(function, hits_arr);
+        i++;
+      }
     }
   }
 }
@@ -103,7 +139,7 @@ void CodeCoverage::Write(Isolate* isolate) {
       ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
       while (it.HasNext()) {
         cls = it.GetNextClass();
-        if (cls.is_finalized()) {
+        if (cls.EnsureIsFinalized(isolate) == Error::null()) {
           // Only classes that have been finalized do have a meaningful list of
           // functions.
           PrintClass(cls, jsarr);

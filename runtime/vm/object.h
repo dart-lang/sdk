@@ -858,6 +858,9 @@ class Class : public Object {
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
 
+  RawGrowableObjectArray* closures() const {
+    return raw_ptr()->closure_functions_;
+  }
   void AddClosureFunction(const Function& function) const;
   RawFunction* LookupClosureFunction(intptr_t token_pos) const;
 
