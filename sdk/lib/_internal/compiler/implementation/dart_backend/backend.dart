@@ -619,7 +619,7 @@ class ReferencedElementCollector extends Visitor {
   }
 }
 
-compareBy(f) => (x, y) => f(x).compareTo(f(y));
+Comparator compareBy(f) => (x, y) => f(x).compareTo(f(y));
 
 List sorted(Iterable l, comparison) {
   final result = new List.from(l);

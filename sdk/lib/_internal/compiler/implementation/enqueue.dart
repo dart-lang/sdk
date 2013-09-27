@@ -4,6 +4,8 @@
 
 part of dart2js;
 
+typedef ItemCompilationContext ItemCompilationContextCreator();
+
 class EnqueueTask extends CompilerTask {
   final ResolutionEnqueuer resolution;
   final CodegenEnqueuer codegen;
@@ -71,7 +73,7 @@ class EnqueueTask extends CompilerTask {
 abstract class Enqueuer {
   final String name;
   final Compiler compiler; // TODO(ahe): Remove this dependency.
-  final Function itemCompilationContextCreator;
+  final ItemCompilationContextCreator itemCompilationContextCreator;
   final Map<String, Link<Element>> instanceMembersByName
       = new Map<String, Link<Element>>();
   final Map<String, Link<Element>> instanceFunctionsByName
@@ -85,9 +87,7 @@ abstract class Enqueuer {
 
   bool hasEnqueuedEverything = false;
 
-  Enqueuer(this.name, this.compiler,
-           ItemCompilationContext itemCompilationContextCreator())
-    : this.itemCompilationContextCreator = itemCompilationContextCreator;
+  Enqueuer(this.name, this.compiler, this.itemCompilationContextCreator);
 
   Queue<WorkItem> get queue;
 

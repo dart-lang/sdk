@@ -4,7 +4,7 @@
 
 part of dart_backend;
 
-Function get _compareNodes =>
+Comparator get _compareNodes =>
     compareBy((n) => n.getBeginToken().charOffset);
 
 typedef String _Renamer(Renamable renamable);
