@@ -478,24 +478,68 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
   static final HintCode TYPE_CHECK_IS_NULL = new HintCode.con1('TYPE_CHECK_IS_NULL', 12, "Tests for null should be done with '== null'");
 
   /**
+   * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_GETTER] or
+   * [StaticWarningCode#UNDEFINED_GETTER] would have been generated, if we used propagated
+   * information for the warnings.
+   *
+   * @param getterName the name of the getter
+   * @param enclosingType the name of the enclosing type where the getter is being looked for
+   * @see StaticTypeWarningCode#UNDEFINED_GETTER
+   * @see StaticWarningCode#UNDEFINED_GETTER
+   */
+  static final HintCode UNDEFINED_GETTER = new HintCode.con1('UNDEFINED_GETTER', 13, StaticTypeWarningCode.UNDEFINED_GETTER.message);
+
+  /**
+   * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_METHOD] would
+   * have been generated, if we used propagated information for the warnings.
+   *
+   * @param methodName the name of the method that is undefined
+   * @param typeName the resolved type name that the method lookup is happening on
+   * @see StaticTypeWarningCode#UNDEFINED_METHOD
+   */
+  static final HintCode UNDEFINED_METHOD = new HintCode.con1('UNDEFINED_METHOD', 14, StaticTypeWarningCode.UNDEFINED_METHOD.message);
+
+  /**
+   * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_OPERATOR]
+   * would have been generated, if we used propagated information for the warnings.
+   *
+   * @param operator the name of the operator
+   * @param enclosingType the name of the enclosing type where the operator is being looked for
+   * @see StaticTypeWarningCode#UNDEFINED_OPERATOR
+   */
+  static final HintCode UNDEFINED_OPERATOR = new HintCode.con1('UNDEFINED_OPERATOR', 15, StaticTypeWarningCode.UNDEFINED_OPERATOR.message);
+
+  /**
+   * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_SETTER] or
+   * [StaticWarningCode#UNDEFINED_SETTER] would have been generated, if we used propagated
+   * information for the warnings.
+   *
+   * @param setterName the name of the setter
+   * @param enclosingType the name of the enclosing type where the setter is being looked for
+   * @see StaticTypeWarningCode#UNDEFINED_SETTER
+   * @see StaticWarningCode#UNDEFINED_SETTER
+   */
+  static final HintCode UNDEFINED_SETTER = new HintCode.con1('UNDEFINED_SETTER', 16, StaticTypeWarningCode.UNDEFINED_SETTER.message);
+
+  /**
    * Unnecessary cast.
    */
-  static final HintCode UNNECESSARY_CAST = new HintCode.con1('UNNECESSARY_CAST', 13, "Unnecessary cast");
+  static final HintCode UNNECESSARY_CAST = new HintCode.con1('UNNECESSARY_CAST', 17, "Unnecessary cast");
 
   /**
    * Unnecessary type checks, the result is always true.
    */
-  static final HintCode UNNECESSARY_TYPE_CHECK_FALSE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_FALSE', 14, "Unnecessary type check, the result is always false");
+  static final HintCode UNNECESSARY_TYPE_CHECK_FALSE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_FALSE', 18, "Unnecessary type check, the result is always false");
 
   /**
    * Unnecessary type checks, the result is always false.
    */
-  static final HintCode UNNECESSARY_TYPE_CHECK_TRUE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 15, "Unnecessary type check, the result is always true");
+  static final HintCode UNNECESSARY_TYPE_CHECK_TRUE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 19, "Unnecessary type check, the result is always true");
 
   /**
    * Unused imports are imports which are never not used.
    */
-  static final HintCode UNUSED_IMPORT = new HintCode.con1('UNUSED_IMPORT', 16, "Unused import");
+  static final HintCode UNUSED_IMPORT = new HintCode.con1('UNUSED_IMPORT', 20, "Unused import");
   static final List<HintCode> values = [
       DEAD_CODE,
       DEAD_CODE_CATCH_FOLLOWING_CATCH,
@@ -510,6 +554,10 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
       OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
       TYPE_CHECK_IS_NOT_NULL,
       TYPE_CHECK_IS_NULL,
+      UNDEFINED_GETTER,
+      UNDEFINED_METHOD,
+      UNDEFINED_OPERATOR,
+      UNDEFINED_SETTER,
       UNNECESSARY_CAST,
       UNNECESSARY_TYPE_CHECK_FALSE,
       UNNECESSARY_TYPE_CHECK_TRUE,
@@ -2793,6 +2841,8 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * <i>id</i> occurs inside a top level or static function (be it function, method, getter, or
    * setter) or variable initializer and there is no declaration <i>d</i> with name <i>id</i> in the
    * lexical scope enclosing the expression.
+   *
+   * @param name the name of the identifier
    */
   static final StaticWarningCode UNDEFINED_IDENTIFIER = new StaticWarningCode.con1('UNDEFINED_IDENTIFIER', 72, "Undefined name '%s'");
 

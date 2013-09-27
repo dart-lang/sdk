@@ -4906,6 +4906,18 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
+  void test_undefinedMethod_assignmentExpression() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "class B {",
+        "  f(A a) {",
+        "    A a2 = new A();",
+        "    a += a2;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
   void test_undefinedMethod_ignoreTypePropagation() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {}",
@@ -4913,7 +4925,7 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  m() {}",
         "}",
         "class C {",
-        "f() {",
+        "  f() {",
         "    A a = new B();",
         "    a.m();",
         "  }",
@@ -4940,6 +4952,16 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
   void test_undefinedOperator_plus() {
     Source source = addSource(EngineTestCase.createSource(["class A {}", "f(A a) {", "  a + 1;", "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  void test_undefinedOperator_postfixExpression() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "f(A a) {", "  a++;", "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  void test_undefinedOperator_prefixExpression() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "f(A a) {", "  ++a;", "}"]));
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
@@ -5280,6 +5302,10 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_undefinedMethod);
       });
+      _ut.test('test_undefinedMethod_assignmentExpression', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedMethod_assignmentExpression);
+      });
       _ut.test('test_undefinedMethod_ignoreTypePropagation', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_undefinedMethod_ignoreTypePropagation);
@@ -5299,6 +5325,14 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
       _ut.test('test_undefinedOperator_plus', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_undefinedOperator_plus);
+      });
+      _ut.test('test_undefinedOperator_postfixExpression', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedOperator_postfixExpression);
+      });
+      _ut.test('test_undefinedOperator_prefixExpression', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedOperator_prefixExpression);
       });
       _ut.test('test_undefinedSetter', () {
         final __test = new StaticTypeWarningCodeTest();
@@ -5705,6 +5739,122 @@ class HintCodeTest extends ResolverTestCase {
     assertErrors(source, [HintCode.TYPE_CHECK_IS_NOT_NULL]);
     verify([source]);
   }
+  void test_undefinedGetter() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    return a.m;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.UNDEFINED_GETTER]);
+  }
+  void test_undefinedGetter_message() {
+    JUnitTestCase.assertEquals(StaticTypeWarningCode.UNDEFINED_GETTER.message, StaticWarningCode.UNDEFINED_GETTER.message);
+  }
+  void test_undefinedMethod() {
+    Source source = addSource(EngineTestCase.createSource([
+        "f() {",
+        "  var a = 'str';",
+        "  a.notAMethodOnString();",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.UNDEFINED_METHOD]);
+  }
+  void test_undefinedMethod_assignmentExpression() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "class B {",
+        "  f(var a, var a2) {",
+        "    a = new A();",
+        "    a2 = new A();",
+        "    a += a2;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.UNDEFINED_METHOD]);
+  }
+  void test_undefinedOperator_indexBoth() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a[0]++;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.UNDEFINED_OPERATOR, HintCode.UNDEFINED_OPERATOR]);
+  }
+  void test_undefinedOperator_indexGetter() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a[0];",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+  }
+  void test_undefinedOperator_indexSetter() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a[0] = 1;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+  }
+  void test_undefinedOperator_plus() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a + 1;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+  }
+  void test_undefinedOperator_postfixExpression() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a++;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+  }
+  void test_undefinedOperator_prefixExpression() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    ++a;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+  }
+  void test_undefinedSetter() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a.m = 0;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.UNDEFINED_SETTER]);
+  }
+  void test_undefinedSetter_message() {
+    JUnitTestCase.assertEquals(StaticTypeWarningCode.UNDEFINED_SETTER.message, StaticWarningCode.UNDEFINED_SETTER.message);
+  }
   void test_unnecessaryCast_type_supertype() {
     Source source = addSource(EngineTestCase.createSource(["m(int i) {", "  var b = i as Object;", "}"]));
     resolve(source);
@@ -5958,6 +6108,54 @@ class HintCodeTest extends ResolverTestCase {
       _ut.test('test_typeCheck_type_not_Null', () {
         final __test = new HintCodeTest();
         runJUnitTest(__test, __test.test_typeCheck_type_not_Null);
+      });
+      _ut.test('test_undefinedGetter', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_undefinedGetter);
+      });
+      _ut.test('test_undefinedGetter_message', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_undefinedGetter_message);
+      });
+      _ut.test('test_undefinedMethod', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_undefinedMethod);
+      });
+      _ut.test('test_undefinedMethod_assignmentExpression', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_undefinedMethod_assignmentExpression);
+      });
+      _ut.test('test_undefinedOperator_indexBoth', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_undefinedOperator_indexBoth);
+      });
+      _ut.test('test_undefinedOperator_indexGetter', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_undefinedOperator_indexGetter);
+      });
+      _ut.test('test_undefinedOperator_indexSetter', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_undefinedOperator_indexSetter);
+      });
+      _ut.test('test_undefinedOperator_plus', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_undefinedOperator_plus);
+      });
+      _ut.test('test_undefinedOperator_postfixExpression', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_undefinedOperator_postfixExpression);
+      });
+      _ut.test('test_undefinedOperator_prefixExpression', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_undefinedOperator_prefixExpression);
+      });
+      _ut.test('test_undefinedSetter', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_undefinedSetter);
+      });
+      _ut.test('test_undefinedSetter_message', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_undefinedSetter_message);
       });
       _ut.test('test_unnecessaryCast_type_supertype', () {
         final __test = new HintCodeTest();
@@ -17035,6 +17233,13 @@ class NonHintCodeTest extends ResolverTestCase {
     assertNoErrors(source);
     verify([source]);
   }
+  void test_unusedImport_annotationOnDirective() {
+    Source source = addSource(EngineTestCase.createSource(["library L;", "@A()", "import 'lib1.dart';"]));
+    Source source2 = addSource2("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {", "  const A() {}", "}"]));
+    resolve(source);
+    assertErrors(source, []);
+    verify([source, source2]);
+  }
   void test_unusedImport_core_library() {
     Source source = addSource(EngineTestCase.createSource(["library L;", "import 'dart:core';"]));
     resolve(source);
@@ -17168,6 +17373,10 @@ class NonHintCodeTest extends ResolverTestCase {
       _ut.test('test_unnecessaryCast_type_dynamic', () {
         final __test = new NonHintCodeTest();
         runJUnitTest(__test, __test.test_unnecessaryCast_type_dynamic);
+      });
+      _ut.test('test_unusedImport_annotationOnDirective', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_unusedImport_annotationOnDirective);
       });
       _ut.test('test_unusedImport_core_library', () {
         final __test = new NonHintCodeTest();

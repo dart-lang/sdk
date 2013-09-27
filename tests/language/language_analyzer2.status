@@ -123,17 +123,12 @@ export_cyclic_test: fail
 # test issue 11590, runtime only negative test
 field_method4_negative_test: fail
 
-# test issue 11591, assigning to the final variable is warning, not error
-getter_no_setter_test/01: fail
-
 # test issue 11592, Function type alias (typedef) is not a constant
 first_class_types_constants_test: fail
 
 # test issue 11594, Reference to a not resolve identifier is static warning
 import_combinators_negative_test: fail
 interface_static_non_final_fields_negative_test: fail
-
-instantiate_type_variable_test/01: fail # Issue 11595
 
 # test issue 11698, no setter, so warning, not error
 assign_instance_method_negative_test: fail
@@ -185,7 +180,6 @@ unresolved_top_level_var_negative_test: fail # Issue 12163
 
 # test issue 12191, ambiguous import is always warning now
 prefix3_negative_test: fail # Issue 12191
-library_ambiguous_test/00: fail # Issue 12191
 
 # test issue 12289, assignment in assert statement
 type_error_test: fail # Issue 12289

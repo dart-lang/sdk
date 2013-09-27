@@ -2779,6 +2779,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return null;
   }
   List<AnalysisError> computeErrors(Source source) {
+    bool enableHints = analysisOptions.hint;
     SourceEntry sourceEntry = getReadableSourceEntry(source);
     if (sourceEntry is DartEntry) {
       List<AnalysisError> errors = new List<AnalysisError>();
@@ -2787,12 +2788,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       dartEntry = getReadableDartEntry(source);
       if (identical(dartEntry.getValue(DartEntry.SOURCE_KIND), SourceKind.LIBRARY)) {
         ListUtilities.addAll(errors, getDartResolutionData(source, source, dartEntry, DartEntry.RESOLUTION_ERRORS));
-        ListUtilities.addAll(errors, getDartHintData(source, source, dartEntry, DartEntry.HINTS));
+        if (enableHints) {
+          ListUtilities.addAll(errors, getDartHintData(source, source, dartEntry, DartEntry.HINTS));
+        }
       } else {
         List<Source> libraries = getLibrariesContaining(source);
         for (Source librarySource in libraries) {
           ListUtilities.addAll(errors, getDartResolutionData(source, librarySource, dartEntry, DartEntry.RESOLUTION_ERRORS));
-          ListUtilities.addAll(errors, getDartHintData(source, librarySource, dartEntry, DartEntry.HINTS));
+          if (enableHints) {
+            ListUtilities.addAll(errors, getDartHintData(source, librarySource, dartEntry, DartEntry.HINTS));
+          }
         }
       }
       if (errors.isEmpty) {

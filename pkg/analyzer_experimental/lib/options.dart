@@ -26,6 +26,9 @@ class CommandLineOptions {
   /** Whether to display version information */
   final bool displayVersion;
 
+  /** Whether to report hints */
+  final bool disableHints;
+
   /** Whether to ignore unrecognized flags */
   final bool ignoreUnrecognizedFlags;
 
@@ -57,6 +60,7 @@ class CommandLineOptions {
     : shouldBatch = args['batch'],
       machineFormat = args['machine'],
       displayVersion = args['version'],
+      disableHints = args['no-hints'],
       ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
       perf = args['perf'],
       showPackageWarnings = args['show-package-warnings'],
@@ -101,6 +105,8 @@ class CommandLineOptions {
           help: 'Print errors in a format suitable for parsing',
           defaultsTo: false, negatable: false)
       ..addFlag('version', help: 'Print the analyzer version',
+          defaultsTo: false, negatable: false)
+      ..addFlag('no-hints', help: 'Do not show hint results',
           defaultsTo: false, negatable: false)
       ..addFlag('ignore-unrecognized-flags',
           help: 'Ignore unrecognized command line flags',
