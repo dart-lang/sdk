@@ -41,6 +41,8 @@ void testListenOn() {
   ServerSocket.bind("127.0.0.1", 0).then((s) {
     socket = s;
     server = new HttpServer.listenOn(socket);
+    Expect.equals(server.address.address, '127.0.0.1');
+    Expect.equals(server.address.host, '127.0.0.1');
     server.listen((HttpRequest request) {
       request.listen(
         (_) {},
@@ -51,6 +53,7 @@ void testListenOn() {
       test(() {
         server.close();
         Expect.throws(() => server.port);
+        Expect.throws(() => server.address);
         socket.close();
         asyncEnd();
       });

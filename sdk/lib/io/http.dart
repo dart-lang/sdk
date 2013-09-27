@@ -186,6 +186,13 @@ abstract class HttpServer implements Stream<HttpRequest> {
   int get port;
 
   /**
+   * Returns the address that the server is listening on. This can be
+   * used to get the actual address used, when the address is fetched by
+   * a lookup from a hostname.
+   */
+  InternetAddress get address;
+
+  /**
    * Sets the timeout, in seconds, for sessions of this [HttpServer].
    * The default timeout is 20 minutes.
    */

@@ -289,7 +289,7 @@ Future<Set<Transformer>> loadTransformers(BarbackServer server,
     TransformerId id) {
   var path = id.asset.path.replaceFirst('lib/', '');
   // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
-  var hostAndPort = '${server.host}:${server.port}';
+  var hostAndPort = '${server.address.address}:${server.port}';
   var uri = 'http://$hostAndPort/packages/${id.asset.package}/$path';
   var code = 'import "$uri";' +
       _TRANSFORMER_ISOLATE.replaceAll('<<HOST_AND_PORT>>', hostAndPort);

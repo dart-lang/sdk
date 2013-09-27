@@ -711,6 +711,8 @@ class _RawServerSocket extends Stream<RawSocket>
 
   int get port => _socket.port;
 
+  InternetAddress get address => _socket.address;
+
   Future close() => _socket.close().then((_) => this);
 
   void _pause() {
@@ -920,6 +922,8 @@ class _ServerSocket extends Stream<Socket>
   }
 
   int get port => _socket.port;
+
+  InternetAddress get address => _socket.address;
 
   Future close() => _socket.close().then((_) => this);
 }

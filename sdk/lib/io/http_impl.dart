@@ -2012,6 +2012,11 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
     return _serverSocket.port;
   }
 
+  InternetAddress get address {
+    if (closed) throw new HttpException("HttpServer is not bound to a socket");
+    return _serverSocket.address;
+  }
+
   set sessionTimeout(int timeout) {
     _sessionManager.sessionTimeout = timeout;
   }
