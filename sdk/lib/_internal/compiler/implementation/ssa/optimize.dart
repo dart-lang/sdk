@@ -694,7 +694,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         var type = receiver.instructionType.computeMask(compiler);
         if (type.isContainer && type.length != null) {
-          return graph.addConstantInt(type.length, compiler);
+          HInstruction constant = graph.addConstantInt(type.length, compiler);
+          if (type.isNullable) {
+            // If the container can be null, we update all uses of the
+            // length access to use the constant instead, but keep the
+            // length access in the graph, to ensure we still have a
+            // null check.
+            node.block.rewrite(node, constant);
+            return node;
+          } else {
+            return constant;
+          }
         }
       }
     }
