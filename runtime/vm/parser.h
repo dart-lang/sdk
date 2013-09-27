@@ -187,8 +187,6 @@ class Parser : public ValueObject {
                                          const char* format,
                                          va_list args);
 
-  static void AddImplicitConstructor(const Class& cls);
-
  private:
   friend class EffectGraphVisitor;  // For BuildNoSuchMethodArguments.
 
@@ -398,6 +396,7 @@ class Parser : public ValueObject {
                                 bool evaluate_metadata,
                                 ParamList* params);
   void CheckConstFieldsInitialized(const Class& cls);
+  static void AddImplicitConstructor(const Class& cls);
   void CheckConstructors(ClassDesc* members);
   AstNode* ParseExternalInitializedField(const Field& field);
   void ParseInitializedInstanceFields(

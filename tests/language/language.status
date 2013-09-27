@@ -23,9 +23,7 @@ super_first_constructor_test: Fail # Issue 1372.
 lazy_static3_test: Fail # Issue 12593
 duplicate_export_negative_test: Fail # Issue 6134
 on_catch_malformed_type_test: Fail # Issue 8601
-mixin_forwarding_constructor2_test: Fail # Issue 11888
-mixin_typedef_constructor_test: Fail # Issue 11888
-mixin_type_parameter2_test: Fail # Issue 11888
+mixin_forwarding_constructor2_test: Fail # Issue 13641
 
 [ $compiler == none && $unchecked ]
 # Only checked mode reports an error on type assignment

@@ -2450,13 +2450,16 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
       current_class(), receiver, &initialized_fields);
   receiver->set_invisible(false);
 
+  // If the class of this implicit constructor is a mixin typedef class,
+  // it is a forwarding constructor of the aliased mixin application class.
   // If the class of this implicit constructor is a mixin application class,
   // it is a forwarding constructor of the mixin. The forwarding
   // constructor initializes the instance fields that have initializer
   // expressions and then calls the respective super constructor with
   // the same name and number of parameters.
   ArgumentListNode* forwarding_args = NULL;
-  if (current_class().IsMixinApplication()) {
+  if (current_class().is_mixin_typedef() ||
+      current_class().IsMixinApplication()) {
     // At this point we don't support forwarding constructors
     // that have optional parameters because we don't know the default
     // values of the optional parameters. We would have to compile the super

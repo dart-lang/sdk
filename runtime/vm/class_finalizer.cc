@@ -1701,12 +1701,17 @@ void ClassFinalizer::CreateForwardingConstructors(
     if (func.IsConstructor()) {
       // Build constructor name from mixin application class name
       // and name of cloned super class constructor.
-      String& ctor_name = String::Handle(func.name());
-      ctor_name = String::SubString(ctor_name, super_name.Length());
-      String& clone_name =
-          String::Handle(String::Concat(mixin_name, ctor_name));
+      const String& ctor_name = String::Handle(func.name());
+      String& clone_name = String::Handle(
+          String::SubString(ctor_name, super_name.Length()));
+      clone_name = String::Concat(mixin_name, clone_name);
       clone_name = Symbols::New(clone_name);
 
+      if (FLAG_trace_class_finalization) {
+        OS::Print("Cloning constructor '%s' as '%s'\n",
+                  ctor_name.ToCString(),
+                  clone_name.ToCString());
+      }
       const Function& clone = Function::Handle(
           Function::New(clone_name,
                         func.kind(),
@@ -1967,10 +1972,14 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   // Mark as parsed and finalized.
   cls.Finalize();
-  // Mixin typedef classes may still lack their implicit constructor.
+  // Mixin typedef classes may still lack their forwarding constructor.
   if (cls.is_mixin_typedef() &&
       (cls.functions() == Object::empty_array().raw())) {
-    Parser::AddImplicitConstructor(cls);
+    const GrowableObjectArray& cloned_funcs =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    CreateForwardingConstructors(cls, cloned_funcs);
+    const Array& functions = Array::Handle(Array::MakeArray(cloned_funcs));
+    cls.SetFunctions(functions);
   }
   // Every class should have at least a constructor, unless it is a top level
   // class or a signature class.
