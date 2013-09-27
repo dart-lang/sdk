@@ -83,8 +83,8 @@ class Range;
   V(::, sqrt, MathSqrt, 465520247)                                             \
   V(::, sin, MathSin, 730107143)                                               \
   V(::, cos, MathCos, 1282146521)                                              \
-  V(::, min, MathMin, 1602283410)                                              \
-  V(::, max, MathMax, 997766696)                                               \
+  V(::, min, MathMin, 1830216388)                                              \
+  V(::, max, MathMax, 234565686)                                               \
   V(::, _doublePow, MathDoublePow, 1728171041)                                 \
   V(Float32x4, Float32x4., Float32x4Constructor, 786169160)                    \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 1589383280)                      \
