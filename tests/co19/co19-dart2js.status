@@ -310,8 +310,6 @@ LibTest/math/log_A01_t01: Fail # TODO(kasperl): Please triage.
 # Missing compile-time errors.
 #
 [ $compiler == dart2js ]
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: MissingCompileTimeError # TODO(ahe): Enforce optional parameter semantics.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: MissingCompileTimeError # TODO(ahe): Enforce optional parameter semantics.
 Language/07_Classes/07_Classes_A02_t11: MissingCompileTimeError # Checks that it is a compile-time error if a static final variable declaration does not include explicit initializer.
 Language/12_Expressions/01_Constants_A20_t03: MissingCompileTimeError # Checks that an identifier expression that denotes a type parameter  can not be assigned to a constant variable.
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t09: MissingCompileTimeError # Checks that it is a compile-time error if a string interpolation construct does not start with IDENTIFIER_NO_DOLLAR or opening brace.

@@ -933,6 +933,13 @@ Use 'const #{name}' if possible.''');
       "Error: '#{value}' is not a valid Symbol name because it starts with "
       "'_'.");
 
+  static const MessageKind PRIVATE_NAMED_PARAMETER = const MessageKind(
+      "Error: Named optional parameter can't have a library private name.",
+      howToFix: "Try removing the '_' or making the parameter positional or "
+        "required.",
+      examples: const ["""foo({int _p}) {} main() => foo();"""]
+      );
+
   static const MessageKind UNSUPPORTED_LITERAL_SYMBOL = const MessageKind(
       "Internal Error: Symbol literal '##{value}' is currently unsupported.");
 

@@ -4002,6 +4002,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   final bool defaultValuesAllowed;
   Link<Element> optionalParameters = const Link<Element>();
   int optionalParameterCount = 0;
+  bool isOptionalParameter = false;
   bool optionalParametersAreNamed = false;
   VariableDefinitions currentDefinitions;
 
@@ -4017,6 +4018,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       internalError(node, "expected optional parameters");
     }
     optionalParametersAreNamed = (identical(value, '{'));
+    isOptionalParameter = true;
     LinkBuilder<Element> elements = analyzeNodes(node.nodes);
     optionalParameterCount = elements.length;
     optionalParameters = elements.toLink();
@@ -4053,7 +4055,17 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     return element;
   }
 
+  void validateName(Identifier node) {
+    SourceString name = node.source;
+    if (isOptionalParameter &&
+        optionalParametersAreNamed &&
+        node.source.isPrivate()) {
+      compiler.reportError(node, MessageKind.PRIVATE_NAMED_PARAMETER);
+    }
+  }
+
   Element visitIdentifier(Identifier node) {
+    validateName(node);
     Element variables = new VariableListElementX.node(currentDefinitions,
         ElementKind.VARIABLE_LIST, enclosingElement);
     // Ensure a parameter is not typed 'void'.
@@ -4066,12 +4078,14 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     var identifier = node.selector.asIdentifier();
     if (identifier != null) {
       // Normal parameter: [:Type name:].
+      validateName(identifier);
       return identifier.source;
     } else {
       // Function type parameter: [:void name(DartType arg):].
       var functionExpression = node.selector.asFunctionExpression();
       if (functionExpression != null &&
           functionExpression.name.asIdentifier() != null) {
+        validateName(functionExpression.name);
         return functionExpression.name.asIdentifier().source;
       } else {
         cancel(node,
@@ -4115,9 +4129,11 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                node.selector.asFunctionExpression() != null) {
       Element variables = new VariableListElementX.node(currentDefinitions,
           ElementKind.VARIABLE_LIST, enclosingElement);
-      SourceString source = node.selector.asIdentifier() != null ?
-          node.selector.asIdentifier().source :
-          node.selector.asFunctionExpression().name.asIdentifier().source;
+      Identifier identifier = node.selector.asIdentifier() != null ?
+          node.selector.asIdentifier() :
+          node.selector.asFunctionExpression().name.asIdentifier();
+      validateName(identifier);
+      SourceString source = identifier.source;
       element = new VariableElementX(source, variables,
           ElementKind.PARAMETER, node);
     }

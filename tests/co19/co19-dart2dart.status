@@ -18,8 +18,6 @@ Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # 
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Inherited from dart2js
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A02_t01: Fail # http://dartbug.com/5519
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A02_t02: Fail # http://dartbug.com/5519
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # inherited from VM
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # http://dartbug.com/5519
 Language/06_Functions/4_External_Functions_A01_t01: Fail # inherited from VM
 Language/07_Classes/07_Classes_A02_t11: Fail # http://dartbug.com/5519
 Language/07_Classes/3_Setters_A04_t01: Fail # inherited from VM
