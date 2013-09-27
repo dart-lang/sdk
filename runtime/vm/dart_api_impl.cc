@@ -3613,7 +3613,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeReceiver(Dart_NativeArguments args,
   CHECK_ISOLATE(isolate);
   ReusableObjectHandleScope reused_obj_handle(isolate);
   Object& obj = reused_obj_handle.Handle();
-  obj = arguments->NativeArgAt(0);
+  obj = arguments->NativeReceiver();
   intptr_t cid = obj.GetClassId();
   if (cid <= kNumPredefinedCids) {
     if (cid == kNullCid) {

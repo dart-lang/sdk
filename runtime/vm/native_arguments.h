@@ -87,46 +87,29 @@ class NativeArguments {
   Isolate* isolate() const { return isolate_; }
   int ArgCount() const { return ArgcBits::decode(argc_tag_); }
 
-  // Returns true if the arguments are those of an instance function call.
-  bool ToInstanceFunction() const {
-    return InstanceFunctionBit::decode(argc_tag_);
-  }
-
-  // Returns true if the arguments are those of a closure function call.
-  bool ToClosureFunction() const {
-    return ClosureFunctionBit::decode(argc_tag_);
-  }
-
   RawObject* ArgAt(int index) const {
     ASSERT((index >= 0) && (index < ArgCount()));
     return (*argv_)[-index];
   }
 
-  int NumHiddenArgs() const {
-    // For static closure functions, the closure at index 0 is hidden.
-    // In the instance closure function case, the receiver is accessed from
-    // the context and the closure at index 0 is hidden, so the apparent
-    // argument count remains unchanged.
-    if (ToClosureFunction() && !ToInstanceFunction()) {
-      return 1;
-    }
-    return 0;
+  int NativeArgCount() const {
+    int function_bits = FunctionBits::decode(argc_tag_);
+    return ArgCount() - NumHiddenArgs(function_bits);
   }
 
-  int NativeArgCount() const {
-    return ArgCount() - NumHiddenArgs();
+  RawObject* NativeReceiver() const {
+    ASSERT(ToInstanceFunction());
+    return NativeArg0();
   }
 
   RawObject* NativeArgAt(int index) const {
     ASSERT((index >= 0) && (index < NativeArgCount()));
-    if ((index == 0) && ToClosureFunction() && ToInstanceFunction()) {
-      // Retrieve the receiver from the context.
-      const Context& context = Context::Handle(isolate_->top_context());
-      return context.At(0);
-    } else {
-      const int actual_index = index + NumHiddenArgs();
-      return ArgAt(actual_index);
+    if (index == 0) {
+      return NativeArg0();
     }
+    int function_bits = FunctionBits::decode(argc_tag_);
+    const int actual_index = index + NumHiddenArgs(function_bits);
+    return ArgAt(actual_index);
   }
 
   void SetReturn(const Object& value) const {
@@ -162,21 +145,29 @@ class NativeArguments {
     ASSERT(function.is_native());
     ASSERT(!function.IsConstructor());  // Not supported.
     int tag = ArgcBits::encode(function.NumParameters());
-    tag = InstanceFunctionBit::update(!function.is_static(), tag);
-    tag = ClosureFunctionBit::update(function.IsClosureFunction(), tag);
-    return tag;
+    int function_bits = 0;
+    if (!function.is_static()) {
+      function_bits |= kInstanceFunctionBit;
+    }
+    if (function.IsClosureFunction()) {
+      function_bits |= kClosureFunctionBit;
+    }
+    return FunctionBits::update(function_bits, tag);
   }
 
  private:
+  enum {
+    kInstanceFunctionBit = 1,
+    kClosureFunctionBit = 2,
+  };
   enum ArgcTagBits {
     kArgcBit = 0,
     kArgcSize = 24,
-    kInstanceFunctionBit = 24,
-    kClosureFunctionBit = 25,
+    kFunctionBit = 24,
+    kFunctionSize = 2,
   };
   class ArgcBits : public BitField<int, kArgcBit, kArgcSize> {};
-  class InstanceFunctionBit : public BitField<bool, kInstanceFunctionBit, 1> {};
-  class ClosureFunctionBit : public BitField<bool, kClosureFunctionBit, 1> {};
+  class FunctionBits : public BitField<int, kFunctionBit, kFunctionSize> {};
   friend class Api;
   friend class BootstrapNatives;
   friend class Simulator;
@@ -187,6 +178,37 @@ class NativeArguments {
   // bugs.
   void SetReturnUnsafe(RawObject* value) const {
     *retval_ = value;
+  }
+
+  // Returns true if the arguments are those of an instance function call.
+  bool ToInstanceFunction() const {
+    return (FunctionBits::decode(argc_tag_) & kInstanceFunctionBit);
+  }
+
+  // Returns true if the arguments are those of a closure function call.
+  bool ToClosureFunction() const {
+    return (FunctionBits::decode(argc_tag_) & kClosureFunctionBit);
+  }
+
+  int NumHiddenArgs(int function_bits) const {
+    // For static closure functions, the closure at index 0 is hidden.
+    // In the instance closure function case, the receiver is accessed from
+    // the context and the closure at index 0 is hidden, so the apparent
+    // argument count remains unchanged.
+    if (function_bits == kClosureFunctionBit) {
+      return 1;
+    }
+    return 0;
+  }
+
+  RawObject* NativeArg0() const {
+    int function_bits = FunctionBits::decode(argc_tag_);
+    if (function_bits == (kClosureFunctionBit | kInstanceFunctionBit)) {
+      // Retrieve the receiver from the context.
+      const Context& context = Context::Handle(isolate_->top_context());
+      return context.At(0);
+    }
+    return ArgAt(NumHiddenArgs(function_bits));
   }
 
   Isolate* isolate_;  // Current isolate pointer.
