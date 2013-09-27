@@ -1362,9 +1362,10 @@ class RunningProcess {
               process.kill();
             }
           }
-          process.exitCode.then(_commandComplete);
-          _drainStream(process.stdout, stdout);
-          _drainStream(process.stderr, stderr);
+          Future.wait([process.exitCode,
+                       _drainStream(process.stdout, stdout),
+                       _drainStream(process.stderr, stderr)])
+              .then((values) => _commandComplete(values[0]));
           timeoutTimer = new Timer(new Duration(seconds: timeout),
                                    timeoutHandler);
         }).catchError((e) {
@@ -1399,8 +1400,8 @@ class RunningProcess {
     return commandOutput;
   }
 
-  void _drainStream(Stream<List<int>> source, List<int> destination) {
-    source.listen(destination.addAll);
+  Future _drainStream(Stream<List<int>> source, List<int> destination) {
+    return source.listen(destination.addAll).asFuture();
   }
 
   Map<String, String> _createProcessEnvironment() {
