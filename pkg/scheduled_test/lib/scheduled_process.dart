@@ -17,7 +17,9 @@ import 'src/value_future.dart';
 /// synchronously. All operations on this class are scheduled.
 ///
 /// Before running the test, either [shouldExit] or [kill] must be called on
-/// this to ensure that the process terminates when expected.
+/// this to ensure that the process terminates when expected. Note that [kill]
+/// is using SIGKILL, to ensure the process is killed on Mac OS X (an early
+/// SIGTERM on Mac OS X may be ignore).
 ///
 /// If the test fails, this will automatically print out any stdout and stderr
 /// from the process to aid debugging.
@@ -220,7 +222,7 @@ class ScheduledProcess {
       if (!_exitCode.hasValue) {
         killedPrematurely = true;
         _endExpected = true;
-        _process.value.kill();
+        _process.value.kill(ProcessSignal.SIGKILL);
         // Ensure that the onException queue waits for the process to actually
         // exit after being killed.
         wrapFuture(_process.value.exitCode, "waiting for process "
@@ -328,7 +330,9 @@ class ScheduledProcess {
     _taskBeforeEnd = currentSchedule.tasks.contents.last;
     schedule(() {
       _endExpected = true;
-      return _process.then((p) => p.kill()).then((_) => _exitCode);
+      return _process
+          .then((p) => p.kill(ProcessSignal.SIGKILL))
+          .then((_) => _exitCode);
     }, "waiting for process '$description' to die");
   }
 
