@@ -27,10 +27,9 @@ class NothingDescriptor extends Descriptor {
     if (parent == null) parent = defaultRoot;
     var fullPath = path.join(parent, name);
     if (new File(fullPath).existsSync()) {
-      throw "Expected nothing to exist at '$fullPath', but found a file.";
+      fail("Expected nothing to exist at '$fullPath', but found a file.");
     } else if (new Directory(fullPath).existsSync()) {
-      throw "Expected nothing to exist at '$fullPath', but found a "
-          "directory.";
+      fail("Expected nothing to exist at '$fullPath', but found a directory.");
     } else {
       return;
     }

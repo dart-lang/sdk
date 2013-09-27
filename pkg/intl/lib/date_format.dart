@@ -486,10 +486,10 @@ class DateFormat {
       // e.g. in "hh:mm:ss" will match hh, mm, and ss. But in "hms" would
       // match each letter individually.
       new RegExp(
-        "^(?:G+|y+|M+|k+|S+|E+|a+|h+|K+|H+|c+|L+|Q+|d+|m+|s+|v+|z+|Z+)"),
+        "^(?:G+|y+|M+|k+|S+|E+|a+|h+|K+|H+|c+|L+|Q+|d+|D+|m+|s+|v+|z+|Z+)"),
       // Everything else - A sequence that is not quotes or field characters.
       // e.g. in "hh:mm:ss" will match the colons.
-      new RegExp("^[^\'GyMkSEahKHcLQdmsvzZ]+")
+      new RegExp("^[^\'GyMkSEahKHcLQdDmsvzZ]+")
   ];
 
   /**

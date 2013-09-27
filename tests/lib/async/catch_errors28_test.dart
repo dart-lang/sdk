@@ -9,19 +9,28 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+  Completer done = new Completer();
+
   var events = [];
   // Test that periodic Timers are handled correctly by `catchErrors`.
   catchErrors(() {
     int counter = 0;
     new Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (counter == 5) timer.cancel();
+      if (counter == 5) {
+        timer.cancel();
+        done.complete(true);
+      }
       counter++;
       events.add(counter);
     });
   }).listen((x) {
       events.add(x);
     },
-    onDone: () {
+    onDone: () { Expect.fail("Unexpected callback"); });
+
+  done.future.whenComplete(() {
+    // Give handlers time to run.
+    Timer.run(() {
       Expect.listEquals([
                          "main exit",
                          1, 2, 3, 4, 5, 6,
@@ -29,5 +38,7 @@ main() {
                          events);
       asyncEnd();
     });
+  });
+
   events.add("main exit");
 }

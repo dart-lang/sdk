@@ -24,8 +24,8 @@ import 'command/version.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'http.dart';
+import 'io.dart';
 import 'log.dart' as log;
-import 'package.dart';
 import 'system_cache.dart';
 import 'utils.dart';
 
@@ -113,7 +113,7 @@ and include the results in a bug report on http://dartbug.com/new.
 """);
       }
 
-      exit(_chooseExitCode(error));
+      return flushThenExit(_chooseExitCode(error));
     }
 
     new Future.sync(() {
@@ -128,20 +128,12 @@ and include the results in a bug report on http://dartbug.com/new.
       if (commandFuture == null) return true;
 
       return commandFuture;
-    }).whenComplete(() => cache.deleteTempDir()).catchError((e) {
-      if (e is PubspecNotFoundException && e.name == null) {
-        e = new ApplicationException('Could not find a file named '
-            '"pubspec.yaml" in the directory ${path.current}.');
-      } else if (e is PubspecHasNoNameException && e.name == null) {
-        e = new ApplicationException('pubspec.yaml is missing the required '
-            '"name" field (e.g. "name: ${path.basename(path.current)}").');
-      }
-
-      handleError(e);
-    }).then((_) {
+    }).whenComplete(() => cache.deleteTempDir())
+        .catchError(handleError)
+        .then((_) {
       // Explicitly exit on success to ensure that any dangling dart:io handles
       // don't cause the process to never terminate.
-      exit(0);
+      return flushThenExit(0);
     });
   }
 

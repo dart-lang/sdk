@@ -5,7 +5,6 @@
 library pub.command.lish;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
@@ -97,7 +96,7 @@ class LishCommand extends PubCommand {
     if (force && dryRun) {
       log.error('Cannot use both --force and --dry-run.');
       this.printUsage();
-      exit(exit_codes.USAGE);
+      return flushThenExit(exit_codes.USAGE);
     }
 
     var packageBytesFuture = entrypoint.packageFiles().then((files) {

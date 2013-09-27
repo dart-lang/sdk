@@ -337,11 +337,6 @@ class DesiredTypeVisitor extends HBaseVisitor {
   }
 
   HType visitTypeConversion(HTypeConversion check) {
-    // The following checks are inserted by our optimizers, so we
-    // want to optimize them even more.
-    if (check.isArgumentTypeCheck || check.isReceiverTypeCheck) {
-      return visitCheck(check);
-    }
     return HType.UNKNOWN;
   }
 
@@ -402,7 +397,10 @@ class DesiredTypeVisitor extends HBaseVisitor {
 
   HType computeDesiredTypeForInput(HInstruction user, HInstruction input) {
     this.input = input;
-    HType desired = user.accept(this);
+    // We simplify the desired type to avoid requesting the type of an
+    // instantiation node, for example [ContainerTypeMask].
+    HType desired = user.accept(this).simplify(compiler);
+    assert(!desired.computeMask(compiler).isContainer);
     this.input = null;
     return desired;
   }

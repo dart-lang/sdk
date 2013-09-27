@@ -441,24 +441,15 @@ class UriKind extends Enum<UriKind> {
   static final UriKind FILE_URI = new UriKind('FILE_URI', 1, 0x66);
 
   /**
+   * A 'package:' URI referencing source package itself.
+   */
+  static final UriKind PACKAGE_SELF_URI = new UriKind('PACKAGE_SELF_URI', 2, 0x73);
+
+  /**
    * A 'package:' URI.
    */
-  static final UriKind PACKAGE_URI = new UriKind('PACKAGE_URI', 2, 0x70);
-  static final List<UriKind> values = [DART_URI, FILE_URI, PACKAGE_URI];
-
-  /**
-   * The single character encoding used to identify this kind of URI.
-   */
-  int encoding = 0;
-
-  /**
-   * Initialize a newly created URI kind to have the given encoding.
-   *
-   * @param encoding the single character encoding used to identify this kind of URI.
-   */
-  UriKind(String name, int ordinal, int encoding) : super(name, ordinal) {
-    this.encoding = encoding;
-  }
+  static final UriKind PACKAGE_URI = new UriKind('PACKAGE_URI', 3, 0x70);
+  static final List<UriKind> values = [DART_URI, FILE_URI, PACKAGE_SELF_URI, PACKAGE_URI];
 
   /**
    * Return the URI kind represented by the given encoding, or `null` if there is no kind with
@@ -473,12 +464,28 @@ class UriKind extends Enum<UriKind> {
         return DART_URI;
       } else if (encoding == 0x66) {
         return FILE_URI;
+      } else if (encoding == 0x73) {
+        return PACKAGE_SELF_URI;
       } else if (encoding == 0x70) {
         return PACKAGE_URI;
       }
       break;
     }
     return null;
+  }
+
+  /**
+   * The single character encoding used to identify this kind of URI.
+   */
+  int encoding = 0;
+
+  /**
+   * Initialize a newly created URI kind to have the given encoding.
+   *
+   * @param encoding the single character encoding used to identify this kind of URI.
+   */
+  UriKind(String name, int ordinal, int encoding) : super(name, ordinal) {
+    this.encoding = encoding;
   }
 }
 /**

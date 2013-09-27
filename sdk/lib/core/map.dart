@@ -22,6 +22,11 @@ abstract class Map<K, V> {
   factory Map.from(Map<K, V> other) = LinkedHashMap<K, V>.from;
 
   /**
+   * Creates an identity map with the default implementation.
+   */
+  factory Map.identity() = LinkedHashMap<K, V>.identity;
+
+  /**
    * Creates a Map instance
    * where the keys and values are computed from the [iterable].
    *

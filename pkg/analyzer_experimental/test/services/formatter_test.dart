@@ -772,6 +772,14 @@ main() {
       expect(formattedSource, startsWith('    '));
     });
 
+    test('selections', () {
+      expectSelectedPostFormat('class X {}', '}');
+      expectSelectedPostFormat('class X{}', '{');
+      expectSelectedPostFormat('class X{int y;}', ';');
+      expectSelectedPostFormat('class X{int y;}', '}');
+      expectSelectedPostFormat('class X {}', ' {');
+    });
+    
   });
 
 
@@ -955,14 +963,23 @@ Token chain(List<Token> tokens) {
   return tokens[0];
 }
 
-String formatCU(src, {options: const FormatterOptions()}) =>
-    new CodeFormatter(options).format(CodeKind.COMPILATION_UNIT, src).source;
+FormattedSource formatCU(src, {options: const FormatterOptions(), selection}) =>
+    new CodeFormatter(options).format(
+        CodeKind.COMPILATION_UNIT, src, selection: selection);
 
 String formatStatement(src, {options: const FormatterOptions()}) =>
     new CodeFormatter(options).format(CodeKind.STATEMENT, src).source;
 
 Token tokenize(String str) => new StringScanner(null, str, null).tokenize();
 
+expectSelectedPostFormat(src, token) {
+  var preOffset = src.indexOf(token);
+  var length = token.length;
+  var formatted = formatCU(src, selection: new Selection(preOffset, length));
+  var postOffset = formatted.selection.offset;
+  expect(formatted.source.substring(postOffset, postOffset + length),
+      equals(src.substring(preOffset, preOffset + length)));
+}
 
 expectTokenizedEqual(String s1, String s2) =>
     expectStreamsEqual(tokenize(s1), tokenize(s2));
@@ -978,7 +995,8 @@ expectStreamsNotEqual(Token t1, Token t2) =>
     expect(() => new TokenStreamComparator(null, t1, t2).verifyEquals(),
     throwsA(new isInstanceOf<FormatterException>()));
 
-expectCUFormatsTo(src, expected) => expect(formatCU(src), equals(expected));
+expectCUFormatsTo(src, expected) => 
+    expect(formatCU(src).source, equals(expected));
 
-expectStmtFormatsTo(src, expected) => expect(formatStatement(src),
-    equals(expected));
+expectStmtFormatsTo(src, expected) => 
+    expect(formatStatement(src), equals(expected));

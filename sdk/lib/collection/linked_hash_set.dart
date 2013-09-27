@@ -27,6 +27,16 @@ class LinkedHashSet<E> implements HashSet<E> {
                                    int hashCode(E e),
                                    bool isValidKey(potentialKey) });
 
+  /**
+   * Creates an insertion-ordered identity-based set.
+   *
+   * Effectively a shorthand for:
+   *
+   *     new LinkedHashSet(equals: identical, hashCode: identityHashCodeOf)
+   */
+  external factory LinkedHashSet.identity();
+
+
   factory LinkedHashSet.from(Iterable<E> iterable) {
     return new LinkedHashSet<E>()..addAll(iterable);
   }

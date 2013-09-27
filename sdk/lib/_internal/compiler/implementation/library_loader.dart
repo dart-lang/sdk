@@ -538,8 +538,7 @@ class ImportLink {
       }
       if (!identical(e.kind, ElementKind.PREFIX)) {
         compiler.withCurrentElement(e, () {
-          compiler.reportWarning(new Identifier(e.position()),
-          'duplicated definition');
+          compiler.reportWarning(e, 'duplicated definition');
         });
         compiler.reportFatalError(
             import.prefix,
@@ -553,8 +552,7 @@ class ImportLink {
             prefixElement.imported.putIfAbsent(element.name, () => element);
         if (!identical(existing, element)) {
           compiler.withCurrentElement(existing, () {
-            compiler.reportWarning(new Identifier(existing.position()),
-            'duplicated import');
+            compiler.reportWarning(existing, 'duplicated import');
           });
           compiler.withCurrentElement(element, () {
             compiler.reportFatalError(

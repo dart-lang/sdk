@@ -417,22 +417,6 @@ inline D bit_copy(const S& source) {
 }
 
 
-// A macro to ensure that memcpy cannot be called. memcpy does not handle
-// overlapping memory regions. Even though this is well documented it seems
-// to be used in error quite often. To avoid problems we disallow the direct
-// use of memcpy here.
-//
-// On Android and Windows the basic libraries use memcpy and therefore
-// compilation will fail if memcpy is overwritten even if user code does not
-// use memcpy.
-#if defined(memcpy)
-#undef memcpy
-#endif
-#if !( defined(TARGET_OS_ANDROID) || defined(TARGET_OS_WINDOWS) )
-#define memcpy "Please use memmove instead of memcpy."
-#endif
-
-
 // On Windows the reentrent version of strtok is called
 // strtok_s. Unify on the posix name strtok_r.
 #if defined(TARGET_OS_WINDOWS)

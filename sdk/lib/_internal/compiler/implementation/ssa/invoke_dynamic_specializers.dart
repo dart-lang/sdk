@@ -40,10 +40,6 @@ class InvokeDynamicSpecializer {
     return null;
   }
 
-  bool hasBuiltinVariant(HInvokeDynamic instruction, Compiler compiler) {
-    return false;
-  }
-
   Operation operation(ConstantSystem constantSystem) => null;
 
   static InvokeDynamicSpecializer lookupSpecializer(Selector selector) {
@@ -127,10 +123,6 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
     }
     return null;
   }
-
-  bool hasBuiltinVariant(HInvokeDynamic instruction, Compiler compiler) {
-    return true;
-  }
 }
 
 class IndexSpecializer extends InvokeDynamicSpecializer {
@@ -167,10 +159,6 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
     index.instructionType = type;
     return index;
   }
-
-  bool hasBuiltinVariant(HInvokeDynamic instruction, Compiler compiler) {
-    return true;
-  }
 }
 
 class BitNotSpecializer extends InvokeDynamicSpecializer {
@@ -205,10 +193,6 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber()) return new HBitNot(input, instruction.selector);
     return null;
-  }
-
-  bool hasBuiltinVariant(HInvokeDynamic instruction, Compiler compiler) {
-    return true;
   }
 }
 
@@ -245,10 +229,6 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber()) return new HNegate(input, instruction.selector);
     return null;
-  }
-
-  bool hasBuiltinVariant(HInvokeDynamic instruction, Compiler compiler) {
-    return true;
   }
 }
 
@@ -315,10 +295,6 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
     return null;
   }
 
-  bool hasBuiltinVariant(HInvokeDynamic instruction, Compiler compiler) {
-    return true;
-  }
-
   HInstruction newBuiltinVariant(HInvokeDynamic instruction);
 }
 
@@ -373,12 +349,8 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
   }
 
   HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
-    // Modulo cannot be mapped to the native operator (different semantics).    
+    // Modulo cannot be mapped to the native operator (different semantics).
     return null;
-  }
-
-  bool hasBuiltinVariant(HInvokeDynamic instruction, Compiler compiler) {
-    return false;
   }
 }
 
@@ -418,10 +390,6 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
   HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
     // Truncating divide does not have a JS equivalent.    
     return null;
-  }
-
-  bool hasBuiltinVariant(HInvokeDynamic instruction, Compiler compiler) {
-    return false;
   }
 }
 
@@ -482,10 +450,6 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
     int count = intConstant.value;
     return count >= 0 && count <= 31;
   }
-
-  bool hasBuiltinVariant(HInvokeDynamic instruction, Compiler compiler) {
-    return argumentLessThan32(instruction.inputs[2]);
-  }
 }
 
 class ShiftRightSpecializer extends BinaryBitOpSpecializer {
@@ -498,10 +462,6 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
 
   BinaryOperation operation(ConstantSystem constantSystem) {
     return constantSystem.shiftRight;
-  }
-
-  bool hasBuiltinVariant(HInvokeDynamic instruction, Compiler compiler) {
-    return true;
   }
 }
 
@@ -580,10 +540,6 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
       return newBuiltinVariant(instruction);
     }
     return null;
-  }
-
-  bool hasBuiltinVariant(HInvokeDynamic instruction, Compiler compiler) {
-    return true;
   }
 
   HInstruction newBuiltinVariant(HInvokeDynamic instruction);

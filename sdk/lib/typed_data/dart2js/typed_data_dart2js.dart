@@ -811,6 +811,14 @@ class Float32x4 {
     _storage[3] = v;
   }
   Float32x4.zero();
+  /// Returns a bit-wise copy of [x] as a Float32x4.
+  Float32x4.fromUint32x4Bits(Uint32x4 x) {
+    var view = new Float32List.view(x._storage.buffer);
+    _storage[0] = view[0];
+    _storage[1] = view[1];
+    _storage[2] = view[2];
+    _storage[3] = view[3];
+  }
 
    /// Addition operator.
   Float32x4 operator+(Float32x4 other) {
@@ -961,14 +969,15 @@ class Float32x4 {
     double _y = _storage[1];
     double _z = _storage[2];
     double _w = _storage[3];
-    _x = _x < _lx ? _lx : _x;
+    // MAX(MIN(self, upper), lower).
     _x = _x > _ux ? _ux : _x;
-    _y = _y < _ly ? _ly : _y;
     _y = _y > _uy ? _uy : _y;
-    _z = _z < _lz ? _lz : _z;
     _z = _z > _uz ? _uz : _z;
-    _w = _w < _lw ? _lw : _w;
     _w = _w > _uw ? _uw : _w;
+    _x = _x < _lx ? _lx : _x;
+    _y = _y < _ly ? _ly : _y;
+    _z = _z < _lz ? _lz : _z;
+    _w = _w < _lw ? _lw : _w;
     return new Float32x4(_x, _y, _z, _w);
   }
 
@@ -1399,12 +1408,6 @@ class Float32x4 {
     double _w = Math.sqrt(1.0 / _storage[3]);
     return new Float32x4(_x, _y, _z, _w);
   }
-
-  /// Returns a bit-wise copy of [this] as a [Uint32x4].
-  Uint32x4 toUint32x4() {
-    var view = new Uint32List.view(_storage.buffer);
-    return new Uint32x4(view[0], view[1], view[2], view[3]);
-  }
 }
 
 
@@ -1423,6 +1426,15 @@ class Uint32x4 {
     _storage[1] = y == true ? 0xFFFFFFFF : 0x0;
     _storage[2] = z == true ? 0xFFFFFFFF : 0x0;
     _storage[3] = w == true ? 0xFFFFFFFF : 0x0;
+  }
+
+  /// Returns a bit-wise copy of [x] as a Uint32x4.
+  Uint32x4.fromFloat32x4Bits(Float32x4 x) {
+    var view = new Uint32List.view(x._storage.buffer);
+    _storage[0] = view[0];
+    _storage[1] = view[1];
+    _storage[2] = view[2];
+    _storage[3] = view[3];
   }
 
   /// The bit-wise or operator.
@@ -1598,11 +1610,5 @@ class Uint32x4 {
     rView[2] = _z;
     rView[3] = _w;
     return r;
-  }
-
-  /// Returns a bit-wise copy of [this] as a [Float32x4].
-  Float32x4 toFloat32x4() {
-    var view = new Float32List.view(_storage.buffer);
-    return new Float32x4(view[0], view[1], view[2], view[3]);
   }
 }

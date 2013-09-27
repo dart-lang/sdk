@@ -4,6 +4,7 @@
 //
 // Utility script to generate some output on stdout and stderr.
 
+import "dart:async";
 import "dart:math";
 import "dart:io";
 
@@ -20,5 +21,7 @@ main() {
     stdout.write(stdoutBlock);
     stderr.write(stderrBlock);
   }
-  exit(int.parse(options.arguments[3]));
+  Future.wait([stdout.close(), stderr.close()]).then((_) {
+    exit(int.parse(options.arguments[3]));
+  });
 }

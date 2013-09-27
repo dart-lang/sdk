@@ -2795,6 +2795,11 @@ class CompilationUnit extends ASTNode {
   List<AnalysisError> _resolutionErrors = AnalysisError.NO_ERRORS;
 
   /**
+   * The hints reported when the receiver was analyzed.
+   */
+  List<AnalysisError> _hints = AnalysisError.NO_ERRORS;
+
+  /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
    *
    * @param beginToken the first token in the token stream
@@ -2836,17 +2841,29 @@ class CompilationUnit extends ASTNode {
   List<AnalysisError> get errors {
     List<AnalysisError> parserErrors = parsingErrors;
     List<AnalysisError> resolverErrors = resolutionErrors;
-    if (resolverErrors.length == 0) {
+    List<AnalysisError> hints = this.hints;
+    if (resolverErrors.length == 0 && hints.length == 0) {
       return parserErrors;
-    } else if (parserErrors.length == 0) {
+    } else if (parserErrors.length == 0 && hints.length == 0) {
       return resolverErrors;
+    } else if (parserErrors.length == 0 && resolverErrors.length == 0) {
+      return hints;
     } else {
-      List<AnalysisError> allErrors = new List<AnalysisError>(parserErrors.length + resolverErrors.length);
+      List<AnalysisError> allErrors = new List<AnalysisError>(parserErrors.length + resolverErrors.length + hints.length);
       JavaSystem.arraycopy(parserErrors, 0, allErrors, 0, parserErrors.length);
       JavaSystem.arraycopy(resolverErrors, 0, allErrors, parserErrors.length, resolverErrors.length);
+      JavaSystem.arraycopy(hints, 0, allErrors, parserErrors.length + resolverErrors.length, hints.length);
       return allErrors;
     }
   }
+
+  /**
+   * Return an array containing all of the hints associated with the receiver. The array will be
+   * empty if the receiver has not been analyzed.
+   *
+   * @return the hints associated with the receiver
+   */
+  List<AnalysisError> get hints => _hints;
   int get length {
     Token endToken = this.endToken;
     if (endToken == null) {
@@ -2878,6 +2895,15 @@ class CompilationUnit extends ASTNode {
    * @return the script tag at the beginning of the compilation unit
    */
   ScriptTag get scriptTag => _scriptTag;
+
+  /**
+   * Set the reported hints associated with this compilation unit.
+   *
+   * @param the hints to be associated with this compilation unit
+   */
+  void set hints(List<AnalysisError> errors) {
+    _hints = errors == null ? AnalysisError.NO_ERRORS : errors;
+  }
 
   /**
    * Set the parse errors associated with this compilation unit to the given errors.
@@ -3560,13 +3586,6 @@ class ConstructorName extends ASTNode {
   ConstructorElement _staticElement;
 
   /**
-   * The element associated with this constructor name based on propagated type information, or
-   * `null` if the AST structure has not been resolved or if this constructor name could not
-   * be resolved.
-   */
-  ConstructorElement _propagatedElement;
-
-  /**
    * Initialize a newly created constructor name.
    *
    * @param type the name of the type defining the constructor
@@ -3589,15 +3608,6 @@ class ConstructorName extends ASTNode {
   ConstructorName({TypeName type, Token period, SimpleIdentifier name}) : this.full(type, period, name);
   accept(ASTVisitor visitor) => visitor.visitConstructorName(this);
   Token get beginToken => _type.beginToken;
-
-  /**
-   * Return the element associated with this constructor name based on propagated type information,
-   * or `null` if the AST structure has not been resolved or if this constructor name could
-   * not be resolved.
-   *
-   * @return the element associated with this constructor name
-   */
-  ConstructorElement get element => _propagatedElement;
   Token get endToken {
     if (_name != null) {
       return _name.endToken;
@@ -3628,16 +3638,6 @@ class ConstructorName extends ASTNode {
    * @return the name of the type defining the constructor
    */
   TypeName get type => _type;
-
-  /**
-   * Set the element associated with this constructor name based on propagated type information to
-   * the given element.
-   *
-   * @param element the element to be associated with this constructor name
-   */
-  void set element(ConstructorElement element2) {
-    _propagatedElement = element2;
-  }
 
   /**
    * Set the name of the constructor to the given name.
@@ -4419,6 +4419,22 @@ abstract class Expression extends ASTNode {
   Type2 propagatedType;
 
   /**
+   * Return the best parameter element information available for this expression. If type
+   * propagation was able to find a better parameter element than static analysis, that type will be
+   * returned. Otherwise, the result of static analysis will be returned.
+   *
+   * @return the parameter element representing the parameter to which the value of this expression
+   *         will be bound
+   */
+  ParameterElement get bestParameterElement {
+    ParameterElement propagatedElement = propagatedParameterElement;
+    if (propagatedElement != null) {
+      return propagatedElement;
+    }
+    return staticParameterElement;
+  }
+
+  /**
    * Return the best type information available for this expression. If type propagation was able to
    * find a better type than static analysis, that type will be returned. Otherwise, the result of
    * static analysis will be returned. If no type analysis has been performed, then the type
@@ -4954,7 +4970,8 @@ class FieldFormalParameter extends NormalFormalParameter {
  *
  * <pre>
  * forEachStatement ::=
- *     'for' '(' [SimpleFormalParameter] 'in' [Expression] ')' [Block]
+ *     'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
+ *   | 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
  * </pre>
  *
  * @coverage dart.engine.ast
@@ -4972,9 +4989,15 @@ class ForEachStatement extends Statement {
   Token leftParenthesis;
 
   /**
-   * The declaration of the loop variable.
+   * The declaration of the loop variable, or `null` if the loop variable is a simple
+   * identifier.
    */
   DeclaredIdentifier _loopVariable;
+
+  /**
+   * The loop variable, or `null` if the loop variable is declared in the 'for'.
+   */
+  SimpleIdentifier _identifier;
 
   /**
    * The token representing the 'in' keyword.
@@ -5006,7 +5029,7 @@ class ForEachStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  ForEachStatement.full(Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
+  ForEachStatement.con1_full(Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
     this.forKeyword = forKeyword;
     this.leftParenthesis = leftParenthesis;
     this._loopVariable = becomeParentOf(loopVariable);
@@ -5026,7 +5049,39 @@ class ForEachStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  ForEachStatement({Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body}) : this.full(forKeyword, leftParenthesis, loopVariable, inKeyword, iterator, rightParenthesis, body);
+  ForEachStatement.con1({Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body}) : this.con1_full(forKeyword, leftParenthesis, loopVariable, inKeyword, iterator, rightParenthesis, body);
+
+  /**
+   * Initialize a newly created for-each statement.
+   *
+   * @param forKeyword the token representing the 'for' keyword
+   * @param leftParenthesis the left parenthesis
+   * @param identifier the loop variable
+   * @param iterator the expression evaluated to produce the iterator
+   * @param rightParenthesis the right parenthesis
+   * @param body the body of the loop
+   */
+  ForEachStatement.con2_full(Token forKeyword, Token leftParenthesis, SimpleIdentifier identifier, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
+    this.forKeyword = forKeyword;
+    this.leftParenthesis = leftParenthesis;
+    this._identifier = becomeParentOf(identifier);
+    this.inKeyword = inKeyword;
+    this._iterator = becomeParentOf(iterator);
+    this.rightParenthesis = rightParenthesis;
+    this._body = becomeParentOf(body);
+  }
+
+  /**
+   * Initialize a newly created for-each statement.
+   *
+   * @param forKeyword the token representing the 'for' keyword
+   * @param leftParenthesis the left parenthesis
+   * @param identifier the loop variable
+   * @param iterator the expression evaluated to produce the iterator
+   * @param rightParenthesis the right parenthesis
+   * @param body the body of the loop
+   */
+  ForEachStatement.con2({Token forKeyword, Token leftParenthesis, SimpleIdentifier identifier, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body}) : this.con2_full(forKeyword, leftParenthesis, identifier, inKeyword, iterator, rightParenthesis, body);
   accept(ASTVisitor visitor) => visitor.visitForEachStatement(this);
   Token get beginToken => forKeyword;
 
@@ -5039,6 +5094,13 @@ class ForEachStatement extends Statement {
   Token get endToken => _body.endToken;
 
   /**
+   * Return the loop variable, or `null` if the loop variable is declared in the 'for'.
+   *
+   * @return the loop variable
+   */
+  SimpleIdentifier get identifier => _identifier;
+
+  /**
    * Return the expression evaluated to produce the iterator.
    *
    * @return the expression evaluated to produce the iterator
@@ -5046,7 +5108,8 @@ class ForEachStatement extends Statement {
   Expression get iterator => _iterator;
 
   /**
-   * Return the declaration of the loop variable.
+   * Return the declaration of the loop variable, or `null` if the loop variable is a simple
+   * identifier.
    *
    * @return the declaration of the loop variable
    */
@@ -5059,6 +5122,15 @@ class ForEachStatement extends Statement {
    */
   void set body(Statement body2) {
     this._body = becomeParentOf(body2);
+  }
+
+  /**
+   * Set the loop variable to the given variable.
+   *
+   * @param identifier the loop variable
+   */
+  void set identifier(SimpleIdentifier identifier2) {
+    this._identifier = becomeParentOf(identifier2);
   }
 
   /**
@@ -5080,6 +5152,7 @@ class ForEachStatement extends Statement {
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_loopVariable, visitor);
+    safelyVisitChild(_identifier, visitor);
     safelyVisitChild(_iterator, visitor);
     safelyVisitChild(_body, visitor);
   }
@@ -6520,6 +6593,85 @@ class ImplementsClause extends ASTNode {
  * @coverage dart.engine.ast
  */
 class ImportDirective extends NamespaceDirective {
+  static Comparator<ImportDirective> COMPARATOR = (ImportDirective import1, ImportDirective import2) {
+    StringLiteral uri1 = import1.uri;
+    StringLiteral uri2 = import2.uri;
+    String uriStr1 = uri1.stringValue;
+    String uriStr2 = uri2.stringValue;
+    if (uriStr1 != null || uriStr2 != null) {
+      if (uriStr1 == null) {
+        return -1;
+      } else if (uriStr2 == null) {
+        return 1;
+      } else {
+        int compare = uriStr1.compareTo(uriStr2);
+        if (compare != 0) {
+          return compare;
+        }
+      }
+    }
+    SimpleIdentifier prefix1 = import1.prefix;
+    SimpleIdentifier prefix2 = import2.prefix;
+    String prefixStr1 = prefix1 != null ? prefix1.name : null;
+    String prefixStr2 = prefix2 != null ? prefix2.name : null;
+    if (prefixStr1 != null || prefixStr2 != null) {
+      if (prefixStr1 == null) {
+        return -1;
+      } else if (prefixStr2 == null) {
+        return 1;
+      } else {
+        int compare = prefixStr1.compareTo(prefixStr2);
+        if (compare != 0) {
+          return compare;
+        }
+      }
+    }
+    NodeList<Combinator> combinators1 = import1.combinators;
+    List<String> allHides1 = new List<String>();
+    List<String> allShows1 = new List<String>();
+    for (Combinator combinator in combinators1) {
+      if (combinator is HideCombinator) {
+        NodeList<SimpleIdentifier> hides = ((combinator as HideCombinator)).hiddenNames;
+        for (SimpleIdentifier simpleIdentifier in hides) {
+          allHides1.add(simpleIdentifier.name);
+        }
+      } else {
+        NodeList<SimpleIdentifier> shows = ((combinator as ShowCombinator)).shownNames;
+        for (SimpleIdentifier simpleIdentifier in shows) {
+          allShows1.add(simpleIdentifier.name);
+        }
+      }
+    }
+    NodeList<Combinator> combinators2 = import2.combinators;
+    List<String> allHides2 = new List<String>();
+    List<String> allShows2 = new List<String>();
+    for (Combinator combinator in combinators2) {
+      if (combinator is HideCombinator) {
+        NodeList<SimpleIdentifier> hides = ((combinator as HideCombinator)).hiddenNames;
+        for (SimpleIdentifier simpleIdentifier in hides) {
+          allHides2.add(simpleIdentifier.name);
+        }
+      } else {
+        NodeList<SimpleIdentifier> shows = ((combinator as ShowCombinator)).shownNames;
+        for (SimpleIdentifier simpleIdentifier in shows) {
+          allShows2.add(simpleIdentifier.name);
+        }
+      }
+    }
+    if (allHides1.length != allHides2.length) {
+      return allHides1.length - allHides2.length;
+    }
+    if (allShows1.length != allShows2.length) {
+      return allShows1.length - allShows2.length;
+    }
+    if (!javaCollectionContainsAll(allHides1, allHides2)) {
+      return -1;
+    }
+    if (!javaCollectionContainsAll(allShows1, allShows2)) {
+      return -1;
+    }
+    return 0;
+  };
 
   /**
    * The token representing the 'as' token, or `null` if the imported names are not prefixed.
@@ -6987,13 +7139,6 @@ class InstanceCreationExpression extends Expression {
    * if the AST structure has not been resolved or if the constructor could not be resolved.
    */
   ConstructorElement staticElement;
-
-  /**
-   * The element associated with the constructor based on propagated type information, or
-   * `null` if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   */
-  ConstructorElement element;
 
   /**
    * Initialize a newly created instance creation expression.
@@ -9669,13 +9814,6 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
   ConstructorElement staticElement;
 
   /**
-   * The element associated with the constructor based on propagated type information, or
-   * `null` if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   */
-  ConstructorElement _propagatedElement;
-
-  /**
    * Initialize a newly created redirecting invocation to invoke the constructor with the given name
    * with the given arguments.
    *
@@ -9718,15 +9856,6 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * @return the name of the constructor that is being invoked
    */
   SimpleIdentifier get constructorName => _constructorName;
-
-  /**
-   * Return the element associated with the constructor based on propagated type information, or
-   * `null` if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   *
-   * @return the element associated with the super constructor
-   */
-  ConstructorElement get element => _propagatedElement;
   Token get endToken => _argumentList.endToken;
 
   /**
@@ -9745,16 +9874,6 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    */
   void set constructorName(SimpleIdentifier identifier) {
     _constructorName = becomeParentOf(identifier);
-  }
-
-  /**
-   * Set the element associated with the constructor based on propagated type information to the
-   * given element.
-   *
-   * @param element the element to be associated with the constructor
-   */
-  void set element(ConstructorElement element2) {
-    _propagatedElement = element2;
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_constructorName, visitor);
@@ -10282,7 +10401,7 @@ class SimpleIdentifier extends Identifier {
     } else if (parent is MethodDeclaration && identical(((parent as MethodDeclaration)).name, this)) {
       return validateElement(parent, ExecutableElement, element);
     } else if (parent is TypeParameter && identical(((parent as TypeParameter)).name, this)) {
-      return validateElement(parent, TypeVariableElement, element);
+      return validateElement(parent, TypeParameterElement, element);
     } else if (parent is VariableDeclaration && identical(((parent as VariableDeclaration)).name, this)) {
       return validateElement(parent, VariableElement, element);
     }
@@ -10542,12 +10661,6 @@ class SuperConstructorInvocation extends ConstructorInitializer {
   ConstructorElement staticElement;
 
   /**
-   * The element associated with the constructor based on propagated type information, or `null` if the AST structure has not been
-   * resolved or if the constructor could not be resolved.
-   */
-  ConstructorElement _propagatedElement;
-
-  /**
    * Initialize a newly created super invocation to invoke the inherited constructor with the given
    * name with the given arguments.
    *
@@ -10590,15 +10703,6 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * @return the name of the constructor that is being invoked
    */
   SimpleIdentifier get constructorName => _constructorName;
-
-  /**
-   * Return the element associated with the constructor based on propagated type information, or
-   * `null` if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   *
-   * @return the element associated with the super constructor
-   */
-  ConstructorElement get element => _propagatedElement;
   Token get endToken => _argumentList.endToken;
 
   /**
@@ -10617,16 +10721,6 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    */
   void set constructorName(SimpleIdentifier identifier) {
     _constructorName = becomeParentOf(identifier);
-  }
-
-  /**
-   * Set the element associated with the constructor based on propagated type information to the
-   * given element.
-   *
-   * @param element the element to be associated with the constructor
-   */
-  void set element(ConstructorElement element2) {
-    _propagatedElement = element2;
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_constructorName, visitor);
@@ -11559,7 +11653,7 @@ class TypeParameter extends Declaration {
    * @return the name of the upper bound for legal arguments
    */
   TypeName get bound => _bound;
-  TypeVariableElement get element => _name != null ? (_name.staticElement as TypeVariableElement) : null;
+  TypeParameterElement get element => _name != null ? (_name.staticElement as TypeParameterElement) : null;
   Token get endToken {
     if (_bound == null) {
       return _name.endToken;
@@ -12297,12 +12391,12 @@ class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
     return null;
   }
   BreadthFirstVisitor() {
-    this._childVisitor = new GeneralizingASTVisitor_1(this);
+    this._childVisitor = new GeneralizingASTVisitor_2(this);
   }
 }
-class GeneralizingASTVisitor_1 extends GeneralizingASTVisitor<Object> {
+class GeneralizingASTVisitor_2 extends GeneralizingASTVisitor<Object> {
   final BreadthFirstVisitor BreadthFirstVisitor_this;
-  GeneralizingASTVisitor_1(this.BreadthFirstVisitor_this) : super();
+  GeneralizingASTVisitor_2(this.BreadthFirstVisitor_this) : super();
   Object visitNode(ASTNode node) {
     BreadthFirstVisitor_this._queue.add(node);
     return null;
@@ -12319,7 +12413,7 @@ class GeneralizingASTVisitor_1 extends GeneralizingASTVisitor<Object> {
  * to a numeric, string or boolean value or to `null`.
  * * `null`.
  * * A reference to a static constant variable.
- * * An identifier expression that denotes a constant variable, a class or a type variable.
+ * * An identifier expression that denotes a constant variable, a class or a type parameter.
  * * A constant constructor invocation.
  * * A constant list literal.
  * * A constant map literal.
@@ -13732,8 +13826,13 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitForEachStatement(ForEachStatement node) {
+    DeclaredIdentifier loopVariable = node.loopVariable;
     _writer.print("for (");
-    visit(node.loopVariable);
+    if (loopVariable == null) {
+      visit(node.identifier);
+    } else {
+      visit(loopVariable);
+    }
     _writer.print(" in ");
     visit(node.iterator);
     _writer.print(") ");
@@ -14365,6 +14464,7 @@ class ASTCloner implements ASTVisitor<ASTNode> {
     clone.lineInfo = node.lineInfo;
     clone.parsingErrors = node.parsingErrors;
     clone.resolutionErrors = node.resolutionErrors;
+    clone.hints = node.hints;
     return clone;
   }
   ConditionalExpression visitConditionalExpression(ConditionalExpression node) => new ConditionalExpression.full(clone2(node.condition), node.question, clone2(node.thenExpression), node.colon, clone2(node.elseExpression));
@@ -14384,7 +14484,13 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause.full(node.keyword, clone2(node.superclass));
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.staticKeyword, clone2(node.fields), node.semicolon);
   FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), node.thisToken, node.period, clone2(node.identifier), clone2(node.parameters));
-  ForEachStatement visitForEachStatement(ForEachStatement node) => new ForEachStatement.full(node.forKeyword, node.leftParenthesis, clone2(node.loopVariable), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
+  ForEachStatement visitForEachStatement(ForEachStatement node) {
+    DeclaredIdentifier loopVariable = node.loopVariable;
+    if (loopVariable == null) {
+      return new ForEachStatement.con2_full(node.forKeyword, node.leftParenthesis, clone2(node.identifier), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
+    }
+    return new ForEachStatement.con1_full(node.forKeyword, node.leftParenthesis, clone2(loopVariable), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
+  }
   FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList.full(node.leftParenthesis, clone3(node.parameters), node.leftDelimiter, node.rightDelimiter, node.rightParenthesis);
   ForStatement visitForStatement(ForStatement node) => new ForStatement.full(node.forKeyword, node.leftParenthesis, clone2(node.variables), clone2(node.initialization), node.leftSeparator, clone2(node.condition), node.rightSeparator, clone3(node.updaters), node.rightParenthesis, clone2(node.body));
   FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, clone2(node.returnType), node.propertyKeyword, clone2(node.name), clone2(node.functionExpression));
@@ -14512,7 +14618,10 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
     return null;
   }
   Object visitForEachStatement(ForEachStatement node) {
-    addToScope(node.loopVariable.identifier);
+    DeclaredIdentifier loopVariable = node.loopVariable;
+    if (loopVariable != null) {
+      addToScope(loopVariable.identifier);
+    }
     return super.visitForEachStatement(node);
   }
   Object visitForStatement(ForStatement node) {
@@ -14539,13 +14648,13 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
     return super.visitFunctionExpression(node);
   }
   Object visitMethodDeclaration(MethodDeclaration node) {
+    declaration = node;
     if (node.parameters == null) {
       return null;
     }
     if (_immediateChild != node.parameters) {
       addParameters(node.parameters.parameters);
     }
-    declaration = node;
     return null;
   }
   Object visitNode(ASTNode node) {

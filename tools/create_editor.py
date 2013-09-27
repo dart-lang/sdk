@@ -45,7 +45,7 @@ def AntPath():
     return join(parent, 'ant')
 
 
-def ProcessEditorArchive(archive, outDir):
+def ProcessEditorArchive(arch, archive, outDir):
   tempDir = join(GetEditorTemp(), 'editor.out')
   try:
     os.makedirs(tempDir)
@@ -60,11 +60,30 @@ def ProcessEditorArchive(archive, outDir):
   else:
     subprocess.call(['unzip', '-q', archive, '-d', tempDir])
 
+  if arch == 'x64':
+    if utils.GuessOS() == 'macos':
+      inifile = join(tempDir, 'dart', 'DartEditor.app', 'Contents', 'MacOS',
+                     'DartEditor.ini')
+    else:
+      inifile = join(tempDir, 'dart', 'DartEditor.ini')
+    Modify64BitDartEditorIni(inifile)
+
   for src in glob.glob(join(tempDir, 'dart', '*')):
     shutil.move(src, outDir)
 
   shutil.rmtree(tempDir)
   os.unlink(archive)
+
+
+def Modify64BitDartEditorIni(iniFilePath):
+  f = open(iniFilePath, 'r')
+  lines = f.readlines()
+  f.close()
+  lines[lines.index('-Xms40m\n')] = '-Xms256m\n'
+  lines[lines.index('-Xmx1000m\n')] = '-Xmx2000m\n'
+  f = open(iniFilePath, 'w')
+  f.writelines(lines);
+  f.close()
 
 
 def GetEditorTemp():
@@ -188,7 +207,7 @@ def Main():
   archives = glob.glob(join(OUTPUT, '*.zip'))
 
   if archives:
-    ProcessEditorArchive(archives[0], OUTPUT)
+    ProcessEditorArchive(arch, archives[0], OUTPUT)
 
   if os.path.exists(GetEditorTemp()):
     shutil.rmtree(GetEditorTemp())

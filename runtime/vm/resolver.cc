@@ -119,9 +119,11 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(
   // Now look for an instance function whose name matches function_name
   // in the class.
   Function& function = Function::Handle();
-  while (function.IsNull() && !cls.IsNull()) {
+  while (!cls.IsNull()) {
     function ^= cls.LookupDynamicFunction(function_name);
-
+    if (!function.IsNull()) {
+      return function.raw();
+    }
     // Getter invocation might actually be a method extraction.
     if (is_getter && function.IsNull()) {
       function ^= cls.LookupDynamicFunction(field_name);
@@ -129,9 +131,50 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(
         // We were looking for the getter but found a method with the same name.
         // Create a method extractor and return it.
         function ^= CreateMethodExtractor(function_name, function);
+        return function.raw();
       }
     }
+    cls = cls.SuperClass();
+  }
+  return function.raw();
+}
 
+
+// TODO(13355): Remove.
+RawFunction* Resolver::ResolveDynamicAnyArgsAllowPrivate(
+    const Class& receiver_class,
+    const String& function_name) {
+  Class& cls = Class::Handle(receiver_class.raw());
+  if (FLAG_trace_resolving) {
+    OS::Print("ResolveDynamic '%s' for class %s\n",
+              function_name.ToCString(),
+              String::Handle(cls.Name()).ToCString());
+  }
+
+  const bool is_getter = Field::IsGetterName(function_name);
+  String& field_name = String::Handle();
+  if (is_getter) {
+    field_name ^= Field::NameFromGetter(function_name);
+  }
+
+  // Now look for an instance function whose name matches function_name
+  // in the class.
+  Function& function = Function::Handle();
+  while (!cls.IsNull()) {
+    function ^= cls.LookupDynamicFunctionAllowPrivate(function_name);
+    if (!function.IsNull()) {
+      return function.raw();
+    }
+    // Getter invocation might actually be a method extraction.
+    if (is_getter && function.IsNull()) {
+      function ^= cls.LookupDynamicFunction(field_name);
+      if (!function.IsNull()) {
+        // We were looking for the getter but found a method with the same name.
+        // Create a method extractor and return it.
+        function ^= CreateMethodExtractor(function_name, function);
+        return function.raw();
+      }
+    }
     cls = cls.SuperClass();
   }
   return function.raw();

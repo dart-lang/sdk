@@ -2450,13 +2450,16 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
       current_class(), receiver, &initialized_fields);
   receiver->set_invisible(false);
 
+  // If the class of this implicit constructor is a mixin typedef class,
+  // it is a forwarding constructor of the aliased mixin application class.
   // If the class of this implicit constructor is a mixin application class,
   // it is a forwarding constructor of the mixin. The forwarding
   // constructor initializes the instance fields that have initializer
   // expressions and then calls the respective super constructor with
   // the same name and number of parameters.
   ArgumentListNode* forwarding_args = NULL;
-  if (current_class().IsMixinApplication()) {
+  if (current_class().is_mixin_typedef() ||
+      current_class().IsMixinApplication()) {
     // At this point we don't support forwarding constructors
     // that have optional parameters because we don't know the default
     // values of the optional parameters. We would have to compile the super
@@ -2903,7 +2906,8 @@ SequenceNode* Parser::ParseFunc(const Function& func,
                                func.is_static() ?
                                    InvocationMirror::kStatic :
                                    InvocationMirror::kDynamic,
-                               InvocationMirror::kMethod));
+                               InvocationMirror::kMethod,
+                               NULL));  // No existing function.
     end_token_pos = TokenPos();
   } else {
     UnexpectedToken();
@@ -3793,7 +3797,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                String::Handle(super_type.UserVisibleName()).ToCString());
     }
     if (CurrentToken() == Token::kWITH) {
-      super_type = ParseMixins(super_type);
+      super_type = ParseMixins(pending_classes, super_type);
     }
   } else {
     // No extends clause: implicitly extend Object, unless Object itself.
@@ -4003,7 +4007,7 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   if (CurrentToken() != Token::kWITH) {
     ErrorMsg("mixin application 'with Type' expected");
   }
-  type = ParseMixins(type);
+  type = ParseMixins(pending_classes, type);
 
   // TODO(12773): Treat the mixin application as an alias, not as a base
   // class whose super class is the mixin application! This is difficult because
@@ -4389,7 +4393,8 @@ void Parser::ParseInterfaceList(const Class& cls) {
 }
 
 
-RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
+RawAbstractType* Parser::ParseMixins(const GrowableObjectArray& pending_classes,
+                                     const AbstractType& super_type) {
   TRACE_PARSER("ParseMixins");
   ASSERT(CurrentToken() == Token::kWITH);
   ASSERT(super_type.IsType());  // TODO(regis): Could be a BoundedType.
@@ -4399,7 +4404,6 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   AbstractType& mixin_type = AbstractType::Handle();
   Class& mixin_app_class = Class::Handle();
-  Array& mixin_app_interfaces = Array::Handle();
   String& mixin_app_class_name = String::Handle();
   String& mixin_type_class_name = String::Handle();
   do {
@@ -4427,12 +4431,12 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
     mixin_app_class.set_mixin(Type::Cast(mixin_type));
     mixin_app_class.set_library(library_);
     mixin_app_class.set_is_synthesized_class();
+    pending_classes.Add(mixin_app_class, Heap::kOld);
 
-    // Add the mixin type to the interfaces that the mixin application
-    // class implements. This is necessary so that type tests work.
-    mixin_app_interfaces = Array::New(1);
-    mixin_app_interfaces.SetAt(0, mixin_type);
-    mixin_app_class.set_interfaces(mixin_app_interfaces);
+    // The class finalizer will add the mixin type to the interfaces that the
+    // mixin application class implements. This is necessary so that type tests
+    // work. The mixin class may not be resolved yet, so it is not possible to
+    // add the interface with the correct type arguments here.
 
     // Add the synthesized class to the list of mixin apps.
     mixin_apps.Add(mixin_app_class);
@@ -6043,7 +6047,55 @@ AstNode* Parser::ParseIfStatement(String* label_name) {
 }
 
 
+// Check that all case expressions are of the same type, either int, String,
+// double or any other class that does not override the == operator.
+// The expressions are compile-time constants and are thus in the form
+// of a LiteralNode.
+void Parser::CheckCaseExpressions(const GrowableArray<LiteralNode*>& values) {
+  const intptr_t num_expressions = values.length();
+  if (num_expressions == 0) {
+    return;
+  }
+  const Instance& first_value = values[0]->literal();
+  for (intptr_t i = 0; i < num_expressions; i++) {
+    const Instance& val = values[i]->literal();
+    const intptr_t val_pos = values[i]->token_pos();
+    if (first_value.IsInteger()) {
+      if (!val.IsInteger()) {
+        ErrorMsg(val_pos, "expected case expression of type int");
+      }
+      continue;
+    }
+    if (first_value.IsString()) {
+      if (!val.IsString()) {
+        ErrorMsg(val_pos, "expected case expression of type String");
+      }
+      continue;
+    }
+    if (first_value.IsDouble()) {
+      if (!val.IsDouble()) {
+        ErrorMsg(val_pos, "expected case expression of type double");
+      }
+      continue;
+    }
+    if (val.clazz() != first_value.clazz()) {
+      ErrorMsg(val_pos, "all case expressions must be of same type");
+    }
+    Class& cls = Class::Handle(val.clazz());
+    const Function& equal_op = Function::Handle(
+        Resolver::ResolveDynamicAnyArgs(cls, Symbols::EqualOperator()));
+    ASSERT(!equal_op.IsNull());
+    cls = equal_op.Owner();
+    if (!cls.IsObjectClass()) {
+      ErrorMsg(val_pos,
+               "type class of case expression must not implement operator ==");
+    }
+  }
+}
+
+
 CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
+                                  GrowableArray<LiteralNode*>* case_expr_values,
                                   SourceLabel* case_label) {
   TRACE_PARSER("ParseCaseClause");
   bool default_seen = false;
@@ -6058,6 +6110,9 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
       ConsumeToken();  // Keyword case.
       const intptr_t expr_pos = TokenPos();
       AstNode* expr = ParseExpr(kRequireConst, kConsumeCascades);
+      ASSERT(expr->IsLiteralNode());
+      case_expr_values->Add(expr->AsLiteralNode());
+
       AstNode* switch_expr_load = new LoadLocalNode(case_pos,
                                                     switch_expr_value);
       AstNode* case_comparison = new ComparisonNode(expr_pos,
@@ -6146,6 +6201,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
 
   // Parse case clauses
   bool default_seen = false;
+  GrowableArray<LiteralNode*> case_expr_values;
   while (true) {
     // Check for statement label
     SourceLabel* case_label = NULL;
@@ -6176,7 +6232,8 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
       if (default_seen) {
         ErrorMsg("no case clauses allowed after default clause");
       }
-      CaseNode* case_clause = ParseCaseClause(temp_variable, case_label);
+      CaseNode* case_clause =
+          ParseCaseClause(temp_variable, &case_expr_values, case_label);
       default_seen = case_clause->contains_default();
       current_block_->statements->Add(case_clause);
     } else if (CurrentToken() != Token::kRBRACE) {
@@ -6188,8 +6245,9 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
     }
   }
 
-  // TODO(hausner): Check that all expressions in case clauses are
-  // of the same class, or implement int or String (issue 7307).
+  // Check that all expressions in case clauses are of the same class,
+  // or implement int, double or String.
+  CheckCaseExpressions(case_expr_values);
 
   // Check for unresolved label references.
   SourceLabel* unresolved_label =
@@ -6995,12 +7053,8 @@ AstNode* Parser::ParseStatement() {
   } else if (CurrentToken() == Token::kSEMICOLON) {
     // Empty statement, nothing to do.
     ConsumeToken();
-  } else if ((CurrentToken() == Token::kRETHROW) ||
-            ((CurrentToken() == Token::kTHROW) &&
-             (LookaheadToken(1) == Token::kSEMICOLON))) {
-    // Rethrow of current exception. Throwing of an exception object
-    // is an expression and is handled in ParseExpr().
-    // TODO(hausner): remove support for 'throw;'.
+  } else if (CurrentToken() == Token::kRETHROW) {
+    // Rethrow of current exception.
     ConsumeToken();
     ExpectSemicolon();
     // Check if it is ok to do a rethrow.
@@ -7311,7 +7365,8 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
                                         const String& function_name,
                                         ArgumentListNode* function_arguments,
                                         InvocationMirror::Call im_call,
-                                        InvocationMirror::Type im_type) {
+                                        InvocationMirror::Type im_type,
+                                        Function* func) {
   ArgumentListNode* arguments = new ArgumentListNode(call_pos);
   // Object receiver.
   // TODO(regis): For now, we pass a class literal of the unresolved
@@ -7347,22 +7402,37 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
   } else {
     arguments->Add(new LiteralNode(call_pos, function_arguments->names()));
   }
+
   // List existingArgumentNames.
-  // Check if there exists a function with the same name.
-  Function& function =
-     Function::Handle(cls.LookupStaticFunction(function_name));
-  if (function.IsNull()) {
-    arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
+  // Check if there exists a function with the same name unless caller
+  // has done the lookup already. If there is a function with the same
+  // name but incompatible parameters, inform the NoSuchMethodError what the
+  // expected parameters are.
+  Function& function = Function::Handle();
+  if (func != NULL) {
+    function = func->raw();
   } else {
-    const int total_num_parameters = function.NumParameters();
-    Array& array =
-        Array::ZoneHandle(Array::New(total_num_parameters, Heap::kOld));
-    // Skip receiver.
-    for (int i = 0; i < total_num_parameters; i++) {
-      array.SetAt(i, String::Handle(function.ParameterNameAt(i)));
-    }
-    arguments->Add(new LiteralNode(call_pos, array));
+    function = cls.LookupStaticFunction(function_name);
   }
+  Array& array = Array::ZoneHandle();
+  if (!function.IsNull()) {
+    // The constructor for NoSuchMethodError takes a list of existing
+    // parameter names to produce a descriptive error message explaining
+    // the parameter mismatch. The problem is that the array of names
+    // does not describe which parameters are optional positional or
+    // named, which can lead to confusing error messages.
+    // Since the NoSuchMethodError class only uses the list to produce
+    // a string describing the expected parameters, we construct a more
+    // descriptive string here and pass it as the only element of the
+    // "existingArgumentNames" array of the NoSuchMethodError constructor.
+    // TODO(13471): Separate the implementations of NoSuchMethodError
+    // between dart2js and VM. Update the constructor to accept a string
+    // describing the formal parameters of an incompatible call target.
+    array = Array::New(1, Heap::kOld);
+    array.SetAt(0, String::Handle(function.UserVisibleFormalParameters()));
+  }
+  arguments->Add(new LiteralNode(call_pos, array));
+
   return MakeStaticCall(Symbols::NoSuchMethodError(),
                         PrivateCoreLibName(Symbols::ThrowNew()),
                         arguments);
@@ -7650,7 +7720,8 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
                                     name,
                                     NULL,  // No arguments.
                                     InvocationMirror::kStatic,
-                                    InvocationMirror::kSetter);
+                                    InvocationMirror::kSetter,
+                                    NULL);  // No existing function.
   } else if (result->IsStoreIndexedNode() ||
              result->IsInstanceSetterNode() ||
              result->IsStaticSetterNode() ||
@@ -7729,7 +7800,9 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
 
   if (CurrentToken() == Token::kTHROW) {
     ConsumeToken();
-    ASSERT(CurrentToken() != Token::kSEMICOLON);
+    if (CurrentToken() == Token::kSEMICOLON) {
+      ErrorMsg("expression expected after throw");
+    }
     AstNode* expr = ParseExpr(require_compiletime_const, consume_cascades);
     return new ThrowNode(expr_pos, expr, NULL);
   }
@@ -7944,7 +8017,8 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
                                   func_name,
                                   arguments,
                                   InvocationMirror::kStatic,
-                                  InvocationMirror::kMethod);
+                                  InvocationMirror::kMethod,
+                                  NULL);  // No existing function.
   } else if (cls.IsTopLevel() &&
       (cls.library() == Library::CoreLibrary()) &&
       (func.name() == Symbols::Identical().raw())) {
@@ -8045,7 +8119,8 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
                                       field_name,
                                       NULL,  // No arguments.
                                       InvocationMirror::kStatic,
-                                      InvocationMirror::kField);
+                                      InvocationMirror::kField,
+                                      NULL);  // No existing function.
       }
 
       // Explicit setter function for the field found, field does not exist.
@@ -8090,7 +8165,8 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
                                         field_name,
                                         NULL,  // No arguments.
                                         InvocationMirror::kStatic,
-                                        InvocationMirror::kGetter);
+                                        InvocationMirror::kGetter,
+                                        NULL);  // No existing function.
         }
         access = CreateImplicitClosureNode(func, call_pos, NULL);
       } else {
@@ -8130,7 +8206,8 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
                                     name,
                                     NULL,  // No arguments.
                                     InvocationMirror::kStatic,
-                                    InvocationMirror::kField);
+                                    InvocationMirror::kField,
+                                    NULL);  // No existing function.
     } else {
       AstNode* receiver = LoadReceiver(primary->token_pos());
       return CallGetter(node->token_pos(), receiver, name);
@@ -8302,7 +8379,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                               name,
                                               NULL,  // No arguments.
                                               InvocationMirror::kStatic,
-                                              InvocationMirror::kMethod);
+                                              InvocationMirror::kMethod,
+                                              NULL);  // No existing function.
           } else {
             // Treat as call to unresolved (instance) method.
             AstNode* receiver = LoadReceiver(primary->token_pos());
@@ -8318,7 +8396,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                             name,
                                             NULL,  // No arguments.
                                             InvocationMirror::kStatic,
-                                            InvocationMirror::kMethod);
+                                            InvocationMirror::kMethod,
+                                            NULL);  // No existing function.
         } else if (primary->primary().IsClass()) {
           const Class& type_class = Class::Cast(primary->primary());
           Type& type = Type::ZoneHandle(
@@ -9052,7 +9131,8 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
                                           ident,
                                           NULL,  // No arguments.
                                           InvocationMirror::kStatic,
-                                          InvocationMirror::kField);
+                                          InvocationMirror::kField,
+                                          NULL);  // No existing function.
       } else {
         // Treat as call to unresolved instance field.
         resolved = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
@@ -9754,7 +9834,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                                     external_constructor_name,
                                     arguments,
                                     InvocationMirror::kConstructor,
-                                    InvocationMirror::kMethod);
+                                    InvocationMirror::kMethod,
+                                    &constructor);
     } else if (constructor.IsRedirectingFactory()) {
       ClassFinalizer::ResolveRedirectingFactory(type_class, constructor);
       Type& redirect_type = Type::Handle(constructor.RedirectionType());
@@ -9822,7 +9903,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                                   external_constructor_name,
                                   arguments,
                                   InvocationMirror::kConstructor,
-                                  InvocationMirror::kMethod);
+                                  InvocationMirror::kMethod,
+                                  &constructor);
   }
 
   // Return a throw in case of a malformed type or report a compile-time error
@@ -9839,8 +9921,11 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   AstNode* new_object = NULL;
   if (is_const) {
     if (!constructor.is_const()) {
-      ErrorMsg("'const' requires const constructor: '%s'",
-          String::Handle(constructor.name()).ToCString());
+      const String& external_constructor_name =
+          (named_constructor ? constructor_name : type_class_name);
+      ErrorMsg("non-const constructor '%s' cannot be used in "
+               "const object creation",
+               external_constructor_name.ToCString());
     }
     const Object& constructor_result = Object::Handle(
         EvaluateConstConstructorCall(type_class,
@@ -10064,7 +10149,8 @@ AstNode* Parser::ParsePrimary() {
                                         unresolved_name,
                                         NULL,  // No arguments.
                                         InvocationMirror::kTopLevel,
-                                        call_type);
+                                        call_type,
+                                        NULL);  // No existing function.
       }
     }
     ASSERT(primary != NULL);

@@ -19,6 +19,7 @@ class JSONStream : ValueObject {
   explicit JSONStream(intptr_t buf_size = 256);
   ~JSONStream();
 
+  TextBuffer* buffer() { return &buffer_; }
   const char* ToCString() { return buffer_.buf(); }
 
   void SetArguments(const char** arguments, intptr_t num_arguments);

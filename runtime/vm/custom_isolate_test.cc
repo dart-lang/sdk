@@ -22,7 +22,6 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name, int argc);
 
 
 static const char* kCustomIsolateScriptChars =
-    "import 'dart:async';\n"
     "import 'dart:isolate';\n"
     "\n"
     "ReceivePort mainPort;\n"
@@ -34,11 +33,8 @@ static const char* kCustomIsolateScriptChars =
     "    echo('Constructing isolate');\n"
     "  }\n"
     "\n"
-    "  Future<SendPort> spawn() {\n"
-    "    Completer<SendPort> completer = new Completer<SendPort>();\n"
-    "    SendPort port = _start(_entry);\n"
-    "    completer.complete(port);\n"
-    "    return completer.future;\n"
+    "  SendPort spawn() {\n"
+    "    return _start(_entry);\n"
     "  }\n"
     "\n"
     "  static SendPort _start(entry)\n"
@@ -50,7 +46,7 @@ static const char* kCustomIsolateScriptChars =
     "abstract class CustomIsolate {\n"
     "  factory CustomIsolate(String entry) = CustomIsolateImpl;\n"
     "\n"
-    "  Future<SendPort> spawn();\n"
+    "  SendPort spawn();\n"
     "}\n"
     "\n"
     "isolateMain() {\n"
@@ -63,10 +59,12 @@ static const char* kCustomIsolateScriptChars =
     "\n"
     "main() {\n"
     "  var isolate = new CustomIsolate(\"isolateMain\");\n"
-    "  isolate.spawn().then((SendPort port) {\n"
-    "    port.call(42).then((message) {\n"
-    "      echo('Received: $message');\n"
-    "    });\n"
+    "  var receivePort = new ReceivePort();\n"
+    "  SendPort port = isolate.spawn();\n"
+    "  port.send(42, receivePort.toSendPort());\n"
+    "  receivePort.receive((message, _) {\n"
+    "    receivePort.close();\n"
+    "    echo('Received: $message');\n"
     "  });\n"
     "  return 'success';\n"
     "}\n";
@@ -174,7 +172,6 @@ void StartEvent::Process() {
   Dart_Handle lib = TestCase::LoadTestScript(kCustomIsolateScriptChars,
                                              NativeLookup);
   EXPECT_VALID(lib);
-  EXPECT_VALID(Dart_CompileAll());
 
   Dart_Handle recv_port = Dart_GetReceivePort(Dart_GetMainPortId());
   EXPECT_VALID(recv_port);

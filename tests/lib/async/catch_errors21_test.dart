@@ -9,6 +9,8 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+  Completer done = new Completer();
+
   var events = [];
   var controller = new StreamController();
   // Test that stream errors, as a result of bad user-code (`map`) are correctly
@@ -21,19 +23,27 @@ main() {
         // Should not happen.
         events.add("bad: $x");
       });
-    }).listen((x) { events.add("caught: $x"); },
-              onDone: () { events.add("done"); });
+    }).listen((x) {
+                events.add("caught: $x");
+                if (x == 4) done.complete(true);
+              },
+              onDone: () { Expect.fail("Unexpected callback"); });
   }).listen((x) { events.add("outer: $x"); },
-            onDone: () {
-              Expect.listEquals(["caught: 1",
-                                 "caught: 2",
-                                 "caught: 3",
-                                 "caught: 4",
-                                 "done",
-                                ],
-                                events);
-              asyncEnd();
-            });
+            onDone: () { Expect.fail("Unexpected callback"); });
+
+  done.future.whenComplete(() {
+    // Give handlers time to run.
+    Timer.run(() {
+      Expect.listEquals(["caught: 1",
+                          "caught: 2",
+                          "caught: 3",
+                          "caught: 4",
+                        ],
+                        events);
+      asyncEnd();
+    });
+  });
+
   [1, 2, 3, 4].forEach(controller.add);
   controller.close();
 }

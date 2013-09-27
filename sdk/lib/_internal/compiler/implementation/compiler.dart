@@ -970,9 +970,12 @@ abstract class Compiler implements DiagnosticListener {
 
   Future runCompiler(Uri uri) {
     // TODO(ahe): This prevents memory leaks when invoking the compiler
-    // multiple times.  Implement a better mechanism where StringWrapper
-    // instances are shared on a per library basis.
+    // multiple times. Implement a better mechanism where we can store
+    // such caches in the compiler and get access to them through a
+    // suitably maintained static reference to the current compiler.
     SourceString.canonicalizedValues.clear();
+    Selector.canonicalizedValues.clear();
+    TypedSelector.canonicalizedValues.clear();
 
     assert(uri != null || analyzeOnly);
     return scanBuiltinLibraries().then((_) {
@@ -1010,21 +1013,21 @@ abstract class Compiler implements DiagnosticListener {
           reportFatalError(
               mainApp,
               MessageKind.GENERIC,
-              {'text': 'Error: Could not find "${MAIN.slowToString()}".'});
+              {'text': "Error: Could not find '${MAIN.slowToString()}'."});
         } else if (!analyzeAll) {
           reportFatalError(
               mainApp,
               MessageKind.GENERIC,
-              {'text': 'Error: Could not find "${MAIN.slowToString()}". '
-              'No source will be analyzed. '
-              'Use "--analyze-all" to analyze all code in the library.'});
+              {'text': "Error: Could not find '${MAIN.slowToString()}'. "
+              "No source will be analyzed. "
+              "Use '--analyze-all' to analyze all code in the library."});
         }
       } else {
         if (!main.isFunction()) {
           reportFatalError(
               main,
               MessageKind.GENERIC,
-              {'text': 'Error: "${MAIN.slowToString()}" is not a function.'});
+              {'text': "Error: '${MAIN.slowToString()}' is not a function."});
         }
         FunctionElement mainMethod = main;
         FunctionSignature parameters = mainMethod.computeSignature(this);
@@ -1190,6 +1193,14 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   TreeElements analyzeElement(Element element) {
+    assert(invariant(element,
+           element.impliesType() ||
+           element.isField() ||
+           element.isFunction() ||
+           element.isGenerativeConstructor() ||
+           element.isGetter() ||
+           element.isSetter(),
+           message: 'Unexpected element kind: ${element.kind}'));
     assert(invariant(element, element.isDeclaration));
     ResolutionEnqueuer world = enqueuer.resolution;
     TreeElements elements = world.getCachedElements(element);
@@ -1270,17 +1281,14 @@ abstract class Compiler implements DiagnosticListener {
         () => resolver.computeFunctionType(element, signature));
   }
 
-  reportWarning(Node node, var message) {
+  reportWarning(Spannable node, var message) {
     if (message is TypeWarning) {
       // TODO(ahe): Don't supress these warning when the type checker
       // is more complete.
-      if (identical(message.message.kind, MessageKind.MISSING_RETURN)) return;
-      if (identical(message.message.kind, MessageKind.MAYBE_MISSING_RETURN)) {
-        return;
-      }
+      if (message.message.kind == MessageKind.MISSING_RETURN) return;
+      if (message.message.kind == MessageKind.MAYBE_MISSING_RETURN) return;
     }
-    SourceSpan span = spanFromNode(node);
-
+    SourceSpan span = spanFromSpannable(node);
     reportDiagnostic(span, '$message', api.Diagnostic.WARNING);
   }
 

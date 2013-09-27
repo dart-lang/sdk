@@ -7,7 +7,6 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
-#include "bin/native_service.h"
 #include "platform/globals.h"
 #include "platform/thread.h"
 
@@ -274,11 +273,17 @@ class Directory {
   static char* CreateTemp(const char* const_template);
   static bool Delete(const char* path, bool recursive);
   static bool Rename(const char* path, const char* new_path);
-  static Dart_Port GetServicePort();
+
+  static CObject* CreateRequest(const CObjectArray& request);
+  static CObject* DeleteRequest(const CObjectArray& request);
+  static CObject* ExistsRequest(const CObjectArray& request);
+  static CObject* CreateTempRequest(const CObjectArray& request);
+  static CObject* ListStartRequest(const CObjectArray& request);
+  static CObject* ListNextRequest(const CObjectArray& request);
+  static CObject* ListStopRequest(const CObjectArray& request);
+  static CObject* RenameRequest(const CObjectArray& request);
 
  private:
-  static NativeService directory_service_;
-
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Directory);
 };

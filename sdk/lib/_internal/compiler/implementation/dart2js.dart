@@ -92,6 +92,8 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
   }
 }
 
+FormattingDiagnosticHandler diagnosticHandler;
+
 Future compile(List<String> argv) {
   bool isWindows = (Platform.operatingSystem == 'windows');
   stackTraceFilePrefix = '$currentDirectory';
@@ -106,10 +108,10 @@ Future compile(List<String> argv) {
   String outputLanguage = 'JavaScript';
   bool stripArgumentSet = false;
   bool analyzeOnly = false;
+  bool hasDisallowUnsafeEval = false;
   // TODO(johnniwinther): Measure time for reading files.
   SourceFileProvider inputProvider = new SourceFileProvider();
-  FormattingDiagnosticHandler diagnosticHandler =
-      new FormattingDiagnosticHandler(inputProvider);
+  diagnosticHandler = new FormattingDiagnosticHandler(inputProvider);
 
   passThrough(String argument) => options.add(argument);
 
@@ -223,6 +225,17 @@ Future compile(List<String> argv) {
     }
   }
 
+  Uri computePrecompiledUri() {
+    String extension = 'precompiled.js';
+    String outPath = out.path;
+    if (outPath.endsWith('.js')) {
+      outPath = outPath.substring(0, outPath.length - 3);
+      return out.resolve('$outPath.$extension');
+    } else {
+      return out.resolve(extension);
+    }
+  }
+
   List<String> arguments = <String>[];
   List<OptionHandler> handlers = <OptionHandler>[
     new OptionHandler('-[chv?]+', handleShortOptions),
@@ -240,7 +253,6 @@ Future compile(List<String> argv) {
     new OptionHandler('--allow-mock-compilation', passThrough),
     new OptionHandler('--minify', passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
-    // TODO(ahe): Remove the --no-colors option.
     new OptionHandler('--disable-diagnostic-colors',
                       (_) => diagnosticHandler.enableColors = false),
     new OptionHandler('--enable-diagnostic-colors',
@@ -261,6 +273,8 @@ Future compile(List<String> argv) {
     new OptionHandler('--global-js-name=.*', checkGlobalName),
     new OptionHandler('--disable-type-inference', passThrough),
     new OptionHandler('--terse', passThrough),
+    new OptionHandler('--disallow-unsafe-eval',
+                      (_) => hasDisallowUnsafeEval = true),
 
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
@@ -274,6 +288,14 @@ Future compile(List<String> argv) {
   parseCommandLine(handlers, argv);
   if (wantHelp || wantVersion) {
     helpAndExit(wantHelp, wantVersion, diagnosticHandler.verbose);
+  }
+
+  if (hasDisallowUnsafeEval) {
+    String precompiledName =
+        relativize(currentDirectory, computePrecompiledUri(), isWindows);
+    helpAndFail("Error: option '--disallow-unsafe-eval' has been removed."
+                " Instead, the compiler generates a file named"
+                " '$precompiledName'.");
   }
 
   if (outputLanguage != OUTPUT_LANGUAGE_DART && stripArgumentSet) {
@@ -313,7 +335,7 @@ Future compile(List<String> argv) {
     if (!explicitOut) {
       String input = uriPathToNative(arguments[0]);
       String output = relativize(currentDirectory, out, isWindows);
-      print('Dart file $input compiled to $outputLanguage: $output');
+      print('Dart file ($input) compiled to $outputLanguage: $output');
     }
   }
 
@@ -327,6 +349,11 @@ Future compile(List<String> argv) {
         uri = out;
         sourceMapFileName =
             sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
+      } else if (extension == 'precompiled.js') {
+        uri = computePrecompiledUri();
+        diagnosticHandler.info(
+            "File ($uri) is compatible with header"
+            " \"Content-Security-Policy: script-src 'self'\"");
       } else if (extension == 'js.map' || extension == 'dart.map') {
         uri = sourceMapOut;
       } else {
@@ -416,7 +443,12 @@ void writeString(Uri uri, String text) {
 }
 
 void fail(String message) {
-  print(message);
+  if (diagnosticHandler != null) {
+    diagnosticHandler.diagnosticHandler(
+        null, -1, -1, message, api.Diagnostic.ERROR);
+  } else {
+    print(message);
+  }
   exit(1);
 }
 

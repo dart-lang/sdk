@@ -20,6 +20,7 @@ main() {
       })
     ]).create();
 
-    pubInstall(error: 'Package "foo" doesn\'t have a pubspec.yaml file.');
+    pubInstall(error: new RegExp(r'Could not find a file named "pubspec.yaml" '
+        r'in "[^\n]*"\.'));
   });
 }

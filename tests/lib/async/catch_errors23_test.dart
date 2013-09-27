@@ -9,6 +9,8 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+  Completer done = new Completer();
+
   var events = [];
   StreamController controller;
   Stream stream;
@@ -28,22 +30,29 @@ main() {
         .asBroadcastStream();
       stream.listen((x) { events.add("stream $x"); });
     }).listen((x) { events.add(x); })
-      .asFuture().then((_) { events.add("inner done"); });
+      .asFuture().then((_) { Expect.fail("Unexpected callback"); });
     stream.listen((x) { events.add("stream2 $x"); });
     controller.add(1);
     // Errors are not allowed to traverse boundaries. This error should be
     // caught by the outer catchErrors.
     controller.addError(2);
     controller.close();
-  }).listen((x) { events.add("outer: $x"); },
-            onDone: () {
-              Expect.listEquals(["map 1",
-                                "stream 101",
-                                "stream2 101",
-                                "outer: 2",
-                                "inner done",
-                                ],
-                                events);
-              asyncEnd();
-            });
+  }).listen((x) {
+                  events.add("outer: $x");
+                  if (x == 2) done.complete(true);
+                },
+            onDone: () { Expect.fail("Unexpected callback"); });
+
+  done.future.whenComplete(() {
+    // Give handlers time to run.
+    Timer.run(() {
+      Expect.listEquals(["map 1",
+                        "stream 101",
+                        "stream2 101",
+                        "outer: 2",
+                        ],
+                        events);
+      asyncEnd();
+    });
+  });
 }

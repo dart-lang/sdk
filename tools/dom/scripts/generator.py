@@ -709,6 +709,10 @@ class IDLTypeInfo(object):
   def to_dart_conversion(self, value, interface_name=None, attributes=None):
     return 'Dart%s::toDart(%s)' % (self._idl_type, value)
 
+  def return_to_dart_conversion(self, value,
+                                interface_name=None, attributes=None):
+    return 'Dart%s::returnToDart(args, %s)' % (self._idl_type, value)
+
   def custom_to_dart(self):
     return self._data.custom_to_dart
 
@@ -832,6 +836,13 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
       return 'DartDOMWrapper::vectorToDart(%s)' % value
     return 'DartDOMWrapper::vectorToDart<%s>(%s)' % (self._item_info.bindings_class(), value)
 
+  def return_to_dart_conversion(self, value,
+                                interface_name=None, attributes=None):
+    return 'Dart_SetReturnValue(args, %s)' % self.to_dart_conversion(
+        value,
+        interface_name,
+        attributes)
+
   def conversion_includes(self):
     return self._item_info.conversion_includes()
 
@@ -889,6 +900,13 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
       function_name += 'WithNullCheck'
     return '%s(%s)' % (function_name, value)
 
+  def return_to_dart_conversion(self, value,
+                                interface_name=None, attributes=None):
+    return 'Dart_SetReturnValue(args, %s)' % self.to_dart_conversion(
+        value,
+        interface_name,
+        attributes)
+
   def webcore_getter_name(self):
     return self._data.webcore_getter_name
 
@@ -917,7 +935,7 @@ class SVGTearOffIDLTypeInfo(InterfaceIDLTypeInfo):
       return 'receiver->'
     return 'receiver->propertyReference().'
 
-  def to_dart_conversion(self, value, interface_name, attributes):
+  def to_conversion_cast(self, value, interface_name, attributes):
     svg_primitive_types = ['SVGAngle', 'SVGLength', 'SVGMatrix',
         'SVGNumber', 'SVGPoint', 'SVGRect', 'SVGTransform']
     conversion_cast = '%s::create(%s)'
@@ -932,7 +950,17 @@ class SVGTearOffIDLTypeInfo(InterfaceIDLTypeInfo):
     else:
       conversion_cast = 'static_cast<%s*>(%s)'
     conversion_cast = conversion_cast % (self.native_type(), value)
-    return 'Dart%s::toDart(%s)' % (self._idl_type, conversion_cast)
+    return '%s' % (conversion_cast)
+
+  def to_dart_conversion(self, value, interface_name, attributes):
+    return 'Dart%s::toDart(%s)' % (self._idl_type, self.to_conversion_cast(value, interface_name, attributes))
+
+  def return_to_dart_conversion(self, value, interface_name, attr):
+    return 'Dart%s::returnToDart(args, %s)' % (self._idl_type,
+                                               self.to_conversion_cast(
+                                                   value,
+                                                   interface_name,
+                                                   attr))
 
   def argument_expression(self, name, interface_name):
     return name if interface_name.endswith('List') else '%s->propertyReference()' % name
@@ -948,6 +976,12 @@ class TypedListIDLTypeInfo(InterfaceIDLTypeInfo):
 
   def to_dart_conversion(self, value, interface_name, attributes):
     return 'DartUtilities::arrayBufferViewToDart(%s)' % value
+
+  def return_to_dart_conversion(self, value, interface_name, attributes):
+    return 'Dart_SetReturnValue(args, %s)' % self.to_dart_conversion(
+        value,
+        interface_name,
+        attributes)
 
   def to_native_info(self, idl_node, interface_name):
     return '%s.get()', 'RefPtr<%s>' % self._idl_type, 'DartUtilities', 'dartTo%s' % self._idl_type
@@ -965,6 +999,12 @@ class BasicTypedListIDLTypeInfo(InterfaceIDLTypeInfo):
     function_name = 'DartUtilities::%sToDart' % self._idl_type
     function_name = function_name[0].lower() + function_name[1:]
     return '%s(%s)' % (function_name, value)
+
+  def return_to_dart_conversion(self, value, interface_name, attributes):
+    return 'Dart_SetReturnValue(args, %s)' % self.to_dart_conversion(
+        value,
+        interface_name,
+        attributes)
 
   def to_native_info(self, idl_node, interface_name):
     return '%s.get()', 'RefPtr<%s>' % self._idl_type, 'DartUtilities', 'dartTo%s' % self._idl_type

@@ -5,22 +5,18 @@
 part of dart2js;
 
 class CodeBuffer implements StringBuffer {
-  StringBuffer buffer;
-  List<CodeBufferMarker> markers;
+
+  StringBuffer buffer = new StringBuffer();
+  List<CodeBufferMarker> markers = new List<CodeBufferMarker>();
+
   int lastBufferOffset = 0;
   int mappedRangeCounter = 0;
 
-  CodeBuffer()
-      : buffer = new StringBuffer(),
-        markers = new List<CodeBufferMarker>();
+  CodeBuffer();
 
   int get length => buffer.length;
-
-  bool get isEmpty {
-    return buffer.isEmpty;
-  }
-
-  bool get isNotEmpty => !isEmpty;
+  bool get isEmpty => buffer.isEmpty;
+  bool get isNotEmpty => buffer.isNotEmpty;
 
   CodeBuffer add(var object) {
     write(object);
@@ -81,7 +77,8 @@ class CodeBuffer implements StringBuffer {
   CodeBuffer addCharCode(int charCode) => writeCharCode(charCode);
 
   CodeBuffer writeCharCode(int charCode) {
-    return write(new String.fromCharCodes([charCode]));
+    buffer.writeCharCode(charCode);
+    return this;
   }
 
   CodeBuffer clear() {

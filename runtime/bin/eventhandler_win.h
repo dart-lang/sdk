@@ -211,6 +211,7 @@ class Handle {
   }
 
   void ReadSyncCompleteAsync();
+  void WriteSyncCompleteAsync();
 
   DWORD last_error() { return last_error_; }
   void set_last_error(DWORD last_error) { last_error_ = last_error; }
@@ -241,6 +242,7 @@ class Handle {
   OverlappedBuffer* pending_write_;  // Buffer for pending write
 
   DWORD last_error_;
+  DWORD thread_wrote_;
 
  private:
   int flags_;
@@ -272,7 +274,6 @@ class DirectoryWatchHandle : public Handle {
 
   virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
   virtual bool IsClosed();
-  virtual void DoClose();
 
   virtual bool IssueRead();
 

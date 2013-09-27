@@ -9,6 +9,8 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+  Completer done = new Completer();
+
   var events = [];
   // Test that nested stream (from `catchErrors`) that is delayed by a future
   // is waited for.
@@ -17,18 +19,23 @@ main() {
       new Future.error(499);
       new Future.delayed(const Duration(milliseconds: 20), () {
         events.add(42);
+        done.complete(true);
       });
     }).listen(events.add,
               onDone: () { events.add("done"); });
     throw "foo";
   }).listen((x) { events.add("outer: $x"); },
-            onDone: () {
-              Expect.listEquals(["outer: foo",
-                                 499,
-                                 42,
-                                 "done",
-                                ],
-                                events);
-              asyncEnd();
-            });
+            onDone: () { Expect.fail("Unexpected callback"); });
+
+  done.future.whenComplete(() {
+    // Give handlers time to run.
+    Timer.run(() {
+      Expect.listEquals(["outer: foo",
+                          499,
+                          42,
+                        ],
+                        events);
+      asyncEnd();
+    });
+  });
 }

@@ -20,7 +20,7 @@ main() {
   expect("TypeMirror on 'dynamic'", mirrors.dynamicType);
   expect("TypeMirror on 'void'", mirrors.voidType);
   expect("LibraryMirror on 'test.to_string_test'",
-         mirrors.findLibrary(const Symbol('test.to_string_test')).single);
+         mirrors.findLibrary(#test.to_string_test).single);
   expect("InstanceMirror on 1", reflect(1));
   expect("ClassMirror on 'Foo'", reflectClass(Foo));
   expect("VariableMirror on 'field'",

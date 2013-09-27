@@ -31,7 +31,8 @@ main() {
     repo.runGit(['rm', 'pubspec.yaml']);
     repo.runGit(['commit', '-m', 'delete']);
 
-    pubUpdate(error: 'Package "foo" doesn\'t have a pubspec.yaml file.');
+    pubUpdate(error: new RegExp(r'Could not find a file named "pubspec.yaml" '
+        r'in "[^\n]*"\.'));
 
     d.dir(packagesPath, [
       d.dir('foo', [

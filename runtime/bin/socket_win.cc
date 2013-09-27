@@ -201,6 +201,7 @@ intptr_t Socket::GetStdioHandle(intptr_t num) {
   FileHandle* file_handle = new FileHandle(handle);
   if (file_handle == NULL) return -1;
   file_handle->MarkDoesNotSupportOverlappedIO();
+  file_handle->EnsureInitialized(EventHandler::delegate());
   return reinterpret_cast<intptr_t>(file_handle);
 }
 

@@ -12,7 +12,6 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
-#include "bin/native_service.h"
 #include "platform/globals.h"
 #include "platform/thread.h"
 
@@ -170,7 +169,32 @@ class File {
 
   static FileOpenMode DartModeToFileMode(DartFileOpenMode mode);
 
-  static Dart_Port GetServicePort();
+  static CObject* ExistsRequest(const CObjectArray& request);
+  static CObject* CreateRequest(const CObjectArray& request);
+  static CObject* DeleteRequest(const CObjectArray& request);
+  static CObject* RenameRequest(const CObjectArray& request);
+  static CObject* OpenRequest(const CObjectArray& request);
+  static CObject* ResolveSymbolicLinksRequest(const CObjectArray& request);
+  static CObject* CloseRequest(const CObjectArray& request);
+  static CObject* PositionRequest(const CObjectArray& request);
+  static CObject* SetPositionRequest(const CObjectArray& request);
+  static CObject* TruncateRequest(const CObjectArray& request);
+  static CObject* LengthRequest(const CObjectArray& request);
+  static CObject* LengthFromPathRequest(const CObjectArray& request);
+  static CObject* LastModifiedRequest(const CObjectArray& request);
+  static CObject* FlushRequest(const CObjectArray& request);
+  static CObject* ReadByteRequest(const CObjectArray& request);
+  static CObject* WriteByteRequest(const CObjectArray& request);
+  static CObject* ReadRequest(const CObjectArray& request);
+  static CObject* ReadIntoRequest(const CObjectArray& request);
+  static CObject* WriteFromRequest(const CObjectArray& request);
+  static CObject* CreateLinkRequest(const CObjectArray& request);
+  static CObject* DeleteLinkRequest(const CObjectArray& request);
+  static CObject* RenameLinkRequest(const CObjectArray& request);
+  static CObject* LinkTargetRequest(const CObjectArray& request);
+  static CObject* TypeRequest(const CObjectArray& request);
+  static CObject* IdenticalRequest(const CObjectArray& request);
+  static CObject* StatRequest(const CObjectArray& request);
 
  private:
   explicit File(FileHandle* handle) : handle_(handle) { }
@@ -180,8 +204,6 @@ class File {
 
   // FileHandle is an OS specific class which stores data about the file.
   FileHandle* handle_;  // OS specific handle for the file.
-
-  static NativeService file_service_;
 
   DISALLOW_COPY_AND_ASSIGN(File);
 };

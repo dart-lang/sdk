@@ -181,6 +181,7 @@ DEFINE_NATIVE_ENTRY(String_charAt, 2) {
   return Symbols::FromCharCode(value);
 }
 
+
 DEFINE_NATIVE_ENTRY(String_codeUnitAt, 2) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));

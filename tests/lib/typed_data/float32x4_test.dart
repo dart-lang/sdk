@@ -232,13 +232,13 @@ testSelect() {
 
 testConversions() {
   var m = new Uint32x4(0x3F800000, 0x40000000, 0x40400000, 0x40800000);
-  var n = m.toFloat32x4();
+  var n = new Float32x4.fromUint32x4Bits(m);
   Expect.equals(1.0, n.x);
   Expect.equals(2.0, n.y);
   Expect.equals(3.0, n.z);
   Expect.equals(4.0, n.w);
   n = new Float32x4(5.0, 6.0, 7.0, 8.0);
-  m = n.toUint32x4();
+  m = new Uint32x4.fromFloat32x4Bits(n);
   Expect.equals(0x40A00000, m.x);
   Expect.equals(0x40C00000, m.y);
   Expect.equals(0x40E00000, m.z);
@@ -246,16 +246,16 @@ testConversions() {
   // Flip sign using bit-wise operators.
   n = new Float32x4(9.0, 10.0, 11.0, 12.0);
   m = new Uint32x4(0x80000000, 0x80000000, 0x80000000, 0x80000000);
-  var nMask = n.toUint32x4();
+  var nMask = new Uint32x4.fromFloat32x4Bits(n);
   nMask = nMask ^ m; // flip sign.
-  n = nMask.toFloat32x4();
+  n = new Float32x4.fromUint32x4Bits(nMask);
   Expect.equals(-9.0, n.x);
   Expect.equals(-10.0, n.y);
   Expect.equals(-11.0, n.z);
   Expect.equals(-12.0, n.w);
-  nMask = n.toUint32x4();
+  nMask = new Uint32x4.fromFloat32x4Bits(n);
   nMask = nMask ^ m; // flip sign.
-  n = nMask.toFloat32x4();
+  n = new Float32x4.fromUint32x4Bits(nMask);
   Expect.equals(9.0, n.x);
   Expect.equals(10.0, n.y);
   Expect.equals(11.0, n.z);

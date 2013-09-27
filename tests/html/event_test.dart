@@ -222,11 +222,4 @@ main() {
     expect(ev.shiftKey, isTrue);
     expect(ev.metaKey, isTrue);
   }, type: 'mousewheel');
-
-  // HttpRequestProgressEvent has no properties to itself, so just test that
-  // it doesn't error out on creation and can be dispatched.
-  // Issue 1005.
-  // eventTest('HttpRequestProgressEvent',
-  //     () => new HttpRequestProgressEvent('foo', 5),
-  //     (ev) {});
 }

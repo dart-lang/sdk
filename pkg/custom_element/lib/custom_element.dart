@@ -174,9 +174,13 @@ class CustomElement implements Element {
 
   /** Invoked when this component gets inserted in the DOM tree. */
   void inserted() {}
+  @deprecated
+  void enteredView() {}
 
   /** Invoked when this component is removed from the DOM tree. */
   void removed() {}
+  @deprecated
+  void leftView() {}
 
   // TODO(jmesserly): how do we implement this efficiently?
   // See https://github.com/dart-lang/web-ui/issues/37

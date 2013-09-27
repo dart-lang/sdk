@@ -20,6 +20,8 @@ part of dart._collection.dev;
 //    tools/dom/templates/html/dartium/web_gl_dartium.darttemplate
 //    tools/dom/templates/html/dartium/web_sql_dartium.darttemplate
 //    sdk/lib/core/regexp.dart
+// TODO(floitsch): also used in dart:async until end of September for
+//    deprecation of runZonedExperimental.
 
 const deprecated = 0;
 

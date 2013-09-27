@@ -81,7 +81,7 @@ class Int32 implements IntX {
   /**
    * Parses a decimal [String] and returns an [Int32].
    */
-  static Int32 parseInt(String s) => new Int32.fromInt(int.parse(s));
+  static Int32 parseInt(String s) => new Int32(int.parse(s));
 
   /**
    * Parses a hexadecimal [String] and returns an [Int32].
@@ -136,7 +136,14 @@ class Int32 implements IntX {
    * Constructs an [Int32] from an [int].  Only the low 32 bits of the input
    * are used.
    */
-  Int32.fromInt(int i) : _i = (i & 0x7fffffff) - (i & 0x80000000);
+  Int32([int i=0]) : _i = (i & 0x7fffffff) - (i & 0x80000000);
+
+  /**
+   * Constructs an [Int32] from an [int].  Only the low 32 bits of the input
+   * are used.
+   */
+  @deprecated
+  Int32.fromInt(int i) : this(i);
 
   // Returns the [int] representation of the specified value. Throws
   // [ArgumentError] for non-integer arguments.
@@ -167,17 +174,17 @@ class Int32 implements IntX {
     if (other is Int64) {
       return this.toInt64() + other;
     }
-    return new Int32.fromInt(_i + _toInt(other));
+    return new Int32(_i + _toInt(other));
   }
 
   IntX operator -(other) {
     if (other is Int64) {
       return this.toInt64() - other;
     }
-    return new Int32.fromInt(_i - _toInt(other));
+    return new Int32(_i - _toInt(other));
   }
 
-  Int32 operator -() => new Int32.fromInt(-_i);
+  Int32 operator -() => new Int32(-_i);
 
   IntX operator *(other) {
     if (other is Int64) {
@@ -192,14 +199,14 @@ class Int32 implements IntX {
       // Result will be Int32
       return (this.toInt64() % other).toInt32();
     }
-    return new Int32.fromInt(_i % _toInt(other));
+    return new Int32(_i % _toInt(other));
   }
 
   Int32 operator ~/(other) {
     if (other is Int64) {
       return (this.toInt64() ~/ other).toInt32();
     }
-    return new Int32.fromInt(_i ~/ _toInt(other));
+    return new Int32(_i ~/ _toInt(other));
   }
 
   Int32 remainder(other) {
@@ -214,31 +221,31 @@ class Int32 implements IntX {
     if (other is Int64) {
       return (this.toInt64() & other).toInt32();
     }
-    return new Int32.fromInt(_i & _toInt(other));
+    return new Int32(_i & _toInt(other));
   }
 
   Int32 operator |(other) {
     if (other is Int64) {
       return (this.toInt64() | other).toInt32();
     }
-    return new Int32.fromInt(_i | _toInt(other));
+    return new Int32(_i | _toInt(other));
   }
 
   Int32 operator ^(other) {
     if (other is Int64) {
       return (this.toInt64() ^ other).toInt32();
     }
-    return new Int32.fromInt(_i ^ _toInt(other));
+    return new Int32(_i ^ _toInt(other));
   }
 
-  Int32 operator ~() => new Int32.fromInt(~_i);
+  Int32 operator ~() => new Int32(~_i);
 
   Int32 operator <<(int n) {
     if (n < 0) {
       throw new ArgumentError(n);
     }
     n &= 31;
-    return new Int32.fromInt(_i << n);
+    return new Int32(_i << n);
   }
 
   Int32 operator >>(int n) {
@@ -252,7 +259,7 @@ class Int32 implements IntX {
     } else {
       value = (_i >> n) | (0xffffffff << (32 - n));
     }
-    return new Int32.fromInt(value);
+    return new Int32(value);
   }
 
   Int32 shiftRightUnsigned(int n) {
@@ -266,7 +273,7 @@ class Int32 implements IntX {
     } else {
       value = (_i >> n) & ((1 << (32 - n)) - 1);
     }
-    return new Int32.fromInt(value);
+    return new Int32(value);
   }
 
   /**
@@ -325,13 +332,37 @@ class Int32 implements IntX {
   bool get isNegative => _i < 0;
   bool get isOdd => (_i & 0x1) == 1;
   bool get isZero => _i == 0;
+  int get bitLength => _i.bitLength;
 
   int get hashCode => _i;
 
-  Int32 abs() => _i < 0 ? new Int32.fromInt(-_i) : this;
+  Int32 abs() => _i < 0 ? new Int32(-_i) : this;
+
+  Int32 clamp(lowerLimit, upperLimit) {
+    if (this < lowerLimit) {
+      if (lowerLimit is IntX) return lowerLimit.toInt32();
+      if (lowerLimit is int) return new Int32(lowerLimit);
+      throw new ArgumentError(lowerLimit);
+    } else if (this > upperLimit) {
+      if (upperLimit is IntX) return upperLimit.toInt32();
+      if (upperLimit is int) return new Int32(upperLimit);
+      throw new ArgumentError(upperLimit);
+    }
+    return this;
+  }
 
   int numberOfLeadingZeros() => _numberOfLeadingZeros(_i);
   int numberOfTrailingZeros() => _numberOfTrailingZeros(_i);
+
+  Int32 toSigned(int width) {
+    if (width < 1 || width > 32) throw new ArgumentError(width);
+    return new Int32(_i.toSigned(width));
+  }
+
+  Int32 toUnsigned(int width) {
+    if (width < 0 || width > 32) throw new ArgumentError(width);
+    return new Int32(_i.toUnsigned(width));
+  }
 
   List<int> toBytes() {
     List<int> result = new List<int>(4);
@@ -342,9 +373,10 @@ class Int32 implements IntX {
     return result;
   }
 
+  double toDouble() => _i.toDouble();
   int toInt() => _i;
   Int32 toInt32() => this;
-  Int64 toInt64() => new Int64.fromInt(_i);
+  Int64 toInt64() => new Int64(_i);
 
   String toString() => _i.toString();
   String toHexString() => _i.toRadixString(16);

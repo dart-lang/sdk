@@ -17,6 +17,6 @@ class A {
 main() {
   var mirrors = currentMirrorSystem();  
   var classMirror = reflectClass(A);
-  var instanceMirror = classMirror.newInstance(const Symbol(''),[]);
+  var instanceMirror = classMirror.newInstance(const Symbol(''), []);
   Expect.equals(A._STATE_INITIAL, instanceMirror.reflectee._state);
 }

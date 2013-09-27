@@ -7,5 +7,5 @@ import 'dart:async';
 
 main() {
   // Make sure `runZoned` returns the result of a synchronous call.
-  Expect.equals(499, runZonedExperimental(() => 499));
+  Expect.equals(499, runZoned(() => 499));
 }

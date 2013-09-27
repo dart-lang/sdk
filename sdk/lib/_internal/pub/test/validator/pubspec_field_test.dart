@@ -28,6 +28,22 @@ main() {
       d.dir(appPath, [d.pubspec(pkg)]).create();
       expectNoValidationError(pubspecField);
     });
+
+    integration('has an HTTPS homepage URL', () {
+      var pkg = packageMap("test_pkg", "1.0.0");
+      pkg["homepage"] = "https://pub.dartlang.org";
+      d.dir(appPath, [d.pubspec(pkg)]).create();
+
+      expectNoValidationError(pubspecField);
+    });
+
+    integration('has an HTTPS documentation URL', () {
+      var pkg = packageMap("test_pkg", "1.0.0");
+      pkg["documentation"] = "https://pub.dartlang.org";
+      d.dir(appPath, [d.pubspec(pkg)]).create();
+
+      expectNoValidationError(pubspecField);
+    });
   });
 
   group('should consider a package invalid if it', () {
@@ -52,6 +68,46 @@ main() {
     integration('is missing the "author" field', () {
       var pkg = packageMap("test_pkg", "1.0.0");
       pkg.remove("author");
+      d.dir(appPath, [d.pubspec(pkg)]).create();
+
+      expectValidationError(pubspecField);
+    });
+
+    integration('has a non-string "homepage" field', () {
+      var pkg = packageMap("test_pkg", "1.0.0");
+      pkg["homepage"] = 12;
+      d.dir(appPath, [d.pubspec(pkg)]).create();
+
+      expectValidationError(pubspecField);
+    });
+
+    integration('has a non-string "description" field', () {
+      var pkg = packageMap("test_pkg", "1.0.0");
+      pkg["description"] = 12;
+      d.dir(appPath, [d.pubspec(pkg)]).create();
+
+      expectValidationError(pubspecField);
+    });
+
+    integration('has a non-string "author" field', () {
+      var pkg = packageMap("test_pkg", "1.0.0");
+      pkg["author"] = 12;
+      d.dir(appPath, [d.pubspec(pkg)]).create();
+
+      expectValidationError(pubspecField);
+    });
+
+    integration('has a non-list "authors" field', () {
+      var pkg = packageMap("test_pkg", "1.0.0");
+      pkg["authors"] = 12;
+      d.dir(appPath, [d.pubspec(pkg)]).create();
+
+      expectValidationError(pubspecField);
+    });
+
+    integration('has a non-string member of the "authors" field', () {
+      var pkg = packageMap("test_pkg", "1.0.0");
+      pkg["authors"] = [12];
       d.dir(appPath, [d.pubspec(pkg)]).create();
 
       expectValidationError(pubspecField);
@@ -97,6 +153,22 @@ main() {
       d.dir(appPath, [d.pubspec(pkg)]).create();
 
       expectValidationWarning(pubspecField);
+    });
+
+    integration('has a non-HTTP homepage URL', () {
+      var pkg = packageMap("test_pkg", "1.0.0");
+      pkg["homepage"] = "file:///foo/bar";
+      d.dir(appPath, [d.pubspec(pkg)]).create();
+
+      expectValidationError(pubspecField);
+    });
+
+    integration('has a non-HTTP documentation URL', () {
+      var pkg = packageMap("test_pkg", "1.0.0");
+      pkg["documentation"] = "file:///foo/bar";
+      d.dir(appPath, [d.pubspec(pkg)]).create();
+
+      expectValidationError(pubspecField);
     });
   });
 }

@@ -183,8 +183,8 @@ class ScheduledProcess {
         exitCodeCompleter.complete(exitCode);
 
         if (!_endExpected) {
-          throw "Process '$description' ended earlier than scheduled "
-            "with exit code $exitCode.";
+          fail("Process '$description' ended earlier than scheduled "
+               "with exit code $exitCode.");
         }
       }), "waiting to reach shouldExit() or kill() for process "
           "'$description'");

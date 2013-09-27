@@ -408,7 +408,11 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
 void Scavenger::IterateObjectIdTable(Isolate* isolate,
                                      ScavengerVisitor* visitor) {
   ObjectIdRing* ring = isolate->object_id_ring();
-  ASSERT(ring != NULL);
+  if (ring == NULL) {
+    // --gc_at_alloc can get us here before the ring has been initialized.
+    ASSERT(FLAG_gc_at_alloc);
+    return;
+  }
   ring->VisitPointers(visitor);
 }
 

@@ -1577,6 +1577,9 @@ class JavaScriptBackend extends Backend {
   /// Called when [:const Symbol(name):] is seen.
   void registerConstSymbol(String name, TreeElements elements) {
     symbolsUsed.add(name);
+    if (name.endsWith('=')) {
+      symbolsUsed.add(name.substring(0, name.length - 1));
+    }
   }
 
   /// Called when [:new Symbol(...):] is seen.

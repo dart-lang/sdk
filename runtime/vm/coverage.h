@@ -10,7 +10,7 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, print_coverage);
+DECLARE_FLAG(charp, coverage_dir);
 
 // Forward declarations.
 class Class;
@@ -19,7 +19,7 @@ class JSONArray;
 
 class CodeCoverage : public AllStatic {
  public:
-  static void Print(Isolate* isolate);
+  static void Write(Isolate* isolate);
 
  private:
   static void PrintClass(const Class& cls, const JSONArray& arr);

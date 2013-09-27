@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // DO NOT EDIT
-// Auto-generated dart:chrome library.
+// Auto-generated dart:_chrome library.
 
 /// Native wrappers for the Chrome Packaged App APIs.
 ///
@@ -12,4 +12,4 @@
 ///
 /// For more information on these APIs, see the
 /// [Chrome APIs Documentation](http://developer.chrome.com/extensions/api_index.html)
-library chrome;
+library _chrome;

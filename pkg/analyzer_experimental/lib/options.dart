@@ -29,6 +29,9 @@ class CommandLineOptions {
   /** Whether to ignore unrecognized flags */
   final bool ignoreUnrecognizedFlags;
 
+  /** Whether to show performance statistics */
+  final bool perf;
+
   /** Whether to show package: warnings */
   final bool showPackageWarnings;
 
@@ -55,6 +58,7 @@ class CommandLineOptions {
       machineFormat = args['machine'],
       displayVersion = args['version'],
       ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
+      perf = args['perf'],
       showPackageWarnings = args['show-package-warnings'],
       showSdkWarnings = args['show-sdk-warnings'],
       warningsAreFatal = args['fatal-warnings'],
@@ -105,6 +109,9 @@ class CommandLineOptions {
           defaultsTo: false, negatable: false)
       ..addFlag('show-package-warnings',
           help: 'Show warnings from package: imports',
+          defaultsTo: false, negatable: false)
+      ..addFlag('perf',
+          help: 'Show performance statistics',
           defaultsTo: false, negatable: false)
       ..addFlag('show-sdk-warnings', help: 'Show warnings from SDK imports',
           defaultsTo: false, negatable: false)

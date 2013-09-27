@@ -334,15 +334,16 @@ class ArgParser {
    */
   void addOption(String name, {String abbr, String help, List<String> allowed,
       Map<String, String> allowedHelp, String defaultsTo,
-      void callback(value), bool allowMultiple: false}) {
+      void callback(value), bool allowMultiple: false, bool hide: false}) {
     _addOption(name, abbr, help, allowed, allowedHelp, defaultsTo,
-        callback, isFlag: false, allowMultiple: allowMultiple);
+        callback, isFlag: false, allowMultiple: allowMultiple,
+        hide: hide);
   }
 
   void _addOption(String name, String abbr, String help, List<String> allowed,
       Map<String, String> allowedHelp, defaultsTo,
       void callback(value), {bool isFlag, bool negatable: false,
-      bool allowMultiple: false}) {
+      bool allowMultiple: false, bool hide: false}) {
     // Make sure the name isn't in use.
     if (_options.containsKey(name)) {
       throw new ArgumentError('Duplicate option "$name".');
@@ -359,7 +360,7 @@ class ArgParser {
 
     _options[name] = new Option(name, abbr, help, allowed, allowedHelp,
         defaultsTo, callback, isFlag: isFlag, negatable: negatable,
-        allowMultiple: allowMultiple);
+        allowMultiple: allowMultiple, hide: hide);
   }
 
   /**

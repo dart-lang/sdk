@@ -219,6 +219,9 @@ class Namer implements ClosureNamer {
   final String metadataField = '@';
   final String callCatchAllName = r'call$catchAll';
   final String reflectableField = r'$reflectable';
+  final String defaultValuesField = r'$defaultValues';
+  final String methodsWithOptionalArgumentsField =
+      r'$methodsWithOptionalArguments';
 
   /**
    * Map from top-level or static elements to their unique identifiers provided

@@ -189,6 +189,8 @@ TEST_CASE(IdentityEquals) {
   Dart_Handle five = NewString("5");
   Dart_Handle five_again = NewString("5");
   Dart_Handle seven = NewString("7");
+  Dart_Handle dart_core = NewString("dart:core");
+  Dart_Handle dart_mirrors = NewString("dart:mirrors");
 
   // Same objects.
   EXPECT(Dart_IdentityEquals(five, five));
@@ -199,16 +201,25 @@ TEST_CASE(IdentityEquals) {
   // Different objects.
   EXPECT(!Dart_IdentityEquals(five, seven));
 
+  // Case where identical() is not the same as pointer equality.
+  Dart_Handle nan1 = Dart_NewDouble(NAN);
+  Dart_Handle nan2 = Dart_NewDouble(NAN);
+  EXPECT(Dart_IdentityEquals(nan1, nan2));
+
   // Non-instance objects.
   {
     Isolate* isolate = Isolate::Current();
     DARTSCOPE(isolate);
-    Dart_Handle class1 = Api::NewHandle(isolate, Object::void_class());
-    Dart_Handle class2 = Api::NewHandle(isolate, Object::class_class());
+    Dart_Handle lib1 = Dart_LookupLibrary(dart_core);
+    Dart_Handle lib2 = Dart_LookupLibrary(dart_mirrors);
 
-    EXPECT(Dart_IdentityEquals(class1, class1));
+    EXPECT(Dart_IdentityEquals(lib1, lib1));
+    EXPECT(Dart_IdentityEquals(lib2, lib2));
+    EXPECT(!Dart_IdentityEquals(lib1, lib2));
 
-    EXPECT(!Dart_IdentityEquals(class1, class2));
+    // Mix instance and non-instance.
+    EXPECT(!Dart_IdentityEquals(lib1, nan1));
+    EXPECT(!Dart_IdentityEquals(nan1, lib1));
   }
 }
 
@@ -263,34 +274,13 @@ TEST_CASE(InstanceGetType) {
   const Type& bool_type_obj = Api::UnwrapTypeHandle(isolate, type);
   EXPECT(bool_type_obj.raw() == Type::BoolType());
 
-  // Errors propagate.
-  Dart_Handle error = Dart_NewApiError("MyError");
-  Dart_Handle error_type = Dart_InstanceGetType(error);
-  EXPECT_ERROR(error_type, "MyError");
-
-  // Get the handle from a non-instance handle
-  Dart_Handle obj = Api::NewHandle(isolate,
-                                   isolate->object_store()->type_class());
-  Dart_Handle type_type = Dart_InstanceGetType(obj);
-  EXPECT_ERROR(type_type,
-               "Dart_InstanceGetType expects argument 'instance' to be of "
-               "type Instance.");
-}
-
-
-TEST_CASE(InstanceGetClass) {
-  // Get the handle from a valid instance handle.
-  Dart_Handle instance = Dart_True();
-  Dart_Handle cls = Dart_InstanceGetClass(instance);
-  EXPECT_VALID(cls);
-  EXPECT(Dart_IsClass(cls));
-  Dart_Handle cls_name = Dart_ClassName(cls);
+  Dart_Handle cls_name = Dart_TypeName(type);
   EXPECT_VALID(cls_name);
   const char* cls_name_cstr = "";
   EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
   EXPECT_STREQ("bool", cls_name_cstr);
 
-  Dart_Handle qual_cls_name = Dart_QualifiedClassName(cls);
+  Dart_Handle qual_cls_name = Dart_QualifiedTypeName(type);
   EXPECT_VALID(qual_cls_name);
   const char* qual_cls_name_cstr = "";
   EXPECT_VALID(Dart_StringToCString(qual_cls_name, &qual_cls_name_cstr));
@@ -298,14 +288,15 @@ TEST_CASE(InstanceGetClass) {
 
   // Errors propagate.
   Dart_Handle error = Dart_NewApiError("MyError");
-  Dart_Handle error_cls = Dart_InstanceGetClass(error);
-  EXPECT_ERROR(error_cls, "MyError");
+  Dart_Handle error_type = Dart_InstanceGetType(error);
+  EXPECT_ERROR(error_type, "MyError");
 
-  // Get the handle from a non-instance handle
-  ASSERT(Dart_IsClass(cls));
-  Dart_Handle cls_cls = Dart_InstanceGetClass(cls);
-  EXPECT_ERROR(cls_cls,
-               "Dart_InstanceGetClass expects argument 'instance' to be of "
+  // Get the handle from a non-instance handle.
+  Dart_Handle dart_core = NewString("dart:core");
+  Dart_Handle obj = Dart_LookupLibrary(dart_core);
+  Dart_Handle type_type = Dart_InstanceGetType(obj);
+  EXPECT_ERROR(type_type,
+               "Dart_InstanceGetType expects argument 'instance' to be of "
                "type Instance.");
 }
 
@@ -2725,7 +2716,7 @@ UNIT_TEST_CASE(SetMessageCallbacks) {
     Dart_Handle tmp = (handle);                                                \
     EXPECT_VALID(tmp);                                                         \
     EXPECT(Dart_IsClass(tmp));                                                 \
-    Dart_Handle intf_name = Dart_ClassName(tmp);                               \
+    Dart_Handle intf_name = Dart_TypeName(tmp);                                \
     EXPECT_VALID(intf_name);                                                   \
     const char* intf_name_cstr = "";                                           \
     EXPECT_VALID(Dart_StringToCString(intf_name, &intf_name_cstr));            \
@@ -5754,9 +5745,12 @@ UNIT_TEST_CASE(NewNativePort) {
   const char* kScriptChars =
       "import 'dart:isolate';\n"
       "void callPort(SendPort port) {\n"
-      "    port.call(null).then((message) {\n"
-      "      throw new Exception(message);\n"
-      "    });\n"
+      "  var receivePort = new ReceivePort();\n"
+      "  port.send(null, receivePort.toSendPort());\n"
+      "  receivePort.receive((message, _) {\n"
+      "    receivePort.close();\n"
+      "    throw new Exception(message);\n"
+      "  });\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_EnterScope();
@@ -5818,7 +5812,10 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
       "\n"
       "void main(exc_child, exc_parent) {\n"
       "  var port = spawnFunction(entry);\n"
-      "  port.call(exc_child).then((message) {\n"
+      "  var receivePort = new ReceivePort();\n"
+      "  port.send(exc_child, receivePort.toSendPort());\n"
+      "  receivePort.receive((message, _) {\n"
+      "    receivePort.close();\n"
       "    if (message != 'hello') throw new Exception('ShouldNotHappen');\n"
       "    if (exc_parent) throw new Exception('MakeParentExit');\n"
       "  });\n"

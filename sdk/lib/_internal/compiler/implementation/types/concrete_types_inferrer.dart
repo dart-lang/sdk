@@ -501,10 +501,6 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  bool get isElement {
-    throw new UnsupportedError("");
-  }
-
   bool containsOnlyInt(Compiler compiler) {
     throw new UnsupportedError("");
   }

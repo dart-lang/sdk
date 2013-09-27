@@ -69,6 +69,9 @@ class PackageGraph {
       // doesn't start building until some source in that graph is updated.
       _cascadeResults[package] = new BuildResult.success();
       _cascades[package] = cascade;
+      cascade.onDirty.listen((_) {
+        _cascadeResults[package] = null;
+      });
 
       cascade.results.listen((result) {
         _cascadeResults[cascade.package] = result;
@@ -144,7 +147,6 @@ class PackageGraph {
     groupBy(sources, (id) => id.package).forEach((package, ids) {
       var cascade = _cascades[package];
       if (cascade == null) throw new ArgumentError("Unknown package $package.");
-      _cascadeResults[package] = null;
       cascade.updateSources(ids);
     });
   }
@@ -154,14 +156,12 @@ class PackageGraph {
     groupBy(sources, (id) => id.package).forEach((package, ids) {
       var cascade = _cascades[package];
       if (cascade == null) throw new ArgumentError("Unknown package $package.");
-      _cascadeResults[package] = null;
       cascade.removeSources(ids);
     });
   }
 
   void updateTransformers(String package,
       Iterable<Iterable<Transformer>> transformers) {
-    _cascadeResults[package] = null;
     _cascades[package].updateTransformers(transformers);
   }
 }

@@ -68,7 +68,7 @@ void renamePlaceholders(
     Map<LibraryElement, String> imports,
     Set<String> fixedMemberNames,
     bool cutDeclarationTypes,
-    {uniqueGlobalNaming: false}) {
+    {bool uniqueGlobalNaming: false}) {
   final Map<LibraryElement, Map<String, String>> renamed
       = new Map<LibraryElement, Map<String, String>>();
 

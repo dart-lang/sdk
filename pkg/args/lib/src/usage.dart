@@ -67,6 +67,8 @@ class Usage {
     calculateColumnWidths();
 
     args.options.forEach((name, option) {
+      if (option.hide) return;
+
       write(0, getAbbreviation(option));
       write(1, getLongOption(option));
 

@@ -839,14 +839,16 @@ static void GenerateSourceAndCheck(const Script& script) {
   // Rescan this source and compare the token stream to see if they are
   // the same.
   const TokenStream& expected_tokens = TokenStream::Handle(script.tokens());
-  TokenStream::Iterator expected_iterator(expected_tokens, 0);
+  TokenStream::Iterator expected_iterator(
+      expected_tokens, 0, TokenStream::Iterator::kAllTokens);
   const String& str = String::Handle(expected_tokens.GenerateSource());
   const String& private_key = String::Handle(expected_tokens.PrivateKey());
   Scanner scanner(str, private_key);
   const TokenStream& reconstructed_tokens =
       TokenStream::Handle(TokenStream::New(scanner.GetStream(), private_key));
   expected_iterator.SetCurrentPosition(0);
-  TokenStream::Iterator reconstructed_iterator(reconstructed_tokens, 0);
+  TokenStream::Iterator reconstructed_iterator(
+      reconstructed_tokens, 0, TokenStream::Iterator::kAllTokens);
   Token::Kind expected_kind = expected_iterator.CurrentTokenKind();
   Token::Kind reconstructed_kind = reconstructed_iterator.CurrentTokenKind();
   String& expected_literal = String::Handle();

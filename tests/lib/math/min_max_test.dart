@@ -11,10 +11,28 @@ import 'dart:math';
 var inf = double.INFINITY;
 var nan = double.NAN;
 
+// A class that might work if [min] and [max] worked for non-numbers.
+class Wrap implements Comparable {
+  final value;
+  Wrap(this.value);
+  int compare(Wrap other) => value.compare(other.value);
+  bool operator<(Wrap other) => compare(other) < 0;
+  bool operator<=(Wrap other) => compare(other) <= 0;
+  bool operator>(Wrap other) => compare(other) > 0;
+  bool operator>=(Wrap other) => compare(other) >= 0;
+  bool operator==(other) => other is Wrap && compare(other) == 0;
+  String toString() => 'Wrap($value)';
+  int get hashCode => value.hashCode;
+}
+
+var wrap1 = new Wrap(1);
+var wrap2 = new Wrap(2);
+
 testMin() {
   testMin1();
   testMin2();
   testMin3();
+  testMinChecks();
 }
 
 testMin1() {
@@ -279,10 +297,19 @@ testMin3() {
   Expect.isFalse(min(inf, inf).isNegative);
 }
 
+testMinChecks() {
+  // Min and max work only on numbers.
+  // These throw a type assertion or ArgumentError.
+  Expect.throws(() => min(wrap1, wrap2));
+  Expect.throws(() => min(wrap1, 0));
+  Expect.throws(() => min(0, wrap2));
+}
+
 testMax() {
   testMax1();
   testMax2();
   testMax3();
+  testMaxChecks();
 }
 
 testMax1() {
@@ -535,6 +562,14 @@ testMax3() {
   Expect.isTrue(max(-inf, -499).isNegative);
   Expect.isTrue(max(-inf, -499.0).isNegative);
   Expect.isTrue(max(-inf, -inf).isNegative);
+}
+
+testMaxChecks() {
+  // Min and max work only on numbers.
+  // These throw a type assertion or ArgumentError.
+  Expect.throws(() => min(wrap1, wrap2));
+  Expect.throws(() => min(wrap1, 0));
+  Expect.throws(() => min(0, wrap2));
 }
 
 main() {

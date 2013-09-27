@@ -37,18 +37,10 @@ void main() {
 
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      // TODO(nweiz): There can be three errors due to issue 9151. The
-      // HttpException is reported without a stack trace, and so when it's
-      // wrapped twice it registers as a different exception each time (because
-      // it's given an ad-hoc stack trace). Always expect two exceptions when
-      // issue 9151 is fixed.
-      expect(errors.length, inInclusiveRange(2, 3));
-      expect(errors[0].error, equals("'scheduled server 0' received GET /hello "
-          "when no more requests were expected."));
+      expect(errors.length, 2);
+      expect(errors[0].error.toString(), equals("'scheduled server 0' received "
+          "GET /hello when no more requests were expected."));
       expect(errors[1].error, new isInstanceOf<HttpException>());
-      if (errors.length > 2) {
-        expect(errors[2].error, new isInstanceOf<HttpException>());
-      }
     });
   }, passing: ['test 2']);
 
@@ -115,8 +107,8 @@ void main() {
       // it's given an ad-hoc stack trace). Always expect two exceptions when
       // issue 9151 is fixed.
       expect(errors.length, inInclusiveRange(2, 3));
-      expect(errors[0].error, equals("'scheduled server 0' received GET /hello "
-          "earlier than expected."));
+      expect(errors[0].error.toString(), equals(
+          "'scheduled server 0' received GET /hello earlier than expected."));
       expect(errors[1].error, new isInstanceOf<HttpException>());
       if (errors.length > 2) {
         expect(errors[2].error, new isInstanceOf<HttpException>());
@@ -165,18 +157,10 @@ void main() {
     });
 
     test('test 2', () {
-      // TODO(nweiz): There can be three errors due to issue 9151. The
-      // HttpException is reported without a stack trace, and so when it's
-      // wrapped twice it registers as a different exception each time (because
-      // it's given an ad-hoc stack trace). Always expect two exceptions when
-      // issue 9151 is fixed.
-      expect(errors.length, inInclusiveRange(2, 3));
-      expect(errors[0].error, equals("'scheduled server 0' expected GET "
-          "/goodbye, but got GET /hello."));
+      expect(errors.length, 2);
+      expect(errors[0].error.toString(), equals(
+          "'scheduled server 0' expected GET /goodbye, but got GET /hello."));
       expect(errors[1].error, new isInstanceOf<HttpException>());
-      if (errors.length > 2) {
-        expect(errors[2].error, new isInstanceOf<HttpException>());
-      }
     });
   }, passing: ['test 2']);
 
@@ -198,18 +182,10 @@ void main() {
     });
 
     test('test 2', () {
-      // TODO(nweiz): There can be three errors due to issue 9151. The
-      // HttpException is reported without a stack trace, and so when it's
-      // wrapped twice it registers as a different exception each time (because
-      // it's given an ad-hoc stack trace). Always expect two exceptions when
-      // issue 9151 is fixed.
-      expect(errors.length, inInclusiveRange(2, 3));
-      expect(errors[0].error, equals("'scheduled server 0' expected GET "
-          "/hello, but got HEAD /hello."));
+      expect(errors.length, 2);
+      expect(errors[0].error.toString(), equals(
+          "'scheduled server 0' expected GET /hello, but got HEAD /hello."));
       expect(errors[1].error, new isInstanceOf<HttpException>());
-      if (errors.length > 2) {
-        expect(errors[2].error, new isInstanceOf<HttpException>());
-      }
     });
   }, passing: ['test 2']);
 
@@ -235,9 +211,9 @@ void main() {
     test('test 2', () {
       expect(clock.time, equals(2));
 
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals(["The schedule timed out after "
-        "0:00:00.002000 of inactivity."]));
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(), equals(
+          "The schedule timed out after 0:00:00.002000 of inactivity."));
     });
   }, passing: ['test 2']);
 
@@ -303,18 +279,10 @@ void main() {
     });
 
     test('test 2', () {
-      // TODO(nweiz): There can be three errors due to issue 9151. The
-      // HttpException is reported without a stack trace, and so when it's
-      // wrapped twice it registers as a different exception each time (because
-      // it's given an ad-hoc stack trace). Always expect two exceptions when
-      // issue 9151 is fixed.
-      expect(errors.length, inInclusiveRange(2, 3));
-      expect(errors[0].error, equals("'scheduled server 0' received GET "
-          "/hello/3 when no more requests were expected."));
+      expect(errors.length, 2);
+      expect(errors[0].error.toString(), equals("'scheduled server 0' received "
+          "GET /hello/3 when no more requests were expected."));
       expect(errors[1].error, new isInstanceOf<HttpException>());
-      if (errors.length > 2) {
-        expect(errors[2].error, new isInstanceOf<HttpException>());
-      }
     });
   }, passing: ['test 2']);
 
@@ -330,22 +298,14 @@ void main() {
           completion(equals('Hello, test!')));
 
       server.handle('GET', '/hello', (request) {
-        throw 'oh no';
+        fail('oh no');
       });
     });
 
     test('test 2', () {
-      // TODO(nweiz): There can be three errors due to issue 9151. The
-      // HttpException is reported without a stack trace, and so when it's
-      // wrapped twice it registers as a different exception each time (because
-      // it's given an ad-hoc stack trace). Always expect two exceptions when
-      // issue 9151 is fixed.
-      expect(errors.length, inInclusiveRange(2, 3));
-      expect(errors[0].error, equals('oh no'));
+      expect(errors.length, 2);
+      expect(errors[0].error.toString(), equals('oh no'));
       expect(errors[1].error, new isInstanceOf<HttpException>());
-      if (errors.length > 2) {
-        expect(errors[2].error, new isInstanceOf<HttpException>());
-      }
     });
   }, passing: ['test 2']);
 }

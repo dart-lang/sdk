@@ -42,6 +42,12 @@ DEFINE_NATIVE_ENTRY(Float32x4_zero, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Float32x4_fromUint32x4Bits, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, v, arguments->NativeArgAt(1));
+  return Float32x4::New(v.value());
+}
+
+
 DEFINE_NATIVE_ENTRY(Float32x4_add, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
@@ -189,14 +195,16 @@ DEFINE_NATIVE_ENTRY(Float32x4_clamp, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, lo, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, hi, arguments->NativeArgAt(2));
-  float _x = self.x() > lo.x() ? self.x() : lo.x();
-  float _y = self.y() > lo.y() ? self.y() : lo.y();
-  float _z = self.z() > lo.z() ? self.z() : lo.z();
-  float _w = self.w() > lo.w() ? self.w() : lo.w();
-  _x = _x > hi.x() ? hi.x() : _x;
-  _y = _y > hi.y() ? hi.y() : _y;
-  _z = _z > hi.z() ? hi.z() : _z;
-  _w = _w > hi.w() ? hi.w() : _w;
+  // The order of the clamping must match the order of the optimized code:
+  // MAX(MIN(self, hi), lo).
+  float _x = self.x() < hi.x() ? self.x() : hi.x();
+  float _y = self.y() < hi.y() ? self.y() : hi.y();
+  float _z = self.z() < hi.z() ? self.z() : hi.z();
+  float _w = self.w() < hi.w() ? self.w() : hi.w();
+  _x = _x < lo.x() ? lo.x() : _x;
+  _y = _y < lo.y() ? lo.y() : _y;
+  _z = _z < lo.z() ? lo.z() : _z;
+  _w = _w < lo.w() ? lo.w() : _w;
   return Float32x4::New(_x, _y, _z, _w);
 }
 
@@ -425,12 +433,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_reciprocalSqrt, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Float32x4_toUint32x4, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, v, arguments->NativeArgAt(0));
-  return Uint32x4::New(v.value());
-}
-
-
 DEFINE_NATIVE_ENTRY(Uint32x4_fromInts, 5) {
   ASSERT(AbstractTypeArguments::CheckedHandle(
       arguments->NativeArgAt(0)).IsNull());
@@ -458,6 +460,12 @@ DEFINE_NATIVE_ENTRY(Uint32x4_fromBools, 5) {
   uint32_t _z = z.value() ? 0xFFFFFFFF : 0x0;
   uint32_t _w = w.value() ? 0xFFFFFFFF : 0x0;
   return Uint32x4::New(_x, _y, _z, _w);
+}
+
+
+DEFINE_NATIVE_ENTRY(Uint32x4_fromFloat32x4Bits, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, v, arguments->NativeArgAt(1));
+  return Uint32x4::New(v.value());
 }
 
 
@@ -701,12 +709,6 @@ DEFINE_NATIVE_ENTRY(Uint32x4_select, 3) {
   float32_uint32 tempZ((_maskZ & tvz.u) | (~_maskZ & fvz.u));
   float32_uint32 tempW((_maskW & tvw.u) | (~_maskW & fvw.u));
   return Float32x4::New(tempX.f, tempY.f, tempZ.f, tempW.f);
-}
-
-
-DEFINE_NATIVE_ENTRY(Uint32x4_toFloat32x4, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, v, arguments->NativeArgAt(0));
-  return Float32x4::New(v.value());
 }
 
 

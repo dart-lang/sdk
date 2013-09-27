@@ -51,12 +51,12 @@ class CustomTestSuite extends TestSuite {
       onTest(testCase);
     }
 
-    var testCaseCrash = _makeCrashTestCase("crash", [CRASH]);
-    var testCasePass = _makeNormalTestCase("pass", [PASS]);
-    var testCaseFail = _makeNormalTestCase("fail", [FAIL]);
-    var testCaseTimeout = _makeNormalTestCase("timeout", [TIMEOUT]);
+    var testCaseCrash = _makeCrashTestCase("crash", [Expectation.CRASH]);
+    var testCasePass = _makeNormalTestCase("pass", [Expectation.PASS]);
+    var testCaseFail = _makeNormalTestCase("fail", [Expectation.FAIL]);
+    var testCaseTimeout = _makeNormalTestCase("timeout", [Expectation.TIMEOUT]);
     var testCaseFailUnexpected =
-        _makeNormalTestCase("fail-unexpected", [PASS]);
+        _makeNormalTestCase("fail-unexpected", [Expectation.PASS]);
 
     enqueueTestCase(testCaseCrash);
     enqueueTestCase(testCasePass);
@@ -94,7 +94,7 @@ class CustomTestSuite extends TestSuite {
     return new TestCase(name,
                         [command],
                         configuration,
-                        new Set<String>.from(expectations));
+                        new Set<Expectation>.from(expectations));
   }
 }
 

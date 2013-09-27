@@ -12,7 +12,9 @@ patch class Object {
   static _getHash(obj) native "Object_getHash";
   static _setHash(obj, hash) native "Object_setHash";
 
-  /* patch */ int get hashCode {
+  /* patch */ int get hashCode => _identityHashCode;
+
+  int get _identityHashCode {
     var result = _getHash(this);
     if (result == 0) {
       // We want the hash to be a Smi value greater than 0.

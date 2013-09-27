@@ -4,6 +4,8 @@
 
 library pub.rewrite_import_transformer;
 
+import 'dart:async';
+
 import 'package:barback/barback.dart';
 import 'package:analyzer_experimental/analyzer.dart';
 

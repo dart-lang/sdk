@@ -411,17 +411,45 @@ class DartiumBackend(HtmlDartGenerator):
 
     ext_attrs = self._interface.ext_attrs
 
+    to_dart_emitter.Emit(
+        '    static Dart_Handle toDart(NativeType* value)\n'
+        '    {\n'
+        '        if (!value)\n'
+        '            return Dart_Null();\n'
+        '        DartDOMData* domData = DartDOMData::current();\n'
+        '        Dart_WeakPersistentHandle result =\n'
+        '            DartDOMWrapper::lookupWrapper(domData, isNode, value);\n'
+        '        if (result)\n'
+        '            return Dart_HandleFromWeakPersistent(result);\n'
+        '        return createWrapper(value);\n'
+        '    }\n'
+        '    static void returnToDart(Dart_NativeArguments args,\n'
+        '                             NativeType* value)\n'
+        '    {\n'
+        '        if (value) {\n'
+        '            DartDOMData* domData = static_cast<DartDOMData*>(\n'
+        '                Dart_GetNativeIsolateData(args));\n'
+        '            Dart_WeakPersistentHandle result =\n'
+        '                DartDOMWrapper::lookupWrapper(domData, isNode, value);\n'
+        '            if (result)\n'
+        '                Dart_SetWeakHandleReturnValue(args, result);\n'
+        '            else\n'
+        '                Dart_SetReturnValue(args, createWrapper(value));\n'
+        '        }\n'
+        '    }\n',
+        )
+
     if ('CustomToV8' in ext_attrs or
         'PureInterface' in ext_attrs or
         'CPPPureInterface' in ext_attrs or
         self._interface_type_info.custom_to_dart()):
       to_dart_emitter.Emit(
-          '    static Dart_Handle toDart(NativeType* value);\n')
+          '    static Dart_Handle createWrapper(NativeType* value);\n')
     else:
       to_dart_emitter.Emit(
-          '    static Dart_Handle toDart(NativeType* value)\n'
+          '    static Dart_Handle createWrapper(NativeType* value)\n'
           '    {\n'
-          '        return DartDOMWrapper::toDart<Dart$(INTERFACE)>(value);\n'
+          '        return DartDOMWrapper::createWrapper<Dart$(INTERFACE)>(value);\n'
           '    }\n',
           INTERFACE=self._interface.id)
 
@@ -709,6 +737,7 @@ class DartiumBackend(HtmlDartGenerator):
     cpp_arguments = []
     runtime_check = None
     raises_exceptions = raises_dom_exception or arguments
+    needs_custom_element_callbacks = False
 
     # TODO(antonm): unify with ScriptState below.
     requires_stack_info = (ext_attrs.get('CallWith') == 'ScriptArguments|ScriptState' or
@@ -759,6 +788,10 @@ class DartiumBackend(HtmlDartGenerator):
 
     if 'Reflect' in ext_attrs:
       cpp_arguments = [self._GenerateWebCoreReflectionAttributeName(node)]
+
+    if ext_attrs.get('CustomElementCallbacks') == 'Enable':
+      self._cpp_impl_includes.add('"core/dom/CustomElementCallbackDispatcher.h"')
+      needs_custom_element_callbacks = True
 
     if return_type_is_nullable:
       cpp_arguments = ['isNull']
@@ -881,6 +914,9 @@ class DartiumBackend(HtmlDartGenerator):
           '        if (!scriptCallStack->size())\n'
           '            return;\n',
           INDEX=len(arguments) + 1)
+
+    if needs_custom_element_callbacks:
+      body_emitter.Emit('        CustomElementCallbackDispatcher::CallbackDeliveryScope deliveryScope;\n');
 
     # Emit arguments.
     start_index = 1 if needs_receiver else 0
@@ -1005,9 +1041,14 @@ class DartiumBackend(HtmlDartGenerator):
           set_return_value = 'DartUtilities::setDartStringReturnValueWithNullCheck(args, %s)' % (value_expression)
         else:
           set_return_value = 'DartUtilities::setDartStringReturnValue(args, %s)' % (value_expression)
+      elif return_type_info.dart_type() == 'num' and return_type_info.native_type() == 'double':
+        set_return_value = 'Dart_SetDoubleReturnValue(args, %s)' % (value_expression)
       else:
-        to_dart_conversion = return_type_info.to_dart_conversion(value_expression, self._interface.id, ext_attrs)
-        set_return_value = 'Dart_SetReturnValue(args, %s)' % (to_dart_conversion)
+        return_to_dart_conversion = return_type_info.return_to_dart_conversion(
+            value_expression,
+            self._interface.id,
+            ext_attrs)
+        set_return_value = '%s' % (return_to_dart_conversion)
       invocation_emitter.Emit(
         '        $RETURN_VALUE;\n',
         RETURN_VALUE=set_return_value)

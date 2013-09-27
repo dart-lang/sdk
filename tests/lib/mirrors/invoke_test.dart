@@ -6,6 +6,8 @@ library test.invoke_test;
 
 import 'dart:mirrors';
 
+import 'dart:async' show Future;
+
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 
@@ -18,7 +20,7 @@ class C {
   set setter(v) => field = 'set $v';
   method(x, y, z) => '$x+$y+$z';
   toString() => 'a C';
-  
+
   noSuchMethod(invocation) => 'DNU';
 
   static var staticField = 'initial';
@@ -34,7 +36,7 @@ libraryFunction(x,y) => '$x$y';
 
 Future expectValueThen(Future future, Function onValue) {
   asyncStart();
-  wrappedOnValue(resultIn) { 
+  wrappedOnValue(resultIn) {
     var resultOut = onValue(resultIn);
     asyncEnd();
     return resultOut;
@@ -47,7 +49,7 @@ Future expectValueThen(Future future, Function onValue) {
 
 Future expectError(Future future, Function errorPredicate, String reason) {
   asyncStart();
-  onValue(result) { 
+  onValue(result) {
     Expect.fail("Error expected ($reason)");
   }
   onError(e) {
@@ -273,7 +275,7 @@ testAsync() {
   }).then((result) {
     Expect.equals('sbar', result.reflectee);
     Expect.equals('sbar', C.staticField);
-    return cm.setFieldAsync(const Symbol('staticField'), im);;
+    return cm.setFieldAsync(const Symbol('staticField'), im);
   }).then((result) {
     Expect.equals(im.reflectee, result.reflectee);
     Expect.equals(c, C.staticField);

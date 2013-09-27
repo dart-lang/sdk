@@ -129,6 +129,21 @@ abstract class IntX implements Comparable {
   /** Returns the absolute value of this integer. */
   IntX abs();
 
+  /** Clamps this integer to be in the range [lowerLimit] - [upperLimit]. */
+  IntX clamp(IntX lowerLimit, IntX upperLimit);
+
+  /**
+   * Returns the minimum number of bits required to store this integer.
+   *
+   * The number of bits excludes the sign bit, which gives the natural length
+   * for non-negative (unsigned) values.  Negative values are complemented to
+   * return the bit position of the first bit that differs from the sign bit.
+   *
+   * To find the the number of bits needed to store the value as a signed value,
+   * add one, i.e. use `x.bitLength + 1`.
+   */
+  int get bitLength;
+
   /**
    * Returns the number of high-order zeros in this integer's bit
    * representation.
@@ -141,11 +156,46 @@ abstract class IntX implements Comparable {
   int numberOfTrailingZeros();
 
   /**
+   * Returns the least significant [width] bits of this integer, extending the
+   * highest retained bit to the sign.  This is the same as truncating the value
+   * to fit in [width] bits using an signed 2-s complement representation.  The
+   * returned value has the same bit value in all positions higher than [width].
+   *
+   * If the input value fits in [width] bits without truncation, the result is
+   * the same as the input.  The minimum width needed to avoid truncation of `x`
+   * is `x.bitLength + 1`, i.e.
+   *
+   *     x == x.toSigned(x.bitLength + 1);
+   */
+  IntX toSigned(int width);
+
+  /**
+   * Returns the least significant [width] bits of this integer as a
+   * non-negative number (i.e. unsigned representation).  The returned value has
+   * zeros in all bit positions higher than [width].
+   *
+   * If the input fits in [width] bits without truncation, the result is the
+   * same as the input.  The minimum width needed to avoid truncation of `x` is
+   * given by `x.bitLength`, i.e.
+   *
+   *     x == x.toUnsigned(x.bitLength);
+   */
+  IntX toUnsigned(int width);
+
+  /**
    * Returns a byte-sequence representation of this integer.
    *
    * Returns a list of int, starting with the least significant byte.
    */
   List<int> toBytes();
+
+  /**
+   * Returns the double representation of this integer.
+   *
+   * On some platforms, inputs with large absolute values (i.e., > 2^52) may
+   * lose some of their low-order bits.
+   */
+  double toDouble();
 
   /**
    * Returns the int representation of this integer.

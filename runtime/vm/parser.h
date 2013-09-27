@@ -187,8 +187,6 @@ class Parser : public ValueObject {
                                          const char* format,
                                          va_list args);
 
-  static void AddImplicitConstructor(const Class& cls);
-
  private:
   friend class EffectGraphVisitor;  // For BuildNoSuchMethodArguments.
 
@@ -398,6 +396,7 @@ class Parser : public ValueObject {
                                 bool evaluate_metadata,
                                 ParamList* params);
   void CheckConstFieldsInitialized(const Class& cls);
+  static void AddImplicitConstructor(const Class& cls);
   void CheckConstructors(ClassDesc* members);
   AstNode* ParseExternalInitializedField(const Field& field);
   void ParseInitializedInstanceFields(
@@ -420,7 +419,8 @@ class Parser : public ValueObject {
                          GrowableArray<Field*>* initialized_fields);
   String& ParseNativeDeclaration();
   void ParseInterfaceList(const Class& cls);
-  RawAbstractType* ParseMixins(const AbstractType& super_type);
+  RawAbstractType* ParseMixins(const GrowableObjectArray& pending_classes,
+                               const AbstractType& super_type);
   static StaticCallNode* BuildInvocationMirrorAllocation(
       intptr_t call_pos,
       const String& function_name,
@@ -495,7 +495,9 @@ class Parser : public ValueObject {
   AstNode* ParseDoWhileStatement(String* label_name);
   AstNode* ParseForStatement(String* label_name);
   AstNode* ParseForInStatement(intptr_t forin_pos, SourceLabel* label);
+  void CheckCaseExpressions(const GrowableArray<LiteralNode*>& values);
   CaseNode* ParseCaseClause(LocalVariable* switch_expr_value,
+                            GrowableArray<LiteralNode*>* case_expr_values,
                             SourceLabel* case_label);
   AstNode* ParseSwitchStatement(String* label_name);
 
@@ -641,7 +643,8 @@ class Parser : public ValueObject {
                                   const String& function_name,
                                   ArgumentListNode* function_arguments,
                                   InvocationMirror::Call call,
-                                  InvocationMirror::Type type);
+                                  InvocationMirror::Type type,
+                                  Function* func);
 
   void CheckOperatorArity(const MemberDesc& member);
 

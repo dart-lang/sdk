@@ -119,6 +119,8 @@ class EventHandler {
    */
   static void Stop();
 
+  static EventHandlerImplementation* delegate();
+
  private:
   friend class EventHandlerImplementation;
   EventHandlerImplementation delegate_;

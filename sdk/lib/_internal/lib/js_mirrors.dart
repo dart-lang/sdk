@@ -33,6 +33,8 @@ import 'dart:_interceptors' show
     JSExtendableArray;
 import 'dart:_js_names';
 
+const String METHODS_WITH_OPTIONAL_ARGUMENTS = r'$methodsWithOptionalArguments';
+
 /// No-op method that is called to inform the compiler that tree-shaking needs
 /// to be disabled.
 disableTreeShaking() => preserveNames();
@@ -176,6 +178,29 @@ abstract class JsDeclarationMirror extends JsMirror
 
   // TODO(ahe): Implement this.
   SourceLocation get location => throw new UnimplementedError();
+}
+
+class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
+  final TypeMirror upperBound;
+  final DeclarationMirror owner;
+
+  JsTypeVariableMirror(Symbol simpleName, this.upperBound, this.owner)
+      : super(simpleName);
+
+  bool operator ==(other) {
+    return (other is JsTypeVariableMirror &&
+        simpleName == other.simpleName &&
+        owner == other.owner);
+  }
+
+  int get hashCode {
+    int code = 0x3FFFFFFF & (JsTypeVariableMirror).hashCode;
+    code ^= 17 * simpleName.hashCode;
+    code ^= 19 * owner.hashCode;
+    return code;
+  }
+
+  String get _prettyName => 'TypeVariableMirror';
 }
 
 class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
@@ -624,9 +649,6 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   Future<InstanceMirror> invokeAsync(Symbol memberName,
                                      List<Object> positionalArguments,
                                      [Map<Symbol, dynamic> namedArguments]) {
-    if (namedArguments != null && !namedArguments.isEmpty) {
-      throw new UnsupportedError('Named arguments are not implemented.');
-    }
     return
         new Future<InstanceMirror>(
             () => invoke(memberName, positionalArguments, namedArguments));
@@ -635,12 +657,55 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
                         [Map<Symbol,dynamic> namedArguments]) {
+    String name = n(memberName);
+    String reflectiveName;
     if (namedArguments != null && !namedArguments.isEmpty) {
-      throw new UnsupportedError('Named arguments are not implemented.');
+      var methodsWithOptionalArguments =
+          JS('=Object', '#.\$methodsWithOptionalArguments', reflectee);
+      String mangledName =
+          JS('String|Null', '#[#]', methodsWithOptionalArguments, '*$name');
+      if (mangledName == null) {
+        // TODO(ahe): Invoke noSuchMethod.
+        throw new UnimplementedNoSuchMethodError(
+            'Invoking noSuchMethod with named arguments not implemented');
+      }
+      var defaultValueIndices =
+          JS('List|Null', '#[#].\$defaultValues', reflectee, mangledName);
+      var defaultValues =
+          defaultValueIndices.map((int i) => JS('', 'init.metadata[#]', i))
+          .iterator;
+      var defaultArguments = new Map();
+      reflectiveName = mangledNames[mangledName];
+      var reflectiveNames = reflectiveName.split(':');
+      int requiredPositionalArgumentCount =
+          int.parse(reflectiveNames.elementAt(1));
+      positionalArguments = new List.from(positionalArguments);
+      // Check the number of positional arguments is valid.
+      if (requiredPositionalArgumentCount != positionalArguments.length) {
+        // TODO(ahe): Invoke noSuchMethod.
+        throw new UnimplementedNoSuchMethodError(
+            'Invoking noSuchMethod with named arguments not implemented');
+      }
+      for (String parameter in reflectiveNames.skip(3)) {
+        defaultValues.moveNext();
+        defaultArguments[parameter] = defaultValues.current;
+      }
+      namedArguments.forEach((Symbol symbol, value) {
+        String parameter = n(symbol);
+        if (defaultArguments.containsKey(parameter)) {
+          defaultArguments[parameter] = value;
+        } else {
+          // Extraneous named argument.
+          // TODO(ahe): Invoke noSuchMethod.
+          throw new UnimplementedNoSuchMethodError(
+              'Invoking noSuchMethod with named arguments not implemented');
+        }
+      });
+      positionalArguments.addAll(defaultArguments.values);
+    } else {
+      reflectiveName =
+          JS('String', '# + ":" + # + ":0"', name, positionalArguments.length);
     }
-    String reflectiveName =
-        JS('String', '# + ":" + # + ":0"',
-           n(memberName), positionalArguments.length);
     // We can safely pass positionalArguments to _invoke as it will wrap it in
     // a JSArray if needed.
     return _invoke(memberName, JSInvocationMirror.METHOD, reflectiveName,
@@ -663,8 +728,13 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     if (cacheEntry == null) {
       disableTreeShaking();
       String mangledName = reflectiveNames[reflectiveName];
-      // TODO(ahe): Get the argument names.
-      List<String> argumentNames = [];
+      List<String> argumentNames = const [];
+      if (type == JSInvocationMirror.METHOD) {
+        // Note: [argumentNames] are not what the user actually provided, it is
+        // always all the named paramters.
+        argumentNames = reflectiveName.split(':').skip(3).toList();
+      }
+
       // TODO(ahe): We don't need to create an invocation mirror here. The
       // logic from JSInvocationMirror.getCachedInvocation could easily be
       // inlined here.
@@ -899,6 +969,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   UnmodifiableMapView<Symbol, Mirror> _cachedMembers;
   UnmodifiableListView<InstanceMirror> _cachedMetadata;
   UnmodifiableListView<ClassMirror> _cachedSuperinterfaces;
+  UnmodifiableListView<TypeVariableMirror> _cachedTypeVariables;
 
   // Set as side-effect of accessing JsLibraryMirror.classes.
   JsLibraryMirror _owner;
@@ -938,7 +1009,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     List<String> keys = extractKeys(prototype);
     var result = <JsMethodMirror>[];
     for (String key in keys) {
-      if (key == '') continue;
+      if (isReflectiveDataInPrototype(key)) continue;
       String simpleName = mangledNames[key];
       // [simpleName] can be null if [key] represents an implementation
       // detail, for example, a bailout method, or runtime type support.
@@ -957,7 +1028,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     int length = keys.length;
     for (int i = 0; i < length; i++) {
       String mangledName = keys[i];
-      if (mangledName == '') continue; // Skip static field descriptor.
+      if (isReflectiveDataInPrototype(mangledName)) continue;
       String unmangledName = mangledName;
       var jsFunction = JS('', '#[#]', owner._globalObject, mangledName);
 
@@ -1243,9 +1314,23 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
         new UnmodifiableListView<ClassMirror>(result);
   }
 
-  // TODO(ahe): Implement these.
-  List<TypeVariableMirror> get typeVariables
-      => throw new UnimplementedError();
+  List<TypeVariableMirror> get typeVariables {
+   if (_cachedTypeVariables != null) return _cachedTypeVariables;
+   List result = new List();
+   List typeVars =
+        JS('JSExtendableArray|Null', '#.prototype["<>"]', _jsConstructor);
+    if (typeVars == null) return result;
+    for (int i = 0; i < typeVars.length; i += 2) {
+      TypeMirror upperBound =
+         typeMirrorFromRuntimeTypeRepresentation(JS('', 'init.metadata[#]',
+                                                    typeVars[i+1]));
+      var typeMirror =
+          new JsTypeVariableMirror(s(typeVars[i]), upperBound, this);
+      result.add(typeMirror);
+    }
+    return _cachedTypeVariables = new UnmodifiableListView(result);
+  }
+
   List<TypeMirror> get typeArguments => new List();
 }
 
@@ -1812,6 +1897,14 @@ bool isOperatorName(String name) {
   }
 }
 
+/// Returns true if the key represent ancillary reflection data, that is, not a
+/// method.
+bool isReflectiveDataInPrototype(String key) {
+  if (key == '' || key == METHODS_WITH_OPTIONAL_ARGUMENTS) return true;
+  String firstChar = key[0];
+  return firstChar == '*' || firstChar == '+';
+}
+
 // Copied from package "unmodifiable_collection".
 // TODO(ahe): Lobby to get it added to dart:collection.
 class UnmodifiableMapView<K, V> implements Map<K, V> {
@@ -1850,4 +1943,14 @@ class UnmodifiableMapView<K, V> implements Map<K, V> {
   V remove(K key) { _throw(); }
 
   void clear() => _throw();
+}
+
+// TODO(ahe): Remove this class and call noSuchMethod instead.
+class UnimplementedNoSuchMethodError extends Error
+    implements NoSuchMethodError {
+  final String _message;
+
+  UnimplementedNoSuchMethodError(this._message);
+
+  String toString() => "Unsupported operation: $_message";
 }

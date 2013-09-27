@@ -61,6 +61,12 @@ const double SQRT2 = 1.4142135623730951;
   * is returned.
   */
 num min(num a, num b) {
+  // These partially redundant type checks improve code quality for dart2js.
+  // Most of the improvement is at call sites from the inferred non-null num
+  // return type.
+  if (a is! num) throw new ArgumentError(a);
+  if (b is! num) throw new ArgumentError(b);
+
   if (a > b) return b;
   if (a < b) return a;
   if (b is double) {
@@ -90,6 +96,12 @@ num min(num a, num b) {
   * then it is unspecified which of the two arguments is returned.
   */
 num max(num a, num b) {
+  // These partially redundant type checks improve code quality for dart2js.
+  // Most of the improvement is at call sites from the inferred non-null num
+  // return type.
+  if (a is! num) throw new ArgumentError(a);
+  if (b is! num) throw new ArgumentError(b);
+
   if (a > b) return a;
   if (a < b) return b;
   if (b is double) {

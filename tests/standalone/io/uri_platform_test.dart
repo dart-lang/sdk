@@ -36,4 +36,7 @@ main() {
     Expect.equals("a/b", new Uri.file("a/b").toFilePath());
     Expect.equals("a\\b", new Uri.file("a\\b").toFilePath());
   }
+
+  Expect.equals(Uri.base,
+                new Uri.file(Directory.current.path + Platform.pathSeparator));
 }

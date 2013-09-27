@@ -920,9 +920,6 @@ abstract class AbstractScanner {
       appendToken2(TokenType.PERIOD, offset - 1);
       return bigSwitch(next);
     }
-    if (next == 0x64 || next == 0x44) {
-      next = advance();
-    }
     appendStringToken(TokenType.DOUBLE, getString(start, next < 0 ? 0 : -1));
     return next;
   }
@@ -1173,9 +1170,6 @@ abstract class AbstractScanner {
         continue;
       } else if (next == 0x2E) {
         return tokenizeFractionPart(advance(), start);
-      } else if (next == 0x64 || next == 0x44) {
-        appendStringToken(TokenType.DOUBLE, getString(start, 0));
-        return advance();
       } else if (next == 0x65 || next == 0x45) {
         return tokenizeFractionPart(next, start);
       } else {

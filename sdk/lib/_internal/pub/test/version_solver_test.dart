@@ -14,7 +14,6 @@ import '../lib/src/package.dart';
 import '../lib/src/pubspec.dart';
 import '../lib/src/sdk.dart' as sdk;
 import '../lib/src/source.dart';
-import '../lib/src/source_registry.dart';
 import '../lib/src/system_cache.dart';
 import '../lib/src/version.dart';
 import '../lib/src/solver/version_solver.dart';
@@ -959,7 +958,7 @@ class SolveSuccessMatcher implements Matcher {
     }
 
     description.add('Resolved:\n${_listPackages(result.packages)}\n');
-    description.add(state.state);
+    description.add(state['failures']);
     return description;
   }
 
@@ -991,7 +990,7 @@ class SolveSuccessMatcher implements Matcher {
     }
 
     if (!failures.isEmpty) {
-      state.state = failures.toString();
+      state['failures'] = failures.toString();
       return false;
     }
 
@@ -1029,7 +1028,7 @@ class SolveFailMatcher implements Matcher {
   Description describeMismatch(SolveResult result,
                                Description description,
                                Map state, bool verbose) {
-    description.add(state.state);
+    description.add(state['failures']);
     return description;
   }
 
@@ -1060,7 +1059,7 @@ class SolveFailMatcher implements Matcher {
     }
 
     if (!failures.isEmpty) {
-      state.state = failures.toString();
+      state['failures'] = failures.toString();
       return false;
     }
 

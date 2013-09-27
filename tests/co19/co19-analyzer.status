@@ -48,13 +48,6 @@ LibTest/core/String/concat_A02_t01: fail, OK
 LibTest/core/Set/isSubsetOf_A01_t01: fail, OK
 LibTest/core/Set/isSubsetOf_A01_t02: fail, OK
 
-# co19 issue #424, Uninitialized finals are warnings not errors
-Language/05_Variables/05_Variables_A07_t05: fail, OK
-Language/05_Variables/05_Variables_A07_t06: fail, OK
-Language/05_Variables/05_Variables_A07_t07: fail, OK
-Language/05_Variables/05_Variables_A07_t08: fail, OK
-Language/05_Variables/05_Variables_A08_t01: fail, OK
-
 # co19 issue #425, Only static fields can be declared as 'const'
 Language/05_Variables/05_Variables_A12_t01: fail, OK
 Language/05_Variables/05_Variables_A12_t06: fail, OK
@@ -117,8 +110,10 @@ Language/14_Libraries_and_Scripts/2_Exports_A05_t01: fail, OK
 Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail, OK
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
 
-Language/07_Classes/1_Instance_Methods_A03_t06: fail # co19-roll r587: Please triage this failure
-Language/07_Classes/4_Abstract_Instance_Members_A07_t08: fail # co19-roll r587: Please triage this failure
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
+# co19 issue #596: initializing final variable at declaration and in constructor
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail, OK
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail, OK
+
+# co19 issue #597: concrete class with abstract method
+Language/07_Classes/4_Abstract_Instance_Members_A07_t08: fail, OK
 

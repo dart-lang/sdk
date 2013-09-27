@@ -613,6 +613,22 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
+   * Assert that the given collection is non-`null` and has the expected number of elements.
+   *
+   * @param expectedSize the expected number of elements
+   * @param c the collection being tested
+   * @throws AssertionFailedError if the list is `null` or does not have the expected number
+   *           of elements
+   */
+  static void assertCollectionSize(int expectedSize, Iterable c) {
+    if (c == null) {
+      JUnitTestCase.fail("Expected collection of size ${expectedSize}; found null");
+    } else if (c.length != expectedSize) {
+      JUnitTestCase.fail("Expected collection of size ${expectedSize}; contained ${c.length} elements");
+    }
+  }
+
+  /**
    * Assert that the given list is non-`null` and has the expected number of elements.
    *
    * @param expectedSize the expected number of elements

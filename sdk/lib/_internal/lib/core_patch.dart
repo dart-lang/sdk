@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Patch file for dart:core classes.
+import "dart:_collection-dev" as _symbol_dev;
 import 'dart:_interceptors';
 import 'dart:_js_helper' show checkNull,
                               getRuntimeType,
                               JSSyntaxRegExp,
                               Primitives,
-                              stringJoinUnchecked;
+                              stringJoinUnchecked,
+                              objectHashCode;
 import "dart:_collection-dev" as _symbol_dev;
 
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
@@ -26,9 +28,12 @@ patch void print(Object object) {
   Primitives.printString(object.toString());
 }
 
+patch int identityHashCode(Object object) => objectHashCode(object);
+
 // Patch for Object implementation.
 patch class Object {
   patch int get hashCode => Primitives.objectHashCode(this);
+
 
   patch String toString() => Primitives.objectToString(this);
 
@@ -311,4 +316,10 @@ patch class NoSuchMethodError {
 
 patch class Uri {
   patch static bool get _isWindows => false;
+
+  patch static Uri get base {
+    String uri = Primitives.currentUri();
+    if (uri != null) return Uri.parse(uri);
+    throw new UnsupportedError("'Uri.base' is not supported");
+  }
 }

@@ -250,8 +250,8 @@ class SecurityConfiguration {
 
 
   void testUsePOST() {
+    asyncStart();
     createServer().then((server) {
-      asyncStart();
       server.transform(new WebSocketTransformer()).listen((webSocket) {
         Expect.fail("No connection expected");
       }, onError: (e) {
@@ -336,7 +336,7 @@ class SecurityConfiguration {
     });
   }
 
-  testIndivitualUpgrade(int connections) {
+  testIndividualUpgrade(int connections) {
     createServer().then((server) {
       server.listen((request) {
           if (WebSocketTransformer.isUpgradeRequest(request)) {
@@ -402,7 +402,7 @@ class SecurityConfiguration {
     testNoUpgrade();
     testUsePOST();
     testConnections(10, 3002, "Got tired");
-    testIndivitualUpgrade(5);
+    testIndividualUpgrade(5);
   }
 }
 
@@ -415,7 +415,9 @@ void initializeSSL() {
 
 
 main() {
+  asyncStart();
   new SecurityConfiguration(secure: false).runTests();
   initializeSSL();
   new SecurityConfiguration(secure: true).runTests();
+  asyncEnd();
 }

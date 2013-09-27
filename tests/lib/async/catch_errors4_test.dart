@@ -9,6 +9,8 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+  Completer done = new Completer();
+
   var events = [];
   // Test that synchronous errors inside a `catchErrors` are caught.
   catchErrors(() {
@@ -16,14 +18,17 @@ main() {
     throw "catch error";
   }).listen((x) {
       events.add(x);
+      done.complete(true);
     },
-    onDone: () {
-      Expect.listEquals(["catch error entry",
-                         "main exit",
-                         "catch error",
-                         ],
-                         events);
-      asyncEnd();
-    });
+    onDone: () { Expect.fail("Unexpected callback"); });
+
+  done.future.whenComplete(() {
+    Expect.listEquals(["catch error entry",
+                        "main exit",
+                        "catch error",
+                        ],
+                        events);
+    asyncEnd();
+  });
   events.add("main exit");
 }

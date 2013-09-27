@@ -1,7 +1,13 @@
-library EventsTest;
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library tests.html.events_test;
+
+import 'dart:async';
 import 'dart:html';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 
 main() {
   useHtmlConfiguration();
@@ -71,5 +77,34 @@ main() {
   test('InitMouseEvent', () {
     DivElement div = new Element.tag('div');
     MouseEvent event = new MouseEvent('zebra', relatedTarget: div);
+  });
+
+  test('DOM event callbacks are associated with the correct zone', () {
+    var callbacks = [];
+
+    final element = new Element.tag('test');
+    element.id = 'eventtarget';
+    document.body.append(element);
+
+    // runZoned executes the function synchronously, but we don't want to
+    // rely on this. We therefore wrap it into an expectAsync0.
+    runZoned(expectAsync0(() {
+      Zone zone = Zone.current;
+      expect(zone, isNot(equals(Zone.ROOT)));
+
+      var sub;
+
+      void handler(Event e) {
+        expect(Zone.current, equals(zone));
+
+        runAsync(expectAsync0(() {
+          expect(Zone.current, equals(zone));
+          sub.cancel();
+        }));
+      }
+
+      sub = element.on['test'].listen(expectAsync1(handler));
+    }));
+    element.dispatchEvent(new Event('test'));
   });
 }

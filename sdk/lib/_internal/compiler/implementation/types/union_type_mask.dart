@@ -199,7 +199,6 @@ class UnionTypeMask implements TypeMask {
   bool get isUnion => true;
   bool get isContainer => false;
   bool get isForwarding => false;
-  bool get isElement => false;
 
   bool containsOnlyInt(Compiler compiler) => false;
   bool containsOnlyDouble(Compiler compiler) => false;

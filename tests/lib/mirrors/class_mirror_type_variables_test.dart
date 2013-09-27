@@ -22,9 +22,9 @@ main() {
   values.forEach((e) {
     Expect.equals(true, e is TypeVariableMirror);
   });
-  Expect.equals(const Symbol("R"), values.elementAt(0).simpleName);
-  Expect.equals(const Symbol("S"), values.elementAt(1).simpleName);
-  Expect.equals(const Symbol("T"), values.elementAt(2).simpleName);
+  Expect.equals(#R, values.elementAt(0).simpleName);
+  Expect.equals(#S, values.elementAt(1).simpleName);
+  Expect.equals(#T, values.elementAt(2).simpleName);
   cm = reflectClass(NoTypeParams);
   Expect.equals(cm.typeVariables.length, 0);
 }

@@ -1416,6 +1416,10 @@ class Function : public Object {
   // does not involve generic parameter types or generic result type.
   bool HasInstantiatedSignature() const;
 
+  // Build a string of the form 'T, {b: B, c: C} representing the user
+  // visible formal parameters of the function.
+  RawString* UserVisibleFormalParameters() const;
+
   RawClass* Owner() const;
   RawClass* origin() const;
   RawScript* script() const;
@@ -1464,9 +1468,6 @@ class Function : public Object {
   RawClass* signature_class() const;
   void set_signature_class(const Class& value) const;
 
-  RawInstance* implicit_static_closure() const;
-  void set_implicit_static_closure(const Instance& closure) const;
-
   RawCode* closure_allocation_stub() const;
   void set_closure_allocation_stub(const Code& value) const;
 
@@ -1497,6 +1498,10 @@ class Function : public Object {
   // Return the closure function implicitly created for this function.
   // If none exists yet, create one and remember it.
   RawFunction* ImplicitClosureFunction() const;
+
+  // Return the closure implicitly created for this function.
+  // If none exists yet, create one and remember it.
+  RawInstance* ImplicitStaticClosure() const;
 
   // Redirection information for a redirecting factory.
   bool IsRedirectingFactory() const;
@@ -1858,11 +1863,17 @@ class Function : public Object {
   void set_owner(const Object& value) const;
   RawFunction* implicit_closure_function() const;
   void set_implicit_closure_function(const Function& value) const;
+  RawInstance* implicit_static_closure() const;
+  void set_implicit_static_closure(const Instance& closure) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(intptr_t value) const;
   void set_data(const Object& value) const;
   static RawFunction* New();
 
+  void BuildSignatureParameters(bool instantiate,
+                                NameVisibility name_visibility,
+                                const AbstractTypeArguments& instantiator,
+                                const GrowableObjectArray& pieces) const;
   RawString* BuildSignature(bool instantiate,
                             NameVisibility name_visibility,
                             const AbstractTypeArguments& instantiator) const;
@@ -2074,6 +2085,8 @@ class Field : public Object {
   // Deoptimize all dependent code objects.
   void DeoptimizeDependentCode() const;
 
+  bool IsUninitialized() const;
+
   // Constructs getter and setter names for fields and vice versa.
   static RawString* GetterName(const String& field_name);
   static RawString* GetterSymbol(const String& field_name);
@@ -2261,6 +2274,10 @@ class Script : public Object {
   void GetTokenLocation(intptr_t token_pos,
                         intptr_t* line, intptr_t* column) const;
 
+  // Returns index of first and last token on the given line. Returns both
+  // indices < 0 if no token exists on or after the line. If a token exists
+  // after, but not on given line, returns in *first_token_index the index of
+  // the first token after the line, and a negative value in *last_token_index.
   void TokenRangeAtLine(intptr_t line_number,
                         intptr_t* first_token_index,
                         intptr_t* last_token_index) const;
@@ -3752,6 +3769,10 @@ class Instance : public Object {
   bool IsInstanceOf(const AbstractType& type,
                     const AbstractTypeArguments& type_instantiator,
                     Error* bound_error) const;
+
+  // Check whether this instance is identical to the argument according to the
+  // specification of dare:core's identical().
+  bool IsIdenticalTo(const Instance& other) const;
 
   bool IsValidNativeIndex(int index) const {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));

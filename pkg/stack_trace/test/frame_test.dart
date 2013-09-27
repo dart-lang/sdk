@@ -10,13 +10,23 @@ import 'package:unittest/unittest.dart';
 
 void main() {
   group('.parseVM', () {
-    test('parses a stack frame correctly', () {
+    test('parses a stack frame with column correctly', () {
       var frame = new Frame.parseVM("#1      Foo._bar "
           "(file:///home/nweiz/code/stuff.dart:42:21)");
       expect(frame.uri,
           equals(Uri.parse("file:///home/nweiz/code/stuff.dart")));
       expect(frame.line, equals(42));
       expect(frame.column, equals(21));
+      expect(frame.member, equals('Foo._bar'));
+    });
+
+    test('parses a stack frame without column correctly', () {
+      var frame = new Frame.parseVM("#1      Foo._bar "
+          "(file:///home/nweiz/code/stuff.dart:24)");
+      expect(frame.uri,
+          equals(Uri.parse("file:///home/nweiz/code/stuff.dart")));
+      expect(frame.line, equals(24));
+      expect(frame.column, null);
       expect(frame.member, equals('Foo._bar'));
     });
 
@@ -44,8 +54,6 @@ void main() {
       expect(() => new Frame.parseVM('#1      Foo'), throwsFormatException);
       expect(() => new Frame.parseVM('#1      Foo (dart:async/future.dart)'),
           throwsFormatException);
-      expect(() => new Frame.parseVM('#1      Foo (dart:async/future.dart:10)'),
-          throwsFormatException);
       expect(() => new Frame.parseVM('#1      (dart:async/future.dart:10:15)'),
           throwsFormatException);
       expect(() => new Frame.parseVM('Foo (dart:async/future.dart:10:15)'),
@@ -72,6 +80,18 @@ void main() {
       expect(frame.line, equals(560));
       expect(frame.column, equals(28));
       expect(frame.member, equals('<fn>'));
+    });
+
+    test('parses a stack frame with [as ...] correctly', () {
+      // Ignore "[as ...]", since other stack trace formats don't support a
+      // similar construct.
+      var frame = new Frame.parseV8("    at VW.call\$0 [as call\$4] "
+          "(http://pub.dartlang.org/stuff.dart.js:560:28)");
+      expect(frame.uri,
+          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, equals(28));
+      expect(frame.member, equals('VW.call\$0'));
     });
 
     test('converts "<anonymous>" to "<fn>"', () {

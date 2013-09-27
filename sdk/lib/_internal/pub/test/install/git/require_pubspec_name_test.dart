@@ -20,10 +20,7 @@ main() {
 
     d.appDir({"foo": {"git": "../foo.git"}}).create();
 
-    // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
-    // fixed.
-    pubInstall(error:
-        'Package "foo"\'s pubspec.yaml file is '
-        'missing the required "name" field (e.g. "name: foo").');
+    pubInstall(error: new RegExp(r'Missing the required "name" field \(e\.g\. '
+        r'"name: foo"\)\.'));
   });
 }

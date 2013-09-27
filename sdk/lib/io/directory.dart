@@ -54,7 +54,7 @@ abstract class Directory implements FileSystemEntity {
    * directory once it has been created. If the directory cannot be
    * created the future completes with an exception.
    */
-  Future<Directory> create({recursive: false});
+  Future<Directory> create({bool recursive: false});
 
   /**
    * Synchronously creates the directory with this name.
@@ -65,7 +65,7 @@ abstract class Directory implements FileSystemEntity {
    *
    * If the directory cannot be created an exception is thrown.
    */
-  void createSync({recursive: false});
+  void createSync({bool recursive: false});
 
   /**
    * Creates a temporary directory with a name based on the current

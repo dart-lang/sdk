@@ -118,14 +118,9 @@ class Int64 implements IntX {
   //
 
   /**
-   * Constructs an [Int64] equal to 0.
+   * Constructs an [Int64] with a given [int] value; zero by default.
    */
-  Int64() : _l = 0, _m = 0, _h = 0;
-
-  /**
-   * Constructs an [Int64] with a given [int] value.
-   */
-  factory Int64.fromInt(int value) {
+  factory Int64([int value=0]) {
     int v0 = 0, v1 = 0, v2 = 0;
     bool negative = false;
     if (value < 0) {
@@ -152,6 +147,12 @@ class Int64 implements IntX {
     }
     return new Int64._bits(v0, v1, v2);
   }
+
+  /**
+   * Constructs an [Int64] with a given [int] value.
+   */
+  @deprecated
+  factory Int64.fromInt(int value) => new Int64(value);
 
   factory Int64.fromBytes(List<int> bytes) {
     int top = bytes[7] & 0xff;
@@ -212,7 +213,7 @@ class Int64 implements IntX {
     if (val is Int64) {
       return val;
     } else if (val is int) {
-      return new Int64.fromInt(val);
+      return new Int64(val);
     } else if (val is Int32) {
       return val.toInt64();
     }
@@ -457,7 +458,7 @@ class Int64 implements IntX {
       // Since we know one of [_h] or [_m] is non-zero, if [other] fits in the
       // low word then it can't be numerically equal.
       if ((_MASK & other) == other) return false;
-      o = new Int64.fromInt(other);
+      o = new Int64(other);
     } else if (other is Int32) {
       o = other.toInt64();
     }
@@ -515,12 +516,25 @@ class Int64 implements IntX {
   bool get isOdd => (_l & 0x1) == 1;
   bool get isZero => _h == 0 && _m == 0 && _l == 0;
 
+  int get bitLength {
+    if (isZero) return 0;
+    int a0 = _l, a1 = _m, a2 = _h;
+    if (isNegative) {
+      a0 = _MASK & ~a0;
+      a1 = _MASK & ~a1;
+      a2 = _MASK2 & ~a2;
+    }
+    if (a2 != 0) return _BITS01 + a2.bitLength;
+    if (a1 != 0) return _BITS + a1.bitLength;
+    return a0.bitLength;
+  }
+
   /**
    * Returns a hash code based on all the bits of this [Int64].
    */
   int get hashCode {
     // TODO(sra): Should we ensure that hashCode values match corresponding int?
-    // i.e. should `new Int64.fromInt(x).hashCode == x.hashCode`?
+    // i.e. should `new Int64(x).hashCode == x.hashCode`?
     int bottom = ((_m & 0x3ff) << _BITS) | _l;
     int top = (_h << 12) | ((_m >> 10) & 0xfff);
     return bottom ^ top;
@@ -528,6 +542,14 @@ class Int64 implements IntX {
 
   Int64 abs() {
     return this.isNegative ? -this : this;
+  }
+
+  Int64 clamp(lowerLimit, upperLimit) {
+    Int64 lower = _promote(lowerLimit);
+    Int64 upper = _promote(upperLimit);
+    if (this < lower) return lower;
+    if (this > upper) return upper;
+    return this;
   }
 
   /**
@@ -571,6 +593,35 @@ class Int64 implements IntX {
     return 64;
   }
 
+  Int64 toSigned(int width) {
+    if (width < 1 || width > 64) throw new ArgumentError(width);
+    if (width > _BITS01) {
+      return Int64._masked(_l, _m, _h.toSigned(width - _BITS01));
+    } else if (width > _BITS) {
+      int m = _m.toSigned(width - _BITS);
+      return m.isNegative ? Int64._masked(_l, m, _MASK2) :
+          new Int64._bits(_l, m, 0);
+    } else {
+      int l = _l.toSigned(width);
+      return l.isNegative ? Int64._masked(l, _MASK, _MASK2) :
+          new Int64._bits(l, 0, 0);
+    }
+  }
+
+  Int64 toUnsigned(int width) {
+    if (width < 0 || width > 64) throw new ArgumentError(width);
+    if (width > _BITS01) {
+      int h = _h.toUnsigned(width - _BITS01);
+      return Int64._masked(_l, _m, h);
+    } else if (width > _BITS) {
+      int m = _m.toUnsigned(width - _BITS);
+      return Int64._masked(_l, m, 0);
+    } else {
+      int l = _l.toUnsigned(width);
+      return Int64._masked(l, 0, 0);
+    }
+  }
+
   List<int> toBytes() {
     List<int> result = new List<int>(8);
     result[0] = _l & 0xff;
@@ -584,32 +635,37 @@ class Int64 implements IntX {
     return result;
   }
 
+  double toDouble() => toInt().toDouble();
+
   int toInt() {
     int l = _l;
     int m = _m;
     int h = _h;
     bool negative = false;
     if ((_h & _SIGN_BIT_MASK) != 0) {
-      l = ~_l & _MASK;
-      m = ~_m & _MASK;
-      h = ~_h & _MASK2;
+      l = _MASK & ~_l;
+      m = _MASK & ~_m;
+      h = _MASK2 & ~_h;
       negative = true;
     }
 
-    int result;
     if (_haveBigInts) {
-      result = (h << _BITS01) | (m << _BITS) | l;
+      int result = (h << _BITS01) | (m << _BITS) | l;
+      return negative ? -result - 1 : result;
     } else {
-      result = (h * 17592186044416) + (m * 4194304) + l;
+      if (negative) {
+        return -((l + 1) + (m * 4194304) + (h * 17592186044416));
+      } else {
+        return (l + (m * 4194304)) + (h * 17592186044416);
+      }
     }
-    return negative ? -result - 1 : result;
   }
 
   /**
    * Returns an [Int32] containing the low 32 bits of this [Int64].
    */
   Int32 toInt32() {
-    return new Int32.fromInt(((_m & 0x3ff) << _BITS) | _l);
+    return new Int32(((_m & 0x3ff) << _BITS) | _l);
   }
 
   /**
@@ -627,7 +683,7 @@ class Int64 implements IntX {
     if (isZero) return "0";
     Int64 x = this;
     String hexStr = "";
-    Int64 digit_f = new Int64.fromInt(0xf);
+    Int64 digit_f = new Int64(0xf);
     while (!x.isZero) {
       int digit = x._l & 0xf;
       hexStr = "${_hexDigit(digit)}$hexStr";

@@ -420,8 +420,6 @@ js_support_checks = dict({
         "JS('bool', '#.xmlspace !== undefined && #.xmllang !== undefined', "
         "element, element)"),
     'TouchList': "JS('bool', '!!document.createTouchList')",
-    'XMLHttpRequestProgressEvent':
-        "Device.isEventTypeSupported('XMLHttpRequestProgressEvent')",
     'WebGLRenderingContext': "JS('bool', '!!(window.WebGLRenderingContext)')",
     'WebKitPoint': "JS('bool', '!!(window.WebKitPoint)')",
     'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",

@@ -422,19 +422,14 @@ void Scanner::ScanLiteralString(bool is_raw) {
 
   // Entering string scanning mode.
   BeginStringLiteral(c0_);
-  string_is_multiline_ = (LookaheadChar(1) == c0_) &&
-      (LookaheadChar(2) == c0_);
+  ReadChar();
 
-  ReadChar();  // Skip opening delimiter.
-  if (string_is_multiline_) {
+  if ((c0_ == string_delimiter_) && (LookaheadChar(1) == string_delimiter_)) {
+    string_is_multiline_ = true;
     ReadChar();  // Skip two additional string delimiters.
     ReadChar();
-    if (c0_ == '\n') {
-      // Skip first character of multiline string if it is a newline.
-      ReadChar();
-    }
   }
-  ScanLiteralStringChars(is_raw);
+  ScanLiteralStringChars(is_raw, string_is_multiline_);
 }
 
 
@@ -497,7 +492,7 @@ void Scanner::ScanEscapedCodePoint(int32_t* code_point) {
 }
 
 
-void Scanner::ScanLiteralStringChars(bool is_raw) {
+void Scanner::ScanLiteralStringChars(bool is_raw, bool remove_whitespace) {
   GrowableArray<int32_t> string_chars(64);
 
   ASSERT(IsScanningString());
@@ -595,6 +590,25 @@ void Scanner::ScanLiteralStringChars(bool is_raw) {
       }
       string_chars.Add(ch1);
     }
+    // The first line of a multi-line string is discarded if it only
+    // contains whitespace.
+    if (remove_whitespace && (string_chars.Last() == '\n')) {
+      bool whitespace_only = true;
+      // Last character is the newline, don't inspect it.
+      const intptr_t len = string_chars.length() - 1;
+      for (int i = 0; i < len; i++) {
+        int32_t ch = string_chars[i];
+        if ((ch != ' ') && (ch != '\t')) {
+          // Non-whitespace character, keep the first line.
+          whitespace_only = false;
+          break;
+        }
+      }
+      if (whitespace_only) {
+        string_chars.Clear();  // Discard characters on first line.
+      }
+      remove_whitespace = false;
+    }
     ReadChar();
   }
 }
@@ -627,7 +641,7 @@ void Scanner::Scan() {
           break;
         }
       } else {
-        ScanLiteralStringChars(false);
+        ScanLiteralStringChars(false, false);
       }
       break;
     }
@@ -892,41 +906,6 @@ void Scanner::ScanTo(intptr_t token_index) {
     Scan();
     index++;
   } while ((token_index >= index) && (current_token_.kind != Token::kEOS));
-}
-
-
-void Scanner::TokenRangeAtLine(intptr_t line_number,
-                               intptr_t* first_token_index,
-                               intptr_t* last_token_index) {
-  ASSERT(line_number > 0);
-  ASSERT((first_token_index != NULL) && (last_token_index != NULL));
-  Reset();
-  *first_token_index = -1;
-  *last_token_index = -1;
-  int token_index = 0;
-  do {
-    Scan();
-    if (current_token_.position.line >= line_number) {
-      *first_token_index = token_index;
-      break;
-    }
-    token_index++;
-  } while (current_token_.kind != Token::kEOS);
-  if (current_token_.kind == Token::kEOS) {
-    return;
-  }
-  if (current_token_.position.line > line_number) {
-    // *last_token_index is -1 to signal that the first token is past
-    // the requested line.
-    return;
-  }
-  ASSERT(current_token_.position.line == line_number);
-  while ((current_token_.kind != Token::kEOS) &&
-      (current_token_.position.line == line_number)) {
-    *last_token_index = token_index;
-    Scan();
-    token_index++;
-  }
 }
 
 

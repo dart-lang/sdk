@@ -8,16 +8,19 @@
 #include <termios.h>  // NOLINT
 
 #include "bin/stdin.h"
+#include "bin/fdutils.h"
 
 
 namespace dart {
 namespace bin {
 
 int Stdin::ReadByte() {
+  FDUtils::SetBlocking(fileno(stdin));
   int c = getchar();
   if (c == EOF) {
     c = -1;
   }
+  FDUtils::SetNonBlocking(fileno(stdin));
   return c;
 }
 

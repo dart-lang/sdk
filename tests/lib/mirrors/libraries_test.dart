@@ -18,9 +18,9 @@ main() {
   LibraryMirror mirrorsLibrary = libraries[Uri.parse('dart:mirrors')];
   Expect.isNotNull(mirrorsLibrary, 'mirrorsLibrary is null');
 
-  ClassMirror cls = mirrorsLibrary.classes[const Symbol('LibraryMirror')];
+  ClassMirror cls = mirrorsLibrary.classes[#LibraryMirror];
   Expect.isNotNull(cls, 'cls is null');
 
-  Expect.equals(const Symbol('dart.mirrors.LibraryMirror'), cls.qualifiedName);
+  Expect.equals(#dart.mirrors.LibraryMirror, cls.qualifiedName);
   Expect.equals(reflectClass(LibraryMirror), cls);
 }

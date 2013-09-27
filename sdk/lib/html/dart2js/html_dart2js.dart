@@ -7169,10 +7169,10 @@ class Document extends Node  native "Document"
   @DocsEditable()
   DocumentFragment createDocumentFragment() native;
 
-  /// Deprecated: use new Element.tag(tagName) instead.
+  @JSName('createElement')
   @DomName('Document.createElement')
   @DocsEditable()
-  Element createElement(String localName_OR_tagName, [String typeExtension]) native;
+  Element _createElement(String localName_OR_tagName, [String typeExtension]) native;
 
   @DomName('Document.createElementNS')
   @DocsEditable()
@@ -7625,6 +7625,11 @@ class Document extends Node  native "Document"
   /// Checks if [register] is supported on the current platform.
   bool get supportsRegister {
     return JS('bool', '("register" in #)', this);
+  }
+
+  @DomName('Document.createElement')
+  Element createElement(String tagName, [String typeExtension]) {
+    return _createElement(tagName, typeExtension);
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -9145,6 +9150,20 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    */
   @Experimental()
   void created() {}
+
+  /**
+   * Called by the DOM when this element has been inserted into the live
+   * document.
+   */
+  @Experimental()
+  void enteredView() {}
+
+  /**
+   * Called by the DOM when this element has been removed from the live
+   * document.
+   */
+  @Experimental()
+  void leftView() {}
 
   // Hooks to support custom WebComponents.
 
@@ -12813,9 +12832,9 @@ class HtmlDocument extends Document native "HTMLDocument" {
    * * UListElement
    * * VideoElement
    */
-  void register(String tag, Type customElementClass, {String nativeTagName}) {
+  void register(String tag, Type customElementClass, {String extendsTag}) {
     _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
-        nativeTagName);
+        extendsTag);
   }
 
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
@@ -12949,8 +12968,9 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
   /**
    * Makes a server POST request with the specified data encoded as form data.
    *
-   * This is similar to sending a FormData object with broader browser
-   * support but limited to string values.
+   * This is roughly the POST equivalent of getString. This method is similar 
+   * to sending a FormData object with broader browser support but limited to 
+   * String values.
    *
    * See also:
    *
@@ -12983,10 +13003,14 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
   /**
    * Creates a URL request for the specified [url].
    *
-   * By default this will do an HTTP GET request, this can be overridden with
-   * [method].
+   * By default `request` will perform an HTTP GET request, but a different
+   * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the 
+   * [method] parameter.
    *
    * The Future is completed when the response is available.
+   *
+   * If specified, `sendData` will send data in the form of a [ByteBuffer],
+   * [Blob], [Document], [String], or [FormData] along with the HttpRequest.
    *
    * The [withCredentials] parameter specified that credentials such as a cookie
    * (already) set in the header or
@@ -13380,6 +13404,11 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
    *
    * Calling `open` again on a currently active request is equivalent to
    * calling `abort`.
+   *
+   * Note: Most simple HTTP requests can be accomplished using the [getString],
+   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
+   * `open` method is intended only for more complext HTTP requests where
+   * finer-grained control is needed.
    */
   @DomName('XMLHttpRequest.open')
   @DocsEditable()
@@ -13402,6 +13431,11 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
   /**
    * Send the request with any given `data`.
    *
+   * Note: Most simple HTTP requests can be accomplished using the [getString],
+   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
+   * `send` method is intended only for more complext HTTP requests where
+   * finer-grained control is needed.
+   *
    * See also:
    *
    *   * [send](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
@@ -13423,32 +13457,6 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
   @DocsEditable()
   Stream<ProgressEvent> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('XMLHttpRequestProgressEvent')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-@Experimental() // nonstandard
-class HttpRequestProgressEvent extends ProgressEvent native "XMLHttpRequestProgressEvent" {
-  // To suppress missing implicit constructor warnings.
-  factory HttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => Device.isEventTypeSupported('XMLHttpRequestProgressEvent');
-
-  @DomName('XMLHttpRequestProgressEvent.position')
-  @DocsEditable()
-  final int position;
-
-  @DomName('XMLHttpRequestProgressEvent.totalSize')
-  @DocsEditable()
-  final int totalSize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27574,6 +27582,18 @@ abstract class _WorkerNavigator extends Interceptor implements NavigatorOnLine, 
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable()
+@DomName('XMLHttpRequestProgressEvent')
+@Experimental() // nonstandard
+abstract class _XMLHttpRequestProgressEvent extends ProgressEvent native "XMLHttpRequestProgressEvent" {
+  // To suppress missing implicit constructor warnings.
+  factory _XMLHttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 abstract class _AttributeMap implements Map<String, String> {
   final Element _element;
 
@@ -28623,9 +28643,15 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   var _onData;
   final bool _useCapture;
 
-  _EventStreamSubscription(this._target, this._eventType, this._onData,
-      this._useCapture) {
+  _EventStreamSubscription(this._target, this._eventType, onData,
+      this._useCapture) : _onData = _wrapZone(onData) {
     _tryResume();
+  }
+
+  static _wrapZone(callback) {
+    // For performance reasons avoid wrapping if we are in the root zone.
+    if (Zone.current == Zone.ROOT) return callback;
+    return Zone.current.bindUnaryCallback(callback, runGuarded: true);
   }
 
   void cancel() {
@@ -28646,7 +28672,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     // Remove current event listener.
     _unlisten();
 
-    _onData = handleData;
+    _onData = _wrapZone(handleData);
     _tryResume();
   }
 
@@ -32037,14 +32063,22 @@ _callCreated(receiver) {
   return receiver.created();
 }
 
-_makeCreatedCallbackMethod() {
+_callEnteredView(receiver) {
+  return receiver.enteredView();
+}
+
+_callLeftView(receiver) {
+  return receiver.leftView();
+}
+
+_makeCallbackMethod(callback) {
   return JS('',
       '''((function(invokeCallback) {
              return function() {
                return invokeCallback(this);
              };
           })(#))''',
-      convertDartClosureToJS(_callCreated, 1));
+      convertDartClosureToJS(callback, 1));
 }
 
 const _typeNameToTag = const {
@@ -32106,10 +32140,18 @@ void _registerCustomElement(context, document, String tag, Type type,
 
   var properties = JS('=Object', '{}');
 
-  var jsCreatedCallback = _makeCreatedCallbackMethod();
-
   JS('void', '#.createdCallback = #', properties,
-      JS('=Object', '{value: #}', jsCreatedCallback));
+      JS('=Object', '{value: #}', _makeCallbackMethod(_callCreated)));
+  JS('void', '#.enteredViewCallback = #', properties,
+      JS('=Object', '{value: #}', _makeCallbackMethod(_callEnteredView)));
+  JS('void', '#.leftViewCallback = #', properties,
+      JS('=Object', '{value: #}', _makeCallbackMethod(_callLeftView)));
+
+  // TODO(blois): Bug 13220- remove once transition is complete
+  JS('void', '#.enteredDocumentCallback = #', properties,
+      JS('=Object', '{value: #}', _makeCallbackMethod(_callEnteredView)));
+  JS('void', '#.leftDocumentCallback = #', properties,
+      JS('=Object', '{value: #}', _makeCallbackMethod(_callLeftView)));
 
   var baseProto = JS('=Object', '#.prototype', baseConstructor);
   var proto = JS('=Object', 'Object.create(#, #)', baseProto, properties);

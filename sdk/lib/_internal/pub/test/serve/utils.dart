@@ -92,7 +92,7 @@ class DartTransformer extends Transformer {
 /// Returns the `pub serve` process.
 ScheduledProcess startPubServe({bool shouldInstallFirst: false}) {
   // Use port 0 to get an ephemeral port.
-  _pubServer = startPub(args: ["serve", "--port=0"]);
+  _pubServer = startPub(args: ["serve", "--port=0", "--hostname=127.0.0.1"]);
 
   if (shouldInstallFirst) {
     expect(_pubServer.nextLine(),
@@ -107,10 +107,10 @@ ScheduledProcess startPubServe({bool shouldInstallFirst: false}) {
   return _pubServer;
 }
 
-/// Parses the port number from the "Serving blah on localhost:1234" line
+/// Parses the port number from the "Serving blah on 127.0.0.1:1234" line
 /// printed by pub serve.
 void _parsePort(String line) {
-  var match = new RegExp(r"localhost:(\d+)").firstMatch(line);
+  var match = new RegExp(r"127\.0\.0\.1:(\d+)").firstMatch(line);
   assert(match != null);
   _port = int.parse(match[1]);
 }
@@ -123,7 +123,7 @@ void endPubServe() {
 /// verifies that it responds with [expected].
 void requestShouldSucceed(String urlPath, String expected) {
   schedule(() {
-    return http.get("http://localhost:$_port/$urlPath").then((response) {
+    return http.get("http://127.0.0.1:$_port/$urlPath").then((response) {
       expect(response.body, equals(expected));
     });
   }, "request $urlPath");
@@ -133,7 +133,7 @@ void requestShouldSucceed(String urlPath, String expected) {
 /// verifies that it responds with a 404.
 void requestShould404(String urlPath) {
   schedule(() {
-    return http.get("http://localhost:$_port/$urlPath").then((response) {
+    return http.get("http://127.0.0.1:$_port/$urlPath").then((response) {
       expect(response.statusCode, equals(404));
     });
   }, "request $urlPath");
@@ -143,7 +143,7 @@ void requestShould404(String urlPath) {
 /// that it responds with a 405.
 void postShould405(String urlPath) {
   schedule(() {
-    return http.post("http://localhost:$_port/$urlPath").then((response) {
+    return http.post("http://127.0.0.1:$_port/$urlPath").then((response) {
       expect(response.statusCode, equals(405));
     });
   }, "request $urlPath");

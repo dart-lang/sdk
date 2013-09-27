@@ -14,7 +14,7 @@ patch class Expando<T> {
     _checkType(object);
 
     var mask = _size - 1;
-    var idx = object.hashCode & mask;
+    var idx = object._identityHashCode & mask;
     var wp = _data[idx];
 
     while (wp != null) {
@@ -35,7 +35,7 @@ patch class Expando<T> {
     _checkType(object);
 
     var mask = _size - 1;
-    var idx = object.hashCode & mask;
+    var idx = object._identityHashCode & mask;
     var empty_idx = -1;
     var wp = _data[idx];
 
@@ -64,7 +64,7 @@ patch class Expando<T> {
 
     if (value == null) {
       // Not entering a null value. We just needed to make sure to clear an
-      // existing value if it existed. 
+      // existing value if it existed.
       return;
     }
 

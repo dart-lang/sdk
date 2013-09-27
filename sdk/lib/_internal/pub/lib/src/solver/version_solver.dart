@@ -11,7 +11,6 @@ import '../lock_file.dart';
 import '../log.dart' as log;
 import '../package.dart';
 import '../pubspec.dart';
-import '../source.dart';
 import '../source_registry.dart';
 import '../version.dart';
 import '../utils.dart';
@@ -275,7 +274,7 @@ class UnknownSourceException extends SolveFailure {
       : super(package, dependencies);
 
   String toString() {
-    var dep = only(dependencies);
+    var dep = dependencies.single;
     return "Package '${dep.depender}' depends on '${dep.dep.name}' from "
            "unknown source '${dep.dep.source}'.";
   }

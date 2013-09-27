@@ -9,6 +9,7 @@
 #include "vm/vtune.h"
 
 #include <malloc.h>  // NOLINT
+#include <process.h>  // NOLINT
 #include <time.h>  // NOLINT
 
 #include "platform/utils.h"
@@ -18,6 +19,11 @@ namespace dart {
 
 const char* OS::Name() {
   return "windows";
+}
+
+
+intptr_t OS::ProcessId() {
+  return static_cast<intptr_t>(GetCurrentProcessId());
 }
 
 
@@ -196,7 +202,7 @@ char* OS::StrNDup(const char* s, intptr_t n) {
     return NULL;
   }
   result[len] = '\0';
-  return reinterpret_cast<char*>(memcpy(result, s, len));
+  return reinterpret_cast<char*>(memmove(result, s, len));
 }
 
 

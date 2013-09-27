@@ -35,36 +35,36 @@ libraryFunction() { throw new MyException(); }
 
 main() {
   InstanceMirror im = reflect(new Class.noException());
-  Expect.throws(() => im.getField(const Symbol('getter')),
+  Expect.throws(() => im.getField(#getter),
                 (e) => e is MyException);
-  Expect.throws(() => im.setField(const Symbol('setter'), ['arg']),
+  Expect.throws(() => im.setField(#setter, ['arg']),
                 (e) => e is MyException);
-  Expect.throws(() => im.invoke(const Symbol('method'), []),
+  Expect.throws(() => im.invoke(#method, []),
                 (e) => e is MyException);
-  Expect.throws(() => im.invoke(const Symbol('triggerNoSuchMethod'), []),
+  Expect.throws(() => im.invoke(#triggerNoSuchMethod, []),
                 (e) => e is MyException);
 
   ClassMirror cm = reflectClass(Class);
-  Expect.throws(() => cm.getField(const Symbol('staticGetter')),
+  Expect.throws(() => cm.getField(#staticGetter),
                 (e) => e is MyException);
-  Expect.throws(() => cm.setField(const Symbol('staticSetter'), ['arg']),
+  Expect.throws(() => cm.setField(#staticSetter, ['arg']),
                 (e) => e is MyException);
-  Expect.throws(() => cm.invoke(const Symbol('staticFunction'), []),
+  Expect.throws(() => cm.invoke(#staticFunction, []),
                 (e) => e is MyException);
-  Expect.throws(() => cm.newInstance(const Symbol('generative'), []),
+  Expect.throws(() => cm.newInstance(#generative, []),
                 (e) => e is MyException);
-  Expect.throws(() => cm.newInstance(const Symbol('redirecting'), []),
+  Expect.throws(() => cm.newInstance(#redirecting, []),
                 (e) => e is MyException);
-  Expect.throws(() => cm.newInstance(const Symbol('faktory'), []),
+  Expect.throws(() => cm.newInstance(#faktory, []),
                 (e) => e is MyException);
-  Expect.throws(() => cm.newInstance(const Symbol('redirectingFactory'), []),
+  Expect.throws(() => cm.newInstance(#redirectingFactory, []),
                 (e) => e is MyException);
 
   LibraryMirror lm = reflectClass(Class).owner;
-  Expect.throws(() => lm.getField(const Symbol('libraryGetter')),
+  Expect.throws(() => lm.getField(#libraryGetter),
                 (e) => e is MyException);
-  Expect.throws(() => lm.setField(const Symbol('librarySetter'), ['arg']),
+  Expect.throws(() => lm.setField(#librarySetter, ['arg']),
                 (e) => e is MyException);
-  Expect.throws(() => lm.invoke(const Symbol('libraryFunction'), []),
+  Expect.throws(() => lm.invoke(#libraryFunction, []),
                 (e) => e is MyException);
 }

@@ -74,6 +74,12 @@ void EventHandler::Stop() {
 }
 
 
+EventHandlerImplementation* EventHandler::delegate() {
+  if (event_handler == NULL) return NULL;
+  return &event_handler->delegate_;
+}
+
+
 /*
  * Send data to the EventHandler thread to register for a given instance
  * args[0] a ReceivePort args[1] with a notification event args[2].

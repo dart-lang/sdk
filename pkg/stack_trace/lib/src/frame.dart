@@ -11,12 +11,13 @@ import 'trace.dart';
 
 // #1      Foo._bar (file:///home/nweiz/code/stuff.dart:42:21)
 final _vmFrame = new RegExp(
-    r'^#\d+\s+([^\s].*) \((.+):(\d+):(\d+)\)$');
+    r'^#\d+\s+([^\s].*) \((.+?):(\d+)(?::(\d+))?\)$');
 
 //     at VW.call$0 (http://pub.dartlang.org/stuff.dart.js:560:28)
 //     at http://pub.dartlang.org/stuff.dart.js:560:28
 final _v8Frame = new RegExp(
-    r'^\s*at (?:([^\s].*) \((.+):(\d+):(\d+)\)|(.+):(\d+):(\d+))$');
+    r'^\s*at (?:([^\s].*?)(?: \[as [^\]]+\])? '
+    r'\((.+):(\d+):(\d+)\)|(.+):(\d+):(\d+))$');
 
 // .VW.call$0@http://pub.dartlang.org/stuff.dart.js:560
 // .VW.call$0("arg")@http://pub.dartlang.org/stuff.dart.js:560
@@ -108,9 +109,17 @@ class Frame {
       throw new FormatException("Couldn't parse VM stack trace line '$frame'.");
     }
 
-    var uri = Uri.parse(match[2]);
+    // Get the pieces out of the regexp match. Function, URI and line should
+    // always be found. The column is optional.
     var member = match[1].replaceAll("<anonymous closure>", "<fn>");
-    return new Frame(uri, int.parse(match[3]), int.parse(match[4]), member);
+    var uri = Uri.parse(match[2]);
+    var line = int.parse(match[3]);
+    var column = null;
+    var columnMatch = match[4];
+    if (columnMatch != null) {
+      column = int.parse(columnMatch);
+    }
+    return new Frame(uri, line, column, member);
   }
 
   /// Parses a string representation of a Chrome/V8 stack frame.

@@ -14,7 +14,7 @@ main() {
   test('bubbling in the right order', () {
     // TODO(sigmund): this should change once we port over the
     // 'WebComponentsReady' event.
-    runAsync(expectAsync0(() {
+    return new Future.delayed(Duration.ZERO).then((_) {
       var item1 = query('#item1');
       var menuButton = query('#menuButton');
       // Note: polymer uses automatic node finding (menuButton.$.menu)
@@ -22,14 +22,13 @@ main() {
       // from the parent shadow (menu.$.selectorContent instead of
       // menu.$.menuShadow.$.selectorContent)
       var menu = menuButton.shadowRoot.query('#menu');
-      var selector = menu.shadowRoot.query("#menuShadow");
       var overlay = menuButton.shadowRoot.query('#overlay');
       var expectedPath = <Node>[
           item1,
           menuButton.shadowRoot.query('#menuButtonContent'),
-          selector.olderShadowRoot.query('#selectorContent'),
-          selector.olderShadowRoot.query('#selectorDiv'),
-          menu.shadowRoot.query('#menuShadow').olderShadowRoot,
+          menu.shadowRoot.olderShadowRoot.query('#selectorContent'),
+          menu.shadowRoot.olderShadowRoot.query('#selectorDiv'),
+          menu.shadowRoot.olderShadowRoot,
           menu.shadowRoot.query('#menuShadow'),
           menu.shadowRoot.query('#menuDiv'),
           menu.shadowRoot,
@@ -56,6 +55,6 @@ main() {
       }
 
       item1.dispatchEvent(new Event('x', canBubble: true));
-    }));
+    });
   });
 }

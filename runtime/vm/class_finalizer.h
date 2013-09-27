@@ -103,6 +103,8 @@ class ClassFinalizer : public AllStatic {
                                        GrowableArray<intptr_t>* visited);
   static bool IsAliasCycleFree(const Class& cls,
                                GrowableArray<intptr_t>* visited);
+  static bool IsMixinCycleFree(const Class& cls,
+                               GrowableArray<intptr_t>* visited);
   static void CheckForLegalConstClass(const Class& cls);
   static RawClass* ResolveClass(const Class& cls,
                                 const UnresolvedClass& unresolved_class);
@@ -110,7 +112,8 @@ class ClassFinalizer : public AllStatic {
       const Class& cls,
       const Function& factory,
       const GrowableObjectArray& visited_factories);
-  static void CloneTypeParameters(const Class& mixin_app_class);
+  static void CloneMixinAppTypeParameters(const Class& mixin_app_class);
+  static void ApplyMixinTypedef(const Class& mixin_app_class);
   static void ApplyMixinMembers(const Class& cls);
   static void CreateForwardingConstructors(
       const Class& mixin_app,

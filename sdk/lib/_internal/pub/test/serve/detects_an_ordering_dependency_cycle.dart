@@ -55,7 +55,7 @@ main() {
     createLockFile('myapp', sandbox: ['foo', 'bar', 'baz'], pkg: ['barback']);
 
     // Use port 0 to get an ephemeral port.
-    var process = startPub(args: ["serve", "--port=0"]);
+    var process = startPub(args: ["serve", "--port=0", "--hostname=127.0.0.1"]);
     process.shouldExit(1);
     expect(process.remainingStderr(), completion(equals(
         "Transformer cycle detected:\n"

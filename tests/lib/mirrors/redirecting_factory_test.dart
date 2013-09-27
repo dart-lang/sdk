@@ -60,25 +60,25 @@ main() {
   Expect.equals(2, instanceMirror.reflectee.field);
 
   instanceMirror = classMirror.newInstance(
-      const Symbol('redirectingFactoryNoOptional'), [8, 6]);
+      #redirectingFactoryNoOptional, [8, 6]);
   Expect.equals(2, instanceMirror.reflectee.field);
 
   instanceMirror = classMirror.newInstance(
-      const Symbol('redirectingFactoryUnnamedOptional'), [43, 1]);
+      #redirectingFactoryUnnamedOptional, [43, 1]);
   Expect.equals(42, instanceMirror.reflectee.field);
 
   instanceMirror = classMirror.newInstance(
-      const Symbol('redirectingFactoryMoreUnnamedOptional'), [43, 1]);
+      #redirectingFactoryMoreUnnamedOptional, [43, 1]);
   Expect.equals(40, instanceMirror.reflectee.field);
 
   instanceMirror = classMirror.newInstance(
-      const Symbol('redirectingFactoryStringIntTypeParameters'), [43, 1]);
+      #redirectingFactoryStringIntTypeParameters, [43, 1]);
   Expect.equals(42, instanceMirror.reflectee.field);
   Expect.isTrue(instanceMirror.reflectee is Class<String, int>);
   Expect.isFalse(instanceMirror.reflectee is Class<int, String>);
 
   instanceMirror = classMirror.newInstance(
-      const Symbol('redirectingFactoryStringTypeParameters'), [43, 1]);
+      #redirectingFactoryStringTypeParameters, [43, 1]);
   Expect.equals(42, instanceMirror.reflectee.field);
   Expect.isTrue(instanceMirror.reflectee is Class<String, int>);
   Expect.isTrue(instanceMirror.reflectee is Class<String, String>);
@@ -89,34 +89,34 @@ main() {
   if (isDart2js) return;
 
   instanceMirror = classMirror.newInstance(
-      const Symbol('redirectingFactoryUnnamedOptional'), [43]);
+      #redirectingFactoryUnnamedOptional, [43]);
   Expect.equals(1, instanceMirror.reflectee.field);
 
   instanceMirror = classMirror.newInstance(
-      const Symbol('redirectingFactoryNamedOptional'), [43]);
+      #redirectingFactoryNamedOptional, [43]);
   Expect.equals(1, instanceMirror.reflectee.field);
 
   instanceMirror = classMirror.newInstance(
-      const Symbol('redirectingFactoryNamedOptional'),
+      #redirectingFactoryNamedOptional,
       [43],
-      new Map()..[const Symbol('b')] = 1);
+      new Map()..[#b] = 1);
   Expect.equals(42, instanceMirror.reflectee.field);
 
   instanceMirror = classMirror.newInstance(
-      const Symbol('redirectingFactoryMoreNamedOptional'),
+      #redirectingFactoryMoreNamedOptional,
       [43],
-      new Map()..[const Symbol('b')] = 1);
+      new Map()..[#b] = 1);
   Expect.equals(40, instanceMirror.reflectee.field);
 
   classMirror = reflect(new Class<String, int>(42)).type;
   instanceMirror = classMirror.newInstance(
-      const Symbol('redirectingFactoryTypeParameters'), [43, 1]);
+      #redirectingFactoryTypeParameters, [43, 1]);
   Expect.equals(42, instanceMirror.reflectee.field);
   Expect.isTrue(instanceMirror.reflectee is Class<String, int>);
   Expect.isFalse(instanceMirror.reflectee is Class<int, String>);
 
   instanceMirror = classMirror.newInstance(
-      const Symbol('redirectingFactoryReversedTypeParameters'), [43, 1]);
+      #redirectingFactoryReversedTypeParameters, [43, 1]);
   Expect.equals(42, instanceMirror.reflectee.field);
   Expect.isTrue(instanceMirror.reflectee is Class<int, String>);
   Expect.isFalse(instanceMirror.reflectee is Class<String, int>);

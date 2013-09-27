@@ -12,8 +12,8 @@ import "package:path/path.dart";
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
-void testClientCertificate() {
-  asyncStart();
+Future testClientCertificate() {
+  var completer = new Completer();
   SecureServerSocket.bind(HOST_NAME,
                           0,
                           CERTIFICATE,
@@ -34,14 +34,15 @@ void testClientCertificate() {
         clientEnd.close();
         serverEnd.close();
         server.close();
-        asyncEnd();
+        completer.complete();
       });
     });
   });
+  return completer.future;
 }
 
-void testRequiredClientCertificate() {
-  asyncStart();
+Future testRequiredClientCertificate() {
+  var completer = new Completer();
   SecureServerSocket.bind(HOST_NAME,
                           0,
                           CERTIFICATE,
@@ -62,53 +63,11 @@ void testRequiredClientCertificate() {
         clientEnd.close();
         serverEnd.close();
         server.close();
-        asyncEnd();
+        completer.complete();
       });
     });
   });
-}
-
-void testNoClientCertificate() {
-  asyncStart();
-  SecureServerSocket.bind(HOST_NAME,
-                          0,
-                          CERTIFICATE,
-                          requestClientCertificate: true).then((server) {
-    var clientEndFuture = SecureSocket.connect(HOST_NAME,
-                                               server.port);
-    server.listen((serverEnd) {
-      X509Certificate certificate = serverEnd.peerCertificate;
-      Expect.isNull(certificate);
-      clientEndFuture.then((clientEnd) {
-        clientEnd.close();
-        serverEnd.close();
-        server.close();
-        asyncEnd();
-      });
-    });
-  });
-}
-
-void testNoRequiredClientCertificate() {
-  asyncStart();
-  bool clientError = false;
-  SecureServerSocket.bind(HOST_NAME,
-                          0,
-                          CERTIFICATE,
-                          requireClientCertificate: true).then((server) {
-    Future clientDone = SecureSocket.connect(HOST_NAME, server.port)
-      .catchError((e) { clientError = true; });
-    server.listen((serverEnd) {
-      Expect.fail("Got a unverifiable connection");
-    },
-    onError: (e) {
-      clientDone.then((_) {
-        Expect.isTrue(clientError);
-        server.close();
-        asyncEnd();
-      });
-    });
-  });
+  return completer.future;
 }
 
 void main() {
@@ -117,8 +76,8 @@ void main() {
                           password: 'dartdart',
                           useBuiltinRoots: false);
 
-  testClientCertificate();
-  testRequiredClientCertificate();
-  testNoClientCertificate();
-  testNoRequiredClientCertificate();
+  asyncStart();
+  testClientCertificate()
+    .then((_) => testRequiredClientCertificate())
+    .then((_) => asyncEnd());
 }

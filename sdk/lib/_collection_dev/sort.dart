@@ -54,13 +54,13 @@ class Sort {
    */
   static void _doSort(List a, int left, int right, int compare(a, b)) {
     if ((right - left) <= _INSERTION_SORT_THRESHOLD) {
-      insertionSort_(a, left, right, compare);
+      _insertionSort(a, left, right, compare);
     } else {
       _dualPivotQuicksort(a, left, right, compare);
     }
   }
 
-  static void insertionSort_(List a, int left, int right, int compare(a, b)) {
+  static void _insertionSort(List a, int left, int right, int compare(a, b)) {
     for (int i = left + 1; i <= right; i++) {
       var el = a[i];
       int j = i;

@@ -12,13 +12,13 @@ main() {
   // to the next runZonedExperimental when the handler returns false.
   bool sawInnerHandler = false;
   try {
-    runZonedExperimental(() {
-      runZonedExperimental(() { throw 0; },
-                          onError: (e) {
-                            Expect.equals(0, e);
-                            sawInnerHandler = true;
-                            throw e;
-                          });
+    runZoned(() {
+      runZoned(() { throw 0; },
+               onError: (e) {
+                 Expect.equals(0, e);
+                 sawInnerHandler = true;
+                 throw e;
+               });
     }, onError: (e) {
       Expect.equals(0, e);
       Expect.isTrue(sawInnerHandler);

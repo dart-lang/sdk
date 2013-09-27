@@ -1173,7 +1173,7 @@ void Assembler::pxor(XmmRegister dst, XmmRegister src) {
   EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0xEF);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
@@ -1186,7 +1186,7 @@ void Assembler::roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode) {
   EmitUint8(0x0F);
   EmitUint8(0x3A);
   EmitUint8(0x0B);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
   // Mask precision exeption.
   EmitUint8(static_cast<uint8_t>(mode) | 0x8);
 }
@@ -2225,9 +2225,12 @@ intptr_t Assembler::FindExternalLabel(const ExternalLabel* label,
 
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) {
-  // TODO(zra, kmillikin): Move the use of large Smis into the constant pool.
+  // TODO(zra, kmillikin): Also load other large immediates from the object
+  // pool
   if (object.IsSmi()) {
-    return false;
+    // If the raw smi does not fit into a 32-bit signed int, then we'll keep
+    // the raw value in the object pool.
+    return !Utils::IsInt(32, reinterpret_cast<int64_t>(object.raw()));
   }
   ASSERT(object.IsNotTemporaryScopedHandle());
   ASSERT(object.IsOld());

@@ -11,8 +11,8 @@ import 'package:barback/barback.dart';
 import 'load_transformers.dart';
 import 'rewrite_import_transformer.dart';
 import 'server.dart';
-import 'watch_sources.dart';
 import '../barback.dart';
+import '../package_graph.dart';
 import '../utils.dart';
 
 /// Loads all transformers depended on by packages in [graph].
@@ -245,7 +245,7 @@ class _TransformerLoader {
   ///
   /// It's an error to call this before [load] is called with [id] and the
   /// future it returns has completed.
-  Set<Transformers> transformersFor(TransformerId id) {
+  Set<Transformer> transformersFor(TransformerId id) {
     assert(_transformers.containsKey(id));
     return _transformers[id];
   }

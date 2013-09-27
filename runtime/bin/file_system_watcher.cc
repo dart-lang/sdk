@@ -35,7 +35,7 @@ void FUNCTION_NAME(FileSystemWatcher_WatchPath)(Dart_NativeArguments args) {
   bool recursive = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3));
   intptr_t id = FileSystemWatcher::WatchPath(path, events, recursive);
   if (id == -1) {
-    Dart_PropagateError(DartUtils::NewDartOSError());
+    Dart_ThrowException(DartUtils::NewDartOSError());
   } else {
     SetWatcherIdNativeField(watcher, id);
   }

@@ -9,22 +9,91 @@ import "dart:convert" show LineSplitter, UTF8;
 import "dart:io";
 import "status_expression.dart";
 
-/** Possible outcomes of running a test. */
-const CRASH = "crash";
-const TIMEOUT = "timeout";
-const FAIL = "fail";
-const PASS = "pass";
-/**
- * An indication to skip the test.  The caller is responsible for skipping it.
- */
-const SKIP = "skip";
-const SKIP_BY_DESIGN = "skipbydesign";
-const OK = "ok";
-/**
- * An indication that a test is slow and we should allow extra time for
- * completion.
- */
-const SLOW = "slow";
+class Expectation {
+  // Possible outcomes of running a test.
+  static Expectation PASS = byName('Pass');
+  static Expectation CRASH = byName('Crash');
+  static Expectation TIMEOUT = byName('Timeout');
+  static Expectation FAIL = byName('Fail');
+
+  // Special 'FAIL' cases
+  static Expectation RUNTIME_ERROR = byName('RuntimeError');
+  static Expectation COMPILETIME_ERROR = byName('CompileTimeError');
+  static Expectation MISSING_RUNTIME_ERROR = byName('MissingRuntimeError');
+  static Expectation MISSING_COMPILETIME_ERROR =
+      byName('MissingCompileTimeError');
+
+  // "meta expectations"
+  static Expectation OK = byName('Ok');
+  static Expectation SLOW = byName('Slow');
+  static Expectation SKIP = byName('Skip');
+  static Expectation SKIP_BY_DESIGN = byName('SkipByDesign');
+
+  static Expectation byName(String name) {
+    _initialize();
+    name = name.toLowerCase();
+    if (!_AllExpectations.containsKey(name)) {
+      throw new Exception("Expectation.byName(name='$name'): Invalid name.");
+    }
+    return _AllExpectations[name];
+  }
+
+  // Keep a map of all possible Expectation objects, initialized lazily.
+  static Map<String, Expectation>  _AllExpectations;
+  static void _initialize() {
+    if (_AllExpectations == null) {
+      _AllExpectations = new Map<String, Expectation>();
+
+      Expectation build(prettyName, {group: null, isMetaExpectation: false}) {
+        var expectation = new Expectation._(prettyName,
+            group: group, isMetaExpectation: isMetaExpectation);
+        assert(!_AllExpectations.containsKey(expectation.name));
+        return _AllExpectations[expectation.name] = expectation;
+      }
+
+      var fail = build("Fail");
+      build("Pass");
+      build("Crash");
+      build("Timeout");
+
+      build("MissingCompileTimeError", group: fail);
+      build("MissingRuntimeError", group: fail);
+      build("CompileTimeError", group: fail);
+      build("RuntimeError", group: fail);
+
+      build("Skip", isMetaExpectation: true);
+      build("SkipByDesign", isMetaExpectation: true);
+      build("Ok", isMetaExpectation: true);
+      build("Slow", isMetaExpectation: true);
+    }
+  }
+
+  final String prettyName;
+  final String name;
+  final Expectation group;
+  // Indicates whether this expectation cannot be a test outcome (i.e. it is a
+  // "meta marker").
+  final bool isMetaExpectation;
+
+  Expectation._(prettyName,
+                {Expectation this.group: null,
+                 bool this.isMetaExpectation: false})
+      : prettyName = prettyName, name = prettyName.toLowerCase();
+
+  bool canBeOutcomeOf(Expectation expectation) {
+    Expectation outcome = this;
+    while (outcome != null) {
+      if (outcome == expectation) {
+        return true;
+      }
+      outcome = outcome.group;
+    }
+    return false;
+  }
+
+  String toString() => prettyName;
+}
+
 
 final RegExp SplitComment = new RegExp("^([^#]*)(#.*)?\$");
 final RegExp HeaderPattern = new RegExp(r"^\[([^\]]+)\]");
@@ -162,8 +231,9 @@ class TestExpectations {
     if (_preprocessed) {
       throw "TestExpectations.addRule: cannot add more rules";
     }
-    var values = testRule.expression.evaluate(environment);
-    _map.putIfAbsent(testRule.name, () => new Set()).addAll(values);
+    var names = testRule.expression.evaluate(environment);
+    var expectations = names.map((name) => Expectation.byName(name));
+    _map.putIfAbsent(testRule.name, () => new Set()).addAll(expectations);
   }
 
   /**
@@ -177,7 +247,7 @@ class TestExpectations {
    * components and checks that the anchored regular expression
    * "^$keyComponent\$" matches the corresponding filename component.
    */
-  Set<String> expectations(String filename) {
+  Set<Expectation> expectations(String filename) {
     var result = new Set();
     var splitFilename = filename.split('/');
 
@@ -198,7 +268,7 @@ class TestExpectations {
     // If no expectations were found the expectation is that the test
     // passes.
     if (result.isEmpty) {
-      result.add(PASS);
+      result.add(Expectation.PASS);
     }
     return result;
   }

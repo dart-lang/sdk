@@ -104,13 +104,13 @@ void parseFile(String filename, MyOptions options) {
     if (!options.scanOnly) parser.parseUnit(token);
   } on ParserError catch (ex) {
     if (options.throwOnError) {
-      throw;
+      rethrow;
     } else {
       print(ex);
     }
   } catch (ex) {
     print('Error in file: $filename');
-    throw;
+    rethrow;
   }
   if (options.buildAst) {
     MyNodeListener l = listener;
@@ -172,7 +172,7 @@ List<int> read(String filename) {
     try {
       file.closeSync();
     } catch (ex) {
-      if (!threw) throw;
+      if (!threw) rethrow;
     }
   }
 }

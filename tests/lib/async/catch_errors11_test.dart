@@ -9,16 +9,25 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+  Completer done = new Completer();
+
   var events = [];
   // Test that `catchErrors` catches errors that are delayed by `Timer.run`.
   catchErrors(() {
     events.add("catch error entry");
     new Future.error("future error");
-    Timer.run(() { throw "timer error"; });
+    Timer.run(() {
+      done.complete(true);
+      throw "timer error";
+    });
   }).listen((x) {
       events.add(x);
     },
-    onDone: () {
+    onDone: () { Expect.fail("Unexpected callback"); });
+
+  done.future.whenComplete(() {
+    // Give the handler time to execute.
+    Timer.run(() {
       Expect.listEquals([
                          "catch error entry",
                          "main exit",
@@ -28,5 +37,6 @@ main() {
                          events);
       asyncEnd();
     });
+  });
   events.add("main exit");
 }

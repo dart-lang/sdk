@@ -4,9 +4,9 @@
 
 import 'package:expect/expect.dart';
 
-import 'dart:_isolate_helper';
+import 'dart:_js_helper' show Primitives;
 
 main() {
-  Expect.isTrue(IsolateNatives.isD8);
-  Expect.isFalse(IsolateNatives.isJsshell);
+  Expect.isTrue(Primitives.isD8);
+  Expect.isFalse(Primitives.isJsshell);
 }

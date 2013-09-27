@@ -48,9 +48,7 @@ void runCompiler(Uri main) {
 
 
   EventSink<String> outputProvider(String name, String extension) {
-    if (name != '' && name != 'precompiled') {
-      throw 'Attempt to output file "$name.$extension"';
-    }
+    if (name != '') throw 'Attempt to output file "$name.$extension"';
     return new NullSink('$name.$extension');
   }
 
@@ -63,8 +61,8 @@ void runCompiler(Uri main) {
 
   asyncTest(() => compiler.run(main).then((_) {
     Expect.equals(1, errors.length);
-    Expect.equals('Error: Cannot resolve "package:foo/foo.dart". '
-                  'Package root has not been set.',
+    Expect.equals("Error: Cannot resolve 'package:foo/foo.dart'. "
+                  "Package root has not been set.",
                   errors[0]);
   }));
 }

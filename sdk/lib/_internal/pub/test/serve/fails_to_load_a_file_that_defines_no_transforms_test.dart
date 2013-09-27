@@ -25,7 +25,7 @@ main() {
 
     createLockFile('myapp', pkg: ['barback']);
 
-    var pub = startPub(args: ['serve', '--port=0']);
+    var pub = startPub(args: ['serve', '--port=0', "--hostname=127.0.0.1"]);
     expect(pub.nextErrLine(), completion(startsWith('No transformers were '
        'defined in ')));
     expect(pub.nextErrLine(), completion(startsWith('required by myapp.')));

@@ -55,7 +55,7 @@ class PatternDescriptor extends Descriptor {
     matchingEntries.sort();
 
     if (matchingEntries.isEmpty) {
-      throw "No entry found in '$parent' matching ${_patternDescription}.";
+      fail("No entry found in '$parent' matching ${_patternDescription}.");
     }
 
     return Future.wait(matchingEntries.map((entry) {
@@ -76,9 +76,9 @@ class PatternDescriptor extends Descriptor {
           return prefixLines(result.last, firstPrefix: '* ', prefix: '  ');
         }).join('\n');
 
-        throw "Multiple valid entries found in '$parent' matching "
-                "$_patternDescription:\n"
-            "$resultString";
+        fail("Multiple valid entries found in '$parent' matching "
+             "$_patternDescription:\n"
+             "$resultString");
       }
 
       // If no entries matching [pattern] validated, that's also bad.
@@ -91,9 +91,9 @@ class PatternDescriptor extends Descriptor {
             firstPrefix: '* ', prefix: '  ');
       }).join('\n');
 
-      throw "No valid entries found in '$parent' matching "
-              "$_patternDescription:\n"
-          "$resultString";
+      fail("No valid entries found in '$parent' matching "
+           "$_patternDescription:\n"
+           "$resultString");
     });
   }
 

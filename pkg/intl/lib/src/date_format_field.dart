@@ -130,6 +130,8 @@ class _DateFormatPatternField extends _DateFormatField {
        case 'a': parseAmPm(input, builder); break;
        case 'c': parseStandaloneDay(input); break;
        case 'd': handleNumericField(input, builder.setDay); break; // day
+       // Day of year. Setting month=January with any day of the year works
+       case 'D': handleNumericField(input, builder.setDay); break; // dayofyear
        case 'E': parseDayOfWeek(input); break;
        case 'G': break; // era
        case 'h': parse1To12Hours(input, builder); break;
@@ -157,6 +159,7 @@ class _DateFormatPatternField extends _DateFormatField {
       case 'a': return formatAmPm(date);
       case 'c': return formatStandaloneDay(date);
       case 'd': return formatDayOfMonth(date);
+      case 'D': return formatDayOfYear(date);
       case 'E': return formatDayOfWeek(date);
       case 'G': return formatEra(date);
       case 'h': return format1To12Hours(date);
@@ -354,6 +357,32 @@ class _DateFormatPatternField extends _DateFormatField {
   }
   String formatDayOfMonth(DateTime date) {
     return padTo(width, date.day);
+  }
+
+  String formatDayOfYear(DateTime date) => padTo(width, dayNumberInYear(date));
+
+  /** Return the ordinal day, i.e. the day number in the year. */
+  int dayNumberInYear(DateTime date) {
+    if (date.month == 1) return date.day;
+    if (date.month == 2) return date.day + 31;
+    return ordinalDayFromMarchFirst(date) + 59 + (isLeapYear(date) ? 1 : 0);
+  }
+
+  /**
+   * Return the day of the year counting March 1st as 1, after which the
+   * number of days per month is constant, so it's easier to calculate.
+   * Formula from http://en.wikipedia.org/wiki/Ordinal_date
+   */
+  int ordinalDayFromMarchFirst(DateTime date) =>
+      ((30.6 * date.month) - 91.4).floor() + date.day;
+
+  /**
+   * Return true if this is a leap year. Rely on [DateTime] to do the
+   * underlying calculation, even though it doesn't expose the test to us.
+   */
+  bool isLeapYear(DateTime date) {
+    var feb29 = new DateTime(date.year, 2, 29);
+    return feb29.month == 2;
   }
 
   String formatDayOfWeek(DateTime date) {

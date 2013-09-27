@@ -74,12 +74,12 @@ returnInt8() {
   return 42.remainder(54);
 }
 
-returnDynamic1() {
+returnEmpty1() {
   // Ensure that we don't intrisify a wrong call to [int.remainder].
   return 42.remainder();
 }
 
-returnDynamic2() {
+returnEmpty2() {
   // Ensure that we don't intrisify a wrong call to [int.abs].
   return 42.abs(42);
 }
@@ -578,8 +578,8 @@ main() {
   returnInt8();
   returnIntOrNull(true);
   returnDynamic();
-  returnDynamic1();
-  returnDynamic2();
+  returnEmpty1();
+  returnEmpty2();
   testIsCheck1(topLevelGetter());
   testIsCheck2(topLevelGetter());
   testIsCheck3(topLevelGetter());
@@ -690,8 +690,8 @@ void main() {
     checkReturn('returnInt4', typesTask.intType);
     checkReturn('returnInt7', typesTask.intType);
     checkReturn('returnInt8', typesTask.intType);
-    checkReturn('returnDynamic1', typesTask.dynamicType);
-    checkReturn('returnDynamic2', typesTask.dynamicType);
+    checkReturn('returnEmpty1', const TypeMask.nonNullEmpty());
+    checkReturn('returnEmpty2', const TypeMask.nonNullEmpty());
     TypeMask intType = new TypeMask.nonNullSubtype(compiler.intClass.rawType);
     checkReturn('testIsCheck1', intType);
     checkReturn('testIsCheck2', intType);

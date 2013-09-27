@@ -75,13 +75,12 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals([
-        "File 'name.txt' should contain:\n"
-        "| contents\n"
-        "but actually contained:\n"
-        "X wrongtents"
-      ]), verbose: true);
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(), equals(
+          "File 'name.txt' should contain:\n"
+          "| contents\n"
+          "but actually contained:\n"
+          "X wrongtents"));
     });
   }, passing: ['test 2']);
 
@@ -98,9 +97,8 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error,
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(),
           matches(r"^File not found: '[^']+[\\/]name\.txt'\.$"));
     });
   }, passing: ['test 2']);
@@ -165,10 +163,9 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals([
-        "File 'name.bin' didn't contain the expected binary data."
-      ]), verbose: true);
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(), equals(
+          "File 'name.bin' didn't contain the expected binary data."));
     });
   }, passing: ['test 2']);
 
@@ -218,11 +215,10 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error.message), equals([
-        "Expected: contains 'baaz'\n"
-        "  Actual: 'barfoobaz'\n"
-      ]), verbose: true);
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(), equals(
+          "Expected: contains 'baaz'\n"
+          "  Actual: 'barfoobaz'\n"));
     });
   }, passing: ['test 2']);
 
@@ -259,11 +255,10 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error.message), equals([
-        "Expected: contains <12>\n"
-        "  Actual: [98, 97, 114, 102, 111, 111, 98, 97, 122]\n"
-      ]), verbose: true);
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(), equals(
+          "Expected: contains <12>\n"
+          "  Actual: [98, 97, 114, 102, 111, 111, 98, 97, 122]\n"));
     });
   }, passing: ['test 2']);
 }

@@ -22,8 +22,8 @@ class PathSource extends Source {
   Future<Pubspec> describeUncached(PackageId id) {
     return new Future.sync(() {
       _validatePath(id.name, id.description);
-      return new Pubspec.load(id.name, id.description["path"],
-          systemCache.sources);
+      return new Pubspec.load(id.description["path"], systemCache.sources,
+          expectedName: id.name);
     });
   }
 

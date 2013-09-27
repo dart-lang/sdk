@@ -22,7 +22,6 @@
 #include "bin/dartutils.h"
 #include "bin/socket.h"
 #include "bin/utils.h"
-#include "bin/native_service.h"
 
 namespace dart {
 namespace bin {
@@ -88,15 +87,15 @@ class SSLFilter {
                                 const char* password,
                                 bool use_builtin_root_certificates,
                                 bool report_duplicate_initialization = true);
-  static Dart_Port GetServicePort();
   Dart_Handle callback_error;
+
+  static CObject* ProcessFilterRequest(const CObjectArray& request);
 
  private:
   static const int kMemioBufferSize = 20 * KB;
   static bool library_initialized_;
   static const char* password_;
   static dart::Mutex* mutex_;  // To protect library initialization.
-  static NativeService filter_service_;
 
   uint8_t* buffers_[kNumBuffers];
   int buffer_size_;

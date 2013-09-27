@@ -15,7 +15,7 @@ main() {
     // Set up a cache with a broken foo package.
     d.dir(cachePath, [
       d.dir('hosted', [
-        d.async(port.then((p) => d.dir('localhost%58$p', [
+        d.async(port.then((p) => d.dir('127.0.0.1%58$p', [
           d.dir("foo-1.2.3", [
             d.libPubspec("foo", "1.2.3"),
             // Note: empty "lib" directory.
@@ -39,7 +39,7 @@ main() {
     // Set up a cache with a broken foo package.
     d.dir(cachePath, [
       d.dir('hosted', [
-        d.async(port.then((p) => d.dir('localhost%58$p', [
+        d.async(port.then((p) => d.dir('127.0.0.1%58$p', [
           d.dir("foo-1.2.3", [
             d.libDir("foo")
             // Note: no pubspec.

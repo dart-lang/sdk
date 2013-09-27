@@ -9,6 +9,7 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+
   var events = [];
   bool onDoneWasCalled = false;
   var controller = new StreamController();

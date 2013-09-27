@@ -239,7 +239,8 @@ class ASTFactory {
   static AssignmentExpression assignmentExpression(Expression leftHandSide, TokenType operator, Expression rightHandSide) => new AssignmentExpression.full(leftHandSide, TokenFactory.token3(operator), rightHandSide);
   static BinaryExpression binaryExpression(Expression leftOperand, TokenType operator, Expression rightOperand) => new BinaryExpression.full(leftOperand, TokenFactory.token3(operator), rightOperand);
   static Block block(List<Statement> statements) => new Block.full(TokenFactory.token3(TokenType.OPEN_CURLY_BRACKET), list(statements), TokenFactory.token3(TokenType.CLOSE_CURLY_BRACKET));
-  static BlockFunctionBody blockFunctionBody(List<Statement> statements) => new BlockFunctionBody.full(block(statements));
+  static BlockFunctionBody blockFunctionBody(Block block) => new BlockFunctionBody.full(block);
+  static BlockFunctionBody blockFunctionBody2(List<Statement> statements) => new BlockFunctionBody.full(block(statements));
   static BooleanLiteral booleanLiteral(bool value) => new BooleanLiteral.full(value ? TokenFactory.token(Keyword.TRUE) : TokenFactory.token(Keyword.FALSE), value);
   static BreakStatement breakStatement() => new BreakStatement.full(TokenFactory.token(Keyword.BREAK), null, TokenFactory.token3(TokenType.SEMICOLON));
   static BreakStatement breakStatement2(String label) => new BreakStatement.full(TokenFactory.token(Keyword.BREAK), identifier3(label), TokenFactory.token3(TokenType.SEMICOLON));
@@ -287,13 +288,13 @@ class ASTFactory {
   static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type, String identifier) => new FieldFormalParameter.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, TokenFactory.token(Keyword.THIS), TokenFactory.token3(TokenType.PERIOD), identifier3(identifier), null);
   static FieldFormalParameter fieldFormalParameter2(Keyword keyword, TypeName type, String identifier, FormalParameterList parameterList) => new FieldFormalParameter.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, TokenFactory.token(Keyword.THIS), TokenFactory.token3(TokenType.PERIOD), identifier3(identifier), parameterList);
   static FieldFormalParameter fieldFormalParameter3(String identifier) => fieldFormalParameter(null, null, identifier);
-  static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable, Expression iterator, Statement body) => new ForEachStatement.full(TokenFactory.token(Keyword.FOR), TokenFactory.token3(TokenType.OPEN_PAREN), loopVariable, TokenFactory.token(Keyword.IN), iterator, TokenFactory.token3(TokenType.CLOSE_PAREN), body);
+  static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable, Expression iterator, Statement body) => new ForEachStatement.con1_full(TokenFactory.token(Keyword.FOR), TokenFactory.token3(TokenType.OPEN_PAREN), loopVariable, TokenFactory.token(Keyword.IN), iterator, TokenFactory.token3(TokenType.CLOSE_PAREN), body);
   static FormalParameterList formalParameterList(List<FormalParameter> parameters) => new FormalParameterList.full(TokenFactory.token3(TokenType.OPEN_PAREN), list(parameters), null, null, TokenFactory.token3(TokenType.CLOSE_PAREN));
   static ForStatement forStatement(Expression initialization, Expression condition, List<Expression> updaters, Statement body) => new ForStatement.full(TokenFactory.token(Keyword.FOR), TokenFactory.token3(TokenType.OPEN_PAREN), null, initialization, TokenFactory.token3(TokenType.SEMICOLON), condition, TokenFactory.token3(TokenType.SEMICOLON), updaters, TokenFactory.token3(TokenType.CLOSE_PAREN), body);
   static ForStatement forStatement2(VariableDeclarationList variableList, Expression condition, List<Expression> updaters, Statement body) => new ForStatement.full(TokenFactory.token(Keyword.FOR), TokenFactory.token3(TokenType.OPEN_PAREN), variableList, null, TokenFactory.token3(TokenType.SEMICOLON), condition, TokenFactory.token3(TokenType.SEMICOLON), updaters, TokenFactory.token3(TokenType.CLOSE_PAREN), body);
   static FunctionDeclaration functionDeclaration(TypeName type, Keyword keyword, String name, FunctionExpression functionExpression) => new FunctionDeclaration.full(null, null, null, type, keyword == null ? null : TokenFactory.token(keyword), identifier3(name), functionExpression);
   static FunctionDeclarationStatement functionDeclarationStatement(TypeName type, Keyword keyword, String name, FunctionExpression functionExpression) => new FunctionDeclarationStatement.full(functionDeclaration(type, keyword, name, functionExpression));
-  static FunctionExpression functionExpression() => new FunctionExpression.full(formalParameterList([]), blockFunctionBody([]));
+  static FunctionExpression functionExpression() => new FunctionExpression.full(formalParameterList([]), blockFunctionBody2([]));
   static FunctionExpression functionExpression2(FormalParameterList parameters, FunctionBody body) => new FunctionExpression.full(parameters, body);
   static FunctionExpressionInvocation functionExpressionInvocation(Expression function, List<Expression> arguments) => new FunctionExpressionInvocation.full(function, argumentList(arguments));
   static FunctionTypedFormalParameter functionTypedFormalParameter(TypeName returnType, String identifier, List<FormalParameter> parameters) => new FunctionTypedFormalParameter.full(null, null, returnType, identifier3(identifier), formalParameterList(parameters));
@@ -774,7 +775,7 @@ class BreadthFirstVisitorTest extends ParserTestCase {
         "}"]);
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(source, []);
     List<ASTNode> nodes = new List<ASTNode>();
-    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_18(nodes);
+    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_17(nodes);
     visitor.visitAllNodes(unit);
     EngineTestCase.assertSize(59, nodes);
     EngineTestCase.assertInstanceOf(CompilationUnit, nodes[0]);
@@ -792,9 +793,9 @@ class BreadthFirstVisitorTest extends ParserTestCase {
     });
   }
 }
-class BreadthFirstVisitor_18 extends BreadthFirstVisitor<Object> {
+class BreadthFirstVisitor_17 extends BreadthFirstVisitor<Object> {
   List<ASTNode> nodes;
-  BreadthFirstVisitor_18(this.nodes) : super();
+  BreadthFirstVisitor_17(this.nodes) : super();
   Object visitNode(ASTNode node) {
     nodes.add(node);
     return super.visitNode(node);
@@ -825,7 +826,7 @@ class ConstantEvaluatorTest extends ParserTestCase {
     Object value = getConstantValue("?");
     JUnitTestCase.assertEquals(null, value);
   }
-  void fail_identifier_typeVariable() {
+  void fail_identifier_typeParameter() {
     Object value = getConstantValue("?");
     JUnitTestCase.assertEquals(null, value);
   }
@@ -1294,7 +1295,7 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("{break; break;}", ASTFactory.block([ASTFactory.breakStatement(), ASTFactory.breakStatement()]));
   }
   void test_visitBlockFunctionBody() {
-    assertSource("{}", ASTFactory.blockFunctionBody([]));
+    assertSource("{}", ASTFactory.blockFunctionBody2([]));
   }
   void test_visitBooleanLiteral_false() {
     assertSource("false", ASTFactory.booleanLiteral(false));
@@ -1440,29 +1441,29 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("a ? b : c", ASTFactory.conditionalExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"), ASTFactory.identifier3("c")));
   }
   void test_visitConstructorDeclaration_const() {
-    assertSource("const C() {}", ASTFactory.constructorDeclaration2(Keyword.CONST, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody([])));
+    assertSource("const C() {}", ASTFactory.constructorDeclaration2(Keyword.CONST, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody2([])));
   }
   void test_visitConstructorDeclaration_external() {
     assertSource("external C();", ASTFactory.constructorDeclaration(ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), null));
   }
   void test_visitConstructorDeclaration_minimal() {
-    assertSource("C() {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody([])));
+    assertSource("C() {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody2([])));
   }
   void test_visitConstructorDeclaration_multipleInitializers() {
     assertSource("C() : a = b, c = d {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([
         (ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer),
-        ASTFactory.constructorFieldInitializer(false, "c", ASTFactory.identifier3("d"))]), ASTFactory.blockFunctionBody([])));
+        ASTFactory.constructorFieldInitializer(false, "c", ASTFactory.identifier3("d"))]), ASTFactory.blockFunctionBody2([])));
   }
   void test_visitConstructorDeclaration_multipleParameters() {
     assertSource("C(var a, var b) {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([
         ASTFactory.simpleFormalParameter(Keyword.VAR, "a"),
-        ASTFactory.simpleFormalParameter(Keyword.VAR, "b")]), null, ASTFactory.blockFunctionBody([])));
+        ASTFactory.simpleFormalParameter(Keyword.VAR, "b")]), null, ASTFactory.blockFunctionBody2([])));
   }
   void test_visitConstructorDeclaration_named() {
-    assertSource("C.m() {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), "m", ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody([])));
+    assertSource("C.m() {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), "m", ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody2([])));
   }
   void test_visitConstructorDeclaration_singleInitializer() {
-    assertSource("C() : a = b {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([(ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer)]), ASTFactory.blockFunctionBody([])));
+    assertSource("C() : a = b {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([(ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer)]), ASTFactory.blockFunctionBody2([])));
   }
   void test_visitConstructorFieldInitializer_withoutThis() {
     assertSource("a = b", ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")));
@@ -1815,39 +1816,39 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("external T m();", ASTFactory.methodDeclaration(null, ASTFactory.typeName4("T", []), null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([])));
   }
   void test_visitMethodDeclaration_getter() {
-    assertSource("get m {}", ASTFactory.methodDeclaration2(null, null, Keyword.GET, null, ASTFactory.identifier3("m"), null, ASTFactory.blockFunctionBody([])));
+    assertSource("get m {}", ASTFactory.methodDeclaration2(null, null, Keyword.GET, null, ASTFactory.identifier3("m"), null, ASTFactory.blockFunctionBody2([])));
   }
   void test_visitMethodDeclaration_getter_returnType() {
-    assertSource("T get m {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName4("T", []), Keyword.GET, null, ASTFactory.identifier3("m"), null, ASTFactory.blockFunctionBody([])));
+    assertSource("T get m {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName4("T", []), Keyword.GET, null, ASTFactory.identifier3("m"), null, ASTFactory.blockFunctionBody2([])));
   }
   void test_visitMethodDeclaration_getter_seturnType() {
-    assertSource("T set m(var v) {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName4("T", []), Keyword.SET, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter(Keyword.VAR, "v")]), ASTFactory.blockFunctionBody([])));
+    assertSource("T set m(var v) {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName4("T", []), Keyword.SET, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter(Keyword.VAR, "v")]), ASTFactory.blockFunctionBody2([])));
   }
   void test_visitMethodDeclaration_minimal() {
-    assertSource("m() {}", ASTFactory.methodDeclaration2(null, null, null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
+    assertSource("m() {}", ASTFactory.methodDeclaration2(null, null, null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody2([])));
   }
   void test_visitMethodDeclaration_multipleParameters() {
     assertSource("m(var a, var b) {}", ASTFactory.methodDeclaration2(null, null, null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([
         ASTFactory.simpleFormalParameter(Keyword.VAR, "a"),
-        ASTFactory.simpleFormalParameter(Keyword.VAR, "b")]), ASTFactory.blockFunctionBody([])));
+        ASTFactory.simpleFormalParameter(Keyword.VAR, "b")]), ASTFactory.blockFunctionBody2([])));
   }
   void test_visitMethodDeclaration_operator() {
-    assertSource("operator +() {}", ASTFactory.methodDeclaration2(null, null, null, Keyword.OPERATOR, ASTFactory.identifier3("+"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
+    assertSource("operator +() {}", ASTFactory.methodDeclaration2(null, null, null, Keyword.OPERATOR, ASTFactory.identifier3("+"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody2([])));
   }
   void test_visitMethodDeclaration_operator_returnType() {
-    assertSource("T operator +() {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName4("T", []), null, Keyword.OPERATOR, ASTFactory.identifier3("+"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
+    assertSource("T operator +() {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName4("T", []), null, Keyword.OPERATOR, ASTFactory.identifier3("+"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody2([])));
   }
   void test_visitMethodDeclaration_returnType() {
-    assertSource("T m() {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName4("T", []), null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
+    assertSource("T m() {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName4("T", []), null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody2([])));
   }
   void test_visitMethodDeclaration_setter() {
-    assertSource("set m(var v) {}", ASTFactory.methodDeclaration2(null, null, Keyword.SET, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter(Keyword.VAR, "v")]), ASTFactory.blockFunctionBody([])));
+    assertSource("set m(var v) {}", ASTFactory.methodDeclaration2(null, null, Keyword.SET, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter(Keyword.VAR, "v")]), ASTFactory.blockFunctionBody2([])));
   }
   void test_visitMethodDeclaration_static() {
-    assertSource("static m() {}", ASTFactory.methodDeclaration2(Keyword.STATIC, null, null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
+    assertSource("static m() {}", ASTFactory.methodDeclaration2(Keyword.STATIC, null, null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody2([])));
   }
   void test_visitMethodDeclaration_static_returnType() {
-    assertSource("static T m() {}", ASTFactory.methodDeclaration2(Keyword.STATIC, ASTFactory.typeName4("T", []), null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
+    assertSource("static T m() {}", ASTFactory.methodDeclaration2(Keyword.STATIC, ASTFactory.typeName4("T", []), null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody2([])));
   }
   void test_visitMethodInvocation_noTarget() {
     assertSource("m()", ASTFactory.methodInvocation2("m", []));

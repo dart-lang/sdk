@@ -859,70 +859,6 @@ class CodeEmitterTask extends CompilerTask {
         fun);
   }
 
-  jsAst.Fun get finishIsolateConstructorFunction_NO_CSP {
-    String isolate = namer.isolateName;
-    // We replace the old Isolate function with a new one that initializes
-    // all its field with the initial (and often final) value of all globals.
-    // This has two advantages:
-    //   1. the properties are in the object itself (thus avoiding to go through
-    //      the prototype when looking up globals.
-    //   2. a new isolate goes through a (usually well optimized) constructor
-    //      function of the form: "function() { this.x = ...; this.y = ...; }".
-    //
-    // Example: If [isolateProperties] is an object containing: x = 3 and
-    // A = function A() { /* constructor of class A. */ }, then we generate:
-    // str = "{
-    //   var isolateProperties = Isolate.$isolateProperties;
-    //   this.x = isolateProperties.x;
-    //   this.A = isolateProperties.A;
-    // }";
-    // which is then dynamically evaluated:
-    //   var newIsolate = new Function(str);
-    //
-    // We also copy over old values like the prototype, and the
-    // isolateProperties themselves.
-
-    List copyFinishClasses = [];
-    if (needsDefineClass) {
-      copyFinishClasses.add(
-          js('newIsolate.$finishClassesProperty = '
-             '    oldIsolate.$finishClassesProperty'));
-    }
-
-    // function(oldIsolate) {
-    return js.fun('oldIsolate', [
-      js('var isolateProperties = oldIsolate.${namer.isolatePropertiesName}'),
-
-      js('var isolatePrototype = oldIsolate.prototype'),
-      js('var str = "{\\n"'),
-      js('str += "var properties = '
-                     'arguments.callee.${namer.isolatePropertiesName};\\n"'),
-      js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
-
-      // for (var staticName in isolateProperties) {
-      js.forIn('staticName', 'isolateProperties', [
-        js.if_('hasOwnProperty.call(isolateProperties, staticName)', [
-          js('str += ("this." + staticName + "= properties." + staticName + '
-                          '";\\n")')
-        ])
-      ]),
-
-      js('str += "}\\n"'),
-
-      js('var newIsolate = new Function(str)'),
-      js('newIsolate.prototype = isolatePrototype'),
-      js('isolatePrototype.constructor = newIsolate'),
-      js('newIsolate.${namer.isolatePropertiesName} = isolateProperties'),
-      // TODO(ahe): Only copy makeConstantList when it is used.
-      js('newIsolate.makeConstantList = oldIsolate.makeConstantList'),
-    ]..addAll(copyFinishClasses)
-     ..addAll([
-
-      // return newIsolate;
-      js.return_('newIsolate')
-    ]));
-  }
-
   jsAst.Fun get finishIsolateConstructorFunction {
     // We replace the old Isolate function with a new one that initializes
     // all its fields with the initial (and often final) value of all globals.
@@ -1198,8 +1134,10 @@ class CodeEmitterTask extends CompilerTask {
     // canonicalized, we would still need this cache: a typed selector
     // on A and a typed selector on B could yield the same stub.
     Set<String> generatedStubNames = new Set<String>();
-    if (compiler.enabledFunctionApply
-        && member.name == namer.closureInvocationSelectorName) {
+    bool isClosureInvocation =
+        member.name == namer.closureInvocationSelectorName;
+    if (backend.isNeededForReflection(member) ||
+        (compiler.enabledFunctionApply && isClosureInvocation)) {
       // If [Function.apply] is called, we pessimistically compile all
       // possible stubs for this closure.
       FunctionSignature signature = member.computeSignature(compiler);
@@ -1209,7 +1147,7 @@ class CodeEmitterTask extends CompilerTask {
       for (Selector selector in selectors) {
         addParameterStub(member, selector, defineStub, generatedStubNames);
       }
-      if (signature.optionalParametersAreNamed) {
+      if (signature.optionalParametersAreNamed && isClosureInvocation) {
         addCatchAllParameterStub(member, signature, defineStub);
       }
     } else {
@@ -1224,8 +1162,8 @@ class CodeEmitterTask extends CompilerTask {
 
   Set<Selector> computeSeenNamedSelectors(FunctionElement element) {
     Set<Selector> selectors = compiler.codegenWorld.invokedNames[element.name];
-    if (selectors == null) return null;
     Set<Selector> result = new Set<Selector>();
+    if (selectors == null) return result;
     for (Selector selector in selectors) {
       if (!selector.applies(element, compiler)) continue;
       result.add(selector);
@@ -1329,6 +1267,11 @@ class CodeEmitterTask extends CompilerTask {
         var reflectable =
             js(backend.isAccessibleByReflection(member) ? '1' : '0');
         builder.addProperty('+$reflectionName', reflectable);
+        jsAst.Node defaultValues = reifyDefaultArguments(member);
+        if (defaultValues != null) {
+          String unmangledName = member.name.slowToString();
+          builder.addProperty('*$unmangledName', defaultValues);
+        }
       }
       code = backend.generatedBailoutCode[member];
       if (code != null) {
@@ -1337,7 +1280,7 @@ class CodeEmitterTask extends CompilerTask {
       FunctionElement function = member;
       FunctionSignature parameters = function.computeSignature(compiler);
       if (!parameters.optionalParameters.isEmpty) {
-        addParameterStubs(member, builder.addProperty);
+        addParameterStubs(function, builder.addProperty);
       }
     } else if (!member.isField()) {
       compiler.internalError('unexpected kind: "${member.kind}"',
@@ -1420,9 +1363,19 @@ class CodeEmitterTask extends CompilerTask {
               requiredParameterCount,
               names);
           namedArguments = namedParametersAsReflectionNames(selector);
+        } else {
+          // Named parameters are handled differently by mirrors.  For unnamed
+          // parameters, they are actually required if invoked
+          // reflectively. Also, if you have a method c(x) and c([x]) they both
+          // get the same mangled name, so they must have the same reflection
+          // name.
+          requiredParameterCount += optionalParameterCount;
+          optionalParameterCount = 0;
         }
       }
       String suffix =
+          // TODO(ahe): We probably don't need optionalParameterCount in the
+          // reflection name.
           '$name:$requiredParameterCount:$optionalParameterCount'
           '$namedArguments';
       return (isConstructor) ? 'new $suffix' : suffix;
@@ -1440,9 +1393,9 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   String namedParametersAsReflectionNames(Selector selector) {
-    if (selector.orderedNamedArguments.isEmpty) return '';
-    String names =
-        selector.orderedNamedArguments.map((x) => x.slowToString()).join(':');
+    if (selector.getOrderedNamedArguments().isEmpty) return '';
+    String names = selector.getOrderedNamedArguments().map(
+        (x) => x.slowToString()).join(':');
     return ':$names';
   }
 
@@ -1516,19 +1469,18 @@ class CodeEmitterTask extends CompilerTask {
       builder.addProperty(operatorSignature, encoding);
     }
 
-    void generateSubstitution(Element other, {bool emitNull: false}) {
+    void generateSubstitution(ClassElement cls, {bool emitNull: false}) {
+      if (cls.typeVariables.isEmpty) return;
       RuntimeTypes rti = backend.rti;
       jsAst.Expression expression;
-      bool needsNativeCheck = nativeEmitter.requiresNativeIsCheck(other);
-      if (other.kind == ElementKind.CLASS) {
-        expression = rti.getSupertypeSubstitution(
-            classElement, other, alwaysGenerateFunction: true);
-        if (expression == null && (emitNull || needsNativeCheck)) {
-          expression = new jsAst.LiteralNull();
-        }
+      bool needsNativeCheck = nativeEmitter.requiresNativeIsCheck(cls);
+      expression = rti.getSupertypeSubstitution(
+          classElement, cls, alwaysGenerateFunction: true);
+      if (expression == null && (emitNull || needsNativeCheck)) {
+        expression = new jsAst.LiteralNull();
       }
       if (expression != null) {
-        builder.addProperty(namer.substitutionName(other), expression);
+        builder.addProperty(namer.substitutionName(cls), expression);
       }
     }
 
@@ -2088,6 +2040,21 @@ class CodeEmitterTask extends CompilerTask {
       builder.addProperty("@", metadata);
     }
 
+    if (backend.isNeededForReflection(classElement)) {
+      Link typeVars = classElement.typeVariables;
+      List properties = [];
+      for (TypeVariableType typeVar in typeVars) {
+        properties.add(js.string(typeVar.name.slowToString()));
+        properties.add(js.toExpression(reifyType(typeVar.element.bound)));
+      }
+
+      ClassElement superclass = classElement.superclass;
+      bool hasSuper = superclass != null;
+      if ((!properties.isEmpty && !hasSuper) ||
+          (hasSuper && superclass.typeVariables != typeVars)) {
+        builder.addProperty('<>', new jsAst.ArrayInitializer.from(properties));
+      }
+    }
     List<CodeBuffer> classBuffers = elementBuffers[classElement];
     if (classBuffers == null) {
       classBuffers = [];
@@ -2433,6 +2400,12 @@ class CodeEmitterTask extends CompilerTask {
       if (reflectionName != null) {
         var reflectable = backend.isAccessibleByReflection(element) ? 1 : 0;
         buffer.write(',$n$n"+$reflectionName":${_}$reflectable');
+        jsAst.Node defaultValues = reifyDefaultArguments(element);
+        if (defaultValues != null) {
+          String unmangledName = element.name.slowToString();
+          buffer.write(',$n$n"*$unmangledName":${_}');
+          buffer.write(jsAst.prettyPrint(defaultValues, compiler));
+        }
       }
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       if (bailoutCode != null) {
@@ -3745,6 +3718,20 @@ class CodeEmitterTask extends CompilerTask {
     });
   }
 
+  jsAst.Node reifyDefaultArguments(FunctionElement function) {
+    FunctionSignature signature = function.computeSignature(compiler);
+    if (signature.optionalParameterCount == 0) return null;
+    List<int> defaultValues = <int>[];
+    for (Element element in signature.orderedOptionalParameters) {
+      Constant value =
+          compiler.constantHandler.initialVariableValues[element];
+      String stringRepresentation = (value == null) ? "null"
+          : jsAst.prettyPrint(constantReference(value), compiler).getText();
+      defaultValues.add(addGlobalMetadata(stringRepresentation));
+    }
+    return js.toExpression(defaultValues);
+  }
+
   int reifyMetadata(MetadataAnnotation annotation) {
     Constant value = annotation.value;
     if (value == null) {
@@ -3825,26 +3812,6 @@ class CodeEmitterTask extends CompilerTask {
       buffer.write(',$n');
     }
     buffer.write('];$n');
-  }
-
-  void emitConvertToFastObjectFunction_NO_CSP() {
-    mainBuffer.add(r'''
-function convertToFastObject(properties) {
-  function makeConstructor() {
-    var str = "{\n";
-    var hasOwnProperty = Object.prototype.hasOwnProperty;
-    for (var property in properties) {
-      if (hasOwnProperty.call(properties, property)) {
-        str += "this." + property + "= properties." + property + ";\n";
-      }
-    }
-    str += "}\n";
-    return new Function("properties", str);
-  };
-  var constructor = makeConstructor();
-  return makeConstructor.prototype = new constructor(properties);
-}
-''');
   }
 
   void emitConvertToFastObjectFunction() {
@@ -4179,15 +4146,19 @@ if (typeof $printHelperName === "function") {
           buildPrecompiledFunction();
       emitInitFunction(mainBuffer);
       if (!areAnyElementsDeferred) {
-        mainBuffer.add('})()$n');
+        mainBuffer.add('})()\n');
+      } else {
+        mainBuffer.add('\n');
       }
       compiler.assembledCode = mainBuffer.getText();
-      outputSourceMap(mainBuffer, compiler.assembledCode, '');
+      outputSourceMap(compiler.assembledCode, '');
 
       mainBuffer.write(
-          jsAst.prettyPrint(precompiledFunctionAst, compiler).getText());
+          jsAst.prettyPrint(
+              precompiledFunctionAst, compiler,
+              allowVariableMinification: false).getText());
 
-      compiler.outputProvider('precompiled', 'js')
+      compiler.outputProvider('', 'precompiled.js')
           ..add(mainBuffer.getText())
           ..close();
 
@@ -4293,7 +4264,7 @@ if (typeof $printHelperName === "function") {
     compiler.outputProvider('part', 'js')
       ..add(code)
       ..close();
-    outputSourceMap(buffer, compiler.assembledCode, 'part');
+    outputSourceMap(compiler.assembledCode, 'part');
   }
 
   String buildGeneratedBy() {
@@ -4309,7 +4280,7 @@ if (typeof $printHelperName === "function") {
     return sourceMapBuilder.build(compiledFile);
   }
 
-  void outputSourceMap(CodeBuffer buffer, String code, String name) {
+  void outputSourceMap(String code, String name) {
     if (!generateSourceMap) return;
     SourceFile compiledFile = new SourceFile(null, compiler.assembledCode);
     String sourceMap = buildSourceMap(mainBuffer, compiledFile);
@@ -4337,6 +4308,9 @@ if (typeof $printHelperName === "function") {
   String getReflectionDataParser() {
     String metadataField = '"${namer.metadataField}"';
     String reflectableField = namer.reflectableField;
+    String defaultValuesField = namer.defaultValuesField;
+    String methodsWithOptionalArgumentsField =
+        namer.methodsWithOptionalArgumentsField;
     return '''
 (function (reflectionData) {
 '''
@@ -4395,6 +4369,13 @@ if (typeof $printHelperName === "function") {
         } else if (firstChar === "@") {
           property = property.substring(1);
           ${namer.CURRENT_ISOLATE}[property][$metadataField] = element;
+        } else if (firstChar === "*") {
+          globalObject[previousProperty].$defaultValuesField = element;
+          var optionalMethods = descriptor.$methodsWithOptionalArgumentsField;
+          if (!optionalMethods) {
+            descriptor.$methodsWithOptionalArgumentsField = optionalMethods = {}
+          }
+          optionalMethods[property] = previousProperty;
         } else if (typeof element === "function") {
           globalObject[previousProperty = property] = element;
           functions.push(property);
@@ -4414,6 +4395,13 @@ if (typeof $printHelperName === "function") {
 '''element[previousProp].$reflectableField = 1;
             } else if (firstChar === "@" && prop !== "@") {
               newDesc[prop.substring(1)][$metadataField] = element[prop];
+            } else if (firstChar === "*") {
+              newDesc[previousProp].$defaultValuesField = element[prop];
+              var optionalMethods = newDesc.$methodsWithOptionalArgumentsField;
+              if (!optionalMethods) {
+                newDesc.$methodsWithOptionalArgumentsField = optionalMethods={}
+              }
+              optionalMethods[prop] = previousProp;
             } else {
               newDesc[previousProp = prop] = element[prop];
             }

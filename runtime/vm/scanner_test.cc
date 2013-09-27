@@ -410,28 +410,6 @@ void InvalidText() {
 }
 
 
-void FindLineTest() {
-  const char* source =
-      "/*1*/   \n"
-      "/*2*/   class A {\n"
-      "/*3*/      void foo() { }\n"
-      "/*4*/   }\n";
-
-  Scanner scanner(String::Handle(String::New(source)),
-                  String::Handle(String::New("")));
-
-  intptr_t first_token_index, last_token_index;
-  scanner.TokenRangeAtLine(3, &first_token_index, &last_token_index);
-  EXPECT_EQ(3, first_token_index);
-  EXPECT_EQ(8, last_token_index);
-  scanner.TokenRangeAtLine(100, &first_token_index, &last_token_index);
-  EXPECT(first_token_index < 0);
-  scanner.TokenRangeAtLine(1, &first_token_index, &last_token_index);
-  EXPECT_EQ(0, first_token_index);
-  EXPECT(last_token_index < 0);
-}
-
-
 void NewlinesTest() {
   const char* source =
       "var es = /* a\n"
@@ -479,7 +457,6 @@ TEST_CASE(Scanner_Test) {
   EmptyMultilineString();
   NumberLiteral();
   InvalidText();
-  FindLineTest();
   NewlinesTest();
 }
 

@@ -238,8 +238,8 @@ File content\r
   test('application/x-www-form-urlencoded',
        '%E5%B9%B3%3D%E4%BB%AE%E5%90%8D=%E5%B9%B3%E4%BB%AE%E5%90%8D&b'
        '=%E5%B9%B3%E4%BB%AE%E5%90%8D'.codeUnits,
-       { 'b' : '平仮名',
-         '平=仮名' : '平仮名'},
+       { '平=仮名' : '平仮名',
+         'b' : '平仮名' },
        "form");
 
   test('application/x-www-form-urlencoded',

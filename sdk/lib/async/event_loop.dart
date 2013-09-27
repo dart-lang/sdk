@@ -55,8 +55,14 @@ void _scheduleAsyncCallback(callback) {
  *     }
  */
 void runAsync(void callback()) {
-  _Zone currentZone = _Zone._current;
-  currentZone.runAsync(callback, currentZone);
+  if (Zone.current == Zone.ROOT) {
+    // No need to bind the callback. We know that the root's runAsync will
+    // be invoked in the root zone.
+    Zone.current.scheduleMicrotask(callback);
+    return;
+  }
+  Zone.current.scheduleMicrotask(
+      Zone.current.bindCallback(callback, runGuarded: true));
 }
 
 class _AsyncRun {

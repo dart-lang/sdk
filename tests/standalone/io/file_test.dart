@@ -528,15 +528,15 @@ class FileTest {
     file.create().then((ignore) {
       file.open(mode: WRITE).then((RandomAccessFile openedFile) {
         // Write bytes from 0 to 7.
-        openedFile.writeFrom([0], 0, 1);
-        openedFile.writeFrom(const [1], 0, 1);
-        openedFile.writeFrom(new MyListOfOneElement(2), 0, 1);
+        openedFile.writeFromSync([0], 0, 1);
+        openedFile.writeFromSync(const [1], 0, 1);
+        openedFile.writeFromSync(new MyListOfOneElement(2), 0, 1);
         var x = 12345678901234567890123456789012345678901234567890;
         var y = 12345678901234567890123456789012345678901234567893;
-        openedFile.writeFrom([y - x], 0, 1);
-        openedFile.writeFrom([260], 0, 1);  // 260 = 256 + 4 = 0x104.
-        openedFile.writeFrom(const [261], 0, 1);
-        openedFile.writeFrom(new MyListOfOneElement(262), 0, 1);
+        openedFile.writeFromSync([y - x], 0, 1);
+        openedFile.writeFromSync([260], 0, 1);  // 260 = 256 + 4 = 0x104.
+        openedFile.writeFromSync(const [261], 0, 1);
+        openedFile.writeFromSync(new MyListOfOneElement(262), 0, 1);
         x = 12345678901234567890123456789012345678901234567890;
         y = 12345678901234567890123456789012345678901234568153;
         openedFile.writeFrom([y - x], 0, 1).then((ignore) {

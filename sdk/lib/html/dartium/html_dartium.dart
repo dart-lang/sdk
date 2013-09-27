@@ -7707,33 +7707,13 @@ class Document extends Node
   @DocsEditable()
   DocumentFragment createDocumentFragment() native "Document_createDocumentFragment_Callback";
 
-  Element createElement(String localName_OR_tagName, [String typeExtension]) {
-    if ((localName_OR_tagName is String || localName_OR_tagName == null) && typeExtension == null) {
-      return _createElement_1(localName_OR_tagName);
-    }
-    if ((typeExtension is String || typeExtension == null) && (localName_OR_tagName is String || localName_OR_tagName == null)) {
-      return _createElement_2(localName_OR_tagName, typeExtension);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
+  @DomName('Document.createElement')
+  @DocsEditable()
+  Element _createElement(String localName_OR_tagName, [String typeExtension]) native "Document_createElement_Callback";
 
-  Element _createElement_1(localName_OR_tagName) native "Document__createElement_1_Callback";
-
-  Element _createElement_2(localName_OR_tagName, typeExtension) native "Document__createElement_2_Callback";
-
-  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
-    if ((qualifiedName is String || qualifiedName == null) && (namespaceURI is String || namespaceURI == null) && typeExtension == null) {
-      return _createElementNS_1(namespaceURI, qualifiedName);
-    }
-    if ((typeExtension is String || typeExtension == null) && (qualifiedName is String || qualifiedName == null) && (namespaceURI is String || namespaceURI == null)) {
-      return _createElementNS_2(namespaceURI, qualifiedName, typeExtension);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Element _createElementNS_1(namespaceURI, qualifiedName) native "Document__createElementNS_1_Callback";
-
-  Element _createElementNS_2(namespaceURI, qualifiedName, typeExtension) native "Document__createElementNS_2_Callback";
+  @DomName('Document.createElementNS')
+  @DocsEditable()
+  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) native "Document_createElementNS_Callback";
 
   @DomName('Document.createEvent')
   @DocsEditable()
@@ -8186,6 +8166,16 @@ class Document extends Node
   /// Checks if [register] is supported on the current platform.
   bool get supportsRegister {
     return true;
+  }
+
+  @DomName('Document.createElement')
+  Element createElement(String tagName, [String typeExtension]) {
+    if (typeExtension != null) {
+      return _createElement(tagName, typeExtension);
+    } else {
+      // Fast-path for Dartium when typeExtension is not needed.
+      return _Utils.createElement(this, tagName);
+    }
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -9728,6 +9718,20 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    */
   @Experimental()
   void created() {}
+
+  /**
+   * Called by the DOM when this element has been inserted into the live
+   * document.
+   */
+  @Experimental()
+  void enteredView() {}
+
+  /**
+   * Called by the DOM when this element has been removed from the live
+   * document.
+   */
+  @Experimental()
+  void leftView() {}
 
   // Hooks to support custom WebComponents.
 
@@ -13352,8 +13356,8 @@ class HtmlDocument extends Document {
    * * UListElement
    * * VideoElement
    */
-  void register(String tag, Type customElementClass, {String nativeTagName}) {
-    _Utils.register(tag, customElementClass);
+  void register(String tag, Type customElementClass, {String extendsTag}) {
+    _Utils.register(this, tag, customElementClass, extendsTag);
   }
 
   // Note: used to polyfill <template>
@@ -13634,8 +13638,9 @@ class HttpRequest extends XmlHttpRequestEventTarget {
   /**
    * Makes a server POST request with the specified data encoded as form data.
    *
-   * This is similar to sending a FormData object with broader browser
-   * support but limited to string values.
+   * This is roughly the POST equivalent of getString. This method is similar 
+   * to sending a FormData object with broader browser support but limited to 
+   * String values.
    *
    * See also:
    *
@@ -13668,10 +13673,14 @@ class HttpRequest extends XmlHttpRequestEventTarget {
   /**
    * Creates a URL request for the specified [url].
    *
-   * By default this will do an HTTP GET request, this can be overridden with
-   * [method].
+   * By default `request` will perform an HTTP GET request, but a different
+   * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the 
+   * [method] parameter.
    *
    * The Future is completed when the response is available.
+   *
+   * If specified, `sendData` will send data in the form of a [ByteBuffer],
+   * [Blob], [Document], [String], or [FormData] along with the HttpRequest.
    *
    * The [withCredentials] parameter specified that credentials such as a cookie
    * (already) set in the header or
@@ -14045,6 +14054,11 @@ class HttpRequest extends XmlHttpRequestEventTarget {
    *
    * Calling `open` again on a currently active request is equivalent to
    * calling `abort`.
+   *
+   * Note: Most simple HTTP requests can be accomplished using the [getString],
+   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
+   * `open` method is intended only for more complext HTTP requests where
+   * finer-grained control is needed.
    */
   @DomName('XMLHttpRequest.open')
   @DocsEditable()
@@ -14067,6 +14081,11 @@ class HttpRequest extends XmlHttpRequestEventTarget {
   /**
    * Send the request with any given `data`.
    *
+   * Note: Most simple HTTP requests can be accomplished using the [getString],
+   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
+   * `send` method is intended only for more complext HTTP requests where
+   * finer-grained control is needed.
+   *
    * See also:
    *
    *   * [send](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
@@ -14087,35 +14106,6 @@ class HttpRequest extends XmlHttpRequestEventTarget {
   @DomName('XMLHttpRequest.onreadystatechange')
   @DocsEditable()
   Stream<ProgressEvent> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('XMLHttpRequestProgressEvent')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-@Experimental() // nonstandard
-class HttpRequestProgressEvent extends ProgressEvent {
-  // To suppress missing implicit constructor warnings.
-  factory HttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => true;
-
-  @DomName('XMLHttpRequestProgressEvent.position')
-  @DocsEditable()
-  int get position native "XMLHttpRequestProgressEvent_position_Getter";
-
-  @DomName('XMLHttpRequestProgressEvent.totalSize')
-  @DocsEditable()
-  int get totalSize native "XMLHttpRequestProgressEvent_totalSize_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26124,13 +26114,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -29679,6 +29669,21 @@ abstract class _WorkerNavigator extends NativeFieldWrapperClass1 implements Navi
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('XMLHttpRequestProgressEvent')
+@Experimental() // nonstandard
+abstract class _XMLHttpRequestProgressEvent extends ProgressEvent {
+  // To suppress missing implicit constructor warnings.
+  factory _XMLHttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 abstract class _AttributeMap implements Map<String, String> {
   final Element _element;
@@ -30729,9 +30734,15 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   var _onData;
   final bool _useCapture;
 
-  _EventStreamSubscription(this._target, this._eventType, this._onData,
-      this._useCapture) {
+  _EventStreamSubscription(this._target, this._eventType, onData,
+      this._useCapture) : _onData = _wrapZone(onData) {
     _tryResume();
+  }
+
+  static _wrapZone(callback) {
+    // For performance reasons avoid wrapping if we are in the root zone.
+    if (Zone.current == Zone.ROOT) return callback;
+    return Zone.current.bindUnaryCallback(callback, runGuarded: true);
   }
 
   void cancel() {
@@ -30752,7 +30763,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     // Remove current event listener.
     _unlisten();
 
-    _onData = handleData;
+    _onData = _wrapZone(handleData);
     _tryResume();
   }
 
@@ -34469,7 +34480,7 @@ class TestRunner {
 
 class _ConsoleVariables {
   Map<String, Object> _data = new Map<String, Object>();
-  
+
   /**
    * Forward member accesses to the backing JavaScript object.
    */
@@ -34485,7 +34496,7 @@ class _ConsoleVariables {
       return Function.apply(_data[member], invocation.positionalArguments, invocation.namedArguments);
     }
   }
-  
+
   void clear() => _data.clear();
 
   /**
@@ -34556,6 +34567,17 @@ class _Utils {
     return new UnsupportedError('[info: $fileName:$lineNo]');
   }
 
+  static bool isTypeSubclassOf(Type type, Type other) {
+    if (type == other) {
+      return true;
+    }
+    var superclass = reflectClass(type).superclass;
+    if (superclass != null) {
+      return isTypeSubclassOf(superclass.reflectedType, other);
+    }
+    return false;
+  }
+
   static window() native "Utils_window";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
   static void spawnDomFunction(Function f, int replyTo) native "Utils_spawnDomFunction";
@@ -34624,13 +34646,13 @@ class _Utils {
       sb.write("final $arg");
       args[arg] = value;
     }
-    
+
     addArg("\$var", _consoleTempVariables);
-    
+
     for (int i = 0; i < locals.length; i+= 2) {
       addArg(locals[i], locals[i+1]);
     }
-    sb..write(')=>\n$expression'); 
+    sb..write(')=>\n$expression');
     return [sb.toString(), args.values.toList(growable: false)];
   }
 
@@ -34647,10 +34669,10 @@ class _Utils {
    * prepended to disambuguate. This scheme is simplistic but easy to encode and
    * decode. The use case for this method is displaying all map keys in a human
    * readable way in debugging tools.
-   */ 
+   */
   static List<String> getEncodedMapKeyList(dynamic obj) {
     if (obj is! Map) return null;
-    
+
     var ret = new List<String>();
     int i = 0;
     return obj.keys.map((key) {
@@ -34734,40 +34756,20 @@ class _Utils {
     return libName.startsWith('dart:');
   }
 
-  static void register(String tag, Type type) {
+  static void register(Document document, String tag, Type type,
+      String extendsTagName) {
     // TODO(vsm): Move these checks into native code.
-    if (type == null) {
-      throw new UnsupportedError("Invalid null type.");
-    }
     ClassMirror cls = reflectClass(type);
     if (_isBuiltinType(cls)) {
       throw new UnsupportedError("Invalid custom element from $libName.");
     }
-    ClassMirror superClass = cls.superclass;
-
-    Symbol objectName = reflectClass(Object).qualifiedName;
-    bool isRoot(ClassMirror cls) =>
-      cls == null || cls.qualifiedName == objectName;
-    // TODO(vsm): Support extending SvgElement as well.
-    Symbol elementName = reflectClass(HtmlElement).qualifiedName;
-    bool isElement(ClassMirror cls) =>
-      cls != null && cls.qualifiedName == elementName;
-
-    ClassMirror nativeClass = _isBuiltinType(superClass) ? superClass : null;
-    while(!isRoot(superClass) && !isElement(superClass)) {
-      superClass = superClass.superclass;
-      if (nativeClass == null && _isBuiltinType(superClass)) {
-        nativeClass = superClass;
-      }
-    }
-
-    if (isRoot(superClass)) {
-      throw new UnsupportedError("Invalid custom element doesn't inherit from HtmlElement.");
-    }
-    _register(tag, type, nativeClass.reflectedType);
+    _register(document, tag, type, extendsTagName);
   }
 
-  static void _register(String tag, Type customType, Type nativeType) native "Utils_register";
+  static void _register(Document document, String tag, Type customType,
+      String extendsTagName) native "Utils_register";
+
+  static Element createElement(Document document, String tagName) native "Utils_createElement";
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {

@@ -9,6 +9,8 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+  Completer done = new Completer();
+
   var events = [];
   StreamController controller;
   // Test multiple subscribers of an asBroadcastStream inside the same
@@ -17,9 +19,15 @@ main() {
     var stream = new Stream.fromIterable([1, 2]).asBroadcastStream();
     stream.listen(events.add);
     stream.listen(events.add);
+    done.complete(stream.listen(null).asFuture());
   }).listen((x) { events.add("outer: $x"); },
-            onDone: () {
-              Expect.listEquals([1, 1, 2, 2], events);
-              asyncEnd();
-            });
+            onDone: () { Expect.fail("Unexpected callback"); });
+
+  done.future.whenComplete(() {
+    // Give handlers time to run.
+    Timer.run(() {
+      Expect.listEquals([1, 1, 2, 2], events);
+      asyncEnd();
+    });
+  });
 }

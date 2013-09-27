@@ -4,101 +4,275 @@
 
 part of dart.async;
 
+typedef dynamic ZoneCallback();
+typedef dynamic ZoneUnaryCallback(arg);
+
+typedef dynamic HandleUncaughtErrorHandler(
+    Zone self, ZoneDelegate parent, Zone zone, e);
+typedef dynamic RunHandler(Zone self, ZoneDelegate parent, Zone zone, f());
+typedef dynamic RunUnaryHandler(
+    Zone self, ZoneDelegate parent, Zone zone, f(arg), arg);
+typedef ZoneCallback RegisterCallbackHandler(
+    Zone self, ZoneDelegate parent, Zone zone, f());
+typedef ZoneUnaryCallback RegisterUnaryCallbackHandler(
+    Zone self, ZoneDelegate parent, Zone zone, f(arg));
+typedef void ScheduleMicrotaskHandler(
+    Zone self, ZoneDelegate parent, Zone zone, f());
+typedef Timer CreateTimerHandler(
+    Zone self, ZoneDelegate parent, Zone zone, Duration duration, void f());
+typedef Timer CreatePeriodicTimerHandler(
+    Zone self, ZoneDelegate parent, Zone zone,
+    Duration period, void f(Timer timer));
+typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
+                         ZoneSpecification specification,
+                         Map<Symbol, dynamic> zoneValues);
+
+/**
+ * This class provides the specification for a forked zone.
+ *
+ * When forking a new zone (see [Zone.fork]) one can override the default
+ * behavior of the zone by providing callbacks. These callbacks must be
+ * given in an instance of this class.
+ *
+ * Handlers have the same signature as the same-named methods on [Zone] but
+ * receive three additional arguments:
+ *
+ *   1. the zone the handlers are attached to (the "self" zone).
+ *   2. a [ZoneDelegate] to the parent zone.
+ *   3. the zone that first received the request (before the request was
+ *     bubbled up).
+ *
+ * Handlers can either stop propagation the request (by simply not calling the
+ * parent handler), or forward to the parent zone, potentially modifying the
+ * arguments on the way.
+ */
+abstract class ZoneSpecification {
+  /**
+   * Creates a specification with the provided handlers.
+   */
+  const factory ZoneSpecification({
+    void handleUncaughtError(
+        Zone self, ZoneDelegate parent, Zone zone, e): null,
+    dynamic run(Zone self, ZoneDelegate parent, Zone zone, f()): null,
+    dynamic runUnary(
+        Zone self, ZoneDelegate parent, Zone zone, f(arg), arg): null,
+    ZoneCallback registerCallback(
+        Zone self, ZoneDelegate parent, Zone zone, f()): null,
+    ZoneUnaryCallback registerUnaryCallback(
+        Zone self, ZoneDelegate parent, Zone zone, f(arg)): null,
+    void scheduleMicrotask(
+        Zone self, ZoneDelegate parent, Zone zone, f()): null,
+    Timer createTimer(Zone self, ZoneDelegate parent, Zone zone,
+                      Duration duration, void f()): null,
+    Timer createPeriodicTimer(Zone self, ZoneDelegate parent, Zone zone,
+                              Duration period, void f(Timer timer)): null,
+    Zone fork(Zone self, ZoneDelegate parent, Zone zone,
+              ZoneSpecification specification, Map zoneValues): null
+  }) = _ZoneSpecification;
+
+  /**
+   * Creates a specification from [other] with the provided handlers overriding
+   * the ones in [other].
+   */
+  factory ZoneSpecification.from(ZoneSpecification other, {
+    void handleUncaughtError(
+        Zone self, ZoneDelegate parent, Zone zone, e): null,
+    dynamic run(Zone self, ZoneDelegate parent, Zone zone, f()): null,
+    dynamic runUnary(
+        Zone self, ZoneDelegate parent, Zone zone, f(arg), arg): null,
+    ZoneCallback registerCallback(
+        Zone self, ZoneDelegate parent, Zone zone, f()): null,
+    ZoneUnaryCallback registerUnaryCallback(
+        Zone self, ZoneDelegate parent, Zone zone, f(arg)): null,
+    void scheduleMicrotask(
+        Zone self, ZoneDelegate parent, Zone zone, f()): null,
+    Timer createTimer(Zone self, ZoneDelegate parent, Zone zone,
+                      Duration duration, void f()): null,
+    Timer createPeriodicTimer(Zone self, ZoneDelegate parent, Zone zone,
+                              Duration period, void f(Timer timer)): null,
+    Zone fork(Zone self, ZoneDelegate parent, Zone zone,
+              ZoneSpecification specification,
+              Map<Symbol, dynamic> zoneValues): null
+  }) {
+    return new ZoneSpecification(
+      handleUncaughtError: handleUncaughtError != null
+                           ? handleUncaughtError
+                           : other.handleUncaughtError,
+      run: run != null ? run : other.run,
+      runUnary: runUnary != null ? runUnary : other.runUnary,
+      registerCallback: registerCallback != null
+                        ? registerCallback
+                        : other.registerCallback,
+      registerUnaryCallback: registerUnaryCallback != null
+                         ? registerUnaryCallback
+                         : other.registerUnaryCallback,
+      scheduleMicrotask: scheduleMicrotask != null
+                         ? scheduleMicrotask
+                         : other.scheduleMicrotask,
+      createTimer : createTimer != null ? createTimer : other.createTimer,
+      createPeriodicTimer: createPeriodicTimer != null
+                           ? createPeriodicTimer
+                           : other.createPeriodicTimer,
+      fork: fork != null ? fork : other.fork);
+  }
+
+  HandleUncaughtErrorHandler get handleUncaughtError;
+  RunHandler get run;
+  RunUnaryHandler get runUnary;
+  RegisterCallbackHandler get registerCallback;
+  RegisterUnaryCallbackHandler get registerUnaryCallback;
+  ScheduleMicrotaskHandler get scheduleMicrotask;
+  CreateTimerHandler get createTimer;
+  CreatePeriodicTimerHandler get createPeriodicTimer;
+  ForkHandler get fork;
+}
+
+/**
+ * Internal [ZoneSpecification] class.
+ *
+ * The implementation wants to rely on the fact that the getters cannot change
+ * dynamically. We thus require users to go through the redirecting
+ * [ZoneSpecification] constructor which instantiates this class.
+ */
+class _ZoneSpecification implements ZoneSpecification {
+  const _ZoneSpecification({
+    this.handleUncaughtError: null,
+    this.run: null,
+    this.runUnary: null,
+    this.registerCallback: null,
+    this.registerUnaryCallback: null,
+    this.scheduleMicrotask: null,
+    this.createTimer: null,
+    this.createPeriodicTimer: null,
+    this.fork: null
+  });
+
+  // TODO(13406): Enable types when dart2js supports it.
+  final /*HandleUncaughtErrorHandler*/ handleUncaughtError;
+  final /*RunHandler*/ run;
+  final /*RunUnaryHandler*/ runUnary;
+  final /*RegisterCallbackHandler*/ registerCallback;
+  final /*RegisterUnaryCallbackHandler*/ registerUnaryCallback;
+  final /*ScheduleMicrotaskHandler*/ scheduleMicrotask;
+  final /*CreateTimerHandler*/ createTimer;
+  final /*CreatePeriodicTimerHandler*/ createPeriodicTimer;
+  final /*ForkHandler*/ fork;
+}
+
+/**
+ * This class wraps zones for delegation.
+ *
+ * When forwarding to parent zones one can't just invoke the parent zone's
+ * exposed functions (like [Zone.run]), but one needs to provide more
+ * information (like the zone the `run` was initiated). Zone callbacks thus
+ * receive more information including this [ZoneDelegate] class. When delegating
+ * to the parent zone one should go through the given instance instead of
+ * directly invoking the parent zone.
+ */
+abstract class ZoneDelegate {
+  /// The [Zone] this class wraps.
+  Zone get _zone;
+
+  dynamic handleUncaughtError(Zone zone, e);
+  dynamic run(Zone zone, f());
+  dynamic runUnary(Zone zone, f(arg), arg);
+  ZoneCallback registerCallback(Zone zone, f());
+  ZoneUnaryCallback registerUnaryCallback(Zone zone, f(arg));
+  void scheduleMicrotask(Zone zone, f());
+  Timer createTimer(Zone zone, Duration duration, void f());
+  Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer));
+  Zone fork(Zone zone, ZoneSpecification specification, Map zoneValues);
+}
+
 /**
  * A Zone represents the asynchronous version of a dynamic extent. Asynchronous
  * callbacks are executed in the zone they have been queued in. For example,
  * the callback of a `future.then` is executed in the same zone as the one where
  * the `then` was invoked.
  */
-abstract class _Zone {
+abstract class Zone {
+  // Private constructor so that it is not possible instantiate a Zone class.
+  Zone._();
+
+  /// The root zone that is implicitly created.
+  static const Zone ROOT = _ROOT_ZONE;
+
   /// The currently running zone.
-  static _Zone _current = new _DefaultZone();
+  static Zone _current = _ROOT_ZONE;
 
-  static _Zone get current => _current;
+  static Zone get current => _current;
 
-  void handleUncaughtError(error);
+  dynamic handleUncaughtError(error);
+
+  /**
+   * Returns the parent zone.
+   *
+   * Returns `null` if `this` is the [ROOT] zone.
+   */
+  Zone get parent;
 
   /**
    * Returns true if `this` and [otherZone] are in the same error zone.
+   *
+   * Two zones are in the same error zone if they share the same
+   * [handleUncaughtError] callback.
    */
-  bool inSameErrorZone(_Zone otherZone);
+  bool inSameErrorZone(Zone otherZone);
 
   /**
-   * Returns a zone for reentry in the zone.
-   *
-   * The returned zone is equivalent to `this` (and frequently is indeed
-   * `this`).
-   *
-   * The main purpose of this method is to allow `this` to attach debugging
-   * information to the returned zone.
+   * Creates a new zone as a child of `this`.
    */
-  _Zone fork();
+  Zone fork({ ZoneSpecification specification,
+              Map<Symbol, dynamic> zoneValues });
 
   /**
-   * Tells the zone that it needs to wait for one more callback before it is
-   * done.
-   *
-   * Use [executeCallback] or [cancelCallbackExpectation] when the callback is
-   * executed (or canceled).
+   * Executes the given function [f] in this zone.
    */
-  void expectCallback();
+  dynamic run(f());
 
   /**
-   * Tells the zone not to wait for a callback anymore.
-   *
-   * Prefer calling [executeCallback], instead. This method is mostly useful
-   * for repeated callbacks (for example with [Timer.periodic]). In this case
-   * one should should call [expectCallback] when the repeated callback is
-   * initiated, and [cancelCallbackExpectation] when the [Timer] is canceled.
+   * Executes the given callback [f] with argument [arg] in this zone.
    */
-  void cancelCallbackExpectation();
+  dynamic runUnary(f(arg), var arg);
+
+  /**
+   * Executes the given function [f] in this zone.
+   *
+   * Same as [run] but catches uncaught errors and gives them to
+   * [handleUncaughtError].
+   */
+  dynamic runGuarded(f());
 
   /**
    * Executes the given callback [f] in this zone.
    *
-   * Decrements the number of callbacks this zone is waiting for (see
-   * [expectCallback]).
-   */
-  void executeCallback(void f());
-
-  /**
-   * Same as [executeCallback] but catches uncaught errors and gives them to
+   * Same as [runUnary] but catches uncaught errors and gives them to
    * [handleUncaughtError].
    */
-  void executeCallbackGuarded(void f());
+  dynamic runUnaryGuarded(f(arg), var arg);
+
+  ZoneCallback registerCallback(f());
+  ZoneUnaryCallback registerUnaryCallback(f(arg));
 
   /**
-   * Same as [executeCallback] but does not decrement the number of
-   * callbacks this zone is waiting for (see [expectCallback]).
-   */
-  void executePeriodicCallback(void f());
-
-  /**
-   * Same as [executePeriodicCallback] but catches uncaught errors and gives
-   * them to [handleUncaughtError].
-   */
-  void executePeriodicCallbackGuarded(void f());
-
-  /**
-   * Executes [f] in `this` zone.
+   *  Equivalent to:
    *
-   * The behavior of this method should be the same as
-   * [executePeriodicCallback] except that it can have a return value.
+   *      ZoneCallback registered = registerCallback(f);
+   *      return () => this.run(registered);
+   */
+  ZoneCallback bindCallback(f(), { bool runGuarded });
+  /**
+   *  Equivalent to:
    *
-   * Returns the result of the invocation.
+   *      ZoneCallback registered = registerCallback1(f);
+   *      return (arg) => this.run1(registered, arg);
    */
-  dynamic runFromChildZone(f());
+  ZoneUnaryCallback bindUnaryCallback(f(arg), { bool runGuarded });
 
   /**
-   * Same as [runFromChildZone] but catches uncaught errors and gives them to
-   * [handleUncaughtError].
+   * Runs [f] asynchronously.
    */
-  dynamic runFromChildZoneGuarded(f());
-
-  /**
-   * Runs [f] asynchronously in [zone].
-   */
-  void runAsync(void f(), _Zone zone);
+  void scheduleMicrotask(void f());
 
   /**
    * Creates a Timer where the callback is executed in this zone.
@@ -108,362 +282,315 @@ abstract class _Zone {
   /**
    * Creates a periodic Timer where the callback is executed in this zone.
    */
-  Timer createPeriodicTimer(Duration duration, void callback(Timer timer));
+  Timer createPeriodicTimer(Duration period, void callback(Timer timer));
 
   /**
    * The error zone is the one that is responsible for dealing with uncaught
    * errors. Errors are not allowed to cross zones with different error-zones.
    */
-  _Zone get _errorZone;
+  Zone get _errorZone;
 
   /**
-   * Adds [child] as a child of `this`.
+   * Retrieves the zone-value associated with [key].
    *
-   * This usually means that the [child] is in the asynchronous dynamic extent
-   * of `this`.
+   * If this zone does not contain the value looks up the same key in the
+   * parent zone. If the [key] is not found returns `null`.
    */
-  void _addChild(_Zone child);
-
-  /**
-   * Removes [child] from `this`' children.
-   *
-   * This usually means that the [child] has finished executing and is done.
-   */
-  void _removeChild(_Zone child);
+  operator[](Symbol key);
 }
 
+class _ZoneDelegate implements ZoneDelegate {
+  final _CustomizedZone _degelationTarget;
+
+  Zone get _zone => _degelationTarget;
+
+  const _ZoneDelegate(this._degelationTarget);
+
+  dynamic handleUncaughtError(Zone zone, e) {
+    _CustomizedZone parent = _degelationTarget;
+    while (parent._specification.handleUncaughtError == null) {
+      parent = parent.parent;
+    }
+    return (parent._specification.handleUncaughtError)(
+        parent, new _ZoneDelegate(parent.parent), zone, e);
+  }
+
+  dynamic run(Zone zone, f()) {
+    _CustomizedZone parent = _degelationTarget;
+    while (parent._specification.run == null) {
+      parent = parent.parent;
+    }
+    return (parent._specification.run)(
+        parent, new _ZoneDelegate(parent.parent), zone, f);
+  }
+
+  dynamic runUnary(Zone zone, f(arg), arg) {
+    _CustomizedZone parent = _degelationTarget;
+    while (parent._specification.runUnary == null) {
+      parent = parent.parent;
+    }
+    return (parent._specification.runUnary)(
+        parent, new _ZoneDelegate(parent.parent), zone, f, arg);
+  }
+
+  ZoneCallback registerCallback(Zone zone, f()) {
+    _CustomizedZone parent = _degelationTarget;
+    while (parent._specification.registerCallback == null) {
+      parent = parent.parent;
+    }
+    return (parent._specification.registerCallback)(
+        parent, new _ZoneDelegate(parent.parent), zone, f);
+  }
+
+  ZoneUnaryCallback registerUnaryCallback(Zone zone, f(arg)) {
+    _CustomizedZone parent = _degelationTarget;
+    while (parent._specification.registerUnaryCallback == null) {
+      parent = parent.parent;
+    }
+    return (parent._specification.registerUnaryCallback)(
+        parent, new _ZoneDelegate(parent.parent), zone, f);
+  }
+
+  void scheduleMicrotask(Zone zone, f()) {
+    _CustomizedZone parent = _degelationTarget;
+    while (parent._specification.scheduleMicrotask == null) {
+      parent = parent.parent;
+    }
+    _ZoneDelegate grandParent = new _ZoneDelegate(parent.parent);
+    (parent._specification.scheduleMicrotask)(parent, grandParent, zone, f);
+  }
+
+  Timer createTimer(Zone zone, Duration duration, void f()) {
+    _CustomizedZone parent = _degelationTarget;
+    while (parent._specification.createTimer == null) {
+      parent = parent.parent;
+    }
+    return (parent._specification.createTimer)(
+        parent, new _ZoneDelegate(parent.parent), zone, duration, f);
+  }
+
+  Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer)) {
+    _CustomizedZone parent = _degelationTarget;
+    while (parent._specification.createPeriodicTimer == null) {
+      parent = parent.parent;
+    }
+    return (parent._specification.createPeriodicTimer)(
+        parent, new _ZoneDelegate(parent.parent), zone, period, f);
+  }
+
+  Zone fork(Zone zone, ZoneSpecification specification,
+            Map<Symbol, dynamic> zoneValues) {
+    _CustomizedZone parent = _degelationTarget;
+    while (parent._specification.fork == null) {
+      parent = parent.parent;
+    }
+    _ZoneDelegate grandParent = new _ZoneDelegate(parent.parent);
+    return (parent._specification.fork)(
+        parent, grandParent, zone, specification, zoneValues);
+  }
+}
+
+
 /**
- * Basic implementation of a [_Zone]. This class is intended for subclassing.
+ * Default implementation of a [Zone].
  */
-class _ZoneBase implements _Zone {
-  /// The parent zone. [null] if `this` is the default zone.
-  final _Zone _parentZone;
+class _CustomizedZone implements Zone {
+  /// The parent zone.
+  final _CustomizedZone parent;
+  /// The zone's handlers.
+  final ZoneSpecification _specification;
+  /// The zone's value map.
+  final Map<Symbol, dynamic> _map;
 
-  /// The number of children of this zone. A child's [_parentZone] is `this`.
-  int _childCount = 0;
+  const _CustomizedZone(this.parent, this._specification, this._map);
 
-  /// The number of outstanding (asynchronous) callbacks. As long as the
-  /// number is greater than 0 it means that the zone is not done yet.
-  int _openCallbacks = 0;
-
-  bool _isExecutingCallback = false;
-
-  _ZoneBase(this._parentZone) {
-    _parentZone._addChild(this);
+  Zone get _errorZone {
+    if (_specification.handleUncaughtError != null) return this;
+    return parent._errorZone;
   }
 
-  _ZoneBase._defaultZone() : _parentZone = null {
-    assert(this is _DefaultZone);
-  }
+  bool inSameErrorZone(Zone otherZone) => _errorZone == otherZone._errorZone;
 
-  _Zone get _errorZone => _parentZone._errorZone;
-
-  void handleUncaughtError(error) {
-    _parentZone.handleUncaughtError(error);
-  }
-
-  bool inSameErrorZone(_Zone otherZone) => _errorZone == otherZone._errorZone;
-
-  _Zone fork() => this;
-
-  expectCallback() => _openCallbacks++;
-
-  cancelCallbackExpectation() {
-    _openCallbacks--;
-    _checkIfDone();
-  }
-
-  /**
-   * Cleans up this zone when it is done.
-   *
-   * This releases internal memore structures that are no longer necessary.
-   *
-   * A zone is done when its dynamic extent has finished executing and
-   * there are no outstanding asynchronous callbacks.
-   */
-  void _dispose() {
-    if (_parentZone != null) {
-      _parentZone._removeChild(this);
-    }
-  }
-
-  /**
-   * Checks if the zone is done and doesn't have any outstanding callbacks
-   * anymore.
-   *
-   * This method is called when an operation has decremented the
-   * outstanding-callback count, or when a child has been removed.
-   */
-  void _checkIfDone() {
-    if (!_isExecutingCallback && _openCallbacks == 0 && _childCount == 0) {
-      _dispose();
-    }
-  }
-
-  void executeCallback(void f()) {
-    _openCallbacks--;
-    this._runUnguarded(f);
-  }
-
-  void executeCallbackGuarded(void f()) {
-    _openCallbacks--;
-    this._runGuarded(f);
-  }
-
-  void executePeriodicCallback(void f()) {
-    this._runUnguarded(f);
-  }
-
-  void executePeriodicCallbackGuarded(void f()) {
-    this._runGuarded(f);
-  }
-
-  dynamic runFromChildZone(f()) => this._runUnguarded(f);
-  dynamic runFromChildZoneGuarded(f()) => this._runGuarded(f);
-
-  dynamic _runInZone(f(), bool handleUncaught) {
-    if (identical(_Zone._current, this)
-        && !handleUncaught
-        && _isExecutingCallback) {
-      // No need to go through a try/catch.
-      return f();
-    }
-
-    _Zone oldZone = _Zone._current;
-    _Zone._current = this;
-    // While we are executing the function we don't want to have other
-    // synchronous calls to think that they closed the zone. By incrementing
-    // the _openCallbacks count we make sure that their test will fail.
-    // As a side effect it will make nested calls faster since they are
-    // (probably) in the same zone and have an _openCallbacks > 0.
-    bool oldIsExecuting = _isExecutingCallback;
-    _isExecutingCallback = true;
-    // TODO(430): remove second try when VM bug is fixed.
+  dynamic runGuarded(f()) {
     try {
-      try {
-        return f();
-      } catch(e, s) {
-        if (handleUncaught) {
-          handleUncaughtError(_asyncError(e, s));
-        } else {
-          rethrow;
-        }
-      }
-    } finally {
-      _isExecutingCallback = oldIsExecuting;
-      _Zone._current = oldZone;
-      _checkIfDone();
+      return run(f);
+    } catch (e, s) {
+      return handleUncaughtError(_asyncError(e, s));
     }
   }
 
-  /**
-   * Runs the function and catches uncaught errors.
-   *
-   * Uncaught errors are given to [handleUncaughtError].
-   */
-  dynamic _runGuarded(void f()) {
-    return _runInZone(f, true);
-  }
-
-  /**
-   * Runs the function but doesn't catch uncaught errors.
-   */
-  dynamic _runUnguarded(void f()) {
-    return _runInZone(f, false);
-  }
-
-  void runAsync(void f(), _Zone zone) => _parentZone.runAsync(f, zone);
-
-  // TODO(floitsch): the zone should just forward to the parent zone. The
-  // default zone should then create the _ZoneTimer.
-  Timer createTimer(Duration duration, void callback()) {
-    return new _ZoneTimer(this, duration, callback);
-  }
-
-  // TODO(floitsch): the zone should just forward to the parent zone. The
-  // default zone should then create the _ZoneTimer.
-  Timer createPeriodicTimer(Duration duration, void callback(Timer timer)) {
-    return new _PeriodicZoneTimer(this, duration, callback);
-  }
-
-  void _addChild(_Zone child) {
-    _childCount++;
-  }
-
-  void _removeChild(_Zone child) {
-    assert(_childCount != 0);
-    _childCount--;
-    _checkIfDone();
-  }
-}
-
-/**
- * The default-zone that conceptually surrounds the `main` function.
- */
-class _DefaultZone extends _ZoneBase {
-  _DefaultZone() : super._defaultZone();
-
-  _Zone get _errorZone => this;
-
-  void handleUncaughtError(error) {
-    _scheduleAsyncCallback(() {
-      print("Uncaught Error: ${error}");
-      var trace = getAttachedStackTrace(error);
-      _attachStackTrace(error, null);
-      if (trace != null) {
-        print("Stack Trace:\n$trace\n");
-      }
-      throw error;
-    });
-  }
-
-  void runAsync(void f(), _Zone zone) {
-    if (identical(this, zone)) {
-      // No need to go through the zone when it's the default zone anyways.
-      _scheduleAsyncCallback(f);
-      return;
-    }
-    zone.expectCallback();
-    _scheduleAsyncCallback(() {
-      zone.executeCallbackGuarded(f);
-    });
-  }
-}
-
-typedef void _CompletionCallback();
-
-/**
- * A zone that executes a callback when the zone is dead.
- */
-class _WaitForCompletionZone extends _ZoneBase {
-  final _CompletionCallback _onDone;
-
-  _WaitForCompletionZone(_Zone parentZone, this._onDone) : super(parentZone);
-
-  /**
-   * Runs the given function.
-   *
-   * Executes the [_onDone] callback when the zone is done.
-   */
-  dynamic runWaitForCompletion(void f()) {
-    return this._runUnguarded(f);
-  }
-
-  void _dispose() {
-    super._dispose();
-    _onDone();
-  }
-
-  String toString() => "WaitForCompletion ${super.toString()}";
-}
-
-typedef void _HandleErrorCallback(error);
-
-/**
- * A zone that collects all uncaught errors and provides them in a stream.
- * The stream is closed when the zone is done.
- */
-class _CatchErrorsZone extends _WaitForCompletionZone {
-  final _HandleErrorCallback _handleError;
-
-  _CatchErrorsZone(_Zone parentZone, this._handleError, void onDone())
-      : super(parentZone, onDone);
-
-  _Zone get _errorZone => this;
-
-  void handleUncaughtError(error) {
+  dynamic runUnaryGuarded(f(arg), arg) {
     try {
-      _handleError(error);
-    } catch(e, s) {
-      if (identical(e, error)) {
-        _parentZone.handleUncaughtError(error);
-      } else {
-        _parentZone.handleUncaughtError(_asyncError(e, s));
-      }
+      return runUnary(f, arg);
+    } catch (e, s) {
+      return handleUncaughtError(_asyncError(e, s));
     }
   }
 
-  /**
-   * Runs the given function asynchronously. Executes the [_onDone] callback
-   * when the zone is done.
-   */
-  dynamic runWaitForCompletion(void f()) {
-    return this._runGuarded(f);
+  ZoneCallback bindCallback(f(), { bool runGuarded }) {
+    ZoneCallback registered = registerCallback(f);
+    if (runGuarded) {
+      return () => this.runGuarded(registered);
+    } else {
+      return () => this.run(registered);
+    }
   }
 
-  String toString() => "CatchErrors ${super.toString()}";
+  ZoneUnaryCallback bindUnaryCallback(f(arg), { bool runGuarded }) {
+    ZoneUnaryCallback registered = registerUnaryCallback(f);
+    if (runGuarded) {
+      return (arg) => this.runUnaryGuarded(registered, arg);
+    } else {
+      return (arg) => this.runUnary(registered, arg);
+    }
+  }
+
+  operator [](Symbol key) {
+    var result = _map[key];
+    if (result != null || _map.containsKey(key)) return result;
+    // If we are not the root zone look up in the parent zone.
+    if (parent != null) return parent[key];
+    assert(this == Zone.ROOT);
+    return null;
+  }
+
+  // Methods that can be customized by the zone specification.
+
+  dynamic handleUncaughtError(error) {
+    return new _ZoneDelegate(this).handleUncaughtError(this, error);
+  }
+
+  Zone fork({ZoneSpecification specification, Map zoneValues}) {
+    return new _ZoneDelegate(this).fork(this, specification, zoneValues);
+  }
+
+  dynamic run(f()) {
+    return new _ZoneDelegate(this).run(this, f);
+  }
+
+  dynamic runUnary(f(arg), arg) {
+    return new _ZoneDelegate(this).runUnary(this, f, arg);
+  }
+
+  ZoneCallback registerCallback(f()) {
+    return new _ZoneDelegate(this).registerCallback(this, f);
+  }
+
+  ZoneUnaryCallback registerUnaryCallback(f(arg)) {
+    return new _ZoneDelegate(this).registerUnaryCallback(this, f);
+  }
+
+  void scheduleMicrotask(void f()) {
+    new _ZoneDelegate(this).scheduleMicrotask(this, f);
+  }
+
+  Timer createTimer(Duration duration, void f()) {
+    return new _ZoneDelegate(this).createTimer(this, duration, f);
+  }
+
+  Timer createPeriodicTimer(Duration duration, void f(Timer timer)) {
+    return new _ZoneDelegate(this).createPeriodicTimer(this, duration, f);
+  }
 }
 
-typedef void _RunAsyncInterceptor(void callback());
+void _rootHandleUncaughtError(
+    Zone self, ZoneDelegate parent, Zone zone, error) {
+  _scheduleAsyncCallback(() {
+    print("Uncaught Error: ${error}");
+    var trace = getAttachedStackTrace(error);
+    _attachStackTrace(error, null);
+    if (trace != null) {
+      print("Stack Trace:\n$trace\n");
+    }
+    throw error;
+  });
+}
 
-class _RunAsyncZone extends _ZoneBase {
-  final _RunAsyncInterceptor _runAsyncInterceptor;
+dynamic _rootRun(Zone self, ZoneDelegate parent, Zone zone, f()) {
+  if (Zone._current == zone) return f();
 
-  _RunAsyncZone(_Zone parentZone, this._runAsyncInterceptor)
-      : super(parentZone);
+  Zone old = Zone._current;
+  try {
+    Zone._current = zone;
+    return f();
+  } finally {
+    Zone._current = old;
+  }
+}
 
-  void runAsync(void callback(), _Zone zone) {
-    zone.expectCallback();
-    _parentZone.runFromChildZone(() {
-      _runAsyncInterceptor(() => zone.executeCallbackGuarded(callback));
+dynamic _rootRunUnary(Zone self, ZoneDelegate parent, Zone zone, f(arg), arg) {
+  if (Zone._current == zone) return f(arg);
+
+  Zone old = Zone._current;
+  try {
+    Zone._current = zone;
+    return f(arg);
+  } finally {
+    Zone._current = old;
+  }
+}
+
+ZoneCallback _rootRegisterCallback(
+    Zone self, ZoneDelegate parent, Zone zone, f()) {
+  return f;
+}
+
+ZoneUnaryCallback _rootRegisterUnaryCallback(
+    Zone self, ZoneDelegate parent, Zone zone, f(arg)) {
+  return f;
+}
+
+void _rootScheduleMicrotask(Zone self, ZoneDelegate parent, Zone zone, f()) {
+  _scheduleAsyncCallback(f);
+}
+
+Timer _rootCreateTimer(Zone self, ZoneDelegate parent, Zone zone,
+                       Duration duration, void callback()) {
+  return _createTimer(duration, callback);
+}
+
+Timer _rootCreatePeriodicTimer(
+    Zone self, ZoneDelegate parent, Zone zone,
+    Duration duration, void callback(Timer timer)) {
+  return _createPeriodicTimer(duration, callback);
+}
+
+Zone _rootFork(Zone self, ZoneDelegate parent, Zone zone,
+               ZoneSpecification specification,
+               Map<Symbol, dynamic> zoneValues) {
+  if (specification == null) {
+    specification = const ZoneSpecification();
+  } else if (specification is! _ZoneSpecification) {
+    throw new ArgumentError("ZoneSpecifications must be instantiated"
+        " with the provided constructor.");
+  }
+  Map<Symbol, dynamic> copiedMap = new HashMap();
+  if (zoneValues != null) {
+    zoneValues.forEach((Symbol key, value) {
+      if (key == null) {
+        throw new ArgumentError("ZoneValue key must not be null");
+      }
+      copiedMap[key] = value;
     });
   }
+  return new _CustomizedZone(zone, specification, copiedMap);
 }
 
-typedef void _TimerCallback();
+const _ROOT_SPECIFICATION = const ZoneSpecification(
+  handleUncaughtError: _rootHandleUncaughtError,
+  run: _rootRun,
+  runUnary: _rootRunUnary,
+  registerCallback: _rootRegisterCallback,
+  registerUnaryCallback: _rootRegisterUnaryCallback,
+  scheduleMicrotask: _rootScheduleMicrotask,
+  createTimer: _rootCreateTimer,
+  createPeriodicTimer: _rootCreatePeriodicTimer,
+  fork: _rootFork
+);
 
-/**
- * A [Timer] class that takes zones into account.
- */
-class _ZoneTimer implements Timer {
-  final _Zone _zone;
-  final _TimerCallback _callback;
-  Timer _timer;
+const _ROOT_ZONE =
+    const _CustomizedZone(null, _ROOT_SPECIFICATION, const <Symbol, dynamic>{});
 
-  _ZoneTimer(this._zone, Duration duration, this._callback) {
-    _zone.expectCallback();
-    _timer = _createTimer(duration, this._run);
-  }
-
-  void _run() {
-    _zone.executeCallbackGuarded(_callback);
-  }
-
-  void cancel() {
-    if (_timer.isActive) _zone.cancelCallbackExpectation();
-    _timer.cancel();
-  }
-
-  bool get isActive => _timer.isActive;
-}
-
-typedef void _PeriodicTimerCallback(Timer timer);
-
-/**
- * A [Timer] class for periodic callbacks that takes zones into account.
- */
-class _PeriodicZoneTimer implements Timer {
-  final _Zone _zone;
-  final _PeriodicTimerCallback _callback;
-  Timer _timer;
-
-  _PeriodicZoneTimer(this._zone, Duration duration, this._callback) {
-    _zone.expectCallback();
-    _timer = _createPeriodicTimer(duration, this._run);
-  }
-
-  void _run(Timer timer) {
-    assert(identical(_timer, timer));
-    _zone.executePeriodicCallbackGuarded(() { _callback(this); });
-  }
-
-  void cancel() {
-    if (_timer.isActive) _zone.cancelCallbackExpectation();
-    _timer.cancel();
-  }
-
-  bool get isActive => _timer.isActive;
-}
 
 /**
  * Runs [body] in its own zone.
@@ -471,32 +598,6 @@ class _PeriodicZoneTimer implements Timer {
  * If [onError] is non-null the zone is considered an error zone. All uncaught
  * errors, synchronous or asynchronous, in the zone are caught and handled
  * by the callback.
- *
- * The [onDone] handler (if non-null) is invoked when the zone has no more
- * outstanding callbacks. *Deprecated*: this method is less useful than it
- * seems, because it assumes that every registered callback is always invoked.
- * There are, however, many *valid* reasons not to complete futures or to abort
- * a future-chain. In general it is a bad idea to rely on `onDone`.
- *
- * The [onRunAsync] handler (if non-null) is invoked when the [body] executes
- * [runAsync].  The handler is invoked in the outer zone and can therefore
- * execute [runAsync] without recursing. The given callback must be
- * executed eventually. Otherwise the nested zone will not complete. It must be
- * executed only once.
- *
- * Examples:
- *
- *     runZonedExperimental(() {
- *       new Future(() { throw "asynchronous error"; });
- *     }, onError: print);  // Will print "asynchronous error".
- *
- * The following example prints "1", "2", "3", "4" in this order.
- *
- *     runZonedExperimental(() {
- *       print(1);
- *       new Future.value(3).then(print);
- *     }, onDone: () { print(4); });
- *     print(2);
  *
  * Errors may never cross error-zone boundaries. This is intuitive for leaving
  * a zone, but it also applies for errors that would enter an error-zone.
@@ -510,6 +611,56 @@ class _PeriodicZoneTimer implements Timer {
  *       }, onError: (e) { print("unused error handler"); });
  *     }, onError: (e) { print("catches error of first error-zone."); });
  *
+ * Example:
+ *
+ *     runZonedExperimental(() {
+ *       new Future(() { throw "asynchronous error"; });
+ *     }, onError: print);  // Will print "asynchronous error".
+ */
+dynamic runZoned(body(),
+                 { Map<Symbol, dynamic> zoneValues,
+                   ZoneSpecification zoneSpecification,
+                   void onError(error) }) {
+  HandleUncaughtErrorHandler errorHandler;
+  if (onError != null) {
+    errorHandler = (Zone self, ZoneDelegate parent, Zone zone, error) {
+      try {
+        return self.parent.runUnary(onError, error);
+      } catch(e, s) {
+        if (identical(e, error)) {
+          return parent.handleUncaughtError(zone, error);
+        } else {
+          return parent.handleUncaughtError(zone, _asyncError(e, s));
+        }
+      }
+    };
+  }
+  if (zoneSpecification == null) {
+    zoneSpecification =
+        new ZoneSpecification(handleUncaughtError: errorHandler);
+  } else if (errorHandler != null) {
+    zoneSpecification =
+        new ZoneSpecification.from(zoneSpecification,
+                                   handleUncaughtError: errorHandler);
+  }
+  Zone zone = Zone.current.fork(specification: zoneSpecification,
+                                zoneValues: zoneValues);
+  if (onError != null) {
+    return zone.runGuarded(body);
+  } else {
+    return zone.run(body);
+  }
+}
+
+/**
+ * Deprecated. Use `runZoned` instead or create your own [ZoneSpecification].
+ *
+ * The [onRunAsync] handler (if non-null) is invoked when the [body] executes
+ * [runAsync].  The handler is invoked in the outer zone and can therefore
+ * execute [runAsync] without recursing. The given callback must be
+ * executed eventually. Otherwise the nested zone will not complete. It must be
+ * executed only once.
+ *
  * The following example prints the stack trace whenever a callback is
  * registered using [runAsync] (which is also used by [Completer]s and
  * [StreamController]s.
@@ -519,26 +670,44 @@ class _PeriodicZoneTimer implements Timer {
  *       printStackTrace();
  *       runAsync(callback);
  *     });
+ *
+ * Note: the `onDone` handler is ignored.
  */
+@deprecated
 runZonedExperimental(body(),
                      { void onRunAsync(void callback()),
                        void onError(error),
                        void onDone() }) {
+  if (onRunAsync == null) {
+    return runZoned(body, onError: onError);
+  }
+  HandleUncaughtErrorHandler errorHandler;
+  if (onError != null) {
+    errorHandler = (Zone self, ZoneDelegate parent, Zone zone, error) {
+      try {
+        return self.parent.runUnary(onError, error);
+      } catch(e, s) {
+        if (identical(e, error)) {
+          return parent.handleUncaughtError(zone, error);
+        } else {
+          return parent.handleUncaughtError(zone, _asyncError(e, s));
+        }
+      }
+    };
+  }
+  ScheduleMicrotaskHandler asyncHandler;
   if (onRunAsync != null) {
-    _RunAsyncZone zone = new _RunAsyncZone(_Zone._current, onRunAsync);
-    return zone._runUnguarded(() {
-      return runZonedExperimental(body, onError: onError, onDone: onDone);
-    });
+    asyncHandler = (Zone self, ZoneDelegate parent, Zone zone, f()) {
+      self.parent.runUnary(onRunAsync, () => zone.runGuarded(f));
+    };
   }
-
-  // TODO(floitsch): we probably still want to install a new Zone.
-  if (onError == null && onDone == null) return body();
-  if (onError == null) {
-    _WaitForCompletionZone zone =
-        new _WaitForCompletionZone(_Zone._current, onDone);
-    return zone.runWaitForCompletion(body);
+  ZoneSpecification specification =
+    new ZoneSpecification(handleUncaughtError: errorHandler,
+                        scheduleMicrotask: asyncHandler);
+  Zone zone = Zone.current.fork(specification: specification);
+  if (onError != null) {
+    return zone.runGuarded(body);
+  } else {
+    return zone.run(body);
   }
-  if (onDone == null) onDone = _nullDoneHandler;
-  _CatchErrorsZone zone = new _CatchErrorsZone(_Zone._current, onError, onDone);
-  return zone.runWaitForCompletion(body);
 }

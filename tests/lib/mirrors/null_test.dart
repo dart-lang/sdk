@@ -10,25 +10,25 @@ import 'package:expect/expect.dart';
 
 main() {
   InstanceMirror nullMirror = reflect(null);
-  Expect.isTrue(nullMirror.getField(const Symbol('hashCode')).reflectee is int);
+  Expect.isTrue(nullMirror.getField(#hashCode).reflectee is int);
   Expect.equals(null.hashCode,
-                nullMirror.getField(const Symbol('hashCode')).reflectee);
+                nullMirror.getField(#hashCode).reflectee);
   Expect.equals('Null',
-                nullMirror.getField(const Symbol('runtimeType')).reflectee
+                nullMirror.getField(#runtimeType).reflectee
                 .toString());
-  Expect.isTrue(nullMirror.invoke(const Symbol('=='), [null]).reflectee);
-  Expect.isFalse(nullMirror.invoke(const Symbol('=='), [new Object()])
+  Expect.isTrue(nullMirror.invoke(#==, [null]).reflectee);
+  Expect.isFalse(nullMirror.invoke(#==, [new Object()])
                  .reflectee);
   Expect.equals('null',
-                nullMirror.invoke(const Symbol('toString'), []).reflectee);
-  Expect.throws(() => nullMirror.invoke(const Symbol('notDefined'), []),
+                nullMirror.invoke(#toString, []).reflectee);
+  Expect.throws(() => nullMirror.invoke(#notDefined, []),
                 (e) => e is NoSuchMethodError,
                 'noSuchMethod');
 
   ClassMirror NullMirror = nullMirror.type;
   Expect.equals(reflectClass(Null), NullMirror);
-  Expect.equals(const Symbol('Null'), NullMirror.simpleName);
-  Expect.equals(const Symbol('Object'), NullMirror.superclass.simpleName);
+  Expect.equals(#Null, NullMirror.simpleName);
+  Expect.equals(#Object, NullMirror.superclass.simpleName);
   Expect.equals(null, NullMirror.superclass.superclass);
   Expect.listEquals([], NullMirror.superinterfaces);
   Expect.equals(currentMirrorSystem().libraries[Uri.parse('dart:core')],

@@ -50,10 +50,8 @@ main() {
   // The buffer size used in process.h.
   var kBufferSize = 16 * 1024;
   test(1, kBufferSize, kBufferSize, 0);
-  test(1, kBufferSize - 1, kBufferSize + 1, 0);
-  test(kBufferSize - 1, 1, 1, 0);
-  test(kBufferSize, 1, 1, 0);
-  test(kBufferSize + 1, 1, 1, 0);
+  test(1, kBufferSize - 1, kBufferSize - 1, 0);
+  test(1, kBufferSize + 1, kBufferSize + 1, 0);
 
   test(10, 10, 10, 1);
   test(10, 10, 10, 255);

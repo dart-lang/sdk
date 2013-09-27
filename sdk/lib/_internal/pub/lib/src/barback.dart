@@ -10,9 +10,9 @@ import 'package:barback/barback.dart';
 
 import 'barback/load_all_transformers.dart';
 import 'barback/pub_package_provider.dart';
-import 'barback/rewrite_import_transformer.dart';
 import 'barback/server.dart';
 import 'barback/watch_sources.dart';
+import 'package_graph.dart';
 import 'utils.dart';
 
 /// An identifier for a transformer and the configuration that will be passed to
@@ -33,9 +33,8 @@ class TransformerId {
     if (configuration == null) return;
     for (var reserved in ['include', 'exclude']) {
       if (!configuration.containsKey(reserved)) continue;
-      throw new FormatException('Configuration for transformer '
-          '${idToLibraryIdentifier(asset)} may not include reserved key '
-          '"$reserved".');
+      throw new FormatException('Transformer configuration may not include '
+          'reserved key "$reserved".');
     }
   }
 
@@ -98,7 +97,7 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph) {
 /// Otherwise, it expands to lib/${path}.dart in that package.
 AssetId libraryIdentifierToId(String identifier) {
   if (identifier.isEmpty) {
-    throw new FormatError('Invalid library identifier: "".');
+    throw new FormatException('Invalid library identifier: "".');
   }
 
   // Convert the concise asset name in the pubspec (of the form "package"

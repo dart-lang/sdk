@@ -16,6 +16,7 @@ import 'cancelable_future.dart';
 import 'errors.dart';
 import 'package_graph.dart';
 import 'phase.dart';
+import 'stream_pool.dart';
 import 'transformer.dart';
 import 'utils.dart';
 
@@ -69,6 +70,20 @@ class AssetCascade {
   Stream<BarbackException> get errors => _errorsController.stream;
   final _errorsController = new StreamController<BarbackException>.broadcast();
 
+  /// A stream that emits an event whenever this cascade becomes dirty.
+  ///
+  /// After this stream emits an event, [results] will emit an event once the
+  /// cascade is no longer dirty.
+  ///
+  /// This may emit events when the cascade was already dirty. Events are
+  /// emitted synchronously to ensure that the dirty state is thoroughly
+  /// propagated as soon as any assets are changed.
+  Stream get onDirty => _onDirtyPool.stream;
+  final _onDirtyPool = new StreamPool.broadcast();
+
+  /// A controller whose stream feeds into [_onDirtyPool].
+  final _onDirtyController = new StreamController.broadcast(sync: true);
+
   /// The errors that have occurred since the current build started.
   ///
   /// This will be empty if no build is occurring.
@@ -90,6 +105,7 @@ class AssetCascade {
   ///
   /// It loads source assets within [package] using [provider].
   AssetCascade(this.graph, this.package) {
+    _onDirtyPool.add(_onDirtyController.stream);
     _addPhase(new Phase(this, []));
   }
 
@@ -201,6 +217,7 @@ class AssetCascade {
 
   /// Add [phase] to the end of [_phases] and watch its [onDirty] stream.
   void _addPhase(Phase phase) {
+    _onDirtyPool.add(phase.onDirty);
     phase.onDirty.listen((_) {
       _newChanges = true;
       _waitForProcess();

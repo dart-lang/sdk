@@ -18,8 +18,8 @@ class Foo {
 
 main() {
   Expect.equals(
-      1, reflect(new Foo(1)).getField(const Symbol('length')).reflectee);
+      1, reflect(new Foo(1)).getField(#length).reflectee);
   Expect.equals(
-      2, reflect(new Foo(2)).getField(const Symbol('length')).reflectee);
-  Expect.equals(0, reflect([]).getField(const Symbol('length')).reflectee);
+      2, reflect(new Foo(2)).getField(#length).reflectee);
+  Expect.equals(0, reflect([]).getField(#length).reflectee);
 }

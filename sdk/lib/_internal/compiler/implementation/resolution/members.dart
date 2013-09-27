@@ -1750,6 +1750,31 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
     }
     return type;
   }
+
+  Element defineElement(Node node, Element element,
+                        {bool doAddToScope: true}) {
+    compiler.ensure(element != null);
+    mapping[node] = element;
+    if (doAddToScope) {
+      Element existing = scope.add(element);
+      if (existing != element) {
+        reportDuplicateDefinition(node, element, existing);
+      }
+    }
+    return element;
+  }
+
+  void reportDuplicateDefinition(/*Node|SourceString*/ name,
+                                 Spannable definition,
+                                 Spannable existing) {
+    compiler.reportError(
+        definition,
+        MessageKind.DUPLICATE_DEFINITION, {'name': name});
+    compiler.reportMessage(
+        compiler.spanFromSpannable(existing),
+        MessageKind.EXISTING_DEFINITION.error({'name': name}),
+        Diagnostic.INFO);
+  }
 }
 
 /**
@@ -1940,24 +1965,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
       return type.element;
     }
     return null;
-  }
-
-  Element defineElement(Node node, Element element,
-                        {bool doAddToScope: true}) {
-    compiler.ensure(element != null);
-    mapping[node] = element;
-    if (doAddToScope) {
-      Element existing = scope.add(element);
-      if (existing != element) {
-        compiler.reportError(
-            node, MessageKind.DUPLICATE_DEFINITION, {'name': node});
-        compiler.reportMessage(
-            compiler.spanFromSpannable(existing),
-            MessageKind.EXISTING_DEFINITION.error({'name': node}),
-            Diagnostic.INFO);
-      }
-    }
-    return element;
   }
 
   bool isNamedConstructor(Send node) => node.receiver != null;
@@ -2337,14 +2344,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
       if (namedArgument != null) {
         SourceString source = namedArgument.name.source;
         if (seenNamedArguments.containsKey(source)) {
-          compiler.reportError(
+          reportDuplicateDefinition(
+              source,
               argument,
-              MessageKind.DUPLICATE_DEFINITION,
-              {'name': source});
-          compiler.reportMessage(
-              compiler.spanFromSpannable(seenNamedArguments[source]),
-              MessageKind.EXISTING_DEFINITION.error({'name': source}),
-              Diagnostic.INFO);
+              seenNamedArguments[source]);
         } else {
           seenNamedArguments[source] = namedArgument;
         }
@@ -2727,6 +2730,27 @@ class ResolverVisitor extends MappingVisitor<Element> {
     } else {
       visitor.variables.type = compiler.types.dynamicType;
     }
+
+    Modifiers modifiers = node.modifiers;
+    void reportExtraModifier(String modifier) {
+      Node modifierNode;
+      for (var nodes = modifiers.nodes; !nodes.isEmpty; nodes = nodes.tail) {
+        if (modifier == nodes.head.asIdentifier().source.stringValue) {
+          modifierNode = nodes.head;
+          break;
+        }
+      }
+      assert(modifierNode != null);
+      compiler.reportError(modifierNode, MessageKind.EXTRANEOUS_MODIFIER,
+          {'modifier': modifier});
+    }
+    if (modifiers.isFinal() && (modifiers.isConst() || modifiers.isVar())) {
+      reportExtraModifier('final');
+    }
+    if (modifiers.isVar() && (modifiers.isConst() || node.type != null)) {
+      reportExtraModifier('var');
+    }
+
     visitor.visit(node.definitions);
   }
 
@@ -3356,12 +3380,17 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     scope = new TypeDeclarationScope(scope, element);
     resolveTypeVariableBounds(node.typeParameters);
 
-    element.functionSignature = SignatureResolver.analyze(
+    FunctionSignature signature = SignatureResolver.analyze(
         compiler, node.formals, node.returnType, element,
         defaultValuesAllowed: false);
+    element.functionSignature = signature;
 
-    element.alias = compiler.computeFunctionType(
-        element, element.functionSignature);
+    scope = new MethodScope(scope, element);
+    signature.forEachParameter((Element element) {
+      defineElement(element.parseNode(compiler), element);
+    });
+
+    element.alias = compiler.computeFunctionType(element, signature);
 
     void checkCyclicReference() {
       var visitor = new TypedefCyclicVisitor(compiler, element);
@@ -4001,6 +4030,9 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     }
     if (node.modifiers.isConst()) {
       error(node, MessageKind.FORMAL_DECLARED_CONST);
+    }
+    if (node.modifiers.isStatic()) {
+      error(node, MessageKind.FORMAL_DECLARED_STATIC);
     }
 
     if (currentDefinitions != null) {

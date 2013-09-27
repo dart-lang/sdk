@@ -7,6 +7,7 @@
 
 #include "bin/builtin.h"
 #include "bin/utils.h"
+#include "bin/dartutils.h"
 
 #include "platform/globals.h"
 #include "platform/thread.h"
@@ -184,6 +185,10 @@ class Socket {
   static AddressList<InterfaceSocketAddress>* ListInterfaces(
       int type,
       OSError** os_error);
+
+  static CObject* LookupRequest(const CObjectArray& request);
+  static CObject* ListInterfacesRequest(const CObjectArray& request);
+  static CObject* ReverseLookupRequest(const CObjectArray& request);
 
   static Dart_Port GetServicePort();
 

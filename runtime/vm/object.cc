@@ -64,7 +64,7 @@ DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, verbose_stacktrace);
-DECLARE_FLAG(bool, print_coverage);
+DECLARE_FLAG(charp, coverage_dir);
 
 static const char* kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -163,6 +163,29 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, int, _parse)                                                  \
   V(CoreLibrary, StackTrace, _setupFullStackTrace)                             \
   V(CoreLibrary, _OneByteString, _setAt)                                       \
+  V(TypedDataLibrary, _TypedList, _getInt8)                                    \
+  V(TypedDataLibrary, _TypedList, _setInt8)                                    \
+  V(TypedDataLibrary, _TypedList, _getUint8)                                   \
+  V(TypedDataLibrary, _TypedList, _setUint8)                                   \
+  V(TypedDataLibrary, _TypedList, _getInt16)                                   \
+  V(TypedDataLibrary, _TypedList, _setInt16)                                   \
+  V(TypedDataLibrary, _TypedList, _getUint16)                                  \
+  V(TypedDataLibrary, _TypedList, _setUint16)                                  \
+  V(TypedDataLibrary, _TypedList, _getInt32)                                   \
+  V(TypedDataLibrary, _TypedList, _setInt32)                                   \
+  V(TypedDataLibrary, _TypedList, _getUint32)                                  \
+  V(TypedDataLibrary, _TypedList, _setUint32)                                  \
+  V(TypedDataLibrary, _TypedList, _getInt64)                                   \
+  V(TypedDataLibrary, _TypedList, _setInt64)                                   \
+  V(TypedDataLibrary, _TypedList, _getUint64)                                  \
+  V(TypedDataLibrary, _TypedList, _setUint64)                                  \
+  V(TypedDataLibrary, _TypedList, _getFloat32)                                 \
+  V(TypedDataLibrary, _TypedList, _setFloat32)                                 \
+  V(TypedDataLibrary, _TypedList, _getFloat64)                                 \
+  V(TypedDataLibrary, _TypedList, _setFloat64)                                 \
+  V(TypedDataLibrary, _TypedList, _getFloat32x4)                               \
+  V(TypedDataLibrary, _TypedList, _setFloat32x4)                               \
+
 
 
 static void MarkFunctionAsInvisible(const Library& lib,
@@ -1705,7 +1728,6 @@ intptr_t Class::NumTypeArguments() const {
       type_params ^= cls.type_parameters();
       num_type_args += type_params.Length();
     }
-
     // Super type of Object class is null.
     if (cls.super_type() == AbstractType::null() ||
         cls.super_type() == isolate->object_store()->object_type()) {
@@ -1733,10 +1755,7 @@ RawClass* Class::SuperClass() const {
   if (super_type() == AbstractType::null()) {
     return Class::null();
   }
-  Isolate* isolate = Isolate::Current();
-  ReusableHandleScope reused_handles(isolate);
-  AbstractType& sup_type = reused_handles.AbstractTypeHandle();
-  sup_type ^= super_type();
+  const AbstractType& sup_type = AbstractType::Handle(super_type());
   return sup_type.type_class();
 }
 
@@ -4166,7 +4185,8 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
 
 
 bool Function::is_optimizable() const {
-  if (FLAG_print_coverage) {
+  if (FLAG_coverage_dir != NULL) {
+    // Do not optimize if collecting coverage data.
     return false;
   }
   if (OptimizableBit::decode(raw_ptr()->kind_tag_) &&
@@ -4833,46 +4853,21 @@ RawFunction* Function::ImplicitClosureFunction() const {
 }
 
 
-RawString* Function::BuildSignature(
-    bool instantiate,
-    NameVisibility name_visibility,
-    const AbstractTypeArguments& instantiator) const {
+RawString* Function::UserVisibleFormalParameters() const {
   const GrowableObjectArray& pieces =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
-  String& name = String::Handle();
-  if (!instantiate && !is_static() && (name_visibility == kInternalName)) {
-    // Prefix the signature with its signature class and type parameters, if any
-    // (e.g. "Map<K, V>(K) => bool"). In case of a function type alias, the
-    // signature class name is the alias name.
-    // The signature of static functions cannot be type parameterized.
-    const Class& function_class = Class::Handle(Owner());
-    ASSERT(!function_class.IsNull());
-    const TypeArguments& type_parameters = TypeArguments::Handle(
-        function_class.type_parameters());
-    if (!type_parameters.IsNull()) {
-      const String& function_class_name = String::Handle(function_class.Name());
-      pieces.Add(function_class_name);
-      const intptr_t num_type_parameters = type_parameters.Length();
-      pieces.Add(Symbols::LAngleBracket());
-      TypeParameter& type_parameter = TypeParameter::Handle();
-      AbstractType& bound = AbstractType::Handle();
-      for (intptr_t i = 0; i < num_type_parameters; i++) {
-        type_parameter ^= type_parameters.TypeAt(i);
-        name = type_parameter.name();
-        pieces.Add(name);
-        bound = type_parameter.bound();
-        if (!bound.IsNull() && !bound.IsObjectType()) {
-          pieces.Add(Symbols::SpaceExtendsSpace());
-          name = bound.BuildName(name_visibility);
-          pieces.Add(name);
-        }
-        if (i < num_type_parameters - 1) {
-          pieces.Add(Symbols::CommaSpace());
-        }
-      }
-      pieces.Add(Symbols::RAngleBracket());
-    }
-  }
+  const TypeArguments& instantiator = TypeArguments::Handle();
+  BuildSignatureParameters(false, kUserVisibleName, instantiator, pieces);
+  const Array& strings = Array::Handle(Array::MakeArray(pieces));
+  return String::ConcatAll(strings);
+}
+
+
+void Function::BuildSignatureParameters(
+    bool instantiate,
+    NameVisibility name_visibility,
+    const AbstractTypeArguments& instantiator,
+    const GrowableObjectArray& pieces) const {
   AbstractType& param_type = AbstractType::Handle();
   const intptr_t num_params = NumParameters();
   const intptr_t num_fixed_params = num_fixed_parameters();
@@ -4880,7 +4875,7 @@ RawString* Function::BuildSignature(
   const intptr_t num_opt_named_params = NumOptionalNamedParameters();
   const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
   ASSERT((num_fixed_params + num_opt_params) == num_params);
-  pieces.Add(Symbols::LParen());
+  String& name = String::Handle();
   intptr_t i = 0;
   if (name_visibility == kUserVisibleName) {
     // Hide implicit parameters.
@@ -4930,6 +4925,66 @@ RawString* Function::BuildSignature(
       pieces.Add(Symbols::RBrace());
     }
   }
+}
+
+
+RawInstance* Function::ImplicitStaticClosure() const {
+  if (implicit_static_closure() == Instance::null()) {
+    ObjectStore* object_store = Isolate::Current()->object_store();
+    const Context& context = Context::Handle(object_store->empty_context());
+    const Instance& closure =
+        Instance::Handle(Closure::New(*this, context, Heap::kOld));
+    set_implicit_static_closure(closure);
+  }
+  return implicit_static_closure();
+}
+
+
+RawString* Function::BuildSignature(
+    bool instantiate,
+    NameVisibility name_visibility,
+    const AbstractTypeArguments& instantiator) const {
+  const GrowableObjectArray& pieces =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  String& name = String::Handle();
+  if (!instantiate && !is_static() && (name_visibility == kInternalName)) {
+    // Prefix the signature with its signature class and type parameters, if any
+    // (e.g. "Map<K, V>(K) => bool"). In case of a function type alias, the
+    // signature class name is the alias name.
+    // The signature of static functions cannot be type parameterized.
+    const Class& function_class = Class::Handle(Owner());
+    ASSERT(!function_class.IsNull());
+    const TypeArguments& type_parameters = TypeArguments::Handle(
+        function_class.type_parameters());
+    if (!type_parameters.IsNull()) {
+      const String& function_class_name = String::Handle(function_class.Name());
+      pieces.Add(function_class_name);
+      const intptr_t num_type_parameters = type_parameters.Length();
+      pieces.Add(Symbols::LAngleBracket());
+      TypeParameter& type_parameter = TypeParameter::Handle();
+      AbstractType& bound = AbstractType::Handle();
+      for (intptr_t i = 0; i < num_type_parameters; i++) {
+        type_parameter ^= type_parameters.TypeAt(i);
+        name = type_parameter.name();
+        pieces.Add(name);
+        bound = type_parameter.bound();
+        if (!bound.IsNull() && !bound.IsObjectType()) {
+          pieces.Add(Symbols::SpaceExtendsSpace());
+          name = bound.BuildName(name_visibility);
+          pieces.Add(name);
+        }
+        if (i < num_type_parameters - 1) {
+          pieces.Add(Symbols::CommaSpace());
+        }
+      }
+      pieces.Add(Symbols::RAngleBracket());
+    }
+  }
+  pieces.Add(Symbols::LParen());
+  BuildSignatureParameters(instantiate,
+                           name_visibility,
+                           instantiator,
+                           pieces);
   pieces.Add(Symbols::RParenArrow());
   AbstractType& res_type = AbstractType::Handle(result_type());
   if (instantiate && !res_type.IsInstantiated()) {
@@ -5598,6 +5653,13 @@ void Field::DeoptimizeDependentCode() const {
 }
 
 
+bool Field::IsUninitialized() const {
+  const Instance& value = Instance::Handle(raw_ptr()->value_);
+  ASSERT(value.raw() != Object::transition_sentinel().raw());
+  return value.raw() == Object::sentinel().raw();
+}
+
+
 void Field::UpdateCid(intptr_t cid) const {
   if (guarded_cid() == kIllegalCid) {
     // Field is assigned first time.
@@ -5748,7 +5810,7 @@ void TokenStream::SetPrivateKey(const String& value) const {
 
 
 RawString* TokenStream::GenerateSource() const {
-  Iterator iterator(*this, 0);
+  Iterator iterator(*this, 0, Iterator::kAllTokens);
   const ExternalTypedData& data = ExternalTypedData::Handle(GetStream());
   const GrowableObjectArray& literals =
       GrowableObjectArray::Handle(GrowableObjectArray::New(data.Length()));
@@ -5809,35 +5871,47 @@ RawString* TokenStream::GenerateSource() const {
     const String* separator = NULL;
     switch (curr) {
       case Token::kLBRACE:
-        indent++;
-        separator = &Symbols::NewLine();
-        break;
       case Token::kRBRACE:
-        if (indent == 0) {
-          separator = &Symbols::TwoNewlines();
-        } else {
-          separator = &Symbols::NewLine();
-        }
-        break;
-      case Token::kSEMICOLON:
-        separator = &Symbols::NewLine();
-        break;
       case Token::kPERIOD:
-      case Token::kLPAREN:
       case Token::kLBRACK:
       case Token::kINTERPOL_VAR:
       case Token::kINTERPOL_START:
       case Token::kINTERPOL_END:
+      case Token::kBIT_NOT:
+        break;
+      // In case we see an opening parentheses '(' we increase the indent to
+      // align multi-line parameters accordingly. The indent will be removed as
+      // soon as we see the matching closing parentheses ')'.
+      //
+      // Example:
+      // SomeVeryLongMethod(
+      //     "withVeryLongParameter",
+      //     "andAnotherVeryLongParameter",
+      //     "andAnotherVeryLongParameter2") { ...
+      case Token::kLPAREN:
+        indent += 2;
+        break;
+      case Token::kRPAREN:
+        indent -= 2;
+        separator = &Symbols::Blank();
+        break;
+      case Token::kNEWLINE:
+        if (prev == Token::kLBRACE) {
+          indent++;
+        }
+        if (next == Token::kRBRACE) {
+          indent--;
+        }
         break;
       default:
         separator = &Symbols::Blank();
         break;
     }
+
     // Determine whether the separation text needs to be updated based on the
     // next token.
     switch (next) {
       case Token::kRBRACE:
-        indent--;
         break;
       case Token::kSEMICOLON:
       case Token::kPERIOD:
@@ -5853,27 +5927,41 @@ RawString* TokenStream::GenerateSource() const {
         break;
       case Token::kELSE:
         separator = &Symbols::Blank();
+        break;
       default:
         // Do nothing.
         break;
     }
+
     // Update the few cases where both tokens need to be taken into account.
     if (((curr == Token::kIF) || (curr == Token::kFOR)) &&
         (next == Token::kLPAREN)) {
       separator = &Symbols::Blank();
     } else if ((curr == Token::kASSIGN) && (next == Token::kLPAREN)) {
       separator = &Symbols::Blank();
+    } else if ((curr == Token::kRETURN  ||
+                curr == Token::kCONDITIONAL ||
+                Token::IsBinaryOperator(curr) ||
+                Token::IsEqualityOperator(curr)) && (next == Token::kLPAREN)) {
+      separator = &Symbols::Blank();
     } else if ((curr == Token::kLBRACE) && (next == Token::kRBRACE)) {
       separator = NULL;
+    } else if ((curr == Token::kSEMICOLON) && (next != Token::kNEWLINE)) {
+      separator = &Symbols::Blank();
     }
+
+    // Add the separator.
     if (separator != NULL) {
       literals.Add(*separator);
-      if (separator == &Symbols::NewLine()) {
+    }
+
+    // Account for indentation in case we printed a newline.
+    if (curr == Token::kNEWLINE) {
         for (int i = 0; i < indent; i++) {
           literals.Add(Symbols::TwoSpaces());
         }
-      }
     }
+
     // Setup for next iteration.
     prev = curr;
     curr = next;
@@ -6337,17 +6425,31 @@ void Script::SetLocationOffset(intptr_t line_offset,
 void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* line,
                               intptr_t* column) const {
-  const String& src = String::Handle(Source());
+  ASSERT(line != NULL);
   const TokenStream& tkns = TokenStream::Handle(tokens());
-  intptr_t src_pos = tkns.ComputeSourcePosition(token_pos);
-  Scanner scanner(src, Symbols::Empty());
-  scanner.ScanTo(src_pos);
-  intptr_t relative_line = scanner.CurrentPosition().line;
-  *line = relative_line + line_offset();
-  *column = scanner.CurrentPosition().column;
-  // On the first line of the script we must add the column offset.
-  if (relative_line == 1) {
-    *column += col_offset();
+  if (column == NULL) {
+    TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
+    intptr_t cur_line = line_offset() + 1;
+    while (tkit.CurrentPosition() < token_pos &&
+           tkit.CurrentTokenKind() != Token::kEOS) {
+      if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
+        cur_line++;
+      }
+      tkit.Advance();
+    }
+    *line = cur_line;
+  } else {
+    const String& src = String::Handle(Source());
+    intptr_t src_pos = tkns.ComputeSourcePosition(token_pos);
+    Scanner scanner(src, Symbols::Empty());
+    scanner.ScanTo(src_pos);
+    intptr_t relative_line = scanner.CurrentPosition().line;
+    *line = relative_line + line_offset();
+    *column = scanner.CurrentPosition().column;
+    // On the first line of the script we must add the column offset.
+    if (relative_line == 1) {
+      *column += col_offset();
+    }
   }
 }
 
@@ -6355,18 +6457,48 @@ void Script::GetTokenLocation(intptr_t token_pos,
 void Script::TokenRangeAtLine(intptr_t line_number,
                               intptr_t* first_token_index,
                               intptr_t* last_token_index) const {
-  const String& src = String::Handle(Source());
+  ASSERT(first_token_index != NULL && last_token_index != NULL);
+  ASSERT(line_number > 0);
+  *first_token_index = -1;
+  *last_token_index = -1;
   const TokenStream& tkns = TokenStream::Handle(tokens());
   line_number -= line_offset();
   if (line_number < 1) line_number = 1;
-  Scanner scanner(src, Symbols::Empty());
-  scanner.TokenRangeAtLine(line_number, first_token_index, last_token_index);
-  if (*first_token_index >= 0) {
-    *first_token_index = tkns.ComputeTokenPosition(*first_token_index);
+  TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
+  // Scan through the token stream to the required line.
+  intptr_t cur_line = 1;
+  while (cur_line < line_number && tkit.CurrentTokenKind() != Token::kEOS) {
+    if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
+      cur_line++;
+    }
+    tkit.Advance();
   }
-  if (*last_token_index >= 0) {
-    *last_token_index = tkns.ComputeTokenPosition(*last_token_index);
+  if (tkit.CurrentTokenKind() == Token::kEOS) {
+    // End of token stream before reaching required line.
+    return;
   }
+  if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
+    // No tokens on the current line. If there is a valid token afterwards, put
+    // it into first_token_index.
+    while (tkit.CurrentTokenKind() == Token::kNEWLINE &&
+           tkit.CurrentTokenKind() != Token::kEOS) {
+      tkit.Advance();
+    }
+    if (tkit.CurrentTokenKind() != Token::kEOS) {
+      *first_token_index = tkit.CurrentPosition();
+    }
+    return;
+  }
+  *first_token_index = tkit.CurrentPosition();
+  // We cannot do "CurrentPosition() - 1" for the last token, because we do not
+  // know whether the previous token is a simple one or not.
+  intptr_t end_pos = *first_token_index;
+  while (tkit.CurrentTokenKind() != Token::kNEWLINE &&
+         tkit.CurrentTokenKind() != Token::kEOS) {
+    end_pos = tkit.CurrentPosition();
+    tkit.Advance();
+  }
+  *last_token_index = end_pos;
 }
 
 
@@ -10457,6 +10589,24 @@ bool Instance::IsInstanceOf(const AbstractType& other,
 }
 
 
+bool Instance::IsIdenticalTo(const Instance& other) const {
+  if (raw() == other.raw()) return true;
+  if (IsInteger() && other.IsInteger()) {
+    return Equals(other);
+  }
+  if (IsDouble() && other.IsDouble()) {
+    if (Equals(other)) return true;
+    // Check for NaN.
+    const Double& a_double = Double::Cast(*this);
+    const Double& b_double = Double::Cast(other);
+    if (isnan(a_double.value()) && isnan(b_double.value())) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 void Instance::SetNativeField(int index, intptr_t value) const {
   ASSERT(IsValidNativeIndex(index));
   Object& native_fields = Object::Handle(*NativeFieldsAddr());
@@ -11769,9 +11919,7 @@ RawAbstractType* MixinAppType::SuperType() const {
 
 
 RawClass* MixinAppType::MixinAppAt(intptr_t depth) const {
-  Class& mixin_app = Class::Handle();
-  mixin_app ^= Array::Handle(mixins()).At(depth);
-  return mixin_app.raw();
+  return Class::RawCast(Array::Handle(mixins()).At(depth));
 }
 
 
@@ -14743,7 +14891,8 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
                                    const Function& function,
                                    const Code& code,
                                    intptr_t frame_index) {
-  const char* kFormat = "#%-6d %s (%s:%d:%d)\n";
+  const char* kFormatWithCol = "#%-6d %s (%s:%d:%d)\n";
+  const char* kFormatNoCol = "#%-6d %s (%s:%d)\n";
   const intptr_t token_pos = code.GetTokenIndexOfPC(pc);
   const Script& script = Script::Handle(isolate, function.script());
   const String& function_name =
@@ -14752,19 +14901,32 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
   intptr_t line = -1;
   intptr_t column = -1;
   if (token_pos >= 0) {
-    script.GetTokenLocation(token_pos, &line, &column);
+    if (script.HasSource()) {
+      script.GetTokenLocation(token_pos, &line, &column);
+    } else {
+      script.GetTokenLocation(token_pos, &line, NULL);
+    }
   }
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat,
-                             frame_index,
-                             function_name.ToCString(),
-                             url.ToCString(),
-                             line, column);
-  char* chars = isolate->current_zone()->Alloc<char>(len + 1);
-  OS::SNPrint(chars, (len + 1), kFormat,
-              frame_index,
-              function_name.ToCString(),
-              url.ToCString(),
-              line, column);
+  intptr_t len = 0;
+  char* chars = NULL;
+  if (column >= 0) {
+    len = OS::SNPrint(NULL, 0, kFormatWithCol,
+                      frame_index, function_name.ToCString(),
+                      url.ToCString(), line, column);
+    chars = isolate->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(chars, (len + 1), kFormatWithCol,
+                frame_index,
+                function_name.ToCString(),
+                url.ToCString(), line, column);
+  } else {
+    len = OS::SNPrint(NULL, 0, kFormatNoCol,
+                      frame_index, function_name.ToCString(),
+                      url.ToCString(), line);
+    chars = isolate->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(chars, (len + 1), kFormatNoCol,
+                frame_index, function_name.ToCString(),
+                url.ToCString(), line);
+  }
   frame_strings->Add(chars);
   return len;
 }

@@ -11,7 +11,7 @@ patch class Null {
         "class Null cannot be instantiated");
   }
 
-  int get hashCode {
+  int get _identityHashCode {
     return 2011;  // The year Dart was announced and a prime.
   }
 

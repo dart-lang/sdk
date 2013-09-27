@@ -139,11 +139,11 @@ abstract class ClassElement implements Element {
   InterfaceType get type;
 
   /**
-   * Return an array containing all of the type variables declared for this class.
+   * Return an array containing all of the type parameters declared for this class.
    *
-   * @return the type variables declared for this class
+   * @return the type parameters declared for this class
    */
-  List<TypeVariableElement> get typeVariables;
+  List<TypeParameterElement> get typeParameters;
 
   /**
    * Return the unnamed constructor declared in this class, or `null` if this class does not
@@ -594,7 +594,7 @@ class ElementKind extends Enum<ElementKind> {
   static final ElementKind SETTER = new ElementKind('SETTER', 20, "setter");
   static final ElementKind TOP_LEVEL_VARIABLE = new ElementKind('TOP_LEVEL_VARIABLE', 21, "top level variable");
   static final ElementKind FUNCTION_TYPE_ALIAS = new ElementKind('FUNCTION_TYPE_ALIAS', 22, "function type alias");
-  static final ElementKind TYPE_VARIABLE = new ElementKind('TYPE_VARIABLE', 23, "type variable");
+  static final ElementKind TYPE_PARAMETER = new ElementKind('TYPE_PARAMETER', 23, "type parameter");
   static final ElementKind UNIVERSE = new ElementKind('UNIVERSE', 24, "<universe>");
   static final List<ElementKind> values = [
       CLASS,
@@ -620,7 +620,7 @@ class ElementKind extends Enum<ElementKind> {
       SETTER,
       TOP_LEVEL_VARIABLE,
       FUNCTION_TYPE_ALIAS,
-      TYPE_VARIABLE,
+      TYPE_PARAMETER,
       UNIVERSE];
 
   /**
@@ -695,7 +695,7 @@ abstract class ElementVisitor<R> {
   R visitPrefixElement(PrefixElement element);
   R visitPropertyAccessorElement(PropertyAccessorElement element);
   R visitTopLevelVariableElement(TopLevelVariableElement element);
-  R visitTypeVariableElement(TypeVariableElement element);
+  R visitTypeParameterElement(TypeParameterElement element);
 }
 /**
  * The interface `EmbeddedHtmlScriptElement` defines the behavior of elements representing a
@@ -890,11 +890,11 @@ abstract class FunctionTypeAliasElement implements Element {
   FunctionType get type;
 
   /**
-   * Return an array containing all of the type variables defined for this type.
+   * Return an array containing all of the type parameters defined for this type.
    *
-   * @return the type variables defined for this type
+   * @return the type parameters defined for this type
    */
-  List<TypeVariableElement> get typeVariables;
+  List<TypeParameterElement> get typeParameters;
 }
 /**
  * The interface `HideElementCombinator` defines the behavior of combinators that cause some
@@ -1081,6 +1081,13 @@ abstract class LibraryElement implements Element {
    * @return `true` if this library is the dart:core library
    */
   bool get isDartCore;
+
+  /**
+   * Return `true` if this library is the dart:core library.
+   *
+   * @return `true` if this library is the dart:core library
+   */
+  bool get isInSdk;
 
   /**
    * Return `true` if this library is up to date with respect to the given time stamp. If any
@@ -1380,27 +1387,27 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
 abstract class TopLevelVariableElement implements PropertyInducingElement {
 }
 /**
- * The interface `TypeVariableElement` defines the behavior of elements representing a type
- * variable.
+ * The interface `TypeParameterElement` defines the behavior of elements representing a type
+ * parameter.
  *
  * @coverage dart.engine.element
  */
-abstract class TypeVariableElement implements Element {
+abstract class TypeParameterElement implements Element {
 
   /**
-   * Return the type representing the bound associated with this variable, or `null` if this
-   * variable does not have an explicit bound.
+   * Return the type representing the bound associated with this parameter, or `null` if this
+   * parameter does not have an explicit bound.
    *
-   * @return the type representing the bound associated with this variable
+   * @return the type representing the bound associated with this parameter
    */
   Type2 get bound;
 
   /**
-   * Return the type defined by this type variable.
+   * Return the type defined by this type parameter.
    *
-   * @return the type defined by this type variable
+   * @return the type defined by this type parameter
    */
-  TypeVariableType get type;
+  TypeParameterType get type;
 }
 /**
  * The interface `UndefinedElement` defines the behavior of pseudo-elements that represent
@@ -1507,7 +1514,7 @@ abstract class VariableElement implements Element {
  *   MultiplyDefinedElement
  *   PrefixElement
  *   TypeAliasElement
- *   TypeVariableElement
+ *   TypeParameterElement
  *   UndefinedElement
  *   VariableElement
  *      PropertyInducingElement
@@ -1565,7 +1572,7 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R visitPropertyAccessorElement(PropertyAccessorElement element) => visitExecutableElement(element);
   R visitPropertyInducingElement(PropertyInducingElement element) => visitVariableElement(element);
   R visitTopLevelVariableElement(TopLevelVariableElement element) => visitPropertyInducingElement(element);
-  R visitTypeVariableElement(TypeVariableElement element) => visitElement(element);
+  R visitTypeParameterElement(TypeParameterElement element) => visitElement(element);
   R visitVariableElement(VariableElement element) => visitElement(element);
 }
 /**
@@ -1665,7 +1672,7 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
     element.visitChildren(this);
     return null;
   }
-  R visitTypeVariableElement(TypeVariableElement element) {
+  R visitTypeParameterElement(TypeParameterElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -1700,7 +1707,7 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitPrefixElement(PrefixElement element) => null;
   R visitPropertyAccessorElement(PropertyAccessorElement element) => null;
   R visitTopLevelVariableElement(TopLevelVariableElement element) => null;
-  R visitTypeVariableElement(TypeVariableElement element) => null;
+  R visitTypeParameterElement(TypeParameterElement element) => null;
 }
 /**
  * For AST nodes that could be in both the getter and setter contexts ([IndexExpression]s and
@@ -1783,9 +1790,9 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   InterfaceType _type;
 
   /**
-   * An array containing all of the type variables defined for this class.
+   * An array containing all of the type parameters defined for this class.
    */
-  List<TypeVariableElement> _typeVariables = TypeVariableElementImpl.EMPTY_ARRAY;
+  List<TypeParameterElement> _typeParameters = TypeParameterElementImpl.EMPTY_ARRAY;
 
   /**
    * An empty array of type elements.
@@ -1826,9 +1833,9 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         return method as MethodElementImpl;
       }
     }
-    for (TypeVariableElement typeVariable in _typeVariables) {
-      if (((typeVariable as TypeVariableElementImpl)).identifier == identifier2) {
-        return typeVariable as TypeVariableElementImpl;
+    for (TypeParameterElement typeParameter in _typeParameters) {
+      if (((typeParameter as TypeParameterElementImpl)).identifier == identifier2) {
+        return typeParameter as TypeParameterElementImpl;
       }
     }
     return null;
@@ -1893,7 +1900,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
   InterfaceType get supertype => _supertype;
   InterfaceType get type => _type;
-  List<TypeVariableElement> get typeVariables => _typeVariables;
+  List<TypeParameterElement> get typeParameters => _typeParameters;
   ConstructorElement get unnamedConstructor {
     for (ConstructorElement element in constructors) {
       String name = element.displayName;
@@ -2126,15 +2133,15 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   /**
-   * Set the type variables defined for this class to the given type variables.
+   * Set the type parameters defined for this class to the given type parameters.
    *
-   * @param typeVariables the type variables defined for this class
+   * @param typeParameters the type parameters defined for this class
    */
-  void set typeVariables(List<TypeVariableElement> typeVariables2) {
-    for (TypeVariableElement typeVariable in typeVariables2) {
-      ((typeVariable as TypeVariableElementImpl)).enclosingElement = this;
+  void set typeParameters(List<TypeParameterElement> typeParameters2) {
+    for (TypeParameterElement typeParameter in typeParameters2) {
+      ((typeParameter as TypeParameterElementImpl)).enclosingElement = this;
     }
-    this._typeVariables = typeVariables2;
+    this._typeParameters = typeParameters2;
   }
 
   /**
@@ -2151,7 +2158,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     safelyVisitChildren(_constructors, visitor);
     safelyVisitChildren(_fields, visitor);
     safelyVisitChildren(_methods, visitor);
-    safelyVisitChildren(_typeVariables, visitor);
+    safelyVisitChildren(_typeParameters, visitor);
   }
   void appendTo(JavaStringBuilder builder) {
     String name = displayName;
@@ -2160,14 +2167,14 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     } else {
       builder.append(name);
     }
-    int variableCount = _typeVariables.length;
+    int variableCount = _typeParameters.length;
     if (variableCount > 0) {
       builder.append("<");
       for (int i = 0; i < variableCount; i++) {
         if (i > 0) {
           builder.append(", ");
         }
-        ((_typeVariables[i] as TypeVariableElementImpl)).appendTo(builder);
+        ((_typeParameters[i] as TypeParameterElementImpl)).appendTo(builder);
       }
       builder.append(">");
     }
@@ -3541,9 +3548,9 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
   FunctionType _type;
 
   /**
-   * An array containing all of the type variables defined for this type.
+   * An array containing all of the type parameters defined for this type.
    */
-  List<TypeVariableElement> _typeVariables = TypeVariableElementImpl.EMPTY_ARRAY;
+  List<TypeParameterElement> _typeParameters = TypeParameterElementImpl.EMPTY_ARRAY;
 
   /**
    * An empty array of type alias elements.
@@ -3563,9 +3570,9 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
         return parameter as VariableElementImpl;
       }
     }
-    for (TypeVariableElement typeVariable in _typeVariables) {
-      if (((typeVariable as TypeVariableElementImpl)).identifier == identifier2) {
-        return typeVariable as TypeVariableElementImpl;
+    for (TypeParameterElement typeParameter in _typeParameters) {
+      if (((typeParameter as TypeParameterElementImpl)).identifier == identifier2) {
+        return typeParameter as TypeParameterElementImpl;
       }
     }
     return null;
@@ -3575,7 +3582,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
   List<ParameterElement> get parameters => _parameters;
   Type2 get returnType => _returnType;
   FunctionType get type => _type;
-  List<TypeVariableElement> get typeVariables => _typeVariables;
+  List<TypeParameterElement> get typeParameters => _typeParameters;
 
   /**
    * Set the parameters defined by this type alias to the given parameters.
@@ -3610,15 +3617,15 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
   }
 
   /**
-   * Set the type variables defined for this type to the given variables.
+   * Set the type parameters defined for this type to the given parameters.
    *
-   * @param typeVariables the type variables defined for this type
+   * @param typeParameters the type parameters defined for this type
    */
-  void set typeVariables(List<TypeVariableElement> typeVariables2) {
-    for (TypeVariableElement variable in typeVariables2) {
-      ((variable as TypeVariableElementImpl)).enclosingElement = this;
+  void set typeParameters(List<TypeParameterElement> typeParameters2) {
+    for (TypeParameterElement typeParameter in typeParameters2) {
+      ((typeParameter as TypeParameterElementImpl)).enclosingElement = this;
     }
-    this._typeVariables = typeVariables2;
+    this._typeParameters = typeParameters2;
   }
 
   /**
@@ -3633,31 +3640,31 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
   }
 
   /**
-   * Set the type variables defined for this type to the given variables without becoming the parent
-   * of the variables. This should only be used by the [TypeResolverVisitor] when creating a
-   * synthetic type alias.
+   * Set the type parameters defined for this type to the given parameters without becoming the
+   * parent of the parameters. This should only be used by the [TypeResolverVisitor] when
+   * creating a synthetic type alias.
    *
-   * @param typeVariables the type variables defined for this type
+   * @param typeParameters the type parameters defined for this type
    */
-  void shareTypeVariables(List<TypeVariableElement> typeVariables2) {
-    this._typeVariables = typeVariables2;
+  void shareTypeParameters(List<TypeParameterElement> typeParameters2) {
+    this._typeParameters = typeParameters2;
   }
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_parameters, visitor);
-    safelyVisitChildren(_typeVariables, visitor);
+    safelyVisitChildren(_typeParameters, visitor);
   }
   void appendTo(JavaStringBuilder builder) {
     builder.append("typedef ");
     builder.append(displayName);
-    int variableCount = _typeVariables.length;
-    if (variableCount > 0) {
+    int typeParameterCount = _typeParameters.length;
+    if (typeParameterCount > 0) {
       builder.append("<");
-      for (int i = 0; i < variableCount; i++) {
+      for (int i = 0; i < typeParameterCount; i++) {
         if (i > 0) {
           builder.append(", ");
         }
-        ((_typeVariables[i] as TypeVariableElementImpl)).appendTo(builder);
+        ((_typeParameters[i] as TypeParameterElementImpl)).appendTo(builder);
       }
       builder.append(">");
     }
@@ -4105,6 +4112,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   int get hashCode => _definingCompilationUnit.hashCode;
   bool get isBrowserApplication => _entryPoint != null && isOrImportsBrowserLibrary;
   bool get isDartCore => name == "dart.core";
+  bool get isInSdk => name.startsWith("dart.");
   bool isUpToDate2(int timeStamp) {
     Set<LibraryElement> visitedLibraries = new Set();
     return isUpToDate(this, timeStamp, visitedLibraries);
@@ -4399,9 +4407,22 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    * @param firstElement the first element that conflicts
    * @param secondElement the second element that conflicts
    */
-  MultiplyDefinedElementImpl(AnalysisContext context, Element firstElement, Element secondElement) {
+  MultiplyDefinedElementImpl.con1(AnalysisContext context, Element firstElement, Element secondElement) {
+    this._context = context;
     _name = firstElement.name;
     _conflictingElements = computeConflictingElements(firstElement, secondElement);
+  }
+
+  /**
+   * Initialize a newly created element to represent a list of conflicting elements.
+   *
+   * @param context the analysis context in which the multiply defined elements are defined
+   * @param conflictingElements the elements that conflict
+   */
+  MultiplyDefinedElementImpl.con2(AnalysisContext context, List<Element> conflictingElements) {
+    this._context = context;
+    _name = conflictingElements[0].name;
+    this._conflictingElements = conflictingElements;
   }
   accept(ElementVisitor visitor) => visitor.visitMultiplyDefinedElement(this);
   String computeDocumentationComment() => null;
@@ -4450,13 +4471,13 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    * @param elements the list to which the element(s) are to be added
    * @param element the element(s) to be added
    */
-  void add(List<Element> elements, Element element) {
+  void add(Set<Element> elements, Element element) {
     if (element is MultiplyDefinedElementImpl) {
       for (Element conflictingElement in ((element as MultiplyDefinedElementImpl))._conflictingElements) {
-        elements.add(conflictingElement);
+        javaSetAdd(elements, conflictingElement);
       }
     } else {
-      elements.add(element);
+      javaSetAdd(elements, element);
     }
   }
 
@@ -4470,7 +4491,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    * @return an array containing all of the conflicting elements
    */
   List<Element> computeConflictingElements(Element firstElement, Element secondElement) {
-    List<Element> elements = new List<Element>();
+    Set<Element> elements = new Set<Element>();
     add(elements, firstElement);
     add(elements, secondElement);
     return new List.from(elements);
@@ -4913,54 +4934,54 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements
   bool get isStatic => true;
 }
 /**
- * Instances of the class `TypeVariableElementImpl` implement a `TypeVariableElement`.
+ * Instances of the class `TypeParameterElementImpl` implement a [TypeParameterElement].
  *
  * @coverage dart.engine.element
  */
-class TypeVariableElementImpl extends ElementImpl implements TypeVariableElement {
+class TypeParameterElementImpl extends ElementImpl implements TypeParameterElement {
 
   /**
-   * The type defined by this type variable.
+   * The type defined by this type parameter.
    */
-  TypeVariableType _type;
+  TypeParameterType _type;
 
   /**
-   * The type representing the bound associated with this variable, or `null` if this variable
-   * does not have an explicit bound.
+   * The type representing the bound associated with this parameter, or `null` if this
+   * parameter does not have an explicit bound.
    */
   Type2 _bound;
 
   /**
-   * An empty array of type variable elements.
+   * An empty array of type parameter elements.
    */
-  static List<TypeVariableElement> EMPTY_ARRAY = new List<TypeVariableElement>(0);
+  static List<TypeParameterElement> EMPTY_ARRAY = new List<TypeParameterElement>(0);
 
   /**
-   * Initialize a newly created type variable element to have the given name.
+   * Initialize a newly created type parameter element to have the given name.
    *
    * @param name the name of this element
    */
-  TypeVariableElementImpl(Identifier name) : super.con1(name);
-  accept(ElementVisitor visitor) => visitor.visitTypeVariableElement(this);
+  TypeParameterElementImpl(Identifier name) : super.con1(name);
+  accept(ElementVisitor visitor) => visitor.visitTypeParameterElement(this);
   Type2 get bound => _bound;
-  ElementKind get kind => ElementKind.TYPE_VARIABLE;
-  TypeVariableType get type => _type;
+  ElementKind get kind => ElementKind.TYPE_PARAMETER;
+  TypeParameterType get type => _type;
 
   /**
-   * Set the type representing the bound associated with this variable to the given type.
+   * Set the type representing the bound associated with this parameter to the given type.
    *
-   * @param bound the type representing the bound associated with this variable
+   * @param bound the type representing the bound associated with this parameter
    */
   void set bound(Type2 bound2) {
     this._bound = bound2;
   }
 
   /**
-   * Set the type defined by this type variable to the given type
+   * Set the type defined by this type parameter to the given type
    *
-   * @param type the type defined by this type variable
+   * @param type the type defined by this type parameter
    */
-  void set type(TypeVariableType type2) {
+  void set type(TypeParameterType type2) {
     this._type = type2;
   }
   void appendTo(JavaStringBuilder builder) {
@@ -5344,7 +5365,7 @@ abstract class Member implements Element {
    */
   Type2 substituteFor(Type2 type) {
     List<Type2> argumentTypes = _definingType.typeArguments;
-    List<Type2> parameterTypes = TypeVariableTypeImpl.getTypes(_definingType.typeVariables);
+    List<Type2> parameterTypes = TypeParameterTypeImpl.getTypes(_definingType.typeParameters);
     return type.substitute2(argumentTypes, parameterTypes) as Type2;
   }
 
@@ -5453,7 +5474,7 @@ class ParameterMember extends VariableMember implements ParameterElement {
     }
     Type2 baseType = baseParameter.type;
     List<Type2> argumentTypes = definingType.typeArguments;
-    List<Type2> parameterTypes = TypeVariableTypeImpl.getTypes(definingType.typeVariables);
+    List<Type2> parameterTypes = TypeParameterTypeImpl.getTypes(definingType.typeParameters);
     Type2 substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
     if (baseType == substitutedType) {
       return baseParameter;
@@ -5828,7 +5849,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (parameters.length == 0) {
       return namedParameterTypes;
     }
-    List<Type2> typeParameters = TypeVariableTypeImpl.getTypes(typeVariables);
+    List<Type2> typeParameters = TypeParameterTypeImpl.getTypes(this.typeParameters);
     for (ParameterElement parameter in parameters) {
       if (identical(parameter.parameterKind, ParameterKind.NAMED)) {
         namedParameterTypes[parameter.name] = parameter.type.substitute2(_typeArguments, typeParameters);
@@ -5841,7 +5862,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (parameters.length == 0) {
       return TypeImpl.EMPTY_ARRAY;
     }
-    List<Type2> typeParameters = TypeVariableTypeImpl.getTypes(typeVariables);
+    List<Type2> typeParameters = TypeParameterTypeImpl.getTypes(this.typeParameters);
     List<Type2> types = new List<Type2>();
     for (ParameterElement parameter in parameters) {
       if (identical(parameter.parameterKind, ParameterKind.REQUIRED)) {
@@ -5855,7 +5876,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (parameters.length == 0) {
       return TypeImpl.EMPTY_ARRAY;
     }
-    List<Type2> typeParameters = TypeVariableTypeImpl.getTypes(typeVariables);
+    List<Type2> typeParameters = TypeParameterTypeImpl.getTypes(this.typeParameters);
     List<Type2> types = new List<Type2>();
     for (ParameterElement parameter in parameters) {
       if (identical(parameter.parameterKind, ParameterKind.POSITIONAL)) {
@@ -5878,19 +5899,22 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
   Type2 get returnType {
     Type2 baseReturnType = this.baseReturnType;
-    return baseReturnType.substitute2(_typeArguments, TypeVariableTypeImpl.getTypes(typeVariables));
+    if (baseReturnType == null) {
+      return DynamicTypeImpl.instance;
+    }
+    return baseReturnType.substitute2(_typeArguments, TypeParameterTypeImpl.getTypes(typeParameters));
   }
   List<Type2> get typeArguments => _typeArguments;
-  List<TypeVariableElement> get typeVariables {
+  List<TypeParameterElement> get typeParameters {
     Element element = this.element;
     if (element is FunctionTypeAliasElement) {
-      return ((element as FunctionTypeAliasElement)).typeVariables;
+      return ((element as FunctionTypeAliasElement)).typeParameters;
     }
     ClassElement definingClass = element.getAncestor(ClassElement);
     if (definingClass != null) {
-      return definingClass.typeVariables;
+      return definingClass.typeParameters;
     }
-    return TypeVariableElementImpl.EMPTY_ARRAY;
+    return TypeParameterElementImpl.EMPTY_ARRAY;
   }
   int get hashCode {
     Element element = this.element;
@@ -6322,9 +6346,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<InterfaceType> get interfaces {
     ClassElement classElement = element;
     List<InterfaceType> interfaces = classElement.interfaces;
-    List<TypeVariableElement> typeVariables = classElement.typeVariables;
+    List<TypeParameterElement> typeParameters = classElement.typeParameters;
     List<Type2> parameterTypes = classElement.type.typeArguments;
-    if (typeVariables.length == 0) {
+    if (typeParameters.length == 0) {
       return interfaces;
     }
     int count = interfaces.length;
@@ -6387,9 +6411,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<InterfaceType> get mixins {
     ClassElement classElement = element;
     List<InterfaceType> mixins = classElement.mixins;
-    List<TypeVariableElement> typeVariables = classElement.typeVariables;
+    List<TypeParameterElement> typeParameters = classElement.typeParameters;
     List<Type2> parameterTypes = classElement.type.typeArguments;
-    if (typeVariables.length == 0) {
+    if (typeParameters.length == 0) {
       return mixins;
     }
     int count = mixins.length;
@@ -6409,7 +6433,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return supertype.substitute2(_typeArguments, classElement.type.typeArguments);
   }
   List<Type2> get typeArguments => _typeArguments;
-  List<TypeVariableElement> get typeVariables => element.typeVariables;
+  List<TypeParameterElement> get typeParameters => element.typeParameters;
   int get hashCode {
     ClassElement element = this.element;
     if (element == null) {
@@ -6459,7 +6483,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   bool isSubtypeOf(Type2 type2) {
     if (identical(type2, DynamicTypeImpl.instance)) {
       return true;
-    } else if (type2 is TypeVariableType) {
+    } else if (type2 is TypeParameterType) {
       return true;
     } else if (type2 is FunctionType) {
       ClassElement element = this.element;
@@ -6802,46 +6826,47 @@ abstract class TypeImpl implements Type2 {
   }
 }
 /**
- * Instances of the class `TypeVariableTypeImpl` defines the behavior of objects representing
- * the type introduced by a type variable.
+ * Instances of the class `TypeParameterTypeImpl` defines the behavior of objects representing
+ * the type introduced by a type parameter.
  *
  * @coverage dart.engine.type
  */
-class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
+class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   /**
-   * An empty array of type variable types.
+   * An empty array of type parameter types.
    */
-  static List<TypeVariableType> EMPTY_ARRAY = new List<TypeVariableType>(0);
+  static List<TypeParameterType> EMPTY_ARRAY = new List<TypeParameterType>(0);
 
   /**
-   * Return an array containing the type variable types defined by the given array of type variable
-   * elements.
+   * Return an array containing the type parameter types defined by the given array of type
+   * parameter elements.
    *
-   * @param typeVariables the type variable elements defining the type variable types to be returned
-   * @return the type variable types defined by the type variable elements
+   * @param typeParameters the type parameter elements defining the type parameter types to be
+   *          returned
+   * @return the type parameter types defined by the type parameter elements
    */
-  static List<TypeVariableType> getTypes(List<TypeVariableElement> typeVariables) {
-    int count = typeVariables.length;
+  static List<TypeParameterType> getTypes(List<TypeParameterElement> typeParameters) {
+    int count = typeParameters.length;
     if (count == 0) {
       return EMPTY_ARRAY;
     }
-    List<TypeVariableType> types = new List<TypeVariableType>(count);
+    List<TypeParameterType> types = new List<TypeParameterType>(count);
     for (int i = 0; i < count; i++) {
-      types[i] = typeVariables[i].type;
+      types[i] = typeParameters[i].type;
     }
     return types;
   }
 
   /**
-   * Initialize a newly created type variable to be declared by the given element and to have the
-   * given name.
+   * Initialize a newly created type parameter type to be declared by the given element and to have
+   * the given name.
    *
-   * @param element the element representing the declaration of the type variable
+   * @param element the element representing the declaration of the type parameter
    */
-  TypeVariableTypeImpl(TypeVariableElement element) : super(element, element.name);
-  bool operator ==(Object object) => object is TypeVariableTypeImpl && element == ((object as TypeVariableTypeImpl)).element;
-  TypeVariableElement get element => super.element as TypeVariableElement;
+  TypeParameterTypeImpl(TypeParameterElement element) : super(element, element.name);
+  bool operator ==(Object object) => object is TypeParameterTypeImpl && element == ((object as TypeParameterTypeImpl)).element;
+  TypeParameterElement get element => super.element as TypeParameterElement;
   int get hashCode => element.hashCode;
   bool isMoreSpecificThan(Type2 type) {
     Type2 upperBound = element.bound;
@@ -7139,7 +7164,7 @@ abstract class InterfaceType implements ParameterizedType {
    * * <i>T</i> is bottom.
    * * <i>S</i> is dynamic.
    * * Direct supertype: <i>S</i> is a direct supertype of <i>T</i>.
-   * * <i>T</i> is a type variable and <i>S</i> is the upper bound of <i>T</i>.
+   * * <i>T</i> is a type parameter and <i>S</i> is the upper bound of <i>T</i>.
    * * Covariance: <i>T</i> is of the form <i>I&lt;T<sub>1</sub>, &hellip;, T<sub>n</sub>&gt;</i>
    * and S</i> is of the form <i>I&lt;S<sub>1</sub>, &hellip;, S<sub>n</sub>&gt;</i> and
    * <i>T<sub>i</sub> &laquo; S<sub>i</sub></i>, <i>1 <= i <= n</i>.
@@ -7319,8 +7344,8 @@ abstract class InterfaceType implements ParameterizedType {
   InterfaceType substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes);
 }
 /**
- * The interface `ParameterizedType` defines the behavior common to objects representing the
- * type with type parameters, such as class and function type alias.
+ * The interface `ParameterizedType` defines the behavior common to objects representing a
+ * type with type parameters, such as a class or function type alias.
  *
  * @coverage dart.engine.type
  */
@@ -7338,11 +7363,11 @@ abstract class ParameterizedType implements Type2 {
   List<Type2> get typeArguments;
 
   /**
-   * Return an array containing all of the type variables declared for this type.
+   * Return an array containing all of the type parameters declared for this type.
    *
-   * @return the type variables declared for this type
+   * @return the type parameters declared for this type
    */
-  List<TypeVariableElement> get typeVariables;
+  List<TypeParameterElement> get typeParameters;
 }
 /**
  * The interface `Type` defines the behavior of objects representing the declared type of
@@ -7467,13 +7492,13 @@ abstract class Type2 {
   Type2 substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes);
 }
 /**
- * The interface `TypeVariableType` defines the behavior of objects representing the type
- * introduced by a type variable.
+ * The interface `TypeParameterType` defines the behavior of objects representing the type
+ * introduced by a type parameter.
  *
  * @coverage dart.engine.type
  */
-abstract class TypeVariableType implements Type2 {
-  TypeVariableElement get element;
+abstract class TypeParameterType implements Type2 {
+  TypeParameterElement get element;
 }
 /**
  * The interface `VoidType` defines the behavior of the unique object representing the type

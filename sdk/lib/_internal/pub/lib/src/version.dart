@@ -172,8 +172,8 @@ class Version implements Comparable<Version>, VersionConstraint {
         if (aPart == null) return -1;
         if (bPart == null) return 1;
 
-        if (aPart is int) {
-          if (bPart is int) {
+        if (aPart is num) {
+          if (bPart is num) {
             // Compare two numbers.
             return aPart.compareTo(bPart);
           } else {
@@ -181,7 +181,7 @@ class Version implements Comparable<Version>, VersionConstraint {
             return -1;
           }
         } else {
-          if (bPart is int) {
+          if (bPart is num) {
             // Strings come after numbers.
             return 1;
           } else {

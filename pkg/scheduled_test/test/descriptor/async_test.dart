@@ -70,10 +70,9 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error,
-          matches(r"^File not found: '[^']+[\\/]name\.txt'\.$"));
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(),
+             matches(r"^File not found: '[^']+[\\/]name\.txt'\.$"));
     });
   }, passing: ['test 2']);
 
@@ -113,9 +112,8 @@ void main() {
     });
 
     test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error,
+      expect(errors.single, new isInstanceOf<ScheduleError>());
+      expect(errors.single.error.toString(),
           matches(r"^Directory not found: '[^']+[\\/]dir'\.$"));
     });
   }, passing: ['test 2']);

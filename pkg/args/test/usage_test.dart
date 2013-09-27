@@ -167,6 +167,20 @@ main() {
                 [spades]      Swords of a soldier
           ''');
     });
+
+    test("hidden flags don't appear in the help", () {
+      var parser = new ArgParser();
+      parser.addOption('first', help: 'The first option');
+      parser.addOption('second', hide: true);
+      parser.addOption('third', help: 'The third option');
+
+
+      validateUsage(parser,
+          '''
+          --first     The first option
+          --third     The third option
+          ''');
+    });
   });
 }
 

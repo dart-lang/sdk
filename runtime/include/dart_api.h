@@ -365,7 +365,9 @@ DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object);
 /**
  * Checks to see if two handles refer to identically equal objects.
  *
- * This is equivalent to using the triple-equals (===) operator.
+ * If both handles refer to instances, this is equivalent to using the top-level
+ * function identical() from dart:core. Otherwise, returns whether the two
+ * argument handles refer to the same object.
  *
  * \param obj1 An object to be compared.
  * \param obj2 An object to be compared.
@@ -1143,7 +1145,6 @@ DART_EXPORT bool Dart_IsExternalString(Dart_Handle object);
 DART_EXPORT bool Dart_IsList(Dart_Handle object);
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object);
 DART_EXPORT bool Dart_IsType(Dart_Handle handle);
-DART_EXPORT bool Dart_IsClass(Dart_Handle handle);
 DART_EXPORT bool Dart_IsFunction(Dart_Handle handle);
 DART_EXPORT bool Dart_IsVariable(Dart_Handle handle);
 DART_EXPORT bool Dart_IsTypeVariable(Dart_Handle handle);
@@ -1173,18 +1174,6 @@ DART_EXPORT bool Dart_IsClosure(Dart_Handle object);
  *   error handle is returned.
  */
 DART_EXPORT Dart_Handle Dart_InstanceGetType(Dart_Handle instance);
-
-/**
- * TODO(asiva): Deprecate this method once all use cases have switched
- *              to using Dart_InstanceGetType
- * Gets the class for some Dart language object.
- *
- * \param instance Some Dart object.
- *
- * \return If no error occurs, the class is returned. Otherwise an
- *   error handle is returned.
- */
-DART_EXPORT Dart_Handle Dart_InstanceGetClass(Dart_Handle instance);
 
 
 /*
@@ -1966,6 +1955,11 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
  * native function to be set.
  */
 typedef struct _Dart_NativeArguments* Dart_NativeArguments;
+
+/**
+ * Extracts current isolate data from the native arguments structure.
+ */
+DART_EXPORT void* Dart_GetNativeIsolateData(Dart_NativeArguments args);
 
 /**
  * Gets the native argument at some index.

@@ -27,7 +27,7 @@ main() {
 
     createLockFile('myapp', pkg: ['barback']);
 
-    var pub = startPub(args: ['serve', '--port=0']);
+    var pub = startPub(args: ['serve', '--port=0', "--hostname=127.0.0.1"]);
     expect(pub.nextErrLine(), completion(matches(new RegExp(
         r"Error: line 1 pos 1: library handler failed$"))));
     pub.shouldExit(1);

@@ -3,28 +3,58 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class StringBuffer {
-  /** Backing store for collected UTF-16 code units. */
-  Uint16List _buffer;
-  /** Number of code units collected. */
-  int _length = 0;
+  static const int _BUFFER_SIZE = 64;
+  static const int _PARTS_TO_COMPACT = 128;
+  static const int _PARTS_TO_COMPACT_SIZE_LIMIT = _PARTS_TO_COMPACT * 8;
+
   /**
-   * Collects the approximate maximal magnitude of the added code units.
+   * When strings are written to the string buffer, we add them to a
+   * list of string parts.
+   */
+  List _parts = null;
+
+  /**
+    * Total number of code units in the string parts. Does not include
+    * the code units added to the buffer.
+    */
+  int _partsCodeUnits = 0;
+
+  /**
+   * To preserve memory, we sometimes compact the parts. This combines
+   * several smaller parts into a single larger part to cut down on the
+   * cost that comes from the per-object memory overhead. We keep track
+   * of the last index where we ended our compaction and the number of
+   * code units added since the last compaction.
+   */
+  int _partsCompactionIndex = 0;
+  int _partsCodeUnitsSinceCompaction = 0;
+  _ObjectArray _partsCompactionArray = null;
+
+  /**
+   * The buffer is used to build up a string from code units. It is
+   * used when writing short strings or individul char codes to the
+   * buffer. The buffer is allocated on demand.
+   */
+  Uint16List _buffer = null;
+  int _bufferPosition = 0;
+
+  /**
+   * Collects the approximate maximal magnitude of the code units added
+   * to the buffer.
    *
    * The value of each added code unit is or'ed with this variable, so the
    * most significant bit set in any code unit is also set in this value.
-   * If below 256, the string is a Latin-1 string.
+   * If below 256, the string in the buffer is a Latin-1 string.
    */
-  int _codeUnitMagnitude = 0;
+  int _bufferCodeUnitMagnitude = 0;
 
   /// Creates the string buffer with an initial content.
-  /* patch */ StringBuffer([Object content = ""])
-      : _buffer = new Uint16List(16) {
+  /* patch */ StringBuffer([Object content = ""]) {
     write(content);
   }
 
-  /* patch */ int get length => _length;
+  /* patch */ int get length => _partsCodeUnits + _bufferPosition;
 
-  /// Adds [obj] to the buffer.
   /* patch */ void write(Object obj) {
     String str;
     if (obj is String) {
@@ -38,13 +68,8 @@ patch class StringBuffer {
       }
     }
     if (str.isEmpty) return;
-    _ensureCapacity(str.length);
-    for (int i = 0; i < str.length; i++) {
-      int unit = str.codeUnitAt(i);
-      _buffer[_length + i] = unit;
-      _codeUnitMagnitude |= unit;
-    }
-    _length += str.length;
+    _consumeBuffer();
+    _addPart(str);
   }
 
   /* patch */ void writeCharCode(int charCode) {
@@ -53,50 +78,103 @@ patch class StringBuffer {
         throw new RangeError.range(charCode, 0, 0x10FFFF);
       }
       _ensureCapacity(1);
-      _buffer[_length++] = charCode;
-      _codeUnitMagnitude |= charCode;
+      _buffer[_bufferPosition++] = charCode;
+      _bufferCodeUnitMagnitude |= charCode;
     } else {
       if (charCode > 0x10FFFF) {
         throw new RangeError.range(charCode, 0, 0x10FFFF);
       }
       _ensureCapacity(2);
       int bits = charCode - 0x10000;
-      _buffer[_length++] = 0xD800 | (bits >> 10);
-      _buffer[_length++] = 0xDC00 | (bits & 0x3FF);
-      _codeUnitMagnitude |= 0xFFFF;
+      _buffer[_bufferPosition++] = 0xD800 | (bits >> 10);
+      _buffer[_bufferPosition++] = 0xDC00 | (bits & 0x3FF);
+      _bufferCodeUnitMagnitude |= 0xFFFF;
     }
   }
 
   /** Makes the buffer empty. */
   /* patch */ void clear() {
-    _length = 0;
-    _codeUnitMagnitude = 0;
+    _parts = null;
+    _partsCodeUnits = _bufferPosition = _bufferCodeUnitMagnitude = 0;
   }
 
   /** Returns the contents of buffer as a string. */
   /* patch */ String toString() {
-    if (_length == 0) return "";
-    bool isLatin1 = _codeUnitMagnitude <= 0xFF;
-    return _create(_buffer, _length, isLatin1);
+    _consumeBuffer();
+    if (_partsCodeUnits == 0) return "";
+
+    // TODO(kasperl): It would be nice if concatAllNative would
+    // allow me to pass in a grownable array directly, but for
+    // now we have to copy the contents to a non-growable array.
+    int length = _parts.length;
+    _ObjectArray array = new _ObjectArray(length);
+    for (int i = 0; i < length; i++) array[i] = _parts[i];
+    return _StringBase._concatAllNative(array);
   }
 
   /** Ensures that the buffer has enough capacity to add n code units. */
   void _ensureCapacity(int n) {
-    int requiredCapacity = _length + n;
-    if (requiredCapacity > _buffer.length) {
-      _grow(requiredCapacity);
+    if (_buffer == null) {
+      _buffer = new Uint16List(_BUFFER_SIZE);
+    } else if (_bufferPosition + n > _buffer.length) {
+      _consumeBuffer();
     }
   }
 
-  /** Grows the buffer until it can contain [requiredCapacity] entries. */
-  void _grow(int requiredCapacity) {
-    int newCapacity = _buffer.length;
-    do {
-      newCapacity *= 2;
-    } while (newCapacity < requiredCapacity);
-    List<int> newBuffer = new Uint16List(newCapacity);
-    newBuffer.setRange(0, _length, _buffer);
-    _buffer = newBuffer;
+  /**
+   * Consumes the content of the buffer by turning it into a string
+   * and adding it as a part. After calling this the buffer position
+   * will be reset to zero.
+   */
+  void _consumeBuffer() {
+    if (_bufferPosition == 0) return;
+    bool isLatin1 = _bufferCodeUnitMagnitude <= 0xFF;
+    String str = _create(_buffer, _bufferPosition, isLatin1);
+    _bufferPosition = _bufferCodeUnitMagnitude = 0;
+    _addPart(str);
+  }
+
+  /**
+   * Adds a new part to this string buffer and keeps track of how
+   * many code units are contained in the parts.
+   */
+  void _addPart(String str) {
+    int length = str.length;
+    _partsCodeUnits += length;
+    _partsCodeUnitsSinceCompaction += length;
+
+    if (_parts == null) {
+      _parts = [ str ];
+    } else {
+      _parts.add(str);
+      int partsSinceCompaction = _parts.length - _partsCompactionIndex;
+      if (partsSinceCompaction == _PARTS_TO_COMPACT) {
+        _compact();
+      }
+    }
+  }
+
+  /**
+   * Compacts the last N parts if their average size allows us to save a
+   * lot of memory by turning them all into a single part.
+   */
+  void _compact() {
+    if (_partsCodeUnitsSinceCompaction < _PARTS_TO_COMPACT_SIZE_LIMIT) {
+      if (_partsCompactionArray == null) {
+        _partsCompactionArray = new _ObjectArray(_PARTS_TO_COMPACT);
+      }
+      for (int i = 0; i < _PARTS_TO_COMPACT; i++) {
+        _partsCompactionArray[i] = _parts[i + _partsCompactionIndex];
+      }
+      String compacted = _StringBase._concatAllNative(_partsCompactionArray);
+      _parts.length = _parts.length - _PARTS_TO_COMPACT;
+      _parts.add(compacted);
+      for (int i = 0; i < _PARTS_TO_COMPACT; i++) {
+        _partsCompactionArray[i] = null;
+      }
+    }
+    _partsCodeUnitsSinceCompaction = 0;
+    _partsCompactionIndex = _parts.length;
   }
 
   /**

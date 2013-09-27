@@ -9,7 +9,7 @@ import "dart:mirrors";
 import "metadata_test.dart";
 
 const m1 = 'm1';
-const m2 = const Symbol('m2');
+const m2 = #m2;
 const m3 = 3;
 
 class A <S, @m1 @m2 T> {
@@ -35,12 +35,12 @@ main() {
   checkMetadata(cm.typeVariables[0], []);
   checkMetadata(cm.typeVariables[1], [m1, m2]);
   // Check for conflicts.
-  checkMetadata(cm.methods[const Symbol('T')], [m3]);
+  checkMetadata(cm.methods[#T], [m3]);
 
   cm = reflectClass(B);
   checkMetadata(cm.typeVariables[0], [m3]);
   // Check for conflicts.
-  checkMetadata(cm.members[const Symbol('T')], [m1, m2]);
+  checkMetadata(cm.members[#T], [m1, m2]);
 
   TypedefMirror tm = reflectClass(Predicate);
   FunctionTypeMirror ftm = tm.referent;

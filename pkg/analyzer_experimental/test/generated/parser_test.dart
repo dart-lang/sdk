@@ -1928,7 +1928,8 @@ class SimpleParserTest extends ParserTestCase {
     ForEachStatement statement = ParserTestCase.parse5("parseForStatement", "for (element in list) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.loopVariable);
+    JUnitTestCase.assertNull(statement.loopVariable);
+    JUnitTestCase.assertNotNull(statement.identifier);
     JUnitTestCase.assertNotNull(statement.inKeyword);
     JUnitTestCase.assertNotNull(statement.iterator);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
@@ -1940,6 +1941,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.loopVariable);
     EngineTestCase.assertSize(1, statement.loopVariable.metadata);
+    JUnitTestCase.assertNull(statement.identifier);
     JUnitTestCase.assertNotNull(statement.inKeyword);
     JUnitTestCase.assertNotNull(statement.iterator);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
@@ -1950,6 +1952,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.loopVariable);
+    JUnitTestCase.assertNull(statement.identifier);
     JUnitTestCase.assertNotNull(statement.inKeyword);
     JUnitTestCase.assertNotNull(statement.iterator);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
@@ -1960,6 +1963,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.loopVariable);
+    JUnitTestCase.assertNull(statement.identifier);
     JUnitTestCase.assertNotNull(statement.inKeyword);
     JUnitTestCase.assertNotNull(statement.iterator);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
@@ -3775,7 +3779,7 @@ class SimpleParserTest extends ParserTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    */
   String computeStringValue(String lexeme, bool first, bool last) {
-    AnalysisErrorListener listener = new AnalysisErrorListener_26();
+    AnalysisErrorListener listener = new AnalysisErrorListener_23();
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme, first, last], null) as String;
   }
@@ -6003,7 +6007,7 @@ class SimpleParserTest extends ParserTestCase {
     });
   }
 }
-class AnalysisErrorListener_26 implements AnalysisErrorListener {
+class AnalysisErrorListener_23 implements AnalysisErrorListener {
   void onError(AnalysisError event) {
     JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
   }
@@ -7917,6 +7921,12 @@ class ErrorParserTest extends ParserTestCase {
   void test_functionTypedParameter_var() {
     ParserTestCase.parseCompilationUnit("void f(var x()) {}", [ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR]);
   }
+  void test_getterInFunction_block() {
+    ParserTestCase.parseStatement("get x { return _x; }", [ParserErrorCode.GETTER_IN_FUNCTION]);
+  }
+  void test_getterInFunction_expression() {
+    ParserTestCase.parseStatement("get x => _x;", [ParserErrorCode.GETTER_IN_FUNCTION]);
+  }
   void test_getterWithParameters() {
     ParserTestCase.parse4("parseClassMember", <Object> ["C"], "int get x() {}", [ParserErrorCode.GETTER_WITH_PARAMETERS]);
   }
@@ -8206,6 +8216,12 @@ class ErrorParserTest extends ParserTestCase {
   }
   void test_redirectionInNonFactoryConstructor() {
     ParserTestCase.parse4("parseClassMember", <Object> ["C"], "C() = D;", [ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR]);
+  }
+  void test_setterInFunction_block() {
+    ParserTestCase.parseStatement("set x(v) {_x = v;}", [ParserErrorCode.SETTER_IN_FUNCTION]);
+  }
+  void test_setterInFunction_expression() {
+    ParserTestCase.parseStatement("set x(v) => _x = v;", [ParserErrorCode.SETTER_IN_FUNCTION]);
   }
   void test_staticAfterConst() {
     ParserTestCase.parse4("parseClassMember", <Object> ["C"], "final static int f;", [ParserErrorCode.STATIC_AFTER_FINAL]);
@@ -8734,6 +8750,14 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_functionTypedParameter_var);
       });
+      _ut.test('test_getterInFunction_block', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_getterInFunction_block);
+      });
+      _ut.test('test_getterInFunction_expression', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_getterInFunction_expression);
+      });
       _ut.test('test_getterWithParameters', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_getterWithParameters);
@@ -9098,6 +9122,14 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_redirectionInNonFactoryConstructor);
       });
+      _ut.test('test_setterInFunction_block', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_setterInFunction_block);
+      });
+      _ut.test('test_setterInFunction_expression', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_setterInFunction_expression);
+      });
       _ut.test('test_staticAfterConst', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_staticAfterConst);
@@ -9303,6 +9335,7 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'ensureAssignable_1': new MethodTrampoline(1, (Parser target, arg0) => target.ensureAssignable(arg0)),
   'expect_1': new MethodTrampoline(1, (Parser target, arg0) => target.expect(arg0)),
   'findRange_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.findRange(arg0, arg1)),
+  'gatherTodoComments_1': new MethodTrampoline(1, (Parser target, arg0) => target.gatherTodoComments(arg0)),
   'getCodeBlockRanges_1': new MethodTrampoline(1, (Parser target, arg0) => target.getCodeBlockRanges(arg0)),
   'getEndToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.getEndToken(arg0)),
   'hasReturnTypeInTypeAlias_0': new MethodTrampoline(0, (Parser target) => target.hasReturnTypeInTypeAlias()),
@@ -9436,6 +9469,7 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'peek_1': new MethodTrampoline(1, (Parser target, arg0) => target.peek2(arg0)),
   'reportError_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportError(arg0, arg1, arg2)),
   'reportError_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.reportError8(arg0, arg1)),
+  'scrapeTodoComment_1': new MethodTrampoline(1, (Parser target, arg0) => target.scrapeTodoComment(arg0)),
   'skipFinalConstVarOrType_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipFinalConstVarOrType(arg0)),
   'skipFormalParameterList_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipFormalParameterList(arg0)),
   'skipPastMatchingToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipPastMatchingToken(arg0)),

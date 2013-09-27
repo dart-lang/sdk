@@ -9,6 +9,8 @@ import 'catch_errors.dart';
 
 main() {
   asyncStart();
+  Completer done = new Completer();
+
   var events = [];
   StreamController controller;
   Stream stream;
@@ -26,9 +28,14 @@ main() {
         .transform(new StreamTransformer(
             handleError: (e, sink) => sink.add("error $e")))
         .asBroadcastStream();
-      runAsync(() { stream.listen((x) { events.add("stream $x"); }); });
+      runAsync(() {
+        stream.listen((x) {
+          events.add("stream $x");
+          if (x == "error 2") done.complete(true);
+        });
+      });
     }).listen((x) { events.add(x); })
-      .asFuture().then((_) { events.add("inner done"); });
+      .asFuture().then((_) { Expect.fail("Unexpected callback"); });
     stream.listen((x) { events.add("stream2 $x"); });
     runAsync(() {
       controller.add(1);
@@ -39,15 +46,19 @@ main() {
       controller.close();
     });
   }).listen((x) { events.add("outer: $x"); },
-            onDone: () {
-              Expect.listEquals(["map 1",
-                                 "stream2 101",
-                                 "stream 101",
-                                 "stream2 error 2",
-                                 "stream error 2",
-                                 "inner done",
-                                ],
-                                events);
-              asyncEnd();
-            });
+            onDone: () { Expect.fail("Unexpected callback"); });
+
+  done.future.whenComplete(() {
+    // Give handlers time to complete.
+    Timer.run(() {
+      Expect.listEquals(["map 1",
+                          "stream2 101",
+                          "stream 101",
+                          "stream2 error 2",
+                          "stream error 2",
+                        ],
+                        events);
+      asyncEnd();
+    });
+  });
 }

@@ -32,6 +32,18 @@ void testDefaultAddresses() {
   Expect.equals("::", any6.address);
 }
 
+void testLookup() {
+  InternetAddress.lookup("127.0.0.1").then((addresses) {
+    Expect.equals(1, addresses.length);
+    Expect.equals("127.0.0.1", addresses[0].address);
+  });
+
+  InternetAddress.lookup("::1").then((addresses) {
+    Expect.equals(1, addresses.length);
+    Expect.equals("::1", addresses[0].address);
+  });
+}
+
 void testReverseLookup() {
   InternetAddress.lookup('localhost').then((addrs) {
     addrs.first.reverse().then((addr) {
@@ -50,5 +62,6 @@ void testReverseLookup() {
 
 void main() {
   testDefaultAddresses();
+  testLookup();
   testReverseLookup();
 }

@@ -1002,6 +1002,29 @@ main() {
       buildShouldSucceed();
     });
 
+    test("doesn't complete the build until all packages' transforms are "
+        "finished running", () {
+      var transformer = new ManyToOneTransformer("txt");
+      initGraph({
+        "pkg1|a.txt": "pkg2|a.inc",
+        "pkg2|a.inc": "a"
+      }, {
+        "pkg1": [[transformer]]
+      });
+
+      updateSources(["pkg1|a.txt", "pkg2|a.inc"]);
+      expectAsset("pkg1|a.out", "a");
+      buildShouldSucceed();
+
+      transformer.pauseApply();
+      modifyAsset("pkg2|a.inc", "new a");
+      updateSources(["pkg2|a.inc"]);
+      buildShouldNotBeDone();
+
+      transformer.resumeApply();
+      buildShouldSucceed();
+    });
+
     test("runs a transform that's added because of a change in another package",
         () {
       initGraph({

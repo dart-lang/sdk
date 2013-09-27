@@ -28,10 +28,10 @@ main() {
          'h: Method(s(h) in s(B)), '
          'i: Method(s(i) in s(B))}', methods);
 
-  var f = methods[const Symbol('f')];
-  var g = methods[const Symbol('g')];
-  var h = methods[const Symbol('h')];
-  var i = methods[const Symbol('i')];
+  var f = methods[#f];
+  var g = methods[#g];
+  var h = methods[#h];
+  var i = methods[#i];
 
   expect('Type(s(dynamic), top-level)', f.returnType);
   expect('Class(s(int) in s(dart.core), top-level)', g.returnType);

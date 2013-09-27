@@ -149,8 +149,15 @@ class ConstantHandler extends CompilerTask {
         Constant result = initialVariableValues[element];
         return result;
       }
-      return compiler.withCurrentElement(element, () {
-        TreeElements definitions = compiler.analyzeElement(element.declaration);
+      Element currentElement = element;
+      if (element.isParameter()
+          || element.isFieldParameter()
+          || element.isVariable()) {
+        currentElement = element.enclosingElement;
+      }
+      return compiler.withCurrentElement(currentElement, () {
+        TreeElements definitions =
+            compiler.analyzeElement(currentElement.declaration);
         Constant constant = compileVariableWithDefinitions(
             element, definitions, isConst: isConst);
         return constant;
@@ -483,6 +490,7 @@ class CompileTimeConstantEvaluator extends Visitor {
   }
 
   Constant visitLiteralSymbol(LiteralSymbol node) {
+    handler.registerStringInstance(elements);
     InterfaceType type = compiler.symbolClass.computeType(compiler);
     List<Constant> createArguments(_) {
       return [constantSystem.createString(

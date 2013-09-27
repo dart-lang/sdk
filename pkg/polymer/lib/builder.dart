@@ -4,7 +4,7 @@
 
 /**
  * Common logic to make it easy to run the polymer linter and deploy tool.
- * 
+ *
  * The functions in this library are designed to make it easier to create
  * `build.dart` files. A `build.dart` file is a Dart script that can be invoked
  * from the command line, but that can also invoked automatically by the Dart
@@ -39,7 +39,7 @@
  *     import 'package:polymer/builder.dart';
  *
  *     main() {
- *        lint().then(() => deploy());
+ *        lint().then((_) => deploy());
  *     }
  *
  * **Example 3**: Runs the linter, but conditionally does the deploy step. See
@@ -51,7 +51,7 @@
  *
  *     main() {
  *        var options = parseOptions();
- *        lint().then(() {
+ *        lint().then((_) {
  *          if (options.forceDeploy) deploy();
  *        });
  *     }
@@ -97,7 +97,7 @@ import 'transformer.dart';
  * The [entryPoints] list contains files under web/ that should be treated as
  * entry points. Each entry on this list is a relative path from the package
  * root (for example 'web/index.html'). If null, all files under 'web/' are
- * treated as possible entry points. 
+ * treated as possible entry points.
  *
  * Options are read from the command line arguments, but you can override them
  * passing the [options] argument. The deploy operation is run only when the
@@ -123,13 +123,13 @@ Future build({List<String> entryPoints, CommandLineOptions options,
 
 
 /**
- * Runs the polymer linter on any relevant file in your package, 
+ * Runs the polymer linter on any relevant file in your package,
  * such as any .html file under 'lib/', 'asset/', and 'web/'.
  *
  * The [entryPoints] list contains files under web/ that should be treated as
  * entry points. Each entry on this list is a relative path from the package
  * root (for example 'web/index.html'). If null, all files under 'web/' are
- * treated as possible entry points. 
+ * treated as possible entry points.
  *
  * Options are read from the command line arguments, but you can override them
  * passing the [options] argument.
@@ -184,7 +184,7 @@ Future lint({List<String> entryPoints, CommandLineOptions options,
  * The [entryPoints] list contains files under web/ that should be treated as
  * entry points. Each entry on this list is a relative path from the package
  * root (for example 'web/index.html'). If null, all files under 'web/' are
- * treated as possible entry points. 
+ * treated as possible entry points.
  *
  * Options are read from the command line arguments, but you can override them
  * passing the [options] list.

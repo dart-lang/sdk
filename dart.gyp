@@ -198,9 +198,7 @@
     {
       'target_name': 'samples',
       'type': 'none',
-      'dependencies': [
-        'samples/openglui/openglui.gyp:openglui_sample',
-      ],
+      'dependencies': [],
       'conditions': [
         ['OS!="android"', {
            'dependencies': [

@@ -56,6 +56,15 @@ main() {
 }
 """;
 
+String generateTest(String call) {
+  return """
+main() {
+  var a = [42];
+  return a.$call + 42;
+}
+""";
+}
+
 
 main() {
   asyncTest(() => compileAll(TEST1).then((generated) {
@@ -88,4 +97,21 @@ main() {
   asyncTest(() => compileAll(TEST6).then((generated) {
     Expect.isFalse(generated.contains('iae'));
   }));
+
+  var selectors = const <String>[
+    'first',
+    'last',
+    'single',
+    'singleWhere',
+    'elementAt',
+    'removeAt',
+    'removeLast'
+  ];
+  selectors.map((name) => generateTest('$name()')).forEach((String test) {
+    asyncTest(() => compileAll(test).then((generated) {
+      Expect.isFalse(generated.contains('if (typeof t1'));
+      Expect.isFalse(generated.contains('if (t1 == null)'));
+    }));
+  });
+
 }

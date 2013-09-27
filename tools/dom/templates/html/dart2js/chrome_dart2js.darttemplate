@@ -21,10 +21,10 @@ import 'dart:_js_helper';
 import 'dart:html_common';
 import 'dart:html';
 
-part "$AUXILIARY_DIR/chrome/utils.dart";
-part "$AUXILIARY_DIR/chrome/chrome.dart";
+part "$AUXILIARY_DIR/_chrome/utils.dart";
+part "$AUXILIARY_DIR/_chrome/_chrome.dart";
 
 // Generated files below this line.
-part "$AUXILIARY_DIR/chrome/app_window.dart";
-part "$AUXILIARY_DIR/chrome/app_runtime.dart";
-part "$AUXILIARY_DIR/chrome/file_system.dart";
+part "$AUXILIARY_DIR/_chrome/app_window.dart";
+part "$AUXILIARY_DIR/_chrome/app_runtime.dart";
+part "$AUXILIARY_DIR/_chrome/file_system.dart";

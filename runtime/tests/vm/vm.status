@@ -37,12 +37,12 @@ dart/isolate_unhandled*: Skip
 
 [ $compiler == dart2js ]
 # The source positions do not match with dart2js.
-dart/optimized_stacktrace_test: Fail
+dart/optimized_stacktrace_test: RuntimeError
 
 [ $compiler == dart2js ]
 # Methods can be missing in dart2js stack traces due to inlining.  Also when
 # minifying they can be renamed, which is issue 7953.
-dart/inline_stack_frame_test: Fail
+dart/inline_stack_frame_test: RuntimeError
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
@@ -58,12 +58,6 @@ dart/isolate_mirror_local_test: Pass, Crash
 cc/Sdc1Ldc1: Crash # Illegal instructions
 cc/Cop1CvtDL: Crash
 cc/Cop1CvtDL_neg: Crash
-
-# TODO(ajohnsen): Fix this as part of library changes.
-[ $compiler == none ]
-cc/CustomIsolates: Fail, Crash # Bug 6890
-cc/NewNativePort: Fail # Bug 6890
-cc/RunLoop_ExceptionParent: Fail # Bug 6890
 
 [ $compiler == dartanalyzer ]
 # has compilation error, as designed

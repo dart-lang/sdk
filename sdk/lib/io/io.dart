@@ -41,6 +41,7 @@ part 'http_impl.dart';
 part 'http_parser.dart';
 part 'http_session.dart';
 part 'io_sink.dart';
+part 'io_service.dart';
 part 'link.dart';
 part 'options.dart';
 part 'path.dart';

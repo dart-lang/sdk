@@ -150,7 +150,8 @@ List<int> readBinaryFile(String file) {
 /// Creates [file] and writes [contents] to it.
 ///
 /// If [dontLogContents] is true, the contents of the file will never be logged.
-String writeTextFile(String file, String contents, {dontLogContents: false}) {
+String writeTextFile(String file, String contents,
+  {bool dontLogContents: false}) {
   // Sanity check: don't spew a huge file.
   log.io("Writing ${contents.length} characters to text file $file.");
   if (!dontLogContents && contents.length < 1024 * 1024) {
@@ -422,6 +423,15 @@ Future drainStream(Stream stream) {
   return stream.fold(null, (x, y) {});
 }
 
+/// Flushes the stdout and stderr streams, then exits the program with the given
+/// status code.
+///
+/// This returns a Future that will never complete, since the program will have
+/// exited already. This is useful to prevent Future chains from proceeding
+/// after you've decided to exit.
+Future flushThenExit(int status) =>
+  Future.wait([stdout.close(), stderr.close()]).then((_) => exit(status));
+
 /// Returns a [EventSink] that pipes all data to [consumer] and a [Future] that
 /// will succeed when [EventSink] is closed or fail with any errors that occur
 /// while writing.
@@ -442,7 +452,7 @@ Pair<EventSink, Future> consumerToSink(StreamConsumer consumer) {
 /// [cancelOnError] and [closeSink] are both true, [sink] will then be
 /// closed.
 Future store(Stream stream, EventSink sink,
-    {bool cancelOnError: true, closeSink: true}) {
+    {bool cancelOnError: true, bool closeSink: true}) {
   var completer = new Completer();
   stream.listen(sink.add,
       onError: (e) {

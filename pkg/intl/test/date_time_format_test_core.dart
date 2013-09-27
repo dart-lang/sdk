@@ -292,19 +292,19 @@ void runDateTests(Function subsetFunc) {
     if (subset.length <= 1) return;
     var aDate = new DateTime(2012, 1, 27, 20, 58, 59, 0);
     // An explicit format that doesn't conform to any skeleton
-    var us = new DateFormat(r'yy //// :D \\\\ dd:ss ^&@ M');
-    expect(us.format(aDate), equals(r"12 //// :D \\\\ 27:59 ^&@ 1"));
+    var us = new DateFormat(r'yy //// :W \\\\ dd:ss ^&@ M');
+    expect(us.format(aDate), equals(r"12 //// :W \\\\ 27:59 ^&@ 1"));
     // The result won't change with locale unless we use fields that are words.
-    var greek = new DateFormat(r'yy //// :D \\\\ dd:ss ^&@ M', 'el_GR');
-    expect(greek.format(aDate), equals(r"12 //// :D \\\\ 27:59 ^&@ 1"));
-    var usWithWords = new DateFormat('yy / :D \\ dd:ss ^&@ MMM', 'en_US');
-    var greekWithWords = new DateFormat('yy / :D \\ dd:ss ^&@ MMM', 'el_GR');
+    var greek = new DateFormat(r'yy //// :W \\\\ dd:ss ^&@ M', 'el_GR');
+    expect(greek.format(aDate), equals(r"12 //// :W \\\\ 27:59 ^&@ 1"));
+    var usWithWords = new DateFormat('yy / :W \\ dd:ss ^&@ MMM', 'en_US');
+    var greekWithWords = new DateFormat('yy / :W \\ dd:ss ^&@ MMM', 'el_GR');
     expect(
         usWithWords.format(aDate),
-        equals(r"12 / :D \ 27:59 ^&@ Jan"));
+        equals(r"12 / :W \ 27:59 ^&@ Jan"));
     expect(
         greekWithWords.format(aDate),
-        equals(r"12 / :D \ 27:59 ^&@ Ιαν"));
+        equals(r"12 / :W \ 27:59 ^&@ Ιαν"));
     var escaped = new DateFormat(r"hh 'o''clock'");
     expect(escaped.format(aDate), equals(r"08 o'clock"));
     var reParsed = escaped.parse(escaped.format(aDate));
@@ -368,5 +368,37 @@ void runDateTests(Function subsetFunc) {
         var formatted = quarterFormat.format(aDate);
         expect(formatted, quarters[i]);
     }
+  });
+
+  /**
+   * Generate a map from day numbers in the given [year] (where Jan 1 == 1)
+   * to a Date object. If [year] is a leap year, then pass 1 for
+   * [leapDay], otherwise pass 0.
+   */
+  Map<int, DateTime> generateDates(int year, int leapDay) =>
+      new Iterable.generate(365 + leapDay, (n) => n + 1)
+        .map((day) => new DateTime(year, 1, day)).toList().asMap();
+
+  void verifyOrdinals(Map dates) {
+    var f = new DateFormat("D");
+    var withYear = new DateFormat("yyyy D");
+    dates.forEach((number, date) {
+      var formatted = f.format(date);
+      expect(formatted, (number + 1).toString());
+      var formattedWithYear = withYear.format(date);
+      var parsed = withYear.parse(formattedWithYear);
+      expect(parsed, date);
+    });
+  }
+
+  test('Ordinal Date', () {
+    var f = new DateFormat("D");
+    var dates = generateDates(2012, 1);
+    var nonLeapDates = generateDates(2013, 0);
+    verifyOrdinals(dates);
+    verifyOrdinals(nonLeapDates);
+    // Check one hard-coded just to be on the safe side.
+    var aDate = new DateTime(2012, 4, 27, 13, 58, 59, 012);
+    expect(f.format(aDate), "118");
   });
 }

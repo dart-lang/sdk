@@ -36,4 +36,18 @@ $else
     return true;
 $endif
   }
+
+  @DomName('Document.createElement')
+  Element createElement(String tagName, [String typeExtension]) {
+$if DART2JS
+    return _createElement(tagName, typeExtension);
+$else
+    if (typeExtension != null) {
+      return _createElement(tagName, typeExtension);
+    } else {
+      // Fast-path for Dartium when typeExtension is not needed.
+      return _Utils.createElement(this, tagName);
+    }
+$endif
+  }
 }

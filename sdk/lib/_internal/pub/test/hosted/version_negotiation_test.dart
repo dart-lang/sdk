@@ -4,8 +4,6 @@
 
 library pub_tests;
 
-import 'dart:io';
-
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
@@ -65,7 +63,7 @@ main() {
       pub.shouldExit(1);
 
       expect(pub.remainingStderr(), completion(equals(
-          "Pub 0.1.2+3 is incompatible with the current version of localhost.\n"
+          "Pub 0.1.2+3 is incompatible with the current version of 127.0.0.1.\n"
           "Upgrade pub to the latest version and try again.")));
     });
   });

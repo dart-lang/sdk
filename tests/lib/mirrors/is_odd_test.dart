@@ -11,6 +11,6 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 main() {
-  Expect.isTrue(reflect(1).getField(new Symbol('isOdd')).reflectee);
-  Expect.isFalse(reflect(2).getField(new Symbol('isOdd')).reflectee);
+  Expect.isTrue(reflect(1).getField(#isOdd).reflectee);
+  Expect.isFalse(reflect(2).getField(#isOdd).reflectee);
 }

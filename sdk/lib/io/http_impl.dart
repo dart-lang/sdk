@@ -474,7 +474,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
 
   Future<T> get done => _dataSink.done;
 
-  Future _writeHeaders({drainRequest: true}) {
+  Future _writeHeaders({bool drainRequest: true}) {
     if (_headersWritten) return new Future.value();
     _headersWritten = true;
     headers._synchronize();  // Be sure the 'chunked' option is updated.

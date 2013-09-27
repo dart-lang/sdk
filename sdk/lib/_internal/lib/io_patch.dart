@@ -27,9 +27,6 @@ patch class _Directory {
   patch static List _list(String path, bool recursive, bool followLinks) {
     throw new UnsupportedError("Directory._list");
   }
-  patch static SendPort _newServicePort() {
-    throw new UnsupportedError("Directory._newServicePort");
-  }
 }
 
 patch class _EventHandler {
@@ -37,12 +34,6 @@ patch class _EventHandler {
                               ReceivePort receivePort,
                               int data) {
     throw new UnsupportedError("EventHandler._sendData");
-  }
-}
-
-patch class _FileUtils {
-  patch static SendPort _newServicePort() {
-    throw new UnsupportedError("FileUtils._newServicePort");
   }
 }
 
@@ -300,9 +291,6 @@ patch class _SecureFilter {
   patch factory _SecureFilter() {
     throw new UnsupportedError("_SecureFilter._SecureFilter");
   }
-  patch static SendPort _newServicePort() {
-    throw new UnsupportedError("_SecureFilter._newServicePort");
-  }
 }
 
 patch class _StdIOUtils {
@@ -356,5 +344,11 @@ patch class _FileSystemWatcher {
   }
   patch static bool get isSupported {
     throw new UnsupportedError("_FileSystemWatcher.isSupported");
+  }
+}
+
+patch class _IOService {
+  patch static Future dispatch(int request, List data) {
+    throw new UnsupportedError("_IOService.dispatch");
   }
 }

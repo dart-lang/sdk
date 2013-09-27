@@ -29,7 +29,7 @@ void main() {
                                    ['--analyze-only']);
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
-    Expect.isNotNull(main, 'Could not find "main"');
+    Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(main);
 
     var deferredClasses =
