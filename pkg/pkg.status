@@ -185,6 +185,9 @@ unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2J
 [ $arch == mips ]
 *: Skip  # Issue 13650
 
+[ $arch == arm ]
+*: Skip  # Issue 13624
+
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
