@@ -13671,7 +13671,7 @@ class HttpRequest extends XmlHttpRequestEventTarget {
   }
 
   /**
-   * Creates a URL request for the specified [url].
+   * Creates and sends a URL request for the specified [url].
    *
    * By default `request` will perform an HTTP GET request, but a different
    * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the 
