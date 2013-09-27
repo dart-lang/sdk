@@ -32,6 +32,7 @@ import 'resolution/resolution.dart';
 import 'source_file.dart' show SourceFile;
 import 'js/js.dart' as js;
 import 'deferred_load.dart' show DeferredLoadTask;
+import 'inferrer/container_tracer.dart' show ContainerTracer;
 import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
 
 export 'resolution/resolution.dart' show TreeElements, TreeElementMapping;

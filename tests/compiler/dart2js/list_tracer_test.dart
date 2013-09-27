@@ -222,13 +222,12 @@ void doTest(String allocation, {bool nullify}) {
     checkType('listPassedToClosure', typesTask.dynamicType);
     checkType('listReturnedFromClosure', typesTask.dynamicType);
     checkType('listUsedWithNonOkSelector', typesTask.dynamicType);
-    checkType('listPassedAsOptionalParameter', typesTask.numType);
-    checkType('listPassedAsNamedParameter', typesTask.numType);
+    checkType('listPassedAsOptionalParameter', typesTask.dynamicType);
+    checkType('listPassedAsNamedParameter', typesTask.dynamicType);
 
     if (!allocation.contains('filled')) {
       checkType('listUnset', new TypeMask.nonNullEmpty());
-      // TODO(ngeoffray): Re-enable this test.
-      // checkType('listOnlySetWithConstraint', new TypeMask.nonNullEmpty());
+      checkType('listOnlySetWithConstraint', new TypeMask.nonNullEmpty());
     }
   }));
 }

@@ -533,6 +533,7 @@ abstract class Compiler implements DiagnosticListener {
   EnqueueTask enqueuer;
   DeferredLoadTask deferredLoadTask;
   MirrorUsageAnalyzerTask mirrorUsageAnalyzerTask;
+  ContainerTracer containerTracer;
   String buildId;
 
   static const SourceString MAIN = const SourceString('main');
@@ -638,6 +639,7 @@ abstract class Compiler implements DiagnosticListener {
       closureToClassMapper = new closureMapping.ClosureTask(this, closureNamer),
       checker = new TypeCheckerTask(this),
       typesTask = new ti.TypesTask(this),
+      containerTracer = new ContainerTracer(this),
       constantHandler = new ConstantHandler(this, backend.constantSystem),
       deferredLoadTask = new DeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
