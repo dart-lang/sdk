@@ -318,7 +318,6 @@ class TypesTask extends CompilerTask {
         }
       }
     });
-    compiler.containerTracer.analyze();
     typesInferrer.clear();
   }
 

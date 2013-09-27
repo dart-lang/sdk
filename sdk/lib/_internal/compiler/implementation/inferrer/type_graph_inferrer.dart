@@ -7,7 +7,7 @@ library type_graph_inferrer;
 import 'dart:collection' show Queue, LinkedHashSet, IterableBase, HashMap;
 import '../dart_types.dart' show DartType, InterfaceType, TypeKind;
 import '../elements/elements.dart';
-import '../tree/tree.dart' show Node;
+import '../tree/tree.dart' show LiteralList, Node;
 import '../types/types.dart' show TypeMask, ContainerTypeMask, TypesInferrer;
 import '../universe/universe.dart' show Selector, TypedSelector, SideEffects;
 import '../dart2jslib.dart' show Compiler, SourceString, TreeElementMapping;
@@ -18,6 +18,7 @@ import 'simple_types_inferrer.dart';
 import '../dart2jslib.dart' show invariant;
 
 part 'type_graph_nodes.dart';
+part 'container_tracer.dart';
 
 /**
  * A set of selector names that [List] implements, that we know return
@@ -249,7 +250,11 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
                                     Element enclosing,
                                     [TypeInformation elementType, int length]) {
     ContainerTypeMask mask = new ContainerTypeMask(type.type, node, enclosing);
-    mask.elementType = elementType == null ? null : elementType.type;
+    // Set the element type now for const lists, so that the inferrer
+    // can use it.
+    mask.elementType = (type.type == compiler.typesTask.constListType)
+        ? elementType.type
+        : null;
     mask.length = length;
     TypeInformation element =
         new ElementInContainerTypeInformation(elementType, mask);
@@ -460,6 +465,7 @@ class TypeGraphInferrerEngine
     }
 
     processLoopInformation();
+    types.allocatedContainers.values.forEach(analyzeContainer);
   }
 
   void processLoopInformation() {
@@ -498,6 +504,11 @@ class TypeGraphInferrerEngine
     }
   }
 
+  void analyzeContainer(ContainerTypeInformation info) {
+    if (info.elementType.isInConstContainer) return;
+    new ContainerTracerVisitor(info, this).run();
+  }
+
   void buildWorkQueue() {
     workQueue.addAll(types.typeInformations.values);
     workQueue.addAll(types.allocatedTypes);
@@ -506,7 +517,7 @@ class TypeGraphInferrerEngine
 
   /**
    * Update the assignments to parameters in the graph. [remove] tells
-   * wheter assignments must be added or removed. If [init] is true,
+   * wheter assignments must be added or removed. If [init] is false,
    * parameters are added to the work queue.
    */
   void updateParameterAssignments(TypeInformation caller,
