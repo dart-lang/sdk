@@ -187,31 +187,53 @@ class _IntegerImplementation {
     return this.toDouble().toStringAsPrecision(precision);
   }
 
+  static const _digits = "0123456789abcdefghijklmnopqrstuvwxyz";
+
   String toRadixString(int radix) {
-    final table = const ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-                         "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
-                         "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
-                         "u", "v", "w", "x", "y", "z"];
     if (radix is! int || radix < 2 || radix > 36) {
       throw new ArgumentError(radix);
     }
+    if (radix & (radix - 1) == 0) {
+      return _toPow2String(this, radix);
+    }
+    if (radix == 10) return this.toString();
     final bool isNegative = this < 0;
     int value = isNegative ? -this : this;
     List temp = new List();
-    while (value > 0) {
+    do {
       int digit = value % radix;
       value ~/= radix;
-      temp.add(digit);
+      temp.add(_digits.codeUnitAt(digit));
+    } while (value > 0);
+    if (isNegative) temp.add(0x2d);  // '-'.
+
+    _OneByteString string = _OneByteString._allocate(temp.length);
+    for (int i = 0, j = temp.length; j > 0; i++) {
+      string._setAt(i, temp[--j]);
     }
-    if (temp.isEmpty) {
-      return "0";
+    return string;
+  }
+
+  static String _toPow2String(value, radix) {
+    if (value == 0) return "0";
+    assert(radix & (radix - 1) == 0);
+    var negative = value < 0;
+    var bitsPerDigit = radix.bitLength - 1;
+    var length = 0;
+    if (negative) {
+      value = -value;
+      length = 1;
     }
-    StringBuffer buffer = new StringBuffer();
-    if (isNegative) buffer.write("-");
-    for (int i = temp.length - 1; i >= 0; i--) {
-      buffer.write(table[temp[i]]);
-    }
-    return buffer.toString();
+    // Integer division, rounding up, to find number of _digits.
+    length += (value.bitLength + bitsPerDigit - 1) ~/ bitsPerDigit;
+    _OneByteString string = _OneByteString._allocate(length);
+    string._setAt(0, 0x2d);  // '-'. Is overwritten if not negative.
+    var mask = radix - 1;
+    do {
+      string._setAt(--length, _digits.codeUnitAt(value & mask));
+      value >>= bitsPerDigit;
+    } while (value > 0);
+    return string;
   }
 
   _leftShiftWithMask32(count, mask)  native "Integer_leftShiftWithMask32";
