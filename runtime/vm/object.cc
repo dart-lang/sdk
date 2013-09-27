@@ -1175,8 +1175,11 @@ RawError* Object::Init(Isolate* isolate) {
   ClassFinalizer::VerifyBootstrapClasses();
   MarkInvisibleFunctions();
 
-  // Set up the intrinsic state of all functions (core, math and scalar list).
+  // Set up the intrinsic state of all functions (core, math and typed data).
   Intrinsifier::InitializeState();
+
+  // Set up recognized state of all functions (core, math and typed data).
+  MethodRecognizer::InitializeState();
 
   return Error::null();
 }
@@ -4135,6 +4138,11 @@ void Function::set_is_intrinsic(bool value) const {
 }
 
 
+void Function::set_is_recognized(bool value) const {
+  set_kind_tag(RecognizedBit::update(value, raw_ptr()->kind_tag_));
+}
+
+
 void Function::set_is_static(bool value) const {
   set_kind_tag(StaticBit::update(value, raw_ptr()->kind_tag_));
 }
@@ -4708,6 +4716,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_external(is_external);
   result.set_is_visible(true);  // Will be computed later.
   result.set_is_intrinsic(false);
+  result.set_is_recognized(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
@@ -7997,10 +8006,10 @@ struct FpDiff {
 
 
 
-// Return Function::null() if function does not exist in lib.
-static RawFunction* GetFunction(const GrowableArray<Library*>& libs,
-                                const char* class_name,
-                                const char* function_name) {
+// Return Function::null() if function does not exist in libs.
+RawFunction* Library::GetFunction(const GrowableArray<Library*>& libs,
+                                  const char* class_name,
+                                  const char* function_name) {
   Function& func = Function::Handle();
   String& class_str = String::Handle();
   String& func_str = String::Handle();

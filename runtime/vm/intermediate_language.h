@@ -179,6 +179,7 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
   static Kind RecognizeKind(const Function& function);
   static bool AlwaysInline(const Function& function);
   static const char* KindToCString(Kind kind);
+  static void InitializeState();
 };
 
 

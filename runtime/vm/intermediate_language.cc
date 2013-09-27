@@ -362,12 +362,12 @@ static bool IsRecognizedLibrary(const Library& library) {
 
 MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
     const Function& function) {
-  const Class& function_class = Class::Handle(function.Owner());
-  const Library& lib = Library::Handle(function_class.library());
-  if (!IsRecognizedLibrary(lib)) {
+  if (!function.is_recognized()) {
     return kUnknown;
   }
 
+  const Class& function_class = Class::Handle(function.Owner());
+  const Library& lib = Library::Handle(function_class.library());
   const String& function_name = String::Handle(function.name());
   const String& class_name = String::Handle(function_class.Name());
 
@@ -379,6 +379,7 @@ MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
   }
 RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
 #undef RECOGNIZE_FUNCTION
+  UNREACHABLE();
   return kUnknown;
 }
 
@@ -414,7 +415,25 @@ RECOGNIZED_LIST(KIND_TO_STRING)
 }
 
 
+void MethodRecognizer::InitializeState() {
+  GrowableArray<Library*> libs(3);
+  libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
+  libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
+  libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
+  Function& func = Function::Handle();
+
+#define SET_IS_RECOGNIZED(class_name, function_name, dest, fp)                 \
+  func = Library::GetFunction(libs, #class_name, #function_name);              \
+  ASSERT(!func.IsNull());                                                      \
+  func.set_is_recognized(true);                                                \
+
+  RECOGNIZED_LIST(SET_IS_RECOGNIZED);
+
+#undef SET_IS_RECOGNIZED
+}
+
 // ==== Support for visiting flow graphs.
+
 #define DEFINE_ACCEPT(ShortName)                                               \
 void ShortName##Instr::Accept(FlowGraphVisitor* visitor) {                     \
   visitor->Visit##ShortName(this);                                             \
