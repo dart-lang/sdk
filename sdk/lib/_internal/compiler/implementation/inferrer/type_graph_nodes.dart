@@ -92,6 +92,17 @@ abstract class TypeInformation {
     assignments = const <TypeInformation>[];
     users = const <TypeInformation>[];
   }
+
+  bool reachedBy(TypeInformation info, TypeGraphInferrerEngine inferrer) {
+    return true;
+  }
+
+  accept(TypeInformationVisitor visitor);
+
+  /// The [Element] where this [TypeInformation] was created. May be
+  /// for some [TypeInformation] nodes, where we do not need to store
+  /// the information.
+  Element get owner => null;
 }
 
 /**
@@ -268,6 +279,12 @@ class ElementTypeInformation extends TypeInformation {
   }
 
   String toString() => 'Element $element $type';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitElementTypeInformation(this);
+  }
+
+  Element get owner => element.getOutermostEnclosingMemberOrTopLevel();
 }
 
 /**
@@ -301,6 +318,8 @@ abstract class CallSiteTypeInformation extends TypeInformation {
 
   /// Return an iterable over the targets of this call.
   Iterable<Element> get callees;
+
+  Element get owner => caller;
 }
 
 class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
@@ -344,6 +363,14 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   Iterable<Element> get callees => [calledElement.implementation];
+
+  bool reachedBy(TypeInformation info, TypeGraphInferrerEngine inferrer) {
+    return info == inferrer.types.getInferredTypeOf(calledElement);
+  }
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitStaticCallSiteTypeInformation(this);
+  }
 }
 
 class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
@@ -506,7 +533,17 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     super.giveUp(inferrer);
   }
 
-  String toString() => 'Call site $call ${receiver.type} $type';
+  bool reachedBy(TypeInformation info, TypeGraphInferrerEngine inferrer) {
+    return targets
+            .map((element) => inferrer.types.getInferredTypeOf(element))
+            .any((other) => other == info);
+  }
+
+  String toString() => 'Call site $call on ${receiver.type} $type';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitDynamicCallSiteTypeInformation(this);
+  }
 }
 
 class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
@@ -529,10 +566,14 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   Iterable<Element> get callees {
-    throw new UnsupportedError("Cannot compute callees of a closure.");
+    throw new UnsupportedError("Cannot compute callees of a closure call.");
   }
 
   String toString() => 'Closure call $call on $closure';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitClosureCallSiteTypeInformation(this);
+  }
 }
 
 /**
@@ -569,6 +610,10 @@ class ConcreteTypeInformation extends TypeInformation {
   }
 
   String toString() => 'Type $type';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitConcreteTypeInformation(this);
+  }
 }
 
 /**
@@ -602,23 +647,28 @@ class NarrowTypeInformation extends TypeInformation {
   }
 
   String toString() => 'Narrow ${assignments.first} to $typeAnnotation $type';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitNarrowTypeInformation(this);
+  }
 }
 
 /**
- * A [ContainerTypeInformation] is a [ConcreteTypeInformation] created
+ * A [ContainerTypeInformation] is a [TypeInformation] created
  * for each `List` instantiations.
  */
-class ContainerTypeInformation extends ConcreteTypeInformation {
-  final TypeInformation elementType;
+class ContainerTypeInformation extends TypeInformation {
+  final ElementInContainerTypeInformation elementType;
 
-  ContainerTypeInformation(containerType, this.elementType)
-      : super(containerType);
-
-  void addUser(TypeInformation user) {
-    elementType.addUser(user);
+  ContainerTypeInformation(containerType, this.elementType) {
+    type = containerType;
   }
 
   String toString() => 'Container type $type';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitContainerTypeInformation(this);
+  }
 }
 
 /**
@@ -629,17 +679,27 @@ class ElementInContainerTypeInformation extends TypeInformation {
   final ContainerTypeMask container;
 
   ElementInContainerTypeInformation(elementType, this.container) {
-    // [elementType] is not null for const lists.
     if (elementType != null) addAssignment(elementType);
   }
 
+  bool get isInConstContainer {
+    LiteralList literal = container.allocationNode.asLiteralList();
+    return (literal != null) && literal.isConst();
+  }
+
   TypeMask refine(TypeGraphInferrerEngine inferrer) {
-    if (assignments.isEmpty) return inferrer.types.dynamicType.type;
+    if (!isInConstContainer) {
+      return inferrer.types.dynamicType.type;
+    }
     return container.elementType =
         inferrer.types.computeTypeMask(assignments);
   }
 
   String toString() => 'Element in container $type';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitElementInContainerTypeInformation(this);
+  }
 }
 
 /**
@@ -658,4 +718,21 @@ class PhiElementTypeInformation extends TypeInformation {
   }
 
   String toString() => 'Phi $element $type';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitPhiElementTypeInformation(this);
+  }
+}
+
+class TypeInformationVisitor<T> {
+  T visitNarrowTypeInformation(NarrowTypeInformation info);
+  T visitPhiElementTypeInformation(PhiElementTypeInformation info);
+  T visitElementInContainerTypeInformation(
+      ElementInContainerTypeInformation info);
+  T visitContainerTypeInformation(ContainerTypeInformation info);
+  T visitConcreteTypeInformation(ConcreteTypeInformation info);
+  T visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info);
+  T visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info);
+  T visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info);
+  T visitElementTypeInformation(ElementTypeInformation info);
 }
