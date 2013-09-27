@@ -97,9 +97,14 @@ class NativeArguments {
     return ArgCount() - NumHiddenArgs(function_bits);
   }
 
-  RawObject* NativeReceiver() const {
-    ASSERT(ToInstanceFunction());
-    return NativeArg0();
+  RawObject* NativeArg0() const {
+    int function_bits = FunctionBits::decode(argc_tag_);
+    if (function_bits == (kClosureFunctionBit | kInstanceFunctionBit)) {
+      // Retrieve the receiver from the context.
+      const Context& context = Context::Handle(isolate_->top_context());
+      return context.At(0);
+    }
+    return ArgAt(NumHiddenArgs(function_bits));
   }
 
   RawObject* NativeArgAt(int index) const {
@@ -199,16 +204,6 @@ class NativeArguments {
       return 1;
     }
     return 0;
-  }
-
-  RawObject* NativeArg0() const {
-    int function_bits = FunctionBits::decode(argc_tag_);
-    if (function_bits == (kClosureFunctionBit | kInstanceFunctionBit)) {
-      // Retrieve the receiver from the context.
-      const Context& context = Context::Handle(isolate_->top_context());
-      return context.At(0);
-    }
-    return ArgAt(NumHiddenArgs(function_bits));
   }
 
   Isolate* isolate_;  // Current isolate pointer.
