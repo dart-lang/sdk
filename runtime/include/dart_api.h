@@ -185,9 +185,13 @@ typedef unsigned __int64 uint64_t;
  * can be used to store objects across scopes. Persistent handles have
  * the lifetime of the current isolate unless they are explicitly
  * deallocated (see Dart_DeletePersistentHandle).
+ * The type Dart_Handle represents a handle (both local and persistent).
+ * The type Dart_PersistentHandle is a Dart_Handle and it is used to
+ * document that a persistent handle is expected as a parameter to a call
+ * or the return value from a call is a persistent handle.
  */
 typedef struct _Dart_Handle* Dart_Handle;
-typedef struct _Dart_PersistentHandle* Dart_PersistentHandle;
+typedef Dart_Handle Dart_PersistentHandle;
 typedef struct _Dart_WeakPersistentHandle* Dart_WeakPersistentHandle;
 
 typedef void (*Dart_WeakPersistentHandleFinalizer)(
