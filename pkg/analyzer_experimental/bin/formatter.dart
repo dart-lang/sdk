@@ -159,7 +159,11 @@ String _formatCU(src, {options: const FormatterOptions()}) {
 _toJson(formatResult) => 
     // Actual JSON format TBD
     JSON.encode({'source': formatResult.source,
-                 'selection': formatResult.selection.toString()});
+                 'selection': {
+                     'offset': formatResult.selection.offset,
+                     'length': formatResult.selection.length
+                  }
+    });
 
 /// Log the given [msg].
 _log(String msg) {
