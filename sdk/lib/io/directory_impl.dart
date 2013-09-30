@@ -5,15 +5,6 @@
 part of dart.io;
 
 class _Directory extends FileSystemEntity implements Directory {
-  static const CREATE_REQUEST = 0;
-  static const DELETE_REQUEST = 1;
-  static const EXISTS_REQUEST = 2;
-  static const CREATE_TEMP_REQUEST = 3;
-  static const LIST_START_REQUEST = 4;
-  static const LIST_NEXT_REQUEST = 5;
-  static const LIST_STOP_REQUEST = 6;
-  static const RENAME_REQUEST = 7;
-
   final String path;
 
   _Directory(String this.path) {
