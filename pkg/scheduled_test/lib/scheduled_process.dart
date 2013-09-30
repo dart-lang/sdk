@@ -19,7 +19,7 @@ import 'src/value_future.dart';
 /// Before running the test, either [shouldExit] or [kill] must be called on
 /// this to ensure that the process terminates when expected. Note that [kill]
 /// is using SIGKILL, to ensure the process is killed on Mac OS X (an early
-/// SIGTERM on Mac OS X may be ignore).
+/// SIGTERM on Mac OS X may be ignored).
 ///
 /// If the test fails, this will automatically print out any stdout and stderr
 /// from the process to aid debugging.
