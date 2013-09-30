@@ -1625,11 +1625,13 @@ ASSEMBLER_TEST_RUN(PackedCompareNLE, test) {
 
 
 ASSEMBLER_TEST_GENERATE(PackedNegate, assembler) {
+  __ EnterDartFrame(0);
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
   __ negateps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
+  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -1642,11 +1644,13 @@ ASSEMBLER_TEST_RUN(PackedNegate, test) {
 
 
 ASSEMBLER_TEST_GENERATE(PackedAbsolute, assembler) {
+  __ EnterDartFrame(0);
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(-15.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
   __ absps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
+  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -1659,9 +1663,11 @@ ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
 
 
 ASSEMBLER_TEST_GENERATE(PackedSetWZero, assembler) {
+  __ EnterDartFrame(0);
   __ set1ps(XMM0, RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ zerowps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xFF));  // Copy the W lane which is now 0.0.
+  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -1778,13 +1784,15 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
     uint32_t d;
   } constant1 =
       { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-  __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ EnterDartFrame(0);
+  __ LoadImmediate(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)), PP);
   __ movups(XMM9, Address(RAX, 0));
   __ notps(XMM9);
   __ movaps(XMM0, XMM9);
   __ pushq(RAX);
   __ movss(Address(RSP, 0), XMM0);
   __ popq(RAX);
+  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -2539,7 +2547,9 @@ ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, test) {
 
 
 ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
+  __ EnterDartFrame(0);
   __ DoubleAbs(XMM0);
+  __ LeaveFrameWithPP();
   __ ret();
 }
 
