@@ -124,27 +124,15 @@ class CodeEmitterTask extends CompilerTask {
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
 
-  final List<jsAst.Expression> boundClosures = <jsAst.Expression>[];
+  /// A cache of synthesized closures for top-level, static or
+  /// instance methods.
+  final Map<String, Element> methodClosures = <String, Element>{};
 
   JavaScriptBackend get backend => compiler.backend;
 
   String get _ => compiler.enableMinification ? "" : " ";
   String get n => compiler.enableMinification ? "" : "\n";
   String get N => compiler.enableMinification ? "\n" : ";\n";
-
-  /**
-   * A cache of closures that are used to closurize instance methods.
-   * A closure is dynamically bound to the instance used when
-   * closurized.
-   */
-  final Map<int, String> boundClosureCache;
-
-  /**
-   * A cache of closures that are used to closurize instance methods
-   * of interceptors. These closures are dynamically bound to the
-   * interceptor instance, and the actual receiver of the method.
-   */
-  final Map<int, String> interceptorClosureCache;
 
   /**
    * Raw ClassElement symbols occuring in is-checks and type assertions.  If the
@@ -219,8 +207,6 @@ class CodeEmitterTask extends CompilerTask {
   CodeEmitterTask(Compiler compiler, Namer namer, this.generateSourceMap)
       : mainBuffer = new CodeBuffer(),
         this.namer = namer,
-        boundClosureCache = new Map<int, String>(),
-        interceptorClosureCache = new Map<int, String>(),
         constantEmitter = new ConstantEmitter(compiler, namer),
         super(compiler) {
     nativeEmitter = new NativeEmitter(this);
@@ -1047,8 +1033,12 @@ class CodeEmitterTask extends CompilerTask {
     TreeElements elements =
         compiler.enqueuer.resolution.getCachedElements(member);
 
+    int parameterIndex = 0;
     parameters.orderedForEachParameter((Element element) {
-      String jsName = backend.namer.safeName(element.name.slowToString());
+      // Use generic names for closures to facilitate code sharing.
+      String jsName = member is ClosureInvocationElement
+          ? 'p${parameterIndex++}'
+          : backend.namer.safeName(element.name.slowToString());
       assert(jsName != receiverArgumentName);
       if (count < optionalParameterStart) {
         parametersBuffer[count] = new jsAst.Parameter(jsName);
@@ -2454,7 +2444,8 @@ class CodeEmitterTask extends CompilerTask {
     for (FunctionElement element in
              Elements.sortedByPosition(functionsNeedingGetter)) {
       String superName = namer.getNameOfClass(compiler.closureClass);
-      String name = 'Closure\$${element.name.slowToString()}';
+      int parameterCount = element.functionSignature.parameterCount;
+      String name = 'Closure\$$parameterCount';
       assert(instantiatedClasses.contains(compiler.closureClass));
 
       ClassElement closureClassElement = new ClosureClassElement(
@@ -2477,20 +2468,11 @@ class CodeEmitterTask extends CompilerTask {
       // If a static function is used as a closure we need to add its name
       // in case it is used in spawnFunction.
       String methodName = namer.STATIC_CLOSURE_NAME_NAME;
-      emitClosureClassHeader(
-          mangledName, superName, <String>[invocationName, methodName],
-          closureBuilder);
+      List<String> fieldNames = <String>[invocationName, methodName];
+      closureBuilder.addProperty('',
+          js.string("$superName;${fieldNames.join(',')}"));
 
       addParameterStubs(callElement, closureBuilder.addProperty);
-
-      // TODO(ngeoffray): Cache common base classes for closures, bound
-      // closures, and static closures that have common type checks.
-      boundClosures.add(
-          js('$classesCollector.$mangledName = #',
-             js('[${namer.globalObjectFor(closureClassElement)}, #]',
-                closureBuilder.toObjectInitializer())));
-
-      staticGetters[element] = closureClassElement;
 
       void emitFunctionTypeSignature(Element method, FunctionType methodType) {
         RuntimeTypes rti = backend.rti;
@@ -2513,16 +2495,28 @@ class CodeEmitterTask extends CompilerTask {
           getFunctionTypeChecksOn(methodType);
       generateFunctionTypeTests(element, methodType, functionTypeChecks,
           emitFunctionTypeSignature, emitIsFunctionTypeTest);
+
+      closureClassElement =
+          addClosureIfNew(closureBuilder, closureClassElement, fieldNames);
+      staticGetters[element] = closureClassElement;
+
     }
   }
 
-  void emitClosureClassHeader(String mangledName,
-                              String superName,
-                              List<String> fieldNames,
-                              ClassBuilder builder) {
-    builder.addProperty('',
-        js.string("$superName;${fieldNames.join(',')}"));
+  ClassElement addClosureIfNew(ClassBuilder builder,
+                               ClassElement closure,
+                               List<String> fieldNames) {
+    String key =
+        jsAst.prettyPrint(builder.toObjectInitializer(), compiler).getText();
+    return methodClosures.putIfAbsent(key, () {
+      String mangledName = namer.getNameOfClass(closure);
+      emitClosureInPrecompiledFunction(mangledName, fieldNames);
+      return closure;
+    });
+  }
 
+  void emitClosureInPrecompiledFunction(String mangledName,
+                                        List<String> fieldNames) {
     List<String> fields = fieldNames;
     String constructorName = mangledName;
     precompiledFunction.add(new jsAst.FunctionDeclaration(
@@ -2562,134 +2556,95 @@ class CodeEmitterTask extends CompilerTask {
     //   $call3(x, y, z) { return self[name](x, y, z); }
     // }
 
-    // TODO(floitsch): share the closure classes with other classes
-    // if they share methods with the same signature. Currently we do this only
-    // if there are no optional parameters. Closures with optional parameters
-    // are more difficult to canonicalize because they would need to have the
-    // same default values.
-
     bool hasOptionalParameters = member.optionalParameterCount(compiler) != 0;
     int parameterCount = member.parameterCount(compiler);
 
-    Map<int, String> cache;
     // Intercepted methods take an extra parameter, which is the
     // receiver of the call.
     bool inInterceptor = backend.isInterceptedMethod(member);
-    if (inInterceptor) {
-      cache = interceptorClosureCache;
-    } else {
-      cache = boundClosureCache;
-    }
     List<String> fieldNames = <String>[];
     compiler.boundClosureClass.forEachInstanceField((_, Element field) {
       fieldNames.add(namer.getNameOfInstanceMember(field));
     });
 
+    ClassElement classElement = member.getEnclosingClass();
+    String name = inInterceptor
+        ? 'BoundClosure\$i${parameterCount}'
+        : 'BoundClosure\$${parameterCount}';
+
+    ClassElement closureClassElement = new ClosureClassElement(
+        null, new SourceString(name), compiler, member,
+        member.getCompilationUnit());
+    String superName = namer.getNameOfClass(closureClassElement.superclass);
+
+    // Define the constructor with a name so that Object.toString can
+    // find the class name of the closure class.
+    ClassBuilder boundClosureBuilder = new ClassBuilder();
+    boundClosureBuilder.addProperty('',
+        js.string("$superName;${fieldNames.join(',')}"));
+    // Now add the methods on the closure class. The instance method does not
+    // have the correct name. Since [addParameterStubs] use the name to create
+    // its stubs we simply create a fake element with the correct name.
+    // Note: the callElement will not have any enclosingElement.
+    FunctionElement callElement = new ClosureInvocationElement(
+        namer.closureInvocationSelectorName, member);
+
+    String invocationName = namer.instanceMethodName(callElement);
+
+    List<String> parameters = <String>[];
+    List<jsAst.Expression> arguments =
+        <jsAst.Expression>[js('this')[fieldNames[0]]];
+    if (inInterceptor) {
+      arguments.add(js('this')[fieldNames[2]]);
+    }
+    for (int i = 0; i < parameterCount; i++) {
+      String name = 'p$i';
+      parameters.add(name);
+      arguments.add(js(name));
+    }
+
+    jsAst.Expression fun = js.fun(
+        parameters,
+        js.return_(
+            js('this')[fieldNames[1]]['call'](arguments)));
+    boundClosureBuilder.addProperty(invocationName, fun);
+
+    addParameterStubs(callElement, boundClosureBuilder.addProperty);
+
+    void emitFunctionTypeSignature(Element method, FunctionType methodType) {
+      jsAst.Expression encoding = backend.rti.getSignatureEncoding(
+          methodType, js('this')[fieldNames[0]]);
+      String operatorSignature = namer.operatorSignature();
+      boundClosureBuilder.addProperty(operatorSignature, encoding);
+    }
+
+    void emitIsFunctionTypeTest(FunctionType functionType) {
+      String operator = namer.operatorIsType(functionType);
+      boundClosureBuilder.addProperty(operator,
+          new jsAst.LiteralBool(true));
+    }
+
     DartType memberType = member.computeType(compiler);
     Map<FunctionType, bool> functionTypeChecks =
         getFunctionTypeChecksOn(memberType);
-    bool hasFunctionTypeChecks = !functionTypeChecks.isEmpty;
 
-    bool canBeShared = !hasOptionalParameters && !hasFunctionTypeChecks;
+    generateFunctionTypeTests(member, memberType, functionTypeChecks,
+        emitFunctionTypeSignature, emitIsFunctionTypeTest);
 
-    ClassElement classElement = member.getEnclosingClass();
-    String closureClass = canBeShared ? cache[parameterCount] : null;
-    if (closureClass == null) {
-      // Either the class was not cached yet, or there are optional parameters.
-      // Create a new closure class.
-      String name;
-      if (canBeShared) {
-        if (inInterceptor) {
-          name = 'BoundClosure\$i${parameterCount}';
-        } else {
-          name = 'BoundClosure\$${parameterCount}';
-        }
-      } else {
-        name = 'Bound_${member.name.slowToString()}'
-            '_${member.enclosingElement.name.slowToString()}';
-      }
+    closureClassElement =
+        addClosureIfNew(boundClosureBuilder, closureClassElement, fieldNames);
 
-      ClassElement closureClassElement = new ClosureClassElement(
-          null, new SourceString(name), compiler, member,
-          member.getCompilationUnit());
-      String mangledName = namer.getNameOfClass(closureClassElement);
-      String superName = namer.getNameOfClass(closureClassElement.superclass);
-
-      // Define the constructor with a name so that Object.toString can
-      // find the class name of the closure class.
-      ClassBuilder boundClosureBuilder = new ClassBuilder();
-      emitClosureClassHeader(
-          mangledName, superName, fieldNames, boundClosureBuilder);
-      // Now add the methods on the closure class. The instance method does not
-      // have the correct name. Since [addParameterStubs] use the name to create
-      // its stubs we simply create a fake element with the correct name.
-      // Note: the callElement will not have any enclosingElement.
-      FunctionElement callElement =
-          new ClosureInvocationElement(namer.closureInvocationSelectorName,
-                                       member);
-
-      String invocationName = namer.instanceMethodName(callElement);
-
-      List<String> parameters = <String>[];
-      List<jsAst.Expression> arguments = <jsAst.Expression>[];
-      arguments.add(js('this')[fieldNames[0]]);
-      if (inInterceptor) {
-        arguments.add(js('this')[fieldNames[2]]);
-      }
-      for (int i = 0; i < parameterCount; i++) {
-        String name = 'p$i';
-        parameters.add(name);
-        arguments.add(js(name));
-      }
-
-      jsAst.Expression fun = js.fun(
-          parameters,
-          js.return_(
-              js('this')[fieldNames[1]]['call'](arguments)));
-      boundClosureBuilder.addProperty(invocationName, fun);
-
-      addParameterStubs(callElement, boundClosureBuilder.addProperty);
-
-      void emitFunctionTypeSignature(Element method, FunctionType methodType) {
-        jsAst.Expression encoding = backend.rti.getSignatureEncoding(
-            methodType, js('this')[fieldNames[0]]);
-        String operatorSignature = namer.operatorSignature();
-        boundClosureBuilder.addProperty(operatorSignature, encoding);
-      }
-
-      void emitIsFunctionTypeTest(FunctionType functionType) {
-        String operator = namer.operatorIsType(functionType);
-        boundClosureBuilder.addProperty(operator,
-            new jsAst.LiteralBool(true));
-      }
-
-      generateFunctionTypeTests(member, memberType, functionTypeChecks,
-          emitFunctionTypeSignature, emitIsFunctionTypeTest);
-
-      boundClosures.add(
-          js('$classesCollector.$mangledName = #',
-             js('[${namer.globalObjectFor(closureClassElement)}, #]',
-                boundClosureBuilder.toObjectInitializer())));
-
-      closureClass = namer.isolateAccess(closureClassElement);
-
-      // Cache it.
-      if (canBeShared) {
-        cache[parameterCount] = closureClass;
-      }
-    }
+    String closureClass = namer.isolateAccess(closureClassElement);
 
     // And finally the getter.
     String getterName = namer.getterName(member);
     String targetName = namer.instanceMethodName(member);
 
-    List<String> parameters = <String>[];
-    List<jsAst.Expression> arguments = <jsAst.Expression>[];
-    arguments.add(js('this'));
+    parameters = <String>[];
     jsAst.PropertyAccess method =
         backend.namer.elementAccess(classElement)['prototype'][targetName];
+    arguments = <jsAst.Expression>[js('this'), method];
 
-    arguments.add(method);
     if (inInterceptor) {
       String receiverArg = fieldNames[2];
       parameters.add(receiverArg);
@@ -2698,6 +2653,7 @@ class CodeEmitterTask extends CompilerTask {
       // Put null in the intercepted receiver field.
       arguments.add(new jsAst.LiteralNull());
     }
+
     arguments.add(js.string(targetName));
 
     jsAst.Expression getterFunction = js.fun(
@@ -3890,11 +3846,11 @@ mainBuffer.add(r'''
       }
 
       // As a side-effect, emitting classes will produce "bound closures" in
-      // [boundClosures].  The bound closures are JS AST nodes that add
+      // [methodClosures].  The bound closures are JS AST nodes that add
       // properties to $$ [classesCollector].  The bound closures are not
       // emitted until we have emitted all other classes (native or not).
 
-      // Might create boundClosures.
+      // Might create methodClosures.
       if (!regularClasses.isEmpty) {
         for (ClassElement element in regularClasses) {
           generateClass(element, bufferForElement(element, mainBuffer));
@@ -3902,7 +3858,7 @@ mainBuffer.add(r'''
       }
 
       // Emit native classes on [nativeBuffer].
-      // Might create boundClosures.
+      // Might create methodClosures.
       final CodeBuffer nativeBuffer = new CodeBuffer();
       if (!nativeClasses.isEmpty) {
         addComment('Native classes', nativeBuffer);
@@ -3912,7 +3868,7 @@ mainBuffer.add(r'''
       nativeEmitter.finishGenerateNativeClasses();
       nativeEmitter.assembleCode(nativeBuffer);
 
-      // Might create boundClosures.
+      // Might create methodClosures.
       if (!deferredClasses.isEmpty) {
         for (ClassElement element in deferredClasses) {
           generateClass(element, bufferForElement(element, mainBuffer));
@@ -3921,14 +3877,16 @@ mainBuffer.add(r'''
 
       emitStaticFunctionClosures();
 
-      addComment('Bound closures', mainBuffer);
-      // Now that we have emitted all classes, we know all the bound
+      addComment('Method closures', mainBuffer);
+      // Now that we have emitted all classes, we know all the method
       // closures that will be needed.
-      for (jsAst.Node node in boundClosures) {
+      methodClosures.forEach((String code, Element closure) {
         // TODO(ahe): Some of these can be deferred.
-        mainBuffer.add(jsAst.prettyPrint(node, compiler));
+        String mangledName = namer.getNameOfClass(closure);
+        mainBuffer.add('$classesCollector.$mangledName$_=$_'
+             '[${namer.globalObjectFor(closure)},$_$code]');
         mainBuffer.add("$N$n");
-      }
+      });
 
       // After this assignment we will produce invalid JavaScript code if we use
       // the classesCollector variable.
