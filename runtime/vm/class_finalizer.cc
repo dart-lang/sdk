@@ -337,7 +337,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     // Replace the type with a malformed type and compile a throw when called.
     type = NewFinalizedMalformedType(
         Error::Handle(),  // No previous error.
-        cls,
+        Script::Handle(cls.script()),
         factory.token_pos(),
         "factory may not redirect to 'dynamic'");
     factory.SetRedirectionType(type);
@@ -364,7 +364,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     // Replace the type with a malformed type and compile a throw when called.
     type = NewFinalizedMalformedType(
         Error::Handle(),  // No previous error.
-        cls,
+        Script::Handle(target_class.script()),
         factory.token_pos(),
         "class '%s' has no constructor or factory named '%s'",
         target_class_name.ToCString(),
@@ -378,8 +378,9 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     // Verify that the target is compatible with the redirecting factory.
     Error& error = Error::Handle();
     if (!target.HasCompatibleParametersWith(factory, &error)) {
+      const Script& script = Script::Handle(target_class.script());
       type = NewFinalizedMalformedType(
-          error, target_class, target.token_pos(),
+          error, script, target.token_pos(),
           "constructor '%s' has incompatible parameters with "
           "redirecting factory '%s'",
           String::Handle(target.name()).ToCString(),
@@ -428,7 +429,8 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
       if (malformed_error.IsNull()) {
         target_type ^= FinalizeType(cls, target_type, kCanonicalize);
       } else {
-        FinalizeMalformedType(malformed_error, cls, target_type,
+        const Script& script = Script::Handle(target_class.script());
+        FinalizeMalformedType(malformed_error, script, target_type,
                               "cannot resolve redirecting factory");
         target_target = Function::null();
       }
@@ -471,7 +473,7 @@ void ClassFinalizer::ResolveType(const Class& cls,
         // The type class could not be resolved. The type is malformed.
         FinalizeMalformedType(
             Error::Handle(),  // No previous error.
-            cls,
+            Script::Handle(cls.script()),
             parameterized_type,
             "cannot resolve class '%s' from '%s'",
             String::Handle(unresolved_class.Name()).ToCString(),
@@ -906,7 +908,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
         parameterized_type.UserVisibleName());
     const Type& malformed_bound = Type::Handle(
         NewFinalizedMalformedType(bound_error,
-                                  cls,
+                                  Script::Handle(cls.script()),
                                   parameterized_type.token_pos(),
                                   "type '%s' has an out of bound type argument",
                                   parameterized_type_name.ToCString()));
@@ -2446,12 +2448,11 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
 
 // Either report an error or mark the type as malformed.
 void ClassFinalizer::ReportMalformedType(const Error& prev_error,
-                                         const Class& cls,
+                                         const Script& script,
                                          const Type& type,
                                          const char* format,
                                          va_list args) {
   LanguageError& error = LanguageError::Handle();
-  const Script& script = Script::Handle(cls.script());
   if (prev_error.IsNull()) {
     error ^= Parser::FormatError(
         script, type.token_pos(), "Error", format, args);
@@ -2479,7 +2480,7 @@ void ClassFinalizer::ReportMalformedType(const Error& prev_error,
 
 
 RawType* ClassFinalizer::NewFinalizedMalformedType(const Error& prev_error,
-                                                   const Class& cls,
+                                                   const Script& script,
                                                    intptr_t type_pos,
                                                    const char* format, ...) {
   va_list args;
@@ -2490,7 +2491,7 @@ RawType* ClassFinalizer::NewFinalizedMalformedType(const Error& prev_error,
                            type_pos));
   const Type& type = Type::Handle(
       Type::New(unresolved_class, TypeArguments::Handle(), type_pos));
-  ReportMalformedType(prev_error, cls, type, format, args);
+  ReportMalformedType(prev_error, script, type, format, args);
   va_end(args);
   ASSERT(type.IsMalformed());
   ASSERT(type.IsFinalized());
@@ -2499,12 +2500,12 @@ RawType* ClassFinalizer::NewFinalizedMalformedType(const Error& prev_error,
 
 
 void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
-                                           const Class& cls,
+                                           const Script& script,
                                            const Type& type,
                                            const char* format, ...) {
   va_list args;
   va_start(args, format);
-  ReportMalformedType(prev_error, cls, type, format, args);
+  ReportMalformedType(prev_error, script, type, format, args);
   va_end(args);
 }
 

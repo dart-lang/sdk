@@ -308,7 +308,7 @@ Parser::~Parser() {
 }
 
 
-void Parser::SetScript(const Script & script, intptr_t token_pos) {
+void Parser::SetScript(const Script& script, intptr_t token_pos) {
   script_ = script.raw();
   tokens_iterator_.SetStream(TokenStream::Handle(script.tokens()), token_pos);
   token_kind_ = Token::kILLEGAL;
@@ -3123,7 +3123,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       // Replace the type with a malformed type and compile a throw when called.
       redirection_type = ClassFinalizer::NewFinalizedMalformedType(
           Error::Handle(),  // No previous error.
-          current_class(),
+          script_,
           type_pos,
           "factory '%s' may not redirect to type parameter '%s'",
           method->name->ToCString(),
@@ -8536,7 +8536,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
                 FLAG_error_on_bad_type) {
               *type = ClassFinalizer::NewFinalizedMalformedType(
                   Error::Handle(),  // No previous error.
-                  scope_class,
+                  script_,
                   type->token_pos(),
                   "type parameter '%s' cannot be referenced "
                   "from static member",
@@ -8554,7 +8554,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
                 FLAG_error_on_bad_type) {
               *type = ClassFinalizer::NewFinalizedMalformedType(
                   Error::Handle(),  // No previous error.
-                  scope_class,
+                  script_,
                   type_parameter.token_pos(),
                   "type parameter '%s' cannot be parameterized",
                   String::Handle(type_parameter.name()).ToCString());
@@ -8592,7 +8592,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           FLAG_error_on_bad_type) {
         ClassFinalizer::FinalizeMalformedType(
             Error::Handle(),  // No previous error.
-            scope_class,
+            script_,
             parameterized_type,
             "type '%s' is not loaded",
             String::Handle(parameterized_type.UserVisibleName()).ToCString());
@@ -9187,7 +9187,7 @@ RawAbstractType* Parser::ParseType(
       if (finalization == ClassFinalizer::kCanonicalizeWellFormed) {
         return ClassFinalizer::NewFinalizedMalformedType(
             Error::Handle(),  // No previous error.
-            current_class(),
+            script_,
             type_name.ident_pos,
             "using '%s' in this context is invalid",
             type_name.ident->ToCString());
@@ -9750,7 +9750,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       // Replace the type with a malformed type.
       type = ClassFinalizer::NewFinalizedMalformedType(
           Error::Handle(),  // No previous error.
-          current_class(),
+          script_,
           type_pos,
           "%s'%s' cannot be instantiated",
           type.IsTypeParameter() ? "type parameter " : "",
@@ -9762,7 +9762,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         // Replace the type with a malformed type.
         type = ClassFinalizer::NewFinalizedMalformedType(
             bound_error,
-            current_class(),
+            script_,
             type_pos,
             "malbounded type '%s' cannot be instantiated",
             String::Handle(type.UserVisibleName()).ToCString());
@@ -9827,7 +9827,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       if (is_const) {
         type = ClassFinalizer::NewFinalizedMalformedType(
             Error::Handle(),  // No previous error.
-            current_class(),
+            script_,
             call_pos,
             "class '%s' has no constructor or factory named '%s'",
             String::Handle(type_class.Name()).ToCString(),
@@ -9953,7 +9953,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                                          &malformed_error)) {
           type_bound = ClassFinalizer::NewFinalizedMalformedType(
               malformed_error,
-              current_class(),
+              script_,
               new_pos,
               "const factory result is not an instance of '%s'",
               String::Handle(type_bound.UserVisibleName()).ToCString());

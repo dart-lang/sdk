@@ -739,8 +739,8 @@ static RawError* CompileFunctionHelper(const Function& function,
     TIMERSCOPE(time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
-    ParsedFunction* parsed_function = new ParsedFunction(
-        Function::ZoneHandle(function.raw()));
+    ParsedFunction* parsed_function =
+        new ParsedFunction(Function::ZoneHandle(function.raw()));
     if (FLAG_trace_compiler) {
       OS::Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
                 (osr_id == Isolate::kNoDeoptId ? "" : "osr "),

@@ -52,7 +52,7 @@ class ClassFinalizer : public AllStatic {
   // If not null, prepend prev_error to the error message built from the format
   // string and its arguments.
   static RawType* NewFinalizedMalformedType(const Error& prev_error,
-                                            const Class& cls,
+                                            const Script& script,
                                             intptr_t type_pos,
                                             const char* format, ...)
        PRINTF_ATTRIBUTE(4, 5);
@@ -62,7 +62,7 @@ class ClassFinalizer : public AllStatic {
   // If not null, prepend prev_error to the error message built from the format
   // string and its arguments.
   static void FinalizeMalformedType(const Error& prev_error,
-                                    const Class& cls,
+                                    const Script& script,
                                     const Type& type,
                                     const char* format, ...)
        PRINTF_ATTRIBUTE(4, 5);
@@ -145,7 +145,7 @@ class ClassFinalizer : public AllStatic {
   static void CollectInterfaces(const Class& cls,
                                 const GrowableObjectArray& interfaces);
   static void ReportMalformedType(const Error& prev_error,
-                                  const Class& cls,
+                                  const Script& script,
                                   const Type& type,
                                   const char* format,
                                   va_list args);
