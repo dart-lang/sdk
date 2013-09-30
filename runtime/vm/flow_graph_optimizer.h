@@ -248,8 +248,16 @@ class ConstantPropagator : public FlowGraphVisitor {
 
   static void Optimize(FlowGraph* graph);
 
-  // Only visit branches to optimize away unreachable blocks discovered
-  // by range analysis.
+  // (1) Visit branches to optimize away unreachable blocks discovered  by range
+  // analysis.
+  // (2) Eliminate branches that have the same true- and false-target: For
+  // example, this occurs after expressions like
+  //
+  // if (a == null || b == null) {
+  //   ...
+  // }
+  //
+  // where b is known to be null.
   static void OptimizeBranches(FlowGraph* graph);
 
   // Used to initialize the abstract value of definitions.
@@ -259,6 +267,7 @@ class ConstantPropagator : public FlowGraphVisitor {
   void Analyze();
   void VisitBranches();
   void Transform();
+  void EliminateRedundantBranches();
 
   void SetReachable(BlockEntryInstr* block);
   void SetValue(Definition* definition, const Object& value);

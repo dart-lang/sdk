@@ -170,13 +170,6 @@ bool FlowGraphCompiler::CanOSRFunction() const {
 }
 
 
-static bool IsEmptyBlock(BlockEntryInstr* block) {
-  return !block->HasParallelMove() &&
-         block->next()->IsGoto() &&
-         !block->next()->AsGoto()->HasParallelMove();
-}
-
-
 void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
   BlockInfo* block_info = block_info_[block->postorder_number()];
 
@@ -186,7 +179,7 @@ void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
   }
   block_info->mark();
 
-  if (IsEmptyBlock(block)) {
+  if (block->IsEmptyBlock()) {
     // For empty blocks, record a corresponding nonempty target as their
     // jump label.
     BlockEntryInstr* target = block->next()->AsGoto()->successor();
