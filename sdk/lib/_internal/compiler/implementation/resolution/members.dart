@@ -2341,6 +2341,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   void resolveArguments(NodeList list) {
     if (list == null) return;
+    bool oldSendIsMemberAccess = sendIsMemberAccess;
+    sendIsMemberAccess = false;
     Map<SourceString, Node> seenNamedArguments = new Map<SourceString, Node>();
     for (Link<Node> link = list.nodes; !link.isEmpty; link = link.tail) {
       Expression argument = link.head;
@@ -2360,6 +2362,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         error(argument, MessageKind.INVALID_ARGUMENT_AFTER_NAMED);
       }
     }
+    sendIsMemberAccess = oldSendIsMemberAccess;
   }
 
   visitSend(Send node) {
@@ -2424,10 +2427,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     }
 
     if (!resolvedArguments) {
-      oldSendIsMemberAccess = sendIsMemberAccess;
-      sendIsMemberAccess = false;
       resolveArguments(node.argumentsNode);
-      sendIsMemberAccess = oldSendIsMemberAccess;
     }
 
     // If the selector is null, it means that we will not be generating
