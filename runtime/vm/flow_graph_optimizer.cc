@@ -5768,7 +5768,6 @@ void ConstantPropagator::OptimizeBranches(FlowGraph* graph) {
   cp.Analyze();
   cp.VisitBranches();
   cp.Transform();
-  cp.EliminateRedundantBranches();
 }
 
 
@@ -6851,71 +6850,6 @@ void ConstantPropagator::VisitBranches() {
 }
 
 
-// Traverses a chain of empty blocks and returns the first reachable non-empty
-// block. Empty blocks are added to the supplied bit vector.
-static BlockEntryInstr* FindFirstNonEmptySuccessor(
-    TargetEntryInstr* block,
-    BitVector* empty_blocks) {
-  BlockEntryInstr* current = block;
-  while (current->IsEmptyBlock()) {
-    empty_blocks->Add(current->preorder_number());
-    current = current->next()->AsGoto()->successor();
-  }
-  return current;
-}
-
-
-void ConstantPropagator::EliminateRedundantBranches() {
-  // Canonicalize branches that have no side-effects and where true- and
-  // false-targets are the same.
-  BitVector* empty_blocks = new BitVector(graph_->preorder().length());
-  for (BlockIterator b = graph_->postorder_iterator();
-       !b.Done();
-       b.Advance()) {
-    BlockEntryInstr* block = b.Current();
-    BranchInstr* branch = block->last_instruction()->AsBranch();
-    empty_blocks->Clear();
-    if ((branch != NULL) && branch->Effects().IsNone()) {
-      ASSERT(branch->previous() != NULL);  // Not already eliminated.
-      BlockEntryInstr* if_true =
-          FindFirstNonEmptySuccessor(branch->true_successor(), empty_blocks);
-      BlockEntryInstr* if_false =
-          FindFirstNonEmptySuccessor(branch->false_successor(), empty_blocks);
-      if (if_true == if_false) {
-        // Replace the branch with a jump to the common successor.
-        // Drop the comparison, which does not have side effects
-        JoinEntryInstr* join = if_true->AsJoinEntry();
-        if (join->phis() == NULL) {
-          GotoInstr* jump = new GotoInstr(if_true->AsJoinEntry());
-          jump->InheritDeoptTarget(branch);
-
-          Instruction* previous = branch->previous();
-          branch->set_previous(NULL);
-          previous->LinkTo(jump);
-
-          // Remove uses from branch and all the empty blocks that
-          // are now unreachable.
-          branch->UnuseAllInputs();
-          for (BitVector::Iterator it(empty_blocks); !it.Done(); it.Advance()) {
-            BlockEntryInstr* empty_block = graph_->preorder()[it.Current()];
-            empty_block->ClearAllInstructions();
-          }
-
-          if (FLAG_trace_constant_propagation) {
-            OS::Print("Eliminated branch in B%"Pd" common target B%"Pd"\n",
-                      block->block_id(), join->block_id());
-          }
-        }
-      }
-    }
-  }
-
-  graph_->DiscoverBlocks();
-  GrowableArray<BitVector*> dominance_frontier;
-  graph_->ComputeDominators(&dominance_frontier);
-}
-
-
 void ConstantPropagator::Transform() {
   if (FLAG_trace_constant_propagation) {
     OS::Print("\n==== Before constant propagation ====\n");
@@ -6933,16 +6867,24 @@ void ConstantPropagator::Transform() {
        !b.Done();
        b.Advance()) {
     BlockEntryInstr* block = b.Current();
+    JoinEntryInstr* join = block->AsJoinEntry();
     if (!reachable_->Contains(block->preorder_number())) {
       if (FLAG_trace_constant_propagation) {
         OS::Print("Unreachable B%" Pd "\n", block->block_id());
       }
       // Remove all uses in unreachable blocks.
-      block->ClearAllInstructions();
+      if (join != NULL) {
+        for (PhiIterator it(join); !it.Done(); it.Advance()) {
+          it.Current()->UnuseAllInputs();
+        }
+      }
+      block->UnuseAllInputs();
+      for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+        it.Current()->UnuseAllInputs();
+      }
       continue;
     }
 
-    JoinEntryInstr* join = block->AsJoinEntry();
     if (join != NULL) {
       // Remove phi inputs corresponding to unreachable predecessor blocks.
       // Predecessors will be recomputed (in block id order) after removing

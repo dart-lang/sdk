@@ -452,8 +452,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
 
         if (FLAG_constant_propagation) {
           // Constant propagation can use information from range analysis to
-          // find unreachable branch targets and eliminate branches that have
-          // the same true- and false-target.
+          // find unreachable branch targets.
           ConstantPropagator::OptimizeBranches(flow_graph);
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }

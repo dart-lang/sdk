@@ -1179,8 +1179,6 @@ class BlockEntryInstr : public Instruction {
     return parallel_move_;
   }
 
-  bool IsEmptyBlock();
-
   // Discover basic-block structure by performing a recursive depth first
   // traversal of the instruction graph reachable from this instruction.  As
   // a side effect, the block entry instructions in the graph are assigned
@@ -1253,10 +1251,6 @@ class BlockEntryInstr : public Instruction {
   void ReplaceAsPredecessorWith(BlockEntryInstr* new_block);
 
   void set_block_id(intptr_t block_id) { block_id_ = block_id; }
-
-  // For all instruction in this block: Remove all inputs (including in the
-  // environment) from their definition's use lists for all instructions.
-  void ClearAllInstructions();
 
  protected:
   BlockEntryInstr(intptr_t block_id, intptr_t try_index)
