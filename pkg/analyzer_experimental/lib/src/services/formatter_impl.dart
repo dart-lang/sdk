@@ -1294,7 +1294,7 @@ class SourceVisitor implements ASTVisitor {
     var lines = max(min, countNewlinesBetween(previousToken, currentToken));
     writer.newlines(lines);
 
-    var previousToken = currentToken.previous;
+    previousToken = currentToken.previous;
 
     while (comment != null) {
 
