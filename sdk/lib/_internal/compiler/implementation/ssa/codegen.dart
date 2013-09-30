@@ -1697,7 +1697,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldGet(HFieldGet node) {
     use(node.receiver);
     Element element = node.element;
-    if (element == backend.jsIndexableLength) {
+    if (node.isNullCheck) {
+      // We access a JavaScript member we know all objects besides
+      // null and undefined have: V8 does not like accessing a member
+      // that does not exist.
+      push(new js.PropertyAccess.field(pop(), 'toString'), node);
+    } else if (element == backend.jsIndexableLength) {
       // We're accessing a native JavaScript property called 'length'
       // on a JS String or a JS array. Therefore, the name of that
       // property should not be mangled.

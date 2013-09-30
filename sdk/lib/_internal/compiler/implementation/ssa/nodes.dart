@@ -1500,6 +1500,7 @@ class HFieldGet extends HFieldAccess {
 
   HInstruction getDartReceiver(Compiler compiler) => receiver;
   bool onlyThrowsNSM() => true;
+  bool get isNullCheck => element == null;
 
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 

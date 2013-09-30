@@ -1319,7 +1319,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           && !element.isGenerativeConstructorBody()
           && (selector.mask == null || selector.mask.isNullable)) {
         addWithPosition(
-            new HFieldGet(element, providedArguments[0]), currentNode);
+            new HFieldGet(null, providedArguments[0], isAssignable: false),
+            currentNode);
       }
       InliningState state = enterInlinedMethod(
           function, selector, providedArguments, currentNode);
