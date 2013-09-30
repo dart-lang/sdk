@@ -11,6 +11,7 @@ mixin_super_constructor_positionals_test: Fail # Issue 12631
 built_in_identifier_prefix_test: Fail # Issue 6970
 library_juxtaposition_test: Fail # Issue 6877
 throwing_lazy_variable_test: Fail # Issue 5802
+class_keyword_test/02: MissingCompileTimeError # Issue 13627
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
@@ -24,6 +25,14 @@ lazy_static3_test: Fail # Issue 12593
 duplicate_export_negative_test: Fail # Issue 6134
 on_catch_malformed_type_test: Fail # Issue 8601
 mixin_forwarding_constructor2_test: Fail # Issue 13641
+
+[ $compiler == none && $checked ]
+compile_time_constant_checked3_test/01: MissingCompileTimeError # Issue 13685
+compile_time_constant_checked3_test/02: MissingCompileTimeError # Issue 13685
+compile_time_constant_checked3_test/03: MissingCompileTimeError # Issue 13685
+compile_time_constant_checked3_test/04: MissingCompileTimeError # Issue 13685
+compile_time_constant_checked3_test/05: MissingCompileTimeError # Issue 13685
+compile_time_constant_checked3_test/06: MissingCompileTimeError # Issue 13685
 
 [ $compiler == none && $unchecked ]
 # Only checked mode reports an error on type assignment
