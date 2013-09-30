@@ -35,6 +35,7 @@ abstract class TypeSystem<T> {
   T nonNullSubclass(ClassElement type);
   T nonNullExact(ClassElement type);
   T nonNullEmpty();
+  bool isNull(T type);
   Selector newTypedSelector(T receiver, Selector selector);
 
   T allocateContainer(T type,
@@ -730,19 +731,53 @@ abstract class InferrerVisitor
     isChecks.add(node);
   }
 
+  void potentiallyAddNullCheck(Send node, Node receiver) {
+    if (!accumulateIsChecks) return;
+    if (!Elements.isLocal(elements[receiver])) return;
+    isChecks.add(node);
+  }
+
   void updateIsChecks(List<Node> tests, {bool usePositive}) {
-    if (tests == null) return;
-    for (Send node in tests) {
-      if (node.isIsNotCheck) {
-        if (usePositive) continue;
-      } else {
-        if (!usePositive) continue;
-      }
-      DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
-      Element element = elements[node.receiver];
+    void narrow(Element element, DartType type, Node node) {
       T existing = locals.use(element);
       T newType = types.narrowType(existing, type, isNullable: false);
       locals.update(element, newType, node);
+    }
+
+    if (tests == null) return;
+    for (Send node in tests) {
+      if (node.isTypeTest) {
+        if (node.isIsNotCheck) {
+          if (usePositive) continue;
+        } else {
+          if (!usePositive) continue;
+        }
+        DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
+        narrow(elements[node.receiver], type, node);
+      } else {
+        Element receiverElement = elements[node.receiver];
+        Element argumentElement = elements[node.arguments.first];
+        String operator = node.selector.asOperator().source.stringValue;
+        if ((operator == '==' && usePositive)
+            || (operator == '!=' && !usePositive)) {
+          // Type the elements as null.
+          if (Elements.isLocal(receiverElement)) {
+            locals.update(receiverElement, types.nullType, node);
+          }
+          if (Elements.isLocal(argumentElement)) {
+            locals.update(argumentElement, types.nullType, node);
+          }
+        } else {
+          // Narrow the elements to a non-null type.
+          DartType objectType = compiler.objectClass.rawType;
+          if (Elements.isLocal(receiverElement)) {
+            narrow(receiverElement, objectType, node);
+          }
+          if (Elements.isLocal(argumentElement)) {
+            narrow(argumentElement, objectType, node);
+          }
+        }
+      }
     }
   }
 

@@ -998,6 +998,16 @@ class SimpleTypeInferrerVisitor<T>
     ArgumentsTypes arguments = node.isPropertyAccess
         ? null
         : analyzeArguments(node.arguments);
+    if (selector.name == const SourceString('==')
+        || selector.name == const SourceString('!=')) {
+      if (types.isNull(receiverType)) {
+        potentiallyAddNullCheck(node, node.arguments.head);
+        return types.boolType;
+      } else if (types.isNull(arguments.positional[0])) {
+        potentiallyAddNullCheck(node, node.receiver);
+        return types.boolType;
+      }
+    }
     return handleDynamicSend(node, selector, receiverType, arguments);
   }
 

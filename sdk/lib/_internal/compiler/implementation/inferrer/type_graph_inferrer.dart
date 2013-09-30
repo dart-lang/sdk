@@ -245,6 +245,10 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     return nonNullEmptyType;
   }
 
+  bool isNull(TypeInformation type) {
+    return type == nullType;
+  }
+
   TypeInformation allocateContainer(TypeInformation type,
                                     Node node,
                                     Element enclosing,

@@ -505,6 +505,39 @@ testSpecialization3() {
   return a;
 }
 
+testReturnNull1(a) {
+  if (a == null) return a;
+  return null;
+}
+
+testReturnNull2(a) {
+  if (a != null) return null;
+  return a;
+}
+
+testReturnNull3(a) {
+  if (a == null) return 42;
+  return a;
+}
+
+testReturnNull4() {
+  var a = topLeveGetter();
+  if (a == null) return a;
+  return null;
+}
+
+testReturnNull5() {
+  var a = topLeveGetter();
+  if (a != null) return null;
+  return a;
+}
+
+testReturnNull6() {
+  var a = topLeveGetter();
+  if (a == null) return 42;
+  return a;
+}
+
 testReturnInvokeDynamicGetter() => new A().myFactory();
 
 var topLevelConstList = const [42];
@@ -656,6 +689,12 @@ main() {
   testSpecialization1();
   testSpecialization2();
   testSpecialization3();
+  testReturnNull1(topLevelGetter());
+  testReturnNull2(topLevelGetter());
+  testReturnNull3(topLevelGetter());
+  testReturnNull4();
+  testReturnNull5();
+  testReturnNull6();
 }
 """;
 
@@ -791,5 +830,11 @@ void main() {
     checkReturn('testSpecialization1', typesTask.numType);
     checkReturn('testSpecialization2', typesTask.dynamicType);
     checkReturn('testSpecialization3', typesTask.intType.nullable());
+    checkReturn('testReturnNull1', typesTask.nullType);
+    checkReturn('testReturnNull2', typesTask.nullType);
+    checkReturn('testReturnNull3', typesTask.dynamicType);
+    checkReturn('testReturnNull4', typesTask.nullType);
+    checkReturn('testReturnNull5', typesTask.nullType);
+    checkReturn('testReturnNull6', typesTask.dynamicType);
   }));
 }

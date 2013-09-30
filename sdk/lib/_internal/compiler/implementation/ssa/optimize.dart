@@ -958,7 +958,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       if (current.canThrow() || current.sideEffects.hasSideEffects()) {
         return false;
       }
-      current = current.next;
+      if (current.next == null && current is HGoto) {
+        // We do not merge blocks in our SSA graph, so if this block
+        // just jumps to a single predecessor, visit this predecessor.
+        assert(current.block.successors.length == 1);
+        current = current.block.successors[0].first;
+      } else {
+        current = current.next;
+      }
     } while (current != null);
     return false;
   }
