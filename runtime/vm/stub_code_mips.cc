@@ -2000,7 +2000,22 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
 
 void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
-  __ Unimplemented("BreakpointRuntime stub");
+  __ Comment("BreakpointRuntime stub");
+  __ EnterStubFrame();
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ sw(S5, Address(SP, 2 * kWordSize));
+  __ sw(S4, Address(SP, 1 * kWordSize));
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ sw(TMP, Address(SP, 0 * kWordSize));
+
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+
+  __ lw(S5, Address(SP, 2 * kWordSize));
+  __ lw(S4, Address(SP, 1 * kWordSize));
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
+  __ LeaveStubFrame();
+  __ jr(T0);
 }
 
 

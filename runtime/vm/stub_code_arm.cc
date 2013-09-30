@@ -1758,7 +1758,15 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
 
 void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
-  __ Unimplemented("BreakpointRuntime stub");
+  __ Comment("BreakpointRuntime stub");
+  __ EnterStubFrame();
+  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  // Preserve arguments descriptor and make room for result.
+  __ PushList((1 << R0) | (1 << R4) | (1 << R5));
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ PopList((1 << R0) | (1 << R4) | (1 << R5));
+  __ LeaveStubFrame();
+  __ bx(R0);
 }
 
 

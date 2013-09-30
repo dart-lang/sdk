@@ -594,7 +594,7 @@ class Debugger {
         for (int i = 0; i < errors.length; i++) print(errors[i]);
         print("============================\n");
       }
-      exit(errors.length);
+      exit(exitCode);
     });
     cleanupDone = true;
   }

@@ -1796,7 +1796,7 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 }
 
 
-// EDX, EXC: May contain arguments to runtime stub.
+// EDX, ECX: May contain arguments to runtime stub.
 void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Save runtime args.
