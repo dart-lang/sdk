@@ -1292,14 +1292,14 @@ ASSEMBLER_TEST_GENERATE(CallSimpleLeaf, assembler) {
   ExternalLabel call2("LeafReturnArgument",
                       reinterpret_cast<uword>(LeafReturnArgument));
   int space = ComputeStackSpaceReservation(0, 8);
-  __ AddImmediate(RSP, Immediate(-space));
+  __ subq(RSP, Immediate(space));
   __ call(&call1);
-  __ AddImmediate(RSP, Immediate(space));
+  __ addq(RSP, Immediate(space));
   space = ComputeStackSpaceReservation(0, 8);
-  __ AddImmediate(RSP, Immediate(-space));
+  __ subq(RSP, Immediate(space));
   __ movl(RDI, RAX);
   __ call(&call2);
-  __ AddImmediate(RSP, Immediate(space));
+  __ addq(RSP, Immediate(space));
   __ ret();
 }
 
@@ -1314,9 +1314,9 @@ ASSEMBLER_TEST_GENERATE(JumpSimpleLeaf, assembler) {
   ExternalLabel call1("LeafReturn42", reinterpret_cast<uword>(LeafReturn42));
   Label L;
   int space = ComputeStackSpaceReservation(0, 8);
-  __ AddImmediate(RSP, Immediate(-space));
+  __ subq(RSP, Immediate(space));
   __ call(&L);
-  __ AddImmediate(RSP, Immediate(space));
+  __ addq(RSP, Immediate(space));
   __ ret();
   __ Bind(&L);
   __ jmp(&call1);
@@ -2183,24 +2183,24 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   Label fail;
   __ EnterDartFrame(0);
   __ LoadObject(RAX, obj, PP);
-  __ CompareObject(RAX, obj);
+  __ CompareObject(RAX, obj, PP);
   __ j(NOT_EQUAL, &fail);
   __ LoadObject(RCX, obj, PP);
-  __ CompareObject(RCX, obj);
+  __ CompareObject(RCX, obj, PP);
   __ j(NOT_EQUAL, &fail);
   const Smi& smi = Smi::ZoneHandle(Smi::New(15));
   __ LoadObject(RCX, smi, PP);
-  __ CompareObject(RCX, smi);
+  __ CompareObject(RCX, smi, PP);
   __ j(NOT_EQUAL, &fail);
   __ pushq(RAX);
-  __ StoreObject(Address(RSP, 0), obj);
+  __ StoreObject(Address(RSP, 0), obj, PP);
   __ popq(RCX);
-  __ CompareObject(RCX, obj);
+  __ CompareObject(RCX, obj, PP);
   __ j(NOT_EQUAL, &fail);
   __ pushq(RAX);
-  __ StoreObject(Address(RSP, 0), smi);
+  __ StoreObject(Address(RSP, 0), smi, PP);
   __ popq(RCX);
-  __ CompareObject(RCX, smi);
+  __ CompareObject(RCX, smi, PP);
   __ j(NOT_EQUAL, &fail);
   __ movl(RAX, Immediate(1));  // OK
   __ LeaveFrameWithPP();

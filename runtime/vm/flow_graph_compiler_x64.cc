@@ -163,9 +163,9 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
                                            Label* is_true,
                                            Label* is_false) {
   Label fall_through;
-  __ CompareObject(bool_register, Object::null_object());
+  __ CompareObject(bool_register, Object::null_object(), PP);
   __ j(EQUAL, &fall_through, Assembler::kNearJump);
-  __ CompareObject(bool_register, Bool::True());
+  __ CompareObject(bool_register, Bool::True(), PP);
   __ j(EQUAL, is_true);
   __ jmp(is_false);
   __ Bind(&fall_through);
@@ -187,11 +187,11 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   __ pushq(instance_reg);  // Instance.
   if (test_kind == kTestTypeOneArg) {
     ASSERT(type_arguments_reg == kNoRegister);
-    __ PushObject(Object::null_object());
+    __ PushObject(Object::null_object(), PP);
     __ Call(&StubCode::Subtype1TestCacheLabel(), PP);
   } else if (test_kind == kTestTypeTwoArgs) {
     ASSERT(type_arguments_reg == kNoRegister);
-    __ PushObject(Object::null_object());
+    __ PushObject(Object::null_object(), PP);
     __ Call(&StubCode::Subtype2TestCacheLabel(), PP);
   } else if (test_kind == kTestTypeThreeArgs) {
     __ pushq(type_arguments_reg);
@@ -342,7 +342,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     // Check if instance is a closure.
     __ LoadClassById(R13, kClassIdReg);
     __ movq(R13, FieldAddress(R13, Class::signature_function_offset()));
-    __ CompareObject(R13, Object::null_object());
+    __ CompareObject(R13, Object::null_object(), PP);
     __ j(NOT_EQUAL, is_instance_lbl);
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
@@ -380,7 +380,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   // Check immediate superclass equality.
   __ movq(R13, FieldAddress(R10, Class::super_type_offset()));
   __ movq(R13, FieldAddress(R13, Type::type_class_offset()));
-  __ CompareObject(R13, type_class);
+  __ CompareObject(R13, type_class, PP);
   __ j(EQUAL, is_instance_lbl);
 
   const Register kTypeArgumentsReg = kNoRegister;
@@ -411,7 +411,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
     // RDX: instantiator type arguments.
     // Check if type argument is dynamic.
-    __ CompareObject(RDX, Object::null_object());
+    __ CompareObject(RDX, Object::null_object(), PP);
     __ j(EQUAL, is_instance_lbl);
     // Can handle only type arguments that are instances of TypeArguments.
     // (runtime checks canonicalize type arguments).
@@ -422,21 +422,21 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
         FieldAddress(RDX, TypeArguments::type_at_offset(type_param.index())));
     // RDI: Concrete type of type.
     // Check if type argument is dynamic.
-    __ CompareObject(RDI, Type::ZoneHandle(Type::DynamicType()));
+    __ CompareObject(RDI, Type::ZoneHandle(Type::DynamicType()), PP);
     __ j(EQUAL,  is_instance_lbl);
-    __ CompareObject(RDI, Object::null_object());
+    __ CompareObject(RDI, Object::null_object(), PP);
     __ j(EQUAL,  is_instance_lbl);
     const Type& object_type = Type::ZoneHandle(Type::ObjectType());
-    __ CompareObject(RDI, object_type);
+    __ CompareObject(RDI, object_type, PP);
     __ j(EQUAL,  is_instance_lbl);
 
     // For Smi check quickly against int and num interfaces.
     Label not_smi;
     __ testq(RAX, Immediate(kSmiTagMask));  // Value is Smi?
     __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-    __ CompareObject(RDI, Type::ZoneHandle(Type::IntType()));
+    __ CompareObject(RDI, Type::ZoneHandle(Type::IntType()), PP);
     __ j(EQUAL,  is_instance_lbl);
-    __ CompareObject(RDI, Type::ZoneHandle(Type::Number()));
+    __ CompareObject(RDI, Type::ZoneHandle(Type::Number()), PP);
     __ j(EQUAL,  is_instance_lbl);
     // Smi must be handled in runtime.
     __ jmp(&fall_through);
@@ -577,7 +577,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     // We can only inline this null check if the type is instantiated at compile
     // time, since an uninstantiated type at compile time could be Object or
     // dynamic at run time.
-    __ CompareObject(RAX, Object::null_object());
+    __ CompareObject(RAX, Object::null_object(), PP);
     __ j(EQUAL, &is_not_instance);
   }
 
@@ -592,9 +592,9 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     // Generate runtime call.
     __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
     __ movq(RCX, Address(RSP, kWordSize));  // Get instantiator.
-    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
     __ pushq(RAX);  // Push the instance.
-    __ PushObject(type);  // Push the type.
+    __ PushObject(type, PP);  // Push the type.
     __ pushq(RCX);  // TODO(srdjan): Pass instantiator instead of null.
     __ pushq(RDX);  // Instantiator type arguments.
     __ LoadObject(RAX, test_cache, PP);
@@ -657,13 +657,13 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ pushq(RDX);  // Store instantiator type arguments.
   // A null object is always assignable and is returned as result.
   Label is_assignable, runtime_call;
-  __ CompareObject(RAX, Object::null_object());
+  __ CompareObject(RAX, Object::null_object(), PP);
   __ j(EQUAL, &is_assignable);
 
   if (!FLAG_eliminate_type_checks || dst_type.IsMalformed()) {
     // If type checks are not eliminated during the graph building then
     // a transition sentinel can be seen here.
-    __ CompareObject(RAX, Object::transition_sentinel());
+    __ CompareObject(RAX, Object::transition_sentinel(), PP);
     __ j(EQUAL, &is_assignable);
   }
 
@@ -678,10 +678,10 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
     }
     const String& error_message = String::ZoneHandle(
         Symbols::New(error.ToErrorCString()));
-    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
     __ pushq(RAX);  // Push the source object.
-    __ PushObject(dst_name);  // Push the name of the destination.
-    __ PushObject(error_message);
+    __ PushObject(dst_name, PP);  // Push the name of the destination.
+    __ PushObject(error_message, PP);
     GenerateCallRuntime(token_pos,
                         deopt_id,
                         kMalformedTypeErrorRuntimeEntry,
@@ -704,12 +704,12 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ Bind(&runtime_call);
   __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
   __ movq(RCX, Address(RSP, kWordSize));  // Get instantiator.
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
   __ pushq(RAX);  // Push the source object.
-  __ PushObject(dst_type);  // Push the type of the destination.
+  __ PushObject(dst_type, PP);  // Push the type of the destination.
   __ pushq(RCX);  // Instantiator.
   __ pushq(RDX);  // Instantiator type arguments.
-  __ PushObject(dst_name);  // Push the name of the destination.
+  __ PushObject(dst_name, PP);  // Push the name of the destination.
   __ LoadObject(RAX, test_cache, PP);
   __ pushq(RAX);
   GenerateCallRuntime(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
@@ -844,10 +844,10 @@ void FlowGraphCompiler::CopyParameters() {
           FieldAddress(R10, ArgumentsDescriptor::positional_count_offset()));
   // Check that min_num_pos_args <= num_pos_args.
   Label wrong_num_arguments;
-  __ cmpq(RCX, Immediate(Smi::RawValue(min_num_pos_args)));
+  __ CompareImmediate(RCX, Immediate(Smi::RawValue(min_num_pos_args)), PP);
   __ j(LESS, &wrong_num_arguments);
   // Check that num_pos_args <= max_num_pos_args.
-  __ cmpq(RCX, Immediate(Smi::RawValue(max_num_pos_args)));
+  __ CompareImmediate(RCX, Immediate(Smi::RawValue(max_num_pos_args)), PP);
   __ j(GREATER, &wrong_num_arguments);
 
   // Copy positional arguments.
@@ -929,14 +929,15 @@ void FlowGraphCompiler::CopyParameters() {
       // Load RAX with the name of the argument.
       __ movq(RAX, Address(RDI, ArgumentsDescriptor::name_offset()));
       ASSERT(opt_param[i]->name().IsSymbol());
-      __ CompareObject(RAX, opt_param[i]->name());
+      __ CompareObject(RAX, opt_param[i]->name(), PP);
       __ j(NOT_EQUAL, &load_default_value, Assembler::kNearJump);
       // Load RAX with passed-in argument at provided arg_pos, i.e. at
       // fp[kParamEndSlotFromFp + num_args - arg_pos].
       __ movq(RAX, Address(RDI, ArgumentsDescriptor::position_offset()));
       // RAX is arg_pos as Smi.
       // Point to next named entry.
-      __ addq(RDI, Immediate(ArgumentsDescriptor::named_entry_size()));
+      __ AddImmediate(
+          RDI, Immediate(ArgumentsDescriptor::named_entry_size()), PP);
       __ negq(RAX);
       Address argument_addr(RBX, RAX, TIMES_4, 0);  // RAX is a negative Smi.
       __ movq(RAX, argument_addr);
@@ -976,7 +977,7 @@ void FlowGraphCompiler::CopyParameters() {
       // arguments have been passed, where k is param_pos, the position of this
       // optional parameter in the formal parameter list.
       const int param_pos = num_fixed_params + i;
-      __ cmpq(RCX, Immediate(param_pos));
+      __ CompareImmediate(RCX, Immediate(param_pos), PP);
       __ j(GREATER, &next_parameter, Assembler::kNearJump);
       // Load RAX with default argument.
       const Object& value = Object::ZoneHandle(
@@ -1101,12 +1102,16 @@ void FlowGraphCompiler::EmitFrameEntry() {
     if (is_optimizing()) {
       // Reoptimization of an optimized function is triggered by counting in
       // IC stubs, but not at the entry of the function.
-      __ cmpq(FieldAddress(function_reg, Function::usage_counter_offset()),
-              Immediate(FLAG_reoptimization_counter_threshold));
+      __ CompareImmediate(
+          FieldAddress(function_reg, Function::usage_counter_offset()),
+          Immediate(FLAG_reoptimization_counter_threshold),
+          new_pp);
     } else {
       __ incq(FieldAddress(function_reg, Function::usage_counter_offset()));
-      __ cmpq(FieldAddress(function_reg, Function::usage_counter_offset()),
-              Immediate(FLAG_optimization_counter_threshold));
+      __ CompareImmediate(
+          FieldAddress(function_reg, Function::usage_counter_offset()),
+          Immediate(FLAG_optimization_counter_threshold),
+          new_pp);
     }
     ASSERT(function_reg == RDI);
     __ J(GREATER_EQUAL, &StubCode::OptimizeFunctionLabel(), R13);
@@ -1181,7 +1186,7 @@ void FlowGraphCompiler::CompileGraph() {
       // Check that exactly num_fixed arguments are passed in.
       Label correct_num_arguments, wrong_num_arguments;
       __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-      __ cmpq(RAX, Immediate(Smi::RawValue(num_fixed_params)));
+      __ CompareImmediate(RAX, Immediate(Smi::RawValue(num_fixed_params)), PP);
       __ j(NOT_EQUAL, &wrong_num_arguments, Assembler::kNearJump);
       __ cmpq(RAX,
               FieldAddress(R10,
@@ -1410,7 +1415,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ movq(RAX, Address(RSP, (argument_count - 1) * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-  __ movq(RAX, Immediate(Smi::RawValue(kSmiCid)));
+  __ LoadImmediate(RAX, Immediate(Smi::RawValue(kSmiCid)), PP);
   __ jmp(&load_cache);
 
   __ Bind(&not_smi);
@@ -1430,7 +1435,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ jmp(&loop);
 
   __ Bind(&update);
-  __ addq(RCX, Immediate(Smi::RawValue(1)));
+  __ AddImmediate(RCX, Immediate(Smi::RawValue(1)), PP);
   __ Bind(&loop);
   __ andq(RCX, RBX);
   const intptr_t base = Array::data_offset();
@@ -1453,7 +1458,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
   __ LoadObject(RBX, ic_data, PP);
   __ LoadObject(R10, arguments_descriptor, PP);
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ AddImmediate(
+      RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag), PP);
   __ call(RAX);
   AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
@@ -1500,7 +1506,7 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
 
   if (needs_number_check) {
     __ pushq(reg);
-    __ PushObject(obj);
+    __ PushObject(obj, PP);
     if (is_optimizing()) {
       __ CallPatchable(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
     } else {
@@ -1514,7 +1520,7 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
     return;
   }
 
-  __ CompareObject(reg, obj);
+  __ CompareObject(reg, obj, PP);
 }
 
 
@@ -1547,7 +1553,7 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   // TODO(vegorov): consider saving only caller save (volatile) registers.
   const intptr_t xmm_regs_count = locs->live_registers()->fpu_regs_count();
   if (xmm_regs_count > 0) {
-    __ subq(RSP, Immediate(xmm_regs_count * kFpuRegisterSize));
+    __ AddImmediate(RSP, Immediate(-xmm_regs_count * kFpuRegisterSize), PP);
     // Store XMM registers with the lowest register number at the lowest
     // address.
     intptr_t offset = 0;
@@ -1594,7 +1600,7 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
       }
     }
     ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
-    __ addq(RSP, Immediate(offset));
+    __ AddImmediate(RSP, Immediate(offset), PP);
   }
 }
 
@@ -1890,7 +1896,7 @@ void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
 
 
 void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
-  __ StoreObject(dst, obj);
+  __ StoreObject(dst, obj, PP);
 }
 
 
@@ -1926,14 +1932,14 @@ void ParallelMoveResolver::RestoreScratch(Register reg) {
 
 
 void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
-  __ subq(RSP, Immediate(kFpuRegisterSize));
+  __ AddImmediate(RSP, Immediate(-kFpuRegisterSize), PP);
   __ movups(Address(RSP, 0), reg);
 }
 
 
 void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
   __ movups(reg, Address(RSP, 0));
-  __ addq(RSP, Immediate(kFpuRegisterSize));
+  __ AddImmediate(RSP, Immediate(kFpuRegisterSize), PP);
 }
 
 

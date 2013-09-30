@@ -60,7 +60,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movq(CTX, RAX);
 
   // Reserve space for arguments and align frame before entering C++ world.
-  __ AddImmediate(RSP, Immediate(-sizeof(NativeArguments)));
+  __ subq(RSP, Immediate(sizeof(NativeArguments)));
   if (OS::ActivationFrameAlignment() > 1) {
     __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
@@ -149,7 +149,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
   // RDI) and align frame before entering the C++ world.
-  __ AddImmediate(RSP, Immediate(-sizeof(NativeArguments)));
+  __ subq(RSP, Immediate(sizeof(NativeArguments)));
   if (OS::ActivationFrameAlignment() > 1) {
     __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
@@ -217,7 +217,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
   // RDI) and align frame before entering the C++ world.
-  __ AddImmediate(RSP, Immediate(-sizeof(NativeArguments)));
+  __ subq(RSP, Immediate(sizeof(NativeArguments)));
   if (OS::ActivationFrameAlignment() > 1) {
     __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
@@ -255,7 +255,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   // Setup space on stack for return value.
-  __ PushObject(Object::null_object());
+  __ PushObject(Object::null_object(), PP);
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
   __ popq(RAX);  // Get Code object result.
   __ popq(R10);  // Restore arguments descriptor array.
@@ -275,7 +275,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   // Setup space on stack for return value.
-  __ PushObject(Object::null_object());
+  __ PushObject(Object::null_object(), PP);
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   __ popq(RAX);  // Get Code object.
   __ popq(R10);  // Restore arguments descriptor array.
@@ -308,8 +308,8 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ Bind(&loop);
   __ movq(RAX, Address(R12, 0));
   __ movq(Address(RBX, 0), RAX);
-  __ AddImmediate(RBX, Immediate(kWordSize));
-  __ AddImmediate(R12, Immediate(-kWordSize));
+  __ addq(RBX, Immediate(kWordSize));
+  __ subq(R12, Immediate(kWordSize));
   __ Bind(&loop_condition);
   __ decq(R10);
   __ j(POSITIVE, &loop, Assembler::kNearJump);
@@ -324,7 +324,7 @@ static void PushArgumentsArray(Assembler* assembler) {
 //       when trying to resolve the call.
 void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   __ EnterStubFrameWithPP();
-  __ PushObject(Object::null_object());  // Space for the return value.
+  __ PushObject(Object::null_object(), PP);  // Space for the return value.
 
   // Push the receiver as an argument.  Load the smi-tagged argument
   // count into R13 to index the receiver in the stack.  There are
@@ -504,7 +504,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ pushq(R10);
 
   // Space for the result of the runtime call.
-  __ PushObject(Object::null_object());
+  __ PushObject(Object::null_object(), PP);
   __ pushq(RAX);  // Receiver.
   __ pushq(RBX);  // IC data.
   __ pushq(R10);  // Arguments descriptor.
@@ -519,7 +519,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ LeaveFrameWithPP();
 
   Label lookup;
-  __ CompareObject(RAX, Object::null_object());
+  __ CompareObject(RAX, Object::null_object(), PP);
   __ j(EQUAL, &lookup, Assembler::kNearJump);
   __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RAX);
@@ -650,7 +650,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   // Setup space on stack for return value.
-  __ PushObject(Object::null_object());
+  __ PushObject(Object::null_object(), PP);
   __ pushq(R10);  // Array length as Smi.
   __ pushq(RBX);  // Element type.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
@@ -1228,7 +1228,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   // Create a stub frame.
   __ EnterStubFrameWithPP();
   __ pushq(R12);  // Setup space on stack for return value.
-  __ PushObject(cls);  // Push class of object to be allocated.
+  __ PushObject(cls, PP);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
     __ pushq(RAX);  // Push type arguments of object to be allocated.
     __ pushq(RDX);  // Push type arguments of instantiator.
@@ -1364,7 +1364,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   }
 
   __ pushq(R12);  // Setup space on stack for the return value.
-  __ PushObject(func);
+  __ PushObject(func, PP);
   if (is_implicit_instance_closure) {
     __ pushq(RAX);  // Receiver.
   }
@@ -2089,14 +2089,14 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   // RBX: ICData
   __ movq(RAX, Address(RSP, 1 * kWordSize));
   __ movq(R13, Address(RSP, 2 * kWordSize));
-  __ EnterStubFrame();
+  __ EnterStubFrameWithPP();
   __ pushq(R13);  // arg 0
   __ pushq(RAX);  // arg 1
-  __ PushObject(Symbols::EqualOperator());  // Target's name.
+  __ PushObject(Symbols::EqualOperator(), PP);  // Target's name.
   __ pushq(RBX);  // ICData
   __ CallRuntime(kUpdateICDataTwoArgsRuntimeEntry, 4);
   __ Drop(4);
-  __ LeaveFrame();
+  __ LeaveFrameWithPP();
 
   __ jmp(&compute_result, Assembler::kNearJump);
 }

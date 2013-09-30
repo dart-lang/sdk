@@ -1101,7 +1101,8 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kNearJump,
-                 RAX);  // Result register.
+                 RAX,  // Result register.
+                 kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1145,7 +1146,8 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kNearJump,
-                 RAX);  // Result register.
+                 RAX,  // Result register.
+                 kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1166,7 +1168,8 @@ void Intrinsifier::Double_fromInteger(Assembler* assembler) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kNearJump,
-                 RAX);  // Result register.
+                 RAX,  // Result register.
+                 kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1236,7 +1239,8 @@ static void EmitTrigonometric(Assembler* assembler,
   __ TryAllocate(double_class,
                  &alloc_failed,
                  Assembler::kNearJump,
-                 RAX);  // Result register.
+                 RAX,  // Result register.
+                 kNoRegister);  // Pool pointer might not be loaded.
   __ fstpl(FieldAddress(RAX, Double::value_offset()));
   __ ret();
 
@@ -1283,7 +1287,8 @@ void Intrinsifier::Math_sqrt(Assembler* assembler) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kNearJump,
-                 RAX);  // Result register.
+                 RAX,  // Result register.
+                 kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&is_smi);
