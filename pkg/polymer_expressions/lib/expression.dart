@@ -8,7 +8,7 @@ import 'visitor.dart';
 
 // Helper functions for building expression trees programmatically
 
-EmptyExpression empty() => new EmptyExpression();
+EmptyExpression empty() => const EmptyExpression();
 Literal literal(v) => new Literal(v);
 MapLiteral mapLiteral(List<MapLiteralEntry> entries) => new MapLiteral(entries);
 MapLiteralEntry mapLiteralEntry(Literal key, Expression value) =>
@@ -24,7 +24,7 @@ InExpression inExpr(Expression l, Expression r) => new InExpression(l, r);
 
 
 class AstFactory {
-  EmptyExpression empty() => new EmptyExpression();
+  EmptyExpression empty() => const EmptyExpression();
 
   Literal literal(v) => new Literal(v);
 
@@ -52,12 +52,13 @@ class AstFactory {
 
 /// Base class for all expressions
 abstract class Expression {
+  const Expression();
   accept(Visitor v);
 }
 
 class EmptyExpression extends Expression {
+  const EmptyExpression();
   accept(Visitor v) => v.visitEmptyExpression(this);
-  bool operator ==(o) => o is EmptyExpression;
 }
 
 class Literal<T> extends Expression {
