@@ -195,7 +195,9 @@ class TokenStreamComparator {
       advance();
 
     }
-    if (!isEOF(token2)) {
+    // TODO(pquitslund): consider a better way to notice trailing synthetics
+    if (!isEOF(token2) && 
+        !(isCLOSE_CURLY_BRACKET(token2) && isEOF(token2.next))) {
       throw new FormatterException(
           'Expected "EOF" but got "${token2}".');
     }
@@ -261,6 +263,11 @@ class TokenStreamComparator {
         return true;
       }
     }
+    // Advance past synthetic { } tokens
+    if (isOPEN_CURLY_BRACKET(token2) || isCLOSE_CURLY_BRACKET(token2)) {
+      token2 = token2.next;
+      return checkTokens();
+    }
 
     return false;
   }
@@ -286,6 +293,14 @@ bool isGT_GT(Token token) => tokenIs(token, TokenType.GT_GT);
 /// Test if this token is an INDEX token.
 bool isINDEX(Token token) => tokenIs(token, TokenType.INDEX);
 
+/// Test if this token is a OPEN_CURLY_BRACKET token.
+bool isOPEN_CURLY_BRACKET(Token token) =>
+    tokenIs(token, TokenType.OPEN_CURLY_BRACKET);
+
+/// Test if this token is a CLOSE_CURLY_BRACKET token.
+bool isCLOSE_CURLY_BRACKET(Token token) =>
+    tokenIs(token, TokenType.CLOSE_CURLY_BRACKET);
+
 /// Test if this token is a OPEN_SQUARE_BRACKET token.
 bool isOPEN_SQ_BRACKET(Token token) =>
     tokenIs(token, TokenType.OPEN_SQUARE_BRACKET);
@@ -294,8 +309,19 @@ bool isOPEN_SQ_BRACKET(Token token) =>
 bool isCLOSE_SQUARE_BRACKET(Token token) =>
     tokenIs(token, TokenType.CLOSE_SQUARE_BRACKET);
 
+
 /// An AST visitor that drives formatting heuristics.
 class SourceVisitor implements ASTVisitor {
+  
+  static final OPEN_CURLY = syntheticToken(TokenType.OPEN_CURLY_BRACKET, '{');
+  static final CLOSE_CURLY = syntheticToken(TokenType.CLOSE_CURLY_BRACKET, '}');
+  
+  static const SYNTH_OFFSET = -13;
+  
+  static StringToken syntheticToken(TokenType type, String value) =>
+      new StringToken(type, value, SYNTH_OFFSET);
+  
+  static bool isSynthetic(Token token) => token.offset == SYNTH_OFFSET;
 
   /// The writer to which the source is to be written.
   final SourceWriter writer;
@@ -730,24 +756,26 @@ class SourceVisitor implements ASTVisitor {
     space();
     visitNodes(node.hiddenNames, separatedBy: commaSeperator);
   }
-
+  
   visitIfStatement(IfStatement node) {
+    var hasElse = node.elseStatement != null;
     token(node.ifKeyword);
     space();
     token(node.leftParenthesis);
     visit(node.condition);
     token(node.rightParenthesis);
     space();
-    visit(node.thenStatement);
-    //visitPrefixed(' else ', node.elseStatement);
-    if (node.elseStatement != null) {
+    if (hasElse) {
+      printAsBlock(node.thenStatement);
       space();
       token(node.elseKeyword);
       space();
-      visit(node.elseStatement);
+      printAsBlock(node.elseStatement);
+    } else {
+      visit(node.thenStatement);
     }
   }
-
+  
   visitImplementsClause(ImplementsClause node) {
     token(node.keyword);
     space();
@@ -1275,8 +1303,22 @@ class SourceVisitor implements ASTVisitor {
   unindent() {
     writer.unindent();
   }
-
-
+  
+  /// Print this statement as if it were a block (e.g., surrounded by braces).
+  printAsBlock(Statement statement) {
+    if (statement is! Block) {
+      token(OPEN_CURLY);
+      indent();
+      newlines();
+      visit(statement);
+      newlines();
+      unindent();
+      token(CLOSE_CURLY);
+    } else {
+      visit(statement);
+    }
+  }
+  
   /// Emit any detected comments and newlines or a minimum as specified
   /// by [min].
   int emitPrecedingCommentsAndNewlines(Token token, {min: 0}) {
@@ -1361,7 +1403,7 @@ class SourceVisitor implements ASTVisitor {
 
   /// Count the blanks between these two tokens.
   int countNewlinesBetween(Token last, Token current) {
-    if (last == null || current == null) {
+    if (last == null || current == null || isSynthetic(last)) {
       return 0;
     }
 

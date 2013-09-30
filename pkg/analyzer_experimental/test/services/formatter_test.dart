@@ -763,6 +763,21 @@ main() {
         '}'
       );
     });
+    
+    test('Statement (if)', () {
+      expectStmtFormatsTo('if (true) print("true!");', 
+                          'if (true) print("true!");');
+      expectStmtFormatsTo('if (true) { print("true!"); }', 
+                          'if (true) {\n'
+                          '  print("true!");\n'
+                          '}');
+      expectStmtFormatsTo('if (true) print("true!"); else print("false!");', 
+                          'if (true) {\n'
+                          '  print("true!");\n'
+                          '} else {\n'
+                          '  print("false!");\n'
+                          '}');
+    }); 
 
     test('initialIndent', () {
       var formatter = new CodeFormatter(
