@@ -21,7 +21,6 @@ Language/13_Statements/11_Try_A07_t03: fail # co19-roll r576: Please triage this
 LibTest/core/double/INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/core/List/List_A03_t01: RuntimeError # TODO(kasperl): Please triage this failure.
-LibTest/core/List/sort_A01_t04: Pass, Slow # http://dartbug.com/11846
 
 LibTest/typed_data/ByteData/getFloat32_A02_t02: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/getFloat64_A02_t02: fail # co19-roll r569: Please triage this failure
