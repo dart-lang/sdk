@@ -85,6 +85,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask get constMapType => compiler.typesTask.constMapType;
   TypeMask get stringType => compiler.typesTask.stringType;
   TypeMask get typeType => compiler.typesTask.typeType;
+  bool isNull(TypeMask mask) => mask.isEmpty && mask.isNullable;
 
   TypeMask nonNullSubtype(ClassElement type)
       => new TypeMask.nonNullSubtype(type.declaration);
