@@ -34445,33 +34445,6 @@ class Platform {
     }
   }
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-// testRunner implementation.
-// FIXME: provide a separate lib for testRunner.
-
-var _testRunner;
-
-TestRunner get testRunner {
-  if (_testRunner == null)
-    _testRunner = new TestRunner._(_NPObject.retrieve("testRunner"));
-  return _testRunner;
-}
-
-class TestRunner {
-  final _NPObject _npObject;
-
-  TestRunner._(this._npObject);
-
-  display() => _npObject.invoke('display');
-  dumpAsText() => _npObject.invoke('dumpAsText');
-  notifyDone() => _npObject.invoke('notifyDone');
-  setCanOpenWindows() => _npObject.invoke('setCanOpenWindows');
-  waitUntilDone() => _npObject.invoke('waitUntilDone');
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -34769,13 +34742,6 @@ class _Utils {
       String extendsTagName) native "Utils_register";
 
   static Element createElement(Document document, String tagName) native "Utils_createElement";
-}
-
-class _NPObject extends NativeFieldWrapperClass1 {
-  _NPObject.internal();
-  static _NPObject retrieve(String key) native "NPObject_retrieve";
-  property(String propertyName) native "NPObject_property";
-  invoke(String methodName, [List args = null]) native "NPObject_invoke";
 }
 
 class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements

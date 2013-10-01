@@ -298,13 +298,6 @@ class _Utils {
   static Element createElement(Document document, String tagName) native "Utils_createElement";
 }
 
-class _NPObject extends NativeFieldWrapperClass1 {
-  _NPObject.internal();
-  static _NPObject retrieve(String key) native "NPObject_retrieve";
-  property(String propertyName) native "NPObject_property";
-  invoke(String methodName, [List args = null]) native "NPObject_invoke";
-}
-
 class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements
     WindowBase {
   _DOMWindowCrossFrame.internal();
