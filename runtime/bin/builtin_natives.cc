@@ -111,7 +111,7 @@ void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
     // interrupt.
     Platform::PrintBlocking(stdout, "%s\n", Dart_GetError(result));
   } else {
-    Platform::PrintBlocking(stdout, "%.*s\n", length, chars);
+    Platform::PrintBlocking(stdout, "%.*s\n", static_cast<int>(length), chars);
   }
 }
 
