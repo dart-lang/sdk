@@ -13680,7 +13680,7 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
     }
     return OneByteString::raw(dststr);
   }
-  return OneByteString::New(0, Heap::kNew);
+  return OneByteString::New(static_cast<intptr_t>(0), Heap::kNew);
 }
 
 RawOneByteString* ExternalOneByteString::EscapeSpecialCharacters(
@@ -13709,7 +13709,7 @@ RawOneByteString* ExternalOneByteString::EscapeSpecialCharacters(
     }
     return OneByteString::raw(dststr);
   }
-  return OneByteString::New(0, Heap::kNew);
+  return OneByteString::New(static_cast<intptr_t>(0), Heap::kNew);
 }
 
 
