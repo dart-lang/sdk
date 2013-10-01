@@ -3,9 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartanalyzer ]
-# not clear: null..[1](1)[2](2).foo(3, bar: 4)=5 - it seems that verything before =5 it not assignable
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: fail
-
 # invalid argument for constant constructor
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
 
