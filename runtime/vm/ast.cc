@@ -376,6 +376,24 @@ const Instance* UnaryOpNode::EvalConstExpr() const {
 }
 
 
+bool ConditionalExprNode::IsPotentiallyConst() const {
+  return this->condition()->IsPotentiallyConst() &&
+    this->true_expr()->IsPotentiallyConst() &&
+    this->false_expr()->IsPotentiallyConst();
+}
+
+
+const Instance* ConditionalExprNode::EvalConstExpr() const {
+  const Instance* cond = this->condition()->EvalConstExpr();
+  if ((cond != NULL) &&
+      (this->true_expr()->EvalConstExpr() != NULL) &&
+      (this->false_expr()->EvalConstExpr() != NULL)) {
+    return cond;
+  }
+  return NULL;
+}
+
+
 bool ClosureNode::IsPotentiallyConst() const {
   if (function().IsImplicitStaticClosureFunction()) {
     return true;

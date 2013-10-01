@@ -699,6 +699,9 @@ class ConditionalExprNode : public AstNode {
     false_expr_ = false_expr;
   }
 
+  virtual bool IsPotentiallyConst() const;
+  virtual const Instance* EvalConstExpr() const;
+
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     condition()->Visit(visitor);
     true_expr()->Visit(visitor);
