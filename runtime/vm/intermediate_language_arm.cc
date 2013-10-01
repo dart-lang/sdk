@@ -4382,18 +4382,14 @@ void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
+    compiler->EmitEdgeCounter();
+    // Add an edge counter.
+    // On ARM the deoptimization descriptor points after the edge counter
+    // code so that we can reuse the same pattern matching code as at call
+    // sites, which matches backwards from the end of the pattern.
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id_,
                                    Scanner::kDummyTokenIndex);
-    // Add an edge counter.
-    const Array& counter = Array::ZoneHandle(Array::New(1, Heap::kOld));
-    counter.SetAt(0, Smi::Handle(Smi::New(0)));
-    __ Comment("Edge counter");
-    __ LoadObject(R0, counter);
-    __ ldr(IP, FieldAddress(R0, Array::element_offset(0)));
-    __ adds(IP, IP, ShifterOperand(Smi::RawValue(1)));
-    __ LoadImmediate(IP, Smi::RawValue(Smi::kMaxValue), VS);  // If overflow.
-    __ str(IP, FieldAddress(R0, Array::element_offset(0)));
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -4407,6 +4403,17 @@ LocationSummary* GotoInstr::MakeLocationSummary() const {
 
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (!compiler->is_optimizing()) {
+    compiler->EmitEdgeCounter();
+    // Add a deoptimization descriptor for deoptimizing instructions that
+    // may be inserted before this instruction.  On ARM this descriptor
+    // points after the edge counter code so that we can reuse the same
+    // pattern matching code as at call sites, which matches backwards from
+    // the end of the pattern.
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   GetDeoptId(),
+                                   Scanner::kDummyTokenIndex);
+  }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }

@@ -1664,6 +1664,12 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* TargetEntryInstr::MakeLocationSummary() const {
+  // FlowGraphCompiler::EmitInstructionPrologue is not called for block
+  // entry instructions, so this function is unused.  If it becomes
+  // reachable, note that the deoptimization descriptor in unoptimized code
+  // comes after the point of local register allocation due to pattern
+  // matching the edge counter code backwards (as a code reuse convenience
+  // on some platforms).
   UNREACHABLE();
   return NULL;
 }

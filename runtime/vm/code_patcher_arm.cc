@@ -84,6 +84,47 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
   return ic_data.GetTargetAt(0);
 }
 
+
+// This class pattern matches on a load from the object pool.  Loading on
+// ARM is complicated because it can take four possible different forms.  We
+// match backwards from the end of the sequence so we can reuse the code for
+// matching object pool loads at calls.
+class EdgeCounter : public ValueObject {
+ public:
+  EdgeCounter(uword pc, const Code& code)
+      : end_(pc - kAdjust), object_pool_(Array::Handle(code.ObjectPool())) {
+    // An IsValid predicate is complicated and duplicates the code in the
+    // decoding function.  Instead we rely on decoding the pattern which
+    // will assert partial validity.
+  }
+
+  RawObject* edge_counter() const {
+    Register ignored;
+    intptr_t index;
+    InstructionPattern::DecodeLoadWordFromPool(end_, &ignored, &index);
+    ASSERT(ignored == R0);
+    return object_pool_.At(index);
+  }
+
+ private:
+  // The object pool load is followed by the fixed-size edge counter
+  // incrementing code:
+  //     ldr ip, [r0, #+11]
+  //     adds ip, ip, #2
+  //     str ip, [r0, #+11]
+  static const intptr_t kAdjust = 3 * Instr::kInstrSize;
+
+  uword end_;
+  const Array& object_pool_;
+};
+
+
+RawObject* CodePatcher::GetEdgeCounterAt(uword pc, const Code& code) {
+  ASSERT(code.ContainsInstructionAt(pc));
+  EdgeCounter counter(pc, code);
+  return counter.edge_counter();
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

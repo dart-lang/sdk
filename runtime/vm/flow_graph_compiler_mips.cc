@@ -744,28 +744,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 }
 
 
-void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
-  if (!is_optimizing()) {
-    if (FLAG_enable_type_checks && instr->IsAssertAssignable()) {
-      AssertAssignableInstr* assert = instr->AsAssertAssignable();
-      AddCurrentDescriptor(PcDescriptors::kDeopt,
-                           assert->deopt_id(),
-                           assert->token_pos());
-    } else if (instr->IsGuardField() ||
-               instr->CanBecomeDeoptimizationTarget()) {
-      AddCurrentDescriptor(PcDescriptors::kDeopt,
-                           instr->deopt_id(),
-                           Scanner::kDummyTokenIndex);
-    }
-    AllocateRegistersLocally(instr);
-  } else if (instr->MayThrow()  &&
-             (CurrentTryIndex() != CatchClauseNode::kInvalidTryIndex)) {
-    // Optimized try-block: Sync locals to fixed stack locations.
-    EmitTrySync(instr, CurrentTryIndex());
-  }
-}
-
-
 void FlowGraphCompiler::EmitTrySyncMove(intptr_t dest_offset,
                                         Location loc,
                                         bool* push_emitted) {
@@ -1316,6 +1294,22 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
                            token_pos);
     }
   }
+}
+
+
+void FlowGraphCompiler::EmitEdgeCounter() {
+  // We do not check for overflow when incrementing the edge counter.  The
+  // function should normally be optimized long before the counter can
+  // overflow; and though we do not reset the counters when we optimize or
+  // deoptimize, there is a bound on the number of
+  // optimization/deoptimization cycles we will attempt.
+  const Array& counter = Array::ZoneHandle(Array::New(1, Heap::kOld));
+  counter.SetAt(0, Smi::Handle(Smi::New(0)));
+  __ Comment("Edge counter");
+  __ LoadObject(T0, counter);
+  __ lw(T1, FieldAddress(T0, Array::element_offset(0)));
+  __ AddImmediate(T1, T1, Smi::RawValue(1));
+  __ sw(T1, FieldAddress(T0, Array::element_offset(0)));
 }
 
 

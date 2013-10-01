@@ -13,7 +13,7 @@ namespace dart {
 
 intptr_t InstructionPattern::IndexFromPPLoad(uword start) {
   int32_t offset = *reinterpret_cast<int32_t*>(start);
-  offset +=  kHeapObjectTag;
+  offset += kHeapObjectTag;
   return (offset - Array::data_offset()) / kWordSize;
 }
 

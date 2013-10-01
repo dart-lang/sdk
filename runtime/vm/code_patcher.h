@@ -19,6 +19,7 @@ class ICData;
 class RawArray;
 class RawFunction;
 class RawICData;
+class RawObject;
 class String;
 
 class CodePatcher : public AllStatic {
@@ -70,6 +71,8 @@ class CodePatcher : public AllStatic {
   static intptr_t InstanceCallSizeInBytes();
 
   static void InsertCallAt(uword start, uword target);
+
+  static RawObject* GetEdgeCounterAt(uword pc, const Code& code);
 };
 
 }  // namespace dart

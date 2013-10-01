@@ -142,7 +142,7 @@ class StaticCall : public ValueObject {
 };
 
 
-// The expected code pattern of a dart closure call:
+// The expected code pattern of a Dart closure call:
 //  00: 49 ba imm64     mov R10, immediate 2      ; 10 bytes
 //  10: 4d 8b 9f imm32  mov R11, [PP + off]
 //  17: 41 ff d3        call R11                  ; 3 bytes
@@ -246,6 +246,43 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
     *ic_data_result = ic_data.raw();
   }
   return ic_data.GetTargetAt(0);
+}
+
+
+// The expected code pattern of an edge counter in unoptimized code:
+//  49 8b 87 imm32    mov RAX, [PP + offset]
+class EdgeCounter : public ValueObject {
+ public:
+  EdgeCounter(uword pc, const Code& code)
+      : end_(pc - kAdjust), object_pool_(Array::Handle(code.ObjectPool())) {
+    ASSERT(IsValid(end_));
+  }
+
+  static bool IsValid(uword end) {
+    uint8_t* bytes = reinterpret_cast<uint8_t*>(end - 7);
+    return (bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0x87);
+  }
+
+  RawObject* edge_counter() const {
+    return object_pool_.At(InstructionPattern::IndexFromPPLoad(end_ - 4));
+  }
+
+ private:
+  // The edge counter load is followed by the fixed-size edge counter
+  // incrementing code:
+  //     49 c7 c3 02 00 00 00         movq r11,0x2
+  //     4c 01 58 17                  addq [rax+0x17],r11
+  static const intptr_t kAdjust = 11;
+
+  uword end_;
+  const Array& object_pool_;
+};
+
+
+RawObject* CodePatcher::GetEdgeCounterAt(uword pc, const Code& code) {
+  ASSERT(code.ContainsInstructionAt(pc));
+  EdgeCounter counter(pc, code);
+  return counter.edge_counter();
 }
 
 }  // namespace dart

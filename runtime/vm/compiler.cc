@@ -307,7 +307,9 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
       }
 
       BlockScheduler block_scheduler(flow_graph);
-      if (optimized && FLAG_reorder_basic_blocks) {
+      const bool reorder_blocks =
+          FlowGraph::ShouldReorderBlocks(function, optimized);
+      if (reorder_blocks) {
         block_scheduler.AssignEdgeWeights();
       }
 
@@ -508,7 +510,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         // Perform register allocation on the SSA graph.
         FlowGraphAllocator allocator(*flow_graph);
         allocator.AllocateRegisters();
-        if (FLAG_reorder_basic_blocks) block_scheduler.ReorderBlocks();
+        if (reorder_blocks) block_scheduler.ReorderBlocks();
 
         if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
           FlowGraphPrinter::PrintGraph("After Optimizations", flow_graph);

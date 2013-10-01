@@ -82,7 +82,8 @@ class FlowGraph : public ZoneAllocated {
   const GrowableArray<BlockEntryInstr*>& reverse_postorder() const {
     return reverse_postorder_;
   }
-  GrowableArray<BlockEntryInstr*>* codegen_block_order(bool is_optimized);
+  static bool ShouldReorderBlocks(const Function& function, bool is_optimized);
+  GrowableArray<BlockEntryInstr*>* CodegenBlockOrder(bool is_optimized);
 
   // Iterators.
   BlockIterator reverse_postorder_iterator() const {
