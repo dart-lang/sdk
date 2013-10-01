@@ -52,7 +52,7 @@ class SocketAddress {
     ADDRESS_LAST = ADDRESS_ANY_IP_V6,
   };
 
-  explicit SocketAddress(struct sockaddr* sockaddr);
+  explicit SocketAddress(struct sockaddr* sa);
 
   ~SocketAddress() {}
 
@@ -101,9 +101,9 @@ class SocketAddress {
 
 class InterfaceSocketAddress {
  public:
-  explicit InterfaceSocketAddress(struct sockaddr* sockaddr,
+  explicit InterfaceSocketAddress(struct sockaddr* sa,
                                   const char* interface_name)
-      : socket_address_(new SocketAddress(sockaddr)),
+      : socket_address_(new SocketAddress(sa)),
         interface_name_(interface_name) {}
 
   ~InterfaceSocketAddress() {
