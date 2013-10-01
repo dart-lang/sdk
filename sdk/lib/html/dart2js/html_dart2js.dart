@@ -90,6 +90,11 @@ class HtmlElement extends Element native "HTMLElement" {
   factory HtmlElement() { throw new UnsupportedError("Not supported"); }
 }
 
+// EntryArray type was removed, so explicitly adding it to allow support for
+// older Chrome versions.
+// Issue #12573.
+abstract class _EntryArray implements List<Entry> native "EntryArray" {}
+
 // Support for Send/ReceivePortSync.
 int _getNewIsolateId() {
   if (JS('bool', r'!window.$dart$isolate$counter')) {
