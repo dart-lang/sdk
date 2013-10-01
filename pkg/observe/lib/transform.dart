@@ -34,7 +34,8 @@ class ObservableTransformer extends Transformer {
     // as much work as applying the transform. We rather have some false
     // positives here, and then generate no outputs when we apply this
     // transform.
-    return input.readAsString().then((c) => c.contains("@observable"));
+    return input.readAsString().then(
+      (c) => c.contains("@observable") || c.contains("@published"));
   }
 
   Future apply(Transform transform) {
@@ -102,8 +103,12 @@ class _ErrorCollector extends AnalysisErrorListener {
 
 _getSpan(SourceFile file, ASTNode node) => file.span(node.offset, node.end);
 
-/** True if the node has the `@observable` annotation. */
-bool _hasObservable(AnnotatedNode node) => _hasAnnotation(node, 'observable');
+/** True if the node has the `@observable` or `@published` annotation. */
+// TODO(jmesserly): it is not good to be hard coding these. We should do a
+// resolve and do a proper ObservableProperty subtype check. However resolve
+// is very expensive in analyzer_experimental, so it isn't feasible yet.
+bool _hasObservable(AnnotatedNode node) =>
+    _hasAnnotation(node, 'observable') || _hasAnnotation(node, 'published');
 
 bool _hasAnnotation(AnnotatedNode node, String name) {
   // TODO(jmesserly): this isn't correct if the annotation has been imported
@@ -134,7 +139,7 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
       declaresObservable = true;
     } else if (id.name == 'ChangeNotifierBase') {
       declaresObservable = true;
-    } else if (id.name != 'PolymerElement' && id.name != 'CustomElement'
+    } else if (id.name != 'HtmlElement' && id.name != 'CustomElement'
         && id.name != 'Object') {
       // TODO(sigmund): this is conservative, consider using type-resolution to
       // improve this check.
@@ -183,14 +188,13 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
       }
       if (_hasObservable(member)) {
         if (!declaresObservable) {
-          logger.warning('Observable fields should be put in an observable'
-              ' objects. Please declare that this class extends from '
+          logger.warning('Observable fields should be put in an observable '
+              'objects. Please declare that this class extends from '
               'ObservableBase, includes ObservableMixin, or implements '
               'Observable.',
               _getSpan(file, member));
-
         }
-        _transformFields(member.fields, code, member.offset, member.end);
+        _transformFields(file, member, code, logger);
 
         var names = member.fields.variables.map((v) => v.name.name);
 
@@ -289,40 +293,89 @@ bool _isReadOnly(VariableDeclarationList fields) {
       _hasKeyword(fields.keyword, Keyword.FINAL);
 }
 
-void _transformFields(VariableDeclarationList fields, TextEditTransaction code,
-    int begin, int end) {
+void _transformFields(SourceFile file, FieldDeclaration member,
+    TextEditTransaction code, TransformLogger logger) {
 
+  final fields = member.fields;
   if (_isReadOnly(fields)) return;
 
-  var indent = guessIndent(code.original, begin);
-  var replace = new StringBuffer();
+  // Private fields aren't supported:
+  for (var field in fields.variables) {
+    final name = field.name.name;
+    if (Identifier.isPrivateName(name)) {
+      logger.warning('Cannot make private field $name observable.',
+          _getSpan(file, field));
+      return;
+    }
+  }
 
   // Unfortunately "var" doesn't work in all positions where type annotations
   // are allowed, such as "var get name". So we use "dynamic" instead.
   var type = 'dynamic';
   if (fields.type != null) {
     type = _getOriginalCode(code, fields.type);
+  } else if (_hasKeyword(fields.keyword, Keyword.VAR)) {
+    // Replace 'var' with 'dynamic'
+    code.edit(fields.keyword.offset, fields.keyword.end, type);
   }
 
-  for (var field in fields.variables) {
-    var initializer = '';
-    if (field.initializer != null) {
-      initializer = ' = ${_getOriginalCode(code, field.initializer)}';
-    }
+  // Note: the replacements here are a bit subtle. It needs to support multiple
+  // fields declared via the same @observable, as well as preserving newlines.
+  // (Preserving newlines is important because it allows the generated code to
+  // be debugged without needing a source map.)
+  //
+  // For example:
+  //
+  //     @observable
+  //     @otherMetaData
+  //         Foo
+  //             foo = 1, bar = 2,
+  //             baz;
+  //
+  // Will be transformed into something like:
+  //
+  //     @observable
+  //     @OtherMetaData()
+  //         Foo
+  //             get foo => __foo; Foo __foo = 1; set foo ...; ... bar ...
+  //             @observable @OtherMetaData() Foo get baz => __baz; Foo baz; ...
+  //
+  // Metadata is moved to the getter.
 
-    var name = field.name.name;
+  String metadata = '';
+  if (fields.variables.length > 1) {
+    metadata = member.metadata
+      .map((m) => _getOriginalCode(code, m))
+      .join(' ');
+  }
 
-    // TODO(jmesserly): should we generate this one one line, so source maps
-    // don't break?
-    if (replace.length > 0) replace.write('\n\n$indent');
-    replace.write('''
-$type __\$$name$initializer;
-$type get $name => __\$$name;
-set $name($type value) {
-  __\$$name = notifyPropertyChange(const Symbol('$name'), __\$$name, value);
+  for (int i = 0; i < fields.variables.length; i++) {
+    final field = fields.variables[i];
+    final name = field.name.name;
+
+    var beforeInit = 'get $name => __\$$name; $type __\$$name';
+
+    // The first field is expanded differently from subsequent fields, because
+    // we can reuse the metadata and type annotation.
+    if (i > 0) beforeInit = '$metadata $type $beforeInit';
+
+    code.edit(field.name.offset, field.name.end, beforeInit);
+
+    // Replace comma with semicolon
+    final end = _findFieldSeperator(field.endToken.next);
+    if (end.type == TokenType.COMMA) code.edit(end.offset, end.end, ';');
+
+    code.edit(end.end, end.end, ' set $name($type value) { '
+        '__\$$name = notifyPropertyChange(#$name, __\$$name, value); }');
+  }
 }
-'''.replaceAll('\n', '\n$indent'));
-  }
 
-  code.edit(begin, end, '$replace');
+Token _findFieldSeperator(Token token) {
+  while (token != null) {
+    if (token.type == TokenType.COMMA || token.type == TokenType.SEMICOLON) {
+      break;
+    }
+    token = token.next;
+  }
+  return token;
 }

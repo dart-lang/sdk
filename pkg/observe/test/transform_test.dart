@@ -47,17 +47,24 @@ main() {
     _testInitializers('this.a, {this.b}', '(a, {b}) : __\$a = a, __\$b = b');
   });
 
-  group('test full text', () {
-    test('with changes', () {
-      return _transform(_sampleObservable('A', 'foo'))
-        .then((output) => expect(output, _sampleObservableOutput('A', 'foo')));
-    });
+  for (var annotation in ['observable', 'published']) {
+    group('@$annotation full text', () {
+      test('with changes', () {
+        return _transform(_sampleObservable(annotation)).then(
+            (out) => expect(out, _sampleObservableOutput(annotation)));
+      });
 
-    test('no changes', () {
-      var input = 'class A {/*@observable annotation to trigger transform */;}';
-      return _transform(input).then((output) => expect(output, input));
+      test('complex with changes', () {
+        return _transform(_complexObservable(annotation)).then(
+            (out) => expect(out, _complexObservableOutput(annotation)));
+      });
+
+      test('no changes', () {
+        var input = 'class A {/*@$annotation annotation to trigger transform */;}';
+        return _transform(input).then((output) => expect(output, input));
+      });
     });
-  });
+  }
 }
 
 _testClause(String clauses, String expected) {
@@ -121,37 +128,64 @@ class _MockTransform implements Transform {
   Asset get primaryInput => _asset;
 
   _MockTransform(this._asset);
-  Future<Asset> getInput(Asset id) {
+  Future<Asset> getInput(AssetId id) {
     if (id == primaryInput.id) return new Future.value(primaryInput);
-    fail();
+    fail('_MockTransform fail');
   }
 
   void addOutput(Asset output) {
     outs.add(output);
   }
+
+  readInput(id) => throw new UnimplementedError();
+  readInputAsString(id, {encoding}) => throw new UnimplementedError();
 }
 
-String _sampleObservable(String className, String fieldName) => '''
-library ${className}_$fieldName;
+String _sampleObservable(String annotation) => '''
+library A_foo;
 import 'package:observe/observe.dart';
 
-class $className extends ObservableBase {
-  @observable int $fieldName;
-  $className(this.$fieldName);
+class A extends ObservableBase {
+  @$annotation int foo;
+  A(this.foo);
 }
 ''';
 
-String _sampleObservableOutput(String className, String fieldName) => '''
-library ${className}_$fieldName;
-import 'package:observe/observe.dart';
+String _sampleObservableOutput(String annotation) =>
+    "library A_foo;\n"
+    "import 'package:observe/observe.dart';\n\n"
+    "class A extends ChangeNotifierBase {\n"
+    "  @$annotation int get foo => __\$foo; int __\$foo; "
+      "${_makeSetter('int', 'foo')}\n"
+    "  A(foo) : __\$foo = foo;\n"
+    "}\n";
 
-class $className extends ChangeNotifierBase {
-  int __\$$fieldName;
-  int get $fieldName => __\$$fieldName;
-  set $fieldName(int value) {
-    __\$$fieldName = notifyPropertyChange(const Symbol('$fieldName'), __\$$fieldName, value);
-  }
-  
-  $className($fieldName) : __\$$fieldName = $fieldName;
+_makeSetter(type, name) => 'set $name($type value) { '
+    '__\$$name = notifyPropertyChange(#$name, __\$$name, value); }';
+
+String _complexObservable(String annotation) => '''
+class Foo extends ObservableBase {
+  @$annotation
+  @otherMetadata
+      Foo
+          foo/*D*/= 1, bar =/*A*/2/*B*/,
+          quux/*C*/;
+
+  @$annotation var baz;
 }
 ''';
+
+String _complexObservableOutput(String annotation) =>
+    "class Foo extends ChangeNotifierBase {\n"
+    "  @$annotation\n"
+    "  @otherMetadata\n"
+    "      Foo\n"
+    "          get foo => __\$foo; Foo __\$foo/*D*/= 1; "
+        "${_makeSetter('Foo', 'foo')} "
+        "@$annotation @otherMetadata Foo get bar => __\$bar; "
+        "Foo __\$bar =/*A*/2/*B*/; ${_makeSetter('Foo', 'bar')}\n"
+    "          @$annotation @otherMetadata Foo get quux => __\$quux; "
+        "Foo __\$quux/*C*/; ${_makeSetter('Foo', 'quux')}\n\n"
+    "  @$annotation dynamic get baz => __\$baz; dynamic __\$baz; "
+        "${_makeSetter('dynamic', 'baz')}\n"
+    "}\n";
