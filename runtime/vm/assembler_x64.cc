@@ -1671,9 +1671,14 @@ void Assembler::addq(Register reg, const Immediate& imm) {
 
 
 void Assembler::addq(const Address& address, const Immediate& imm) {
-  // TODO(srdjan): Implement shorter version for imm32.
-  movq(TMP, imm);
-  addq(address, TMP);
+  if (imm.is_int32()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitOperandREX(0, address, REX_W);
+    EmitComplex(0, Operand(address), imm);
+  } else {
+    movq(TMP, imm);
+    addq(address, TMP);
+  }
 }
 
 
@@ -1835,9 +1840,14 @@ void Assembler::subq(const Address& address, Register reg) {
 
 
 void Assembler::subq(const Address& address, const Immediate& imm) {
-  // TODO(srdjan): Implement shorter version for imm32.
-  movq(TMP, imm);
-  subq(address, TMP);
+  if (imm.is_int32()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitOperandREX(0, address, REX_W);
+    EmitComplex(5, Operand(address), imm);
+  } else {
+    movq(TMP, imm);
+    subq(address, TMP);
+  }
 }
 
 

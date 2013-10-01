@@ -270,9 +270,8 @@ class EdgeCounter : public ValueObject {
  private:
   // The edge counter load is followed by the fixed-size edge counter
   // incrementing code:
-  //     49 c7 c3 02 00 00 00         movq r11,0x2
-  //     4c 01 58 17                  addq [rax+0x17],r11
-  static const intptr_t kAdjust = 11;
+  //     48 83 40 17 02             addq [rax+0x17],0x2
+  static const intptr_t kAdjust = 5;
 
   uword end_;
   const Array& object_pool_;
