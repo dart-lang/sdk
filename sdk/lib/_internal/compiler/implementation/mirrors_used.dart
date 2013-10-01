@@ -134,11 +134,11 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
     for (Node argument in node.send.arguments) {
       NamedArgument named = argument.asNamedArgument();
       if (named == null) continue;
-      Constant value = compiler.metadataHandler.compileNodeWithDefinitions(
+      Constant value = compiler.constantHandler.compileNodeWithDefinitions(
           named.expression, mapping, isConst: true);
 
       ConstantMapper mapper =
-          new ConstantMapper(compiler.metadataHandler, mapping, compiler);
+          new ConstantMapper(compiler.constantHandler, mapping, compiler);
       named.expression.accept(mapper);
 
       MirrorUsageBuilder builder =

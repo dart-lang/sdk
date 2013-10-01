@@ -250,6 +250,7 @@ class MockCompiler extends Compiler {
     // Set up the library imports.
     importHelperLibrary(coreLibrary);
     libraryLoader.importLibrary(jsHelperLibrary, coreLibrary, null);
+    libraryLoader.importLibrary(foreignLibrary, coreLibrary, null);
     libraryLoader.importLibrary(interceptorsLibrary, coreLibrary, null);
     libraryLoader.importLibrary(isolateHelperLibrary, coreLibrary, null);
 

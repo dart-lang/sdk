@@ -25,6 +25,8 @@ abstract class TreeElements {
   Selector setIteratorSelector(ForIn node, Selector selector);
   Selector setMoveNextSelector(ForIn node, Selector selector);
   Selector setCurrentSelector(ForIn node, Selector selector);
+  void setConstant(Node node, Constant constant);
+  Constant getConstant(Node node);
 
   /**
    * Returns [:true:] if [node] is a type literal.
@@ -46,6 +48,7 @@ class TreeElementMapping implements TreeElements {
   final Map<Node, DartType> types = new LinkedHashMap<Node, DartType>();
   final Set<Node> superUses = new LinkedHashSet<Node>();
   final Set<Element> otherDependencies = new LinkedHashSet<Element>();
+  final Map<Node, Constant> constants = new Map<Node, Constant>();
   final int hashCode = ++hashCodeCounter;
   static int hashCodeCounter = 0;
 
@@ -138,6 +141,14 @@ class TreeElementMapping implements TreeElements {
 
   Selector getCurrentSelector(ForIn node) {
     return selectors[node.inToken];
+  }
+
+  void setConstant(Node node, Constant constant) {
+    constants[node] = constant;
+  }
+
+  Constant getConstant(Node node) {
+    return constants[node];
   }
 
   bool isTypeLiteral(Send node) {
@@ -348,7 +359,11 @@ class ResolverTask extends CompilerTask {
       TreeElements elements =
           compiler.enqueuer.resolution.getCachedElements(element);
       if (elements != null) {
-        assert(isConstructor);
+        // TODO(karlklose): Remove the check for [isConstructor]. [elememts]
+        // should never be non-null, not even for constructors.
+        assert(invariant(element, isConstructor,
+            message: 'Non-constructor element $element '
+                     'has already been analyzed.'));
         return elements;
       }
       if (element.isSynthesized) {
@@ -402,7 +417,12 @@ class ResolverTask extends CompilerTask {
         } else if (tree.initializers != null) {
           error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);
         }
-        visitBody(visitor, tree.body);
+
+        if (!compiler.analyzeSignaturesOnly || tree.isRedirectingFactory) {
+          // We need to analyze the redirecting factory bodies to ensure that
+          // we can analyze compile-time constants.
+          visitor.visit(tree.body);
+        }
 
         // Get the resolution tree and check that the resolved
         // function doesn't use 'super' if it is mixed into another
@@ -458,10 +478,16 @@ class ResolverTask extends CompilerTask {
     }
 
     if (Elements.isStaticOrTopLevelField(element)) {
+      visitor.addPostProcessAction(element, () {
+        compiler.constantHandler.compileVariable(
+            element, isConst: element.modifiers.isConst());
+      });
       if (tree.asSendSet() != null) {
-        // TODO(13429): We could do better here by using the
-        // constant handler to figure out if it's a lazy field or not.
-        compiler.backend.registerLazyField(visitor.mapping);
+        if (!element.modifiers.isConst()) {
+          // TODO(johnniwinther): Determine the const-ness eagerly to avoid
+          // unnecessary registrations.
+          compiler.backend.registerLazyField(visitor.mapping);
+        }
       } else {
         compiler.enqueuer.resolution.registerInstantiatedClass(
             compiler.nullClass, visitor.mapping);
@@ -1043,8 +1069,10 @@ class ResolverTask extends CompilerTask {
       }
       ResolverVisitor visitor = visitorFor(context);
       node.accept(visitor);
-      annotation.value = compiler.metadataHandler.compileNodeWithDefinitions(
+      annotation.value = compiler.constantHandler.compileNodeWithDefinitions(
           node, visitor.mapping, isConst: true);
+      compiler.backend.registerMetadataConstant(annotation.value,
+                                                visitor.mapping);
 
       annotation.resolutionState = STATE_DONE;
     }));
@@ -1395,6 +1423,10 @@ class CommonResolverVisitor<R> extends Visitor<R> {
   void unimplemented(Node node, String message) {
     compiler.unimplemented(message, node: node);
   }
+
+  void addPostProcessAction(Element element, PostProcessAction action) {
+    compiler.enqueuer.resolution.addPostProcessAction(element, action);
+  }
 }
 
 abstract class LabelScope {
@@ -1657,7 +1689,7 @@ class TypeResolver {
       // Remove the guarded when this is fixed.
       if (!compiler.enqueuer.resolution.queueIsClosed &&
           addTypeVariableBoundsCheck) {
-        compiler.enqueuer.resolution.addPostProcessAction(
+        visitor.addPostProcessAction(
             visitor.enclosingElement,
             () => checkTypeVariableBounds(node, type));
       }
@@ -2033,6 +2065,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
       parameterNodes = parameterNodes.tail;
     });
+    addPostProcessAction(enclosingElement, () {
+      functionParameters.forEachOptionalParameter((Element parameter) {
+        compiler.constantHandler.compileConstant(parameter);
+      });
+    });
     if (inCheckContext) {
       functionParameters.forEachParameter((Element element) {
         compiler.enqueuer.resolution.registerIsCheck(
@@ -2404,6 +2441,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // type literal.
         mapping.setType(node, compiler.typeClass.computeType(compiler));
         world.registerTypeLiteral(target, mapping);
+        analyzeConstant(node);
       }
     }
 
@@ -2624,6 +2662,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       compiler.reportError(node, MessageKind.UNSUPPORTED_LITERAL_SYMBOL,
                            {'value': node.slowNameString});
     }
+    analyzeConstant(node);
   }
 
   visitStringJuxtaposition(StringJuxtaposition node) {
@@ -2709,7 +2748,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
     // Register a post process to check for cycles in the redirection chain and
     // set the actual generative constructor at the end of the chain.
-    compiler.enqueuer.resolution.addPostProcessAction(constructor, () {
+    addPostProcessAction(constructor, () {
       compiler.resolver.resolveRedirectionChain(constructor, node);
     });
 
@@ -2821,7 +2860,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (isSymbolConstructor) {
       if (node.isConst()) {
         Node argumentNode = node.send.arguments.head;
-        Constant name = compiler.metadataHandler.compileNodeWithDefinitions(
+        Constant name = compiler.constantHandler.compileNodeWithDefinitions(
             argumentNode, mapping, isConst: true);
         if (!name.isString()) {
           DartType type = name.computeType(compiler);
@@ -2846,8 +2885,19 @@ class ResolverVisitor extends MappingVisitor<Element> {
     } else if (isMirrorsUsedConstant) {
       compiler.mirrorUsageAnalyzerTask.validate(node, mapping);
     }
+    if (node.isConst()) {
+      analyzeConstant(node);
+    }
 
     return null;
+  }
+
+  void analyzeConstant(Node node) {
+    addPostProcessAction(enclosingElement, () {
+      mapping.setConstant(node,
+          compiler.constantHandler.compileNodeWithDefinitions(
+              node, mapping, isConst: true));
+    });
   }
 
   bool validateSymbol(Node node, String name, {bool reportError: true}) {
@@ -2933,6 +2983,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
     world.registerInstantiatedType(listType, mapping);
     compiler.backend.registerRequiredType(listType, enclosingElement);
     visit(node.elements);
+    if (node.isConst()) {
+      analyzeConstant(node);
+    }
   }
 
   visitConditional(Conditional node) {
@@ -3148,6 +3201,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
     }
     compiler.backend.registerRequiredType(mapType, enclosingElement);
     node.visitChildren(this);
+    if (node.isConst()) {
+      analyzeConstant(node);
+    }
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
@@ -3167,7 +3223,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
     while (!cases.isEmpty) {
       SwitchCase switchCase = cases.head;
       for (Node labelOrCase in switchCase.labelsAndCases) {
-        if (labelOrCase is! Label) continue;
+        CaseMatch caseMatch = labelOrCase.asCaseMatch();
+        if (caseMatch != null) {
+          analyzeConstant(caseMatch.expression);
+          continue;
+        }
         Label label = labelOrCase;
         String labelName = label.slowToString();
 
@@ -3373,8 +3433,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
             bound = element.bound;
           }
         }
-        compiler.enqueuer.resolution.addPostProcessAction(
-            element, checkTypeVariableBound);
+        addPostProcessAction(element, checkTypeVariableBound);
       } else {
         variableElement.bound = compiler.objectClass.computeType(compiler);
       }
@@ -3414,8 +3473,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
       var visitor = new TypedefCyclicVisitor(compiler, element);
       type.accept(visitor, null);
     }
-    compiler.enqueuer.resolution.addPostProcessAction(element,
-                                                      checkCyclicReference);
+    addPostProcessAction(element, checkCyclicReference);
   }
 }
 

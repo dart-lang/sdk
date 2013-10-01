@@ -29,12 +29,6 @@ class ConstantHandler extends CompilerTask {
   /** Caches the statics where the initial value cannot be eagerly compiled. */
   final Set<VariableElement> lazyStatics;
 
-  /** Caches the createRuntimeType function if registered. */
-  Element createRuntimeTypeFunction = null;
-
-  /** Caches the setRuntimeTypeInfo function if registered. */
-  Element setRuntimeTypeInfoFunction = null;
-
   ConstantHandler(Compiler compiler, this.constantSystem,
                   { bool this.isMetadata: false })
       : initialVariableValues = new Map<VariableElement, dynamic>(),
@@ -45,90 +39,12 @@ class ConstantHandler extends CompilerTask {
 
   String get name => 'ConstantHandler';
 
-  void registerCompileTimeConstant(Constant constant, TreeElements elements) {
-    registerInstantiatedType(constant.computeType(compiler), elements);
-    if (constant.isFunction()) {
-      FunctionConstant function = constant;
-      registerGetOfStaticFunction(function.element);
-    } else if (constant.isInterceptor()) {
-      // An interceptor constant references the class's prototype chain.
-      InterceptorConstant interceptor = constant;
-      registerInstantiatedType(interceptor.dispatchedType, elements);
-    }
+  void addCompileTimeConstantForEmission(Constant constant) {
     compiledConstants.add(constant);
   }
 
-  void registerInstantiatedType(DartType type, TreeElements elements) {
-    if (isMetadata) {
-      compiler.backend.registerMetadataInstantiatedType(type, elements);
-      return;
-    }
-    compiler.enqueuer.codegen.registerInstantiatedType(type, elements);
-    if (type is InterfaceType &&
-        !type.treatAsRaw &&
-        compiler.backend.classNeedsRti(type.element)) {
-      registerSetRuntimeTypeInfoFunction();
-    }
-  }
-
-  void registerStaticUse(Element element) {
-    if (isMetadata) {
-      compiler.backend.registerMetadataStaticUse(element);
-      return;
-    }
-    compiler.analyzeElement(element.declaration);
-    compiler.enqueuer.codegen.registerStaticUse(element);
-  }
-
-  void registerGetOfStaticFunction(FunctionElement element) {
-    if (isMetadata) {
-      compiler.backend.registerMetadataGetOfStaticFunction(element);
-      return;
-    }
-    compiler.analyzeElement(element.declaration);
-    compiler.enqueuer.codegen.registerGetOfStaticFunction(element);
-  }
-
-  void registerStringInstance(TreeElements elements) {
-    registerInstantiatedType(compiler.stringClass.rawType, elements);
-  }
-
-  void registerSetRuntimeTypeInfoFunction() {
-    if (setRuntimeTypeInfoFunction != null) return;
-    SourceString helperName = const SourceString('setRuntimeTypeInfo');
-    setRuntimeTypeInfoFunction = compiler.findHelper(helperName);
-    registerStaticUse(setRuntimeTypeInfoFunction);
-  }
-
-  void registerCreateRuntimeTypeFunction() {
-    if (createRuntimeTypeFunction != null) return;
-    SourceString helperName = const SourceString('createRuntimeType');
-    createRuntimeTypeFunction = compiler.findHelper(helperName);
-    registerStaticUse(createRuntimeTypeFunction);
-  }
-
-  /**
-   * Compiles the initial value of the given field and stores it in an internal
-   * map. Returns the initial value (a constant) if it can be computed
-   * statically. Returns [:null:] if the variable must be initialized lazily.
-   *
-   * [work] must contain a [VariableElement] refering to a global or
-   * static field.
-   */
-  Constant compileWorkItem(CodegenWorkItem work) {
-    return measure(() {
-      assert(work.element.kind == ElementKind.FIELD
-             || work.element.kind == ElementKind.PARAMETER
-             || work.element.kind == ElementKind.FIELD_PARAMETER);
-      VariableElement element = work.element;
-      // Shortcut if it has already been compiled.
-      Constant result = initialVariableValues[element];
-      if (result != null) return result;
-      if (lazyStatics.contains(element)) return null;
-      result = compileVariableWithDefinitions(element, work.resolutionTree);
-      assert(pendingVariables.isEmpty);
-      return result;
-    });
+  Constant getConstantForVariable(VariableElement element) {
+    return initialVariableValues[element];
   }
 
   /**
@@ -241,20 +157,6 @@ class ConstantHandler extends CompilerTask {
     });
   }
 
-  /** Attempts to compile a constant expression. Returns null if not possible */
-  Constant tryCompileNodeWithDefinitions(Node node, TreeElements definitions) {
-    return measure(() {
-      assert(node != null);
-      try {
-        TryCompileTimeConstantEvaluator evaluator =
-            new TryCompileTimeConstantEvaluator(this, definitions, compiler);
-        return evaluator.evaluate(node);
-      } on CompileTimeConstantError catch (exn) {
-        return null;
-      }
-    });
-  }
-
   /**
    * Returns an [Iterable] of static non final fields that need to be
    * initialized. The fields list must be evaluated in order since they might
@@ -358,17 +260,14 @@ class CompileTimeConstantEvaluator extends Visitor {
   }
 
   Constant visitLiteralBool(LiteralBool node) {
-    handler.registerInstantiatedType(compiler.boolClass.rawType, elements);
     return constantSystem.createBool(node.value);
   }
 
   Constant visitLiteralDouble(LiteralDouble node) {
-    handler.registerInstantiatedType(compiler.doubleClass.rawType, elements);
     return constantSystem.createDouble(node.value);
   }
 
   Constant visitLiteralInt(LiteralInt node) {
-    handler.registerInstantiatedType(compiler.intClass.rawType, elements);
     return constantSystem.createInt(node.value);
   }
 
@@ -383,10 +282,7 @@ class CompileTimeConstantEvaluator extends Visitor {
       arguments.add(evaluateConstant(link.head));
     }
     DartType type = elements.getType(node);
-    handler.registerInstantiatedType(type, elements);
-    Constant constant = new ListConstant(type, arguments);
-    handler.registerCompileTimeConstant(constant, elements);
-    return constant;
+    return new ListConstant(type, arguments);
   }
 
   Constant visitLiteralMap(LiteralMap node) {
@@ -431,9 +327,6 @@ class CompileTimeConstantEvaluator extends Visitor {
       keysType = new InterfaceType(compiler.listClass, arguments);
     }
     ListConstant keysList = new ListConstant(keysType, keys);
-    if (onlyStringKeys) {
-      handler.registerCompileTimeConstant(keysList, elements);
-    }
     SourceString className = onlyStringKeys
         ? (hasProtoKey ? MapConstant.DART_PROTO_CLASS
                        : MapConstant.DART_STRING_CLASS)
@@ -447,10 +340,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     } else {
       type = new InterfaceType(classElement, typeArgument);
     }
-    Constant constant =
-        new MapConstant(type, keysList, values, protoValue, onlyStringKeys);
-    handler.registerCompileTimeConstant(constant, elements);
-    return constant;
+    return new MapConstant(type, keysList, values, protoValue, onlyStringKeys);
   }
 
   Constant visitLiteralNull(LiteralNull node) {
@@ -458,7 +348,6 @@ class CompileTimeConstantEvaluator extends Visitor {
   }
 
   Constant visitLiteralString(LiteralString node) {
-    handler.registerStringInstance(elements);
     return constantSystem.createString(node.dartString, node);
   }
 
@@ -466,7 +355,6 @@ class CompileTimeConstantEvaluator extends Visitor {
     StringConstant left = evaluate(node.first);
     StringConstant right = evaluate(node.second);
     if (left == null || right == null) return null;
-    handler.registerStringInstance(elements);
     return constantSystem.createString(
         new DartString.concat(left.value, right.value), node);
   }
@@ -494,12 +382,10 @@ class CompileTimeConstantEvaluator extends Visitor {
       if (partString == null) return null;
       accumulator = new DartString.concat(accumulator, partString.value);
     };
-    handler.registerStringInstance(elements);
     return constantSystem.createString(accumulator, node);
   }
 
   Constant visitLiteralSymbol(LiteralSymbol node) {
-    handler.registerStringInstance(elements);
     InterfaceType type = compiler.symbolClass.computeType(compiler);
     List<Constant> createArguments(_) {
       return [constantSystem.createString(
@@ -515,13 +401,7 @@ class CompileTimeConstantEvaluator extends Visitor {
         element, compiler.enqueuer.codegen, elements);
     DartType constantType =
         compiler.backend.typeImplementation.computeType(compiler);
-    Constant constant = new TypeConstant(elementType, constantType);
-    // If we use a type literal in a constant, the compile time
-    // constant emitter will generate a call to the createRuntimeType
-    // helper so we register a use of that.
-    handler.registerCreateRuntimeTypeFunction();
-    handler.registerCompileTimeConstant(constant, elements);
-    return constant;
+    return new TypeConstant(elementType, constantType);
   }
 
   // TODO(floitsch): provide better error-messages.
@@ -529,9 +409,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     Element element = elements[send];
     if (send.isPropertyAccess) {
       if (Elements.isStaticOrTopLevelFunction(element)) {
-        Constant constant = new FunctionConstant(element);
-        handler.registerCompileTimeConstant(constant, elements);
-        return constant;
+        return new FunctionConstant(element);
       } else if (Elements.isStaticOrTopLevelField(element)) {
         Constant result;
         if (element.modifiers.isConst()) {
@@ -753,10 +631,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     evaluator.evaluateConstructorFieldValues(arguments);
     List<Constant> jsNewArguments = evaluator.buildJsNewArguments(classElement);
 
-    handler.registerInstantiatedType(type, elements);
-    Constant constant = new ConstructedConstant(type, jsNewArguments);
-    handler.registerCompileTimeConstant(constant, elements);
-    return constant;
+    return new ConstructedConstant(type, jsNewArguments);
   }
 
   Constant visitParenthesizedExpression(ParenthesizedExpression node) {

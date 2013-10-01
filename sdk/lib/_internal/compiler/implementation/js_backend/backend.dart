@@ -319,17 +319,9 @@ class JavaScriptBackend extends Backend {
   /// True if there isn't sufficient @MirrorsUsed data.
   bool hasInsufficientMirrorsUsed = false;
 
-  /// List of instantiated types from metadata.  If metadata must be preserved,
-  /// these types must registered.
-  final List<Dependency> metadataInstantiatedTypes = <Dependency>[];
-
-  /// List of elements used from metadata.  If metadata must be preserved,
-  /// these elements must be compiled.
-  final List<Element> metadataStaticUse = <Element>[];
-
-  /// List of tear-off functions referenced from metadata.  If metadata must be
-  /// preserved, these elements must be compiled.
-  final List<FunctionElement> metadataGetOfStaticFunction = <FunctionElement>[];
+  /// List of constants from metadata.  If metadata must be preserved,
+  /// these constants must be registered.
+  final List<Dependency> metadataConstants = <Dependency>[];
 
   /// List of symbols that the user has requested for reflection.
   final Set<String> symbolsUsed = new Set<String>();
@@ -742,6 +734,52 @@ class JavaScriptBackend extends Backend {
       specializedGetInterceptors[name] = interceptedClasses;
     } else {
       specializedGetInterceptors[name] = classes;
+    }
+  }
+
+  Constant registerCompileTimeConstant(Constant constant,
+                                       TreeElements elements) {
+    registerCompileTimeConstantInternal(constant, elements);
+    for (Constant dependency in constant.getDependencies()) {
+      registerCompileTimeConstant(dependency, elements);
+    }
+  }
+
+  void registerCompileTimeConstantInternal(Constant constant,
+                                           TreeElements elements) {
+    DartType type = constant.computeType(compiler);
+    registerInstantiatedConstantType(type, elements);
+
+    if (constant.isFunction()) {
+      FunctionConstant function = constant;
+      compiler.enqueuer.codegen.registerGetOfStaticFunction(function.element);
+    } else if (constant.isInterceptor()) {
+      // An interceptor constant references the class's prototype chain.
+      InterceptorConstant interceptor = constant;
+      registerInstantiatedConstantType(interceptor.dispatchedType, elements);
+    }
+  }
+
+  void registerInstantiatedConstantType(DartType type, TreeElements elements) {
+    Enqueuer enqueuer = compiler.enqueuer.codegen;
+    enqueuer.registerInstantiatedType(type, elements);
+    if (type is InterfaceType && !type.treatAsRaw &&
+        classNeedsRti(type.element)) {
+      enqueuer.registerStaticUse(getSetRuntimeTypeInfo());
+    }
+    if (type.element == typeImplementation) {
+      // If we use a type literal in a constant, the compile time
+      // constant emitter will generate a call to the createRuntimeType
+      // helper so we register a use of that.
+      enqueuer.registerStaticUse(getCreateRuntimeType());
+    }
+  }
+
+  void registerMetadataConstant(Constant constant, TreeElements elements) {
+    if (mustRetainMetadata) {
+      registerCompileTimeConstant(constant, elements);
+    } else {
+      metadataConstants.add(new Dependency(constant, elements));
     }
   }
 
@@ -1187,8 +1225,12 @@ class JavaScriptBackend extends Backend {
       return;
     }
     if (kind.category == ElementCategory.VARIABLE) {
-      Constant initialValue = compiler.constantHandler.compileWorkItem(work);
+      Constant initialValue =
+          compiler.constantHandler.getConstantForVariable(element);
       if (initialValue != null) {
+        registerCompileTimeConstant(initialValue, work.resolutionTree);
+        compiler.constantHandler.addCompileTimeConstantForEmission(
+            initialValue);
         return;
       } else {
         // If the constant-handler was not able to produce a result we have to
@@ -1612,8 +1654,9 @@ class JavaScriptBackend extends Backend {
     if (mustRetainMetadata) hasRetainedMetadata = true;
     if (mustRetainMetadata && isNeededForReflection(element)) {
       for (MetadataAnnotation metadata in element.metadata) {
-        metadata.ensureResolved(compiler)
-            .value.accept(new ConstantCopier(compiler.constantHandler));
+        metadata.ensureResolved(compiler);
+        compiler.constantHandler.addCompileTimeConstantForEmission(
+            metadata.value);
       }
       return true;
     }
@@ -1631,30 +1674,6 @@ class JavaScriptBackend extends Backend {
           library.find(const SourceString('preserveNames'));
     }
     return new Future.value();
-  }
-
-  void registerMetadataInstantiatedType(DartType type, TreeElements elements) {
-    if (mustRetainMetadata) {
-      compiler.constantHandler.registerInstantiatedType(type, elements);
-    } else {
-      metadataInstantiatedTypes.add(new Dependency(type, elements));
-    }
-  }
-
-  void registerMetadataStaticUse(Element element) {
-    if (mustRetainMetadata) {
-      compiler.constantHandler.registerStaticUse(element);
-    } else {
-      metadataStaticUse.add(element);
-    }
-  }
-
-  void registerMetadataGetOfStaticFunction(FunctionElement element) {
-    if (mustRetainMetadata) {
-      compiler.constantHandler.registerGetOfStaticFunction(element);
-    } else {
-      metadataGetOfStaticFunction.add(element);
-    }
   }
 
   void registerMirrorUsage(Set<String> symbols,
@@ -1777,28 +1796,21 @@ class JavaScriptBackend extends Backend {
       compiler.log('Retaining metadata.');
 
       compiler.libraries.values.forEach(retainMetadataOf);
-      for (Dependency dependency in metadataInstantiatedTypes) {
-        registerMetadataInstantiatedType(dependency.type, dependency.user);
+      for (Dependency dependency in metadataConstants) {
+        registerCompileTimeConstant(
+            dependency.constant, dependency.user);
       }
-      metadataInstantiatedTypes.clear();
-      for (Element e in metadataStaticUse) {
-        registerMetadataStaticUse(e);
-      }
-      metadataStaticUse.clear();
-      for (Element e in metadataGetOfStaticFunction) {
-        registerMetadataGetOfStaticFunction(e);
-      }
-      metadataGetOfStaticFunction.clear();
+      metadataConstants.clear();
     }
   }
 }
 
-/// Records that [type] is used by [user.element].
+/// Records that [constant] is used by [user.element].
 class Dependency {
-  final DartType type;
+  final Constant constant;
   final TreeElements user;
 
-  const Dependency(this.type, this.user);
+  const Dependency(this.constant, this.user);
 }
 
 /// Used to copy metadata to the the actual constant handler.

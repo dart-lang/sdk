@@ -1715,7 +1715,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // constant value instead.
         Element element = compiler.findRequiredElement(
             compiler.typedDataLibrary, const SourceString('fetchLength'));
-        Constant constant = compiler.constantHandler.compileConstant(element);
+        Constant constant =
+            compiler.constantHandler.getConstantForVariable(element);
+        assert(invariant(element, constant != null,
+            message: 'No constant computed for $element'));
         var jsConstant = backend.emitter.constantReference(constant);
         push(new js.Call(jsConstant, [pop()]), node);
       } else {
@@ -1823,15 +1826,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitConstant(HConstant node) {
     assert(isGenerateAtUseSite(node));
     generateConstant(node.constant);
-    DartType type = node.constant.computeType(compiler);
-    if (node.constant is ConstructedConstant ||
-        node.constant is InterceptorConstant) {
-      ConstantHandler handler = compiler.constantHandler;
-      handler.registerCompileTimeConstant(node.constant, work.resolutionTree);
-    }
-    if (node.constant is! InterceptorConstant) {
-      world.registerInstantiatedClass(type.element, work.resolutionTree);
-    }
+
+    backend.registerCompileTimeConstant(node.constant, work.resolutionTree);
+    compiler.constantHandler.addCompileTimeConstantForEmission(node.constant);
   }
 
   visitNot(HNot node) {

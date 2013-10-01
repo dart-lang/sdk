@@ -127,7 +127,8 @@ LibTest/core/int/isOdd_A01_t01: RuntimeError, OK # co19 issue 277
 LibTest/core/int/isEven_A01_t01: RuntimeError, OK # co19 issue 277
 
 [ $compiler == dart2js ]
-LibTest/isolate/SendPort/send_A02_t01: CompileTimeError # Compile-time error: error: not a compile-time constant
+LibTest/isolate/IsolateSink/add_A01_t01: CompileTimeError # Issue 13683
+LibTest/isolate/SendPort/send_A02_t01: CompileTimeError # Issue 13683
 
 LibTest/isolate/isolate_api/spawnUri_A02_t01: RuntimeError # Runtime error: Expect.throws() fails
 LibTest/isolate/isolate_api/spawnUri_A01_t01: RuntimeError # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
@@ -334,6 +335,9 @@ Language/07_Classes/3_Setters_A04_t05: CompileTimeError # http://dartbug.com/502
 Language/07_Classes/3_Setters_A04_t06: CompileTimeError # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t07: CompileTimeError # http://dartbug.com/5023
 
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: CompileTimeError # Issue 13652
+Language/12_Expressions/01_Constants_A03_t01: CompileTimeError # Issue 13652
+
 
 [ $compiler == dart2js && $runtime == ie9 ]
 # These are most likey due to the fact that IE9 doesn't support typed data
@@ -403,7 +407,6 @@ LibTest/typed_data/ByteData/setUint32_A01_t01: fail # co19-roll r569: Please tri
 LibTest/typed_data/ByteData/setUint8_A01_t01: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/toString_A01_t01: fail # co19-roll r569: Please triage this failure
 
-
 [ $compiler == dart2js ]
 Language/03_Overview/1_Scoping_A02_t28: fail # co19-roll r559: Please triage this failure
 Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
@@ -417,7 +420,6 @@ Language/07_Classes/4_Abstract_Instance_Members_A03_t04: fail # co19-roll r559: 
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A02_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A03_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t06: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t09: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/05_Strings_A20_t01: fail # co19-roll r546: Please triage this failure
@@ -473,7 +475,6 @@ LibTest/isolate/isolate_api/spawnFunction_A04_t03: fail # co19-roll r546: Please
 LibTest/isolate/isolate_api/spawnUri_A02_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/spawnUri_A02_t03: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateSink/add_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
@@ -618,8 +619,6 @@ Language/07_Classes/6_Constructors/2_Factories_A10_t03: fail # co19-roll r587: P
 Language/10_Generics/09_Generics_A01_t17: fail # co19-roll r587: Please triage this failure
 
 [ $compiler == dart2js ]
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: fail # co19-roll r587: Please triage this failure
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: fail # co19-roll r587: Please triage this failure
 LibTest/json/stringify_A01_t01: fail # co19-roll r587: Please triage this failure
 LibTest/json/stringify_A02_t01: fail # co19-roll r587: Please triage this failure
 LibTest/json/printOn_A01_t01: fail # co19-roll r587: Please triage this failure

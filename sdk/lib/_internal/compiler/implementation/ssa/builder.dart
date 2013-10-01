@@ -57,10 +57,13 @@ class SsaBuilderTask extends CompilerTask {
           FunctionSignature signature = function.computeSignature(compiler);
           signature.forEachOptionalParameter((Element parameter) {
             // This ensures the default value will be computed.
-            builder.compileVariable(parameter);
+            Constant constant =
+                compiler.constantHandler.getConstantForVariable(parameter);
+            backend.registerCompileTimeConstant(constant, work.resolutionTree);
+            compiler.constantHandler.addCompileTimeConstantForEmission(
+                constant);
           });
         }
-
         if (compiler.tracer.enabled) {
           String name;
           if (element.isMember()) {
@@ -953,21 +956,21 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     _current = c;
   }
 
-  /**
-   * Compiles compile-time constants. Never returns [:null:]. If the
-   * initial value is not a compile-time constants, it reports an
-   * internal error.
-   */
-  Constant compileConstant(VariableElement element) {
-    return compiler.constantHandler.compileConstant(element);
+  Constant getConstantForNode(Node node) {
+    ConstantHandler handler = compiler.constantHandler;
+    Constant constant = elements.getConstant(node);
+    assert(invariant(node, constant != null,
+        message: 'No constant computed for $node'));
+    return constant;
   }
 
-  Constant compileVariable(VariableElement element) {
-    return compiler.constantHandler.compileVariable(element);
+  HInstruction addConstant(Node node) {
+    return graph.addConstant(getConstantForNode(node), compiler);
   }
 
   bool isLazilyInitialized(VariableElement element) {
-    Constant initialValue = compileVariable(element);
+    Constant initialValue =
+        compiler.constantHandler.getConstantForVariable(element);
     return initialValue == null;
   }
 
@@ -2624,7 +2627,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (element.isField() && !element.isAssignable()) {
         // A static final or const. Get its constant value and inline it if
         // the value can be compiled eagerly.
-        value = compileVariable(element);
+        value = compiler.constantHandler.getConstantForVariable(element);
       }
       if (value != null) {
         HInstruction instruction = graph.addConstant(value, compiler);
@@ -2951,7 +2954,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction handleConstantForOptionalParameter(Element parameter) {
-    Constant constant = compileConstant(parameter);
+    Constant constant =
+        compiler.constantHandler.getConstantForVariable(parameter);
+    assert(invariant(parameter, constant != null,
+        message: 'No constant computed for $parameter'));
     return graph.addConstant(constant, compiler);
   }
 
@@ -3669,9 +3675,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Element element = elements[node];
     if (element.isClass() || element.isTypedef()) {
       // TODO(karlklose): add type representation
-      ConstantHandler handler = compiler.constantHandler;
-      Constant constant = handler.compileNodeWithDefinitions(node, elements);
-      stack.add(graph.addConstant(constant, compiler));
+      stack.add(addConstant(node));
     } else if (element.isTypeVariable()) {
       HInstruction value =
           addTypeVariableReference(element.computeType(compiler));
@@ -3802,11 +3806,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         generateRuntimeError(node.send, message.toString());
       }
     } else if (node.isConst()) {
-      ConstantHandler handler = compiler.constantHandler;
-      Constant constant = handler.compileNodeWithDefinitions(node, elements);
-      stack.add(graph.addConstant(constant, compiler));
+      stack.add(addConstant(node));
       if (isSymbolConstructor) {
-        ConstructedConstant symbol = constant;
+        ConstructedConstant symbol = elements.getConstant(node);
         StringConstant stringConstant = symbol.fields.single;
         String nameString = stringConstant.toDartString().slowToString();
         compiler.enqueuer.codegen.registerConstSymbol(nameString, elements);
@@ -4122,11 +4124,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void visitLiteralSymbol(LiteralSymbol node) {
-    ConstantHandler handler = compiler.constantHandler;
-    ConstructedConstant constant =
-        handler.compileNodeWithDefinitions(node, elements);
-    stack.add(graph.addConstant(constant, compiler));
-    compiler.enqueuer.codegen.registerConstSymbol(node.slowNameString, elements);
+    stack.add(addConstant(node));
+    compiler.enqueuer.codegen.registerConstSymbol(
+        node.slowNameString, elements);
   }
 
   void visitStringJuxtaposition(StringJuxtaposition node) {
@@ -4200,7 +4200,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HInstruction value;
     if (node.isRedirectingFactoryBody) {
-      FunctionElement element = elements[node.expression];
+      FunctionElement element = elements[node.expression].implementation;
       FunctionElement function = currentElement;
       List<HInstruction> inputs = <HInstruction>[];
       FunctionSignature calleeSignature = element.functionSignature;
@@ -4284,9 +4284,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction instruction;
 
     if (node.isConst()) {
-      ConstantHandler handler = compiler.constantHandler;
-      Constant constant = handler.compileNodeWithDefinitions(node, elements);
-      instruction = graph.addConstant(constant, compiler);
+      instruction = addConstant(node);
     } else {
       List<HInstruction> inputs = <HInstruction>[];
       for (Link<Node> link = node.elements.nodes;
@@ -4483,9 +4481,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitLiteralMap(LiteralMap node) {
     if (node.isConst()) {
-      ConstantHandler handler = compiler.constantHandler;
-      Constant constant = handler.compileNodeWithDefinitions(node, elements);
-      stack.add(graph.addConstant(constant, compiler));
+      stack.add(addConstant(node));
       return;
     }
     List<HInstruction> inputs = <HInstruction>[];
@@ -4523,9 +4519,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       for (Node labelOrCase in switchCase.labelsAndCases) {
         if (labelOrCase is CaseMatch) {
           CaseMatch match = labelOrCase;
-          Constant constant =
-              compiler.constantHandler.compileNodeWithDefinitions(
-                  match.expression, elements, isConst: true);
+          Constant constant = getConstantForNode(match.expression);
           if (firstConstantType == null) {
             firstConstantType = constant.computeType(compiler);
             if (nonPrimitiveTypeOverridesEquals(constant)) {

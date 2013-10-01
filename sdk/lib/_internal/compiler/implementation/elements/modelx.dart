@@ -1574,6 +1574,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
 
   bool get isUnnamedMixinApplication => false;
 
+  // TODO(johnniwinther): Add [thisType] getter similar to [rawType].
   InterfaceType computeType(Compiler compiler) {
     if (thisType == null) {
       if (origin == null) {
