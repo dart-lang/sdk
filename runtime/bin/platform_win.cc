@@ -64,6 +64,16 @@ void Platform::FreeEnvironment(char** env, int count) {
   delete[] env;
 }
 
+
+void Platform::PrintBlocking(FILE* file, const char* format, ...) {
+  // No need to set blocking, as it's always blocking on Windows.
+  va_list args;
+  va_start(args, format);
+  vfprintf(file, format, args);
+  fflush(file);
+  va_end(args);
+}
+
 }  // namespace bin
 }  // namespace dart
 

@@ -11,6 +11,8 @@
 #include <string.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 
+#include "bin/fdutils.h"
+
 
 namespace dart {
 namespace bin {
@@ -62,6 +64,18 @@ char** Platform::Environment(intptr_t* count) {
 
 void Platform::FreeEnvironment(char** env, intptr_t count) {
   delete[] env;
+}
+
+
+void Platform::PrintBlocking(FILE* file, const char* format, ...) {
+  int fd = fileno(file);
+  FDUtils::SetBlocking(fd);
+  va_list args;
+  va_start(args, format);
+  vfprintf(file, format, args);
+  fflush(file);
+  va_end(args);
+  FDUtils::SetNonBlocking(fd);
 }
 
 }  // namespace bin
