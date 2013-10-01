@@ -25,6 +25,6 @@ main() {
 ''';
 
 main() {
-  compileAndMatch(
-      TEST, 'main', new RegExp("if \\(count == null\\)(.|\\n)*while"));
+  compileAndMatch(TEST, 'main',
+      new RegExp('if \\(typeof count !== "number"\\)(.|\\n)*while'));
 }

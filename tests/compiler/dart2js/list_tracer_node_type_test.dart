@@ -68,26 +68,19 @@ main() {
 
 main() {
   asyncTest(() => compileAll(TEST1).then((generated) {
-    // Check that we only do a null check on the receiver for
-    // [: a[0] + 42 :]. We can do a null check because we inferred that
-    // the list is of type int or null.
-    Expect.isFalse(generated.contains('if (typeof t1'));
-    Expect.isTrue(generated.contains('if (t1 == null)'));
+    Expect.isTrue(generated.contains('if (typeof t1'));
   }));
 
   asyncTest(() => compileAll(TEST2).then((generated) {
-    Expect.isFalse(generated.contains('if (typeof t1'));
-    Expect.isTrue(generated.contains('if (t1 == null)'));
+    Expect.isTrue(generated.contains('if (typeof t1'));
   }));
 
   asyncTest(() => compileAll(TEST3).then((generated) {
-    Expect.isFalse(generated.contains('if (typeof t1'));
-    Expect.isTrue(generated.contains('if (t1 == null)'));
+    Expect.isTrue(generated.contains('if (typeof t1'));
   }));
 
   asyncTest(() => compileAll(TEST4).then((generated) {
-    Expect.isFalse(generated.contains('if (typeof t1'));
-    Expect.isTrue(generated.contains('if (t1 == null)'));
+    Expect.isTrue(generated.contains('if (typeof t1'));
   }));
 
   asyncTest(() => compileAll(TEST5).then((generated) {
