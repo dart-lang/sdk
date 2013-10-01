@@ -232,11 +232,18 @@ String ensureDir(String dirPath) {
 /// suffix appended to it. If [dir] is not provided, a temp directory will be
 /// created in a platform-dependent temporary location. Returns the path of the
 /// created directory.
-String createTempDir([dir = '']) {
-  var tempDir = new Directory(dir).createTempSync();
+String createTempDir(String base, String prefix) {
+  var tempDir = new Directory(base).createTempSync(prefix);
   log.io("Created temp directory ${tempDir.path}");
   return tempDir.path;
 }
+
+String createSystemTempDir() {
+  var tempDir = Directory.createSystemTempSync('pub_');
+  log.io("Created temp directory ${tempDir.path}");
+  return tempDir.path;
+}
+
 
 /// Lists the contents of [dir]. If [recursive] is `true`, lists subdirectory
 /// contents (defaults to `false`). If [includeHidden] is `true`, includes files
@@ -648,7 +655,7 @@ Future timeout(Future input, int milliseconds, String description) {
 /// [fn] completes to.
 Future withTempDir(Future fn(String path)) {
   return new Future.sync(() {
-    var tempDir = createTempDir();
+    var tempDir = createSystemTempDir();
     return new Future.sync(() => fn(tempDir))
         .whenComplete(() => deleteEntry(tempDir));
   });

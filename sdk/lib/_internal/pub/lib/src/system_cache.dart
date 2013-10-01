@@ -96,7 +96,7 @@ class SystemCache {
   /// cache so that it can move the directory from it.
   String createTempDir() {
     var temp = ensureDir(tempDir);
-    return io.createTempDir(path.join(temp, 'dir'));
+    return io.createTempDir(temp, 'dir');
   }
 
   /// Deletes the system cache's internal temp directory.

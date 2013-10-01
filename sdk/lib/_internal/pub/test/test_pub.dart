@@ -337,7 +337,7 @@ void _integration(String description, void body(), [Function testFn]) {
       d.file('version', '0.1.2.3')
     ]).create();
 
-    _sandboxDir = createTempDir();
+    _sandboxDir = createSystemTempDir();
     d.defaultRoot = sandboxDir;
     currentSchedule.onComplete.schedule(() => deleteEntry(_sandboxDir),
         'deleting the sandbox directory');
