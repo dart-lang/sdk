@@ -662,6 +662,8 @@ class Parser : public ValueObject {
       const Function& constructor,
       ArgumentListNode* arguments);
 
+  void AddEqualityNullCheck();
+
   RawInstance* TryCanonicalize(const Instance& instance, intptr_t token_pos);
 
   Isolate* isolate() const { return isolate_; }

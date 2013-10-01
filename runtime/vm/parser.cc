@@ -1923,55 +1923,7 @@ AstNode* Parser::ParseSuperOperator() {
       op_arguments = BuildNoSuchMethodArguments(
           operator_pos, operator_function_name, *op_arguments);
     }
-    if (super_operator.name() == Symbols::EqualOperator().raw()) {
-      // Expand super.== call to match correct == semantics into:
-      // Let t1 = left, t2 = right {
-      //   (t1 === null  || t2 === null) ? t1 === t2
-      //                                 : static_call(super.==, t1, t2)
-      // }
-      // Normal == calls are not expanded at the AST level to produce
-      // more compact code and enable more optimization opportunities.
-      ASSERT(!is_no_such_method);  // == is always found.
-      EnsureExpressionTemp();  // Needed for ConditionalExprNode.
-      LetNode* result = new LetNode(operator_pos);
-      AstNode* left =
-          new LoadLocalNode(operator_pos,
-                            result->AddInitializer(op_arguments->NodeAt(0)));
-      AstNode* right =
-          new LoadLocalNode(operator_pos,
-                            result->AddInitializer(op_arguments->NodeAt(1)));
-      LiteralNode* null_operand =
-          new LiteralNode(operator_pos, Instance::ZoneHandle());
-      ComparisonNode* is_left_null = new ComparisonNode(operator_pos,
-                                                        Token::kEQ_STRICT,
-                                                        left,
-                                                        null_operand);
-      ComparisonNode* is_right_null = new ComparisonNode(operator_pos,
-                                                         Token::kEQ_STRICT,
-                                                         right,
-                                                         null_operand);
-      BinaryOpNode* null_check = new BinaryOpNode(operator_pos,
-                                                  Token::kOR,
-                                                  is_left_null,
-                                                  is_right_null);
-      ArgumentListNode* new_arguments = new ArgumentListNode(operator_pos);
-      new_arguments->Add(left);
-      new_arguments->Add(right);
-      StaticCallNode* call = new StaticCallNode(operator_pos,
-                                                super_operator,
-                                                new_arguments);
-      ComparisonNode* strict_eq = new ComparisonNode(operator_pos,
-                                                     Token::kEQ_STRICT,
-                                                     left,
-                                                     right);
-      result->AddNode(new ConditionalExprNode(operator_pos,
-                                              null_check,
-                                              strict_eq,
-                                              call));
-      super_op = result;
-    } else {
-      super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
-    }
+    super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
     if (negate_result) {
       super_op = new UnaryOpNode(operator_pos, Token::kNOT, super_op);
     }
@@ -2879,17 +2831,35 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   intptr_t end_token_pos = 0;
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
+    if (String::Handle(func.name()).Equals(Symbols::EqualOperator())) {
+      const Class& owner = Class::Handle(func.Owner());
+      if (!owner.IsObjectClass()) {
+        AddEqualityNullCheck();
+      }
+    }
     ParseStatementSequence();
     end_token_pos = TokenPos();
     ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
+    if (String::Handle(func.name()).Equals(Symbols::EqualOperator())) {
+      const Class& owner = Class::Handle(func.Owner());
+      if (!owner.IsObjectClass()) {
+        AddEqualityNullCheck();
+      }
+    }
     const intptr_t expr_pos = TokenPos();
     AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
     ASSERT(expr != NULL);
     current_block_->statements->Add(new ReturnNode(expr_pos, expr));
     end_token_pos = TokenPos();
   } else if (IsLiteral("native")) {
+    if (String::Handle(func.name()).Equals(Symbols::EqualOperator())) {
+      const Class& owner = Class::Handle(func.Owner());
+      if (!owner.IsObjectClass()) {
+        AddEqualityNullCheck();
+      }
+    }
     ParseNativeFunctionBlock(&params, func);
     end_token_pos = TokenPos();
     ExpectSemicolon();
@@ -2921,6 +2891,31 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   innermost_function_ = saved_innermost_function.raw();
   last_used_try_index_ = saved_try_index;
   return CloseBlock();
+}
+
+
+void Parser::AddEqualityNullCheck() {
+  const intptr_t token_pos = Scanner::kDummyTokenIndex;
+  AstNode* argument =
+      new LoadLocalNode(token_pos,
+                        current_block_->scope->parent()->VariableAt(1));
+  LiteralNode* null_operand =
+      new LiteralNode(token_pos, Instance::ZoneHandle());
+  ComparisonNode* check_arg = new ComparisonNode(token_pos,
+                                                 Token::kEQ_STRICT,
+                                                 argument,
+                                                 null_operand);
+  ComparisonNode* result = new ComparisonNode(token_pos,
+                                              Token::kEQ_STRICT,
+                                              LoadReceiver(token_pos),
+                                              null_operand);
+  SequenceNode* arg_is_null = new SequenceNode(token_pos, NULL);
+  arg_is_null->Add(new ReturnNode(token_pos, result));
+  IfNode* if_arg_null = new IfNode(token_pos,
+                                   check_arg,
+                                   arg_is_null,
+                                   NULL);
+  current_block_->statements->Add(if_arg_null);
 }
 
 

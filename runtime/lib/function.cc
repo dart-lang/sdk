@@ -33,6 +33,7 @@ DEFINE_NATIVE_ENTRY(FunctionImpl_equals, 2) {
       isolate, arguments->NativeArgAt(0));
   ASSERT(receiver.IsClosure());
   GET_NATIVE_ARGUMENT(Instance, other, arguments->NativeArgAt(1));
+  ASSERT(!other.IsNull());
   if (receiver.raw() == other.raw()) return Bool::True().raw();
   if (other.IsClosure()) {
     const Function& func_a = Function::Handle(Closure::function(receiver));

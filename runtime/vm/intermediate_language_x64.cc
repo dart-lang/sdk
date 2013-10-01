@@ -453,13 +453,6 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   const Array& kNoArgumentNames = Object::null_array();
   const int kNumArgumentsChecked = 2;
 
-  Label check_identity;
-  __ LoadObject(TMP, Object::null_object(), PP);
-  __ cmpq(Address(RSP, 0 * kWordSize), TMP);
-  __ j(EQUAL, &check_identity);
-  __ cmpq(Address(RSP, 1 * kWordSize), TMP);
-  __ j(EQUAL, &check_identity);
-
   ICData& equality_ic_data = ICData::ZoneHandle(original_ic_data.raw());
   if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
     ASSERT(!original_ic_data.IsNull());
@@ -486,39 +479,6 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                  kNoArgumentNames,
                                  locs,
                                  equality_ic_data);
-  Label check_ne;
-  __ jmp(&check_ne);
-
-  __ Bind(&check_identity);
-  Label equality_done;
-  if (compiler->is_optimizing()) {
-    // No need to update IC data.
-    Label is_true;
-    __ popq(RAX);
-    __ popq(RDX);
-    __ cmpq(RAX, RDX);
-    __ j(EQUAL, &is_true);
-    __ LoadObject(RAX, Bool::Get(kind != Token::kEQ), PP);
-    __ jmp(&equality_done);
-    __ Bind(&is_true);
-    __ LoadObject(RAX, Bool::Get(kind == Token::kEQ), PP);
-    if (kind == Token::kNE) {
-      // Skip not-equal result conversion.
-      __ jmp(&equality_done);
-    }
-  } else {
-    // Call stub, load IC data in register. The stub will update ICData if
-    // necessary.
-    Register ic_data_reg = locs->temp(0).reg();
-    ASSERT(ic_data_reg == RBX);  // Stub depends on it.
-    __ LoadObject(ic_data_reg, equality_ic_data, PP);
-    compiler->GenerateCall(token_pos,
-                           &StubCode::EqualityWithNullArgLabel(),
-                           PcDescriptors::kRuntimeCall,
-                           locs);
-    __ Drop(2);
-  }
-  __ Bind(&check_ne);
   if (kind == Token::kNE) {
     Label true_label, done;
     // Negate the condition: true label returns false and vice versa.
@@ -530,7 +490,6 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     __ LoadObject(RAX, Bool::False(), PP);
     __ Bind(&done);
   }
-  __ Bind(&equality_done);
 }
 
 
@@ -704,34 +663,10 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
   ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
   Register left = locs->in(0).reg();
   Register right = locs->in(1).reg();
-
-  Label done, identity_compare, non_null_compare;
-  __ CompareObject(right, Object::null_object(), PP);
-  __ j(EQUAL, &identity_compare, Assembler::kNearJump);
-  __ CompareObject(left, Object::null_object(), PP);
-  __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
-  // Comparison with NULL is "===".
-  __ Bind(&identity_compare);
-  __ cmpq(left, right);
-  Condition cond = TokenKindToSmiCondition(kind);
-  if (branch != NULL) {
-    branch->EmitBranchOnCondition(compiler, cond);
-  } else {
-    Register result = locs->out().reg();
-    Label load_true;
-    __ j(cond, &load_true, Assembler::kNearJump);
-    __ LoadObject(result, Bool::False(), PP);
-    __ jmp(&done);
-    __ Bind(&load_true);
-    __ LoadObject(result, Bool::True(), PP);
-  }
-  __ jmp(&done);
-  __ Bind(&non_null_compare);  // Receiver is not null.
   __ pushq(left);
   __ pushq(right);
   EmitEqualityAsPolymorphicCall(compiler, ic_data, locs, branch, kind,
                                 deopt_id, token_pos);
-  __ Bind(&done);
 }
 
 
