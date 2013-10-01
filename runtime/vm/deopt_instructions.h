@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/assembler.h"
 #include "vm/code_generator.h"
+#include "vm/deferred_objects.h"
 #include "vm/growable_array.h"
 #include "vm/object.h"
 
@@ -18,75 +19,167 @@ class Value;
 class MaterializeObjectInstr;
 
 // Holds all data relevant for execution of deoptimization instructions.
-class DeoptimizationContext : public ValueObject {
+class DeoptContext {
  public:
-  // 'to_frame_start' points to the fixed size portion of the frame under sp.
   // 'num_args' is 0 if there are no arguments or if there are optional
   // arguments.
-  DeoptimizationContext(intptr_t* to_frame_start,
-                        intptr_t to_frame_size,
-                        const Array& object_table,
-                        intptr_t num_args,
-                        DeoptReasonId deopt_reason);
+  DeoptContext(const Array& object_table,
+               intptr_t num_args,
+               DeoptReasonId deopt_reason);
 
-  intptr_t* GetFromFrameAddressAt(intptr_t index) const {
-    ASSERT((0 <= index) && (index < from_frame_size_));
-    return &from_frame_[index];
+  virtual ~DeoptContext();
+
+  // Sets the sources (frame and registers) for this deoptimization.
+  //
+  // if 'frame_is_copy' is true, DeoptContext will delete the frame
+  // when it is done.
+  void SetSourceArgs(intptr_t* frame_start,
+                     intptr_t frame_size,
+                     fpu_register_t* fpu_registers,
+                     intptr_t* cpu_registers,
+                     bool frame_is_copy);
+
+  // Sets the destination fraem for this deoptimization.
+  //
+  // 'frame_start' oints to the fixed size portion of the frame under
+  // sp.
+  //
+  // DeoptContext does not claim ownership of the frame memory.
+  void SetDestArgs(intptr_t* frame_start, intptr_t frame_size);
+
+  intptr_t* GetSourceFrameAddressAt(intptr_t index) const {
+    ASSERT(source_frame_ != NULL);
+    ASSERT((0 <= index) && (index < source_frame_size_));
+    return &source_frame_[index];
   }
 
-  intptr_t* GetToFrameAddressAt(intptr_t index) const {
-    ASSERT((0 <= index) && (index < to_frame_size_));
-    return &to_frame_[index];
+  intptr_t* GetDestFrameAddressAt(intptr_t index) const {
+    ASSERT(dest_frame_ != NULL);
+    ASSERT((0 <= index) && (index < dest_frame_size_));
+    return &dest_frame_[index];
   }
 
-  intptr_t GetFromFp() const;
-  intptr_t GetFromPp() const;
-  intptr_t GetFromPc() const;
+  intptr_t GetSourceFp() const;
+  intptr_t GetSourcePp() const;
+  intptr_t GetSourcePc() const;
 
   intptr_t GetCallerFp() const;
   void SetCallerFp(intptr_t callers_fp);
 
   RawObject* ObjectAt(intptr_t index) const {
-    return object_table_.At(index);
+    const Array& object_table = Array::Handle(object_table_);
+    return object_table.At(index);
   }
 
   intptr_t RegisterValue(Register reg) const {
-    return registers_copy_[reg];
+    return cpu_registers_[reg];
   }
 
   double FpuRegisterValue(FpuRegister reg) const {
-    return *reinterpret_cast<double*>(&fpu_registers_copy_[reg]);
+    return *reinterpret_cast<double*>(&fpu_registers_[reg]);
   }
 
   int64_t FpuRegisterValueAsInt64(FpuRegister reg) const {
-    return *reinterpret_cast<int64_t*>(&fpu_registers_copy_[reg]);
+    return *reinterpret_cast<int64_t*>(&fpu_registers_[reg]);
   }
 
   simd128_value_t FpuRegisterValueAsSimd128(FpuRegister reg) const {
-    const float* address = reinterpret_cast<float*>(&fpu_registers_copy_[reg]);
+    const float* address = reinterpret_cast<float*>(&fpu_registers_[reg]);
     return simd128_value_t().readFrom(address);
   }
 
   Isolate* isolate() const { return isolate_; }
 
-  intptr_t from_frame_size() const { return from_frame_size_; }
+  intptr_t source_frame_size() const { return source_frame_size_; }
 
   DeoptReasonId deopt_reason() const { return deopt_reason_; }
 
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  void PrepareForDeferredMaterialization(intptr_t count) {
+    if (count > 0) {
+      deferred_objects_ = new DeferredObject*[count];
+      deferred_objects_count_ = count;
+    }
+  }
+
+  DeferredObject* GetDeferredObject(intptr_t idx) const {
+    return deferred_objects_[idx];
+  }
+
+  // Sets the materialized value for some deferred object.
+  //
+  // Claims ownership of the memory for 'object'.
+  void SetDeferredObjectAt(intptr_t idx, DeferredObject* object) {
+    deferred_objects_[idx] = object;
+  }
+
+  intptr_t DeferredObjectsCount() const {
+    return deferred_objects_count_;
+  }
+
+  void DeferMaterializedObjectRef(intptr_t idx, intptr_t* slot) {
+    deferred_object_refs_ = new DeferredObjectRef(
+        idx,
+        reinterpret_cast<RawInstance**>(slot),
+        deferred_object_refs_);
+  }
+
+  void DeferDoubleMaterialization(double value, RawDouble** slot) {
+    deferred_boxes_ = new DeferredDouble(
+        value,
+        reinterpret_cast<RawInstance**>(slot),
+        deferred_boxes_);
+  }
+
+  void DeferMintMaterialization(int64_t value, RawMint** slot) {
+    deferred_boxes_ = new DeferredMint(
+        value,
+        reinterpret_cast<RawInstance**>(slot),
+        deferred_boxes_);
+  }
+
+  void DeferFloat32x4Materialization(simd128_value_t value,
+                                     RawFloat32x4** slot) {
+    deferred_boxes_ = new DeferredFloat32x4(
+        value,
+        reinterpret_cast<RawInstance**>(slot),
+        deferred_boxes_);
+  }
+
+  void DeferUint32x4Materialization(simd128_value_t value,
+                                    RawUint32x4** slot) {
+    deferred_boxes_ = new DeferredUint32x4(
+        value,
+        reinterpret_cast<RawInstance**>(slot),
+        deferred_boxes_);
+  }
+
+  // Materializes all deferred objects.  Returns the total number of
+  // artificial arguments used during deoptimization.
+  intptr_t MaterializeDeferredObjects();
+
  private:
-  const Array& object_table_;
-  intptr_t* to_frame_;
-  const intptr_t to_frame_size_;
-  intptr_t* from_frame_;
-  intptr_t from_frame_size_;
-  intptr_t* registers_copy_;
-  fpu_register_t* fpu_registers_copy_;
+  RawArray* object_table_;
+  intptr_t* dest_frame_;
+  intptr_t dest_frame_size_;
+  bool source_frame_is_copy_;
+  intptr_t* source_frame_;
+  intptr_t source_frame_size_;
+  intptr_t* cpu_registers_;
+  fpu_register_t* fpu_registers_;
   const intptr_t num_args_;
   const DeoptReasonId deopt_reason_;
   intptr_t caller_fp_;
   Isolate* isolate_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptimizationContext);
+  DeferredSlot* deferred_boxes_;
+  DeferredSlot* deferred_object_refs_;
+
+  intptr_t deferred_objects_count_;
+  DeferredObject** deferred_objects_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptContext);
 };
 
 
@@ -119,25 +212,24 @@ class DeoptInstr : public ZoneAllocated {
     kMaterializeObject
   };
 
-  static DeoptInstr* Create(intptr_t kind_as_int, intptr_t from_index);
+  static DeoptInstr* Create(intptr_t kind_as_int, intptr_t source_index);
 
   DeoptInstr() {}
   virtual ~DeoptInstr() {}
 
   virtual const char* ToCString() const = 0;
 
-  virtual void Execute(DeoptimizationContext* deopt_context,
-                       intptr_t* to_addr) = 0;
+  virtual void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) = 0;
 
   virtual DeoptInstr::Kind kind() const = 0;
 
   bool Equals(const DeoptInstr& other) const {
-    return (kind() == other.kind()) && (from_index() == other.from_index());
+    return (kind() == other.kind()) && (source_index() == other.source_index());
   }
 
   // Decode the payload of a suffix command.  Return the suffix length and
   // set the output parameter info_number to the index of the shared suffix.
-  static intptr_t DecodeSuffix(intptr_t from_index, intptr_t* info_number);
+  static intptr_t DecodeSuffix(intptr_t source_index, intptr_t* info_number);
 
   // Get the function and return address which is encoded in this
   // kRetAfterAddress deopt instruction.
@@ -149,13 +241,13 @@ class DeoptInstr : public ZoneAllocated {
   // materialized by kMaterializeObject instruction.
   static intptr_t GetFieldCount(DeoptInstr* instr) {
     ASSERT(instr->kind() == DeoptInstr::kMaterializeObject);
-    return instr->from_index();
+    return instr->source_index();
   }
 
  protected:
   friend class DeoptInfoBuilder;
 
-  virtual intptr_t from_index() const = 0;
+  virtual intptr_t source_index() const = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DeoptInstr);
@@ -178,15 +270,15 @@ class DeoptInfoBuilder : public ValueObject {
   // Return address before instruction.
   void AddReturnAddress(const Function& function,
                         intptr_t deopt_id,
-                        intptr_t to_index);
+                        intptr_t dest_index);
 
   // Copy from optimized frame to unoptimized.
-  void AddCopy(Value* value, const Location& from_loc, intptr_t to_index);
-  void AddPcMarker(const Function& function, intptr_t to_index);
-  void AddPp(const Function& function, intptr_t to_index);
-  void AddCallerFp(intptr_t to_index);
-  void AddCallerPp(intptr_t to_index);
-  void AddCallerPc(intptr_t to_index);
+  void AddCopy(Value* value, const Location& source_loc, intptr_t dest_index);
+  void AddPcMarker(const Function& function, intptr_t dest_index);
+  void AddPp(const Function& function, intptr_t dest_index);
+  void AddCallerFp(intptr_t dest_index);
+  void AddCallerPp(intptr_t dest_index);
+  void AddCallerPc(intptr_t dest_index);
 
   // Add object to be materialized. Emit kMaterializeObject instruction.
   void AddMaterialization(MaterializeObjectInstr* mat);
@@ -200,7 +292,7 @@ class DeoptInfoBuilder : public ValueObject {
   // At deoptimization they will be removed by the stub at the very end:
   // after they were used to materialize objects.
   // Returns the index of the next stack slot. Used for verification.
-  intptr_t EmitMaterializationArguments(intptr_t to_index);
+  intptr_t EmitMaterializationArguments(intptr_t dest_index);
 
   RawDeoptInfo* CreateDeoptInfo(const Array& deopt_table);
 
@@ -216,13 +308,13 @@ class DeoptInfoBuilder : public ValueObject {
 
   intptr_t FindOrAddObjectInTable(const Object& obj) const;
   intptr_t FindMaterialization(MaterializeObjectInstr* mat) const;
-  intptr_t CalculateStackIndex(const Location& from_loc) const;
+  intptr_t CalculateStackIndex(const Location& source_loc) const;
 
   intptr_t FrameSize() const {
     return instructions_.length() - frame_start_;
   }
 
-  void AddConstant(const Object& obj, intptr_t to_index);
+  void AddConstant(const Object& obj, intptr_t dest_index);
 
   GrowableArray<DeoptInstr*> instructions_;
   const GrowableObjectArray& object_table_;

@@ -18,71 +18,158 @@ DEFINE_FLAG(bool, compress_deopt_info, true,
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 
-DeoptimizationContext::DeoptimizationContext(intptr_t* to_frame_start,
-                                             intptr_t to_frame_size,
-                                             const Array& object_table,
-                                             intptr_t num_args,
-                                             DeoptReasonId deopt_reason)
-    : object_table_(object_table),
-      to_frame_(to_frame_start),
-      to_frame_size_(to_frame_size),
-      from_frame_(NULL),
-      from_frame_size_(0),
-      registers_copy_(NULL),
-      fpu_registers_copy_(NULL),
+DeoptContext::DeoptContext(const Array& object_table,
+                           intptr_t num_args,
+                           DeoptReasonId deopt_reason)
+    : object_table_(object_table.raw()),
+      dest_frame_(NULL),
+      dest_frame_size_(0),
+      source_frame_is_copy_(false),
+      source_frame_(NULL),
+      source_frame_size_(0),
+      cpu_registers_(NULL),
+      fpu_registers_(NULL),
       num_args_(num_args),
       deopt_reason_(deopt_reason),
-      isolate_(Isolate::Current()) {
-  from_frame_ = isolate_->deopt_frame_copy();
-  from_frame_size_ = isolate_->deopt_frame_copy_size();
-  registers_copy_ = isolate_->deopt_cpu_registers_copy();
-  fpu_registers_copy_ = isolate_->deopt_fpu_registers_copy();
-  // The deoptimized frame is filled starting just below the sp of its caller
-  // down to kDartFrameFixedSize words below its own sp.
-  // The chain of frame pointers is recreated from the fp of the caller.
-  caller_fp_ = GetFromFp();
+      isolate_(Isolate::Current()),
+      deferred_boxes_(NULL),
+      deferred_object_refs_(NULL),
+      deferred_objects_count_(0),
+      deferred_objects_(NULL) {
 }
 
 
-intptr_t DeoptimizationContext::GetFromFp() const {
-  return from_frame_[from_frame_size_ - 1 - num_args_ - kParamEndSlotFromFp];
+DeoptContext::~DeoptContext() {
+  // Delete memory for source frame and registers.
+  if (source_frame_is_copy_) {
+    delete[] source_frame_;
+  }
+  source_frame_ = NULL;
+  delete[] fpu_registers_;
+  delete[] cpu_registers_;
+  fpu_registers_ = NULL;
+  cpu_registers_ = NULL;
+
+  // Delete all deferred objects.
+  for (intptr_t i = 0; i < deferred_objects_count_; i++) {
+    delete deferred_objects_[i];
+  }
+  delete[] deferred_objects_;
+  deferred_objects_ = NULL;
+  deferred_objects_count_ = 0;
 }
 
 
-intptr_t DeoptimizationContext::GetFromPp() const {
-  return from_frame_[from_frame_size_ - 1 - num_args_ - kParamEndSlotFromFp +
-      StackFrame::SavedCallerPpSlotFromFp()];
+void DeoptContext::SetSourceArgs(intptr_t* frame_start,
+                                 intptr_t frame_size,
+                                 fpu_register_t* fpu_registers,
+                                 intptr_t* cpu_registers,
+                                 bool source_frame_is_copy) {
+  ASSERT(frame_start != NULL);
+  ASSERT(frame_size >= 0);
+  ASSERT(source_frame_ == NULL);
+  ASSERT(cpu_registers_ == NULL && fpu_registers_ == NULL);
+  source_frame_ = frame_start;
+  source_frame_size_ = frame_size;
+  caller_fp_ = GetSourceFp();
+  cpu_registers_ = cpu_registers;
+  fpu_registers_ = fpu_registers;
+  source_frame_is_copy_ = source_frame_is_copy;
 }
 
 
-intptr_t DeoptimizationContext::GetFromPc() const {
-  return from_frame_[from_frame_size_ - num_args_ + kSavedPcSlotFromSp];
+void DeoptContext::SetDestArgs(intptr_t* frame_start,
+                               intptr_t frame_size) {
+  ASSERT(frame_start != NULL);
+  ASSERT(frame_size >= 0);
+  ASSERT(dest_frame_ == NULL);
+  dest_frame_ = frame_start;
+  dest_frame_size_ = frame_size;
 }
 
 
-intptr_t DeoptimizationContext::GetCallerFp() const {
+void DeoptContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&object_table_));
+}
+
+
+intptr_t DeoptContext::GetSourceFp() const {
+  return source_frame_[source_frame_size_ - 1 - num_args_ -
+                       kParamEndSlotFromFp];
+}
+
+
+intptr_t DeoptContext::GetSourcePp() const {
+  return source_frame_[source_frame_size_ - 1 - num_args_ -
+                       kParamEndSlotFromFp +
+                       StackFrame::SavedCallerPpSlotFromFp()];
+}
+
+
+intptr_t DeoptContext::GetSourcePc() const {
+  return source_frame_[source_frame_size_ - num_args_ + kSavedPcSlotFromSp];
+}
+
+
+intptr_t DeoptContext::GetCallerFp() const {
   return caller_fp_;
 }
 
 
-void DeoptimizationContext::SetCallerFp(intptr_t caller_fp) {
+void DeoptContext::SetCallerFp(intptr_t caller_fp) {
   caller_fp_ = caller_fp;
 }
 
 
+static void FillDeferredSlots(DeferredSlot** slot_list) {
+  DeferredSlot* slot = *slot_list;
+  *slot_list = NULL;
+
+  while (slot != NULL) {
+    DeferredSlot* current = slot;
+    slot = slot->next();
+
+    current->Materialize();
+
+    delete current;
+  }
+}
+
+
+// Materializes all deferred objects.  Returns the total number of
+// artificial arguments used during deoptimization.
+intptr_t DeoptContext::MaterializeDeferredObjects() {
+  // First materialize all unboxed "primitive" values (doubles, mints, simd)
+  // then materialize objects. The order is important: objects might be
+  // referencing boxes allocated on the first step. At the same time
+  // objects can't be referencing other deferred objects because storing
+  // an object into a field is always conservatively treated as escaping by
+  // allocation sinking and load forwarding.
+  FillDeferredSlots(&deferred_boxes_);
+  FillDeferredSlots(&deferred_object_refs_);
+
+  // Compute total number of artificial arguments used during deoptimization.
+  intptr_t deopt_arguments = 0;
+  for (intptr_t i = 0; i < DeferredObjectsCount(); i++) {
+    deopt_arguments += GetDeferredObject(i)->ArgumentCount();
+  }
+  return deopt_arguments;
+}
+
+
 // Deoptimization instruction moving value from optimized frame at
-// 'from_index' to specified slots in the unoptimized frame.
-// 'from_index' represents the slot index of the frame (0 being first argument)
-// and accounts for saved return address, frame pointer, pool pointer and pc
-// marker.
+// 'source_index' to specified slots in the unoptimized frame.
+// 'source_index' represents the slot index of the frame (0 being
+// first argument) and accounts for saved return address, frame
+// pointer, pool pointer and pc marker.
 class DeoptStackSlotInstr : public DeoptInstr {
  public:
-  explicit DeoptStackSlotInstr(intptr_t from_index)
-      : stack_slot_index_(from_index) {
+  explicit DeoptStackSlotInstr(intptr_t source_index)
+      : stack_slot_index_(source_index) {
     ASSERT(stack_slot_index_ >= 0);
   }
 
-  virtual intptr_t from_index() const { return stack_slot_index_; }
+  virtual intptr_t source_index() const { return stack_slot_index_; }
   virtual DeoptInstr::Kind kind() const { return kStackSlot; }
 
   virtual const char* ToCString() const {
@@ -90,11 +177,12 @@ class DeoptStackSlotInstr : public DeoptInstr {
         "s%" Pd "", stack_slot_index_);
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
-    intptr_t from_index =
-       deopt_context->from_frame_size() - stack_slot_index_ - 1;
-    intptr_t* from_addr = deopt_context->GetFromFrameAddressAt(from_index);
-    *to_addr = *from_addr;
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
+    intptr_t source_index =
+       deopt_context->source_frame_size() - stack_slot_index_ - 1;
+    intptr_t* source_addr =
+        deopt_context->GetSourceFrameAddressAt(source_index);
+    *dest_addr = *source_addr;
   }
 
  private:
@@ -106,12 +194,12 @@ class DeoptStackSlotInstr : public DeoptInstr {
 
 class DeoptDoubleStackSlotInstr : public DeoptInstr {
  public:
-  explicit DeoptDoubleStackSlotInstr(intptr_t from_index)
-      : stack_slot_index_(from_index) {
+  explicit DeoptDoubleStackSlotInstr(intptr_t source_index)
+      : stack_slot_index_(source_index) {
     ASSERT(stack_slot_index_ >= 0);
   }
 
-  virtual intptr_t from_index() const { return stack_slot_index_; }
+  virtual intptr_t source_index() const { return stack_slot_index_; }
   virtual DeoptInstr::Kind kind() const { return kDoubleStackSlot; }
 
   virtual const char* ToCString() const {
@@ -119,14 +207,14 @@ class DeoptDoubleStackSlotInstr : public DeoptInstr {
         "ds%" Pd "", stack_slot_index_);
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
-    intptr_t from_index =
-       deopt_context->from_frame_size() - stack_slot_index_ - 1;
-    double* from_addr = reinterpret_cast<double*>(
-        deopt_context->GetFromFrameAddressAt(from_index));
-    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
-    Isolate::Current()->DeferDoubleMaterialization(
-        *from_addr, reinterpret_cast<RawDouble**>(to_addr));
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
+    intptr_t source_index =
+       deopt_context->source_frame_size() - stack_slot_index_ - 1;
+    double* source_addr = reinterpret_cast<double*>(
+        deopt_context->GetSourceFrameAddressAt(source_index));
+    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
+    deopt_context->DeferDoubleMaterialization(
+        *source_addr, reinterpret_cast<RawDouble**>(dest_addr));
   }
 
  private:
@@ -138,12 +226,12 @@ class DeoptDoubleStackSlotInstr : public DeoptInstr {
 
 class DeoptInt64StackSlotInstr : public DeoptInstr {
  public:
-  explicit DeoptInt64StackSlotInstr(intptr_t from_index)
-      : stack_slot_index_(from_index) {
+  explicit DeoptInt64StackSlotInstr(intptr_t source_index)
+      : stack_slot_index_(source_index) {
     ASSERT(stack_slot_index_ >= 0);
   }
 
-  virtual intptr_t from_index() const { return stack_slot_index_; }
+  virtual intptr_t source_index() const { return stack_slot_index_; }
   virtual DeoptInstr::Kind kind() const { return kInt64StackSlot; }
 
   virtual const char* ToCString() const {
@@ -151,18 +239,18 @@ class DeoptInt64StackSlotInstr : public DeoptInstr {
         "ms%" Pd "", stack_slot_index_);
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
-    intptr_t from_index =
-       deopt_context->from_frame_size() - stack_slot_index_ - 1;
-    int64_t* from_addr = reinterpret_cast<int64_t*>(
-        deopt_context->GetFromFrameAddressAt(from_index));
-    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
-    if (Smi::IsValid64(*from_addr)) {
-      *to_addr = reinterpret_cast<intptr_t>(
-          Smi::New(static_cast<intptr_t>(*from_addr)));
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
+    intptr_t source_index =
+       deopt_context->source_frame_size() - stack_slot_index_ - 1;
+    int64_t* source_addr = reinterpret_cast<int64_t*>(
+        deopt_context->GetSourceFrameAddressAt(source_index));
+    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
+    if (Smi::IsValid64(*source_addr)) {
+      *dest_addr = reinterpret_cast<intptr_t>(
+          Smi::New(static_cast<intptr_t>(*source_addr)));
     } else {
-      Isolate::Current()->DeferMintMaterialization(
-          *from_addr, reinterpret_cast<RawMint**>(to_addr));
+      deopt_context->DeferMintMaterialization(
+          *source_addr, reinterpret_cast<RawMint**>(dest_addr));
     }
   }
 
@@ -175,12 +263,12 @@ class DeoptInt64StackSlotInstr : public DeoptInstr {
 
 class DeoptFloat32x4StackSlotInstr : public DeoptInstr {
  public:
-  explicit DeoptFloat32x4StackSlotInstr(intptr_t from_index)
-      : stack_slot_index_(from_index) {
+  explicit DeoptFloat32x4StackSlotInstr(intptr_t source_index)
+      : stack_slot_index_(source_index) {
     ASSERT(stack_slot_index_ >= 0);
   }
 
-  virtual intptr_t from_index() const { return stack_slot_index_; }
+  virtual intptr_t source_index() const { return stack_slot_index_; }
   virtual DeoptInstr::Kind kind() const { return kFloat32x4StackSlot; }
 
   virtual const char* ToCString() const {
@@ -188,14 +276,14 @@ class DeoptFloat32x4StackSlotInstr : public DeoptInstr {
         "f32x4s%" Pd "", stack_slot_index_);
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
-    intptr_t from_index =
-       deopt_context->from_frame_size() - stack_slot_index_ - 1;
-    simd128_value_t* from_addr = reinterpret_cast<simd128_value_t*>(
-        deopt_context->GetFromFrameAddressAt(from_index));
-    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
-    Isolate::Current()->DeferFloat32x4Materialization(
-        *from_addr, reinterpret_cast<RawFloat32x4**>(to_addr));
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
+    intptr_t source_index =
+       deopt_context->source_frame_size() - stack_slot_index_ - 1;
+    simd128_value_t* source_addr = reinterpret_cast<simd128_value_t*>(
+        deopt_context->GetSourceFrameAddressAt(source_index));
+    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
+    deopt_context->DeferFloat32x4Materialization(
+        *source_addr, reinterpret_cast<RawFloat32x4**>(dest_addr));
   }
 
  private:
@@ -207,12 +295,12 @@ class DeoptFloat32x4StackSlotInstr : public DeoptInstr {
 
 class DeoptUint32x4StackSlotInstr : public DeoptInstr {
  public:
-  explicit DeoptUint32x4StackSlotInstr(intptr_t from_index)
-      : stack_slot_index_(from_index) {
+  explicit DeoptUint32x4StackSlotInstr(intptr_t source_index)
+      : stack_slot_index_(source_index) {
     ASSERT(stack_slot_index_ >= 0);
   }
 
-  virtual intptr_t from_index() const { return stack_slot_index_; }
+  virtual intptr_t source_index() const { return stack_slot_index_; }
   virtual DeoptInstr::Kind kind() const { return kUint32x4StackSlot; }
 
   virtual const char* ToCString() const {
@@ -220,14 +308,14 @@ class DeoptUint32x4StackSlotInstr : public DeoptInstr {
         "ui32x4s%" Pd "", stack_slot_index_);
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
-    intptr_t from_index =
-       deopt_context->from_frame_size() - stack_slot_index_ - 1;
-    simd128_value_t* from_addr = reinterpret_cast<simd128_value_t*>(
-        deopt_context->GetFromFrameAddressAt(from_index));
-    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
-    Isolate::Current()->DeferUint32x4Materialization(
-        *from_addr, reinterpret_cast<RawUint32x4**>(to_addr));
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
+    intptr_t source_index =
+       deopt_context->source_frame_size() - stack_slot_index_ - 1;
+    simd128_value_t* source_addr = reinterpret_cast<simd128_value_t*>(
+        deopt_context->GetSourceFrameAddressAt(source_index));
+    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
+    deopt_context->DeferUint32x4Materialization(
+        *source_addr, reinterpret_cast<RawUint32x4**>(dest_addr));
   }
 
  private:
@@ -247,12 +335,12 @@ class DeoptRetAddressInstr : public DeoptInstr {
     ASSERT(deopt_id >= 0);
   }
 
-  explicit DeoptRetAddressInstr(intptr_t from_index)
-      : object_table_index_(ObjectTableIndex::decode(from_index)),
-        deopt_id_(DeoptId::decode(from_index)) {
+  explicit DeoptRetAddressInstr(intptr_t source_index)
+      : object_table_index_(ObjectTableIndex::decode(source_index)),
+        deopt_id_(DeoptId::decode(source_index)) {
   }
 
-  virtual intptr_t from_index() const {
+  virtual intptr_t source_index() const {
     return ObjectTableIndex::encode(object_table_index_) |
         DeoptId::encode(deopt_id_);
   }
@@ -264,7 +352,7 @@ class DeoptRetAddressInstr : public DeoptInstr {
         "ret oti:%" Pd "(%" Pd ")", object_table_index_, deopt_id_);
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     Function& function = Function::Handle(deopt_context->isolate());
     function ^= deopt_context->ObjectAt(object_table_index_);
     const Code& code =
@@ -273,7 +361,7 @@ class DeoptRetAddressInstr : public DeoptInstr {
     uword continue_at_pc = code.GetPcForDeoptId(deopt_id_,
                                                 PcDescriptors::kDeopt);
     ASSERT(continue_at_pc != 0);
-    *to_addr = continue_at_pc;
+    *dest_addr = continue_at_pc;
 
     uword pc = code.GetPcForDeoptId(deopt_id_, PcDescriptors::kIcCall);
     if (pc != 0) {
@@ -310,7 +398,7 @@ class DeoptConstantInstr : public DeoptInstr {
     ASSERT(object_table_index >= 0);
   }
 
-  virtual intptr_t from_index() const { return object_table_index_; }
+  virtual intptr_t source_index() const { return object_table_index_; }
   virtual DeoptInstr::Kind kind() const { return kConstant; }
 
   virtual const char* ToCString() const {
@@ -318,10 +406,10 @@ class DeoptConstantInstr : public DeoptInstr {
         "const oti:%" Pd "", object_table_index_);
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     const Object& obj = Object::Handle(
         deopt_context->isolate(), deopt_context->ObjectAt(object_table_index_));
-    *reinterpret_cast<RawObject**>(to_addr) = obj.raw();
+    *reinterpret_cast<RawObject**>(dest_addr) = obj.raw();
   }
 
  private:
@@ -337,15 +425,15 @@ class DeoptRegisterInstr: public DeoptInstr {
   explicit DeoptRegisterInstr(intptr_t reg_as_int)
       : reg_(static_cast<Register>(reg_as_int)) {}
 
-  virtual intptr_t from_index() const { return static_cast<intptr_t>(reg_); }
+  virtual intptr_t source_index() const { return static_cast<intptr_t>(reg_); }
   virtual DeoptInstr::Kind kind() const { return kRegister; }
 
   virtual const char* ToCString() const {
     return Assembler::RegisterName(reg_);
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
-    *to_addr = deopt_context->RegisterValue(reg_);
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
+    *dest_addr = deopt_context->RegisterValue(reg_);
   }
 
  private:
@@ -361,18 +449,18 @@ class DeoptFpuRegisterInstr: public DeoptInstr {
   explicit DeoptFpuRegisterInstr(intptr_t reg_as_int)
       : reg_(static_cast<FpuRegister>(reg_as_int)) {}
 
-  virtual intptr_t from_index() const { return static_cast<intptr_t>(reg_); }
+  virtual intptr_t source_index() const { return static_cast<intptr_t>(reg_); }
   virtual DeoptInstr::Kind kind() const { return kFpuRegister; }
 
   virtual const char* ToCString() const {
     return Assembler::FpuRegisterName(reg_);
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     double value = deopt_context->FpuRegisterValue(reg_);
-    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
-    Isolate::Current()->DeferDoubleMaterialization(
-        value, reinterpret_cast<RawDouble**>(to_addr));
+    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
+    deopt_context->DeferDoubleMaterialization(
+        value, reinterpret_cast<RawDouble**>(dest_addr));
   }
 
  private:
@@ -387,7 +475,7 @@ class DeoptInt64FpuRegisterInstr: public DeoptInstr {
   explicit DeoptInt64FpuRegisterInstr(intptr_t reg_as_int)
       : reg_(static_cast<FpuRegister>(reg_as_int)) {}
 
-  virtual intptr_t from_index() const { return static_cast<intptr_t>(reg_); }
+  virtual intptr_t source_index() const { return static_cast<intptr_t>(reg_); }
   virtual DeoptInstr::Kind kind() const { return kInt64FpuRegister; }
 
   virtual const char* ToCString() const {
@@ -395,15 +483,15 @@ class DeoptInt64FpuRegisterInstr: public DeoptInstr {
         "%s(m)", Assembler::FpuRegisterName(reg_));
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     int64_t value = deopt_context->FpuRegisterValueAsInt64(reg_);
-    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
+    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
     if (Smi::IsValid64(value)) {
-      *to_addr = reinterpret_cast<intptr_t>(
+      *dest_addr = reinterpret_cast<intptr_t>(
           Smi::New(static_cast<intptr_t>(value)));
     } else {
-      Isolate::Current()->DeferMintMaterialization(
-          value, reinterpret_cast<RawMint**>(to_addr));
+      deopt_context->DeferMintMaterialization(
+          value, reinterpret_cast<RawMint**>(dest_addr));
     }
   }
 
@@ -420,7 +508,7 @@ class DeoptFloat32x4FpuRegisterInstr: public DeoptInstr {
   explicit DeoptFloat32x4FpuRegisterInstr(intptr_t reg_as_int)
       : reg_(static_cast<FpuRegister>(reg_as_int)) {}
 
-  virtual intptr_t from_index() const { return static_cast<intptr_t>(reg_); }
+  virtual intptr_t source_index() const { return static_cast<intptr_t>(reg_); }
   virtual DeoptInstr::Kind kind() const { return kFloat32x4FpuRegister; }
 
   virtual const char* ToCString() const {
@@ -428,11 +516,11 @@ class DeoptFloat32x4FpuRegisterInstr: public DeoptInstr {
         "%s(f32x4)", Assembler::FpuRegisterName(reg_));
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     simd128_value_t value = deopt_context->FpuRegisterValueAsSimd128(reg_);
-    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
-    Isolate::Current()->DeferFloat32x4Materialization(
-        value, reinterpret_cast<RawFloat32x4**>(to_addr));
+    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
+    deopt_context->DeferFloat32x4Materialization(
+        value, reinterpret_cast<RawFloat32x4**>(dest_addr));
   }
 
  private:
@@ -448,7 +536,7 @@ class DeoptUint32x4FpuRegisterInstr: public DeoptInstr {
   explicit DeoptUint32x4FpuRegisterInstr(intptr_t reg_as_int)
       : reg_(static_cast<FpuRegister>(reg_as_int)) {}
 
-  virtual intptr_t from_index() const { return static_cast<intptr_t>(reg_); }
+  virtual intptr_t source_index() const { return static_cast<intptr_t>(reg_); }
   virtual DeoptInstr::Kind kind() const { return kUint32x4FpuRegister; }
 
   virtual const char* ToCString() const {
@@ -456,11 +544,11 @@ class DeoptUint32x4FpuRegisterInstr: public DeoptInstr {
         "%s(f32x4)", Assembler::FpuRegisterName(reg_));
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     simd128_value_t value = deopt_context->FpuRegisterValueAsSimd128(reg_);
-    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
-    Isolate::Current()->DeferUint32x4Materialization(
-        value, reinterpret_cast<RawUint32x4**>(to_addr));
+    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
+    deopt_context->DeferUint32x4Materialization(
+        value, reinterpret_cast<RawUint32x4**>(dest_addr));
   }
 
  private:
@@ -479,7 +567,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     ASSERT(object_table_index >= 0);
   }
 
-  virtual intptr_t from_index() const { return object_table_index_; }
+  virtual intptr_t source_index() const { return object_table_index_; }
   virtual DeoptInstr::Kind kind() const { return kPcMarker; }
 
   virtual const char* ToCString() const {
@@ -487,12 +575,12 @@ class DeoptPcMarkerInstr : public DeoptInstr {
         "pcmark oti:%" Pd "", object_table_index_);
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     Function& function = Function::Handle(deopt_context->isolate());
     function ^= deopt_context->ObjectAt(object_table_index_);
     if (function.IsNull()) {
       // Callee's PC marker is not used (pc of Deoptimize stub). Set to 0.
-      *to_addr = 0;
+      *dest_addr = 0;
       return;
     }
     const Code& code =
@@ -500,7 +588,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     ASSERT(!code.IsNull());
     const intptr_t pc_marker =
         code.EntryPoint() + Assembler::kEntryPointToPcMarkerOffset;
-    *to_addr = pc_marker;
+    *dest_addr = pc_marker;
     // Increment the deoptimization counter. This effectively increments each
     // function occurring in the optimized frame.
     function.set_deoptimization_counter(function.deoptimization_counter() + 1);
@@ -531,7 +619,7 @@ class DeoptPpInstr : public DeoptInstr {
     ASSERT(object_table_index >= 0);
   }
 
-  virtual intptr_t from_index() const { return object_table_index_; }
+  virtual intptr_t source_index() const { return object_table_index_; }
   virtual DeoptInstr::Kind kind() const { return kPp; }
 
   virtual const char* ToCString() const {
@@ -539,14 +627,14 @@ class DeoptPpInstr : public DeoptInstr {
         "pp oti:%" Pd "", object_table_index_);
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     Function& function = Function::Handle(deopt_context->isolate());
     function ^= deopt_context->ObjectAt(object_table_index_);
     const Code& code =
         Code::Handle(deopt_context->isolate(), function.unoptimized_code());
     ASSERT(!code.IsNull());
     const intptr_t pp = reinterpret_cast<intptr_t>(code.ObjectPool());
-    *to_addr = pp;
+    *dest_addr = pp;
   }
 
  private:
@@ -561,17 +649,17 @@ class DeoptCallerFpInstr : public DeoptInstr {
  public:
   DeoptCallerFpInstr() {}
 
-  virtual intptr_t from_index() const { return 0; }
+  virtual intptr_t source_index() const { return 0; }
   virtual DeoptInstr::Kind kind() const { return kCallerFp; }
 
   virtual const char* ToCString() const {
     return "callerfp";
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
-    *to_addr = deopt_context->GetCallerFp();
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
+    *dest_addr = deopt_context->GetCallerFp();
     deopt_context->SetCallerFp(reinterpret_cast<intptr_t>(
-        to_addr - (kSavedCallerFpSlotFromFp * kWordSize)));
+        dest_addr - (kSavedCallerFpSlotFromFp * kWordSize)));
   }
 
  private:
@@ -584,15 +672,15 @@ class DeoptCallerPpInstr : public DeoptInstr {
  public:
   DeoptCallerPpInstr() {}
 
-  virtual intptr_t from_index() const { return 0; }
+  virtual intptr_t source_index() const { return 0; }
   virtual DeoptInstr::Kind kind() const { return kCallerPp; }
 
   virtual const char* ToCString() const {
     return "callerpp";
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
-    *to_addr = deopt_context->GetFromPp();
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
+    *dest_addr = deopt_context->GetSourcePp();
   }
 
  private:
@@ -606,15 +694,15 @@ class DeoptCallerPcInstr : public DeoptInstr {
  public:
   DeoptCallerPcInstr() {}
 
-  virtual intptr_t from_index() const { return 0; }
+  virtual intptr_t source_index() const { return 0; }
   virtual DeoptInstr::Kind kind() const { return kCallerPc; }
 
   virtual const char* ToCString() const {
     return "callerpc";
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
-    *to_addr = deopt_context->GetFromPc();
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
+    *dest_addr = deopt_context->GetSourcePc();
   }
 
  private:
@@ -634,12 +722,12 @@ class DeoptSuffixInstr : public DeoptInstr {
     ASSERT(suffix_length >= 0);
   }
 
-  explicit DeoptSuffixInstr(intptr_t from_index)
-      : info_number_(InfoNumber::decode(from_index)),
-        suffix_length_(SuffixLength::decode(from_index)) {
+  explicit DeoptSuffixInstr(intptr_t source_index)
+      : info_number_(InfoNumber::decode(source_index)),
+        suffix_length_(SuffixLength::decode(source_index)) {
   }
 
-  virtual intptr_t from_index() const {
+  virtual intptr_t source_index() const {
     return InfoNumber::encode(info_number_) |
         SuffixLength::encode(suffix_length_);
   }
@@ -650,7 +738,7 @@ class DeoptSuffixInstr : public DeoptInstr {
         "suffix %" Pd ":%" Pd, info_number_, suffix_length_);
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     // The deoptimization info is uncompressed by translating away suffixes
     // before executing the instructions.
     UNREACHABLE();
@@ -681,7 +769,7 @@ class DeoptMaterializedObjectRefInstr : public DeoptInstr {
     ASSERT(index >= 0);
   }
 
-  virtual intptr_t from_index() const { return index_; }
+  virtual intptr_t source_index() const { return index_; }
   virtual DeoptInstr::Kind kind() const { return kMaterializedObjectRef; }
 
   virtual const char* ToCString() const {
@@ -689,10 +777,10 @@ class DeoptMaterializedObjectRefInstr : public DeoptInstr {
         "mat ref #%" Pd "", index_);
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
-    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
-    Isolate::Current()->DeferMaterializedObjectRef(
-        index_, to_addr);
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
+    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
+    deopt_context->DeferMaterializedObjectRef(
+        index_, dest_addr);
   }
 
  private:
@@ -712,7 +800,7 @@ class DeoptMaterializeObjectInstr : public DeoptInstr {
     ASSERT(field_count >= 0);
   }
 
-  virtual intptr_t from_index() const { return field_count_; }
+  virtual intptr_t source_index() const { return field_count_; }
   virtual DeoptInstr::Kind kind() const { return kMaterializeObject; }
 
   virtual const char* ToCString() const {
@@ -720,7 +808,7 @@ class DeoptMaterializeObjectInstr : public DeoptInstr {
         "mat obj len:%" Pd "", field_count_);
   }
 
-  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
+  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     // This instructions are executed manually by the DeoptimizeWithDeoptInfo.
     UNREACHABLE();
   }
@@ -732,9 +820,10 @@ class DeoptMaterializeObjectInstr : public DeoptInstr {
 };
 
 
-intptr_t DeoptInstr::DecodeSuffix(intptr_t from_index, intptr_t* info_number) {
-  *info_number = DeoptSuffixInstr::InfoNumber::decode(from_index);
-  return DeoptSuffixInstr::SuffixLength::decode(from_index);
+intptr_t DeoptInstr::DecodeSuffix(intptr_t source_index,
+                                  intptr_t* info_number) {
+  *info_number = DeoptSuffixInstr::InfoNumber::decode(source_index);
+  return DeoptSuffixInstr::SuffixLength::decode(source_index);
 }
 
 
@@ -759,34 +848,35 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
 }
 
 
-DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t from_index) {
+DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t source_index) {
   Kind kind = static_cast<Kind>(kind_as_int);
   switch (kind) {
-    case kStackSlot: return new DeoptStackSlotInstr(from_index);
-    case kDoubleStackSlot: return new DeoptDoubleStackSlotInstr(from_index);
-    case kInt64StackSlot: return new DeoptInt64StackSlotInstr(from_index);
+    case kStackSlot: return new DeoptStackSlotInstr(source_index);
+    case kDoubleStackSlot: return new DeoptDoubleStackSlotInstr(source_index);
+    case kInt64StackSlot: return new DeoptInt64StackSlotInstr(source_index);
     case kFloat32x4StackSlot:
-        return new DeoptFloat32x4StackSlotInstr(from_index);
+        return new DeoptFloat32x4StackSlotInstr(source_index);
     case kUint32x4StackSlot:
-        return new DeoptUint32x4StackSlotInstr(from_index);
-    case kRetAddress: return new DeoptRetAddressInstr(from_index);
-    case kConstant: return new DeoptConstantInstr(from_index);
-    case kRegister: return new DeoptRegisterInstr(from_index);
-    case kFpuRegister: return new DeoptFpuRegisterInstr(from_index);
-    case kInt64FpuRegister: return new DeoptInt64FpuRegisterInstr(from_index);
+        return new DeoptUint32x4StackSlotInstr(source_index);
+    case kRetAddress: return new DeoptRetAddressInstr(source_index);
+    case kConstant: return new DeoptConstantInstr(source_index);
+    case kRegister: return new DeoptRegisterInstr(source_index);
+    case kFpuRegister: return new DeoptFpuRegisterInstr(source_index);
+    case kInt64FpuRegister: return new DeoptInt64FpuRegisterInstr(source_index);
     case kFloat32x4FpuRegister:
-        return new DeoptFloat32x4FpuRegisterInstr(from_index);
+        return new DeoptFloat32x4FpuRegisterInstr(source_index);
     case kUint32x4FpuRegister:
-        return new DeoptUint32x4FpuRegisterInstr(from_index);
-    case kPcMarker: return new DeoptPcMarkerInstr(from_index);
-    case kPp: return new DeoptPpInstr(from_index);
+        return new DeoptUint32x4FpuRegisterInstr(source_index);
+    case kPcMarker: return new DeoptPcMarkerInstr(source_index);
+    case kPp: return new DeoptPpInstr(source_index);
     case kCallerFp: return new DeoptCallerFpInstr();
     case kCallerPp: return new DeoptCallerPpInstr();
     case kCallerPc: return new DeoptCallerPcInstr();
-    case kSuffix: return new DeoptSuffixInstr(from_index);
+    case kSuffix: return new DeoptSuffixInstr(source_index);
     case kMaterializedObjectRef:
-        return new DeoptMaterializedObjectRefInstr(from_index);
-    case kMaterializeObject: return new DeoptMaterializeObjectInstr(from_index);
+        return new DeoptMaterializedObjectRefInstr(source_index);
+    case kMaterializeObject:
+      return new DeoptMaterializeObjectInstr(source_index);
   }
   UNREACHABLE();
   return NULL;
@@ -850,16 +940,17 @@ intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
 }
 
 
-intptr_t DeoptInfoBuilder::CalculateStackIndex(const Location& from_loc) const {
-  return from_loc.stack_index() < 0 ?
-            from_loc.stack_index() + num_args_ :
-            from_loc.stack_index() + num_args_ + kDartFrameFixedSize;
+intptr_t DeoptInfoBuilder::CalculateStackIndex(
+    const Location& source_loc) const {
+  return source_loc.stack_index() < 0 ?
+            source_loc.stack_index() + num_args_ :
+            source_loc.stack_index() + num_args_ + kDartFrameFixedSize;
 }
 
 
 void DeoptInfoBuilder::AddReturnAddress(const Function& function,
                                         intptr_t deopt_id,
-                                        intptr_t to_index) {
+                                        intptr_t dest_index) {
   // Check that deopt_id exists.
   // TODO(vegorov): verify after deoptimization targets as well.
 #ifdef DEBUG
@@ -868,68 +959,68 @@ void DeoptInfoBuilder::AddReturnAddress(const Function& function,
       (code.GetPcForDeoptId(deopt_id, PcDescriptors::kDeopt) != 0));
 #endif
   const intptr_t object_table_index = FindOrAddObjectInTable(function);
-  ASSERT(to_index == FrameSize());
+  ASSERT(dest_index == FrameSize());
   instructions_.Add(new DeoptRetAddressInstr(object_table_index, deopt_id));
 }
 
 
 void DeoptInfoBuilder::AddPcMarker(const Function& function,
-                                   intptr_t to_index) {
+                                   intptr_t dest_index) {
   intptr_t object_table_index = FindOrAddObjectInTable(function);
-  ASSERT(to_index == FrameSize());
+  ASSERT(dest_index == FrameSize());
   instructions_.Add(new DeoptPcMarkerInstr(object_table_index));
 }
 
 
-void DeoptInfoBuilder::AddPp(const Function& function, intptr_t to_index) {
+void DeoptInfoBuilder::AddPp(const Function& function, intptr_t dest_index) {
   intptr_t object_table_index = FindOrAddObjectInTable(function);
-  ASSERT(to_index == FrameSize());
+  ASSERT(dest_index == FrameSize());
   instructions_.Add(new DeoptPpInstr(object_table_index));
 }
 
 
 void DeoptInfoBuilder::AddCopy(Value* value,
-                               const Location& from_loc,
-                               const intptr_t to_index) {
+                               const Location& source_loc,
+                               const intptr_t dest_index) {
   DeoptInstr* deopt_instr = NULL;
-  if (from_loc.IsConstant()) {
-    intptr_t object_table_index = FindOrAddObjectInTable(from_loc.constant());
+  if (source_loc.IsConstant()) {
+    intptr_t object_table_index = FindOrAddObjectInTable(source_loc.constant());
     deopt_instr = new DeoptConstantInstr(object_table_index);
-  } else if (from_loc.IsRegister()) {
+  } else if (source_loc.IsRegister()) {
     ASSERT(value->definition()->representation() == kTagged);
-    deopt_instr = new DeoptRegisterInstr(from_loc.reg());
-  } else if (from_loc.IsFpuRegister()) {
+    deopt_instr = new DeoptRegisterInstr(source_loc.reg());
+  } else if (source_loc.IsFpuRegister()) {
     if (value->definition()->representation() == kUnboxedDouble) {
-      deopt_instr = new DeoptFpuRegisterInstr(from_loc.fpu_reg());
+      deopt_instr = new DeoptFpuRegisterInstr(source_loc.fpu_reg());
     } else if (value->definition()->representation() == kUnboxedMint) {
-      deopt_instr = new DeoptInt64FpuRegisterInstr(from_loc.fpu_reg());
+      deopt_instr = new DeoptInt64FpuRegisterInstr(source_loc.fpu_reg());
     } else if (value->definition()->representation() == kUnboxedFloat32x4) {
-      deopt_instr = new DeoptFloat32x4FpuRegisterInstr(from_loc.fpu_reg());
+      deopt_instr = new DeoptFloat32x4FpuRegisterInstr(source_loc.fpu_reg());
     } else {
       ASSERT(value->definition()->representation() == kUnboxedUint32x4);
-      deopt_instr = new DeoptUint32x4FpuRegisterInstr(from_loc.fpu_reg());
+      deopt_instr = new DeoptUint32x4FpuRegisterInstr(source_loc.fpu_reg());
     }
-  } else if (from_loc.IsStackSlot()) {
+  } else if (source_loc.IsStackSlot()) {
     ASSERT(value->definition()->representation() == kTagged);
-    intptr_t from_index = CalculateStackIndex(from_loc);
-    deopt_instr = new DeoptStackSlotInstr(from_index);
-  } else if (from_loc.IsDoubleStackSlot()) {
-    intptr_t from_index = CalculateStackIndex(from_loc);
+    intptr_t source_index = CalculateStackIndex(source_loc);
+    deopt_instr = new DeoptStackSlotInstr(source_index);
+  } else if (source_loc.IsDoubleStackSlot()) {
+    intptr_t source_index = CalculateStackIndex(source_loc);
     if (value->definition()->representation() == kUnboxedDouble) {
-      deopt_instr = new DeoptDoubleStackSlotInstr(from_index);
+      deopt_instr = new DeoptDoubleStackSlotInstr(source_index);
     } else {
       ASSERT(value->definition()->representation() == kUnboxedMint);
-      deopt_instr = new DeoptInt64StackSlotInstr(from_index);
+      deopt_instr = new DeoptInt64StackSlotInstr(source_index);
     }
-  } else if (from_loc.IsQuadStackSlot()) {
-    intptr_t from_index = CalculateStackIndex(from_loc);
+  } else if (source_loc.IsQuadStackSlot()) {
+    intptr_t source_index = CalculateStackIndex(source_loc);
     if (value->definition()->representation() == kUnboxedFloat32x4) {
-      deopt_instr = new DeoptFloat32x4StackSlotInstr(from_index);
+      deopt_instr = new DeoptFloat32x4StackSlotInstr(source_index);
     } else {
       ASSERT(value->definition()->representation() == kUnboxedUint32x4);
-      deopt_instr = new DeoptUint32x4StackSlotInstr(from_index);
+      deopt_instr = new DeoptUint32x4StackSlotInstr(source_index);
     }
-  } else if (from_loc.IsInvalid() &&
+  } else if (source_loc.IsInvalid() &&
              value->definition()->IsMaterializeObject()) {
     const intptr_t index = FindMaterialization(
         value->definition()->AsMaterializeObject());
@@ -938,32 +1029,32 @@ void DeoptInfoBuilder::AddCopy(Value* value,
   } else {
     UNREACHABLE();
   }
-  ASSERT(to_index == FrameSize());
+  ASSERT(dest_index == FrameSize());
   ASSERT(deopt_instr != NULL);
   instructions_.Add(deopt_instr);
 }
 
 
-void DeoptInfoBuilder::AddCallerFp(intptr_t to_index) {
-  ASSERT(to_index == FrameSize());
+void DeoptInfoBuilder::AddCallerFp(intptr_t dest_index) {
+  ASSERT(dest_index == FrameSize());
   instructions_.Add(new DeoptCallerFpInstr());
 }
 
 
-void DeoptInfoBuilder::AddCallerPp(intptr_t to_index) {
-  ASSERT(to_index == FrameSize());
+void DeoptInfoBuilder::AddCallerPp(intptr_t dest_index) {
+  ASSERT(dest_index == FrameSize());
   instructions_.Add(new DeoptCallerPpInstr());
 }
 
 
-void DeoptInfoBuilder::AddCallerPc(intptr_t to_index) {
-  ASSERT(to_index == FrameSize());
+void DeoptInfoBuilder::AddCallerPc(intptr_t dest_index) {
+  ASSERT(dest_index == FrameSize());
   instructions_.Add(new DeoptCallerPcInstr());
 }
 
 
-void DeoptInfoBuilder::AddConstant(const Object& obj, intptr_t to_index) {
-  ASSERT(to_index == FrameSize());
+void DeoptInfoBuilder::AddConstant(const Object& obj, intptr_t dest_index) {
+  ASSERT(dest_index == FrameSize());
   intptr_t object_table_index = FindOrAddObjectInTable(obj);
   instructions_.Add(new DeoptConstantInstr(object_table_index));
 }
@@ -990,20 +1081,21 @@ void DeoptInfoBuilder::AddMaterialization(MaterializeObjectInstr* mat) {
 }
 
 
-intptr_t DeoptInfoBuilder::EmitMaterializationArguments(intptr_t to_index) {
-  ASSERT(to_index == kDartFrameFixedSize);
+intptr_t DeoptInfoBuilder::EmitMaterializationArguments(intptr_t dest_index) {
+  ASSERT(dest_index == kDartFrameFixedSize);
   for (intptr_t i = 0; i < materializations_.length(); i++) {
     MaterializeObjectInstr* mat = materializations_[i];
-    AddConstant(mat->cls(), to_index++);  // Class of the instance to allocate.
+    // Class of the instance to allocate.
+    AddConstant(mat->cls(), dest_index++);
     for (intptr_t i = 0; i < mat->InputCount(); i++) {
       if (!mat->InputAt(i)->BindsToConstantNull()) {
         // Emit field-value pair.
-        AddConstant(mat->FieldAt(i), to_index++);
-        AddCopy(mat->InputAt(i), mat->LocationAt(i), to_index++);
+        AddConstant(mat->FieldAt(i), dest_index++);
+        AddCopy(mat->InputAt(i), mat->LocationAt(i), dest_index++);
       }
     }
   }
-  return to_index;
+  return dest_index;
 }
 
 
@@ -1049,7 +1141,7 @@ RawDeoptInfo* DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
   intptr_t write_count = (suffix_length > 1) ? length - 1 : length;
   for (intptr_t i = 0; i < write_count; ++i) {
     DeoptInstr* instr = instructions_[i];
-    deopt_info.SetAt(i, instr->kind(), instr->from_index());
+    deopt_info.SetAt(i, instr->kind(), instr->source_index());
     TrieNode* child = node;
     node = new TrieNode(instr, current_info_number_);
     node->AddChild(child);
@@ -1059,7 +1151,7 @@ RawDeoptInfo* DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
     suffix->AddChild(node);
     DeoptInstr* instr =
         new DeoptSuffixInstr(suffix->info_number(), suffix_length);
-    deopt_info.SetAt(length - 1, instr->kind(), instr->from_index());
+    deopt_info.SetAt(length - 1, instr->kind(), instr->source_index());
   } else {
     trie_root_->AddChild(node);
   }

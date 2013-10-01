@@ -116,6 +116,8 @@
     'debuginfo.h',
     'debuginfo_android.cc',
     'debuginfo_linux.cc',
+    'deferred_objects.cc',
+    'deferred_objects.h',
     'deopt_instructions.cc',
     'deopt_instructions.h',
     'disassembler.cc',
