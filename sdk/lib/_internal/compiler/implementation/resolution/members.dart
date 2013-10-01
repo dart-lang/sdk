@@ -2743,7 +2743,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
     Modifiers modifiers = node.modifiers;
     void reportExtraModifier(String modifier) {
       Node modifierNode;
-      for (var nodes = modifiers.nodes; !nodes.isEmpty; nodes = nodes.tail) {
+      for (Link<Node> nodes = modifiers.nodes.nodes;
+           !nodes.isEmpty;
+           nodes = nodes.tail) {
         if (modifier == nodes.head.asIdentifier().source.stringValue) {
           modifierNode = nodes.head;
           break;
@@ -2759,7 +2761,14 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (modifiers.isVar() && (modifiers.isConst() || node.type != null)) {
       reportExtraModifier('var');
     }
-
+    if (enclosingElement.isFunction()) {
+      if (modifiers.isAbstract()) {
+        reportExtraModifier('abstract');
+      }
+      if (modifiers.isStatic()) {
+        reportExtraModifier('static');
+      }
+    }
     visitor.visit(node.definitions);
   }
 
