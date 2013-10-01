@@ -43,7 +43,7 @@ mirrors/library_metadata2_test/01: CompileTimeError # Issue 13633
 async/stream_controller_async_test: Pass, Fail # Issue 13608
 
 [ $compiler == dart2js && $checked ]
-mirrors/redirection_type_shuffling_test/01: Fail # Issue 13706
+mirrors/redirection_type_shuffling_test: RuntimeError # Issue 13706
 
 [ $runtime == safari ]
 mirrors/return_type_test: Pass, Timeout # Issue 12858
@@ -188,6 +188,3 @@ mirrors/parameter_metadata_test: Fail # Issue 13510
 mirrors/method_mirror_returntype_test: Fail # Issue 13510
 mirrors/function_type_mirror_test: Fail # Issue 13510
 mirrors/typevariable_mirror_metadata_test: Fail # Issue 13510
-
-[ ($compiler == dartanalyzer || $compiler == dart2analyzer) && $checked ]
-mirrors/redirection_type_shuffling_test/01: Fail # Override multitest annotation. The analyzer is not expected to know a reflect call will fail.

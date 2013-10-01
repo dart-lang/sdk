@@ -7,14 +7,30 @@ import "package:expect/expect.dart";
 
 class G<A extends int, B extends String> {
   G();
-  factory G.swap() = G<B,A>;
+  factory G.swap() = G<B,A>;  /// static type warning
   factory G.retain() = G<A,B>;
+}
+
+bool get inCheckedMode {
+  try {
+    var i = 1;
+    String s = i;
+    return false;
+  } catch(e) {
+    return true;
+  }
 }
 
 main() {
   ClassMirror cm = reflect(new G<int, String>()).type;
 
-  cm.newInstance(#swap, []);  /// 01: dynamic type error
+  if (inCheckedMode) {
+    Expect.throws(() => cm.newInstance(#swap, []),
+                  (e) => e is MirroredCompilationError,
+                  'Checked mode should not allow violation of type bounds');
+  } else {
+    Expect.isTrue(cm.newInstance(#swap, []).reflectee is G<String,int>);
+  }
 
   Expect.isTrue(cm.newInstance(#retain, []).reflectee is G<int,String>);
 }
