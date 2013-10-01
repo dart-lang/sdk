@@ -228,6 +228,10 @@ LibTest/typed_data/Uint32x4/toFloat32x4_A01_t01: RuntimeError # co19 Issue 601
 LibTest/typed_data/Uint32x4/toFloat32x4_A01_t02: RuntimeError # co19 Issue 601
 LibTest/typed_data/Float32x4/clamp_A02_t01: RuntimeError # co19 Issue 600
 
+Language/14_Libraries_and_Scripts/1_Imports_A01_t17: Fail # co19 Issue 603
+Language/14_Libraries_and_Scripts/1_Imports_A04_t01: Fail # co19 Issue 603
+
+Language/14_Libraries_and_Scripts/2_Exports_A05_t01: Fail # co19 Issue 604
 
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
@@ -451,7 +455,6 @@ Language/14_Libraries_and_Scripts/1_Imports_A03_t27: fail # co19-roll r546: Plea
 Language/14_Libraries_and_Scripts/1_Imports_A03_t28: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t29: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t30: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A04_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t01: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/5_URIs_A01_t01: fail # co19-roll r546: Please triage this failure
@@ -616,21 +619,14 @@ Language/07_Classes/6_Constructors/2_Factories_A09_t02: fail # co19-roll r587: P
 Language/07_Classes/6_Constructors/2_Factories_A10_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/2_Factories_A10_t03: fail # co19-roll r587: Please triage this failure
 Language/10_Generics/09_Generics_A01_t17: fail # co19-roll r587: Please triage this failure
-LibTest/json/parse_A01_t01: fail # co19-roll r587: Please triage this failure
-LibTest/json/parse_A02_t01: fail # co19-roll r587: Please triage this failure
-LibTest/json/printOn_A01_t01: fail # co19-roll r587: Please triage this failure
-LibTest/json/printOn_A02_t01: fail # co19-roll r587: Please triage this failure
-LibTest/json/printOn_A03_t01: fail # co19-roll r587: Please triage this failure
-LibTest/json/printOn_A03_t02: fail # co19-roll r587: Please triage this failure
-LibTest/json/printOn_A03_t03: fail # co19-roll r587: Please triage this failure
-LibTest/json/printOn_A04_t01: fail # co19-roll r587: Please triage this failure
 
 [ $compiler == dart2js ]
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: fail # co19-roll r587: Please triage this failure
 LibTest/json/stringify_A01_t01: fail # co19-roll r587: Please triage this failure
 LibTest/json/stringify_A02_t01: fail # co19-roll r587: Please triage this failure
+LibTest/json/printOn_A01_t01: fail # co19-roll r587: Please triage this failure
+LibTest/json/printOn_A02_t01: fail # co19-roll r587: Please triage this failure
 LibTest/math/pow_A04_t01: fail # co19-roll r587: Please triage this failure
 LibTest/math/pow_A14_t01: fail # co19-roll r587: Please triage this failure
 LibTest/math/pow_A16_t01: fail # co19-roll r587: Please triage this failure
-

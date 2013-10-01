@@ -91,6 +91,12 @@ LibTest/core/double/floor_A01_t04: Fail # truncate/ceil/floor/round returns ints
 LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
 
+Language/14_Libraries_and_Scripts/1_Imports_A01_t17: Fail # co19 Issue 603
+Language/14_Libraries_and_Scripts/1_Imports_A04_t01: Fail # co19 Issue 603
+
+Language/14_Libraries_and_Scripts/2_Exports_A05_t01: Fail # co19 Issue 604
+
+
 # co19-roll r546 (11.08.2013) caused these failures
 [ $compiler == dart2dart ]
 Language/03_Overview/1_Scoping_A02_t28: Fail # co19-roll r559: Please triage this failure
@@ -213,7 +219,6 @@ Language/14_Libraries_and_Scripts/1_Imports_A03_t28: fail # co19-roll r546: Plea
 Language/14_Libraries_and_Scripts/1_Imports_A03_t29: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t30: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t65: pass, fail, ok # co19 issue 560
-Language/14_Libraries_and_Scripts/1_Imports_A04_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t01: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/5_URIs_A01_t01: fail # co19-roll r546: Please triage this failure
@@ -244,5 +249,5 @@ Language/12_Expressions/18_Assignment_A05_t04: fail # co19-roll r559: Please tri
 Language/13_Statements/11_Try_A06_t01: fail # co19-roll r546: Please triage this failure
 LibTest/json/stringify_A02_t01: fail # co19-roll r587: Please triage this failure
 LibTest/json/stringify_A03_t02: fail # co19-roll r587: Please triage this failure
-
-
+LibTest/json/printOn_A02_t01: fail # co19-roll r587: Please triage this failure
+LibTest/json/printOn_A03_t02: fail # co19-roll r587: Please triage this failure
