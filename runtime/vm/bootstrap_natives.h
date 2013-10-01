@@ -101,7 +101,7 @@ namespace dart {
   V(String_concat, 2)                                                          \
   V(String_toLowerCase, 1)                                                     \
   V(String_toUpperCase, 1)                                                     \
-  V(Strings_concatAll, 1)                                                      \
+  V(Strings_concatAll, 3)                                                      \
   V(Math_sqrt, 1)                                                              \
   V(Math_sin, 1)                                                               \
   V(Math_cos, 1)                                                               \

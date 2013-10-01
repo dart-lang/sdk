@@ -11,7 +11,7 @@ patch class StringBuffer {
    * When strings are written to the string buffer, we add them to a
    * list of string parts.
    */
-  List _parts = null;
+  List<String> _parts = null;
 
   /**
     * Total number of code units in the string parts. Does not include
@@ -28,7 +28,6 @@ patch class StringBuffer {
    */
   int _partsCompactionIndex = 0;
   int _partsCodeUnitsSinceCompaction = 0;
-  _ObjectArray _partsCompactionArray = null;
 
   /**
    * The buffer is used to build up a string from code units. It is
@@ -101,15 +100,9 @@ patch class StringBuffer {
   /** Returns the contents of buffer as a string. */
   /* patch */ String toString() {
     _consumeBuffer();
-    if (_partsCodeUnits == 0) return "";
-
-    // TODO(kasperl): It would be nice if concatAllNative would
-    // allow me to pass in a grownable array directly, but for
-    // now we have to copy the contents to a non-growable array.
-    int length = _parts.length;
-    _ObjectArray array = new _ObjectArray(length);
-    for (int i = 0; i < length; i++) array[i] = _parts[i];
-    return _StringBase._concatAllNative(array);
+    return (_partsCodeUnits == 0) ?
+        "" :
+        _StringBase._concatAllNative(_parts, 0, _parts.length);
   }
 
   /** Ensures that the buffer has enough capacity to add n code units. */
@@ -160,18 +153,13 @@ patch class StringBuffer {
    */
   void _compact() {
     if (_partsCodeUnitsSinceCompaction < _PARTS_TO_COMPACT_SIZE_LIMIT) {
-      if (_partsCompactionArray == null) {
-        _partsCompactionArray = new _ObjectArray(_PARTS_TO_COMPACT);
-      }
-      for (int i = 0; i < _PARTS_TO_COMPACT; i++) {
-        _partsCompactionArray[i] = _parts[i + _partsCompactionIndex];
-      }
-      String compacted = _StringBase._concatAllNative(_partsCompactionArray);
+      String compacted = _StringBase._concatAllNative(
+          _parts,
+          _partsCompactionIndex,                     // Start
+          _partsCompactionIndex + _PARTS_TO_COMPACT  // End
+      );
       _parts.length = _parts.length - _PARTS_TO_COMPACT;
       _parts.add(compacted);
-      for (int i = 0; i < _PARTS_TO_COMPACT; i++) {
-        _partsCompactionArray[i] = null;
-      }
     }
     _partsCodeUnitsSinceCompaction = 0;
     _partsCompactionIndex = _parts.length;

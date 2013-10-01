@@ -13297,14 +13297,24 @@ RawString* String::Concat(const String& str1,
 
 RawString* String::ConcatAll(const Array& strings,
                              Heap::Space space) {
+  return ConcatAllRange(strings, 0, strings.Length(), space);
+}
+
+
+RawString* String::ConcatAllRange(const Array& strings,
+                                  intptr_t start,
+                                  intptr_t end,
+                                  Heap::Space space) {
   ASSERT(!strings.IsNull());
+  ASSERT(start >= 0);
+  ASSERT(end <= strings.Length());
   intptr_t result_len = 0;
-  intptr_t strings_len = strings.Length();
   String& str = String::Handle();
   intptr_t char_size = kOneByteChar;
-  for (intptr_t i = 0; i < strings_len; i++) {
+  // Compute 'char_size' and 'result_len'.
+  for (intptr_t i = start; i < end; i++) {
     str ^= strings.At(i);
-    intptr_t str_len = str.Length();
+    const intptr_t str_len = str.Length();
     if ((kMaxElements - result_len) < str_len) {
       Isolate* isolate = Isolate::Current();
       const Instance& exception =
@@ -13316,10 +13326,10 @@ RawString* String::ConcatAll(const Array& strings,
     char_size = Utils::Maximum(char_size, str.CharSize());
   }
   if (char_size == kOneByteChar) {
-    return OneByteString::ConcatAll(strings, result_len, space);
+    return OneByteString::ConcatAll(strings, start, end, result_len, space);
   }
   ASSERT(char_size == kTwoByteChar);
-  return TwoByteString::ConcatAll(strings, result_len, space);
+  return TwoByteString::ConcatAll(strings, start, end, result_len, space);
 }
 
 
@@ -13810,15 +13820,19 @@ RawOneByteString* OneByteString::Concat(const String& str1,
 
 
 RawOneByteString* OneByteString::ConcatAll(const Array& strings,
+                                           intptr_t start,
+                                           intptr_t end,
                                            intptr_t len,
                                            Heap::Space space) {
+  ASSERT(!strings.IsNull());
+  ASSERT(start >= 0);
+  ASSERT(end <= strings.Length());
   const String& result = String::Handle(OneByteString::New(len, space));
   String& str = String::Handle();
-  intptr_t strings_len = strings.Length();
   intptr_t pos = 0;
-  for (intptr_t i = 0; i < strings_len; i++) {
+  for (intptr_t i = start; i < end; i++) {
     str ^= strings.At(i);
-    intptr_t str_len = str.Length();
+    const intptr_t str_len = str.Length();
     String::Copy(result, pos, str, 0, str_len);
     ASSERT((kMaxElements - pos) >= str_len);
     pos += str_len;
@@ -13992,15 +14006,19 @@ RawTwoByteString* TwoByteString::Concat(const String& str1,
 
 
 RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
+                                           intptr_t start,
+                                           intptr_t end,
                                            intptr_t len,
                                            Heap::Space space) {
+  ASSERT(!strings.IsNull());
+  ASSERT(start >= 0);
+  ASSERT(end <= strings.Length());
   const String& result = String::Handle(TwoByteString::New(len, space));
   String& str = String::Handle();
-  intptr_t strings_len = strings.Length();
   intptr_t pos = 0;
-  for (intptr_t i = 0; i < strings_len; i++) {
+  for (intptr_t i = start; i < end; i++) {
     str ^= strings.At(i);
-    intptr_t str_len = str.Length();
+    const intptr_t str_len = str.Length();
     String::Copy(result, pos, str, 0, str_len);
     ASSERT((kMaxElements - pos) >= str_len);
     pos += str_len;

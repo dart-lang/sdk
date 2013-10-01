@@ -4774,6 +4774,11 @@ class String : public Instance {
                            Heap::Space space = Heap::kNew);
   static RawString* ConcatAll(const Array& strings,
                               Heap::Space space = Heap::kNew);
+  // Concat all strings in 'strings' from 'start' to 'end' (excluding).
+  static RawString* ConcatAllRange(const Array& strings,
+                                   intptr_t start,
+                                   intptr_t end,
+                                   Heap::Space space = Heap::kNew);
 
   static RawString* SubString(const String& str,
                               intptr_t begin_index,
@@ -4894,6 +4899,8 @@ class OneByteString : public AllStatic {
                                   const String& str2,
                                   Heap::Space space);
   static RawOneByteString* ConcatAll(const Array& strings,
+                                     intptr_t start,
+                                     intptr_t end,
                                      intptr_t len,
                                      Heap::Space space);
 
@@ -4990,6 +4997,8 @@ class TwoByteString : public AllStatic {
                                   const String& str2,
                                   Heap::Space space);
   static RawTwoByteString* ConcatAll(const Array& strings,
+                                     intptr_t start,
+                                     intptr_t end,
                                      intptr_t len,
                                      Heap::Space space);
 

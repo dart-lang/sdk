@@ -214,20 +214,45 @@ DEFINE_NATIVE_ENTRY(String_toUpperCase, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Strings_concatAll, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, strings, arguments->NativeArgAt(0));
-  ASSERT(!strings.IsNull());
+DEFINE_NATIVE_ENTRY(Strings_concatAll, 3) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, argument, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, start, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, end, arguments->NativeArgAt(2));
+  const intptr_t start_ix = start.Value();
+  const intptr_t end_ix = end.Value();
+  if (start_ix < 0) {
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, start);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
+  }
+  Array& strings = Array::Handle();
+  intptr_t length = -1;
+  if (argument.IsArray()) {
+    strings ^= argument.raw();
+    length = strings.Length();
+  } else if (argument.IsGrowableObjectArray()) {
+    const GrowableObjectArray& g_array = GrowableObjectArray::Cast(argument);
+    strings = g_array.data();
+    length =  g_array.Length();
+  } else {
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, argument);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
+  }
+  if (end_ix > length) {
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, end);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
+  }
+#if defined(DEBUG)
   // Check that the array contains strings.
   Instance& elem = Instance::Handle();
-  for (intptr_t i = 0; i < strings.Length(); i++) {
+  for (intptr_t i = start_ix; i < end_ix; i++) {
     elem ^= strings.At(i);
-    if (!elem.IsString()) {
-      const Array& args = Array::Handle(Array::New(1));
-      args.SetAt(0, elem);
-      Exceptions::ThrowByType(Exceptions::kArgument, args);
-    }
+    ASSERT(elem.IsString());
   }
-  return String::ConcatAll(strings);
+#endif
+  return String::ConcatAllRange(strings, start_ix, end_ix, Heap::kNew);
 }
 
 
