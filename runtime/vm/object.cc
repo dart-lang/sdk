@@ -1706,16 +1706,15 @@ intptr_t Class::NumTypeArguments() const {
   // resolved, which is checked by the type_class() call on the super type.
   // Note that calling type_class() on a MixinAppType fails.
   Isolate* isolate = Isolate::Current();
-  ReusableHandleScope reused_handles(isolate);
-  Class& cls = reused_handles.ClassHandle();
-  TypeArguments& type_params = reused_handles.TypeArgumentsHandle();
-  AbstractType& sup_type = reused_handles.AbstractTypeHandle();
+  Class& cls = Class::Handle(isolate);
+  TypeArguments& type_params = TypeArguments::Handle(isolate);
+  AbstractType& sup_type = AbstractType::Handle(isolate);
   cls ^= raw();
   intptr_t num_type_args = 0;
 
   do {
     if (cls.IsSignatureClass()) {
-      Function& signature_fun = reused_handles.FunctionHandle();
+      Function& signature_fun = Function::Handle(isolate);
       signature_fun ^= cls.signature_function();
       if (!signature_fun.is_static() &&
           !signature_fun.HasInstantiatedSignature()) {
@@ -3426,6 +3425,20 @@ bool TypeArguments::CanShareInstantiatorTypeArguments(
 }
 
 
+bool TypeArguments::IsFinalized() const {
+  ASSERT(!IsNull());
+  AbstractType& type = AbstractType::Handle();
+  const intptr_t num_types = Length();
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    if (!type.IsFinalized()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 bool TypeArguments::IsBounded() const {
   AbstractType& type = AbstractType::Handle();
   const intptr_t num_types = Length();
@@ -3579,6 +3592,23 @@ static intptr_t FindIndexInCanonicalTypeArguments(
     current ^= table.At(index);
   }
   return index;  // Index of element if found or slot into which to add it.
+}
+
+
+RawAbstractTypeArguments* TypeArguments::CloneUnfinalized() const {
+  if (IsFinalized()) {
+    return raw();
+  }
+  AbstractType& type = AbstractType::Handle();
+  const intptr_t num_types = Length();
+  const TypeArguments& clone = TypeArguments::Handle(
+      TypeArguments::New(num_types));
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    type = type.CloneUnfinalized();
+    clone.SetTypeAt(i, type);
+  }
+  return clone.raw();
 }
 
 
@@ -10824,6 +10854,13 @@ RawAbstractType* AbstractType::InstantiateFrom(
 }
 
 
+RawAbstractType* AbstractType::CloneUnfinalized() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return NULL;
+}
+
+
 RawAbstractType* AbstractType::Canonicalize() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
@@ -11353,6 +11390,20 @@ bool Type::Equals(const Instance& other) const {
 }
 
 
+RawAbstractType* Type::CloneUnfinalized() const {
+  ASSERT(IsResolved());
+  if (IsFinalized()) {
+    return raw();
+  }
+  ASSERT(!IsMalformed());  // Malformed types are finalized.
+  ASSERT(!IsBeingFinalized());  // Cloning must occur prior to finalization.
+  AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(arguments());
+  type_args = type_args.CloneUnfinalized();
+  const Class& type_cls = Class::Handle(type_class());
+  return Type::New(type_cls, type_args, token_pos());
+}
+
+
 RawAbstractType* Type::Canonicalize() const {
   ASSERT(IsFinalized());
   if (IsCanonical() || IsMalformed()) {
@@ -11642,6 +11693,19 @@ bool TypeParameter::CheckBound(const AbstractType& bounded_type,
 }
 
 
+RawAbstractType* TypeParameter::CloneUnfinalized() const {
+  if (IsFinalized()) {
+    return raw();
+  }
+  // No need to clone bound, as it is not part of the finalization state.
+  return TypeParameter::New(Class::Handle(parameterized_class()),
+                            index(),
+                            String::Handle(name()),
+                            AbstractType::Handle(bound()),
+                            token_pos());
+}
+
+
 intptr_t TypeParameter::Hash() const {
   ASSERT(IsFinalized());
   uword result = 0;
@@ -11818,6 +11882,21 @@ RawAbstractType* BoundedType::InstantiateFrom(
     set_is_being_checked(false);
   }
   return bounded_type.raw();
+}
+
+
+RawAbstractType* BoundedType::CloneUnfinalized() const {
+  if (IsFinalized()) {
+    return raw();
+  }
+  AbstractType& bounded_type = AbstractType::Handle(type());
+
+  bounded_type = bounded_type.CloneUnfinalized();
+  // No need to clone bound or type parameter, as they are not part of the
+  // finalization state of this bounded type.
+  return BoundedType::New(bounded_type,
+                          AbstractType::Handle(bound()),
+                          TypeParameter::Handle(type_parameter()));
 }
 
 

@@ -421,15 +421,6 @@ class LibraryLoaderTask extends LibraryLoader {
           if (loadedLibrary == null) return;
           compiler.withCurrentElement(library, () {
             handler.registerDependency(library, tag, loadedLibrary);
-
-            if (!loadedLibrary.hasLibraryName()) {
-              compiler.reportFatalError(
-                  tag == null ? null : tag.uri,
-                  MessageKind.GENERIC,
-                  {'text':
-                   'Error: No library name found in '
-                      '${loadedLibrary.canonicalUri}.'});
-            }
           });
         });
   }
