@@ -188,3 +188,6 @@ mirrors/parameter_metadata_test: Fail # Issue 13510
 mirrors/method_mirror_returntype_test: Fail # Issue 13510
 mirrors/function_type_mirror_test: Fail # Issue 13510
 mirrors/typevariable_mirror_metadata_test: Fail # Issue 13510
+
+[ ($compiler == dartanalyzer || $compiler == dart2analyzer) && $checked ]
+mirrors/redirection_type_shuffling_test/01: Fail # Override multitest annotation. The analyzer is not expected to know a reflect call will fail.
