@@ -1139,6 +1139,9 @@ class UnresolvedClass : public Object {
 // InstantiatedTypeArguments.
 class AbstractTypeArguments : public Object {
  public:
+  // Returns true if all types of this vector are finalized.
+  virtual bool IsFinalized() const { return true; }
+
   // Returns true if both arguments represent vectors of equal types.
   static bool AreEqual(const AbstractTypeArguments& arguments,
                        const AbstractTypeArguments& other_arguments);
@@ -1152,7 +1155,13 @@ class AbstractTypeArguments : public Object {
       const AbstractTypeArguments& instantiator_type_arguments,
       Error* bound_error) const;
 
-  // Do not canonicalize InstantiatedTypeArguments or NULL objects
+  // Do not clone InstantiatedTypeArguments or null vectors, since they are
+  // considered finalized.
+  virtual RawAbstractTypeArguments* CloneUnfinalized() const {
+    return this->raw();
+  }
+
+  // Do not canonicalize InstantiatedTypeArguments or null vectors.
   virtual RawAbstractTypeArguments* Canonicalize() const { return this->raw(); }
 
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
@@ -1251,7 +1260,9 @@ class TypeArguments : public AbstractTypeArguments {
   virtual bool IsUninstantiatedIdentity() const;
   virtual bool CanShareInstantiatorTypeArguments(
       const Class& instantiator_class) const;
+  virtual bool IsFinalized() const;
   virtual bool IsBounded() const;
+  virtual RawAbstractTypeArguments* CloneUnfinalized() const;
   // Canonicalize only if instantiated, otherwise returns 'this'.
   virtual RawAbstractTypeArguments* Canonicalize() const;
 
@@ -3867,6 +3878,11 @@ class AbstractType : public Instance {
       const AbstractTypeArguments& instantiator_type_arguments,
       Error* bound_error) const;
 
+  // Return a clone of this unfinalized type or the type itself if it is
+  // already finalized. Apply recursively to type arguments, i.e. finalized
+  // type arguments of an unfinalized type are not cloned, but shared.
+  virtual RawAbstractType* CloneUnfinalized() const;
+
   virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
     return Canonicalize();
   }
@@ -4004,6 +4020,7 @@ class Type : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
       Error* malformed_error) const;
+  virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* Canonicalize() const;
 
   virtual intptr_t Hash() const;
@@ -4118,6 +4135,7 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
       Error* bound_error) const;
+  virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* Canonicalize() const { return raw(); }
 
   virtual intptr_t Hash() const;
@@ -4190,6 +4208,7 @@ class BoundedType : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
       Error* bound_error) const;
+  virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* Canonicalize() const { return raw(); }
 
   virtual intptr_t Hash() const;

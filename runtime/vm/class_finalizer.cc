@@ -506,13 +506,9 @@ void ClassFinalizer::ResolveType(const Class& cls,
 
 void ClassFinalizer::FinalizeTypeParameters(const Class& cls) {
   if (cls.IsMixinApplication()) {
-    // Copy the type parameters to the mixin application.
+    // Setup the type parameters of the mixin application and finalize the
+    // mixin type.
     ApplyMixinType(cls);
-    // Finalize the mixin type.
-    Type& mixin_type = Type::Handle(cls.mixin());
-    mixin_type ^= FinalizeType(cls, mixin_type, kCanonicalizeWellFormed);
-    // TODO(regis): Check for a malbounded mixin_type.
-    cls.set_mixin(mixin_type);
   }
   // The type parameter bounds are not finalized here.
   const TypeArguments& type_parameters =
@@ -745,8 +741,14 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     // parameterized class.
     const intptr_t offset = parameterized_class.NumTypeArguments() -
                             parameterized_class.NumTypeParameters();
-    type_parameter.set_index(type_parameter.index() + offset);
-    type_parameter.set_is_finalized();
+    // Calling NumTypeParameters() may finalize this type parameter if it
+    // belongs to a mixin application class.
+    if (!type_parameter.IsFinalized()) {
+      type_parameter.set_index(type_parameter.index() + offset);
+      type_parameter.set_is_finalized();
+    } else {
+      ASSERT(cls.IsMixinApplication());
+    }
     // We do not canonicalize type parameters.
     return type_parameter.raw();
   }
@@ -1684,7 +1686,17 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class) {
                   mixin_app_class.type_parameters()).ToCString(),
               AbstractType::Handle(mixin_app_class.super_type()).ToCString());
   }
+  // Mark the application class as having been applied its mixin type in order
+  // to avoid cycles while finalizing its mixin type.
   mixin_app_class.set_is_mixin_type_applied();
+  // Finalize the mixin type, which may have been changed in case
+  // mixin_app_class is a typedef.
+  mixin_type = mixin_app_class.mixin();
+  ASSERT(!mixin_type.IsBeingFinalized());
+  mixin_type ^=
+      FinalizeType(mixin_app_class, mixin_type, kCanonicalizeWellFormed);
+  // TODO(regis): Check for a malbounded mixin_type.
+  mixin_app_class.set_mixin(mixin_type);
 }
 
 
@@ -2132,6 +2144,8 @@ void ClassFinalizer::CollectTypeArguments(
     if (num_type_arguments == num_type_parameters) {
       for (intptr_t i = 0; i < num_type_arguments; i++) {
         arg = type_args.TypeAt(i);
+        arg = arg.CloneUnfinalized();
+        ASSERT(!arg.IsBeingFinalized());
         collected_args.Add(arg);
       }
       return;

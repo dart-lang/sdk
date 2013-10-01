@@ -122,6 +122,7 @@ positive_bit_operations_test: RuntimeError # Issue 12795
 mixin_mixin2_test: RuntimeError # Issue 13109.
 mixin_mixin3_test: RuntimeError # Issue 13109.
 mixin_mixin7_test: RuntimeError # Issue 13109.
+mixin_regress_13688_test: RuntimeError # Issue 13109.
 
 # Compilation errors.
 const_var_test: CompileTimeError # Issue 12793
