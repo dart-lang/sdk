@@ -9,10 +9,6 @@ Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
 # TBD: should we check that argument for dynamic parameter of constant constructor is not compatible with operation that is performed with it?
 Language/12_Expressions/01_Constants_A16_t03: fail
 
-# TBD: should we report _error_ when constant creation uses arguments with types incompatible with parameters?
-Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail
-Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail
-
 # TBF: infinite look: class A {const A();final m = const A();}
 Language/12_Expressions/01_Constants_A17_t03: fail
 
