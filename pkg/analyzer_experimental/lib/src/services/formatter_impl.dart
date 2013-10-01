@@ -334,6 +334,9 @@ class SourceVisitor implements ASTVisitor {
 
   /// A flag to indicate that a newline should be emitted before the next token.
   bool needsNewline = false;
+  
+  /// A counter for spaces that should be emitted preceding the next token.
+  int leadingSpaces = 0;
 
   /// Used for matching EOL comments
   final twoSlashes = new RegExp(r'//[^/]');
@@ -540,13 +543,41 @@ class SourceVisitor implements ASTVisitor {
     token(node.period);
     visit(node.name);
     visit(node.parameters);
-    token(node.separator /* = or : */, precededBy: space, followedBy: space);
-    visitNodes(node.initializers, separatedBy: commaSeperator);
-    visit(node.redirectedConstructor);
+    
+    // Check for redirects or initializer lists
+    if (node.separator != null) {
+      if (node.redirectedConstructor != null) {
+        visitConstructorRedirects(node);
+      } else { 
+        visitConstructorInitializers(node);
+      }
+    }
 
     visitPrefixedBody(space, node.body);
   }
 
+  visitConstructorInitializers(ConstructorDeclaration node) {
+    newlines();
+    indent(2);
+    token(node.separator /* : */);
+    space();
+    for (var i = 0; i < node.initializers.length; i++) {
+      if (i > 0) {
+        comma();
+        newlines();
+        space(2);
+      }
+      node.initializers[i].accept(this);
+    } 
+    unindent(2);
+  }
+
+  visitConstructorRedirects(ConstructorDeclaration node) {
+    token(node.separator /* = */, precededBy: space, followedBy: space);
+    visitNodes(node.initializers, separatedBy: commaSeperator);
+    visit(node.redirectedConstructor);
+  }
+  
   visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     token(node.keyword);
     token(node.period);
@@ -1254,6 +1285,13 @@ class SourceVisitor implements ASTVisitor {
     }
   }
   
+  emitSpaces() {
+    while (leadingSpaces > 0) {
+      writer.print(' ');
+      leadingSpaces--;
+    }
+  }
+  
   checkForSelectionUpdate(Token token) {
     // Cache the first token on or AFTER the selection offset
     if (preSelection != null && selection == null) {
@@ -1261,7 +1299,8 @@ class SourceVisitor implements ASTVisitor {
       var overshot = token.offset - preSelection.offset;
       if (overshot >= 0) {
         //TODO(pquitslund): update length (may need truncating)
-        selection = new Selection(writer.toString().length - overshot, 
+        selection = new Selection(
+            writer.toString().length + leadingSpaces - overshot, 
             preSelection.length);
       }
     }
@@ -1273,15 +1312,16 @@ class SourceVisitor implements ASTVisitor {
   }
 
   comma() {
-    append(',');
+    writer.print(',');
   }
 
+  
   /// Emit a non-breakable space.
-  space() {
+  space([n = 1]) {
     //TODO(pquitslund): replace with a proper space token
-    append(' ');
+    leadingSpaces+=n;
   }
-
+  
   /// Emit a breakable space
   breakableSpace() {
     //Implement
@@ -1290,18 +1330,23 @@ class SourceVisitor implements ASTVisitor {
   /// Append the given [string] to the source writer if it's non-null.
   append(String string) {
     if (string != null && !string.isEmpty) {
+      emitSpaces();
       writer.print(string);
     }
   }
 
   /// Indent.
-  indent() {
-    writer.indent();
+  indent([n = 1]) {
+    while (n-- > 0) {
+      writer.indent();
+    }
   }
-
+  
   /// Unindent
-  unindent() {
-    writer.unindent();
+  unindent([n = 1]) {
+    while (n-- > 0) {
+      writer.unindent();
+    }
   }
   
   /// Print this statement as if it were a block (e.g., surrounded by braces).
@@ -1348,7 +1393,7 @@ class SourceVisitor implements ASTVisitor {
         writer.newlines(newlines);
         lines += newlines;
       } else if (!isEOF(token)) {
-        space();
+        append(' ');
       }
 
       previousToken = comment;
@@ -1378,7 +1423,7 @@ class SourceVisitor implements ASTVisitor {
       var ws = countSpacesBetween(previousToken, comment);
       // Preserve one space but no more
       if (ws > 0) {
-        space();
+        append(' ');
       }
     }
 

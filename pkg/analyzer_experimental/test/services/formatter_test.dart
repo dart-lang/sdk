@@ -598,7 +598,8 @@ main() {
           '}\n',
           'class A {\n'
           '  int _a;\n'
-          '  A(a) : _a = a;\n'
+          '  A(a)\n'
+          '      : _a = a;\n'
           '}\n'
         );
     });
@@ -620,6 +621,20 @@ main() {
       expectCUFormatsTo(
         'part of foo;',
         'part of foo;\n'
+      );
+    });
+    
+    test('CU (cons inits)', () {
+      expectCUFormatsTo('class X {\n'
+          '  var x, y;\n'
+          '  X() : x = 1, y = 2;\n'
+          '}\n', 
+          'class X {\n'
+          '  var x, y;\n'
+          '  X()\n'
+          '      : x = 1,\n' 
+          '        y = 2;\n'
+          '}\n'
       );
     });
 
