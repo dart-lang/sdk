@@ -1082,6 +1082,29 @@ class FileTest {
     });
   }
 
+  static void testDoubleAsyncOperation() {
+    asyncTestStarted();
+    var file = new File(Platform.executable).openSync();
+    var completer = new Completer();
+    int done = 0;
+    bool error = false;
+    void getLength() {
+      file.length()
+          .catchError((e) { error = true; })
+          .whenComplete(() {
+            if (++done == 2) {
+              asyncTestDone("testDoubleAsyncOperation");
+              Expect.isTrue(error);
+              file.lengthSync();
+              file.closeSync();
+            }
+          });
+    }
+    getLength();
+    getLength();
+    Expect.throws(() => file.lengthSync());
+  }
+
   static void testLastModifiedSync() {
     var modified = new File(Platform.executable).lastModifiedSync();
     Expect.isTrue(modified is DateTime);
@@ -1300,6 +1323,7 @@ class FileTest {
       testRename();
       testRenameSync();
       testLastModified();
+      testDoubleAsyncOperation();
       asyncEnd();
     });
   }
