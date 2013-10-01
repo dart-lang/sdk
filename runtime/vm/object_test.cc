@@ -1529,6 +1529,101 @@ TEST_CASE(ExternalOneByteString) {
 }
 
 
+TEST_CASE(EscapeSpecialCharactersOneByteString) {
+  uint8_t characters[] =
+      { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
+  intptr_t len = ARRAY_SIZE(characters);
+
+  const String& str =
+      String::Handle(
+          OneByteString::New(characters, len, Heap::kNew));
+  EXPECT(str.IsOneByteString());
+  EXPECT_EQ(str.Length(), len);
+  EXPECT(str.Equals("a\n\f\b\t\v\r\\$z"));
+  const String& escaped_str =
+      String::Handle(String::EscapeSpecialCharacters(str));
+  EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
+
+  const String& empty_str = String::Handle(OneByteString::New(0, Heap::kNew));
+  const String& escaped_empty_str =
+      String::Handle(String::EscapeSpecialCharacters(empty_str));
+  EXPECT_EQ(empty_str.Length(), 0);
+  EXPECT_EQ(escaped_empty_str.Length(), 0);
+}
+
+
+TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
+  uint8_t characters[] =
+      { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
+  intptr_t len = ARRAY_SIZE(characters);
+
+  const String& str =
+      String::Handle(
+          ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  EXPECT(!str.IsOneByteString());
+  EXPECT(str.IsExternalOneByteString());
+  EXPECT_EQ(str.Length(), len);
+  EXPECT(str.Equals("a\n\f\b\t\v\r\\$z"));
+  const String& escaped_str =
+      String::Handle(String::EscapeSpecialCharacters(str));
+  EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
+
+  const String& empty_str =
+      String::Handle(
+          ExternalOneByteString::New(characters, 0, NULL, NULL, Heap::kNew));
+  const String& escaped_empty_str =
+      String::Handle(String::EscapeSpecialCharacters(empty_str));
+  EXPECT_EQ(empty_str.Length(), 0);
+  EXPECT_EQ(escaped_empty_str.Length(), 0);
+}
+
+TEST_CASE(EscapeSpecialCharactersTwoByteString) {
+  uint16_t characters[] =
+      { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
+  intptr_t len = ARRAY_SIZE(characters);
+
+  const String& str =
+      String::Handle(TwoByteString::New(characters, len, Heap::kNew));
+  EXPECT(str.IsTwoByteString());
+  EXPECT_EQ(str.Length(), len);
+  EXPECT(str.Equals("a\n\f\b\t\v\r\\$z"));
+  const String& escaped_str =
+      String::Handle(String::EscapeSpecialCharacters(str));
+  EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
+
+  const String& empty_str = String::Handle(TwoByteString::New(0, Heap::kNew));
+  const String& escaped_empty_str =
+      String::Handle(String::EscapeSpecialCharacters(empty_str));
+  EXPECT_EQ(empty_str.Length(), 0);
+  EXPECT_EQ(escaped_empty_str.Length(), 0);
+}
+
+
+TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
+  uint16_t characters[] =
+      { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
+  intptr_t len = ARRAY_SIZE(characters);
+
+  const String& str =
+      String::Handle(
+          ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  EXPECT(str.IsExternalTwoByteString());
+  EXPECT_EQ(str.Length(), len);
+  EXPECT(str.Equals("a\n\f\b\t\v\r\\$z"));
+  const String& escaped_str =
+      String::Handle(String::EscapeSpecialCharacters(str));
+  EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
+
+  const String& empty_str =
+      String::Handle(
+          ExternalTwoByteString::New(characters, 0, NULL, NULL, Heap::kNew));
+  const String& escaped_empty_str =
+      String::Handle(String::EscapeSpecialCharacters(empty_str));
+  EXPECT_EQ(empty_str.Length(), 0);
+  EXPECT_EQ(escaped_empty_str.Length(), 0);
+}
+
+
 TEST_CASE(ExternalTwoByteString) {
   uint16_t characters[] = { 0x1E6B, 0x1E85, 0x1E53 };
   intptr_t len = ARRAY_SIZE(characters);

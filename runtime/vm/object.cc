@@ -13244,8 +13244,18 @@ RawString* String::EscapeSpecialCharacters(const String& str) {
   if (str.IsOneByteString()) {
     return OneByteString::EscapeSpecialCharacters(str);
   }
-  ASSERT(str.IsTwoByteString());
-  return TwoByteString::EscapeSpecialCharacters(str);
+  if (str.IsTwoByteString()) {
+    return TwoByteString::EscapeSpecialCharacters(str);
+  }
+  if (str.IsExternalOneByteString()) {
+    return ExternalOneByteString::EscapeSpecialCharacters(str);
+  }
+  ASSERT(str.IsExternalTwoByteString());
+  // If EscapeSpecialCharacters is frequently called on external two byte
+  // strings, we should implement it directly on ExternalTwoByteString rather
+  // than first converting to a TwoByteString.
+  return TwoByteString::EscapeSpecialCharacters(
+      String::Handle(TwoByteString::New(str, Heap::kNew)));
 }
 
 
@@ -13650,7 +13660,6 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
   intptr_t len = str.Length();
   if (len > 0) {
     intptr_t num_escapes = 0;
-    intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
       if (IsSpecialCharacter(*CharAddr(str, i))) {
         num_escapes += 1;
@@ -13658,6 +13667,7 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
     }
     const String& dststr = String::Handle(
         OneByteString::New(len + num_escapes, Heap::kNew));
+    intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
       if (IsSpecialCharacter(*CharAddr(str, i))) {
         *(CharAddr(dststr, index)) = '\\';
@@ -13670,7 +13680,36 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
     }
     return OneByteString::raw(dststr);
   }
-  return OneByteString::null();
+  return OneByteString::New(0, Heap::kNew);
+}
+
+RawOneByteString* ExternalOneByteString::EscapeSpecialCharacters(
+    const String& str) {
+  intptr_t len = str.Length();
+  if (len > 0) {
+    intptr_t num_escapes = 0;
+    for (intptr_t i = 0; i < len; i++) {
+      if (IsSpecialCharacter(*CharAddr(str, i))) {
+        num_escapes += 1;
+      }
+    }
+    const String& dststr = String::Handle(
+        OneByteString::New(len + num_escapes, Heap::kNew));
+    intptr_t index = 0;
+    for (intptr_t i = 0; i < len; i++) {
+      if (IsSpecialCharacter(*CharAddr(str, i))) {
+        *(OneByteString::CharAddr(dststr, index)) = '\\';
+        *(OneByteString::CharAddr(dststr, index + 1)) =
+        SpecialCharacter(*CharAddr(str, i));
+        index += 2;
+      } else {
+        *(OneByteString::CharAddr(dststr, index)) = *CharAddr(str, i);
+        index += 1;
+      }
+    }
+    return OneByteString::raw(dststr);
+  }
+  return OneByteString::New(0, Heap::kNew);
 }
 
 
@@ -13847,7 +13886,6 @@ RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
   intptr_t len = str.Length();
   if (len > 0) {
     intptr_t num_escapes = 0;
-    intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
       if (IsSpecialCharacter(*CharAddr(str, i))) {
         num_escapes += 1;
@@ -13855,6 +13893,7 @@ RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
     }
     const String& dststr = String::Handle(
         TwoByteString::New(len + num_escapes, Heap::kNew));
+    intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
       if (IsSpecialCharacter(*CharAddr(str, i))) {
         *(CharAddr(dststr, index)) = '\\';
@@ -13867,7 +13906,7 @@ RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
     }
     return TwoByteString::raw(dststr);
   }
-  return TwoByteString::null();
+  return TwoByteString::New(0, Heap::kNew);
 }
 
 

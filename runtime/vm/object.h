@@ -4943,6 +4943,7 @@ class OneByteString : public AllStatic {
 
   friend class Class;
   friend class String;
+  friend class ExternalOneByteString;
   friend class SnapshotReader;
 };
 
@@ -5063,6 +5064,8 @@ class ExternalOneByteString : public AllStatic {
   static RawExternalOneByteString* null() {
     return reinterpret_cast<RawExternalOneByteString*>(Object::null());
   }
+
+  static RawOneByteString* EscapeSpecialCharacters(const String& str);
 
   static const ClassId kClassId = kExternalOneByteStringCid;
 
