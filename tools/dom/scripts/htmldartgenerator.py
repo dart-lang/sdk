@@ -11,9 +11,9 @@ from generator import AnalyzeOperation, ConstantOutputOrder, \
     DartDomNameOfAttribute, FindMatchingAttribute, \
     TypeOrNothing, ConvertToFuture, GetCallbackInfo
 from copy import deepcopy
-from htmlrenamer import convert_to_future_members, keep_overloaded_members, \
-    private_html_members, dom_private_html_members, renamed_html_members, renamed_overloads, \
-    removed_html_members
+from htmlrenamer import convert_to_future_members, custom_html_constructors, \
+    keep_overloaded_members, private_html_members, dom_private_html_members, renamed_html_members, \
+    renamed_overloads, removed_html_members
 import logging
 import monitored
 import sys
@@ -598,7 +598,8 @@ class HtmlDartGenerator(object):
     if not self._members_emitter:
       return
 
-    if base_class != self.RootClassName():
+    if (base_class != self.RootClassName() and
+          self._interface.id not in custom_html_constructors):
       self._members_emitter.Emit(
           '  // To suppress missing implicit constructor warnings.\n'
           '  factory $CLASSNAME._() { '

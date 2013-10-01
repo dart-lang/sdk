@@ -16,9 +16,11 @@ main() {
     var options = [
       new OptionElement(),
       new DivElement(),
-      new OptionElement('data', 'two', false, true),
+      new OptionElement(data: 'data', value: 'two', defaultSelected: false,
+          selected: true),
       new DivElement(),
-      new OptionElement('data', 'two', false, true),
+      new OptionElement(data: 'data', value: 'two', defaultSelected: false,
+          selected: true),
       new OptionElement(),
     ];
     element.children.addAll(options);
@@ -32,9 +34,11 @@ main() {
     var options = [
       new OptionElement(),
       new DivElement(),
-      new OptionElement('data', 'two', false, true),
+      new OptionElement(data: 'data', value: 'two', defaultSelected: false,
+          selected: true),
       new DivElement(),
-      new OptionElement('data', 'two', false, true),
+      new OptionElement(data: 'data', value: 'two', defaultSelected: false,
+          selected: true),
       new OptionElement(),
     ];
     element.children.addAll(options);
@@ -47,8 +51,10 @@ main() {
     var element = new SelectElement();
     var options = [
       new OptionElement(),
-      new OptionElement('data', 'two', false, true),
-      new OptionElement('data', 'two', false, true),
+      new OptionElement(data: 'data', value: 'two', defaultSelected: false,
+          selected: true),
+      new OptionElement(data: 'data', value: 'two', defaultSelected: false,
+          selected: true),
       new OptionElement(),
     ];
     element.children.addAll(options);

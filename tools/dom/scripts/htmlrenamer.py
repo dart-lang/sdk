@@ -161,6 +161,13 @@ dom_private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'EventTarget.removeEventListener',
 ])
 
+# Classes where we have customized constructors, but we need to keep the old
+# constructor for dispatch purposes.
+custom_html_constructors = monitored.Set(
+    'htmlrenamer.custom_html_constructors', [
+  'HTMLOptionElement',
+])
+
 # Members from the standard dom that should not be exposed publicly in dart:html
 # but need to be exposed internally to implement dart:html on top of a standard
 # browser. They are exposed simply by placing an underscore in front of the

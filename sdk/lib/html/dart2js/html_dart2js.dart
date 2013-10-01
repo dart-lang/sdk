@@ -18507,20 +18507,21 @@ class OptGroupElement extends HtmlElement native "HTMLOptGroupElement" {
   @DocsEditable()
   String label;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable()
 @DomName('HTMLOptionElement')
 class OptionElement extends HtmlElement native "HTMLOptionElement" {
-  // To suppress missing implicit constructor warnings.
-  factory OptionElement._() { throw new UnsupportedError("Not supported"); }
+  factory OptionElement({String data, String value, bool defaultSelected, 
+      bool selected}) {
+    return new OptionElement._(data, value, defaultSelected, selected);
+  }
 
   @DomName('HTMLOptionElement.HTMLOptionElement')
   @DocsEditable()
-  factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
+  factory OptionElement._([String data, String value, bool defaultSelected, bool selected]) {
     if (selected != null) {
       return OptionElement._create_1(data, value, defaultSelected, selected);
     }
@@ -18568,6 +18569,7 @@ class OptionElement extends HtmlElement native "HTMLOptionElement" {
   @DomName('HTMLOptionElement.value')
   @DocsEditable()
   String value;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
