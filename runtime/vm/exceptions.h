@@ -65,6 +65,7 @@ class Exceptions : AllStatic {
   static void ThrowByType(ExceptionType type, const Array& arguments);
   static void ThrowOOM();
   static void ThrowStackOverflow();
+  static void ThrowArgumentError(const Instance& arg);
 
   // Returns a RawInstance if the exception is successfully created,
   // otherwise returns a RawError.

@@ -15,9 +15,7 @@ namespace dart {
 DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, list, arguments->NativeArgAt(0));
   if (!list.IsGrowableObjectArray() && !list.IsArray()) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, list);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    Exceptions::ThrowArgumentError(list);
   }
 
   Array& a = Array::Handle();
@@ -37,13 +35,11 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
   bool is_one_byte_string = true;
   intptr_t utf16_len = array_len;
   int32_t* utf32_array = zone->Alloc<int32_t>(array_len);
-  Object& index_object = Object::Handle(isolate);
+  Instance& index_object = Instance::Handle(isolate);
   for (intptr_t i = 0; i < array_len; i++) {
-    index_object = a.At(i);
+    index_object ^= a.At(i);
     if (!index_object.IsSmi()) {
-      const Array& args = Array::Handle(Array::New(1));
-      args.SetAt(0, index_object);
-      Exceptions::ThrowByType(Exceptions::kArgument, args);
+      Exceptions::ThrowArgumentError(index_object);
     }
     intptr_t value = Smi::Cast(index_object).Value();
     if (Utf::IsOutOfRange(value)) {
@@ -221,9 +217,7 @@ DEFINE_NATIVE_ENTRY(Strings_concatAll, 3) {
   const intptr_t start_ix = start.Value();
   const intptr_t end_ix = end.Value();
   if (start_ix < 0) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, start);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    Exceptions::ThrowArgumentError(start);
   }
   Array& strings = Array::Handle();
   intptr_t length = -1;
@@ -235,14 +229,10 @@ DEFINE_NATIVE_ENTRY(Strings_concatAll, 3) {
     strings = g_array.data();
     length =  g_array.Length();
   } else {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, argument);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    Exceptions::ThrowArgumentError(argument);
   }
   if (end_ix > length) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, end);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    Exceptions::ThrowArgumentError(end);
   }
 #if defined(DEBUG)
   // Check that the array contains strings.

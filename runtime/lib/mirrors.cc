@@ -742,9 +742,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
   const Class& cls = Class::Handle(type.type_class());
   ASSERT(!cls.IsNull());
   if (cls.IsDynamicClass() || cls.IsVoidClass()) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, type);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    Exceptions::ThrowArgumentError(type);
     UNREACHABLE();
   }
   const Type& stripped_type = Type::Handle(cls.RareType());

@@ -114,13 +114,6 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 3) {
 }
 
 
-static void ThrowIllegalArgException(const String& message) {
-  const Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, message);
-  Exceptions::ThrowByType(Exceptions::kArgument, args);
-}
-
-
 static void ThrowIsolateSpawnException(const String& message) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, message);
@@ -239,7 +232,7 @@ DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 2) {
     const String& msg = String::Handle(String::New(
         "spawnFunction expects to be passed a closure to a top-level static "
         "function"));
-    ThrowIllegalArgException(msg);
+    Exceptions::ThrowArgumentError(msg);
   }
 
   GET_NATIVE_ARGUMENT(Instance, callback, arguments->NativeArgAt(1));
@@ -258,7 +251,7 @@ DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 2) {
     const String& msg = String::Handle(String::New(
         "spawnFunction expects to be passed either a unhandled exception "
         "callback to a top-level static function, or null"));
-    ThrowIllegalArgException(msg);
+    Exceptions::ThrowArgumentError(msg);
   }
 
 #if defined(DEBUG)
