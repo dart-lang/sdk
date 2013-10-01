@@ -78,7 +78,14 @@ void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
-  char* result = Directory::CreateTemp(DartUtils::GetStringValue(path));
+  Dart_Handle system = Dart_GetNativeArgument(args, 1);
+  if (!Dart_IsString(path)) {
+    Dart_SetReturnValue(args, DartUtils::NewDartArgumentError(
+        "Template argument of CreateSystemTempSync is not a String"));
+    return;
+  }
+  char* result = Directory::CreateTemp(DartUtils::GetStringValue(path),
+                                       DartUtils::GetBooleanValue(system));
   if (result != NULL) {
     Dart_SetReturnValue(args, DartUtils::NewString(result));
     free(result);
@@ -188,7 +195,7 @@ CObject* Directory::ExistsRequest(const CObjectArray& request) {
 CObject* Directory::CreateTempRequest(const CObjectArray& request) {
   if (request.Length() == 1 && request[0]->IsString()) {
     CObjectString path(request[0]);
-    char* result = Directory::CreateTemp(path.CString());
+    char* result = Directory::CreateTemp(path.CString(), false);
     if (result != NULL) {
       CObject* temp_dir = new CObjectString(CObject::NewString(result));
       free(result);
@@ -200,6 +207,23 @@ CObject* Directory::CreateTempRequest(const CObjectArray& request) {
   return CObject::IllegalArgumentError();
 }
 
+
+CObject* Directory::CreateSystemTempRequest(const CObjectArray& request) {
+  if (request.Length() == 1 && request[0]->IsString()) {
+    CObjectString path(request[0]);
+    char* result = Directory::CreateTemp(path.CString(), true);
+    if (result != NULL) {
+      CObject* temp_dir = new CObjectString(CObject::NewString(result));
+      free(result);
+      return temp_dir;
+    } else {
+      return CObject::NewOSError();
+    }
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
 static CObject* CreateIllegalArgumentError() {
   // Respond with an illegal argument list error message.
   CObjectArray* error = new CObjectArray(CObject::NewArray(3));
@@ -209,6 +233,7 @@ static CObject* CreateIllegalArgumentError() {
   error->SetAt(2, CObject::IllegalArgumentError());
   return error;
 }
+
 
 CObject* Directory::ListStartRequest(const CObjectArray& request) {
   if (request.Length() == 3 &&

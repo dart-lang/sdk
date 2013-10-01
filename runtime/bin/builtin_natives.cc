@@ -27,7 +27,7 @@ namespace bin {
   V(Directory_Create, 1)                                                       \
   V(Directory_Current, 0)                                                      \
   V(Directory_SetCurrent, 1)                                                   \
-  V(Directory_CreateTemp, 1)                                                   \
+  V(Directory_CreateTemp, 2)                                                   \
   V(Directory_Delete, 2)                                                       \
   V(Directory_Rename, 2)                                                       \
   V(Directory_List, 3)                                                         \

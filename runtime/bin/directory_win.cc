@@ -383,29 +383,25 @@ bool Directory::Create(const char* dir_name) {
 }
 
 
-char* Directory::CreateTemp(const char* const_template) {
+char* Directory::CreateTemp(const char* const_template, bool system) {
   // Returns a new, unused directory name, modifying the contents of
   // dir_template.  Creates this directory, with a default security
   // descriptor inherited from its parent directory.
   // The return value must be freed by the caller.
   PathBuffer path;
-  if (0 == strncmp(const_template, "", 1)) {
+  if (system) {
     path.Reset(GetTempPathW(MAX_PATH, path.AsStringW()));
     if (path.length() == 0) {
       return NULL;
     }
-  } else {
-    const wchar_t* system_template = StringUtils::Utf8ToWide(const_template);
-    path.AddW(system_template);
-    free(const_cast<wchar_t*>(system_template));
   }
-  // Length of tempdir-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx is 44.
-  if (path.length() > MAX_PATH - 44) {
+  const wchar_t* system_template = StringUtils::Utf8ToWide(const_template);
+  path.AddW(system_template);
+  free(const_cast<wchar_t*>(system_template));
+
+  // Length of xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx is 36.
+  if (path.length() > MAX_PATH - 36) {
     return NULL;
-  }
-  if ((path.AsStringW())[path.length() - 1] == L'\\') {
-    // No base name for the directory - use "tempdir".
-    path.AddW(L"tempdir");
   }
 
   UUID uuid;
@@ -419,7 +415,6 @@ char* Directory::CreateTemp(const char* const_template) {
     return NULL;
   }
 
-  path.AddW(L"-");
   // RPC_WSTR is an unsigned short*, so we cast to wchar_t*.
   path.AddW(reinterpret_cast<wchar_t*>(uuid_string));
   RpcStringFreeW(&uuid_string);

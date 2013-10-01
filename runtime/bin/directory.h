@@ -257,7 +257,7 @@ class Directory {
   static char* Current();
   static bool SetCurrent(const char* path);
   static bool Create(const char* path);
-  static char* CreateTemp(const char* const_template);
+  static char* CreateTemp(const char* const_template, bool system);
   static bool Delete(const char* path, bool recursive);
   static bool Rename(const char* path, const char* new_path);
 
@@ -265,6 +265,7 @@ class Directory {
   static CObject* DeleteRequest(const CObjectArray& request);
   static CObject* ExistsRequest(const CObjectArray& request);
   static CObject* CreateTempRequest(const CObjectArray& request);
+  static CObject* CreateSystemTempRequest(const CObjectArray& request);
   static CObject* ListStartRequest(const CObjectArray& request);
   static CObject* ListNextRequest(const CObjectArray& request);
   static CObject* ListStopRequest(const CObjectArray& request);

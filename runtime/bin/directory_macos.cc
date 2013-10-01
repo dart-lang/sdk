@@ -361,18 +361,27 @@ bool Directory::Create(const char* dir_name) {
 }
 
 
-char* Directory::CreateTemp(const char* const_template) {
+char* Directory::CreateTemp(const char* const_template, bool system) {
   // Returns a new, unused directory name, modifying the contents of
   // dir_template.  Creates the directory with the permissions specified
   // by the process umask.
   // The return value must be freed by the caller.
   PathBuffer path;
-  path.Add(const_template);
-  if (path.length() == 0) {
-    path.Add("/tmp/temp_dir1_");
-  } else if ((path.AsString())[path.length() - 1] == '/') {
-    path.Add("temp_dir_");
+  if (system) {
+    const char* temp_dir = getenv("TMPDIR");
+    if (temp_dir == NULL) {
+      temp_dir = getenv("TMP");
+    }
+    if (temp_dir != NULL) {
+      path.Add(temp_dir);
+      if (temp_dir[strlen(temp_dir) - 1] != '/') {
+        path.Add("/");
+      }
+    } else {
+      path.Add("/tmp/");
+    }
   }
+  path.Add(const_template);
   if (!path.Add("XXXXXX")) {
     // Pattern has overflowed.
     return NULL;
@@ -384,7 +393,7 @@ char* Directory::CreateTemp(const char* const_template) {
   if (result == NULL) {
     return NULL;
   }
-  int length = strlen(path.AsString());
+  int length = strnlen(path.AsString(), PATH_MAX);
   result = static_cast<char*>(malloc(length + 1));
   strncpy(result, path.AsString(), length);
   result[length] = '\0';

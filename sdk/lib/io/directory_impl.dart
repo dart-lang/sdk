@@ -16,7 +16,7 @@ class _Directory extends FileSystemEntity implements Directory {
 
   external static _current();
   external static _setCurrent(path);
-  external static _createTemp(String template);
+  external static _createTemp(String template, bool system);
   external static int _exists(String path);
   external static _create(String path);
   external static _deleteNative(String path, bool recursive);
@@ -149,8 +149,18 @@ class _Directory extends FileSystemEntity implements Directory {
     }
   }
 
-  Future<Directory> createTemp() {
-    return _IOService.dispatch(_DIRECTORY_CREATE_TEMP, [path]).then((response) {
+  // TODO(13720): Make template argument mandatory on Oct 18, 2013.
+  Future<Directory> createTemp([String template]) {
+    if (path == '') {
+      if (template == null) template = '';
+      return createSystemTemp(template);
+      // TODO(13720): On Oct 18, 2013, replace this with
+      // an error.  createTemp cannot be called on a Directory with empty path.
+    }
+    String fullTemplate = "$path${Platform.pathSeparator}";
+    if (template != null) fullTemplate = "$fullTemplate$template";
+    return _IOService.dispatch(_DIRECTORY_CREATE_TEMP, [fullTemplate])
+        .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(
             response, "Creation of temporary directory failed");
@@ -159,11 +169,41 @@ class _Directory extends FileSystemEntity implements Directory {
     });
   }
 
-  Directory createTempSync() {
-    var result = _createTemp(path);
+  // TODO(13720): Make template argument mandatory on Oct 18, 2013.
+  Directory createTempSync([String template]) {
+    if (path == '') {
+      if (template == null) template = '';
+      return createSystemTempSync(template);
+      // TODO(13720): On Oct 18, 2013, replace this with
+      // an error.  createTemp cannot be called on a Directory with empty path.
+    }
+    String fullTemplate = "$path${Platform.pathSeparator}";
+    if (template != null) fullTemplate = "$fullTemplate$template";
+    var result = _createTemp(fullTemplate, false);
     if (result is OSError) {
       throw new DirectoryException("Creation of temporary directory failed",
-                                   path,
+                                   fullTemplate,
+                                   result);
+    }
+    return new Directory(result);
+  }
+
+  static Future<Directory> createSystemTemp(String template) {
+    return _IOService.dispatch(_DIRECTORY_CREATE_SYSTEM_TEMP,
+                               [template]).then((response) {
+      if (response is List && response[0] != _SUCCESS_RESPONSE) {
+        throw new Directory(template)._exceptionOrErrorFromResponse(
+            response, "Creation of temporary directory failed");
+      }
+      return new Directory(response);
+    });
+  }
+
+  static Directory createSystemTempSync(String template) {
+    var result = _createTemp(template, true);
+    if (result is OSError) {
+      throw new DirectoryException("Creation of temporary directory failed",
+                                   template,
                                    result);
     }
     return new Directory(result);

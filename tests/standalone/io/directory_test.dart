@@ -452,9 +452,8 @@ class NestedTempDirectoryTest {
     var os = Platform.operatingSystem;
     if (os == "windows") nestingDepth = 2;
     if (createdDirectories.length < nestingDepth) {
-      temp = new Directory(
-          '${temp.path}/nested_temp_dir_${createdDirectories.length}_');
-      temp.createTemp().then(createPhaseCallback);
+      temp.createTemp('nested_temp_dir_${createdDirectories.length}_')
+          .then(createPhaseCallback);
     } else {
       deletePhaseCallback();
     }
