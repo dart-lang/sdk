@@ -74,6 +74,7 @@ Language/05_Variables/05_Variables_A06_t05: fail # Dart issue 12543
 Language/05_Variables/05_Variables_A06_t06: fail # Dart issue 12543
 Language/05_Variables/05_Variables_A16_t02: fail # Dart issue 12544
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail # Dart issue 12543
+Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: fail # co19 issue 606
 Language/12_Expressions/05_Strings_A02_t46: fail # Dart issue 12547
 Language/12_Expressions/05_Strings_A02_t48: fail # Dart issue 12547
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # Dart issue 12549
@@ -90,6 +91,7 @@ Language/12_Expressions/33_Type_Cast_A03_t03: fail # co19 issue 534
 Language/13_Statements/03_Variable_Declaration_A04_t07: fail # co19 issue 535
 Language/13_Statements/03_Variable_Declaration_A04_t08: fail # co19 issue 535
 Language/13_Statements/06_For_A01_t11: fail # Dart issue 5675
+Language/13_Statements/09_Switch_A02_t04: fail # co19 issue 605
 Language/13_Statements/09_Switch_A01_t02: fail # Dart issue 12908
 Language/13_Statements/12_Labels_A01_t03: fail # Dart issue 2238
 Language/14_Libraries_and_Scripts/1_Imports_A03_t27: fail # Dart issue 12915

@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
+switch_bad_case_test/02: Fail
 
 # Missing compile-time errors for parameters marked static.
 static_parameter_test/02: Fail

@@ -6042,8 +6042,20 @@ AstNode* Parser::ParseIfStatement(String* label_name) {
 }
 
 
+// Return true if the type class of the given value implements the
+// == operator.
+static bool ImplementsEqualOperator(const Instance& value) {
+  Class& cls = Class::Handle(value.clazz());
+  const Function& equal_op = Function::Handle(
+      Resolver::ResolveDynamicAnyArgs(cls, Symbols::EqualOperator()));
+  ASSERT(!equal_op.IsNull());
+  cls = equal_op.Owner();
+  return !cls.IsObjectClass();
+}
+
+
 // Check that all case expressions are of the same type, either int, String,
-// double or any other class that does not override the == operator.
+// or any other class that does not override the == operator.
 // The expressions are compile-time constants and are thus in the form
 // of a LiteralNode.
 void Parser::CheckCaseExpressions(const GrowableArray<LiteralNode*>& values) {
@@ -6067,11 +6079,8 @@ void Parser::CheckCaseExpressions(const GrowableArray<LiteralNode*>& values) {
       }
       continue;
     }
-    if (first_value.IsDouble()) {
-      if (!val.IsDouble()) {
-        ErrorMsg(val_pos, "expected case expression of type double");
-      }
-      continue;
+    if (val.IsDouble()) {
+      ErrorMsg(val_pos, "case expression may not be of type double");
     }
     if (val.clazz() != first_value.clazz()) {
       ErrorMsg(val_pos, "all case expressions must be of same type");
@@ -6081,12 +6090,7 @@ void Parser::CheckCaseExpressions(const GrowableArray<LiteralNode*>& values) {
       // Check that the type class does not override the == operator.
       // Check this only in the first loop iteration since all values
       // are of the same type, which we check above.
-      Class& cls = Class::Handle(val.clazz());
-      const Function& equal_op = Function::Handle(
-          Resolver::ResolveDynamicAnyArgs(cls, Symbols::EqualOperator()));
-      ASSERT(!equal_op.IsNull());
-      cls = equal_op.Owner();
-      if (!cls.IsObjectClass()) {
+      if (ImplementsEqualOperator(val)) {
         ErrorMsg(val_pos,
             "type class of case expression must not implement operator ==");
       }
@@ -9502,6 +9506,18 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                                key,
                                key_type,
                                Symbols::ListLiteralElement());
+    }
+    if (is_const) {
+      ASSERT(key->IsLiteralNode());
+      const Instance& key_value = key->AsLiteralNode()->literal();
+      if (key_value.IsDouble()) {
+        ErrorMsg(key_pos, "key value must not be of type double");
+      }
+      if (!key_value.IsInteger() &&
+          !key_value.IsString() &&
+          ImplementsEqualOperator(key_value)) {
+        ErrorMsg(key_pos, "key value must not implement operator ==");
+      }
     }
     ExpectToken(Token::kCOLON);
     const intptr_t value_pos = TokenPos();
