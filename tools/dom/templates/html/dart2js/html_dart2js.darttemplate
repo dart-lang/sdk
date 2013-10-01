@@ -119,6 +119,13 @@ ElementList queryAll(String selector) => document.queryAll(selector);
 // Dart issue 1990.
 class HtmlElement extends Element native "HTMLElement" {
   factory HtmlElement() { throw new UnsupportedError("Not supported"); }
+
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  HtmlElement.created() : super.created();
 }
 
 // EntryArray type was removed, so explicitly adding it to allow support for

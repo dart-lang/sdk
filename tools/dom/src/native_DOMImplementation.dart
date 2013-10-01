@@ -289,6 +289,10 @@ class _Utils {
     if (_isBuiltinType(cls)) {
       throw new UnsupportedError("Invalid custom element from $libName.");
     }
+    var className = MirrorSystem.getName(cls.simpleName);
+    if (!cls.constructors.containsKey(new Symbol('$className.created'))) {
+      throw new UnsupportedError('Class is missing constructor $className.created');
+    }
     _register(document, tag, type, extendsTagName);
   }
 
@@ -296,6 +300,8 @@ class _Utils {
       String extendsTagName) native "Utils_register";
 
   static Element createElement(Document document, String tagName) native "Utils_createElement";
+
+  static void initializeCustomElement(HtmlElement element) native "Utils_initializeCustomElement";
 }
 
 class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements
@@ -510,3 +516,7 @@ class _PureIsolateTimer implements Timer {
 get _pureIsolateTimerFactoryClosure =>
     ((int milliSeconds, void callback(Timer time), bool repeating) =>
         new _PureIsolateTimer(milliSeconds, callback, repeating));
+
+void _initializeCustomElement(Element e) {
+  _Utils.initializeCustomElement(e);
+}

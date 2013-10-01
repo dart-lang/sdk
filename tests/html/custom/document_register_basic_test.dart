@@ -11,6 +11,7 @@ import '../utils.dart';
 class Foo extends HtmlElement {
   static final tag = 'x-foo';
   factory Foo() => new Element.tag(tag);
+  Foo.created() : super.created();
 
   get thisIsACustomClass => true;
 }
@@ -18,6 +19,7 @@ class Foo extends HtmlElement {
 class Bar extends HtmlElement {
   static final tag = 'x-bar';
   factory Bar() => new Element.tag(tag);
+  Bar.created() : super.created();
 
   get thisIsACustomClass => true;
 }
@@ -25,6 +27,7 @@ class Bar extends HtmlElement {
 class Baz extends Foo {
   static final tag = 'x-baz';
   factory Baz() => new Element.tag(tag);
+  Baz.created() : super.created();
 
   get thisIsAlsoACustomClass => true;
 }
@@ -35,6 +38,7 @@ class BadB {
 class BadE implements HtmlElement {
   static final tag = 'x-tag-e';
   factory BadE() => new Element.tag(tag);
+  BadE.created() : super.created();
 }
 
 main() {

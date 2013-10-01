@@ -593,6 +593,20 @@ class HtmlDartInterfaceGenerator(object):
     self._backend.AddConstructors(
         constructors, factory_provider, factory_constructor_name)
 
+    isElement = False
+    for parent in self._database.Hierarchy(self._interface):
+      if parent.id == 'Element':
+        isElement = True
+    if isElement and self._interface.id != 'Element':
+      self._implementation_members_emitter.Emit(
+          '  /**\n'
+          '   * Constructor instantiated by the DOM when a custom element has been created.\n'
+          '   *\n'
+          '   * This can only be called by subclasses from their created constructor.\n'
+          '   */\n'
+          '  $CLASSNAME.created() : super.created();\n',
+          CLASSNAME=self._interface_type_info.implementation_name())
+
     self._backend.EmitSupportCheck()
 
     merged_interface = self._interface_type_info.merged_interface()

@@ -334,6 +334,30 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   /**
+   * Custom element creation constructor.
+   *
+   * This constructor is used by the DOM when a custom element has been
+   * created. It can only be invoked by subclasses of Element from
+   * that classes created constructor.
+   *
+   *     class CustomElement extends Element {
+   *       factory CustomElement() => new Element.tag('x-custom');
+   *
+   *       CustomElement.created() : super.created() {
+   *          // Perform any element initialization.
+   *       }
+   *     }
+   *     document.register('x-custom', CustomElement);
+   */
+  Element.created() : super._created() {
+    // Validate that this is a custom element & perform any additional
+    // initialization.
+    _initializeCustomElement(this);
+
+    createdCallback();
+  }
+
+  /**
    * Creates the HTML element specified by the tag name.
    *
    * This is similar to [Document.createElement].
@@ -676,9 +700,12 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   /**
    * Called by the DOM when this element has been instantiated.
+   *
+   * Will be replaced by created constructor.
    */
   @Experimental()
-  void created() {}
+  @deprecated
+  void createdCallback() {}
 
   /**
    * Called by the DOM when this element has been inserted into the live

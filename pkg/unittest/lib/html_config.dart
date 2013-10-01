@@ -10,6 +10,7 @@ library unittest_html_config;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
+import 'dart:js' as js;
 import 'unittest.dart';
 
 /** Creates a table showing tests results in HTML. */
@@ -100,7 +101,12 @@ class HtmlConfiguration extends SimpleConfiguration {
   void _installHandlers() {
     if (_onErrorSubscription == null) {
       _onErrorSubscription = window.onError.listen(
-        (e) => handleExternalError(e, '(DOM callback has errors)'));
+        (e) {
+          // Some tests may expect this and have no way to suppress the error.
+          if (js.context['testExpectsGlobalError'] != true) {
+            handleExternalError(e, '(DOM callback has errors)');
+          }
+        });
     }
     if (_onMessageSubscription == null) {
       _onMessageSubscription = window.onMessage.listen(

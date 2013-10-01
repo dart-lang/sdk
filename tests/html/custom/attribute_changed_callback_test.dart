@@ -10,6 +10,7 @@ import 'dart:html';
 class A extends HtmlElement {
   static final tag = 'x-a';
   factory A() => new Element.tag(tag);
+  A.created() : super.created();
 
   static var attributeChangedInvocations = 0;
 
@@ -21,6 +22,7 @@ class A extends HtmlElement {
 class B extends HtmlElement {
   static final tag = 'x-b';
   factory B() => new Element.tag(tag);
+  B.created() : super.created();
 
   static var invocations = [];
 

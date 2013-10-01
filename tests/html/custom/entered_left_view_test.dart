@@ -14,8 +14,9 @@ import '../utils.dart';
 var invocations = [];
 class Foo extends HtmlElement {
   factory Foo() => null;
+  Foo.created() : super.created();
 
-  void created() {
+  void createdCallback() {
     invocations.add('created');
   }
 

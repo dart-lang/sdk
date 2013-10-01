@@ -11,9 +11,20 @@
 if (typeof console == "object" && typeof console.clear == "function") {
   console.clear();
 }
+
+// Some tests may expect and have no way to suppress global errors.
+var testExpectsGlobalError = false;
+var testSuppressedGlobalErrors = [];
+
 // Set window onerror to make sure that we catch test harness errors across all
 // browsers.
 window.onerror = function (message, url, lineNumber) {
+  if (testExpectsGlobalError) {
+    testSuppressedGlobalErrors.push({
+      message: message
+    });
+    return;
+  }
   if (url) {
     showErrorAndExit(
         "\n\n" + url + ":" + lineNumber + ":\n" + message + "\n\n");

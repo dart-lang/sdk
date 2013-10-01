@@ -9,7 +9,6 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME extends Node $NATIVESPEC
 {
 
 $!MEMBERS
-
   /**
    * Finds all descendant elements of this document that match the specified
    * group of selectors.

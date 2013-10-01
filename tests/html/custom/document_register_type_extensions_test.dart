@@ -14,12 +14,14 @@ class Foo extends HtmlElement {
     '<x-foo></x-foo>',
     '<?XML:NAMESPACE PREFIX = PUBLIC NS = "URN:COMPONENT" /><x-foo></x-foo>'];
   factory Foo() => new Element.tag(tag);
+  Foo.created() : super.created();
 }
 
 class Bar extends InputElement {
   static const tag = 'x-bar';
   static const outerHtmlString = '<input is="x-bar">';
   factory Bar() => new Element.tag('input', tag);
+  Bar.created() : super.created();
 }
 
 class Baz extends Foo {
@@ -28,16 +30,19 @@ class Baz extends Foo {
       '<x-baz></x-baz>',
       '<?XML:NAMESPACE PREFIX = PUBLIC NS = "URN:COMPONENT" /><x-baz></x-baz>'];
   factory Baz() => new Element.tag(tag);
+  Baz.created() : super.created();
 }
 
 class Qux extends Bar {
   static const tag = 'x-qux';
   factory Qux() => new Element.tag('input', tag);
+  Qux.created() : super.created();
 }
 
 class FooBad extends DivElement {
   static const tag = 'x-foo';
   factory FooBad() => new Element.tag('div', tag);
+  FooBad.created() : super.created();
 }
 
 main() {

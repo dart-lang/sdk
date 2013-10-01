@@ -15,8 +15,8 @@ custom/document_register_basic_test: Fail # Polyfill is not case-sensitive
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 
 [ $compiler == dart2js && $browser ]
-# Issue 9325 failures
-custom/attribute_changed_callback_test: Fail
+custom/attribute_changed_callback_test: Fail # Issue 9325 failures
+custom/created_callback_test: Fail # Support for created constructor.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
 audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601

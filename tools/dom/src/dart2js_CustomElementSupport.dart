@@ -5,7 +5,7 @@
 part of dart.dom.html;
 
 _callCreated(receiver) {
-  return receiver.created();
+  return receiver.createdCallback();
 }
 
 _callEnteredView(receiver) {
@@ -116,4 +116,9 @@ void _registerCustomElement(context, document, String tag, Type type,
   }
 
   JS('void', '#.register(#, #)', document, tag, options);
+}
+
+//// Called by Element.created to do validation & initialization.
+void _initializeCustomElement(Element e) {
+  // TODO(blois): Add validation that this is only in response to an upgrade.
 }

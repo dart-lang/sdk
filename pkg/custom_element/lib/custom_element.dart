@@ -171,6 +171,9 @@ class CustomElement implements Element {
    * Note that [root] will be a [ShadowRoot] if the browser supports Shadow DOM.
    */
   void created() {}
+  // Added for analyzer warnings
+  @deprecated
+  void createdCallback() {}
 
   /** Invoked when this component gets inserted in the DOM tree. */
   void inserted() {}
