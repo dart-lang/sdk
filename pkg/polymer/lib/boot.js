@@ -56,8 +56,30 @@
       ' tool to compile a depolyable JavaScript version')
     return;
   }
-  document.write(
-    '<script src="packages/html_import/html_import.min.js"></script>');
+
+
+  // Load HTML Imports:
+  var htmlImportsSrc = 'src="packages/html_import/html_import.min.js"';
+  document.write('<script ' + htmlImportsSrc + '></script>');
+  var importScript = document.querySelector('script[' + htmlImportsSrc + ']');
+  importScript.addEventListener('load', function() {
+    // NOTE: this is from polymer/src/lib/dom.js
+    window.HTMLImports.importer.preloadSelectors +=
+        ', polymer-element link[rel=stylesheet]';
+  });
+
+  // TODO(jmesserly): we need this in deploy tool too.
+  // NOTE: this is from polymer/src/boot.js:
+  // FOUC prevention tactic
+  var style = document.createElement('style');
+  style.textContent = 'body {opacity: 0;}';
+  var head = document.querySelector('head');
+  head.insertBefore(style, head.firstChild);
+
+  window.addEventListener('WebComponentsReady', function() {
+    document.body.style.webkitTransition = 'opacity 0.3s';
+    document.body.style.opacity = 1;
+  });
 
   // Extract a Dart import URL from a script tag, which is the 'src' attribute
   // of the script tag, or a data-url with the script contents for inlined code.

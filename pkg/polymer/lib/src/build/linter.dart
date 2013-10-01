@@ -16,8 +16,10 @@ import 'dart:convert' show JSON;
 import 'package:barback/barback.dart';
 import 'package:html5lib/dom.dart';
 import 'package:html5lib/dom_parsing.dart';
+import 'package:source_maps/span.dart';
 
 import 'common.dart';
+import 'utils.dart';
 
 typedef String MessageFormatter(String kind, String message, Span span);
 
@@ -191,6 +193,9 @@ String consoleFormatter(String kind, String message, Span span) {
 /**
  * Information needed about other polymer-element tags in order to validate
  * how they are used and extended.
+ *
+ * Note: these are only created for polymer-element, because pure custom
+ * elements don't have a declarative form.
  */
 class _ElementSummary {
   final String tagName;
@@ -284,6 +289,19 @@ class _LinterVisitor extends TreeVisitor {
           node.sourceSpan);
     }
 
+    var attrs = node.attributes['attributes'];
+    if (attrs != null) {
+      var attrsSpan = node.attributeSpans['attributes'];
+
+      // names='a b c' or names='a,b,c'
+      // record each name for publishing
+      for (var attr in attrs.split(attrs.contains(',') ? ',' : ' ')) {
+        // remove excess ws
+        attr = attr.trim();
+        if (!_validateCustomAttributeName(attr, attrsSpan)) break;
+      }
+    }
+
     var oldValue = _inPolymerElement;
     _inPolymerElement = true;
     super.visitElement(node);
@@ -369,10 +387,13 @@ class _LinterVisitor extends TreeVisitor {
 
     var info = _elements[customTagName];
     if (info == null) {
-      _logger.warning('definition for custom element with tag name '
+      // TODO(jmesserly): this warning is wrong if someone is using raw custom
+      // elements. Is there another way we can handle this warning that won't
+      // generate false positives?
+      _logger.warning('definition for Polymer element with tag name '
           '"$customTagName" not found.', node.sourceSpan);
       return;
-    } 
+    }
 
     var baseTag = info.baseExtendsTag;
     if (baseTag != null && !hasIsAttribute) {
@@ -384,7 +405,7 @@ class _LinterVisitor extends TreeVisitor {
           'the custom element declaration.', node.sourceSpan);
       return;
     }
-    
+
     if (hasIsAttribute && baseTag == null) {
       _logger.warning(
           'custom element "$customTagName" doesn\'t declare any type '
@@ -393,13 +414,27 @@ class _LinterVisitor extends TreeVisitor {
           'the custom element declaration.', node.sourceSpan);
       return;
     }
-    
+
     if (hasIsAttribute && baseTag != nodeTag) {
       _logger.warning(
           'custom element "$customTagName" extends from "$baseTag". '
           'Did you mean to write <$baseTag is="$customTagName">?',
           node.sourceSpan);
     }
+  }
+
+  /**
+   * Validate an attribute on a custom-element. Returns true if valid.
+   */
+  bool _validateCustomAttributeName(String name, FileSpan span) {
+    if (name.contains('-')) {
+      var newName = toCamelCase(name);
+      _logger.warning('PolymerElement no longer recognizes attribute names with '
+          'dashes such as "$name". Use "$newName" or "${newName.toLowerCase()}" '
+          'instead (both forms are equivalent in HTML).', span);
+      return false;
+    }
+    return true;
   }
 
   /** Validate event handlers are used correctly. */
@@ -409,20 +444,29 @@ class _LinterVisitor extends TreeVisitor {
           ' JavaScript event handler. Use the form '
           'on-event-name="handlerName" if you want a Dart handler '
           'that will automatically update the UI based on model changes.',
-          node.sourceSpan);
+          node.attributeSpans[name]);
       return;
     }
 
     if (!_inPolymerElement) {
       _logger.warning('Inline event handlers are only supported inside '
-          'declarations of <polymer-element>.', node.sourceSpan);
+          'declarations of <polymer-element>.', node.attributeSpans[name]);
+    }
+
+    var eventName = name.substring('on-'.length);
+    if (eventName.contains('-')) {
+      var newEvent = toCamelCase(eventName);
+      _logger.warning('Invalid event name "$name". After the "on-" the event '
+          'name should not use dashes. For example use "on-$newEvent" or '
+          '"on-${newEvent.toLowerCase()}" (both forms are equivalent in HTML).',
+          node.attributeSpans[name]);
     }
 
     if (value.contains('.') || value.contains('(')) {
       _logger.warning('Invalid event handler body "$value". Declare a method '
           'in your custom element "void handlerName(event, detail, target)" '
           'and use the form $name="handlerName".',
-          node.sourceSpan);
+          node.attributeSpans[name]);
     }
   }
 }

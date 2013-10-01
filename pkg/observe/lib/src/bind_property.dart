@@ -13,7 +13,7 @@ part of observe;
  *
  *       MyModel() {
  *         ...
- *         _sub = bindProperty(_otherModel, const Symbol('value'),
+ *         _sub = onPropertyChange(_otherModel, const Symbol('value'),
  *             () => notifyProperty(this, const Symbol('prop'));
  *       }
  *
@@ -23,7 +23,8 @@ part of observe;
  *
  * See also [notifyProperty].
  */
-StreamSubscription bindProperty(Observable source, Symbol sourceName,
+// TODO(jmesserly): make this an instance method?
+StreamSubscription onPropertyChange(Observable source, Symbol sourceName,
     void callback()) {
   return source.changes.listen((records) {
     for (var record in records) {

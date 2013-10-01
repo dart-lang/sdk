@@ -6,6 +6,7 @@
 @deprecated
 library build_utils;
 
+import 'dart:async';
 import 'package:meta/meta.dart';
 
 import 'builder.dart' as builder;
@@ -18,5 +19,5 @@ import 'builder.dart' as builder;
 Future build(List<String> arguments, List<String> entryPoints,
     {bool printTime: true, bool shouldPrint: true}) {
   return builder.build(
-      entryPoints: entryPoints, options: parseOptions(arguments));
+      entryPoints: entryPoints, options: builder.parseOptions(arguments));
 }

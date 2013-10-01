@@ -261,7 +261,7 @@ void main() {
             'JavaScript event handler. Use the form '
             'on-event-name="handlerName" if you want a Dart handler '
             'that will automatically update the UI based on model changes. '
-            '(lib/test.html 1 0)'
+            '(lib/test.html 1 5)'
       });
 
     _testLinter('on-foo is only supported in polymer elements', {
@@ -272,7 +272,7 @@ void main() {
         'a|lib/test.html.messages':
             'warning: Inline event handlers are only supported inside '
             'declarations of <polymer-element>. '
-            '(lib/test.html 1 0)'
+            '(lib/test.html 1 5)'
       });
 
     _testLinter('on-foo is not an expression', {
@@ -285,7 +285,20 @@ void main() {
             'warning: Invalid event handler body "bar()". Declare a method '
             'in your custom element "void handlerName(event, detail, target)" '
             'and use the form on-foo="handlerName". '
-            '(lib/test.html 1 28)'
+            '(lib/test.html 1 33)'
+      });
+
+    _testLinter('on-foo-bar is no longer supported', {
+        'a|lib/test.html': '''<html><body>
+            <polymer-element name="x-a"><div on-foo-bar="quux"></div>
+            </polymer-element>
+            '''.replaceAll('            ', ''),
+      }, {
+        'a|lib/test.html.messages':
+            'warning: Invalid event name "on-foo-bar". After the "on-" the '
+            'event name should not use dashes. For example use "on-fooBar" or '
+            '"on-foobar" (both forms are equivalent in HTML). '
+            '(lib/test.html 1 33)'
       });
   });
 
@@ -294,7 +307,7 @@ void main() {
         'a|lib/test.html': '<x-foo></x-foo>',
       }, {
         'a|lib/test.html.messages':
-            'warning: definition for custom element with tag name "x-foo" not '
+            'warning: definition for Polymer element with tag name "x-foo" not '
             'found. (lib/test.html 0 0)'
       });
 
@@ -302,7 +315,7 @@ void main() {
         'a|lib/test.html': '<div is="x-foo"></div>',
       }, {
         'a|lib/test.html.messages':
-            'warning: definition for custom element with tag name "x-foo" not '
+            'warning: definition for Polymer element with tag name "x-foo" not '
             'found. (lib/test.html 0 0)'
       });
 
@@ -407,6 +420,20 @@ void main() {
         'a|lib/test.html.messages': ''
             'warning: custom element "x-a" extends from "li". Did you mean '
             'to write <li is="x-a">? (lib/test.html 1 0)'
+      });
+  });
+
+  group('custom attributes', () {
+    _testLinter('foo-bar is no longer supported in attributes', {
+        'a|lib/test.html': '''<html><body>
+            <polymer-element name="x-a" attributes="foo-bar">
+            </polymer-element>
+            '''.replaceAll('            ', ''),
+      }, {
+        'a|lib/test.html.messages':
+            'warning: PolymerElement no longer recognizes attribute names with '
+            'dashes such as "foo-bar". Use "fooBar" or "foobar" instead (both '
+            'forms are equivalent in HTML). (lib/test.html 1 28)'
       });
   });
 }

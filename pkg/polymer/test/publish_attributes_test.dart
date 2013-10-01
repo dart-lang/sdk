@@ -1,0 +1,53 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:html';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
+import 'package:polymer/polymer.dart';
+
+// Dart note: unlike JS, you can't publish something that doesn't
+// have a corresponding field because we can't dynamically add properties.
+// So we define XFoo and XBar types here.
+@CustomTag('x-foo')
+class XFoo extends PolymerElement {
+  @observable var Foo;
+  @observable var baz;
+}
+
+@CustomTag('x-bar')
+class XBar extends XFoo {
+  @observable var Bar;
+}
+
+@CustomTag('x-zot')
+class XZot extends XBar {
+  @published int zot = 3;
+}
+
+@CustomTag('x-squid')
+class XSquid extends XZot {
+  @published int baz = 13;
+  @published int zot = 5;
+  @published int squid = 7;
+}
+
+main() {
+  useHtmlConfiguration();
+
+  test('published properties', () {
+    published(tag) =>
+        query('polymer-element[name=$tag]').xtag.publishedProperties;
+
+    print(published('x-foo'));
+    print(published('x-bar'));
+    print(published('x-zot'));
+    print(published('x-squid'));
+
+    expect(published('x-foo'), ['Foo', 'baz']);
+    expect(published('x-bar'), ['Foo', 'baz', 'Bar']);
+    expect(published('x-zot'), ['Foo', 'baz', 'Bar', 'zot']);
+    expect(published('x-squid'), ['Foo', 'baz', 'Bar', 'zot', 'squid']);
+  });
+}

@@ -1,0 +1,32 @@
+<!doctype html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>publish attributes</title>
+    <script src="packages/polymer/boot.js"></script>
+    <script src="packages/unittest/test_controller.js"></script>
+  </head>
+  <body>
+
+    <x-foo></x-foo>
+    <polymer-element name="x-foo" attributes="foo baz">
+    </polymer-element>
+
+    <x-bar></x-bar>
+    <polymer-element name="x-bar" extends="x-foo" attributes="zot zim str obj">
+    </polymer-element>
+
+    <x-compose></x-compose>
+    <polymer-element name="x-compose">
+      <template>
+        <x-bar id="bar" zim="{{zim}}"></x-bar>
+      </template>
+    </polymer-element>
+
+  <script type="application/dart" src="prop_attr_reflection_test.dart"></script>
+  </body>
+</html>

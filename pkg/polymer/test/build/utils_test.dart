@@ -7,7 +7,7 @@ library polymer.test.utils_test;
 
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
-import 'package:polymer/src/utils.dart';
+import 'package:polymer/src/build/utils.dart';
 
 main() {
   useCompactVMConfiguration();
