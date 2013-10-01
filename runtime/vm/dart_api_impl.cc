@@ -2834,12 +2834,14 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   }
 
   // Get the class to instantiate.
-  const Type& type_obj = Api::UnwrapTypeHandle(isolate, type);
-  if (type_obj.IsNull()) {
+  Object& unchecked_type = Object::Handle(Api::UnwrapHandle(type));
+  if (unchecked_type.IsNull() || !unchecked_type.IsType()) {
     RETURN_TYPE_ERROR(isolate, type, Type);
   }
+  Type& type_obj = Type::Handle();
+  type_obj ^= unchecked_type.raw();
   Class& cls = Class::Handle(isolate, type_obj.type_class());
-  const AbstractTypeArguments& type_arguments =
+  AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::Handle(isolate, type_obj.arguments());
 
   const String& base_constructor_name = String::Handle(isolate, cls.Name());
@@ -2877,13 +2879,28 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   Instance& new_object = Instance::Handle(isolate);
   if (constructor.IsRedirectingFactory()) {
     ClassFinalizer::ResolveRedirectingFactory(cls, constructor);
-    const Type& type = Type::Handle(constructor.RedirectionType());
+    Type& redirect_type = Type::Handle(constructor.RedirectionType());
     constructor = constructor.RedirectionTarget();
     if (constructor.IsNull()) {
-      ASSERT(type.IsMalformed());
-      return Api::NewHandle(isolate, type.malformed_error());
+      ASSERT(redirect_type.IsMalformed());
+      return Api::NewHandle(isolate, redirect_type.malformed_error());
     }
-    cls = type.type_class();
+
+    if (!redirect_type.IsInstantiated()) {
+      // The type arguments of the redirection type are instantiated from the
+      // type arguments of the type argument.
+      Error& malformed_error = Error::Handle();
+      redirect_type ^= redirect_type.InstantiateFrom(type_arguments,
+                                                     &malformed_error);
+      if (!malformed_error.IsNull()) {
+        return Api::NewHandle(isolate, malformed_error.raw());
+      }
+    }
+
+    type_obj = redirect_type.raw();
+    type_arguments = redirect_type.arguments();
+
+    cls = type_obj.type_class();
   }
   if (constructor.IsConstructor()) {
     // Create the new object.

@@ -1410,11 +1410,31 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
     UNREACHABLE();
   }
 
+  ASSERT(!type.IsNull());
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::Handle(type.arguments());
+
   Class& redirected_klass = Class::Handle(klass.raw());
   Function& redirected_constructor = Function::Handle(lookup_constructor.raw());
   if (lookup_constructor.IsRedirectingFactory()) {
     ClassFinalizer::ResolveRedirectingFactory(klass, lookup_constructor);
-    Type& type = Type::Handle(lookup_constructor.RedirectionType());
+    Type& redirect_type = Type::Handle(lookup_constructor.RedirectionType());
+
+    if (!redirect_type.IsInstantiated()) {
+      // The type arguments of the redirection type are instantiated from the
+      // type arguments of the type reflected by the class mirror.
+      Error& malformed_error = Error::Handle();
+      redirect_type ^= redirect_type.InstantiateFrom(type_arguments,
+                                                     &malformed_error);
+      if (!malformed_error.IsNull()) {
+        ThrowInvokeError(malformed_error);
+        UNREACHABLE();
+      }
+    }
+
+    type = redirect_type.raw();
+    type_arguments = redirect_type.arguments();
+
     redirected_constructor = lookup_constructor.RedirectionTarget();
     ASSERT(!redirected_constructor.IsNull());
     redirected_klass = type.type_class();
@@ -1450,10 +1470,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
                       InvocationMirror::kMethod);
     UNREACHABLE();
   }
-
-  ASSERT(!type.IsNull());
-  const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::Handle(type.arguments());
 
   Instance& new_object = Instance::Handle();
   if (redirected_constructor.IsConstructor()) {
