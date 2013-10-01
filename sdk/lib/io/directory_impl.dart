@@ -192,7 +192,7 @@ class _Directory extends FileSystemEntity implements Directory {
     return _IOService.dispatch(_DIRECTORY_CREATE_SYSTEM_TEMP,
                                [template]).then((response) {
       if (response is List && response[0] != _SUCCESS_RESPONSE) {
-        throw new Directory(template)._exceptionOrErrorFromResponse(
+        throw new _Directory(template)._exceptionOrErrorFromResponse(
             response, "Creation of temporary directory failed");
       }
       return new Directory(response);

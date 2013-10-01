@@ -393,7 +393,7 @@ char* Directory::CreateTemp(const char* const_template, bool system) {
   if (result == NULL) {
     return NULL;
   }
-  int length = strnlen(path.AsString(), PATH_MAX);
+  int length = strlen(path.AsString());
   result = static_cast<char*>(malloc(length + 1));
   strncpy(result, path.AsString(), length);
   result[length] = '\0';
