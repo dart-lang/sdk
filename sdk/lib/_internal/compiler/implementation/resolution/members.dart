@@ -4057,6 +4057,11 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
       VariableElement element =
           new VariableElementX(name, variables, kind, link.head);
       resolver.defineElement(link.head, element);
+      if (definitions.modifiers.isConst()) {
+        compiler.enqueuer.resolution.addPostProcessAction(element, () {
+          compiler.constantHandler.compileVariable(element, isConst: true);
+        });
+      }
     }
   }
 }
