@@ -210,7 +210,7 @@ abstract class XmlNode {
     if (beginToken == null) {
       return -1;
     }
-    return beginToken.offset;
+    return this.beginToken.offset;
   }
 
   /**
@@ -397,8 +397,8 @@ abstract class AbstractScanner {
   /**
    * Set array of element tags for which the content between tags should be consider a single token.
    */
-  void set passThroughElements(List<String> passThroughElements2) {
-    this._passThroughElements = passThroughElements2 != null ? passThroughElements2 : _NO_PASS_THROUGH_ELEMENTS;
+  void set passThroughElements(List<String> passThroughElements) {
+    this._passThroughElements = passThroughElements != null ? passThroughElements : _NO_PASS_THROUGH_ELEMENTS;
   }
 
   /**
@@ -694,8 +694,8 @@ class StringScanner extends AbstractScanner {
     this._charOffset = -1;
   }
   int get offset => _charOffset;
-  void set offset(int offset2) {
-    _charOffset = offset2;
+  void set offset(int offset) {
+    _charOffset = offset;
   }
   int advance() {
     if (++_charOffset < _stringLength) {
@@ -999,14 +999,14 @@ class HtmlScanner implements Source_ContentReceiver {
   HtmlScanner(Source source) {
     this._source = source;
   }
-  void accept(CharBuffer contents, int modificationTime2) {
-    this._modificationTime = modificationTime2;
+  void accept(CharBuffer contents, int modificationTime) {
+    this._modificationTime = modificationTime;
     _scanner = new CharBufferScanner(_source, contents);
     _scanner.passThroughElements = _SCRIPT_TAG;
     _token = _scanner.tokenize();
   }
-  void accept2(String contents, int modificationTime2) {
-    this._modificationTime = modificationTime2;
+  void accept2(String contents, int modificationTime) {
+    this._modificationTime = modificationTime;
     _scanner = new StringScanner(_source, contents);
     _scanner.passThroughElements = _SCRIPT_TAG;
     _token = _scanner.tokenize();
@@ -1354,9 +1354,9 @@ class XmlTagNode extends XmlNode {
    * @param name the attribute name
    * @return the attribute or `null` if no matching attribute is found
    */
-  XmlAttributeNode getAttribute(String name2) {
+  XmlAttributeNode getAttribute(String name) {
     for (XmlAttributeNode attribute in attributes) {
-      if (attribute.name.lexeme == name2) {
+      if (attribute.name.lexeme == name) {
         return attribute;
       }
     }

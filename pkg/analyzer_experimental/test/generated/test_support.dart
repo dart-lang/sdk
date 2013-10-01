@@ -232,9 +232,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @param errorCode the error code being searched for
    * @return `true` if an error with the given error code has been gathered
    */
-  bool hasError(ErrorCode errorCode2) {
+  bool hasError(ErrorCode errorCode) {
     for (AnalysisError error in errors) {
-      if (identical(error.errorCode, errorCode2)) {
+      if (identical(error.errorCode, errorCode)) {
         return true;
       }
     }

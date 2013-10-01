@@ -2089,7 +2089,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   void assertError(ScannerErrorCode expectedError, int expectedOffset, String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
     scan(source, listener);
-    listener.assertErrors([new AnalysisError.con2(null, expectedOffset, 1, expectedError, [(source.codeUnitAt(expectedOffset) as int)])]);
+    listener.assertErrors([new AnalysisError.con2(null, expectedOffset, 1, expectedError, [source.codeUnitAt(expectedOffset) as int])]);
   }
 
   /**

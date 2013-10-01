@@ -101,8 +101,8 @@ class AnalysisEngine {
    * @param logger the logger that should receive information about errors within the analysis
    *          engine
    */
-  void set logger(Logger logger2) {
-    this._logger = logger2 == null ? Logger.NULL : logger2;
+  void set logger(Logger logger) {
+    this._logger = logger == null ? Logger.NULL : logger;
   }
 }
 /**
@@ -1440,10 +1440,10 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return super.getState(descriptor);
     }
   }
-  CacheState getState2(DataDescriptor descriptor, Source librarySource2) {
+  CacheState getState2(DataDescriptor descriptor, Source librarySource) {
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
-      if (librarySource2 == state._librarySource) {
+      if (librarySource == state._librarySource) {
         if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
           return state._resolutionErrorsState;
         } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
@@ -1488,10 +1488,10 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     return super.getValue(descriptor);
   }
-  Object getValue2(DataDescriptor descriptor, Source librarySource2) {
+  Object getValue2(DataDescriptor descriptor, Source librarySource) {
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
-      if (librarySource2 == state._librarySource) {
+      if (librarySource == state._librarySource) {
         if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
           return state._resolutionErrors as Object;
         } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
@@ -1676,9 +1676,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * @param librarySource the source of the defining compilation unit of the library that used to
    *          contain this part but no longer does
    */
-  void removeResolution(Source librarySource2) {
-    if (librarySource2 != null) {
-      if (librarySource2 == _resolutionState._librarySource) {
+  void removeResolution(Source librarySource) {
+    if (librarySource != null) {
+      if (librarySource == _resolutionState._librarySource) {
         if (_resolutionState._nextState == null) {
           _resolutionState.invalidateAllResolutionInformation();
         } else {
@@ -1688,7 +1688,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
         DartEntryImpl_ResolutionState priorState = _resolutionState;
         DartEntryImpl_ResolutionState state = _resolutionState._nextState;
         while (state != null) {
-          if (librarySource2 == state._librarySource) {
+          if (librarySource == state._librarySource) {
             priorState._nextState = state._nextState;
             break;
           }
@@ -1904,16 +1904,16 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * @param librarySource the library source (not `null`)
    * @return the resolution state (not `null`)
    */
-  DartEntryImpl_ResolutionState getOrCreateResolutionState(Source librarySource2) {
+  DartEntryImpl_ResolutionState getOrCreateResolutionState(Source librarySource) {
     DartEntryImpl_ResolutionState state = _resolutionState;
     if (state._librarySource == null) {
-      state._librarySource = librarySource2;
+      state._librarySource = librarySource;
       return state;
     }
-    while (state._librarySource != librarySource2) {
+    while (state._librarySource != librarySource) {
       if (state._nextState == null) {
         DartEntryImpl_ResolutionState newState = new DartEntryImpl_ResolutionState();
-        newState._librarySource = librarySource2;
+        newState._librarySource = librarySource;
         state._nextState = newState;
         return newState;
       }
@@ -2484,8 +2484,8 @@ abstract class SourceEntryImpl implements SourceEntry {
    *
    * @param exception the exception that caused one or more values to be uncomputable
    */
-  void set exception(AnalysisException exception2) {
-    this._exception = exception2;
+  void set exception(AnalysisException exception) {
+    this._exception = exception;
   }
 
   /**
@@ -3310,9 +3310,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
   CompilationUnit resolveCompilationUnit2(Source unitSource, Source librarySource) => getDartResolutionData2(unitSource, librarySource, DartEntry.RESOLVED_UNIT, null);
   HtmlUnit resolveHtmlUnit(Source htmlSource) => parseHtmlUnit(htmlSource);
-  void set analysisOptions(AnalysisOptions options2) {
+  void set analysisOptions(AnalysisOptions options) {
     {
-      this._options = options2;
+      this._options = options;
       invalidateAllResolutionInformation();
     }
   }
@@ -3988,11 +3988,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param kind the kind of sources to be returned
    * @return all of the sources known to this context that have the given kind
    */
-  List<Source> getSources(SourceKind kind2) {
+  List<Source> getSources(SourceKind kind) {
     List<Source> sources = new List<Source>();
     {
       for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
-        if (identical(entry.getValue().kind, kind2)) {
+        if (identical(entry.getValue().kind, kind)) {
           sources.add(entry.getKey());
         }
       }
@@ -4107,7 +4107,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   DartEntry recordGenerateDartHintsTask(GenerateDartHintsTask task) {
     Source librarySource = task.libraryElement.source;
-    AnalysisException thrownException = task.thrownException;
+    AnalysisException thrownException = task.exception;
     DartEntry libraryEntry = null;
     Map<Source, TimestampedData<List<AnalysisError>>> hintMap = task.hintMap;
     if (hintMap == null) {
@@ -4191,7 +4191,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   DartEntry recordParseDartTaskResults(ParseDartTask task) {
     Source source = task.source;
-    AnalysisException thrownException = task.thrownException;
+    AnalysisException thrownException = task.exception;
     DartEntry dartEntry = null;
     {
       SourceEntry sourceEntry = _cache.get(source);
@@ -4258,7 +4258,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   HtmlEntry recordParseHtmlTaskResults(ParseHtmlTask task) {
     Source source = task.source;
-    AnalysisException thrownException = task.thrownException;
+    AnalysisException thrownException = task.exception;
     HtmlEntry htmlEntry = null;
     {
       SourceEntry sourceEntry = _cache.get(source);
@@ -4332,7 +4332,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   DartEntry recordResolveDartLibraryTaskResults(ResolveDartLibraryTask task) {
     LibraryResolver resolver = task.libraryResolver;
-    AnalysisException thrownException = task.thrownException;
+    AnalysisException thrownException = task.exception;
     DartEntry unitEntry = null;
     Source unitSource = task.unitSource;
     if (resolver != null) {
@@ -4424,7 +4424,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   SourceEntry recordResolveDartUnitTaskResults(ResolveDartUnitTask task) {
     Source unitSource = task.source;
     Source librarySource = task.librarySource;
-    AnalysisException thrownException = task.thrownException;
+    AnalysisException thrownException = task.exception;
     DartEntry dartEntry = null;
     {
       SourceEntry sourceEntry = _cache.get(unitSource);
@@ -4482,7 +4482,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   SourceEntry recordResolveHtmlTaskResults(ResolveHtmlTask task) {
     Source source = task.source;
-    AnalysisException thrownException = task.thrownException;
+    AnalysisException thrownException = task.exception;
     HtmlEntry htmlEntry = null;
     {
       SourceEntry sourceEntry = _cache.get(source);
@@ -4705,8 +4705,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    *
    * @param hint `true` if analysis is to generate hint results
    */
-  void set hint(bool hint2) {
-    this._hint = hint2;
+  void set hint(bool hint) {
+    this._hint = hint;
   }
 
   /**
@@ -4799,8 +4799,8 @@ class ChangeNoticeImpl implements ChangeNotice {
    *
    * @param compilationUnit the fully resolved AST that changed as a result of the analysis
    */
-  void set compilationUnit(CompilationUnit compilationUnit2) {
-    this._compilationUnit = compilationUnit2;
+  void set compilationUnit(CompilationUnit compilationUnit) {
+    this._compilationUnit = compilationUnit;
   }
 
   /**
@@ -4810,9 +4810,9 @@ class ChangeNoticeImpl implements ChangeNotice {
    * @param errors the errors that changed as a result of the analysis
    * @param lineInfo the line information associated with the source
    */
-  void setErrors(List<AnalysisError> errors2, LineInfo lineInfo2) {
-    this._errors = errors2;
-    this._lineInfo = lineInfo2;
+  void setErrors(List<AnalysisError> errors, LineInfo lineInfo) {
+    this._errors = errors;
+    this._lineInfo = lineInfo;
   }
 }
 /**
@@ -5932,7 +5932,7 @@ abstract class AnalysisTask {
    * The exception that was thrown while performing this task, or `null` if the task completed
    * successfully.
    */
-  AnalysisException thrownException;
+  AnalysisException exception;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -5963,7 +5963,7 @@ abstract class AnalysisTask {
     try {
       safelyPerform();
     } on AnalysisException catch (exception) {
-      thrownException = exception;
+      this.exception = exception;
       AnalysisEngine.instance.logger.logInformation2("Task failed: ${taskDescription}", exception);
     }
     return accept(visitor);
@@ -6330,14 +6330,14 @@ class Source_ContentReceiver_9 implements Source_ContentReceiver {
   RecordingErrorListener errorListener;
   List<Token> token;
   Source_ContentReceiver_9(this.ParseDartTask_this, this.errorListener, this.token);
-  void accept(CharBuffer contents, int modificationTime2) {
-    ParseDartTask_this.modificationTime = modificationTime2;
+  void accept(CharBuffer contents, int modificationTime) {
+    ParseDartTask_this.modificationTime = modificationTime;
     CharBufferScanner scanner = new CharBufferScanner(ParseDartTask_this.source, contents, errorListener);
     token[0] = scanner.tokenize();
     ParseDartTask_this.lineInfo = new LineInfo(scanner.lineStarts);
   }
-  void accept2(String contents, int modificationTime2) {
-    ParseDartTask_this.modificationTime = modificationTime2;
+  void accept2(String contents, int modificationTime) {
+    ParseDartTask_this.modificationTime = modificationTime;
     StringScanner scanner = new StringScanner(ParseDartTask_this.source, contents, errorListener);
     token[0] = scanner.tokenize();
     ParseDartTask_this.lineInfo = new LineInfo(scanner.lineStarts);

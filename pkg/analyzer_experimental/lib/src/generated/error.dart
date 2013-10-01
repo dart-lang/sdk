@@ -206,8 +206,8 @@ class ErrorReporter {
    *
    * @param source the source to be used when reporting errors
    */
-  void set source(Source source2) {
-    this._source = source2 == null ? _defaultSource : source2;
+  void set source(Source source) {
+    this._source = source == null ? _defaultSource : source;
   }
 }
 /**

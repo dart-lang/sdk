@@ -259,8 +259,8 @@ class Parser {
       instrumentation.log();
     }
   }
-  void set currentToken(Token currentToken2) {
-    this._currentToken = currentToken2;
+  void set currentToken(Token currentToken) {
+    this._currentToken = currentToken;
   }
 
   /**
@@ -818,7 +818,7 @@ class Parser {
    * @param keyword the keyword that is being tested for
    * @return `true` if the given token matches the given keyword
    */
-  bool matches3(Token token, Keyword keyword2) => identical(token.type, TokenType.KEYWORD) && identical(((token as KeywordToken)).keyword, keyword2);
+  bool matches3(Token token, Keyword keyword) => identical(token.type, TokenType.KEYWORD) && identical(((token as KeywordToken)).keyword, keyword);
 
   /**
    * Return `true` if the given token has the given type.
@@ -827,7 +827,7 @@ class Parser {
    * @param type the type of token that is being tested for
    * @return `true` if the given token has the given type
    */
-  bool matches4(Token token, TokenType type2) => identical(token.type, type2);
+  bool matches4(Token token, TokenType type) => identical(token.type, type);
 
   /**
    * Return `true` if the current token has the given type. Note that this method, unlike
@@ -838,10 +838,10 @@ class Parser {
    * @param type the type of token that can optionally appear in the current location
    * @return `true` if the current token has the given type
    */
-  bool matches5(TokenType type2) {
+  bool matches5(TokenType type) {
     TokenType currentType = _currentToken.type;
-    if (currentType != type2) {
-      if (identical(type2, TokenType.GT)) {
+    if (currentType != type) {
+      if (identical(type, TokenType.GT)) {
         if (identical(currentType, TokenType.GT_GT)) {
           int offset = _currentToken.offset;
           Token first = new Token(TokenType.GT, offset);

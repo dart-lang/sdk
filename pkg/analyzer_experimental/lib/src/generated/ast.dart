@@ -116,7 +116,7 @@ abstract class ASTNode {
     if (beginToken == null) {
       return -1;
     }
-    return beginToken.offset;
+    return this.beginToken.offset;
   }
 
   /**
@@ -484,8 +484,8 @@ abstract class AnnotatedNode extends ASTNode {
    *
    * @param comment the documentation comment to be associated with this node
    */
-  void set documentationComment(Comment comment2) {
-    this._comment = becomeParentOf(comment2);
+  void set documentationComment(Comment comment) {
+    this._comment = becomeParentOf(comment);
   }
 
   /**
@@ -493,9 +493,9 @@ abstract class AnnotatedNode extends ASTNode {
    *
    * @param metadata the metadata to be associated with this node
    */
-  void set metadata(List<Annotation> metadata2) {
+  void set metadata(List<Annotation> metadata) {
     this._metadata.clear();
-    this._metadata.addAll(metadata2);
+    this._metadata.addAll(metadata);
   }
   void visitChildren(ASTVisitor visitor) {
     if (commentIsBeforeAnnotations()) {
@@ -686,8 +686,8 @@ class Annotation extends ASTNode {
    *
    * @param arguments the arguments to the constructor being invoked
    */
-  void set arguments(ArgumentList arguments2) {
-    this._arguments = becomeParentOf(arguments2);
+  void set arguments(ArgumentList arguments) {
+    this._arguments = becomeParentOf(arguments);
   }
 
   /**
@@ -695,8 +695,8 @@ class Annotation extends ASTNode {
    *
    * @param constructorName the name of the constructor being invoked
    */
-  void set constructorName(SimpleIdentifier constructorName2) {
-    this._constructorName = becomeParentOf(constructorName2);
+  void set constructorName(SimpleIdentifier constructorName) {
+    this._constructorName = becomeParentOf(constructorName);
   }
 
   /**
@@ -704,8 +704,8 @@ class Annotation extends ASTNode {
    *
    * @param element the element to be associated with this identifier
    */
-  void set element(Element element2) {
-    this._element = element2;
+  void set element(Element element) {
+    this._element = element;
   }
 
   /**
@@ -714,8 +714,8 @@ class Annotation extends ASTNode {
    *
    * @param name the name of the constructor being invoked or the name of the field being referenced
    */
-  void set name(Identifier name2) {
-    this._name = becomeParentOf(name2);
+  void set name(Identifier name) {
+    this._name = becomeParentOf(name);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_name, visitor);
@@ -779,8 +779,8 @@ class ArgumentDefinitionTest extends Expression {
    *
    * @param identifier the identifier representing the argument being tested
    */
-  void set identifier(SimpleIdentifier identifier2) {
-    this._identifier = becomeParentOf(identifier2);
+  void set identifier(SimpleIdentifier identifier) {
+    this._identifier = becomeParentOf(identifier);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_identifier, visitor);
@@ -1046,8 +1046,8 @@ class AsExpression extends Expression {
    *
    * @param expression the expression used to compute the value being cast
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
 
   /**
@@ -1143,8 +1143,8 @@ class AssertStatement extends Statement {
    *
    * @param the condition that is being asserted to be `true`
    */
-  void set condition(Expression condition2) {
-    this._condition = becomeParentOf(condition2);
+  void set condition(Expression condition) {
+    this._condition = becomeParentOf(condition);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_condition, visitor);
@@ -1655,8 +1655,8 @@ class BlockFunctionBody extends FunctionBody {
    *
    * @param block the block representing the body of the function
    */
-  void set block(Block block2) {
-    this._block = becomeParentOf(block2);
+  void set block(Block block) {
+    this._block = becomeParentOf(block);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_block, visitor);
@@ -1847,8 +1847,8 @@ class CascadeExpression extends Expression {
    *
    * @param target the target of the cascade sections
    */
-  void set target(Expression target2) {
-    this._target = becomeParentOf(target2);
+  void set target(Expression target) {
+    this._target = becomeParentOf(target);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_target, visitor);
@@ -2214,8 +2214,8 @@ class ClassDeclaration extends CompilationUnitMember {
    *
    * @param extendsClause the extends clause for this class
    */
-  void set extendsClause(ExtendsClause extendsClause2) {
-    this._extendsClause = becomeParentOf(extendsClause2);
+  void set extendsClause(ExtendsClause extendsClause) {
+    this._extendsClause = becomeParentOf(extendsClause);
   }
 
   /**
@@ -2223,8 +2223,8 @@ class ClassDeclaration extends CompilationUnitMember {
    *
    * @param implementsClause the implements clause for the class
    */
-  void set implementsClause(ImplementsClause implementsClause2) {
-    this._implementsClause = becomeParentOf(implementsClause2);
+  void set implementsClause(ImplementsClause implementsClause) {
+    this._implementsClause = becomeParentOf(implementsClause);
   }
 
   /**
@@ -2241,8 +2241,8 @@ class ClassDeclaration extends CompilationUnitMember {
    *
    * @param withClause the with clause for the class
    */
-  void set withClause(WithClause withClause2) {
-    this._withClause = becomeParentOf(withClause2);
+  void set withClause(WithClause withClause) {
+    this._withClause = becomeParentOf(withClause);
   }
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
@@ -2422,8 +2422,8 @@ class ClassTypeAlias extends TypeAlias {
    *
    * @param implementsClause the implements clause for this class
    */
-  void set implementsClause(ImplementsClause implementsClause2) {
-    this._implementsClause = becomeParentOf(implementsClause2);
+  void set implementsClause(ImplementsClause implementsClause) {
+    this._implementsClause = becomeParentOf(implementsClause);
   }
 
   /**
@@ -2431,8 +2431,8 @@ class ClassTypeAlias extends TypeAlias {
    *
    * @param name the name of the class being declared
    */
-  void set name(SimpleIdentifier name2) {
-    this._name = becomeParentOf(name2);
+  void set name(SimpleIdentifier name) {
+    this._name = becomeParentOf(name);
   }
 
   /**
@@ -2440,8 +2440,8 @@ class ClassTypeAlias extends TypeAlias {
    *
    * @param superclass the name of the superclass of the class being declared
    */
-  void set superclass(TypeName superclass2) {
-    this._superclass = becomeParentOf(superclass2);
+  void set superclass(TypeName superclass) {
+    this._superclass = becomeParentOf(superclass);
   }
 
   /**
@@ -2449,8 +2449,8 @@ class ClassTypeAlias extends TypeAlias {
    *
    * @param typeParameters the type parameters for the class
    */
-  void set typeParameters(TypeParameterList typeParameters2) {
-    this._typeParameters = becomeParentOf(typeParameters2);
+  void set typeParameters(TypeParameterList typeParameters) {
+    this._typeParameters = becomeParentOf(typeParameters);
   }
 
   /**
@@ -2458,8 +2458,8 @@ class ClassTypeAlias extends TypeAlias {
    *
    * @param withClause the with clause for this class
    */
-  void set withClause(WithClause withClause2) {
-    this._withClause = becomeParentOf(withClause2);
+  void set withClause(WithClause withClause) {
+    this._withClause = becomeParentOf(withClause);
   }
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
@@ -2711,8 +2711,8 @@ class CommentReference extends ASTNode {
    *
    * @param identifier the identifier being referenced
    */
-  void set identifier(Identifier identifier2) {
-    identifier2 = becomeParentOf(identifier2);
+  void set identifier(Identifier identifier) {
+    identifier = becomeParentOf(identifier);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_identifier, visitor);
@@ -2928,8 +2928,8 @@ class CompilationUnit extends ASTNode {
    *
    * @param scriptTag the script tag at the beginning of the compilation unit
    */
-  void set scriptTag(ScriptTag scriptTag2) {
-    this._scriptTag = becomeParentOf(scriptTag2);
+  void set scriptTag(ScriptTag scriptTag) {
+    this._scriptTag = becomeParentOf(scriptTag);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_scriptTag, visitor);
@@ -3345,8 +3345,8 @@ class ConstructorDeclaration extends ClassMember {
    *
    * @param element the element associated with this constructor
    */
-  void set element(ConstructorElement element2) {
-    this._element = element2;
+  void set element(ConstructorElement element) {
+    this._element = element;
   }
 
   /**
@@ -3363,8 +3363,8 @@ class ConstructorDeclaration extends ClassMember {
    *
    * @param parameters the parameters associated with the constructor
    */
-  void set parameters(FormalParameterList parameters2) {
-    this._parameters = becomeParentOf(parameters2);
+  void set parameters(FormalParameterList parameters) {
+    this._parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -3374,8 +3374,8 @@ class ConstructorDeclaration extends ClassMember {
    * @param redirectedConstructor the name of the constructor to which this constructor will be
    *          redirected
    */
-  void set redirectedConstructor(ConstructorName redirectedConstructor2) {
-    this._redirectedConstructor = becomeParentOf(redirectedConstructor2);
+  void set redirectedConstructor(ConstructorName redirectedConstructor) {
+    this._redirectedConstructor = becomeParentOf(redirectedConstructor);
   }
 
   /**
@@ -3396,9 +3396,9 @@ class ConstructorDeclaration extends ClassMember {
     safelyVisitChild(_body, visitor);
   }
   Token get firstTokenAfterCommentAndMetadata {
-    Token leftMost2 = leftMost([externalKeyword, constKeyword, factoryKeyword]);
-    if (leftMost2 != null) {
-      return leftMost2;
+    Token leftMost = this.leftMost([externalKeyword, constKeyword, factoryKeyword]);
+    if (leftMost != null) {
+      return leftMost;
     }
     return _returnType.beginToken;
   }
@@ -3518,8 +3518,8 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
    *
    * @param expression the expression computing the value to which the field will be initialized
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
 
   /**
@@ -3644,8 +3644,8 @@ class ConstructorName extends ASTNode {
    *
    * @param name the name of the constructor
    */
-  void set name(SimpleIdentifier name2) {
-    this._name = becomeParentOf(name2);
+  void set name(SimpleIdentifier name) {
+    this._name = becomeParentOf(name);
   }
 
   /**
@@ -3663,8 +3663,8 @@ class ConstructorName extends ASTNode {
    *
    * @param type the name of the type defining the constructor
    */
-  void set type(TypeName type2) {
-    this._type = becomeParentOf(type2);
+  void set type(TypeName type) {
+    this._type = becomeParentOf(type);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_type, visitor);
@@ -3831,11 +3831,11 @@ class DeclaredIdentifier extends Declaration {
   DeclaredIdentifier({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier}) : this.full(comment, metadata, keyword, type, identifier);
   accept(ASTVisitor visitor) => visitor.visitDeclaredIdentifier(this);
   LocalVariableElement get element {
-    SimpleIdentifier identifier2 = identifier;
-    if (identifier2 == null) {
+    SimpleIdentifier identifier = this.identifier;
+    if (identifier == null) {
       return null;
     }
-    return identifier2.staticElement as LocalVariableElement;
+    return identifier.staticElement as LocalVariableElement;
   }
   Token get endToken => identifier.endToken;
 
@@ -3990,8 +3990,8 @@ class DefaultFormalParameter extends FormalParameter {
    *
    * @param kind the kind of this parameter
    */
-  void set kind(ParameterKind kind2) {
-    this._kind = kind2;
+  void set kind(ParameterKind kind) {
+    this._kind = kind;
   }
 
   /**
@@ -4381,9 +4381,9 @@ class ExportDirective extends NamespaceDirective {
   ExportDirective({Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon}) : this.full(comment, metadata, keyword, libraryUri, combinators, semicolon);
   accept(ASTVisitor visitor) => visitor.visitExportDirective(this);
   LibraryElement get uriElement {
-    Element element2 = element;
-    if (element2 is ExportElement) {
-      return ((element2 as ExportElement)).exportedLibrary;
+    Element element = this.element;
+    if (element is ExportElement) {
+      return ((element as ExportElement)).exportedLibrary;
     }
     return null;
   }
@@ -4605,8 +4605,8 @@ class ExpressionFunctionBody extends FunctionBody {
    *
    * @param expression the expression representing the body of the function
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
@@ -4675,8 +4675,8 @@ class ExpressionStatement extends Statement {
    *
    * @param expression the expression that comprises the statement
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
@@ -4946,8 +4946,8 @@ class FieldFormalParameter extends NormalFormalParameter {
    *
    * @param parameters the parameters of the function-typed parameter
    */
-  void set parameters(FormalParameterList parameters2) {
-    this._parameters = becomeParentOf(parameters2);
+  void set parameters(FormalParameterList parameters) {
+    this._parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -5120,8 +5120,8 @@ class ForEachStatement extends Statement {
    *
    * @param body the body of the loop
    */
-  void set body(Statement body2) {
-    this._body = becomeParentOf(body2);
+  void set body(Statement body) {
+    this._body = becomeParentOf(body);
   }
 
   /**
@@ -5129,8 +5129,8 @@ class ForEachStatement extends Statement {
    *
    * @param identifier the loop variable
    */
-  void set identifier(SimpleIdentifier identifier2) {
-    this._identifier = becomeParentOf(identifier2);
+  void set identifier(SimpleIdentifier identifier) {
+    this._identifier = becomeParentOf(identifier);
   }
 
   /**
@@ -5312,8 +5312,8 @@ class ForStatement extends Statement {
    *
    * @param body the body of the loop
    */
-  void set body(Statement body2) {
-    this._body = becomeParentOf(body2);
+  void set body(Statement body) {
+    this._body = becomeParentOf(body);
   }
 
   /**
@@ -5330,8 +5330,8 @@ class ForStatement extends Statement {
    *
    * @param initialization the initialization expression
    */
-  void set initialization(Expression initialization2) {
-    this._initialization = becomeParentOf(initialization2);
+  void set initialization(Expression initialization) {
+    this._initialization = becomeParentOf(initialization);
   }
 
   /**
@@ -5722,8 +5722,8 @@ class FunctionDeclaration extends CompilationUnitMember {
    *
    * @param functionExpression the function expression being wrapped
    */
-  void set functionExpression(FunctionExpression functionExpression2) {
-    functionExpression2 = becomeParentOf(functionExpression2);
+  void set functionExpression(FunctionExpression functionExpression) {
+    functionExpression = becomeParentOf(functionExpression);
   }
 
   /**
@@ -5800,8 +5800,8 @@ class FunctionDeclarationStatement extends Statement {
    *
    * @param functionDeclaration the function declaration being wrapped
    */
-  void set functionExpression(FunctionDeclaration functionDeclaration2) {
-    this.functionDeclaration = becomeParentOf(functionDeclaration2);
+  void set functionExpression(FunctionDeclaration functionDeclaration) {
+    this.functionDeclaration = becomeParentOf(functionDeclaration);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(functionDeclaration, visitor);
@@ -5899,8 +5899,8 @@ class FunctionExpression extends Expression {
    *
    * @param parameters the parameters associated with the function
    */
-  void set parameters(FormalParameterList parameters2) {
-    this._parameters = becomeParentOf(parameters2);
+  void set parameters(FormalParameterList parameters) {
+    this._parameters = becomeParentOf(parameters);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_parameters, visitor);
@@ -6012,8 +6012,8 @@ class FunctionExpressionInvocation extends Expression {
    *
    * @param argumentList the list of arguments to the method
    */
-  void set argumentList(ArgumentList argumentList2) {
-    this._argumentList = becomeParentOf(argumentList2);
+  void set argumentList(ArgumentList argumentList) {
+    this._argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -6021,8 +6021,8 @@ class FunctionExpressionInvocation extends Expression {
    *
    * @param function the expression producing the function being invoked
    */
-  void set function(Expression function2) {
-    function2 = becomeParentOf(function2);
+  void set function(Expression function) {
+    function = becomeParentOf(function);
   }
 
   /**
@@ -6146,8 +6146,8 @@ class FunctionTypeAlias extends TypeAlias {
    *
    * @param name the name of the function type being declared
    */
-  void set name(SimpleIdentifier name2) {
-    this._name = becomeParentOf(name2);
+  void set name(SimpleIdentifier name) {
+    this._name = becomeParentOf(name);
   }
 
   /**
@@ -6155,8 +6155,8 @@ class FunctionTypeAlias extends TypeAlias {
    *
    * @param parameters the parameters associated with the function type
    */
-  void set parameters(FormalParameterList parameters2) {
-    this._parameters = becomeParentOf(parameters2);
+  void set parameters(FormalParameterList parameters) {
+    this._parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -6173,8 +6173,8 @@ class FunctionTypeAlias extends TypeAlias {
    *
    * @param typeParameters the type parameters for the function type
    */
-  void set typeParameters(TypeParameterList typeParameters2) {
-    this._typeParameters = becomeParentOf(typeParameters2);
+  void set typeParameters(TypeParameterList typeParameters) {
+    this._typeParameters = becomeParentOf(typeParameters);
   }
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
@@ -6264,8 +6264,8 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    *
    * @param parameters the parameters of the function-typed parameter
    */
-  void set parameters(FormalParameterList parameters2) {
-    this._parameters = becomeParentOf(parameters2);
+  void set parameters(FormalParameterList parameters) {
+    this._parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -6273,8 +6273,8 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    *
    * @param returnType the return type of the function
    */
-  void set returnType(TypeName returnType2) {
-    this._returnType = becomeParentOf(returnType2);
+  void set returnType(TypeName returnType) {
+    this._returnType = becomeParentOf(returnType);
   }
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
@@ -6724,9 +6724,9 @@ class ImportDirective extends NamespaceDirective {
    */
   SimpleIdentifier get prefix => _prefix;
   LibraryElement get uriElement {
-    Element element2 = element;
-    if (element2 is ImportElement) {
-      return ((element2 as ImportElement)).importedLibrary;
+    Element element = this.element;
+    if (element is ImportElement) {
+      return ((element as ImportElement)).importedLibrary;
     }
     return null;
   }
@@ -6736,8 +6736,8 @@ class ImportDirective extends NamespaceDirective {
    *
    * @param prefix the prefix to be used with the imported names
    */
-  void set prefix(SimpleIdentifier prefix2) {
-    this._prefix = becomeParentOf(prefix2);
+  void set prefix(SimpleIdentifier prefix) {
+    this._prefix = becomeParentOf(prefix);
   }
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
@@ -7184,8 +7184,8 @@ class InstanceCreationExpression extends Expression {
    *
    * @param argumentList the list of arguments to the constructor
    */
-  void set argumentList(ArgumentList argumentList2) {
-    this._argumentList = becomeParentOf(argumentList2);
+  void set argumentList(ArgumentList argumentList) {
+    this._argumentList = becomeParentOf(argumentList);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(constructorName, visitor);
@@ -7333,8 +7333,8 @@ class InterpolationExpression extends InterpolationElement {
    *
    * @param expression the expression to be evaluated for the value to be converted into a string
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
@@ -7499,8 +7499,8 @@ class IsExpression extends Expression {
    *
    * @param expression the expression used to compute the value whose type is being tested
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
 
   /**
@@ -7572,8 +7572,8 @@ class Label extends ASTNode {
    *
    * @param label the label being associated with the statement
    */
-  void set label(SimpleIdentifier label2) {
-    this._label = becomeParentOf(label2);
+  void set label(SimpleIdentifier label) {
+    this._label = becomeParentOf(label);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_label, visitor);
@@ -7642,8 +7642,8 @@ class LabeledStatement extends Statement {
    *
    * @param statement the statement with which the labels are being associated
    */
-  void set statement(Statement statement2) {
-    this._statement = becomeParentOf(statement2);
+  void set statement(Statement statement) {
+    this._statement = becomeParentOf(statement);
   }
   void visitChildren(ASTVisitor visitor) {
     labels.accept(visitor);
@@ -7718,8 +7718,8 @@ class LibraryDirective extends Directive {
    *
    * @param name the name of the library being defined
    */
-  void set name(LibraryIdentifier name2) {
-    this._name = becomeParentOf(name2);
+  void set name(LibraryIdentifier name) {
+    this._name = becomeParentOf(name);
   }
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
@@ -7844,9 +7844,9 @@ class ListLiteral extends TypedLiteral {
     if (token != null) {
       return token;
     }
-    TypeArgumentList typeArguments2 = typeArguments;
-    if (typeArguments2 != null) {
-      return typeArguments2.beginToken;
+    TypeArgumentList typeArguments = this.typeArguments;
+    if (typeArguments != null) {
+      return typeArguments.beginToken;
     }
     return _leftBracket;
   }
@@ -7968,9 +7968,9 @@ class MapLiteral extends TypedLiteral {
     if (token != null) {
       return token;
     }
-    TypeArgumentList typeArguments2 = typeArguments;
-    if (typeArguments2 != null) {
-      return typeArguments2.beginToken;
+    TypeArgumentList typeArguments = this.typeArguments;
+    if (typeArguments != null) {
+      return typeArguments.beginToken;
     }
     return _leftBracket;
   }
@@ -8308,8 +8308,8 @@ class MethodDeclaration extends ClassMember {
    *
    * @param parameters the parameters associated with the method
    */
-  void set parameters(FormalParameterList parameters2) {
-    this._parameters = becomeParentOf(parameters2);
+  void set parameters(FormalParameterList parameters) {
+    this._parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -8474,8 +8474,8 @@ class MethodInvocation extends Expression {
    *
    * @param argumentList the list of arguments to the method
    */
-  void set argumentList(ArgumentList argumentList2) {
-    this._argumentList = becomeParentOf(argumentList2);
+  void set argumentList(ArgumentList argumentList) {
+    this._argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -8580,8 +8580,8 @@ class NamedExpression extends Expression {
    *
    * @param expression the expression with which the name is associated
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
 
   /**
@@ -8849,8 +8849,8 @@ abstract class NormalFormalParameter extends FormalParameter {
    *
    * @param comment the documentation comment to be associated with this parameter
    */
-  void set documentationComment(Comment comment2) {
-    this._comment = becomeParentOf(comment2);
+  void set documentationComment(Comment comment) {
+    this._comment = becomeParentOf(comment);
   }
 
   /**
@@ -8858,8 +8858,8 @@ abstract class NormalFormalParameter extends FormalParameter {
    *
    * @param identifier the name of the parameter being declared
    */
-  void set identifier(SimpleIdentifier identifier2) {
-    this._identifier = becomeParentOf(identifier2);
+  void set identifier(SimpleIdentifier identifier) {
+    this._identifier = becomeParentOf(identifier);
   }
   void visitChildren(ASTVisitor visitor) {
     if (commentIsBeforeAnnotations()) {
@@ -9017,8 +9017,8 @@ class ParenthesizedExpression extends Expression {
    *
    * @param expression the expression within the parentheses
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
 
   /**
@@ -9170,8 +9170,8 @@ class PartOfDirective extends Directive {
    *
    * @param libraryName the name of the library that the containing compilation unit is part of
    */
-  void set libraryName(LibraryIdentifier libraryName2) {
-    this._libraryName = becomeParentOf(libraryName2);
+  void set libraryName(LibraryIdentifier libraryName) {
+    this._libraryName = becomeParentOf(libraryName);
   }
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
@@ -9621,8 +9621,8 @@ class PrefixedIdentifier extends Identifier {
    *
    * @param identifier the identifier being prefixed
    */
-  void set identifier(SimpleIdentifier identifier2) {
-    this._identifier = becomeParentOf(identifier2);
+  void set identifier(SimpleIdentifier identifier) {
+    this._identifier = becomeParentOf(identifier);
   }
 
   /**
@@ -9863,8 +9863,8 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    *
    * @param argumentList the list of arguments to the constructor
    */
-  void set argumentList(ArgumentList argumentList2) {
-    this._argumentList = becomeParentOf(argumentList2);
+  void set argumentList(ArgumentList argumentList) {
+    this._argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -9984,8 +9984,8 @@ class ReturnStatement extends Statement {
    *
    * @param expression the expression computing the value to be returned
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
@@ -10710,8 +10710,8 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    *
    * @param argumentList the list of arguments to the constructor
    */
-  void set argumentList(ArgumentList argumentList2) {
-    this._argumentList = becomeParentOf(argumentList2);
+  void set argumentList(ArgumentList argumentList) {
+    this._argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -10819,8 +10819,8 @@ class SwitchCase extends SwitchMember {
    *
    * @param expression the expression controlling whether the statements will be executed
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
   void visitChildren(ASTVisitor visitor) {
     labels.accept(visitor);
@@ -11036,8 +11036,8 @@ class SwitchStatement extends Statement {
    *
    * @param expression the expression used to determine which of the switch members will be selected
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
@@ -11189,8 +11189,8 @@ class ThrowExpression extends Expression {
    *
    * @param expression the expression computing the exception to be thrown
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
@@ -11582,8 +11582,8 @@ class TypeName extends ASTNode {
    *
    * @param typeArguments the type arguments associated with the type
    */
-  void set typeArguments(TypeArgumentList typeArguments2) {
-    this._typeArguments = becomeParentOf(typeArguments2);
+  void set typeArguments(TypeArgumentList typeArguments) {
+    this._typeArguments = becomeParentOf(typeArguments);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_name, visitor);
@@ -11858,8 +11858,8 @@ abstract class UriBasedDirective extends Directive {
    *
    * @param uri the URI referenced by this directive
    */
-  void set uri(StringLiteral uri2) {
-    this._uri = becomeParentOf(uri2);
+  void set uri(StringLiteral uri) {
+    this._uri = becomeParentOf(uri);
   }
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
@@ -11990,8 +11990,8 @@ class VariableDeclaration extends Declaration {
    *
    * @param initializer the expression used to compute the initial value for the variable
    */
-  void set initializer(Expression initializer2) {
-    this._initializer = becomeParentOf(initializer2);
+  void set initializer(Expression initializer) {
+    this._initializer = becomeParentOf(initializer);
   }
 
   /**
@@ -11999,8 +11999,8 @@ class VariableDeclaration extends Declaration {
    *
    * @param name the name of the variable being declared
    */
-  void set name(SimpleIdentifier name2) {
-    this._name = becomeParentOf(name2);
+  void set name(SimpleIdentifier name) {
+    this._name = becomeParentOf(name);
   }
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
@@ -12174,8 +12174,8 @@ class VariableDeclarationStatement extends Statement {
    *
    * @param variableList the variables being declared
    */
-  void set variables(VariableDeclarationList variableList2) {
-    this._variableList = becomeParentOf(variableList2);
+  void set variables(VariableDeclarationList variableList) {
+    this._variableList = becomeParentOf(variableList);
   }
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_variableList, visitor);
@@ -12336,8 +12336,8 @@ class WithClause extends ASTNode {
    *
    * @param withKeyword the token representing the 'with' keyword
    */
-  void set mixinKeyword(Token withKeyword2) {
-    this.withKeyword = withKeyword2;
+  void set mixinKeyword(Token withKeyword) {
+    this.withKeyword = withKeyword;
   }
   void visitChildren(ASTVisitor visitor) {
     mixinTypes.accept(visitor);

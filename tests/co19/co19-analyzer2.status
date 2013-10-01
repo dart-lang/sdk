@@ -3,9 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
-# not clear: g([var foo = foo + 10]) is parameter 'foo' in the scope of its own initialzer?
-Language/06_Functions/2_Formal_Parameters_A02_t02: fail
-
 # not clear: null..[1](1)[2](2).foo(3, bar: 4)=5 - it seems that verything before =5 it not assignable
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: fail
 
@@ -31,10 +28,6 @@ Language/15_Types/4_Interface_Types_A11_t02: Skip
 
 # TBF: Hence, a static warning will not be issued if f has no declared return type, since the return type would be dynamic and dynamic may be assigned to void.
 Language/13_Statements/11_Return_A07_t01: fail
-
-# TBF: typedef int func2(int); - "int is not a type"
-Language/15_Types/6_Type_dynamic_A03_t01: fail
-Language/15_Types/6_Type_dynamic_A04_t01: fail
 
 
 LibTest/core/Uri/decodeQueryComponent_A02_t01: fail # co19 Issue 591
