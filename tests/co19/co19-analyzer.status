@@ -6,9 +6,6 @@
 # invalid argument for constant constructor
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
 
-# TBF: _f is private, so does not collide
-Language/07_Classes/1_Instance_Methods_A05_t08: fail
-
 # TBD: should we check that argument for dynamic parameter of constant constructor is not compatible with operation that is performed with it?
 Language/12_Expressions/01_Constants_A16_t03: fail
 
