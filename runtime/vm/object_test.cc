@@ -1544,7 +1544,8 @@ TEST_CASE(EscapeSpecialCharactersOneByteString) {
       String::Handle(String::EscapeSpecialCharacters(str));
   EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
 
-  const String& empty_str = String::Handle(OneByteString::New(0, Heap::kNew));
+  const String& empty_str = String::Handle(
+      OneByteString::New(static_cast<intptr_t>(0), Heap::kNew));
   const String& escaped_empty_str =
       String::Handle(String::EscapeSpecialCharacters(empty_str));
   EXPECT_EQ(empty_str.Length(), 0);
@@ -1591,7 +1592,8 @@ TEST_CASE(EscapeSpecialCharactersTwoByteString) {
       String::Handle(String::EscapeSpecialCharacters(str));
   EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
 
-  const String& empty_str = String::Handle(TwoByteString::New(0, Heap::kNew));
+  const String& empty_str =
+      String::Handle(TwoByteString::New(static_cast<intptr_t>(0), Heap::kNew));
   const String& escaped_empty_str =
       String::Handle(String::EscapeSpecialCharacters(empty_str));
   EXPECT_EQ(empty_str.Length(), 0);
