@@ -10,7 +10,7 @@ import "package:async_helper/async_helper.dart";
 void main() {
   asyncStart();
   Process.run(Platform.executable,
-              [Uri.parse(Platform.script)
+              [new Uri.file(Platform.script)
                    .resolve('print_sync_script.dart').toString()])
       .then((out) {
         asyncEnd();
