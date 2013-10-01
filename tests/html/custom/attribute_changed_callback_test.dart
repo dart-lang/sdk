@@ -26,7 +26,7 @@ class B extends HtmlElement {
 
   static var invocations = [];
 
-  void created() {
+  void createdCallback() {
     invocations.add('created');
   }
 

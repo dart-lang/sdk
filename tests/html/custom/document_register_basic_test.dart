@@ -38,7 +38,6 @@ class BadB {
 class BadE implements HtmlElement {
   static final tag = 'x-tag-e';
   factory BadE() => new Element.tag(tag);
-  BadE.created() : super.created();
 }
 
 main() {
