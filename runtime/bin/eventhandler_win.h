@@ -13,6 +13,7 @@
 #include <mswsock.h>
 
 #include "bin/builtin.h"
+#include "platform/thread.h"
 
 
 namespace dart {
@@ -132,6 +133,7 @@ class Handle {
  public:
   enum Type {
     kFile,
+    kStd,
     kDirectoryWatch,
     kClientSocket,
     kListenSocket
@@ -156,7 +158,7 @@ class Handle {
   // Socket interface exposing normal socket operations.
   int Available();
   int Read(void* buffer, int num_bytes);
-  int Write(const void* buffer, int num_bytes);
+  virtual int Write(const void* buffer, int num_bytes);
 
   // Internal interface used by the event handler.
   virtual bool IssueRead();
@@ -211,7 +213,6 @@ class Handle {
   }
 
   void ReadSyncCompleteAsync();
-  void WriteSyncCompleteAsync();
 
   DWORD last_error() { return last_error_; }
   void set_last_error(DWORD last_error) { last_error_ = last_error; }
@@ -242,7 +243,6 @@ class Handle {
   OverlappedBuffer* pending_write_;  // Buffer for pending write
 
   DWORD last_error_;
-  DWORD thread_wrote_;
 
  private:
   int flags_;
@@ -259,7 +259,35 @@ class FileHandle : public Handle {
 
   virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
   virtual bool IsClosed();
+};
+
+
+class StdHandle : public FileHandle {
+ public:
+  explicit StdHandle(HANDLE handle)
+      : FileHandle(handle),
+        thread_wrote_(0),
+        write_thread_exists_(false),
+        write_thread_running_(false),
+        write_monitor_(new Monitor()) {
+    type_ = kStd;
+  }
+
+  ~StdHandle() {
+    delete write_monitor_;
+  }
+
   virtual void DoClose();
+  virtual int Write(const void* buffer, int num_bytes);
+
+  void WriteSyncCompleteAsync();
+  void RunWriteLoop();
+
+ private:
+  DWORD thread_wrote_;
+  bool write_thread_exists_;
+  bool write_thread_running_;
+  dart::Monitor* write_monitor_;
 };
 
 

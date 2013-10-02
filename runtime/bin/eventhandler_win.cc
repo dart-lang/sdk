@@ -7,7 +7,6 @@
 
 #include "bin/eventhandler.h"
 
-#include <process.h>  // NOLINT
 #include <winsock2.h>  // NOLINT
 #include <ws2tcpip.h>  // NOLINT
 #include <mswsock.h>  // NOLINT
@@ -19,7 +18,7 @@
 #include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/utils.h"
-#include "platform/thread.h"
+#include "vm/thread.h"
 
 
 namespace dart {
@@ -107,7 +106,6 @@ Handle::Handle(HANDLE handle)
       pending_read_(NULL),
       pending_write_(NULL),
       last_error_(NOERROR),
-      thread_wrote_(0),
       flags_(0) {
   InitializeCriticalSection(&cs_);
 }
@@ -123,7 +121,6 @@ Handle::Handle(HANDLE handle, Dart_Port port)
       pending_read_(NULL),
       pending_write_(NULL),
       last_error_(NOERROR),
-      thread_wrote_(0),
       flags_(0) {
   InitializeCriticalSection(&cs_);
 }
@@ -211,10 +208,9 @@ void Handle::WriteComplete(OverlappedBuffer* buffer) {
 }
 
 
-static unsigned int __stdcall ReadFileThread(void* args) {
+static void ReadFileThread(uword args) {
   Handle* handle = reinterpret_cast<Handle*>(args);
   handle->ReadSyncCompleteAsync();
-  return 0;
 }
 
 
@@ -273,11 +269,10 @@ bool Handle::IssueRead() {
   } else {
     // Completing asynchronously through thread.
     pending_read_ = buffer;
-    uint32_t tid;
-    uintptr_t thread_handle =
-        _beginthreadex(NULL, 32 * 1024, ReadFileThread, this, 0, &tid);
-    if (thread_handle == -1) {
-      FATAL("Failed to start read file thread");
+    int result = dart::Thread::Start(ReadFileThread,
+                                     reinterpret_cast<uword>(this));
+    if (result != 0) {
+      FATAL("Failed to start read file thread %d", result);
     }
     return true;
   }
@@ -330,18 +325,6 @@ void FileHandle::EnsureInitialized(EventHandlerImplementation* event_handler) {
 
 bool FileHandle::IsClosed() {
   return IsClosing() && !HasPendingRead() && !HasPendingWrite();
-}
-
-
-void FileHandle::DoClose() {
-  if (handle_ == GetStdHandle(STD_OUTPUT_HANDLE)) {
-    int fd = _open("NUL", _O_WRONLY);
-    ASSERT(fd >= 0);
-    _dup2(fd, _fileno(stdout));
-    close(fd);
-  } else {
-    Handle::DoClose();
-  }
 }
 
 
@@ -560,14 +543,46 @@ int Handle::Read(void* buffer, int num_bytes) {
 }
 
 
-static unsigned int __stdcall WriteFileThread(void* args) {
-  Handle* handle = reinterpret_cast<Handle*>(args);
-  handle->WriteSyncCompleteAsync();
-  return 0;
+int Handle::Write(const void* buffer, int num_bytes) {
+  ScopedLock lock(this);
+  if (pending_write_ != NULL) return 0;
+  if (num_bytes > kBufferSize) num_bytes = kBufferSize;
+  ASSERT(SupportsOverlappedIO());
+  if (completion_port_ == INVALID_HANDLE_VALUE) return 0;
+  pending_write_ = OverlappedBuffer::AllocateWriteBuffer(num_bytes);
+  pending_write_->Write(buffer, num_bytes);
+  if (!IssueWrite()) return -1;
+  return num_bytes;
 }
 
 
-void Handle::WriteSyncCompleteAsync() {
+static void WriteFileThread(uword args) {
+  StdHandle* handle = reinterpret_cast<StdHandle*>(args);
+  handle->RunWriteLoop();
+}
+
+
+void StdHandle::RunWriteLoop() {
+  write_monitor_->Enter();
+  write_thread_running_ = true;
+  // Notify we have started.
+  write_monitor_->Notify();
+
+  while (write_thread_running_) {
+    write_monitor_->Wait(Monitor::kNoTimeout);
+    if (pending_write_ != NULL) {
+      // We woke up and had a pending write. Execute it.
+      WriteSyncCompleteAsync();
+    }
+  }
+
+  write_thread_exists_ = false;
+  write_monitor_->Notify();
+  write_monitor_->Exit();
+}
+
+
+void StdHandle::WriteSyncCompleteAsync() {
   ASSERT(pending_write_ != NULL);
 
   DWORD bytes_written = -1;
@@ -593,39 +608,57 @@ void Handle::WriteSyncCompleteAsync() {
   }
 }
 
-
-int Handle::Write(const void* buffer, int num_bytes) {
+int StdHandle::Write(const void* buffer, int num_bytes) {
   ScopedLock lock(this);
   if (pending_write_ != NULL) return 0;
   if (num_bytes > kBufferSize) num_bytes = kBufferSize;
-  if (SupportsOverlappedIO()) {
-    if (completion_port_ == INVALID_HANDLE_VALUE) return 0;
-    pending_write_ = OverlappedBuffer::AllocateWriteBuffer(num_bytes);
-    pending_write_->Write(buffer, num_bytes);
-    if (!IssueWrite()) return -1;
+  // In the case of stdout and stderr, OverlappedIO is not supported.
+  // Here we'll instead use a thread, to make it async.
+  // This code is actually never exposed to the user, as stdout and stderr is
+  // not available as a RawSocket, but only wrapped in a Socket.
+  // Note that we return '0', unless a thread have already completed a write.
+  MonitorLocker locker(write_monitor_);
+  if (thread_wrote_ > 0) {
+    if (num_bytes > thread_wrote_) num_bytes = thread_wrote_;
+    thread_wrote_ -= num_bytes;
     return num_bytes;
+  }
+  if (!write_thread_exists_) {
+    write_thread_exists_ = true;
+    int result = dart::Thread::Start(WriteFileThread,
+                                     reinterpret_cast<uword>(this));
+    if (result != 0) {
+      FATAL("Failed to start write file thread %d", result);
+    }
+    while (!write_thread_running_) {
+      // Wait until we the thread is running.
+      locker.Wait(Monitor::kNoTimeout);
+    }
+  }
+  // Create buffer and notify thread about the new handle.
+  pending_write_ = OverlappedBuffer::AllocateWriteBuffer(num_bytes);
+  pending_write_->Write(buffer, num_bytes);
+  locker.Notify();
+  return 0;
+}
+
+
+void StdHandle::DoClose() {
+  MonitorLocker locker(write_monitor_);
+  if (write_thread_exists_) {
+    write_thread_running_ = false;
+    locker.Notify();
+    while (write_thread_exists_) {
+      locker.Wait(Monitor::kNoTimeout);
+    }
+  }
+  if (handle_ == GetStdHandle(STD_OUTPUT_HANDLE)) {
+    int fd = _open("NUL", _O_WRONLY);
+    ASSERT(fd >= 0);
+    _dup2(fd, _fileno(stdout));
+    close(fd);
   } else {
-    // In the case of stdout and stderr, OverlappedIO is not supported.
-    // Here we'll instead spawn a new thread for each write, to make it async.
-    // This code is actually never exposed to the user, as stdout and stderr is
-    // not available as a RawSocket, but only wrapped in a Socket.
-    // Note that we return '0', unless a thread have already completed a write.
-    // TODO(ajohnsen): Don't spawn a new thread per write. Issue 13541.
-    if (thread_wrote_ > 0) {
-      if (num_bytes > thread_wrote_) num_bytes = thread_wrote_;
-      thread_wrote_ -= num_bytes;
-      return num_bytes;
-    }
-    pending_write_ = OverlappedBuffer::AllocateWriteBuffer(num_bytes);
-    pending_write_->Write(buffer, num_bytes);
-    // Completing asynchronously through thread.
-    uint32_t tid;
-    uintptr_t thread_handle =
-        _beginthreadex(NULL, 32 * 1024, WriteFileThread, this, 0, &tid);
-    if (thread_handle == -1) {
-      FATAL("Failed to start write file thread");
-    }
-    return 0;
+    Handle::DoClose();
   }
 }
 
