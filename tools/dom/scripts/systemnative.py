@@ -551,7 +551,8 @@ class DartiumBackend(HtmlDartGenerator):
         [attr],
         'void',
         False,
-        'SetterRaisesException' in attr.ext_attrs)
+        'SetterRaisesException' in attr.ext_attrs,
+        requires_custom_element_callback=True)
 
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
@@ -730,7 +731,8 @@ class DartiumBackend(HtmlDartGenerator):
       arguments,
       return_type,
       return_type_is_nullable,
-      raises_dom_exception):
+      raises_dom_exception,
+      requires_custom_element_callback=False):
 
     ext_attrs = node.ext_attrs
 
@@ -789,7 +791,7 @@ class DartiumBackend(HtmlDartGenerator):
     if 'Reflect' in ext_attrs:
       cpp_arguments = [self._GenerateWebCoreReflectionAttributeName(node)]
 
-    if ext_attrs.get('CustomElementCallbacks') == 'Enable':
+    if ext_attrs.get('CustomElementCallbacks') == 'Enable' or requires_custom_element_callback:
       self._cpp_impl_includes.add('"core/dom/CustomElementCallbackDispatcher.h"')
       needs_custom_element_callbacks = True
 
