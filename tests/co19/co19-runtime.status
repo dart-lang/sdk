@@ -70,8 +70,6 @@ Language/05_Variables/05_Variables_A06_t06: fail # Dart issue 12543
 Language/05_Variables/05_Variables_A16_t02: fail # Dart issue 12544
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail # Dart issue 12543
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: fail # co19 issue 606
-Language/12_Expressions/05_Strings_A02_t46: fail # Dart issue 12547
-Language/12_Expressions/05_Strings_A02_t48: fail # Dart issue 12547
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # Dart issue 12549
 Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: fail # Dart issue 1372
 Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19 issue 525

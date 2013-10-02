@@ -314,8 +314,6 @@ LibTest/math/log_A01_t01: Fail # TODO(kasperl): Please triage.
 #
 [ $compiler == dart2js ]
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t09: MissingCompileTimeError # Checks that it is a compile-time error if a string interpolation construct does not start with IDENTIFIER_NO_DOLLAR or opening brace.
-Language/12_Expressions/05_Strings_A02_t46: MissingCompileTimeError # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
-Language/12_Expressions/05_Strings_A02_t48: MissingCompileTimeError # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
 Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: MissingCompileTimeError # Checks that other Unicode whitespaces are not allowed:  check NO-BREAK SPACE (U+00A0)
 Language/16_Reference/1_Lexical_Rules_A02_t06: MissingCompileTimeError # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
 

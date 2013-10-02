@@ -10,6 +10,8 @@
 
 
 [ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
+Language/12_Expressions/05_Strings_A02_t46: fail, pass, ok # co19 issue 612
+Language/12_Expressions/05_Strings_A02_t48: fail, pass, ok # co19 issue 612
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
 LibTest/core/Uri/toFilePath_A01_t01: pass, fail, ok # co19 Issue 592
