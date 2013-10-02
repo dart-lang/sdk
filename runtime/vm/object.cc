@@ -6182,7 +6182,7 @@ class CompressedTokenStreamData : public ValueObject {
   }
 
   static const int kInitialTokenCount = 32;
-  static const intptr_t kTableSize = 128;
+  static const intptr_t kTableSize = 1024;
 
   uint8_t* buffer_;
   WriteStream stream_;

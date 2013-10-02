@@ -306,53 +306,54 @@ void renamePlaceholders(
   }
 }
 
-/** Always tries to return original identifier name unless it is forbidden. */
-String conservativeGenerator(
-    String originalName, bool isForbidden(String name)) {
-  String newName = originalName;
-  while (isForbidden(newName)) {
-    newName = 'p_$newName';
+/**
+ * Generates mini ID based on index.
+ * In other words, it converts index to visual representation
+ * as if digits are given characters.
+ */
+String generateMiniId(int index) {
+  const String firstCharAlphabet =
+      r'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  const String otherCharsAlphabet =
+      r'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_$';
+  // It's like converting index in decimal to [chars] radix.
+  if (index < firstCharAlphabet.length) return firstCharAlphabet[index];
+  StringBuffer resultBuilder = new StringBuffer();
+  resultBuilder.writeCharCode(
+     firstCharAlphabet.codeUnitAt(index % firstCharAlphabet.length));
+  index ~/= firstCharAlphabet.length;
+  int length = otherCharsAlphabet.length;
+  while (index >= length) {
+    resultBuilder.writeCharCode(otherCharsAlphabet.codeUnitAt(index % length));
+    index ~/= length;
   }
-  return newName;
+  resultBuilder.write(otherCharsAlphabet[index]);
+  return resultBuilder.toString();
 }
+
+
+/** Always tries to return original identifier name unless it is forbidden. */
+String conservativeGenerator(String name, bool isForbidden(String name)) {
+  String result = name;
+  int index = 0;
+  while (isForbidden(result)) {
+    result = '${generateMiniId(index++)}_$name';
+  }
+  return result;
+}
+
 
 /** Always tries to generate the most compact identifier. */
 class MinifyingGenerator {
-  static const String firstCharAlphabet =
-      r'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-  static const String otherCharsAlphabet =
-      r'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_$';
-  int nextIdIndex;
+  int index = 0;
 
-  MinifyingGenerator() : nextIdIndex = 0;
+  MinifyingGenerator();
 
   String generate(bool isForbidden(String name)) {
-    String newName;
+    String result;
     do {
-      newName = getNextId();
-    } while(isForbidden(newName));
-    return newName;
-  }
-
-  /**
-   * Generates next mini ID with current index and alphabet.
-   * Advances current index.
-   * In other words, it converts index to visual representation
-   * as if digits are given characters.
-   */
-  String getNextId() {
-    // It's like converting index in decimal to [chars] radix.
-    int index = nextIdIndex++;
-    StringBuffer resultBuilder = new StringBuffer();
-    if (index < firstCharAlphabet.length) return firstCharAlphabet[index];
-    resultBuilder.write(firstCharAlphabet[index % firstCharAlphabet.length]);
-    index ~/= firstCharAlphabet.length;
-    int length = otherCharsAlphabet.length;
-    while (index >= length) {
-      resultBuilder.write(otherCharsAlphabet[index % length]);
-      index ~/= length;
-    }
-    resultBuilder.write(otherCharsAlphabet[index]);
-    return resultBuilder.toString();
+      result = generateMiniId(index++);
+    } while (isForbidden(result));
+    return result;
   }
 }
