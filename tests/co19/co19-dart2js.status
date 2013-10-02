@@ -628,7 +628,6 @@ Language/10_Generics/09_Generics_A01_t17: fail # co19-roll r587: Please triage t
 Language/15_Types/5_Function_Types_A07_t01: CompileTimeError # co19-roll r607: Please triage this failure
 Language/15_Types/5_Function_Types_A07_t01: CompileTimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
-Language/12_Expressions/01_Constants_A21_t01: CompileTimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/07_Maps_A13_t01: MissingCompileTimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == dart2js ]
