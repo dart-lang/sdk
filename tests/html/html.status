@@ -186,11 +186,6 @@ input_element_test/attributes: Fail # IE returns null while others ''
 xhr_cross_origin_test: Skip # Issue 12920
 xhr_test/json: Fail # IE9 returns null because of unsupported type
 
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # co19-roll r607: Please triage this failure
-Language/12_Expressions/02_Null_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
-Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/collection/LinkedList/add_A01_t01: Pass, Timeout  # co19-roll r607: Please triage this failure
-
 # IE9 Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
 audiobuffersourcenode_test/supported: Fail
