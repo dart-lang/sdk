@@ -57,6 +57,8 @@ import 'dart:_interceptors' show
     Interceptor, JSExtendableArray, findInterceptorConstructorForType,
     getNativeInterceptor;
 
+export 'dart:math' show Rectangle, Point;
+
 
 
 
@@ -1583,19 +1585,19 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
    *     img.height = 100;
    *
    *     // Scale the image to 20x20.
-   *     ctx.drawImageToRect(img, new Rect(50, 50, 20, 20));
+   *     ctx.drawImageToRect(img, new Rectangle(50, 50, 20, 20));
    *
    *     VideoElement video = document.query('video');
    *     video.width = 100;
    *     video.height = 100;
    *     // Take the middle 20x20 pixels from the video and stretch them.
-   *     ctx.drawImageToRect(video, new Rect(50, 50, 100, 100),
-   *         sourceRect: new Rect(40, 40, 20, 20));
+   *     ctx.drawImageToRect(video, new Rectangle(50, 50, 100, 100),
+   *         sourceRect: new Rectangle(40, 40, 20, 20));
    *
    *     // Draw the top 100x20 pixels from the otherCanvas.
    *     CanvasElement otherCanvas = document.query('canvas');
-   *     ctx.drawImageToRect(otherCanvas, new Rect(0, 0, 100, 20),
-   *         sourceRect: new Rect(0, 0, 100, 20));
+   *     ctx.drawImageToRect(otherCanvas, new Rectangle(0, 0, 100, 20),
+   *         sourceRect: new Rectangle(0, 0, 100, 20));
    *
    * See also:
    *
@@ -1605,8 +1607,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
    * from the WHATWG.
    */
   @DomName('CanvasRenderingContext2D.drawImage')
-  void drawImageToRect(CanvasImageSource source, Rect destRect,
-      {Rect sourceRect}) {
+  void drawImageToRect(CanvasImageSource source, Rectangle destRect,
+      {Rectangle sourceRect}) {
     if (sourceRect == null) {
       drawImageScaled(source,
           destRect.left,
@@ -9232,12 +9234,14 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   /**
    * Gets the position of this element relative to the client area of the page.
    */
-  Rect get client => new Rect(clientLeft, clientTop, clientWidth, clientHeight);
+  Rectangle get client => new Rectangle(clientLeft, clientTop, clientWidth, 
+      clientHeight);
 
   /**
    * Gets the offset of this element relative to its offsetParent.
    */
-  Rect get offset => new Rect(offsetLeft, offsetTop, offsetWidth, offsetHeight);
+  Rectangle get offset => new Rectangle(offsetLeft, offsetTop, offsetWidth, 
+      offsetHeight);
 
   /**
    * Adds the specified text after the last child of this element.
@@ -10325,13 +10329,13 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
 
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
-  Rect getBoundingClientRect() native;
+  Rectangle getBoundingClientRect() native;
 
   @DomName('Element.getClientRects')
   @DocsEditable()
   @Returns('_ClientRectList')
   @Creates('_ClientRectList')
-  List<Rect> getClientRects() native;
+  List<Rectangle> getClientRects() native;
 
   @DomName('Element.getDestinationInsertionPoints')
   @DocsEditable()
@@ -20015,13 +20019,13 @@ class Range extends Interceptor native "Range" {
 
   @DomName('Range.getBoundingClientRect')
   @DocsEditable()
-  Rect getBoundingClientRect() native;
+  Rectangle getBoundingClientRect() native;
 
   @DomName('Range.getClientRects')
   @DocsEditable()
   @Returns('_ClientRectList')
   @Creates('_ClientRectList')
-  List<Rect> getClientRects() native;
+  List<Rectangle> getClientRects() native;
 
   @DomName('Range.insertNode')
   @DocsEditable()
@@ -20825,7 +20829,7 @@ class Screen extends Interceptor native "Screen" {
   @DomName('Screen.availLeft')
   @DomName('Screen.availTop')
   @DomName('Screen.availWidth')
-  Rect get available => new Rect(_availLeft, _availTop, _availWidth,
+  Rectangle get available => new Rectangle(_availLeft, _availTop, _availWidth,
       _availHeight);
 
   @JSName('availHeight')
@@ -26951,11 +26955,9 @@ abstract class _CSSValue extends Interceptor native "CSSValue" {
 
 @DocsEditable()
 @DomName('ClientRect')
-class _ClientRect extends Interceptor implements Rect native "ClientRect" {
+class _ClientRect extends Interceptor implements Rectangle native "ClientRect" {
 
-  // NOTE! All code below should be common with Rect.
-  // TODO(blois): implement with mixins when available.
-
+  // NOTE! All code below should be common with RectangleBase.
   String toString() {
     return '($left, $top, $width, $height)';
   }
@@ -27079,59 +27081,59 @@ class _ClientRect extends Interceptor implements Rect native "ClientRect" {
 
 @DocsEditable()
 @DomName('ClientRectList')
-class _ClientRectList extends Interceptor with ListMixin<Rect>, ImmutableListMixin<Rect> implements JavaScriptIndexingBehavior, List<Rect> native "ClientRectList" {
+class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle>, JavaScriptIndexingBehavior native "ClientRectList" {
 
   @DomName('ClientRectList.length')
   @DocsEditable()
   int get length => JS("int", "#.length", this);
 
-  Rect operator[](int index) {
+  Rectangle operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("Rect", "#[#]", this, index);
+    return JS("Rectangle", "#[#]", this, index);
   }
-  void operator[]=(int index, Rect value) {
+  void operator[]=(int index, Rectangle value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<Rect> mixins.
-  // Rect is the element type.
+  // -- start List<Rectangle> mixins.
+  // Rectangle is the element type.
 
 
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
-  Rect get first {
+  Rectangle get first {
     if (this.length > 0) {
-      return JS('Rect', '#[0]', this);
+      return JS('Rectangle', '#[0]', this);
     }
     throw new StateError("No elements");
   }
 
-  Rect get last {
+  Rectangle get last {
     int len = this.length;
     if (len > 0) {
-      return JS('Rect', '#[#]', this, len - 1);
+      return JS('Rectangle', '#[#]', this, len - 1);
     }
     throw new StateError("No elements");
   }
 
-  Rect get single {
+  Rectangle get single {
     int len = this.length;
     if (len == 1) {
-      return JS('Rect', '#[0]', this);
+      return JS('Rectangle', '#[0]', this);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
 
-  Rect elementAt(int index) => this[index];
-  // -- end List<Rect> mixins.
+  Rectangle elementAt(int index) => this[index];
+  // -- end List<Rectangle> mixins.
 
   @DomName('ClientRectList.item')
   @DocsEditable()
-  Rect item(int index) native;
+  Rectangle item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28767,15 +28769,16 @@ class _MarginCssRect extends CssRect {
 /**
  * A class for representing CSS dimensions.
  *
- * In contrast to the more general purpose [Rect] class, this class's values are
- * mutable, so one can change the height of an element programmatically.
+ * In contrast to the more general purpose [Rectangle] class, this class's
+ * values are mutable, so one can change the height of an element
+ * programmatically.
  *
  * _Important_ _note_: use of these methods will perform CSS calculations that
  * can trigger a browser reflow. Therefore, use of these properties _during_ an
  * animation frame is discouraged. See also:
  * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
  */
-abstract class CssRect extends RectBase implements Rect {
+abstract class CssRect extends RectangleBase<num> implements Rectangle<num> {
   Element _element;
 
   CssRect(this._element);
@@ -31839,77 +31842,6 @@ class _SvgNodeValidator implements NodeValidator {
     return allowsElement(element);
   }
 }
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * A utility class for representing two-dimensional positions.
- */
-class Point {
-  final num x;
-  final num y;
-
-  const Point([num x = 0, num y = 0]): x = x, y = y;
-
-  String toString() => '($x, $y)';
-
-  bool operator ==(other) {
-    if (other is !Point) return false;
-    return x == other.x && y == other.y;
-  }
-
-  int get hashCode => JenkinsSmiHash.hash2(x.hashCode, y.hashCode);
-
-  Point operator +(Point other) {
-    return new Point(x + other.x, y + other.y);
-  }
-
-  Point operator -(Point other) {
-    return new Point(x - other.x, y - other.y);
-  }
-
-  Point operator *(num factor) {
-    return new Point(x * factor, y * factor);
-  }
-
-  /**
-   * Get the straight line (Euclidean) distance between the origin (0, 0) and
-   * this point.
-   */
-  num get magnitude => sqrt(x * x + y * y);
-
-  /**
-   * Returns the distance between two points.
-   */
-  double distanceTo(Point other) {
-    var dx = x - other.x;
-    var dy = y - other.y;
-    return sqrt(dx * dx + dy * dy);
-  }
-
-  /**
-   * Returns the squared distance between two points.
-   *
-   * Squared distances can be used for comparisons when the actual value is not
-   * required.
-   */
-  num squaredDistanceTo(Point other) {
-    var dx = x - other.x;
-    var dy = y - other.y;
-    return dx * dx + dy * dy;
-  }
-
-  Point ceil() => new Point(x.ceil(), y.ceil());
-  Point floor() => new Point(x.floor(), y.floor());
-  Point round() => new Point(x.round(), y.round());
-
-  /**
-   * Truncates x and y to integers and returns the result as a new point.
-   */
-  Point toInt() => new Point(x.toInt(), y.toInt());
-}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -31934,163 +31866,6 @@ abstract class ReadyState {
    * Indicates the document and all subresources have been loaded.
    */
   static const String COMPLETE = "complete";
-}
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * A base class for representing two-dimensional rectangles. This will hopefully
- * be moved merged with the dart:math Rect.
- */
-// TODO(efortuna): Merge with Math rect after finalizing with Florian.
-abstract class RectBase {
-  //  Not used, but keeps the VM from complaining about Rect having a const
-  // constructor and this one not.
-  const RectBase();
-
-  num get left;
-  num get top;
-  num get width;
-  num get height;
-
-  num get right => left + width;
-  num get bottom => top + height;
-
-  // NOTE! All code below should be common with Rect.
-
-  String toString() {
-    return '($left, $top, $width, $height)';
-  }
-
-  bool operator ==(other) {
-    if (other is !Rect) return false;
-    return left == other.left && top == other.top && width == other.width &&
-        height == other.height;
-  }
-
-  int get hashCode => JenkinsSmiHash.hash4(left.hashCode, top.hashCode,
-      width.hashCode, height.hashCode);
-
-  /**
-   * Computes the intersection of this rectangle and the rectangle parameter.
-   * Returns null if there is no intersection.
-   */
-  Rect intersection(Rect rect) {
-    var x0 = max(left, rect.left);
-    var x1 = min(left + width, rect.left + rect.width);
-
-    if (x0 <= x1) {
-      var y0 = max(top, rect.top);
-      var y1 = min(top + height, rect.top + rect.height);
-
-      if (y0 <= y1) {
-        return new Rect(x0, y0, x1 - x0, y1 - y0);
-      }
-    }
-    return null;
-  }
-
-
-  /**
-   * Returns whether a rectangle intersects this rectangle.
-   */
-  bool intersects(Rect other) {
-    return (left <= other.left + other.width && other.left <= left + width &&
-        top <= other.top + other.height && other.top <= top + height);
-  }
-
-  /**
-   * Returns a new rectangle which completely contains this rectangle and the
-   * input rectangle.
-   */
-  Rect union(Rect rect) {
-    var right = max(this.left + this.width, rect.left + rect.width);
-    var bottom = max(this.top + this.height, rect.top + rect.height);
-
-    var left = min(this.left, rect.left);
-    var top = min(this.top, rect.top);
-
-    return new Rect(left, top, right - left, bottom - top);
-  }
-
-  /**
-   * Tests whether this rectangle entirely contains another rectangle.
-   */
-  bool containsRect(Rect another) {
-    return left <= another.left &&
-           left + width >= another.left + another.width &&
-           top <= another.top &&
-           top + height >= another.top + another.height;
-  }
-
-  /**
-   * Tests whether this rectangle entirely contains a point.
-   */
-  bool containsPoint(Point another) {
-    return another.x >= left &&
-           another.x <= left + width &&
-           another.y >= top &&
-           another.y <= top + height;
-  }
-
-  Rect ceil() => new Rect(left.ceil(), top.ceil(), width.ceil(), height.ceil());
-  Rect floor() => new Rect(left.floor(), top.floor(), width.floor(),
-      height.floor());
-  Rect round() => new Rect(left.round(), top.round(), width.round(),
-      height.round());
-
-  /**
-   * Truncates coordinates to integers and returns the result as a new
-   * rectangle.
-   */
-  Rect toInt() => new Rect(left.toInt(), top.toInt(), width.toInt(),
-      height.toInt());
-
-  Point get topLeft => new Point(this.left, this.top);
-  Point get bottomRight => new Point(this.left + this.width,
-      this.top + this.height);
-}
-
-
-
-/**
- * A class for representing two-dimensional rectangles.
- *
- * This class is distinctive from RectBase in that it enforces that its
- * properties are immutable.
- */
-class Rect extends RectBase {
-  final num left;
-  final num top;
-  final num width;
-  final num height;
-
-  const Rect(this.left, this.top, this.width, this.height): super();
-
-  factory Rect.fromPoints(Point a, Point b) {
-    var left;
-    var width;
-    if (a.x < b.x) {
-      left = a.x;
-      width = b.x - left;
-    } else {
-      left = b.x;
-      width = a.x - left;
-    }
-    var top;
-    var height;
-    if (a.y < b.y) {
-      top = a.y;
-      height = b.y - top;
-    } else {
-      top = b.y;
-      height = a.y - top;
-    }
-
-    return new Rect(left, top, width, height);
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

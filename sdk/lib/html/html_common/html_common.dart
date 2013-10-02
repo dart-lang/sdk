@@ -13,7 +13,6 @@ export 'metadata.dart';
 part 'css_class_set.dart';
 part 'device.dart';
 part 'filtered_element_list.dart';
-part 'jenkins_smi_hash.dart';
 part 'lists.dart';
 
 // For annotating deprecated APIs.

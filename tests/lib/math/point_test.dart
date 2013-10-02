@@ -4,13 +4,10 @@
 
 library point_test;
 
-import 'dart:html';
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:math';
+import 'package:unittest/unittest.dart';
 
 main() {
-  useHtmlConfiguration();
-
   test('constructor', () {
     var point = new Point();
     expect(point.x, 0);
@@ -19,21 +16,21 @@ main() {
   });
 
   test('constructor X', () {
-    var point = new Point(10);
+    var point = new Point<int>(10);
     expect(point.x, 10);
     expect(point.y, 0);
     expect('$point', '(10, 0)');
   });
 
   test('constructor X Y', () {
-    var point = new Point(10, 20);
+    var point = new Point<int>(10, 20);
     expect(point.x, 10);
     expect(point.y, 20);
     expect('$point', '(10, 20)');
   });
 
   test('constructor X Y double', () {
-    var point = new Point(10.5, 20.897);
+    var point = new Point<double>(10.5, 20.897);
     expect(point.x, 10.5);
     expect(point.y, 20.897);
     expect('$point', '(10.5, 20.897)');
@@ -96,9 +93,9 @@ main() {
     expect(b.round(), new Point(5, 10));
   });
 
-  test('toInt', () {
+  test('truncate', () {
     var a = new Point(5.1, 10.8);
-    var b = a.toInt();
+    var b = a.truncate();
     expect(b, new Point(5, 10));
     expect(b.x is int, isTrue);
     expect(b.y is int, isTrue);

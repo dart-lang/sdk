@@ -6,6 +6,9 @@
   'sources': [
     'math.dart',
     # The above file needs to be first as it lists the parts below.
+    'jenkins_smi_hash.dart',
+    'point.dart',
     'random.dart',
+    'rectangle.dart',
   ],
 }

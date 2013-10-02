@@ -426,7 +426,7 @@ main() {
   });
 
   group('getBoundingClientRect', () {
-    test('is a Rect', () {
+    test('is a Rectangle', () {
       var element = new svg.RectElement();
       element.attributes['width'] = '100';
       element.attributes['height'] = '100';
@@ -436,7 +436,7 @@ main() {
       document.body.append(root);
 
       var rect = element.getBoundingClientRect();
-      expect(rect is Rect, isTrue);
+      expect(rect is Rectangle, isTrue);
       expect(rect.width, closeTo(100, 1));
       expect(rect.height, closeTo(100, 1));
     });
