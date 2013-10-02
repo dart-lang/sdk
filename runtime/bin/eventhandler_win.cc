@@ -272,7 +272,7 @@ bool Handle::IssueRead() {
     int result = dart::Thread::Start(ReadFileThread,
                                      reinterpret_cast<uword>(this));
     if (result != 0) {
-      FATAL("Failed to start read file thread %d", result);
+      FATAL1("Failed to start read file thread %d", result);
     }
     return true;
   }
@@ -628,7 +628,7 @@ int StdHandle::Write(const void* buffer, int num_bytes) {
     int result = dart::Thread::Start(WriteFileThread,
                                      reinterpret_cast<uword>(this));
     if (result != 0) {
-      FATAL("Failed to start write file thread %d", result);
+      FATAL1("Failed to start write file thread %d", result);
     }
     while (!write_thread_running_) {
       // Wait until we the thread is running.
