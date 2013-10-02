@@ -721,6 +721,11 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   @Experimental()
   void leftView() {}
 
+  /**
+   * Called by the DOM whenever an attribute on this has been changed.
+   */
+  void attributeChanged(String name, String oldValue, String newValue) {}
+
   // Hooks to support custom WebComponents.
 
 $if DART2JS

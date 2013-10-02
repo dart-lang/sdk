@@ -28,7 +28,7 @@ class Foo extends HtmlElement {
     invocations.add('left');
   }
 
-  void attributeChanged() {
+  void attributeChanged(String name, String oldValue, String newValue) {
     invocations.add('attribute changed');
   }
 }

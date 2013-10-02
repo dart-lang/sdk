@@ -13,9 +13,9 @@ element_offset_test/offset: Pass, Fail # Issue 13296
 custom/document_register_type_extensions_test/namespaces: Fail # Polyfill does not support createElementNS
 custom/document_register_basic_test: Fail # Polyfill is not case-sensitive
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
+custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 
 [ $compiler == dart2js && $browser ]
-custom/attribute_changed_callback_test: Fail # Issue 9325 failures
 custom/created_callback_test: Fail # Support for created constructor.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
@@ -83,6 +83,8 @@ touchevent_test/supported: Fail
 
 xhr_test: Pass, Fail # Issue 11884
 xhr_cross_origin_test: Pass, Fail # Issue 11884
+
+fileapi_test/directoryReader: Fail  # Issue 12573
 
 [ $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == safari ]
 audiocontext_test: Skip # Issue 9322
@@ -403,22 +405,3 @@ safe_dom_test: Skip                # Test cannot run under CSP restrictions (tim
 
 [ $compiler == dart2js && $runtime == drt ]
 wheelevent_test: Fail # http://dartbug.com/12958
-
-[ $compiler == none && $runtime == dartium ]
-custom/constructor_calls_created_synchronously_test: Fail # Issue 13719: Please triage this failure.
-custom/created_callback_test: Fail # Issue 13719: Please triage this failure.
-custom/document_register_basic_test: Fail # Issue 13719: Please triage this failure.
-custom/document_register_type_extensions_test/construction: Fail # Issue 13719: Please triage this failure.
-custom/document_register_type_extensions_test/namespaces: Fail # Issue 13719: Please triage this failure.
-custom/document_register_type_extensions_test/parsing: Fail # Issue 13719: Please triage this failure.
-custom_elements_test/innerHtml: Fail # Issue 13719: Please triage this failure.
-custom_elements_test/lifecycle: Fail # Issue 13719: Please triage this failure.
-custom_elements_test/mixins: Fail # Issue 13719: Please triage this failure.
-custom_elements_test/register: Fail # Issue 13719: Please triage this failure.
-custom/entered_left_view_test/disconnected_subtree: Fail # Issue 13719: Please triage this failure.
-custom/entered_left_view_test/shadow_dom: Fail # Issue 13719: Please triage this failure.
-custom/entered_left_view_test/standard_events: Fail # Issue 13719: Please triage this failure.
-custom/entered_left_view_test/viewless_document: Fail # Issue 13719: Please triage this failure.
-dromaeo_smoke_test: Fail # Issue 13719: Please triage this failure.
-element_offset_test/offset: Fail # Issue 13719: Please triage this failure.
-touchevent_test/supported: Fail # Issue 13719: Please triage this failure.

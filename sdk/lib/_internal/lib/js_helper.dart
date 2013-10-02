@@ -1498,13 +1498,19 @@ invokeClosure(Function closure,
               var isolate,
               int numberOfArguments,
               var arg1,
-              var arg2) {
+              var arg2,
+              var arg3,
+              var arg4) {
   if (numberOfArguments == 0) {
     return JS_CALL_IN_ISOLATE(isolate, () => closure());
   } else if (numberOfArguments == 1) {
     return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1));
   } else if (numberOfArguments == 2) {
     return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2));
+  } else if (numberOfArguments == 3) {
+    return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2, arg3));
+  } else if (numberOfArguments == 4) {
+    return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2, arg3, arg4));
   } else {
     throw new Exception(
         'Unsupported number of arguments for wrapped closure');
@@ -1523,9 +1529,11 @@ convertDartClosureToJS(closure, int arity) {
   // We use $0 and $1 to not clash with variable names used by the
   // compiler and/or minifier.
   function = JS('var',
-                r'(function ($2, $3) {'
-                    r' return function($0, $1) { '
-                        r'return $3(#, $2, #, $0, $1) }})(#, #)',
+                '(function(closure, arity, context, invoke) {'
+                '  return function(a1, a2, a3, a4) {'
+                '     return invoke(closure, context, arity, a1, a2, a3, a4);'
+                '  };'
+                '})(#,#,#,#)',
                 closure,
                 arity,
                 // Capture the current isolate now.  Remember that "#"

@@ -15,6 +15,9 @@ _callEnteredView(receiver) {
 _callLeftView(receiver) {
   return receiver.leftView();
 }
+ _callAttributeChanged(receiver, name, oldValue, newValue) {
+  return receiver.attributeChanged(name, oldValue, newValue);
+}
 
 _makeCallbackMethod(callback) {
   return JS('',
@@ -24,6 +27,16 @@ _makeCallbackMethod(callback) {
              };
           })(#))''',
       convertDartClosureToJS(callback, 1));
+}
+
+_makeCallbackMethod3(callback) {
+  return JS('',
+      '''((function(invokeCallback) {
+             return function(arg1, arg2, arg3) {
+               return invokeCallback(this, arg1, arg2, arg3);
+             };
+          })(#))''',
+      convertDartClosureToJS(callback, 4));
 }
 
 const _typeNameToTag = const {
@@ -91,6 +104,8 @@ void _registerCustomElement(context, document, String tag, Type type,
       JS('=Object', '{value: #}', _makeCallbackMethod(_callEnteredView)));
   JS('void', '#.leftViewCallback = #', properties,
       JS('=Object', '{value: #}', _makeCallbackMethod(_callLeftView)));
+  JS('void', '#.attributeChangedCallback = #', properties,
+      JS('=Object', '{value: #}', _makeCallbackMethod3(_callAttributeChanged)));
 
   // TODO(blois): Bug 13220- remove once transition is complete
   JS('void', '#.enteredDocumentCallback = #', properties,

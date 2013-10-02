@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library attribute_changed_callback_test;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+
 import 'dart:html';
+import 'dart:js' as js;
+import 'package:unittest/html_individual_config.dart';
+import 'package:unittest/unittest.dart';
+import '../utils.dart';
 
 class A extends HtmlElement {
   static final tag = 'x-a';
@@ -35,44 +38,75 @@ class B extends HtmlElement {
   }
 }
 
+// Pump custom events polyfill events.
+void customElementsTakeRecords() {
+  if (js.context.hasProperty('CustomElements')) {
+    js.context['CustomElements'].callMethod('takeRecords');
+  }
+}
+
 main() {
-  useHtmlConfiguration();
+  useHtmlIndividualConfiguration();
 
   // Adapted from Blink's fast/dom/custom/attribute-changed-callback test.
 
-  test('transfer attribute changed callback', () {
-    document.register(A.tag, A);
-    var element = new A();
-
-    element.attributes['a'] = 'b';
-    expect(A.attributeChangedInvocations, 1);
+  var registered = false;
+  setUp(() {
+    return loadPolyfills().then((_) {
+      if (!registered) {
+        registered = true;
+        document.register(A.tag, A);
+        document.register(B.tag, B);
+      }
+    });
   });
 
-  test('add, change and remove an attribute', () {
-    document.register(B.tag, B);
-    var b = new B();
-    b.id = 'x';
-    expect(B.invocations, ['created', 'id: null => x']);
+  group('fully_supported', () {
+    test('transfer attribute changed callback', () {
+      var element = new A();
 
-    B.invocations = [];
-    b.attributes.remove('id');
-    expect(B.invocations, ['id: x => null']);
+      element.attributes['a'] = 'b';
+      expect(A.attributeChangedInvocations, 1);
+    });
 
-    B.invocations = [];
-    b.attributes['data-s'] = 't';
-    expect(B.invocations, ['data-s: null => t']);
+    test('add, change and remove an attribute', () {
+      var b = new B();
 
-    B.invocations = [];
-    b.classList.toggle('u');
-    expect(B.invocations, ['class: null => u']);
+      B.invocations = [];
+      b.attributes['data-s'] = 't';
+      expect(B.invocations, ['data-s: null => t']);
 
-    b.attributes['data-v'] = 'w';
-    B.invocations = [];
-    b.attributes['data-v'] = 'x';
-    expect(B.invocations, ['data-v: w => x']);
+      b.attributes['data-v'] = 'w';
+      B.invocations = [];
+      b.attributes['data-v'] = 'x';
+      expect(B.invocations, ['data-v: w => x']);
 
-    B.invocations = [];
-    b.attributes['data-v'] = 'x';
-    expect(B.invocations, []);
+      B.invocations = [];
+      b.attributes['data-v'] = 'x';
+      expect(B.invocations, []);
+
+      b.attributes.remove('data-v');
+      expect(B.invocations, ['data-v: x => null']);
+    });
+  });
+
+  group('unsupported_on_polyfill', () {
+    test('add, change ID', () {
+      var b = new B();
+      b.id = 'x';
+      expect(B.invocations, ['created', 'id: null => x']);
+
+      B.invocations = [];
+      b.attributes.remove('id');
+      expect(B.invocations, ['id: x => null']);
+    });
+
+    test('add, change classes', () {
+      var b = new B();
+
+      B.invocations = [];
+      b.classes.toggle('u');
+      expect(B.invocations, ['class: null => u']);
+    });
   });
 }
