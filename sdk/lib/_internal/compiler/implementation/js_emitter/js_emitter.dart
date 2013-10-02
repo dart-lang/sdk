@@ -58,5 +58,6 @@ import '../util/uri_extras.dart' show
 part 'class_builder.dart';
 part 'closure_invocation_element.dart';
 part 'code_emitter_task.dart';
+part 'container_builder.dart';
 part 'declarations.dart';
 part 'reflection_data_parser.dart';
