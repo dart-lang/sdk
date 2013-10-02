@@ -24,22 +24,22 @@ part 'container_tracer.dart';
  * A set of selector names that [List] implements, that we know return
  * their element type.
  */
-Set<String> returnsElementTypeSet = new Set<String>.from(
-  const <String>[
-    'first',
-    'last',
-    'single',
-    'singleWhere',
-    'elementAt',
-    '[]',
-    'removeAt',
-    'removeLast'
+Set<Selector> returnsElementTypeSet = new Set<Selector>.from(
+  <Selector>[
+    new Selector.getter(const SourceString('first'), null),
+    new Selector.getter(const SourceString('last'), null),
+    new Selector.getter(const SourceString('single'), null),
+    new Selector.call(const SourceString('singleWhere'), null, 1),
+    new Selector.call(const SourceString('elementAt'), null, 1),
+    new Selector.index(),
+    new Selector.call(const SourceString('removeAt'), null, 1),
+    new Selector.call(const SourceString('removeLast'), null, 0)
   ]);
 
 bool returnsElementType(Selector selector) {
   return (selector.mask != null)
          && selector.mask.isContainer
-         && returnsElementTypeSet.contains(selector.name.slowToString());
+         && returnsElementTypeSet.contains(selector.asUntyped);
 }
 
 class TypeInformationSystem extends TypeSystem<TypeInformation> {
