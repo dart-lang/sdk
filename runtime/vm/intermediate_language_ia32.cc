@@ -1760,7 +1760,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ movl(value_cid_reg,
                   FieldAddress(value_reg, TypedData::length_offset()));
         }
-        __ cmpl(value_cid_reg, Immediate(field_length));
+        __ cmpl(value_cid_reg, Immediate(Smi::RawValue(field_length)));
         if (ok_is_fall_through) {
           __ j(NOT_EQUAL, fail);
         }
