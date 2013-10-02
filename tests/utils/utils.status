@@ -22,3 +22,8 @@ txt_layout_test: Skip # Might just go away.
 
 [ $compiler == none && $runtime == drt && $system == linux ]
 png_layout_test: Fail # Issue 13540
+
+[ $compiler == none && $runtime == dartium ]
+dart2js_test: Skip # Uses dart:io.
+png_layout_test: Skip # dartium doesn't support layout tests
+txt_layout_test: Skip # dartium doesn't support layout tests

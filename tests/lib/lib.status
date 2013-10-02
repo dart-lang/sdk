@@ -188,3 +188,15 @@ mirrors/parameter_metadata_test: Fail # Issue 13510
 mirrors/method_mirror_returntype_test: Fail # Issue 13510
 mirrors/function_type_mirror_test: Fail # Issue 13510
 mirrors/typevariable_mirror_metadata_test: Fail # Issue 13510
+
+[ $compiler == none && $runtime == dartium ]
+async/run_async3_test: Fail # Issue 13719: Please triage this failure.
+async/run_async4_test: Fail # Issue 13719: Please triage this failure.
+async/run_async6_test: Fail # Issue 13719: Please triage this failure.
+async/timer_not_available_test: Fail # Issue 13719: Please triage this failure.
+mirrors/closures_test/01: Fail # Issue 13719: Please triage this failure.
+mirrors/hierarchy_test: Fail # Issue 13719: Please triage this failure.
+mirrors/library_uri_io_test: Fail # Issue 13719: Please triage this failure.
+mirrors/local_isolate_test: Fail # Issue 13719: Please triage this failure.
+mirrors/mixin_test/01: Fail # Issue 13719: Please triage this failure.
+mirrors/typedef_test/01: Fail # Issue 13719: Please triage this failure.

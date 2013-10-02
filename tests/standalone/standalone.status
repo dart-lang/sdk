@@ -51,7 +51,7 @@ io/directory_non_ascii_sync_test: Pass, Fail
 io/directory_non_ascii_test: Pass, Fail
 io/process_non_ascii_test: Pass, Fail
 
-[ $compiler == none && $runtime == drt ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 typed_data_isolate_test: Skip # This test uses dart:io
 io/*: Skip # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
@@ -173,3 +173,8 @@ io/test_extension_test: Fail
 io/test_extension_fail_test: Fail
 io/dart_std_io_pipe_test: Fail
 io/file_read_special_device_test: Fail
+
+[ $compiler == none && $runtime == dartium ]
+assert_test: Fail # Issue 13719: Please triage this failure.
+javascript_int_overflow_literal_test/01: Fail # Issue 13719: Please triage this failure.
+javascript_int_overflow_test: Fail # Issue 13719: Please triage this failure.

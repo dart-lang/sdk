@@ -78,7 +78,7 @@ function notifyDone() {
 
   // TODO(ricow): REMOVE, debug info, see issue 13292
   if (!testRunner) {
-    dartPrint('Calling notifyDone()');
+    printMessage('Calling notifyDone()');
   }
   // To support in browser launching of tests we post back start and result
   // messages to the window.opener.
@@ -91,7 +91,7 @@ function notifyDone() {
 function processMessage(msg) {
   // TODO(ricow): REMOVE, debug info, see issue 13292
   if (!testRunner) {
-    dartPrint('processMessage(): ' + msg);
+    printMessage('processMessage(): ' + msg);
   }
   if (typeof msg != 'string') return;
   if (msg == 'unittest-suite-done') {
@@ -106,7 +106,7 @@ function processMessage(msg) {
       window.postMessage('unittest-suite-success', '*');
     }
   } else if (msg == 'unittest-suite-success') {
-    dartPrint('PASS');
+    printMessage('PASS');
     notifyDone();
   } else if (msg == 'unittest-suite-fail') {
     showErrorAndExit('Some tests failed.');
@@ -125,11 +125,11 @@ window.addEventListener("message", onReceive, false);
 
 function showErrorAndExit(message) {
   if (message) {
-    dartPrint('Error: ' + String(message));
+    printMessage('Error: ' + String(message));
   }
   // dart/tools/testing/run_selenium.py is looking for either PASS or
   // FAIL and will continue polling until one of these words show up.
-  dartPrint('FAIL');
+  printMessage('FAIL');
   notifyDone();
 }
 
@@ -169,27 +169,50 @@ document.addEventListener('readystatechange', function () {
 });
 
 // dart2js will generate code to call this function to handle the Dart
-// [print] method. The base [Configuration] (config.html) calls
-// [print] with the secret messages "unittest-suite-success" and
-// "unittest-suite-wait-for-done". These messages are then posted so
-// processMessage above will see them.
+// [print] method.
+//
+// dartium will invoke this method for [print] calls if the environment variable
+// "DART_FORWARDING_PRINT" was set when launching dartium.
+//
+// Our tests will be wrapped, so we can detect when [main] is called and when
+// it has ended.
+// The wrapping happens either via "dartMainRunner" (for dart2js) or wrapped
+// tests for dartium.
+//
+// The following messages are handled specially:
+//   dart-calling-main:  signals that the dart [main] function will be invoked
+//   dart-main-done:  signals that the dart [main] function has finished
+//   unittest-suite-wait-for-done:  signals the start of an asynchronous test
+//   unittest-suite-success:  signals the end of an asynchrounous test
+//
+// These messages are used to communicate with the test and will be posted so
+// [processMessage] above can see it.
 function dartPrint(msg) {
   if ((msg === 'unittest-suite-success')
       || (msg === 'unittest-suite-done')
-      || (msg === 'unittest-suite-wait-for-done')) {
+      || (msg === 'unittest-suite-wait-for-done')
+      || (msg === 'dart-calling-main')
+      || (msg === 'dart-main-done')) {
     window.postMessage(msg, '*');
     return;
   }
+  printMessage(msg);
+}
+
+// Prints 'msg' to the console (if available) and to the body of the html
+// document.
+function printMessage(msg) {
   if (typeof console === 'object') console.warn(msg);
-  var pre = document.createElement("pre");
+  var pre = document.createElement('pre');
   pre.appendChild(document.createTextNode(String(msg)));
   document.body.appendChild(pre);
+  document.body.appendChild(document.createTextNode('\n'));
 }
 
 // dart2js will generate code to call this function instead of calling
 // Dart [main] directly. The argument is a closure that invokes main.
 function dartMainRunner(main) {
-  window.postMessage('dart-calling-main', '*');
+  dartPrint('dart-calling-main');
   try {
     main();
   } catch (e) {
@@ -198,5 +221,5 @@ function dartMainRunner(main) {
     window.postMessage('unittest-suite-fail', '*');
     return;
   }
-  window.postMessage('dart-main-done', '*');
+  dartPrint('dart-main-done');
 }

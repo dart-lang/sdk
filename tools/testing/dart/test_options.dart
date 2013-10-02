@@ -452,7 +452,7 @@ Note: currently only implemented for dart2js.''',
   Set<String>  _blacklistedOptions = new Set<String>.from([
     'progress', 'failure-summary', 'step_name', 'report', 'tasks', 'verbose',
     'time', 'dart', 'drt', 'dartium', 'build_directory', 'append_logs',
-    'write_debug_log', 'local_ip', 'shard', 'shards',
+    'local_ip', 'shard', 'shards',
   ]);
 
   List<String> _constructReproducingCommandArguments(Map config) {
@@ -676,7 +676,7 @@ Note: currently only implemented for dart2js.''',
           if (configuration['mode'] == 'debug') {
             timeout *= 2;
           }
-          if (const ['drt', 'dartium'].contains(configuration['runtime'])) {
+          if (const ['drt'].contains(configuration['runtime'])) {
             timeout *= 4; // Allow additional time for browser testing to run.
           }
           break;
