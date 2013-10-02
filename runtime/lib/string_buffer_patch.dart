@@ -31,7 +31,7 @@ patch class StringBuffer {
 
   /**
    * The buffer is used to build up a string from code units. It is
-   * used when writing short strings or individul char codes to the
+   * used when writing short strings or individual char codes to the
    * buffer. The buffer is allocated on demand.
    */
   Uint16List _buffer = null;

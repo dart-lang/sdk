@@ -75,6 +75,8 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
     jsobj.AddProperty("source", saved_url.ToCString());
     JSONArray hits_arr(&jsobj, "hits");
 
+    // We stay within this loop while we are seeing functions from the same
+    // source URI.
     while (i < functions.Length()) {
       function ^= functions.At(i);
       script = function.script();
@@ -87,10 +89,12 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
     }
   }
 
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(
-      cls.closures());
+  GrowableObjectArray& closures =
+      GrowableObjectArray::Handle(cls.closures());
   if (!closures.IsNull()) {
     i = 0;
+    // We need to keep rechecking the length of the closures array, as handling
+    // a closure potentially adds new entries to the end.
     while (i < closures.Length()) {
       HANDLESCOPE(isolate);
       function ^= closures.At(i);
@@ -100,6 +104,8 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
       jsobj.AddProperty("source", saved_url.ToCString());
       JSONArray hits_arr(&jsobj, "hits");
 
+      // We stay within this loop while we are seeing functions from the same
+      // source URI.
       while (i < closures.Length()) {
         function ^= closures.At(i);
         script = function.script();
