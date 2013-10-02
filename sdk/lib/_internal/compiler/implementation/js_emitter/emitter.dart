@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+part of dart2js.js_emitter;
 
 /// Enables debugging of fast/slow objects using V8-specific primitives.
 const DEBUG_FAST_OBJECTS = false;
@@ -130,7 +130,8 @@ class CodeEmitterTask extends CompilerTask {
 
   JavaScriptBackend get backend => compiler.backend;
 
-  String get _ => compiler.enableMinification ? "" : " ";
+  String get _ => space;
+  String get space => compiler.enableMinification ? "" : " ";
   String get n => compiler.enableMinification ? "" : "\n";
   String get N => compiler.enableMinification ? "\n" : ";\n";
 
@@ -4253,13 +4254,6 @@ if (typeof $printHelperName === "function") {
 
   bool get areAnyElementsDeferred {
     return compiler.deferredLoadTask.areAnyElementsDeferred;
-  }
-
-  // TODO(ahe): Remove this when deferred loading is fully implemented.
-  void warnNotImplemented(Element element, String message) {
-    compiler.reportMessage(compiler.spanFromSpannable(element),
-                           MessageKind.GENERIC.error({'text': message}),
-                           api.Diagnostic.WARNING);
   }
 
   // TODO(ahe): This code should be integrated in finishClasses.

@@ -3979,9 +3979,10 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   void visitIdentifier(Identifier node) {
     Element element = context.lookup(node.source);
     if (element == null) {
-      error(node, MessageKind.CANNOT_RESOLVE_TYPE.error, {'typeName': node});
+      compiler.reportError(
+          node, MessageKind.CANNOT_RESOLVE_TYPE.error, {'typeName': node});
     } else if (!element.impliesType()) {
-      error(node, MessageKind.NOT_A_TYPE.error, {'node': node});
+      compiler.reportError(node, MessageKind.NOT_A_TYPE.error, {'node': node});
     } else {
       if (element.isClass()) {
         loadSupertype(element, node);
@@ -4343,7 +4344,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       compiler.backend.registerThrowRuntimeError(resolver.mapping);
     }
     if (inConstContext) {
-      error(diagnosticNode, kind.error, arguments);
+      compiler.reportError(diagnosticNode, kind.error, arguments);
     } else {
       ResolutionWarning warning  =
           new ResolutionWarning(

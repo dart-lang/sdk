@@ -11,6 +11,7 @@ import '../closure.dart';
 import '../../compiler.dart' as api;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show FunctionElementX;
+import '../js_emitter/js_emitter.dart' show Emitter, CodeEmitterTask, ClassBuilder;
 
 // TODO(ahe): There seems to be a bug in the VM, so we have to hide "js".
 import '../dart2jslib.dart' hide Selector, TypedSelector, js;
@@ -31,7 +32,6 @@ import '../util/uri_extras.dart' show relativize;
 part 'backend.dart';
 part 'constant_emitter.dart';
 part 'constant_system_javascript.dart';
-part 'emitter.dart';
 part 'minify_namer.dart';
 part 'namer.dart';
 part 'native_emitter.dart';

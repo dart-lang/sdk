@@ -16,7 +16,7 @@ import 'tree/tree.dart';
 import 'universe/universe.dart' show SideEffects;
 import 'util/util.dart';
 import 'js/js.dart' as js;
-
+import 'js_emitter/js_emitter.dart' show CodeEmitterTask;
 
 /// This class is a temporary work-around until we get a more powerful DartType.
 class SpecialType {

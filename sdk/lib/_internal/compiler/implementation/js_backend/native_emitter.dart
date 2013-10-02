@@ -35,7 +35,7 @@ class NativeEmitter {
   Compiler get compiler => emitter.compiler;
   JavaScriptBackend get backend => compiler.backend;
 
-  String get _ => emitter._;
+  String get _ => emitter.space;
   String get n => emitter.n;
   String get N => emitter.N;
 
