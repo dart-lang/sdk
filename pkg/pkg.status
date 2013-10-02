@@ -62,8 +62,6 @@ polymer/test/attr_mustache_test: Fail # Issue 12865, 13197
 polymer/test/event_path_test: Fail # Issue 12865, 13197
 polymer/test/events_test: Fail # Issue 12865, 13197
 polymer/test/prop_attr_reflection_test: Fail # Issue 12865, 13197
-polymer/test/publish_attributes_test: Fail # Issue 12865, 13197
-polymer/test/take_attributes_test: Fail # Issue 12865, 13197
 
 [ $runtime == ie9 || $runtime == ie10 ]
 polymer/test/attr_deserialize_test: Fail, Timeout # Issue 12865, 13197, 13260
