@@ -23,9 +23,7 @@ class VMConfiguration extends SimpleConfiguration {
 
   VMConfiguration()
       : super(),
-        // TODO(nweiz): Re-enable this when issue 13712 is fixed.
-        // useColor = stdioType(stdout) == StdioType.TERMINAL;
-        useColor = false;
+        useColor = stdioType(stdout) == StdioType.TERMINAL;
 
   String formatResult(TestCase testCase) {
     String result = super.formatResult(testCase);
