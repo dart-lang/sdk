@@ -3675,7 +3675,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Element element = elements[node];
     if (element.isClass() || element.isTypedef()) {
       // TODO(karlklose): add type representation
-      stack.add(addConstant(node));
+      if (node.isCall) {
+        // The node itself is not a constant but we register the selector (the
+        // identifier that refers to the class/typedef) as a constant.
+        stack.add(addConstant(node.selector));
+      } else {
+        stack.add(addConstant(node));
+      }
     } else if (element.isTypeVariable()) {
       HInstruction value =
           addTypeVariableReference(element.computeType(compiler));

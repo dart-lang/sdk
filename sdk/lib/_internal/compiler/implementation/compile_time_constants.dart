@@ -91,9 +91,6 @@ class ConstantHandler extends CompilerTask {
                                           TreeElements definitions,
                                           {bool isConst: false}) {
     return measure(() {
-      // Initializers for parameters must be const.
-      isConst = isConst || element.modifiers.isConst()
-          || !Elements.isStaticOrTopLevel(element);
       if (!isConst && lazyStatics.contains(element)) return null;
 
       Node node = element.parseNode(compiler);
@@ -151,9 +148,17 @@ class ConstantHandler extends CompilerTask {
                                       {bool isConst: false}) {
     return measure(() {
       assert(node != null);
+      Constant constant = definitions.getConstant(node);
+      if (constant != null) {
+        return constant;
+      }
       CompileTimeConstantEvaluator evaluator = new CompileTimeConstantEvaluator(
           this, definitions, compiler, isConst: isConst);
-      return evaluator.evaluate(node);
+      constant = evaluator.evaluate(node);
+      if (constant != null) {
+        definitions.setConstant(node, constant);
+      }
+      return constant;
     });
   }
 
@@ -397,8 +402,6 @@ class CompileTimeConstantEvaluator extends Visitor {
 
   Constant makeTypeConstant(Element element) {
     DartType elementType = element.computeType(compiler).asRaw();
-    compiler.backend.registerTypeLiteral(
-        element, compiler.enqueuer.codegen, elements);
     DartType constantType =
         compiler.backend.typeImplementation.computeType(compiler);
     return new TypeConstant(elementType, constantType);
@@ -419,6 +422,7 @@ class CompileTimeConstantEvaluator extends Visitor {
         }
         if (result != null) return result;
       } else if (Elements.isClass(element) || Elements.isTypedef(element)) {
+        assert(elements.isTypeLiteral(send));
         return makeTypeConstant(element);
       } else if (send.receiver != null) {
         // Fall through to error handling.
@@ -437,7 +441,10 @@ class CompileTimeConstantEvaluator extends Visitor {
         Constant result = constantSystem.identity.fold(left, right);
         if (result != null) return result;
       } else if (Elements.isClass(element) || Elements.isTypedef(element)) {
-        return makeTypeConstant(element);
+        // The node itself is not a constant but we register the selector (the
+        // identifier that refers to the class/typedef) as a constant.
+        Constant typeConstant = makeTypeConstant(element);
+        elements.setConstant(send.selector, typeConstant);
       }
       return signalNotCompileTimeConstant(send);
     } else if (send.isPrefix) {
@@ -553,6 +560,25 @@ class CompileTimeConstantEvaluator extends Visitor {
       return folded;
     }
     return signalNotCompileTimeConstant(send);
+  }
+
+  Constant visitConditional(Conditional node) {
+    Constant condition = evaluate(node.condition);
+    if (condition == null) {
+      return null;
+    } else if (!condition.isBool()) {
+      DartType conditionType = condition.computeType(compiler);
+      if (isEvaluatingConstant) {
+        compiler.reportFatalError(
+            node.condition, MessageKind.NOT_ASSIGNABLE.error,
+            {'fromType': conditionType, 'toType': compiler.boolClass.rawType});
+      }
+      return null;
+    }
+    Constant thenExpression = evaluate(node.thenExpression);
+    Constant elseExpression = evaluate(node.elseExpression);
+    BoolConstant boolCondition = condition;
+    return boolCondition.value ? thenExpression : elseExpression;
   }
 
   Constant visitSendSet(SendSet node) {

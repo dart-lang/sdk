@@ -2441,7 +2441,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // type literal.
         mapping.setType(node, compiler.typeClass.computeType(compiler));
         world.registerTypeLiteral(target, mapping);
-        analyzeConstant(node);
+
+        // Don't try to make constants of calls to type literals.
+        analyzeConstant(node, isConst: !node.isCall);
       }
     }
 
@@ -2892,11 +2894,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
     return null;
   }
 
-  void analyzeConstant(Node node) {
+  void analyzeConstant(Node node, {bool isConst: true}) {
     addPostProcessAction(enclosingElement, () {
-      mapping.setConstant(node,
-          compiler.constantHandler.compileNodeWithDefinitions(
-              node, mapping, isConst: true));
+       compiler.constantHandler.compileNodeWithDefinitions(
+           node, mapping, isConst: isConst);
     });
   }
 

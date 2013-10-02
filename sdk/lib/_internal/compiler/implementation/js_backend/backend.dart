@@ -757,6 +757,10 @@ class JavaScriptBackend extends Backend {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstant interceptor = constant;
       registerInstantiatedConstantType(interceptor.dispatchedType, elements);
+    } else if (constant.isType()) {
+      TypeConstant typeConstant = constant;
+      registerTypeLiteral(typeConstant.representedType.element,
+          compiler.enqueuer.codegen, elements);
     }
   }
 

@@ -11,6 +11,7 @@ mixin_super_constructor_positionals_test: Fail # Issue 12631
 built_in_identifier_prefix_test: Fail # Issue 6970
 library_juxtaposition_test: Fail # Issue 6877
 throwing_lazy_variable_test: Fail # Issue 5802
+const_conditional_test/08: MissingCompileTimeError # Issue 13746
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633

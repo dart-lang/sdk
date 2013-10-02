@@ -129,6 +129,13 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK 
 LibTest/core/int/isOdd_A01_t01: RuntimeError, OK # co19 issue 277
 LibTest/core/int/isEven_A01_t01: RuntimeError, OK # co19 issue 277
 
+Language/12_Expressions/01_Constants_A20_t03: MissingCompileTimeError # co19 Issue 611
+
+[ $compiler == dart2js || $compiler == dart2dart ]
+
+Language/12_Expressions/01_Constants_A15_t16: MissingCompileTimeError # co19 Issue 593
+
+
 [ $compiler == dart2js ]
 LibTest/isolate/IsolateSink/add_A01_t01: CompileTimeError # Issue 13683
 LibTest/isolate/SendPort/send_A02_t01: CompileTimeError # Issue 13683
@@ -315,7 +322,6 @@ LibTest/math/log_A01_t01: Fail # TODO(kasperl): Please triage.
 #
 [ $compiler == dart2js ]
 Language/07_Classes/07_Classes_A02_t11: MissingCompileTimeError # Checks that it is a compile-time error if a static final variable declaration does not include explicit initializer.
-Language/12_Expressions/01_Constants_A20_t03: MissingCompileTimeError # Checks that an identifier expression that denotes a type parameter  can not be assigned to a constant variable.
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t09: MissingCompileTimeError # Checks that it is a compile-time error if a string interpolation construct does not start with IDENTIFIER_NO_DOLLAR or opening brace.
 Language/12_Expressions/05_Strings_A02_t46: MissingCompileTimeError # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
 Language/12_Expressions/05_Strings_A02_t48: MissingCompileTimeError # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
