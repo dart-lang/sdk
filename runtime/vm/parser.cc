@@ -1019,7 +1019,7 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
   if (field.is_const()) {
     // This getter will only be called once at compile time.
     if (expr->EvalConstExpr() == NULL) {
-      ErrorMsg(expr_pos, "initializer must be a compile-time constant");
+      ErrorMsg(expr_pos, "initializer is not a valid compile-time constant");
     }
     ReturnNode* return_node = new ReturnNode(ident_pos, expr);
     current_block_->statements->Add(return_node);
@@ -7657,7 +7657,7 @@ AstNode* Parser::FoldConstExpr(intptr_t expr_pos, AstNode* expr) {
     return expr;
   }
   if (expr->EvalConstExpr() == NULL) {
-    ErrorMsg(expr_pos, "expression must be a compile-time constant");
+    ErrorMsg(expr_pos, "expression is not a valid compile-time constant");
   }
   return new LiteralNode(expr_pos, EvaluateConstExpr(expr));
 }
@@ -7827,7 +7827,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
   ConsumeToken();
   const intptr_t right_expr_pos = TokenPos();
   if (require_compiletime_const && (assignment_op != Token::kASSIGN)) {
-    ErrorMsg(right_expr_pos, "expression must be a compile-time constant");
+    ErrorMsg(right_expr_pos, "expression is not a valid compile-time constant");
   }
   AstNode* right_expr = ParseExpr(require_compiletime_const, consume_cascades);
   if (assignment_op != Token::kASSIGN) {

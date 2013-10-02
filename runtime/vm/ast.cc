@@ -386,6 +386,7 @@ bool ConditionalExprNode::IsPotentiallyConst() const {
 const Instance* ConditionalExprNode::EvalConstExpr() const {
   const Instance* cond = this->condition()->EvalConstExpr();
   if ((cond != NULL) &&
+      cond->IsBool() &&
       (this->true_expr()->EvalConstExpr() != NULL) &&
       (this->false_expr()->EvalConstExpr() != NULL)) {
     return cond;
