@@ -279,6 +279,8 @@ class Primitives {
     return JS('int', '#', hash);
   }
 
+  static computeGlobalThis() => JS('', 'function() { return this; }()');
+
   /**
    * This is the low-level method that is used to implement
    * [print]. It is possible to override this function from JavaScript

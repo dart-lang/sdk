@@ -224,7 +224,9 @@ function DartProxy(o) {
 (function() {
   // Proxy support for js.dart.
 
-  var globalContext = window;
+  // We don't use 'window' because we might be in a web worker, but we don't
+  // use 'self' because not all browsers support it
+  var globalContext = function() { return this; }();
 
   // Table for local objects and functions that are proxied.
   function ProxiedObjectTable() {

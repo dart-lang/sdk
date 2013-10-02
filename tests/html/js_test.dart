@@ -151,6 +151,12 @@ main() {
   _injectJs();
   useHtmlConfiguration();
 
+  test('context instances should be identical', () {
+    var c1 = context;
+    var c2 = context;
+    expect(identical(c1, c2), isTrue);
+  });
+
   test('read global field', () {
     expect(context['x'], equals(42));
     expect(context['y'], isNull);
