@@ -352,21 +352,16 @@ class Namer implements ClosureNamer {
         ? library
         : shortPrivateNameOwners.putIfAbsent(nameString, () => library);
 
-    // If a private name could clash with a mangled private name we don't
-    // use the short name. For example a private name "_lib3_foo" would
-    // clash with "_foo" from "lib3".
-    if (owner == library &&
-        !nameString.startsWith('_$LIBRARY_PREFIX') &&
-        !shouldMinify) {
+    if (owner == library && !shouldMinify && !nameString.contains('\$')) {
+      // Since the name doesn't contain $ it doesn't clash with any
+      // of the private names that have the library name as the prefix.
       return nameString;
+    } else {
+      // Make sure to return a private name that starts with _ so it
+      // cannot clash with any public names.
+      String libraryName = getNameOfLibrary(library);
+      return '_$libraryName\$$nameString';
     }
-
-    // If a library name does not start with the [LIBRARY_PREFIX] then our
-    // assumptions about clashing with mangled private members do not hold.
-    String libraryName = getNameOfLibrary(library);
-    assert(shouldMinify || libraryName.startsWith(LIBRARY_PREFIX));
-    // TODO(erikcorry): Fix this with other manglings to avoid clashes.
-    return '_lib$libraryName\$$nameString';
   }
 
   String instanceMethodName(FunctionElement element) {
@@ -563,8 +558,6 @@ class Namer implements ClosureNamer {
     return new SourceString("${name.slowToString()}_$id");
   }
 
-  static const String LIBRARY_PREFIX = "lib";
-
   /**
    * Returns a preferred JS-id for the given top-level or static element.
    * The returned id is guaranteed to be a valid JS-id.
@@ -589,7 +582,16 @@ class Namer implements ClosureNamer {
         name = element.name.slowToString().replaceAll('+', '_');
       }
     } else if (element.isLibrary()) {
-      name = LIBRARY_PREFIX;
+      LibraryElement library = element;
+      name = library.getLibraryOrScriptName();
+      if (name.contains('.')) {
+        // For libraries that have a library tag, we use the last part
+        // of the fully qualified name as their base name. For all other
+        // libraries, we use the first part of their filename.
+        name = library.hasLibraryName()
+            ? name.substring(name.lastIndexOf('.') + 1)
+            : name.substring(0, name.indexOf('.'));
+      }
     } else {
       name = element.name.slowToString();
     }
@@ -777,9 +779,6 @@ class Namer implements ClosureNamer {
           kind == ElementKind.TYPEDEF ||
           kind == ElementKind.LIBRARY) {
         bool fixedName = false;
-        if (kind == ElementKind.CLASS) {
-          ClassElement classElement = element;
-        }
         if (Elements.isInstanceField(element)) {
           fixedName = element.hasFixedBackendName();
         }
