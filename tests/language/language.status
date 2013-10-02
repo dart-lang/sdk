@@ -40,6 +40,9 @@ compile_time_constant_checked3_test/06: MissingCompileTimeError # Issue 13685
 [ $compiler == none && $runtime == vm && $unchecked ]
 const_conditional_test/08: MissingCompileTimeError # Issue 13746
 
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $unchecked ]
+const_conditional_test/08: Fail # Issue 13746
+
 [ $compiler == none && $unchecked ]
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
