@@ -278,8 +278,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void HandleStoreLocal(StoreLocalNode* node, bool result_is_needed);
 
   // Helpers for translating parts of the AST.
-  void TranslateArgumentList(const ArgumentListNode& node,
-                             ZoneGrowableArray<Value*>* values);
   void BuildPushArguments(const ArgumentListNode& node,
                           ZoneGrowableArray<PushArgumentInstr*>* values);
 

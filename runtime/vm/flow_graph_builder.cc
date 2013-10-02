@@ -2151,18 +2151,6 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
 }
 
 
-void EffectGraphVisitor::TranslateArgumentList(
-    const ArgumentListNode& node,
-    ZoneGrowableArray<Value*>* values) {
-  for (intptr_t i = 0; i < node.length(); ++i) {
-    ValueGraphVisitor for_argument(owner(), temp_index());
-    node.NodeAt(i)->Visit(&for_argument);
-    Append(for_argument);
-    values->Add(for_argument.value());
-  }
-}
-
-
 void EffectGraphVisitor::BuildPushArguments(
     const ArgumentListNode& node,
     ZoneGrowableArray<PushArgumentInstr*>* values) {
