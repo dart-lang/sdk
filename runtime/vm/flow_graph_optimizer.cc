@@ -6035,6 +6035,9 @@ void ConstantPropagator::VisitPolymorphicInstanceCall(
 
 
 void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
+  SetValue(instr, non_constant_);
+  return;
+  // TODO(srdjan): Enable code below once issues resolved.
   if (IsNonConstant(instr->constant_value())) {
     // Do not bother with costly analysis if we already know that the
     // instruction is not a constant.
