@@ -4148,7 +4148,7 @@ class Place : public ValueObject {
     switch (instr->tag()) {
       case Instruction::kLoadField: {
         LoadFieldInstr* load_field = instr->AsLoadField();
-        instance_ = load_field->instance()->definition();
+        instance_ = OriginalDefinition(load_field->instance()->definition());
         if (load_field->field() != NULL) {
           kind_ = kField;
           field_ = load_field->field();
@@ -4164,7 +4164,8 @@ class Place : public ValueObject {
         StoreInstanceFieldInstr* store_instance_field =
             instr->AsStoreInstanceField();
         kind_ = kField;
-        instance_ = store_instance_field->instance()->definition();
+        instance_ =
+            OriginalDefinition(store_instance_field->instance()->definition());
         field_ = &store_instance_field->field();
         break;
       }
@@ -4172,7 +4173,7 @@ class Place : public ValueObject {
       case Instruction::kStoreVMField: {
         StoreVMFieldInstr* store_vm_field = instr->AsStoreVMField();
         kind_ = kVMField;
-        instance_ = store_vm_field->dest()->definition();
+        instance_ = OriginalDefinition(store_vm_field->dest()->definition());
         offset_in_bytes_ = store_vm_field->offset_in_bytes();
         break;
       }
@@ -4191,7 +4192,7 @@ class Place : public ValueObject {
       case Instruction::kLoadIndexed: {
         LoadIndexedInstr* load_indexed = instr->AsLoadIndexed();
         kind_ = kIndexed;
-        instance_ = load_indexed->array()->definition();
+        instance_ = OriginalDefinition(load_indexed->array()->definition());
         index_ = load_indexed->index()->definition();
         *is_load = true;
         break;
@@ -4200,7 +4201,7 @@ class Place : public ValueObject {
       case Instruction::kStoreIndexed: {
         StoreIndexedInstr* store_indexed = instr->AsStoreIndexed();
         kind_ = kIndexed;
-        instance_ = store_indexed->array()->definition();
+        instance_ = OriginalDefinition(store_indexed->array()->definition());
         index_ = store_indexed->index()->definition();
         break;
       }
@@ -4231,7 +4232,7 @@ class Place : public ValueObject {
 
   void set_instance(Definition* def) {
     ASSERT((kind_ == kField) || (kind_ == kVMField) || (kind_ == kIndexed));
-    instance_ = def;
+    instance_ = OriginalDefinition(def);
   }
 
   const Field& field() const {
@@ -4302,6 +4303,13 @@ class Place : public ValueObject {
   static Place* Wrap(const Place& place);
 
  private:
+  static Definition* OriginalDefinition(Definition* defn) {
+    while (defn->IsRedefinition()) {
+      defn = defn->AsRedefinition()->value()->definition();
+    }
+    return defn;
+  }
+
   bool SameField(Place* other) const {
     return (kind_ == kField) ? (field().raw() == other->field().raw())
                              : (offset_in_bytes_ == other->offset_in_bytes_);
@@ -6280,6 +6288,16 @@ void ConstantPropagator::VisitLoadUntagged(LoadUntaggedInstr* instr) {
 
 
 void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
+  intptr_t cid = instr->object()->Type()->ToCid();
+  if (cid != kDynamicCid) {
+    SetValue(instr, Smi::ZoneHandle(Smi::New(cid)));
+    return;
+  }
+  const Object& object = instr->object()->definition()->constant_value();
+  if (IsConstant(object)) {
+    SetValue(instr, Smi::ZoneHandle(Smi::New(object.GetClassId())));
+    return;
+  }
   SetValue(instr, non_constant_);
 }
 

@@ -650,7 +650,8 @@ void Float32x4ConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void Float32x4ComparisonInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Float32x4 Comparison %d", op_kind());
+  f->Print("Float32x4 Comparison %s, ",
+           MethodRecognizer::KindToCString(op_kind()));
   left()->PrintTo(f);
   f->Print(", ");
   right()->PrintTo(f);
