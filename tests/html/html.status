@@ -421,5 +421,4 @@ custom/entered_left_view_test/standard_events: Fail # Issue 13719: Please triage
 custom/entered_left_view_test/viewless_document: Fail # Issue 13719: Please triage this failure.
 dromaeo_smoke_test: Fail # Issue 13719: Please triage this failure.
 element_offset_test/offset: Fail # Issue 13719: Please triage this failure.
-swarm/test/swarm_test: Fail # Issue 13719: Please triage this failure.
 touchevent_test/supported: Fail # Issue 13719: Please triage this failure.

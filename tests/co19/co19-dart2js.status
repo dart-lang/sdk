@@ -101,7 +101,6 @@ LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096
 LibTest/core/double/round_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 LibTest/core/int/operator_truncating_division_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # TODO(ngeoaffray): Please triage these failure.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 
 [ $compiler == dart2js && $checked ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
@@ -130,11 +129,6 @@ LibTest/core/int/isOdd_A01_t01: RuntimeError, OK # co19 issue 277
 LibTest/core/int/isEven_A01_t01: RuntimeError, OK # co19 issue 277
 
 Language/12_Expressions/01_Constants_A20_t03: MissingCompileTimeError # co19 Issue 611
-
-[ $compiler == dart2js || $compiler == dart2dart ]
-
-Language/12_Expressions/01_Constants_A15_t16: MissingCompileTimeError # co19 Issue 593
-
 
 [ $compiler == dart2js ]
 LibTest/isolate/IsolateSink/add_A01_t01: CompileTimeError # Issue 13683
@@ -233,16 +227,10 @@ LibTest/typed_data/ByteData/setUint8_A02_t01: fail # Issue 12989
 LibTest/typed_data/ByteData/setUint8_A02_t02: fail # Issue 12989
 LibTest/typed_data/ByteData/setUint8_A02_t02: fail # Issue 12989
 
-LibTest/typed_data/Float32x4/toUint32x4_A01_t01: RuntimeError # co19 Issue 601
-LibTest/typed_data/Float32x4/toUint32x4_A01_t02: RuntimeError # co19 Issue 601
-LibTest/typed_data/Uint32x4/toFloat32x4_A01_t01: RuntimeError # co19 Issue 601
-LibTest/typed_data/Uint32x4/toFloat32x4_A01_t02: RuntimeError # co19 Issue 601
-
 Language/14_Libraries_and_Scripts/1_Imports_A01_t17: Fail # co19 Issue 603
 Language/14_Libraries_and_Scripts/1_Imports_A04_t01: Fail # co19 Issue 603
 
 [ $compiler == dart2js && $jscl ]
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail, Pass # issue 3333
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError, OK # This is not rejected by V8.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK # co19 issue 92.
@@ -321,7 +309,6 @@ LibTest/math/log_A01_t01: Fail # TODO(kasperl): Please triage.
 # Missing compile-time errors.
 #
 [ $compiler == dart2js ]
-Language/07_Classes/07_Classes_A02_t11: MissingCompileTimeError # Checks that it is a compile-time error if a static final variable declaration does not include explicit initializer.
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t09: MissingCompileTimeError # Checks that it is a compile-time error if a string interpolation construct does not start with IDENTIFIER_NO_DOLLAR or opening brace.
 Language/12_Expressions/05_Strings_A02_t46: MissingCompileTimeError # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
 Language/12_Expressions/05_Strings_A02_t48: MissingCompileTimeError # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
@@ -425,7 +412,6 @@ Language/07_Classes/4_Abstract_Instance_Members_A03_t03: fail # co19-roll r559: 
 Language/07_Classes/4_Abstract_Instance_Members_A03_t04: fail # co19-roll r559: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A02_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t06: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t09: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/05_Strings_A20_t01: fail # co19-roll r546: Please triage this failure

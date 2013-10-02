@@ -20,7 +20,6 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: Fail # Iss
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: Fail # Issue 13719: Please triage this failure.
 Language/09_Mixins/1_Mixin_Application_A01_t01: Fail # co19-roll r607: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: Fail # Issue 13719: Please triage this failure.
-Language/12_Expressions/01_Constants_A15_t16: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/01_Constants_A16_t01: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/01_Constants_A16_t02: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/01_Constants_A16_t04: Fail # Issue 13719: Please triage this failure.
@@ -30,7 +29,6 @@ Language/12_Expressions/05_Strings_A02_t48: Fail # Issue 13719: Please triage th
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: Fail # Issue 13719: Please triage this failure.
-Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A03_t03: Fail # co19-roll r607: Please triage this failure
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/18_Assignment_A01_t07: Fail  # co19-roll r607: Please triage this failure
@@ -88,7 +86,6 @@ LibTest/core/Match/operator_subscript_A01_t01: Fail # Issue 13719: Please triage
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # Issue 13719: Please triage this failure.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # Issue 13719: Please triage this failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Issue 13719: Please triage this failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue 13719: Please triage this failure.
@@ -119,8 +116,4 @@ LibTest/isolate/ReceivePort/receive_A01_t02: Fail # Issue 13719: Please triage t
 LibTest/isolate/SendPort/send_A01_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/typed_data/Float32x4/clamp_A01_t01: Fail # Issue 13719: Please triage this failure.
-LibTest/typed_data/Float32x4/toUint32x4_A01_t01: Fail # Issue 13719: Please triage this failure.
-LibTest/typed_data/Float32x4/toUint32x4_A01_t02: Fail # Issue 13719: Please triage this failure.
 LibTest/typed_data/Int8List/Int8List.fromList_A01_t02: Fail # Issue 13719: Please triage this failure.
-LibTest/typed_data/Uint32x4/toFloat32x4_A01_t01: Fail # Issue 13719: Please triage this failure.
-LibTest/typed_data/Uint32x4/toFloat32x4_A01_t02: Fail # Issue 13719: Please triage this failure.

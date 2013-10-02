@@ -25,7 +25,6 @@ Language/03_Overview/1_Scoping_A02_t06: Fail # inherited from dart2js
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Inherited from VM (circular initialization?).
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Inherited from dart2js
 Language/06_Functions/4_External_Functions_A01_t01: Fail # inherited from VM
-Language/07_Classes/07_Classes_A02_t11: Fail # http://dartbug.com/5519
 Language/07_Classes/3_Setters_A04_t01: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t02: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t03: Fail # inherited from VM
@@ -45,7 +44,6 @@ LibTest/core/Match/operator_subscript_A01_t01: Fail, OK # co19 issue 294
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail, OK # co19 issue 294
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # inherited from VM
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # inherited from VM
@@ -68,10 +66,6 @@ LibTest/isolate/SendPort/send_A02_t01: CompileTimeError # Issue 13683
 LibTest/math/exp_A01_t01: Fail # Issue co19 - 44
 LibTest/math/sin_A01_t01: Fail # Inherited from VM.
 LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
-LibTest/typed_data/Float32x4/toUint32x4_A01_t01: Fail # co19 Issue 601
-LibTest/typed_data/Float32x4/toUint32x4_A01_t02: Fail # co19 Issue 601
-LibTest/typed_data/Uint32x4/toFloat32x4_A01_t01: Fail # co19 Issue 601
-LibTest/typed_data/Uint32x4/toFloat32x4_A01_t02: Fail # co19 Issue 601
 LibTest/typed_data/Float32x4/clamp_A01_t01: RuntimeError # co19 Issue 600
 
 
@@ -137,7 +131,6 @@ Language/12_Expressions/12_Instance_Creation/1_New_A06_t05: fail # co19-roll r54
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t06: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/22_Equality_A01_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/22_Equality_A01_t19: fail # co19-roll r546: Please triage this failure

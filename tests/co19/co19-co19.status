@@ -49,12 +49,8 @@ LibTest/math/asin_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/atan_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/cos_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/exp_A01_t01: PASS, FAIL, OK # co19 issue 44
-LibTest/math/max_A01_t03: FAIL, OK # co19 issue 467
-LibTest/math/min_A01_t03: FAIL, OK # co19 issue 467
 LibTest/math/sin_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/tan_A01_t01: PASS, FAIL, OK  # co19 issue 44
-
-LibTest/collection/Queue/iterator_current_A01_t02: FAIL, OK # co19 issue 475
 
 LibTest/core/double/ceil_A01_t03: FAIL, OK # co19 issue 389
 LibTest/core/double/ceil_A01_t04: FAIL, OK # co19 issue 389
@@ -62,8 +58,6 @@ LibTest/core/double/floor_A01_t03: FAIL, OK # co19 issue 389
 LibTest/core/double/floor_A01_t04: FAIL, OK # co19 issue 389
 LibTest/core/double/round_A01_t02: FAIL, OK # co19 issue 389
 LibTest/core/double/round_A01_t04: FAIL, OK # co19 issue 389
-LibTest/core/double/truncate_A01_t03: FAIL, OK # co19 issue 389
-LibTest/core/double/truncate_A01_t04: FAIL, OK # co19 issue 389
 
 LibTest/async/Stream/Stream.periodic_A01_t01: TIMEOUT, PASS, FAIL, OK # co19 issue 538
 LibTest/async/Stream/Stream.periodic_A03_t01: PASS, FAIL, OK # co19 issue 538
@@ -78,40 +72,11 @@ LibTest/isolate/SendPort/send_A02_t02: SKIP # co19 issue 493
 LibTest/isolate/SendPort/send_A02_t03: SKIP # co19 issue 495
 
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: PASS, FAIL, OK # co19 issue 540
-LibTest/isolate/isolate_api/streamSpawnFunction_A02_t03: PASS, FAIL, OK # co19 issue 540
 LibTest/isolate/IsolateStream/contains_A02_t01: PASS, FAIL, OK # co19 issue 540
 
 LibTest/async/EventTransformStream/listen_A04_t01: Pass, Timeout # co19 issue 542
 
 LibTest/typed_data/Int8List/Int8List.fromList_A01_t02: Fail # co19-roll r559: Please triage this failure
-
-LibTest/typed_data/Float32List/removeAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Float32List/retainAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Float32x4List/removeAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Float32x4List/retainAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Float64List/removeAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Float64List/retainAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Int16List/removeAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Int16List/retainAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Int32List/removeAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Int32List/retainAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Int64List/removeAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Int64List/retainAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Int8List/removeAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Int8List/retainAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Uint16List/removeAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Uint16List/retainAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Uint32List/removeAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Uint32List/retainAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Uint64List/removeAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Uint64List/retainAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Uint8ClampedList/removeAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Uint8ClampedList/retainAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Uint8List/removeAll_A01_t01: Fail  # co19 issue 548
-LibTest/typed_data/Uint8List/retainAll_A01_t01: Fail  # co19 issue 548
-
-LibTest/core/String/concat_A01_t01: Fail  # co19 issue 561
-LibTest/core/String/concat_A02_t01: Fail  # co19 issue 561
 
 ### CHECKED MODE FAILURES ###
 
@@ -121,13 +86,5 @@ Language/13_Statements/09_Switch_A05_t01: FAIL, OK # co19 issue 498
 Language/14_Libraries_and_Scripts/1_Imports_A03_t46: PASS, FAIL, OK # co19 issue 560
 Language/14_Libraries_and_Scripts/1_Imports_A03_t66: PASS, FAIL, OK # co19 issue 560
 LibTest/async/EventTransformStream/contains_A01_t01: FAIL, OK  # co19 issue 498
-LibTest/core/DateTime/compareTo_A02_t01: FAIL, OK  # co19 issue 498
 LibTest/core/List/removeAt_A02_t01: FAIL, OK  # co19 issue 498
-LibTest/core/TypeError/column_A01_t01: FAIL, OK # co19 issue 510
-LibTest/core/TypeError/dstName_A01_t01: FAIL, OK # co19 issue 510
-LibTest/core/TypeError/dstType_A01_t01: FAIL, OK # co19 issue 510
-LibTest/core/TypeError/failedAssertion_A01_t01: FAIL, OK # co19 issue 510
-LibTest/core/TypeError/line_A01_t01: FAIL, OK # co19 issue 510
-LibTest/core/TypeError/srcType_A01_t01: FAIL, OK # co19 issue 510
-LibTest/core/TypeError/url_A01_t01: FAIL, OK # co19 issue 510
 LibTest/collection/DoubleLinkedQueue/removeFirst_A01_t01: RuntimeError # co19-roll r607: Please triage this failure

@@ -9,7 +9,6 @@ Language/13_Statements/03_Variable_Declaration_A04_t01: MissingCompileTimeError 
 Language/13_Statements/03_Variable_Declaration_A04_t02: MissingCompileTimeError # Issue 7052
 Language/13_Statements/03_Variable_Declaration_A04_t05: MissingCompileTimeError # Issue 7052
 Language/13_Statements/03_Variable_Declaration_A04_t06: MissingCompileTimeError # Issue 7052
-Language/12_Expressions/01_Constants_A15_t16: Fail # This test will be removed in the next co19 update
 
 [ $compiler == none && $runtime == vm ]
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Dart issue 5802
@@ -19,7 +18,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # Issue 1250
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # Issue 12508
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue 12508
@@ -77,7 +75,6 @@ Language/12_Expressions/05_Strings_A02_t48: fail # Dart issue 12547
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # Dart issue 12549
 Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: fail # Dart issue 1372
 Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19 issue 525
-Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: fail # Dart issue 12550
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: fail # Dart issue 12549
 Language/12_Expressions/30_Identifier_Reference_A08_t02: fail # Dart issue 12593
 Language/12_Expressions/32_Type_Test_A04_t02: fail # co19 issue 503
@@ -148,10 +145,6 @@ LibTest/typed_data/Float32x4/clamp_A01_t01: Pass, Fail # Issue 13543
 LibTest/typed_data/Float32x4/clamp_A02_t01: Pass, Fail # Issue 13543
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # Issue 13543
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # Issue 13543
-LibTest/typed_data/Float32x4/toUint32x4_A01_t01: Fail # co19 Issue 601
-LibTest/typed_data/Float32x4/toUint32x4_A01_t02: Fail # co19 Issue 601
-LibTest/typed_data/Uint32x4/toFloat32x4_A01_t01: Fail # co19 Issue 601
-LibTest/typed_data/Uint32x4/toFloat32x4_A01_t02: Fail # co19 Issue 601
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t08: MissingCompileTimeError # co19-roll r607: Please triage this failure
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t09: MissingCompileTimeError # co19-roll r607: Please triage this failure
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
