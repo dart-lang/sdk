@@ -55,8 +55,7 @@ import '../util/characters.dart' show
 import '../util/uri_extras.dart' show
     relativize;
 
-
 part 'class_builder.dart';
 part 'closure_invocation_element.dart';
+part 'code_emitter_task.dart';
 part 'declarations.dart';
-part 'emitter.dart';
