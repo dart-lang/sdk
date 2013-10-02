@@ -68,19 +68,19 @@ $!MEMBERS
    *     img.height = 100;
    *
    *     // Scale the image to 20x20.
-   *     ctx.drawImageToRect(img, new Rectangle(50, 50, 20, 20));
+   *     ctx.drawImageToRect(img, new Rect(50, 50, 20, 20));
    *
    *     VideoElement video = document.query('video');
    *     video.width = 100;
    *     video.height = 100;
    *     // Take the middle 20x20 pixels from the video and stretch them.
-   *     ctx.drawImageToRect(video, new Rectangle(50, 50, 100, 100),
-   *         sourceRect: new Rectangle(40, 40, 20, 20));
+   *     ctx.drawImageToRect(video, new Rect(50, 50, 100, 100),
+   *         sourceRect: new Rect(40, 40, 20, 20));
    *
    *     // Draw the top 100x20 pixels from the otherCanvas.
    *     CanvasElement otherCanvas = document.query('canvas');
-   *     ctx.drawImageToRect(otherCanvas, new Rectangle(0, 0, 100, 20),
-   *         sourceRect: new Rectangle(0, 0, 100, 20));
+   *     ctx.drawImageToRect(otherCanvas, new Rect(0, 0, 100, 20),
+   *         sourceRect: new Rect(0, 0, 100, 20));
    *
    * See also:
    *
@@ -90,8 +90,8 @@ $!MEMBERS
    * from the WHATWG.
    */
   @DomName('CanvasRenderingContext2D.drawImage')
-  void drawImageToRect(CanvasImageSource source, Rectangle destRect,
-      {Rectangle sourceRect}) {
+  void drawImageToRect(CanvasImageSource source, Rect destRect,
+      {Rect sourceRect}) {
 $if DART2JS
     if (sourceRect == null) {
       drawImageScaled(source,

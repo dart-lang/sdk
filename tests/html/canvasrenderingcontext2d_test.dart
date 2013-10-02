@@ -363,7 +363,7 @@ main() {
       var img = new ImageElement();
 
       img.onLoad.listen(expectAsync1((_) {
-        context.drawImageToRect(img, new Rectangle(50, 50, 20, 20));
+        context.drawImageToRect(img, new Rect(50, 50, 20, 20));
 
         expectPixelFilled(50, 50);
         expectPixelFilled(55, 55);
@@ -393,8 +393,8 @@ main() {
         // This will take a 6x6 square from the first canvas from position 2,2
         // and then scale it to a 20x20 square and place it to the second
         // canvas at 50,50.
-        context.drawImageToRect(img, new Rectangle(50, 50, 20, 20),
-          sourceRect: new Rectangle(2, 2, 6, 6));
+        context.drawImageToRect(img, new Rect(50, 50, 20, 20),
+          sourceRect: new Rect(2, 2, 6, 6));
 
         checkPixel(readPixel(50, 50), [255, 0, 0, 255]);
         checkPixel(readPixel(55, 55), [255, 0, 0, 255]);
@@ -511,7 +511,7 @@ main() {
 
     test('with 5 params', () {
       video.onCanPlay.listen(expectAsync1((_) {
-        context.drawImageToRect(video, new Rectangle(50, 50, 20, 20));
+        context.drawImageToRect(video, new Rect(50, 50, 20, 20));
 
         expectPixelFilled(50, 50);
         expectPixelFilled(55, 55);
@@ -541,8 +541,8 @@ main() {
 
     test('with 9 params', () {
       video.onCanPlay.listen(expectAsync1((_) {
-        context.drawImageToRect(video, new Rectangle(50, 50, 20, 20),
-          sourceRect: new Rectangle(2, 2, 6, 6));
+        context.drawImageToRect(video, new Rect(50, 50, 20, 20),
+          sourceRect: new Rect(2, 2, 6, 6));
 
         expectPixelFilled(50, 50);
         expectPixelFilled(55, 55);
@@ -579,8 +579,8 @@ main() {
       video = new VideoElement();
       canvas = new CanvasElement();
       video.onCanPlay.listen(expectAsync1((_) {
-        context.drawImageToRect(video, new Rectangle(50, 50, 20, 20),
-          sourceRect: new Rectangle(2, 2, 6, 6));
+        context.drawImageToRect(video, new Rect(50, 50, 20, 20),
+          sourceRect: new Rect(2, 2, 6, 6));
 
         expectPixelFilled(50, 50);
         expectPixelFilled(55, 55);
@@ -626,7 +626,7 @@ main() {
     });
     test('with 5 params', () {
       // Draw an image to the canvas from a canvas element.
-      context.drawImageToRect(otherCanvas, new Rectangle(50, 50, 20, 20));
+      context.drawImageToRect(otherCanvas, new Rect(50, 50, 20, 20));
 
       expectPixelFilled(50, 50);
       expectPixelFilled(55, 55);
@@ -641,8 +641,8 @@ main() {
       // Draw an image to the canvas from a canvas element.
       otherContext.fillStyle = "blue";
       otherContext.fillRect(5, 5, 5, 5);
-      context.drawImageToRect(otherCanvas, new Rectangle(50, 50, 20, 20),
-          sourceRect: new Rectangle(2, 2, 6, 6));
+      context.drawImageToRect(otherCanvas, new Rect(50, 50, 20, 20),
+          sourceRect: new Rect(2, 2, 6, 6));
 
       checkPixel(readPixel(50, 50), [255, 0, 0, 255]);
       checkPixel(readPixel(55, 55), [255, 0, 0, 255]);

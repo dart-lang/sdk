@@ -50,8 +50,6 @@ import 'dart:web_sql';
 import 'dart:svg' as svg;
 import 'dart:web_audio' as web_audio;
 
-export 'dart:math' show Rectangle, RectangleBase, Point;
-
 $!GENERATED_DART_FILES
 
 part '$AUXILIARY_DIR/AttributeMap.dart';
@@ -71,7 +69,9 @@ part '$AUXILIARY_DIR/KeyName.dart';
 part '$AUXILIARY_DIR/KeyboardEventStream.dart';
 part '$AUXILIARY_DIR/Microtask.dart';
 part '$AUXILIARY_DIR/NodeValidatorBuilder.dart';
+part '$AUXILIARY_DIR/Point.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
+part '$AUXILIARY_DIR/Rectangle.dart';
 part '$AUXILIARY_DIR/Serialization.dart';
 part '$AUXILIARY_DIR/Validators.dart';
 part '$AUXILIARY_DIR/WrappedEvent.dart';

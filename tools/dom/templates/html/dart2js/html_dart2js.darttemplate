@@ -56,8 +56,6 @@ import 'dart:_interceptors' show
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS;
 
-export 'dart:math' show Rectangle, Point;
-
 $!GENERATED_DART_FILES
 
 part '$AUXILIARY_DIR/AttributeMap.dart';
@@ -77,7 +75,9 @@ part '$AUXILIARY_DIR/KeyName.dart';
 part '$AUXILIARY_DIR/KeyboardEventStream.dart';
 part '$AUXILIARY_DIR/Microtask.dart';
 part '$AUXILIARY_DIR/NodeValidatorBuilder.dart';
+part '$AUXILIARY_DIR/Point.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
+part '$AUXILIARY_DIR/Rectangle.dart';
 part '$AUXILIARY_DIR/Serialization.dart';
 part '$AUXILIARY_DIR/WrappedEvent.dart';
 part '$AUXILIARY_DIR/WrappedList.dart';

@@ -666,14 +666,12 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   /**
    * Gets the position of this element relative to the client area of the page.
    */
-  Rectangle get client => new Rectangle(clientLeft, clientTop, clientWidth, 
-      clientHeight);
+  Rect get client => new Rect(clientLeft, clientTop, clientWidth, clientHeight);
 
   /**
    * Gets the offset of this element relative to its offsetParent.
    */
-  Rectangle get offset => new Rectangle(offsetLeft, offsetTop, offsetWidth, 
-      offsetHeight);
+  Rect get offset => new Rect(offsetLeft, offsetTop, offsetWidth, offsetHeight);
 
   /**
    * Adds the specified text after the last child of this element.

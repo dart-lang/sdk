@@ -2,13 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of $LIBRARYNAME;
+part of html;
 
-@DocsEditable()
-$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements Rect$IMPLEMENTS$NATIVESPEC {
+/**
+ * A base class for representing two-dimensional rectangles. This will hopefully
+ * be moved merged with the dart:math Rect.
+ */
+// TODO(efortuna): Merge with Math rect after finalizing with Florian.
+abstract class RectBase {
+  //  Not used, but keeps the VM from complaining about Rect having a const
+  // constructor and this one not.
+  const RectBase();
+
+  num get left;
+  num get top;
+  num get width;
+  num get height;
+
+  num get right => left + width;
+  num get bottom => top + height;
 
   // NOTE! All code below should be common with Rect.
-  // TODO(blois): implement with mixins when available.
 
   String toString() {
     return '($left, $top, $width, $height)';
@@ -101,4 +115,44 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements Rect$IMPLEME
   Point get topLeft => new Point(this.left, this.top);
   Point get bottomRight => new Point(this.left + this.width,
       this.top + this.height);
-$!MEMBERS}
+}
+
+
+
+/**
+ * A class for representing two-dimensional rectangles.
+ *
+ * This class is distinctive from RectBase in that it enforces that its
+ * properties are immutable.
+ */
+class Rect extends RectBase {
+  final num left;
+  final num top;
+  final num width;
+  final num height;
+
+  const Rect(this.left, this.top, this.width, this.height): super();
+
+  factory Rect.fromPoints(Point a, Point b) {
+    var left;
+    var width;
+    if (a.x < b.x) {
+      left = a.x;
+      width = b.x - left;
+    } else {
+      left = b.x;
+      width = a.x - left;
+    }
+    var top;
+    var height;
+    if (a.y < b.y) {
+      top = a.y;
+      height = b.y - top;
+    } else {
+      top = b.y;
+      height = a.y - top;
+    }
+
+    return new Rect(left, top, width, height);
+  }
+}

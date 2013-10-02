@@ -1,7 +1,8 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-part of dart.math;
+
+part of html_common;
 
 /**
  * This is the [Jenkins hash function][1] but using masking to keep
@@ -19,8 +20,8 @@ part of dart.math;
  *     }
  *     hash = JenkinsSmiHash.finish(hash);
  */
-class _JenkinsSmiHash {
-  // TODO(11617): This class should be optimized and standardized elsewhere.
+class JenkinsSmiHash {
+  // TODO: Bug 11617- This class should be optimized and standardized elsewhere.
 
   static int combine(int hash, int value) {
     hash = 0x1fffffff & (hash + value);
