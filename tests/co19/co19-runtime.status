@@ -9,10 +9,7 @@ Language/13_Statements/03_Variable_Declaration_A04_t01: MissingCompileTimeError 
 Language/13_Statements/03_Variable_Declaration_A04_t02: MissingCompileTimeError # Issue 7052
 Language/13_Statements/03_Variable_Declaration_A04_t05: MissingCompileTimeError # Issue 7052
 Language/13_Statements/03_Variable_Declaration_A04_t06: MissingCompileTimeError # Issue 7052
-
-[ $runtime == vm && $system == windows ]
-LibTest/core/Stopwatch/elapsed_A01_t01: Pass, Fail # Issue 11382.
-LibTest/core/Stopwatch/elapsed_A01_t03: Pass, Fail # Issue 12383.
+Language/12_Expressions/01_Constants_A15_t16: Fail # This test will be removed in the next co19 update
 
 [ $compiler == none && $runtime == vm ]
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Dart issue 5802
