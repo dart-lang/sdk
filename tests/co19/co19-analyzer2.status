@@ -29,9 +29,6 @@ Language/15_Types/4_Interface_Types_A11_t02: Skip
 # TBF: Hence, a static warning will not be issued if f has no declared return type, since the return type would be dynamic and dynamic may be assigned to void.
 Language/13_Statements/11_Return_A07_t01: fail
 
-
-LibTest/core/Uri/decodeQueryComponent_A02_t01: fail # co19 Issue 591
-
 # co19 issue #380, Strings class has been removed
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: fail, OK
 
@@ -42,9 +39,6 @@ LibTest/core/Set/isSubsetOf_A01_t01: fail, OK
 LibTest/core/Set/isSubsetOf_A01_t02: fail, OK
 
 # co19 issue #425, Only static fields can be declared as 'const'
-Language/05_Variables/05_Variables_A12_t01: fail, OK
-Language/05_Variables/05_Variables_A12_t06: fail, OK
-Language/05_Variables/05_Variables_A13_t01: fail, OK
 Language/07_Classes/07_Classes_A02_t11: fail, OK
 
 # co19 issue #442, undefined name "Expect"
@@ -83,7 +77,6 @@ Language/12_Expressions/12_Instance_Creation_A01_t05: fail, OK
 Language/12_Expressions/12_Instance_Creation_A01_t06: fail, OK
 
 # co19 issue #433 (wrongly closed), missing @static-warning annotation
-Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail, OK
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail, OK
 
 # co19 issue #541: tests contain unqualified reference to static members defined in superclass
@@ -93,20 +86,51 @@ Language/12_Expressions/30_Identifier_Reference_A14_t03: fail, OK
 # co19 issue #543: invocation of a non-function
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t02: fail, OK
 
-# co19 issue #562: malformed superclass
-Language/14_Libraries_and_Scripts/1_Imports_A03_t27: fail, OK
-
-# co19 issue #563: implicitly named libraries are allowed
-Language/14_Libraries_and_Scripts/2_Exports_A05_t01: fail, OK
-
 # co19 issue #564: URI can be any number adjacent string literals
 Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail, OK
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
 
-# co19 issue #596: initializing final variable at declaration and in constructor
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail, OK
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail, OK
-
-# co19 issue #597: concrete class with abstract method
-Language/07_Classes/4_Abstract_Instance_Members_A07_t08: fail, OK
-
+Language/09_Mixins/1_Mixin_Application_A01_t01: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/01_Constants_A22_t01: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/07_Maps_A13_t01: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/12_Instance_Creation_A01_t08: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/13_Property_Extraction_A02_t02: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/13_Property_Extraction_A04_t02: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/13_Property_Extraction_A04_t03: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A03_t03: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A03_t04: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A04_t04: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t05: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/16_Getter_Lookup_A02_t05: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/16_Getter_Lookup_A02_t06: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/17_Getter_Invocation_A07_t01: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/17_Getter_Invocation_A07_t02: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/18_Assignment_A01_t07: Fail # co19-roll r607: Please triage this failure
+Language/12_Expressions/18_Assignment_A04_t09: Fail # co19-roll r607: Please triage this failure
+Language/13_Statements/02_Expression_Statements_A01_t13: Fail # co19-roll r607: Please triage this failure
+Language/15_Types/3_Type_Declarations/1_Typedef_A07_t08: Fail # co19-roll r607: Please triage this failure
+Language/15_Types/3_Type_Declarations/1_Typedef_A07_t09: Fail # co19-roll r607: Please triage this failure
+LibTest/collection/HasNextIterator/HasNextIterator_A01_t01: Fail # co19-roll r607: Please triage this failure
+LibTest/collection/LinkedHashSet/LinkedHashSet.from_A01_t01: Fail # co19-roll r607: Please triage this failure
+LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: Fail # co19-roll r607: Please triage this failure
+LibTest/collection/LinkedList/LinkedList_A01_t01: Fail # co19-roll r607: Please triage this failure
+LibTest/collection/LinkedList/first_A01_t02: Fail # co19-roll r607: Please triage this failure
+LibTest/collection/LinkedList/reduce_A01_t01: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Invocation/isAccessor_A01_t01: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Invocation/isAccessor_A01_t02: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Invocation/isGetter_A01_t01: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Invocation/isGetter_A01_t02: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Invocation/isMethod_A01_t01: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Invocation/isMethod_A01_t02: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Invocation/isSetter_A01_t01: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Invocation/isSetter_A01_t02: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Invocation/memberName_A01_t01: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Invocation/namedArguments_A01_t01: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Invocation/positionalArguments_A01_t01: Fail # co19-roll r607: Please triage this failure
+LibTest/core/RuneIterator/currentAsString_A01_t02: Fail # co19-roll r607: Please triage this failure
+LibTest/core/RuneIterator/current_A01_t02: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Runes/isEmpty_A01_t02: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Runes/isNotEmpty_A01_t02: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Runes/lastWhere_A02_t01: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Runes/length_A01_t02: Fail # co19-roll r607: Please triage this failure
+LibTest/core/Symbol/Symbol_A01_t04: Fail # co19-roll r607: Please triage this failure

@@ -4,6 +4,15 @@
 
 [ $compiler == dart2dart ]
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, Fail # Issue 12562.
+LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
+
+Language/12_Expressions/12_Instance_Creation/1_New_A04_t02: RuntimeError # co19-roll r607: Please triage this failure
+Language/12_Expressions/17_Getter_Invocation_A07_t02: Pass, RuntimeError # co19-roll r607: Please triage this failure
+LibTest/core/Invocation/memberName_A01_t01: Pass, RuntimeError # co18-roll r607: Please triage this failure
+LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # co19-roll r607: Please triage this failure
 
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t03: Fail # TODO(dart2dart-team): Please triage this failure.
 
@@ -63,7 +72,6 @@ LibTest/typed_data/Float32x4/toUint32x4_A01_t01: Fail # co19 Issue 601
 LibTest/typed_data/Float32x4/toUint32x4_A01_t02: Fail # co19 Issue 601
 LibTest/typed_data/Uint32x4/toFloat32x4_A01_t01: Fail # co19 Issue 601
 LibTest/typed_data/Uint32x4/toFloat32x4_A01_t02: Fail # co19 Issue 601
-LibTest/typed_data/Float32x4/clamp_A02_t01: RuntimeError # co19 Issue 600
 LibTest/typed_data/Float32x4/clamp_A01_t01: RuntimeError # co19 Issue 600
 
 
@@ -90,8 +98,6 @@ LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints
 
 Language/14_Libraries_and_Scripts/1_Imports_A01_t17: Fail # co19 Issue 603
 Language/14_Libraries_and_Scripts/1_Imports_A04_t01: Fail # co19 Issue 603
-
-Language/14_Libraries_and_Scripts/2_Exports_A05_t01: Fail # co19 Issue 604
 
 
 # co19-roll r546 (11.08.2013) caused these failures
@@ -156,7 +162,6 @@ Language/14_Libraries_and_Scripts/1_Imports_A02_t29: fail # co19-roll r546: Plea
 Language/14_Libraries_and_Scripts/1_Imports_A03_t08: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t10: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t27: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t28: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t29: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t30: fail # co19-roll r546: Please triage this failure

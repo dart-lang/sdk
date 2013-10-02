@@ -41,6 +41,8 @@ const List<List<String>> COMMAND_LINES = const <List<String>>[
                    '--minified'],
     const <String>['-mrelease', '-rd8,jsshell', '-cdart2js', '--use-sdk',
                    '--checked'],
+    const <String>['-mrelease', '-rdartium', '-cnone', '--use-sdk',
+                   '--use_browser_controller', '--write-debug-log'],
 ];
 
 void main() {

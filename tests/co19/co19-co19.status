@@ -12,11 +12,28 @@
 [ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
-LibTest/core/Uri/decodeQueryComponent_A02_t01: fail # co19 Issue 591
 LibTest/core/Uri/toFilePath_A01_t01: pass, fail, ok # co19 Issue 592
 # Maybe we should wait until isolate library is sealed before triaging these.
 LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail, timeout # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail, timeout # co19-roll r546: Please triage this failure
+Language/15_Types/1_Static_Types_A03_t01: Fail # co19-roll r607: Please triage this failure
+
+Language/09_Mixins/1_Mixin_Application_A01_t01: CompileTimeError # co19-roll r607: Please triage this failure
+LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: CompileTimeError # co19-roll r607: Please triage this failure
+LibTest/collection/LinkedList/first_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
+Language/12_Expressions/18_Assignment_A01_t07: RuntimeError # co19-roll r607: Please triage this failure
+Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # co19-roll r607: Please triage this failure
+Language/13_Statements/04_Local_Function_Declaration_A04_t01: MissingCompileTimeError # co19-roll r607: Please triage this failure
+Language/13_Statements/02_Expression_Statements_A01_t13: MissingCompileTimeError # co19-roll r607: Please triage this failure
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A03_t03: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/collection/HasNextIterator/HasNextIterator_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/collection/LinkedHashSet/LinkedHashSet.from_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/core/Runes/lastWhere_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/collection/LinkedList/LinkedList_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/collection/LinkedList/forEach_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/collection/LinkedList/reduce_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/core/Symbol/Symbol_A01_t04: RuntimeError # co19-roll r607: Please triage this failure
 
 [ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
 LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: fail # co19-roll r569: Please triage this failure
@@ -96,19 +113,13 @@ LibTest/typed_data/Uint8List/retainAll_A01_t01: Fail  # co19 issue 548
 LibTest/core/String/concat_A01_t01: Fail  # co19 issue 561
 LibTest/core/String/concat_A02_t01: Fail  # co19 issue 561
 
-[ $compiler != dartanalyzer && $compiler != dart2analyzer ]
-# Dart2js/Dart2dart succeedes due to a bug in their parser (issue 13223).
-Language/12_Expressions/21_Bitwise_Expressions_A01_t01: Fail # co19 Issue 595
-
 ### CHECKED MODE FAILURES ###
 
 [ ($runtime == vm || $compiler == dart2js) && $checked]
 Language/07_Classes/6_Constructors/2_Factories_A12_t02: fail # co19-roll r587: Please triage this failure
 Language/13_Statements/09_Switch_A05_t01: FAIL, OK # co19 issue 498
-Language/14_Libraries_and_Scripts/1_Imports_A03_t26: FAIL, OK  # co19 issue 498
 Language/14_Libraries_and_Scripts/1_Imports_A03_t46: PASS, FAIL, OK # co19 issue 560
 Language/14_Libraries_and_Scripts/1_Imports_A03_t66: PASS, FAIL, OK # co19 issue 560
-Language/15_Types/1_Static_Types_A03_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/async/EventTransformStream/contains_A01_t01: FAIL, OK  # co19 issue 498
 LibTest/core/DateTime/compareTo_A02_t01: FAIL, OK  # co19 issue 498
 LibTest/core/List/removeAt_A02_t01: FAIL, OK  # co19 issue 498
@@ -119,3 +130,4 @@ LibTest/core/TypeError/failedAssertion_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/line_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/srcType_A01_t01: FAIL, OK # co19 issue 510
 LibTest/core/TypeError/url_A01_t01: FAIL, OK # co19 issue 510
+LibTest/collection/DoubleLinkedQueue/removeFirst_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
