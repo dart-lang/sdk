@@ -141,17 +141,20 @@ Future<List> connectClient(int port, bool hostnameInConnect) =>
 
 
 Future test(bool hostnameInConnect) {
-  return RawServerSocket.bind(HOST_NAME, 0)
-  .then((server) {
+  return RawServerSocket.bind(HOST_NAME, 0).then((server) {
     server.listen((client) {
       RawSecureSocket.secureServer(client, CERTIFICATE)
-      .then((secureClient) {
-        Expect.throws(() => client.add([0]));
-        return runServer(secureClient);
-      })
-      .then((_) => server.close());
+        .then((secureClient) {
+          Expect.throws(() => client.add([0]));
+          return runServer(secureClient);
+        },
+        onError: (e) {
+          Expect.isTrue(e is HandshakeException);
+          Expect.isTrue(e.toString().contains(
+              'received a record with an incorrect Message Authentication'));
+        })
+        .whenComplete(server.close);
     });
-
     return connectClient(server.port, hostnameInConnect).then(runClient);
   });
 }
