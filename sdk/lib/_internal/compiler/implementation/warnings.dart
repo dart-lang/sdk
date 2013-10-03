@@ -668,6 +668,19 @@ main() { F f = null; }"""]);
   static const MessageKind CANNOT_IMPLEMENT = const MessageKind(
       "Error: '#{type}' cannot be implemented.");
 
+  static const MessageKind CANNOT_MIXIN = const MessageKind(
+      "Error: The type '#{type}' can't be mixed in.",
+      howToFix: "Try removing '#{type}' from the 'with' clause.",
+      examples: const ["""
+class C extends Object with String {}
+
+main() => new C();                       
+""", """
+typedef C = Object with String;
+
+main() => new C();                       
+"""]);
+
   static const MessageKind DUPLICATE_EXTENDS_IMPLEMENTS = const MessageKind(
       "Error: '#{type}' can not be both extended and implemented.");
 

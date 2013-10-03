@@ -3606,7 +3606,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         DartType supertype = resolveSupertype(element, superMixin.superclass);
         Link<Node> link = superMixin.mixins.nodes;
         while (!link.isEmpty) {
-          supertype = applyMixin(supertype, resolveType(link.head), node);
+          supertype = applyMixin(
+              supertype, checkMixinType(link.head), link.head);
           link = link.tail;
         }
         element.supertype = supertype;
@@ -3657,6 +3658,17 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return element.computeType(compiler);
   }
 
+  /// Resolves the mixed type for [mixinNode] and checks that the the mixin type
+  /// is not black-listed. The mixin type is returned.
+  DartType checkMixinType(TypeAnnotation mixinNode) {
+    DartType mixinType = resolveType(mixinNode);
+    if (isBlackListed(mixinType)) {
+      compiler.reportError(mixinNode,
+          MessageKind.CANNOT_MIXIN, {'type': mixinType});
+    }
+    return mixinType;
+  }
+
   DartType visitNamedMixinApplication(NamedMixinApplication node) {
     compiler.ensure(element != null);
     compiler.ensure(element.resolutionState == STATE_STARTED);
@@ -3670,10 +3682,10 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     DartType supertype = resolveSupertype(element, node.superclass);
     Link<Node> link = node.mixins.nodes;
     while (!link.tail.isEmpty) {
-      supertype = applyMixin(supertype, resolveType(link.head), link.head);
+      supertype = applyMixin(supertype, checkMixinType(link.head), link.head);
       link = link.tail;
     }
-    doApplyMixinTo(element, supertype, resolveType(link.head));
+    doApplyMixinTo(element, supertype, checkMixinType(link.head));
     return element.computeType(compiler);
   }
 
