@@ -25,7 +25,10 @@ part of dart._collection.dev;
 // TODO(floitsch): also used in dart:json and dart:utf until middle of October
 //    for deprecation of json and utf libraries.
 
-const deprecated = 0;
+// We use a random string constant to avoid it clashing with other constants.
+// This is, because we have a test that verifies that no metadata is included
+// in the output, when no mirrors need them.
+const deprecated = "qB2n4PYM";
 
 /**
  * An [Iterable] for classes that have efficient [length] and [elementAt].
