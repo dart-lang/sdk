@@ -1429,7 +1429,16 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
         TypeArguments::Cast(constant_type_args->value());
     const AbstractType& new_dst_type = AbstractType::Handle(
         dst_type().InstantiateFrom(instantiator_type_args, NULL));
+    // If dst_type is instantiated to dynamic or Object, skip the test.
+    if (!new_dst_type.IsMalformed() && !new_dst_type.IsMalbounded() &&
+        (new_dst_type.IsDynamicType() || new_dst_type.IsObjectType())) {
+      return value()->definition();
+    }
     set_dst_type(AbstractType::ZoneHandle(new_dst_type.Canonicalize()));
+    if (FLAG_eliminate_type_checks &&
+        value()->Type()->IsAssignableTo(dst_type())) {
+      return value()->definition();
+    }
     ConstantInstr* null_constant = flow_graph->constant_null();
     instantiator_type_arguments()->BindTo(null_constant);
   }

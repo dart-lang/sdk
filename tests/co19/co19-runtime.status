@@ -150,8 +150,3 @@ LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # c
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # co19-roll r607: Please triage this failure
 
-[ $compiler == none && $runtime == vm && $mode == debug && $checked ]
-LibTest/collection/LinkedList/add_A01_t01: Pass, Crash # co19-roll r607: Please triage this failure
-LibTest/collection/LinkedList/iterator_current_A01_t01: Pass, Crash # co19-roll r607: Please triage this failure
-LibTest/collection/LinkedList/single_A01_t01: Pass, Crash # co19-roll r607: Please triage this failure
-
