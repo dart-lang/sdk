@@ -168,7 +168,7 @@ void Intrinsifier::ImmutableList_getIndexed(Assembler* assembler) {
 static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::Handle(
-      core_lib.LookupClassAllowPrivate(Symbols::ObjectArray()));
+      core_lib.LookupClassAllowPrivate(Symbols::_List()));
   ASSERT(!cls.IsNull());
   ASSERT(cls.HasTypeArguments());
   ASSERT(cls.NumTypeArguments() == 1);
