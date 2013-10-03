@@ -127,6 +127,20 @@ String decodeUtf8(List<int> bytes) {
   return utf.decodeUtf8(bytes);
 }
 
+class Locations {
+  static String getDartiumLocation(Map globalConfiguration) {
+    var dartium = globalConfiguration['dartium'];
+    if (dartium != null && dartium != '') {
+      return dartium;
+    }
+    if (Platform.operatingSystem == 'macos') {
+      return new Path('client/tests/dartium/Chromium.app/Contents/'
+          'MacOS/Chromium').toNativePath();
+    }
+    return new Path('client/tests/dartium/chrome').toNativePath();
+  }
+}
+
 // This function is pretty stupid and only puts quotes around an argument if
 // it the argument contains a space.
 String escapeCommandLineArgument(String argument) {

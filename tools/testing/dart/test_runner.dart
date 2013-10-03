@@ -2073,11 +2073,12 @@ class CommandExecutorImpl implements CommandExecutor {
   }
 
   Future<BrowserTestRunner> _getBrowserTestRunner(String browser) {
-    var local_ip = globalConfiguration['local_ip'];
+    var localIp = globalConfiguration['local_ip'];
     var num_browsers = maxBrowserProcesses;
     if (_browserTestRunners[browser] == null) {
       var testRunner =
-        new BrowserTestRunner(local_ip, browser, num_browsers);
+        new BrowserTestRunner(
+            globalConfiguration, localIp, browser, num_browsers);
       if (globalConfiguration['verbose']) {
         testRunner.logger = DebugLogger.info;
       }
