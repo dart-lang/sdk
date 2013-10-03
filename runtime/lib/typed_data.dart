@@ -407,7 +407,11 @@ abstract class _TypedListBase {
   }
 
   void sort([int compare(num a, num b)]) {
-    return IterableMixinWorkaround.sortList(this, compare);
+    IterableMixinWorkaround.sortList(this, compare);
+  }
+
+  void shuffle() {
+    IterableMixinWorkaround.shuffleList(this);
   }
 
   int indexOf(element, [int start = 0]) {

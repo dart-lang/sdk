@@ -243,6 +243,10 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     IterableMixinWorkaround.sortList(this, compare);
   }
 
+  void shuffle() {
+    IterableMixinWorkaround.shuffleList(this);
+  }
+
   int indexOf(Object element, [int start = 0]) {
     return IterableMixinWorkaround.indexOfList(this, element, start);
   }

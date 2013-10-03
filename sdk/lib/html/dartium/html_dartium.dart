@@ -8722,6 +8722,10 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnsupportedError('Cannot sort element lists');
   }
 
+  void shuffle() {
+    throw new UnsupportedError('Cannot shuffle element lists');
+  }
+
   void removeWhere(bool test(Element element)) {
     _filter(test, false);
   }
@@ -9165,6 +9169,10 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
 
   void sort([Comparator<Element> compare]) {
     throw new UnsupportedError('Cannot sort list');
+  }
+
+  void shuffle() {
+    throw new UnsupportedError('Cannot shuffle list');
   }
 
   Element get first => _nodeList.first;
@@ -19225,6 +19233,10 @@ class _ChildNodeListLazy extends ListBase<Node> {
   // The exception we throw here is misleading.
   void sort([Comparator<Node> compare]) {
     throw new UnsupportedError("Cannot sort Node list");
+  }
+
+  void shuffle() {
+    throw new UnsupportedError("Cannot shuffle Node list");
   }
 
   // FIXME: implement these.
@@ -31858,6 +31870,10 @@ abstract class ImmutableListMixin<E> implements List<E> {
   // From List<E>:
   void sort([int compare(E a, E b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  void shuffle() {
+    throw new UnsupportedError("Cannot shuffle immutable List.");
   }
 
   void insert(int index, E element) {

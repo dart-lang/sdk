@@ -955,6 +955,18 @@ class IterableMixinWorkaround {
     Sort.sort(list, compare);
   }
 
+  static void shuffleList(List list) {
+    Random random = new Random();
+    int length = list.length;
+    while (length > 1) {
+      int pos = random.nextInt(length);
+      length -= 1;
+      var tmp = list[length];
+      list[length] = list[pos];
+      list[pos] = tmp;
+    }
+  }
+
   static int indexOfList(List list, var element, int start) {
     return Arrays.indexOf(list, element, start, list.length);
   }

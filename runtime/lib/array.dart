@@ -202,6 +202,10 @@ class _List<E> implements List<E> {
     IterableMixinWorkaround.sortList(this, compare);
   }
 
+  void shuffle() {
+    IterableMixinWorkaround.shuffleList(this);
+  }
+
   int indexOf(Object element, [int start = 0]) {
     return Arrays.indexOf(this, element, start, this.length);
   }
@@ -452,6 +456,11 @@ class _ImmutableList<E> implements List<E> {
   Iterable<E> get reversed => IterableMixinWorkaround.reversedList(this);
 
   void sort([int compare(E a, E b)]) {
+    throw new UnsupportedError(
+        "Cannot modify an immutable array");
+  }
+
+  void shuffle() {
     throw new UnsupportedError(
         "Cannot modify an immutable array");
   }

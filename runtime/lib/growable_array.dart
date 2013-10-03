@@ -336,6 +336,10 @@ class _GrowableList<T> implements List<T> {
     IterableMixinWorkaround.sortList(this, compare);
   }
 
+  void shuffle() {
+    IterableMixinWorkaround.shuffleList(this);
+  }
+
   String toString() {
     return IterableMixinWorkaround.toStringIterable(this, '[', ']');
   }

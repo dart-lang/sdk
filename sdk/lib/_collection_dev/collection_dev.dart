@@ -8,6 +8,7 @@ import 'dart:collection';
 
 import 'dart:core' hide Symbol;
 import 'dart:core' as core;
+import 'dart:math' show Random;
 
 part 'arrays.dart';
 part 'iterable.dart';

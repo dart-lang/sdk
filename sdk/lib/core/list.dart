@@ -182,6 +182,11 @@ abstract class List<E> implements Iterable<E> {
   void sort([int compare(E a, E b)]);
 
   /**
+   * Shuffles the elements of this list randomly.
+   */
+  void shuffle();
+
+  /**
    * Returns the first index of [element] in this list.
    *
    * Searches the list from index [start] to the end of the list.

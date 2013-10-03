@@ -27,6 +27,10 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
+  void shuffle() {
+    throw new UnsupportedError("Cannot shuffle immutable List.");
+  }
+
   void insert(int index, E element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }

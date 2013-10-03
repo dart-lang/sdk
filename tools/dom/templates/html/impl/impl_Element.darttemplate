@@ -58,6 +58,10 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnsupportedError('Cannot sort element lists');
   }
 
+  void shuffle() {
+    throw new UnsupportedError('Cannot shuffle element lists');
+  }
+
   void removeWhere(bool test(Element element)) {
     _filter(test, false);
   }
@@ -274,6 +278,10 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
 
   void sort([Comparator<Element> compare]) {
     throw new UnsupportedError('Cannot sort list');
+  }
+
+  void shuffle() {
+    throw new UnsupportedError('Cannot shuffle list');
   }
 
   Element get first => _nodeList.first;

@@ -301,6 +301,18 @@ abstract class ListMixin<E> implements List<E> {
     Sort.sort(this, compare);
   }
 
+  void shuffle() {
+    Random random = new Random();
+    int length = this.length;
+    while (length > 1) {
+      int pos = random.nextInt(length);
+      length -= 1;
+      var tmp = this[length];
+      this[length] = this[pos];
+      this[pos] = tmp;
+    }
+  }
+
   Map<int, E> asMap() {
     return new ListMapView(this);
   }

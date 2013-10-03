@@ -54,10 +54,11 @@ class NonGrowableListView<E> extends _IterableView<E>
 
   Map<int, E> asMap() => _source.asMap();
 
-
   void operator []=(int index, E value) { _source[index] = value; }
 
   void sort([int compare(E a, E b)]) { _source.sort(compare); }
+
+  void shuffle() { _source.shuffle(); }
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     _source.setRange(start, end, iterable, skipCount);
@@ -154,7 +155,7 @@ class NonGrowableListView<E> extends _IterableView<E>
 /**
  * An unmodifiable set.
  *
- * An UnmodifiableSetView contains a [Set] object and ensures 
+ * An UnmodifiableSetView contains a [Set] object and ensures
  * that it does not change.
  * Methods that would change the set,
  * such as [add] and [remove], throw an [UnsupportedError].
@@ -230,7 +231,7 @@ class UnmodifiableSetView<E> extends _IterableView<E>
 /**
  * An unmodifiable map.
  *
- * An UnmodifiableMapView contains a [Map] object and ensures 
+ * An UnmodifiableMapView contains a [Map] object and ensures
  * that it does not change.
  * Methods that would change the map,
  * such as [addAll] and [remove], throw an [UnsupportedError].
