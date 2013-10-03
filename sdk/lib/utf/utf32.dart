@@ -5,12 +5,10 @@
 part of dart.utf;
 
 /**
- * Decodes the UTF-32 bytes as an iterable. Thus, the consumer can only convert
- * as much of the input as needed. Determines the byte order from the BOM,
- * or uses big-endian as a default. This method always strips a leading BOM.
- * Set the replacementCharacter to null to throw an ArgumentError
- * rather than replace the bad value.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 IterableUtf32Decoder decodeUtf32AsIterable(List<int> bytes, [
     int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
@@ -19,12 +17,10 @@ IterableUtf32Decoder decodeUtf32AsIterable(List<int> bytes, [
 }
 
 /**
- * Decodes the UTF-32BE bytes as an iterable. Thus, the consumer can only convert
- * as much of the input as needed. This method strips a leading BOM by default,
- * but can be overridden by setting the optional parameter [stripBom] to false.
- * Set the replacementCharacter to null to throw an ArgumentError
- * rather than replace the bad value.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 IterableUtf32Decoder decodeUtf32beAsIterable(List<int> bytes, [
     int offset = 0, int length, bool stripBom = true,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
@@ -34,12 +30,10 @@ IterableUtf32Decoder decodeUtf32beAsIterable(List<int> bytes, [
 }
 
 /**
- * Decodes the UTF-32LE bytes as an iterable. Thus, the consumer can only convert
- * as much of the input as needed. This method strips a leading BOM by default,
- * but can be overridden by setting the optional parameter [stripBom] to false.
- * Set the replacementCharacter to null to throw an ArgumentError
- * rather than replace the bad value.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 IterableUtf32Decoder decodeUtf32leAsIterable(List<int> bytes, [
     int offset = 0, int length, bool stripBom = true,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
@@ -49,37 +43,32 @@ IterableUtf32Decoder decodeUtf32leAsIterable(List<int> bytes, [
 }
 
 /**
- * Produce a String from a sequence of UTF-32 encoded bytes. The parameters
- * allow an offset into a list of bytes (as int), limiting the length of the
- * values be decoded and the ability of override the default Unicode
- * replacement character. Set the replacementCharacter to null to throw an
- * ArgumentError rather than replace the bad value.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 String decodeUtf32(List<int> bytes, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   return new String.fromCharCodes((new Utf32BytesDecoder(bytes, offset, length,
       replacementCodepoint)).decodeRest());
 }
+
 /**
- * Produce a String from a sequence of UTF-32BE encoded bytes. The parameters
- * allow an offset into a list of bytes (as int), limiting the length of the
- * values be decoded and the ability of override the default Unicode
- * replacement character. Set the replacementCharacter to null to throw an
- * ArgumentError rather than replace the bad value.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 String decodeUtf32be(
     List<int> bytes, [int offset = 0, int length, bool stripBom = true,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) =>
-  new String.fromCharCodes((new Utf32beBytesDecoder(bytes, offset, length, 
+  new String.fromCharCodes((new Utf32beBytesDecoder(bytes, offset, length,
     stripBom, replacementCodepoint)).decodeRest());
 
 /**
- * Produce a String from a sequence of UTF-32LE encoded bytes. The parameters
- * allow an offset into a list of bytes (as int), limiting the length of the
- * values be decoded and the ability of override the default Unicode
- * replacement character. Set the replacementCharacter to null to throw an
- * ArgumentError rather than replace the bad value.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 String decodeUtf32le(
     List<int> bytes, [int offset = 0, int length, bool stripBom = true,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) =>
@@ -87,16 +76,18 @@ String decodeUtf32le(
       stripBom, replacementCodepoint)).decodeRest());
 
 /**
- * Produce a list of UTF-32 encoded bytes. This method prefixes the resulting
- * bytes with a big-endian byte-order-marker.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 List<int> encodeUtf32(String str) =>
     encodeUtf32be(str, true);
 
 /**
- * Produce a list of UTF-32BE encoded bytes. By default, this method produces
- * UTF-32BE bytes with no BOM.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 List<int> encodeUtf32be(String str, [bool writeBOM = false]) {
   List<int> utf32CodeUnits = stringToCodepoints(str);
   List<int> encoding = new List<int>(4 * utf32CodeUnits.length +
@@ -118,9 +109,10 @@ List<int> encodeUtf32be(String str, [bool writeBOM = false]) {
 }
 
 /**
- * Produce a list of UTF-32LE encoded bytes. By default, this method produces
- * UTF-32BE bytes with no BOM.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 List<int> encodeUtf32le(String str, [bool writeBOM = false]) {
   List<int> utf32CodeUnits = stringToCodepoints(str);
   List<int> encoding = new List<int>(4 * utf32CodeUnits.length +
@@ -142,9 +134,10 @@ List<int> encodeUtf32le(String str, [bool writeBOM = false]) {
 }
 
 /**
- * Identifies whether a List of bytes starts (based on offset) with a
- * byte-order marker (BOM).
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 bool hasUtf32Bom(
     List<int> utf32EncodedBytes, [int offset = 0, int length]) {
   return hasUtf32beBom(utf32EncodedBytes, offset, length) ||
@@ -152,9 +145,10 @@ bool hasUtf32Bom(
 }
 
 /**
- * Identifies whether a List of bytes starts (based on offset) with a
- * big-endian byte-order marker (BOM).
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 bool hasUtf32beBom(List<int> utf32EncodedBytes, [int offset = 0, int length]) {
   int end = length != null ? offset + length : utf32EncodedBytes.length;
   return (offset + 4) <= end &&
@@ -164,9 +158,10 @@ bool hasUtf32beBom(List<int> utf32EncodedBytes, [int offset = 0, int length]) {
 }
 
 /**
- * Identifies whether a List of bytes starts (based on offset) with a
- * little-endian byte-order marker (BOM).
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 bool hasUtf32leBom(List<int> utf32EncodedBytes, [int offset = 0, int length]) {
   int end = length != null ? offset + length : utf32EncodedBytes.length;
   return (offset + 4) <= end &&
@@ -178,12 +173,10 @@ bool hasUtf32leBom(List<int> utf32EncodedBytes, [int offset = 0, int length]) {
 typedef Utf32BytesDecoder Utf32BytesDecoderProvider();
 
 /**
- * Return type of [decodeUtf32AsIterable] and variants. The Iterable type
- * provides an iterator on demand and the iterator will only translate bytes
- * as requested by the user of the iterator. (Note: results are not cached.)
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
-// TODO(floitsch): Consider removing the extend and switch to implements since
-// that's cheaper to allocate.
+@deprecated
 class IterableUtf32Decoder extends IterableBase<int> {
   final Utf32BytesDecoderProvider codeunitsProvider;
 
@@ -193,8 +186,10 @@ class IterableUtf32Decoder extends IterableBase<int> {
 }
 
 /**
- * Abstrace parent class converts encoded bytes to codepoints.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 abstract class Utf32BytesDecoder implements _ListRangeIterator {
   final _ListRangeIterator utf32EncodedBytesIterator;
   final int replacementCodepoint;
@@ -274,9 +269,10 @@ abstract class Utf32BytesDecoder implements _ListRangeIterator {
 }
 
 /**
- * Convert UTF-32BE encoded bytes to codepoints by grouping 4 bytes
- * to produce the unicode codepoint.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 class Utf32beBytesDecoder extends Utf32BytesDecoder {
   Utf32beBytesDecoder(List<int> utf32EncodedBytes, [int offset = 0,
       int length, bool stripBom = true,
@@ -303,9 +299,10 @@ class Utf32beBytesDecoder extends Utf32BytesDecoder {
 }
 
 /**
- * Convert UTF-32BE encoded bytes to codepoints by grouping 4 bytes
- * to produce the unicode codepoint.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 class Utf32leBytesDecoder extends Utf32BytesDecoder {
   Utf32leBytesDecoder(List<int> utf32EncodedBytes, [int offset = 0,
       int length, bool stripBom = true,

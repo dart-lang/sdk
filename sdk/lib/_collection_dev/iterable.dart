@@ -22,6 +22,8 @@ part of dart._collection.dev;
 //    sdk/lib/core/regexp.dart
 // TODO(floitsch): also used in dart:async until end of September for
 //    deprecation of runZonedExperimental.
+// TODO(floitsch): also used in dart:json and dart:utf until middle of October
+//    for deprecation of json and utf libraries.
 
 const deprecated = 0;
 
