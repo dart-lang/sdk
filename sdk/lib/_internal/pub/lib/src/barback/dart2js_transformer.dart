@@ -11,8 +11,9 @@ import 'package:analyzer_experimental/analyzer.dart';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 
-import '../../../../compiler/implementation/source_file_provider.dart'
-    show SourceFileProvider;
+import '../../../../compiler/compiler.dart' as compiler;
+import '../../../../compiler/implementation/dart2js.dart'
+    show AbortLeg;
 import '../../../../compiler/implementation/source_file.dart';
 import '../barback.dart';
 import '../dart.dart' as dart;
@@ -46,7 +47,7 @@ class Dart2JSTransformer extends Transformer {
         return;
       }
 
-      var provider = new _BarbackSourceFileProvider(_graph, transform);
+      var provider = new _BarbackInputProvider(_graph, transform);
 
       // Create a "path" to the entrypoint script. The entrypoint may not
       // actually be on disk, but this gives dart2js a root to resolve
@@ -63,7 +64,9 @@ class Dart2JSTransformer extends Transformer {
       // Need to make sure paths in errors are mapped to the original source
       // path so they can understand them.
       return dart.compile(entrypoint,
-          packageRoot: packageRoot, provider: provider).then((js) {
+          packageRoot: packageRoot,
+          inputProvider: provider.readStringFromUri,
+          diagnosticHandler: provider.handleDiagnostic).then((js) {
         var id = transform.primaryInput.id.changeExtension(".dart.js");
         transform.addOutput(new Asset.fromString(id, js));
 
@@ -75,19 +78,51 @@ class Dart2JSTransformer extends Transformer {
   }
 }
 
-/// A [SourceFileProvider] that dart2js will use to load files that are
-/// produced by Barback.
-class _BarbackSourceFileProvider implements SourceFileProvider {
+/// Defines methods implementig [CompilerInputProvider] and [DiagnosticHandler]
+/// for dart2js to use to load files from Barback and report errors.
+///
+/// Note that most of the implementation of diagnostic handling here was
+/// copied from [FormattingDiagnosticHandler] in dart2js. The primary
+/// difference is that it uses barback's logging code and, more importantly, it
+/// handles missing source files more gracefully.
+class _BarbackInputProvider {
   final PackageGraph _graph;
   final Transform _transform;
 
   /// The map of previously loaded files.
   ///
-  /// dart2js uses this to avoid loading the same file multiple times.
-  final sourceFiles = new Map<String, SourceFile>();
+  /// Used to show where an error occurred in a source file.
+  final _sourceFiles = new Map<String, SourceFile>();
 
-  _BarbackSourceFileProvider(this._graph, this._transform);
+  // TODO(rnystrom): Make these configurable.
+  /// Whether or not warnings should be logged.
+  var _showWarnings = true;
 
+  /// Whether or not hints should be logged.
+  var _showHints = true;
+
+  /// Whether or not verbose info messages should be logged.
+  var _verbose = false;
+
+  /// Whether an exception should be thrown on an error to stop compilation.
+  var _throwOnError = false;
+
+  /// This gets set after a fatal error is reported to quash any subsequent
+  /// errors.
+  var _isAborting = false;
+
+  compiler.Diagnostic _lastKind = null;
+
+  static final int _FATAL =
+      compiler.Diagnostic.CRASH.ordinal |
+      compiler.Diagnostic.ERROR.ordinal;
+  static final int _INFO =
+      compiler.Diagnostic.INFO.ordinal |
+      compiler.Diagnostic.VERBOSE_INFO.ordinal;
+
+  _BarbackInputProvider(this._graph, this._transform);
+
+  /// A [CompilerInputProvider] for dart2js.
   Future<String> readStringFromUri(Uri resourceUri) {
     // We only expect to get absolute "file:" URLs from dart2js.
     assert(resourceUri.isAbsolute);
@@ -95,14 +130,73 @@ class _BarbackSourceFileProvider implements SourceFileProvider {
 
     var sourcePath = path.fromUri(resourceUri);
     return _readResource(resourceUri).then((source) {
-      sourceFiles[resourceUri.toString()] =
+      _sourceFiles[resourceUri.toString()] =
           new SourceFile(path.relative(sourcePath), source);
       return source;
     });
   }
 
-  // The default [SourceFileProvider] does this, so we'll do the same.
-  Future<String> call(Uri resourceUri) => readStringFromUri(resourceUri);
+  /// A [DiagnosticHandler] for dart2js, loosely based on
+  /// [FormattingDiagnosticHandler].
+  void handleDiagnostic(Uri uri, int begin, int end,
+                        String message, compiler.Diagnostic kind) {
+    // TODO(ahe): Remove this when source map is handled differently.
+    if (kind.name == "source map") return;
+
+    if (_isAborting) return;
+    _isAborting = (kind == compiler.Diagnostic.CRASH);
+
+    var isInfo = (kind.ordinal & _INFO) != 0;
+    if (isInfo && uri == null && kind != compiler.Diagnostic.INFO) {
+      if (!_verbose && kind == compiler.Diagnostic.VERBOSE_INFO) return;
+      _transform.logger.info(message);
+      return;
+    }
+
+    // [_lastKind] records the previous non-INFO kind we saw.
+    // This is used to suppress info about a warning when warnings are
+    // suppressed, and similar for hints.
+    if (kind != compiler.Diagnostic.INFO) _lastKind = kind;
+
+    var logFn;
+    if (kind == compiler.Diagnostic.ERROR) {
+      logFn = _transform.logger.error;
+    } else if (kind == compiler.Diagnostic.WARNING) {
+      if (!_showWarnings) return;
+      logFn = _transform.logger.warning;
+    } else if (kind == compiler.Diagnostic.HINT) {
+      if (!_showHints) return;
+      logFn = _transform.logger.warning;
+    } else if (kind == compiler.Diagnostic.CRASH) {
+      logFn = _transform.logger.error;
+    } else if (kind == compiler.Diagnostic.INFO) {
+      if (_lastKind == compiler.Diagnostic.WARNING && !_showWarnings) return;
+      if (_lastKind == compiler.Diagnostic.HINT && !_showHints) return;
+      logFn = _transform.logger.info;
+    } else {
+      throw new Exception('Unknown kind: $kind (${kind.ordinal})');
+    }
+
+    var fatal = (kind.ordinal & _FATAL) != 0;
+    if (uri == null) {
+      assert(fatal);
+      logFn(message);
+    } else {
+      SourceFile file = _sourceFiles[uri.toString()];
+      if (file == null) {
+        // We got a message before loading the file, so just report the message
+        // itself.
+        logFn('$uri: $message');
+      } else {
+        logFn(file.getLocationMessage(message, begin, end, true, (i) => i));
+      }
+    }
+
+    if (fatal && _throwOnError) {
+      _isAborting = true;
+      throw new AbortLeg(message);
+    }
+  }
 
   Future<String> _readResource(Uri url) {
     // See if the path is within a package. If so, use Barback so we can use
@@ -132,18 +226,4 @@ class _BarbackSourceFileProvider implements SourceFileProvider {
 
     return null;
   }
-
-  // TODO(rnystrom): These are in the public SourceFileProvider interface, but
-  // aren't actually used by dart2js. Ideally, these would be taken out of
-  // SourceFileProvider (#13671). Until then, just shut up the warnings.
-  bool get isWindows => _notSupported();
-  set isWindows(value) => _notSupported();
-  Uri get cwd => _notSupported();
-  set cwd(value) => _notSupported();
-  int get dartCharactersRead => _notSupported();
-  set dartCharactersRead(value) => _notSupported();
-  set sourceFiles(value) => _notSupported();
-
-  _notSupported() => throw new UnsupportedError(
-      "This should be private in SourceFileProvider.");
 }
