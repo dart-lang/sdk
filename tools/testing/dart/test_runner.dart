@@ -2173,13 +2173,6 @@ bool shouldRetryCommand(CommandOutput output) {
     } else if (command is SeleniumTestCommand) {
       // Selenium tests can be flaky. Try re-running.
       return true;
-    } else if (command is ContentShellCommand) {
-      // FIXME(kustermann): Remove this condition once we figured out why
-      // content_shell is sometimes not able to fetch resources from the
-      // HttpServer on windows.
-      // TODO(kustermann): Don't blindly re-run DRT tests on windows but rather
-      // check if the stderr/stdout indicates that we actually have this issue.
-      return io.Platform.operatingSystem == 'windows';
     }
   }
   return false;
