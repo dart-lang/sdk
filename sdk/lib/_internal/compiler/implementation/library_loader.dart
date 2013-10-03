@@ -569,11 +569,13 @@ class ImportLink {
  * the library dependency graph.
  */
 class ExportLink {
+  final Export export;
   final CombinatorFilter combinatorFilter;
   final LibraryDependencyNode exportNode;
 
   ExportLink(Export export, LibraryDependencyNode this.exportNode)
-      : this.combinatorFilter = new CombinatorFilter.fromTag(export);
+      : this.export = export,
+        this.combinatorFilter = new CombinatorFilter.fromTag(export);
 
   /**
    * Exports [element] to the dependent library unless [element] is filtered by
@@ -582,7 +584,7 @@ class ExportLink {
    */
   bool exportElement(Element element) {
     if (combinatorFilter.exclude(element)) return false;
-    return exportNode.addElementToPendingExports(element);
+    return exportNode.addElementToPendingExports(element, export);
   }
 }
 
@@ -622,12 +624,17 @@ class LibraryDependencyNode {
   Map<SourceString, Element> exportScope =
       new LinkedHashMap<SourceString, Element>();
 
+  /// Map from exported elements to the export directives that exported them.
+  Map<Element, Link<Export>> exporters = new Map<Element, Link<Export>>();
+
   /**
    * The set of exported elements that need to be propageted to dependent
    * libraries as part of the work-list computation performed in
-   * [LibraryDependencyHandler.computeExports].
+   * [LibraryDependencyHandler.computeExports]. Each export element is mapped
+   * to a list of exports directives that export it.
    */
-  Set<Element> pendingExportSet = new Set<Element>();
+  Map<Element, Link<Export>> pendingExportMap =
+      new Map<Element, Link<Export>>();
 
   LibraryDependencyNode(LibraryElement this.library);
 
@@ -656,15 +663,21 @@ class LibraryDependencyNode {
    * the export scopes performed in [LibraryDependencyHandler.computeExports].
    */
   void registerInitialExports() {
-    pendingExportSet.addAll(library.getNonPrivateElementsInScope());
+    for (Element element in library.getNonPrivateElementsInScope()) {
+      pendingExportMap[element] = const Link<Export>();
+    }
   }
 
   void registerHandledExports(LibraryElement exportedLibraryElement,
+                              Export export,
                               CombinatorFilter filter) {
     assert(invariant(library, exportedLibraryElement.exportsHandled));
     for (Element exportedElement in exportedLibraryElement.exports) {
       if (!filter.exclude(exportedElement)) {
-        pendingExportSet.add(exportedElement);
+        Link<Export> exports =
+            pendingExportMap.putIfAbsent(exportedElement,
+                                         () => const Link<Export>());
+        pendingExportMap[exportedElement] = exports.prepend(export);
       }
     }
   }
@@ -688,9 +701,10 @@ class LibraryDependencyNode {
   /**
    * Copies and clears pending export set for this node.
    */
-  List<Element> pullPendingExports() {
-    List<Element> pendingExports = new List.from(pendingExportSet);
-    pendingExportSet.clear();
+  Map<Element, Link<Export>> pullPendingExports() {
+    Map<Element, Link<Export>> pendingExports =
+        new Map<Element, Link<Export>>.from(pendingExportMap);
+    pendingExportMap.clear();
     return pendingExports;
   }
 
@@ -698,25 +712,53 @@ class LibraryDependencyNode {
    * Adds [element] to the export scope for this node. If the [element] name
    * is a duplicate, an error element is inserted into the export scope.
    */
-  Element addElementToExportScope(Compiler compiler, Element element) {
+  Element addElementToExportScope(Compiler compiler, Element element,
+                                  Link<Export> exports) {
+
     SourceString name = element.name;
+
+    void reportDuplicateExport(Element duplicate,
+                               Link<Export> duplicateExports,
+                               {bool reportError: true}) {
+      compiler.withCurrentElement(library, () {
+        for (Export export in duplicateExports) {
+          if (reportError) {
+            compiler.reportError(export,
+                MessageKind.DUPLICATE_EXPORT, {'name': name});
+            reportError = false;
+          } else {
+            compiler.reportInfo(export,
+                MessageKind.DUPLICATE_EXPORT_CONT, {'name': name});
+          }
+        }
+      });
+    }
+
+    void reportDuplicateExportDecl(Element duplicate,
+                                   Link<Export> duplicateExports) {
+      compiler.reportInfo(duplicate, MessageKind.DUPLICATE_EXPORT_DECL,
+          {'name': name, 'uriString': duplicateExports.head.uri});
+    }
+
     Element existingElement = exportScope[name];
-    if (existingElement != null) {
+    if (existingElement != null && existingElement != element) {
       if (existingElement.isErroneous()) {
-        compiler.reportError(element, MessageKind.DUPLICATE_EXPORT,
-                             {'name': name});
+        reportDuplicateExport(element, exports);
+        reportDuplicateExportDecl(element, exports);
         element = existingElement;
       } else if (existingElement.getLibrary() != library) {
         // Declared elements hide exported elements.
-        compiler.reportError(existingElement, MessageKind.DUPLICATE_EXPORT,
-                             {'name': name});
-        compiler.reportError(element, MessageKind.DUPLICATE_EXPORT,
-                             {'name': name});
+        Link<Export> existingExports = exporters[existingElement];
+        reportDuplicateExport(existingElement, existingExports);
+        reportDuplicateExport(element, exports, reportError: false);
+        reportDuplicateExportDecl(existingElement, existingExports);
+        reportDuplicateExportDecl(element, exports);
         element = exportScope[name] = new ErroneousElementX(
             MessageKind.DUPLICATE_EXPORT, {'name': name}, name, library);
       }
     } else {
       exportScope[name] = element;
+      exporters[element] = exports;
     }
     return element;
   }
@@ -741,14 +783,16 @@ class LibraryDependencyNode {
    * the pending export set was modified. The combinators of [export] are used
    * to filter the element.
    */
-  bool addElementToPendingExports(Element element) {
+  bool addElementToPendingExports(Element element, Export export) {
+    bool changed = false;
     if (!identical(exportScope[element.name], element)) {
-      if (!pendingExportSet.contains(element)) {
-        pendingExportSet.add(element);
-        return true;
-      }
+      Link<Export> exports = pendingExportMap.putIfAbsent(element, () {
+        changed = true;
+        return const Link<Export>();
+      });
+      pendingExportMap[element] = exports.prepend(export);
     }
-    return false;
+    return changed;
   }
 }
 
@@ -783,8 +827,8 @@ class LibraryDependencyHandler {
     bool changed = true;
     while (changed) {
       changed = false;
-      Map<LibraryDependencyNode, List<Element>> tasks =
-          new LinkedHashMap<LibraryDependencyNode, List<Element>>();
+      Map<LibraryDependencyNode, Map<Element, Link<Export>>> tasks =
+          new Map<LibraryDependencyNode, Map<Element, Link<Export>>>();
 
       // Locally defined elements take precedence over exported
       // elements.  So we must propagate local elements first.  We
@@ -792,12 +836,13 @@ class LibraryDependencyHandler {
       // propagating.  This enforces that we handle exports
       // breadth-first, with locally defined elements being level 0.
       nodeMap.forEach((_, LibraryDependencyNode node) {
-        List<Element> pendingExports = node.pullPendingExports();
+        Map<Element, Link<Export>> pendingExports = node.pullPendingExports();
         tasks[node] = pendingExports;
       });
-      tasks.forEach((LibraryDependencyNode node, List<Element> pendingExports) {
-        pendingExports.forEach((Element element) {
-          element = node.addElementToExportScope(compiler, element);
+      tasks.forEach((LibraryDependencyNode node,
+                     Map<Element, Link<Export>> pendingExports) {
+        pendingExports.forEach((Element element, Link<Export> exports) {
+          element = node.addElementToExportScope(compiler, element, exports);
           if (node.propagateElement(element)) {
             changed = true;
           }
@@ -833,7 +878,8 @@ class LibraryDependencyHandler {
       if (loadedLibrary.exportsHandled) {
         // Export scope already computed on [loadedLibrary].
         var combinatorFilter = new CombinatorFilter.fromTag(tag);
-        exportingNode.registerHandledExports(loadedLibrary, combinatorFilter);
+        exportingNode.registerHandledExports(
+            loadedLibrary, tag, combinatorFilter);
         return;
       }
       LibraryDependencyNode exportedNode = nodeMap[loadedLibrary];

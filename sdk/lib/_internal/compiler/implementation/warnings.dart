@@ -278,7 +278,22 @@ library type;
 class Type {}"""}]);
 
   static const MessageKind DUPLICATE_EXPORT = const MessageKind(
-      "Error: Duplicate export of '#{name}'.");
+      "Error: Duplicate export of '#{name}'.",
+      howToFix: "Trying adding 'hide #{name}' to one of the exports.",
+      examples: const [const {
+'main.dart': """
+export 'decl1.dart';
+export 'decl2.dart';
+
+main() {}""",
+'decl1.dart': "class Class {}",
+'decl2.dart': "class Class {}"}]);
+
+  static const MessageKind DUPLICATE_EXPORT_CONT = const MessageKind(
+      "Info: This is another export of '#{name}'.");
+
+  static const MessageKind DUPLICATE_EXPORT_DECL = const MessageKind(
+      "Info: The exported '#{name}' from export #{uriString} is defined here.");
 
   static const DualKind NOT_A_TYPE = const DualKind(
       error: const MessageKind("Error: '#{node}' is not a type."),
@@ -674,11 +689,11 @@ main() { F f = null; }"""]);
       examples: const ["""
 class C extends Object with String {}
 
-main() => new C();                       
+main() => new C();
 """, """
 typedef C = Object with String;
 
-main() => new C();                       
+main() => new C();
 """]);
 
   static const MessageKind DUPLICATE_EXTENDS_IMPLEMENTS = const MessageKind(
