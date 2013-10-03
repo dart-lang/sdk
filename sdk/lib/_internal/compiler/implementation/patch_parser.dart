@@ -145,10 +145,6 @@ class PatchParserTask extends leg.CompilerTask {
           // Patch elements are stored on the patched functions or classes.
           scanLibraryElements(patchLibrary.entryCompilationUnit, imports);
         });
-        // After scanning declarations, we handle the import tags in the patch.
-        // TODO(lrn): These imports end up in the original library and are in
-        // scope for the original methods too. This should be fixed.
-        compiler.importHelperLibrary(originLibrary);
         // TODO(rnystrom): Remove .toList() here if #11523 is fixed.
         return Future.forEach(imports.toLink().toList(), (tag) {
           return compiler.withCurrentElement(patchLibrary, () {

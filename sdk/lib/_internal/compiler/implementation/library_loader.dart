@@ -714,12 +714,14 @@ class LibraryDependencyNode {
    */
   Element addElementToExportScope(Compiler compiler, Element element,
                                   Link<Export> exports) {
-
     SourceString name = element.name;
 
     void reportDuplicateExport(Element duplicate,
                                Link<Export> duplicateExports,
                                {bool reportError: true}) {
+      assert(invariant(library, !duplicateExports.isEmpty,
+          message: "No export for $duplicate from ${duplicate.getLibrary()} "
+                   "in $library."));
       compiler.withCurrentElement(library, () {
         for (Export export in duplicateExports) {
           if (reportError) {
@@ -736,6 +738,9 @@ class LibraryDependencyNode {
 
     void reportDuplicateExportDecl(Element duplicate,
                                    Link<Export> duplicateExports) {
+      assert(invariant(library, !duplicateExports.isEmpty,
+          message: "No export for $duplicate from ${duplicate.getLibrary()} "
+                   "in $library."));
       compiler.reportInfo(duplicate, MessageKind.DUPLICATE_EXPORT_DECL,
           {'name': name, 'uriString': duplicateExports.head.uri});
     }
@@ -746,7 +751,13 @@ class LibraryDependencyNode {
         reportDuplicateExport(element, exports);
         reportDuplicateExportDecl(element, exports);
         element = existingElement;
-      } else if (existingElement.getLibrary() != library) {
+      } else if (existingElement.getLibrary() == library) {
+        // Do nothing. [existingElement] hides [element].
+      } else if (element.getLibrary() == library) {
+        // [element] hides [existingElement].
+        exportScope[name] = element;
+        exporters[element] = exports;
+      } else {
         // Declared elements hide exported elements.
         Link<Export> existingExports = exporters[existingElement];
         reportDuplicateExport(existingElement, existingExports);
