@@ -332,7 +332,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
   jsAst.Expression maybeAddTypeArguments(InterfaceType type,
                                          jsAst.Expression value) {
     if (type is InterfaceType &&
-        !type.isRaw &&
+        !type.treatAsRaw &&
         backend.classNeedsRti(type.element)) {
       InterfaceType interface = type;
       RuntimeTypes rti = backend.rti;

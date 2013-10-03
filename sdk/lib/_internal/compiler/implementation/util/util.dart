@@ -77,6 +77,11 @@ class _StackTraceLine {
 
   _StackTraceLine(this.index, this.file, this.lineNo,
                   this.columnNo, this.method);
+
+  String toString() {
+    return 'index=$index, file=$file, '
+           'lineNo=$lineNo, columnNo=$columnNo, method=$method';
+  }
 }
 
 // TODO(johnniwinther): Use this format for --throw-on-error.
@@ -123,14 +128,31 @@ String prettifyStackTrace(StackTrace s,
     int lastColon = line.lastIndexOf(':', rightParenPos);
     int nextToLastColon = line.lastIndexOf(':', lastColon-1);
 
-    String lineNo = line.substring(nextToLastColon+1, lastColon);
+    String lineNo;
+    String columnNo;
+    if (nextToLastColon != -1) {
+      lineNo = line.substring(nextToLastColon+1, lastColon);
+      columnNo = line.substring(lastColon+1, rightParenPos);
+      try {
+        int.parse(lineNo);
+      } on FormatException catch (e) {
+        lineNo = columnNo;
+        columnNo = '';
+        nextToLastColon = lastColon;
+      }
+    } else {
+      lineNo = line.substring(lastColon+1, rightParenPos);
+      columnNo = '';
+      nextToLastColon = lastColon;
+    }
+
     if (lineNo.length > maxLineNoLength) {
       maxLineNoLength = lineNo.length;
     }
-    String columnNo = line.substring(lastColon+1, rightParenPos);
     if (columnNo.length > maxColumnNoLength) {
       maxColumnNoLength = columnNo.length;
     }
+
     String file = line.substring(leftParenPos+1, nextToLastColon);
     if (filePrefix != null && file.startsWith(filePrefix)) {
       file = file.substring(filePrefix.length);

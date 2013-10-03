@@ -1292,14 +1292,14 @@ ASSEMBLER_TEST_GENERATE(CallSimpleLeaf, assembler) {
   ExternalLabel call2("LeafReturnArgument",
                       reinterpret_cast<uword>(LeafReturnArgument));
   int space = ComputeStackSpaceReservation(0, 8);
-  __ AddImmediate(RSP, Immediate(-space));
+  __ subq(RSP, Immediate(space));
   __ call(&call1);
-  __ AddImmediate(RSP, Immediate(space));
+  __ addq(RSP, Immediate(space));
   space = ComputeStackSpaceReservation(0, 8);
-  __ AddImmediate(RSP, Immediate(-space));
+  __ subq(RSP, Immediate(space));
   __ movl(RDI, RAX);
   __ call(&call2);
-  __ AddImmediate(RSP, Immediate(space));
+  __ addq(RSP, Immediate(space));
   __ ret();
 }
 
@@ -1314,9 +1314,9 @@ ASSEMBLER_TEST_GENERATE(JumpSimpleLeaf, assembler) {
   ExternalLabel call1("LeafReturn42", reinterpret_cast<uword>(LeafReturn42));
   Label L;
   int space = ComputeStackSpaceReservation(0, 8);
-  __ AddImmediate(RSP, Immediate(-space));
+  __ subq(RSP, Immediate(space));
   __ call(&L);
-  __ AddImmediate(RSP, Immediate(space));
+  __ addq(RSP, Immediate(space));
   __ ret();
   __ Bind(&L);
   __ jmp(&call1);
@@ -1625,11 +1625,13 @@ ASSEMBLER_TEST_RUN(PackedCompareNLE, test) {
 
 
 ASSEMBLER_TEST_GENERATE(PackedNegate, assembler) {
+  __ EnterDartFrame(0);
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
   __ negateps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
+  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -1642,11 +1644,13 @@ ASSEMBLER_TEST_RUN(PackedNegate, test) {
 
 
 ASSEMBLER_TEST_GENERATE(PackedAbsolute, assembler) {
+  __ EnterDartFrame(0);
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(-15.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
   __ absps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
+  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -1659,9 +1663,11 @@ ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
 
 
 ASSEMBLER_TEST_GENERATE(PackedSetWZero, assembler) {
+  __ EnterDartFrame(0);
   __ set1ps(XMM0, RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ zerowps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xFF));  // Copy the W lane which is now 0.0.
+  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -1778,13 +1784,15 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
     uint32_t d;
   } constant1 =
       { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-  __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ EnterDartFrame(0);
+  __ LoadImmediate(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)), PP);
   __ movups(XMM9, Address(RAX, 0));
   __ notps(XMM9);
   __ movaps(XMM0, XMM9);
   __ pushq(RAX);
   __ movss(Address(RSP, 0), XMM0);
   __ popq(RAX);
+  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -2183,24 +2191,24 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   Label fail;
   __ EnterDartFrame(0);
   __ LoadObject(RAX, obj, PP);
-  __ CompareObject(RAX, obj);
+  __ CompareObject(RAX, obj, PP);
   __ j(NOT_EQUAL, &fail);
   __ LoadObject(RCX, obj, PP);
-  __ CompareObject(RCX, obj);
+  __ CompareObject(RCX, obj, PP);
   __ j(NOT_EQUAL, &fail);
   const Smi& smi = Smi::ZoneHandle(Smi::New(15));
   __ LoadObject(RCX, smi, PP);
-  __ CompareObject(RCX, smi);
+  __ CompareObject(RCX, smi, PP);
   __ j(NOT_EQUAL, &fail);
   __ pushq(RAX);
-  __ StoreObject(Address(RSP, 0), obj);
+  __ StoreObject(Address(RSP, 0), obj, PP);
   __ popq(RCX);
-  __ CompareObject(RCX, obj);
+  __ CompareObject(RCX, obj, PP);
   __ j(NOT_EQUAL, &fail);
   __ pushq(RAX);
-  __ StoreObject(Address(RSP, 0), smi);
+  __ StoreObject(Address(RSP, 0), smi, PP);
   __ popq(RCX);
-  __ CompareObject(RCX, smi);
+  __ CompareObject(RCX, smi, PP);
   __ j(NOT_EQUAL, &fail);
   __ movl(RAX, Immediate(1));  // OK
   __ LeaveFrameWithPP();
@@ -2539,7 +2547,9 @@ ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, test) {
 
 
 ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
+  __ EnterDartFrame(0);
   __ DoubleAbs(XMM0);
+  __ LeaveFrameWithPP();
   __ ret();
 }
 

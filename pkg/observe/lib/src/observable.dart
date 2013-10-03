@@ -7,7 +7,7 @@ part of observe;
 /**
  * Use `@observable` to make a field automatically observable.
  */
-const Object observable = const _ObservableAnnotation();
+const ObservableProperty observable = const ObservableProperty();
 
 /**
  * Interface representing an observable object. This is used by data in
@@ -124,7 +124,7 @@ abstract class ObservableMixin implements Observable {
         if (field.isFinal || field.isStatic || field.isPrivate) continue;
 
         for (var meta in field.metadata) {
-          if (identical(observable, meta.reflectee)) {
+          if (meta.reflectee is ObservableProperty) {
             var name = field.simpleName;
             // Note: since this is a field, getting the value shouldn't execute
             // user code, so we don't need to worry about errors.
@@ -220,12 +220,16 @@ _notifyPropertyChange(Observable obj, Symbol field, Object oldValue,
 
 
 /**
- * The type of the `@observable` annotation.
+ * An annotation that is used to make a property observable.
+ * Normally this is used via the [observable] constant, for example:
  *
- * Library private because you should be able to use the [observable] field
- * to get the one and only instance. We could make it public though, if anyone
- * needs it for some reason.
+ *     class Monster {
+ *       @observable int health;
+ *     }
+ *
+ * If needed, you can subclass this to create another annotation that will also
+ * be treated as observable.
  */
-class _ObservableAnnotation {
-  const _ObservableAnnotation();
+class ObservableProperty {
+  const ObservableProperty();
 }

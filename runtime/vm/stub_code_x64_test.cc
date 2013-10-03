@@ -47,12 +47,12 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
   ASSERT(context.isolate() == Isolate::Current());
   __ EnterStubFrameWithPP();
   __ LoadObject(CTX, context, PP);
-  __ PushObject(result);  // Push Null object for return value.
-  __ PushObject(smi1);  // Push argument 1 smi1.
-  __ PushObject(smi2);  // Push argument 2 smi2.
+  __ PushObject(result, PP);  // Push Null object for return value.
+  __ PushObject(smi1, PP);  // Push argument 1 smi1.
+  __ PushObject(smi2, PP);  // Push argument 2 smi2.
   ASSERT(kTestSmiSubRuntimeEntry.argument_count() == argc);
   __ CallRuntime(kTestSmiSubRuntimeEntry, argc);  // Call SmiSub runtime func.
-  __ AddImmediate(RSP, Immediate(argc * kWordSize));
+  __ AddImmediate(RSP, Immediate(argc * kWordSize), PP);
   __ popq(RAX);  // Pop return value from return slot.
   __ LeaveFrameWithPP();
   __ ret();

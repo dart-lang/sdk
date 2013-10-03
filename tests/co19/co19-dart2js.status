@@ -5,6 +5,7 @@
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/isolate/isolate_api/spawnUri_A02_t01: Crash # TODO(ahe): Please triage this crash.
 LibTest/core/List/sort_A01_t04: Fail, Pass, Timeout # Must be a bug in jsshell, test sometimes times out.
+LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout # co19-roll r576: Please triage this failure
@@ -21,7 +22,6 @@ Language/13_Statements/11_Try_A07_t03: fail # co19-roll r576: Please triage this
 LibTest/core/double/INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/core/List/List_A03_t01: RuntimeError # TODO(kasperl): Please triage this failure.
-LibTest/core/List/sort_A01_t04: Pass, Slow # http://dartbug.com/11846
 
 LibTest/typed_data/ByteData/getFloat32_A02_t02: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/getFloat64_A02_t02: fail # co19-roll r569: Please triage this failure
@@ -64,7 +64,7 @@ LibTest/isolate/isolate_api/spawnFunction_A01_t05: Fail, Pass # TODO(ahe): Pleas
 LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail, Pass # TODO(ahe): Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail, Pass # TODO(ahe): Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail, Pass # TODO(ahe): Please triage this failure.
-
+LibTest/core/Uri/Uri_A06_t03: Pass, Slow
 
 [ $compiler == dart2js ]
 
@@ -101,10 +101,11 @@ LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096
 LibTest/core/double/round_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 LibTest/core/int/operator_truncating_division_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # TODO(ngeoaffray): Please triage these failure.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 
 [ $compiler == dart2js && $checked ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
+Language/15_Types/2_Dynamic_Type_System_A01_t02: RuntimeError # co19-roll r607: Please triage this failure
+Language/15_Types/8_Parameterized_Types_A03_t07: RuntimeError # co19-roll r607: Please triage this failure
 
 
 [ $compiler == dart2js ]
@@ -127,8 +128,11 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK 
 LibTest/core/int/isOdd_A01_t01: RuntimeError, OK # co19 issue 277
 LibTest/core/int/isEven_A01_t01: RuntimeError, OK # co19 issue 277
 
+Language/12_Expressions/01_Constants_A20_t03: MissingCompileTimeError # co19 Issue 611
+
 [ $compiler == dart2js ]
-LibTest/isolate/SendPort/send_A02_t01: CompileTimeError # Compile-time error: error: not a compile-time constant
+LibTest/isolate/IsolateSink/add_A01_t01: CompileTimeError # Issue 13683
+LibTest/isolate/SendPort/send_A02_t01: CompileTimeError # Issue 13683
 
 LibTest/isolate/isolate_api/spawnUri_A02_t01: RuntimeError # Runtime error: Expect.throws() fails
 LibTest/isolate/isolate_api/spawnUri_A01_t01: RuntimeError # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
@@ -223,19 +227,10 @@ LibTest/typed_data/ByteData/setUint8_A02_t01: fail # Issue 12989
 LibTest/typed_data/ByteData/setUint8_A02_t02: fail # Issue 12989
 LibTest/typed_data/ByteData/setUint8_A02_t02: fail # Issue 12989
 
-LibTest/typed_data/Float32x4/toUint32x4_A01_t01: RuntimeError # co19 Issue 601
-LibTest/typed_data/Float32x4/toUint32x4_A01_t02: RuntimeError # co19 Issue 601
-LibTest/typed_data/Uint32x4/toFloat32x4_A01_t01: RuntimeError # co19 Issue 601
-LibTest/typed_data/Uint32x4/toFloat32x4_A01_t02: RuntimeError # co19 Issue 601
-LibTest/typed_data/Float32x4/clamp_A02_t01: RuntimeError # co19 Issue 600
-
 Language/14_Libraries_and_Scripts/1_Imports_A01_t17: Fail # co19 Issue 603
 Language/14_Libraries_and_Scripts/1_Imports_A04_t01: Fail # co19 Issue 603
 
-Language/14_Libraries_and_Scripts/2_Exports_A05_t01: Fail # co19 Issue 604
-
 [ $compiler == dart2js && $jscl ]
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail, Pass # issue 3333
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError, OK # This is not rejected by V8.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK # co19 issue 92.
@@ -254,6 +249,10 @@ LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: RuntimeError, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 
 [ $compiler == dart2js && $runtime == ie9 ]
+Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # co19-roll r607: Please triage this failure
+Language/12_Expressions/02_Null_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
+Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/collection/LinkedList/add_A01_t01: Pass, Timeout  # co19-roll r607: Please triage this failure
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # Issue 13511
 LibTest/math/cos_A01_t01: Fail # co19 issue 44
 
@@ -314,21 +313,7 @@ LibTest/math/log_A01_t01: Fail # TODO(kasperl): Please triage.
 # Missing compile-time errors.
 #
 [ $compiler == dart2js ]
-Language/05_Variables/05_Variables_A07_t07: MissingCompileTimeError # Checks that a compile-time error occurs if a global constant variable is not initialized at declaration.
-Language/05_Variables/05_Variables_A07_t08: MissingCompileTimeError # Checks that a compile-time error occurs if a global typed constant variable is not initialized at declaration.
-Language/05_Variables/05_Variables_A08_t01: MissingCompileTimeError # Checks that a compile-time error occurs if a constant variable is not initialized.
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t06: MissingCompileTimeError # Checks that a functionSignature parameter cannot be final.
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t07: MissingCompileTimeError # Checks that a functionSignature parameter cannot be declared as variable.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: MissingCompileTimeError # TODO(ahe): Enforce optional parameter semantics.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: MissingCompileTimeError # TODO(ahe): Enforce optional parameter semantics.
-Language/07_Classes/07_Classes_A02_t11: MissingCompileTimeError # Checks that it is a compile-time error if a static final variable declaration does not include explicit initializer.
-Language/12_Expressions/01_Constants_A20_t03: MissingCompileTimeError # Checks that an identifier expression that denotes a type parameter  can not be assigned to a constant variable.
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t09: MissingCompileTimeError # Checks that it is a compile-time error if a string interpolation construct does not start with IDENTIFIER_NO_DOLLAR or opening brace.
-Language/12_Expressions/05_Strings_A02_t46: MissingCompileTimeError # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
-Language/12_Expressions/05_Strings_A02_t48: MissingCompileTimeError # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
-Language/12_Expressions/30_Identifier_Reference_A04_t09: MissingCompileTimeError # Checks that it is a compile-time error when a built-in identifier dynamic is used as the declared name of a type variable.
-Language/12_Expressions/30_Identifier_Reference_A05_t01: MissingCompileTimeError # Checks that it is a compile-time error when a built-in identifier "abstract" is used as a type annotation of a local variable.
-Language/12_Expressions/30_Identifier_Reference_A05_t12: MissingCompileTimeError # Checks that it is a compile-time error when a built-in identifier "static" is used as a type annotation of a local variable.
 Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: MissingCompileTimeError # Checks that other Unicode whitespaces are not allowed:  check NO-BREAK SPACE (U+00A0)
 Language/16_Reference/1_Lexical_Rules_A02_t06: MissingCompileTimeError # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
 
@@ -344,6 +329,9 @@ Language/07_Classes/3_Setters_A04_t04: CompileTimeError # http://dartbug.com/502
 Language/07_Classes/3_Setters_A04_t05: CompileTimeError # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t06: CompileTimeError # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t07: CompileTimeError # http://dartbug.com/5023
+
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: CompileTimeError # Issue 13652
+Language/12_Expressions/01_Constants_A03_t01: CompileTimeError # Issue 13652
 
 
 [ $compiler == dart2js && $runtime == ie9 ]
@@ -414,7 +402,6 @@ LibTest/typed_data/ByteData/setUint32_A01_t01: fail # co19-roll r569: Please tri
 LibTest/typed_data/ByteData/setUint8_A01_t01: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/toString_A01_t01: fail # co19-roll r569: Please triage this failure
 
-
 [ $compiler == dart2js ]
 Language/03_Overview/1_Scoping_A02_t28: fail # co19-roll r559: Please triage this failure
 Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
@@ -427,8 +414,6 @@ Language/07_Classes/4_Abstract_Instance_Members_A03_t03: fail # co19-roll r559: 
 Language/07_Classes/4_Abstract_Instance_Members_A03_t04: fail # co19-roll r559: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A02_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A03_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t06: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t09: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/05_Strings_A20_t01: fail # co19-roll r546: Please triage this failure
@@ -459,7 +444,6 @@ Language/14_Libraries_and_Scripts/1_Imports_A02_t29: fail # co19-roll r546: Plea
 Language/14_Libraries_and_Scripts/1_Imports_A03_t08: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t10: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t27: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t28: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t29: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t30: fail # co19-roll r546: Please triage this failure
@@ -484,7 +468,6 @@ LibTest/isolate/isolate_api/spawnFunction_A04_t03: fail # co19-roll r546: Please
 LibTest/isolate/isolate_api/spawnUri_A02_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/spawnUri_A02_t03: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateSink/add_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
@@ -532,6 +515,7 @@ LibTest/typed_data/Uint8List/Uint8List.view_A05_t01: RuntimeError # co19-roll r5
 LibTest/typed_data/Uint8List/Uint8List.view_A05_t02: RuntimeError # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8List/Uint8List.view_A05_t03: RuntimeError # co19-roll r559: Please triage this failure
 Utils/tests/Expect/identical_A01_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t05: CompileTimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == dart2js && $checked ]
 Language/10_Generics/09_Generics_A03_t01: fail # co19-roll r546: Please triage this failure
@@ -540,7 +524,6 @@ Language/12_Expressions/03_Numbers_A05_t02: fail # co19-roll r546: Please triage
 Language/12_Expressions/06_Lists_A09_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/06_Lists_A09_t04: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/07_Maps_A10_t05: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/07_Maps_A11_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A07_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A12_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: Fail # co19-roll r559: Please triage this failure
@@ -595,6 +578,9 @@ LibTest/async/Timer/cancel_A01_t01: fail # co19-roll r546: Please triage this fa
 LibTest/async/Timer/Timer_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A01_t02: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: fail # co19-roll r587: Please triage this failure
+Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # co19-roll r607: Please triage this failure
+Language/12_Expressions/02_Null_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
+Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == dart2js && $minified ]
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19-roll r559: Please triage this failure
@@ -627,10 +613,12 @@ Language/07_Classes/6_Constructors/2_Factories_A09_t02: fail # co19-roll r587: P
 Language/07_Classes/6_Constructors/2_Factories_A10_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/2_Factories_A10_t03: fail # co19-roll r587: Please triage this failure
 Language/10_Generics/09_Generics_A01_t17: fail # co19-roll r587: Please triage this failure
+Language/15_Types/5_Function_Types_A07_t01: CompileTimeError # co19-roll r607: Please triage this failure
+Language/15_Types/5_Function_Types_A07_t01: CompileTimeError # co19-roll r607: Please triage this failure
+LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
+Language/12_Expressions/07_Maps_A13_t01: MissingCompileTimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == dart2js ]
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: fail # co19-roll r587: Please triage this failure
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: fail # co19-roll r587: Please triage this failure
 LibTest/json/stringify_A01_t01: fail # co19-roll r587: Please triage this failure
 LibTest/json/stringify_A02_t01: fail # co19-roll r587: Please triage this failure
 LibTest/json/printOn_A01_t01: fail # co19-roll r587: Please triage this failure

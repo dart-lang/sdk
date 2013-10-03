@@ -33,7 +33,7 @@ main() {
 
     // OPTIONALS optionsCollection[0] = new OptionElement(value: '42', data: 'Option42');
     expect(() {
-      optionsCollection[0] = new OptionElement('Option42', '42');
+      optionsCollection[0] = new OptionElement(data: 'Option42', value: '42');
     }, throws);
   });
 }

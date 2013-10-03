@@ -46,41 +46,62 @@ class ErrorFormatter {
     // format errors
     int errorCount = 0;
     int warnCount = 0;
+    int hintCount = 0;
     for (AnalysisError error in errors) {
-      if (error.errorCode.errorSeverity == ErrorSeverity.ERROR) {
+      var severity = error.errorCode.errorSeverity;
+      if (severity == ErrorSeverity.ERROR) {
         errorCount++;
-      } else if (error.errorCode.errorSeverity == ErrorSeverity.WARNING) {
+      } else if (severity == ErrorSeverity.WARNING) {
         if (options.warningsAreFatal) {
           errorCount++;
         } else {
-          warnCount++;
+          if (error.errorCode.type == ErrorType.HINT) {
+            hintCount++;
+          } else {
+            warnCount++;
+          }
         }
       }
       formatError(errorToLine, error);
     }
     // print statistics
     if (!options.machineFormat) {
-      if (errorCount != 0 && warnCount != 0) {
+      var hasErrors = errorCount != 0;
+      var hasWarns = warnCount != 0;
+      var hasHints = hintCount != 0;
+      bool hasContent = false;
+      if (hasErrors) {
         out.write(errorCount);
         out.write(' ');
         out.write(pluralize("error", errorCount));
-        out.write(' and ');
+        hasContent = true;
+      }
+      if (hasWarns) {
+        if (hasContent) {
+          if (!hasHints) {
+            out.write(' and ');
+          } else {
+            out.write(", ");
+          }
+        }
         out.write(warnCount);
         out.write(' ');
         out.write(pluralize("warning", warnCount));
-        out.writeln(' found.');
-      } else if (errorCount != 0) {
-        out.write(errorCount);
+        hasContent = true;
+      }
+      if (hasHints) {
+        if (hasContent) {
+          out.write(" and ");
+        }
+        out.write(hintCount);
         out.write(' ');
-        out.write(pluralize("error", errorCount));
-        out.writeln(' found.');
-      } else if (warnCount != 0) {
-        out.write(warnCount);
-        out.write(' ');
-        out.write(pluralize("warning", warnCount));
-        out.writeln(' found.');
+        out.write(pluralize("hint", hintCount));
+        hasContent = true;
+      }
+      if (hasContent) {
+        out.writeln(" found.");
       } else {
-        out.writeln("No issues found.");
+        out.writeln("No issues found");
       }
     }
   }
@@ -110,8 +131,12 @@ class ErrorFormatter {
       out.write('|');
       out.write(escapePipe(error.message));
     } else {
+      String errorType = error.errorCode.errorSeverity.displayName;
+      if (error.errorCode.type == ErrorType.HINT) {
+        errorType = error.errorCode.type.displayName;
+      }
       // [warning] 'foo' is not a... (/Users/.../tmp/foo.dart, line 1, col 2)
-      out.write('[${severity.displayName}] ${error.message} ');
+      out.write('[$errorType] ${error.message} ');
       out.write('(${source.fullName}');
       out.write(', line ${location.lineNumber}, col ${location.columnNumber})');
     }

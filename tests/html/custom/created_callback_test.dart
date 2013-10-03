@@ -6,15 +6,17 @@ library created_callback_test;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
+import 'dart:js' as js;
 import '../utils.dart';
 
 class A extends HtmlElement {
   static final tag = 'x-a';
   factory A() => new Element.tag(tag);
+  A.created() : super.created();
 
   static int createdInvocations = 0;
 
-  void created() {
+  void createdCallback() {
     createdInvocations++;
   }
 }
@@ -22,16 +24,18 @@ class A extends HtmlElement {
 class B extends HtmlElement {
   static final tag = 'x-b';
   factory B() => new Element.tag(tag);
+  B.created() : super.created();
 }
 
 class C extends HtmlElement {
   static final tag = 'x-c';
   factory C() => new Element.tag(tag);
+  C.created() : super.created();
 
   static int createdInvocations = 0;
   static var div;
 
-  void created() {
+  void createdCallback() {
     createdInvocations++;
 
     if (this.id != 'u') {
@@ -60,7 +64,17 @@ main() {
   // Adapted from Blink's
   // fast/dom/custom/created-callback test.
 
-  setUp(loadPolyfills);
+  var registered = false;
+  setUp(() {
+    return loadPolyfills().then((_) {
+      if (!registered) {
+        registered = true;
+        document.register(B.tag, B);
+        document.register(C.tag, C);
+        ErrorConstructorElement.register();
+      }
+    });
+  });
 
   test('transfer created callback', () {
     document.register(A.tag, A);
@@ -68,10 +82,7 @@ main() {
     expect(A.createdInvocations, 1);
   });
 
-  test(':unresolved and created callback timing', () {
-    document.register(B.tag, B);
-    document.register(C.tag, C);
-
+  test('unresolved and created callback timing', () {
     var div = new DivElement();
     C.div = div;
     div.setInnerHtml("""
@@ -87,6 +98,194 @@ main() {
     expect(div.query('#w') is B, isTrue);
   });
 
+  test('nesting of constructors', NestedElement.test);
+
+  test('access while upgrading gets unupgraded element',
+      AccessWhileUpgradingElement.test);
+
+  test('cannot call created constructor', () {
+    expect(() {
+      new B.created();
+    }, throws);
+  });
+
+  test('cannot register without created', () {
+    expect(() {
+      document.register(MissingCreatedElement.tag, MissingCreatedElement);
+    }, throws);
+  });
+
+  test('throw on createElement does not upgrade', () {
+    ErrorConstructorElement.callCount = 0;
+
+    var e;
+    expectGlobalError(() {
+      e = new Element.tag(ErrorConstructorElement.tag);
+    });
+    expect(ErrorConstructorElement.callCount, 1);
+    expect(e is HtmlElement, isTrue);
+    expect(e is ErrorConstructorElement, isFalse);
+
+    var dummy = new DivElement();
+    dummy.append(e);
+    e = dummy.firstChild;
+    expect(ErrorConstructorElement.callCount, 1);
+  });
+
+  test('throw on innerHtml does not upgrade', () {
+    ErrorConstructorElement.callCount = 0;
+
+    var dummy = new DivElement();
+    var tag = ErrorConstructorElement.tag;
+    expectGlobalError(() {
+      dummy.setInnerHtml('<$tag></$tag>',
+          treeSanitizer: new NullTreeSanitizer());
+    });
+
+    expect(ErrorConstructorElement.callCount, 1);
+
+    var e = dummy.firstChild;
+    // Accessing should not re-run the constructor.
+    expect(ErrorConstructorElement.callCount, 1);
+    expect(e is HtmlElement, isTrue);
+    expect(e is ErrorConstructorElement, isFalse);
+  });
+
+  // Issue - 13711 Need to fix the handling of the created constructor.
+  // test('created cannot be called from nested constructor',
+  //     NestedCreatedConstructorElement.test);
+
+
   // TODO(vsm): Port additional test from upstream here:
   // http://src.chromium.org/viewvc/blink/trunk/LayoutTests/fast/dom/custom/created-callback.html?r1=156141&r2=156185
+}
+
+
+class NestedElement extends HtmlElement {
+  static final tag = 'x-nested';
+
+  final Element b = new B();
+
+  factory NestedElement() => new Element.tag(tag);
+  NestedElement.created() : super.created();
+
+  static void register() {
+    document.register(tag, NestedElement);
+  }
+
+  static void test() {
+    register();
+
+    var e = new NestedElement();
+    expect(e.b, isNotNull);
+    expect(e.b is B, isTrue);
+    expect(e is NestedElement, isTrue);
+  }
+}
+
+
+class AccessWhileUpgradingElement extends HtmlElement {
+  static final tag = 'x-access-while-upgrading';
+
+  static Element upgradingContext;
+  static Element upgradingContextChild;
+
+  final foo = runInitializerCode();
+
+  factory AccessWhileUpgradingElement() => new Element.tag(tag);
+  AccessWhileUpgradingElement.created() : super.created();
+
+  static runInitializerCode() {
+    upgradingContextChild = upgradingContext.firstChild;
+
+    return 666;
+  }
+
+  static void register() {
+    document.register(tag, AccessWhileUpgradingElement);
+  }
+
+  static void test() {
+    register();
+
+    upgradingContext = new DivElement();
+    upgradingContext.setInnerHtml('<$tag></$tag>',
+        treeSanitizer: new NullTreeSanitizer());
+    var child = upgradingContext.firstChild;
+
+    expect(child.foo, 666);
+    expect(upgradingContextChild is HTMLElement, isTrue);
+    expect(upgradingContextChild is AccessWhileUpgradingElement, isFalse,
+        reason: 'Elements accessed while upgrading should not be upgraded.');
+  }
+}
+
+class MissingCreatedElement extends HtmlElement {
+  static final tag = 'x-missing-created';
+
+  factory MissingCreatedElement() => new Element.tag(tag);
+}
+
+class ErrorConstructorElement extends HtmlElement {
+  static final tag = 'x-throws-in-constructor';
+  static int callCount = 0;
+
+  factory ErrorConstructorElement() => new Element.tag(tag);
+
+  ErrorConstructorElement.created() : super.created() {
+    ++callCount;
+    throw new Exception('Just messin with ya');
+  }
+
+  static void register() {
+    document.register(tag, ErrorConstructorElement);
+  }
+}
+
+class NestedCreatedConstructorElement extends HtmlElement {
+  static final tag = 'x-nested-created-constructor';
+
+  // Should not be able to call this here.
+  final B b = constructB();
+  static B constructedB;
+
+  factory NestedCreatedConstructorElement() => new Element.tag(tag);
+  NestedCreatedConstructorElement.created() : super.created();
+
+  static void register() {
+    document.register(tag, NestedCreatedConstructorElement);
+  }
+
+  // Try to run the created constructor, and record the results.
+  static constructB() {
+    // This should throw an exception.
+    constructedB = new B.created();
+    return constructedB;
+  }
+
+  static void test() {
+    register();
+
+    // Exception should have occurred on upgrade.
+    var e = new Element.tag(tag);
+    expect(e is NestedCreatedConstructorElement, isFalse);
+    expect(e is HtmlElement, isTrue);
+    // Should not have been set.
+    expect(constructedB, isNull);
+  }
+}
+
+void expectGlobalError(Function test) {
+  js.context['testExpectsGlobalError'] = true;
+  try {
+    test();
+  } catch(e) {
+    rethrow;
+  } finally {
+    js.context['testExpectsGlobalError'] = false;
+  }
+  var errors = js.context['testSuppressedGlobalErrors'];
+  expect(errors['length'], 1);
+  // Clear out the errors;
+  js.context['testSuppressedGlobalErrors']['length'] = 0;
 }

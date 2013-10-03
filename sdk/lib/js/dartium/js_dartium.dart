@@ -76,15 +76,21 @@ SendPortSync _jsPortInstanceof = window.lookupPort('dart-js-instanceof');
 SendPortSync _jsPortDeleteProperty = window.lookupPort('dart-js-delete-property');
 SendPortSync _jsPortConvert = window.lookupPort('dart-js-convert');
 
+
+JsObject _context;
+
 /**
  * Returns a proxy to the global JavaScript context for this page.
  */
 JsObject get context {
-  var port = _jsPortSync;
-  if (port == null) {
-    return null;
+  if (_context == null) {
+    var port = _jsPortSync;
+    if (port == null) {
+      return null;
+    }
+    _context = _deserialize(_jsPortSync.callSync([]));
   }
-  return _deserialize(_jsPortSync.callSync([]));
+  return _context;
 }
 
 /**

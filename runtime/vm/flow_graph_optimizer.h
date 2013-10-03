@@ -282,6 +282,8 @@ class ConstantPropagator : public FlowGraphVisitor {
                       const Value& left,
                       const Value& right);
 
+  void RemoveInterpolationInputs(const StaticCallInstr& call);
+
   virtual void VisitBlocks() { UNREACHABLE(); }
 
 #define DECLARE_VISIT(type) virtual void Visit##type(type##Instr* instr);

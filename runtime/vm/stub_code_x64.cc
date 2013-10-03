@@ -60,7 +60,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movq(CTX, RAX);
 
   // Reserve space for arguments and align frame before entering C++ world.
-  __ AddImmediate(RSP, Immediate(-sizeof(NativeArguments)));
+  __ subq(RSP, Immediate(sizeof(NativeArguments)));
   if (OS::ActivationFrameAlignment() > 1) {
     __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
@@ -149,7 +149,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
   // RDI) and align frame before entering the C++ world.
-  __ AddImmediate(RSP, Immediate(-sizeof(NativeArguments)));
+  __ subq(RSP, Immediate(sizeof(NativeArguments)));
   if (OS::ActivationFrameAlignment() > 1) {
     __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
@@ -217,7 +217,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
   // RDI) and align frame before entering the C++ world.
-  __ AddImmediate(RSP, Immediate(-sizeof(NativeArguments)));
+  __ subq(RSP, Immediate(sizeof(NativeArguments)));
   if (OS::ActivationFrameAlignment() > 1) {
     __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
@@ -255,7 +255,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   // Setup space on stack for return value.
-  __ PushObject(Object::null_object());
+  __ PushObject(Object::null_object(), PP);
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
   __ popq(RAX);  // Get Code object result.
   __ popq(R10);  // Restore arguments descriptor array.
@@ -275,7 +275,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   // Setup space on stack for return value.
-  __ PushObject(Object::null_object());
+  __ PushObject(Object::null_object(), PP);
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   __ popq(RAX);  // Get Code object.
   __ popq(R10);  // Restore arguments descriptor array.
@@ -308,8 +308,8 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ Bind(&loop);
   __ movq(RAX, Address(R12, 0));
   __ movq(Address(RBX, 0), RAX);
-  __ AddImmediate(RBX, Immediate(kWordSize));
-  __ AddImmediate(R12, Immediate(-kWordSize));
+  __ addq(RBX, Immediate(kWordSize));
+  __ subq(R12, Immediate(kWordSize));
   __ Bind(&loop_condition);
   __ decq(R10);
   __ j(POSITIVE, &loop, Assembler::kNearJump);
@@ -324,7 +324,7 @@ static void PushArgumentsArray(Assembler* assembler) {
 //       when trying to resolve the call.
 void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   __ EnterStubFrameWithPP();
-  __ PushObject(Object::null_object());  // Space for the return value.
+  __ PushObject(Object::null_object(), PP);  // Space for the return value.
 
   // Push the receiver as an argument.  Load the smi-tagged argument
   // count into R13 to index the receiver in the stack.  There are
@@ -504,7 +504,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ pushq(R10);
 
   // Space for the result of the runtime call.
-  __ PushObject(Object::null_object());
+  __ PushObject(Object::null_object(), PP);
   __ pushq(RAX);  // Receiver.
   __ pushq(RBX);  // IC data.
   __ pushq(R10);  // Arguments descriptor.
@@ -519,7 +519,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ LeaveFrameWithPP();
 
   Label lookup;
-  __ CompareObject(RAX, Object::null_object());
+  __ CompareObject(RAX, Object::null_object(), PP);
   __ j(EQUAL, &lookup, Assembler::kNearJump);
   __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RAX);
@@ -650,7 +650,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   // Setup space on stack for return value.
-  __ PushObject(Object::null_object());
+  __ PushObject(Object::null_object(), PP);
   __ pushq(R10);  // Array length as Smi.
   __ pushq(RBX);  // Element type.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
@@ -1228,7 +1228,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   // Create a stub frame.
   __ EnterStubFrameWithPP();
   __ pushq(R12);  // Setup space on stack for return value.
-  __ PushObject(cls);  // Push class of object to be allocated.
+  __ PushObject(cls, PP);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
     __ pushq(RAX);  // Push type arguments of object to be allocated.
     __ pushq(RDX);  // Push type arguments of instantiator.
@@ -1364,7 +1364,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   }
 
   __ pushq(R12);  // Setup space on stack for the return value.
-  __ PushObject(func);
+  __ PushObject(func, PP);
   if (is_implicit_instance_closure) {
     __ pushq(RAX);  // Receiver.
   }
@@ -2002,104 +2002,6 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ jmp(RDI);  // Jump to the exception handler code.
 }
 
-
-// Implements equality operator when one of the arguments is null
-// (identity check) and updates ICData if necessary.
-// TOS + 0: return address
-// TOS + 1: right argument
-// TOS + 2: left argument
-// RBX: ICData.
-// RAX: result.
-// TODO(srdjan): Move to VM stubs once Boolean objects become VM objects.
-void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
-  static const intptr_t kNumArgsTested = 2;
-#if defined(DEBUG)
-  { Label ok;
-    __ movq(RCX, FieldAddress(RBX, ICData::num_args_tested_offset()));
-    __ cmpq(RCX, Immediate(kNumArgsTested));
-    __ j(EQUAL, &ok, Assembler::kNearJump);
-    __ Stop("Incorrect ICData for equality");
-    __ Bind(&ok);
-  }
-#endif  // DEBUG
-  // Check IC data, update if needed.
-  // RBX: IC data object (preserved).
-  __ movq(R12, FieldAddress(RBX, ICData::ic_data_offset()));
-  // R12: ic_data_array with check entries: classes and target functions.
-  __ leaq(R12, FieldAddress(R12, Array::data_offset()));
-  // R12: points directly to the first ic data array element.
-
-  Label get_class_id_as_smi, no_match, loop, compute_result, found;
-  __ Bind(&loop);
-  // Check left.
-  __ movq(RAX, Address(RSP, 2 * kWordSize));
-  __ call(&get_class_id_as_smi);
-  __ movq(R13, Address(R12, 0 * kWordSize));
-  __ cmpq(RAX, R13);  // Class id match?
-  __ j(NOT_EQUAL, &no_match, Assembler::kNearJump);
-  // Check right.
-  __ movq(RAX, Address(RSP, 1 * kWordSize));
-  __ call(&get_class_id_as_smi);
-  __ movq(R13, Address(R12, 1 * kWordSize));
-  __ cmpq(RAX, R13);  // Class id match?
-  __ j(EQUAL, &found, Assembler::kNearJump);
-  __ Bind(&no_match);
-  // Next check group.
-  __ addq(R12, Immediate(
-      kWordSize * ICData::TestEntryLengthFor(kNumArgsTested)));
-  __ cmpq(R13, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
-  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-  Label update_ic_data;
-  __ jmp(&update_ic_data);
-
-  __ Bind(&found);
-  const intptr_t count_offset =
-      ICData::CountIndexFor(kNumArgsTested) * kWordSize;
-  __ addq(Address(R12, count_offset), Immediate(Smi::RawValue(1)));
-  __ j(NO_OVERFLOW, &compute_result);
-  __ movq(Address(R12, count_offset),
-          Immediate(Smi::RawValue(Smi::kMaxValue)));
-
-  __ Bind(&compute_result);
-  Label true_label;
-  __ movq(RAX, Address(RSP, 1 * kWordSize));
-  __ cmpq(RAX, Address(RSP, 2 * kWordSize));
-  __ j(EQUAL, &true_label, Assembler::kNearJump);
-  __ LoadObject(RAX, Bool::False(), PP);
-  __ ret();
-  __ Bind(&true_label);
-  __ LoadObject(RAX, Bool::True(), PP);
-  __ ret();
-
-  __ Bind(&get_class_id_as_smi);
-  Label not_smi;
-  // Test if Smi -> load Smi class for comparison.
-  __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-  __ movq(RAX, Immediate(Smi::RawValue(kSmiCid)));
-  __ ret();
-
-  __ Bind(&not_smi);
-  __ LoadClassId(RAX, RAX);
-  __ SmiTag(RAX);
-  __ ret();
-
-  __ Bind(&update_ic_data);
-
-  // RBX: ICData
-  __ movq(RAX, Address(RSP, 1 * kWordSize));
-  __ movq(R13, Address(RSP, 2 * kWordSize));
-  __ EnterStubFrame();
-  __ pushq(R13);  // arg 0
-  __ pushq(RAX);  // arg 1
-  __ PushObject(Symbols::EqualOperator());  // Target's name.
-  __ pushq(RBX);  // ICData
-  __ CallRuntime(kUpdateICDataTwoArgsRuntimeEntry, 4);
-  __ Drop(4);
-  __ LeaveFrame();
-
-  __ jmp(&compute_result, Assembler::kNearJump);
-}
 
 // Calls to the runtime to optimize the given function.
 // RDI: function to be reoptimized.

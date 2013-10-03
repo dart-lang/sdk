@@ -4,6 +4,7 @@
 
 part of dart.io;
 
+// This list must be kept in sync with the list in runtime/bin/io_service.h
 const int _FILE_EXISTS = 0;
 const int _FILE_CREATE = 1;
 const int _FILE_DELETE = 2;
@@ -37,11 +38,12 @@ const int _DIRECTORY_CREATE = 29;
 const int _DIRECTORY_DELETE = 30;
 const int _DIRECTORY_EXISTS = 31;
 const int _DIRECTORY_CREATE_TEMP = 32;
-const int _DIRECTORY_LIST_START = 33;
-const int _DIRECTORY_LIST_NEXT = 34;
-const int _DIRECTORY_LIST_STOP = 35;
-const int _DIRECTORY_RENAME = 36;
-const int _SSL_PROCESS_FILTER = 37;
+const int _DIRECTORY_CREATE_SYSTEM_TEMP = 33;
+const int _DIRECTORY_LIST_START = 34;
+const int _DIRECTORY_LIST_NEXT = 35;
+const int _DIRECTORY_LIST_STOP = 36;
+const int _DIRECTORY_RENAME = 37;
+const int _SSL_PROCESS_FILTER = 38;
 
 class _IOService {
   external static Future dispatch(int request, List data);

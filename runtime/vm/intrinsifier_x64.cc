@@ -27,7 +27,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 #define __ assembler->
 
 
-void Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
+void Intrinsifier::List_Allocate(Assembler* assembler) {
   // This snippet of inlined code uses the following registers:
   // RAX, RCX, RDI, R13
   // and the newly allocated object is returned in RAX.
@@ -141,7 +141,7 @@ void Intrinsifier::Array_getLength(Assembler* assembler) {
 }
 
 
-void Intrinsifier::ImmutableArray_getLength(Assembler* assembler) {
+void Intrinsifier::ImmutableList_getLength(Assembler* assembler) {
   return Array_getLength(assembler);
 }
 
@@ -164,7 +164,7 @@ void Intrinsifier::Array_getIndexed(Assembler* assembler) {
 }
 
 
-void Intrinsifier::ImmutableArray_getIndexed(Assembler* assembler) {
+void Intrinsifier::ImmutableList_getIndexed(Assembler* assembler) {
   return Array_getIndexed(assembler);
 }
 
@@ -197,7 +197,7 @@ void Intrinsifier::Array_setIndexed(Assembler* assembler) {
 
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+2), data (+1), return-address (+0).
-void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
+void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
   // This snippet of inlined code uses the following registers:
   // RAX, RCX, R13
   // and the newly allocated object is returned in RAX.
@@ -267,14 +267,14 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 
 // Get length of growable object array.
 // On stack: growable array (+1), return-address (+0).
-void Intrinsifier::GrowableArray_getLength(Assembler* assembler) {
+void Intrinsifier::GrowableList_getLength(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RAX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
   __ ret();
 }
 
 
-void Intrinsifier::GrowableArray_getCapacity(Assembler* assembler) {
+void Intrinsifier::GrowableList_getCapacity(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RAX, FieldAddress(RAX, GrowableObjectArray::data_offset()));
   __ movq(RAX, FieldAddress(RAX, Array::length_offset()));
@@ -284,7 +284,7 @@ void Intrinsifier::GrowableArray_getCapacity(Assembler* assembler) {
 
 // Access growable object array at specified index.
 // On stack: growable array (+2), index (+1), return-address (+0).
-void Intrinsifier::GrowableArray_getIndexed(Assembler* assembler) {
+void Intrinsifier::GrowableList_getIndexed(Assembler* assembler) {
   Label fall_through;
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // GrowableArray.
@@ -306,7 +306,7 @@ void Intrinsifier::GrowableArray_getIndexed(Assembler* assembler) {
 
 // Set value into growable object array at specified index.
 // On stack: growable array (+3), index (+2), value (+1), return-address (+0).
-void Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
+void Intrinsifier::GrowableList_setIndexed(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return;
   }
@@ -334,7 +334,7 @@ void Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
 // Set length of growable object array. The length cannot
 // be greater than the length of the data container.
 // On stack: growable array (+2), length (+1), return-address (+0).
-void Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
+void Intrinsifier::GrowableList_setLength(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Growable array.
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Length value.
@@ -348,7 +348,7 @@ void Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
 
 // Set data of growable object array.
 // On stack: growable array (+2), data (+1), return-address (+0).
-void Intrinsifier::GrowableArray_setData(Assembler* assembler) {
+void Intrinsifier::GrowableList_setData(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return;
   }
@@ -370,7 +370,7 @@ void Intrinsifier::GrowableArray_setData(Assembler* assembler) {
 // Add an element to growable array if it doesn't need to grow, otherwise
 // call into regular code.
 // On stack: growable array (+2), value (+1), return-address (+0).
-void Intrinsifier::GrowableArray_add(Assembler* assembler) {
+void Intrinsifier::GrowableList_add(Assembler* assembler) {
   // In checked mode we need to check the incoming argument.
   if (FLAG_enable_type_checks) return;
   Label fall_through;
@@ -1101,7 +1101,8 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kNearJump,
-                 RAX);  // Result register.
+                 RAX,  // Result register.
+                 kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1145,7 +1146,8 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kNearJump,
-                 RAX);  // Result register.
+                 RAX,  // Result register.
+                 kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1166,7 +1168,8 @@ void Intrinsifier::Double_fromInteger(Assembler* assembler) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kNearJump,
-                 RAX);  // Result register.
+                 RAX,  // Result register.
+                 kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1236,7 +1239,8 @@ static void EmitTrigonometric(Assembler* assembler,
   __ TryAllocate(double_class,
                  &alloc_failed,
                  Assembler::kNearJump,
-                 RAX);  // Result register.
+                 RAX,  // Result register.
+                 kNoRegister);  // Pool pointer might not be loaded.
   __ fstpl(FieldAddress(RAX, Double::value_offset()));
   __ ret();
 
@@ -1283,7 +1287,8 @@ void Intrinsifier::Math_sqrt(Assembler* assembler) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kNearJump,
-                 RAX);  // Result register.
+                 RAX,  // Result register.
+                 kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&is_smi);

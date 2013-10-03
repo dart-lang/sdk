@@ -361,14 +361,6 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   const Array& kNoArgumentNames = Object::null_array();
   const int kNumArgumentsChecked = 2;
 
-  Label check_identity;
-  __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
-  __ ldm(IA, SP, (1 << R0) | (1 << R1));
-  __ cmp(R1, ShifterOperand(IP));
-  __ b(&check_identity, EQ);
-  __ cmp(R0, ShifterOperand(IP));
-  __ b(&check_identity, EQ);
-
   ICData& equality_ic_data = ICData::ZoneHandle();
   if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
     ASSERT(!original_ic_data.IsNull());
@@ -395,42 +387,12 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                  kNoArgumentNames,
                                  locs,
                                  equality_ic_data);
-  Label check_ne;
-  __ b(&check_ne);
-
-  __ Bind(&check_identity);
-  Label equality_done;
-  if (compiler->is_optimizing()) {
-    // No need to update IC data.
-    __ PopList((1 << R0) | (1 << R1));
-    __ cmp(R0, ShifterOperand(R1));
-    __ LoadObject(R0, Bool::Get(kind != Token::kEQ), NE);
-    __ LoadObject(R0, Bool::Get(kind == Token::kEQ), EQ);
-    if (kind == Token::kNE) {
-      // Skip not-equal result conversion.
-      __ b(&equality_done);
-    }
-  } else {
-    // Call stub, load IC data in register. The stub will update ICData if
-    // necessary.
-    Register ic_data_reg = locs->temp(0).reg();
-    ASSERT(ic_data_reg == R5);  // Stub depends on it.
-    __ LoadObject(ic_data_reg, equality_ic_data);
-    // Pass left in R1 and right in R0.
-    compiler->GenerateCall(token_pos,
-                           &StubCode::EqualityWithNullArgLabel(),
-                           PcDescriptors::kRuntimeCall,
-                           locs);
-    __ Drop(2);
-  }
-  __ Bind(&check_ne);
   if (kind == Token::kNE) {
     // Negate the condition: true label returns false and vice versa.
     __ CompareObject(R0, Bool::True());
     __ LoadObject(R0, Bool::True(), NE);
     __ LoadObject(R0, Bool::False(), EQ);
   }
-  __ Bind(&equality_done);
 }
 
 
@@ -612,35 +574,11 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
   ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
   Register left = locs->in(0).reg();
   Register right = locs->in(1).reg();
-  Label done, identity_compare, non_null_compare;
-  __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
-  __ cmp(right, ShifterOperand(IP));
-  __ b(&identity_compare, EQ);
-  __ cmp(left, ShifterOperand(IP));
-  __ b(&non_null_compare, NE);
-  // Comparison with NULL is "===".
-  __ Bind(&identity_compare);
-  __ cmp(left, ShifterOperand(right));
-  Condition cond = TokenKindToSmiCondition(kind);
-  if (branch != NULL) {
-    branch->EmitBranchOnCondition(compiler, cond);
-  } else {
-    Register result = locs->out().reg();
-    Label load_true;
-    __ b(&load_true, cond);
-    __ LoadObject(result, Bool::False());
-    __ b(&done);
-    __ Bind(&load_true);
-    __ LoadObject(result, Bool::True());
-  }
-  __ b(&done);
-  __ Bind(&non_null_compare);  // Receiver is not null.
   ASSERT(left == R1);
   ASSERT(right == R0);
   __ PushList((1 << R0) | (1 << R1));
   EmitEqualityAsPolymorphicCall(compiler, ic_data, locs, branch, kind,
                                 deopt_id, token_pos);
-  __ Bind(&done);
 }
 
 
@@ -4444,18 +4382,14 @@ void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
+    compiler->EmitEdgeCounter();
+    // Add an edge counter.
+    // On ARM the deoptimization descriptor points after the edge counter
+    // code so that we can reuse the same pattern matching code as at call
+    // sites, which matches backwards from the end of the pattern.
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id_,
                                    Scanner::kDummyTokenIndex);
-    // Add an edge counter.
-    const Array& counter = Array::ZoneHandle(Array::New(1, Heap::kOld));
-    counter.SetAt(0, Smi::Handle(Smi::New(0)));
-    __ Comment("Edge counter");
-    __ LoadObject(R0, counter);
-    __ ldr(IP, FieldAddress(R0, Array::element_offset(0)));
-    __ adds(IP, IP, ShifterOperand(Smi::RawValue(1)));
-    __ LoadImmediate(IP, Smi::RawValue(Smi::kMaxValue), VS);  // If overflow.
-    __ str(IP, FieldAddress(R0, Array::element_offset(0)));
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -4469,6 +4403,17 @@ LocationSummary* GotoInstr::MakeLocationSummary() const {
 
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (!compiler->is_optimizing()) {
+    compiler->EmitEdgeCounter();
+    // Add a deoptimization descriptor for deoptimizing instructions that
+    // may be inserted before this instruction.  On ARM this descriptor
+    // points after the edge counter code so that we can reuse the same
+    // pattern matching code as at call sites, which matches backwards from
+    // the end of the pattern.
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   GetDeoptId(),
+                                   Scanner::kDummyTokenIndex);
+  }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }

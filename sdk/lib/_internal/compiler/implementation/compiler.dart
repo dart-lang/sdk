@@ -123,6 +123,13 @@ abstract class Backend {
   bool classNeedsRti(ClassElement cls);
   bool methodNeedsRti(FunctionElement function);
 
+
+  /// Called during codegen when [constant] has been used.
+  void registerCompileTimeConstant(Constant constant, TreeElements elements) {}
+
+  /// Called during post-processing when [constant] has been evaluated.
+  void registerMetadataConstant(Constant constant, TreeElements elements) {}
+
   /// Called during resolution to notify to the backend that a class is
   /// being instantiated.
   void registerInstantiatedClass(ClassElement cls,
@@ -256,10 +263,6 @@ abstract class Backend {
   Future onLibraryLoaded(LibraryElement library, Uri uri) {
     return new Future.value();
   }
-
-  void registerMetadataInstantiatedType(DartType type, TreeElements elements) {}
-  void registerMetadataStaticUse(Element element) {}
-  void registerMetadataGetOfStaticFunction(FunctionElement element) {}
 
   /// Called by [MirrorUsageAnalyzerTask] after it has merged all @MirrorsUsed
   /// annotations. The arguments corresponds to the unions of the corresponding
@@ -529,11 +532,9 @@ abstract class Compiler implements DiagnosticListener {
   ti.TypesTask typesTask;
   Backend backend;
   ConstantHandler constantHandler;
-  ConstantHandler metadataHandler;
   EnqueueTask enqueuer;
   DeferredLoadTask deferredLoadTask;
   MirrorUsageAnalyzerTask mirrorUsageAnalyzerTask;
-  ContainerTracer containerTracer;
   String buildId;
 
   static const SourceString MAIN = const SourceString('main');
@@ -639,15 +640,12 @@ abstract class Compiler implements DiagnosticListener {
       closureToClassMapper = new closureMapping.ClosureTask(this, closureNamer),
       checker = new TypeCheckerTask(this),
       typesTask = new ti.TypesTask(this),
-      containerTracer = new ContainerTracer(this),
       constantHandler = new ConstantHandler(this, backend.constantSystem),
       deferredLoadTask = new DeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
       enqueuer = new EnqueueTask(this)];
 
     tasks.addAll(backend.tasks);
-    metadataHandler = new ConstantHandler(
-        this, backend.constantSystem, isMetadata: true);
   }
 
   Universe get resolverWorld => enqueuer.resolution.universe;

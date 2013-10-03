@@ -14,14 +14,14 @@ class Class<T1, T2> {
   factory Class.redirectingFactoryNoOptional(a, b) = Class.factoryNoOptional;
 
   factory Class.factoryUnnamedOptional(a, [b = 42]) => new Class<T1, T2>(a - b);
-  factory Class.redirectingFactoryUnnamedOptional(a, [b]) =
+  factory Class.redirectingFactoryUnnamedOptional(a, [b = 5]) =
       Class.factoryUnnamedOptional;
 
-  factory Class.factoryNamedOptional(a, {b: 0}) {
+  factory Class.factoryNamedOptional(a, {b: 42}) {
     return new Class<T1, T2>(a - b);
   }
 
-  factory Class.redirectingFactoryNamedOptional(a, {b: 42}) =
+  factory Class.redirectingFactoryNamedOptional(a, {b: 5}) =
       Class.factoryNamedOptional;
 
   factory Class.factoryMoreNamedOptional(a, {b: 0, c: 2}) {

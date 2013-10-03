@@ -49,8 +49,13 @@ intptr_t FileSystemWatcher::WatchPath(const char* path,
   }
   if (events & kModifyContent) list_events |= FILE_NOTIFY_CHANGE_LAST_WRITE;
 
-  return reinterpret_cast<intptr_t>(
-      new DirectoryWatchHandle(dir, list_events, recursive));
+  DirectoryWatchHandle* handle =
+      new DirectoryWatchHandle(dir, list_events, recursive);
+  // Issue a read directly, to be sure events are tracked from now on. This is
+  // okay, since in Dart, we create the socket and start reading immidiately.
+  handle->EnsureInitialized(EventHandler::delegate());
+  handle->IssueRead();
+  return reinterpret_cast<intptr_t>(handle);
 }
 
 

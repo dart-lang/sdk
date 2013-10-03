@@ -155,9 +155,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   final ClassElement currentClass;
 
-  /// The type of [:this:]. Can only be accessed if [currentClass] is not null.
   InterfaceType thisType;
-  /// The type of [:super:]. Can only be accessed if [currentClass] is not null.
   InterfaceType superType;
 
   Link<DartType> cascadeTypes = const Link<DartType>();

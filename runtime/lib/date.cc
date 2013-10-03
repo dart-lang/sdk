@@ -20,9 +20,7 @@ DEFINE_NATIVE_ENTRY(DateNatives_timeZoneName, 1) {
       Integer, dart_seconds, arguments->NativeArgAt(0));
   int64_t seconds = dart_seconds.AsInt64Value();
   if (seconds < 0 || seconds > kMaxAllowedSeconds) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, dart_seconds);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    Exceptions::ThrowArgumentError(dart_seconds);
   }
   const char* name = OS::GetTimeZoneName(seconds);
   return String::New(name);
@@ -34,9 +32,7 @@ DEFINE_NATIVE_ENTRY(DateNatives_timeZoneOffsetInSeconds, 1) {
       Integer, dart_seconds, arguments->NativeArgAt(0));
   int64_t seconds = dart_seconds.AsInt64Value();
   if (seconds < 0 || seconds > kMaxAllowedSeconds) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, dart_seconds);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    Exceptions::ThrowArgumentError(dart_seconds);
   }
   int offset = OS::GetTimeZoneOffsetInSeconds(seconds);
   return Integer::New(offset);

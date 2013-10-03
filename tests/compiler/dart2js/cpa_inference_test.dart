@@ -1375,7 +1375,7 @@ testJsCallAugmentsSeenClasses() {
 
     final String source2 = r"""
       import 'dart:foreign';
-  
+
       main () {
         var x = "__dynamic_for_test".truncate();
         JS('double', 'foo');
@@ -1480,24 +1480,24 @@ testConcreteTypeToTypeMask() {
 
     for (ClassElement cls in [a, b, c, d]) {
       Expect.equals(convert(singleton(cls)),
-                    new TypeMask.nonNullExact(cls.rawType));
+                    new TypeMask.nonNullExact(cls));
     }
 
     for (ClassElement cls in [a, b, c, d]) {
       Expect.equals(convert(singleton(cls).union(nullSingleton)),
-                    new TypeMask.exact(cls.rawType));
+                    new TypeMask.exact(cls));
     }
 
     Expect.equals(convert(singleton(a).union(singleton(b))),
-                  new TypeMask.nonNullSubclass(a.rawType));
+                  new TypeMask.nonNullSubclass(a));
 
     Expect.equals(
         convert(singleton(a).union(singleton(b)).union(nullSingleton)),
-                  new TypeMask.subclass(a.rawType));
+                  new TypeMask.subclass(a));
 
     Expect.equals(
         convert(singleton(b).union(singleton(d))).simplify(result.compiler),
-        new TypeMask.nonNullSubtype(a.rawType));
+        new TypeMask.nonNullSubtype(a));
   });
 }
 
@@ -1545,20 +1545,20 @@ testSelectors() {
 
     Expect.equals(
         inferredType(foo).simplify(result.compiler),
-        new TypeMask.nonNullSubclass(abc.rawType));
+        new TypeMask.nonNullSubclass(abc));
     Expect.equals(
-        inferredType(new TypedSelector.subclass(x.rawType, foo)),
-        new TypeMask.nonNullExact(b.rawType));
+        inferredType(new TypedSelector.subclass(x, foo)),
+        new TypeMask.nonNullExact(b));
     Expect.equals(
-        inferredType(new TypedSelector.subclass(y.rawType, foo)),
-        new TypeMask.nonNullExact(c.rawType));
+        inferredType(new TypedSelector.subclass(y, foo)),
+        new TypeMask.nonNullExact(c));
     Expect.equals(
-        inferredType(new TypedSelector.subclass(z.rawType, foo)),
-        new TypeMask.nonNullExact(a.rawType));
+        inferredType(new TypedSelector.subclass(z, foo)),
+        new TypeMask.nonNullExact(a));
     Expect.equals(
         inferredType(new TypedSelector.subclass(
-            xy.rawType, foo)).simplify(result.compiler),
-        new TypeMask.nonNullSubclass(bc.rawType));
+            xy, foo)).simplify(result.compiler),
+        new TypeMask.nonNullSubclass(bc));
 
     Selector bar = new Selector.call(buildSourceString("bar"), null, 0);
 

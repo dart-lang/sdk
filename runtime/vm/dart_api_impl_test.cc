@@ -2711,19 +2711,6 @@ UNIT_TEST_CASE(SetMessageCallbacks) {
 }
 
 
-#define CHECK_CLASS(handle, name)                                              \
-  {                                                                            \
-    Dart_Handle tmp = (handle);                                                \
-    EXPECT_VALID(tmp);                                                         \
-    EXPECT(Dart_IsClass(tmp));                                                 \
-    Dart_Handle intf_name = Dart_TypeName(tmp);                                \
-    EXPECT_VALID(intf_name);                                                   \
-    const char* intf_name_cstr = "";                                           \
-    EXPECT_VALID(Dart_StringToCString(intf_name, &intf_name_cstr));            \
-    EXPECT_STREQ((name), intf_name_cstr);                                      \
-  }
-
-
 TEST_CASE(TypeGetNonParamtericTypes) {
   const char* kScriptChars =
       "class MyClass0 {\n"
@@ -5258,7 +5245,7 @@ TEST_CASE(LoadPatch) {
   url = NewString("patch_url");
   source = NewString(kPatchChars);
 
-  result = Dart_LoadPatch(lib, url, source);
+  result = Dart_LibraryLoadPatch(lib, url, source);
   EXPECT_VALID(result);
 
   result = Dart_Invoke(lib, NewString("foo"), 0, NULL);

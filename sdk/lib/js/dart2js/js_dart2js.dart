@@ -5,11 +5,9 @@
 library dart.js;
 
 import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show convertDartClosureToJS;
+import 'dart:_js_helper' show Primitives, convertDartClosureToJS;
 
-JsObject get context {
-  return new JsObject._fromJs(JS('=Object', 'window'));
-}
+final JsObject context = new JsObject._fromJs(Primitives.computeGlobalThis());
 
 JsObject jsify(dynamic data) => data == null ? null : new JsObject._json(data);
 

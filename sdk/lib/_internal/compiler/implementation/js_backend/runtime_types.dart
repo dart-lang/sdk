@@ -162,7 +162,7 @@ class RuntimeTypes {
     compiler.resolverWorld.isChecks.forEach((DartType type) {
       if (type.kind == TypeKind.INTERFACE) {
         InterfaceType itf = type;
-        if (!itf.isRaw) {
+        if (!itf.treatAsRaw) {
           potentiallyAddForRti(itf.element);
         }
       } else {
@@ -559,7 +559,7 @@ class RuntimeTypes {
   static bool hasTypeArguments(DartType type) {
     if (type is InterfaceType) {
       InterfaceType interfaceType = type;
-      return !interfaceType.isRaw;
+      return !interfaceType.treatAsRaw;
     }
     return false;
   }
@@ -613,7 +613,7 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
 
   visitInterfaceType(InterfaceType type, _) {
     jsAst.Expression name = getJavaScriptClassName(type.element);
-    return type.isRaw ? name : visitList(type.typeArguments, head: name);
+    return type.treatAsRaw ? name : visitList(type.typeArguments, head: name);
   }
 
   jsAst.Expression visitList(Link<DartType> types, {jsAst.Expression head}) {

@@ -30,8 +30,7 @@ abstract class HType {
       // TODO(ngeoffray): Avoid creating [TypeMask]s with the string
       // class as base.
       return isNullable
-          ? new HBoundedType(
-                  new TypeMask.exact(backend.jsStringClass.rawType))
+          ? new HBoundedType(new TypeMask.exact(backend.jsStringClass))
           : backend.stringType;
     } else if (mask.containsOnlyBool(compiler)) {
       return isNullable ? HType.BOOLEAN_OR_NULL : HType.BOOLEAN;
@@ -48,33 +47,33 @@ abstract class HType {
     return new HBoundedType(mask);
   }
 
-  factory HType.exact(DartType type, Compiler compiler) {
-    TypeMask mask = new TypeMask.exact(type);
+  factory HType.exact(ClassElement type, Compiler compiler) {
+    TypeMask mask = new TypeMask.exact(type.declaration);
     return new HType.fromMask(mask, compiler);
   }
 
-  factory HType.subclass(DartType type, Compiler compiler) {
-    TypeMask mask = new TypeMask.subclass(type);
+  factory HType.subclass(ClassElement type, Compiler compiler) {
+    TypeMask mask = new TypeMask.subclass(type.declaration);
     return new HType.fromMask(mask, compiler);
   }
 
-  factory HType.subtype(DartType type, Compiler compiler) {
-    TypeMask mask = new TypeMask.subtype(type);
+  factory HType.subtype(ClassElement type, Compiler compiler) {
+    TypeMask mask = new TypeMask.subtype(type.declaration);
     return new HType.fromMask(mask, compiler);
   }
 
-  factory HType.nonNullExact(DartType type, Compiler compiler) {
-    TypeMask mask = new TypeMask.nonNullExact(type);
+  factory HType.nonNullExact(ClassElement type, Compiler compiler) {
+    TypeMask mask = new TypeMask.nonNullExact(type.declaration);
     return new HType.fromMask(mask, compiler);
   }
 
-  factory HType.nonNullSubclass(DartType type, Compiler compiler) {
-    TypeMask mask = new TypeMask.nonNullSubclass(type);
+  factory HType.nonNullSubclass(ClassElement type, Compiler compiler) {
+    TypeMask mask = new TypeMask.nonNullSubclass(type.declaration);
     return new HType.fromMask(mask, compiler);
   }
 
-  factory HType.nonNullSubtype(DartType type, Compiler compiler) {
-    TypeMask mask = new TypeMask.nonNullSubtype(type);
+  factory HType.nonNullSubtype(ClassElement type, Compiler compiler) {
+    TypeMask mask = new TypeMask.nonNullSubtype(type.declaration);
     return new HType.fromMask(mask, compiler);
   }
 
@@ -123,8 +122,7 @@ abstract class HType {
   // like [native.SpecialType.JsObject].
   static HType fromNativeType(type, Compiler compiler) {
     if (type == native.SpecialType.JsObject) {
-      return new HType.nonNullExact(
-          compiler.objectClass.computeType(compiler), compiler);
+      return new HType.nonNullExact(compiler.objectClass, compiler);
     } else if (type.isVoid) {
       return HType.NULL;
     } else if (type.element == compiler.nullClass) {
@@ -132,11 +130,11 @@ abstract class HType {
     } else if (type.treatAsDynamic) {
       return HType.UNKNOWN;
     } else if (compiler.world.hasAnySubtype(type.element)) {
-      return new HType.nonNullSubtype(type, compiler);
+      return new HType.nonNullSubtype(type.element, compiler);
     } else if (compiler.world.hasAnySubclass(type.element)) {
-      return new HType.nonNullSubclass(type, compiler);
+      return new HType.nonNullSubclass(type.element, compiler);
     } else {
-      return new HType.nonNullExact(type, compiler);
+      return new HType.nonNullExact(type.element, compiler);
     }
   }
 
@@ -190,8 +188,7 @@ abstract class HType {
   }
 
   bool implementsInterface(ClassElement interfaceElement, Compiler compiler) {
-    DartType interfaceType = interfaceElement.computeType(compiler);
-    TypeMask mask = new TypeMask.subtype(interfaceType);
+    TypeMask mask = new TypeMask.subtype(interfaceElement);
     return mask == mask.union(computeMask(compiler), compiler);
   }
 
@@ -280,8 +277,7 @@ class HUnknownType extends HAnalysisType {
   bool canBePrimitiveBoolean(Compiler compiler) => true;
 
   TypeMask computeMask(Compiler compiler) {
-    DartType base = compiler.objectClass.computeType(compiler);
-    return new TypeMask.subclass(base);
+    return new TypeMask.subclass(compiler.objectClass);
   }
 }
 
@@ -295,8 +291,7 @@ class HNonNullType extends HAnalysisType {
   bool canBePrimitiveBoolean(Compiler compiler) => true;
 
   TypeMask computeMask(Compiler compiler) {
-    DartType base = compiler.objectClass.computeType(compiler);
-    return new TypeMask.nonNullSubclass(base);
+    return new TypeMask.nonNullSubclass(compiler.objectClass);
   }
 }
 
@@ -344,8 +339,7 @@ class HBooleanOrNullType extends HPrimitiveOrNullType {
 
   TypeMask computeMask(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    DartType base = backend.jsBoolClass.computeType(compiler);
-    return new TypeMask.exact(base);
+    return new TypeMask.exact(backend.jsBoolClass);
   }
 }
 
@@ -359,8 +353,7 @@ class HBooleanType extends HPrimitiveType {
 
   TypeMask computeMask(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    DartType base = backend.jsBoolClass.computeType(compiler);
-    return new TypeMask.nonNullExact(base);
+    return new TypeMask.nonNullExact(backend.jsBoolClass);
   }
 }
 
@@ -372,8 +365,7 @@ class HNumberOrNullType extends HPrimitiveOrNullType {
 
   TypeMask computeMask(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    DartType base = backend.jsNumberClass.computeType(compiler);
-    return new TypeMask.subclass(base);
+    return new TypeMask.subclass(backend.jsNumberClass);
   }
 }
 
@@ -386,8 +378,7 @@ class HNumberType extends HPrimitiveType {
 
   TypeMask computeMask(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    DartType base = backend.jsNumberClass.computeType(compiler);
-    return new TypeMask.nonNullSubclass(base);
+    return new TypeMask.nonNullSubclass(backend.jsNumberClass);
   }
 }
 
@@ -398,8 +389,7 @@ class HIntegerOrNullType extends HNumberOrNullType {
 
   TypeMask computeMask(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    DartType base = backend.jsIntClass.computeType(compiler);
-    return new TypeMask.exact(base);
+    return new TypeMask.exact(backend.jsIntClass);
   }
 }
 
@@ -412,8 +402,7 @@ class HIntegerType extends HNumberType {
 
   TypeMask computeMask(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    DartType base = backend.jsIntClass.computeType(compiler);
-    return new TypeMask.nonNullExact(base);
+    return new TypeMask.nonNullExact(backend.jsIntClass);
   }
 }
 
@@ -424,8 +413,7 @@ class HDoubleOrNullType extends HNumberOrNullType {
 
   TypeMask computeMask(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    DartType base = backend.jsDoubleClass.computeType(compiler);
-    return new TypeMask.exact(base);
+    return new TypeMask.exact(backend.jsDoubleClass);
   }
 }
 
@@ -438,8 +426,7 @@ class HDoubleType extends HNumberType {
 
   TypeMask computeMask(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    DartType base = backend.jsDoubleClass.computeType(compiler);
-    return new TypeMask.nonNullExact(base);
+    return new TypeMask.nonNullExact(backend.jsDoubleClass);
   }
 }
 
@@ -460,28 +447,21 @@ class HBoundedType extends HType {
 
   bool canBePrimitiveNumber(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    DartType jsNumberType = backend.jsNumberClass.computeType(compiler);
-    DartType jsIntType = backend.jsIntClass.computeType(compiler);
-    DartType jsDoubleType = backend.jsDoubleClass.computeType(compiler);
-    return mask.contains(jsNumberType, compiler)
-        || mask.contains(jsIntType, compiler)
-        || mask.contains(jsDoubleType, compiler);
+    return mask.contains(backend.jsNumberClass, compiler)
+        || mask.contains(backend.jsIntClass, compiler)
+        || mask.contains(backend.jsDoubleClass, compiler);
   }
 
   bool canBePrimitiveBoolean(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    DartType jsBoolType = backend.jsBoolClass.computeType(compiler);
-    return mask.contains(jsBoolType, compiler);
+    return mask.contains(backend.jsBoolClass, compiler);
   }
 
   bool canBePrimitiveArray(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    DartType jsArrayType = backend.jsArrayClass.rawType;
-    DartType jsFixedArrayType = backend.jsFixedArrayClass.rawType;
-    DartType jsExtendableArrayType = backend.jsExtendableArrayClass.rawType;
-    return mask.contains(jsArrayType, compiler)
-        || mask.contains(jsFixedArrayType, compiler)
-        || mask.contains(jsExtendableArrayType, compiler);
+    return mask.contains(backend.jsArrayClass, compiler)
+        || mask.contains(backend.jsFixedArrayClass, compiler)
+        || mask.contains(backend.jsExtendableArrayClass, compiler);
   }
 
   bool isIndexablePrimitive(Compiler compiler) {
@@ -511,8 +491,7 @@ class HBoundedType extends HType {
 
   bool canBePrimitiveString(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    DartType jsStringType = backend.jsStringClass.computeType(compiler);
-    return mask.contains(jsStringType, compiler);
+    return mask.contains(backend.jsStringClass, compiler);
   }
 
   TypeMask computeMask(Compiler compiler) => mask;

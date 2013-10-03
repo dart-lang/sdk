@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library peg_tests;
+import 'dart:core' hide Symbol;
 import '../../peg/pegparser.dart';
 
 testParens() {
@@ -144,7 +145,7 @@ testC() {
                       ['(', expression, ')', (e) => e]
                       ]);
 
-  var postfixes = OR([['(', MANY(assignment_e, ',', 0), ')', binary('apply')],
+  var postfixes = OR([['(', MANY(assignment_e, separator: ',', min: 0), ')', binary('apply')],
                       ['++', unary('postinc')],
                       ['--', unary('postdec')],
                       ['.', id, binary('field')],
@@ -295,7 +296,7 @@ show(grammar, rule, input) {
     if (exception is ParseError)
       ast = exception;
     else
-      throw;
+      rethrow;
   }
   print('${printList(ast)}');
 }
@@ -315,7 +316,13 @@ void check(grammar, rule, input, expected) {
   if (expected is String)
     formatted = printList(ast);
 
-  Expect.equals(expected, formatted, "parse: $input");
+  //Expect.equals(expected, formatted, "parse: $input");
+  if (expected != formatted) {
+    throw new ArgumentError(
+        "parse: $input"
+        "\n  expected: $expected"
+        "\n     found: $formatted");
+  }
 }
 
 // Prints the list in [1,2,3] notation, including nested lists.

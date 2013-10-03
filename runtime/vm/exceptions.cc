@@ -609,6 +609,13 @@ void Exceptions::ThrowStackOverflow() {
 }
 
 
+void Exceptions::ThrowArgumentError(const Instance& arg) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, arg);
+  Exceptions::ThrowByType(Exceptions::kArgument, args);
+}
+
+
 RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
   Library& library = Library::Handle();
   const String* class_name = NULL;

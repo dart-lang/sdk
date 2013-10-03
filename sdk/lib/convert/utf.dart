@@ -7,6 +7,9 @@ part of dart.convert;
 /** The Unicode Replacement character `U+FFFD` (�). */
 const UNICODE_REPLACEMENT_CHARACTER_RUNE = 0xFFFD;
 
+/** The Unicode Byte Order Marker (BOM) character `U+FEFF`. */
+const UNICODE_BOM_CHARACTER_RUNE = 0xFEFF;
+
 /**
  * An instance of the default implementation of the [Utf8Codec].
  *
@@ -47,6 +50,9 @@ class Utf8Codec extends Encoding {
   /**
    * Decodes the UTF-8 [codeUnits] (a list of unsigned 8-bit integers) to the
    * corresponding string.
+   *
+   * If the [codeUnits] start with a leading [UNICODE_BOM_CHARACTER_RUNE] this
+   * character is discarded.
    *
    * If [allowMalformed] is `true` the decoder replaces invalid (or
    * unterminated) character sequences with the Unicode Replacement character
@@ -303,6 +309,9 @@ class Utf8Decoder extends Converter<List<int>, String> {
   /**
    * Converts the UTF-8 [codeUnits] (a list of unsigned 8-bit integers) to the
    * corresponding string.
+   *
+   * If the [codeUnits] start with a leading [UNICODE_BOM_CHARACTER_RUNE] this
+   * character is discarded.
    */
   String convert(List<int> codeUnits) {
     StringBuffer buffer = new StringBuffer();
@@ -346,9 +355,6 @@ const int _SURROGATE_VALUE_MASK = 0x3FF;
 const int _LEAD_SURROGATE_MIN = 0xD800;
 const int _TAIL_SURROGATE_MIN = 0xDC00;
 
-const int _REPLACEMENT_CHARACTER = 0xFFFD;
-const int _BOM_CHARACTER = 0xFEFF;
-
 bool _isSurrogate(int codeUnit) =>
     (codeUnit & _SURROGATE_MASK) == _LEAD_SURROGATE_MIN;
 bool _isLeadSurrogate(int codeUnit) =>
@@ -356,7 +362,7 @@ bool _isLeadSurrogate(int codeUnit) =>
 bool _isTailSurrogate(int codeUnit) =>
     (codeUnit & _SURROGATE_TAG_MASK) == _TAIL_SURROGATE_MIN;
 int _combineSurrogatePair(int lead, int tail) =>
-    0x10000 | ((lead & _SURROGATE_VALUE_MASK) << 10)
+    0x10000 + ((lead & _SURROGATE_VALUE_MASK) << 10)
             | (tail & _SURROGATE_VALUE_MASK);
 
 
@@ -400,7 +406,7 @@ class _Utf8Decoder {
       if (!_allowMalformed) {
         throw new FormatException("Unfinished UTF-8 octet sequence");
       }
-      _stringSink.writeCharCode(_REPLACEMENT_CHARACTER);
+      _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
       _value = 0;
       _expectedUnits = 0;
       _extraUnits = 0;
@@ -430,7 +436,7 @@ class _Utf8Decoder {
                   "Bad UTF-8 encoding 0x${unit.toRadixString(16)}");
             }
             _isFirstCharacter = false;
-            _stringSink.writeCharCode(_REPLACEMENT_CHARACTER);
+            _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
             break multibyte;
           } else {
             value = (value << 6) | (unit & 0x3f);
@@ -446,16 +452,16 @@ class _Utf8Decoder {
                 "Overlong encoding of 0x${value.toRadixString(16)}");
           }
           expectedUnits = extraUnits = 0;
-          value = _REPLACEMENT_CHARACTER;
+          value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
         }
         if (value > _FOUR_BYTE_LIMIT) {
           if (!_allowMalformed) {
             throw new FormatException("Character outside valid Unicode range: "
                                       "0x${value.toRadixString(16)}");
           }
-          value = _REPLACEMENT_CHARACTER;
+          value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
         }
-        if (!_isFirstCharacter || value != _BOM_CHARACTER) {
+        if (!_isFirstCharacter || value != UNICODE_BOM_CHARACTER_RUNE) {
           _stringSink.writeCharCode(value);
         }
         _isFirstCharacter = false;
@@ -474,7 +480,7 @@ class _Utf8Decoder {
             throw new FormatException(
                 "Negative UTF-8 code unit: -0x${(-unit).toRadixString(16)}");
           }
-          _stringSink.writeCharCode(_REPLACEMENT_CHARACTER);
+          _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
         } else if (unit <= _ONE_BYTE_LIMIT) {
           _isFirstCharacter = false;
           _stringSink.writeCharCode(unit);
@@ -499,7 +505,7 @@ class _Utf8Decoder {
             throw new FormatException(
                 "Bad UTF-8 encoding 0x${unit.toRadixString(16)}");
           }
-          value = _REPLACEMENT_CHARACTER;
+          value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
           expectedUnits = extraUnits = 0;
           _isFirstCharacter = false;
           _stringSink.writeCharCode(value);

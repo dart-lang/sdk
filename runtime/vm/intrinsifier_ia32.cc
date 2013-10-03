@@ -28,7 +28,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 
 #define __ assembler->
 
-void Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
+void Intrinsifier::List_Allocate(Assembler* assembler) {
   // This snippet of inlined code uses the following registers:
   // EAX, EBX, EDI
   // and the newly allocated object is returned in EAX.
@@ -142,7 +142,7 @@ void Intrinsifier::Array_getLength(Assembler* assembler) {
 }
 
 
-void Intrinsifier::ImmutableArray_getLength(Assembler* assembler) {
+void Intrinsifier::ImmutableList_getLength(Assembler* assembler) {
   return Array_getLength(assembler);
 }
 
@@ -165,7 +165,7 @@ void Intrinsifier::Array_getIndexed(Assembler* assembler) {
 }
 
 
-void Intrinsifier::ImmutableArray_getIndexed(Assembler* assembler) {
+void Intrinsifier::ImmutableList_getIndexed(Assembler* assembler) {
   return Array_getIndexed(assembler);
 }
 
@@ -173,7 +173,7 @@ void Intrinsifier::ImmutableArray_getIndexed(Assembler* assembler) {
 static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::Handle(
-      core_lib.LookupClassAllowPrivate(Symbols::ObjectArray()));
+      core_lib.LookupClassAllowPrivate(Symbols::_List()));
   ASSERT(!cls.IsNull());
   ASSERT(cls.HasTypeArguments());
   ASSERT(cls.NumTypeArguments() == 1);
@@ -245,7 +245,7 @@ void Intrinsifier::Array_setIndexed(Assembler* assembler) {
 
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+2), data (+1), return-address (+0).
-void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
+void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
   // This snippet of inlined code uses the following registers:
   // EAX, EBX
   // and the newly allocated object is returned in EAX.
@@ -312,7 +312,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 
 // Get length of growable object array.
 // On stack: growable array (+1), return-address (+0).
-void Intrinsifier::GrowableArray_getLength(Assembler* assembler) {
+void Intrinsifier::GrowableList_getLength(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ movl(EAX, FieldAddress(EAX, GrowableObjectArray::length_offset()));
   __ ret();
@@ -321,7 +321,7 @@ void Intrinsifier::GrowableArray_getLength(Assembler* assembler) {
 
 // Get capacity of growable object array.
 // On stack: growable array (+1), return-address (+0).
-void Intrinsifier::GrowableArray_getCapacity(Assembler* assembler) {
+void Intrinsifier::GrowableList_getCapacity(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ movl(EAX, FieldAddress(EAX, GrowableObjectArray::data_offset()));
   __ movl(EAX, FieldAddress(EAX, Array::length_offset()));
@@ -331,7 +331,7 @@ void Intrinsifier::GrowableArray_getCapacity(Assembler* assembler) {
 
 // Access growable object array at specified index.
 // On stack: growable array (+2), index (+1), return-address (+0).
-void Intrinsifier::GrowableArray_getIndexed(Assembler* assembler) {
+void Intrinsifier::GrowableList_getIndexed(Assembler* assembler) {
   Label fall_through;
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // GrowableArray.
@@ -353,7 +353,7 @@ void Intrinsifier::GrowableArray_getIndexed(Assembler* assembler) {
 
 // Set value into growable object array at specified index.
 // On stack: growable array (+3), index (+2), value (+1), return-address (+0).
-void Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
+void Intrinsifier::GrowableList_setIndexed(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return;
   }
@@ -381,7 +381,7 @@ void Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
 // Set length of growable object array. The length cannot
 // be greater than the length of the data container.
 // On stack: growable array (+2), length (+1), return-address (+0).
-void Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
+void Intrinsifier::GrowableList_setLength(Assembler* assembler) {
   Label fall_through;
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Growable array.
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Length value.
@@ -395,7 +395,7 @@ void Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
 
 // Set data of growable object array.
 // On stack: growable array (+2), data (+1), return-address (+0).
-void Intrinsifier::GrowableArray_setData(Assembler* assembler) {
+void Intrinsifier::GrowableList_setData(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return;
   }
@@ -418,7 +418,7 @@ void Intrinsifier::GrowableArray_setData(Assembler* assembler) {
 // Add an element to growable array if it doesn't need to grow, otherwise
 // call into regular code.
 // On stack: growable array (+2), value (+1), return-address (+0).
-void Intrinsifier::GrowableArray_add(Assembler* assembler) {
+void Intrinsifier::GrowableList_add(Assembler* assembler) {
   // In checked mode we need to type-check the incoming argument.
   if (FLAG_enable_type_checks) return;
 

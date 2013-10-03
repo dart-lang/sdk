@@ -53,6 +53,8 @@ abstract class Browser {
       return new Firefox();
     } else if (name == 'chrome') {
       return new Chrome();
+    } else if (name == 'dartium') {
+      return new Dartium();
     } else if (name == 'safari') {
       return new Safari();
     } else if (name.startsWith('ie')) {
@@ -63,7 +65,7 @@ abstract class Browser {
   }
 
   static const List<String> SUPPORTED_BROWSERS =
-    const ['safari', 'ff', 'firefox', 'chrome', 'ie9', 'ie10'];
+    const ['safari', 'ff', 'firefox', 'chrome', 'ie9', 'ie10', 'dartium'];
 
   static const List<String> BROWSERS_WITH_WINDOW_SUPPORT =
       const ['safari', 'ff', 'firefox', 'chrome'];
@@ -109,8 +111,11 @@ abstract class Browser {
    * Start the browser using the supplied argument.
    * This sets up the error handling and usage logging.
    */
-  Future<bool> startBrowser(String command, List<String> arguments) {
-    return Process.start(command, arguments).then((startedProcess) {
+  Future<bool> startBrowser(String command,
+                            List<String> arguments,
+                            {Map<String,String> environment}) {
+    return Process.start(command, arguments, environment: environment)
+        .then((startedProcess) {
       process = startedProcess;
       // Used to notify when exiting, and as a return value on calls to
       // close().
@@ -316,23 +321,24 @@ class Safari extends Browser {
 
 
 class Chrome extends Browser {
-  static String _binary = _getBinary();
-
+  String _binary;
   String _version = "Version not found yet";
 
-  // This is extracted to a function since we may need to support several
-  // locations.
-  static String _getWindowsBinary() {
-    return "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
+  Chrome() {
+    _binary = _getBinary();
   }
 
-  static String _getBinary() {
-    if (Platform.isWindows) return _getWindowsBinary();
-    if (Platform.isMacOS) {
+  String _getBinary() {
+    if (Platform.isWindows) {
+      return "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
+    } else if (Platform.isMacOS) {
       return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
     }
-    if (Platform.isLinux) return 'google-chrome';
+    assert(Platform.isLinux);
+    return 'google-chrome';
   }
+
+  Map<String, String> _getEnvironment() => null;
 
   Future<bool> _getVersion() {
     if (Platform.isWindows) {
@@ -375,7 +381,7 @@ class Chrome extends Browser {
         var args = ["--user-data-dir=${userDir.path}", url,
                     "--disable-extensions", "--disable-popup-blocking",
                     "--bwsi", "--no-first-run"];
-        return startBrowser(_binary, args);
+        return startBrowser(_binary, args, environment: _getEnvironment());
       });
     }).catchError((e) {
       _logEvent("Running $_binary --version failed with $e");
@@ -384,6 +390,27 @@ class Chrome extends Browser {
   }
 
   String toString() => "Chrome";
+}
+
+class Dartium extends Chrome {
+  String _getBinary() {
+    if (Platform.operatingSystem == 'macos') {
+      return new Path('client/tests/dartium/Chromium.app/Contents/'
+                      'MacOS/Chromium').toNativePath();
+    }
+    return new Path('client/tests/dartium/chrome').toNativePath();
+  }
+
+  Map<String, String> _getEnvironment() {
+    var environment = new Map<String,String>.from(Platform.environment);
+    // By setting this environment variable, dartium will forward "print()"
+    // calls in dart to the top-level javascript function "dartPrint()" if
+    // available.
+    environment['DART_FORWARDING_PRINT'] = '1';
+    return environment;
+  }
+
+  String toString() => "Dartium";
 }
 
 class IE extends Browser {
@@ -619,7 +646,7 @@ class BrowserTestRunner {
   // If we do we need to provide developers with this information.
   // We don't add urls to the cache until we have run it.
   Map<int, String> testCache = new Map<int, String>();
-  List<int> doubleReportingTests = new List<int>();
+  Map<int, String> doubleReportingOutputs = new Map<int, String>();
 
   BrowserTestingServer testingServer;
 
@@ -696,7 +723,7 @@ class BrowserTestRunner {
   void handleResults(String browserId, String output, int testId) {
     var status = browserStatus[browserId];
     if (testCache.containsKey(testId)) {
-      doubleReportingTests.add(testId);
+      doubleReportingOutputs[testId] = output;
       return;
     }
 
@@ -831,14 +858,22 @@ class BrowserTestRunner {
   }
 
   void printDoubleReportingTests() {
-    if (doubleReportingTests.length == 0) return;
+    if (doubleReportingOutputs.length == 0) return;
     // TODO(ricow): die on double reporting.
     // Currently we just report this here, we could have a callback to the
     // encapsulating environment.
     print("");
     print("Double reporting tests");
-    for (var id in doubleReportingTests) {
+    for (var id in doubleReportingOutputs.keys) {
       print("  ${testCache[id]}");
+    }
+
+    DebugLogger.warning("Double reporting tests:");
+    for (var id in doubleReportingOutputs.keys) {
+      DebugLogger.warning("${testCache[id]}, output: ");
+      DebugLogger.warning("${doubleReportingOutputs[id]}");
+      DebugLogger.warning("");
+      DebugLogger.warning("");
     }
   }
 

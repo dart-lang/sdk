@@ -14,8 +14,9 @@ import '../utils.dart';
 var invocations = [];
 class Foo extends HtmlElement {
   factory Foo() => null;
+  Foo.created() : super.created();
 
-  void created() {
+  void createdCallback() {
     invocations.add('created');
   }
 
@@ -27,7 +28,7 @@ class Foo extends HtmlElement {
     invocations.add('left');
   }
 
-  void attributeChanged() {
+  void attributeChanged(String name, String oldValue, String newValue) {
     invocations.add('attribute changed');
   }
 }
@@ -62,7 +63,7 @@ main() {
   });
 
   group('standard_events', () {
-    var a = new Element.tag('x-a');
+    var a;
     setUp(() {
       invocations = [];
     });
@@ -105,7 +106,7 @@ main() {
   });
 
   group('viewless_document', () {
-    var a = docB.createElement('x-a');
+    var a;
     setUp(() {
       invocations = [];
     });

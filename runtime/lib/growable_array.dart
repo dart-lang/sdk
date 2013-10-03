@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _GrowableObjectArray<T> implements List<T> {
-  static final int _classId = (new _GrowableObjectArray(0))._cid;
+class _GrowableList<T> implements List<T> {
+  static final int _classId = (new _GrowableList(0))._cid;
 
   void insert(int index, T element) {
     if (index < 0 || index > length) {
@@ -117,38 +117,38 @@ class _GrowableObjectArray<T> implements List<T> {
     if (end == null) end = length;
     int length = end - start;
     if (start == end) return <T>[];
-    List list = new _GrowableObjectArray<T>.withCapacity(length);
+    List list = new _GrowableList<T>.withCapacity(length);
     list.length = length;
     Arrays.copy(this, start, list, 0, length);
     return list;
   }
 
-  factory _GrowableObjectArray(int length) {
-    var data = new _ObjectArray((length == 0) ? 4 : length);
-    var result = new _GrowableObjectArray<T>.withData(data);
+  factory _GrowableList(int length) {
+    var data = new _List((length == 0) ? 4 : length);
+    var result = new _GrowableList<T>.withData(data);
     if (length > 0) {
       result._setLength(length);
     }
     return result;
   }
 
-  factory _GrowableObjectArray.withCapacity(int capacity) {
-    var data = new _ObjectArray((capacity == 0)? 4 : capacity);
-    return new _GrowableObjectArray<T>.withData(data);
+  factory _GrowableList.withCapacity(int capacity) {
+    var data = new _List((capacity == 0)? 4 : capacity);
+    return new _GrowableList<T>.withData(data);
   }
 
-  factory _GrowableObjectArray.from(Iterable<T> other) {
-    List<T> result = new _GrowableObjectArray<T>();
+  factory _GrowableList.from(Iterable<T> other) {
+    List<T> result = new _GrowableList<T>();
     result.addAll(other);
     return result;
   }
 
-  factory _GrowableObjectArray.withData(_ObjectArray data)
-    native "GrowableObjectArray_allocate";
+  factory _GrowableList.withData(_List data)
+    native "GrowableList_allocate";
 
-  int get length native "GrowableObjectArray_getLength";
+  int get length native "GrowableList_getLength";
 
-  int get _capacity native "GrowableObjectArray_getCapacity";
+  int get _capacity native "GrowableList_getCapacity";
 
   void set length(int new_length) {
     if (new_length > _capacity) {
@@ -161,13 +161,13 @@ class _GrowableObjectArray<T> implements List<T> {
     _setLength(new_length);
   }
 
-  void _setLength(int new_length) native "GrowableObjectArray_setLength";
+  void _setLength(int new_length) native "GrowableList_setLength";
 
-  void _setData(_ObjectArray array) native "GrowableObjectArray_setData";
+  void _setData(_List array) native "GrowableList_setData";
 
-  T operator [](int index) native "GrowableObjectArray_getIndexed";
+  T operator [](int index) native "GrowableList_getIndexed";
 
-  void operator []=(int index, T value) native "GrowableObjectArray_setIndexed";
+  void operator []=(int index, T value) native "GrowableList_setIndexed";
 
   // The length of this growable array. It is always less than or equal to the
   // length of the object array, which itself is always greater than 0, so that
@@ -221,7 +221,7 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   void _grow(int new_length) {
-    var new_data = new _ObjectArray(new_length);
+    var new_data = new _List(new_length);
     for (int i = 0; i < length; i++) {
       new_data[i] = this[i];
     }

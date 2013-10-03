@@ -5,7 +5,6 @@
 [ $compiler == dart2js || $compiler == dart2dart ]
 bad_constructor_test/05: CompileTimeError # Issue 13669
 block_scope_test: CompileTimeError # Issue 13204.
-null_test/03: MissingCompileTimeError # Issue 12445.
 black_listed_test/none: CompileTimeError # Issue 12446.
 malformed_test/05: MissingCompileTimeError # Issue 12695
 malformed_test/06: MissingCompileTimeError # Issue 12695
@@ -79,6 +78,7 @@ mixin_mixin5_test: Fail # Issue 12605.
 mixin_mixin6_test: Fail # Issue 12605.
 
 [ $compiler == dart2js ]
+switch_bad_case_test/02: MissingCompileTimeError # switch case of type double
 malformed_test/none: RuntimeError # Issue 12695
 function_type_alias9_test/00: Crash # Issue 9792
 branch_canonicalization_test: RuntimeError # Issue 638.
@@ -130,7 +130,6 @@ function_type_alias5_test/00: MissingCompileTimeError # Issue 12754
 function_type_alias5_test/01: MissingCompileTimeError # Issue 12754
 function_type_alias5_test/02: MissingCompileTimeError # Issue 12754
 method_override5_test: RuntimeError # Issue 12809
-parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters_aggregated_test/03: MissingCompileTimeError # Issue 12812
 external_test/11: MissingCompileTimeError # Issue 12887
 external_test/12: MissingCompileTimeError # Issue 12887
@@ -145,8 +144,6 @@ list_literal4_test: RuntimeError # Issue 12890
 map_literal4_test: RuntimeError # Issue 12891
 built_in_identifier_test/01: CompileTimeError # Issue 13022
 
-const_syntax_test/03: MissingCompileTimeError # Issue 12932
-const_syntax_test/04: MissingCompileTimeError # Issue 12932
 constructor9_test/01: MissingCompileTimeError # Issue 12934
 list_literal1_test/01: MissingCompileTimeError # Issue 12993
 map_literal1_test/01: MissingCompileTimeError # Issue 12993
@@ -164,7 +161,6 @@ final_syntax_test/02: MissingCompileTimeError # Issue 13020
 final_syntax_test/03: MissingCompileTimeError # Issue 13020
 final_syntax_test/04: MissingCompileTimeError # Issue 13020
 
-assign_top_method_test: RuntimeError # Issue 13075
 null_test/none: RuntimeError  # Issue 12482
 
 
@@ -205,6 +201,7 @@ function_type_alias9_test/00: Crash # Issue 11986
 malformed_test/none: CompileTimeError # Issue 12695
 mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631
+switch_bad_case_test/02: Fail # missing switch type check for double
 
 built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test/none: Fail # Issue 12633
@@ -245,21 +242,6 @@ setter_override_test/00: Fail # Issue 11496
 setter_override_test/03: Fail # Issue 11496
 setter_override2_test/02: Fail # Issue 11496
 
-compile_time_constant10_test/01: Fail # Issue 5519
-compile_time_constant10_test/02: Fail # Issue 5519
-compile_time_constant_arguments_test/01: Fail # Issue 5519
-compile_time_constant_arguments_test/02: Fail # Issue 5519
-compile_time_constant_arguments_test/03: Fail # Issue 5519
-compile_time_constant_arguments_test/05: Fail # Issue 5519
-compile_time_constant_arguments_test/06: Fail # Issue 5519
-const_syntax_test/03: Fail # Issue 12933
-const_syntax_test/04: Fail # Issue 12933
-const_syntax_test/05: Fail # Issue 12933
-const_syntax_test/06: Fail # Issue 12933
-const_syntax_test/07: Fail # Issue 12933
-const_syntax_test/08: Fail # Issue 12933
-const_syntax_test/10: Fail # Issue 12933
-compile_time_constant_c_test/02: Fail # Issue 12933
 constructor9_test/01: Fail # Issue 12935
 constructor_named_arguments_test/01: Fail # Issue 5519
 final_syntax_test/01: Fail # Issue 13020
@@ -299,7 +281,6 @@ factory_redirection_test/09: Fail # Issue 12753
 function_type_alias5_test/00: Fail # Issue 12755
 function_type_alias5_test/01: Fail # Issue 12755
 function_type_alias5_test/02: Fail # Issue 12755
-parameter_initializer6_negative_test: Fail # Issue 3502
 
 # DartVM problem.
 constructor5_test: Fail
@@ -328,8 +309,6 @@ compile_time_constant_checked3_test/03: Fail, OK
 compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
-
-final_is_not_const_test/01: Fail # Issue 12692
 
 [ $compiler == dart2dart && $minified ]
 super_getter_setter_test: Fail # Issue 11065.

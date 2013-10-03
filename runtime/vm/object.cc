@@ -154,7 +154,7 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, Object, _noSuchMethod)                                        \
   V(CoreLibrary, Object, _as)                                                  \
   V(CoreLibrary, Object, _instanceOf)                                          \
-  V(CoreLibrary, _ObjectArray, _ObjectArray.)                                  \
+  V(CoreLibrary, _List, _List.)                                                \
   V(CoreLibrary, AssertionError, _throwNew)                                    \
   V(CoreLibrary, TypeError, _throwNew)                                         \
   V(CoreLibrary, FallThroughError, _throwNew)                                  \
@@ -696,7 +696,7 @@ void Object::RegisterSingletonClassNames() {
   // Set up names for object array and one byte string class which are
   // pre-allocated in the vm isolate also.
   cls = Dart::vm_isolate()->object_store()->array_class();
-  cls.set_name(Symbols::ObjectArray());
+  cls.set_name(Symbols::_List());
   cls = Dart::vm_isolate()->object_store()->one_byte_string_class();
   cls.set_name(Symbols::OneByteString());
 }
@@ -876,7 +876,7 @@ RawError* Object::Init(Isolate* isolate) {
   // remaining classes and register them by name in the dictionaries.
   String& name = String::Handle();
   cls = object_store->array_class();  // Was allocated above.
-  RegisterPrivateClass(cls, Symbols::ObjectArray(), core_lib);
+  RegisterPrivateClass(cls, Symbols::_List(), core_lib);
   pending_classes.Add(cls);
   // We cannot use NewNonParameterizedType(cls), because Array is parameterized.
   type ^= Type::New(Object::Handle(cls.raw()),
@@ -887,7 +887,7 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_array_type(type);
 
   cls = object_store->growable_object_array_class();  // Was allocated above.
-  RegisterPrivateClass(cls, Symbols::GrowableObjectArray(), core_lib);
+  RegisterPrivateClass(cls, Symbols::_GrowableList(), core_lib);
   pending_classes.Add(cls);
 
   cls = Class::New<Array>(kImmutableArrayCid);
@@ -895,7 +895,7 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
   cls.set_is_prefinalized();
-  RegisterPrivateClass(cls, Symbols::ImmutableArray(), core_lib);
+  RegisterPrivateClass(cls, Symbols::_ImmutableList(), core_lib);
   pending_classes.Add(cls);
 
   cls = object_store->one_byte_string_class();  // Was allocated above.
@@ -1175,8 +1175,11 @@ RawError* Object::Init(Isolate* isolate) {
   ClassFinalizer::VerifyBootstrapClasses();
   MarkInvisibleFunctions();
 
-  // Set up the intrinsic state of all functions (core, math and scalar list).
+  // Set up the intrinsic state of all functions (core, math and typed data).
   Intrinsifier::InitializeState();
+
+  // Set up recognized state of all functions (core, math and typed data).
+  MethodRecognizer::InitializeState();
 
   return Error::null();
 }
@@ -4165,6 +4168,11 @@ void Function::set_is_intrinsic(bool value) const {
 }
 
 
+void Function::set_is_recognized(bool value) const {
+  set_kind_tag(RecognizedBit::update(value, raw_ptr()->kind_tag_));
+}
+
+
 void Function::set_is_static(bool value) const {
   set_kind_tag(StaticBit::update(value, raw_ptr()->kind_tag_));
 }
@@ -4738,6 +4746,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_external(is_external);
   result.set_is_visible(true);  // Will be computed later.
   result.set_is_intrinsic(false);
+  result.set_is_recognized(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
@@ -6173,7 +6182,7 @@ class CompressedTokenStreamData : public ValueObject {
   }
 
   static const int kInitialTokenCount = 32;
-  static const intptr_t kTableSize = 128;
+  static const intptr_t kTableSize = 1024;
 
   uint8_t* buffer_;
   WriteStream stream_;
@@ -8027,10 +8036,10 @@ struct FpDiff {
 
 
 
-// Return Function::null() if function does not exist in lib.
-static RawFunction* GetFunction(const GrowableArray<Library*>& libs,
-                                const char* class_name,
-                                const char* function_name) {
+// Return Function::null() if function does not exist in libs.
+RawFunction* Library::GetFunction(const GrowableArray<Library*>& libs,
+                                  const char* class_name,
+                                  const char* function_name) {
   Function& func = Function::Handle();
   String& class_str = String::Handle();
   String& func_str = String::Handle();
@@ -9833,7 +9842,6 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
       Array::Handle(arguments_descriptor()),
       deopt_id(),
       kNumArgsTested));
-  result.set_deopt_reason(deopt_reason());
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     const intptr_t class_id = GetClassIdAt(i, arg_nr);
@@ -9859,7 +9867,7 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
     }
   }
   // Copy deoptimization reason.
-  result.set_deopt_reason(this->deopt_reason());
+  result.set_deopt_reason(deopt_reason());
 
   return result.raw();
 }
@@ -13315,8 +13323,18 @@ RawString* String::EscapeSpecialCharacters(const String& str) {
   if (str.IsOneByteString()) {
     return OneByteString::EscapeSpecialCharacters(str);
   }
-  ASSERT(str.IsTwoByteString());
-  return TwoByteString::EscapeSpecialCharacters(str);
+  if (str.IsTwoByteString()) {
+    return TwoByteString::EscapeSpecialCharacters(str);
+  }
+  if (str.IsExternalOneByteString()) {
+    return ExternalOneByteString::EscapeSpecialCharacters(str);
+  }
+  ASSERT(str.IsExternalTwoByteString());
+  // If EscapeSpecialCharacters is frequently called on external two byte
+  // strings, we should implement it directly on ExternalTwoByteString rather
+  // than first converting to a TwoByteString.
+  return TwoByteString::EscapeSpecialCharacters(
+      String::Handle(TwoByteString::New(str, Heap::kNew)));
 }
 
 
@@ -13358,14 +13376,24 @@ RawString* String::Concat(const String& str1,
 
 RawString* String::ConcatAll(const Array& strings,
                              Heap::Space space) {
+  return ConcatAllRange(strings, 0, strings.Length(), space);
+}
+
+
+RawString* String::ConcatAllRange(const Array& strings,
+                                  intptr_t start,
+                                  intptr_t end,
+                                  Heap::Space space) {
   ASSERT(!strings.IsNull());
+  ASSERT(start >= 0);
+  ASSERT(end <= strings.Length());
   intptr_t result_len = 0;
-  intptr_t strings_len = strings.Length();
   String& str = String::Handle();
   intptr_t char_size = kOneByteChar;
-  for (intptr_t i = 0; i < strings_len; i++) {
+  // Compute 'char_size' and 'result_len'.
+  for (intptr_t i = start; i < end; i++) {
     str ^= strings.At(i);
-    intptr_t str_len = str.Length();
+    const intptr_t str_len = str.Length();
     if ((kMaxElements - result_len) < str_len) {
       Isolate* isolate = Isolate::Current();
       const Instance& exception =
@@ -13377,10 +13405,10 @@ RawString* String::ConcatAll(const Array& strings,
     char_size = Utils::Maximum(char_size, str.CharSize());
   }
   if (char_size == kOneByteChar) {
-    return OneByteString::ConcatAll(strings, result_len, space);
+    return OneByteString::ConcatAll(strings, start, end, result_len, space);
   }
   ASSERT(char_size == kTwoByteChar);
-  return TwoByteString::ConcatAll(strings, result_len, space);
+  return TwoByteString::ConcatAll(strings, start, end, result_len, space);
 }
 
 
@@ -13721,7 +13749,6 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
   intptr_t len = str.Length();
   if (len > 0) {
     intptr_t num_escapes = 0;
-    intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
       if (IsSpecialCharacter(*CharAddr(str, i))) {
         num_escapes += 1;
@@ -13729,6 +13756,7 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
     }
     const String& dststr = String::Handle(
         OneByteString::New(len + num_escapes, Heap::kNew));
+    intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
       if (IsSpecialCharacter(*CharAddr(str, i))) {
         *(CharAddr(dststr, index)) = '\\';
@@ -13741,7 +13769,36 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
     }
     return OneByteString::raw(dststr);
   }
-  return OneByteString::null();
+  return OneByteString::raw(Symbols::Empty());
+}
+
+RawOneByteString* ExternalOneByteString::EscapeSpecialCharacters(
+    const String& str) {
+  intptr_t len = str.Length();
+  if (len > 0) {
+    intptr_t num_escapes = 0;
+    for (intptr_t i = 0; i < len; i++) {
+      if (IsSpecialCharacter(*CharAddr(str, i))) {
+        num_escapes += 1;
+      }
+    }
+    const String& dststr = String::Handle(
+        OneByteString::New(len + num_escapes, Heap::kNew));
+    intptr_t index = 0;
+    for (intptr_t i = 0; i < len; i++) {
+      if (IsSpecialCharacter(*CharAddr(str, i))) {
+        *(OneByteString::CharAddr(dststr, index)) = '\\';
+        *(OneByteString::CharAddr(dststr, index + 1)) =
+        SpecialCharacter(*CharAddr(str, i));
+        index += 2;
+      } else {
+        *(OneByteString::CharAddr(dststr, index)) = *CharAddr(str, i);
+        index += 1;
+      }
+    }
+    return OneByteString::raw(dststr);
+  }
+  return OneByteString::raw(Symbols::Empty());
 }
 
 
@@ -13842,15 +13899,19 @@ RawOneByteString* OneByteString::Concat(const String& str1,
 
 
 RawOneByteString* OneByteString::ConcatAll(const Array& strings,
+                                           intptr_t start,
+                                           intptr_t end,
                                            intptr_t len,
                                            Heap::Space space) {
+  ASSERT(!strings.IsNull());
+  ASSERT(start >= 0);
+  ASSERT(end <= strings.Length());
   const String& result = String::Handle(OneByteString::New(len, space));
   String& str = String::Handle();
-  intptr_t strings_len = strings.Length();
   intptr_t pos = 0;
-  for (intptr_t i = 0; i < strings_len; i++) {
+  for (intptr_t i = start; i < end; i++) {
     str ^= strings.At(i);
-    intptr_t str_len = str.Length();
+    const intptr_t str_len = str.Length();
     String::Copy(result, pos, str, 0, str_len);
     ASSERT((kMaxElements - pos) >= str_len);
     pos += str_len;
@@ -13918,7 +13979,6 @@ RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
   intptr_t len = str.Length();
   if (len > 0) {
     intptr_t num_escapes = 0;
-    intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
       if (IsSpecialCharacter(*CharAddr(str, i))) {
         num_escapes += 1;
@@ -13926,6 +13986,7 @@ RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
     }
     const String& dststr = String::Handle(
         TwoByteString::New(len + num_escapes, Heap::kNew));
+    intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
       if (IsSpecialCharacter(*CharAddr(str, i))) {
         *(CharAddr(dststr, index)) = '\\';
@@ -13938,7 +13999,7 @@ RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
     }
     return TwoByteString::raw(dststr);
   }
-  return TwoByteString::null();
+  return TwoByteString::New(0, Heap::kNew);
 }
 
 
@@ -14024,15 +14085,19 @@ RawTwoByteString* TwoByteString::Concat(const String& str1,
 
 
 RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
+                                           intptr_t start,
+                                           intptr_t end,
                                            intptr_t len,
                                            Heap::Space space) {
+  ASSERT(!strings.IsNull());
+  ASSERT(start >= 0);
+  ASSERT(end <= strings.Length());
   const String& result = String::Handle(TwoByteString::New(len, space));
   String& str = String::Handle();
-  intptr_t strings_len = strings.Length();
   intptr_t pos = 0;
-  for (intptr_t i = 0; i < strings_len; i++) {
+  for (intptr_t i = start; i < end; i++) {
     str ^= strings.At(i);
-    intptr_t str_len = str.Length();
+    const intptr_t str_len = str.Length();
     String::Copy(result, pos, str, 0, str_len);
     ASSERT((kMaxElements - pos) >= str_len);
     pos += str_len;
@@ -14255,10 +14320,10 @@ void Array::MakeImmutable() const {
 
 const char* Array::ToCString() const {
   if (IsNull()) {
-    return IsImmutable() ? "ImmutableArray NULL" : "Array NULL";
+    return IsImmutable() ? "_ImmutableList NULL" : "_List NULL";
   }
-  const char* format = !IsImmutable() ? "Array len:%" Pd "" :
-      "Immutable Array len:%" Pd "";
+  const char* format = IsImmutable() ?
+      "_ImmutableList len:%" Pd : "_List len:%" Pd;
   intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, Length());
@@ -14466,9 +14531,9 @@ RawGrowableObjectArray* GrowableObjectArray::New(const Array& array,
 
 const char* GrowableObjectArray::ToCString() const {
   if (IsNull()) {
-    return "GrowableObjectArray NULL";
+    return "_GrowableList NULL";
   }
-  const char* format = "GrowableObjectArray len:%" Pd "";
+  const char* format = "_GrowableList len:%" Pd "";
   intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, Length());

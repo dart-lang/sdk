@@ -5,6 +5,7 @@
 #include "vm/block_scheduler.h"
 
 #include "vm/allocation.h"
+#include "vm/code_patcher.h"
 #include "vm/flow_graph.h"
 
 namespace dart {
@@ -14,25 +15,9 @@ static intptr_t ComputeEdgeCount(const Code& unoptimized_code,
                                  intptr_t deopt_id) {
   ASSERT(deopt_id != Isolate::kNoDeoptId);
 
-  // Intrinsified functions do not have edge counts, so give all edges equal
-  // weights.
-  if (unoptimized_code.pointer_offsets_length() == 0) return 1;
-
   uword pc = unoptimized_code.GetPcForDeoptId(deopt_id, PcDescriptors::kDeopt);
   Array& array = Array::Handle();
-  // Pointer offsets are sorted in decreasing order.  Find the first one
-  // after the deopt id's pc.
-  // TODO(kmillikin): Use a more reliable way to find the counter.
-  for (intptr_t j = unoptimized_code.pointer_offsets_length() - 1;
-       j >= 0;
-       --j) {
-    uword addr =
-        unoptimized_code.GetPointerOffsetAt(j) + unoptimized_code.EntryPoint();
-    if (addr > pc) {
-      array ^= *reinterpret_cast<RawObject**>(addr);
-      break;
-    }
-  }
+  array ^= CodePatcher::GetEdgeCounterAt(pc, unoptimized_code);
   ASSERT(!array.IsNull());
   return Smi::Value(Smi::RawCast(array.At(0)));
 }
@@ -208,7 +193,7 @@ void BlockScheduler::ReorderBlocks() const {
   for (intptr_t i = block_count - 1; i >= 0; --i) {
     if (chains[i]->first->block == flow_graph()->postorder()[i]) {
       for (Link* link = chains[i]->first; link != NULL; link = link->next) {
-        flow_graph()->codegen_block_order(true)->Add(link->block);
+        flow_graph()->CodegenBlockOrder(true)->Add(link->block);
       }
     }
   }

@@ -69,7 +69,7 @@ static bool TestFunction(const Library& lib,
   // the class matches and the rest of the method name starting with
   // the dot matches, we have found a match.
   // We do not store the entire factory constructor name with the class
-  // (e.g: _GrowableObjectArray.withData) because the actual function name
+  // (e.g: _GrowableList.withData) because the actual function name
   //  that we see here includes the private key.
   if (test_function_name[0] == '.') {
     function_name = strstr(function_name, ".");

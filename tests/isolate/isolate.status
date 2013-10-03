@@ -89,9 +89,11 @@ mandel_isolate_stream_test: Pass, Fail, Timeout # Issue 7952
 [ $compiler == dart2js && ( $runtime == ff || $runtime == safari || $runtime == drt || $runtime == chrome ) ]
 isolate_stress_test: Pass, Slow # Issue 10697
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+[ $compiler == none && $runtime == drt ]
 isolate_stress_test: Skip # Issue 12537
 spawn_uri_multi_test/01: Fail # Issue 13615
+nested_spawn_stream2_test: Fail # Issue 13433
+cross_isolate_message_stream_test: Fail # Issue 13433
 
 [ $csp ]
 spawn_uri_multi_test/none: Fail # http://dartbug.com/13454
@@ -99,3 +101,6 @@ spawn_uri_test: Fail # http://dartbug.com/13454
 
 [ $jscl || $runtime == ie9 ]
 spawn_uri_multi_test/none: RuntimeError # http://dartbug.com/13544
+
+[ $compiler == none && $runtime == dartium ]
+global_error_handler2_test: Fail # Issue 13719: Please triage this failure.

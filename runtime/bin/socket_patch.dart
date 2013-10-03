@@ -484,7 +484,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
           continue;
         }
         if (i == ERROR_EVENT) {
-          reportError(nativeGetError(), "");
+          if (!isClosing) {
+            reportError(nativeGetError(), "");
+          }
         } else if (!isClosed) {
           // If the connection is closed right after it's accepted, there's a
           // chance the close-handler is not set.
@@ -711,6 +713,8 @@ class _RawServerSocket extends Stream<RawSocket>
 
   int get port => _socket.port;
 
+  InternetAddress get address => _socket.address;
+
   Future close() => _socket.close().then((_) => this);
 
   void _pause() {
@@ -920,6 +924,8 @@ class _ServerSocket extends Stream<Socket>
   }
 
   int get port => _socket.port;
+
+  InternetAddress get address => _socket.address;
 
   Future close() => _socket.close().then((_) => this);
 }

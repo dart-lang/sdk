@@ -507,6 +507,7 @@ DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target_in,
                          CURRENT_FUNC);
   }
   UNWRAP_AND_CHECK_PARAM(String, expr, expr_in);
+  // Type extends Instance, must check first.
   if (target.IsType()) {
     const Class& cls = Class::Handle(isolate, Type::Cast(target).type_class());
     return Api::NewHandle(isolate, cls.Evaluate(expr));
@@ -514,6 +515,8 @@ DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target_in,
     return Api::NewHandle(isolate, Instance::Cast(target).Evaluate(expr));
   } else if (target.IsLibrary()) {
     return Api::NewHandle(isolate, Library::Cast(target).Evaluate(expr));
+  } else if (target.IsClass()) {
+    return Api::NewHandle(isolate, Class::Cast(target).Evaluate(expr));
   }
   return Api::NewError("%s: unsupported target type", CURRENT_FUNC);
 }

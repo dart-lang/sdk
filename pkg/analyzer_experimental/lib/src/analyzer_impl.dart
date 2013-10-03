@@ -86,6 +86,11 @@ class AnalyzerImpl {
     sourceFactory = new SourceFactory.con1(contentCache, resolvers);
     context = AnalysisEngine.instance.createAnalysisContext();
     context.sourceFactory = sourceFactory;
+
+    // set options for context
+    AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
+    contextOptions.hint = !options.disableHints;
+    context.analysisOptions = contextOptions;
   }
 
   /// Fills [sources].
@@ -139,6 +144,7 @@ class AnalyzerImpl {
   /// Fills [errorInfos].
   void prepareErrors() {
     for (Source source in sources) {
+      context.computeErrors(source);
       var sourceErrors = context.getErrors(source);
       errorInfos.add(sourceErrors);
     }

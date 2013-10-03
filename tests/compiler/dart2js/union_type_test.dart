@@ -15,9 +15,9 @@ main() {
   compiler.stringClass.ensureResolved(compiler);
 
   FlatTypeMask mask1 =
-      new FlatTypeMask.exact(new InterfaceType(compiler.intClass));
+      new FlatTypeMask.exact(compiler.intClass);
   FlatTypeMask mask2 =
-      new FlatTypeMask.exact(new InterfaceType(compiler.stringClass));
+      new FlatTypeMask.exact(compiler.stringClass);
   UnionTypeMask union1 = mask1.nonNullable().union(mask2, compiler);
   UnionTypeMask union2 = mask2.nonNullable().union(mask1, compiler);
   Expect.equals(union1, union2);

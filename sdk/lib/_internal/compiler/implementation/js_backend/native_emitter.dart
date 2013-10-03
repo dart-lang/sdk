@@ -35,7 +35,7 @@ class NativeEmitter {
   Compiler get compiler => emitter.compiler;
   JavaScriptBackend get backend => compiler.backend;
 
-  String get _ => emitter._;
+  String get _ => emitter.space;
   String get n => emitter.n;
   String get N => emitter.N;
 
@@ -325,7 +325,9 @@ class NativeEmitter {
   }
 
   ClassBuilder generateNativeClass(ClassElement classElement) {
-    assert(!classElement.hasBackendMembers);
+    // TODO(sra): Issue #13731- this is commented out as part of custom element
+    // constructor work.
+    //assert(!classElement.hasBackendMembers);
     nativeClasses.add(classElement);
 
     ClassElement superclass = classElement.superclass;

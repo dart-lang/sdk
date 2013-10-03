@@ -60,9 +60,15 @@ void FlowGraph::AddToGuardedFields(
 }
 
 
-GrowableArray<BlockEntryInstr*>* FlowGraph::codegen_block_order(
+bool FlowGraph::ShouldReorderBlocks(const Function& function,
+                                    bool is_optimized) {
+  return is_optimized && FLAG_reorder_basic_blocks && !function.is_intrinsic();
+}
+
+
+GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
     bool is_optimized) {
-  return (is_optimized && FLAG_reorder_basic_blocks)
+  return ShouldReorderBlocks(parsed_function().function(), is_optimized)
       ? &optimized_block_order_
       : &reverse_postorder_;
 }

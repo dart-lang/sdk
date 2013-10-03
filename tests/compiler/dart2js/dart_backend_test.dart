@@ -269,14 +269,14 @@ main() {
       'var globalVarInitialized=6,globalVarInitialized2=7;'
       'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}'
           'static const field=5;}'
-      'p_globalfoo(){}'
-      'var p_globalVar;var p_globalVarInitialized=6,p_globalVarInitialized2=7;'
-      'class p_A{p_A(){}p_A.p_fromFoo(){}static p_staticfoo(){}foo(){}'
-          'static const p_field=5;}'
-      'main(){p_globalVar;p_globalVarInitialized;'
-         'p_globalVarInitialized2;p_globalfoo();'
-         'p_A.p_field;p_A.p_staticfoo();'
-         'new p_A();new p_A.p_fromFoo();new p_A().foo();'
+      'A_globalfoo(){}'
+      'var A_globalVar;var A_globalVarInitialized=6,A_globalVarInitialized2=7;'
+      'class A_A{A_A(){}A_A.A_fromFoo(){}static A_staticfoo(){}foo(){}'
+          'static const A_field=5;}'
+      'main(){A_globalVar;A_globalVarInitialized;'
+         'A_globalVarInitialized2;A_globalfoo();'
+         'A_A.A_field;A_A.A_staticfoo();'
+         'new A_A();new A_A.A_fromFoo();new A_A().foo();'
          'globalVar;globalVarInitialized;globalVarInitialized2;globalfoo();'
          'A.field;A.staticfoo();'
          'new A();new A.fromFoo();new A().foo();}';
@@ -383,11 +383,11 @@ main() {
   var expectedResult =
     'topfoo(){}'
     'class A{foo(){}}'
-    'p_topfoo(){var x=5;}'
-    'class p_A{num foo(){}p_A.fromFoo(){}A myliba;List<p_A> mylist;}'
+    'A_topfoo(){var x=5;}'
+    'class A_A{num foo(){}A_A.fromFoo(){}A myliba;List<A_A> mylist;}'
     'A getA()=>null;'
-    'main(){var a=new A();a.foo();var b=new p_A.fromFoo();b.foo();'
-        'var GREATVAR=b.myliba;b.mylist;a=getA();p_topfoo();topfoo();}';
+    'main(){var a=new A();a.foo();var b=new A_A.fromFoo();b.foo();'
+        'var GREATVAR=b.myliba;b.mylist;a=getA();A_topfoo();topfoo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -426,9 +426,9 @@ main() {
   var expectedResult =
     'get topgetset=>5;'
     'set topgetset(arg){}'
-    'get p_topgetset=>6;'
-    'set p_topgetset(arg){}'
-    'main(){p_topgetset;p_topgetset=6;topgetset;topgetset=5;}';
+    'get A_topgetset=>6;'
+    'set A_topgetset(arg){}'
+    'main(){A_topgetset;A_topgetset=6;topgetset;topgetset=5;}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -504,12 +504,12 @@ main() {
     'class T{}'
     'class B<T>{}'
     'class A<T> extends B<T>{T f;}'
-    'typedef void p_MyFunction<p_T extends num>(p_T arg);'
-    'class p_T{}'
-    'class p_B<p_T>{}'
-    'class p_A<p_T> extends p_B<p_T>{p_T f;}'
-    'main(){p_MyFunction myf1;MyFunction myf2;new p_A<int>().f;'
-        'new p_T();new A<int>().f;new T();}';
+    'typedef void A_MyFunction<A_T extends num>(A_T arg);'
+    'class A_T{}'
+    'class A_B<A_T>{}'
+    'class A_A<A_T> extends A_B<A_T>{A_T f;}'
+    'main(){A_MyFunction myf1;MyFunction myf2;new A_A<int>().f;'
+        'new A_T();new A<int>().f;new T();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -536,9 +536,9 @@ main() {
   var expectedResult =
     'class I{}'
     'class A<T extends I>{}'
-    'class p_I{}'
-    'class p_A<p_T extends p_I>{}'
-    'main(){new p_A();new A();}';
+    'class A_I{}'
+    'class A_A<A_T extends A_I>{}'
+    'main(){new A_A();new A();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -555,8 +555,8 @@ main() {
 }
 ''';
   var expectedResult =
-    'p_main(){}'
-    'main(){p_main();}';
+    'A_main(){}'
+    'main(){A_main();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -667,8 +667,8 @@ main() {
 }
 ''';
   var expectedResult = 'import "dart:html" as p;'
-      'class A{static String get p_userAgent=>p.window.navigator.userAgent;}'
-      'main(){A.p_userAgent;}';
+      'class A{static String get A_userAgent=>p.window.navigator.userAgent;}'
+      'main(){A.A_userAgent;}';
   testDart2Dart(src,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -684,8 +684,8 @@ main() {
   print('local');
 }
 ''';
-  var expectedResult = "p_print(x){throw 'fisk';}"
-      "main(){print('corelib');p_print('local');}";
+  var expectedResult = "A_print(x){throw 'fisk';}"
+      "main(){print('corelib');A_print('local');}";
   testDart2Dart(src,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -701,7 +701,7 @@ main() {
   new A.named();
 }
 ''';
-  var expectedResult = "class A{A(){}}main(){new A();new p_Unresolved();}";
+  var expectedResult = "class A{A(){}}main(){new A();new A_Unresolved();}";
   testDart2Dart(src,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }

@@ -1154,14 +1154,6 @@ class VmCommandOutputImpl extends CommandOutputImpl
           return Expectation.PASS;
         }
 
-        // We're not as strict, if the exitCode indicated an uncaught exception
-        // we say it passed nonetheless
-        // TODO(kustermann): As soon as the VM team makes sure we get correct
-        // exit codes, we should remove this.
-        if (exitCode == DART_VM_EXITCODE_UNCAUGHT_EXCEPTION) {
-          return Expectation.PASS;
-        }
-
         return Expectation.MISSING_COMPILETIME_ERROR;
       }
       if (testCase.info.hasRuntimeError) {

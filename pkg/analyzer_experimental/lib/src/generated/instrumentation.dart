@@ -85,8 +85,8 @@ class Instrumentation {
    *
    * @param logger the logger that should receive instrumentation information
    */
-  static void set logger(InstrumentationLogger logger2) {
-    _CURRENT_LOGGER = logger2 == null ? _NULL_LOGGER : logger2;
+  static void set logger(InstrumentationLogger logger) {
+    _CURRENT_LOGGER = logger == null ? _NULL_LOGGER : logger;
   }
 }
 class InstrumentationBuilder_15 implements InstrumentationBuilder {

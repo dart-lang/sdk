@@ -31,20 +31,20 @@ namespace dart {
   V(_Double, get:isNegative, Double_getIsNegative, 1711391869)                 \
   V(_Double, _mulFromInteger, Double_mulFromInteger, 1238321808)               \
   V(_Double, .fromInteger, Double_fromInteger, 82414734)                       \
-  V(_ObjectArray, ., ObjectArray_Allocate, 1558200848)                         \
-  V(_ObjectArray, get:length, Array_getLength, 259382695)                      \
-  V(_ObjectArray, [], Array_getIndexed, 544020319)                             \
-  V(_ObjectArray, []=, Array_setIndexed, 304306010)                            \
-  V(_GrowableObjectArray, .withData, GrowableArray_Allocate, 619965861)        \
-  V(_GrowableObjectArray, get:length, GrowableArray_getLength, 1160417196)     \
-  V(_GrowableObjectArray, get:_capacity, GrowableArray_getCapacity, 1509841570)\
-  V(_GrowableObjectArray, [], GrowableArray_getIndexed, 951312767)             \
-  V(_GrowableObjectArray, []=, GrowableArray_setIndexed, 1366856519)           \
-  V(_GrowableObjectArray, _setLength, GrowableArray_setLength, 1112774552)     \
-  V(_GrowableObjectArray, _setData, GrowableArray_setData, 1574432374)         \
-  V(_GrowableObjectArray, add, GrowableArray_add, 635801182)                   \
-  V(_ImmutableArray, [], ImmutableArray_getIndexed, 1345387065)                \
-  V(_ImmutableArray, get:length, ImmutableArray_getLength, 1342001998)         \
+  V(_List, ., List_Allocate, 1436567945)                                       \
+  V(_List, get:length, Array_getLength, 215153395)                             \
+  V(_List, [], Array_getIndexed, 1079829188)                                   \
+  V(_List, []=, Array_setIndexed, 748954698)                                   \
+  V(_GrowableList, .withData, GrowableList_Allocate, 461305701)                \
+  V(_GrowableList, get:length, GrowableList_getLength, 1654225242)             \
+  V(_GrowableList, get:_capacity, GrowableList_getCapacity, 817090003)         \
+  V(_GrowableList, [], GrowableList_getIndexed, 1686777561)                    \
+  V(_GrowableList, []=, GrowableList_setIndexed, 327404102)                    \
+  V(_GrowableList, _setLength, GrowableList_setLength, 1227678442)             \
+  V(_GrowableList, _setData, GrowableList_setData, 1375509957)                 \
+  V(_GrowableList, add, GrowableList_add, 996912766)                           \
+  V(_ImmutableList, [], ImmutableList_getIndexed, 25983597)                    \
+  V(_ImmutableList, get:length, ImmutableList_getLength, 578733070)            \
   V(Object, ==, Object_equal, 936042315)                                       \
   V(_StringBase, get:hashCode, String_getHashCode, 654543028)                  \
   V(_StringBase, get:isEmpty, String_getIsEmpty, 879849436)                    \

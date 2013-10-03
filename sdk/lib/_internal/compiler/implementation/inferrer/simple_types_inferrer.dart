@@ -44,7 +44,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
       return type;
     } else {
       assert(annotation.kind == TypeKind.INTERFACE);
-      otherType = new TypeMask.nonNullSubtype(annotation);
+      otherType = new TypeMask.nonNullSubtype(annotation.element);
     }
     if (isNullable) otherType = otherType.nullable();
     if (type == null) return otherType;
@@ -85,10 +85,14 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask get constMapType => compiler.typesTask.constMapType;
   TypeMask get stringType => compiler.typesTask.stringType;
   TypeMask get typeType => compiler.typesTask.typeType;
+  bool isNull(TypeMask mask) => mask.isEmpty && mask.isNullable;
 
-  TypeMask nonNullSubtype(DartType type) => new TypeMask.nonNullSubtype(type);
-  TypeMask nonNullSubclass(DartType type) => new TypeMask.nonNullSubclass(type);
-  TypeMask nonNullExact(DartType type) => new TypeMask.nonNullExact(type);
+  TypeMask nonNullSubtype(ClassElement type)
+      => new TypeMask.nonNullSubtype(type.declaration);
+  TypeMask nonNullSubclass(ClassElement type)
+      => new TypeMask.nonNullSubclass(type.declaration);
+  TypeMask nonNullExact(ClassElement type)
+      => new TypeMask.nonNullExact(type.declaration);
   TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
 
   TypeMask allocateContainer(TypeMask type,
@@ -296,7 +300,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     for (var type in typesReturned) {
       T mappedType;
       if (type == native.SpecialType.JsObject) {
-        mappedType = types.nonNullExact(compiler.objectClass.rawType);
+        mappedType = types.nonNullExact(compiler.objectClass);
       } else if (type.element == compiler.stringClass) {
         mappedType = types.stringType;
       } else if (type.element == compiler.intClass) {
@@ -314,15 +318,15 @@ abstract class InferrerEngine<T, V extends TypeSystem>
       } else if (type.isDynamic) {
         return types.dynamicType;
       } else if (!compiler.world.hasAnySubtype(type.element)) {
-        mappedType = types.nonNullExact(type.element.rawType);
+        mappedType = types.nonNullExact(type.element);
       } else {
         ClassElement element = type.element;
         Set<ClassElement> subtypes = compiler.world.subtypesOf(element);
         Set<ClassElement> subclasses = compiler.world.subclassesOf(element);
         if (subclasses != null && subtypes.length == subclasses.length) {
-          mappedType = types.nonNullSubclass(element.rawType);
+          mappedType = types.nonNullSubclass(element);
         } else {
-          mappedType = types.nonNullSubtype(element.rawType);
+          mappedType = types.nonNullSubtype(element);
         }
       }
       returnType = types.computeLUB(returnType, mappedType);
@@ -474,7 +478,7 @@ class SimpleTypeInferrerVisitor<T>
           }
         });
       }
-      returnType = types.nonNullExact(cls.rawType);
+      returnType = types.nonNullExact(cls);
     } else {
       signature.forEachParameter((element) {
         locals.update(element, inferrer.typeOfElement(element), node);
@@ -535,38 +539,31 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   T visitLiteralList(LiteralList node) {
-    if (node.isConst()) {
-      // We only set the type once. We don't need to re-visit the children
-      // when re-analyzing the node.
-      return inferrer.concreteTypes.putIfAbsent(node, () {
-        T elementType;
-        int length = 0;
-        for (Node element in node.elements.nodes) {
-          T type = visit(element);
-          elementType = elementType == null
-              ? types.allocatePhi(null, null, type)
-              : types.addPhiInput(null, elementType, type);
-          length++;
-        }
+    // We only set the type once. We don't need to re-visit the children
+    // when re-analyzing the node.
+    return inferrer.concreteTypes.putIfAbsent(node, () {
+      T elementType;
+      int length = 0;
+      for (Node element in node.elements.nodes) {
+        T type = visit(element);
         elementType = elementType == null
-            ? types.nonNullEmpty()
-            : types.simplifyPhi(null, null, elementType);
-        return types.allocateContainer(
-            types.constListType,
-            node,
-            outermostElement,
-            elementType,
-            length);
-      });
-    } else {
-      node.visitChildren(this);
-      return inferrer.concreteTypes.putIfAbsent(node, () {
-        return types.allocateContainer(
-            types.growableListType,
-            node,
-            outermostElement);
-      });
-    }
+            ? types.allocatePhi(null, null, type)
+            : types.addPhiInput(null, elementType, type);
+        length++;
+      }
+      elementType = elementType == null
+          ? types.nonNullEmpty()
+          : types.simplifyPhi(null, null, elementType);
+      T containerType = node.isConst()
+          ? types.constListType
+          : types.growableListType;
+      return types.allocateContainer(
+          containerType,
+          node,
+          outermostElement,
+          elementType,
+          length);
+    });
   }
 
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();
@@ -823,12 +820,31 @@ class SimpleTypeInferrerVisitor<T>
     if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
       return inferrer.concreteTypes.putIfAbsent(
           node, () => types.allocateContainer(
-              types.growableListType, node, outermostElement));
+              types.growableListType, node, outermostElement,
+              types.nonNullEmpty(), 0));
     } else if (Elements.isFixedListConstructorCall(element, node, compiler)
         || Elements.isFilledListConstructorCall(element, node, compiler)) {
+
+      int initialLength;
+      T elementType;
+      if (Elements.isFixedListConstructorCall(element, node, compiler)) {
+        LiteralInt length = node.arguments.head.asLiteralInt();
+        if (length != null) {
+          initialLength = length.value;
+        }
+        elementType = types.nullType;
+      } else {
+        LiteralInt length = node.arguments.head.asLiteralInt();
+        if (length != null) {
+          initialLength = length.value;
+        }
+        elementType = arguments.positional[1];
+      }
+
       return inferrer.concreteTypes.putIfAbsent(
           node, () => types.allocateContainer(
-              types.fixedListType, node, outermostElement));
+              types.fixedListType, node, outermostElement,
+              elementType, initialLength));
     } else if (element.isFunction() || element.isConstructor()) {
       return returnType;
     } else {
@@ -983,6 +999,16 @@ class SimpleTypeInferrerVisitor<T>
     ArgumentsTypes arguments = node.isPropertyAccess
         ? null
         : analyzeArguments(node.arguments);
+    if (selector.name == const SourceString('==')
+        || selector.name == const SourceString('!=')) {
+      if (types.isNull(receiverType)) {
+        potentiallyAddNullCheck(node, node.arguments.head);
+        return types.boolType;
+      } else if (types.isNull(arguments.positional[0])) {
+        potentiallyAddNullCheck(node, node.receiver);
+        return types.boolType;
+      }
+    }
     return handleDynamicSend(node, selector, receiverType, arguments);
   }
 

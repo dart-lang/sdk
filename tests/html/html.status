@@ -13,10 +13,10 @@ element_offset_test/offset: Pass, Fail # Issue 13296
 custom/document_register_type_extensions_test/namespaces: Fail # Polyfill does not support createElementNS
 custom/document_register_basic_test: Fail # Polyfill is not case-sensitive
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
+custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 
 [ $compiler == dart2js && $browser ]
-# Issue 9325 failures
-custom/attribute_changed_callback_test: Fail
+custom/created_callback_test: Fail # Support for created constructor.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
 audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
@@ -29,9 +29,9 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue
 postmessage_structured_test/typed_arrays: Fail
 xhr_test: Pass, Fail # Issue 12648
 custom/attribute_changed_callback_test: Fail # 12643
-custom/entered_left_view_test: Fail # 13313
 xhr_test/json: Fail # Issue 13069
 uri_test: Fail Issue 13581
+async_test: Fail # Background timers not implemented.
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
@@ -84,8 +84,6 @@ touchevent_test/supported: Fail
 
 xhr_test: Pass, Fail # Issue 11884
 xhr_cross_origin_test: Pass, Fail # Issue 11884
-
-fileapi_test/directoryReader: Fail  # Issue 12573
 
 [ $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == safari ]
 audiocontext_test: Skip # Issue 9322

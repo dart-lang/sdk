@@ -15,6 +15,38 @@
 
 namespace dart {
 
+class InstructionPattern : public AllStatic {
+ public:
+  // Decodes a load sequence ending at 'end' (the last instruction of the
+  // load sequence is the instruction before the one at end).  Returns the
+  // address of the first instruction in the sequence.  Returns the register
+  // being loaded and the loaded object in the output parameters 'reg' and
+  // 'obj' respectively.
+  static uword DecodeLoadObject(uword end,
+                                const Array& object_pool,
+                                Register* reg,
+                                Object* obj);
+
+  // Decodes a load sequence ending at 'end' (the last instruction of the
+  // load sequence is the instruction before the one at end).  Returns the
+  // address of the first instruction in the sequence.  Returns the register
+  // being loaded and the loaded immediate value in the output parameters
+  // 'reg' and 'value' respectively.
+  static uword DecodeLoadWordImmediate(uword end,
+                                       Register* reg,
+                                       intptr_t* value);
+
+  // Decodes a load sequence ending at 'end' (the last instruction of the
+  // load sequence is the instruction before the one at end).  Returns the
+  // address of the first instruction in the sequence.  Returns the register
+  // being loaded and the index in the pool being read from in the output
+  // parameters 'reg' and 'index' respectively.
+  static uword DecodeLoadWordFromPool(uword end,
+                                      Register* reg,
+                                      intptr_t* index);
+};
+
+
 class CallPattern : public ValueObject {
  public:
   CallPattern(uword pc, const Code& code);
@@ -32,17 +64,15 @@ class CallPattern : public ValueObject {
   static void InsertAt(uword pc, uword target_address);
 
  private:
-  uword Back(int n) const;
-  int DecodeLoadObject(int end, Register* reg, Object* obj);
-  int DecodeLoadWordImmediate(int end, Register* reg, int* value);
-  int DecodeLoadWordFromPool(int end, Register* reg, int* index);
-  const uword* end_;
-  int target_address_pool_index_;
-  int args_desc_load_end_;
-  Array& args_desc_;
-  int ic_data_load_end_;
-  ICData& ic_data_;
   const Array& object_pool_;
+
+  uword end_;
+  uword args_desc_load_end_;
+  uword ic_data_load_end_;
+
+  intptr_t target_address_pool_index_;
+  Array& args_desc_;
+  ICData& ic_data_;
 
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
 };
@@ -71,4 +101,3 @@ class JumpPattern : public ValueObject {
 }  // namespace dart
 
 #endif  // VM_INSTRUCTIONS_ARM_H_
-

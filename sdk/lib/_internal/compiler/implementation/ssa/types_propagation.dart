@@ -10,7 +10,7 @@ abstract class SsaTypePropagator extends HBaseVisitor
   final Map<int, HInstruction> workmap = new Map<int, HInstruction>();
   final List<int> worklist = new List<int>();
   final Map<HInstruction, Function> pendingOptimizations =
-      new Map<HInstruction, Function>();  
+      new Map<HInstruction, Function>();
 
   final Compiler compiler;
   String get name => 'type propagator';
@@ -176,7 +176,7 @@ abstract class SsaTypePropagator extends HBaseVisitor
     HTypeConversion converted = new HTypeConversion(
         null, kind, type, input, selector);
     instruction.block.addBefore(instruction, converted);
-    input.replaceAllUsersDominatedBy(instruction, converted);    
+    input.replaceAllUsersDominatedBy(instruction, converted);
   }
 
   bool isCheckEnoughForNsmOrAe(HInstruction instruction,
@@ -211,7 +211,7 @@ abstract class SsaTypePropagator extends HBaseVisitor
       if (targets.length == 1) {
         Element target = targets.first;
         ClassElement cls = target.getEnclosingClass();
-        HType type = new HType.nonNullSubclass(cls.rawType, compiler);
+        HType type = new HType.nonNullSubclass(cls, compiler);
         // TODO(ngeoffray): We currently only optimize on primitive
         // types.
         if (!type.isPrimitive(compiler)) return false;
@@ -439,7 +439,7 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
     }
     return desiredType;
   }
-  
+
   bool hasBeenSpeculativelyOptimized(HInstruction instruction) {
     return savedTypes.containsKey(instruction);
   }

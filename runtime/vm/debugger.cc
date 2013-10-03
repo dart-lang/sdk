@@ -1595,6 +1595,9 @@ void Debugger::SingleStepCallback() {
   if (!IsDebuggable(func)) {
     return;
   }
+  if (frame->TokenPos() == Scanner::kDummyTokenIndex) {
+    return;
+  }
 
   if (FLAG_verbose_debug) {
     OS::Print(">>> single step break at %s:%" Pd " (func %s token %" Pd ")\n",

@@ -14,7 +14,6 @@ import '../scanner/scannerlib.dart' hide SourceString;
 import '../resolution/resolution.dart' show Scope;
 import '../dart2jslib.dart';
 import '../dart_types.dart';
-import '../source_file.dart';
 import '../tree/tree.dart';
 import '../util/util.dart' show Spannable, Link;
 import '../util/characters.dart' show $CR, $LF;
@@ -634,7 +633,7 @@ class Dart2JsSourceLocation implements SourceLocation {
   Dart2JsSourceLocation(this._script, this._span);
 
   int _computeLine() {
-    var sourceFile = _script.file as SourceFile;
+    var sourceFile = _script.file;
     if (sourceFile != null) {
       return sourceFile.getLine(offset) + 1;
     }
@@ -658,7 +657,7 @@ class Dart2JsSourceLocation implements SourceLocation {
   int _computeColumn() {
     if (length == 0) return 0;
 
-    var sourceFile = _script.file as SourceFile;
+    var sourceFile = _script.file;
     if (sourceFile != null) {
       return sourceFile.getColumn(sourceFile.getLine(offset), offset) + 1;
     }

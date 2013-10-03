@@ -4,6 +4,8 @@
 
 part of dart2js;
 
+typedef ItemCompilationContext ItemCompilationContextCreator();
+
 class EnqueueTask extends CompilerTask {
   final ResolutionEnqueuer resolution;
   final CodegenEnqueuer codegen;
@@ -71,7 +73,7 @@ class EnqueueTask extends CompilerTask {
 abstract class Enqueuer {
   final String name;
   final Compiler compiler; // TODO(ahe): Remove this dependency.
-  final Function itemCompilationContextCreator;
+  final ItemCompilationContextCreator itemCompilationContextCreator;
   final Map<String, Link<Element>> instanceMembersByName
       = new Map<String, Link<Element>>();
   final Map<String, Link<Element>> instanceFunctionsByName
@@ -85,9 +87,7 @@ abstract class Enqueuer {
 
   bool hasEnqueuedEverything = false;
 
-  Enqueuer(this.name, this.compiler,
-           ItemCompilationContext itemCompilationContextCreator())
-    : this.itemCompilationContextCreator = itemCompilationContextCreator;
+  Enqueuer(this.name, this.compiler, this.itemCompilationContextCreator);
 
   Queue<WorkItem> get queue;
 
@@ -104,7 +104,6 @@ abstract class Enqueuer {
    */
   void addToWorkList(Element element) {
     assert(invariant(element, element.isDeclaration));
-    if (element.isForeign(compiler)) return;
     internalAddToWorkList(element);
   }
 
@@ -614,7 +613,7 @@ class ResolutionEnqueuer extends Enqueuer {
     if (getCachedElements(element) != null) return;
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(element,
-                                          "Resolution work list is closed.");
+          "Resolution work list is closed. Trying to add $element.");
     }
     compiler.world.registerUsedElement(element);
 
@@ -681,11 +680,14 @@ class ResolutionEnqueuer extends Enqueuer {
    * The action is performed as part of the post-processing immediately after
    * the resolution queue has been closed. As a consequence, [action] must not
    * add elements to the resolution queue.
+   *
+   * The queue is processed in FIFO order.
    */
   void addPostProcessAction(Element element, PostProcessAction action) {
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(element,
-                                          "Resolution work list is closed.");
+          "Resolution work list is closed. "
+          "Trying to add post process action for $element");
     }
     postQueue.add(new PostProcessTask(element, action));
   }
@@ -720,13 +722,16 @@ class CodegenEnqueuer extends Enqueuer {
       member.isAbstract(compiler) || generatedCode.containsKey(member);
 
   void internalAddToWorkList(Element element) {
+    // Don't generate code for foreign elements.
+    if (element.isForeign(compiler)) return;
+
     // Codegen inlines field initializers, so it does not need to add
     // individual fields in the work list.
     if (element.isField() && element.isInstanceMember()) return;
 
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(element,
-                                          "Codegen work list is closed.");
+          "Codegen work list is closed. Trying to add $element");
     }
     CodegenWorkItem workItem = new CodegenWorkItem(
         element, itemCompilationContextCreator());

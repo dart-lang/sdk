@@ -232,9 +232,7 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
                                         const Smi& amount,
                                         const bool silent = false) {
   if (amount.Value() < 0) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, amount);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    Exceptions::ThrowArgumentError(amount);
   }
   if (value.IsSmi()) {
     const Smi& smi_value = Smi::Cast(value);

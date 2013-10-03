@@ -20,9 +20,9 @@ class ParsedFunction;
 // (factory-name-symbol, result-cid, fingerprint).
 // TODO(srdjan): Store the values in the snapshot instead.
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
-  V(ObjectArrayFactory, kArrayCid, 1558200848)                                 \
-  V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 619965861)           \
-  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 1180134731)           \
+  V(_ListFactory, kArrayCid, 1436567945)                                       \
+  V(_GrowableListWithData, kGrowableObjectArrayCid, 461305701)                 \
+  V(_GrowableListFactory, kGrowableObjectArrayCid, 910639199)                  \
   V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 810750844)                      \
   V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 1246070930)                   \
   V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 1882603960)     \
@@ -278,8 +278,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void HandleStoreLocal(StoreLocalNode* node, bool result_is_needed);
 
   // Helpers for translating parts of the AST.
-  void TranslateArgumentList(const ArgumentListNode& node,
-                             ZoneGrowableArray<Value*>* values);
   void BuildPushArguments(const ArgumentListNode& node,
                           ZoneGrowableArray<PushArgumentInstr*>* values);
 

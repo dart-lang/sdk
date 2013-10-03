@@ -25,6 +25,7 @@ class Array;
 class Class;
 class CodeIndexTable;
 class Debugger;
+class DeoptContext;
 class Field;
 class Function;
 class HandleScope;
@@ -57,174 +58,6 @@ class TypeParameter;
 class ObjectHistogram;
 class ObjectIdRing;
 
-
-// Used by the deoptimization infrastructure to defer allocation of unboxed
-// objects until frame is fully rewritten and GC is safe.
-// Describes a stack slot that should be populated with a reference to the
-// materialized object.
-class DeferredSlot {
- public:
-  DeferredSlot(RawInstance** slot, DeferredSlot* next)
-      : slot_(slot), next_(next) { }
-  virtual ~DeferredSlot() { }
-
-  RawInstance** slot() const { return slot_; }
-  DeferredSlot* next() const { return next_; }
-
-  virtual void Materialize() = 0;
-
- private:
-  RawInstance** const slot_;
-  DeferredSlot* const next_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeferredSlot);
-};
-
-
-class DeferredDouble : public DeferredSlot {
- public:
-  DeferredDouble(double value, RawInstance** slot, DeferredSlot* next)
-      : DeferredSlot(slot, next), value_(value) { }
-
-  virtual void Materialize();
-
-  double value() const { return value_; }
-
- private:
-  const double value_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeferredDouble);
-};
-
-
-class DeferredMint : public DeferredSlot {
- public:
-  DeferredMint(int64_t value, RawInstance** slot, DeferredSlot* next)
-      : DeferredSlot(slot, next), value_(value) { }
-
-  virtual void Materialize();
-
-  int64_t value() const { return value_; }
-
- private:
-  const int64_t value_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeferredMint);
-};
-
-
-class DeferredFloat32x4 : public DeferredSlot {
- public:
-  DeferredFloat32x4(simd128_value_t value, RawInstance** slot,
-                    DeferredSlot* next)
-      : DeferredSlot(slot, next), value_(value) { }
-
-  virtual void Materialize();
-
-  simd128_value_t value() const { return value_; }
-
- private:
-  const simd128_value_t value_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeferredFloat32x4);
-};
-
-
-class DeferredUint32x4 : public DeferredSlot {
- public:
-  DeferredUint32x4(simd128_value_t value, RawInstance** slot,
-                   DeferredSlot* next)
-      : DeferredSlot(slot, next), value_(value) { }
-
-  virtual void Materialize();
-
-  simd128_value_t value() const { return value_; }
-
- private:
-  const simd128_value_t value_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeferredUint32x4);
-};
-
-
-// Describes a slot that contains a reference to an object that had its
-// allocation removed by AllocationSinking pass.
-// Object itself is described and materialized by DeferredObject.
-class DeferredObjectRef : public DeferredSlot {
- public:
-  DeferredObjectRef(intptr_t index, RawInstance** slot, DeferredSlot* next)
-      : DeferredSlot(slot, next), index_(index) { }
-
-  virtual void Materialize();
-
-  intptr_t index() const { return index_; }
-
- private:
-  const intptr_t index_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeferredObjectRef);
-};
-
-
-// Describes an object which allocation was removed by AllocationSinking pass.
-// Arguments for materialization are stored as a part of expression stack
-// for the bottommost deoptimized frame so that GC could discover them.
-// They will be removed from the stack at the very end of deoptimization.
-class DeferredObject {
- public:
-  DeferredObject(intptr_t field_count, intptr_t* args)
-      : field_count_(field_count),
-        args_(reinterpret_cast<RawObject**>(args)),
-        object_(NULL) { }
-
-  intptr_t ArgumentCount() const {
-    return kFieldsStartIndex + kFieldEntrySize * field_count_;
-  }
-
-  RawInstance* object();
-
- private:
-  enum {
-    kClassIndex = 0,
-    kFieldsStartIndex = kClassIndex + 1
-  };
-
-  enum {
-    kFieldIndex = 0,
-    kValueIndex,
-    kFieldEntrySize,
-  };
-
-  // Materializes the object. Returns amount of values that were consumed
-  // and should be removed from the expression stack at the very end of
-  // deoptimization.
-  void Materialize();
-
-  RawObject* GetClass() const {
-    return args_[kClassIndex];
-  }
-
-  RawObject* GetField(intptr_t index) const {
-    return args_[kFieldsStartIndex + kFieldEntrySize * index + kFieldIndex];
-  }
-
-  RawObject* GetValue(intptr_t index) const {
-    return args_[kFieldsStartIndex + kFieldEntrySize * index + kValueIndex];
-  }
-
-  // Amount of fields that have to be initialized.
-  const intptr_t field_count_;
-
-  // Pointer to the first materialization argument on the stack.
-  // The first argument is Class of the instance to materialize followed by
-  // Field, value pairs.
-  RawObject** args_;
-
-  // Object materialized from this description.
-  const Instance* object_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeferredObject);
-};
 
 #define REUSABLE_HANDLE_LIST(V)                                                \
   V(Object)                                                                    \
@@ -503,29 +336,6 @@ class Isolate : public BaseIsolate {
     return file_close_callback_;
   }
 
-  intptr_t* deopt_cpu_registers_copy() const {
-    return deopt_cpu_registers_copy_;
-  }
-  void set_deopt_cpu_registers_copy(intptr_t* value) {
-    ASSERT((value == NULL) || (deopt_cpu_registers_copy_ == NULL));
-    deopt_cpu_registers_copy_ = value;
-  }
-  fpu_register_t* deopt_fpu_registers_copy() const {
-    return deopt_fpu_registers_copy_;
-  }
-  void set_deopt_fpu_registers_copy(fpu_register_t* value) {
-    ASSERT((value == NULL) || (deopt_fpu_registers_copy_ == NULL));
-    deopt_fpu_registers_copy_ = value;
-  }
-  intptr_t* deopt_frame_copy() const { return deopt_frame_copy_; }
-  void SetDeoptFrameCopy(intptr_t* value, intptr_t size) {
-    ASSERT((value == NULL) || (size > 0));
-    ASSERT((value == NULL) || (deopt_frame_copy_ == NULL));
-    deopt_frame_copy_ = value;
-    deopt_frame_copy_size_ = size;
-  }
-  intptr_t deopt_frame_copy_size() const { return deopt_frame_copy_size_; }
-
   void set_object_id_ring(ObjectIdRing* ring) {
     object_id_ring_ = ring;
   }
@@ -533,78 +343,11 @@ class Isolate : public BaseIsolate {
     return object_id_ring_;
   }
 
-  void PrepareForDeferredMaterialization(intptr_t count) {
-    if (count > 0) {
-      deferred_objects_ = new DeferredObject*[count];
-      deferred_objects_count_ = count;
-    }
+  DeoptContext* deopt_context() const { return deopt_context_; }
+  void set_deopt_context(DeoptContext* value) {
+    ASSERT(value == NULL || deopt_context_ == NULL);
+    deopt_context_ = value;
   }
-
-  void DeleteDeferredObjects() {
-    for (intptr_t i = 0; i < deferred_objects_count_; i++) {
-      delete deferred_objects_[i];
-    }
-    delete[] deferred_objects_;
-    deferred_objects_ = NULL;
-    deferred_objects_count_ = 0;
-  }
-
-  DeferredObject* GetDeferredObject(intptr_t idx) const {
-    return deferred_objects_[idx];
-  }
-
-  void SetDeferredObjectAt(intptr_t idx, DeferredObject* object) {
-    deferred_objects_[idx] = object;
-  }
-
-  intptr_t DeferredObjectsCount() const {
-    return deferred_objects_count_;
-  }
-
-  void DeferMaterializedObjectRef(intptr_t idx, intptr_t* slot) {
-    deferred_object_refs_ = new DeferredObjectRef(
-        idx,
-        reinterpret_cast<RawInstance**>(slot),
-        deferred_object_refs_);
-  }
-
-  void DeferDoubleMaterialization(double value, RawDouble** slot) {
-    deferred_boxes_ = new DeferredDouble(
-        value,
-        reinterpret_cast<RawInstance**>(slot),
-        deferred_boxes_);
-  }
-
-  void DeferMintMaterialization(int64_t value, RawMint** slot) {
-    deferred_boxes_ = new DeferredMint(
-        value,
-        reinterpret_cast<RawInstance**>(slot),
-        deferred_boxes_);
-  }
-
-  void DeferFloat32x4Materialization(simd128_value_t value,
-                                     RawFloat32x4** slot) {
-    deferred_boxes_ = new DeferredFloat32x4(
-        value,
-        reinterpret_cast<RawInstance**>(slot),
-        deferred_boxes_);
-  }
-
-  void DeferUint32x4Materialization(simd128_value_t value,
-                                    RawUint32x4** slot) {
-    deferred_boxes_ = new DeferredUint32x4(
-        value,
-        reinterpret_cast<RawInstance**>(slot),
-        deferred_boxes_);
-  }
-
-  // Populate all deferred slots that contain boxes for double, mint, simd
-  // values.
-  void MaterializeDeferredBoxes();
-
-  // Populate all slots containing references to objects which allocations
-  // were eliminated by AllocationSinking pass.
-  void MaterializeDeferredObjects();
 
   static char* GetStatus(const char* request);
 
@@ -668,17 +411,7 @@ class Isolate : public BaseIsolate {
   GcPrologueCallbacks gc_prologue_callbacks_;
   GcEpilogueCallbacks gc_epilogue_callbacks_;
   intptr_t defer_finalization_count_;
-
-  // Deoptimization support.
-  intptr_t* deopt_cpu_registers_copy_;
-  fpu_register_t* deopt_fpu_registers_copy_;
-  intptr_t* deopt_frame_copy_;
-  intptr_t deopt_frame_copy_size_;
-  DeferredSlot* deferred_boxes_;
-  DeferredSlot* deferred_object_refs_;
-
-  intptr_t deferred_objects_count_;
-  DeferredObject** deferred_objects_;
+  DeoptContext* deopt_context_;
 
   // Status support.
   char* stacktrace_;

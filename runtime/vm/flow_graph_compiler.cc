@@ -69,7 +69,7 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
     : assembler_(assembler),
       parsed_function_(flow_graph->parsed_function()),
       flow_graph_(*flow_graph),
-      block_order_(*flow_graph->codegen_block_order(is_optimizing)),
+      block_order_(*flow_graph->CodegenBlockOrder(is_optimizing)),
       current_block_(NULL),
       exception_handlers_list_(NULL),
       pc_descriptors_list_(NULL),
@@ -222,6 +222,31 @@ void FlowGraphCompiler::CompactBlocks() {
   ASSERT(block_order()[0]->IsGraphEntry());
   BlockInfo* block_info = block_info_[block_order()[0]->postorder_number()];
   block_info->set_next_nonempty_label(nonempty_label);
+}
+
+
+void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
+  if (!is_optimizing()) {
+    if (FLAG_enable_type_checks && instr->IsAssertAssignable()) {
+      AssertAssignableInstr* assert = instr->AsAssertAssignable();
+      AddCurrentDescriptor(PcDescriptors::kDeopt,
+                           assert->deopt_id(),
+                           assert->token_pos());
+    } else if (instr->IsGuardField() ||
+               (instr->CanBecomeDeoptimizationTarget() && !instr->IsGoto())) {
+      // GuardField and instructions that can be deoptimization targets need
+      // to record their deopt id.  GotoInstr records its own so that it can
+      // control the placement.
+      AddCurrentDescriptor(PcDescriptors::kDeopt,
+                           instr->deopt_id(),
+                           Scanner::kDummyTokenIndex);
+    }
+    AllocateRegistersLocally(instr);
+  } else if (instr->MayThrow()  &&
+             (CurrentTryIndex() != CatchClauseNode::kInvalidTryIndex)) {
+    // Optimized try-block: Sync locals to fixed stack locations.
+    EmitTrySync(instr, CurrentTryIndex());
+  }
 }
 
 

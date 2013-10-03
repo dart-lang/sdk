@@ -5,8 +5,8 @@
 part of dart.core;
 
 /**
- * An unordered collection of key-value pairs,
- * from which you retrieve a value by using its associated key.
+ * An unordered collection of key-value pairs, from which you retrieve a value
+ * by using its associated key.
  *
  * Each key can occur at most once in a map.
  */
@@ -27,18 +27,36 @@ abstract class Map<K, V> {
   factory Map.identity() = LinkedHashMap<K, V>.identity;
 
   /**
-   * Creates a Map instance
-   * where the keys and values are computed from the [iterable].
+   * Creates a Map instance in which the keys and values are computed from the
+   * [iterable].
    *
    * For each element of the [iterable] this constructor computes a key-value
    * pair, by applying [key] and [value] respectively.
    *
-   * The keys computed by the source [iterable]
-   * do not need to be unique. The last
-   * occurrence of a key will simply overwrite any previous value.
+   * The example below creates a new Map from a List. The keys of `map` are
+   * `list` values converted to strings, and the values of the `map` are the
+   * squares of the `list` values:
+   *
+   *     List<int> list = [1, 2, 3];
+   *     Map<String, int> map = new Map.fromIterable(list,
+   *         key: (item) => item.toString(),
+   *         value: (item) => item * item));
+   *
+   *     map['1'] + map['2']; // 1 + 4
+   *     map['3'] - map['2']; // 9 - 4
    *
    * If no values are specified for [key] and [value] the default is the
    * identity function.
+   *
+   * In the following example, the keys and corresponding values of `map`
+   * are `list` values:
+   *
+   *     map = new Map.fromIterable(list);
+   *     map[1] + map[2]; // 1 + 2
+   *     map[3] - map[2]; // 3 - 2
+   *
+   * The keys computed by the source [iterable] do not need to be unique. The
+   * last occurrence of a key will simply overwrite any previous value.
    */
   factory Map.fromIterable(Iterable iterable,
       {K key(element), V value(element)}) = LinkedHashMap<K, V>.fromIterable;
@@ -48,6 +66,11 @@ abstract class Map<K, V> {
    *
    * This constructor iterates over [keys] and [values] and maps each element of
    * [keys] to the corresponding element of [values].
+   *
+   *     List<String> letters = ['b', 'c'];
+   *     List<String> words = ['bad', 'cat'];
+   *     Map<String, String> map = new Map.fromIterables(letters, words);
+   *     map['b'] + map['c'];  // badcat
    *
    * If [keys] contains the same object multiple times, the last occurrence
    * overwrites the previous value.
@@ -85,8 +108,15 @@ abstract class Map<K, V> {
    * updates the map by mapping [key] to the value returned by
    * [ifAbsent]. Returns the value in the map.
    *
-   * It is an error to add or remove keys from the map during the call to
-   * [ifAbsent].
+   *     Map<String, int> scores = {'Bob': 36};
+   *     for (var key in ['Bob', 'Rohan', 'Sophena']) {
+   *       scores.putIfAbsent(key, () => key.length);
+   *     }
+   *     scores['Bob'];      // 36
+   *     scores['Rohan'];    //  5
+   *     scores['Sophena'];  //  7
+   *
+   * The code that [ifAbsent] executes must not add or remove keys.
    */
   V putIfAbsent(K key, V ifAbsent());
 

@@ -94,7 +94,7 @@ void testTypeRepresentations() {
     // List
     expect('$List_rep', List_.rawType);
     // List<dynamic>
-    expect('[$List_rep, null]', instantiate(List_, [dynamic_]));
+    expect('$List_rep', instantiate(List_, [dynamic_]));
     // List<int>
     expect('[$List_rep, $int_rep]', instantiate(List_, [int_]));
     // List<Typedef>
@@ -102,11 +102,12 @@ void testTypeRepresentations() {
         instantiate(List_, [Typedef_]));
 
     // Map<K,V>
-    expect('[$Map_rep, $Map_K_rep, $Map_V_rep]', Map_.computeType(env.compiler));
+    expect('[$Map_rep, $Map_K_rep, $Map_V_rep]',
+           Map_.computeType(env.compiler));
     // Map
     expect('$Map_rep', Map_.rawType);
     // Map<dynamic,dynamic>
-    expect('[$Map_rep, null, null]', instantiate(Map_, [dynamic_, dynamic_]));
+    expect('$Map_rep', instantiate(Map_, [dynamic_, dynamic_]));
     // Map<int,String>
     expect('[$Map_rep, $int_rep, $String_rep]',
         instantiate(Map_, [int_, String_]));

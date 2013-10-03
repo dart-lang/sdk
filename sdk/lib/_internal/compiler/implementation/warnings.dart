@@ -599,6 +599,34 @@ foo([static x]) {}
 main() => foo(42);
 """]);
 
+  static const MessageKind FINAL_FUNCTION_TYPE_PARAMETER = const MessageKind(
+      "Error: A function type parameter can't be declared final.",
+      howToFix: "Try removing 'final'.",
+      examples: const ["""
+foo(final int x(int a)) {}
+main() => foo((y) => 42);
+""", """
+foo({final int x(int a)}) {}
+main() => foo((y) => 42);
+""", """
+foo([final int x(int a)]) {}
+main() => foo((y) => 42);
+"""]);
+
+  static const MessageKind VAR_FUNCTION_TYPE_PARAMETER = const MessageKind(
+      "Error: A function type parameter can't be declared with 'var'.",
+      howToFix: "Try removing 'var'.",
+      examples: const ["""
+foo(var int x(int a)) {}
+main() => foo((y) => 42);
+""", """
+foo({var int x(int a)}) {}
+main() => foo((y) => 42);
+""", """
+foo([var int x(int a)]) {}
+main() => foo((y) => 42);
+"""]);
+
   static const MessageKind CANNOT_INSTANTIATE_TYPE_VARIABLE = const MessageKind(
       "Error: Cannot instantiate type variable '#{typeVariableName}'.");
 
@@ -639,6 +667,19 @@ main() { F f = null; }"""]);
 
   static const MessageKind CANNOT_IMPLEMENT = const MessageKind(
       "Error: '#{type}' cannot be implemented.");
+
+  static const MessageKind CANNOT_MIXIN = const MessageKind(
+      "Error: The type '#{type}' can't be mixed in.",
+      howToFix: "Try removing '#{type}' from the 'with' clause.",
+      examples: const ["""
+class C extends Object with String {}
+
+main() => new C();                       
+""", """
+typedef C = Object with String;
+
+main() => new C();                       
+"""]);
 
   static const MessageKind DUPLICATE_EXTENDS_IMPLEMENTS = const MessageKind(
       "Error: '#{type}' can not be both extended and implemented.");
@@ -904,6 +945,13 @@ Use 'const #{name}' if possible.''');
   static const MessageKind PRIVATE_IDENTIFIER = const MessageKind(
       "Error: '#{value}' is not a valid Symbol name because it starts with "
       "'_'.");
+
+  static const MessageKind PRIVATE_NAMED_PARAMETER = const MessageKind(
+      "Error: Named optional parameter can't have a library private name.",
+      howToFix: "Try removing the '_' or making the parameter positional or "
+        "required.",
+      examples: const ["""foo({int _p}) {} main() => foo();"""]
+      );
 
   static const MessageKind UNSUPPORTED_LITERAL_SYMBOL = const MessageKind(
       "Internal Error: Symbol literal '##{value}' is currently unsupported.");

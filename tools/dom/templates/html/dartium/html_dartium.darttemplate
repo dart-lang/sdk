@@ -81,7 +81,6 @@ part '$AUXILIARY_DIR/_ListIterators.dart';
 part '$AUXILIARY_DIR/dartium_KeyEvent.dart';
 part '$AUXILIARY_DIR/dartium_Platform.dart';
 
-part '$AUXILIARY_DIR/native_DOMPublic.dart';
 part '$AUXILIARY_DIR/native_DOMImplementation.dart';
 
 Window _window;

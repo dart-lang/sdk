@@ -411,7 +411,7 @@ class _MainManagerStub {
 
 const String _SPAWNED_SIGNAL = "spawned";
 
-var globalThis = IsolateNatives.computeGlobalThis();
+var globalThis = Primitives.computeGlobalThis();
 var globalWindow = JS('', "#.window", globalThis);
 var globalWorker = JS('', "#.Worker", globalThis);
 bool globalPostMessageDefined =
@@ -479,8 +479,6 @@ class IsolateNatives {
 
     throw new UnsupportedError('Cannot extract URI from "$stack"');
   }
-
-  static computeGlobalThis() => JS('', 'function() { return this; }()');
 
   /**
    * Assume that [e] is a browser message event and extract its message data.

@@ -57,10 +57,13 @@ class SsaBuilderTask extends CompilerTask {
           FunctionSignature signature = function.computeSignature(compiler);
           signature.forEachOptionalParameter((Element parameter) {
             // This ensures the default value will be computed.
-            builder.compileVariable(parameter);
+            Constant constant =
+                compiler.constantHandler.getConstantForVariable(parameter);
+            backend.registerCompileTimeConstant(constant, work.resolutionTree);
+            compiler.constantHandler.addCompileTimeConstantForEmission(
+                constant);
           });
         }
-
         if (compiler.tracer.enabled) {
           String name;
           if (element.isMember()) {
@@ -953,21 +956,21 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     _current = c;
   }
 
-  /**
-   * Compiles compile-time constants. Never returns [:null:]. If the
-   * initial value is not a compile-time constants, it reports an
-   * internal error.
-   */
-  Constant compileConstant(VariableElement element) {
-    return compiler.constantHandler.compileConstant(element);
+  Constant getConstantForNode(Node node) {
+    ConstantHandler handler = compiler.constantHandler;
+    Constant constant = elements.getConstant(node);
+    assert(invariant(node, constant != null,
+        message: 'No constant computed for $node'));
+    return constant;
   }
 
-  Constant compileVariable(VariableElement element) {
-    return compiler.constantHandler.compileVariable(element);
+  HInstruction addConstant(Node node) {
+    return graph.addConstant(getConstantForNode(node), compiler);
   }
 
   bool isLazilyInitialized(VariableElement element) {
-    Constant initialValue = compileVariable(element);
+    Constant initialValue =
+        compiler.constantHandler.getConstantForVariable(element);
     return initialValue == null;
   }
 
@@ -978,17 +981,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (result == null) {
       Element element = localsHandler.closureData.thisElement;
       ClassElement cls = element.enclosingElement.getEnclosingClass();
-      // Use the raw type because we don't have the type context for the
-      // type parameters.
-      DartType type = cls.rawType;
       if (compiler.world.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be
         // of the class that mixins the enclosing class. These two
         // classes do not have a subclass relationship, so, for
         // simplicity, we mark the type as an interface type.
-        result = new HType.nonNullSubtype(type, compiler);
+        result = new HType.nonNullSubtype(cls, compiler);
       } else {
-        result = new HType.nonNullSubclass(type, compiler);
+        result = new HType.nonNullSubclass(cls, compiler);
       }
       cachedTypeOfThis = result;
     }
@@ -1322,7 +1322,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           && !element.isGenerativeConstructorBody()
           && (selector.mask == null || selector.mask.isNullable)) {
         addWithPosition(
-            new HFieldGet(element, providedArguments[0]), currentNode);
+            new HFieldGet(null, providedArguments[0], isAssignable: false),
+            currentNode);
       }
       InliningState state = enterInlinedMethod(
           function, selector, providedArguments, currentNode);
@@ -1661,7 +1662,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         includeSuperAndInjectedMembers: true);
 
     InterfaceType type = classElement.computeType(compiler);
-    HType ssaType = new HType.nonNullExact(type, compiler);
+    HType ssaType = new HType.nonNullExact(classElement, compiler);
     List<DartType> instantiatedTypes;
     addInlinedInstantiation(type);
     if (!currentInlinedInstantiations.isEmpty) {
@@ -1807,11 +1808,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                    int kind) {
     if (type == null) return original;
     type = type.unalias(compiler);
-    if (type.kind == TypeKind.INTERFACE && !type.isRaw) {
-     HType subtype = new HType.subtype(type, compiler);
-     HInstruction representations = buildTypeArgumentRepresentations(type);
-     add(representations);
-     return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
+    if (type.kind == TypeKind.INTERFACE && !type.treatAsRaw) {
+      HType subtype = new HType.subtype(type.element, compiler);
+      HInstruction representations = buildTypeArgumentRepresentations(type);
+      add(representations);
+      return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
           original, representations);
     } else if (type.kind == TypeKind.TYPE_VARIABLE) {
       HType subtype = original.instructionType;
@@ -2495,9 +2496,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     });
 
-    HType type = new HType.nonNullExact(
-        compiler.functionClass.computeType(compiler),
-        compiler);
+    HType type = new HType.nonNullExact(compiler.functionClass, compiler);
     push(new HForeignNew(closureClassElement, type, capturedVariables));
 
     Element methodElement = nestedClosureData.closureElement;
@@ -2628,7 +2627,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (element.isField() && !element.isAssignable()) {
         // A static final or const. Get its constant value and inline it if
         // the value can be compiled eagerly.
-        value = compileVariable(element);
+        value = compiler.constantHandler.getConstantForVariable(element);
       }
       if (value != null) {
         HInstruction instruction = graph.addConstant(value, compiler);
@@ -2955,7 +2954,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction handleConstantForOptionalParameter(Element parameter) {
-    Constant constant = compileConstant(parameter);
+    Constant constant =
+        compiler.constantHandler.getConstantForVariable(parameter);
+    assert(invariant(parameter, constant != null,
+        message: 'No constant computed for $parameter'));
     return graph.addConstant(constant, compiler);
   }
 
@@ -3481,7 +3483,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              Node currentNode,
                              HInstruction newObject) {
     if (!backend.classNeedsRti(type.element)) return;
-    if (!type.isRaw) {
+    if (!type.treatAsRaw) {
       List<HInstruction> inputs = <HInstruction>[];
       type.typeArguments.forEach((DartType argument) {
         inputs.add(analyzeTypeArgument(argument));
@@ -3531,7 +3533,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         return inferred.isUnknown() ? backend.extendableArrayType : inferred;
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.getEnclosingClass();
-        return new HType.nonNullExact(cls.thisType, compiler);
+        return new HType.nonNullExact(cls.thisType.element, compiler);
       } else {
         return new HType.inferredReturnTypeForElement(
             originalElement, compiler);
@@ -3673,9 +3675,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Element element = elements[node];
     if (element.isClass() || element.isTypedef()) {
       // TODO(karlklose): add type representation
-      ConstantHandler handler = compiler.constantHandler;
-      Constant constant = handler.compileNodeWithDefinitions(node, elements);
-      stack.add(graph.addConstant(constant, compiler));
+      if (node.isCall) {
+        // The node itself is not a constant but we register the selector (the
+        // identifier that refers to the class/typedef) as a constant.
+        stack.add(addConstant(node.selector));
+      } else {
+        stack.add(addConstant(node));
+      }
     } else if (element.isTypeVariable()) {
       HInstruction value =
           addTypeVariableReference(element.computeType(compiler));
@@ -3806,11 +3812,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         generateRuntimeError(node.send, message.toString());
       }
     } else if (node.isConst()) {
-      ConstantHandler handler = compiler.constantHandler;
-      Constant constant = handler.compileNodeWithDefinitions(node, elements);
-      stack.add(graph.addConstant(constant, compiler));
+      stack.add(addConstant(node));
       if (isSymbolConstructor) {
-        ConstructedConstant symbol = constant;
+        ConstructedConstant symbol = elements.getConstant(node);
         StringConstant stringConstant = symbol.fields.single;
         String nameString = stringConstant.toDartString().slowToString();
         compiler.enqueuer.codegen.registerConstSymbol(nameString, elements);
@@ -3834,12 +3838,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       bool isLength = selector.isGetter()
           && selector.name == const SourceString("length");
       if (isLength || selector.isIndex()) {
-        DartType classType = element.getEnclosingClass().computeType(compiler);
-        HType type = new HType.nonNullExact(classType, compiler);
+        HType type = new HType.nonNullExact(
+            element.getEnclosingClass(), compiler);
         return type.isIndexable(compiler);
       } else if (selector.isIndexSet()) {
-        DartType classType = element.getEnclosingClass().computeType(compiler);
-        HType type = new HType.nonNullExact(classType, compiler);
+        HType type = new HType.nonNullExact(
+            element.getEnclosingClass(), compiler);
         return type.isMutableIndexable(compiler);
       } else {
         return false;
@@ -4126,11 +4130,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void visitLiteralSymbol(LiteralSymbol node) {
-    ConstantHandler handler = compiler.constantHandler;
-    ConstructedConstant constant =
-        handler.compileNodeWithDefinitions(node, elements);
-    stack.add(graph.addConstant(constant, compiler));
-    compiler.enqueuer.codegen.registerConstSymbol(node.slowNameString, elements);
+    stack.add(addConstant(node));
+    compiler.enqueuer.codegen.registerConstSymbol(
+        node.slowNameString, elements);
   }
 
   void visitStringJuxtaposition(StringJuxtaposition node) {
@@ -4204,7 +4206,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HInstruction value;
     if (node.isRedirectingFactoryBody) {
-      FunctionElement element = elements[node.expression];
+      FunctionElement element = elements[node.expression].implementation;
       FunctionElement function = currentElement;
       List<HInstruction> inputs = <HInstruction>[];
       FunctionSignature calleeSignature = element.functionSignature;
@@ -4288,9 +4290,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction instruction;
 
     if (node.isConst()) {
-      ConstantHandler handler = compiler.constantHandler;
-      Constant constant = handler.compileNodeWithDefinitions(node, elements);
-      instruction = graph.addConstant(constant, compiler);
+      instruction = addConstant(node);
     } else {
       List<HInstruction> inputs = <HInstruction>[];
       for (Link<Node> link = node.elements.nodes;
@@ -4487,9 +4487,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitLiteralMap(LiteralMap node) {
     if (node.isConst()) {
-      ConstantHandler handler = compiler.constantHandler;
-      Constant constant = handler.compileNodeWithDefinitions(node, elements);
-      stack.add(graph.addConstant(constant, compiler));
+      stack.add(addConstant(node));
       return;
     }
     List<HInstruction> inputs = <HInstruction>[];
@@ -4502,8 +4500,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HLiteralList keyValuePairs = buildLiteralList(inputs);
     add(keyValuePairs);
-    HType mapType = new HType.nonNullSubtype(
-        backend.mapLiteralClass.computeType(compiler), compiler);
+    HType mapType = new HType.nonNullSubtype(backend.mapLiteralClass, compiler);
     pushInvokeStatic(node, backend.getMapMaker(), [keyValuePairs], mapType);
   }
 
@@ -4528,9 +4525,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       for (Node labelOrCase in switchCase.labelsAndCases) {
         if (labelOrCase is CaseMatch) {
           CaseMatch match = labelOrCase;
-          Constant constant =
-              compiler.constantHandler.compileNodeWithDefinitions(
-                  match.expression, elements, isConst: true);
+          Constant constant = getConstantForNode(match.expression);
           if (firstConstantType == null) {
             firstConstantType = constant.computeType(compiler);
             if (nonPrimitiveTypeOverridesEquals(constant)) {

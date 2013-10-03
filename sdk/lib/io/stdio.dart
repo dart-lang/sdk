@@ -29,17 +29,6 @@ class _StdStream extends Stream<List<int>> {
 }
 
 
-class _StdinEventSink implements EventSink<String> {
-  Function _add;
-  Function _addError;
-  Function _close;
-  _StdinEventSink(this._add, this._addError, this._close);
-
-  void add(String string) => _add(string);
-  void addError(errorEvent) => _addError(errorEvent);
-  void close() => _close();
-}
-
 /**
  * [Stdin] allows both synchronous and asynchronous reads from the standard
  * input stream.

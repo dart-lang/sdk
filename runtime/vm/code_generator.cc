@@ -1494,8 +1494,9 @@ void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes) {
 }
 
 
-// Copy saved registers into the isolate buffer.
-static void CopySavedRegisters(uword saved_registers_address) {
+static void CopySavedRegisters(uword saved_registers_address,
+                               fpu_register_t** fpu_registers,
+                               intptr_t** cpu_registers) {
   ASSERT(sizeof(fpu_register_t) == kFpuRegisterSize);
   fpu_register_t* fpu_registers_copy =
       new fpu_register_t[kNumberOfFpuRegisters];
@@ -1505,7 +1506,7 @@ static void CopySavedRegisters(uword saved_registers_address) {
         *reinterpret_cast<fpu_register_t*>(saved_registers_address);
     saved_registers_address += kFpuRegisterSize;
   }
-  Isolate::Current()->set_deopt_fpu_registers_copy(fpu_registers_copy);
+  *fpu_registers = fpu_registers_copy;
 
   ASSERT(sizeof(intptr_t) == kWordSize);
   intptr_t* cpu_registers_copy = new intptr_t[kNumberOfCpuRegisters];
@@ -1515,14 +1516,16 @@ static void CopySavedRegisters(uword saved_registers_address) {
         *reinterpret_cast<intptr_t*>(saved_registers_address);
     saved_registers_address += kWordSize;
   }
-  Isolate::Current()->set_deopt_cpu_registers_copy(cpu_registers_copy);
+  *cpu_registers = cpu_registers_copy;
 }
 
 
-// Copy optimized frame into the isolate buffer.
-// The first incoming argument is stored at the last entry in the
-// copied frame buffer.
-static void CopyFrame(const Code& optimized_code, const StackFrame& frame) {
+// Copy optimized frame. The first incoming argument is stored at the
+// last entry in the copied frame buffer.
+static void CopyFrame(const Code& optimized_code,
+                      const StackFrame& frame,
+                      intptr_t** frame_start,
+                      intptr_t* frame_size) {
   const Function& function = Function::Handle(optimized_code.function());
   // Do not copy incoming arguments if there are optional arguments (they
   // are copied into local space at method entry).
@@ -1545,7 +1548,8 @@ static void CopyFrame(const Code& optimized_code, const StackFrame& frame) {
   for (intptr_t i = 0; i < frame_copy_size; i++) {
     frame_copy[i] = *(start + i);
   }
-  Isolate::Current()->SetDeoptFrameCopy(frame_copy, frame_copy_size);
+  *frame_start = frame_copy;
+  *frame_size = frame_copy_size;
 }
 
 
@@ -1562,7 +1566,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                         + (kNumberOfCpuRegisters * kWordSize)
                         + (kNumberOfFpuRegisters * kFpuRegisterSize)
                         - ((kFirstLocalSlotFromFp + 1) * kWordSize);
-  CopySavedRegisters(saved_registers_address);
 
   // Get optimized code and frame that need to be deoptimized.
   DartFrameIterator iterator(last_fp);
@@ -1576,9 +1579,28 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
       optimized_code.GetDeoptInfoAtPc(caller_frame->pc(), &deopt_reason));
   ASSERT(!deopt_info.IsNull());
 
-  CopyFrame(optimized_code, *caller_frame);
+  // Create the DeoptContext for this deoptimization.  Store in isolate.
+  const Function& function = Function::Handle(optimized_code.function());
+  const intptr_t num_args =
+      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
+  DeoptContext* deopt_context = new DeoptContext(
+      Array::Handle(optimized_code.object_table()),
+      num_args,
+      static_cast<DeoptReasonId>(deopt_reason));
+  isolate->set_deopt_context(deopt_context);
+
+  // Copy the saved registers and the source frame.
+  fpu_register_t* fpu_registers;
+  intptr_t* cpu_registers;
+  intptr_t* frame_start;
+  intptr_t frame_size;
+  CopySavedRegisters(saved_registers_address, &fpu_registers, &cpu_registers);
+  CopyFrame(optimized_code, *caller_frame, &frame_start, &frame_size);
+  deopt_context->SetSourceArgs(frame_start, frame_size,
+                               fpu_registers, cpu_registers,
+                               true);  // true = source frame is a copy.
+
   if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-    Function& function = Function::Handle(optimized_code.function());
     OS::PrintErr(
         "Deoptimizing (reason %" Pd " '%s') at pc %#" Px " '%s' (count %d)\n",
         deopt_reason,
@@ -1591,9 +1613,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   // Compute the stack size of the unoptimized frame.  For functions with
   // optional arguments the deoptimization info does not describe the
   // incoming arguments.
-  const Function& function = Function::Handle(optimized_code.function());
-  const intptr_t num_args =
-      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   const intptr_t unoptimized_stack_size =
       + deopt_info.FrameSize()
       - kDartFrameFixedSize
@@ -1605,10 +1624,10 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 END_LEAF_RUNTIME_ENTRY
 
 
-static void DeoptimizeWithDeoptInfo(const Code& code,
+static void DeoptimizeWithDeoptInfo(DeoptContext* deopt_context,
+                                    const Code& code,
                                     const DeoptInfo& deopt_info,
-                                    const StackFrame& caller_frame,
-                                    intptr_t deopt_reason) {
+                                    const StackFrame& caller_frame) {
   const intptr_t len = deopt_info.TranslationLength();
   GrowableArray<DeoptInstr*> deopt_instructions(len);
   const Array& deopt_table = Array::Handle(code.deopt_info_array());
@@ -1626,11 +1645,9 @@ static void DeoptimizeWithDeoptInfo(const Code& code,
       + 1  // For fp.
       + kParamEndSlotFromFp
       + num_args;
-  DeoptimizationContext deopt_context(start,
-                                      to_frame_size,
-                                      Array::Handle(code.object_table()),
-                                      num_args,
-                                      static_cast<DeoptReasonId>(deopt_reason));
+
+  deopt_context->SetDestArgs(start, to_frame_size);
+
   const intptr_t frame_size = deopt_info.FrameSize();
 
   // All kMaterializeObject instructions are emitted before the instructions
@@ -1642,15 +1659,15 @@ static void DeoptimizeWithDeoptInfo(const Code& code,
   // frame. They will be used during materialization and removed from the stack
   // right before control switches to the unoptimized code.
   const intptr_t num_materializations = len - frame_size;
-  Isolate::Current()->PrepareForDeferredMaterialization(num_materializations);
+  deopt_context->PrepareForDeferredMaterialization(num_materializations);
   for (intptr_t from_index = 0, to_index = kDartFrameFixedSize;
        from_index < num_materializations;
        from_index++) {
     const intptr_t field_count =
         DeoptInstr::GetFieldCount(deopt_instructions[from_index]);
-    intptr_t* args = deopt_context.GetToFrameAddressAt(to_index);
+    intptr_t* args = deopt_context->GetDestFrameAddressAt(to_index);
     DeferredObject* obj = new DeferredObject(field_count, args);
-    Isolate::Current()->SetDeferredObjectAt(from_index, obj);
+    deopt_context->SetDeferredObjectAt(from_index, obj);
     to_index += obj->ArgumentCount();
   }
 
@@ -1658,8 +1675,8 @@ static void DeoptimizeWithDeoptInfo(const Code& code,
   for (intptr_t to_index = frame_size - 1, from_index = len - 1;
        to_index >= 0;
        to_index--, from_index--) {
-    intptr_t* to_addr = deopt_context.GetToFrameAddressAt(to_index);
-    deopt_instructions[from_index]->Execute(&deopt_context, to_addr);
+    intptr_t* to_addr = deopt_context->GetDestFrameAddressAt(to_index);
+    deopt_instructions[from_index]->Execute(deopt_context, to_addr);
   }
 
   if (FLAG_trace_deoptimization_verbose) {
@@ -1691,26 +1708,16 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
   ASSERT(!optimized_code.IsNull() && optimized_code.is_optimized());
   ASSERT(!unoptimized_code.IsNull() && !unoptimized_code.is_optimized());
 
-  intptr_t* frame_copy = isolate->deopt_frame_copy();
-  intptr_t* cpu_registers_copy = isolate->deopt_cpu_registers_copy();
-  fpu_register_t* fpu_registers_copy = isolate->deopt_fpu_registers_copy();
-
   intptr_t deopt_reason = kDeoptUnknown;
   const DeoptInfo& deopt_info = DeoptInfo::Handle(
       optimized_code.GetDeoptInfoAtPc(caller_frame->pc(), &deopt_reason));
   ASSERT(!deopt_info.IsNull());
 
-  DeoptimizeWithDeoptInfo(optimized_code,
+  DeoptContext* deopt_context = isolate->deopt_context();
+  DeoptimizeWithDeoptInfo(deopt_context,
+                          optimized_code,
                           deopt_info,
-                          *caller_frame,
-                          deopt_reason);
-
-  isolate->SetDeoptFrameCopy(NULL, 0);
-  isolate->set_deopt_cpu_registers_copy(NULL);
-  isolate->set_deopt_fpu_registers_copy(NULL);
-  delete[] frame_copy;
-  delete[] cpu_registers_copy;
-  delete[] fpu_registers_copy;
+                          *caller_frame);
 }
 END_LEAF_RUNTIME_ENTRY
 
@@ -1721,25 +1728,15 @@ END_LEAF_RUNTIME_ENTRY
 // under return address to keep them discoverable by GC that can occur during
 // materialization phase.
 DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
-  // First materialize all unboxed "primitive" values (doubles, mints, simd)
-  // then materialize objects. The order is important: objects might be
-  // referencing boxes allocated on the first step. At the same time
-  // objects can't be referencing other deferred objects because storing
-  // an object into a field is always conservatively treated as escaping by
-  // allocation sinking and load forwarding.
-  isolate->MaterializeDeferredBoxes();
-  isolate->MaterializeDeferredObjects();
+  DeoptContext* deopt_context = isolate->deopt_context();
 
-  // Compute total number of artificial arguments used during deoptimization.
-  intptr_t deopt_arguments = 0;
-  for (intptr_t i = 0; i < isolate->DeferredObjectsCount(); i++) {
-    deopt_arguments += isolate->GetDeferredObject(i)->ArgumentCount();
-  }
-  Isolate::Current()->DeleteDeferredObjects();
+  intptr_t deopt_arg_count = deopt_context->MaterializeDeferredObjects();
+  isolate->set_deopt_context(NULL);
+  delete deopt_context;
 
   // Return value tells deoptimization stub to remove the given number of bytes
   // from the stack.
-  arguments.SetReturn(Smi::Handle(Smi::New(deopt_arguments * kWordSize)));
+  arguments.SetReturn(Smi::Handle(Smi::New(deopt_arg_count * kWordSize)));
 
   // Since this is the only step where GC can occur during deoptimization,
   // use it to report the source line where deoptimization occured.
@@ -1756,7 +1753,7 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
     String& line_string = String::Handle(script.GetLine(line));
     OS::PrintErr("  Function: %s\n", top_function.ToFullyQualifiedCString());
     OS::PrintErr("  Line %" Pd ": '%s'\n", line, line_string.ToCString());
-    OS::PrintErr("  Deopt args: %" Pd "\n", deopt_arguments);
+    OS::PrintErr("  Deopt args: %" Pd "\n", deopt_arg_count);
   }
 }
 

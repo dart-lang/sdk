@@ -21,8 +21,9 @@ class VMConfiguration extends SimpleConfiguration {
   // We make this public so the user can turn it off if they want.
   bool useColor;
 
-  VMConfiguration() :
-    super(), useColor = stdioType(stdout) == StdioType.TERMINAL;
+  VMConfiguration()
+      : super(),
+        useColor = stdioType(stdout) == StdioType.TERMINAL;
 
   String formatResult(TestCase testCase) {
     String result = super.formatResult(testCase);

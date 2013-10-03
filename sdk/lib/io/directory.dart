@@ -68,25 +68,59 @@ abstract class Directory implements FileSystemEntity {
   void createSync({bool recursive: false});
 
   /**
-   * Creates a temporary directory with a name based on the current
-   * path.  The path is used as a template, and additional
-   * characters are appended to it to make a unique temporary
-   * directory name.  If the path is the empty string, a default
-   * system temp directory and name are used for the template.
+   * Creates a temporary directory in this directory.  Additional random
+   * characters are appended to [template] to produce a unique directory
+   * name.
+   *
+   * Returns a [:Future<Directory>:] that completes with the newly
+   * created temporary directory.
+   *
+   * Deprecated behavior, to be removed Oct 18, 2013: If the path is the
+   * empty string, the directory is created in the default system temp
+   * directory.  This capability has been moved to the static function
+   * [createSystemTemp].
+   */
+  Future<Directory> createTemp([String template]);
+
+  /**
+   * Synchronously creates a temporary directory in this directory.
+   * Additional random characters are appended to [template] to produce
+   * a unique directory name.
+   *
+   * Returns the newly created temporary directory.
+   *
+   * Deprecated behavior, to be removed Oct 18, 2013: If the path is the
+   * empty string, the directory is created in the default system temp
+   * directory.  This capability has been moved to the static function
+   * [createSystemTemp].
+   */
+ Directory createTempSync([String template]);
+
+  /**
+   * Creates a temporary directory in the system temp directory.
+   * The location of the system temp directory is platform-dependent,
+   * and may be set by an environment variable.
+   * Additional random characters are appended to [template] to produce
+   * a unique directory name.
    *
    * Returns a [:Future<Directory>:] that completes with the newly
    * created temporary directory.
    */
-  Future<Directory> createTemp();
+  static Future<Directory> createSystemTemp([String template]) =>
+      _Directory.createSystemTemp(template);
 
   /**
-   * Synchronously creates a temporary directory with a name based on the
-   * current path. The path is used as a template, and additional
-   * characters are appended to it to make a unique temporary directory name.
-   * If the path is the empty string, a default system temp directory and name
-   * are used for the template. Returns the newly created temporary directory.
+   * Synchronously creates a temporary directory in the system temp directory.
+   * The location of the system temp directory is platform-dependent,
+   * and may be set by an environment variable.
+   * Additional random characters are appended to [template] to produce
+   * a unique directory name.
+   *
+   * Returns a [:Future<Directory>:] that completes with the newly
+   * created temporary directory.
    */
-  Directory createTempSync();
+  static Directory createSystemTempSync([String template]) =>
+      _Directory.createSystemTempSync(template);
 
   Future<String> resolveSymbolicLinks();
 

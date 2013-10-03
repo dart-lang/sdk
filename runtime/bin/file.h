@@ -60,35 +60,6 @@ class File {
     kOther = 4
   };
 
-  enum FileRequest {
-    kExistsRequest = 0,
-    kCreateRequest = 1,
-    kDeleteRequest = 2,
-    kRenameRequest = 3,
-    kOpenRequest = 4,
-    kResolveSymbolicLinksRequest = 5,
-    kCloseRequest = 6,
-    kPositionRequest = 7,
-    kSetPositionRequest = 8,
-    kTruncateRequest = 9,
-    kLengthRequest = 10,
-    kLengthFromPathRequest = 11,
-    kLastModifiedRequest = 12,
-    kFlushRequest = 13,
-    kReadByteRequest = 14,
-    kWriteByteRequest = 15,
-    kReadRequest = 16,
-    kReadIntoRequest = 17,
-    kWriteFromRequest = 18,
-    kCreateLinkRequest = 19,
-    kDeleteLinkRequest = 20,
-    kRenameLinkRequest = 21,
-    kLinkTargetRequest = 22,
-    kTypeRequest = 23,
-    kIdenticalRequest = 24,
-    kStatRequest = 25
-  };
-
   enum FileStat {
     // These match the constants in FileStat in file_system_entity.dart.
     kType = 0,

@@ -1570,8 +1570,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // [node.element] will be enqueued. We're not using the receiver
       // type because our optimizations might end up in a state where the
       // invoke dynamic knows more than the receiver.
+      ClassElement enclosing = node.element.getEnclosingClass();
       HType receiverType = new HType.fromMask(
-          new TypeMask.nonNullExact(node.element.getEnclosingClass().rawType),
+          new TypeMask.nonNullExact(enclosing.declaration),
           compiler);
       return receiverType.refine(selector, compiler);
     }
@@ -1679,7 +1680,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // If the selector we need to register a typed getter to the
         // [world]. The emitter needs to know if it needs to emit a
         // bound closure for a method.
-        TypeMask receiverType = new TypeMask.nonNullExact(superClass.rawType);
+        TypeMask receiverType = new TypeMask.nonNullExact(superClass);
         selector = new TypedSelector(receiverType, selector);
         world.registerDynamicGetter(selector);
         methodName = backend.namer.invocationName(selector);
@@ -1696,7 +1697,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldGet(HFieldGet node) {
     use(node.receiver);
     Element element = node.element;
-    if (element == backend.jsIndexableLength) {
+    if (node.isNullCheck) {
+      // We access a JavaScript member we know all objects besides
+      // null and undefined have: V8 does not like accessing a member
+      // that does not exist.
+      push(new js.PropertyAccess.field(pop(), 'toString'), node);
+    } else if (element == backend.jsIndexableLength) {
       // We're accessing a native JavaScript property called 'length'
       // on a JS String or a JS array. Therefore, the name of that
       // property should not be mangled.
@@ -1709,7 +1715,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // constant value instead.
         Element element = compiler.findRequiredElement(
             compiler.typedDataLibrary, const SourceString('fetchLength'));
-        Constant constant = compiler.constantHandler.compileConstant(element);
+        Constant constant =
+            compiler.constantHandler.getConstantForVariable(element);
+        assert(invariant(element, constant != null,
+            message: 'No constant computed for $element'));
         var jsConstant = backend.emitter.constantReference(constant);
         push(new js.Call(jsConstant, [pop()]), node);
       } else {
@@ -1817,15 +1826,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitConstant(HConstant node) {
     assert(isGenerateAtUseSite(node));
     generateConstant(node.constant);
-    DartType type = node.constant.computeType(compiler);
-    if (node.constant is ConstructedConstant ||
-        node.constant is InterceptorConstant) {
-      ConstantHandler handler = compiler.constantHandler;
-      handler.registerCompileTimeConstant(node.constant, work.resolutionTree);
-    }
-    if (node.constant is! InterceptorConstant) {
-      world.registerInstantiatedClass(type.element, work.resolutionTree);
-    }
+
+    backend.registerCompileTimeConstant(node.constant, work.resolutionTree);
+    compiler.constantHandler.addCompileTimeConstantForEmission(node.constant);
   }
 
   visitNot(HNot node) {
@@ -2462,20 +2465,22 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     TypeMask receiver = input.instructionType.computeMask(compiler);
     TypeMask mask = node.instructionType.computeMask(compiler);
     // Figure out if it is beneficial to turn this into a null check.
-    // V8 generally prefers 'typeof' checks, but for integers and 
+    // V8 generally prefers 'typeof' checks, but for integers and
     // indexable primitives we cannot compile this test into a single
     // typeof check so the null check is cheaper.
-    bool turnIntoNullCheck = (mask.nullable() == receiver)
+    bool turnIntoNumCheck = input.isIntegerOrNull() && node.isInteger();
+    bool turnIntoNullCheck = !turnIntoNumCheck
+        && (mask.nullable() == receiver)
         && (node.isInteger() || node.isIndexablePrimitive(compiler));
     js.Expression test;
     if (turnIntoNullCheck) {
       use(input);
       test = new js.Binary("==", pop(), new js.LiteralNull());
-    } else if (node.isInteger()) {
+    } else if (node.isInteger() && !turnIntoNumCheck) {
       // input is !int
       checkInt(input, '!==');
       test = pop();
-    } else if (node.isNumber()) {
+    } else if (node.isNumber() || turnIntoNumCheck) {
       // input is !num
       checkNum(input, '!==');
       test = pop();

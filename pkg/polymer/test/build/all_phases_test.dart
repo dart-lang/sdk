@@ -198,17 +198,14 @@ class $className extends ObservableBase {
 }
 ''';
 
-String _sampleObservableOutput(String className, String fieldName) => '''
-library ${className}_$fieldName;
-import 'package:observe/observe.dart';
-
-class $className extends ChangeNotifierBase {
-  int __\$$fieldName;
-  int get $fieldName => __\$$fieldName;
-  set $fieldName(int value) {
-    __\$$fieldName = notifyPropertyChange(const Symbol('$fieldName'), __\$$fieldName, value);
-  }
-
-  $className($fieldName) : __\$$fieldName = $fieldName;
-}
-''';
+String _sampleObservableOutput(String className, String field) =>
+    "library ${className}_$field;\n"
+    "import 'package:observe/observe.dart';\n\n"
+    "class $className extends ChangeNotifierBase {\n"
+    "  @observable int get $field => __\$$field; "
+      "int __\$$field; "
+      "set $field(int value) { "
+      "__\$$field = notifyPropertyChange(#$field, __\$$field, value); "
+      "}\n"
+    "  $className($field) : __\$$field = $field;\n"
+    "}\n";

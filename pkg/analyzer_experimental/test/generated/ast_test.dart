@@ -262,7 +262,7 @@ class ASTFactory {
   static CompilationUnit compilationUnit5(String scriptTag) => compilationUnit8(scriptTag, null, null);
   static CompilationUnit compilationUnit6(String scriptTag, List<CompilationUnitMember> declarations) => compilationUnit8(scriptTag, null, list(declarations));
   static CompilationUnit compilationUnit7(String scriptTag, List<Directive> directives) => compilationUnit8(scriptTag, list(directives), null);
-  static CompilationUnit compilationUnit8(String scriptTag2, List<Directive> directives, List<CompilationUnitMember> declarations) => new CompilationUnit.full(TokenFactory.token3(TokenType.EOF), scriptTag2 == null ? null : scriptTag(scriptTag2), directives == null ? new List<Directive>() : directives, declarations == null ? new List<CompilationUnitMember>() : declarations, TokenFactory.token3(TokenType.EOF));
+  static CompilationUnit compilationUnit8(String scriptTag, List<Directive> directives, List<CompilationUnitMember> declarations) => new CompilationUnit.full(TokenFactory.token3(TokenType.EOF), scriptTag == null ? null : ASTFactory.scriptTag(scriptTag), directives == null ? new List<Directive>() : directives, declarations == null ? new List<CompilationUnitMember>() : declarations, TokenFactory.token3(TokenType.EOF));
   static ConditionalExpression conditionalExpression(Expression condition, Expression thenExpression, Expression elseExpression) => new ConditionalExpression.full(condition, TokenFactory.token3(TokenType.QUESTION), thenExpression, TokenFactory.token3(TokenType.COLON), elseExpression);
   static ConstructorDeclaration constructorDeclaration(Identifier returnType, String name, FormalParameterList parameters, List<ConstructorInitializer> initializers) => new ConstructorDeclaration.full(null, null, TokenFactory.token(Keyword.EXTERNAL), null, null, returnType, name == null ? null : TokenFactory.token3(TokenType.PERIOD), name == null ? null : identifier3(name), parameters, initializers == null || initializers.isEmpty ? null : TokenFactory.token3(TokenType.PERIOD), initializers == null ? new List<ConstructorInitializer>() : initializers, null, emptyFunctionBody());
   static ConstructorDeclaration constructorDeclaration2(Keyword constKeyword, Keyword factoryKeyword, Identifier returnType, String name, FormalParameterList parameters, List<ConstructorInitializer> initializers, FunctionBody body) => new ConstructorDeclaration.full(null, null, null, constKeyword == null ? null : TokenFactory.token(constKeyword), factoryKeyword == null ? null : TokenFactory.token(factoryKeyword), returnType, name == null ? null : TokenFactory.token3(TokenType.PERIOD), name == null ? null : identifier3(name), parameters, initializers == null || initializers.isEmpty ? null : TokenFactory.token3(TokenType.PERIOD), initializers == null ? new List<ConstructorInitializer>() : initializers, null, body);
@@ -306,7 +306,7 @@ class ASTFactory {
     }
     return new HideCombinator.full(TokenFactory.token2("hide"), identifierList);
   }
-  static PrefixedIdentifier identifier(SimpleIdentifier prefix, SimpleIdentifier identifier2) => new PrefixedIdentifier.full(prefix, TokenFactory.token3(TokenType.PERIOD), identifier2);
+  static PrefixedIdentifier identifier(SimpleIdentifier prefix, SimpleIdentifier identifier) => new PrefixedIdentifier.full(prefix, TokenFactory.token3(TokenType.PERIOD), identifier);
   static SimpleIdentifier identifier3(String lexeme) => new SimpleIdentifier.full(TokenFactory.token4(TokenType.IDENTIFIER, lexeme));
   static PrefixedIdentifier identifier4(String prefix, SimpleIdentifier identifier) => new PrefixedIdentifier.full(identifier3(prefix), TokenFactory.token3(TokenType.PERIOD), identifier);
   static PrefixedIdentifier identifier5(String prefix, String identifier) => new PrefixedIdentifier.full(identifier3(prefix), TokenFactory.token3(TokenType.PERIOD), identifier3(identifier));
@@ -324,8 +324,8 @@ class ASTFactory {
   static InterpolationExpression interpolationExpression2(String identifier) => new InterpolationExpression.full(TokenFactory.token3(TokenType.STRING_INTERPOLATION_IDENTIFIER), identifier3(identifier), null);
   static InterpolationString interpolationString(String contents, String value) => new InterpolationString.full(TokenFactory.token2(contents), value);
   static IsExpression isExpression(Expression expression, bool negated, TypeName type) => new IsExpression.full(expression, TokenFactory.token(Keyword.IS), negated ? TokenFactory.token3(TokenType.BANG) : null, type);
-  static Label label(SimpleIdentifier label2) => new Label.full(label2, TokenFactory.token3(TokenType.COLON));
-  static Label label2(String label22) => label(identifier3(label22));
+  static Label label(SimpleIdentifier label) => new Label.full(label, TokenFactory.token3(TokenType.COLON));
+  static Label label2(String label) => ASTFactory.label(identifier3(label));
   static LabeledStatement labeledStatement(List<Label> labels, Statement statement) => new LabeledStatement.full(labels, statement);
   static LibraryDirective libraryDirective(List<Annotation> metadata, LibraryIdentifier libraryName) => new LibraryDirective.full(null, metadata, TokenFactory.token(Keyword.LIBRARY), libraryName, TokenFactory.token3(TokenType.SEMICOLON));
   static LibraryDirective libraryDirective2(String libraryName) => libraryDirective(new List<Annotation>(), libraryIdentifier2([libraryName]));
@@ -374,7 +374,7 @@ class ASTFactory {
   static RethrowExpression rethrowExpression() => new RethrowExpression.full(TokenFactory.token(Keyword.RETHROW));
   static ReturnStatement returnStatement() => returnStatement2(null);
   static ReturnStatement returnStatement2(Expression expression) => new ReturnStatement.full(TokenFactory.token(Keyword.RETURN), expression, TokenFactory.token3(TokenType.SEMICOLON));
-  static ScriptTag scriptTag(String scriptTag2) => new ScriptTag.full(TokenFactory.token2(scriptTag2));
+  static ScriptTag scriptTag(String scriptTag) => new ScriptTag.full(TokenFactory.token2(scriptTag));
   static ShowCombinator showCombinator(List<SimpleIdentifier> identifiers) => new ShowCombinator.full(TokenFactory.token2("show"), list(identifiers));
   static ShowCombinator showCombinator2(List<String> identifiers) {
     List<SimpleIdentifier> identifierList = new List<SimpleIdentifier>();
@@ -1420,7 +1420,7 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("library l;", ASTFactory.compilationUnit3([ASTFactory.libraryDirective2("l")]));
   }
   void test_visitCompilationUnit_directive_declaration() {
-    assertSource("library l; var a;", ASTFactory.compilationUnit4(ASTFactory.list([(ASTFactory.libraryDirective2("l") as Directive)]), ASTFactory.list([(ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")]) as CompilationUnitMember)])));
+    assertSource("library l; var a;", ASTFactory.compilationUnit4(ASTFactory.list([ASTFactory.libraryDirective2("l") as Directive]), ASTFactory.list([ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")]) as CompilationUnitMember])));
   }
   void test_visitCompilationUnit_empty() {
     assertSource("", ASTFactory.compilationUnit());
@@ -1435,7 +1435,7 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("!#/bin/dartvm library l;", ASTFactory.compilationUnit7("!#/bin/dartvm", [ASTFactory.libraryDirective2("l")]));
   }
   void test_visitCompilationUnit_script_directives_declarations() {
-    assertSource("!#/bin/dartvm library l; var a;", ASTFactory.compilationUnit8("!#/bin/dartvm", ASTFactory.list([(ASTFactory.libraryDirective2("l") as Directive)]), ASTFactory.list([(ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")]) as CompilationUnitMember)])));
+    assertSource("!#/bin/dartvm library l; var a;", ASTFactory.compilationUnit8("!#/bin/dartvm", ASTFactory.list([ASTFactory.libraryDirective2("l") as Directive]), ASTFactory.list([ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")]) as CompilationUnitMember])));
   }
   void test_visitConditionalExpression() {
     assertSource("a ? b : c", ASTFactory.conditionalExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"), ASTFactory.identifier3("c")));
@@ -1451,7 +1451,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
   void test_visitConstructorDeclaration_multipleInitializers() {
     assertSource("C() : a = b, c = d {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([
-        (ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer),
+        ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer,
         ASTFactory.constructorFieldInitializer(false, "c", ASTFactory.identifier3("d"))]), ASTFactory.blockFunctionBody2([])));
   }
   void test_visitConstructorDeclaration_multipleParameters() {
@@ -1463,7 +1463,7 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("C.m() {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), "m", ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody2([])));
   }
   void test_visitConstructorDeclaration_singleInitializer() {
-    assertSource("C() : a = b {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([(ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer)]), ASTFactory.blockFunctionBody2([])));
+    assertSource("C() : a = b {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer]), ASTFactory.blockFunctionBody2([])));
   }
   void test_visitConstructorFieldInitializer_withoutThis() {
     assertSource("a = b", ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")));
@@ -1511,7 +1511,7 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource(";", ASTFactory.emptyStatement());
   }
   void test_visitExportDirective_combinator() {
-    assertSource("export 'a.dart' show A;", ASTFactory.exportDirective2("a.dart", [(ASTFactory.showCombinator([ASTFactory.identifier3("A")]) as Combinator)]));
+    assertSource("export 'a.dart' show A;", ASTFactory.exportDirective2("a.dart", [ASTFactory.showCombinator([ASTFactory.identifier3("A")]) as Combinator]));
   }
   void test_visitExportDirective_combinators() {
     assertSource("export 'a.dart' show A hide B;", ASTFactory.exportDirective2("a.dart", [
@@ -1630,7 +1630,7 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("for (; c;) {}", ASTFactory.forStatement(null as Expression, ASTFactory.identifier3("c"), null, ASTFactory.block([])));
   }
   void test_visitForStatement_cu() {
-    assertSource("for (; c; u) {}", ASTFactory.forStatement(null as Expression, ASTFactory.identifier3("c"), ASTFactory.list([(ASTFactory.identifier3("u") as Expression)]), ASTFactory.block([])));
+    assertSource("for (; c; u) {}", ASTFactory.forStatement(null as Expression, ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
   }
   void test_visitForStatement_e() {
     assertSource("for (e;;) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), null, null, ASTFactory.block([])));
@@ -1639,10 +1639,10 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("for (e; c;) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), ASTFactory.identifier3("c"), null, ASTFactory.block([])));
   }
   void test_visitForStatement_ecu() {
-    assertSource("for (e; c; u) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), ASTFactory.identifier3("c"), ASTFactory.list([(ASTFactory.identifier3("u") as Expression)]), ASTFactory.block([])));
+    assertSource("for (e; c; u) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
   }
   void test_visitForStatement_eu() {
-    assertSource("for (e;; u) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), null, ASTFactory.list([(ASTFactory.identifier3("u") as Expression)]), ASTFactory.block([])));
+    assertSource("for (e;; u) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), null, ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
   }
   void test_visitForStatement_i() {
     assertSource("for (var i;;) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), null, null, ASTFactory.block([])));
@@ -1651,13 +1651,13 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("for (var i; c;) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), ASTFactory.identifier3("c"), null, ASTFactory.block([])));
   }
   void test_visitForStatement_icu() {
-    assertSource("for (var i; c; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), ASTFactory.identifier3("c"), ASTFactory.list([(ASTFactory.identifier3("u") as Expression)]), ASTFactory.block([])));
+    assertSource("for (var i; c; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
   }
   void test_visitForStatement_iu() {
-    assertSource("for (var i;; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), null, ASTFactory.list([(ASTFactory.identifier3("u") as Expression)]), ASTFactory.block([])));
+    assertSource("for (var i;; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), null, ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
   }
   void test_visitForStatement_u() {
-    assertSource("for (;; u) {}", ASTFactory.forStatement(null as Expression, null, ASTFactory.list([(ASTFactory.identifier3("u") as Expression)]), ASTFactory.block([])));
+    assertSource("for (;; u) {}", ASTFactory.forStatement(null as Expression, null, ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
   }
   void test_visitFunctionDeclaration_getter() {
     assertSource("get f() {}", ASTFactory.functionDeclaration(null, Keyword.GET, "f", ASTFactory.functionExpression()));

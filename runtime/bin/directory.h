@@ -252,25 +252,12 @@ class Directory {
     DOES_NOT_EXIST
   };
 
-  // This enum must be kept in sync with the request values in
-  // directory_impl.dart.
-  enum DirectoryRequest {
-    kCreateRequest = 0,
-    kDeleteRequest = 1,
-    kExistsRequest = 2,
-    kCreateTempRequest = 3,
-    kListStartRequest = 4,
-    kListNextRequest = 5,
-    kListStopRequest = 6,
-    kRenameRequest = 7
-  };
-
   static void List(DirectoryListing* listing);
   static ExistsResult Exists(const char* path);
   static char* Current();
   static bool SetCurrent(const char* path);
   static bool Create(const char* path);
-  static char* CreateTemp(const char* const_template);
+  static char* CreateTemp(const char* const_template, bool system);
   static bool Delete(const char* path, bool recursive);
   static bool Rename(const char* path, const char* new_path);
 
@@ -278,6 +265,7 @@ class Directory {
   static CObject* DeleteRequest(const CObjectArray& request);
   static CObject* ExistsRequest(const CObjectArray& request);
   static CObject* CreateTempRequest(const CObjectArray& request);
+  static CObject* CreateSystemTempRequest(const CObjectArray& request);
   static CObject* ListStartRequest(const CObjectArray& request);
   static CObject* ListNextRequest(const CObjectArray& request);
   static CObject* ListStopRequest(const CObjectArray& request);

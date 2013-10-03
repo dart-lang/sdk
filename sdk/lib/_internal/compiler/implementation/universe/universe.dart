@@ -638,13 +638,13 @@ class TypedSelector extends Selector {
     return result;
   }
 
-  factory TypedSelector.exact(DartType base, Selector selector)
+  factory TypedSelector.exact(ClassElement base, Selector selector)
       => new TypedSelector(new TypeMask.exact(base), selector);
 
-  factory TypedSelector.subclass(DartType base, Selector selector)
+  factory TypedSelector.subclass(ClassElement base, Selector selector)
       => new TypedSelector(new TypeMask.subclass(base), selector);
 
-  factory TypedSelector.subtype(DartType base, Selector selector)
+  factory TypedSelector.subtype(ClassElement base, Selector selector)
       => new TypedSelector(new TypeMask.subtype(base), selector);
 
   bool appliesUnnamed(Element element, Compiler compiler) {

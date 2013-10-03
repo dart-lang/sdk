@@ -92,20 +92,14 @@ void main() {
       });
     }
 
-    // There should at least be three metadata constants:
-    // 1. The type literal 'Foo'.
-    // 2. The list 'const [Foo]'.
-    // 3. The constructed constant for 'MirrorsUsed'.
-    Expect.isTrue(compiler.metadataHandler.compiledConstants.length >= 3);
+    // There should at least be one metadata constant:
+    // 1. The constructed constant for 'MirrorsUsed'.
+    Expect.isTrue(compiler.backend.metadataConstants.length >= 1);
 
     // Make sure that most of the metadata constants aren't included in the
     // generated code.
-    for (Constant constant in compiler.metadataHandler.compiledConstants) {
-      if (constant is TypeConstant && '${constant.representedType}' == 'Foo') {
-        // The type literal 'Foo' is retained as a constant because it is being
-        // passed to reflectClass.
-        continue;
-      }
+    for (var dependency in compiler.backend.metadataConstants) {
+      Constant constant = dependency.constant;
       Expect.isFalse(
           compiler.constantHandler.compiledConstants.contains(constant),
           '$constant');
@@ -114,7 +108,7 @@ void main() {
     // The type literal 'Foo' is both used as metadata, and as a plain value in
     // the program. Make sure that it isn't duplicated.
     int fooConstantCount = 0;
-    for (Constant constant in compiler.metadataHandler.compiledConstants) {
+    for (Constant constant in compiler.constantHandler.compiledConstants) {
       if (constant is TypeConstant && '${constant.representedType}' == 'Foo') {
         fooConstantCount++;
       }

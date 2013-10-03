@@ -35,7 +35,7 @@ static void LoadPatchFiles(Dart_Handle library,
     Dart_Handle patch_file_uri = DartUtils::NewString(patch_filename);
     free(patch_filename);
 
-    DART_CHECK_VALID(Dart_LoadPatch(library, patch_file_uri, patch_src));
+    DART_CHECK_VALID(Dart_LibraryLoadPatch(library, patch_file_uri, patch_src));
   }
 }
 

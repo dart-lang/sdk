@@ -202,6 +202,11 @@ abstract class RawServerSocket implements Stream<RawSocket> {
   int get port;
 
   /**
+   * Returns the address used by this socket.
+   */
+  InternetAddress get address;
+
+  /**
    * Closes the socket. The returned future completes when the socket
    * is fully closed and is no longer bound.
    */
@@ -256,6 +261,11 @@ abstract class ServerSocket implements Stream<Socket> {
    * Returns the port used by this socket.
    */
   int get port;
+
+  /**
+   * Returns the address used by this socket.
+   */
+  InternetAddress get address;
 
   /**
    * Closes the socket. The returned future completes when the socket

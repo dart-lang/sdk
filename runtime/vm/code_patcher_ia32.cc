@@ -149,7 +149,7 @@ class StaticCall : public ValueObject {
 };
 
 
-// The expected pattern of a dart closure call:
+// The expected pattern of a Dart closure call:
 //   mov EDX, arguments_descriptor_array
 //   call target_address
 //   <- return address
@@ -257,6 +257,39 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
 
 intptr_t CodePatcher::InstanceCallSizeInBytes() {
   return InstanceCall::kNumInstructions * InstanceCall::kInstructionSize;
+}
+
+
+// The expected code pattern of an edge counter in unoptimized code:
+//  b8 imm32    mov EAX, immediate
+class EdgeCounter : public ValueObject {
+ public:
+  EdgeCounter(uword pc, const Code& ignored) : end_(pc - kAdjust) {
+    ASSERT(IsValid(end_));
+  }
+
+  static bool IsValid(uword end) {
+    return (*reinterpret_cast<uint8_t*>(end - 5) == 0xb8);
+  }
+
+  RawObject* edge_counter() const {
+    return *reinterpret_cast<RawObject**>(end_ - 4);
+  }
+
+ private:
+  // The edge counter load is followed by the fixed-size edge counter
+  // incrementing code:
+  //     83 40 0b 02               add [eax+0xb],0x2
+  static const intptr_t kAdjust = 4;
+
+  uword end_;
+};
+
+
+RawObject* CodePatcher::GetEdgeCounterAt(uword pc, const Code& code) {
+  ASSERT(code.ContainsInstructionAt(pc));
+  EdgeCounter counter(pc, code);
+  return counter.edge_counter();
 }
 
 }  // namespace dart

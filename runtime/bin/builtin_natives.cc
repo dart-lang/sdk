@@ -13,6 +13,7 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/io_natives.h"
+#include "bin/platform.h"
 
 namespace dart {
 namespace bin {
@@ -26,7 +27,7 @@ namespace bin {
   V(Directory_Create, 1)                                                       \
   V(Directory_Current, 0)                                                      \
   V(Directory_SetCurrent, 1)                                                   \
-  V(Directory_CreateTemp, 1)                                                   \
+  V(Directory_CreateTemp, 2)                                                   \
   V(Directory_Delete, 2)                                                       \
   V(Directory_Rename, 2)                                                       \
   V(Directory_List, 3)                                                         \
@@ -108,12 +109,10 @@ void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
     // an isolate gets interrupted by the embedder in the middle of
     // Dart_StringToUTF8?  We need to make sure not to swallow the
     // interrupt.
-    fputs(Dart_GetError(result), stdout);
+    Platform::PrintBlocking(stdout, "%s\n", Dart_GetError(result));
   } else {
-    fwrite(chars, sizeof(*chars), length, stdout);
+    Platform::PrintBlocking(stdout, "%.*s\n", static_cast<int>(length), chars);
   }
-  fputc('\n', stdout);
-  fflush(stdout);
 }
 
 }  // namespace bin

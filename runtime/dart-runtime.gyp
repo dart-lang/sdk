@@ -15,20 +15,9 @@
     'version_in_cc_file': 'vm/version_in.cc',
     'version_cc_file': '<(gen_source_dir)/version.cc',
 
-    # Disable the OpenGLUI embedder by default on desktop OSes.  Note,
-    # to build this on the desktop, you need GLUT installed.
-    'enable_openglui%': 0,
     'libdart_deps': ['libdart_lib_withcore', 'libdart_lib', 'libdart_vm',
                      'libjscre', 'libdouble_conversion',],
   },
-  'conditions': [
-    ['OS=="android" or enable_openglui==1', {
-        'includes': [
-          'embedders/openglui/openglui_embedder.gypi',
-        ],
-      },
-    ],
-  ],
   'targets': [
     {
       'target_name': 'libdart',

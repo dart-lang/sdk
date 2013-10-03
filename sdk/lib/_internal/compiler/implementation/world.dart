@@ -152,15 +152,17 @@ class World {
   }
 
   // Returns whether a subclass of [superclass] implements [type].
-  bool hasAnySubclassThatImplements(ClassElement superclass, DartType type) {
+  bool hasAnySubclassThatImplements(ClassElement superclass,
+                                    ClassElement type) {
     Set<ClassElement> subclasses = typesImplementedBySubclassesOf(superclass);
     if (subclasses == null) return false;
-    return subclasses.contains(type.element);
+    return subclasses.contains(type);
   }
 
   // Returns whether a subclass of any mixin application of [cls] implements
   // [type].
-  bool hasAnySubclassOfMixinUseThatImplements(ClassElement cls, DartType type) {
+  bool hasAnySubclassOfMixinUseThatImplements(ClassElement cls,
+                                              ClassElement type) {
     Set<MixinApplicationElement> uses = mixinUses[cls];
     if (uses == null || uses.isEmpty) return false;
     return uses.any((use) => hasAnySubclassThatImplements(use, type));
@@ -192,7 +194,7 @@ class World {
 
   Element locateSingleElement(Selector selector) {
     ti.TypeMask mask = selector.mask == null
-        ? new ti.TypeMask.subclass(compiler.objectClass.rawType)
+        ? new ti.TypeMask.subclass(compiler.objectClass)
         : selector.mask;
     return mask.locateSingleElement(selector, compiler);
   }

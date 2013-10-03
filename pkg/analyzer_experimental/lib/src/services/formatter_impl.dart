@@ -195,7 +195,9 @@ class TokenStreamComparator {
       advance();
 
     }
-    if (!isEOF(token2)) {
+    // TODO(pquitslund): consider a better way to notice trailing synthetics
+    if (!isEOF(token2) && 
+        !(isCLOSE_CURLY_BRACKET(token2) && isEOF(token2.next))) {
       throw new FormatterException(
           'Expected "EOF" but got "${token2}".');
     }
@@ -261,6 +263,11 @@ class TokenStreamComparator {
         return true;
       }
     }
+    // Advance past synthetic { } tokens
+    if (isOPEN_CURLY_BRACKET(token2) || isCLOSE_CURLY_BRACKET(token2)) {
+      token2 = token2.next;
+      return checkTokens();
+    }
 
     return false;
   }
@@ -286,6 +293,14 @@ bool isGT_GT(Token token) => tokenIs(token, TokenType.GT_GT);
 /// Test if this token is an INDEX token.
 bool isINDEX(Token token) => tokenIs(token, TokenType.INDEX);
 
+/// Test if this token is a OPEN_CURLY_BRACKET token.
+bool isOPEN_CURLY_BRACKET(Token token) =>
+    tokenIs(token, TokenType.OPEN_CURLY_BRACKET);
+
+/// Test if this token is a CLOSE_CURLY_BRACKET token.
+bool isCLOSE_CURLY_BRACKET(Token token) =>
+    tokenIs(token, TokenType.CLOSE_CURLY_BRACKET);
+
 /// Test if this token is a OPEN_SQUARE_BRACKET token.
 bool isOPEN_SQ_BRACKET(Token token) =>
     tokenIs(token, TokenType.OPEN_SQUARE_BRACKET);
@@ -294,8 +309,19 @@ bool isOPEN_SQ_BRACKET(Token token) =>
 bool isCLOSE_SQUARE_BRACKET(Token token) =>
     tokenIs(token, TokenType.CLOSE_SQUARE_BRACKET);
 
+
 /// An AST visitor that drives formatting heuristics.
 class SourceVisitor implements ASTVisitor {
+  
+  static final OPEN_CURLY = syntheticToken(TokenType.OPEN_CURLY_BRACKET, '{');
+  static final CLOSE_CURLY = syntheticToken(TokenType.CLOSE_CURLY_BRACKET, '}');
+  
+  static const SYNTH_OFFSET = -13;
+  
+  static StringToken syntheticToken(TokenType type, String value) =>
+      new StringToken(type, value, SYNTH_OFFSET);
+  
+  static bool isSynthetic(Token token) => token.offset == SYNTH_OFFSET;
 
   /// The writer to which the source is to be written.
   final SourceWriter writer;
@@ -308,6 +334,9 @@ class SourceVisitor implements ASTVisitor {
 
   /// A flag to indicate that a newline should be emitted before the next token.
   bool needsNewline = false;
+  
+  /// A counter for spaces that should be emitted preceding the next token.
+  int leadingSpaces = 0;
 
   /// Used for matching EOL comments
   final twoSlashes = new RegExp(r'//[^/]');
@@ -514,13 +543,41 @@ class SourceVisitor implements ASTVisitor {
     token(node.period);
     visit(node.name);
     visit(node.parameters);
-    token(node.separator /* = or : */, precededBy: space, followedBy: space);
-    visitNodes(node.initializers, separatedBy: commaSeperator);
-    visit(node.redirectedConstructor);
+    
+    // Check for redirects or initializer lists
+    if (node.separator != null) {
+      if (node.redirectedConstructor != null) {
+        visitConstructorRedirects(node);
+      } else { 
+        visitConstructorInitializers(node);
+      }
+    }
 
     visitPrefixedBody(space, node.body);
   }
 
+  visitConstructorInitializers(ConstructorDeclaration node) {
+    newlines();
+    indent(2);
+    token(node.separator /* : */);
+    space();
+    for (var i = 0; i < node.initializers.length; i++) {
+      if (i > 0) {
+        comma();
+        newlines();
+        space(2);
+      }
+      node.initializers[i].accept(this);
+    } 
+    unindent(2);
+  }
+
+  visitConstructorRedirects(ConstructorDeclaration node) {
+    token(node.separator /* = */, precededBy: space, followedBy: space);
+    visitNodes(node.initializers, separatedBy: commaSeperator);
+    visit(node.redirectedConstructor);
+  }
+  
   visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     token(node.keyword);
     token(node.period);
@@ -730,24 +787,26 @@ class SourceVisitor implements ASTVisitor {
     space();
     visitNodes(node.hiddenNames, separatedBy: commaSeperator);
   }
-
+  
   visitIfStatement(IfStatement node) {
+    var hasElse = node.elseStatement != null;
     token(node.ifKeyword);
     space();
     token(node.leftParenthesis);
     visit(node.condition);
     token(node.rightParenthesis);
     space();
-    visit(node.thenStatement);
-    //visitPrefixed(' else ', node.elseStatement);
-    if (node.elseStatement != null) {
+    if (hasElse) {
+      printAsBlock(node.thenStatement);
       space();
       token(node.elseKeyword);
       space();
-      visit(node.elseStatement);
+      printAsBlock(node.elseStatement);
+    } else {
+      visit(node.thenStatement);
     }
   }
-
+  
   visitImplementsClause(ImplementsClause node) {
     token(node.keyword);
     space();
@@ -1226,6 +1285,13 @@ class SourceVisitor implements ASTVisitor {
     }
   }
   
+  emitSpaces() {
+    while (leadingSpaces > 0) {
+      writer.print(' ');
+      leadingSpaces--;
+    }
+  }
+  
   checkForSelectionUpdate(Token token) {
     // Cache the first token on or AFTER the selection offset
     if (preSelection != null && selection == null) {
@@ -1233,7 +1299,8 @@ class SourceVisitor implements ASTVisitor {
       var overshot = token.offset - preSelection.offset;
       if (overshot >= 0) {
         //TODO(pquitslund): update length (may need truncating)
-        selection = new Selection(writer.toString().length - overshot, 
+        selection = new Selection(
+            writer.toString().length + leadingSpaces - overshot, 
             preSelection.length);
       }
     }
@@ -1245,15 +1312,16 @@ class SourceVisitor implements ASTVisitor {
   }
 
   comma() {
-    append(',');
+    writer.print(',');
   }
 
+  
   /// Emit a non-breakable space.
-  space() {
+  space([n = 1]) {
     //TODO(pquitslund): replace with a proper space token
-    append(' ');
+    leadingSpaces+=n;
   }
-
+  
   /// Emit a breakable space
   breakableSpace() {
     //Implement
@@ -1262,21 +1330,40 @@ class SourceVisitor implements ASTVisitor {
   /// Append the given [string] to the source writer if it's non-null.
   append(String string) {
     if (string != null && !string.isEmpty) {
+      emitSpaces();
       writer.print(string);
     }
   }
 
   /// Indent.
-  indent() {
-    writer.indent();
+  indent([n = 1]) {
+    while (n-- > 0) {
+      writer.indent();
+    }
   }
-
+  
   /// Unindent
-  unindent() {
-    writer.unindent();
+  unindent([n = 1]) {
+    while (n-- > 0) {
+      writer.unindent();
+    }
   }
-
-
+  
+  /// Print this statement as if it were a block (e.g., surrounded by braces).
+  printAsBlock(Statement statement) {
+    if (statement is! Block) {
+      token(OPEN_CURLY);
+      indent();
+      newlines();
+      visit(statement);
+      newlines();
+      unindent();
+      token(CLOSE_CURLY);
+    } else {
+      visit(statement);
+    }
+  }
+  
   /// Emit any detected comments and newlines or a minimum as specified
   /// by [min].
   int emitPrecedingCommentsAndNewlines(Token token, {min: 0}) {
@@ -1294,7 +1381,7 @@ class SourceVisitor implements ASTVisitor {
     var lines = max(min, countNewlinesBetween(previousToken, currentToken));
     writer.newlines(lines);
 
-    var previousToken = currentToken.previous;
+    previousToken = currentToken.previous;
 
     while (comment != null) {
 
@@ -1306,7 +1393,7 @@ class SourceVisitor implements ASTVisitor {
         writer.newlines(newlines);
         lines += newlines;
       } else if (!isEOF(token)) {
-        space();
+        append(' ');
       }
 
       previousToken = comment;
@@ -1336,7 +1423,7 @@ class SourceVisitor implements ASTVisitor {
       var ws = countSpacesBetween(previousToken, comment);
       // Preserve one space but no more
       if (ws > 0) {
-        space();
+        append(' ');
       }
     }
 
@@ -1361,7 +1448,7 @@ class SourceVisitor implements ASTVisitor {
 
   /// Count the blanks between these two tokens.
   int countNewlinesBetween(Token last, Token current) {
-    if (last == null || current == null) {
+    if (last == null || current == null || isSynthetic(last)) {
       return 0;
     }
 

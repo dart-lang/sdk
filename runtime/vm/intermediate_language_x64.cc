@@ -52,7 +52,7 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (value.IsRegister()) {
       __ pushq(value.reg());
     } else if (value.IsConstant()) {
-      __ PushObject(value.constant());
+      __ PushObject(value.constant(), PP);
     } else {
       ASSERT(value.IsStackSlot());
       __ pushq(value.ToStackSlotAddress());
@@ -90,7 +90,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(fp_sp_dist <= 0);
     __ movq(RDI, RSP);
     __ subq(RDI, RBP);
-    __ cmpq(RDI, Immediate(fp_sp_dist));
+    __ CompareImmediate(RDI, Immediate(fp_sp_dist), PP);
     __ j(EQUAL, &done, Assembler::kNearJump);
     __ int3();
     __ Bind(&done);
@@ -196,9 +196,9 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if ((kind_ == Token::kNE_STRICT) || (kind_ == Token::kNE)) {
       result = !result;
     }
-    __ movq(locs()->out().reg(),
+    __ LoadImmediate(locs()->out().reg(),
             Immediate(reinterpret_cast<int64_t>(
-                Smi::New(result ? if_true_ : if_false_))));
+                Smi::New(result ? if_true_ : if_false_))), PP);
     return;
   }
 
@@ -212,9 +212,9 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // TODO(vegorov): reuse code from the other comparison instructions instead of
   // generating it inline here.
   if (left.IsConstant()) {
-    __ CompareObject(right.reg(), left.constant());
+    __ CompareObject(right.reg(), left.constant(), PP);
   } else if (right.IsConstant()) {
-    __ CompareObject(left.reg(), right.constant());
+    __ CompareObject(left.reg(), right.constant(), PP);
   } else {
     __ cmpq(left.reg(), right.reg());
   }
@@ -251,11 +251,11 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
     __ shlq(RDX, Immediate(shift + kSmiTagSize));
   } else {
-    __ subq(RDX, Immediate(1));
-    __ andq(RDX, Immediate(
-        Smi::RawValue(true_value) - Smi::RawValue(false_value)));
+    __ AddImmediate(RDX, Immediate(-1), PP);
+    __ AndImmediate(RDX,
+        Immediate(Smi::RawValue(true_value) - Smi::RawValue(false_value)), PP);
     if (false_value != 0) {
-      __ addq(RDX, Immediate(Smi::RawValue(false_value)));
+      __ AddImmediate(RDX, Immediate(Smi::RawValue(false_value)), PP);
     }
   }
 }
@@ -341,9 +341,9 @@ static void EmitAssertBoolean(Register reg,
   // Call the runtime if the object is not bool::true or bool::false.
   ASSERT(locs->always_calls());
   Label done;
-  __ CompareObject(reg, Bool::True());
+  __ CompareObject(reg, Bool::True(), PP);
   __ j(EQUAL, &done, Assembler::kNearJump);
-  __ CompareObject(reg, Bool::False());
+  __ CompareObject(reg, Bool::False(), PP);
   __ j(EQUAL, &done, Assembler::kNearJump);
 
   __ pushq(reg);  // Push the source object.
@@ -453,13 +453,6 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   const Array& kNoArgumentNames = Object::null_array();
   const int kNumArgumentsChecked = 2;
 
-  Label check_identity;
-  __ LoadObject(TMP, Object::null_object(), PP);
-  __ cmpq(Address(RSP, 0 * kWordSize), TMP);
-  __ j(EQUAL, &check_identity);
-  __ cmpq(Address(RSP, 1 * kWordSize), TMP);
-  __ j(EQUAL, &check_identity);
-
   ICData& equality_ic_data = ICData::ZoneHandle(original_ic_data.raw());
   if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
     ASSERT(!original_ic_data.IsNull());
@@ -486,43 +479,10 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                  kNoArgumentNames,
                                  locs,
                                  equality_ic_data);
-  Label check_ne;
-  __ jmp(&check_ne);
-
-  __ Bind(&check_identity);
-  Label equality_done;
-  if (compiler->is_optimizing()) {
-    // No need to update IC data.
-    Label is_true;
-    __ popq(RAX);
-    __ popq(RDX);
-    __ cmpq(RAX, RDX);
-    __ j(EQUAL, &is_true);
-    __ LoadObject(RAX, Bool::Get(kind != Token::kEQ), PP);
-    __ jmp(&equality_done);
-    __ Bind(&is_true);
-    __ LoadObject(RAX, Bool::Get(kind == Token::kEQ), PP);
-    if (kind == Token::kNE) {
-      // Skip not-equal result conversion.
-      __ jmp(&equality_done);
-    }
-  } else {
-    // Call stub, load IC data in register. The stub will update ICData if
-    // necessary.
-    Register ic_data_reg = locs->temp(0).reg();
-    ASSERT(ic_data_reg == RBX);  // Stub depends on it.
-    __ LoadObject(ic_data_reg, equality_ic_data, PP);
-    compiler->GenerateCall(token_pos,
-                           &StubCode::EqualityWithNullArgLabel(),
-                           PcDescriptors::kRuntimeCall,
-                           locs);
-    __ Drop(2);
-  }
-  __ Bind(&check_ne);
   if (kind == Token::kNE) {
     Label true_label, done;
     // Negate the condition: true label returns false and vice versa.
-    __ CompareObject(RAX, Bool::True());
+    __ CompareObject(RAX, Bool::True(), PP);
     __ j(EQUAL, &true_label, Assembler::kNearJump);
     __ LoadObject(RAX, Bool::True(), PP);
     __ jmp(&done, Assembler::kNearJump);
@@ -530,7 +490,6 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     __ LoadObject(RAX, Bool::False(), PP);
     __ Bind(&done);
   }
-  __ Bind(&equality_done);
 }
 
 
@@ -540,7 +499,7 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
                          Label* value_is_smi = NULL) {
   Label done;
   if (value_is_smi == NULL) {
-    __ movq(value_cid_reg, Immediate(kSmiCid));
+    __ LoadImmediate(value_cid_reg, Immediate(kSmiCid), PP);
   }
   __ testq(value_reg, Immediate(kSmiTagMask));
   if (value_is_smi == NULL) {
@@ -579,7 +538,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
     // Assert that the Smi is at position 0, if at all.
     ASSERT((ic_data.GetReceiverClassIdAt(i) != kSmiCid) || (i == 0));
     Label next_test;
-    __ cmpq(temp, Immediate(ic_data.GetReceiverClassIdAt(i)));
+    __ CompareImmediate(temp, Immediate(ic_data.GetReceiverClassIdAt(i)), PP);
     if (i < len - 1) {
       __ j(NOT_EQUAL, &next_test);
     } else {
@@ -614,7 +573,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
       if (branch == NULL) {
         if (kind == Token::kNE) {
           Label false_label;
-          __ CompareObject(RAX, Bool::True());
+          __ CompareObject(RAX, Bool::True(), PP);
           __ j(EQUAL, &false_label, Assembler::kNearJump);
           __ LoadObject(RAX, Bool::True(), PP);
           __ jmp(&done);
@@ -625,7 +584,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
         if (branch->is_checked()) {
           EmitAssertBoolean(RAX, token_pos, deopt_id, locs, compiler);
         }
-        __ CompareObject(RAX, Bool::True());
+        __ CompareObject(RAX, Bool::True(), PP);
         branch->EmitBranchOnCondition(compiler, cond);
       }
     }
@@ -655,16 +614,16 @@ static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
   // 'left' is not Smi.
 
   Label identity_compare;
-  __ CompareObject(right, Object::null_object());
+  __ CompareObject(right, Object::null_object(), PP);
   __ j(EQUAL, &identity_compare);
-  __ CompareObject(left, Object::null_object());
+  __ CompareObject(left, Object::null_object(), PP);
   __ j(EQUAL, &identity_compare);
 
   __ LoadClassId(temp, left);
   const ICData& ic_data = ICData::Handle(orig_ic_data.AsUnaryClassChecks());
   const intptr_t len = ic_data.NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
-    __ cmpq(temp, Immediate(ic_data.GetReceiverClassIdAt(i)));
+    __ CompareImmediate(temp, Immediate(ic_data.GetReceiverClassIdAt(i)), PP);
     if (i == (len - 1)) {
       __ j(NOT_EQUAL, deopt);
     } else {
@@ -704,34 +663,10 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
   ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
   Register left = locs->in(0).reg();
   Register right = locs->in(1).reg();
-
-  Label done, identity_compare, non_null_compare;
-  __ CompareObject(right, Object::null_object());
-  __ j(EQUAL, &identity_compare, Assembler::kNearJump);
-  __ CompareObject(left, Object::null_object());
-  __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
-  // Comparison with NULL is "===".
-  __ Bind(&identity_compare);
-  __ cmpq(left, right);
-  Condition cond = TokenKindToSmiCondition(kind);
-  if (branch != NULL) {
-    branch->EmitBranchOnCondition(compiler, cond);
-  } else {
-    Register result = locs->out().reg();
-    Label load_true;
-    __ j(cond, &load_true, Assembler::kNearJump);
-    __ LoadObject(result, Bool::False(), PP);
-    __ jmp(&done);
-    __ Bind(&load_true);
-    __ LoadObject(result, Bool::True(), PP);
-  }
-  __ jmp(&done);
-  __ Bind(&non_null_compare);  // Receiver is not null.
   __ pushq(left);
   __ pushq(right);
   EmitEqualityAsPolymorphicCall(compiler, ic_data, locs, branch, kind,
                                 deopt_id, token_pos);
-  __ Bind(&done);
 }
 
 
@@ -765,10 +700,10 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   Condition true_condition = TokenKindToSmiCondition(kind);
 
   if (left.IsConstant()) {
-    __ CompareObject(right.reg(), left.constant());
+    __ CompareObject(right.reg(), left.constant(), PP);
     true_condition = FlipCondition(true_condition);
   } else if (right.IsConstant()) {
-    __ CompareObject(left.reg(), right.constant());
+    __ CompareObject(left.reg(), right.constant(), PP);
   } else if (right.IsStackSlot()) {
     __ cmpq(left.reg(), right.ToStackSlotAddress());
   } else {
@@ -897,7 +832,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     EmitAssertBoolean(RAX, token_pos(), deopt_id(), locs(), compiler);
   }
   Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
-  __ CompareObject(RAX, Bool::True());
+  __ CompareObject(RAX, Bool::True(), PP);
   branch->EmitBranchOnCondition(compiler, branch_condition);
 }
 
@@ -968,7 +903,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
 
   // Push the result place holder initialized to NULL.
-  __ PushObject(Object::ZoneHandle());
+  __ PushObject(Object::ZoneHandle(), PP);
   // Pass a pointer to the first argument in RAX.
   if (!function().HasOptionalParameters()) {
     __ leaq(RAX, Address(RBP, (kParamEndSlotFromFp +
@@ -977,8 +912,10 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ leaq(RAX,
             Address(RBP, kFirstLocalSlotFromFp * kWordSize));
   }
-  __ movq(RBX, Immediate(reinterpret_cast<uword>(native_c_function())));
-  __ movq(R10, Immediate(NativeArguments::ComputeArgcTag(function())));
+  __ LoadImmediate(
+      RBX, Immediate(reinterpret_cast<uword>(native_c_function())), PP);
+  __ LoadImmediate(
+      R10, Immediate(NativeArguments::ComputeArgcTag(function())), PP);
   const ExternalLabel* stub_entry =
       (is_bootstrap_native()) ? &StubCode::CallBootstrapCFunctionLabel() :
                                 &StubCode::CallNativeCFunctionLabel();
@@ -1014,8 +951,8 @@ LocationSummary* StringFromCharCodeInstr::MakeLocationSummary() const {
 void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register char_code = locs()->in(0).reg();
   Register result = locs()->out().reg();
-  __ movq(result,
-          Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())));
+  __ LoadImmediate(result,
+          Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())), PP);
   __ movq(result, Address(result,
                           char_code,
                           TIMES_HALF_WORD_SIZE,  // Char code is a smi.
@@ -1052,7 +989,7 @@ void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label load, done;
   __ testq(object, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &load, Assembler::kNearJump);
-  __ movq(result, Immediate(Smi::RawValue(kSmiCid)));
+  __ LoadImmediate(result, Immediate(Smi::RawValue(kSmiCid)), PP);
   __ jmp(&done);
   __ Bind(&load);
   __ LoadClassId(result, object);
@@ -1360,7 +1297,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ StoreIntoObject(array, element_address, value);
       } else if (locs()->in(2).IsConstant()) {
         const Object& constant = locs()->in(2).constant();
-        __ StoreObject(element_address, constant);
+        __ StoreObject(element_address, constant, PP);
       } else {
         Register value = locs()->in(2).reg();
         __ StoreIntoObjectNoBarrier(array, element_address, value);
@@ -1397,14 +1334,14 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         ASSERT(locs()->in(2).reg() == RAX);
         Label store_value, store_0xff;
         __ SmiUntag(RAX);
-        __ cmpq(RAX, Immediate(0xFF));
+        __ CompareImmediate(RAX, Immediate(0xFF), PP);
         __ j(BELOW_EQUAL, &store_value, Assembler::kNearJump);
         // Clamp to 0x0 or 0xFF respectively.
         __ j(GREATER, &store_0xff);
         __ xorq(RAX, RAX);
         __ jmp(&store_value, Assembler::kNearJump);
         __ Bind(&store_0xff);
-        __ movq(RAX, Immediate(0xFF));
+        __ LoadImmediate(RAX, Immediate(0xFF), PP);
         __ Bind(&store_value);
         __ movb(element_address, RAX);
       }
@@ -1538,13 +1475,15 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ pushq(value_cid_reg);
           __ movq(value_cid_reg,
                   FieldAddress(value_reg, Array::length_offset()));
-          __ cmpq(value_cid_reg, Immediate(Smi::RawValue(field_length)));
+          __ CompareImmediate(
+              value_cid_reg, Immediate(Smi::RawValue(field_length)), PP);
           __ popq(value_cid_reg);
         } else if (RawObject::IsTypedDataClassId(field_cid)) {
           __ pushq(value_cid_reg);
           __ movq(value_cid_reg,
                   FieldAddress(value_reg, TypedData::length_offset()));
-          __ cmpq(value_cid_reg, Immediate(Smi::RawValue(field_length)));
+          __ CompareImmediate(
+              value_cid_reg, Immediate(Smi::RawValue(field_length)), PP);
           __ popq(value_cid_reg);
         } else {
           ASSERT(field_cid == kIllegalCid);
@@ -1558,15 +1497,18 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           // If length is negative the length guard is either disabled or
           // has not been initialized, either way it is safe to skip the
           // length check.
-          __ cmpq(field_length_operand, Immediate(Smi::RawValue(0)));
+          __ CompareImmediate(
+              field_length_operand, Immediate(Smi::RawValue(0)), PP);
           __ j(LESS, &skip_length_check);
-          __ cmpq(value_cid_reg, Immediate(kNullCid));
+          __ CompareImmediate(value_cid_reg, Immediate(kNullCid), PP);
           __ j(EQUAL, &no_fixed_length, Assembler::kNearJump);
           // Check for typed data array.
-          __ cmpq(value_cid_reg, Immediate(kTypedDataFloat32x4ArrayCid));
+          __ CompareImmediate(
+              value_cid_reg, Immediate(kTypedDataFloat32x4ArrayCid), PP);
           // Not a typed array or a regular array.
           __ j(GREATER, &no_fixed_length, Assembler::kNearJump);
-          __ cmpq(value_cid_reg, Immediate(kTypedDataInt8ArrayCid));
+          __ CompareImmediate(
+              value_cid_reg, Immediate(kTypedDataInt8ArrayCid), PP);
           // Could still be a regular array.
           __ j(LESS, &check_array, Assembler::kNearJump);
           __ pushq(value_cid_reg);
@@ -1577,9 +1519,9 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ jmp(&length_compared, Assembler::kNearJump);
           // Check for regular array.
           __ Bind(&check_array);
-          __ cmpq(value_cid_reg, Immediate(kImmutableArrayCid));
+          __ CompareImmediate(value_cid_reg, Immediate(kImmutableArrayCid), PP);
           __ j(GREATER, &no_fixed_length, Assembler::kNearJump);
-          __ cmpq(value_cid_reg, Immediate(kArrayCid));
+          __ CompareImmediate(value_cid_reg, Immediate(kArrayCid), PP);
           __ j(LESS, &no_fixed_length, Assembler::kNearJump);
           __ pushq(value_cid_reg);
           __ movq(value_cid_reg,
@@ -1596,21 +1538,22 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(&skip_length_check);
       __ cmpq(value_cid_reg, field_nullability_operand);
     } else if (value_cid == kNullCid) {
-      __ cmpq(field_nullability_operand, Immediate(value_cid));
+      __ CompareImmediate(field_nullability_operand, Immediate(value_cid), PP);
     } else {
       Label skip_length_check;
-      __ cmpq(field_cid_operand, Immediate(value_cid));
+      __ CompareImmediate(field_cid_operand, Immediate(value_cid), PP);
       // If not equal, skip over length check.
       __ j(NOT_EQUAL, &skip_length_check);
       // Insert length check.
       if (field_has_length) {
         ASSERT(value_cid_reg != kNoRegister);
         if ((value_cid == kArrayCid) || (value_cid == kImmutableArrayCid)) {
-          __ cmpq(FieldAddress(value_reg, Array::length_offset()),
-                  Immediate(Smi::RawValue(field_length)));
+          __ CompareImmediate(FieldAddress(value_reg, Array::length_offset()),
+                              Immediate(Smi::RawValue(field_length)), PP);
         } else if (RawObject::IsTypedDataClassId(value_cid)) {
-          __ cmpq(FieldAddress(value_reg, TypedData::length_offset()),
-                  Immediate(Smi::RawValue(field_length)));
+          __ CompareImmediate(
+            FieldAddress(value_reg, TypedData::length_offset()),
+            Immediate(Smi::RawValue(field_length)), PP);
         } else if (field_cid != kIllegalCid) {
           ASSERT(field_cid != value_cid);
           ASSERT(field_length >= 0);
@@ -1629,7 +1572,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     __ j(EQUAL, &ok);
 
-    __ cmpq(field_cid_operand, Immediate(kIllegalCid));
+    __ CompareImmediate(field_cid_operand, Immediate(kIllegalCid), PP);
     __ j(NOT_EQUAL, fail);
 
     if (value_cid == kDynamicCid) {
@@ -1637,13 +1580,15 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movq(field_nullability_operand, value_cid_reg);
       if (field_has_length) {
         Label check_array, length_set, no_fixed_length;
-        __ cmpq(value_cid_reg, Immediate(kNullCid));
+        __ CompareImmediate(value_cid_reg, Immediate(kNullCid), PP);
         __ j(EQUAL, &no_fixed_length, Assembler::kNearJump);
         // Check for typed data array.
-        __ cmpq(value_cid_reg, Immediate(kTypedDataFloat32x4ArrayCid));
+        __ CompareImmediate(value_cid_reg,
+                            Immediate(kTypedDataFloat32x4ArrayCid), PP);
         // Not a typed array or a regular array.
         __ j(GREATER, &no_fixed_length);
-        __ cmpq(value_cid_reg, Immediate(kTypedDataInt8ArrayCid));
+        __ CompareImmediate(
+            value_cid_reg, Immediate(kTypedDataInt8ArrayCid), PP);
         // Could still be a regular array.
         __ j(LESS, &check_array, Assembler::kNearJump);
         // Destroy value_cid_reg (safe because we are finished with it).
@@ -1654,9 +1599,9 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ jmp(&length_set);
         // Check for regular array.
         __ Bind(&check_array);
-        __ cmpq(value_cid_reg, Immediate(kImmutableArrayCid));
+        __ CompareImmediate(value_cid_reg, Immediate(kImmutableArrayCid), PP);
         __ j(GREATER, &no_fixed_length, Assembler::kNearJump);
-        __ cmpq(value_cid_reg, Immediate(kArrayCid));
+        __ CompareImmediate(value_cid_reg, Immediate(kArrayCid), PP);
         __ j(LESS, &no_fixed_length, Assembler::kNearJump);
         // Destroy value_cid_reg (safe because we are finished with it).
         __ movq(value_cid_reg,
@@ -1665,14 +1610,14 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // Updated field length from regular array.
         __ jmp(&length_set, Assembler::kNearJump);
         __ Bind(&no_fixed_length);
-        __ movq(field_length_operand,
-                Immediate(Smi::RawValue(Field::kNoFixedLength)));
+        __ LoadImmediate(field_length_operand,
+            Immediate(Smi::RawValue(Field::kNoFixedLength)), PP);
         __ Bind(&length_set);
       }
     } else {
       ASSERT(field_reg != kNoRegister);
-      __ movq(field_cid_operand, Immediate(value_cid));
-      __ movq(field_nullability_operand, Immediate(value_cid));
+      __ LoadImmediate(field_cid_operand, Immediate(value_cid), PP);
+      __ LoadImmediate(field_nullability_operand, Immediate(value_cid), PP);
       if (field_has_length) {
         ASSERT(value_cid_reg != kNoRegister);
         if ((value_cid == kArrayCid) || (value_cid == kImmutableArrayCid)) {
@@ -1686,8 +1631,8 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                   FieldAddress(value_reg, TypedData::length_offset()));
           __ movq(field_length_operand, value_cid_reg);
         } else {
-          __ movq(field_length_operand,
-                  Immediate(Smi::RawValue(Field::kNoFixedLength)));
+          __ LoadImmediate(field_length_operand,
+                  Immediate(Smi::RawValue(Field::kNoFixedLength)), PP);
         }
       }
     }
@@ -1706,7 +1651,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (field_cid != kSmiCid) {
         __ j(ZERO, fail);
         __ LoadClassId(value_cid_reg, value_reg);
-        __ cmpq(value_cid_reg, Immediate(field_cid));
+        __ CompareImmediate(value_cid_reg, Immediate(field_cid), PP);
       }
 
       if (field_has_length) {
@@ -1732,7 +1677,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       if (field().is_nullable() && (field_cid != kNullCid)) {
         __ j(EQUAL, &ok);
-        __ CompareObject(value_reg, Object::null_object());
+        __ CompareObject(value_reg, Object::null_object(), PP);
       }
 
       if (ok_is_fall_through) {
@@ -1757,7 +1702,8 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ movq(value_cid_reg,
                   FieldAddress(value_reg, TypedData::length_offset()));
         }
-        __ cmpq(value_cid_reg, Immediate(Smi::RawValue(field_length)));
+        __ CompareImmediate(
+            value_cid_reg, Immediate(Smi::RawValue(field_length)), PP);
         if (ok_is_fall_through) {
           __ j(NOT_EQUAL, fail);
         }
@@ -1773,8 +1719,8 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(!compiler->is_optimizing());
     __ Bind(fail);
 
-    __ cmpq(FieldAddress(field_reg, Field::guarded_cid_offset()),
-            Immediate(kDynamicCid));
+    __ CompareImmediate(FieldAddress(field_reg, Field::guarded_cid_offset()),
+                        Immediate(kDynamicCid), PP);
     __ j(EQUAL, &ok);
 
     __ pushq(field_reg);
@@ -1811,7 +1757,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     if (locs()->in(1).IsConstant()) {
       __ StoreObject(FieldAddress(instance_reg, field().Offset()),
-                     locs()->in(1).constant());
+                     locs()->in(1).constant(), PP);
     } else {
       Register value_reg = locs()->in(1).reg();
       __ StoreIntoObjectNoBarrier(instance_reg,
@@ -1909,7 +1855,7 @@ LocationSummary* CreateArrayInstr::MakeLocationSummary() const {
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Allocate the array.  R10 = length, RBX = element type.
   ASSERT(locs()->in(0).reg() == RBX);
-  __ movq(R10, Immediate(Smi::RawValue(num_elements())));
+  __ LoadImmediate(R10, Immediate(Smi::RawValue(num_elements())), PP);
   compiler->GenerateCall(token_pos(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther,
@@ -1970,8 +1916,8 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // 'instantiator_reg' is the instantiator AbstractTypeArguments object
   // (or null).
   // A runtime call to instantiate the type is required.
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ PushObject(type());
+  __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
+  __ PushObject(type(), PP);
   __ pushq(instantiator_reg);  // Push instantiator type arguments.
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
@@ -2011,13 +1957,13 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   Label type_arguments_instantiated;
   const intptr_t len = type_arguments().Length();
   if (type_arguments().IsRawInstantiatedRaw(len)) {
-    __ CompareObject(instantiator_reg, Object::null_object());
+    __ CompareObject(instantiator_reg, Object::null_object(), PP);
     __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
   }
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ PushObject(type_arguments());
+  __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
+  __ PushObject(type_arguments(), PP);
   __ pushq(instantiator_reg);  // Push instantiator type arguments.
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
@@ -2060,7 +2006,7 @@ void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
   Label type_arguments_instantiated;
   ASSERT(type_arguments().IsRawInstantiatedRaw(type_arguments().Length()));
 
-  __ CompareObject(instantiator_reg, Object::null_object());
+  __ CompareObject(instantiator_reg, Object::null_object(), PP);
   __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
   // Instantiate non-null type arguments.
   // In the non-factory case, we rely on the allocation stub to
@@ -2102,12 +2048,12 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
   ASSERT(type_arguments().IsRawInstantiatedRaw(type_arguments().Length()));
 
   Label instantiator_not_null;
-  __ CompareObject(instantiator_reg, Object::null_object());
+  __ CompareObject(instantiator_reg, Object::null_object(), PP);
   __ j(NOT_EQUAL, &instantiator_not_null, Assembler::kNearJump);
   // Null was used in VisitExtractConstructorTypeArguments as the
   // instantiated type arguments, no proper instantiator needed.
-  __ movq(instantiator_reg,
-          Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+  __ LoadImmediate(instantiator_reg,
+          Immediate(Smi::RawValue(StubCode::kNoInstantiator)), PP);
   __ Bind(&instantiator_not_null);
   // instantiator_reg: instantiator or kNoInstantiator.
 }
@@ -2128,7 +2074,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(0).reg() == R10);
   ASSERT(locs()->out().reg() == RAX);
 
-  __ movq(R10, Immediate(num_context_variables()));
+  __ LoadImmediate(R10, Immediate(num_context_variables()), PP);
   const ExternalLabel label("alloc_context",
                             StubCode::AllocateContextEntryPoint());
   compiler->GenerateCall(token_pos(),
@@ -2153,7 +2099,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register context_value = locs()->in(0).reg();
   Register result = locs()->out().reg();
 
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
   __ pushq(context_value);
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
@@ -2255,7 +2201,8 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Register temp = locs()->temp(0).reg();
   // Generate stack overflow check.
-  __ movq(temp, Immediate(Isolate::Current()->stack_limit_address()));
+  __ LoadImmediate(
+      temp, Immediate(Isolate::Current()->stack_limit_address()), PP);
   __ cmpq(RSP, Address(temp, 0));
   __ j(BELOW_EQUAL, slow_path->entry_label());
   if (compiler->CanOSRFunction() && in_loop()) {
@@ -2265,8 +2212,8 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(temp, compiler->parsed_function().function(), PP);
     intptr_t threshold =
         FLAG_optimization_counter_threshold * (loop_depth() + 1);
-    __ cmpq(FieldAddress(temp, Function::usage_counter_offset()),
-            Immediate(threshold));
+    __ CompareImmediate(FieldAddress(temp, Function::usage_counter_offset()),
+                        Immediate(threshold), PP);
     __ j(GREATER_EQUAL, slow_path->entry_label());
   }
   __ Bind(slow_path->exit_label());
@@ -2279,9 +2226,9 @@ static void EmitJavascriptOverflowCheck(FlowGraphCompiler* compiler,
                                         Register result) {
   if (!range->IsWithin(-0x20000000000000LL, 0x20000000000000LL)) {
     ASSERT(overflow != NULL);
-    __ cmpq(result, Immediate(-0x20000000000000LL));
+    __ CompareImmediate(result, Immediate(-0x20000000000000LL), PP);
     __ j(LESS, overflow);
-    __ cmpq(result, Immediate(0x20000000000000LL));
+    __ CompareImmediate(result, Immediate(0x20000000000000LL), PP);
     __ j(GREATER, overflow);
   }
 }
@@ -2342,7 +2289,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     if (obj.IsSmi()) {
       const intptr_t left_int = Smi::Cast(obj).Value();
       if (left_int == 0) {
-        __ cmpq(right, Immediate(0));
+        __ CompareImmediate(right, Immediate(0), PP);
         __ j(NEGATIVE, deopt);
         return;
       }
@@ -2351,8 +2298,8 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
           (right_range == NULL) ||
           !right_range->IsWithin(0, max_right - 1);
       if (right_needs_check) {
-        __ cmpq(right,
-          Immediate(reinterpret_cast<int64_t>(Smi::New(max_right))));
+        __ CompareImmediate(right,
+            Immediate(reinterpret_cast<int64_t>(Smi::New(max_right))), PP);
         __ j(ABOVE_EQUAL, deopt);
       }
       __ SmiUntag(right);
@@ -2374,12 +2321,12 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
           !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
       if (right_may_be_negative) {
         ASSERT(shift_left->CanDeoptimize());
-        __ cmpq(right, Immediate(0));
+        __ CompareImmediate(right, Immediate(0), PP);
         __ j(NEGATIVE, deopt);
       }
       Label done, is_not_zero;
-      __ cmpq(right,
-          Immediate(reinterpret_cast<int64_t>(Smi::New(Smi::kBits))));
+      __ CompareImmediate(right,
+          Immediate(reinterpret_cast<int64_t>(Smi::New(Smi::kBits))), PP);
       __ j(BELOW, &is_not_zero, Assembler::kNearJump);
       __ xorq(left, left);
       __ jmp(&done, Assembler::kNearJump);
@@ -2394,8 +2341,8 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   } else {
     if (right_needs_check) {
       ASSERT(shift_left->CanDeoptimize());
-      __ cmpq(right,
-          Immediate(reinterpret_cast<int64_t>(Smi::New(Smi::kBits))));
+      __ CompareImmediate(right,
+          Immediate(reinterpret_cast<int64_t>(Smi::New(Smi::kBits))), PP);
       __ j(ABOVE_EQUAL, deopt);
     }
     // Left is not a constant.
@@ -2518,12 +2465,12 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         reinterpret_cast<int64_t>(constant.raw());
     switch (op_kind()) {
       case Token::kADD: {
-        __ addq(left, Immediate(imm));
+        __ AddImmediate(left, Immediate(imm), PP);
         if (deopt != NULL) __ j(OVERFLOW, deopt);
         break;
       }
       case Token::kSUB: {
-        __ subq(left, Immediate(imm));
+        __ AddImmediate(left, Immediate(-imm), PP);
         if (deopt != NULL) __ j(OVERFLOW, deopt);
         break;
       }
@@ -2533,7 +2480,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if (value == 2) {
           __ shlq(left, Immediate(1));
         } else {
-          __ imulq(left, Immediate(value));
+          __ MulImmediate(left, Immediate(value), PP);
         }
         if (deopt != NULL) __ j(OVERFLOW, deopt);
         break;
@@ -2546,7 +2493,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         } else if (value == -1) {
           // Check the corner case of dividing the 'MIN_SMI' with -1, in which
           // case we cannot negate the result.
-          __ cmpq(left, Immediate(0x8000000000000000));
+          __ CompareImmediate(left, Immediate(0x8000000000000000), PP);
           __ j(EQUAL, deopt);
           __ negq(left);
           break;
@@ -2572,17 +2519,17 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       case Token::kBIT_AND: {
         // No overflow check.
-        __ andq(left, Immediate(imm));
+        __ AndImmediate(left, Immediate(imm), PP);
         break;
       }
       case Token::kBIT_OR: {
         // No overflow check.
-        __ orq(left, Immediate(imm));
+        __ OrImmediate(left, Immediate(imm), PP);
         break;
       }
       case Token::kBIT_XOR: {
         // No overflow check.
-        __ xorq(left, Immediate(imm));
+        __ XorImmediate(left, Immediate(imm), PP);
         break;
       }
 
@@ -2738,7 +2685,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ idivq(right);  //  RAX: quotient, RDX: remainder.
       // Check the corner case of dividing the 'MIN_SMI' with -1, in which
       // case we cannot tag the result.
-      __ cmpq(result, Immediate(0x4000000000000000));
+      __ CompareImmediate(result, Immediate(0x4000000000000000), PP);
       __ j(EQUAL, deopt);
       __ Bind(&done);
       __ SmiTag(result);
@@ -2746,7 +2693,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case Token::kSHR: {
       if (CanDeoptimize()) {
-        __ cmpq(right, Immediate(0));
+        __ CompareImmediate(right, Immediate(0), PP);
         __ j(LESS, deopt);
       }
       __ SmiUntag(right);
@@ -2755,10 +2702,10 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Range* right_range = this->right()->definition()->range();
       if ((right_range == NULL) ||
           !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
-        __ cmpq(right, Immediate(kCountLimit));
+        __ CompareImmediate(right, Immediate(kCountLimit), PP);
         Label count_ok;
         __ j(LESS, &count_ok, Assembler::kNearJump);
-        __ movq(right, Immediate(kCountLimit));
+        __ LoadImmediate(right, Immediate(kCountLimit), PP);
         __ Bind(&count_ok);
       }
       ASSERT(right == RCX);  // Count must be in RCX
@@ -2886,7 +2833,8 @@ void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TryAllocate(compiler->double_class(),
                  slow_path->entry_label(),
                  Assembler::kFarJump,
-                 out_reg);
+                 out_reg,
+                 PP);
   __ Bind(slow_path->exit_label());
   __ movsd(FieldAddress(out_reg, Double::value_offset()), value);
 }
@@ -2988,7 +2936,8 @@ void BoxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TryAllocate(compiler->float32x4_class(),
                  slow_path->entry_label(),
                  Assembler::kFarJump,
-                 out_reg);
+                 out_reg,
+                 PP);
   __ Bind(slow_path->exit_label());
   __ movups(FieldAddress(out_reg, Float32x4::value_offset()), value);
 }
@@ -3073,7 +3022,8 @@ void BoxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TryAllocate(compiler->uint32x4_class(),
                  slow_path->entry_label(),
                  Assembler::kFarJump,
-                 out_reg);
+                 out_reg,
+                 PP);
   __ Bind(slow_path->exit_label());
   __ movups(FieldAddress(out_reg, Uint32x4::value_offset()), value);
 }
@@ -3243,7 +3193,7 @@ void Float32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister v2 = locs()->in(2).fpu_reg();
   XmmRegister v3 = locs()->in(3).fpu_reg();
   ASSERT(v0 == locs()->out().fpu_reg());
-  __ subq(RSP, Immediate(16));
+  __ AddImmediate(RSP, Immediate(-16), PP);
   __ cvtsd2ss(v0, v0);
   __ movss(Address(RSP, 0), v0);
   __ movsd(v0, v1);
@@ -3256,7 +3206,7 @@ void Float32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cvtsd2ss(v0, v0);
   __ movss(Address(RSP, 12), v0);
   __ movups(v0, Address(RSP, 0));
-  __ addq(RSP, Immediate(16));
+  __ AddImmediate(RSP, Immediate(16), PP);
 }
 
 
@@ -3501,47 +3451,47 @@ void Float32x4WithInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4WithX:
       __ cvtsd2ss(replacement, replacement);
-      __ subq(RSP, Immediate(16));
+      __ AddImmediate(RSP, Immediate(-16), PP);
       // Move value to stack.
       __ movups(Address(RSP, 0), value);
       // Write over X value.
       __ movss(Address(RSP, 0), replacement);
       // Move updated value into output register.
       __ movups(replacement, Address(RSP, 0));
-      __ addq(RSP, Immediate(16));
+      __ AddImmediate(RSP, Immediate(16), PP);
       break;
     case MethodRecognizer::kFloat32x4WithY:
       __ cvtsd2ss(replacement, replacement);
-      __ subq(RSP, Immediate(16));
+      __ AddImmediate(RSP, Immediate(-16), PP);
       // Move value to stack.
       __ movups(Address(RSP, 0), value);
       // Write over Y value.
       __ movss(Address(RSP, 4), replacement);
       // Move updated value into output register.
       __ movups(replacement, Address(RSP, 0));
-      __ addq(RSP, Immediate(16));
+      __ AddImmediate(RSP, Immediate(16), PP);
       break;
     case MethodRecognizer::kFloat32x4WithZ:
       __ cvtsd2ss(replacement, replacement);
-      __ subq(RSP, Immediate(16));
+      __ AddImmediate(RSP, Immediate(-16), PP);
       // Move value to stack.
       __ movups(Address(RSP, 0), value);
       // Write over Z value.
       __ movss(Address(RSP, 8), replacement);
       // Move updated value into output register.
       __ movups(replacement, Address(RSP, 0));
-      __ addq(RSP, Immediate(16));
+      __ AddImmediate(RSP, Immediate(16), PP);
       break;
     case MethodRecognizer::kFloat32x4WithW:
       __ cvtsd2ss(replacement, replacement);
-      __ subq(RSP, Immediate(16));
+      __ AddImmediate(RSP, Immediate(-16), PP);
       // Move value to stack.
       __ movups(Address(RSP, 0), value);
       // Write over W value.
       __ movss(Address(RSP, 12), replacement);
       // Move updated value into output register.
       __ movups(replacement, Address(RSP, 0));
-      __ addq(RSP, Immediate(16));
+      __ AddImmediate(RSP, Immediate(16), PP);
       break;
     default: UNREACHABLE();
   }
@@ -3629,46 +3579,46 @@ void Uint32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label y_false, y_done;
   Label z_false, z_done;
   Label w_false, w_done;
-  __ subq(RSP, Immediate(16));
+  __ AddImmediate(RSP, Immediate(-16), PP);
 
-  __ CompareObject(v0, Bool::True());
+  __ CompareObject(v0, Bool::True(), PP);
   __ j(NOT_EQUAL, &x_false);
-  __ movq(temp, Immediate(0xFFFFFFFF));
+  __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
   __ jmp(&x_done);
   __ Bind(&x_false);
-  __ movq(temp, Immediate(0x0));
+  __ LoadImmediate(temp, Immediate(0x0), PP);
   __ Bind(&x_done);
   __ movl(Address(RSP, 0), temp);
 
-  __ CompareObject(v1, Bool::True());
+  __ CompareObject(v1, Bool::True(), PP);
   __ j(NOT_EQUAL, &y_false);
-  __ movq(temp, Immediate(0xFFFFFFFF));
+  __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
   __ jmp(&y_done);
   __ Bind(&y_false);
-  __ movq(temp, Immediate(0x0));
+  __ LoadImmediate(temp, Immediate(0x0), PP);
   __ Bind(&y_done);
   __ movl(Address(RSP, 4), temp);
 
-  __ CompareObject(v2, Bool::True());
+  __ CompareObject(v2, Bool::True(), PP);
   __ j(NOT_EQUAL, &z_false);
-  __ movq(temp, Immediate(0xFFFFFFFF));
+  __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
   __ jmp(&z_done);
   __ Bind(&z_false);
-  __ movq(temp, Immediate(0x0));
+  __ LoadImmediate(temp, Immediate(0x0), PP);
   __ Bind(&z_done);
   __ movl(Address(RSP, 8), temp);
 
-  __ CompareObject(v3, Bool::True());
+  __ CompareObject(v3, Bool::True(), PP);
   __ j(NOT_EQUAL, &w_false);
-  __ movq(temp, Immediate(0xFFFFFFFF));
+  __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
   __ jmp(&w_done);
   __ Bind(&w_false);
-  __ movq(temp, Immediate(0x0));
+  __ LoadImmediate(temp, Immediate(0x0), PP);
   __ Bind(&w_done);
   __ movl(Address(RSP, 12), temp);
 
   __ movups(result, Address(RSP, 0));
-  __ addq(RSP, Immediate(16));
+  __ AddImmediate(RSP, Immediate(16), PP);
 }
 
 
@@ -3688,7 +3638,7 @@ void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
   Label done;
   Label non_zero;
-  __ subq(RSP, Immediate(16));
+  __ AddImmediate(RSP, Immediate(-16), PP);
   // Move value to stack.
   __ movups(Address(RSP, 0), value);
   switch (op_kind()) {
@@ -3706,7 +3656,7 @@ void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     default: UNREACHABLE();
   }
-  __ addq(RSP, Immediate(16));
+  __ AddImmediate(RSP, Immediate(16), PP);
   __ testl(result, result);
   __ j(NOT_ZERO, &non_zero, Assembler::kNearJump);
   __ LoadObject(result, Bool::False(), PP);
@@ -3769,43 +3719,43 @@ void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register flag = locs()->in(1).reg();
   Register temp = locs()->temp(0).reg();
   ASSERT(mask == locs()->out().fpu_reg());
-  __ subq(RSP, Immediate(16));
+  __ AddImmediate(RSP, Immediate(-16), PP);
   // Copy mask to stack.
   __ movups(Address(RSP, 0), mask);
   Label falsePath, exitPath;
-  __ CompareObject(flag, Bool::True());
+  __ CompareObject(flag, Bool::True(), PP);
   __ j(NOT_EQUAL, &falsePath);
   switch (op_kind()) {
     case MethodRecognizer::kUint32x4WithFlagX:
-      __ movq(temp, Immediate(0xFFFFFFFF));
+      __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
       __ movl(Address(RSP, 0), temp);
       __ jmp(&exitPath);
       __ Bind(&falsePath);
-      __ movq(temp, Immediate(0x0));
+      __ LoadImmediate(temp, Immediate(0x0), PP);
       __ movl(Address(RSP, 0), temp);
     break;
     case MethodRecognizer::kUint32x4WithFlagY:
-      __ movq(temp, Immediate(0xFFFFFFFF));
+      __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
       __ movl(Address(RSP, 4), temp);
       __ jmp(&exitPath);
       __ Bind(&falsePath);
-      __ movq(temp, Immediate(0x0));
+      __ LoadImmediate(temp, Immediate(0x0), PP);
       __ movl(Address(RSP, 4), temp);
     break;
     case MethodRecognizer::kUint32x4WithFlagZ:
-      __ movq(temp, Immediate(0xFFFFFFFF));
+      __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
       __ movl(Address(RSP, 8), temp);
       __ jmp(&exitPath);
       __ Bind(&falsePath);
-      __ movq(temp, Immediate(0x0));
+      __ LoadImmediate(temp, Immediate(0x0), PP);
       __ movl(Address(RSP, 8), temp);
     break;
     case MethodRecognizer::kUint32x4WithFlagW:
-      __ movq(temp, Immediate(0xFFFFFFFF));
+      __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
       __ movl(Address(RSP, 12), temp);
       __ jmp(&exitPath);
       __ Bind(&falsePath);
-      __ movq(temp, Immediate(0x0));
+      __ LoadImmediate(temp, Immediate(0x0), PP);
       __ movl(Address(RSP, 12), temp);
     break;
     default: UNREACHABLE();
@@ -3813,7 +3763,7 @@ void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&exitPath);
   // Copy mask back to register.
   __ movups(mask, Address(RSP, 0));
-  __ addq(RSP, Immediate(16));
+  __ AddImmediate(RSP, Immediate(16), PP);
 }
 
 
@@ -3936,7 +3886,8 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case Token::kBIT_NOT:
       __ notq(value);
-      __ andq(value, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
+      // Remove inverted smi-tag.
+      __ AndImmediate(value, Immediate(~kSmiTagMask), PP);
       break;
     default:
       UNREACHABLE();
@@ -4011,7 +3962,7 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ Bind(&returns_nan);
     static double kNaN = NAN;
-    __ movq(temp, Immediate(reinterpret_cast<intptr_t>(&kNaN)));
+    __ LoadImmediate(temp, Immediate(reinterpret_cast<intptr_t>(&kNaN)), PP);
     __ movsd(result, Address(temp, 0));
     __ jmp(&done, Assembler::kNearJump);
 
@@ -4337,7 +4288,7 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                           kDeoptCheckClass);
     __ CompareObject(locs()->in(0).reg(),
-                     Object::null_object());
+                     Object::null_object(), PP);
     __ j(EQUAL, deopt);
     return;
   }
@@ -4434,12 +4385,14 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (index_loc.IsConstant()) {
     Register length = length_loc.reg();
     const Smi& index = Smi::Cast(index_loc.constant());
-    __ cmpq(length, Immediate(reinterpret_cast<int64_t>(index.raw())));
+    __ CompareImmediate(
+        length, Immediate(reinterpret_cast<int64_t>(index.raw())), PP);
     __ j(BELOW_EQUAL, deopt);
   } else if (length_loc.IsConstant()) {
     const Smi& length = Smi::Cast(length_loc.constant());
     Register index = index_loc.reg();
-    __ cmpq(index, Immediate(reinterpret_cast<int64_t>(length.raw())));
+    __ CompareImmediate(
+        index, Immediate(reinterpret_cast<int64_t>(length.raw())), PP);
     __ j(ABOVE_EQUAL, deopt);
   } else {
     Register length = length_loc.reg();
@@ -4546,21 +4499,13 @@ void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
+    compiler->EmitEdgeCounter();
+    // The deoptimization descriptor points after the edge counter code for
+    // uniformity with ARM and MIPS, where we can reuse pattern matching
+    // code that matches backwards from the end of the pattern.
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id_,
                                    Scanner::kDummyTokenIndex);
-    // Add an edge counter.
-    const Array& counter = Array::ZoneHandle(Array::New(1, Heap::kOld));
-    counter.SetAt(0, Smi::Handle(Smi::New(0)));
-    Label done;
-    __ Comment("Edge counter");
-    __ LoadObject(RAX, counter, PP);
-    __ addq(FieldAddress(RAX, Array::element_offset(0)),
-            Immediate(Smi::RawValue(1)));
-    __ j(NO_OVERFLOW, &done);
-    __ movq(FieldAddress(RAX, Array::element_offset(0)),
-            Immediate(Smi::RawValue(Smi::kMaxValue)));
-    __ Bind(&done);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -4575,23 +4520,15 @@ LocationSummary* GotoInstr::MakeLocationSummary() const {
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
-    // Add deoptimization descriptor for deoptimizing instructions that may
-    // be inserted before this instruction.
+    compiler->EmitEdgeCounter();
+    // Add a deoptimization descriptor for deoptimizing instructions that
+    // may be inserted before this instruction.  This descriptor points
+    // after the edge counter for uniformity with ARM and MIPS, where we can
+    // reuse pattern matching that matches backwards from the end of the
+    // pattern.
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    GetDeoptId(),
-                                   0);  // No token position.
-    // Add an edge counter.
-    const Array& counter = Array::ZoneHandle(Array::New(1, Heap::kOld));
-    counter.SetAt(0, Smi::Handle(Smi::New(0)));
-    Label done;
-    __ Comment("Edge counter");
-    __ LoadObject(RAX, counter, PP);
-    __ addq(FieldAddress(RAX, Array::element_offset(0)),
-            Immediate(Smi::RawValue(1)));
-    __ j(NO_OVERFLOW, &done);
-    __ movq(FieldAddress(RAX, Array::element_offset(0)),
-            Immediate(Smi::RawValue(Smi::kMaxValue)));
-    __ Bind(&done);
+                                   Scanner::kDummyTokenIndex);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());

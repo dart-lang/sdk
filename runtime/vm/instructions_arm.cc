@@ -13,88 +13,99 @@
 namespace dart {
 
 CallPattern::CallPattern(uword pc, const Code& code)
-    : end_(reinterpret_cast<uword*>(pc)),
+    : object_pool_(Array::Handle(code.ObjectPool())),
+      end_(pc),
+      args_desc_load_end_(0),
+      ic_data_load_end_(0),
       target_address_pool_index_(-1),
-      args_desc_load_end_(-1),
       args_desc_(Array::Handle()),
-      ic_data_load_end_(-1),
-      ic_data_(ICData::Handle()),
-      object_pool_(Array::Handle(code.ObjectPool())) {
+      ic_data_(ICData::Handle()) {
   ASSERT(code.ContainsInstructionAt(pc));
-  ASSERT(Back(1) == 0xe12fff3e);  // Last instruction: blx lr
+  // Last instruction: blx lr.
+  ASSERT(*(reinterpret_cast<uword*>(end_) - 1) == 0xe12fff3e);
+
   Register reg;
   ic_data_load_end_ =
-      DecodeLoadWordFromPool(1, &reg, &target_address_pool_index_);
+      InstructionPattern::DecodeLoadWordFromPool(end_ - Instr::kInstrSize,
+                                                 &reg,
+                                                 &target_address_pool_index_);
   ASSERT(reg == LR);
 }
 
 
-uword CallPattern::Back(int n) const {
-  ASSERT(n > 0);
-  return *(end_ - n);
-}
-
-
-// Decodes a load sequence ending at end. Returns the register being loaded and
-// the loaded object.
-// Returns the location of the load sequence, counting the number of
-// instructions back from the end of the call pattern.
-int CallPattern::DecodeLoadObject(int end, Register* reg, Object* obj) {
-  ASSERT(end > 0);
-  uword instr = Back(end + 1);
-  if ((instr & 0xfff00000) == 0xe5900000) {  // ldr reg, [reg, #+offset]
-    int index = 0;
-    end = DecodeLoadWordFromPool(end, reg, &index);
-    *obj = object_pool_.At(index);
+// Decodes a load sequence ending at 'end' (the last instruction of the load
+// sequence is the instruction before the one at end).  Returns a pointer to
+// the first instruction in the sequence.  Returns the register being loaded
+// and the loaded object in the output parameters 'reg' and 'obj'
+// respectively.
+uword InstructionPattern::DecodeLoadObject(uword end,
+                                           const Array& object_pool,
+                                           Register* reg,
+                                           Object* obj) {
+  uword start = 0;
+  Instr* instr = Instr::At(end - Instr::kInstrSize);
+  if ((instr->InstructionBits() & 0xfff00000) == 0xe5900000) {
+    // ldr reg, [reg, #+offset]
+    intptr_t index = 0;
+    start = DecodeLoadWordFromPool(end, reg, &index);
+    *obj = object_pool.At(index);
   } else {
-    int value = 0;
-    end = DecodeLoadWordImmediate(end, reg, &value);
+    intptr_t value = 0;
+    start = DecodeLoadWordImmediate(end, reg, &value);
     *obj = reinterpret_cast<RawObject*>(value);
   }
-  return end;
+  return start;
 }
 
 
-// Decodes a load sequence ending at end. Returns the register being loaded and
-// the loaded immediate value.
-// Returns the location of the load sequence, counting the number of
-// instructions back from the end of the call pattern.
-int CallPattern::DecodeLoadWordImmediate(int end, Register* reg, int* value) {
-  ASSERT(end > 0);
-  uword instr = Back(++end);
-  int imm = 0;
+// Decodes a load sequence ending at 'end' (the last instruction of the load
+// sequence is the instruction before the one at end).  Returns a pointer to
+// the first instruction in the sequence.  Returns the register being loaded
+// and the loaded immediate value in the output parameters 'reg' and 'value'
+// respectively.
+uword InstructionPattern::DecodeLoadWordImmediate(uword end,
+                                                  Register* reg,
+                                                  intptr_t* value) {
+  uword start = end - Instr::kInstrSize;
+  int32_t instr = Instr::At(start)->InstructionBits();
+  intptr_t imm = 0;
   if ((instr & 0xfff00000) == 0xe3400000) {  // movt reg, #imm_hi
     imm |= (instr & 0xf0000) << 12;
     imm |= (instr & 0xfff) << 16;
-    instr = Back(++end);
+    start -= Instr::kInstrSize;
+    instr = Instr::At(start)->InstructionBits();
   }
   ASSERT((instr & 0xfff00000) == 0xe3000000);  // movw reg, #imm_lo
   imm |= (instr & 0xf0000) >> 4;
   imm |= instr & 0xfff;
   *reg = static_cast<Register>((instr & 0xf000) >> 12);
   *value = imm;
-  return end;
+  return start;
 }
 
 
-// Decodes a load sequence ending at end. Returns the register being loaded and
-// the index in the pool being read from.
-// Returns the location of the load sequence, counting the number of
-// instructions back from the end of the call pattern.
-int CallPattern::DecodeLoadWordFromPool(int end, Register* reg, int* index) {
-  ASSERT(end > 0);
-  uword instr = Back(++end);
-  int offset = 0;
+// Decodes a load sequence ending at 'end' (the last instruction of the load
+// sequence is the instruction before the one at end).  Returns a pointer to
+// the first instruction in the sequence.  Returns the register being loaded
+// and the index in the pool being read from in the output parameters 'reg'
+// and 'index' respectively.
+uword InstructionPattern::DecodeLoadWordFromPool(uword end,
+                                                 Register* reg,
+                                                 intptr_t* index) {
+  uword start = end - Instr::kInstrSize;
+  int32_t instr = Instr::At(start)->InstructionBits();
+  intptr_t offset = 0;
   if ((instr & 0xffff0000) == 0xe59a0000) {  // ldr reg, [pp, #+offset]
     offset = instr & 0xfff;
     *reg = static_cast<Register>((instr & 0xf000) >> 12);
   } else {
     ASSERT((instr & 0xfff00000) == 0xe5900000);  // ldr reg, [reg, #+offset]
     offset = instr & 0xfff;
-    instr = Back(++end);
+    start -= Instr::kInstrSize;
+    instr = Instr::At(start)->InstructionBits();
     if ((instr & 0xffff0000) == 0xe28a0000) {  // add reg, pp, shifter_op
-      const int rot = (instr & 0xf00) >> 7;
-      const int imm8 = instr & 0xff;
+      const intptr_t rot = (instr & 0xf00) >> 7;
+      const intptr_t imm8 = instr & 0xff;
       offset += (imm8 >> rot) | (imm8 << (32 - rot));
       *reg = static_cast<Register>((instr & 0xf000) >> 12);
     } else {
@@ -104,15 +115,19 @@ int CallPattern::DecodeLoadWordFromPool(int end, Register* reg, int* index) {
   }
   offset += kHeapObjectTag;
   ASSERT(Utils::IsAligned(offset, 4));
-  *index = (offset - Array::data_offset())/4;
-  return end;
+  *index = (offset - Array::data_offset()) / 4;
+  return start;
 }
 
 
 RawICData* CallPattern::IcData() {
   if (ic_data_.IsNull()) {
     Register reg;
-    args_desc_load_end_ = DecodeLoadObject(ic_data_load_end_, &reg, &ic_data_);
+    args_desc_load_end_ =
+        InstructionPattern::DecodeLoadObject(ic_data_load_end_,
+                                             object_pool_,
+                                             &reg,
+                                             &ic_data_);
     ASSERT(reg == R5);
   }
   return ic_data_.raw();
@@ -123,7 +138,10 @@ RawArray* CallPattern::ClosureArgumentsDescriptor() {
   if (args_desc_.IsNull()) {
     IcData();  // Loading of the ic_data must be decoded first, if not already.
     Register reg;
-    DecodeLoadObject(args_desc_load_end_, &reg, &args_desc_);
+    InstructionPattern::DecodeLoadObject(args_desc_load_end_,
+                                         object_pool_,
+                                         &reg,
+                                         &args_desc_);
     ASSERT(reg == R4);
   }
   return args_desc_.raw();
@@ -198,4 +216,3 @@ void JumpPattern::SetTargetAddress(uword target_address) const {
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM
-

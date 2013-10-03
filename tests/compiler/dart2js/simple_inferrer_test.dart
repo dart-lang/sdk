@@ -505,6 +505,39 @@ testSpecialization3() {
   return a;
 }
 
+testReturnNull1(a) {
+  if (a == null) return a;
+  return null;
+}
+
+testReturnNull2(a) {
+  if (a != null) return null;
+  return a;
+}
+
+testReturnNull3(a) {
+  if (a == null) return 42;
+  return a;
+}
+
+testReturnNull4() {
+  var a = topLeveGetter();
+  if (a == null) return a;
+  return null;
+}
+
+testReturnNull5() {
+  var a = topLeveGetter();
+  if (a != null) return null;
+  return a;
+}
+
+testReturnNull6() {
+  var a = topLeveGetter();
+  if (a == null) return 42;
+  return a;
+}
+
 testReturnInvokeDynamicGetter() => new A().myFactory();
 
 var topLevelConstList = const [42];
@@ -656,6 +689,12 @@ main() {
   testSpecialization1();
   testSpecialization2();
   testSpecialization3();
+  testReturnNull1(topLevelGetter());
+  testReturnNull2(topLevelGetter());
+  testReturnNull3(topLevelGetter());
+  testReturnNull4();
+  testReturnNull5();
+  testReturnNull6();
 }
 """;
 
@@ -692,7 +731,7 @@ void main() {
     checkReturn('returnInt8', typesTask.intType);
     checkReturn('returnEmpty1', const TypeMask.nonNullEmpty());
     checkReturn('returnEmpty2', const TypeMask.nonNullEmpty());
-    TypeMask intType = new TypeMask.nonNullSubtype(compiler.intClass.rawType);
+    TypeMask intType = new TypeMask.nonNullSubtype(compiler.intClass);
     checkReturn('testIsCheck1', intType);
     checkReturn('testIsCheck2', intType);
     checkReturn('testIsCheck3', intType.nullable());
@@ -725,7 +764,7 @@ void main() {
     checkReturn('testIf1', typesTask.intType.nullable());
     checkReturn('testIf2', typesTask.intType.nullable());
     checkReturn('returnAsString',
-        new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
+        new TypeMask.subtype(compiler.stringClass));
     checkReturn('returnIntAsNum', typesTask.intType);
     checkReturn('returnAsTypedef', typesTask.functionType.nullable());
     checkReturn('returnTopLevelGetter', typesTask.intType);
@@ -780,16 +819,22 @@ void main() {
     checkFactoryConstructor(String className, String factoryName) {
       var cls = findElement(compiler, className);
       var element = cls.localLookup(buildSourceString(factoryName));
-      Expect.equals(new TypeMask.nonNullExact(cls.rawType),
+      Expect.equals(new TypeMask.nonNullExact(cls),
                     typesInferrer.getReturnTypeOfElement(element));
     }
     checkFactoryConstructor('A', '');
 
     checkReturn('testCascade1', typesTask.growableListType);
     checkReturn('testCascade2', new TypeMask.nonNullExact(
-        findElement(compiler, 'CascadeHelper').rawType));
+        findElement(compiler, 'CascadeHelper')));
     checkReturn('testSpecialization1', typesTask.numType);
     checkReturn('testSpecialization2', typesTask.dynamicType);
     checkReturn('testSpecialization3', typesTask.intType.nullable());
+    checkReturn('testReturnNull1', typesTask.nullType);
+    checkReturn('testReturnNull2', typesTask.nullType);
+    checkReturn('testReturnNull3', typesTask.dynamicType);
+    checkReturn('testReturnNull4', typesTask.nullType);
+    checkReturn('testReturnNull5', typesTask.nullType);
+    checkReturn('testReturnNull6', typesTask.dynamicType);
   }));
 }

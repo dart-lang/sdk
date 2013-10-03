@@ -23,26 +23,19 @@
 namespace dart {
 namespace bin {
 
-SocketAddress::SocketAddress(struct sockaddr* sockaddr) {
+SocketAddress::SocketAddress(struct sockaddr* sa) {
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
-  RawAddr* raw = reinterpret_cast<RawAddr*>(sockaddr);
-  const char* result;
-  if (sockaddr->sa_family == AF_INET) {
-    result = inet_ntop(sockaddr->sa_family,
-                       &raw->in.sin_addr,
-                       as_string_,
-                       INET_ADDRSTRLEN);
-  } else {
-    ASSERT(sockaddr->sa_family == AF_INET6);
-    result = inet_ntop(sockaddr->sa_family,
-                       &raw->in6.sin6_addr,
-                       as_string_,
-                       INET6_ADDRSTRLEN);
+  socklen_t salen = GetAddrLength(reinterpret_cast<RawAddr*>(sa));
+  if (TEMP_FAILURE_RETRY(getnameinfo(sa,
+                                     salen,
+                                     as_string_,
+                                     INET6_ADDRSTRLEN,
+                                     NULL,
+                                     0,
+                                     NI_NUMERICHOST)) != 0) {
+    as_string_[0] = 0;
   }
-  if (result == NULL) as_string_[0] = 0;
-  memmove(reinterpret_cast<void *>(&addr_),
-          sockaddr,
-          GetAddrLength(raw));
+  memmove(reinterpret_cast<void *>(&addr_), sa, salen);
 }
 
 
@@ -158,20 +151,17 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
     Log::PrintErr("Error getpeername: %s\n", error_message);
     return false;
   }
-  const void* src;
-  if (raw.ss.ss_family == AF_INET6) {
-    src = reinterpret_cast<const void*>(&raw.in6.sin6_addr);
-  } else {
-    src = reinterpret_cast<const void*>(&raw.in.sin_addr);
-  }
-  if (inet_ntop(raw.ss.ss_family,
-                src,
-                host,
-                INET_ADDRSTRLEN) == NULL) {
+  if (TEMP_FAILURE_RETRY(getnameinfo(&raw.addr,
+                                     size,
+                                     host,
+                                     INET6_ADDRSTRLEN,
+                                     NULL,
+                                     0,
+                                     NI_NUMERICHOST)) != 0) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
     strerror_r(errno, error_message, kBufferSize);
-    Log::PrintErr("Error inet_ntop: %s\n", error_message);
+    Log::PrintErr("Error getnameinfo: %s\n", error_message);
     return false;
   }
   *port = SocketAddress::GetAddrPort(&raw);

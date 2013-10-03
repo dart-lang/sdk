@@ -46,11 +46,7 @@ void main() {
 /// them (with [configuration] if it's non-null), and return them.
 Iterable<Transformer> initialize(Uri uri, Map configuration) {
   var mirrors = currentMirrorSystem();
-  // TODO(nweiz): look this up by name once issue 5897 is fixed.
-  var transformerUri = Uri.parse(
-      'http://<<HOST_AND_PORT>>/packages/barback/src/transformer.dart');
-  var transformerClass = mirrors.libraries[transformerUri]
-      .classes[const Symbol('Transformer')];
+  var transformerClass = reflectClass(Transformer);
 
   // TODO(nweiz): if no valid transformers are found, throw an error message
   // describing candidates and why they were rejected.
@@ -289,7 +285,7 @@ Future<Set<Transformer>> loadTransformers(BarbackServer server,
     TransformerId id) {
   var path = id.asset.path.replaceFirst('lib/', '');
   // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
-  var hostAndPort = '${server.host}:${server.port}';
+  var hostAndPort = '${server.address.address}:${server.port}';
   var uri = 'http://$hostAndPort/packages/${id.asset.package}/$path';
   var code = 'import "$uri";' +
       _TRANSFORMER_ISOLATE.replaceAll('<<HOST_AND_PORT>>', hostAndPort);

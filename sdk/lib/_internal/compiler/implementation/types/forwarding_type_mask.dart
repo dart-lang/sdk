@@ -54,7 +54,7 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.satisfies(cls, compiler);
   }
 
-  bool contains(DartType type, Compiler compiler) {
+  bool contains(ClassElement type, Compiler compiler) {
     return forwardTo.contains(type, compiler);
   }
 

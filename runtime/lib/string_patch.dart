@@ -30,9 +30,9 @@ class _StringBase {
     if (charCodes != null) {
       // TODO(srdjan): Also skip copying of typed arrays.
       final ccid = charCodes._cid;
-      if ((ccid != _ObjectArray._classId) &&
-          (ccid != _GrowableObjectArray._classId) &&
-          (ccid != _ImmutableArray._classId)) {
+      if ((ccid != _List._classId) &&
+          (ccid != _GrowableList._classId) &&
+          (ccid != _ImmutableList._classId)) {
         charCodes = new List<int>.from(charCodes, growable: false);
       }
 
@@ -395,9 +395,9 @@ class _StringBase {
    * Convert all objects in [values] to strings and concat them
    * into a result string.
    */
-  static String _interpolate(List values) {
+  static String _interpolate(List<String> values) {
     final int numValues = values.length;
-    _ObjectArray stringList = new List(numValues);
+    _List stringList = new List<String>(numValues);
     bool isOneByteString = true;
     int totalLength = 0;
     for (int i = 0; i < numValues; i++) {
@@ -406,13 +406,16 @@ class _StringBase {
         totalLength += s.length;
       } else {
         isOneByteString = false;
+        if (s is! String) {
+          throw new ArgumentError(s);
+        }
       }
       stringList[i] = s;
     }
     if (isOneByteString) {
       return _OneByteString._concatAll(stringList, totalLength);
     }
-    return _concatAllNative(stringList);
+    return _concatAllNative(stringList, 0, stringList.length);
   }
 
   Iterable<Match> allMatches(String str) {
@@ -497,8 +500,9 @@ class _StringBase {
 
   String toLowerCase() native "String_toLowerCase";
 
-  // Call this method if not all list elements are OneByteString-s.
-  static String _concatAllNative(_ObjectArray<String> strings)
+  // Call this method if not all list elements are known to be OneByteString(s).
+  // 'strings' must be an _List or _GrowableList.
+  static String _concatAllNative(List<String> strings, int start, int end)
       native "Strings_concatAll";
 }
 
@@ -531,11 +535,11 @@ class _OneByteString extends _StringBase implements String {
   }
 
   // All element of 'strings' must be OneByteStrings.
-  static _concatAll(_ObjectArray<String> strings, int totalLength) {
+  static _concatAll(_List<String> strings, int totalLength) {
     // TODO(srdjan): Improve code below and raise or eliminate the limit.
     if (totalLength > 128) {
       // Native is quicker.
-      return _StringBase._concatAllNative(strings);
+      return _StringBase._concatAllNative(strings, 0, strings.length);
     }
     var res = _OneByteString._allocate(totalLength);
     final stringsLength = strings.length;

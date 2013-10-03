@@ -5,7 +5,8 @@
 patch class _Directory {
   /* patch */ static _current() native "Directory_Current";
   /* patch */ static _setCurrent(path) native "Directory_SetCurrent";
-  /* patch */ static _createTemp(String template) native "Directory_CreateTemp";
+  /* patch */ static _createTemp(String template, bool system)
+      native "Directory_CreateTemp";
   /* patch */ static int _exists(String path) native "Directory_Exists";
   /* patch */ static _create(String path) native "Directory_Create";
   /* patch */ static _deleteNative(String path, bool recursive)

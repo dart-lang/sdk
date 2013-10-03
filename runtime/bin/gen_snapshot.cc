@@ -143,8 +143,8 @@ static int ParseArguments(int argc,
 static void WriteSnapshotFile(const uint8_t* buffer, const intptr_t size) {
   File* file = File::Open(snapshot_filename, File::kWriteTruncate);
   ASSERT(file != NULL);
-  for (intptr_t i = 0; i < size; i++) {
-    file->WriteByte(buffer[i]);
+  if (!file->WriteFully(buffer, size)) {
+    Log::PrintErr("Error: Failed to write full snapshot.\n\n");
   }
   delete file;
 }

@@ -899,6 +899,7 @@ class ElementListener extends Listener {
     TypeAnnotation bound = popNode();
     Identifier name = popNode();
     pushNode(new TypeVariable(name, bound));
+    rejectBuiltInIdentifier(name);
   }
 
   void endTypeVariables(int count, Token beginToken, Token endToken) {

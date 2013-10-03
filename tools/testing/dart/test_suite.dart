@@ -712,6 +712,7 @@ class StandardTestSuite extends TestSuite {
       enqueueStandardTest(info, testName, expectations);
     } else if (TestUtils.isBrowserRuntime(configuration['runtime'])) {
       bool isWrappingRequired = configuration['compiler'] != 'dart2js';
+
       if (info.optionsFromFile['isMultiHtmlTest']) {
         // A browser multi-test has multiple expectations for one test file.
         // Find all the different sub-test expecations for one entire test file.
@@ -917,14 +918,25 @@ class StandardTestSuite extends TestSuite {
     return url;
   }
 
-  void _createWrapperFile(String dartWrapperFilename, dartLibraryFilename) {
+  void _createWrapperFile(String dartWrapperFilename,
+                          Path dartLibraryFilename,
+                          {bool useUnittestWrapper: false}) {
     File file = new File(dartWrapperFilename);
     RandomAccessFile dartWrapper = file.openSync(mode: FileMode.WRITE);
 
     var usePackageImport = dartLibraryFilename.segments().contains("pkg");
     var libraryPathComponent = _createUrlPathFromFile(dartLibraryFilename);
-    dartWrapper.writeStringSync(dartTestWrapper(usePackageImport,
-                                                libraryPathComponent));
+    var generatedSource;
+    if (useUnittestWrapper) {
+      // FIXME(kustermann): This is broken, we can't do unittest-based wrapping
+      // of tests (e.g. async operations are not wrapped in expectAsync()).
+      generatedSource = dartUnittestWrapper(usePackageImport,
+                                            libraryPathComponent);
+    } else {
+      generatedSource = dartTestWrapper(libraryPathComponent);
+    }
+
+    dartWrapper.writeStringSync(generatedSource);
     dartWrapper.closeSync();
   }
 
@@ -987,7 +999,6 @@ class StandardTestSuite extends TestSuite {
       // Use existing HTML document if available.
       String htmlPath;
       if (customHtml.existsSync()) {
-
         // If necessary, run the Polymer deploy steps.
         // TODO(jmesserly): this should be generalized for any tests that
         // require Pub deploy, not just polymer.
@@ -1028,7 +1039,13 @@ class StandardTestSuite extends TestSuite {
         htmlPath = '$tempDir/test.html';
         if (isWrappingRequired && !isWebTest) {
           // test.dart will import the dart test.
-          _createWrapperFile(dartWrapperFilename, filePath);
+          if (configuration['use_browser_controller'] &&
+              configuration['runtime'] == 'dartium') {
+            _createWrapperFile(dartWrapperFilename, filePath);
+          } else {
+            _createWrapperFile(
+                dartWrapperFilename, filePath, useUnittestWrapper: true);
+          }
         } else {
           dartWrapperFilename = filename;
         }

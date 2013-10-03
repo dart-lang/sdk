@@ -7,14 +7,16 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
 import '../utils.dart';
+import 'dart:mirrors';
 
 class A extends HtmlElement {
   static final tag = 'x-a';
   factory A() => new Element.tag(tag);
+  A.created() : super.created();
 
   static int ncallbacks = 0;
 
-  void created() {
+  void createdCallback() {
     ncallbacks++;
   }
 }

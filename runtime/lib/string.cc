@@ -15,9 +15,7 @@ namespace dart {
 DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, list, arguments->NativeArgAt(0));
   if (!list.IsGrowableObjectArray() && !list.IsArray()) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, list);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    Exceptions::ThrowArgumentError(list);
   }
 
   Array& a = Array::Handle();
@@ -37,13 +35,11 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
   bool is_one_byte_string = true;
   intptr_t utf16_len = array_len;
   int32_t* utf32_array = zone->Alloc<int32_t>(array_len);
-  Object& index_object = Object::Handle(isolate);
+  Instance& index_object = Instance::Handle(isolate);
   for (intptr_t i = 0; i < array_len; i++) {
-    index_object = a.At(i);
+    index_object ^= a.At(i);
     if (!index_object.IsSmi()) {
-      const Array& args = Array::Handle(Array::New(1));
-      args.SetAt(0, index_object);
-      Exceptions::ThrowByType(Exceptions::kArgument, args);
+      Exceptions::ThrowArgumentError(index_object);
     }
     intptr_t value = Smi::Cast(index_object).Value();
     if (Utf::IsOutOfRange(value)) {
@@ -214,20 +210,39 @@ DEFINE_NATIVE_ENTRY(String_toUpperCase, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Strings_concatAll, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, strings, arguments->NativeArgAt(0));
-  ASSERT(!strings.IsNull());
+DEFINE_NATIVE_ENTRY(Strings_concatAll, 3) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, argument, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, start, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, end, arguments->NativeArgAt(2));
+  const intptr_t start_ix = start.Value();
+  const intptr_t end_ix = end.Value();
+  if (start_ix < 0) {
+    Exceptions::ThrowArgumentError(start);
+  }
+  Array& strings = Array::Handle();
+  intptr_t length = -1;
+  if (argument.IsArray()) {
+    strings ^= argument.raw();
+    length = strings.Length();
+  } else if (argument.IsGrowableObjectArray()) {
+    const GrowableObjectArray& g_array = GrowableObjectArray::Cast(argument);
+    strings = g_array.data();
+    length =  g_array.Length();
+  } else {
+    Exceptions::ThrowArgumentError(argument);
+  }
+  if (end_ix > length) {
+    Exceptions::ThrowArgumentError(end);
+  }
+#if defined(DEBUG)
   // Check that the array contains strings.
   Instance& elem = Instance::Handle();
-  for (intptr_t i = 0; i < strings.Length(); i++) {
+  for (intptr_t i = start_ix; i < end_ix; i++) {
     elem ^= strings.At(i);
-    if (!elem.IsString()) {
-      const Array& args = Array::Handle(Array::New(1));
-      args.SetAt(0, elem);
-      Exceptions::ThrowByType(Exceptions::kArgument, args);
-    }
+    ASSERT(elem.IsString());
   }
-  return String::ConcatAll(strings);
+#endif
+  return String::ConcatAllRange(strings, start_ix, end_ix, Heap::kNew);
 }
 
 

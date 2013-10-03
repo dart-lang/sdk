@@ -116,12 +116,12 @@ class ObjectPointerVisitor;
   V(_Bigint, "_Bigint")                                                        \
   V(_Double, "_Double")                                                        \
   V(Bool, "bool")                                                              \
-  V(ObjectArray, "_ObjectArray")                                               \
-  V(ObjectArrayFactory, "_ObjectArray.")                                       \
-  V(GrowableObjectArray, "_GrowableObjectArray")                               \
-  V(GrowableObjectArrayFactory, "_GrowableObjectArray.")                       \
-  V(GrowableObjectArrayWithData, "_GrowableObjectArray.withData")              \
-  V(ImmutableArray, "_ImmutableArray")                                         \
+  V(_List, "_List")                                                            \
+  V(_ListFactory, "_List.")                                                    \
+  V(_GrowableList, "_GrowableList")                                            \
+  V(_GrowableListFactory, "_GrowableList.")                                    \
+  V(_GrowableListWithData, "_GrowableList.withData")                           \
+  V(_ImmutableList, "_ImmutableList")                                          \
   V(OneByteString, "_OneByteString")                                           \
   V(TwoByteString, "_TwoByteString")                                           \
   V(ExternalOneByteString, "_ExternalOneByteString")                           \

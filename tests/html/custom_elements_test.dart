@@ -19,8 +19,10 @@ class CustomMixin {
 
 class CustomType extends HtmlElement with CustomMixin{
   factory CustomType() => null;
+  CustomType.created(): super.created();
+
   bool createdCalled; // = false;
-  void created() {
+  void createdCallback() {
     createdCalled = true;
     customCreatedCount++;
   }

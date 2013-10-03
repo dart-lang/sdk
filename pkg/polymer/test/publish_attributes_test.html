@@ -1,0 +1,29 @@
+<!doctype html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>publish attributes</title>
+    <script src="packages/polymer/boot.js"></script>
+    <script src="packages/unittest/test_controller.js"></script>
+  </head>
+  <body>
+
+    <polymer-element name="x-foo" attributes="Foo baz">
+    </polymer-element>
+
+    <polymer-element name="x-bar" extends="x-foo" attributes="Bar">
+    </polymer-element>
+
+    <polymer-element name="x-zot" extends="x-bar">
+    </polymer-element>
+
+    <polymer-element name="x-squid" extends="x-zot" attributes="squid">
+    </polymer-element>
+
+  <script type="application/dart" src="publish_attributes_test.dart"></script>
+  </body>
+</html>

@@ -38,9 +38,7 @@ static void LengthCheck(intptr_t len, intptr_t max) {
     const String& error = String::Handle(String::NewFormatted(
         "Length (%" Pd ") of object must be in range [0..%" Pd "]",
         len, max));
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, error);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    Exceptions::ThrowArgumentError(error);
   }
 }
 
@@ -63,9 +61,7 @@ DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
   }
   const String& error = String::Handle(String::NewFormatted(
       "Expected a TypedData object but found %s", instance.ToCString()));
-  const Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, error);
-  Exceptions::ThrowByType(Exceptions::kArgument, args);
+  Exceptions::ThrowArgumentError(error);
   return Integer::null();
 }
 
@@ -107,9 +103,7 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 5) {
   if (length.Value() < 0) {
     const String& error = String::Handle(String::NewFormatted(
         "length (%" Pd ") must be non-negative", length.Value()));
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, error);
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
+    Exceptions::ThrowArgumentError(error);
   }
   if (dst.IsTypedData()) {
     if (src.IsTypedData()) {
@@ -193,9 +187,7 @@ DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
   }                                                                            \
   const String& error = String::Handle(String::NewFormatted(                   \
       "Expected a TypedData object but found %s", instance.ToCString()));      \
-  const Array& args = Array::Handle(Array::New(1));                            \
-  args.SetAt(0, error);                                                        \
-  Exceptions::ThrowByType(Exceptions::kArgument, args);                        \
+  Exceptions::ThrowArgumentError(error);                                       \
   return object::null();                                                       \
 }                                                                              \
 
@@ -218,9 +210,7 @@ DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
   } else {                                                                     \
     const String& error = String::Handle(String::NewFormatted(                 \
         "Expected a TypedData object but found %s", instance.ToCString()));    \
-    const Array& args = Array::Handle(Array::New(1));                          \
-    args.SetAt(0, error);                                                      \
-    Exceptions::ThrowByType(Exceptions::kArgument, args);                      \
+    Exceptions::ThrowArgumentError(error);                                     \
   }                                                                            \
   return Object::null();                                                       \
 }
@@ -242,9 +232,7 @@ DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
   } else {                                                                     \
     const String& error = String::Handle(String::NewFormatted(                 \
         "Expected a TypedData object but found %s", instance.ToCString()));    \
-    const Array& args = Array::Handle(Array::New(1));                          \
-    args.SetAt(0, error);                                                      \
-    Exceptions::ThrowByType(Exceptions::kArgument, args);                      \
+    Exceptions::ThrowArgumentError(error);                                     \
   }                                                                            \
   return Integer::NewFromUint64(value);                                        \
 }                                                                              \
@@ -277,9 +265,7 @@ DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
   } else {                                                                     \
     const String& error = String::Handle(String::NewFormatted(                 \
         "Expected a TypedData object but found %s", instance.ToCString()));    \
-    const Array& args = Array::Handle(Array::New(1));                          \
-    args.SetAt(0, error);                                                      \
-    Exceptions::ThrowByType(Exceptions::kArgument, args);                      \
+    Exceptions::ThrowArgumentError(error);                                     \
   }                                                                            \
   return Object::null();                                                       \
 }

@@ -518,7 +518,7 @@ void testIntersection(MockCompiler compiler) {
   rule(jsIndexable, nonPrimitive1, CONFLICTING);
   rule(jsIndexable, nonPrimitive2, CONFLICTING);
   rule(jsIndexable, potentialArray, new HType.nonNullSubtype(
-      compiler.backend.jsArrayClass.computeType(compiler), compiler));
+      compiler.backend.jsArrayClass, compiler));
   rule(jsIndexable, potentialString, jsString);
   rule(jsIndexable, BOOLEAN_OR_NULL, CONFLICTING);
   rule(jsIndexable, NUMBER_OR_NULL, CONFLICTING);
@@ -668,7 +668,7 @@ void testIntersection(MockCompiler compiler) {
 
 void testRegressions(MockCompiler compiler) {
   HType nonNullPotentialString = new HType.nonNullSubtype(
-      patternClass.computeType(compiler), compiler);
+      patternClass, compiler);
   Expect.equals(
       potentialString, jsStringOrNull.union(nonNullPotentialString, compiler));
 }
@@ -690,41 +690,41 @@ void main() {
   patternClass = compiler.coreLibrary.find(buildSourceString('Pattern'));
 
   nonPrimitive1 = new HType.nonNullSubtype(
-      compiler.mapClass.computeType(compiler), compiler);
+      compiler.mapClass, compiler);
   nonPrimitive2 = new HType.nonNullSubtype(
-      compiler.functionClass.computeType(compiler), compiler);
+      compiler.functionClass, compiler);
   potentialArray = new HType.subtype(
-      compiler.listClass.computeType(compiler), compiler);
+      compiler.listClass, compiler);
   potentialString = new HType.subtype(
-      patternClass.computeType(compiler), compiler);
+      patternClass, compiler);
   jsInterceptor = new HType.nonNullSubclass(
-      compiler.backend.jsInterceptorClass.computeType(compiler), compiler);
+      compiler.backend.jsInterceptorClass, compiler);
   jsArrayOrNull = new HType.subclass(
-      compiler.backend.jsArrayClass.computeType(compiler), compiler);
+      compiler.backend.jsArrayClass, compiler);
   jsReadableArray = new HType.nonNullSubclass(
-      compiler.backend.jsArrayClass.computeType(compiler), compiler);
+      compiler.backend.jsArrayClass, compiler);
   jsMutableArrayOrNull = new HType.subclass(
-      compiler.backend.jsMutableArrayClass.computeType(compiler), compiler);
+      compiler.backend.jsMutableArrayClass, compiler);
   jsMutableArray = new HType.nonNullSubclass(
-      compiler.backend.jsMutableArrayClass.computeType(compiler), compiler);
+      compiler.backend.jsMutableArrayClass, compiler);
   jsFixedArrayOrNull = new HType.exact(
-      compiler.backend.jsFixedArrayClass.computeType(compiler), compiler);
+      compiler.backend.jsFixedArrayClass, compiler);
   jsFixedArray = new HType.nonNullExact(
-      compiler.backend.jsFixedArrayClass.computeType(compiler), compiler);
+      compiler.backend.jsFixedArrayClass, compiler);
   jsExtendableArrayOrNull = new HType.exact(
-      compiler.backend.jsExtendableArrayClass.computeType(compiler), compiler);
+      compiler.backend.jsExtendableArrayClass, compiler);
   jsExtendableArray = new HType.nonNullExact(
-      compiler.backend.jsExtendableArrayClass.computeType(compiler), compiler);
+      compiler.backend.jsExtendableArrayClass, compiler);
   jsIndexableOrNull = new HType.subtype(
-      compiler.backend.jsIndexableClass.computeType(compiler), compiler);
+      compiler.backend.jsIndexableClass, compiler);
   jsIndexable = new HType.nonNullSubtype(
-      compiler.backend.jsIndexableClass.computeType(compiler), compiler);
+      compiler.backend.jsIndexableClass, compiler);
   jsInterceptorOrNull = new HType.subclass(
-      compiler.backend.jsInterceptorClass.computeType(compiler), compiler);
+      compiler.backend.jsInterceptorClass, compiler);
   jsStringOrNull = new HType.exact(
-      compiler.backend.jsStringClass.computeType(compiler), compiler);
+      compiler.backend.jsStringClass, compiler);
   jsString = new HType.nonNullExact(
-      compiler.backend.jsStringClass.computeType(compiler), compiler);
+      compiler.backend.jsStringClass, compiler);
 
   testUnion(compiler);
   testIntersection(compiler);

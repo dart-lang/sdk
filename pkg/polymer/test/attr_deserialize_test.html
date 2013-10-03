@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>Polymer.dart attribute deserialization test</title>
+    <script src="packages/polymer/boot.js"></script>
+    <script src="packages/unittest/test_controller.js"></script>
+  </head>
+  <body>
+    <polymer-element name="my-element">
+      <template>
+        <h1>{{msg}} The volume is {{volume * factor}}
+          <template if="{{crankIt}}">!!</template></h1>
+        <h3>The time is {{time}} and here's some JSON: {{json}}</h3>
+      </template>
+    </polymer-element>
+
+    <my-element volume="11" crankit msg="Yo!" factor="3"
+        time="2013-08-08T18:34Z"
+        json="{'here': 'is', 'some': 'json', 'x': 123}">
+    </my-element>
+
+    <script type="application/dart" src="attr_deserialize_test.dart"></script>
+  </body>
+</html>

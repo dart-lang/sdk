@@ -219,10 +219,8 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsFixed, 2) {
       && kLowerBoundary < d && d < kUpperBoundary) {
     return DoubleToStringAsFixed(d, static_cast<int>(fraction_digits_value));
   } else {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, String::Handle(
+    Exceptions::ThrowArgumentError(String::Handle(
         String::New("Illegal arguments to double.toStringAsFixed")));
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
     return Object::null();
   }
 }
@@ -237,10 +235,8 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsExponential, 2) {
     return DoubleToStringAsExponential(
         d, static_cast<int>(fraction_digits_value));
   } else {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, String::Handle(
+    Exceptions::ThrowArgumentError(String::Handle(
         String::New("Illegal arguments to double.toStringAsExponential")));
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
     return Object::null();
   }
 }
@@ -254,10 +250,8 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsPrecision, 2) {
   if (1 <= precision_value && precision_value <= 21) {
     return DoubleToStringAsPrecision(d, static_cast<int>(precision_value));
   } else {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, String::Handle(
+    Exceptions::ThrowArgumentError(String::Handle(
         String::New("Illegal arguments to double.toStringAsPrecision")));
-    Exceptions::ThrowByType(Exceptions::kArgument, args);
     return Object::null();
   }
 }

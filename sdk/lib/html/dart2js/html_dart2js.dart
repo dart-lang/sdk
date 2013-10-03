@@ -88,7 +88,19 @@ ElementList queryAll(String selector) => document.queryAll(selector);
 // Dart issue 1990.
 class HtmlElement extends Element native "HTMLElement" {
   factory HtmlElement() { throw new UnsupportedError("Not supported"); }
+
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  HtmlElement.created() : super.created();
 }
+
+// EntryArray type was removed, so explicitly adding it to allow support for
+// older Chrome versions.
+// Issue #12573.
+abstract class _EntryArray implements List<Entry> native "EntryArray" {}
 
 // Support for Send/ReceivePortSync.
 int _getNewIsolateId() {
@@ -186,6 +198,12 @@ class AnchorElement extends HtmlElement native "HTMLAnchorElement" {
     if (href != null) e.href = href;
     return e;
   }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  AnchorElement.created() : super.created();
 
   @DomName('HTMLAnchorElement.download')
   @DocsEditable()
@@ -431,6 +449,12 @@ class AreaElement extends HtmlElement native "HTMLAreaElement" {
   @DomName('HTMLAreaElement.HTMLAreaElement')
   @DocsEditable()
   factory AreaElement() => document.createElement("area");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  AreaElement.created() : super.created();
 
   @DomName('HTMLAreaElement.alt')
   @DocsEditable()
@@ -507,6 +531,12 @@ class AudioElement extends MediaElement native "HTMLAudioElement" {
   }
   static AudioElement _create_1(src) => JS('AudioElement', 'new Audio(#)', src);
   static AudioElement _create_2() => JS('AudioElement', 'new Audio()');
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  AudioElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -539,6 +569,12 @@ class BRElement extends HtmlElement native "HTMLBRElement" {
   @DomName('HTMLBRElement.HTMLBRElement')
   @DocsEditable()
   factory BRElement() => document.createElement("br");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  BRElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -569,6 +605,12 @@ class BaseElement extends HtmlElement native "HTMLBaseElement" {
   @DomName('HTMLBaseElement.HTMLBaseElement')
   @DocsEditable()
   factory BaseElement() => document.createElement("base");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  BaseElement.created() : super.created();
 
   @DomName('HTMLBaseElement.href')
   @DocsEditable()
@@ -696,6 +738,12 @@ class BodyElement extends HtmlElement native "HTMLBodyElement" {
   @DomName('HTMLBodyElement.HTMLBodyElement')
   @DocsEditable()
   factory BodyElement() => document.createElement("body");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  BodyElement.created() : super.created();
 
   @DomName('HTMLBodyElement.onblur')
   @DocsEditable()
@@ -759,6 +807,12 @@ class ButtonElement extends HtmlElement native "HTMLButtonElement" {
   @DomName('HTMLButtonElement.HTMLButtonElement')
   @DocsEditable()
   factory ButtonElement() => document.createElement("button");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  ButtonElement.created() : super.created();
 
   @DomName('HTMLButtonElement.autofocus')
   @DocsEditable()
@@ -885,6 +939,12 @@ class CanvasElement extends HtmlElement implements CanvasImageSource native "HTM
     if (height != null) e.height = height;
     return e;
   }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  CanvasElement.created() : super.created();
 
   /// The height of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.height')
@@ -1974,6 +2034,12 @@ class ContentElement extends HtmlElement native "HTMLContentElement" {
   @DomName('HTMLContentElement.HTMLContentElement')
   @DocsEditable()
   factory ContentElement() => document.createElement("content");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  ContentElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('content');
@@ -6316,6 +6382,12 @@ class DListElement extends HtmlElement native "HTMLDListElement" {
   @DomName('HTMLDListElement.HTMLDListElement')
   @DocsEditable()
   factory DListElement() => document.createElement("dl");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  DListElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6335,6 +6407,12 @@ class DataListElement extends HtmlElement native "HTMLDataListElement" {
   @DomName('HTMLDataListElement.HTMLDataListElement')
   @DocsEditable()
   factory DataListElement() => document.createElement("datalist");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  DataListElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('datalist');
@@ -6550,6 +6628,12 @@ class DetailsElement extends HtmlElement native "HTMLDetailsElement" {
   @DomName('HTMLDetailsElement.HTMLDetailsElement')
   @DocsEditable()
   factory DetailsElement() => document.createElement("details");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  DetailsElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('details');
@@ -6687,6 +6771,12 @@ class DeviceRotationRate extends Interceptor native "DeviceRotationRate" {
 class DialogElement extends HtmlElement native "HTMLDialogElement" {
   // To suppress missing implicit constructor warnings.
   factory DialogElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  DialogElement.created() : super.created();
 
   @DomName('HTMLDialogElement.open')
   @DocsEditable()
@@ -6941,6 +7031,12 @@ class DivElement extends HtmlElement native "HTMLDivElement" {
   @DomName('HTMLDivElement.HTMLDivElement')
   @DocsEditable()
   factory DivElement() => document.createElement("div");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  DivElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7602,7 +7698,6 @@ class Document extends Node  native "Document"
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockerror
   @Experimental()
   Stream<Event> get onPointerLockError => pointerLockErrorEvent.forTarget(this);
-
 
   /**
    * Finds all descendant elements of this document that match the specified
@@ -8805,6 +8900,30 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   }
 
   /**
+   * Custom element creation constructor.
+   *
+   * This constructor is used by the DOM when a custom element has been
+   * created. It can only be invoked by subclasses of Element from
+   * that classes created constructor.
+   *
+   *     class CustomElement extends Element {
+   *       factory CustomElement() => new Element.tag('x-custom');
+   *
+   *       CustomElement.created() : super.created() {
+   *          // Perform any element initialization.
+   *       }
+   *     }
+   *     document.register('x-custom', CustomElement);
+   */
+  Element.created() : super._created() {
+    // Validate that this is a custom element & perform any additional
+    // initialization.
+    _initializeCustomElement(this);
+
+    createdCallback();
+  }
+
+  /**
    * Creates the HTML element specified by the tag name.
    *
    * This is similar to [Document.createElement].
@@ -9147,9 +9266,12 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
 
   /**
    * Called by the DOM when this element has been instantiated.
+   *
+   * Will be replaced by created constructor.
    */
   @Experimental()
-  void created() {}
+  @deprecated
+  void createdCallback() {}
 
   /**
    * Called by the DOM when this element has been inserted into the live
@@ -9164,6 +9286,11 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    */
   @Experimental()
   void leftView() {}
+
+  /**
+   * Called by the DOM whenever an attribute on this has been changed.
+   */
+  void attributeChanged(String name, String oldValue, String newValue) {}
 
   // Hooks to support custom WebComponents.
 
@@ -10658,6 +10785,12 @@ class EmbedElement extends HtmlElement native "HTMLEmbedElement" {
   @DomName('HTMLEmbedElement.HTMLEmbedElement')
   @DocsEditable()
   factory EmbedElement() => document.createElement("embed");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  EmbedElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('embed');
@@ -11259,6 +11392,9 @@ class Events {
 @DomName('EventTarget')
 class EventTarget extends Interceptor native "EventTarget" {
 
+  // Custom element created callback.
+  EventTarget._created();
+
   /**
    * This is an ease-of-use accessor for event streams which should only be
    * used when an explicit accessor is not available.
@@ -11297,6 +11433,12 @@ class FieldSetElement extends HtmlElement native "HTMLFieldSetElement" {
   @DomName('HTMLFieldSetElement.HTMLFieldSetElement')
   @DocsEditable()
   factory FieldSetElement() => document.createElement("fieldset");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  FieldSetElement.created() : super.created();
 
   @DomName('HTMLFieldSetElement.disabled')
   @DocsEditable()
@@ -11991,6 +12133,12 @@ class FormElement extends HtmlElement native "HTMLFormElement" {
   @DomName('HTMLFormElement.HTMLFormElement')
   @DocsEditable()
   factory FormElement() => document.createElement("form");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  FormElement.created() : super.created();
 
   @DomName('HTMLFormElement.acceptCharset')
   @DocsEditable()
@@ -12251,6 +12399,12 @@ class HRElement extends HtmlElement native "HTMLHRElement" {
   @DomName('HTMLHRElement.HTMLHRElement')
   @DocsEditable()
   factory HRElement() => document.createElement("hr");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  HRElement.created() : super.created();
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12307,6 +12461,12 @@ class HeadElement extends HtmlElement native "HTMLHeadElement" {
   @DomName('HTMLHeadElement.HTMLHeadElement')
   @DocsEditable()
   factory HeadElement() => document.createElement("head");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  HeadElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12342,6 +12502,12 @@ class HeadingElement extends HtmlElement native "HTMLHeadingElement" {
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
   factory HeadingElement.h6() => document.createElement("h6");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  HeadingElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12900,6 +13066,12 @@ class HtmlHtmlElement extends HtmlElement native "HTMLHtmlElement" {
   @DomName('HTMLHtmlElement.HTMLHtmlElement')
   @DocsEditable()
   factory HtmlHtmlElement() => document.createElement("html");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  HtmlHtmlElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13001,7 +13173,7 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
   }
 
   /**
-   * Creates a URL request for the specified [url].
+   * Creates and sends a URL request for the specified [url].
    *
    * By default `request` will perform an HTTP GET request, but a different
    * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the 
@@ -13485,6 +13657,12 @@ class IFrameElement extends HtmlElement native "HTMLIFrameElement" {
   @DomName('HTMLIFrameElement.HTMLIFrameElement')
   @DocsEditable()
   factory IFrameElement() => document.createElement("iframe");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  IFrameElement.created() : super.created();
 
   @DomName('HTMLIFrameElement.contentWindow')
   @DocsEditable()
@@ -13584,6 +13762,12 @@ class ImageElement extends HtmlElement implements CanvasImageSource native "HTML
     if (height != null) e.height = height;
     return e;
   }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  ImageElement.created() : super.created();
 
   @DomName('HTMLImageElement.alt')
   @DocsEditable()
@@ -13697,6 +13881,12 @@ class InputElement extends HtmlElement implements
   @Experimental()
   // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#extending_html_elements
   static const EventStreamProvider<Event> speechChangeEvent = const EventStreamProvider<Event>('webkitSpeechChange');
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  InputElement.created() : super.created();
 
   @DomName('HTMLInputElement.accept')
   @DocsEditable()
@@ -14718,6 +14908,12 @@ class KeygenElement extends HtmlElement native "HTMLKeygenElement" {
   @DomName('HTMLKeygenElement.HTMLKeygenElement')
   @DocsEditable()
   factory KeygenElement() => document.createElement("keygen");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  KeygenElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('keygen') && (new Element.tag('keygen') is KeygenElement);
@@ -14791,6 +14987,12 @@ class LIElement extends HtmlElement native "HTMLLIElement" {
   @DomName('HTMLLIElement.HTMLLIElement')
   @DocsEditable()
   factory LIElement() => document.createElement("li");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  LIElement.created() : super.created();
 
   @DomName('HTMLLIElement.type')
   @DocsEditable()
@@ -14816,6 +15018,12 @@ class LabelElement extends HtmlElement native "HTMLLabelElement" {
   @DomName('HTMLLabelElement.HTMLLabelElement')
   @DocsEditable()
   factory LabelElement() => document.createElement("label");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  LabelElement.created() : super.created();
 
   @DomName('HTMLLabelElement.control')
   @DocsEditable()
@@ -14843,6 +15051,12 @@ class LegendElement extends HtmlElement native "HTMLLegendElement" {
   @DomName('HTMLLegendElement.HTMLLegendElement')
   @DocsEditable()
   factory LegendElement() => document.createElement("legend");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  LegendElement.created() : super.created();
 
   @DomName('HTMLLegendElement.form')
   @DocsEditable()
@@ -14862,6 +15076,12 @@ class LinkElement extends HtmlElement native "HTMLLinkElement" {
   @DomName('HTMLLinkElement.HTMLLinkElement')
   @DocsEditable()
   factory LinkElement() => document.createElement("link");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  LinkElement.created() : super.created();
 
   @DomName('HTMLLinkElement.disabled')
   @DocsEditable()
@@ -15009,6 +15229,12 @@ class MapElement extends HtmlElement native "HTMLMapElement" {
   @DomName('HTMLMapElement.HTMLMapElement')
   @DocsEditable()
   factory MapElement() => document.createElement("map");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  MapElement.created() : super.created();
 
   @DomName('HTMLMapElement.areas')
   @DocsEditable()
@@ -15223,6 +15449,12 @@ class MediaElement extends HtmlElement native "HTMLMediaElement" {
   @Experimental()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  MediaElement.created() : super.created();
 
   @DomName('HTMLMediaElement.HAVE_CURRENT_DATA')
   @DocsEditable()
@@ -16226,6 +16458,12 @@ class MenuElement extends HtmlElement native "HTMLMenuElement" {
   @DomName('HTMLMenuElement.HTMLMenuElement')
   @DocsEditable()
   factory MenuElement() => document.createElement("menu");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  MenuElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16373,6 +16611,12 @@ class MetaElement extends HtmlElement native "HTMLMetaElement" {
   @DomName('HTMLMetaElement.HTMLMetaElement')
   @DocsEditable()
   factory MetaElement() => document.createElement("meta");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  MetaElement.created() : super.created();
 
   @DomName('HTMLMetaElement.content')
   @DocsEditable()
@@ -16439,6 +16683,12 @@ class MeterElement extends HtmlElement native "HTMLMeterElement" {
   @DomName('HTMLMeterElement.HTMLMeterElement')
   @DocsEditable()
   factory MeterElement() => document.createElement("meter");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  MeterElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('meter');
@@ -16750,6 +17000,12 @@ class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListM
 class ModElement extends HtmlElement native "HTMLModElement" {
   // To suppress missing implicit constructor warnings.
   factory ModElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  ModElement.created() : super.created();
 
   @DomName('HTMLModElement.cite')
   @DocsEditable()
@@ -17708,6 +17964,10 @@ class TemplateInstance {
 
 @DomName('Node')
 class Node extends EventTarget native "Node" {
+
+  // Custom element created callback.
+  Node._created() : super._created();
+
   List<Node> get nodes {
     return new _ChildNodeListLazy(this);
   }
@@ -18387,6 +18647,12 @@ class OListElement extends HtmlElement native "HTMLOListElement" {
   @DomName('HTMLOListElement.HTMLOListElement')
   @DocsEditable()
   factory OListElement() => document.createElement("ol");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  OListElement.created() : super.created();
 
   @DomName('HTMLOListElement.reversed')
   @DocsEditable()
@@ -18418,6 +18684,12 @@ class ObjectElement extends HtmlElement native "HTMLObjectElement" {
   @DomName('HTMLObjectElement.HTMLObjectElement')
   @DocsEditable()
   factory ObjectElement() => document.createElement("object");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  ObjectElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('object');
@@ -18498,6 +18770,12 @@ class OptGroupElement extends HtmlElement native "HTMLOptGroupElement" {
   @DomName('HTMLOptGroupElement.HTMLOptGroupElement')
   @DocsEditable()
   factory OptGroupElement() => document.createElement("optgroup");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  OptGroupElement.created() : super.created();
 
   @DomName('HTMLOptGroupElement.disabled')
   @DocsEditable()
@@ -18507,20 +18785,21 @@ class OptGroupElement extends HtmlElement native "HTMLOptGroupElement" {
   @DocsEditable()
   String label;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable()
 @DomName('HTMLOptionElement')
 class OptionElement extends HtmlElement native "HTMLOptionElement" {
-  // To suppress missing implicit constructor warnings.
-  factory OptionElement._() { throw new UnsupportedError("Not supported"); }
+  factory OptionElement({String data, String value, bool defaultSelected, 
+      bool selected}) {
+    return new OptionElement._(data, value, defaultSelected, selected);
+  }
 
   @DomName('HTMLOptionElement.HTMLOptionElement')
   @DocsEditable()
-  factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
+  factory OptionElement._([String data, String value, bool defaultSelected, bool selected]) {
     if (selected != null) {
       return OptionElement._create_1(data, value, defaultSelected, selected);
     }
@@ -18540,6 +18819,12 @@ class OptionElement extends HtmlElement native "HTMLOptionElement" {
   static OptionElement _create_3(data, value) => JS('OptionElement', 'new Option(#,#)', data, value);
   static OptionElement _create_4(data) => JS('OptionElement', 'new Option(#)', data);
   static OptionElement _create_5() => JS('OptionElement', 'new Option()');
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  OptionElement.created() : super.created();
 
   @DomName('HTMLOptionElement.defaultSelected')
   @DocsEditable()
@@ -18568,6 +18853,7 @@ class OptionElement extends HtmlElement native "HTMLOptionElement" {
   @DomName('HTMLOptionElement.value')
   @DocsEditable()
   String value;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18586,6 +18872,12 @@ class OutputElement extends HtmlElement native "HTMLOutputElement" {
   @DomName('HTMLOutputElement.HTMLOutputElement')
   @DocsEditable()
   factory OutputElement() => document.createElement("output");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  OutputElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('output');
@@ -18708,6 +19000,12 @@ class ParagraphElement extends HtmlElement native "HTMLParagraphElement" {
   @DomName('HTMLParagraphElement.HTMLParagraphElement')
   @DocsEditable()
   factory ParagraphElement() => document.createElement("p");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  ParagraphElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18724,6 +19022,12 @@ class ParamElement extends HtmlElement native "HTMLParamElement" {
   @DomName('HTMLParamElement.HTMLParamElement')
   @DocsEditable()
   factory ParamElement() => document.createElement("param");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  ParamElement.created() : super.created();
 
   @DomName('HTMLParamElement.name')
   @DocsEditable()
@@ -19366,6 +19670,12 @@ class PreElement extends HtmlElement native "HTMLPreElement" {
   @DomName('HTMLPreElement.HTMLPreElement')
   @DocsEditable()
   factory PreElement() => document.createElement("pre");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  PreElement.created() : super.created();
 
   @DomName('HTMLPreElement.wrap')
   @DocsEditable()
@@ -19411,6 +19721,12 @@ class ProgressElement extends HtmlElement native "HTMLProgressElement" {
   @DomName('HTMLProgressElement.HTMLProgressElement')
   @DocsEditable()
   factory ProgressElement() => document.createElement("progress");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  ProgressElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('progress');
@@ -19536,6 +19852,12 @@ class QuoteElement extends HtmlElement native "HTMLQuoteElement" {
   @DomName('HTMLQuoteElement.HTMLQuoteElement')
   @DocsEditable()
   factory QuoteElement() => document.createElement("q");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  QuoteElement.created() : super.created();
 
   @DomName('HTMLQuoteElement.cite')
   @DocsEditable()
@@ -20558,6 +20880,12 @@ class ScriptElement extends HtmlElement native "HTMLScriptElement" {
   @DomName('HTMLScriptElement.HTMLScriptElement')
   @DocsEditable()
   factory ScriptElement() => document.createElement("script");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  ScriptElement.created() : super.created();
 
   @DomName('HTMLScriptElement.async')
   @DocsEditable()
@@ -20745,6 +21073,12 @@ class SelectElement extends HtmlElement native "HTMLSelectElement" {
   @DomName('HTMLSelectElement.HTMLSelectElement')
   @DocsEditable()
   factory SelectElement() => document.createElement("select");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  SelectElement.created() : super.created();
 
   @DomName('HTMLSelectElement.autofocus')
   @DocsEditable()
@@ -20988,6 +21322,12 @@ class ShadowElement extends HtmlElement native "HTMLShadowElement" {
   @DomName('HTMLShadowElement.HTMLShadowElement')
   @DocsEditable()
   factory ShadowElement() => document.createElement("shadow");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  ShadowElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('shadow');
@@ -21231,6 +21571,12 @@ class SourceElement extends HtmlElement native "HTMLSourceElement" {
   @DomName('HTMLSourceElement.HTMLSourceElement')
   @DocsEditable()
   factory SourceElement() => document.createElement("source");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  SourceElement.created() : super.created();
 
   @DomName('HTMLSourceElement.media')
   @DocsEditable()
@@ -21288,6 +21634,12 @@ class SpanElement extends HtmlElement native "HTMLSpanElement" {
   @DomName('HTMLSpanElement.HTMLSpanElement')
   @DocsEditable()
   factory SpanElement() => document.createElement("span");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  SpanElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22187,6 +22539,12 @@ class StyleElement extends HtmlElement native "HTMLStyleElement" {
   @DomName('HTMLStyleElement.HTMLStyleElement')
   @DocsEditable()
   factory StyleElement() => document.createElement("style");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  StyleElement.created() : super.created();
 
   @DomName('HTMLStyleElement.disabled')
   @DocsEditable()
@@ -22278,6 +22636,12 @@ class TableCaptionElement extends HtmlElement native "HTMLTableCaptionElement" {
   @DomName('HTMLTableCaptionElement.HTMLTableCaptionElement')
   @DocsEditable()
   factory TableCaptionElement() => document.createElement("caption");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  TableCaptionElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22293,6 +22657,12 @@ class TableCellElement extends HtmlElement native "HTMLTableCellElement,HTMLTabl
   @DomName('HTMLTableCellElement.HTMLTableCellElement')
   @DocsEditable()
   factory TableCellElement() => document.createElement("td");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  TableCellElement.created() : super.created();
 
   @DomName('HTMLTableCellElement.cellIndex')
   @DocsEditable()
@@ -22324,6 +22694,12 @@ class TableColElement extends HtmlElement native "HTMLTableColElement" {
   @DomName('HTMLTableColElement.HTMLTableColElement')
   @DocsEditable()
   factory TableColElement() => document.createElement("col");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  TableColElement.created() : super.created();
 
   @DomName('HTMLTableColElement.span')
   @DocsEditable()
@@ -22390,6 +22766,12 @@ class TableElement extends HtmlElement native "HTMLTableElement" {
   @DomName('HTMLTableElement.HTMLTableElement')
   @DocsEditable()
   factory TableElement() => document.createElement("table");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  TableElement.created() : super.created();
 
   @DomName('HTMLTableElement.border')
   @DocsEditable()
@@ -22495,6 +22877,12 @@ class TableRowElement extends HtmlElement native "HTMLTableRowElement" {
   @DomName('HTMLTableRowElement.HTMLTableRowElement')
   @DocsEditable()
   factory TableRowElement() => document.createElement("tr");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  TableRowElement.created() : super.created();
 
   @JSName('cells')
   @DomName('HTMLTableRowElement.cells')
@@ -22553,6 +22941,12 @@ class TableSectionElement extends HtmlElement native "HTMLTableSectionElement" {
 
   // To suppress missing implicit constructor warnings.
   factory TableSectionElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  TableSectionElement.created() : super.created();
 
   @JSName('rows')
   @DomName('HTMLTableSectionElement.rows')
@@ -22669,6 +23063,12 @@ class TemplateElement extends HtmlElement native "HTMLTemplateElement" {
   @DomName('HTMLTemplateElement.HTMLTemplateElement')
   @DocsEditable()
   factory TemplateElement() => document.createElement("template");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  TemplateElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('template');
@@ -22942,6 +23342,12 @@ class TextAreaElement extends HtmlElement native "HTMLTextAreaElement" {
   @DomName('HTMLTextAreaElement.HTMLTextAreaElement')
   @DocsEditable()
   factory TextAreaElement() => document.createElement("textarea");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  TextAreaElement.created() : super.created();
 
   @DomName('HTMLTextAreaElement.autofocus')
   @DocsEditable()
@@ -23447,6 +23853,12 @@ class TitleElement extends HtmlElement native "HTMLTitleElement" {
   @DomName('HTMLTitleElement.HTMLTitleElement')
   @DocsEditable()
   factory TitleElement() => document.createElement("title");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  TitleElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23713,6 +24125,12 @@ class TrackElement extends HtmlElement native "HTMLTrackElement" {
   @DomName('HTMLTrackElement.HTMLTrackElement')
   @DocsEditable()
   factory TrackElement() => document.createElement("track");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  TrackElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('track');
@@ -23990,6 +24408,12 @@ class UListElement extends HtmlElement native "HTMLUListElement" {
   @DomName('HTMLUListElement.HTMLUListElement')
   @DocsEditable()
   factory UListElement() => document.createElement("ul");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  UListElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24001,6 +24425,12 @@ class UListElement extends HtmlElement native "HTMLUListElement" {
 class UnknownElement extends HtmlElement native "HTMLUnknownElement" {
   // To suppress missing implicit constructor warnings.
   factory UnknownElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  UnknownElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24096,6 +24526,12 @@ class VideoElement extends MediaElement implements CanvasImageSource native "HTM
   @DomName('HTMLVideoElement.HTMLVideoElement')
   @DocsEditable()
   factory VideoElement() => document.createElement("video");
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  VideoElement.created() : super.created();
 
   @DomName('HTMLVideoElement.height')
   @DocsEditable()
@@ -27068,6 +27504,12 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
 abstract class _HTMLAppletElement extends HtmlElement native "HTMLAppletElement" {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAppletElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  _HTMLAppletElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27081,6 +27523,12 @@ abstract class _HTMLAppletElement extends HtmlElement native "HTMLAppletElement"
 abstract class _HTMLBaseFontElement extends HtmlElement native "HTMLBaseFontElement" {
   // To suppress missing implicit constructor warnings.
   factory _HTMLBaseFontElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  _HTMLBaseFontElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27094,6 +27542,12 @@ abstract class _HTMLBaseFontElement extends HtmlElement native "HTMLBaseFontElem
 abstract class _HTMLDirectoryElement extends HtmlElement native "HTMLDirectoryElement" {
   // To suppress missing implicit constructor warnings.
   factory _HTMLDirectoryElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  _HTMLDirectoryElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27107,6 +27561,12 @@ abstract class _HTMLDirectoryElement extends HtmlElement native "HTMLDirectoryEl
 abstract class _HTMLFontElement extends HtmlElement native "HTMLFontElement" {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFontElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  _HTMLFontElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27120,6 +27580,12 @@ abstract class _HTMLFontElement extends HtmlElement native "HTMLFontElement" {
 abstract class _HTMLFrameElement extends HtmlElement native "HTMLFrameElement" {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFrameElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  _HTMLFrameElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27133,6 +27599,12 @@ abstract class _HTMLFrameElement extends HtmlElement native "HTMLFrameElement" {
 abstract class _HTMLFrameSetElement extends HtmlElement native "HTMLFrameSetElement" {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFrameSetElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  _HTMLFrameSetElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27146,6 +27618,12 @@ abstract class _HTMLFrameSetElement extends HtmlElement native "HTMLFrameSetElem
 abstract class _HTMLMarqueeElement extends HtmlElement native "HTMLMarqueeElement" {
   // To suppress missing implicit constructor warnings.
   factory _HTMLMarqueeElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  _HTMLMarqueeElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32060,7 +32538,7 @@ _convertNativeToDart_XHR_Response(o) {
 
 
 _callCreated(receiver) {
-  return receiver.created();
+  return receiver.createdCallback();
 }
 
 _callEnteredView(receiver) {
@@ -32069,6 +32547,9 @@ _callEnteredView(receiver) {
 
 _callLeftView(receiver) {
   return receiver.leftView();
+}
+ _callAttributeChanged(receiver, name, oldValue, newValue) {
+  return receiver.attributeChanged(name, oldValue, newValue);
 }
 
 _makeCallbackMethod(callback) {
@@ -32079,6 +32560,16 @@ _makeCallbackMethod(callback) {
              };
           })(#))''',
       convertDartClosureToJS(callback, 1));
+}
+
+_makeCallbackMethod3(callback) {
+  return JS('',
+      '''((function(invokeCallback) {
+             return function(arg1, arg2, arg3) {
+               return invokeCallback(this, arg1, arg2, arg3);
+             };
+          })(#))''',
+      convertDartClosureToJS(callback, 4));
 }
 
 const _typeNameToTag = const {
@@ -32146,6 +32637,8 @@ void _registerCustomElement(context, document, String tag, Type type,
       JS('=Object', '{value: #}', _makeCallbackMethod(_callEnteredView)));
   JS('void', '#.leftViewCallback = #', properties,
       JS('=Object', '{value: #}', _makeCallbackMethod(_callLeftView)));
+  JS('void', '#.attributeChangedCallback = #', properties,
+      JS('=Object', '{value: #}', _makeCallbackMethod3(_callAttributeChanged)));
 
   // TODO(blois): Bug 13220- remove once transition is complete
   JS('void', '#.enteredDocumentCallback = #', properties,
@@ -32171,6 +32664,11 @@ void _registerCustomElement(context, document, String tag, Type type,
   }
 
   JS('void', '#.register(#, #)', document, tag, options);
+}
+
+//// Called by Element.created to do validation & initialization.
+void _initializeCustomElement(Element e) {
+  // TODO(blois): Add validation that this is only in response to an upgrade.
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

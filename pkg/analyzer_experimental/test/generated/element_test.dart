@@ -1716,24 +1716,24 @@ class ElementFactory {
     constructor.type = constructorType;
     return constructor;
   }
-  static ExportElementImpl exportFor(LibraryElement exportedLibrary2, List<NamespaceCombinator> combinators2) {
+  static ExportElementImpl exportFor(LibraryElement exportedLibrary, List<NamespaceCombinator> combinators) {
     ExportElementImpl spec = new ExportElementImpl();
-    spec.exportedLibrary = exportedLibrary2;
-    spec.combinators = combinators2;
+    spec.exportedLibrary = exportedLibrary;
+    spec.combinators = combinators;
     return spec;
   }
-  static FieldElementImpl fieldElement(String name, bool isStatic, bool isFinal, bool isConst, Type2 type2) {
+  static FieldElementImpl fieldElement(String name, bool isStatic, bool isFinal, bool isConst, Type2 type) {
     FieldElementImpl field = new FieldElementImpl.con1(ASTFactory.identifier3(name));
     field.const3 = isConst;
     field.final2 = isFinal;
     field.static = isStatic;
-    field.type = type2;
+    field.type = type;
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(field);
     getter.getter = true;
     getter.static = isStatic;
     getter.synthetic = true;
     getter.variable = field;
-    getter.returnType = type2;
+    getter.returnType = type;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
     getter.type = getterType;
@@ -1743,7 +1743,7 @@ class ElementFactory {
       setter.static = isStatic;
       setter.synthetic = true;
       setter.variable = field;
-      setter.parameters = <ParameterElement> [requiredParameter2("_${name}", type2)];
+      setter.parameters = <ParameterElement> [requiredParameter2("_${name}", type)];
       setter.returnType = VoidTypeImpl.instance;
       setter.type = new FunctionTypeImpl.con1(setter);
       field.setter = setter;
@@ -1822,26 +1822,26 @@ class ElementFactory {
     }
     return _objectElement;
   }
-  static PropertyAccessorElementImpl getterElement(String name, bool isStatic, Type2 type2) {
+  static PropertyAccessorElementImpl getterElement(String name, bool isStatic, Type2 type) {
     FieldElementImpl field = new FieldElementImpl.con1(ASTFactory.identifier3(name));
     field.static = isStatic;
     field.synthetic = true;
-    field.type = type2;
+    field.type = type;
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(field);
     getter.getter = true;
     getter.static = isStatic;
     getter.variable = field;
-    getter.returnType = type2;
+    getter.returnType = type;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
     getter.type = getterType;
     return getter;
   }
-  static ImportElementImpl importFor(LibraryElement importedLibrary2, PrefixElement prefix2, List<NamespaceCombinator> combinators2) {
+  static ImportElementImpl importFor(LibraryElement importedLibrary, PrefixElement prefix, List<NamespaceCombinator> combinators) {
     ImportElementImpl spec = new ImportElementImpl();
-    spec.importedLibrary = importedLibrary2;
-    spec.prefix = prefix2;
-    spec.combinators = combinators2;
+    spec.importedLibrary = importedLibrary;
+    spec.prefix = prefix;
+    spec.combinators = combinators;
     return spec;
   }
   static LibraryElementImpl library(AnalysisContext context, String libraryName) {
@@ -1855,7 +1855,7 @@ class ElementFactory {
   }
   static LocalVariableElementImpl localVariableElement(Identifier name) => new LocalVariableElementImpl(name);
   static LocalVariableElementImpl localVariableElement2(String name) => new LocalVariableElementImpl(ASTFactory.identifier3(name));
-  static MethodElementImpl methodElement(String methodName, Type2 returnType2, List<Type2> argumentTypes) {
+  static MethodElementImpl methodElement(String methodName, Type2 returnType, List<Type2> argumentTypes) {
     MethodElementImpl method = new MethodElementImpl.con1(ASTFactory.identifier3(methodName));
     int count = argumentTypes.length;
     List<ParameterElement> parameters = new List<ParameterElement>(count);
@@ -1866,7 +1866,7 @@ class ElementFactory {
       parameters[i] = parameter;
     }
     method.parameters = parameters;
-    method.returnType = returnType2;
+    method.returnType = returnType;
     FunctionTypeImpl methodType = new FunctionTypeImpl.con1(method);
     method.type = methodType;
     return method;
@@ -1876,10 +1876,10 @@ class ElementFactory {
     parameter.parameterKind = ParameterKind.NAMED;
     return parameter;
   }
-  static ParameterElementImpl namedParameter2(String name, Type2 type2) {
+  static ParameterElementImpl namedParameter2(String name, Type2 type) {
     ParameterElementImpl parameter = new ParameterElementImpl.con1(ASTFactory.identifier3(name));
     parameter.parameterKind = ParameterKind.NAMED;
-    parameter.type = type2;
+    parameter.type = type;
     return parameter;
   }
   static ParameterElementImpl positionalParameter(String name) {
@@ -1887,10 +1887,10 @@ class ElementFactory {
     parameter.parameterKind = ParameterKind.POSITIONAL;
     return parameter;
   }
-  static ParameterElementImpl positionalParameter2(String name, Type2 type2) {
+  static ParameterElementImpl positionalParameter2(String name, Type2 type) {
     ParameterElementImpl parameter = new ParameterElementImpl.con1(ASTFactory.identifier3(name));
     parameter.parameterKind = ParameterKind.POSITIONAL;
-    parameter.type = type2;
+    parameter.type = type;
     return parameter;
   }
   static PrefixElementImpl prefix(String name) => new PrefixElementImpl(ASTFactory.identifier3(name));
@@ -1899,26 +1899,26 @@ class ElementFactory {
     parameter.parameterKind = ParameterKind.REQUIRED;
     return parameter;
   }
-  static ParameterElementImpl requiredParameter2(String name, Type2 type2) {
+  static ParameterElementImpl requiredParameter2(String name, Type2 type) {
     ParameterElementImpl parameter = new ParameterElementImpl.con1(ASTFactory.identifier3(name));
     parameter.parameterKind = ParameterKind.REQUIRED;
-    parameter.type = type2;
+    parameter.type = type;
     return parameter;
   }
-  static PropertyAccessorElementImpl setterElement(String name, bool isStatic, Type2 type2) {
+  static PropertyAccessorElementImpl setterElement(String name, bool isStatic, Type2 type) {
     FieldElementImpl field = new FieldElementImpl.con1(ASTFactory.identifier3(name));
     field.static = isStatic;
     field.synthetic = true;
-    field.type = type2;
+    field.type = type;
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(field);
     getter.getter = true;
     getter.static = isStatic;
     getter.variable = field;
-    getter.returnType = type2;
+    getter.returnType = type;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
     getter.type = getterType;
-    ParameterElementImpl parameter = requiredParameter2("a", type2);
+    ParameterElementImpl parameter = requiredParameter2("a", type);
     PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.con2(field);
     setter.setter = true;
     setter.static = isStatic;
@@ -1932,7 +1932,7 @@ class ElementFactory {
   }
   static TopLevelVariableElementImpl topLevelVariableElement(Identifier name) => new TopLevelVariableElementImpl.con1(name);
   static TopLevelVariableElementImpl topLevelVariableElement2(String name) => new TopLevelVariableElementImpl.con2(name);
-  static TopLevelVariableElementImpl topLevelVariableElement3(String name, bool isFinal, Type2 type2) {
+  static TopLevelVariableElementImpl topLevelVariableElement3(String name, bool isFinal, Type2 type) {
     TopLevelVariableElementImpl variable = new TopLevelVariableElementImpl.con2(name);
     variable.final2 = isFinal;
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(variable);
@@ -1940,7 +1940,7 @@ class ElementFactory {
     getter.static = true;
     getter.synthetic = true;
     getter.variable = variable;
-    getter.returnType = type2;
+    getter.returnType = type;
     variable.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
     getter.type = getterType;
@@ -1950,7 +1950,7 @@ class ElementFactory {
       setter.static = true;
       setter.synthetic = true;
       setter.variable = variable;
-      setter.parameters = <ParameterElement> [requiredParameter2("_${name}", type2)];
+      setter.parameters = <ParameterElement> [requiredParameter2("_${name}", type)];
       setter.returnType = VoidTypeImpl.instance;
       setter.type = new FunctionTypeImpl.con1(setter);
       variable.setter = setter;

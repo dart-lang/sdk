@@ -6,6 +6,7 @@
 // TODO(sigmund): move into a plugin directory when pub supports it.
 library polymer.src.transform;
 
+import 'package:barback/barback.dart';
 import 'package:observe/transform.dart';
 import 'src/build/code_extractor.dart';
 import 'src/build/import_inliner.dart';

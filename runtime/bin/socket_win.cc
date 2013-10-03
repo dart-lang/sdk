@@ -198,11 +198,11 @@ intptr_t Socket::GetStdioHandle(intptr_t num) {
   if (handle == INVALID_HANDLE_VALUE) {
     return -1;
   }
-  FileHandle* file_handle = new FileHandle(handle);
-  if (file_handle == NULL) return -1;
-  file_handle->MarkDoesNotSupportOverlappedIO();
-  file_handle->EnsureInitialized(EventHandler::delegate());
-  return reinterpret_cast<intptr_t>(file_handle);
+  StdHandle* std_handle = new StdHandle(handle);
+  if (std_handle == NULL) return -1;
+  std_handle->MarkDoesNotSupportOverlappedIO();
+  std_handle->EnsureInitialized(EventHandler::delegate());
+  return reinterpret_cast<intptr_t>(std_handle);
 }
 
 

@@ -20,6 +20,7 @@ import sys
 
 import bot
 
+DARTIUM_BUILDER = r'none-dartium-(linux|mac|windows)'
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?(-(x64))?-?(\d*)-?(\d*)')
 WEB_BUILDER = (
@@ -45,6 +46,7 @@ def GetBuildInfo(builder_name, is_buildbot):
 
   dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
   web_pattern = re.match(WEB_BUILDER, builder_name)
+  dartium_pattern = re.match(DARTIUM_BUILDER, builder_name)
 
   if web_pattern:
     compiler = 'dart2js'
@@ -81,6 +83,11 @@ def GetBuildInfo(builder_name, is_buildbot):
       arch = 'x64'
     shard_index = dart2js_pattern.group(13)
     total_shards = dart2js_pattern.group(14)
+  elif dartium_pattern:
+    compiler = 'none'
+    runtime = 'dartium'
+    mode = 'release'
+    system = dartium_pattern.group(1)
   else :
     return None
 
@@ -104,7 +111,8 @@ def GetBuildInfo(builder_name, is_buildbot):
 
 
 def NeedsXterm(compiler, runtime):
-  return runtime in ['ie9', 'ie10', 'chrome', 'safari', 'opera', 'ff', 'drt']
+  return runtime in ['ie9', 'ie10', 'chrome', 'safari', 'opera', 'ff', 'drt',
+                     'dartium']
 
 
 def TestStepName(name, flags):
@@ -117,9 +125,9 @@ def TestStepName(name, flags):
 # supported platforms.
 def UseBrowserController(runtime, system):
   supported_platforms = {
-    'linux': ['ff', 'chromeOnAndroid', 'chrome'],
-    'mac': ['safari', 'chrome'],
-    'windows': ['ie9', 'ie10', 'ff', 'chrome']
+    'linux': ['ff', 'chromeOnAndroid', 'chrome', 'dartium'],
+    'mac': ['safari', 'chrome', 'dartium'],
+    'windows': ['ie9', 'ie10', 'ff', 'chrome', 'dartium']
   }
   # Platforms that we run on the fyi waterfall only.
   fyi_supported_platforms = {
@@ -187,7 +195,8 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags, arch):
     bot.RunProcess(cmd)
 
 
-def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set, arch):
+def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set, arch,
+                 compiler=None):
   """ test the compiler.
    Args:
      - runtime: either 'd8', 'jsshell', or one of the browsers, see GetBuildInfo
@@ -198,7 +207,11 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set, arch):
        emulating one.
      - test_set: Specification of a non standard test set, default None
      - arch: The architecture to run on.
+     - compiler: The compiler to use for test.py (default is 'dart2js').
   """
+
+  if not compiler:
+    compiler = 'dart2js'
 
   def GetPath(runtime):
     """ Helper to get the path to the Chrome or Firefox executable for a
@@ -219,7 +232,8 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set, arch):
           'Local', 'Google', 'Chrome', 'Application', 'chrome.exe')}
     return path_dict[runtime]
 
-  if (runtime == 'ff' or runtime == 'chrome') and is_buildbot:
+  if (compiler == 'dart2js' and (runtime == 'ff' or runtime == 'chrome')
+      and is_buildbot):
     # Print out browser version numbers if we're running on the buildbot (where
     # we know the paths to these browser installations).
     version_query_string = '"%s" --version' % GetPath(runtime)
@@ -248,23 +262,26 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set, arch):
     TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'],
              unit_test_flags, arch)
 
-  if system == 'windows' and runtime == 'ie10':
-    TestStep("dart2js", mode, system, 'dart2js', runtime, ['html'], flags, arch)
+  if compiler == 'dart2js' and system == 'windows' and runtime == 'ie10':
+    TestStep("%s-%s" % (compiler, runtime), mode, system, compiler, runtime,
+             ['html'], flags, arch)
   else:
     # Run the default set of test suites.
-    TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags, arch)
+    TestStep("%s-%s" % (compiler, runtime), mode, system, compiler,
+             runtime, [], flags, arch)
 
-    # TODO(kasperl): Consider running peg and css tests too.
-    extras = ['dart2js_extra', 'dart2js_native']
-    extras_flags = flags
-    if (system == 'linux'
-        and runtime == 'd8'
-        and not '--host-checked' in extras_flags):
-      # Run the extra tests in checked mode, but only on linux/d8.
-      # Other systems have less resources and tend to time out.
-      extras_flags = extras_flags + ['--host-checked']
-    TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras,
-             extras_flags, arch)
+    if compiler == 'dart2js':
+      # TODO(kasperl): Consider running peg and css tests too.
+      extras = ['dart2js_extra', 'dart2js_native']
+      extras_flags = flags
+      if (system == 'linux'
+          and runtime == 'd8'
+          and not '--host-checked' in extras_flags):
+        # Run the extra tests in checked mode, but only on linux/d8.
+        # Other systems have less resources and tend to time out.
+        extras_flags = extras_flags + ['--host-checked']
+      TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras,
+               extras_flags, arch)
 
 
 def _DeleteTempWebdriverProfiles(directory):
@@ -364,13 +381,14 @@ def RunCompilerTests(build_info):
 
   TestCompiler(build_info.runtime, build_info.mode, build_info.system,
                list(test_flags), build_info.is_buildbot, build_info.test_set,
-               build_info.arch)
+               build_info.arch, compiler=build_info.compiler)
 
   # See comment in GetHasHardCodedCheckedMode, this is a hack.
   if (GetHasHardCodedCheckedMode(build_info)):
     TestCompiler(build_info.runtime, build_info.mode, build_info.system,
                  test_flags + ['--checked'], build_info.is_buildbot,
-                 build_info.test_set, build_info.arch)
+                 build_info.test_set, build_info.arch,
+                 compiler=build_info.compiler)
 
   if build_info.runtime != 'd8':
     CleanUpTemporaryFiles(build_info.system, build_info.runtime)

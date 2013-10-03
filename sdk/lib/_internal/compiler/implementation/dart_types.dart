@@ -93,6 +93,9 @@ abstract class DartType {
   /// Returns the raw version of this type.
   DartType asRaw() => this;
 
+  /// Is [: true :] if this type has no non-dynamic type arguments.
+  bool get treatAsRaw => isRaw;
+
   /// Is [: true :] if this type should be treated as the dynamic type.
   bool get treatAsDynamic => false;
 
@@ -424,6 +427,14 @@ abstract class GenericType extends DartType {
   bool get isRaw => typeArguments.isEmpty || identical(this, element.rawType);
 
   GenericType asRaw() => element.rawType;
+
+  bool get treatAsRaw {
+    if (isRaw) return true;
+    for (Link<DartType> link = typeArguments; !link.isEmpty; link = link.tail) {
+      if (!link.head.treatAsDynamic) return false;
+    }
+    return true;
+  }
 }
 
 class InterfaceType extends GenericType {

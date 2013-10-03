@@ -175,7 +175,8 @@ class HGraph {
     // TODO(sra): What is the type of the prototype of an interceptor?
     if (constant.isInterceptor()) return HType.UNKNOWN;
     ObjectConstant objectConstant = constant;
-    return new HBoundedType(new TypeMask.nonNullExact(objectConstant.type));
+    TypeMask mask = new TypeMask.nonNullExact(objectConstant.type.element);
+    return new HBoundedType(mask);
   }
 
   HConstant addConstant(Constant constant, Compiler compiler) {
@@ -1124,18 +1125,20 @@ abstract class HInstruction implements Spannable {
     // instructions with generics. It has the generic type context
     // available.
     assert(type.kind != TypeKind.TYPE_VARIABLE);
-    assert(type.isRaw || type.kind == TypeKind.FUNCTION);
+    assert(type.treatAsRaw || type.kind == TypeKind.FUNCTION);
     if (type.treatAsDynamic) return this;
-    if (identical(type.element, compiler.objectClass)) return this;
+    // The type element is either a class or the void element.
+    Element element = type.element;
+    if (identical(element, compiler.objectClass)) return this;
     if (type.kind != TypeKind.INTERFACE) {
       return new HTypeConversion(type, kind, HType.UNKNOWN, this);
     } else if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
       // Boolean conversion checks work on non-nullable booleans.
       return new HTypeConversion(type, kind, HType.BOOLEAN, this);
-    } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.isRaw) {
-        throw 'creating compound check to $type (this = ${this})';
+    } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
+      throw 'creating compound check to $type (this = ${this})';
     } else {
-      HType subtype = new HType.subtype(type, compiler);
+      HType subtype = new HType.subtype(element, compiler);
       return new HTypeConversion(type, kind, subtype, this);
     }
   }
@@ -1497,6 +1500,7 @@ class HFieldGet extends HFieldAccess {
 
   HInstruction getDartReceiver(Compiler compiler) => receiver;
   bool onlyThrowsNSM() => true;
+  bool get isNullCheck => element == null;
 
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 

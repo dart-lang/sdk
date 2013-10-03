@@ -63,6 +63,9 @@ const BIGGEST_3_UTF8_UNIT_STRING = "\u{FFFF}";
 const SMALLEST_4_UTF8_UNIT_BYTES = const [ 0xF0, 0x90, 0x80, 0x80 ];
 const SMALLEST_4_UTF8_UNIT_STRING = "\u{10000}";
 
+const BIGGEST_4_UTF8_UNIT_BYTES = const [ 0xF4, 0x8F, 0xBF, 0xBF ];
+const BIGGEST_4_UTF8_UNIT_STRING = "\u{10FFFF}";
+
 const _TEST_PAIRS = const [
     const [ const [], "" ],
     const [ INTER_BYTES, INTER_STRING ],
@@ -78,6 +81,7 @@ const _TEST_PAIRS = const [
     const [ SMALLEST_3_UTF8_UNIT_BYTES, SMALLEST_3_UTF8_UNIT_STRING ],
     const [ BIGGEST_3_UTF8_UNIT_BYTES, BIGGEST_3_UTF8_UNIT_STRING ],
     const [ SMALLEST_4_UTF8_UNIT_BYTES, SMALLEST_4_UTF8_UNIT_STRING ],
+    const [ BIGGEST_4_UTF8_UNIT_BYTES, BIGGEST_4_UTF8_UNIT_STRING ],
     ];
 
 List<List> _expandTestPairs() {

@@ -1207,8 +1207,8 @@ if (useNative) {
       changeAttribute.call(this, name, value, setAttribute);
     }
     var removeAttribute = prototype.removeAttribute;
-    prototype.removeAttribute = function(name, value) {
-      changeAttribute.call(this, name, value, removeAttribute);
+    prototype.removeAttribute = function(name) {
+      changeAttribute.call(this, name, null, removeAttribute);
     }
   }
 
@@ -1217,7 +1217,7 @@ if (useNative) {
     operation.apply(this, arguments);
     if (this.attributeChangedCallback
         && (this.getAttribute(name) !== oldValue)) {
-      this.attributeChangedCallback(name, oldValue);
+      this.attributeChangedCallback(name, oldValue, value);
     }
   }
 

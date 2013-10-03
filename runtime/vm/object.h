@@ -858,6 +858,9 @@ class Class : public Object {
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
 
+  RawGrowableObjectArray* closures() const {
+    return raw_ptr()->closure_functions_;
+  }
   void AddClosureFunction(const Function& function) const;
   RawFunction* LookupClosureFunction(intptr_t token_pos) const;
 
@@ -1691,6 +1694,11 @@ class Function : public Object {
   }
   void set_is_intrinsic(bool value) const;
 
+  bool is_recognized() const {
+    return RecognizedBit::decode(raw_ptr()->kind_tag_);
+  }
+  void set_is_recognized(bool value) const;
+
   bool HasOptimizedCode() const;
 
   // Returns true if the argument counts are valid for calling this function.
@@ -1849,7 +1857,8 @@ class Function : public Object {
     kExternalBit = 7,
     kVisibleBit = 8,
     kIntrinsicBit = 9,
-    kKindTagBit = 10,
+    kRecognizedBit = 10,
+    kKindTagBit = 11,
     kKindTagSize = 4,
   };
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
@@ -1862,6 +1871,7 @@ class Function : public Object {
   class ExternalBit : public BitField<bool, kExternalBit, 1> {};
   class VisibleBit : public BitField<bool, kVisibleBit, 1> {};
   class IntrinsicBit : public BitField<bool, kIntrinsicBit, 1> {};
+  class RecognizedBit : public BitField<bool, kRecognizedBit, 1> {};
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {};  // NOLINT
 
@@ -2509,6 +2519,11 @@ class Library : public Object {
   static void CheckFunctionFingerprints();
 
   static bool IsPrivate(const String& name);
+
+  // Return Function::null() if function does not exist in libs.
+  static RawFunction* GetFunction(const GrowableArray<Library*>& libs,
+                                  const char* class_name,
+                                  const char* function_name);
 
  private:
   static const int kInitialImportsCapacity = 4;
@@ -4778,6 +4793,11 @@ class String : public Instance {
                            Heap::Space space = Heap::kNew);
   static RawString* ConcatAll(const Array& strings,
                               Heap::Space space = Heap::kNew);
+  // Concat all strings in 'strings' from 'start' to 'end' (excluding).
+  static RawString* ConcatAllRange(const Array& strings,
+                                   intptr_t start,
+                                   intptr_t end,
+                                   Heap::Space space = Heap::kNew);
 
   static RawString* SubString(const String& str,
                               intptr_t begin_index,
@@ -4898,6 +4918,8 @@ class OneByteString : public AllStatic {
                                   const String& str2,
                                   Heap::Space space);
   static RawOneByteString* ConcatAll(const Array& strings,
+                                     intptr_t start,
+                                     intptr_t end,
                                      intptr_t len,
                                      Heap::Space space);
 
@@ -4947,6 +4969,7 @@ class OneByteString : public AllStatic {
 
   friend class Class;
   friend class String;
+  friend class ExternalOneByteString;
   friend class SnapshotReader;
 };
 
@@ -4993,6 +5016,8 @@ class TwoByteString : public AllStatic {
                                   const String& str2,
                                   Heap::Space space);
   static RawTwoByteString* ConcatAll(const Array& strings,
+                                     intptr_t start,
+                                     intptr_t end,
                                      intptr_t len,
                                      Heap::Space space);
 
@@ -5067,6 +5092,8 @@ class ExternalOneByteString : public AllStatic {
   static RawExternalOneByteString* null() {
     return reinterpret_cast<RawExternalOneByteString*>(Object::null());
   }
+
+  static RawOneByteString* EscapeSpecialCharacters(const String& str);
 
   static const ClassId kClassId = kExternalOneByteStringCid;
 

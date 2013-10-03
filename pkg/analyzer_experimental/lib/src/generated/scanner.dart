@@ -38,13 +38,13 @@ class KeywordState {
    * @param length the number of strings in the array that pass through the state being built
    * @return the state that was created
    */
-  static KeywordState computeKeywordStateTable(int start, List<String> strings, int offset, int length2) {
+  static KeywordState computeKeywordStateTable(int start, List<String> strings, int offset, int length) {
     List<KeywordState> result = new List<KeywordState>(26);
-    assert(length2 != 0);
+    assert(length != 0);
     int chunk = 0x0;
     int chunkStart = -1;
     bool isLeaf = false;
-    for (int i = offset; i < offset + length2; i++) {
+    for (int i = offset; i < offset + length; i++) {
       if (strings[i].length == start) {
         isLeaf = true;
       }
@@ -61,9 +61,9 @@ class KeywordState {
     }
     if (chunkStart != -1) {
       assert(result[chunk - 0x61] == null);
-      result[chunk - 0x61] = computeKeywordStateTable(start + 1, strings, chunkStart, offset + length2 - chunkStart);
+      result[chunk - 0x61] = computeKeywordStateTable(start + 1, strings, chunkStart, offset + length - chunkStart);
     } else {
-      assert(length2 == 1);
+      assert(length == 1);
       return new KeywordState(_EMPTY_TABLE, strings[offset]);
     }
     if (isLeaf) {
@@ -544,12 +544,12 @@ abstract class AbstractScanner {
       _lastComment = _lastComment.setNext(new StringToken(type, value, _tokenStart));
     }
   }
-  void appendEndToken(TokenType type2, TokenType beginType) {
+  void appendEndToken(TokenType type, TokenType beginType) {
     Token token;
     if (_firstComment == null) {
-      token = new Token(type2, _tokenStart);
+      token = new Token(type, _tokenStart);
     } else {
-      token = new TokenWithComment(type2, _tokenStart, _firstComment);
+      token = new TokenWithComment(type, _tokenStart, _firstComment);
       _firstComment = null;
       _lastComment = null;
     }
@@ -643,8 +643,8 @@ abstract class AbstractScanner {
       return advance();
     }
     if (next == 0x72) {
-      int peek2 = peek();
-      if (peek2 == 0x22 || peek2 == 0x27) {
+      int peek = this.peek();
+      if (peek == 0x22 || peek == 0x27) {
         int start = offset;
         return tokenizeString(advance(), start, true);
       }
@@ -1017,23 +1017,23 @@ abstract class AbstractScanner {
     beginToken();
     return next;
   }
-  int tokenizeKeywordOrIdentifier(int next2, bool allowDollar) {
+  int tokenizeKeywordOrIdentifier(int next, bool allowDollar) {
     KeywordState state = KeywordState.KEYWORD_STATE;
     int start = offset;
-    while (state != null && 0x61 <= next2 && next2 <= 0x7A) {
-      state = state.next(next2 as int);
-      next2 = advance();
+    while (state != null && 0x61 <= next && next <= 0x7A) {
+      state = state.next(next as int);
+      next = advance();
     }
     if (state == null || state.keyword() == null) {
-      return tokenizeIdentifier(next2, start, allowDollar);
+      return tokenizeIdentifier(next, start, allowDollar);
     }
-    if ((0x41 <= next2 && next2 <= 0x5A) || (0x30 <= next2 && next2 <= 0x39) || next2 == 0x5F || next2 == 0x24) {
-      return tokenizeIdentifier(next2, start, allowDollar);
-    } else if (next2 < 128) {
+    if ((0x41 <= next && next <= 0x5A) || (0x30 <= next && next <= 0x39) || next == 0x5F || next == 0x24) {
+      return tokenizeIdentifier(next, start, allowDollar);
+    } else if (next < 128) {
       appendKeywordToken(state.keyword());
-      return next2;
+      return next;
     } else {
-      return tokenizeIdentifier(next2, start, allowDollar);
+      return tokenizeIdentifier(next, start, allowDollar);
     }
   }
   int tokenizeLessThan(int next) {

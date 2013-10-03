@@ -201,11 +201,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HType type = input.instructionType;
     if (type.isBoolean()) return input;
     // All values that cannot be 'true' are boolified to false.
-    DartType booleanType = backend.jsBoolClass.computeType(compiler);
     TypeMask mask = type.computeMask(compiler);
     // TODO(kasperl): Get rid of the null check here once all HTypes
     // have a proper mask.
-    if (mask != null && !mask.contains(booleanType, compiler)) {
+    if (mask != null && !mask.contains(backend.jsBoolClass, compiler)) {
       return graph.addConstantBool(false, compiler);
     }
     return node;
@@ -637,7 +636,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     } else if (!RuntimeTypes.hasTypeArguments(type)) {
       TypeMask expressionMask = expressionType.computeMask(compiler);
       TypeMask typeMask = (element == compiler.nullClass)
-          ? new TypeMask.subtype(type) : new TypeMask.nonNullSubtype(type);
+          ? new TypeMask.subtype(element)
+          : new TypeMask.nonNullSubtype(element);
       if (expressionMask.union(typeMask, compiler) == typeMask) {
         return graph.addConstantBool(true, compiler);
       } else if (expressionMask.intersection(typeMask, compiler).isEmpty) {
@@ -651,7 +651,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction value = node.inputs[0];
     DartType type = node.typeExpression;
     if (type != null) {
-      if (!type.isRaw || type.kind == TypeKind.TYPE_VARIABLE) {
+      if (!type.treatAsRaw || type.kind == TypeKind.TYPE_VARIABLE) {
         return node;
       }
       if (type.kind == TypeKind.FUNCTION) {
@@ -694,7 +694,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         var type = receiver.instructionType.computeMask(compiler);
         if (type.isContainer && type.length != null) {
-          return graph.addConstantInt(type.length, compiler);
+          HInstruction constant = graph.addConstantInt(type.length, compiler);
+          if (type.isNullable) {
+            // If the container can be null, we update all uses of the
+            // length access to use the constant instead, but keep the
+            // length access in the graph, to ensure we still have a
+            // null check.
+            node.block.rewrite(node, constant);
+            return node;
+          } else {
+            return constant;
+          }
         }
       }
     }
@@ -769,7 +779,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction value = node.inputs.last;
     if (compiler.enableTypeAssertions) {
       DartType type = field.computeType(compiler);
-      if (!type.isRaw || type.kind == TypeKind.TYPE_VARIABLE) {
+      if (!type.treatAsRaw || type.kind == TypeKind.TYPE_VARIABLE) {
         // We cannot generate the correct type representation here, so don't
         // inline this access.
         return node;
@@ -948,7 +958,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       if (current.canThrow() || current.sideEffects.hasSideEffects()) {
         return false;
       }
-      current = current.next;
+      if (current.next == null && current is HGoto) {
+        // We do not merge blocks in our SSA graph, so if this block
+        // just jumps to a single predecessor, visit this predecessor.
+        assert(current.block.successors.length == 1);
+        current = current.block.successors[0].first;
+      } else {
+        current = current.next;
+      }
     } while (current != null);
     return false;
   }
@@ -1503,7 +1520,6 @@ class SsaTypeConversionInserter extends HBaseVisitor
     visitDominatorTree(graph);
   }
 
-
   // Update users of [input] that are dominated by [:dominator.first:]
   // to use [newInput] instead.
   void changeUsesDominatedBy(HBasicBlock dominator,
@@ -1543,7 +1559,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
     if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
 
-    HType convertedType = new HType.nonNullSubtype(type, compiler);
+    HType convertedType = new HType.nonNullSubtype(element, compiler);
     HInstruction input = instruction.expression;
     for (HIf ifUser in ifUsers) {
       changeUsesDominatedBy(ifUser.thenBlock, input, convertedType);

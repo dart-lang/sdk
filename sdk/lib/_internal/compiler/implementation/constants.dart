@@ -45,6 +45,7 @@ abstract class Constant {
   bool isNaN() => false;
   bool isMinusZero() => false;
 
+  // TODO(johnniwinther): Replace with a 'type' getter.
   DartType computeType(Compiler compiler);
 
   List<Constant> getDependencies();
@@ -295,6 +296,10 @@ class StringConstant extends PrimitiveConstant {
   int get length => value.length;
 
   accept(ConstantVisitor visitor) => visitor.visitString(this);
+
+  String toString() {
+    return 'StringConstant(${Error.safeToString(value.slowToString())})';
+  }
 }
 
 abstract class ObjectConstant extends Constant {
@@ -323,6 +328,8 @@ class TypeConstant extends ObjectConstant {
   List<Constant> getDependencies() => const <Constant>[];
 
   accept(ConstantVisitor visitor) => visitor.visitType(this);
+
+  String toString() => 'TypeConstant(${Error.safeToString(representedType)})';
 }
 
 class ListConstant extends ObjectConstant {
@@ -362,6 +369,17 @@ class ListConstant extends ObjectConstant {
   int get length => entries.length;
 
   accept(ConstantVisitor visitor) => visitor.visitList(this);
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('ListConstant([');
+    for (int i = 0 ; i < entries.length ; i++) {
+      if (i > 0) sb.write(',');
+      sb.write(Error.safeToString(entries[i]));
+    }
+    sb.write('])');
+    return sb.toString();
+  }
 }
 
 class MapConstant extends ObjectConstant {
@@ -437,6 +455,19 @@ class MapConstant extends ObjectConstant {
   int get length => keys.length;
 
   accept(ConstantVisitor visitor) => visitor.visitMap(this);
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('MapConstant({');
+    for (int i = 0 ; i < keys.entries.length ; i++) {
+      if (i > 0) sb.write(',');
+      sb.write(Error.safeToString(keys.entries[i]));
+      sb.write(':');
+      sb.write(Error.safeToString(values[i]));
+    }
+    sb.write('})');
+    return sb.toString();
+  }
 }
 
 class InterceptorConstant extends Constant {
@@ -460,6 +491,10 @@ class InterceptorConstant extends Constant {
   accept(ConstantVisitor visitor) => visitor.visitInterceptor(this);
 
   DartType computeType(Compiler compiler) => compiler.types.dynamicType;
+
+  String toString() {
+    return 'InterceptorConstant(${Error.safeToString(dispatchedType)})';
+  }
 }
 
 class ConstructedConstant extends ObjectConstant {
@@ -509,5 +544,22 @@ class ConstructedConstant extends ObjectConstant {
       result[field] = fields[count++];
     }, includeSuperAndInjectedMembers: true);
     return result;
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('ConstructedConstant(');
+    sb.write(type);
+    sb.write('(');
+    int i = 0;
+    fieldElements.forEach((Element field, Constant value) {
+      if (i > 0) sb.write(',');
+      sb.write(Error.safeToString(field.name.slowToString()));
+      sb.write('=');
+      sb.write(Error.safeToString(value));
+      i++;
+    });
+    sb.write('))');
+    return sb.toString();
   }
 }

@@ -31,10 +31,11 @@ abstract class TypeSystem<T> {
   T get stringType;
   T get typeType;
 
-  T nonNullSubtype(DartType type);
-  T nonNullSubclass(DartType type);
-  T nonNullExact(DartType type);
+  T nonNullSubtype(ClassElement type);
+  T nonNullSubclass(ClassElement type);
+  T nonNullExact(ClassElement type);
   T nonNullEmpty();
+  bool isNull(T type);
   Selector newTypedSelector(T receiver, Selector selector);
 
   T allocateContainer(T type,
@@ -680,7 +681,7 @@ abstract class InferrerVisitor
     // TODO(kasperl): We should be able to tell that the type of a literal
     // symbol is always a non-null exact symbol implementation -- not just
     // any non-null subtype of the symbol interface.
-    return types.nonNullSubtype(compiler.symbolClass.rawType);
+    return types.nonNullSubtype(compiler.symbolClass);
   }
 
   T visitTypeReferenceSend(Send node) {
@@ -701,11 +702,11 @@ abstract class InferrerVisitor
     if (_thisType != null) return _thisType;
     ClassElement cls = outermostElement.getEnclosingClass();
     if (compiler.world.isUsedAsMixin(cls)) {
-      return _thisType = types.nonNullSubtype(cls.rawType);
+      return _thisType = types.nonNullSubtype(cls);
     } else if (compiler.world.hasAnySubclass(cls)) {
-      return _thisType = types.nonNullSubclass(cls.rawType);
+      return _thisType = types.nonNullSubclass(cls);
     } else {
-      return _thisType = types.nonNullExact(cls.rawType);
+      return _thisType = types.nonNullExact(cls);
     }
   }
 
@@ -713,7 +714,7 @@ abstract class InferrerVisitor
   T get superType {
     if (_superType != null) return _superType;
     return _superType = types.nonNullExact(
-        outermostElement.getEnclosingClass().superclass.rawType);
+        outermostElement.getEnclosingClass().superclass);
   }
 
   T visitIdentifier(Identifier node) {
@@ -730,19 +731,53 @@ abstract class InferrerVisitor
     isChecks.add(node);
   }
 
+  void potentiallyAddNullCheck(Send node, Node receiver) {
+    if (!accumulateIsChecks) return;
+    if (!Elements.isLocal(elements[receiver])) return;
+    isChecks.add(node);
+  }
+
   void updateIsChecks(List<Node> tests, {bool usePositive}) {
-    if (tests == null) return;
-    for (Send node in tests) {
-      if (node.isIsNotCheck) {
-        if (usePositive) continue;
-      } else {
-        if (!usePositive) continue;
-      }
-      DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
-      Element element = elements[node.receiver];
+    void narrow(Element element, DartType type, Node node) {
       T existing = locals.use(element);
       T newType = types.narrowType(existing, type, isNullable: false);
       locals.update(element, newType, node);
+    }
+
+    if (tests == null) return;
+    for (Send node in tests) {
+      if (node.isTypeTest) {
+        if (node.isIsNotCheck) {
+          if (usePositive) continue;
+        } else {
+          if (!usePositive) continue;
+        }
+        DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
+        narrow(elements[node.receiver], type, node);
+      } else {
+        Element receiverElement = elements[node.receiver];
+        Element argumentElement = elements[node.arguments.first];
+        String operator = node.selector.asOperator().source.stringValue;
+        if ((operator == '==' && usePositive)
+            || (operator == '!=' && !usePositive)) {
+          // Type the elements as null.
+          if (Elements.isLocal(receiverElement)) {
+            locals.update(receiverElement, types.nullType, node);
+          }
+          if (Elements.isLocal(argumentElement)) {
+            locals.update(argumentElement, types.nullType, node);
+          }
+        } else {
+          // Narrow the elements to a non-null type.
+          DartType objectType = compiler.objectClass.rawType;
+          if (Elements.isLocal(receiverElement)) {
+            narrow(receiverElement, objectType, node);
+          }
+          if (Elements.isLocal(argumentElement)) {
+            narrow(argumentElement, objectType, node);
+          }
+        }
+      }
     }
   }
 
@@ -979,7 +1014,7 @@ abstract class InferrerVisitor
       DartType type = elements.getType(node.type);
       T mask = type == null || type.treatAsDynamic
           ? types.dynamicType
-          : types.nonNullSubtype(type.asRaw());
+          : types.nonNullSubtype(type.element);
       locals.update(elements[exception], mask, node);
     }
     Node trace = node.trace;

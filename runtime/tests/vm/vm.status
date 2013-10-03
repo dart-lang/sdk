@@ -66,3 +66,6 @@ dart/isolate_mirror_local_test: fail
 [ $compiler == dart2analyzer ]
 # has compilation error, as designed
 dart/isolate_mirror_local_test: fail
+
+[ $compiler == none && $runtime == dartium ]
+dart/isolate_mirror_local_test: Fail # Issue 13719: Please triage this failure.

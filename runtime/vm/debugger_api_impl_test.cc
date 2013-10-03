@@ -1583,14 +1583,16 @@ TEST_CASE(Debug_EvaluateExpr) {
   EXPECT(Dart_IsNumber(len));
   EXPECT_EQ(3, ToInt64(len));
 
-  Dart_Handle point_class = Dart_GetClass(script_lib, NewString("Point"));
-  EXPECT_VALID(point_class);
-  Dart_Handle elem = Dart_EvaluateExpr(point_class, NewString("m['\"']"));
+  Dart_Handle point_type =
+      Dart_GetType(script_lib, NewString("Point"), 0, NULL);
+  EXPECT_VALID(point_type);
+  EXPECT(Dart_IsType(point_type));
+  Dart_Handle elem = Dart_EvaluateExpr(point_type, NewString("m['\"']"));
   EXPECT_VALID(elem);
   EXPECT(Dart_IsString(elem));
   EXPECT_STREQ("quote", ToCString(elem));
 
-  elem = Dart_EvaluateExpr(point_class, NewString("m[\"\\t\"]"));
+  elem = Dart_EvaluateExpr(point_type, NewString("m[\"\\t\"]"));
   EXPECT_VALID(elem);
   EXPECT(Dart_IsString(elem));
   EXPECT_STREQ("tab", ToCString(elem));
@@ -1617,6 +1619,10 @@ TEST_CASE(Debug_EvaluateExpr) {
   EXPECT_VALID(len);
   EXPECT(Dart_IsNumber(len));
   EXPECT_EQ(6, ToInt64(len));
+
+  Dart_Handle error =
+      Dart_EvaluateExpr(script_lib, NewString("new NonexistingType()"));
+  EXPECT(Dart_IsError(error));
 }
 
 

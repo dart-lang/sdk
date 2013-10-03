@@ -4,6 +4,8 @@
 //
 // Dart test program for testing native float arrays.
 
+// VMOptions=--optimization_counter_threshold=10
+
 // Library tag to be able to run in html test framework.
 library FloatArrayTest;
 
@@ -186,23 +188,34 @@ storeIt64(Float64List a, int index, value) {
   a[index] = value;
 }
 
+testPolymorphicLoad(var list) {
+  return list[0];
+}
+
 main() {
   var a32 = new Float32List(5);
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     testCreateFloat32Array();
     testSetRange32();
     testIndexOutOfRange32();
     testIndexOf32();
     storeIt32(a32, 1, 2.0);
+    testPolymorphicLoad(a32);
   }
   var a64 = new Float64List(5);
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     testCreateFloat64Array();
     testSetRange64();
     testIndexOutOfRange64();
     testIndexOf64();
     storeIt64(a64, 1, 2.0);
+    testPolymorphicLoad(a64);
   }
+  var f32x4 = new Float32x4List(5);
+  for (int i = 0; i < 20; i++) {
+    testPolymorphicLoad(f32x4);
+  }
+
   // These two take a long time in checked mode.
   testBadValues32();
   testBadValues64();

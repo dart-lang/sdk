@@ -531,17 +531,13 @@ class _File extends FileSystemEntity implements File {
 class _RandomAccessFile implements RandomAccessFile {
   final String path;
   int _id;
+  bool _asyncDispatched = false;
   SendPort _fileService;
 
   _RandomAccessFile(int this._id, String this.path);
 
   Future<RandomAccessFile> close() {
-    if (closed) return _closedException();
-    // Set the id_ to 0 (NULL) to ensure the no more async requests
-    // can be issued for this file.
-    int id = _id;
-    _id = 0;
-    return _IOService.dispatch(_FILE_CLOSE, [id]).then((result) {
+    return _dispatch(_FILE_CLOSE, [_id], markClosed: true).then((result) {
       if (result != -1) {
         _id = result;
         return this;
@@ -554,7 +550,7 @@ class _RandomAccessFile implements RandomAccessFile {
   external static int _close(int id);
 
   void closeSync() {
-    _checkNotClosed();
+    _checkAvailable();
     var id = _close(_id);
     if (id == -1) {
       throw new FileException("Cannot close file", path);
@@ -563,8 +559,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<int> readByte() {
-    if (closed) return _closedException();
-    return _IOService.dispatch(_FILE_READ_BYTE, [_id]).then((response) {
+    return _dispatch(_FILE_READ_BYTE, [_id]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readByte failed", path);
       }
@@ -575,7 +570,7 @@ class _RandomAccessFile implements RandomAccessFile {
   external static _readByte(int id);
 
   int readByteSync() {
-    _checkNotClosed();
+    _checkAvailable();
     var result = _readByte(_id);
     if (result is OSError) {
       throw new FileException("readByte failed", path, result);
@@ -587,8 +582,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if (bytes is !int) {
       throw new ArgumentError(bytes);
     }
-    if (closed) return _closedException();
-    return _IOService.dispatch(_FILE_READ, [_id, bytes]).then((response) {
+    return _dispatch(_FILE_READ, [_id, bytes]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "read failed", path);
       }
@@ -599,7 +593,7 @@ class _RandomAccessFile implements RandomAccessFile {
   external static _read(int id, int bytes);
 
   List<int> readSync(int bytes) {
-    _checkNotClosed();
+    _checkAvailable();
     if (bytes is !int) {
       throw new ArgumentError(bytes);
     }
@@ -616,11 +610,10 @@ class _RandomAccessFile implements RandomAccessFile {
         (end != null && end is !int)) {
       throw new ArgumentError();
     }
-    if (closed) return _closedException();
     if (start == null) start = 0;
     if (end == null) end = buffer.length;
     int length = end - start;
-    return _IOService.dispatch(_FILE_READ_INTO, [_id, length]).then((response) {
+    return _dispatch(_FILE_READ_INTO, [_id, length]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readInto failed", path);
       }
@@ -642,7 +635,7 @@ class _RandomAccessFile implements RandomAccessFile {
   external static _readInto(int id, List<int> buffer, int start, int end);
 
   int readIntoSync(List<int> buffer, [int start, int end]) {
-    _checkNotClosed();
+    _checkAvailable();
     if (buffer is !List ||
         (start != null && start is !int) ||
         (end != null && end is !int)) {
@@ -663,8 +656,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if (value is !int) {
       throw new ArgumentError(value);
     }
-    if (closed) return _closedException();
-    return _IOService.dispatch(_FILE_WRITE_BYTE, [_id, value]).then((response) {
+    return _dispatch(_FILE_WRITE_BYTE, [_id, value]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeByte failed", path);
       }
@@ -675,7 +667,7 @@ class _RandomAccessFile implements RandomAccessFile {
   external static _writeByte(int id, int value);
 
   int writeByteSync(int value) {
-    _checkNotClosed();
+    _checkAvailable();
     if (value is !int) {
       throw new ArgumentError(value);
     }
@@ -693,8 +685,6 @@ class _RandomAccessFile implements RandomAccessFile {
       throw new ArgumentError("Invalid arguments to writeFrom");
     }
 
-    if (closed) return _closedException();
-
     _BufferAndStart result;
     try {
       result = _ensureFastAndSerializableByteData(buffer, start, end);
@@ -707,7 +697,7 @@ class _RandomAccessFile implements RandomAccessFile {
     request[1] = result.buffer;
     request[2] = result.start;
     request[3] = end - (start - result.start);
-    return _IOService.dispatch(_FILE_WRITE_FROM, request).then((response) {
+    return _dispatch(_FILE_WRITE_FROM, request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeFrom failed", path);
       }
@@ -718,7 +708,7 @@ class _RandomAccessFile implements RandomAccessFile {
   external static _writeFrom(int id, List<int> buffer, int start, int end);
 
   void writeFromSync(List<int> buffer, [int start, int end]) {
-    _checkNotClosed();
+    _checkAvailable();
     if (buffer is !List ||
         (start != null && start is !int) ||
         (end != null && end is !int)) {
@@ -757,8 +747,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<int> position() {
-    if (closed) return _closedException();
-    return _IOService.dispatch(_FILE_POSITION, [_id]).then((response) {
+    return _dispatch(_FILE_POSITION, [_id]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "position failed", path);
       }
@@ -769,7 +758,7 @@ class _RandomAccessFile implements RandomAccessFile {
   external static _position(int id);
 
   int positionSync() {
-    _checkNotClosed();
+    _checkAvailable();
     var result = _position(_id);
     if (result is OSError) {
       throw new FileException("position failed", path, result);
@@ -778,8 +767,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> setPosition(int position) {
-    if (closed) return _closedException();
-    return _IOService.dispatch(_FILE_SET_POSITION, [_id, position])
+    return _dispatch(_FILE_SET_POSITION, [_id, position])
         .then((response) {
           if (_isErrorResponse(response)) {
             throw _exceptionFromResponse(response, "setPosition failed", path);
@@ -791,7 +779,7 @@ class _RandomAccessFile implements RandomAccessFile {
   external static _setPosition(int id, int position);
 
   void setPositionSync(int position) {
-    _checkNotClosed();
+    _checkAvailable();
     var result = _setPosition(_id, position);
     if (result is OSError) {
       throw new FileException("setPosition failed", path, result);
@@ -799,8 +787,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> truncate(int length) {
-    if (closed) return _closedException();
-    return _IOService.dispatch(_FILE_TRUNCATE, [_id, length]).then((response) {
+    return _dispatch(_FILE_TRUNCATE, [_id, length]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "truncate failed", path);
       }
@@ -811,7 +798,7 @@ class _RandomAccessFile implements RandomAccessFile {
   external static _truncate(int id, int length);
 
   void truncateSync(int length) {
-    _checkNotClosed();
+    _checkAvailable();
     var result = _truncate(_id, length);
     if (result is OSError) {
       throw new FileException("truncate failed", path, result);
@@ -819,8 +806,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<int> length() {
-    if (closed) return _closedException();
-    return _IOService.dispatch(_FILE_LENGTH, [_id]).then((response) {
+    return _dispatch(_FILE_LENGTH, [_id]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "length failed", path);
       }
@@ -831,7 +817,7 @@ class _RandomAccessFile implements RandomAccessFile {
   external static _length(int id);
 
   int lengthSync() {
-    _checkNotClosed();
+    _checkAvailable();
     var result = _length(_id);
     if (result is OSError) {
       throw new FileException("length failed", path, result);
@@ -840,8 +826,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> flush() {
-    if (closed) return _closedException();
-    return _IOService.dispatch(_FILE_FLUSH, [_id]).then((response) {
+    return _dispatch(_FILE_FLUSH, [_id]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
                                      "flush failed",
@@ -854,7 +839,7 @@ class _RandomAccessFile implements RandomAccessFile {
   external static _flush(int id);
 
   void flushSync() {
-    _checkNotClosed();
+    _checkAvailable();
     var result = _flush(_id);
     if (result is OSError) {
       throw new FileException("flush failed", path, result);
@@ -863,13 +848,32 @@ class _RandomAccessFile implements RandomAccessFile {
 
   bool get closed => _id == 0;
 
-  void _checkNotClosed() {
+  Future _dispatch(int request, List data, { bool markClosed: false }) {
+    if (closed) {
+      return new Future.error(new FileException("File closed", path));
+    }
+    if (_asyncDispatched) {
+      var msg = "An async operation is currently pending";
+      return new Future.error(new FileException(msg, path));
+    }
+    if (markClosed) {
+      // Set the id_ to 0 (NULL) to ensure the no more async requests
+      // can be issued for this file.
+      _id = 0;
+    }
+    _asyncDispatched = true;
+    return _IOService.dispatch(request, data)
+        .whenComplete(() {
+          _asyncDispatched = false;
+        });
+  }
+
+  void _checkAvailable() {
+    if (_asyncDispatched) {
+      throw new FileException("An async operation is currently pending", path);
+    }
     if (closed) {
       throw new FileException("File closed", path);
     }
-  }
-
-  Future _closedException() {
-    return new Future.error(new FileException("File closed", path));
   }
 }

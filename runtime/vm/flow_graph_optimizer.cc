@@ -692,8 +692,6 @@ static intptr_t ReceiverClassId(InstanceCallInstr* call) {
 
   const ICData& ic_data = ICData::Handle(call->ic_data()->AsUnaryClassChecks());
 
-  if (ic_data.NumberOfChecks() == 0) return kIllegalCid;
-  // TODO(vegorov): Add multiple receiver type support.
   if (ic_data.NumberOfChecks() != 1) return kIllegalCid;
   ASSERT(ic_data.HasOneTarget());
 
@@ -1069,9 +1067,13 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(const Function& target,
     case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
     case MethodRecognizer::kInt16ArrayGetIndexed:
     case MethodRecognizer::kUint16ArrayGetIndexed:
+      return TryInlineGetIndexed(kind, call, ic_data, entry, last);
+    case MethodRecognizer::kFloat32x4ArrayGetIndexed:
+      if (!ShouldInlineSimd()) return false;
+      return TryInlineGetIndexed(kind, call, ic_data, entry, last);
     case MethodRecognizer::kInt32ArrayGetIndexed:
     case MethodRecognizer::kUint32ArrayGetIndexed:
-    case MethodRecognizer::kFloat32x4ArrayGetIndexed:
+      if (!CanUnboxInt32()) return false;
       return TryInlineGetIndexed(kind, call, ic_data, entry, last);
     default:
       return false;
@@ -1176,44 +1178,22 @@ bool FlowGraphOptimizer::TryInlineGetIndexed(MethodRecognizer::Kind kind,
 
 
 bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
-  const intptr_t class_id = ReceiverClassId(call);
-  switch (class_id) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-    case kGrowableObjectArrayCid:
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
-      break;
-    case kTypedDataFloat32x4ArrayCid:
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      break;
-    case kTypedDataInt32ArrayCid:
-    case kTypedDataUint32ArrayCid:
-        if (!CanUnboxInt32()) return false;
-      break;
-    default:
-      return false;
-  }
+  // Check for monomorphic IC data.
+  if (!call->HasICData()) return false;
+  const ICData& ic_data = ICData::Handle(call->ic_data()->AsUnaryClassChecks());
+  if (ic_data.NumberOfChecks() != 1) return false;
+  ASSERT(ic_data.HasOneTarget());
 
-  const Function& target =
-      Function::Handle(call->ic_data()->GetTargetAt(0));
+  const Function& target = Function::Handle(ic_data.GetTargetAt(0));
   TargetEntryInstr* entry;
   Definition* last;
-  ASSERT(class_id == MethodKindToCid(MethodRecognizer::RecognizeKind(target)));
-  bool success = TryInlineRecognizedMethod(target,
-                                           call,
-                                           *call->ic_data(),
-                                           &entry, &last);
-  ASSERT(success);
+  if (!TryInlineRecognizedMethod(target,
+                                 call,
+                                 *call->ic_data(),
+                                 &entry, &last)) {
+    return false;
+  }
+
   // Insert receiver class check.
   AddReceiverCheck(call);
   // Remove the original push arguments.
@@ -4168,7 +4148,7 @@ class Place : public ValueObject {
     switch (instr->tag()) {
       case Instruction::kLoadField: {
         LoadFieldInstr* load_field = instr->AsLoadField();
-        instance_ = load_field->instance()->definition();
+        instance_ = OriginalDefinition(load_field->instance()->definition());
         if (load_field->field() != NULL) {
           kind_ = kField;
           field_ = load_field->field();
@@ -4184,7 +4164,8 @@ class Place : public ValueObject {
         StoreInstanceFieldInstr* store_instance_field =
             instr->AsStoreInstanceField();
         kind_ = kField;
-        instance_ = store_instance_field->instance()->definition();
+        instance_ =
+            OriginalDefinition(store_instance_field->instance()->definition());
         field_ = &store_instance_field->field();
         break;
       }
@@ -4192,7 +4173,7 @@ class Place : public ValueObject {
       case Instruction::kStoreVMField: {
         StoreVMFieldInstr* store_vm_field = instr->AsStoreVMField();
         kind_ = kVMField;
-        instance_ = store_vm_field->dest()->definition();
+        instance_ = OriginalDefinition(store_vm_field->dest()->definition());
         offset_in_bytes_ = store_vm_field->offset_in_bytes();
         break;
       }
@@ -4211,7 +4192,7 @@ class Place : public ValueObject {
       case Instruction::kLoadIndexed: {
         LoadIndexedInstr* load_indexed = instr->AsLoadIndexed();
         kind_ = kIndexed;
-        instance_ = load_indexed->array()->definition();
+        instance_ = OriginalDefinition(load_indexed->array()->definition());
         index_ = load_indexed->index()->definition();
         *is_load = true;
         break;
@@ -4220,7 +4201,7 @@ class Place : public ValueObject {
       case Instruction::kStoreIndexed: {
         StoreIndexedInstr* store_indexed = instr->AsStoreIndexed();
         kind_ = kIndexed;
-        instance_ = store_indexed->array()->definition();
+        instance_ = OriginalDefinition(store_indexed->array()->definition());
         index_ = store_indexed->index()->definition();
         break;
       }
@@ -4251,7 +4232,7 @@ class Place : public ValueObject {
 
   void set_instance(Definition* def) {
     ASSERT((kind_ == kField) || (kind_ == kVMField) || (kind_ == kIndexed));
-    instance_ = def;
+    instance_ = OriginalDefinition(def);
   }
 
   const Field& field() const {
@@ -4322,6 +4303,13 @@ class Place : public ValueObject {
   static Place* Wrap(const Place& place);
 
  private:
+  static Definition* OriginalDefinition(Definition* defn) {
+    while (defn->IsRedefinition()) {
+      defn = defn->AsRedefinition()->value()->definition();
+    }
+    return defn;
+  }
+
   bool SameField(Place* other) const {
     return (kind_ == kField) ? (field().raw() == other->field().raw())
                              : (offset_in_bytes_ == other->offset_in_bytes_);
@@ -6048,6 +6036,80 @@ void ConstantPropagator::VisitPolymorphicInstanceCall(
 
 void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
   SetValue(instr, non_constant_);
+  return;
+  // TODO(srdjan): Enable code below once issues resolved.
+  if (IsNonConstant(instr->constant_value())) {
+    // Do not bother with costly analysis if we already know that the
+    // instruction is not a constant.
+    SetValue(instr, non_constant_);
+    return;
+  }
+  MethodRecognizer::Kind recognized_kind =
+      MethodRecognizer::RecognizeKind(instr->function());
+  if (recognized_kind == MethodRecognizer::kStringBaseInterpolate) {
+    // static String _interpolate(List values)
+    //
+    // Code for calling interpolate is generated by the compiler:
+    //   v2 <- CreateArray(v0)
+    //   StoreIndexed(v2, v3, v4)   -- v3:constant index, v4: value.
+    //   ..
+    //   PushArgument(v2)
+    //   v8 <- StaticCall(_interpolate, v2)
+    // Detect that all values are constant, interpolate at compile
+    // time.
+    ASSERT(instr->ArgumentCount() == 1);
+    CreateArrayInstr* create_array = instr->ArgumentAt(0)->AsCreateArray();
+    ASSERT(create_array != NULL);
+    // Check if the string interpolation has only constant inputs.
+    for (Value::Iterator it(create_array->input_use_list());
+         !it.Done();
+         it.Advance()) {
+      Instruction* curr = it.Current()->instruction();
+      StoreIndexedInstr* store = curr->AsStoreIndexed();
+      // 'store' is NULL fir PushArgument instruction: skip it.
+      if ((store != NULL) &&
+          (IsNonConstant(store->value()->definition()->constant_value()))) {
+        SetValue(instr, non_constant_);
+        return;
+      }
+    }
+    // Interpolate string at compile time.
+    const Array& value_arr =
+        Array::Handle(Array::New(create_array->num_elements()));
+    // Build the array of literal values to interpolate, abort if a value is
+    // not literal.
+    for (Value::Iterator it(create_array->input_use_list());
+         !it.Done();
+         it.Advance()) {
+      Instruction* curr = it.Current()->instruction();
+      StoreIndexedInstr* store = curr->AsStoreIndexed();
+      if (store == NULL) {
+        ASSERT(curr == instr->PushArgumentAt(0));
+      } else {
+        Value* index_value = store->index();
+        ASSERT(index_value->BindsToConstant() && index_value->IsSmiValue());
+        const intptr_t ix = Smi::Cast(index_value->BoundConstant()).Value();
+        ASSERT(IsConstant(store->value()->definition()->constant_value()));
+        value_arr.SetAt(ix, store->value()->definition()->constant_value());
+      }
+    }
+    // Build argument array to pass to the interpolation function.
+    const Array& interpolate_arg = Array::Handle(Array::New(1));
+    interpolate_arg.SetAt(0, value_arr);
+    // Call interpolation function.
+    String& concatenated = String::ZoneHandle();
+    concatenated ^=
+        DartEntry::InvokeFunction(instr->function(), interpolate_arg);
+    if (concatenated.IsUnhandledException()) {
+      SetValue(instr, non_constant_);
+      return;
+    }
+
+    concatenated = Symbols::New(concatenated);
+    SetValue(instr, concatenated);
+  } else {
+    SetValue(instr, non_constant_);
+  }
 }
 
 
@@ -6300,6 +6362,16 @@ void ConstantPropagator::VisitLoadUntagged(LoadUntaggedInstr* instr) {
 
 
 void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
+  intptr_t cid = instr->object()->Type()->ToCid();
+  if (cid != kDynamicCid) {
+    SetValue(instr, Smi::ZoneHandle(Smi::New(cid)));
+    return;
+  }
+  const Object& object = instr->object()->definition()->constant_value();
+  if (IsConstant(object)) {
+    SetValue(instr, Smi::ZoneHandle(Smi::New(object.GetClassId())));
+    return;
+  }
   SetValue(instr, non_constant_);
 }
 
@@ -6870,6 +6942,27 @@ void ConstantPropagator::VisitBranches() {
 }
 
 
+// Code for calling interpolate is generated by the compiler:
+//   v2 <- CreateArray(v0)
+//   StoreIndexed(v2, v3, v4)   -- v3:constant index, v4: value.
+//   ..
+//   PushArgument(v2)
+//   v8 <- StaticCall(_interpolate, v2)
+// Remove the inputs.
+void ConstantPropagator::RemoveInterpolationInputs(
+    const StaticCallInstr& call) {
+  ASSERT(call.ArgumentCount() == 1);
+  CreateArrayInstr* create_array = call.ArgumentAt(0)->AsCreateArray();
+  ASSERT(create_array != NULL);
+  for (Value* use = create_array->input_use_list();
+      use != NULL;
+      use = create_array->input_use_list()) {
+    use->instruction()->RemoveFromGraph();
+  }
+  create_array->RemoveFromGraph();
+}
+
+
 void ConstantPropagator::Transform() {
   if (FLAG_trace_constant_propagation) {
     OS::Print("\n==== Before constant propagation ====\n");
@@ -6977,6 +7070,13 @@ void ConstantPropagator::Transform() {
         ConstantInstr* constant = graph_->GetConstant(defn->constant_value());
         defn->ReplaceUsesWith(constant);
         i.RemoveCurrentFromGraph();
+        if (defn->IsStaticCall()) {
+          MethodRecognizer::Kind recognized_kind =
+              MethodRecognizer::RecognizeKind(defn->AsStaticCall()->function());
+          if (recognized_kind == MethodRecognizer::kStringBaseInterpolate) {
+            RemoveInterpolationInputs(*defn->AsStaticCall());
+          }
+        }
       }
     }
 

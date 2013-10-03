@@ -308,7 +308,7 @@ Parser::~Parser() {
 }
 
 
-void Parser::SetScript(const Script & script, intptr_t token_pos) {
+void Parser::SetScript(const Script& script, intptr_t token_pos) {
   script_ = script.raw();
   tokens_iterator_.SetStream(TokenStream::Handle(script.tokens()), token_pos);
   token_kind_ = Token::kILLEGAL;
@@ -1019,7 +1019,7 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
   if (field.is_const()) {
     // This getter will only be called once at compile time.
     if (expr->EvalConstExpr() == NULL) {
-      ErrorMsg(expr_pos, "initializer must be a compile-time constant");
+      ErrorMsg(expr_pos, "initializer is not a valid compile-time constant");
     }
     ReturnNode* return_node = new ReturnNode(ident_pos, expr);
     current_block_->statements->Add(return_node);
@@ -1923,55 +1923,7 @@ AstNode* Parser::ParseSuperOperator() {
       op_arguments = BuildNoSuchMethodArguments(
           operator_pos, operator_function_name, *op_arguments);
     }
-    if (super_operator.name() == Symbols::EqualOperator().raw()) {
-      // Expand super.== call to match correct == semantics into:
-      // Let t1 = left, t2 = right {
-      //   (t1 === null  || t2 === null) ? t1 === t2
-      //                                 : static_call(super.==, t1, t2)
-      // }
-      // Normal == calls are not expanded at the AST level to produce
-      // more compact code and enable more optimization opportunities.
-      ASSERT(!is_no_such_method);  // == is always found.
-      EnsureExpressionTemp();  // Needed for ConditionalExprNode.
-      LetNode* result = new LetNode(operator_pos);
-      AstNode* left =
-          new LoadLocalNode(operator_pos,
-                            result->AddInitializer(op_arguments->NodeAt(0)));
-      AstNode* right =
-          new LoadLocalNode(operator_pos,
-                            result->AddInitializer(op_arguments->NodeAt(1)));
-      LiteralNode* null_operand =
-          new LiteralNode(operator_pos, Instance::ZoneHandle());
-      ComparisonNode* is_left_null = new ComparisonNode(operator_pos,
-                                                        Token::kEQ_STRICT,
-                                                        left,
-                                                        null_operand);
-      ComparisonNode* is_right_null = new ComparisonNode(operator_pos,
-                                                         Token::kEQ_STRICT,
-                                                         right,
-                                                         null_operand);
-      BinaryOpNode* null_check = new BinaryOpNode(operator_pos,
-                                                  Token::kOR,
-                                                  is_left_null,
-                                                  is_right_null);
-      ArgumentListNode* new_arguments = new ArgumentListNode(operator_pos);
-      new_arguments->Add(left);
-      new_arguments->Add(right);
-      StaticCallNode* call = new StaticCallNode(operator_pos,
-                                                super_operator,
-                                                new_arguments);
-      ComparisonNode* strict_eq = new ComparisonNode(operator_pos,
-                                                     Token::kEQ_STRICT,
-                                                     left,
-                                                     right);
-      result->AddNode(new ConditionalExprNode(operator_pos,
-                                              null_check,
-                                              strict_eq,
-                                              call));
-      super_op = result;
-    } else {
-      super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
-    }
+    super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
     if (negate_result) {
       super_op = new UnaryOpNode(operator_pos, Token::kNOT, super_op);
     }
@@ -2879,17 +2831,35 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   intptr_t end_token_pos = 0;
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
+    if (String::Handle(func.name()).Equals(Symbols::EqualOperator())) {
+      const Class& owner = Class::Handle(func.Owner());
+      if (!owner.IsObjectClass()) {
+        AddEqualityNullCheck();
+      }
+    }
     ParseStatementSequence();
     end_token_pos = TokenPos();
     ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
+    if (String::Handle(func.name()).Equals(Symbols::EqualOperator())) {
+      const Class& owner = Class::Handle(func.Owner());
+      if (!owner.IsObjectClass()) {
+        AddEqualityNullCheck();
+      }
+    }
     const intptr_t expr_pos = TokenPos();
     AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
     ASSERT(expr != NULL);
     current_block_->statements->Add(new ReturnNode(expr_pos, expr));
     end_token_pos = TokenPos();
   } else if (IsLiteral("native")) {
+    if (String::Handle(func.name()).Equals(Symbols::EqualOperator())) {
+      const Class& owner = Class::Handle(func.Owner());
+      if (!owner.IsObjectClass()) {
+        AddEqualityNullCheck();
+      }
+    }
     ParseNativeFunctionBlock(&params, func);
     end_token_pos = TokenPos();
     ExpectSemicolon();
@@ -2921,6 +2891,31 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   innermost_function_ = saved_innermost_function.raw();
   last_used_try_index_ = saved_try_index;
   return CloseBlock();
+}
+
+
+void Parser::AddEqualityNullCheck() {
+  const intptr_t token_pos = Scanner::kDummyTokenIndex;
+  AstNode* argument =
+      new LoadLocalNode(token_pos,
+                        current_block_->scope->parent()->VariableAt(1));
+  LiteralNode* null_operand =
+      new LiteralNode(token_pos, Instance::ZoneHandle());
+  ComparisonNode* check_arg = new ComparisonNode(token_pos,
+                                                 Token::kEQ_STRICT,
+                                                 argument,
+                                                 null_operand);
+  ComparisonNode* result = new ComparisonNode(token_pos,
+                                              Token::kEQ_STRICT,
+                                              LoadReceiver(token_pos),
+                                              null_operand);
+  SequenceNode* arg_is_null = new SequenceNode(token_pos, NULL);
+  arg_is_null->Add(new ReturnNode(token_pos, result));
+  IfNode* if_arg_null = new IfNode(token_pos,
+                                   check_arg,
+                                   arg_is_null,
+                                   NULL);
+  current_block_->statements->Add(if_arg_null);
 }
 
 
@@ -3123,7 +3118,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       // Replace the type with a malformed type and compile a throw when called.
       redirection_type = ClassFinalizer::NewFinalizedMalformedType(
           Error::Handle(),  // No previous error.
-          current_class(),
+          script_,
           type_pos,
           "factory '%s' may not redirect to type parameter '%s'",
           method->name->ToCString(),
@@ -6047,8 +6042,20 @@ AstNode* Parser::ParseIfStatement(String* label_name) {
 }
 
 
+// Return true if the type class of the given value implements the
+// == operator.
+static bool ImplementsEqualOperator(const Instance& value) {
+  Class& cls = Class::Handle(value.clazz());
+  const Function& equal_op = Function::Handle(
+      Resolver::ResolveDynamicAnyArgs(cls, Symbols::EqualOperator()));
+  ASSERT(!equal_op.IsNull());
+  cls = equal_op.Owner();
+  return !cls.IsObjectClass();
+}
+
+
 // Check that all case expressions are of the same type, either int, String,
-// double or any other class that does not override the == operator.
+// or any other class that does not override the == operator.
 // The expressions are compile-time constants and are thus in the form
 // of a LiteralNode.
 void Parser::CheckCaseExpressions(const GrowableArray<LiteralNode*>& values) {
@@ -6072,23 +6079,21 @@ void Parser::CheckCaseExpressions(const GrowableArray<LiteralNode*>& values) {
       }
       continue;
     }
-    if (first_value.IsDouble()) {
-      if (!val.IsDouble()) {
-        ErrorMsg(val_pos, "expected case expression of type double");
-      }
-      continue;
+    if (val.IsDouble()) {
+      ErrorMsg(val_pos, "case expression may not be of type double");
     }
     if (val.clazz() != first_value.clazz()) {
       ErrorMsg(val_pos, "all case expressions must be of same type");
     }
-    Class& cls = Class::Handle(val.clazz());
-    const Function& equal_op = Function::Handle(
-        Resolver::ResolveDynamicAnyArgs(cls, Symbols::EqualOperator()));
-    ASSERT(!equal_op.IsNull());
-    cls = equal_op.Owner();
-    if (!cls.IsObjectClass()) {
-      ErrorMsg(val_pos,
-               "type class of case expression must not implement operator ==");
+    if (i == 0) {
+      // The value is of some type other than int, String or double.
+      // Check that the type class does not override the == operator.
+      // Check this only in the first loop iteration since all values
+      // are of the same type, which we check above.
+      if (ImplementsEqualOperator(val)) {
+        ErrorMsg(val_pos,
+            "type class of case expression must not implement operator ==");
+      }
     }
   }
 }
@@ -7652,7 +7657,7 @@ AstNode* Parser::FoldConstExpr(intptr_t expr_pos, AstNode* expr) {
     return expr;
   }
   if (expr->EvalConstExpr() == NULL) {
-    ErrorMsg(expr_pos, "expression must be a compile-time constant");
+    ErrorMsg(expr_pos, "expression is not a valid compile-time constant");
   }
   return new LiteralNode(expr_pos, EvaluateConstExpr(expr));
 }
@@ -7822,7 +7827,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
   ConsumeToken();
   const intptr_t right_expr_pos = TokenPos();
   if (require_compiletime_const && (assignment_op != Token::kASSIGN)) {
-    ErrorMsg(right_expr_pos, "expression must be a compile-time constant");
+    ErrorMsg(right_expr_pos, "expression is not a valid compile-time constant");
   }
   AstNode* right_expr = ParseExpr(require_compiletime_const, consume_cascades);
   if (assignment_op != Token::kASSIGN) {
@@ -8530,7 +8535,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
                 FLAG_error_on_bad_type) {
               *type = ClassFinalizer::NewFinalizedMalformedType(
                   Error::Handle(),  // No previous error.
-                  scope_class,
+                  script_,
                   type->token_pos(),
                   "type parameter '%s' cannot be referenced "
                   "from static member",
@@ -8548,7 +8553,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
                 FLAG_error_on_bad_type) {
               *type = ClassFinalizer::NewFinalizedMalformedType(
                   Error::Handle(),  // No previous error.
-                  scope_class,
+                  script_,
                   type_parameter.token_pos(),
                   "type parameter '%s' cannot be parameterized",
                   String::Handle(type_parameter.name()).ToCString());
@@ -8586,7 +8591,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           FLAG_error_on_bad_type) {
         ClassFinalizer::FinalizeMalformedType(
             Error::Handle(),  // No previous error.
-            scope_class,
+            script_,
             parameterized_type,
             "type '%s' is not loaded",
             String::Handle(parameterized_type.UserVisibleName()).ToCString());
@@ -9181,7 +9186,7 @@ RawAbstractType* Parser::ParseType(
       if (finalization == ClassFinalizer::kCanonicalizeWellFormed) {
         return ClassFinalizer::NewFinalizedMalformedType(
             Error::Handle(),  // No previous error.
-            current_class(),
+            script_,
             type_name.ident_pos,
             "using '%s' in this context is invalid",
             type_name.ident->ToCString());
@@ -9502,6 +9507,18 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                                key_type,
                                Symbols::ListLiteralElement());
     }
+    if (is_const) {
+      ASSERT(key->IsLiteralNode());
+      const Instance& key_value = key->AsLiteralNode()->literal();
+      if (key_value.IsDouble()) {
+        ErrorMsg(key_pos, "key value must not be of type double");
+      }
+      if (!key_value.IsInteger() &&
+          !key_value.IsString() &&
+          ImplementsEqualOperator(key_value)) {
+        ErrorMsg(key_pos, "key value must not implement operator ==");
+      }
+    }
     ExpectToken(Token::kCOLON);
     const intptr_t value_pos = TokenPos();
     AstNode* value = ParseExpr(is_const, kConsumeCascades);
@@ -9744,7 +9761,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       // Replace the type with a malformed type.
       type = ClassFinalizer::NewFinalizedMalformedType(
           Error::Handle(),  // No previous error.
-          current_class(),
+          script_,
           type_pos,
           "%s'%s' cannot be instantiated",
           type.IsTypeParameter() ? "type parameter " : "",
@@ -9756,7 +9773,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         // Replace the type with a malformed type.
         type = ClassFinalizer::NewFinalizedMalformedType(
             bound_error,
-            current_class(),
+            script_,
             type_pos,
             "malbounded type '%s' cannot be instantiated",
             String::Handle(type.UserVisibleName()).ToCString());
@@ -9821,7 +9838,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       if (is_const) {
         type = ClassFinalizer::NewFinalizedMalformedType(
             Error::Handle(),  // No previous error.
-            current_class(),
+            script_,
             call_pos,
             "class '%s' has no constructor or factory named '%s'",
             String::Handle(type_class.Name()).ToCString(),
@@ -9947,7 +9964,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                                          &malformed_error)) {
           type_bound = ClassFinalizer::NewFinalizedMalformedType(
               malformed_error,
-              current_class(),
+              script_,
               new_pos,
               "const factory result is not an instance of '%s'",
               String::Handle(type_bound.UserVisibleName()).ToCString());

@@ -105,7 +105,7 @@ Map<String, String> _readPackageDirsFromPub(String currentPackage) {
 final Set<String> _polymerPackageDependencies = [
     'analyzer_experimental', 'args', 'barback', 'browser', 'csslib',
     'custom_element', 'fancy_syntax', 'html5lib', 'html_import', 'js',
-    'logging', 'mdv', 'meta', 'mutation_observer', 'observe', 'path', 'polymer',
+    'logging', 'mdv', 'meta', 'mutation_observer', 'observe', 'path'
     'polymer_expressions', 'serialization', 'shadow_dom', 'source_maps',
     'stack_trace', 'unittest', 'unmodifiable_collection', 'yaml'].toSet();
 
@@ -149,7 +149,9 @@ void _initBarback(Barback barback, BarbackOptions options) {
   }
 
   for (var package in options.packageDirs.keys) {
-    // There is nothing to do in the 'polymer' package and its dependencies.
+    // There is nothing to do in the polymer package dependencies.
+    // However: in Polymer package *itself*, we need to replace ObservableMixin
+    // with ChangeNotifierMixin.
     if (!options.transformPolymerDependencies &&
         _polymerPackageDependencies.contains(package)) continue;
     barback.updateTransformers(package, options.phases);

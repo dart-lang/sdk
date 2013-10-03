@@ -730,7 +730,7 @@ testPatchAndSelector() {
     // typed selector.
     var selector = new Selector.call(
         buildSourceString('method'), compiler.coreLibrary, 0);
-    var typedSelector = new TypedSelector.exact(cls.rawType, selector);
+    var typedSelector = new TypedSelector.exact(cls, selector);
     Element method =
         cls.implementation.lookupLocalMember(buildSourceString('method'));
     Expect.isTrue(selector.applies(method, compiler));
@@ -740,7 +740,7 @@ testPatchAndSelector() {
     // for a typed selector.
     selector = new Selector.call(
         buildSourceString('clear'), compiler.coreLibrary, 0);
-    typedSelector = new TypedSelector.exact(cls.rawType, selector);
+    typedSelector = new TypedSelector.exact(cls, selector);
     method = cls.lookupLocalMember(buildSourceString('clear'));
     Expect.isTrue(selector.applies(method, compiler));
     Expect.isTrue(typedSelector.applies(method, compiler));
@@ -749,7 +749,7 @@ testPatchAndSelector() {
     // for a typed selector on a subclass.
     cls = ensure(compiler, "B", compiler.coreLibrary.find);
     cls.ensureResolved(compiler);
-    typedSelector = new TypedSelector.exact(cls.rawType, selector);
+    typedSelector = new TypedSelector.exact(cls, selector);
     Expect.isTrue(selector.applies(method, compiler));
     Expect.isTrue(typedSelector.applies(method, compiler));
   }));

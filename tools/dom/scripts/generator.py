@@ -11,7 +11,8 @@ import json
 import monitored
 import os
 import re
-from htmlrenamer import html_interface_renames, typed_array_renames
+from htmlrenamer import custom_html_constructors, html_interface_renames, \
+    typed_array_renames
 
 _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     # TODO(sra): DOMStringMap should be a class implementing Map<String,String>.
@@ -313,7 +314,8 @@ def AnalyzeConstructor(interface):
   info.idl_args = idl_args
   info.declared_name = name
   info.name = name
-  info.constructor_name = None
+  info.constructor_name = ('_' if interface.id in custom_html_constructors
+      else None)
   info.js_name = name
   info.type_name = interface.id
   info.param_infos = _BuildArguments(idl_args, interface, constructor=True)

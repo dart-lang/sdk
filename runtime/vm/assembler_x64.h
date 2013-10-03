@@ -356,6 +356,7 @@ class Assembler : public ValueObject {
   void pushq(Register reg);
   void pushq(const Address& address);
   void pushq(const Immediate& imm);
+  void PushImmediate(const Immediate& imm, Register pp);
 
   void popq(Register reg);
   void popq(const Address& address);
@@ -489,6 +490,10 @@ class Assembler : public ValueObject {
   void cmpq(Register reg0, Register reg1);
   void cmpq(Register reg, const Address& address);
 
+  void CompareImmediate(Register reg, const Immediate& imm, Register pp);
+  void CompareImmediate(const Address& address, const Immediate& imm,
+                        Register pp);
+
   void testl(Register reg1, Register reg2);
   void testl(Register reg, const Immediate& imm);
 
@@ -506,15 +511,18 @@ class Assembler : public ValueObject {
   void andq(Register dst, Register src);
   void andq(Register dst, const Address& address);
   void andq(Register dst, const Immediate& imm);
+  void AndImmediate(Register dst, const Immediate& imm, Register pp);
 
   void orq(Register dst, Register src);
   void orq(Register dst, const Address& address);
   void orq(Register dst, const Immediate& imm);
+  void OrImmediate(Register dst, const Immediate& imm, Register pp);
 
   void xorq(Register dst, Register src);
   void xorq(Register dst, const Address& address);
   void xorq(const Address& dst, Register src);
   void xorq(Register dst, const Immediate& imm);
+  void XorImmediate(Register dst, const Immediate& imm, Register pp);
 
   void addl(Register dst, Register src);
   void addl(const Address& address, const Immediate& imm);
@@ -541,10 +549,13 @@ class Assembler : public ValueObject {
   void imulq(Register dst, Register src);
   void imulq(Register dst, const Address& address);
   void imulq(Register dst, const Immediate& imm);
+  void MulImmediate(Register reg, const Immediate& imm, Register pp);
 
   void subq(Register dst, Register src);
   void subq(Register reg, const Immediate& imm);
   void subq(Register reg, const Address& address);
+  void subq(const Address& address, Register reg);
+  void subq(const Address& address, const Immediate& imm);
 
   void shll(Register reg, const Immediate& imm);
   void shll(Register operand, Register shifter);
@@ -657,7 +668,8 @@ class Assembler : public ValueObject {
   void MoveRegister(Register to, Register from);
   void PopRegister(Register r);
 
-  void AddImmediate(Register reg, const Immediate& imm);
+  void AddImmediate(Register reg, const Immediate& imm, Register pp);
+  void AddImmediate(const Address& address, const Immediate& imm, Register pp);
 
   void Drop(intptr_t stack_elements);
 
@@ -666,15 +678,18 @@ class Assembler : public ValueObject {
     kNotPatchable,
   };
 
+  bool CanLoadImmediateFromPool(const Immediate& imm, Register pp);
+  void LoadImmediate(Register reg, const Immediate& imm, Register pp);
+  void LoadImmediate(const Address& dst, const Immediate& imm, Register pp);
   void LoadObject(Register dst, const Object& obj, Register pp);
   void JmpPatchable(const ExternalLabel* label, Register pp);
   void Jmp(const ExternalLabel* label, Register pp);
   void J(Condition condition, const ExternalLabel* label, Register pp);
   void CallPatchable(const ExternalLabel* label);
   void Call(const ExternalLabel* label, Register pp);
-  void StoreObject(const Address& dst, const Object& obj);
-  void PushObject(const Object& object);
-  void CompareObject(Register reg, const Object& object);
+  void StoreObject(const Address& dst, const Object& obj, Register pp);
+  void PushObject(const Object& object, Register pp);
+  void CompareObject(Register reg, const Object& object, Register pp);
   void LoadDoubleConstant(XmmRegister dst, double value);
 
   // Destroys value.
@@ -812,10 +827,13 @@ class Assembler : public ValueObject {
   // calls. Jump to 'failure' if the instance cannot be allocated here.
   // Allocated instance is returned in 'instance_reg'.
   // Only the tags field of the object is initialized.
+  // Loads large immediates from the object pool with pool pointer in PP if it
+  // is not kNoRegister
   void TryAllocate(const Class& cls,
                    Label* failure,
                    bool near_jump,
-                   Register instance_reg);
+                   Register instance_reg,
+                   Register pp);
 
   // Debugging and bringup support.
   void Stop(const char* message);
@@ -901,6 +919,7 @@ class Assembler : public ValueObject {
   intptr_t FindObject(const Object& obj, Patchability patchable);
   intptr_t FindExternalLabel(const ExternalLabel* label,
                              Patchability patchable);
+  intptr_t FindImmediate(int64_t imm);
   void LoadExternalLabel(Register dst,
                          const ExternalLabel* label,
                          Patchability patchable,
