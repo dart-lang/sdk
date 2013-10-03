@@ -156,11 +156,6 @@ canonical_const2_test: RuntimeError, OK # Issue 1533
 bit_operations_test: RuntimeError, OK # Issue 1533
 expect_test: RuntimeError, OK # Issue 13080
 
-final_syntax_test/01: MissingCompileTimeError # Issue 13020
-final_syntax_test/02: MissingCompileTimeError # Issue 13020
-final_syntax_test/03: MissingCompileTimeError # Issue 13020
-final_syntax_test/04: MissingCompileTimeError # Issue 13020
-
 null_test/none: RuntimeError  # Issue 12482
 
 
@@ -244,10 +239,6 @@ setter_override2_test/02: Fail # Issue 11496
 
 constructor9_test/01: Fail # Issue 12935
 constructor_named_arguments_test/01: Fail # Issue 5519
-final_syntax_test/01: Fail # Issue 13020
-final_syntax_test/02: Fail # Issue 13020
-final_syntax_test/03: Fail # Issue 13020
-final_syntax_test/04: Fail # Issue 13020
 named_parameters_aggregated_test/03: Fail # Issue 12813
 not_enough_positional_arguments_test/01: Fail # Issue 12839
 not_enough_positional_arguments_test/02: Fail # Issue 12839

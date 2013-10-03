@@ -894,6 +894,13 @@ void main() {
   const c; // This constant variable must be initialized.
 }"""]);
 
+  static const MessageKind FINAL_WITHOUT_INITIALIZER = const MessageKind(
+      "Error: A final variable must be initialized.",
+      howToFix: "Try adding an initializer or "
+                "removing the 'final' modifier.",
+      examples: const [
+          "class C { static final field; } main() => C.field;"]);
+
   static const MessageKind MEMBER_USES_CLASS_NAME = const MessageKind(
       "Error: Member variable can't have the same name as the class it is "
       "declared in.",

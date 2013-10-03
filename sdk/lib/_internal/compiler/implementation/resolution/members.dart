@@ -469,12 +469,15 @@ class ResolverTask extends CompilerTask {
     visitor.useElement(tree, element);
 
     SendSet send = tree.asSendSet();
+    Modifiers modifiers = element.modifiers;
     if (send != null) {
       // TODO(johnniwinther): Avoid analyzing initializers if
       // [Compiler.analyzeSignaturesOnly] is set.
       visitor.visit(send.arguments.head);
-    } else if (element.modifiers.isConst()) {
+    } else if (modifiers.isConst()) {
       compiler.reportError(element, MessageKind.CONST_WITHOUT_INITIALIZER);
+    } else if (modifiers.isFinal() && !element.isInstanceMember()) {
+      compiler.reportError(element, MessageKind.FINAL_WITHOUT_INITIALIZER);
     }
 
     if (Elements.isStaticOrTopLevelField(element)) {
@@ -1838,6 +1841,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
   int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION
       | ElementCategory.IMPLIES_TYPE;
 
+  /// When visiting the type declaration of the variable in a [ForIn] loop,
+  /// the initializer of the variable is implicit and we should not emit an
+  /// error when verifying that all final variables are initialized.
+  bool allowFinalWithoutInitializer = false;
+
   // TODO(ahe): Find a way to share this with runtime implementation.
   static final RegExp symbolValidationPattern =
       new RegExp(r'^(?:[a-zA-Z$][a-zA-Z$0-9_]*\.)*(?:[a-zA-Z$][a-zA-Z$0-9_]*=?|'
@@ -3080,7 +3088,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
     visit(node.expression);
     Scope blockScope = new BlockScope(scope);
     Node declaration = node.declaredIdentifier;
+
+    bool oldAllowFinalWithoutInitializer = allowFinalWithoutInitializer;
+    allowFinalWithoutInitializer = true;
     visitIn(declaration, blockScope);
+    allowFinalWithoutInitializer = oldAllowFinalWithoutInitializer;
 
     Send send = declaration.asSend();
     VariableDefinitions variableDefinitions =
@@ -4061,6 +4073,10 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
                                              resolver.mapping);
     if (definitions.modifiers.isConst()) {
       compiler.reportError(node, MessageKind.CONST_WITHOUT_INITIALIZER);
+    }
+    if (definitions.modifiers.isFinal() &&
+        !resolver.allowFinalWithoutInitializer) {
+      compiler.reportError(node, MessageKind.FINAL_WITHOUT_INITIALIZER);
     }
     return node.source;
   }
