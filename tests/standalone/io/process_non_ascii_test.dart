@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 main() {
   asyncStart();
   var executable = new File(Platform.executable).fullPathSync();
-  var tempDir = new Directory('').createTempSync();
+  var tempDir = Directory.systemTemp.createTempSync('dart_process_non_ascii');
   var nonAsciiDir = new Directory('${tempDir.path}/æøå');
   nonAsciiDir.createSync();
   var nonAsciiFile = new File('${nonAsciiDir.path}/æøå.dart');

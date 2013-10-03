@@ -7,7 +7,7 @@ import "package:async_helper/async_helper.dart";
 import 'dart:io';
 
 void testReadAsString() {
-  var tmp = new Directory('').createTempSync();
+  var tmp = Directory.systemTemp.createTempSync('dart_file_read_encoded');
 
   var file = new File('${tmp.path}/file');
   file.createSync();
@@ -26,7 +26,7 @@ void testReadAsString() {
 }
 
 void testReadAsLines() {
-  var tmp = new Directory('').createTempSync();
+  var tmp = Directory.systemTemp.createTempSync('dart_file_read_encoded');
 
   var file = new File('${tmp.path}/file');
   file.createSync();

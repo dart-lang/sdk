@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 
 
 void testWatchCreateFile() {
-  var dir = new Directory('').createTempSync();
+  var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var file = new File(dir.path + '/file');
 
   var watcher = dir.watch();
@@ -34,7 +34,7 @@ void testWatchCreateFile() {
 
 
 void testWatchModifyFile() {
-  var dir = new Directory('').createTempSync();
+  var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var file = new File(dir.path + '/file');
   file.createSync();
 
@@ -59,7 +59,7 @@ void testWatchModifyFile() {
 
 
 void testWatchMoveFile() {
-  var dir = new Directory('').createTempSync();
+  var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var file = new File(dir.path + '/file');
   file.createSync();
 
@@ -87,7 +87,7 @@ void testWatchMoveFile() {
 
 
 void testWatchDeleteFile() {
-  var dir = new Directory('').createTempSync();
+  var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var file = new File(dir.path + '/file');
   file.createSync();
 
@@ -112,7 +112,7 @@ void testWatchDeleteFile() {
 
 
 void testWatchOnlyModifyFile() {
-  var dir = new Directory('').createTempSync();
+  var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var file = new File(dir.path + '/file');
 
   var watcher = dir.watch(events: FileSystemEvent.MODIFY);
@@ -136,7 +136,7 @@ void testWatchOnlyModifyFile() {
 
 
 void testMultipleEvents() {
-  var dir = new Directory('').createTempSync();
+  var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var file = new File(dir.path + '/file');
   var file2 = new File(dir.path + '/file2');
 
@@ -181,7 +181,7 @@ void testMultipleEvents() {
 
 
 void testWatchRecursive() {
-  var dir = new Directory('').createTempSync();
+  var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   if (Platform.isLinux) {
     Expect.throws(() => dir.watch(recursive: true));
     return;
@@ -210,7 +210,7 @@ void testWatchRecursive() {
 
 
 void testWatchNonRecursive() {
-  var dir = new Directory('').createTempSync();
+  var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var dir2 = new Directory(dir.path + '/dir');
   dir2.createSync();
   var file = new File(dir.path + '/dir/file');

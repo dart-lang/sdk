@@ -14,7 +14,7 @@ import "package:expect/expect.dart";
 
 void testListNonExistent() {
   asyncStart();
-  new Directory("").createTemp().then((d) {
+  Directory.systemTemp.createTemp('dart_directory_list_nonexistent').then((d) {
     d.delete().then((ignore) {
       Expect.throws(() => d.listSync(), (e) => e is DirectoryException);
       Expect.throws(() => d.listSync(recursive: true),
@@ -26,7 +26,7 @@ void testListNonExistent() {
 
 void testListTooLongName() {
   asyncStart();
-  new Directory("").createTemp().then((d) {
+  Directory.systemTemp.createTemp('dart_directory_list_nonexistent').then((d) {
     var subDirName = 'subdir';
     var subDir = new Directory("${d.path}/$subDirName");
     subDir.create().then((ignore) {

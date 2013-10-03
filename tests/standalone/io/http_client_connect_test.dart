@@ -96,7 +96,8 @@ void testGetDataServerClose() {
     client.get("127.0.0.1", server.port, "/")
       .then((request) => request.close())
       .then((response) {
-        // Close the (incomplete) response, now we have seen the response object.
+        // Close the (incomplete) response, now that we have seen
+        // the response object.
         completer.complete(null);
         int errors = 0;
         response.listen(

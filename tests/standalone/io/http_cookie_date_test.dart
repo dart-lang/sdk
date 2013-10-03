@@ -25,7 +25,8 @@ void testParseHttpCookieDate() {
        int minutes,
        int seconds,
        String formatted) {
-    DateTime date = new DateTime.utc(year, month, day, hours, minutes, seconds, 0);
+    DateTime date =
+        new DateTime.utc(year, month, day, hours, minutes, seconds, 0);
     Expect.equals(date, HttpDate._parseCookieDate(formatted));
   }
 

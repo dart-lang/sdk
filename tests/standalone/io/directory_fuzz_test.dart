@@ -16,13 +16,16 @@ import 'fuzz_support.dart';
 fuzzSyncMethods() {
   typeMapping.forEach((k, v) {
     doItSync(() {
+      doItSync(() {
+        Directory.systemTemp.createTempSync(v).deleteSync();
+      });
       var d = new Directory(v);
       doItSync(d.existsSync);
       doItSync(d.createSync);
       doItSync(d.deleteSync);
       doItSync(d.listSync);
       doItSync(() {
-        d.createTempSync().deleteSync();
+        d.createTempSync('tempdir').deleteSync();
       });
       doItSync(() {
         // Let's be a little careful. If the directory exists we don't
@@ -41,6 +44,9 @@ fuzzAsyncMethods() {
   asyncStart();
   var futures = [];
   typeMapping.forEach((k, v) {
+    futures.add(doItAsync(() {
+      Directory.systemTemp.createTempSync(v).deleteSync();
+    }));
     if (v is! String) {
       Expect.throws(() => new Directory(v),
                     (e) => e is ArgumentError);
@@ -51,7 +57,7 @@ fuzzAsyncMethods() {
     futures.add(doItAsync(d.create));
     futures.add(doItAsync(d.delete));
     futures.add(doItAsync(() {
-      return d.createTemp().then((temp) {
+      return d.createTemp('tempdir').then((temp) {
         return temp.delete();
       });
     }));

@@ -29,7 +29,12 @@ class FutureExpect {
 
 
 Future testCreate() {
-  return new Directory('').createTemp().then((baseDir) {
+  return Directory.systemTemp.createTemp('dart_link_async').then((baseDir) {
+    if (isRelative(baseDir.path)) {
+      Expect.fail(
+          'Link tests expect absolute paths to system temporary directories. '
+          'A relative path in TMPDIR gives relative paths to them.');
+    }
     String base = baseDir.path;
     String link = join(base, 'link');
     String target = join(base, 'target');
@@ -141,7 +146,7 @@ Future testCreate() {
 
 
 Future testCreateLoopingLink(_) {
-  return new Directory('').createTemp()
+  return Directory.systemTemp.createTemp('dart_link_async')
     .then((dir) => dir.path)
     .then((String base) =>
       new Directory(join(base, 'a', 'b', 'c')).create(recursive: true)
@@ -200,7 +205,7 @@ Future testRename(_) {
     .then((_) => Expect.isFalse(link1.existsSync()));
   }
 
-  return new Directory('').createTemp().then((baseDir) {
+  return Directory.systemTemp.createTemp('dart_link_async').then((baseDir) {
     String base = baseDir.path;
     var targetsFutures = [];
     targetsFutures.add(new Directory(join(base, 'a')).create());
@@ -275,7 +280,9 @@ Future checkExists(String filePath) =>
     new File(filePath).exists().then(Expect.isTrue);
 
 Future testRelativeLinks(_) {
-  return new Directory('').createTemp().then((tempDirectory) {
+  return Directory.systemTemp
+                  .createTemp('dart_link_async')
+                  .then((tempDirectory) {
     String temp = tempDirectory.path;
     String oldWorkingDirectory = Directory.current.path;
     // Make directories and files to test links.

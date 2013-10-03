@@ -18,7 +18,8 @@ class ProcessWorkingDirectoryTest {
   }
 
   static void testValidDirectory() {
-    Directory directory = new Directory("").createTempSync();
+    Directory directory =
+        Directory.systemTemp.createTempSync('dart_process_working_directory');
     Expect.isTrue(directory.existsSync());
 
     Process.start(fullTestFilePath,
@@ -38,7 +39,8 @@ class ProcessWorkingDirectoryTest {
   }
 
   static void testInvalidDirectory() {
-    Directory directory = new Directory("").createTempSync();
+    Directory directory =
+        Directory.systemTemp.createTempSync('dart_process_working_directory');
     Expect.isTrue(directory.existsSync());
 
     Process.start(fullTestFilePath,

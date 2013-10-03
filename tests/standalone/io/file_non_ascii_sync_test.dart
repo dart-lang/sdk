@@ -6,7 +6,8 @@ import "package:expect/expect.dart";
 import 'dart:io';
 
 main() {
-  Directory tempDir = new Directory('').createTempSync();
+  Directory tempDir =
+      Directory.systemTemp.createTempSync('dart_file_non_ascii_sync');
   Directory nonAsciiDir = new Directory('${tempDir.path}/æøå');
   nonAsciiDir.createSync();
   Expect.isTrue(nonAsciiDir.existsSync());

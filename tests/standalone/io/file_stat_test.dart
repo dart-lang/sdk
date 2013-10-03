@@ -12,7 +12,7 @@ import "package:expect/expect.dart";
 import "package:path/path.dart";
 
 void testStat() {
-  Directory directory = new Directory("").createTempSync();
+  Directory directory = Directory.systemTemp.createTempSync('dart_file_stat');
   File file = new File(join(directory.path, "file"));
   Expect.throws(file.statSync);
   Expect.throws(() => FileStat.statSync(file.path));
@@ -48,7 +48,7 @@ void testStat() {
 
 
 Future testStatAsync() {
-  return new Directory("").createTemp()
+  return Directory.systemTemp.createTemp('dart_file_stat')
   .then((directory) {
     File file = new File(join(directory.path, "file"));
     return FileStat.stat(file.path)

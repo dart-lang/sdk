@@ -29,7 +29,8 @@ main() {
                                  'resolve_symbolic_links_test.dart')));
     asyncTest(() => testDir('\\\\?\\$testsDir'));
   }
-  asyncTest(() => new Directory('').createTemp().then((tempDir) {
+  asyncTest(() => Directory.systemTemp.createTemp('dart_resolve_symbolic_links')
+      .then((tempDir) {
     String temp = tempDir.path;
     return makeEntities(temp).then((_) => Future.wait(
         [testFile(join(temp, 'dir1', 'file1')),

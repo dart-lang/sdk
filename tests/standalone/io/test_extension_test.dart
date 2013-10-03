@@ -38,7 +38,8 @@ String getExtensionPath(String buildDirectory) {
 void main() {
   String scriptDirectory = dirname(Platform.script);
   String buildDirectory = dirname(Platform.executable);
-  Directory tempDirectory = new Directory('').createTempSync();
+  Directory tempDirectory =
+      Directory.systemTemp.createTempSync('dart_test_extension');
   String testDirectory = tempDirectory.path;
 
   // Copy test_extension shared library, test_extension.dart and

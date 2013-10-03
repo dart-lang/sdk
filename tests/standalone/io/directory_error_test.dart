@@ -11,7 +11,7 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 Directory tempDir() {
-  return new Directory('').createTempSync();
+  return Directory.systemTemp.createTempSync('dart_directory_error');
 }
 
 
@@ -60,10 +60,10 @@ bool checkCreateTempInNonExistentFileException(e) {
 
 void testCreateTempInNonExistent(Directory temp, Function done) {
   Directory nonExistent = new Directory("${temp.path}/nonExistent/xxx");
-  Expect.throws(() => nonExistent.createTempSync(),
+  Expect.throws(() => nonExistent.createTempSync('tempdir'),
                 (e) => checkCreateTempInNonExistentFileException(e));
 
-  nonExistent.createTemp().catchError((error) {
+  nonExistent.createTemp('tempdir').catchError((error) {
     checkCreateTempInNonExistentFileException(error);
     done();
   });
@@ -179,8 +179,7 @@ void testRenameFileAsDirectory(Directory temp, Function done) {
 
 
 testRenameOverwriteFile(Directory temp, Function done) {
-  var d = new Directory('');
-  var temp1 = d.createTempSync();
+  var temp1 = Directory.systemTemp.createTempSync('dart_directory_error');
   var fileName = '${temp.path}/x';
   new File(fileName).createSync();
   Expect.throws(() => temp1.renameSync(fileName),
@@ -197,7 +196,7 @@ testRenameOverwriteFile(Directory temp, Function done) {
 
 void runTest(Function test) {
   // Create a temporary directory for the test.
-  var temp = new Directory('').createTempSync();
+  var temp = Directory.systemTemp.createTempSync('dart_directory_error');
 
   // Wait for the test to finish and delete the temporary directory.
   asyncStart();

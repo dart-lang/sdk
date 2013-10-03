@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import "dart:io";
 
 void testFileExistsSync() {
-  var tmp = new Directory("").createTempSync();
+  var tmp = Directory.systemTemp.createTempSync('dart_file_system_exists');
   var path = "${tmp.path}${Platform.pathSeparator}";
 
   var file = new File("${path}myFile");
@@ -23,7 +23,7 @@ void testFileExistsSync() {
 }
 
 void testFileExists() {
-  new Directory("").createTemp().then((tmp) {
+  Directory.systemTemp.createTemp('dart_file_system_exists').then((tmp) {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var file = new File("${path}myFile");
     return file.create()
@@ -37,7 +37,7 @@ void testFileExists() {
 }
 
 void testDirectoryExistsSync() {
-  var tmp = new Directory("").createTempSync();
+  var tmp = Directory.systemTemp.createTempSync('dart_file_system_exists');
   var path = "${tmp.path}${Platform.pathSeparator}";
 
   var dir = new Directory("${path}myDirectory");
@@ -54,7 +54,7 @@ void testDirectoryExistsSync() {
 }
 
 void testDirectoryExists() {
-  new Directory("").createTemp().then((tmp) {
+  Directory.systemTemp.createTemp('dart_file_system_exists').then((tmp) {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var dir = new Directory("${path}myDirectory");
     return dir.create()
@@ -68,7 +68,7 @@ void testDirectoryExists() {
 }
 
 void testFileLinkExistsSync() {
-  var tmp = new Directory("").createTempSync();
+  var tmp = Directory.systemTemp.createTempSync('dart_file_system_exists');
   var path = "${tmp.path}${Platform.pathSeparator}";
 
   var file = new File("${path}myFile");
@@ -91,7 +91,7 @@ void testFileLinkExistsSync() {
 }
 
 void testFileLinkExists() {
-  new Directory("").createTemp().then((tmp) {
+  Directory.systemTemp.createTemp('dart_file_system_exists').then((tmp) {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var file = new File("${path}myFile");
     var link = new Link("${path}myLink");
@@ -109,7 +109,7 @@ void testFileLinkExists() {
 }
 
 void testDirectoryLinkExistsSync() {
-  var tmp = new Directory("").createTempSync();
+  var tmp = Directory.systemTemp.createTempSync('dart_file_system_exists');
   var path = "${tmp.path}${Platform.pathSeparator}";
 
   var directory = new Directory("${path}myDirectory");
@@ -132,7 +132,7 @@ void testDirectoryLinkExistsSync() {
 }
 
 void testDirectoryLinkExists() {
-  new Directory("").createTemp().then((tmp) {
+  Directory.systemTemp.createTemp('dart_file_system_exists').then((tmp) {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var dir = new Directory("${path}myDir");
     var link = new Link("${path}myLink");
@@ -150,7 +150,7 @@ void testDirectoryLinkExists() {
 }
 
 void testBrokenLinkExistsSync() {
-  var tmp = new Directory("").createTempSync();
+  var tmp = Directory.systemTemp.createTempSync('dart_file_system_exists');
   var path = "${tmp.path}${Platform.pathSeparator}";
 
   var directory = new Directory("${path}myDirectory");
@@ -171,7 +171,7 @@ void testBrokenLinkExistsSync() {
 }
 
 void testBrokenLinkExists() {
-  new Directory("").createTemp().then((tmp) {
+  Directory.systemTemp.createTemp('dart_file_system_exists').then((tmp) {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var dir = new Directory("${path}myDir");
     var link = new Link("${path}myLink");

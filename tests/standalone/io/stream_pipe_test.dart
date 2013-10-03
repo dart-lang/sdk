@@ -67,7 +67,7 @@ testFileToFilePipe1() {
       getDataFilename("tests/standalone/io/readline_test1.dat");
   var srcStream = new File(srcFileName).openRead();
 
-  var tempDir = new Directory('').createTempSync();
+  var tempDir = Directory.systemTemp.createTempSync('dart_stream_pipe');
   String dstFileName = tempDir.path + "/readline_test1.dat";
   new File(dstFileName).createSync();
   var output = new File(dstFileName).openWrite();
@@ -93,7 +93,7 @@ testFileToFilePipe2() {
   var srcFile = new File(srcFileName);
   var srcStream = srcFile.openRead();
 
-  var tempDir = new Directory('').createTempSync();
+  var tempDir = Directory.systemTemp.createTempSync('dart_stream_pipe');
   var dstFileName = tempDir.path + "/readline_test1.dat";
   var dstFile = new File(dstFileName);
   dstFile.createSync();
@@ -135,7 +135,7 @@ testFileToFilePipe3() {
   var srcFile = new File(srcFileName);
   var srcStream = srcFile.openRead();
 
-  var tempDir = new Directory('').createTempSync();
+  var tempDir = Directory.systemTemp.createTempSync('dart_stream_pipe');
   var dstFileName = tempDir.path + "/readline_test1.dat";
   var dstFile = new File(dstFileName);
   dstFile.createSync();
