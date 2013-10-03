@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library Peg Parser;
+library PegParser;
 
 /*
  * The following functions are combinators for building Rules.
@@ -62,7 +62,7 @@ _Rule CHAR([characters]) {
 
   // Find the range of character codes and construct an array of flags for codes
   // within the range.
-  List<int> codes = characters.codeUnits;
+  List<int> codes = characters.codeUnits.toList();
   codes.sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   int lo = codes[0];
   int hi = codes[codes.length - 1];
@@ -165,7 +165,7 @@ _Rule MAYBE(rule) => new _OptionalRule(_compile(rule));
  * MANY is a value generating matcher.  The value is a list of the matches of
  * [rule].  The list may be empty if [:min == 0:].
  */
-_Rule MANY(rule, [separator = null, int min = 1]) {
+_Rule MANY(rule, {separator: null, int min: 1}) {
   assert(0 <= min && min <= 1);
   return new _RepeatRule(_compile(rule), _compileOptional(separator), min);
 }
@@ -274,7 +274,7 @@ class Grammar {
       tokens.sort((a, b) =>
                   a.startsWith("'") == b.startsWith("'")
                       ? a.compareTo(b)
-                      : a.startsWith("'") ? +1 : -1);
+                      : a.startsWith("'") ? 1 : -1);
       var expected = tokens.join(' or ');
       var found = state.max_pos == state._end ? 'end of file'
           : "'${state._text[state.max_pos]}'";
@@ -314,7 +314,7 @@ class Symbol {
 
 
 class _ParserState {
-  _ParserState(this._text, [_Rule whitespace = null]) {
+  _ParserState(this._text, {_Rule whitespace}) {
     _end = this._text.length;
     whitespaceRule = whitespace;
     max_rule = [];
