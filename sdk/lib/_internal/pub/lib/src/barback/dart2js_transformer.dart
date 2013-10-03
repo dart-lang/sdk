@@ -53,10 +53,7 @@ class Dart2JSTransformer extends Transformer {
       // actually be on disk, but this gives dart2js a root to resolve
       // relative paths against.
       var id = transform.primaryInput.id;
-      var entrypoint = path.url.join(
-          path.toUri(_graph.packages[id.package].dir).path,
-          id.path);
-
+      var entrypoint = path.join(_graph.packages[id.package].dir, id.path);
       var packageRoot = path.join(_graph.entrypoint.root.dir, "packages");
 
       // TODO(rnystrom): Should have more sophisticated error-handling here.
