@@ -1163,7 +1163,8 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(const Function& target) {
   Definition* last;
   if (optimizer.TryInlineRecognizedMethod(target,
                                           call_,
-                                          call_->ic_data(),
+                                          call_->instance_call()->token_pos(),
+                                          *call_->instance_call()->ic_data(),
                                           &entry, &last)) {
     // Create a graph fragment.
     InlineExitCollector* exit_collector =

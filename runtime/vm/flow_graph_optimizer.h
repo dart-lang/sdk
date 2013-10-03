@@ -46,6 +46,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   bool TryInlineRecognizedMethod(const Function& target,
                                  Instruction* call,
+                                 intptr_t token_pos,
                                  const ICData& ic_data,
                                  TargetEntryInstr** entry,
                                  Definition** last);
@@ -72,20 +73,27 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void SpecializePolymorphicInstanceCall(PolymorphicInstanceCallInstr* call);
 
-  intptr_t PrepareIndexedOp(InstanceCallInstr* call,
-                            intptr_t class_id,
-                            Definition** array,
-                            Definition** index);
   bool TryReplaceWithStoreIndexed(InstanceCallInstr* call);
-  void BuildStoreIndexed(InstanceCallInstr* call,
-                         const ICData& value_check,
-                         intptr_t class_id);
+  bool InlineSetIndexed(MethodRecognizer::Kind kind,
+                        const Function& target,
+                        Instruction* call,
+                        intptr_t token_pos,
+                        const ICData* ic_data,
+                        const ICData& value_check,
+                        TargetEntryInstr** entry,
+                        Definition** last);
   bool TryReplaceWithLoadIndexed(InstanceCallInstr* call);
-  bool TryInlineGetIndexed(MethodRecognizer::Kind kind,
-                           Instruction* call,
-                           const ICData& ic_data,
-                           TargetEntryInstr** entry,
-                           Definition** last);
+  bool InlineGetIndexed(MethodRecognizer::Kind kind,
+                        Instruction* call,
+                        const ICData& ic_data,
+                        TargetEntryInstr** entry,
+                        Definition** last);
+  intptr_t PrepareInlineIndexedOp(Instruction* call,
+                                  intptr_t array_cid,
+                                  Definition** array,
+                                  Definition* index,
+                                  Instruction** cursor);
+
 
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithUnaryOp(InstanceCallInstr* call, Token::Kind op_kind);
@@ -130,6 +138,9 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                      intptr_t deopt_id,
                      Environment* deopt_environment,
                      Instruction* insert_before);
+  Instruction* GetCheckClass(Definition* to_check,
+                             const ICData& unary_checks,
+                             intptr_t deopt_id);
 
   // Insert a Smi check if needed.
   void AddCheckSmi(Definition* to_check,
