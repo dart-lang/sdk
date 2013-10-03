@@ -10,7 +10,7 @@ import '../lib/docgen.dart';
 main() {
   group('Generate docs for', () {
     test('one simple file.', () {
-      var temporaryDir = Directory.createSystemTempSync('single_library_');
+      var temporaryDir = Directory.systemTemp.createTempSync('single_library_');
       var fileName = path.join(temporaryDir.path, 'temp.dart');
       var file = new File(fileName);
       file.writeAsStringSync('''

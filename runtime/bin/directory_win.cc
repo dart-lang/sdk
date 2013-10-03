@@ -383,21 +383,23 @@ bool Directory::Create(const char* dir_name) {
 }
 
 
-char* Directory::CreateTemp(const char* const_template, bool system) {
-  // Returns a new, unused directory name, modifying the contents of
-  // dir_template.  Creates this directory, with a default security
+char* Directory::SystemTemp() {
+  PathBuffer path;
+  path.Reset(GetTempPathW(MAX_PATH, path.AsStringW()) - 1);  // Remove \ at end.
+  return path.AsString();
+}
+
+
+char* Directory::CreateTemp(const char* prefix) {
+  // Returns a new, unused directory name, adding characters to the
+  // end of prefix.
+  // Creates this directory, with a default security
   // descriptor inherited from its parent directory.
   // The return value must be freed by the caller.
   PathBuffer path;
-  if (system) {
-    path.Reset(GetTempPathW(MAX_PATH, path.AsStringW()));
-    if (path.length() == 0) {
-      return NULL;
-    }
-  }
-  const wchar_t* system_template = StringUtils::Utf8ToWide(const_template);
-  path.AddW(system_template);
-  free(const_cast<wchar_t*>(system_template));
+  const wchar_t* system_prefix = StringUtils::Utf8ToWide(prefix);
+  path.AddW(system_prefix);
+  free(const_cast<wchar_t*>(system_prefix));
 
   // Length of xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx is 36.
   if (path.length() > MAX_PATH - 36) {

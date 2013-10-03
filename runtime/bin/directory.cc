@@ -76,16 +76,22 @@ void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Directory_SystemTemp)(
+    Dart_NativeArguments args) {
+  char* result = Directory::SystemTemp();
+  Dart_SetReturnValue(args, DartUtils::NewString(result));
+  free(result);
+}
+
+
 void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
-  Dart_Handle system = Dart_GetNativeArgument(args, 1);
   if (!Dart_IsString(path)) {
     Dart_SetReturnValue(args, DartUtils::NewDartArgumentError(
-        "Template argument of CreateSystemTempSync is not a String"));
+        "Prefix argument of CreateSystemTempSync is not a String"));
     return;
   }
-  char* result = Directory::CreateTemp(DartUtils::GetStringValue(path),
-                                       DartUtils::GetBooleanValue(system));
+  char* result = Directory::CreateTemp(DartUtils::GetStringValue(path));
   if (result != NULL) {
     Dart_SetReturnValue(args, DartUtils::NewString(result));
     free(result);
@@ -195,23 +201,7 @@ CObject* Directory::ExistsRequest(const CObjectArray& request) {
 CObject* Directory::CreateTempRequest(const CObjectArray& request) {
   if (request.Length() == 1 && request[0]->IsString()) {
     CObjectString path(request[0]);
-    char* result = Directory::CreateTemp(path.CString(), false);
-    if (result != NULL) {
-      CObject* temp_dir = new CObjectString(CObject::NewString(result));
-      free(result);
-      return temp_dir;
-    } else {
-      return CObject::NewOSError();
-    }
-  }
-  return CObject::IllegalArgumentError();
-}
-
-
-CObject* Directory::CreateSystemTempRequest(const CObjectArray& request) {
-  if (request.Length() == 1 && request[0]->IsString()) {
-    CObjectString path(request[0]);
-    char* result = Directory::CreateTemp(path.CString(), true);
+    char* result = Directory::CreateTemp(path.CString());
     if (result != NULL) {
       CObject* temp_dir = new CObjectString(CObject::NewString(result));
       free(result);

@@ -9,8 +9,11 @@ patch class _Directory {
   patch static _setCurrent(path) {
     throw new UnsupportedError("Directory_SetCurrent");
   }
-  patch static _createTemp(String template, bool system) {
+  patch static _createTemp(String path) {
     throw new UnsupportedError("Directory._createTemp");
+  }
+  patch static String _systemTemp() {
+    throw new UnsupportedError("Directory._systemTemp");
   }
   patch static int _exists(String path) {
     throw new UnsupportedError("Directory._exists");

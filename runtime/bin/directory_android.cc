@@ -382,34 +382,34 @@ static char* MakeTempDirectory(char* path_template) {
 }
 
 
-char* Directory::CreateTemp(const char* const_template, bool system) {
-  // Returns a new, unused directory name, modifying the contents of
-  // dir_template.  Creates the directory with the permissions specified
+char* Directory::SystemTemp() {
+  // Android does not have a /tmp directory. A partial substitute,
+  // suitable for bring-up work and tests, is to create a tmp
+  // directory in /data/local/tmp.
+  //
+  // TODO(4413): In the long run, when running in an application we should
+  // probably use the appropriate directory from the Android API,
+  // probably what File.createTempFile uses.
+#define ANDROID_TEMP_DIR "/data/local/tmp"
+  struct stat st;
+  if (stat(ANDROID_TEMP_DIR, &st) != 0) {
+    mkdir(ANDROID_TEMP_DIR, 0777);
+  }
+  return strdup(ANDROID_TEMP_DIR);
+}
+
+
+char* Directory::CreateTemp(const char* prefix) {
+  // Returns a new, unused directory name, adding characters to the end
+  // of prefix.  Creates the directory with the permissions specified
   // by the process umask.
   // The return value must be freed by the caller.
   PathBuffer path;
-  if (system) {
-    // Android does not have a /tmp directory. A partial substitute,
-    // suitable for bring-up work and tests, is to create a tmp
-    // directory in /data/local/tmp.
-    //
-    // TODO(4413): In the long run, when running in an application we should
-    // probably use the appropriate directory from the Android API,
-    // probably what File.createTempFile uses.
-    #define ANDROID_TEMP_DIR "/data/local/tmp"
-    struct stat st;
-    if (stat(ANDROID_TEMP_DIR, &st) != 0) {
-      mkdir(ANDROID_TEMP_DIR, 0777);
-    }
-    path.Add(ANDROID_TEMP_DIR "/");
-  }
-
-  path.Add(const_template);
+  path.Add(prefix);
   if (!path.Add("XXXXXX")) {
     // Pattern has overflowed.
     return NULL;
   }
-
   char* result;
   do {
     result = MakeTempDirectory(path.AsString());
@@ -417,11 +417,7 @@ char* Directory::CreateTemp(const char* const_template, bool system) {
   if (result == NULL) {
     return NULL;
   }
-  int length = strnlen(path.AsString(), PATH_MAX);
-  result = static_cast<char*>(malloc(length + 1));
-  strncpy(result, path.AsString(), length);
-  result[length] = '\0';
-  return result;
+  return strdup(result);
 }
 
 
