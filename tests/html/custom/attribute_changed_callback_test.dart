@@ -92,6 +92,8 @@ main() {
 
   group('unsupported_on_polyfill', () {
     test('add, change ID', () {
+      B.invocations = [];
+
       var b = new B();
       b.id = 'x';
       expect(B.invocations, ['created', 'id: null => x']);

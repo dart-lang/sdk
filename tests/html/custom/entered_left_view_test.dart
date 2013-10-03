@@ -127,14 +127,13 @@ main() {
           'document without a view');
     });
 
-    /*
     test('Attribute changed in document without a view', () {
       a.setAttribute('data-foo', 'bar');
       expect(invocations, ['attribute changed'],
           reason: 'changing an attribute should invoke the callback, even in a '
           'document without a view');
     });
-    */
+
     test('Entered document with a view', () {
       document.body.append(a);
       customElementsTakeRecords();
