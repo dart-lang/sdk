@@ -755,6 +755,13 @@ _library_names = monitored.Dict('htmlrenamer._library_names', {
   'Window': 'html',
 })
 
+_library_ids = monitored.Dict('htmlrenamer._library_names', {
+  'ANGLEInstancedArrays': 'WebGl',
+  'Database': 'WebSql',
+  'Navigator': 'Html',
+  'Window': 'Html',
+})
+
 class HtmlRenamer(object):
   def __init__(self, database):
     self._database = database
@@ -872,6 +879,36 @@ class HtmlRenamer(object):
       return 'typed_data'
 
     return 'html'
+
+  def GetLibraryId(self, interface):
+    # Some types have attributes merged in from many other interfaces.
+    if interface.id in _library_ids:
+      return _library_ids[interface.id]
+
+    # TODO(ager, blois): The conditional has been removed from indexed db,
+    # so we can no longer determine the library based on the conditionals.
+    if interface.id.startswith("IDB"):
+      return 'IndexedDb'
+    if interface.id.startswith("SQL"):
+      return 'WebSql'
+    if interface.id.startswith("SVG"):
+      return 'Svg'
+    if interface.id.startswith("WebGL") or interface.id.startswith("OES") \
+        or interface.id.startswith("EXT"):
+      return 'WebGl'
+
+    if 'Conditional' in interface.ext_attrs:
+      if 'WEB_AUDIO' in interface.ext_attrs['Conditional']:
+        return 'WebAudio'
+      if 'INDEXED_DATABASE' in interface.ext_attrs['Conditional']:
+        return 'IndexedDb'
+      if 'SQL_DATABASE' in interface.ext_attrs['Conditional']:
+        return 'WebSql'
+
+    if interface.id in typed_array_renames:
+      return 'TypedData'
+
+    return 'Html'
 
   def DartifyTypeName(self, type_name):
     """Converts a DOM name to a Dart-friendly class name. """

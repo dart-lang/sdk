@@ -364,7 +364,7 @@ class DartiumBackend(HtmlDartGenerator):
         WEBCORE_CLASS_NAME_ESCAPED=
         self._interface_type_info.native_type().replace('<', '_').replace('>', '_'),
         DART_IMPLEMENTATION_CLASS=self._interface_type_info.implementation_name(),
-        DART_IMPLEMENTATION_LIBRARY='dart:%s' % self._renamer.GetLibraryName(self._interface))
+        DART_IMPLEMENTATION_LIBRARY_ID='Dart%sLibraryId' % self._renamer.GetLibraryId(self._interface))
 
   def _GenerateCPPHeader(self):
     to_native_emitter = emitter.Emitter()
@@ -449,7 +449,8 @@ class DartiumBackend(HtmlDartGenerator):
       to_dart_emitter.Emit(
           '    static Dart_Handle createWrapper(NativeType* value)\n'
           '    {\n'
-          '        return DartDOMWrapper::createWrapper<Dart$(INTERFACE)>(value);\n'
+          '        DartDOMData* domData = DartDOMData::current();\n'
+          '        return DartDOMWrapper::createWrapper<Dart$(INTERFACE)>(domData, value);\n'
           '    }\n',
           INTERFACE=self._interface.id)
 

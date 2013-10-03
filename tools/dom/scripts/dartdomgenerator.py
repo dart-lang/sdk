@@ -153,7 +153,7 @@ enum {
     _HistoryCrossFrameClassId = 0,
     _LocationCrossFrameClassId,
     _DOMWindowCrossFrameClassId,
-    _NPObjectClassId,
+    _DateTimeClassId,
     // New types that are not auto-generated should be added here.
 """)
     for interface in webkit_database.GetInterfaces():
