@@ -761,9 +761,22 @@ DART_EXPORT bool Dart_Initialize(
   return true;
 }
 
+
+DART_EXPORT bool Dart_Cleanup() {
+  CHECK_NO_ISOLATE(Isolate::Current());
+  const char* err_msg = Dart::Cleanup();
+  if (err_msg != NULL) {
+    OS::PrintErr("Dart_Cleanup: %s\n", err_msg);
+    return false;
+  }
+  return true;
+}
+
+
 DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv) {
   return Flags::ProcessCommandLineFlags(argc, argv);
 }
+
 
 DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
   if (Flags::Lookup(flag_name) != NULL) {

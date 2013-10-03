@@ -50,6 +50,8 @@ void CodeObservers::DeleteAll() {
     delete observers_[i];
   }
   free(observers_);
+  observers_length_ = 0;
+  observers_ = NULL;
 }
 
 

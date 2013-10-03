@@ -750,6 +750,13 @@ DART_EXPORT bool Dart_Initialize(
     Dart_FileCloseCallback file_close);
 
 /**
+ * Cleanup state in the VM before process termination.
+ *
+ * \return True if cleanup is successful.
+ */
+DART_EXPORT bool Dart_Cleanup();
+
+/**
  * Sets command line flags. Should be called before Dart_Initialize.
  *
  * \param argc The length of the arguments array.

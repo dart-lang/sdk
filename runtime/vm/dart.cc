@@ -74,7 +74,6 @@ class ReadOnlyHandles {
 };
 
 
-// TODO(turnidge): We should add a corresponding Dart::Cleanup.
 const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
                            Dart_IsolateInterruptCallback interrupt,
                            Dart_IsolateUnhandledExceptionCallback unhandled,
@@ -140,6 +139,37 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   Isolate::SetInterruptCallback(interrupt);
   Isolate::SetUnhandledExceptionCallback(unhandled);
   Isolate::SetShutdownCallback(shutdown);
+  return NULL;
+}
+
+
+const char* Dart::Cleanup() {
+#if 0
+  // Ideally we should shutdown the VM isolate here, but the thread pool
+  // shutdown does not seem to ensure that all the threads have stopped
+  // execution before it terminates, this results in racing isolates.
+  if (vm_isolate_ == NULL) {
+    return "VM already terminated.";
+  }
+
+  ASSERT(Isolate::Current() == NULL);
+
+  delete thread_pool_;
+  thread_pool_ = NULL;
+
+  // Set the VM isolate as current isolate.
+  Isolate::SetCurrent(vm_isolate_);
+
+  // There is a planned and known asymmetry here: We exit one scope for the VM
+  // isolate to account for the scope that was entered in Dart_InitOnce.
+  Dart_ExitScope();
+
+  ShutdownIsolate();
+  vm_isolate_ = NULL;
+#endif
+
+  CodeObservers::DeleteAll();
+
   return NULL;
 }
 

@@ -28,6 +28,7 @@ class Dart : public AllStatic {
       Dart_FileReadCallback file_read,
       Dart_FileWriteCallback file_write,
       Dart_FileCloseCallback file_close);
+  static const char* Cleanup();
 
   static Isolate* CreateIsolate(const char* name_prefix);
   static RawError* InitializeIsolate(const uint8_t* snapshot, void* data);
