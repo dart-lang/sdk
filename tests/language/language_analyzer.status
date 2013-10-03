@@ -64,10 +64,6 @@ final_syntax_test/04: Fail # Issue 11124
 final_syntax_test/02: Fail # Issue 11124
 final_syntax_test/03: Fail # Issue 11124
 
-# Test issue 11123, Only static fields can be declared as 'const'
-const_escape_frog_test: fail
-compile_time_constant_test/none: fail
-
 # Test issue 11545, using not existing constructor name in annotation
 metadata_test: fail
 
