@@ -61,7 +61,7 @@ abstract class _MicrotaskScheduler {
  * Scheduler which uses window.postMessage to schedule events.
  */
 class _PostMessageScheduler extends _MicrotaskScheduler {
-  const _MICROTASK_MESSAGE = "DART-MICROTASK";
+  final _MICROTASK_MESSAGE = "DART-MICROTASK";
 
   _PostMessageScheduler(_MicrotaskCallback callback): super(callback) {
       // Messages from other windows do not cause a security risk as
