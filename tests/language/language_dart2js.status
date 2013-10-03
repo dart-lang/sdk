@@ -18,6 +18,7 @@ library_ambiguous_test/00: CompileTimeError # Issue 13632
 library_ambiguous_test/01: CompileTimeError # Issue 13632
 library_ambiguous_test/02: CompileTimeError # Issue 13632
 library_ambiguous_test/03: CompileTimeError # Issue 13632
+import_combinators_test: Fail # Issue 13793
 
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
