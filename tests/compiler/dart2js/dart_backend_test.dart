@@ -179,8 +179,8 @@ testExtendsImplements() {
 }
 
 testVariableDefinitions() {
-  testDart2Dart('main(){var x,y;final String s;}');
-  testDart2Dart('main(){final int x,y;final String s;}');
+  testDart2Dart('main(){var x,y;final String s=null;}');
+  testDart2Dart('main(){final int x=0,y=0;final String s=null;}');
   testDart2Dart('foo(f,g){}main(){foo(1,2);}');
   testDart2Dart('foo(f(arg)){}main(){foo(main);}');
   // A couple of static/finals inside a class.
@@ -205,7 +205,7 @@ testGetSet() {
 }
 
 testAbstractClass() {
-  testDart2Dart('main(){A.foo;}abstract class A{final static num foo;}');
+  testDart2Dart('main(){A.foo;}abstract class A{final static num foo=0;}');
 }
 
 testConflictSendsRename() {
