@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.utf;
+part of utf;
 
 /**
  * Decodes the UTF-32 bytes as an iterable. Thus, the consumer can only convert
@@ -70,7 +70,7 @@ String decodeUtf32(List<int> bytes, [int offset = 0, int length,
 String decodeUtf32be(
     List<int> bytes, [int offset = 0, int length, bool stripBom = true,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) =>
-  new String.fromCharCodes((new Utf32beBytesDecoder(bytes, offset, length, 
+  new String.fromCharCodes((new Utf32beBytesDecoder(bytes, offset, length,
     stripBom, replacementCodepoint)).decodeRest());
 
 /**

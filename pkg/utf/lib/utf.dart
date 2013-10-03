@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Support for encoding and decoding Unicode characters in UTF-8, UTF-16, and 
+ * Support for encoding and decoding Unicode characters in UTF-8, UTF-16, and
  * UTF-32.
  */
 library utf;
+
 import "dart:async";
 import "dart:collection";
+
 part "utf_stream.dart";
 part "utf8.dart";
 part "utf16.dart";

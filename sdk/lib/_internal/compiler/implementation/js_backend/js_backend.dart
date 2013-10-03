@@ -8,26 +8,21 @@ import 'dart:async' show Future;
 import 'dart:collection' show LinkedHashMap, Queue;
 
 import '../closure.dart';
-import '../../compiler.dart' as api;
 import '../elements/elements.dart';
-import '../elements/modelx.dart' show FunctionElementX;
-import '../js_emitter/js_emitter.dart' show Emitter, CodeEmitterTask, ClassBuilder;
+import '../js_emitter/js_emitter.dart'
+    show Emitter, CodeEmitterTask, ClassBuilder;
 
-// TODO(ahe): There seems to be a bug in the VM, so we have to hide "js".
-import '../dart2jslib.dart' hide Selector, TypedSelector, js;
+import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../js/js.dart' as jsAst;
-import '../js/js.dart' show js; // TODO(ahe): VM bug, see above.
+import '../js/js.dart' show js;
 import '../native_handler.dart' as native;
-import '../source_file.dart';
-import '../source_map_builder.dart';
-import '../ssa/ssa.dart' hide js; // TODO(ahe): VM bug, see above.
+import '../ssa/ssa.dart';
 import '../tree/tree.dart';
 import '../types/types.dart';
-import '../universe/universe.dart' hide js; // TODO(ahe): VM bug, see above.
+import '../universe/universe.dart';
 import '../util/characters.dart';
 import '../util/util.dart';
-import '../util/uri_extras.dart' show relativize;
 
 part 'backend.dart';
 part 'constant_emitter.dart';
