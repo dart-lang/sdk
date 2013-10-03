@@ -97,7 +97,7 @@ class BadBananaClassTest {
     Expect.equals('c', field['name']);
     Expect.equals(true, field['final']);
     Expect.equals(false, field['static']);
-    Expect.equals(true, field['const']);
+    Expect.equals(true, field['final']);
     Expect.equals('int', field['guard_class']['user_name']);
     Expect.equals(false, field['guard_nullable']);
     Expect.equals('variable', field['guard_length']);

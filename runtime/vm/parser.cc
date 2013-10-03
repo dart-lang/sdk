@@ -3317,6 +3317,9 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
   if (field->has_factory) {
     ErrorMsg("keyword 'factory' not allowed in field declaration");
   }
+  if (!field->has_static && field->has_const) {
+    ErrorMsg(field->name_pos, "instance field may not be 'const'");
+  }
   if (members->FieldNameExists(*field->name, !field->has_final)) {
     ErrorMsg(field->name_pos,
              "field or method '%s' already defined", field->name->ToCString());
