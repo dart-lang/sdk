@@ -4,26 +4,26 @@
 
 
 // TODO(srdjan): Use shared array implementation.
-class _ObjectArray<E> implements List<E> {
-  static final int _classId = (new _ObjectArray(0))._cid;
+class _List<E> implements List<E> {
+  static final int _classId = (new _List(0))._cid;
 
-  factory _ObjectArray(length) native "ObjectArray_allocate";
+  factory _List(length) native "List_allocate";
 
-  E operator [](int index) native "ObjectArray_getIndexed";
+  E operator [](int index) native "List_getIndexed";
 
-  void operator []=(int index, E value) native "ObjectArray_setIndexed";
+  void operator []=(int index, E value) native "List_setIndexed";
 
   String toString() {
     return IterableMixinWorkaround.toStringIterable(this,'[' , ']');
   }
 
-  int get length native "ObjectArray_getLength";
+  int get length native "List_getLength";
 
-  void _copyFromObjectArray(_ObjectArray src,
+  void _copyFromObjectArray(_List src,
                             int srcStart,
                             int dstStart,
                             int count)
-      native "ObjectArray_copyFromObjectArray";
+      native "List_copyFromObjectArray";
 
   void insert(int index, E element) {
     throw new UnsupportedError(
@@ -74,7 +74,7 @@ class _ObjectArray<E> implements List<E> {
     int length = end - start;
     if (length == 0) return;
 
-    if (iterable is _ObjectArray) {
+    if (iterable is _List) {
       _copyFromObjectArray(iterable, skipCount, start, length);
     } else {
       List otherList;
@@ -110,7 +110,7 @@ class _ObjectArray<E> implements List<E> {
     if (end == null) end = this.length;
     int length = end - start;
     if (start == end) return [];
-    List list = new _GrowableObjectArray<E>.withCapacity(length);
+    List list = new _GrowableList<E>.withCapacity(length);
     list.length = length;
     Arrays.copy(this, start, list, 0, length);
     return list;
@@ -270,29 +270,29 @@ class _ObjectArray<E> implements List<E> {
 }
 
 
-// This is essentially the same class as _ObjectArray, but it does not
+// This is essentially the same class as _List, but it does not
 // permit any modification of array elements from Dart code. We use
 // this class for arrays constructed from Dart array literals.
 // TODO(hausner): We should consider the trade-offs between two
 // classes (and inline cache misses) versus a field in the native
 // implementation (checks when modifying). We should keep watching
 // the inline cache misses.
-class _ImmutableArray<E> implements List<E> {
+class _ImmutableList<E> implements List<E> {
   static final int _classId = (const [])._cid;
 
-  factory _ImmutableArray._uninstantiable() {
+  factory _ImmutableList._uninstantiable() {
     throw new UnsupportedError(
         "ImmutableArray can only be allocated by the VM");
   }
 
-  E operator [](int index) native "ObjectArray_getIndexed";
+  E operator [](int index) native "List_getIndexed";
 
   void operator []=(int index, E value) {
     throw new UnsupportedError(
         "Cannot modify an immutable array");
   }
 
-  int get length native "ObjectArray_getLength";
+  int get length native "List_getLength";
 
   void insert(int index, E element) {
     throw new UnsupportedError(
@@ -537,7 +537,7 @@ class _FixedSizeArrayIterator<E> implements Iterator<E> {
 
   _FixedSizeArrayIterator(List array)
       : _array = array, _length = array.length, _position = -1 {
-    assert(array is _ObjectArray || array is _ImmutableArray);
+    assert(array is _List || array is _ImmutableList);
   }
 
   bool moveNext() {

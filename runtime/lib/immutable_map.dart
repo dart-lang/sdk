@@ -4,9 +4,9 @@
 // Immutable map class for compiler generated map literals.
 
 class ImmutableMap<K, V> implements Map<K, V> {
-  final _ImmutableArray _kvPairs;
+  final _ImmutableList _kvPairs;
 
-  const ImmutableMap._create(_ImmutableArray keyValuePairs)
+  const ImmutableMap._create(_ImmutableList keyValuePairs)
       : _kvPairs = keyValuePairs;
 
 

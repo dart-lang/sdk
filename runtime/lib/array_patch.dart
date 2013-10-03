@@ -13,17 +13,17 @@ const _GROWABLE_ARRAY_MARKER = const _GrowableArrayMarker();
 patch class List<E> {
   /* patch */ factory List([int length = _GROWABLE_ARRAY_MARKER]) {
     if (identical(length, _GROWABLE_ARRAY_MARKER)) {
-      return new _GrowableObjectArray<E>(0);
+      return new _GrowableList<E>(0);
     }
     // All error handling on the length parameter is done at the implementation
-    // of new _ObjectArray.
-    return new _ObjectArray<E>(length);
+    // of new _List.
+    return new _List<E>(length);
   }
 
   /* patch */ factory List.filled(int length, E fill) {
     // All error handling on the length parameter is done at the implementation
-    // of new _ObjectArray.
-    var result = new _ObjectArray<E>(length);
+    // of new _List.
+    var result = new _List<E>(length);
     if (fill != null) {
       for (int i = 0; i < length; i++) {
         result[i] = fill;
@@ -36,9 +36,9 @@ patch class List<E> {
   // [elements] contains elements that are already type checked.
   factory List._fromLiteral(List elements) {
     if (elements.isEmpty) {
-      return new _GrowableObjectArray<E>(0);
+      return new _GrowableList<E>(0);
     }
-    var result = new _GrowableObjectArray<E>.withData(elements);
+    var result = new _GrowableList<E>.withData(elements);
     result._setLength(elements.length);
     return result;
   }

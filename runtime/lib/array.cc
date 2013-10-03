@@ -12,7 +12,7 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(ObjectArray_allocate, 2) {
+DEFINE_NATIVE_ENTRY(List_allocate, 2) {
   const AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::CheckedHandle(isolate, arguments->NativeArgAt(0));
   const Instance& length = Instance::CheckedHandle(
@@ -36,7 +36,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_allocate, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(ObjectArray_getIndexed, 2) {
+DEFINE_NATIVE_ENTRY(List_getIndexed, 2) {
   const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
@@ -48,7 +48,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_getIndexed, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(ObjectArray_setIndexed, 3) {
+DEFINE_NATIVE_ENTRY(List_setIndexed, 3) {
   const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   const Instance& value = Instance::CheckedHandle(arguments->NativeArgAt(2));
@@ -62,14 +62,14 @@ DEFINE_NATIVE_ENTRY(ObjectArray_setIndexed, 3) {
 }
 
 
-DEFINE_NATIVE_ENTRY(ObjectArray_getLength, 1) {
+DEFINE_NATIVE_ENTRY(List_getLength, 1) {
   const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
   return Smi::New(array.Length());
 }
 
 
 // ObjectArray src, int srcStart, int dstStart, int count.
-DEFINE_NATIVE_ENTRY(ObjectArray_copyFromObjectArray, 5) {
+DEFINE_NATIVE_ENTRY(List_copyFromObjectArray, 5) {
   const Array& dest = Array::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, source, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, src_start, arguments->NativeArgAt(2));

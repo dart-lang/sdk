@@ -82,11 +82,11 @@ namespace dart {
   V(JSSyntaxRegExp_getIsCaseSensitive, 1)                                      \
   V(JSSyntaxRegExp_getGroupCount, 1)                                           \
   V(JSSyntaxRegExp_ExecuteMatch, 3)                                            \
-  V(ObjectArray_allocate, 2)                                                   \
-  V(ObjectArray_getIndexed, 2)                                                 \
-  V(ObjectArray_setIndexed, 3)                                                 \
-  V(ObjectArray_getLength, 1)                                                  \
-  V(ObjectArray_copyFromObjectArray, 5)                                        \
+  V(List_allocate, 2)                                                          \
+  V(List_getIndexed, 2)                                                        \
+  V(List_setIndexed, 3)                                                        \
+  V(List_getLength, 1)                                                         \
+  V(List_copyFromObjectArray, 5)                                               \
   V(StringBase_createFromCodePoints, 1)                                        \
   V(StringBase_substringUnchecked, 3)                                          \
   V(StringBuffer_createStringFromUint16Array, 3)                               \
@@ -292,13 +292,13 @@ namespace dart {
   V(ParameterMirror_type, 2)                                                   \
   V(TypedefMirror_referent, 1)                                                 \
   V(VariableMirror_type, 1)                                                    \
-  V(GrowableObjectArray_allocate, 2)                                           \
-  V(GrowableObjectArray_getIndexed, 2)                                         \
-  V(GrowableObjectArray_setIndexed, 3)                                         \
-  V(GrowableObjectArray_getLength, 1)                                          \
-  V(GrowableObjectArray_getCapacity, 1)                                        \
-  V(GrowableObjectArray_setLength, 2)                                          \
-  V(GrowableObjectArray_setData, 2)                                            \
+  V(GrowableList_allocate, 2)                                                  \
+  V(GrowableList_getIndexed, 2)                                                \
+  V(GrowableList_setIndexed, 3)                                                \
+  V(GrowableList_getLength, 1)                                                 \
+  V(GrowableList_getCapacity, 1)                                               \
+  V(GrowableList_setLength, 2)                                                 \
+  V(GrowableList_setData, 2)                                                   \
   V(WeakProperty_new, 2)                                                       \
   V(WeakProperty_getKey, 1)                                                    \
   V(WeakProperty_getValue, 1)                                                  \

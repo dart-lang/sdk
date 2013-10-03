@@ -30,9 +30,9 @@ class _StringBase {
     if (charCodes != null) {
       // TODO(srdjan): Also skip copying of typed arrays.
       final ccid = charCodes._cid;
-      if ((ccid != _ObjectArray._classId) &&
-          (ccid != _GrowableObjectArray._classId) &&
-          (ccid != _ImmutableArray._classId)) {
+      if ((ccid != _List._classId) &&
+          (ccid != _GrowableList._classId) &&
+          (ccid != _ImmutableList._classId)) {
         charCodes = new List<int>.from(charCodes, growable: false);
       }
 
@@ -397,7 +397,7 @@ class _StringBase {
    */
   static String _interpolate(List<String> values) {
     final int numValues = values.length;
-    _ObjectArray stringList = new List<String>(numValues);
+    _List stringList = new List<String>(numValues);
     bool isOneByteString = true;
     int totalLength = 0;
     for (int i = 0; i < numValues; i++) {
@@ -501,7 +501,7 @@ class _StringBase {
   String toLowerCase() native "String_toLowerCase";
 
   // Call this method if not all list elements are known to be OneByteString(s).
-  // 'strings' must be an _ObjectArray or _GrowableObjectArray.
+  // 'strings' must be an _List or _GrowableList.
   static String _concatAllNative(List<String> strings, int start, int end)
       native "Strings_concatAll";
 }
@@ -535,7 +535,7 @@ class _OneByteString extends _StringBase implements String {
   }
 
   // All element of 'strings' must be OneByteStrings.
-  static _concatAll(_ObjectArray<String> strings, int totalLength) {
+  static _concatAll(_List<String> strings, int totalLength) {
     // TODO(srdjan): Improve code below and raise or eliminate the limit.
     if (totalLength > 128) {
       // Native is quicker.

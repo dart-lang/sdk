@@ -154,7 +154,7 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, Object, _noSuchMethod)                                        \
   V(CoreLibrary, Object, _as)                                                  \
   V(CoreLibrary, Object, _instanceOf)                                          \
-  V(CoreLibrary, _ObjectArray, _ObjectArray.)                                  \
+  V(CoreLibrary, _List, _List.)                                                \
   V(CoreLibrary, AssertionError, _throwNew)                                    \
   V(CoreLibrary, TypeError, _throwNew)                                         \
   V(CoreLibrary, FallThroughError, _throwNew)                                  \
@@ -696,7 +696,7 @@ void Object::RegisterSingletonClassNames() {
   // Set up names for object array and one byte string class which are
   // pre-allocated in the vm isolate also.
   cls = Dart::vm_isolate()->object_store()->array_class();
-  cls.set_name(Symbols::ObjectArray());
+  cls.set_name(Symbols::_List());
   cls = Dart::vm_isolate()->object_store()->one_byte_string_class();
   cls.set_name(Symbols::OneByteString());
 }
@@ -876,7 +876,7 @@ RawError* Object::Init(Isolate* isolate) {
   // remaining classes and register them by name in the dictionaries.
   String& name = String::Handle();
   cls = object_store->array_class();  // Was allocated above.
-  RegisterPrivateClass(cls, Symbols::ObjectArray(), core_lib);
+  RegisterPrivateClass(cls, Symbols::_List(), core_lib);
   pending_classes.Add(cls);
   // We cannot use NewNonParameterizedType(cls), because Array is parameterized.
   type ^= Type::New(Object::Handle(cls.raw()),
@@ -887,7 +887,7 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_array_type(type);
 
   cls = object_store->growable_object_array_class();  // Was allocated above.
-  RegisterPrivateClass(cls, Symbols::GrowableObjectArray(), core_lib);
+  RegisterPrivateClass(cls, Symbols::_GrowableList(), core_lib);
   pending_classes.Add(cls);
 
   cls = Class::New<Array>(kImmutableArrayCid);
@@ -895,7 +895,7 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
   cls.set_is_prefinalized();
-  RegisterPrivateClass(cls, Symbols::ImmutableArray(), core_lib);
+  RegisterPrivateClass(cls, Symbols::_ImmutableList(), core_lib);
   pending_classes.Add(cls);
 
   cls = object_store->one_byte_string_class();  // Was allocated above.
@@ -14320,10 +14320,10 @@ void Array::MakeImmutable() const {
 
 const char* Array::ToCString() const {
   if (IsNull()) {
-    return IsImmutable() ? "ImmutableArray NULL" : "Array NULL";
+    return IsImmutable() ? "_ImmutableList NULL" : "_List NULL";
   }
-  const char* format = !IsImmutable() ? "Array len:%" Pd "" :
-      "Immutable Array len:%" Pd "";
+  const char* format = IsImmutable() ?
+      "_ImmutableList len:%" Pd : "_List len:%" Pd;
   intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, Length());
@@ -14531,9 +14531,9 @@ RawGrowableObjectArray* GrowableObjectArray::New(const Array& array,
 
 const char* GrowableObjectArray::ToCString() const {
   if (IsNull()) {
-    return "GrowableObjectArray NULL";
+    return "_GrowableList NULL";
   }
-  const char* format = "GrowableObjectArray len:%" Pd "";
+  const char* format = "_GrowableList len:%" Pd "";
   intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, Length());

@@ -41,8 +41,8 @@ class Range;
   V(::, identical, ObjectIdentical, 496869842)                                 \
   V(Object, Object., ObjectConstructor, 1058585294)                            \
   V(Object, get:_cid, ObjectCid, 1498721510)                                   \
-  V(_ObjectArray, get:length, ObjectArrayLength, 259382695)                    \
-  V(_ImmutableArray, get:length, ImmutableArrayLength, 1342001998)             \
+  V(_List, get:length, ObjectArrayLength, 215153395)                           \
+  V(_ImmutableList, get:length, ImmutableArrayLength, 578733070)               \
   V(_TypedList, get:length, TypedDataLength, 26616328)                         \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 272598802)                     \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 831354841)                   \
@@ -62,15 +62,15 @@ class Range;
   V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1457395244)              \
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 49127618)                \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 1261559935)          \
-  V(_GrowableObjectArray, get:length, GrowableArrayLength, 1160417196)         \
-  V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 1509841570)    \
-  V(_GrowableObjectArray, _setData, GrowableArraySetData, 1574432374)          \
-  V(_GrowableObjectArray, _setLength, GrowableArraySetLength, 1112774552)      \
+  V(_GrowableList, get:length, GrowableArrayLength, 1654225242)                \
+  V(_GrowableList, get:_capacity, GrowableArrayCapacity, 817090003)            \
+  V(_GrowableList, _setData, GrowableArraySetData, 1375509957)                 \
+  V(_GrowableList, _setLength, GrowableArraySetLength, 1227678442)             \
   V(_StringBase, get:length, StringBaseLength, 1483520063)                     \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 879849436)                    \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 1958436584)                 \
   V(_StringBase, [], StringBaseCharAt, 990046076)                              \
-  V(_StringBase, _interpolate, StringBaseInterpolate, 2060542382)              \
+  V(_StringBase, _interpolate, StringBaseInterpolate, 908021574)               \
   V(_OneByteString, _setAt, OneByteStringSetAt, 308408714)                     \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 2011998508)             \
   V(_IntegerImplementation, _leftShiftWithMask32, IntegerLeftShiftWithMask32,  \
@@ -135,9 +135,9 @@ class Range;
   V(_Uint32x4, withFlagY, Uint32x4WithFlagY, 830610988)                        \
   V(_Uint32x4, withFlagZ, Uint32x4WithFlagZ, 1714792414)                       \
   V(_Uint32x4, withFlagW, Uint32x4WithFlagW, 1516924162)                       \
-  V(_ObjectArray, [], ObjectArrayGetIndexed, 544020319)                        \
-  V(_ImmutableArray, [], ImmutableArrayGetIndexed, 1345387065)                 \
-  V(_GrowableObjectArray, [], GrowableArrayGetIndexed, 951312767)              \
+  V(_List, [], ObjectArrayGetIndexed, 1079829188)                              \
+  V(_ImmutableList, [], ImmutableArrayGetIndexed, 25983597)                    \
+  V(_GrowableList, [], GrowableArrayGetIndexed, 1686777561)                    \
   V(_Float32Array, [], Float32ArrayGetIndexed, 1225286513)                     \
   V(_Float64Array, [], Float64ArrayGetIndexed, 871118335)                      \
   V(_Int8Array, [], Int8ArrayGetIndexed, 199925538)                            \
@@ -155,14 +155,14 @@ class Range;
 
 // A list of core function that should always be inlined.
 #define INLINE_WHITE_LIST(V)                                                   \
-  V(_ObjectArray, get:length, ObjectArrayLength, 259382695)                    \
-  V(_ImmutableArray, get:length, ImmutableArrayLength, 1342001998)             \
+  V(_List, get:length, ObjectArrayLength, 215153395)                           \
+  V(_ImmutableList, get:length, ImmutableArrayLength, 578733070)               \
   V(_TypedList, get:length, TypedDataLength, 26616328)                         \
-  V(_GrowableObjectArray, get:length, GrowableArrayLength, 1160417196)         \
+  V(_GrowableList, get:length, GrowableArrayLength, 1654225242)                \
   V(_StringBase, get:length, StringBaseLength, 1483520063)                     \
   V(ListIterator, moveNext, ListIteratorMoveNext, 90930587)                    \
-  V(_GrowableObjectArray, get:iterator, GrowableArrayIterator, 2129691657)     \
-  V(_GrowableObjectArray, forEach, GrowableArrayForEach, 1669274418)
+  V(_GrowableList, get:iterator, GrowableArrayIterator, 1305127405)            \
+  V(_GrowableList, forEach, GrowableArrayForEach, 1675430533)
 
 
 // Class that recognizes the name and owner of a function and returns the
