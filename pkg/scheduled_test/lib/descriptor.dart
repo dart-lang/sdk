@@ -46,7 +46,9 @@
 ///       setUp(() {
 ///         var tempDir;
 ///         schedule(() {
-///           return new Directory('').createTemp().then((dir) {
+///           return Directory.systemTemp
+///                           .createTemp('my_temp_dir_')
+///                           .then((dir) {
 ///             tempDir = dir;
 ///             d.defaultRoot = tempDir.path;
 ///           });

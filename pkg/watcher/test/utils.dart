@@ -46,7 +46,7 @@ void initConfig() {
 ///
 /// This should usually be called by [setUp].
 void createSandbox() {
-  var dir = new Directory("").createTempSync();
+  var dir = Directory.systemTemp.createTempSync('watcher_test_');
   _sandboxDir = dir.path;
 
   _mockFileModificationTimes = new Map<String, int>();

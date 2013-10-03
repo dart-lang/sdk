@@ -216,7 +216,7 @@ void main() {
   group('in a temp directory', () {
     var tempDir;
     setUp(() {
-      tempDir = new Directory('').createTempSync();
+      tempDir = Directory.systemTemp.createTempSync('http_test_');
     });
 
     tearDown(() => tempDir.deleteSync(recursive: true));

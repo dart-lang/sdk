@@ -27,7 +27,7 @@ main() {
 
   setUp(() {
     // Create a temp file we can use for assets.
-    tempDir = new Directory("").createTempSync();
+    tempDir = Directory.systemTemp.createTempSync('barback_asset_test_');
     binaryFilePath = pathos.join(tempDir.path, "file.bin");
     new File(binaryFilePath).writeAsBytesSync(binaryContents);
 

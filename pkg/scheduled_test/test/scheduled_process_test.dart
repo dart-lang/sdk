@@ -357,10 +357,10 @@ void main() {
 }
 
 ScheduledProcess startDartProcess(String script) {
-  var tempDir = schedule(() {
-    return new Directory('').createTemp().then((dir) => dir.path);
-  }, 'create temp dir');
-
+  var tempDir = schedule(() => Directory.systemTemp
+                                        .createTemp('scheduled_process_test_')
+                                        .then((dir) => dir.path),
+                         'create temp dir');
   var dartPath = schedule(() {
     return tempDir.then((dir) {
       var utilsPath = path.absolute(path.join(Platform.script, 'utils.dart'));

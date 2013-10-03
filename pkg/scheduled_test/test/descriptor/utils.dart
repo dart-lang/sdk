@@ -16,7 +16,7 @@ String sandbox;
 
 void scheduleSandbox() {
   schedule(() {
-    return new Directory('').createTemp().then((dir) {
+    return Directory.systemTemp.createTemp('descriptor_sandbox_').then((dir) {
       sandbox = dir.path;
       d.defaultRoot = sandbox;
     });
