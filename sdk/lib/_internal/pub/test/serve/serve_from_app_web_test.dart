@@ -15,19 +15,19 @@ main() {
       d.appPubspec(),
       d.dir("web", [
         d.file("index.html", "<body>"),
-        d.file("file.dart", "void main() => print('hello');"),
+        d.file("file.dart", "main() => print('hello');"),
         d.dir("sub", [
           d.file("file.html", "<body>in subdir</body>"),
-          d.file("lib.dart", "void foo() => 'foo';"),
+          d.file("lib.dart", "main() => 'foo';"),
         ])
       ])
     ]).create();
 
     startPubServe();
     requestShouldSucceed("index.html", "<body>");
-    requestShouldSucceed("file.dart", "void main() => print('hello');");
+    requestShouldSucceed("file.dart", "main() => print('hello');");
     requestShouldSucceed("sub/file.html", "<body>in subdir</body>");
-    requestShouldSucceed("sub/lib.dart", "void foo() => 'foo';");
+    requestShouldSucceed("sub/lib.dart", "main() => 'foo';");
     endPubServe();
   });
 }

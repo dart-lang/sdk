@@ -7,7 +7,10 @@ library pub.barback;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
+import 'package:path/path.dart' as path;
 
+import 'barback/dart_forwarding_transformer.dart';
+import 'barback/dart2js_transformer.dart';
 import 'barback/load_all_transformers.dart';
 import 'barback/pub_package_provider.dart';
 import 'barback/server.dart';
@@ -54,6 +57,14 @@ class TransformerId {
 Future<BarbackServer> createServer(String host, int port, PackageGraph graph) {
   var provider = new PubPackageProvider(graph);
   var barback = new Barback(provider);
+
+  // TODO(rnystrom): Add dart2dart transformer here and some way to configure
+  // them.
+  var builtInTransformers = [
+    new Dart2JSTransformer(graph),
+    new DartForwardingTransformer()
+  ];
+
   return BarbackServer.bind(host, port, barback, graph.entrypoint.root.name)
       .then((server) {
     watchSources(graph, barback);
@@ -75,7 +86,7 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph) {
       })
     ];
 
-    loadAllTransformers(server, graph).then((_) {
+    loadAllTransformers(server, graph, builtInTransformers).then((_) {
       if (!completer.isCompleted) completer.complete(server);
     }).catchError((error) {
       if (!completer.isCompleted) completer.completeError(error);
@@ -140,4 +151,39 @@ Uri idToPackageUri(AssetId id) {
   }
 
   return new Uri(scheme: 'package', path: id.path.replaceFirst('lib/', ''));
+}
+
+/// Converts [uri] into an [AssetId] if it has a path containing "packages" or
+/// "assets".
+///
+/// If the URI doesn't contain one of those special directories, returns null.
+/// If it does contain a special directory, but lacks a following package name,
+/// throws a [FormatException].
+AssetId specialUrlToId(Uri url) {
+  var parts = path.url.split(url.path);
+
+  for (var pair in [["packages", "lib"], ["assets", "asset"]]) {
+    var partName = pair.first;
+    var dirName = pair.last;
+
+    // Find the package name and the relative path in the package.
+    var index = parts.indexOf(partName);
+    if (index == -1) continue;
+
+    // If we got here, the path *did* contain the special directory, which
+    // means we should not interpret it as a regular path. If it's missing the
+    // package name after the special directory, it's invalid.
+    if (index + 1 >= parts.length) {
+      throw new FormatException(
+          'Invalid package path "${path.url.joinAll(parts)}". '
+          'Expected package name after "$partName".');
+    }
+
+    var package = parts[index + 1];
+    var assetPath = path.url.join(dirName,
+        path.url.joinAll(parts.skip(index + 2)));
+    return new AssetId(package, assetPath);
+  }
+
+  return null;
 }

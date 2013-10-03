@@ -120,11 +120,13 @@ void endPubServe() {
 }
 
 /// Schedules an HTTP request to the running pub server with [urlPath] and
-/// verifies that it responds with [expected].
-void requestShouldSucceed(String urlPath, String expected) {
+/// verifies that it responds with a body that matches [expectation].
+///
+/// [expectation] may either be a [Matcher] or a string to match an exact body.
+void requestShouldSucceed(String urlPath, expectation) {
   schedule(() {
     return http.get("http://127.0.0.1:$_port/$urlPath").then((response) {
-      expect(response.body, equals(expected));
+      expect(response.body, expectation);
     });
   }, "request $urlPath");
 }

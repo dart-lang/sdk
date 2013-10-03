@@ -25,15 +25,20 @@ import 'utils.dart';
 /// true).
 ///
 /// By default, the package root is assumed to be adjacent to [entrypoint], but
-/// if [packageRoot] is passed that will be used instead.
+/// if [packageRoot] is passed that will be used instead. If [provider] is
+/// omitted, uses a default [SourceFileProvider] that loads directly from the
+/// filesystem.
 Future<String> compile(String entrypoint, {String packageRoot,
-    bool toDart: false}) {
+    bool toDart: false, SourceFileProvider provider}) {
   return new Future.sync(() {
-    var provider = new SourceFileProvider();
     var options = <String>['--categories=Client,Server', '--minify'];
     if (toDart) options.add('--output-type=dart');
     if (packageRoot == null) {
       packageRoot = path.join(path.dirname(entrypoint), 'packages');
+    }
+
+    if (provider == null) {
+      provider = new SourceFileProvider();
     }
 
     return compiler.compile(
@@ -49,8 +54,10 @@ Future<String> compile(String entrypoint, {String packageRoot,
   });
 }
 
-/// Returns the path to the library directory. This corresponds to the "sdk"
-/// directory in the repo and to the root of the compiled SDK.
+/// Returns the path to the directory containing the Dart core libraries.
+///
+/// This corresponds to the "sdk" directory in the repo and to the root of the
+/// compiled SDK.
 String get _libPath {
   if (runningFromSdk) return sdk.rootDirectory;
   return path.join(repoRoot, 'sdk');

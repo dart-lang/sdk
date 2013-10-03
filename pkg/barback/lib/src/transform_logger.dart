@@ -14,6 +14,14 @@ class TransformLogger {
 
   TransformLogger(this._shouldPrint);
 
+  /// Logs an informative message.
+  ///
+  /// If present, [span] indicates the location in the input asset that caused
+  /// the message.
+  void info(String message, [Span span]) {
+    _printMessage('info', message, span);
+  }
+
   /// Logs a warning message.
   ///
   /// If present, [span] indicates the location in the input asset that caused
