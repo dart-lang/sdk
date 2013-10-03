@@ -74,9 +74,6 @@ abstract class Queue<E> implements Iterable<E> {
 /**
  * An entry in a doubly linked list. It contains a pointer to the next
  * entry, the previous entry, and the boxed element.
- *
- * WARNING: This class is temporary located in dart:core. It'll be removed
- * at some point in the near future.
  */
 class DoubleLinkedQueueEntry<E> {
   DoubleLinkedQueueEntry<E> _previous;
