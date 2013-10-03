@@ -802,10 +802,14 @@ class Namer implements ClosureNamer {
 
   String getNameOfField(VariableElement field) => getNameX(field);
 
+  // TODO(ahe): Remove this method. Use get getNameOfMember instead.
   String getNameOfInstanceMember(Element member) => getNameX(member);
+
+  String getNameOfMember(Element member) => getNameX(member);
 
   String getNameOfGlobalField(VariableElement field) => getNameX(field);
 
+  // TODO(ahe): Remove this method. Use get getNameOfMember instead.
   String getNameOfGlobalFunction(FunctionElement element) => getNameX(element);
 
   /// Returns true if [element] is stored on CURRENT_ISOLATE ('$').  We intend

@@ -21,4 +21,15 @@ class ClassBuilder {
   jsAst.Expression toObjectInitializer() {
     return new jsAst.ObjectInitializer(properties);
   }
+
+  /// This method is temporary. Do not use it unless you're working on
+  /// transforming code to build jsAst.Nodes.
+  void writeOn_DO_NOT_USE(CodeBuffer buffer,
+                          Compiler compiler,
+                          String separatedBy) {
+    for (jsAst.Property property in properties) {
+      if (!buffer.isEmpty) buffer.write(separatedBy);
+      buffer.write(jsAst.prettyPrint(property, compiler));
+    }
+  }
 }

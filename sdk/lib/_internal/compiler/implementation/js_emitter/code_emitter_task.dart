@@ -911,55 +911,6 @@ class CodeEmitterTask extends CompilerTask {
     return field is ClosureFieldElement;
   }
 
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [member] must be a declaration element.
-   */
-  void addInstanceMember(Element member, ClassBuilder builder) {
-    assert(invariant(member, member.isDeclaration));
-    // TODO(floitsch): we don't need to deal with members of
-    // uninstantiated classes, that have been overwritten by subclasses.
-
-    if (member.isFunction()
-        || member.isGenerativeConstructorBody()
-        || member.isAccessor()) {
-      if (member.isAbstract(compiler)) return;
-      jsAst.Expression code = backend.generatedCode[member];
-      if (code == null) return;
-      String name = namer.getNameOfInstanceMember(member);
-      if (backend.isInterceptedMethod(member)) {
-        interceptorInvocationNames.add(name);
-      }
-      code = extendWithMetadata(member, code);
-      builder.addProperty(name, code);
-      String reflectionName = getReflectionName(member, name);
-      if (reflectionName != null) {
-        var reflectable =
-            js(backend.isAccessibleByReflection(member) ? '1' : '0');
-        builder.addProperty('+$reflectionName', reflectable);
-        jsAst.Node defaultValues = reifyDefaultArguments(member);
-        if (defaultValues != null) {
-          String unmangledName = member.name.slowToString();
-          builder.addProperty('*$unmangledName', defaultValues);
-        }
-      }
-      code = backend.generatedBailoutCode[member];
-      if (code != null) {
-        builder.addProperty(namer.getBailoutName(member), code);
-      }
-      FunctionElement function = member;
-      FunctionSignature parameters = function.computeSignature(compiler);
-      if (!parameters.optionalParameters.isEmpty) {
-        containerBuilder.addParameterStubs(function, builder.addProperty);
-      }
-    } else if (!member.isField()) {
-      compiler.internalError('unexpected kind: "${member.kind}"',
-                             element: member);
-    }
-    containerBuilder.emitExtraAccessors(member, builder);
-  }
-
   /// Returns the "reflection name" of an [Element] or [Selector].
   /// The reflection name of a getter 'foo' is 'foo'.
   /// The reflection name of a setter 'foo' is 'foo='.
@@ -1082,7 +1033,7 @@ class CodeEmitterTask extends CompilerTask {
     void visitMember(ClassElement enclosing, Element member) {
       assert(invariant(classElement, member.isDeclaration));
       if (member.isInstanceMember()) {
-        addInstanceMember(member, builder);
+        containerBuilder.addMember(member, builder);
       }
     }
 
@@ -2038,18 +1989,6 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
-  void emitStaticFunction(CodeBuffer buffer,
-                          String name,
-                          jsAst.Expression functionExpression) {
-    // TODO(ahe): This method (emitStaticFunction) should return a
-    // jsAst.Expression.
-    if (!buffer.isEmpty) {
-      buffer.write(',$n$n');
-    }
-    buffer.write('$name:$_');
-    buffer.write(jsAst.prettyPrint(functionExpression, compiler));
-  }
-
   void emitStaticFunctions(CodeBuffer eagerBuffer) {
     bool isStaticFunction(Element element) =>
         !element.isInstanceMember() && !element.isField();
@@ -2062,27 +2001,11 @@ class CodeEmitterTask extends CompilerTask {
             .toSet();
 
     for (Element element in Elements.sortedByPosition(elements)) {
-      CodeBuffer buffer = bufferForElement(element, eagerBuffer);
-      jsAst.Expression code = backend.generatedCode[element];
-      String name = namer.getNameOfGlobalFunction(element);
-      code = extendWithMetadata(element, code);
-      emitStaticFunction(buffer, name, code);
-      String reflectionName = getReflectionName(element, name);
-      if (reflectionName != null) {
-        var reflectable = backend.isAccessibleByReflection(element) ? 1 : 0;
-        buffer.write(',$n$n"+$reflectionName":${_}$reflectable');
-        jsAst.Node defaultValues = reifyDefaultArguments(element);
-        if (defaultValues != null) {
-          String unmangledName = element.name.slowToString();
-          buffer.write(',$n$n"*$unmangledName":${_}');
-          buffer.write(jsAst.prettyPrint(defaultValues, compiler));
-        }
-      }
-      jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
-      if (bailoutCode != null) {
-        pendingElementsWithBailouts.remove(element);
-        emitStaticFunction(buffer, namer.getBailoutName(element), bailoutCode);
-      }
+      pendingElementsWithBailouts.remove(element);
+      ClassBuilder builder = new ClassBuilder();
+      containerBuilder.addMember(element, builder);
+      builder.writeOn_DO_NOT_USE(
+          bufferForElement(element, eagerBuffer), compiler, ',$n$n');
     }
 
     if (!pendingElementsWithBailouts.isEmpty) {
@@ -2091,9 +2014,11 @@ class CodeEmitterTask extends CompilerTask {
     // Is it possible the primary function was inlined but the bailout was not?
     for (Element element in
              Elements.sortedByPosition(pendingElementsWithBailouts)) {
-      CodeBuffer buffer = bufferForElement(element, eagerBuffer);
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
-      emitStaticFunction(buffer, namer.getBailoutName(element), bailoutCode);
+      new ClassBuilder()
+          ..addProperty(namer.getBailoutName(element), bailoutCode)
+          ..writeOn_DO_NOT_USE(
+              bufferForElement(element, eagerBuffer), compiler, ',$n$n');
     }
   }
 
@@ -3063,33 +2988,6 @@ class CodeEmitterTask extends CompilerTask {
     return globalMetadataMap.putIfAbsent(string, () {
       globalMetadata.add(string);
       return globalMetadata.length - 1;
-    });
-  }
-
-  jsAst.Fun extendWithMetadata(FunctionElement element, jsAst.Fun code) {
-    if (!backend.retainMetadataOf(element)) return code;
-    return compiler.withCurrentElement(element, () {
-      List<int> metadata = <int>[];
-      FunctionSignature signature = element.functionSignature;
-      if (element.isConstructor()) {
-        metadata.add(reifyType(element.getEnclosingClass().thisType));
-      } else {
-        metadata.add(reifyType(signature.returnType));
-      }
-      signature.forEachParameter((Element parameter) {
-        metadata
-            ..add(reifyName(parameter.name))
-            ..add(reifyType(parameter.computeType(compiler)));
-      });
-      Link link = element.metadata;
-      // TODO(ahe): Why is metadata sometimes null?
-      if (link != null) {
-        for (; !link.isEmpty; link = link.tail) {
-          metadata.add(reifyMetadata(link.head));
-        }
-      }
-      code.body.statements.add(js.string(metadata.join(',')).toStatement());
-      return code;
     });
   }
 

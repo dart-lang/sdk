@@ -593,4 +593,86 @@ class ContainerBuilder {
       }
     }
   }
+
+  void addMember(Element member, ClassBuilder builder) {
+    assert(invariant(member, member.isDeclaration));
+
+    if (member.isField()) {
+      addMemberField(member, builder);
+    } else if (member.isFunction() ||
+               member.isGenerativeConstructorBody() ||
+               member.isGenerativeConstructor() ||
+               member.isAccessor()) {
+      addMemberMethod(member, builder);
+    } else {
+      compiler.internalErrorOnElement(
+          member, 'unexpected kind: "${member.kind}"');
+    }
+    if (member.isInstanceMember()) emitExtraAccessors(member, builder);
+  }
+
+  void addMemberMethod(FunctionElement member, ClassBuilder builder) {
+    if (member.isAbstract(compiler)) return;
+    jsAst.Expression code = backend.generatedCode[member];
+    if (code == null) return;
+    String name = namer.getNameOfMember(member);
+    if (backend.isInterceptedMethod(member)) {
+      task.interceptorInvocationNames.add(name);
+    }
+    code = extendWithMetadata(member, code);
+    builder.addProperty(name, code);
+    String reflectionName = task.getReflectionName(member, name);
+    if (reflectionName != null) {
+      var reflectable =
+          js(backend.isAccessibleByReflection(member) ? '1' : '0');
+      builder.addProperty('+$reflectionName', reflectable);
+      jsAst.Node defaultValues = task.reifyDefaultArguments(member);
+      if (defaultValues != null) {
+        String unmangledName = member.name.slowToString();
+        builder.addProperty('*$unmangledName', defaultValues);
+      }
+    }
+    code = backend.generatedBailoutCode[member];
+    if (code != null) {
+      builder.addProperty(namer.getBailoutName(member), code);
+    }
+    if (member.isInstanceMember()) {
+      // TODO(ahe): Where is this done for static/top-level methods?
+      FunctionSignature parameters = member.computeSignature(compiler);
+      if (!parameters.optionalParameters.isEmpty) {
+        addParameterStubs(member, builder.addProperty);
+      }
+    }
+  }
+
+  void addMemberField(VariableElement member, ClassBuilder builder) {
+    // For now, do nothing.
+  }
+
+  jsAst.Fun extendWithMetadata(FunctionElement element, jsAst.Fun code) {
+    if (!backend.retainMetadataOf(element)) return code;
+    return compiler.withCurrentElement(element, () {
+      List<int> metadata = <int>[];
+      FunctionSignature signature = element.functionSignature;
+      if (element.isConstructor()) {
+        metadata.add(task.reifyType(element.getEnclosingClass().thisType));
+      } else {
+        metadata.add(task.reifyType(signature.returnType));
+      }
+      signature.forEachParameter((Element parameter) {
+        metadata
+            ..add(task.reifyName(parameter.name))
+            ..add(task.reifyType(parameter.computeType(compiler)));
+      });
+      Link link = element.metadata;
+      // TODO(ahe): Why is metadata sometimes null?
+      if (link != null) {
+        for (; !link.isEmpty; link = link.tail) {
+          metadata.add(task.reifyMetadata(link.head));
+        }
+      }
+      code.body.statements.add(js.string(metadata.join(',')).toStatement());
+      return code;
+    });
+  }
 }
