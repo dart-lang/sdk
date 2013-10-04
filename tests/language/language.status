@@ -90,5 +90,4 @@ vm/type_vm_test: Fail # Issue 13719: Please triage this failure.
 
 
 [ $compiler == none && $runtime == dartium ]
-compile_time_constant_test/none: Fail # Issue 13719: Please triage this failure.
-const_escape_frog_test: Fail # Issue 13719: Please triage this failure.
+regress_13494_test: Fail # Issue 13719: Please triage this failure.

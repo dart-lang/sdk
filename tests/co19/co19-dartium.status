@@ -82,6 +82,7 @@ LibTest/core/double/floor_A01_t03: Fail # Issue 13719: Please triage this failur
 LibTest/core/double/floor_A01_t04: Fail # Issue 13719: Please triage this failure.
 LibTest/core/double/round_A01_t02: Fail # Issue 13719: Please triage this failure.
 LibTest/core/double/round_A01_t04: Fail # Issue 13719: Please triage this failure.
+LibTest/core/int/operator_left_shift_A01_t02: Pass, Fail # Issue 13719: Please triage this failure.
 LibTest/core/int/toRadixString_A01_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/core/Invocation/namedArguments_A01_t01: Fail # co19-roll r607: Please triage this failure
 LibTest/core/Invocation/positionalArguments_A01_t01: Fail # co19-roll r607: Please triage this failure
@@ -117,7 +118,9 @@ LibTest/isolate/IsolateSink/addError_A01_t02: Fail # Issue 13719: Please triage 
 LibTest/isolate/IsolateStream/any_A02_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # Issue 13719: Please triage this failure.
 LibTest/isolate/SendPort/send_A01_t01: Fail # Issue 13719: Please triage this failure.
+LibTest/math/acos_A01_t01: Pass, Fail # Issue 13719: Please triage this failure.
+LibTest/math/asin_A01_t01: Pass, Fail # Issue 13719: Please triage this failure.
+LibTest/math/atan_A01_t01: Pass, Fail # Issue 13719: Please triage this failure.
 LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/typed_data/Float32x4/clamp_A01_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/typed_data/Int8List/Int8List.fromList_A01_t02: Fail # Issue 13719: Please triage this failure.
-
