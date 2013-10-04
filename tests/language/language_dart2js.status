@@ -66,6 +66,7 @@ named_parameters_type_test/02: MissingRuntimeError, OK
 named_parameters_type_test/03: MissingRuntimeError, OK
 positional_parameters_type_test/01: MissingRuntimeError, OK
 positional_parameters_type_test/02: MissingRuntimeError, OK
+issue13474_test: RuntimeError, OK
 
 [ $compiler == dart2js && $minified ]
 f_bounded_quantification4_test: Fail # Issue 12605.
