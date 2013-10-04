@@ -3844,12 +3844,12 @@ TEST_CASE(New) {
   EXPECT_EQ(7, int_value);
 
   // Allocate without a constructor.
-  result = Dart_Allocate(type);
-  EXPECT_VALID(result);
+  Dart_Handle obj = Dart_Allocate(type);
+  EXPECT_VALID(obj);
   instanceof = false;
-  EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceof));
+  EXPECT_VALID(Dart_ObjectIsType(obj, type, &instanceof));
   EXPECT(instanceof);
-  foo = Dart_GetField(result, NewString("foo"));
+  foo = Dart_GetField(obj, NewString("foo"));
   EXPECT(Dart_IsNull(foo));
 
   // Invoke the unnamed constructor with an empty string.
@@ -3858,6 +3858,19 @@ TEST_CASE(New) {
   instanceof = false;
   EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceof));
   EXPECT(instanceof);
+  int_value = 0;
+  foo = Dart_GetField(result, NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(7, int_value);
+
+  // Allocate object and invoke the unnamed constructor with an empty string.
+  obj = Dart_Allocate(type);
+  EXPECT_VALID(obj);
+  instanceof = false;
+  EXPECT_VALID(Dart_ObjectIsType(obj, type, &instanceof));
+  EXPECT(instanceof);
+  result = Dart_InvokeConstructor(obj, NewString(""), 0, NULL);
+  EXPECT_VALID(result);
   int_value = 0;
   foo = Dart_GetField(result, NewString("foo"));
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
@@ -3873,6 +3886,19 @@ TEST_CASE(New) {
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(11, int_value);
 
+  // Allocate object and invoke a named constructor.
+  obj = Dart_Allocate(type);
+  EXPECT_VALID(obj);
+  instanceof = false;
+  EXPECT_VALID(Dart_ObjectIsType(obj, type, &instanceof));
+  EXPECT(instanceof);
+  result = Dart_InvokeConstructor(obj, NewString("named"), 1, args);
+  EXPECT_VALID(result);
+  int_value = 0;
+  foo = Dart_GetField(result, NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(11, int_value);
+
   // Invoke a hidden named constructor.
   result = Dart_New(type, NewString("_hidden"), 1, args);
   EXPECT_VALID(result);
@@ -3882,6 +3908,28 @@ TEST_CASE(New) {
   foo = Dart_GetField(result, NewString("foo"));
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(-11, int_value);
+
+  // Allocate object and invoke a hidden named constructor.
+  obj = Dart_Allocate(type);
+  EXPECT_VALID(obj);
+  instanceof = false;
+  EXPECT_VALID(Dart_ObjectIsType(obj, type, &instanceof));
+  EXPECT(instanceof);
+  result = Dart_InvokeConstructor(obj, NewString("_hidden"), 1, args);
+  EXPECT_VALID(result);
+  int_value = 0;
+  foo = Dart_GetField(result, NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(-11, int_value);
+
+  // Allocate object and Invoke a constructor which throws an exception.
+  obj = Dart_Allocate(type);
+  EXPECT_VALID(obj);
+  instanceof = false;
+  EXPECT_VALID(Dart_ObjectIsType(obj, type, &instanceof));
+  EXPECT(instanceof);
+  result = Dart_InvokeConstructor(obj, NewString("exception"), 1, args);
+  EXPECT_ERROR(result, "ConstructorDeath");
 
   // Invoke a factory constructor.
   result = Dart_New(type, NewString("multiply"), 1, args);

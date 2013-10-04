@@ -2987,6 +2987,115 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
 }
 
 
+static Dart_Handle SetupArguments(Isolate* isolate,
+                                  int num_args,
+                                  Dart_Handle* arguments,
+                                  int extra_args,
+                                  Array* args) {
+  // Check for malformed arguments in the arguments list.
+  *args = Array::New(num_args + extra_args);
+  Object& arg = Object::Handle(isolate);
+  for (int i = 0; i < num_args; i++) {
+    arg = Api::UnwrapHandle(arguments[i]);
+    if (!arg.IsNull() && !arg.IsInstance()) {
+      *args = Array::null();
+      if (arg.IsError()) {
+        return Api::NewHandle(isolate, arg.raw());
+      } else {
+        return Api::NewError(
+            "%s expects arguments[%d] to be an Instance handle.",
+            "Dart_Invoke", i);
+      }
+    }
+    args->SetAt((i + extra_args), arg);
+  }
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
+                                               Dart_Handle name,
+                                               int number_of_arguments,
+                                               Dart_Handle* arguments) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
+
+  if (number_of_arguments < 0) {
+    return Api::NewError(
+        "%s expects argument 'number_of_arguments' to be non-negative.",
+        CURRENT_FUNC);
+  }
+  const String& constructor_name = Api::UnwrapStringHandle(isolate, name);
+  if (constructor_name.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, name, String);
+  }
+  const Instance& instance = Api::UnwrapInstanceHandle(isolate, object);
+  if (instance.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, object, Instance);
+  }
+
+  // Since we have allocated an object it would mean that all classes
+  // are finalized and hence it is not necessary to call
+  // Api::CheckIsolateState.
+  // TODO(asiva): How do we ensure that a constructor is not called more than
+  // once for the same object.
+
+  // Construct name of the constructor to invoke.
+  const Type& type_obj = Type::Handle(isolate, instance.GetType());
+  const Class& cls = Class::Handle(isolate, type_obj.type_class());
+  const String& class_name = String::Handle(isolate, cls.Name());
+  const Array& strings = Array::Handle(Array::New(3));
+  strings.SetAt(0, class_name);
+  strings.SetAt(1, Symbols::Dot());
+  strings.SetAt(2, constructor_name);
+  const String& dot_name = String::Handle(isolate, String::ConcatAll(strings));
+  const AbstractTypeArguments& type_arguments =
+    AbstractTypeArguments::Handle(isolate, type_obj.arguments());
+  const Function& constructor =
+    Function::Handle(isolate, cls.LookupFunctionAllowPrivate(dot_name));
+  const int extra_args = 2;
+  if (!constructor.IsNull() &&
+      constructor.IsConstructor() &&
+      constructor.AreValidArgumentCounts(number_of_arguments + extra_args,
+                                         0,
+                                         NULL)) {
+    // Create the argument list.
+    // Constructors get the uninitialized object and a constructor phase.
+    if (!type_arguments.IsNull()) {
+      // The type arguments will be null if the class has no type
+      // parameters, in which case the following call would fail
+      // because there is no slot reserved in the object for the
+      // type vector.
+      instance.SetTypeArguments(type_arguments);
+    }
+    Dart_Handle result;
+    Array& args = Array::Handle(isolate);
+    result = SetupArguments(isolate,
+                            number_of_arguments,
+                            arguments,
+                            extra_args,
+                            &args);
+    if (!::Dart_IsError(result)) {
+      args.SetAt(0, instance);
+      args.SetAt(1, Smi::Handle(isolate, Smi::New(Function::kCtorPhaseAll)));
+      const Object& retval = Object::Handle(
+          isolate,
+          DartEntry::InvokeFunction(constructor, args));
+      if (retval.IsError()) {
+        result = Api::NewHandle(isolate, retval.raw());
+      } else {
+        result = Api::NewHandle(isolate, instance.raw());
+      }
+    }
+    return result;
+  }
+  return Api::NewError(
+      "%s expects argument 'name' to be a valid constructor.",
+      CURRENT_FUNC);
+}
+
+
 DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                                     Dart_Handle name,
                                     int number_of_arguments,
@@ -3008,27 +3117,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   if (obj.IsError()) {
     return target;
   }
-
-  // Check for malformed arguments in the arguments list.
-  intptr_t num_receiver =
-      (obj.IsNull() || (obj.IsInstance() && !obj.IsType())) ? 1 : 0;
-  const Array& args =
-      Array::Handle(isolate, Array::New(number_of_arguments + num_receiver));
-  Object& arg = Object::Handle(isolate);
-  for (int i = 0; i < number_of_arguments; i++) {
-    arg = Api::UnwrapHandle(arguments[i]);
-    if (!arg.IsNull() && !arg.IsInstance()) {
-      if (arg.IsError()) {
-        return Api::NewHandle(isolate, arg.raw());
-      } else {
-        return Api::NewError(
-            "%s expects arguments[%d] to be an Instance handle.",
-            CURRENT_FUNC, i);
-      }
-    }
-    args.SetAt((i + num_receiver), arg);
-  }
-
+  Dart_Handle result;
+  Array& args = Array::Handle(isolate);
   if (obj.IsType()) {
     // Finalize all classes.
     Dart_Handle state = Api::CheckIsolateState(isolate);
@@ -3051,9 +3141,17 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                            cls_name.ToCString(),
                            function_name.ToCString());
     }
-    return Api::NewHandle(isolate, DartEntry::InvokeFunction(function, args));
-
+    // Setup args and check for malformed arguments in the arguments list.
+    result = SetupArguments(isolate, number_of_arguments, arguments, 0, &args);
+    if (!::Dart_IsError(result)) {
+      result = Api::NewHandle(isolate,
+                              DartEntry::InvokeFunction(function, args));
+    }
+    return result;
   } else if (obj.IsNull() || obj.IsInstance()) {
+    // Since we have allocated an object it would mean that all classes
+    // are finalized and hence it is not necessary to call
+    // Api::CheckIsolateState.
     Instance& instance = Instance::Handle(isolate);
     instance ^= obj.raw();
     ArgumentsDescriptor args_desc(
@@ -3061,18 +3159,33 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     const Function& function = Function::Handle(
         isolate,
         Resolver::ResolveDynamic(instance, function_name, args_desc));
-    args.SetAt(0, instance);
     if (function.IsNull()) {
-      const Array& args_descriptor =
+      // Setup args and check for malformed arguments in the arguments list.
+      result = SetupArguments(isolate,
+                              number_of_arguments,
+                              arguments,
+                              1,
+                              &args);
+      if (!::Dart_IsError(result)) {
+        args.SetAt(0, instance);
+        const Array& args_descriptor =
           Array::Handle(ArgumentsDescriptor::New(args.Length()));
-      return Api::NewHandle(isolate,
-                            DartEntry::InvokeNoSuchMethod(instance,
-                                                          function_name,
-                                                          args,
-                                                          args_descriptor));
+        result = Api::NewHandle(isolate,
+                                DartEntry::InvokeNoSuchMethod(instance,
+                                                              function_name,
+                                                              args,
+                                                              args_descriptor));
+      }
+      return result;
     }
-    return Api::NewHandle(isolate, DartEntry::InvokeFunction(function, args));
-
+    // Setup args and check for malformed arguments in the arguments list.
+    result = SetupArguments(isolate, number_of_arguments, arguments, 1, &args);
+    if (!::Dart_IsError(result)) {
+      args.SetAt(0, instance);
+      result = Api::NewHandle(isolate,
+                              DartEntry::InvokeFunction(function, args));
+    }
+    return result;
   } else if (obj.IsLibrary()) {
     // Check whether class finalization is needed.
     const Library& lib = Library::Cast(obj);
@@ -3102,8 +3215,13 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                            function_name.ToCString(),
                            error_message.ToCString());
     }
-    return Api::NewHandle(isolate, DartEntry::InvokeFunction(function, args));
-
+    // Setup args and check for malformed arguments in the arguments list.
+    result = SetupArguments(isolate, number_of_arguments, arguments, 0, &args);
+    if (!::Dart_IsError(result)) {
+      result = Api::NewHandle(isolate,
+                              DartEntry::InvokeFunction(function, args));
+    }
+    return result;
   } else {
     return Api::NewError(
         "%s expects argument 'target' to be an object, type, or library.",

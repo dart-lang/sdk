@@ -1829,6 +1829,30 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
                                            Dart_Handle* arguments);
 
 /**
+ * Invokes a Generative Constructor on an object that was previously
+ * allocated using Dart_Allocate.
+ *
+ * The 'target' parameter must be an object.
+ *
+ * This function ignores visibility (leading underscores in names).
+ *
+ * May generate an unhandled exception error.
+ *
+ * \param target An object.
+ * \param name The name of the constructor to invoke.
+ * \param number_of_arguments Size of the arguments array.
+ * \param arguments An array of arguments to the function.
+ *
+ * \return If the constructor is called and completes
+ *   successfully, then the object is returned. If an error
+ *   occurs during execution, then an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
+                                               Dart_Handle name,
+                                               int number_of_arguments,
+                                               Dart_Handle* arguments);
+
+/**
  * Gets the value of a field.
  *
  * The 'container' parameter may be an object, type, or library.  If
