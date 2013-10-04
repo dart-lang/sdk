@@ -89,3 +89,8 @@ positional_parameters_type_test/01: Fail # Issue 13719: Please triage this failu
 positional_parameters_type_test/02: Fail # Issue 13719: Please triage this failure.
 type_checks_in_factory_method_test: Fail # Issue 13719: Please triage this failure.
 vm/type_vm_test: Fail # Issue 13719: Please triage this failure.
+
+
+[ $compiler == none && $runtime == dartium ]
+compile_time_constant_test/none: Fail # Issue 13719: Please triage this failure.
+const_escape_frog_test: Fail # Issue 13719: Please triage this failure.

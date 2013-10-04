@@ -24,6 +24,8 @@ Language/12_Expressions/01_Constants_A16_t01: Fail # Issue 13719: Please triage 
 Language/12_Expressions/01_Constants_A16_t02: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/01_Constants_A16_t04: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/01_Constants_A16_t05: Fail # Issue 13719: Please triage this failure.
+Language/12_Expressions/05_Strings_A02_t46: Fail # Issue 13719: Please triage this failure.
+Language/12_Expressions/05_Strings_A02_t48: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: Fail # Issue 13719: Please triage this failure.
@@ -115,3 +117,4 @@ LibTest/isolate/SendPort/send_A01_t01: Fail # Issue 13719: Please triage this fa
 LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/typed_data/Float32x4/clamp_A01_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/typed_data/Int8List/Int8List.fromList_A01_t02: Fail # Issue 13719: Please triage this failure.
+

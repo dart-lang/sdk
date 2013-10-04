@@ -197,3 +197,6 @@ mirrors/library_uri_io_test: Fail # Issue 13719: Please triage this failure.
 mirrors/local_isolate_test: Fail # Issue 13719: Please triage this failure.
 mirrors/mixin_test/01: Fail # Issue 13719: Please triage this failure.
 mirrors/typedef_test/01: Fail # Issue 13719: Please triage this failure.
+
+[ $compiler == none && $runtime == dartium ]
+async/timer_isolate_test: Fail # Issue 13719: Please triage this failure.

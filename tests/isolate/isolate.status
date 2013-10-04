@@ -103,4 +103,8 @@ spawn_uri_test: Fail # http://dartbug.com/13454
 spawn_uri_multi_test/none: RuntimeError # http://dartbug.com/13544
 
 [ $compiler == none && $runtime == dartium ]
+cross_isolate_message_stream_test: Fail # Issue 13719: Please triage this failure.
 global_error_handler2_test: Fail # Issue 13719: Please triage this failure.
+global_error_handler_stream2_test: Fail # Issue 13719: Please triage this failure.
+nested_spawn_stream2_test: Fail # Issue 13719: Please triage this failure.
+
