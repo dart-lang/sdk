@@ -68,12 +68,6 @@ LibTest/math/exp_A01_t01: Fail # Issue co19 - 44
 LibTest/math/sin_A01_t01: Fail # Inherited from VM.
 LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
 LibTest/typed_data/Float32x4/clamp_A01_t01: RuntimeError # co19 Issue 600
-Language/05_Variables/05_Variables_A06_t01: CompileTimeError, OK # dartbug.com/12543
-Language/05_Variables/05_Variables_A06_t02: CompileTimeError, OK # dartbug.com/12543
-Language/05_Variables/05_Variables_A06_t03: CompileTimeError, OK # dartbug.com/12543
-Language/05_Variables/05_Variables_A06_t04: CompileTimeError, OK # dartbug.com/12543
-Language/05_Variables/05_Variables_A06_t05: CompileTimeError, OK # dartbug.com/12543
-Language/05_Variables/05_Variables_A06_t06: CompileTimeError, OK # dartbug.com/12543
 
 
 [ $compiler == dart2dart && $system == windows ]
@@ -106,12 +100,6 @@ Language/14_Libraries_and_Scripts/1_Imports_A04_t01: Fail # co19 Issue 603
 Language/03_Overview/1_Scoping_A02_t28: Fail # co19-roll r559: Please triage this failure
 Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A06_t01: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A06_t02: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A06_t03: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A06_t04: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A06_t05: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A06_t06: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/1_Instance_Methods/2_Operators_A09_t01: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t01: Fail # co19-roll r559: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t02: Fail # co19-roll r559: Please triage this failure

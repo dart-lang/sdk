@@ -161,12 +161,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK 
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
-Language/05_Variables/05_Variables_A06_t01: CompileTimeError, OK # dartbug.com/12543
-Language/05_Variables/05_Variables_A06_t02: CompileTimeError, OK # dartbug.com/12543
-Language/05_Variables/05_Variables_A06_t03: CompileTimeError, OK # dartbug.com/12543
-Language/05_Variables/05_Variables_A06_t04: CompileTimeError, OK # dartbug.com/12543
-Language/05_Variables/05_Variables_A06_t05: CompileTimeError, OK # dartbug.com/12543
-Language/05_Variables/05_Variables_A06_t06: CompileTimeError, OK # dartbug.com/12543
 
 Language/03_Overview/2_Privacy_A01_t09: RuntimeError, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t11: Pass, OK # co19 issue 316
