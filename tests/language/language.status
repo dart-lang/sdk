@@ -5,6 +5,9 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
+[ $runtime == vm ]
+regress_13494_test: Fail # Issue 13494
+
 [ $compiler == none ]
 mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631

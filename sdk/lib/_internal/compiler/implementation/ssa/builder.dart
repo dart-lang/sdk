@@ -2715,11 +2715,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
       stack.add(value);
     } else if (Elements.isErroneousElement(element)) {
+      List<HInstruction> arguments =
+          send == null ? const <HInstruction>[] : <HInstruction>[value];
       // An erroneous element indicates an unresolved static setter.
-      generateThrowNoSuchMethod(
-          location,
-          getTargetName(element, 'set'),
-          argumentNodes: (send == null ? const Link<Node>() : send.arguments));
+      generateThrowNoSuchMethod(location, getTargetName(element, 'set'),
+                                argumentValues: arguments);
     } else {
       stack.add(value);
       // If the value does not already have a name, give it here.

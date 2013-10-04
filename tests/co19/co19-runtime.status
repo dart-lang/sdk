@@ -74,6 +74,7 @@ Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # Dart issue 12
 Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: fail # Dart issue 1372
 Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19 issue 525
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: fail # Dart issue 12549
+Language/12_Expressions/18_Assignment_A01_t07: RuntimeError # Issue 13494
 Language/12_Expressions/30_Identifier_Reference_A08_t02: fail # Dart issue 12593
 Language/12_Expressions/32_Type_Test_A04_t02: fail # co19 issue 503
 Language/12_Expressions/32_Type_Test_A04_t03: fail # co19 issue 534
