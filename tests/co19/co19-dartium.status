@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == none && $runtime == drt ]
+*: Skip # running co19 tests on content_shell would make our dartium cycle-times very long
+
 [ $compiler == none && $runtime == dartium ]
 Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/05_Variables_A05_t01: Fail # Issue 13719: Please triage this failure.
