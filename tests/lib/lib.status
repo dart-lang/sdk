@@ -211,6 +211,13 @@ mirrors/local_isolate_test: Fail # Issue 13719: Please triage this failure.
 mirrors/mixin_test/01: Fail # Issue 13719: Please triage this failure.
 mirrors/typedef_test/01: Fail # Issue 13719: Please triage this failure.
 
+mirrors/constructor_kinds_test: RuntimeError # Issue 13798
+mirrors/generics_substitution_test: RuntimeError # Issue 13808
+mirrors/initializing_formals_test/01: RuntimeError # Issue 11281
+mirrors/generic_function_typedef_test: RuntimeError # Issue 12282
+mirrors/generic_mixin_applications_test: RuntimeError # Issue 12282
+mirrors/type_argument_is_type_variable_test: RuntimeError # Issue 12282
+
 [ $compiler == none && $runtime == dartium ]
 async/timer_isolate_test: Fail # Issue 13719: Please triage this failure.
 async/run_async5_test: Pass, Timeout  # Issue 13719: Please triage this failure.
