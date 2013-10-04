@@ -1796,7 +1796,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
     // TODO(floitsch): jsClassReference is an Access. We shouldn't treat it
     // as if it was a string.
-    push(new js.New(new js.VariableUse(jsClassReference), arguments), node);
+    js.Expression constructor = new js.VariableUse(jsClassReference);
+    push(new js.New(constructor, arguments), node);
     registerForeignTypes(node);
     if (node.instantiatedTypes == null) {
       return;
@@ -1819,6 +1820,15 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (constant.isFunction()) {
       FunctionConstant function = constant;
       world.registerStaticUse(function.element);
+    }
+    if (constant.isType()) {
+      // If the type is a web component, we need to ensure the constructors are
+      // available to 'upgrade' the native object.
+      TypeConstant type = constant;
+      Element element = type.representedType.element;
+      if (element != null && element.isClass()) {
+        backend.registerEscapingConstructorsOfClass(element, world);
+      }
     }
     push(backend.emitter.constantReference(constant));
   }

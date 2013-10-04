@@ -477,9 +477,11 @@ class JavaScriptBackend extends Backend {
   }
 
   bool isInterceptedMethod(Element element) {
-    return element.isInstanceMember()
-        && !element.isGenerativeConstructorBody()
-        && interceptedElements[element.name] != null;
+    if (!element.isInstanceMember()) return false;
+    if (element.isGenerativeConstructorBody()) {
+      return Elements.isNativeOrExtendsNative(element.getEnclosingClass());
+    }
+    return interceptedElements[element.name] != null;
   }
 
   bool fieldHasInterceptedGetter(Element element) {
@@ -951,6 +953,30 @@ class JavaScriptBackend extends Backend {
     // eagerly it doesn't matter.
     if (element.isTypedef()) {
       typedefTypeLiterals.add(element);
+    }
+    if (element.isClass()) {
+      // TODO(sra): Can we register via a type parameter?
+      registerEscapingConstructorsOfClass(element, enqueuer);
+    }
+  }
+
+  void registerEscapingConstructorsOfClass(ClassElement classElement,
+                                           Enqueuer enqueuer) {
+    // Web component classes have constructors that are escaped to the host
+    // environment.
+    // TODO(13835): Defer registering generative constructors until the helper
+    // functions that fetch the constructors is seen.  These functions are
+    // called by document.register.
+    classElement.ensureResolved(compiler);
+    if (Elements.isNativeOrExtendsNative(classElement)) {
+      registerGenerativeConstructors(ClassElement enclosing, Element member) {
+        if (member.isGenerativeConstructor()) {
+          enqueuer.registerStaticUse(member);
+        }
+      }
+      classElement.forEachMember(registerGenerativeConstructors,
+          includeBackendMembers: false,
+          includeSuperAndInjectedMembers: false);
     }
   }
 

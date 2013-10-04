@@ -349,6 +349,7 @@ class Elements {
   static bool isNativeOrExtendsNative(ClassElement element) {
     if (element == null) return false;
     if (element.isNative()) return true;
+    assert(element.resolutionState == STATE_DONE);
     return isNativeOrExtendsNative(element.superclass);
   }
 

@@ -1493,6 +1493,8 @@ class CodeEmitterTask extends CompilerTask {
   void emitMapTypeToInterceptor(CodeBuffer buffer) {
     // TODO(sra): Perhaps inject a constant instead?
     // TODO(sra): Filter by subclasses of native types.
+    // TODO(13835): Don't generate this unless we generated the functions that
+    // use the data structure.
     List<jsAst.Expression> elements = <jsAst.Expression>[];
     ConstantHandler handler = compiler.constantHandler;
     List<Constant> constants = handler.getConstantsForEmission();
@@ -1504,6 +1506,38 @@ class CodeEmitterTask extends CompilerTask {
           ClassElement classElement = element;
           elements.add(backend.emitter.constantReference(constant));
           elements.add(js(namer.isolateAccess(classElement)));
+
+          // Create JavaScript Object map for by-name lookup of generative
+          // constructors.  For example, the class A has three generative
+          // constructors
+          //
+          //     class A {
+          //       A() {}
+          //       A.foo() {}
+          //       A.bar() {}
+          //     }
+          //
+          // Which are described by the map
+          //
+          //     {"": A.A$, "foo": A.A$foo, "bar": A.A$bar}
+          //
+          // We expect most of the time the map will be a singleton.
+          var properties = [];
+          classElement.forEachMember(
+              (ClassElement enclosingClass, Element member) {
+                if (member.isGenerativeConstructor()) {
+                  properties.add(
+                      new jsAst.Property(
+                          js.string(member.name.slowToString()),
+                          new jsAst.VariableUse(
+                              backend.namer.isolateAccess(member))));
+                }
+              },
+              includeBackendMembers: false,
+              includeSuperAndInjectedMembers: false);
+
+          var map = new jsAst.ObjectInitializer(properties);
+          elements.add(map);
         }
       }
     }

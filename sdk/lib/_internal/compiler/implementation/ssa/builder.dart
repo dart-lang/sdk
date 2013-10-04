@@ -275,6 +275,8 @@ class LocalsHandler {
     // classes, or the same as [:this:] for non-intercepted classes.
     ClassElement cls = element.getEnclosingClass();
     JavaScriptBackend backend = compiler.backend;
+    bool isNativeUpgradeFactory = element.isGenerativeConstructor()
+        && Elements.isNativeOrExtendsNative(cls);
     if (backend.isInterceptedMethod(element)) {
       bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
       SourceString name = isInterceptorClass
@@ -290,6 +292,14 @@ class LocalsHandler {
         // Only use the extra parameter in intercepted classes.
         directLocals[closureData.thisElement] = value;
       }
+      value.instructionType = builder.getTypeOfThis();
+    } else if (isNativeUpgradeFactory) {
+      bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
+      Element parameter = new InterceptedElement(
+          cls.computeType(compiler), const SourceString('receiver'), element);
+      HParameterValue value = new HParameterValue(parameter);
+      builder.graph.explicitReceiverParameter = value;
+      builder.graph.entry.addAtEntry(value);
       value.instructionType = builder.getTypeOfThis();
     }
   }
@@ -1267,6 +1277,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       }
 
+      // Generative constructors of native classes should not be called directly
+      // and have an extra argument that causes problems with inlining.
+      if (element.isGenerativeConstructor()
+          && Elements.isNativeOrExtendsNative(element.getEnclosingClass())) {
+        return false;
+      }
+
       // A generative constructor body is not seen by global analysis,
       // so we should not query for its type.
       if (!element.isGenerativeConstructorBody()) {
@@ -1586,9 +1603,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             TreeElements definitions = compiler.analyzeElement(member);
             Node node = member.parseNode(compiler);
             SendSet assignment = node.asSendSet();
-            HInstruction value;
             if (assignment == null) {
-              value = graph.addConstantNull(compiler);
+              // Unassigned fields of native classes are not initialized to
+              // prevent overwriting pre-initialized native properties.
+              if (!Elements.isNativeOrExtendsNative(classElement)) {
+                HInstruction value = graph.addConstantNull(compiler);
+                fieldValues[member] = value;
+              }
             } else {
               Node right = assignment.arguments.head;
               TreeElements savedElements = elements;
@@ -1599,9 +1620,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                   member, node, elements);
               inlinedFrom(member, () => right.accept(this));
               elements = savedElements;
-              value = pop();
+              HInstruction value = pop();
+              fieldValues[member] = value;
             }
-            fieldValues[member] = value;
           });
         });
   }
@@ -1619,6 +1640,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     functionElement = functionElement.implementation;
     ClassElement classElement =
         functionElement.getEnclosingClass().implementation;
+    bool isNativeUpgradeFactory =
+        Elements.isNativeOrExtendsNative(classElement);
     FunctionExpression function = functionElement.parseNode(compiler);
     // Note that constructors (like any other static function) do not need
     // to deal with optional arguments. It is the callers job to provide all
@@ -1654,10 +1677,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     // Call the JavaScript constructor with the fields as argument.
     List<HInstruction> constructorArguments = <HInstruction>[];
+    List<Element> fields = <Element>[];
+
     classElement.forEachInstanceField(
         (ClassElement enclosingClass, Element member) {
-          constructorArguments.add(potentiallyCheckType(
-              fieldValues[member], member.computeType(compiler)));
+          HInstruction value = fieldValues[member];
+          if (value == null) {
+            // Uninitialized native fields are pre-initialized by the native
+            // implementation.
+            assert(isNativeUpgradeFactory);
+          } else {
+            fields.add(member);
+            constructorArguments.add(
+                potentiallyCheckType(value, member.computeType(compiler)));
+          }
         },
         includeSuperAndInjectedMembers: true);
 
@@ -1668,11 +1701,25 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (!currentInlinedInstantiations.isEmpty) {
       instantiatedTypes = new List<DartType>.from(currentInlinedInstantiations);
     }
-    HForeignNew newObject = new HForeignNew(classElement,
-                                            ssaType,
-                                            constructorArguments,
-                                            instantiatedTypes);
-    add(newObject);
+
+    HInstruction newObject;
+    if (!isNativeUpgradeFactory) {
+      newObject = new HForeignNew(classElement,
+          ssaType,
+          constructorArguments,
+          instantiatedTypes);
+      add(newObject);
+    } else {
+      // Bulk assign to the initialized fields.
+      newObject = graph.explicitReceiverParameter;
+      // Null guard ensures an error if we are being called from an explicit
+      // 'new' of the constructor instead of via an upgrade. It is optimized out
+      // if there are field initializers.
+      add(new HFieldGet(null, newObject, isAssignable: false));
+      for (int i = 0; i < fields.length; i++) {
+        add(new HFieldSet(fields[i], newObject, constructorArguments[i]));
+      }
+    }
     removeInlinedInstantiation(type);
     // Create the runtime type information, if needed.
     if (backend.classNeedsRti(classElement)) {
@@ -1684,19 +1731,28 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     // Generate calls to the constructor bodies.
+    HInstruction interceptor = null;
     for (int index = constructors.length - 1; index >= 0; index--) {
       FunctionElement constructor = constructors[index];
       assert(invariant(functionElement, constructor.isImplementation));
       ConstructorBodyElement body = getConstructorBody(constructor);
       if (body == null) continue;
+
       List bodyCallInputs = <HInstruction>[];
+      if (isNativeUpgradeFactory) {
+        if (interceptor == null) {
+          Constant constant = new InterceptorConstant(
+              classElement.computeType(compiler));
+          interceptor = graph.addConstant(constant, compiler);
+        }
+        bodyCallInputs.add(interceptor);
+      }
       bodyCallInputs.add(newObject);
       TreeElements elements =
           compiler.enqueuer.resolution.getCachedElements(constructor);
       Node node = constructor.parseNode(compiler);
       ClosureClassMap parameterClosureData =
           compiler.closureToClassMapper.getMappingForNestedFunction(node);
-
 
       FunctionSignature functionSignature = body.computeSignature(compiler);
       // Provide the parameters to the generative constructor body.
@@ -1724,7 +1780,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
       }
 
-      if (tryInlineMethod(body, null, bodyCallInputs, function)) {
+      if (!isNativeUpgradeFactory && // TODO(13836): Fix inlining.
+          tryInlineMethod(body, null, bodyCallInputs, function)) {
         pop();
       } else {
         HInvokeConstructorBody invoke =
@@ -3565,6 +3622,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     var inputs = <HInstruction>[];
+    if (constructor.isGenerativeConstructor() &&
+        Elements.isNativeOrExtendsNative(constructor.getEnclosingClass())) {
+      // Native class generative constructors take a pre-constructed object.
+      inputs.add(graph.addConstantNull(compiler));
+    }
     // TODO(5347): Try to avoid the need for calling [implementation] before
     // calling [addStaticSendArgumentsToList].
     bool succeeded = addStaticSendArgumentsToList(selector, send.arguments,
