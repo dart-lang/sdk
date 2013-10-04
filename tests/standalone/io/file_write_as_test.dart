@@ -70,7 +70,7 @@ Future testWriteAsString(dir) {
 
 main() {
   asyncStart();
-  var tempDir = new Directory('').createTempSync();
+  var tempDir = Directory.systemTemp.createTempSync('dart_file_write_as');
   testWriteAsBytesSync(tempDir);
   testWriteAsStringSync(tempDir);
   testWriteAsBytes(tempDir).then((_) {

@@ -228,22 +228,23 @@ String ensureDir(String dirPath) {
   return dirPath;
 }
 
-/// Creates a temp directory whose name will be based on [dir] with a unique
-/// suffix appended to it. If [dir] is not provided, a temp directory will be
-/// created in a platform-dependent temporary location. Returns the path of the
-/// created directory.
+/// Creates a temp directory in [dir], whose name will be [prefix] with
+/// characters appended to it to make a unique name.
+/// Returns the path of the created directory.
 String createTempDir(String base, String prefix) {
   var tempDir = new Directory(base).createTempSync(prefix);
   log.io("Created temp directory ${tempDir.path}");
   return tempDir.path;
 }
 
+/// Creates a temp directory in the system temp directory, whose name will be
+/// 'pub_' with characters appended to it to make a unique name.
+/// Returns the path of the created directory.
 String createSystemTempDir() {
-  var tempDir = Directory.createSystemTempSync('pub_');
+  var tempDir = Directory.systemTemp.createTempSync('pub_');
   log.io("Created temp directory ${tempDir.path}");
   return tempDir.path;
 }
-
 
 /// Lists the contents of [dir]. If [recursive] is `true`, lists subdirectory
 /// contents (defaults to `false`). If [includeHidden] is `true`, includes files

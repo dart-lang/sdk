@@ -13,7 +13,7 @@ void testPauseList() {
   asyncStart();
   // TOTAL should be bigger the our directory listing buffer.
   const int TOTAL = 128;
-  new Directory("").createTemp().then((d) {
+  Directory.systemTemp.createTemp('dart_directory_list_pause').then((d) {
     for (int i = 0; i < TOTAL; i++) {
       new Directory("${d.path}/$i").createSync();
       new File("${d.path}/$i/file").createSync();

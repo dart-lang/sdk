@@ -11,6 +11,7 @@ import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 
+import '../barback.dart';
 import '../log.dart' as log;
 import '../utils.dart';
 
@@ -74,9 +75,13 @@ class BarbackServer {
       return;
     }
 
-    var id = _getIdFromUri(request.uri);
-    if (id == null) {
-      _notFound(request, "Path ${request.uri.path} is not valid.");
+    var id;
+    try {
+      id = _uriToId(_rootPackage, request.uri);
+    } on FormatException catch (ex) {
+      // If we got here, we had a path like "/packages" which is a special
+      // directory, but not a valid path since it lacks a following package name.
+      _notFound(request, ex.message);
       return;
     }
 
@@ -130,6 +135,22 @@ class BarbackServer {
     });
   }
 
+  /// Converts a [url] served by pub serve into an [AssetId] that can be
+  /// requested from barback.
+  AssetId _uriToId(String rootPackage, Uri url) {
+    var id = specialUrlToId(url);
+    if (id != null) return id;
+
+    // Otherwise, it's a path in current package's web directory.
+    var parts = path.url.split(url.path);
+
+    // Strip the leading "/" from the URL.
+    parts = parts.skip(1);
+
+    var relativePath = path.url.join("web", path.url.joinAll(parts));
+    return new AssetId(rootPackage, relativePath);
+  }
+
   /// Responds to [request] with a 405 response and closes it.
   void _methodNotAllowed(HttpRequest request) {
     _logRequest(request, "405 Method Not Allowed");
@@ -148,53 +169,6 @@ class BarbackServer {
     request.response.reasonPhrase = "Not Found";
     request.response.write(message);
     request.response.close();
-  }
-
-  /// Converts a request [uri] into an [AssetId] that can be requested from
-  /// barback.
-  AssetId _getIdFromUri(Uri uri) {
-    var parts = path.url.split(uri.path);
-
-    // Strip the leading "/" from the URL.
-    parts.removeAt(0);
-
-    var isSpecial = false;
-
-    // Checks to see if [uri]'s path contains a special directory [name] that
-    // identifies an asset within some package. If so, maps the package name
-    // and path following that to be within [dir] inside that package.
-    AssetId _trySpecialUrl(String name, String dir) {
-      // Find the package name and the relative path in the package.
-      var index = parts.indexOf(name);
-      if (index == -1) return null;
-
-      // If we got here, the path *did* contain the special directory, which
-      // means we should not interpret it as a regular path, even if it's
-      // missing the package name after it, which makes it invalid here.
-      isSpecial = true;
-      if (index + 1 >= parts.length) return null;
-
-      var package = parts[index + 1];
-      var assetPath = path.url.join(dir,
-          path.url.joinAll(parts.skip(index + 2)));
-      return new AssetId(package, assetPath);
-    }
-
-    // See if it's "packages" URL.
-    var id = _trySpecialUrl("packages", "lib");
-    if (id != null) return id;
-
-    // See if it's an "assets" URL.
-    id = _trySpecialUrl("assets", "asset");
-    if (id != null) return id;
-
-    // If we got here, we had a path like "/packages" which is a special
-    // directory, but not a valid path since it lacks a following package name.
-    if (isSpecial) return null;
-
-    // Otherwise, it's a path in current package's web directory.
-    return new AssetId(_rootPackage,
-        path.url.join("web", path.url.joinAll(parts)));
   }
 
   /// Log [message] at [log.Level.FINE] with metadata about [request].

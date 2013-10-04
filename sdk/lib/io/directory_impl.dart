@@ -16,7 +16,8 @@ class _Directory extends FileSystemEntity implements Directory {
 
   external static _current();
   external static _setCurrent(path);
-  external static _createTemp(String template, bool system);
+  external static _createTemp(String path);
+  external static String _systemTemp();
   external static int _exists(String path);
   external static _create(String path);
   external static _deleteNative(String path, bool recursive);
@@ -149,17 +150,22 @@ class _Directory extends FileSystemEntity implements Directory {
     }
   }
 
-  // TODO(13720): Make template argument mandatory on Oct 18, 2013.
-  Future<Directory> createTemp([String template]) {
+  static Directory get systemTemp => new Directory(_systemTemp());
+
+  Future<Directory> createTemp([String prefix]) {
+    if (prefix == null) prefix = '';
     if (path == '') {
-      if (template == null) template = '';
-      return createSystemTemp(template);
+      return systemTemp.createTemp(prefix);
       // TODO(13720): On Oct 18, 2013, replace this with
       // an error.  createTemp cannot be called on a Directory with empty path.
     }
-    String fullTemplate = "$path${Platform.pathSeparator}";
-    if (template != null) fullTemplate = "$fullTemplate$template";
-    return _IOService.dispatch(_DIRECTORY_CREATE_TEMP, [fullTemplate])
+    String fullPrefix;
+    if (path.endsWith('/') || (Platform.isWindows && path.endsWith('\\'))) {
+      fullPrefix = "$path$prefix";
+    } else {
+      fullPrefix = "$path${Platform.pathSeparator}$prefix";
+    }
+    return _IOService.dispatch(_DIRECTORY_CREATE_TEMP, [fullPrefix])
         .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(
@@ -169,41 +175,23 @@ class _Directory extends FileSystemEntity implements Directory {
     });
   }
 
-  // TODO(13720): Make template argument mandatory on Oct 18, 2013.
-  Directory createTempSync([String template]) {
+  Directory createTempSync([String prefix]) {
+    if (prefix == null) prefix = '';
     if (path == '') {
-      if (template == null) template = '';
-      return createSystemTempSync(template);
+      return systemTemp.createTempSync(prefix);
       // TODO(13720): On Oct 18, 2013, replace this with
       // an error.  createTemp cannot be called on a Directory with empty path.
     }
-    String fullTemplate = "$path${Platform.pathSeparator}";
-    if (template != null) fullTemplate = "$fullTemplate$template";
-    var result = _createTemp(fullTemplate, false);
-    if (result is OSError) {
-      throw new DirectoryException("Creation of temporary directory failed",
-                                   fullTemplate,
-                                   result);
+    String fullPrefix;
+    if (path.endsWith('/') || (Platform.isWindows && path.endsWith('\\'))) {
+      fullPrefix = "$path$prefix";
+    } else {
+      fullPrefix = "$path${Platform.pathSeparator}$prefix";
     }
-    return new Directory(result);
-  }
-
-  static Future<Directory> createSystemTemp(String template) {
-    return _IOService.dispatch(_DIRECTORY_CREATE_SYSTEM_TEMP,
-                               [template]).then((response) {
-      if (response is List && response[0] != _SUCCESS_RESPONSE) {
-        throw new _Directory(template)._exceptionOrErrorFromResponse(
-            response, "Creation of temporary directory failed");
-      }
-      return new Directory(response);
-    });
-  }
-
-  static Directory createSystemTempSync(String template) {
-    var result = _createTemp(template, true);
+    var result = _createTemp(fullPrefix);
     if (result is OSError) {
       throw new DirectoryException("Creation of temporary directory failed",
-                                   template,
+                                   fullPrefix,
                                    result);
     }
     return new Directory(result);

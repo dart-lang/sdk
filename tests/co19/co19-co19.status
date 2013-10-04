@@ -23,7 +23,6 @@ Language/15_Types/1_Static_Types_A03_t01: Fail # co19-roll r607: Please triage t
 Language/09_Mixins/1_Mixin_Application_A01_t01: CompileTimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: CompileTimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedList/first_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
-Language/12_Expressions/18_Assignment_A01_t07: RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # co19-roll r607: Please triage this failure
 Language/13_Statements/04_Local_Function_Declaration_A04_t01: MissingCompileTimeError # co19-roll r607: Please triage this failure
 Language/13_Statements/02_Expression_Statements_A01_t13: MissingCompileTimeError # co19-roll r607: Please triage this failure

@@ -4,30 +4,100 @@
 
 part of dart.utf;
 
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 const int _UTF8_ONE_BYTE_MAX = 0x7f;
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 const int _UTF8_TWO_BYTE_MAX = 0x7ff;
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 const int _UTF8_THREE_BYTE_MAX = 0xffff;
 
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 const int _UTF8_LO_SIX_BIT_MASK = 0x3f;
 
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 const int _UTF8_FIRST_BYTE_OF_TWO_BASE = 0xc0;
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 const int _UTF8_FIRST_BYTE_OF_THREE_BASE = 0xe0;
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 const int _UTF8_FIRST_BYTE_OF_FOUR_BASE = 0xf0;
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 const int _UTF8_FIRST_BYTE_OF_FIVE_BASE = 0xf8;
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 const int _UTF8_FIRST_BYTE_OF_SIX_BASE = 0xfc;
 
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 const int _UTF8_FIRST_BYTE_OF_TWO_MASK = 0x1f;
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 const int _UTF8_FIRST_BYTE_OF_THREE_MASK = 0xf;
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 const int _UTF8_FIRST_BYTE_OF_FOUR_MASK = 0x7;
 
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 const int _UTF8_FIRST_BYTE_BOUND_EXCL = 0xfe;
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 const int _UTF8_SUBSEQUENT_BYTE_BASE = 0x80;
 
 /**
- * Decodes the UTF-8 bytes as an iterable. Thus, the consumer can only convert
- * as much of the input as needed. Set the replacementCharacter to null to
- * throw an ArgumentError rather than replace the bad value.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 IterableUtf8Decoder decodeUtf8AsIterable(List<int> bytes, [int offset = 0,
     int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
@@ -35,12 +105,10 @@ IterableUtf8Decoder decodeUtf8AsIterable(List<int> bytes, [int offset = 0,
 }
 
 /**
- * Produce a String from a List of UTF-8 encoded bytes. The parameters
- * can set an offset into a list of bytes (as int), limit the length of the
- * values to be decoded, and override the default Unicode replacement character.
- * Set the replacementCharacter to null to throw an ArgumentError
- * rather than replace the bad value.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 String decodeUtf8(List<int> bytes, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   return new String.fromCharCodes(
@@ -49,8 +117,10 @@ String decodeUtf8(List<int> bytes, [int offset = 0, int length,
 }
 
 /**
- * Produce a sequence of UTF-8 encoded bytes from the provided string.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 List<int> encodeUtf8(String str) =>
   codepointsToUtf8(stringToCodepoints(str));
 
@@ -65,8 +135,10 @@ int _addToEncoding(int offset, int bytes, int value, List<int> buffer) {
 }
 
 /**
- * Encode code points as UTF-8 code units.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 List<int> codepointsToUtf8(
     List<int> codepoints, [int offset = 0, int length]) {
   _ListRange source = new _ListRange(codepoints, offset, length);
@@ -115,8 +187,11 @@ List<int> codepointsToUtf8(
   return encoded;
 }
 
-// Because UTF-8 specifies byte order, we do not have to follow the pattern
-// used by UTF-16 & UTF-32 regarding byte order.
+/**
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
+ */
+@deprecated
 List<int> utf8ToCodepoints(
     List<int> utf8EncodedBytes, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
@@ -125,12 +200,10 @@ List<int> utf8ToCodepoints(
 }
 
 /**
- * Return type of [decodeUtf8AsIterable] and variants. The Iterable type
- * provides an iterator on demand and the iterator will only translate bytes
- * as requested by the user of the iterator. (Note: results are not cached.)
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
-// TODO(floitsch): Consider removing the extend and switch to implements since
-// that's cheaper to allocate.
+@deprecated
 class IterableUtf8Decoder extends IterableBase<int> {
   final List<int> bytes;
   final int offset;
@@ -145,13 +218,10 @@ class IterableUtf8Decoder extends IterableBase<int> {
 }
 
 /**
- * Provides an iterator of Unicode codepoints from UTF-8 encoded bytes. The
- * parameters can set an offset into a list of bytes (as int), limit the length
- * of the values to be decoded, and override the default Unicode replacement
- * character. Set the replacementCharacter to null to throw an
- * ArgumentError rather than replace the bad value. The return value
- * from this method can be used as an Iterable (e.g. in a for-loop).
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 class Utf8Decoder implements Iterator<int> {
   final _ListRangeIterator utf8EncodedBytesIterator;
   final int replacementCodepoint;

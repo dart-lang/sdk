@@ -8,10 +8,10 @@ import "dart:io";
 
 main() {
   if (Platform.operatingSystem != 'windows') return;
-  var tempDir = new Directory('').createTempSync();
-  var funkyDir = new Directory("${tempDir.path}/å");
+  var tempDir = Directory.systemTemp.createTempSync('dart_windows_environment');
+  var funkyDir = new Directory(join(tempDir.path, 'å'));
   funkyDir.createSync();
-  var funkyFile = new File('${funkyDir.path}/funky.bat');
+  var funkyFile = new File(join(funkyDir.path, 'funky.bat'));
   funkyFile.writeAsStringSync("""
 @echo off
 set SCRIPTDIR=%~dp0

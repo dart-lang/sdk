@@ -148,18 +148,19 @@ class _MarginCssRect extends CssRect {
 /**
  * A class for representing CSS dimensions.
  *
- * In contrast to the more general purpose [Rect] class, this class's values are
- * mutable, so one can change the height of an element programmatically.
+ * In contrast to the more general purpose [Rectangle] class, this class's
+ * values are mutable, so one can change the height of an element
+ * programmatically.
  *
  * _Important_ _note_: use of these methods will perform CSS calculations that
  * can trigger a browser reflow. Therefore, use of these properties _during_ an
  * animation frame is discouraged. See also:
  * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
  */
-abstract class CssRect extends RectBase implements Rect {
+abstract class CssRect extends MutableRectangle<num> implements Rectangle<num> {
   Element _element;
 
-  CssRect(this._element);
+  CssRect(this._element) : super(0, 0, 0, 0);
 
   num get left;
 

@@ -16,7 +16,7 @@ void main() {
   group('serve-root', () {
     test('dir-exists', () {
       expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = new Directory('').createTempSync();
+        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
         var virDir = new VirtualDirectory(dir.path);
 
         virDir.serve(server);
@@ -31,7 +31,7 @@ void main() {
 
     test('dir-not-exists', () {
       expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = new Directory('').createTempSync();
+        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
         dir.deleteSync();
         var virDir = new VirtualDirectory(dir.path);
 
@@ -49,7 +49,7 @@ void main() {
     group('top-level', () {
       test('file-exists', () {
         expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = new Directory('').createTempSync();
+          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
           var file = new File('${dir.path}/file')..createSync();
           var virDir = new VirtualDirectory(dir.path);
 
@@ -65,7 +65,7 @@ void main() {
 
       test('file-not-exists', () {
         expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = new Directory('').createTempSync();
+          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
           var virDir = new VirtualDirectory(dir.path);
 
           virDir.serve(server);
@@ -82,7 +82,7 @@ void main() {
     group('in-dir', () {
       test('file-exists', () {
         expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = new Directory('').createTempSync();
+          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
           var dir2 = new Directory('${dir.path}/dir')..createSync();
           var file = new File('${dir2.path}/file')..createSync();
           var virDir = new VirtualDirectory(dir.path);
@@ -99,7 +99,7 @@ void main() {
 
       test('file-not-exists', () {
         expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = new Directory('').createTempSync();
+          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
           var dir2 = new Directory('${dir.path}/dir')..createSync();
           var file = new File('${dir.path}/file')..createSync();
           var virDir = new VirtualDirectory(dir.path);
@@ -120,7 +120,7 @@ void main() {
     group('top-level', () {
       test('simple', () {
         expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = new Directory('').createTempSync();
+          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
           var virDir = new VirtualDirectory(dir.path);
           virDir.allowDirectoryListing = true;
 
@@ -136,7 +136,7 @@ void main() {
 
       test('files', () {
         expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = new Directory('').createTempSync();
+          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
           var virDir = new VirtualDirectory(dir.path);
           for (int i = 0; i < 10; i++) {
             new File('${dir.path}/$i').createSync();
@@ -155,7 +155,7 @@ void main() {
 
       test('dirs', () {
         expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = new Directory('').createTempSync();
+          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
           var virDir = new VirtualDirectory(dir.path);
           for (int i = 0; i < 10; i++) {
             new Directory('${dir.path}/$i').createSync();
@@ -175,7 +175,8 @@ void main() {
       if (!Platform.isWindows) {
         test('recursive-link', () {
           expect(HttpServer.bind('localhost', 0).then((server) {
-            var dir = new Directory('').createTempSync();
+            var dir =
+                Directory.systemTemp.createTempSync('http_server_virtual_');
             var link = new Link('${dir.path}/recursive')..createSync('.');
             var virDir = new VirtualDirectory(dir.path);
             virDir.allowDirectoryListing = true;
@@ -207,7 +208,7 @@ void main() {
     group('custom', () {
       test('simple', () {
         expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = new Directory('').createTempSync();
+          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
           var virDir = new VirtualDirectory(dir.path);
           virDir.allowDirectoryListing = true;
           virDir.setDirectoryHandler((dir2, request) {
@@ -234,7 +235,8 @@ void main() {
       group('follow-links', () {
         test('dir-link', () {
           expect(HttpServer.bind('localhost', 0).then((server) {
-            var dir = new Directory('').createTempSync();
+            var dir =
+                Directory.systemTemp.createTempSync('http_server_virtual_');
             var dir2 = new Directory('${dir.path}/dir2')..createSync();
             var link = new Link('${dir.path}/dir3')..createSync('dir2');
             var file = new File('${dir2.path}/file')..createSync();
@@ -253,7 +255,8 @@ void main() {
 
         test('root-link', () {
           expect(HttpServer.bind('localhost', 0).then((server) {
-            var dir = new Directory('').createTempSync();
+            var dir =
+                Directory.systemTemp.createTempSync('http_server_virtual_');
             var link = new Link('${dir.path}/dir3')..createSync('.');
             var file = new File('${dir.path}/file')..createSync();
             var virDir = new VirtualDirectory(dir.path);
@@ -272,7 +275,8 @@ void main() {
         group('bad-links', () {
           test('absolute-link', () {
             expect(HttpServer.bind('localhost', 0).then((server) {
-              var dir = new Directory('').createTempSync();
+              var dir =
+                  Directory.systemTemp.createTempSync('http_server_virtual_');
               var file = new File('${dir.path}/file')..createSync();
               var link = new Link('${dir.path}/dir3')
                   ..createSync('${dir.path}/file');
@@ -296,7 +300,8 @@ void main() {
 
           test('relative-parent-link', () {
             expect(HttpServer.bind('localhost', 0).then((server) {
-              var dir = new Directory('').createTempSync();
+              var dir =
+                  Directory.systemTemp.createTempSync('http_server_virtual_');
               var name = basename(dir.path);
               var file = new File('${dir.path}/file')..createSync();
               var link = new Link('${dir.path}/dir3')
@@ -324,7 +329,8 @@ void main() {
       group('not-follow-links', () {
         test('dir-link', () {
           expect(HttpServer.bind('localhost', 0).then((server) {
-            var dir = new Directory('').createTempSync();
+            var dir =
+                Directory.systemTemp.createTempSync('http_server_virtual_');
             var dir2 = new Directory('${dir.path}/dir2')..createSync();
             var link = new Link('${dir.path}/dir3')..createSync('dir2');
             var file = new File('${dir2.path}/file')..createSync();
@@ -348,7 +354,7 @@ void main() {
     group('file', () {
       test('file-exists', () {
         expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = new Directory('').createTempSync();
+          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
           var file = new File('${dir.path}/file')..createSync();
           var virDir = new VirtualDirectory(dir.path);
 
@@ -373,7 +379,7 @@ void main() {
 
       test('file-changes', () {
         expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = new Directory('').createTempSync();
+          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
           var file = new File('${dir.path}/file')..createSync();
           var virDir = new VirtualDirectory(dir.path);
 
@@ -405,7 +411,7 @@ void main() {
     group('mime-type', () {
       test('from-path', () {
         expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = new Directory('').createTempSync();
+          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
           var file = new File('${dir.path}/file.jpg')..createSync();
           var virDir = new VirtualDirectory(dir.path);
 
@@ -422,7 +428,7 @@ void main() {
 
       test('from-magic-number', () {
         expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = new Directory('').createTempSync();
+          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
           var file = new File('${dir.path}/file.jpg')..createSync();
           file.writeAsBytesSync(
               [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
@@ -444,7 +450,7 @@ void main() {
   group('error-page', () {
     test('default', () {
       expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = new Directory('').createTempSync();
+        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
         var virDir = new VirtualDirectory(dir.path);
         dir.deleteSync();
 
@@ -459,7 +465,7 @@ void main() {
 
     test('custom', () {
       expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = new Directory('').createTempSync();
+        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
         var virDir = new VirtualDirectory(dir.path);
         dir.deleteSync();
 
@@ -481,7 +487,7 @@ void main() {
   group('escape-root', () {
     test('escape1', () {
       expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = new Directory('').createTempSync();
+        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
         var virDir = new VirtualDirectory(dir.path);
         virDir.allowDirectoryListing = true;
 
@@ -497,7 +503,7 @@ void main() {
 
     test('escape2', () {
       expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = new Directory('').createTempSync();
+        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
         new Directory('${dir.path}/dir').createSync();
         var virDir = new VirtualDirectory(dir.path);
         virDir.allowDirectoryListing = true;
@@ -516,7 +522,7 @@ void main() {
   group('url-decode', () {
     test('with-space', () {
       expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = new Directory('').createTempSync();
+        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
         var file = new File('${dir.path}/my file')..createSync();
         var virDir = new VirtualDirectory(dir.path);
 
@@ -532,7 +538,7 @@ void main() {
 
     test('encoded-space', () {
       expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = new Directory('').createTempSync();
+        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
         var file = new File('${dir.path}/my file')..createSync();
         var virDir = new VirtualDirectory(dir.path);
 
@@ -548,7 +554,7 @@ void main() {
 
     test('encoded-path-separator', () {
       expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = new Directory('').createTempSync();
+        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
         new Directory('${dir.path}/a').createSync();
         new Directory('${dir.path}/a/b').createSync();
         new Directory('${dir.path}/a/b/c').createSync();
@@ -567,7 +573,7 @@ void main() {
 
     test('encoded-null', () {
       expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = new Directory('').createTempSync();
+        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
         var virDir = new VirtualDirectory(dir.path);
         virDir.allowDirectoryListing = true;
 
@@ -584,7 +590,7 @@ void main() {
     testEncoding(name, expected, [bool create = true]) {
       test('encode-$name', () {
         expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = new Directory('').createTempSync();
+        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
           if (create) new File('${dir.path}/$name').createSync();
           var virDir = new VirtualDirectory(dir.path);
           virDir.allowDirectoryListing = true;

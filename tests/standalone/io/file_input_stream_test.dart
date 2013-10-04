@@ -67,7 +67,7 @@ int writeLongFileSync(File file) {
 
 void testInputStreamTruncate() {
   asyncStart();
-  var temp = new Directory('').createTempSync();
+  var temp = Directory.systemTemp.createTempSync('file_input_stream_test');
   var file = new File('${temp.path}/input_stream_truncate.txt');
   var originalLength = writeLongFileSync(file);
   // Start streaming the file. Pause after first chunk. Truncate
@@ -100,7 +100,7 @@ void testInputStreamTruncate() {
 
 void testInputStreamDelete() {
   asyncStart();
-  var temp = new Directory('').createTempSync();
+  var temp = Directory.systemTemp.createTempSync('file_input_stream_test');
   var file = new File('${temp.path}/input_stream_delete.txt');
   var originalLength = writeLongFileSync(file);
   // Start streaming the file. Pause after first chunk. Truncate
@@ -140,7 +140,7 @@ void testInputStreamDelete() {
 
 void testInputStreamAppend() {
   asyncStart();
-  var temp = new Directory('').createTempSync();
+  var temp = Directory.systemTemp.createTempSync('file_input_stream_test');
   var file = new File('${temp.path}/input_stream_append.txt');
   var originalLength = writeLongFileSync(file);
   // Start streaming the file. Pause after first chunk. Append to
@@ -174,7 +174,7 @@ void testInputStreamAppend() {
 void testInputStreamOffset() {
   void test(int start, int end, int expectedBytes) {
     asyncStart();
-    var temp = new Directory('').createTempSync();
+    var temp = Directory.systemTemp.createTempSync('file_input_stream_test');
     var file = new File('${temp.path}/input_stream_offset.txt');
     var originalLength = writeLongFileSync(file);
     var streamedBytes = 0;
@@ -205,7 +205,7 @@ void testInputStreamOffset() {
 void testInputStreamBadOffset() {
   void test(int start, int end) {
     asyncStart();
-    var temp = new Directory('').createTempSync();
+    var temp = Directory.systemTemp.createTempSync('file_input_stream_test');
     var file = new File('${temp.path}/input_stream_bad_offset.txt');
     var originalLength = writeLongFileSync(file);
     var streamedBytes = 0;

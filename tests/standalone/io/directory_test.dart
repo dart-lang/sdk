@@ -15,7 +15,8 @@ class DirectoryTest {
     bool listedDir = false;
     bool listedFile = false;
 
-    Directory directory = new Directory("").createTempSync();
+    Directory directory =
+        Directory.systemTemp.createTempSync('dart_directory_test');
     Directory subDirectory = new Directory("${directory.path}/subdir");
     Expect.isTrue('$directory'.contains(directory.path));
     Expect.isFalse(subDirectory.existsSync());
@@ -87,7 +88,8 @@ class DirectoryTest {
   }
 
   static void testListingTailingPaths() {
-    Directory directory = new Directory("").createTempSync();
+    Directory directory =
+        Directory.systemTemp.createTempSync('dart_directory_test');
     Directory subDirectory = new Directory("${directory.path}/subdir/");
     subDirectory.createSync();
     File f = new File('${subDirectory.path}/file.txt');
@@ -112,7 +114,7 @@ class DirectoryTest {
             Expect.isTrue(error is DirectoryException);
           });
     }
-    new Directory("").createTemp().then((d) {
+    Directory.systemTemp.createTemp('dart_directory').then((d) {
       d.delete().then((ignore) {
         setupListerHandlers(d.list());
         setupListerHandlers(d.list(recursive: true));
@@ -121,7 +123,7 @@ class DirectoryTest {
   }
 
   static void testListTooLongName() {
-    new Directory("").createTemp().then((d) {
+    Directory.systemTemp.createTemp('dart_directory').then((d) {
       var errors = 0;
       asyncStart();
       setupListHandlers(Stream<FileSystemEntity> stream) {
@@ -163,7 +165,7 @@ class DirectoryTest {
       });
     }
 
-    new Directory("").createTemp().then((d) {
+    Directory.systemTemp.createTemp('dart_directory').then((d) {
       d.delete().then((ignore) {
         setupFutureHandlers(d.delete());
         setupFutureHandlers(d.delete(recursive: true));
@@ -173,7 +175,7 @@ class DirectoryTest {
 
   static void testDeleteTooLongName() {
     asyncStart();
-    new Directory("").createTemp().then((d) {
+    Directory.systemTemp.createTemp('dart_directory').then((d) {
       var subDirName = 'subdir';
       var subDir = new Directory("${d.path}/$subDirName");
       subDir.create().then((ignore) {
@@ -200,14 +202,14 @@ class DirectoryTest {
   }
 
   static void testDeleteNonExistentSync() {
-    Directory d = new Directory("").createTempSync();
+    Directory d = Directory.systemTemp.createTempSync('dart_directory_test');
     d.deleteSync();
     Expect.throws(d.deleteSync);
     Expect.throws(() => d.deleteSync(recursive: true));
   }
 
   static void testDeleteTooLongNameSync() {
-    Directory d = new Directory("").createTempSync();
+    Directory d = Directory.systemTemp.createTempSync('dart_directory_test');
     var subDirName = 'subdir';
     var subDir = new Directory("${d.path}/$subDirName");
     subDir.createSync();
@@ -225,7 +227,7 @@ class DirectoryTest {
   }
 
   static void testExistsCreateDelete() {
-    new Directory("").createTemp().then((d) {
+    Directory.systemTemp.createTemp('dart_directory').then((d) {
       d.exists().then((bool exists) {
         Expect.isTrue(exists);
         Directory created = new Directory("${d.path}/subdir");
@@ -249,7 +251,7 @@ class DirectoryTest {
   }
 
   static void testExistsCreateDeleteSync() {
-    Directory d = new Directory("").createTempSync();
+    Directory d = Directory.systemTemp.createTempSync('dart_directory_test');
     Directory d2 = new Directory('${d.path}/');
     Expect.isTrue(d.existsSync());
     Expect.isTrue(d2.existsSync());
@@ -263,7 +265,7 @@ class DirectoryTest {
   }
 
   static void testDeleteLinkSync() {
-    Directory tmp = new Directory("").createTempSync();
+    Directory tmp = Directory.systemTemp.createTempSync('dart_directory_test');
     var path = "${tmp.path}${Platform.pathSeparator}";
     Directory d = new Directory("${path}target");
     d.createSync();
@@ -280,7 +282,7 @@ class DirectoryTest {
   }
 
   static void testDeleteLinkAsFileSync() {
-    Directory tmp = new Directory("").createTempSync();
+    Directory tmp = Directory.systemTemp.createTempSync('dart_directory_test');
     var path = "${tmp.path}${Platform.pathSeparator}";
     Directory d = new Directory("${path}target");
     d.createSync();
@@ -297,7 +299,7 @@ class DirectoryTest {
   }
 
   static void testDeleteBrokenLinkAsFileSync() {
-    Directory tmp = new Directory("").createTempSync();
+    Directory tmp = Directory.systemTemp.createTempSync('dart_directory_test');
     var path = "${tmp.path}${Platform.pathSeparator}";
     Directory d = new Directory("${path}target");
     d.createSync();
@@ -313,7 +315,7 @@ class DirectoryTest {
   }
 
   static void testListBrokenLinkSync() {
-    Directory tmp = new Directory("").createTempSync();
+    Directory tmp = Directory.systemTemp.createTempSync('dart_directory_test');
     var path = "${tmp.path}${Platform.pathSeparator}";
     Directory d = new Directory("${path}target");
     d.createSync();
@@ -334,7 +336,7 @@ class DirectoryTest {
   }
 
   static void testListLinkSync() {
-    Directory tmp = new Directory("").createTempSync();
+    Directory tmp = Directory.systemTemp.createTempSync('dart_directory_test');
     var path = "${tmp.path}${Platform.pathSeparator}";
     Directory d = new Directory("${path}target");
     d.createSync();
@@ -354,11 +356,13 @@ class DirectoryTest {
         });
   }
 
-  static void testCreateTemp([String template = ""]) {
-    asyncStart();
-    Directory dir = new Directory(template);
-    Future.wait([dir.createTemp(), dir.createTemp()])
-      .then((tempDirs) {
+  static void testCreateTemp() {
+    Directory base = new Directory('/tmp');
+    String template = 'dart_temp_dir';
+    if (base.existsSync()) {
+      asyncStart();
+      Future.wait([base.createTemp(template), base.createTemp(template)])
+          .then((tempDirs) {
         Expect.notEquals(tempDirs[0].path, tempDirs[1].path);
         for (Directory t in tempDirs) {
           Expect.isTrue(t.existsSync());
@@ -366,17 +370,28 @@ class DirectoryTest {
           Expect.isFalse(t.existsSync());
         }
         asyncEnd();
-      });
-  }
-
-  static void testCreateTempTemplate() {
-    if (new Directory("/tmp").existsSync()) {
-      testCreateTemp("/tmp/dart_temp_dir_");
+     });
     }
   }
 
+  static void testCreateSystemTemp() {
+    String template = 'dart_system_temp_dir';
+    asyncStart();
+    Future.wait([Directory.systemTemp.createTemp(template),
+                 Directory.systemTemp.createTemp(template)])
+        .then((tempDirs) {
+      Expect.notEquals(tempDirs[0].path, tempDirs[1].path);
+      for (Directory t in tempDirs) {
+        Expect.isTrue(t.existsSync());
+        t.deleteSync();
+        Expect.isFalse(t.existsSync());
+      }
+      asyncEnd();
+    });
+  }
+
   static void testCreateDeleteTemp() {
-    new Directory("").createTemp().then((tempDirectory) {
+    Directory.systemTemp.createTemp('dart_directory').then((tempDirectory) {
       String filename =
           "${tempDirectory.path}${Platform.pathSeparator}dart_testfile";
       File file = new File(filename);
@@ -430,6 +445,7 @@ class DirectoryTest {
     testListBrokenLinkSync();
     testListLinkSync();
     testCreateTemp();
+    testCreateSystemTemp();
     testCreateDeleteTemp();
     testCurrent();
     testEquals();
@@ -443,7 +459,7 @@ class NestedTempDirectoryTest {
 
   NestedTempDirectoryTest.run()
       : createdDirectories = new List<Directory>() {
-    new Directory("").createTemp().then(createPhaseCallback);
+    Directory.systemTemp.createTemp('dart_directory').then(createPhaseCallback);
   }
 
   void createPhaseCallback(temp) {
@@ -490,7 +506,7 @@ String illegalTempDirectoryLocation() {
 testCreateTempErrorSync() {
   var location = illegalTempDirectoryLocation();
   if (location != null) {
-    Expect.throws(new Directory(location).createTempSync,
+    Expect.throws(() => new Directory(location).createTempSync('dart_tempdir'),
                   (e) => e is DirectoryException);
   }
 }
@@ -501,15 +517,14 @@ testCreateTempError() {
   if (location == null) return;
 
   asyncStart();
-  var future = new Directory(location).createTemp();
+  var future = new Directory(location).createTemp('dart_tempdir');
   future.catchError((_) => asyncEnd());
 }
 
 
 testCreateExistingSync() {
   // Test that creating an existing directory succeeds.
-  var d = new Directory('');
-  var temp = d.createTempSync();
+  var temp = Directory.systemTemp.createTempSync('directory_test');
   var subDir = new Directory('${temp.path}/flaf');
   Expect.isFalse(subDir.existsSync());
   subDir.createSync();
@@ -523,8 +538,7 @@ testCreateExistingSync() {
 testCreateExisting() {
   // Test that creating an existing directory succeeds.
   asyncStart();
-  var d = new Directory('');
-  d.createTemp().then((temp) {
+  Directory.systemTemp.createTemp('dart_directory').then((temp) {
     var subDir = new Directory('${temp.path}/flaf');
     subDir.exists().then((dirExists) {
       Expect.isFalse(dirExists);
@@ -548,8 +562,7 @@ testCreateExisting() {
 
 testCreateDirExistingFileSync() {
   // Test that creating an existing directory succeeds.
-  var d = new Directory('');
-  var temp = d.createTempSync();
+  var temp = Directory.systemTemp.createTempSync('directory_test');
   var path = '${temp.path}/flaf';
   var file = new File(path);
   file.createSync();
@@ -563,8 +576,7 @@ testCreateDirExistingFileSync() {
 testCreateDirExistingFile() {
   // Test that creating an existing directory succeeds.
   asyncStart();
-  var d = new Directory('');
-  d.createTemp().then((temp) {
+  Directory.systemTemp.createTemp('dart_directory').then((temp) {
     var path = '${temp.path}/flaf';
     var file = new File(path);
     var subDir = new Directory(path);
@@ -583,7 +595,7 @@ testCreateDirExistingFile() {
 
 
 testCreateRecursiveSync() {
-  var temp = new Directory('').createTempSync();
+  var temp = Directory.systemTemp.createTempSync('directory_test');
   var d = new Directory('${temp.path}/a/b/c');
   d.createSync(recursive: true);
   Expect.isTrue(new Directory('${temp.path}/a').existsSync());
@@ -595,7 +607,7 @@ testCreateRecursiveSync() {
 
 testCreateRecursive() {
   asyncStart();
-  new Directory('').createTemp().then((temp) {
+  Directory.systemTemp.createTemp('dart_directory').then((temp) {
     var d = new Directory('${temp.path}/a/b/c');
     d.create(recursive: true).then((_) {
       Expect.isTrue(new Directory('${temp.path}/a').existsSync());
@@ -609,9 +621,8 @@ testCreateRecursive() {
 
 
 testRename() {
-  var d = new Directory('');
-  var temp1 = d.createTempSync();
-  var temp2 = d.createTempSync();
+  var temp1 = Directory.systemTemp.createTempSync('directory_test');
+  var temp2 = Directory.systemTemp.createTempSync('directory_test');
   var temp3 = temp1.renameSync(temp2.path);
   Expect.isFalse(temp1.existsSync());
   Expect.isTrue(temp2.existsSync());

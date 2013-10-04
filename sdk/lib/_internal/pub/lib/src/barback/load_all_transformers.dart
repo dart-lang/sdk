@@ -19,7 +19,11 @@ import '../utils.dart';
 ///
 /// This uses [server] to serve the Dart files from which transformers are
 /// loaded, then adds the transformers to `server.barback`.
-Future loadAllTransformers(BarbackServer server, PackageGraph graph) {
+///
+/// Any [builtInTransformers] that are provided will automatically be added to
+/// the end of every package's cascade.
+Future loadAllTransformers(BarbackServer server, PackageGraph graph,
+                           [Iterable<Transformer> builtInTransformers]) {
   // In order to determine in what order we should load transformers, we need to
   // know which transformers depend on which others. This is different than
   // normal package dependencies. Let's begin with some terminology:
@@ -109,7 +113,12 @@ Future loadAllTransformers(BarbackServer server, PackageGraph graph) {
     for (var package in graph.packages.values) {
       var phases = package.pubspec.transformers.map((phase) {
         return unionAll(phase.map((id) => loader.transformersFor(id)));
-      });
+      }).toList();
+
+      if (builtInTransformers != null && builtInTransformers.isNotEmpty) {
+        phases.add(builtInTransformers);
+      }
+
       server.barback.updateTransformers(package.name, phases);
     }
   });

@@ -140,6 +140,11 @@ abstract class UnmodifiableListMixin<E> implements List<E> {
         "Cannot modify an unmodifiable list");
   }
 
+  void shuffle() {
+    throw new UnsupportedError(
+        "Cannot modify an unmodifiable list");
+  }
+
   void clear() {
     throw new UnsupportedError(
         "Cannot clear an unmodifiable list");

@@ -11,7 +11,7 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 Directory tempDir() {
-  return new Directory('').createTempSync();
+  return Directory.systemTemp.createTempSync('dart_file_error');
 }
 
 

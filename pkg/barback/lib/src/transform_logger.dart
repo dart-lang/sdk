@@ -14,6 +14,14 @@ class TransformLogger {
 
   TransformLogger(this._shouldPrint);
 
+  /// Logs an informative message.
+  ///
+  /// If present, [span] indicates the location in the input asset that caused
+  /// the message.
+  void info(String message, [Span span]) {
+    _printMessage('info', message, span);
+  }
+
   /// Logs a warning message.
   ///
   /// If present, [span] indicates the location in the input asset that caused
@@ -34,7 +42,7 @@ class TransformLogger {
   // TODO(sigmund,rnystrom): do something better than printing.
   _printMessage(String prefix, String message, Span span) {
     if (!_shouldPrint) return;
-    print(span == null ? '$prefix $message'
+    print(span == null ? '$prefix: $message'
         : '$prefix ${span.getLocationMessage(message)}');
   }
 }

@@ -19,5 +19,8 @@ patch Future<MirrorSystem> mirrorSystemOf(SendPort port) {
 patch InstanceMirror reflect(Object reflectee) => js.reflect(reflectee);
 
 patch ClassMirror reflectClass(Type key) {
+  if (key is! Type || key == dynamic) {
+  	throw new ArgumentError('$key does not denote a class');
+  }
   return js.reflectType(key).originalDeclaration;
 }

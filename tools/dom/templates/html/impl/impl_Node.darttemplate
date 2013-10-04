@@ -155,6 +155,10 @@ $endif
     throw new UnsupportedError("Cannot sort Node list");
   }
 
+  void shuffle() {
+    throw new UnsupportedError("Cannot shuffle Node list");
+  }
+
   // FIXME: implement these.
   void setRange(int start, int end, Iterable<Node> iterable,
                 [int skipCount = 0]) {

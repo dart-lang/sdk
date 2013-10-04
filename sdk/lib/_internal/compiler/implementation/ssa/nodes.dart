@@ -1454,6 +1454,9 @@ class HInvokeSuper extends HInvokeStatic {
 }
 
 class HInvokeConstructorBody extends HInvokeStatic {
+  // The 'inputs' are
+  //     [receiver, arg1, ..., argN] or
+  //     [interceptor, receiver, arg1, ... argN].
   HInvokeConstructorBody(element, inputs)
       : super(element, inputs, HType.UNKNOWN);
 

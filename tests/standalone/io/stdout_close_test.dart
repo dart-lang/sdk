@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import "dart:io";
 
 void main() {
-  var dir = new Directory('').createTempSync();
+  var dir = Directory.systemTemp.createTempSync('dart_stdout_close');
   stdout.close().then((_) {
     var file = new File('${dir.path}/file');
     var io = file.openSync(mode: FileMode.WRITE);

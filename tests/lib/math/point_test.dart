@@ -4,46 +4,43 @@
 
 library point_test;
 
-import 'dart:html';
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:math';
+import 'package:unittest/unittest.dart';
 
 main() {
-  useHtmlConfiguration();
-
   test('constructor', () {
     var point = new Point();
     expect(point.x, 0);
     expect(point.y, 0);
-    expect('$point', '(0, 0)');
+    expect('$point', 'Point(0, 0)');
   });
 
   test('constructor X', () {
-    var point = new Point(10);
+    var point = new Point<int>(10);
     expect(point.x, 10);
     expect(point.y, 0);
-    expect('$point', '(10, 0)');
+    expect('$point', 'Point(10, 0)');
   });
 
   test('constructor X Y', () {
-    var point = new Point(10, 20);
+    var point = new Point<int>(10, 20);
     expect(point.x, 10);
     expect(point.y, 20);
-    expect('$point', '(10, 20)');
+    expect('$point', 'Point(10, 20)');
   });
 
   test('constructor X Y double', () {
-    var point = new Point(10.5, 20.897);
+    var point = new Point<double>(10.5, 20.897);
     expect(point.x, 10.5);
     expect(point.y, 20.897);
-    expect('$point', '(10.5, 20.897)');
+    expect('$point', 'Point(10.5, 20.897)');
   });
 
   test('constructor X Y NaN', () {
     var point = new Point(double.NAN, 1000);
     expect(point.x.isNaN, isTrue);
     expect(point.y, 1000);
-    expect('$point', '(NaN, 1000)');
+    expect('$point', 'Point(NaN, 1000)');
   });
 
   test('squaredDistanceTo', () {
@@ -70,38 +67,6 @@ main() {
     var a = new Point(5, 10);
     var b = new Point(2, 50);
     expect(a + b, new Point(7, 60));
-  });
-
-  test('ceil', () {
-    var a = new Point(5.1, 10.8);
-    expect(a.ceil(), new Point(6.0, 11.0));
-
-    var b = new Point(5, 10);
-    expect(b.ceil(), new Point(5, 10));
-  });
-
-  test('floor', () {
-    var a = new Point(5.1, 10.8);
-    expect(a.floor(), new Point(5.0, 10.0));
-
-    var b = new Point(5, 10);
-    expect(b.floor(), new Point(5, 10));
-  });
-
-  test('round', () {
-    var a = new Point(5.1, 10.8);
-    expect(a.round(), new Point(5.0, 11.0));
-
-    var b = new Point(5, 10);
-    expect(b.round(), new Point(5, 10));
-  });
-
-  test('toInt', () {
-    var a = new Point(5.1, 10.8);
-    var b = a.toInt();
-    expect(b, new Point(5, 10));
-    expect(b.x is int, isTrue);
-    expect(b.y is int, isTrue);
   });
 
   test('hashCode', () {

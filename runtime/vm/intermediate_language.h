@@ -136,21 +136,36 @@ class Range;
   V(_Uint32x4, withFlagZ, Uint32x4WithFlagZ, 1714792414)                       \
   V(_Uint32x4, withFlagW, Uint32x4WithFlagW, 1516924162)                       \
   V(_List, [], ObjectArrayGetIndexed, 1079829188)                              \
+  V(_List, []=, ObjectArraySetIndexed, 748954698)                              \
   V(_ImmutableList, [], ImmutableArrayGetIndexed, 25983597)                    \
   V(_GrowableList, [], GrowableArrayGetIndexed, 1686777561)                    \
+  V(_GrowableList, []=, GrowableArraySetIndexed, 327404102)                    \
   V(_Float32Array, [], Float32ArrayGetIndexed, 1225286513)                     \
+  V(_Float32Array, []=, Float32ArraySetIndexed, 1155155195)                    \
   V(_Float64Array, [], Float64ArrayGetIndexed, 871118335)                      \
+  V(_Float64Array, []=, Float64ArraySetIndexed, 214271306)                     \
   V(_Int8Array, [], Int8ArrayGetIndexed, 199925538)                            \
+  V(_Int8Array, []=, Int8ArraySetIndexed, 25452746)                            \
   V(_Uint8Array, [], Uint8ArrayGetIndexed, 502448555)                          \
+  V(_Uint8Array, []=, Uint8ArraySetIndexed, 182237960)                         \
   V(_Uint8ClampedArray, [], Uint8ClampedArrayGetIndexed, 1292893603)           \
+  V(_Uint8ClampedArray, []=, Uint8ClampedArraySetIndexed, 670971404)           \
   V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 1831383216)         \
+  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 1660673499)        \
   V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
     1831906095)                                                                \
+  V(_ExternalUint8ClampedArray, []=, ExternalUint8ClampedArraySetIndexed,      \
+    19235519)                                                                  \
   V(_Int16Array, [], Int16ArrayGetIndexed, 1191799443)                         \
+  V(_Int16Array, []=, Int16ArraySetIndexed, 1182335435)                        \
   V(_Uint16Array, [], Uint16ArrayGetIndexed, 814177144)                        \
+  V(_Uint16Array, []=, Uint16ArraySetIndexed, 663508528)                       \
   V(_Int32Array, [], Int32ArrayGetIndexed, 787321640)                          \
+  V(_Int32Array, []=, Int32ArraySetIndexed, 1515238594)                        \
   V(_Uint32Array, [], Uint32ArrayGetIndexed, 1421922726)                       \
+  V(_Uint32Array, []=, Uint32ArraySetIndexed, 1980947178)                      \
   V(_Float32x4Array, [], Float32x4ArrayGetIndexed, 1901126825)                 \
+  V(_Float32x4Array, []=, Float32x4ArraySetIndexed, 1419416331)                \
 
 
 // A list of core function that should always be inlined.
@@ -4075,6 +4090,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
         immutable_(immutable),
         recognized_kind_(MethodRecognizer::kUnknown),
         field_(NULL) {
+    ASSERT(offset_in_bytes >= 0);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     SetInputAt(0, instance);
   }

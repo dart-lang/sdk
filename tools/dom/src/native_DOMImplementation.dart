@@ -139,6 +139,15 @@ class _Utils {
   }
 
   static _ConsoleVariables _consoleTempVariables = new _ConsoleVariables();
+
+  /**
+   * Header passed in from the Dartium Developer Tools when an expression is
+   * evaluated in the console as opposed to the watch window or another context
+   * that does not expect REPL support.
+   */
+  static const _CONSOLE_API_SUPPORT_HEADER =
+      'with ((this && this.console && this.console._commandLineAPI) || {}) {\n';
+
   /**
    * Takes an [expression] and a list of [local] variable and returns an
    * expression for a closure with a body matching the original expression
@@ -149,11 +158,22 @@ class _Utils {
    * with the list of arguments passed to this method.
    *
    * For example:
-   * <code>wrapExpressionAsClosure("foo + bar", ["bar", 40, "foo", 2])</code>
+   * <code>
+   * _consoleTempVariables = {'a' : someValue, 'b': someOtherValue}
+   * wrapExpressionAsClosure("${_CONSOLE_API_SUPPORT_HEADER}foo + bar + a",
+   *                         ["bar", 40, "foo", 2])
+   * </code>
    * will return:
-   * <code>["(final $var, final bar, final foo) => foo + bar", [40, 2]]</code>
+   * <code>
+   * ["""(final $consoleVariables, final bar, final foo, final a, final b) =>
+   * (foo + bar + a
+   * )""",
+   * [_consoleTempVariables, 40, 2, someValue, someOtherValue]]
+   * </code>
    */
   static List wrapExpressionAsClosure(String expression, List locals) {
+    // FIXME: dartbug.com/10434 find a less fragile way to determine whether
+    // we need to strip off console API support added by InjectedScript.
     var args = {};
     var sb = new StringBuffer("(");
     addArg(arg, value) {
@@ -172,13 +192,108 @@ class _Utils {
       args[arg] = value;
     }
 
-    addArg("\$var", _consoleTempVariables);
+    if (expression.indexOf(_CONSOLE_API_SUPPORT_HEADER) == 0) {
+      expression = expression.substring(expression.indexOf('\n') + 1);
+      expression = expression.substring(0, expression.lastIndexOf('\n'));
 
-    for (int i = 0; i < locals.length; i+= 2) {
-      addArg(locals[i], locals[i+1]);
+      addArg("\$consoleVariables", _consoleTempVariables);
+
+      // FIXME: use a real Dart tokenizer. The following regular expressions
+      // only allow setting variables at the immediate start of the expression
+      // to limit the number of edge cases we have to handle.
+
+      // Match expressions that start with "var x"
+      final _VARIABLE_DECLARATION = new RegExp("^(\\s*)var\\s+(\\w+)");
+      // Match expressions that start with "someExistingConsoleVar ="
+      final _SET_VARIABLE = new RegExp("^(\\s*)(\\w+)(\\s*=)");
+      // Match trailing semicolons.
+      final _ENDING_SEMICOLONS = new RegExp("(;\\s*)*\$");
+      expression = expression.replaceAllMapped(_VARIABLE_DECLARATION,
+          (match) {
+            var variableName = match[2];
+            // Set the console variable if it isn't already set.
+            if (!_consoleTempVariables._data.containsKey(variableName)) {
+              _consoleTempVariables._data[variableName] = null;
+            }
+            return "${match[1]}\$consoleVariables.${variableName}";
+          });
+
+      expression = expression.replaceAllMapped(_SET_VARIABLE,
+          (match) {
+            var variableName = match[2];
+            // Only rewrite if the name matches an existing console variable.
+            if (_consoleTempVariables._data.containsKey(variableName)) {
+              return "${match[1]}\$consoleVariables.${variableName}${match[3]}";
+            } else {
+              return match[0];
+            }
+          });
+
+      // We only allow dart expressions not Dart statements. Silently remove
+      // trailing semicolons the user might have added by accident to reduce the
+      // number of spurious compile errors.
+      expression = expression.replaceFirst(_ENDING_SEMICOLONS, "");
     }
-    sb..write(')=>\n$expression');
+
+    if (locals != null) {
+      for (int i = 0; i < locals.length; i+= 2) {
+        addArg(locals[i], locals[i+1]);
+      }
+    }
+    // Inject all the already defined console variables.
+    _consoleTempVariables._data.forEach(addArg);
+    
+    // TODO(jacobr): remove the parentheses around the expresson once
+    // dartbug.com/13723 is fixed. Currently we wrap expression in parentheses
+    // to ensure only valid Dart expressions are allowed. Otherwise the DartVM
+    // quietly ignores trailing Dart statements resulting in user confusion
+    // when part of an invalid expression they entered is ignored.
+    sb..write(') => (\n$expression\n)');
     return [sb.toString(), args.values.toList(growable: false)];
+  }
+
+  /**
+   * TODO(jacobr): this is a big hack to get around the fact that we are still
+   * passing some JS expression to the evaluate method even when in a Dart
+   * context.
+   */
+  static bool isJsExpression(String expression) =>
+    expression.startsWith("(function getCompletions");
+
+  /**
+   * Returns a list of completions to use if the receiver is o.
+   */
+  static List<String> getCompletions(o) {
+    MirrorSystem system = currentMirrorSystem(); 
+    var completions = new Set<String>();
+    addAll(Map<Symbol, dynamic> map, bool isStatic) {
+      map.forEach((symbol, mirror) {
+        if (mirror.isStatic == isStatic && !mirror.isPrivate) {
+          var name = MirrorSystem.getName(symbol);
+          if (mirror is MethodMirror && mirror.isSetter)
+            name = name.substring(0, name.length - 1);
+          completions.add(name);
+        }
+      });
+    }
+
+    addForClass(ClassMirror mirror, bool isStatic) {
+      if (mirror == null)
+        return;
+      addAll(mirror.members, isStatic);
+      if (mirror.superclass != null)
+        addForClass(mirror.superclass, isStatic);
+      for (var interface in mirror.superinterfaces) {
+        addForClass(interface, isStatic);
+      }
+    }
+    
+    if (o is Type) {
+      addForClass(reflectClass(o), true);
+    } else {
+      addForClass(reflect(o).type, false);
+    }
+    return completions.toList(growable: false);
   }
 
   /**

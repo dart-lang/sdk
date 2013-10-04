@@ -26,31 +26,48 @@ import 'utils.dart';
 ///
 /// By default, the package root is assumed to be adjacent to [entrypoint], but
 /// if [packageRoot] is passed that will be used instead.
+///
+/// If [inputProvider] and [diagnosticHandler] are omitted, uses a default
+/// [compiler.CompilerInputProvider] that loads directly from the filesystem.
+/// If either is provided, both must be.
 Future<String> compile(String entrypoint, {String packageRoot,
-    bool toDart: false}) {
+    bool toDart: false, compiler.CompilerInputProvider inputProvider,
+    compiler.DiagnosticHandler diagnosticHandler}) {
   return new Future.sync(() {
-    var provider = new SourceFileProvider();
     var options = <String>['--categories=Client,Server', '--minify'];
     if (toDart) options.add('--output-type=dart');
     if (packageRoot == null) {
       packageRoot = path.join(path.dirname(entrypoint), 'packages');
     }
 
+    // Must either pass both of these or neither.
+    if ((inputProvider == null) != (diagnosticHandler == null)) {
+      throw new ArgumentError("If either inputProvider or diagnosticHandler "
+          "is passed, then both must be.");
+    }
+
+    if (inputProvider == null) {
+      var provider = new SourceFileProvider();
+      inputProvider = provider.readStringFromUri;
+      diagnosticHandler = new FormattingDiagnosticHandler(provider)
+          .diagnosticHandler;
+    }
+
     return compiler.compile(
         path.toUri(entrypoint),
         path.toUri(appendSlash(_libPath)),
         path.toUri(appendSlash(packageRoot)),
-        provider.readStringFromUri,
-        new FormattingDiagnosticHandler(provider).diagnosticHandler,
-        options);
+        inputProvider, diagnosticHandler, options);
   }).then((result) {
     if (result != null) return result;
     throw new ApplicationException('Failed to compile "$entrypoint".');
   });
 }
 
-/// Returns the path to the library directory. This corresponds to the "sdk"
-/// directory in the repo and to the root of the compiled SDK.
+/// Returns the path to the directory containing the Dart core libraries.
+///
+/// This corresponds to the "sdk" directory in the repo and to the root of the
+/// compiled SDK.
 String get _libPath {
   if (runningFromSdk) return sdk.rootDirectory;
   return path.join(repoRoot, 'sdk');

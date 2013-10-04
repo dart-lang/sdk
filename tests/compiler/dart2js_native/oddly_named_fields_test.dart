@@ -1369,7 +1369,7 @@ testObjectWeaklyTyped(object) {
   if (object.yieldValue) throw 'incorrect value in "yieldValue"';
 }
 
-makeNativeClassWithOddNames() native;
+NativeClassWithOddNames makeNativeClassWithOddNames() native;
 
 setup() native """
 function NativeClassWithOddNames() {}
@@ -1378,7 +1378,7 @@ makeNativeClassWithOddNames = function() { return new NativeClassWithOddNames; }
 
 main() {
   setup();
-  var object = new NativeClassWithOddNames();
+  var object = makeNativeClassWithOddNames();
   object.testMyFields();
   testObjectStronglyTyped(object);
   testObjectWeaklyTyped([object]);

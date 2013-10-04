@@ -46,7 +46,7 @@ class FileTest {
   }
 
   static void createTempDirectory(Function doNext) {
-    new Directory('').createTemp().then((temp) {
+    Directory.systemTemp.createTemp('dart_file').then((temp) {
       tempDirectory = temp;
       doNext();
     });

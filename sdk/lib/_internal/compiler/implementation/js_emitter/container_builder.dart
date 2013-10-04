@@ -8,22 +8,12 @@ part of dart2js.js_emitter;
 /// JavaScript representations of libraries, class-sides, and instance-sides.
 /// Initially, it is just a placeholder for code that is moved from
 /// [CodeEmitterTask].
-class ContainerBuilder {
+class ContainerBuilder extends CodeEmitterHelper {
   final Map<Element, Element> staticGetters = new Map<Element, Element>();
 
   /// A cache of synthesized closures for top-level, static or
   /// instance methods.
   final Map<String, Element> methodClosures = <String, Element>{};
-
-  CodeEmitterTask task;
-
-  Namer get namer => task.namer;
-
-  Compiler get compiler => task.compiler;
-
-  String get N => task.N;
-
-  JavaScriptBackend get backend => task.backend;
 
   /**
    * Generate stubs to handle invocation of methods with optional
@@ -339,8 +329,9 @@ class ContainerBuilder {
 
       FunctionType methodType = element.computeType(compiler);
       Map<FunctionType, bool> functionTypeChecks =
-          task.getFunctionTypeChecksOn(methodType);
-      task.generateFunctionTypeTests(element, methodType, functionTypeChecks,
+          task.typeTestEmitter.getFunctionTypeChecksOn(methodType);
+      task.typeTestEmitter.generateFunctionTypeTests(
+          element, methodType, functionTypeChecks,
           emitFunctionTypeSignature, emitIsFunctionTypeTest);
 
       closureClassElement =
@@ -473,9 +464,10 @@ class ContainerBuilder {
 
     DartType memberType = member.computeType(compiler);
     Map<FunctionType, bool> functionTypeChecks =
-        task.getFunctionTypeChecksOn(memberType);
+        task.typeTestEmitter.getFunctionTypeChecksOn(memberType);
 
-    task.generateFunctionTypeTests(member, memberType, functionTypeChecks,
+    task.typeTestEmitter.generateFunctionTypeTests(
+        member, memberType, functionTypeChecks,
         emitFunctionTypeSignature, emitIsFunctionTypeTest);
 
     closureClassElement =

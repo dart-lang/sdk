@@ -4,6 +4,7 @@
 
 // Patch file for dart:math library.
 import 'dart:_foreign_helper' show JS;
+import 'dart:_js_helper' show checkNum;
 
 patch double sqrt(num x)
   => JS('double', r'Math.sqrt(#)', checkNum(x));

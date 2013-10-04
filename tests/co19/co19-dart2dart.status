@@ -36,6 +36,7 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Fail # htt
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: Fail # Issue 13652
 Language/07_Classes/6_Constructors_A02_t01: Fail # http://dartbug.com/5519
 Language/12_Expressions/01_Constants_A03_t01: Fail # Issue 13652
+Language/12_Expressions/18_Assignment_A01_t07: RuntimeError # Issue 13494
 Language/13_Statements/09_Switch_A02_t04: Fail # co19 issue 605
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: Fail # co19 issue 606
 
@@ -67,6 +68,12 @@ LibTest/math/exp_A01_t01: Fail # Issue co19 - 44
 LibTest/math/sin_A01_t01: Fail # Inherited from VM.
 LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
 LibTest/typed_data/Float32x4/clamp_A01_t01: RuntimeError # co19 Issue 600
+Language/05_Variables/05_Variables_A06_t01: CompileTimeError, OK # dartbug.com/12543
+Language/05_Variables/05_Variables_A06_t02: CompileTimeError, OK # dartbug.com/12543
+Language/05_Variables/05_Variables_A06_t03: CompileTimeError, OK # dartbug.com/12543
+Language/05_Variables/05_Variables_A06_t04: CompileTimeError, OK # dartbug.com/12543
+Language/05_Variables/05_Variables_A06_t05: CompileTimeError, OK # dartbug.com/12543
+Language/05_Variables/05_Variables_A06_t06: CompileTimeError, OK # dartbug.com/12543
 
 
 [ $compiler == dart2dart && $system == windows ]

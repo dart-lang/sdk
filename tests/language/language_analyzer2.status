@@ -75,10 +75,6 @@ final_syntax_test/04: Fail # Issue 11124
 final_syntax_test/02: Fail # Issue 11124
 final_syntax_test/03: Fail # Issue 11124
 
-# Test issue 11123, Only static fields can be declared as 'const'
-const_escape_frog_test: fail
-compile_time_constant_test/none: fail
-
 # Test issue 11545, using not existing constructor name in annotation
 metadata_test: fail
 
@@ -199,6 +195,9 @@ static_field_test/01: fail # Issue 12541
 static_field_test/02: fail # Issue 12541
 static_field_test/03: fail # Issue 12541
 static_field_test/04: fail # Issue 12541
+
+# test issue 13787; duplicate exports of the same declaration is not handled
+duplicate_export_test: fail # Issue 13787
 
 [ $compiler == dart2analyzer && $checked ]
 factory1_test/00: fail

@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import 'dart:io';
 
 main() {
-  Directory temp = new Directory('').createTempSync();
+  Directory temp = Directory.systemTemp.createTempSync('dart_regress_7679');
   File script = new File('${temp.path}/script.dart');
   script.writeAsStringSync("""
 import 'dart:io';

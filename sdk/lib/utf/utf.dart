@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Support for encoding and decoding Unicode characters in UTF-8, UTF-16, and 
+ * Support for encoding and decoding Unicode characters in UTF-8, UTF-16, and
  * UTF-32.
  */
+@deprecated
 library dart.utf;
+import "dart:_collection-dev" show deprecated;
 import "dart:async";
 import "dart:collection";
 part "utf_stream.dart";
@@ -16,8 +18,11 @@ part "utf32.dart";
 
 // TODO(jmesserly): would be nice to have this on String (dartbug.com/6501).
 /**
+ * *DEPRECATED*: Use `dart:convert` or `package:utf/utf.dart` instead.
+ *
  * Provide a list of Unicode codepoints for a given string.
  */
+@deprecated
 List<int> stringToCodepoints(String str) {
   // Note: str.codeUnits gives us 16-bit code units on all Dart implementations.
   // So we need to convert.
@@ -29,6 +34,7 @@ List<int> stringToCodepoints(String str) {
  *
  * *Deprecated* Use [String.fromCharCodes] instead.
  */
+@deprecated
 String codepointsToString(List<int> codepoints) {
   return new String.fromCharCodes(codepoints);
 }
@@ -36,21 +42,36 @@ String codepointsToString(List<int> codepoints) {
 /**
  * Invalid codepoints or encodings may be substituted with the value U+fffd.
  */
+@deprecated
 const int UNICODE_REPLACEMENT_CHARACTER_CODEPOINT = 0xfffd;
+@deprecated
 const int UNICODE_BOM = 0xfeff;
+@deprecated
 const int UNICODE_UTF_BOM_LO = 0xff;
+@deprecated
 const int UNICODE_UTF_BOM_HI = 0xfe;
 
+@deprecated
 const int UNICODE_BYTE_ZERO_MASK = 0xff;
+@deprecated
 const int UNICODE_BYTE_ONE_MASK = 0xff00;
+@deprecated
 const int UNICODE_VALID_RANGE_MAX = 0x10ffff;
+@deprecated
 const int UNICODE_PLANE_ONE_MAX = 0xffff;
+@deprecated
 const int UNICODE_UTF16_RESERVED_LO = 0xd800;
+@deprecated
 const int UNICODE_UTF16_RESERVED_HI = 0xdfff;
+@deprecated
 const int UNICODE_UTF16_OFFSET = 0x10000;
+@deprecated
 const int UNICODE_UTF16_SURROGATE_UNIT_0_BASE = 0xd800;
+@deprecated
 const int UNICODE_UTF16_SURROGATE_UNIT_1_BASE = 0xdc00;
+@deprecated
 const int UNICODE_UTF16_HI_MASK = 0xffc00;
+@deprecated
 const int UNICODE_UTF16_LO_MASK = 0x3ff;
 
 /**
@@ -123,11 +144,10 @@ List<int> _utf16CodeUnitsToCodepoints(
 }
 
 /**
- * An Iterator<int> of codepoints built on an Iterator of UTF-16 code units.
- * The parameters can override the default Unicode replacement character. Set
- * the replacementCharacter to null to throw an ArgumentError
- * rather than replace the bad value.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 class Utf16CodeUnitDecoder implements Iterator<int> {
   final _ListRangeIterator utf16CodeUnitIterator;
   final int replacementCodepoint;

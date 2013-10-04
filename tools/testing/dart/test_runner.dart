@@ -2073,11 +2073,12 @@ class CommandExecutorImpl implements CommandExecutor {
   }
 
   Future<BrowserTestRunner> _getBrowserTestRunner(String browser) {
-    var local_ip = globalConfiguration['local_ip'];
+    var localIp = globalConfiguration['local_ip'];
     var num_browsers = maxBrowserProcesses;
     if (_browserTestRunners[browser] == null) {
       var testRunner =
-        new BrowserTestRunner(local_ip, browser, num_browsers);
+        new BrowserTestRunner(
+            globalConfiguration, localIp, browser, num_browsers);
       if (globalConfiguration['verbose']) {
         testRunner.logger = DebugLogger.info;
       }
@@ -2173,13 +2174,6 @@ bool shouldRetryCommand(CommandOutput output) {
     } else if (command is SeleniumTestCommand) {
       // Selenium tests can be flaky. Try re-running.
       return true;
-    } else if (command is ContentShellCommand) {
-      // FIXME(kustermann): Remove this condition once we figured out why
-      // content_shell is sometimes not able to fetch resources from the
-      // HttpServer on windows.
-      // TODO(kustermann): Don't blindly re-run DRT tests on windows but rather
-      // check if the stderr/stdout indicates that we actually have this issue.
-      return io.Platform.operatingSystem == 'windows';
     }
   }
   return false;

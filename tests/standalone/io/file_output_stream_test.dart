@@ -9,7 +9,8 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 void testOpenOutputStreamSync() {
-  Directory tempDirectory = new Directory('').createTempSync();
+  Directory tempDirectory =
+      Directory.systemTemp.createTempSync('dart_file_output_stream');
 
   asyncStart();
   String fileName = "${tempDirectory.path}/test";

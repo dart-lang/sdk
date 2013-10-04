@@ -15,26 +15,28 @@ main() {
   var precomposed = 'æøå';
   var decomposed = new String.fromCharCodes([47, 230, 248, 97, 778]);
 
-  new Directory('').createTemp().then((tempDir) {
+  Directory.systemTemp.createTemp('dart_directory_non_ascii').then((tempDir) {
     var nonAsciiDir = new Directory("${tempDir.path}/æøå");
-    nonAsciiDir.exists().then((e) {
-      Expect.isFalse(e);
-      nonAsciiDir.create().then((_) {
-        nonAsciiDir.exists().then((e) {
-          Expect.isTrue(e);
-          new Directory("${tempDir.path}/æøå").createTemp().then((temp) {
-            Expect.isTrue(temp.path.contains(precomposed) ||
-                          temp.path.contains(decomposed));
-            temp.delete().then((_) {
-              tempDir.delete(recursive: true).then((_) {
-                Expect.isFalse(temp.existsSync());
-                Expect.isFalse(nonAsciiDir.existsSync());
-                asyncEnd();
-              });
-            });
-          });
+    nonAsciiDir.exists()
+        .then((e) => Expect.isFalse(e))
+        .then((_) => nonAsciiDir.create())
+        .then((_) => nonAsciiDir.exists())
+        .then((e) => Expect.isTrue(e))
+        .then((_) => new Directory("${tempDir.path}/æøå").createTemp('temp'))
+        .then((temp) {
+          Expect.isTrue(temp.path.contains(precomposed) ||
+                        temp.path.contains(decomposed));
+          return temp.delete();
+        }).then((_) => tempDir.createTemp('æøå'))
+        .then((temp) {
+          Expect.isTrue(temp.path.contains(precomposed) ||
+                        temp.path.contains(decomposed));
+          return temp.delete();
+        }).then((temp) => Expect.isFalse(temp.existsSync()))
+        .then((_) => tempDir.delete(recursive: true))
+        .then((_) {
+          Expect.isFalse(nonAsciiDir.existsSync());
+          asyncEnd();
         });
-      });
-    });
   });
 }

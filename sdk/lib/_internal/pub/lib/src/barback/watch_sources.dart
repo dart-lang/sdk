@@ -26,6 +26,11 @@ void watchSources(PackageGraph graph, Barback barback) {
       // TODO(nweiz): close these watchers when [barback] is closed.
       var watcher = new DirectoryWatcher(subdirectory);
       watcher.events.listen((event) {
+        // Don't watch files symlinked into these directories.
+        // TODO(rnystrom): If pub gets rid of symlinks, remove this.
+        var parts = path.split(event.path);
+        if (parts.contains("packages") || parts.contains("assets")) return;
+
         var id = new AssetId(package.name,
             path.relative(event.path, from: package.dir));
         if (event.type == ChangeType.REMOVE) {

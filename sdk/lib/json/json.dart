@@ -6,14 +6,18 @@
  * Utilities for encoding and decoding JSON (JavaScript Object Notation) data.
  */
 
+@deprecated
 library dart.json;
 
 import "dart:convert";
+import "dart:_collection-dev" show deprecated;
 export "dart:convert" show JsonUnsupportedObjectError, JsonCyclicError;
 
 // JSON parsing and serialization.
 
 /**
+ * *DEPRECATED* Use `dart:convert JSON.decode` instead.
+ *
  * Parses [json] and build the corresponding parsed JSON value.
  *
  * Parsed JSON values are of the types [num], [String], [bool], [Null],
@@ -28,6 +32,7 @@ export "dart:convert" show JsonUnsupportedObjectError, JsonCyclicError;
  *
  * Throws [FormatException] if the input is not valid JSON text.
  */
+@deprecated
 parse(String json, [reviver(var key, var value)]) {
   if (reviver != null) {
     var original = reviver;
@@ -37,6 +42,8 @@ parse(String json, [reviver(var key, var value)]) {
 }
 
 /**
+ * *DEPRECATED* Use `dart:convert JSON.encode` instead.
+ *
  * Serializes [object] into a JSON string.
  *
  * Directly serializable values are [num], [String], [bool], and [Null], as well
@@ -63,11 +70,14 @@ parse(String json, [reviver(var key, var value)]) {
  * the JSON text for it. I.e., if an object changes after it is first
  * serialized, the new values may or may not be reflected in the result.
  */
+@deprecated
 String stringify(Object object) {
   return _JsonStringifier.stringify(object);
 }
 
 /**
+ * *DEPRECATED* Use `package:json/json.dart` or `dart:convert` instead.
+ *
  * Serializes [object] into [output] stream.
  *
  * Performs the same operations as [stringify] but outputs the resulting
@@ -76,6 +86,7 @@ String stringify(Object object) {
  * If serialization fails by throwing, some data might have been added to
  * [output], but it won't contain valid JSON text.
  */
+@deprecated
 void printOn(Object object, StringSink output) {
   return _JsonStringifier.printOn(object, output);
 }
@@ -84,6 +95,8 @@ void printOn(Object object, StringSink output) {
 
 // Simple API for JSON parsing.
 
+/// *DEPRECATED* Use `package:json/json.dart` instead.
+@deprecated
 abstract class JsonListener {
   void handleString(String value) {}
   void handleNumber(num value) {}
@@ -101,11 +114,14 @@ abstract class JsonListener {
 }
 
 /**
+ * *DEPRECATED* Use `package:json/json.dart` instead.
+ *
  * A [JsonListener] that builds data objects from the parser events.
  *
  * This is a simple stack-based object builder. It keeps the most recently
  * seen value in a variable, and uses it depending on the following event.
  */
+@deprecated
 class BuildJsonListener extends JsonListener {
   /**
    * Stack used to handle nested containers.
@@ -184,6 +200,8 @@ class BuildJsonListener extends JsonListener {
 
 typedef _Reviver(var key, var value);
 
+/// *DEPRECATED* Use `package:json/json.dart` instead.
+@deprecated
 class ReviverJsonListener extends BuildJsonListener {
   final _Reviver reviver;
   ReviverJsonListener(reviver(key, value)) : this.reviver = reviver;
@@ -204,6 +222,8 @@ class ReviverJsonListener extends BuildJsonListener {
   }
 }
 
+/// *DEPRECATED* Use `package:json/json.dart` instead.
+@deprecated
 class JsonParser {
   // A simple non-recursive state-based parser for JSON.
   //

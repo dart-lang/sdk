@@ -187,7 +187,7 @@ class NativeEmitter {
     Set<ClassElement> neededByConstant =
         emitter.interceptorsReferencedFromConstants();
     Set<ClassElement> modifiedClasses =
-        emitter.classesModifiedByEmitRuntimeTypeSupport();
+        emitter.typeTestEmitter.classesModifiedByEmitRuntimeTypeSupport();
 
     for (ClassElement classElement in preOrder.reversed) {
       // Post-order traversal ensures we visit the subclasses before their
@@ -283,7 +283,7 @@ class NativeEmitter {
       if (!classElement.isNative()) continue;
       if (neededClasses.contains(classElement)) {
         // Define interceptor class for [classElement].
-        emitter.emitClassBuilderWithReflectionData(
+        emitter.classEmitter.emitClassBuilderWithReflectionData(
             backend.namer.getNameOfClass(classElement),
             classElement, builders[classElement],
             emitter.bufferForElement(classElement, mainBuffer));
@@ -341,14 +341,13 @@ class NativeEmitter {
     String superName = backend.namer.getNameOfClass(superclass);
 
     ClassBuilder builder = new ClassBuilder();
-    emitter.emitClassConstructor(classElement, builder, null);
-    emitter.emitSuper(superName, builder);
-    bool hasFields = emitter.emitFields(
+    emitter.classEmitter.emitClassConstructor(classElement, builder, null);
+    bool hasFields = emitter.classEmitter.emitFields(
         classElement, builder, superName, classIsNative: true);
     int propertyCount = builder.properties.length;
-    emitter.emitClassGettersSetters(classElement, builder);
-    emitter.emitInstanceMembers(classElement, builder);
-    emitter.emitIsTests(classElement, builder);
+    emitter.classEmitter.emitClassGettersSetters(classElement, builder);
+    emitter.classEmitter.emitInstanceMembers(classElement, builder);
+    emitter.typeTestEmitter.emitIsTests(classElement, builder);
 
     if (!hasFields &&
         builder.properties.length == propertyCount &&
@@ -513,7 +512,7 @@ class NativeEmitter {
       // If the native emitter has been asked to take care of the
       // noSuchMethod handlers, we do that now.
       if (handleNoSuchMethod) {
-        emitter.emitNoSuchMethodHandlers(addProperty);
+        emitter.nsmEmitter.emitNoSuchMethodHandlers(addProperty);
       }
     }
 

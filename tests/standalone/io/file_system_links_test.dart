@@ -13,7 +13,7 @@ createLink(String dst, String link, void callback()) {
 
 
 testFileExistsCreate() {
-  var temp = new Directory('').createTempSync();
+  var temp = Directory.systemTemp.createTempSync('dart_file_system_links');
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
   createLink(x, y, () {
@@ -71,7 +71,7 @@ testFileExistsCreate() {
 
 
 testFileDelete() {
-  var temp = new Directory('').createTempSync();
+  var temp = Directory.systemTemp.createTempSync('dart_file_system_links');
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
   new File(x).createSync();
@@ -94,7 +94,7 @@ testFileDelete() {
 
 
 testFileWriteRead() {
-  var temp = new Directory('').createTempSync();
+  var temp = Directory.systemTemp.createTempSync('dart_file_system_links');
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
   new File(x).createSync();
@@ -115,7 +115,7 @@ testFileWriteRead() {
 
 
 testDirectoryExistsCreate() {
-  var temp = new Directory('').createTempSync();
+  var temp = Directory.systemTemp.createTempSync('dart_file_system_links');
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
   createLink(x, y, () {
@@ -128,8 +128,8 @@ testDirectoryExistsCreate() {
 
 
 testDirectoryDelete() {
-  var temp = new Directory('').createTempSync();
-  var temp2 = new Directory('').createTempSync();
+  var temp = Directory.systemTemp.createTempSync('dart_file_system_links');
+  var temp2 = Directory.systemTemp.createTempSync('dart_file_system_links');
   var y = '${temp.path}${Platform.pathSeparator}y';
   var x = '${temp2.path}${Platform.pathSeparator}x';
   new File(x).createSync();
@@ -154,8 +154,8 @@ testDirectoryDelete() {
 
 testDirectoryListing() {
   asyncStart();
-  var temp = new Directory('').createTempSync();
-  var temp2 = new Directory('').createTempSync();
+  var temp = Directory.systemTemp.createTempSync('dart_file_system_links');
+  var temp2 = Directory.systemTemp.createTempSync('dart_file_system_links');
   var y = '${temp.path}${Platform.pathSeparator}y';
   var x = '${temp2.path}${Platform.pathSeparator}x';
   new File(x).createSync();
@@ -201,7 +201,7 @@ testDirectoryListing() {
 
 testDirectoryListingBrokenLink() {
   asyncStart();
-  var temp = new Directory('').createTempSync();
+  var temp = Directory.systemTemp.createTempSync('dart_file_system_links');
   var x = '${temp.path}${Platform.pathSeparator}x';
   var link = '${temp.path}${Platform.pathSeparator}link';
   var doesNotExist = 'this_thing_does_not_exist';

@@ -970,13 +970,26 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
                               temp_index(),
                               node->left()->token_pos());
     node->left()->Visit(&for_left);
-    EffectGraphVisitor for_right(owner(), temp_index());
-    node->right()->Visit(&for_right);
     EffectGraphVisitor empty(owner(), temp_index());
-    if (node->kind() == Token::kAND) {
-      Join(for_left, for_right, empty);
+    if (FLAG_enable_type_checks) {
+      ValueGraphVisitor for_right(owner(), temp_index());
+      node->right()->Visit(&for_right);
+      Value* right_value = for_right.value();
+      for_right.Do(new AssertBooleanInstr(node->right()->token_pos(),
+                                          right_value));
+      if (node->kind() == Token::kAND) {
+        Join(for_left, for_right, empty);
+      } else {
+        Join(for_left, empty, for_right);
+      }
     } else {
-      Join(for_left, empty, for_right);
+      EffectGraphVisitor for_right(owner(), temp_index());
+      node->right()->Visit(&for_right);
+      if (node->kind() == Token::kAND) {
+        Join(for_left, for_right, empty);
+      } else {
+        Join(for_left, empty, for_right);
+      }
     }
     return;
   }

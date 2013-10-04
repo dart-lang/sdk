@@ -485,7 +485,8 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
       if (DartUtils::IsDartIOLibURL(url_string)) {
         return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
       }
-      return Dart_Error("Do not know how to load '%s'", url_string);
+      return Dart_Error("The built-in library '%s' is not available"
+                        " on the stand-alone VM.\n", url_string);
     } else {
       ASSERT(tag == Dart_kSourceTag);
       return Dart_Error("Unable to load source '%s' ", url_string);

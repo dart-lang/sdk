@@ -99,7 +99,7 @@ class Token implements Spannable {
    */
   Token next;
 
-  Token(PrecedenceInfo this.info, int this.charOffset);
+  Token(this.info, this.charOffset);
 
   get value => info.value;
 

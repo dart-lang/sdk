@@ -32,7 +32,7 @@ void checkFileContent(String fileName, String content) {
 
 
 void test(String shellScript, String dartScript, String type, bool devNull) {
-  Directory dir = new Directory("").createTempSync();
+  Directory dir = Directory.systemTemp.createTempSync('dart_dart_std_io_pipe');
 
   // The shell script will run the dart executable passed with a
   // number of different redirections of stdio.

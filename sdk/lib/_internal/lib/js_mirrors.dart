@@ -781,18 +781,9 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   }
 
   int get hashCode {
-    // If the reflectee is a built-in type, use the base-level hashCode to
-    // preserve the illusion that, e.g. doubles, with the same value are
-    // identical. Otherwise, use the primitive identity hash to maintain
-    // correctness even if a user-defined hashCode returns different values for
-    // successive invocations.
-    var h = ((JS('bool', 'typeof # != "object"', reflectee)) ||
-             (reflectee == null))
-        ? reflectee.hashCode
-        : Primitives.objectHashCode(reflectee);
     // Avoid hash collisions with the reflectee. This constant is in Smi range
     // and happens to be the inner padding from RFC 2104.
-    return h ^ 0x36363636;
+    return identityHashCode(reflectee) ^ 0x36363636;
   }
 
   String toString() => 'InstanceMirror on ${Error.safeToString(reflectee)}';

@@ -13,7 +13,7 @@ void main() {
   //     file.txt
   //   b/
   //     a_link -> a
-  var d = new Directory("").createTempSync();
+  var d = Directory.systemTemp.createTempSync('dart_delete_symlink');
   var a = new Directory("${d.path}/a");
   a.createSync();
 

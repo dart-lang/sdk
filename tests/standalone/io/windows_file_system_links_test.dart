@@ -7,7 +7,8 @@ import "dart:io";
 import "dart:isolate";
 
 testJunctionTypeDelete() {
-  var temp = new Directory('').createTempSync();
+  var temp =
+      Directory.systemTemp.createTempSync('dart_windows_file_system_links');
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
 

@@ -4,7 +4,7 @@
 
 class Bad {
   int foo;
-  const int bar =
+  final int bar =
       foo /// 01: compile-time error
       -1;
   static const int toto =

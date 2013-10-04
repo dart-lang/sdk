@@ -38,7 +38,8 @@ class FileUtils {
              bool createJsDeps,
              bool createDart,
              bool createSnapshot}) {
-    tempDir = new Directory('').createTempSync();
+    tempDir = Directory.systemTemp
+                       .createTempSync('dart_skipping_dart2js_compilations');
     if (createJs) {
       testJs = _createFile(testJsFilePath);
       _writeToFile(testJs, "test.js content");

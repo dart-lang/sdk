@@ -630,6 +630,8 @@ static int ErrorExit(int exit_code, const char* format, ...) {
   Dart_ExitScope();
   Dart_ShutdownIsolate();
 
+  Dart_Cleanup();
+
   return exit_code;
 }
 
@@ -799,8 +801,6 @@ int main(int argc, char** argv) {
     result = Dart_CreateScriptSnapshot(&buffer, &size);
     if (Dart_IsError(result)) {
       Log::PrintErr("%s\n", Dart_GetError(result));
-      Dart_ExitScope();
-      Dart_ShutdownIsolate();
       return DartErrorExit(result);
     }
 
@@ -874,6 +874,8 @@ int main(int argc, char** argv) {
   Dart_ShutdownIsolate();
   // Terminate process exit-code handler.
   Process::TerminateExitCodeHandler();
+
+  Dart_Cleanup();
 
   // Free copied argument strings if converted.
   if (argv_converted) {

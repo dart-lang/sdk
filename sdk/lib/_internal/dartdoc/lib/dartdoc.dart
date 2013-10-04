@@ -80,15 +80,7 @@ void cleanOutputDirectory(String path) {
   if (outputDir.existsSync()) {
     outputDir.deleteSync(recursive: true);
   }
-
-  try {
-    // TODO(3914): Hack to avoid 'file already exists' exception thrown
-    // due to invalid result from dir.existsSync() (probably due to race
-    // conditions).
-    outputDir.createSync();
-  } on DirectoryException catch (e) {
-    // Ignore.
-  }
+  outputDir.createSync();
 }
 
 /**
@@ -359,7 +351,7 @@ class Dartdoc {
     [new md.CodeSyntax(r'\[:\s?((?:.|\n)*?)\s?:\]')];
 
   Dartdoc() {
-    tmpPath = new Directory('').createTempSync().path;
+    tmpPath = Directory.systemTemp.createTempSync('dartdoc_').path;
     dartdocResolver = (String name) => resolveNameReference(name,
         currentLibrary: _currentLibrary, currentType: _currentType,
         currentMember: _currentMember);

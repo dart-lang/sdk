@@ -47,12 +47,11 @@ namespace bin {
   V(Directory, Delete, 30)                                                     \
   V(Directory, Exists, 31)                                                     \
   V(Directory, CreateTemp, 32)                                                 \
-  V(Directory, CreateSystemTemp, 33)                                           \
-  V(Directory, ListStart, 34)                                                  \
-  V(Directory, ListNext, 35)                                                   \
-  V(Directory, ListStop, 36)                                                   \
-  V(Directory, Rename, 37)                                                     \
-  V(SSLFilter, ProcessFilter, 38)
+  V(Directory, ListStart, 33)                                                  \
+  V(Directory, ListNext, 34)                                                   \
+  V(Directory, ListStop, 35)                                                   \
+  V(Directory, Rename, 36)                                                     \
+  V(SSLFilter, ProcessFilter, 37)
 
 #define DECLARE_REQUEST(type, method, id)                                      \
   k##type##method##Request = id,

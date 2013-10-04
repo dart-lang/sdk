@@ -5,13 +5,10 @@
 part of dart.utf;
 
 /**
- * Decodes the UTF-16 bytes as an iterable. Thus, the consumer can only convert
- * as much of the input as needed. Determines the byte order from the BOM,
- * or uses big-endian as a default. This method always strips a leading BOM.
- * Set the [replacementCodepoint] to null to throw an ArgumentError
- * rather than replace the bad value. The default value for
- * [replacementCodepoint] is U+FFFD.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 IterableUtf16Decoder decodeUtf16AsIterable(List<int> bytes, [int offset = 0,
     int length, int replacementCodepoint =
     UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
@@ -21,13 +18,10 @@ IterableUtf16Decoder decodeUtf16AsIterable(List<int> bytes, [int offset = 0,
 }
 
 /**
- * Decodes the UTF-16BE bytes as an iterable. Thus, the consumer can only
- * convert as much of the input as needed. This method strips a leading BOM by
- * default, but can be overridden by setting the optional parameter [stripBom]
- * to false. Set the [replacementCodepoint] to null to throw an
- * ArgumentError rather than replace the bad value. The default
- * value for the [replacementCodepoint] is U+FFFD.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 IterableUtf16Decoder decodeUtf16beAsIterable(List<int> bytes, [int offset = 0,
     int length, bool stripBom = true, int replacementCodepoint =
     UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
@@ -37,13 +31,10 @@ IterableUtf16Decoder decodeUtf16beAsIterable(List<int> bytes, [int offset = 0,
 }
 
 /**
- * Decodes the UTF-16LE bytes as an iterable. Thus, the consumer can only
- * convert as much of the input as needed. This method strips a leading BOM by
- * default, but can be overridden by setting the optional parameter [stripBom]
- * to false. Set the [replacementCodepoint] to null to throw an
- * ArgumentError rather than replace the bad value. The default
- * value for the [replacementCodepoint] is U+FFFD.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 IterableUtf16Decoder decodeUtf16leAsIterable(List<int> bytes, [int offset = 0,
     int length, bool stripBom = true, int replacementCodepoint =
     UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
@@ -53,11 +44,10 @@ IterableUtf16Decoder decodeUtf16leAsIterable(List<int> bytes, [int offset = 0,
 }
 
 /**
- * Produce a String from a sequence of UTF-16 encoded bytes. This method always
- * strips a leading BOM. Set the [replacementCodepoint] to null to throw  an
- * ArgumentError rather than replace the bad value. The default
- * value for the [replacementCodepoint] is U+FFFD.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 String decodeUtf16(List<int> bytes, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   Utf16BytesToCodeUnitsDecoder decoder = new Utf16BytesToCodeUnitsDecoder(bytes,
@@ -68,12 +58,10 @@ String decodeUtf16(List<int> bytes, [int offset = 0, int length,
 }
 
 /**
- * Produce a String from a sequence of UTF-16BE encoded bytes. This method
- * strips a leading BOM by default, but can be overridden by setting the
- * optional parameter [stripBom] to false. Set the [replacementCodepoint] to
- * null to throw an ArgumentError rather than replace the bad value.
- * The default value for the [replacementCodepoint] is U+FFFD.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 String decodeUtf16be(List<int> bytes, [int offset = 0, int length,
     bool stripBom = true,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
@@ -84,12 +72,10 @@ String decodeUtf16be(List<int> bytes, [int offset = 0, int length,
 }
 
 /**
- * Produce a String from a sequence of UTF-16LE encoded bytes. This method
- * strips a leading BOM by default, but can be overridden by setting the
- * optional parameter [stripBom] to false. Set the [replacementCodepoint] to
- * null to throw an ArgumentError rather than replace the bad value.
- * The default value for the [replacementCodepoint] is U+FFFD.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 String decodeUtf16le(List<int> bytes, [int offset = 0, int length,
     bool stripBom = true,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
@@ -100,16 +86,18 @@ String decodeUtf16le(List<int> bytes, [int offset = 0, int length,
 }
 
 /**
- * Produce a list of UTF-16 encoded bytes. This method prefixes the resulting
- * bytes with a big-endian byte-order-marker.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 List<int> encodeUtf16(String str) =>
     encodeUtf16be(str, true);
 
 /**
- * Produce a list of UTF-16BE encoded bytes. By default, this method produces
- * UTF-16BE bytes with no BOM.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 List<int> encodeUtf16be(String str, [bool writeBOM = false]) {
   List<int> utf16CodeUnits = _stringToUtf16CodeUnits(str);
   List<int> encoding =
@@ -127,9 +115,10 @@ List<int> encodeUtf16be(String str, [bool writeBOM = false]) {
 }
 
 /**
- * Produce a list of UTF-16LE encoded bytes. By default, this method produces
- * UTF-16LE bytes with no BOM.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 List<int> encodeUtf16le(String str, [bool writeBOM = false]) {
   List<int> utf16CodeUnits = _stringToUtf16CodeUnits(str);
   List<int> encoding =
@@ -147,18 +136,20 @@ List<int> encodeUtf16le(String str, [bool writeBOM = false]) {
 }
 
 /**
- * Identifies whether a List of bytes starts (based on offset) with a
- * byte-order marker (BOM).
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 bool hasUtf16Bom(List<int> utf32EncodedBytes, [int offset = 0, int length]) {
   return hasUtf16beBom(utf32EncodedBytes, offset, length) ||
       hasUtf16leBom(utf32EncodedBytes, offset, length);
 }
 
 /**
- * Identifies whether a List of bytes starts (based on offset) with a
- * big-endian byte-order marker (BOM).
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 bool hasUtf16beBom(List<int> utf16EncodedBytes, [int offset = 0, int length]) {
   int end = length != null ? offset + length : utf16EncodedBytes.length;
   return (offset + 2) <= end &&
@@ -167,9 +158,10 @@ bool hasUtf16beBom(List<int> utf16EncodedBytes, [int offset = 0, int length]) {
 }
 
 /**
- * Identifies whether a List of bytes starts (based on offset) with a
- * little-endian byte-order marker (BOM).
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 bool hasUtf16leBom(List<int> utf16EncodedBytes, [int offset = 0, int length]) {
   int end = length != null ? offset + length : utf16EncodedBytes.length;
   return (offset + 2) <= end &&
@@ -184,12 +176,10 @@ List<int> _stringToUtf16CodeUnits(String str) {
 typedef _ListRangeIterator _CodeUnitsProvider();
 
 /**
- * Return type of [decodeUtf16AsIterable] and variants. The Iterable type
- * provides an iterator on demand and the iterator will only translate bytes
- * as requested by the user of the iterator. (Note: results are not cached.)
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
-// TODO(floitsch): Consider removing the extend and switch to implements since
-// that's cheaper to allocate.
+@deprecated
 class IterableUtf16Decoder extends IterableBase<int> {
   final _CodeUnitsProvider codeunitsProvider;
   final int replacementCodepoint;
@@ -202,10 +192,10 @@ class IterableUtf16Decoder extends IterableBase<int> {
 }
 
 /**
- * Convert UTF-16 encoded bytes to UTF-16 code units by grouping 1-2 bytes
- * to produce the code unit (0-(2^16)-1). Relies on BOM to determine
- * endian-ness, and defaults to BE.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 abstract class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
   final _ListRangeIterator utf16EncodedBytesIterator;
   final int replacementCodepoint;
@@ -287,9 +277,10 @@ abstract class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
 }
 
 /**
- * Convert UTF-16BE encoded bytes to utf16 code units by grouping 1-2 bytes
- * to produce the code unit (0-(2^16)-1).
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 class Utf16beBytesToCodeUnitsDecoder extends Utf16BytesToCodeUnitsDecoder {
   Utf16beBytesToCodeUnitsDecoder(List<int> utf16EncodedBytes, [
       int offset = 0, int length, bool stripBom = true,
@@ -312,9 +303,10 @@ class Utf16beBytesToCodeUnitsDecoder extends Utf16BytesToCodeUnitsDecoder {
 }
 
 /**
- * Convert UTF-16LE encoded bytes to utf16 code units by grouping 1-2 bytes
- * to produce the code unit (0-(2^16)-1).
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 class Utf16leBytesToCodeUnitsDecoder extends Utf16BytesToCodeUnitsDecoder {
   Utf16leBytesToCodeUnitsDecoder(List<int> utf16EncodedBytes, [
       int offset = 0, int length, bool stripBom = true,

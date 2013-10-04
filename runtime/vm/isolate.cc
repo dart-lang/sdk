@@ -680,9 +680,6 @@ void Isolate::Shutdown() {
     api_state()->weak_persistent_handles().VisitHandles(&visitor);
 
     CompilerStats::Print();
-    // TODO(asiva): Move this code to Dart::Cleanup when we have that method
-    // as the cleanup for Dart::InitOnce.
-    CodeObservers::DeleteAll();
     if (FLAG_trace_isolates) {
       heap()->PrintSizes();
       megamorphic_cache_table()->PrintSizes();

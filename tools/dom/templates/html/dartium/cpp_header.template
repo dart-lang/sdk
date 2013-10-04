@@ -15,7 +15,7 @@ namespace WebCore {
 
 struct Dart$INTERFACE {
     static const char* const dartImplementationClassName;
-    static const char* const dartImplementationLibraryName;
+    static const int dartImplementationLibraryId;
     static const int dartClassId;
     typedef $WEBCORE_CLASS_NAME NativeType;
     static const bool isNode = $IS_NODE;

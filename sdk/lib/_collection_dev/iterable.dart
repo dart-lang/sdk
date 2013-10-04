@@ -22,8 +22,13 @@ part of dart._collection.dev;
 //    sdk/lib/core/regexp.dart
 // TODO(floitsch): also used in dart:async until end of September for
 //    deprecation of runZonedExperimental.
+// TODO(floitsch): also used in dart:json and dart:utf until middle of October
+//    for deprecation of json and utf libraries.
 
-const deprecated = 0;
+// We use a random string constant to avoid it clashing with other constants.
+// This is, because we have a test that verifies that no metadata is included
+// in the output, when no mirrors need them.
+const deprecated = "qB2n4PYM";
 
 /**
  * An [Iterable] for classes that have efficient [length] and [elementAt].
@@ -951,6 +956,18 @@ class IterableMixinWorkaround {
   static void sortList(List list, int compare(a, b)) {
     if (compare == null) compare = Comparable.compare;
     Sort.sort(list, compare);
+  }
+
+  static void shuffleList(List list) {
+    Random random = new Random();
+    int length = list.length;
+    while (length > 1) {
+      int pos = random.nextInt(length);
+      length -= 1;
+      var tmp = list[length];
+      list[length] = list[pos];
+      list[pos] = tmp;
+    }
   }
 
   static int indexOfList(List list, var element, int start) {

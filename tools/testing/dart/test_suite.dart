@@ -909,8 +909,8 @@ class StandardTestSuite extends TestSuite {
       crossOriginPort = configuration['_servers_'].crossOriginPort;
     }
 
-    var local_ip = configuration['local_ip'];
-    var url= 'http://$local_ip:$serverPort$pathComponent'
+    var localIp = configuration['local_ip'];
+    var url= 'http://$localIp:$serverPort$pathComponent'
         '?crossOriginPort=$crossOriginPort';
     if (info.optionsFromFile['isMultiHtmlTest'] && subtestNames.length > 0) {
       url= '${url}&group=${subtestNames[subtestIndex]}';
@@ -1135,7 +1135,8 @@ class StandardTestSuite extends TestSuite {
               '--timeout=${configuration['timeout']}',
               '--out=$fullHtmlPath'];
           if (runtime == 'dartium') {
-            args.add('--executable=$dartiumFilename');
+            var dartiumLocation = Locations.getDartiumLocation(configuration);
+            args.add('--executable=$dartiumLocation');
           }
           if (subtestIndex != 0) {
             args.add('--force-refresh');
@@ -1306,17 +1307,6 @@ class StandardTestSuite extends TestSuite {
       return path.toNativePath();
     }
     return dartDir.append('client/tests/drt/content_shell').toNativePath();
-  }
-
-  String get dartiumFilename {
-    if (configuration['dartium'] != '') {
-      return configuration['dartium'];
-    }
-    if (Platform.operatingSystem == 'macos') {
-      return dartDir.append('client/tests/dartium/Chromium.app/Contents/'
-                            'MacOS/Chromium').toNativePath();
-    }
-    return dartDir.append('client/tests/dartium/chrome').toNativePath();
   }
 
   List<String> commonArgumentsFromFile(Path filePath, Map optionsFromFile) {

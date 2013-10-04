@@ -469,12 +469,15 @@ class ResolverTask extends CompilerTask {
     visitor.useElement(tree, element);
 
     SendSet send = tree.asSendSet();
+    Modifiers modifiers = element.modifiers;
     if (send != null) {
       // TODO(johnniwinther): Avoid analyzing initializers if
       // [Compiler.analyzeSignaturesOnly] is set.
       visitor.visit(send.arguments.head);
-    } else if (element.modifiers.isConst()) {
+    } else if (modifiers.isConst()) {
       compiler.reportError(element, MessageKind.CONST_WITHOUT_INITIALIZER);
+    } else if (modifiers.isFinal() && !element.isInstanceMember()) {
+      compiler.reportError(element, MessageKind.FINAL_WITHOUT_INITIALIZER);
     }
 
     if (Elements.isStaticOrTopLevelField(element)) {
@@ -1531,10 +1534,10 @@ class TypeResolver {
   TypeResolver(this.compiler);
 
   Element resolveTypeName(Scope scope,
-                          SourceString prefixName,
+                          Identifier prefixName,
                           Identifier typeName) {
     if (prefixName != null) {
-      Element e = scope.lookup(prefixName);
+      Element e = lookupInScope(compiler, prefixName, scope, prefixName.source);
       if (e != null) {
         if (identical(e.kind, ElementKind.PREFIX)) {
           // The receiver is a prefix. Lookup in the imported members.
@@ -1556,7 +1559,7 @@ class TypeResolver {
       } else if (identical(stringValue, 'dynamic')) {
         return compiler.dynamicClass;
       } else {
-        return scope.lookup(typeName.source);
+        return lookupInScope(compiler, typeName, scope, typeName.source);
       }
     }
   }
@@ -1564,11 +1567,11 @@ class TypeResolver {
   DartType resolveTypeAnnotation(MappingVisitor visitor, TypeAnnotation node,
                                  {bool malformedIsError: false}) {
     Identifier typeName;
-    SourceString prefixName;
+    Identifier prefixName;
     Send send = node.typeName.asSend();
     if (send != null) {
       // The type name is of the form [: prefix . identifier :].
-      prefixName = send.receiver.asIdentifier().source;
+      prefixName = send.receiver.asIdentifier();
       typeName = send.selector.asIdentifier();
     } else {
       typeName = node.typeName.asIdentifier();
@@ -1838,6 +1841,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
   int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION
       | ElementCategory.IMPLIES_TYPE;
 
+  /// When visiting the type declaration of the variable in a [ForIn] loop,
+  /// the initializer of the variable is implicit and we should not emit an
+  /// error when verifying that all final variables are initialized.
+  bool allowFinalWithoutInitializer = false;
+
   // TODO(ahe): Find a way to share this with runtime implementation.
   static final RegExp symbolValidationPattern =
       new RegExp(r'^(?:[a-zA-Z$][a-zA-Z$0-9_]*\.)*(?:[a-zA-Z$][a-zA-Z$0-9_]*=?|'
@@ -1964,7 +1972,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       return null;
     } else {
       SourceString name = node.source;
-      Element element = scope.lookup(name);
+      Element element = lookupInScope(compiler, node, scope, name);
       if (Elements.isUnresolved(element) && name.slowToString() == 'dynamic') {
         element = compiler.dynamicClass;
       }
@@ -2519,8 +2527,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   /// Callback for native enqueuer to parse a type.  Returns [:null:] on error.
-  DartType resolveTypeFromString(String typeName) {
-    Element element = scope.lookup(new SourceString(typeName));
+  DartType resolveTypeFromString(Node node, String typeName) {
+    Element element = lookupInScope(compiler, node,
+                                    scope, new SourceString(typeName));
     if (element == null) return null;
     if (element is! ClassElement) return null;
     ClassElement cls = element;
@@ -3080,7 +3089,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
     visit(node.expression);
     Scope blockScope = new BlockScope(scope);
     Node declaration = node.declaredIdentifier;
+
+    bool oldAllowFinalWithoutInitializer = allowFinalWithoutInitializer;
+    allowFinalWithoutInitializer = true;
     visitIn(declaration, blockScope);
+    allowFinalWithoutInitializer = oldAllowFinalWithoutInitializer;
 
     Send send = declaration.asSend();
     VariableDefinitions variableDefinitions =
@@ -3990,7 +4003,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   }
 
   void visitIdentifier(Identifier node) {
-    Element element = context.lookup(node.source);
+    Element element = lookupInScope(compiler, node, context, node.source);
     if (element == null) {
       compiler.reportError(
           node, MessageKind.CANNOT_RESOLVE_TYPE.error, {'typeName': node});
@@ -4011,7 +4024,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
       error(node.receiver, MessageKind.NOT_A_PREFIX, {'node': node.receiver});
       return;
     }
-    Element element = context.lookup(prefix.source);
+    Element element = lookupInScope(compiler, prefix, context, prefix.source);
     if (element == null || !identical(element.kind, ElementKind.PREFIX)) {
       error(node.receiver, MessageKind.NOT_A_PREFIX, {'node': node.receiver});
       return;
@@ -4061,6 +4074,10 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
                                              resolver.mapping);
     if (definitions.modifiers.isConst()) {
       compiler.reportError(node, MessageKind.CONST_WITHOUT_INITIALIZER);
+    }
+    if (definitions.modifiers.isFinal() &&
+        !resolver.allowFinalWithoutInitializer) {
+      compiler.reportError(node, MessageKind.FINAL_WITHOUT_INITIALIZER);
     }
     return node.source;
   }
@@ -4476,7 +4493,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   Element visitIdentifier(Identifier node) {
     SourceString name = node.source;
     Element e = resolver.reportLookupErrorIfAny(
-        resolver.scope.lookup(name), node, name);
+        lookupInScope(compiler, node, resolver.scope, name), node, name);
     // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
     if (e == null) {
       return failOrReturnErroneousElement(resolver.enclosingElement, node, name,
@@ -4503,4 +4520,10 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     return finishConstructorReference(visit(expression),
                                       expression, expression);
   }
+}
+
+/// Looks up [name] in [scope] and unwraps the result.
+Element lookupInScope(Compiler compiler, Node node,
+                      Scope scope, SourceString name) {
+  return Elements.unwrap(scope.lookup(name), compiler, node);
 }

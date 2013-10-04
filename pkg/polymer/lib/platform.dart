@@ -11,6 +11,7 @@
 // belong in html's Platform instead?
 library polymer.platform;
 
+import 'dart:async' show Completer;
 import 'dart:html' show Text, MutationObserver;
 import 'dart:collection' show Queue;
 import 'package:observe/src/microtask.dart' show performMicrotaskCheckpoint;

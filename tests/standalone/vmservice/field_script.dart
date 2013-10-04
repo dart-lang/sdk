@@ -19,7 +19,7 @@ class BadBanana {
   final Float32List final_fixed_length_list;
   final List fixed_length_array = new List(3);
   num v;
-  const c = 4;
+  final c = 4;
   BadBanana() : final_fixed_length_list = new Float32List(1);
   BadBanana.variable() : final_fixed_length_list = new Float32List(2);
 }

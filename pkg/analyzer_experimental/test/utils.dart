@@ -38,7 +38,8 @@ String errorsForFile(String contents) {
 ///
 /// Returns the return value of [fn].
 dynamic withTempDir(fn(String path)) {
-  var tempDir = new Directory('').createTempSync().path;
+  var tempDir =
+      Directory.systemTemp.createTempSync('analyzer_experimental_').path;
   try {
     return fn(tempDir);
   } finally {

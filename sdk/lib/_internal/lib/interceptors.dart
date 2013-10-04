@@ -151,9 +151,10 @@ var interceptedNames;
 
 
 /**
- * Data structure used to map a [Type] to the [Interceptor] for that type.  It
- * is JavaScript array of 2N entries of adjacent slots containing a [Type]
- * followed by an [Interceptor] class for the type.
+ * Data structure used to map a [Type] to the [Interceptor] and constructors for
+ * that type.  It is JavaScript array of 3N entries of adjacent slots containing
+ * a [Type], followed by an [Interceptor] class for the type, followed by a
+ * JavaScript object map for the constructors.
  *
  * The value of this variable is set by the compiler and contains only types
  * that are user extensions of native classes where the type occurs as a
@@ -162,16 +163,38 @@ var interceptedNames;
 // TODO(sra): Mark this as initialized to a constant with unknown value.
 var mapTypeToInterceptor;
 
-findInterceptorConstructorForType(Type type) {
+int findIndexForWebComponentType(Type type) {
   JS_EFFECT((_){ mapTypeToInterceptor = _; });
   if (mapTypeToInterceptor == null) return null;
   List map = JS('JSFixedArray', '#', mapTypeToInterceptor);
-  for (int i = 0; i + 1 < map.length; i += 2) {
+  for (int i = 0; i + 1 < map.length; i += 3) {
     if (type == map[i]) {
-      return map[i + 1];
+      return i;
     }
   }
   return null;
+}
+
+findInterceptorConstructorForType(Type type) {
+  var index = findIndexForWebComponentType(type);
+  if (index == null) return null;
+  List map = JS('JSFixedArray', '#', mapTypeToInterceptor);
+  return mapTypeToInterceptor[index + 1];
+}
+
+/**
+ * Returns a JavaScript function that runs the constructor on its argument, or
+ * `null` if there is no such constructor.
+ *
+ * The returned function takes one argument, the web component object.
+ */
+findConstructorForWebComponentType(Type type, String name) {
+  var index = findIndexForWebComponentType(type);
+  if (index == null) return null;
+  List map = JS('JSFixedArray', '#', mapTypeToInterceptor);
+  var constructorMap = mapTypeToInterceptor[index + 2];
+  var constructorFn = JS('', '#[#]', constructorMap, name);
+  return constructorFn;
 }
 
 findInterceptorForType(Type type) {

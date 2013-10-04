@@ -396,7 +396,23 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (type.treatAsDynamic) {
       return const DynamicAccess();
     }
-    Member member = type.lookupMember(name,
+    DartType originalType = type;
+    while (identical(type.kind, TypeKind.TYPE_VARIABLE)) {
+      TypeVariableType variable = type;
+      type = variable.element.bound;
+      if (type == originalType) {
+        type = compiler.objectClass.rawType;
+      }
+    }
+    if (type.kind == TypeKind.FUNCTION || type.kind == TypeKind.TYPEDEF) {
+      // TODO(karlklose): handle calling `call` on the function type. Do we have
+      // to type-check the arguments against the function type.
+      type = compiler.functionClass.rawType;
+    }
+    assert(invariant(node, type.kind == TypeKind.INTERFACE,
+        message: "unexpected type kind ${type.kind}."));
+    InterfaceType interface = type;
+    Member member = interface.lookupMember(name,
         isSetter: identical(memberKind, MemberKind.SETTER));
     if (member != null) {
       checkPrivateAccess(node, member.element, name);
@@ -555,21 +571,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         return const DynamicAccess();
       }
       TypeKind receiverKind = receiverType.kind;
-      if (identical(receiverKind, TypeKind.TYPEDEF)) {
-        // TODO(johnniwinther): handle typedefs.
-        return const DynamicAccess();
-      }
-      if (identical(receiverKind, TypeKind.FUNCTION)) {
-        // TODO(johnniwinther): handle functions.
-        return const DynamicAccess();
-      }
-      if (identical(receiverKind, TypeKind.TYPE_VARIABLE)) {
-        // TODO(johnniwinther): handle type variables.
-        return const DynamicAccess();
-      }
-      assert(invariant(node.receiver,
-          identical(receiverKind, TypeKind.INTERFACE),
-          message: "interface type expected, got ${receiverKind}"));
       return lookupMember(node, receiverType, name, memberKind);
     } else {
       return computeResolvedAccess(node, name, element, memberKind);
@@ -715,8 +716,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                        identical(name, '[]'),
                        message: 'Unexpected operator $name'));
 
-      ElementAccess access = lookupMember(node, receiverType,
-                                          operatorName, MemberKind.OPERATOR);
+      // TODO(karlklose): handle `void` in expression context by calling
+      // [analyzeNonVoid] instead of [analyze].
+      ElementAccess access = receiverType.isVoid ? const DynamicAccess()
+          : lookupMember(node, receiverType, operatorName, MemberKind.OPERATOR);
       LinkBuilder<DartType> argumentTypesBuilder = new LinkBuilder<DartType>();
       DartType resultType =
           analyzeInvocation(node, access, argumentTypesBuilder);

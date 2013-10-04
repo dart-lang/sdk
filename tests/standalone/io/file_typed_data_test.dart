@@ -22,7 +22,7 @@ void testWriteInt8ListAndView() {
                                OFFSET_IN_BYTES_FOR_VIEW,
                                VIEW_LENGTH);
 
-  new Directory('').createTemp().then((temp) {
+  Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
       return raf.writeFrom(list, 0, LIST_LENGTH);
@@ -54,7 +54,7 @@ void testWriteUint8ListAndView() {
                                 OFFSET_IN_BYTES_FOR_VIEW,
                                 VIEW_LENGTH);
 
-  new Directory('').createTemp().then((temp) {
+  Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
       return raf.writeFrom(list, 0, LIST_LENGTH);
@@ -86,7 +86,7 @@ void testWriteUint8ClampedListAndView() {
                                        OFFSET_IN_BYTES_FOR_VIEW,
                                        VIEW_LENGTH);
 
-  new Directory('').createTemp().then((temp) {
+  Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
       return raf.writeFrom(list, 0, LIST_LENGTH);
@@ -120,7 +120,7 @@ void testWriteInt16ListAndView() {
                                 OFFSET_IN_BYTES_FOR_VIEW,
                                 VIEW_LENGTH);
 
-  new Directory('').createTemp().then((temp) {
+  Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
       return raf.writeFrom(new Uint8List.view(list.buffer),
@@ -164,7 +164,7 @@ void testWriteUint16ListAndView() {
                                  OFFSET_IN_BYTES_FOR_VIEW,
                                  VIEW_LENGTH);
 
-  new Directory('').createTemp().then((temp) {
+  Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
       return raf.writeFrom(new Uint8List.view(list.buffer),
@@ -208,7 +208,7 @@ void testWriteInt32ListAndView() {
                                 OFFSET_IN_BYTES_FOR_VIEW,
                                 VIEW_LENGTH);
 
-  new Directory('').createTemp().then((temp) {
+  Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
       return raf.writeFrom(new Uint8List.view(list.buffer),
@@ -252,7 +252,7 @@ void testWriteUint32ListAndView() {
                                  OFFSET_IN_BYTES_FOR_VIEW,
                                  VIEW_LENGTH);
 
-  new Directory('').createTemp().then((temp) {
+  Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
       return raf.writeFrom(new Uint8List.view(list.buffer),
@@ -296,7 +296,7 @@ void testWriteInt64ListAndView() {
                                 OFFSET_IN_BYTES_FOR_VIEW,
                                 VIEW_LENGTH);
 
-  new Directory('').createTemp().then((temp) {
+  Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
       return raf.writeFrom(new Uint8List.view(list.buffer),
@@ -340,7 +340,7 @@ void testWriteUint64ListAndView() {
                                  OFFSET_IN_BYTES_FOR_VIEW,
                                  VIEW_LENGTH);
 
-  new Directory('').createTemp().then((temp) {
+  Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
       return raf.writeFrom(new Uint8List.view(list.buffer),

@@ -214,7 +214,7 @@ main() => new B();
 import 'dart:async'; // This imports a class Future.
 import 'future.dart';
 
-void main() {}""",
+void main() => new Future();""",
 
 'future.dart':
 """
@@ -228,7 +228,7 @@ class Future {}"""},
 import 'future.dart';
 import 'dart:async'; // This imports a class Future.
 
-void main() {}""",
+void main() => new Future();""",
 
 'future.dart':
 """
@@ -242,7 +242,7 @@ class Future {}"""},
 import 'export.dart';
 import 'dart:async'; // This imports a class Future.
 
-void main() {}""",
+void main() => new Future();""",
 
 'future.dart':
 """
@@ -269,7 +269,7 @@ export 'future.dart';"""}]);
 // This hides the implicit import of class Type from dart:core.
 import 'type.dart';
 
-void main() {}""",
+void main() => new Type();""",
 
 'type.dart':
 """
@@ -278,7 +278,22 @@ library type;
 class Type {}"""}]);
 
   static const MessageKind DUPLICATE_EXPORT = const MessageKind(
-      "Error: Duplicate export of '#{name}'.");
+      "Error: Duplicate export of '#{name}'.",
+      howToFix: "Trying adding 'hide #{name}' to one of the exports.",
+      examples: const [const {
+'main.dart': """
+export 'decl1.dart';
+export 'decl2.dart';
+
+main() {}""",
+'decl1.dart': "class Class {}",
+'decl2.dart': "class Class {}"}]);
+
+  static const MessageKind DUPLICATE_EXPORT_CONT = const MessageKind(
+      "Info: This is another export of '#{name}'.");
+
+  static const MessageKind DUPLICATE_EXPORT_DECL = const MessageKind(
+      "Info: The exported '#{name}' from export #{uriString} is defined here.");
 
   static const DualKind NOT_A_TYPE = const DualKind(
       error: const MessageKind("Error: '#{node}' is not a type."),
@@ -674,11 +689,11 @@ main() { F f = null; }"""]);
       examples: const ["""
 class C extends Object with String {}
 
-main() => new C();                       
+main() => new C();
 """, """
 typedef C = Object with String;
 
-main() => new C();                       
+main() => new C();
 """]);
 
   static const MessageKind DUPLICATE_EXTENDS_IMPLEMENTS = const MessageKind(
@@ -894,6 +909,13 @@ void main() {
   const c; // This constant variable must be initialized.
 }"""]);
 
+  static const MessageKind FINAL_WITHOUT_INITIALIZER = const MessageKind(
+      "Error: A final variable must be initialized.",
+      howToFix: "Try adding an initializer or "
+                "removing the 'final' modifier.",
+      examples: const [
+          "class C { static final field; } main() => C.field;"]);
+
   static const MessageKind MEMBER_USES_CLASS_NAME = const MessageKind(
       "Error: Member variable can't have the same name as the class it is "
       "declared in.",
@@ -965,13 +987,13 @@ Error: '#{value}' is not a valid Symbol name because is not:
 "operator.");
 
   static const MessageKind AMBIGUOUS_REEXPORT = const MessageKind(
-      "Info: '#{element}' is (re)exported by multiple libraries.");
+      "Info: '#{name}' is (re)exported by multiple libraries.");
 
   static const MessageKind AMBIGUOUS_LOCATION = const MessageKind(
-      "Info: '#{element}' is defined here.");
+      "Info: '#{name}' is defined here.");
 
   static const MessageKind IMPORTED_HERE = const MessageKind(
-      "Info: '#{element}' is imported here.");
+      "Info: '#{name}' is imported here.");
 
   static const MessageKind OVERRIDE_EQUALS_NOT_HASH_CODE = const MessageKind(
       "Hint: The class '#{class}' overrides 'operator==', "

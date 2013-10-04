@@ -12,7 +12,7 @@ import "package:expect/expect.dart";
 
 testChangeDirectory() {
   asyncStart();
-  new Directory("").createTemp().then((temp) {
+  Directory.systemTemp.createTemp('dart_directory_chdir').then((temp) {
     var initialCurrent = Directory.current;
     Directory.current = temp;
     var newCurrent = Directory.current;

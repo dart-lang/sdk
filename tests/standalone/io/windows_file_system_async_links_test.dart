@@ -27,7 +27,9 @@ class FutureExpect {
 
 
 Future testJunctionTypeDelete() {
-  return new Directory('').createTemp().then((temp) {
+  return Directory.systemTemp
+                  .createTemp('dart_windows_file_system_async_links')
+                  .then((temp) {
     var x = '${temp.path}${Platform.pathSeparator}x';
     var y = '${temp.path}${Platform.pathSeparator}y';
     return new Directory(x).create()

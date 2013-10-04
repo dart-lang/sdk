@@ -48,13 +48,13 @@ abstract class Browser {
 
   Browser();
 
-  factory Browser.byName(String name) {
+  factory Browser.byName(String name, [Map globalConfiguration = const {}]) {
     if (name == 'ff' || name == 'firefox') {
       return new Firefox();
     } else if (name == 'chrome') {
       return new Chrome();
     } else if (name == 'dartium') {
-      return new Dartium();
+      return new Dartium(globalConfiguration);
     } else if (name == 'safari') {
       return new Safari();
     } else if (name.startsWith('ie')) {
@@ -393,12 +393,12 @@ class Chrome extends Browser {
 }
 
 class Dartium extends Chrome {
+  final Map globalConfiguration;
+
+  Dartium(this.globalConfiguration);
+
   String _getBinary() {
-    if (Platform.operatingSystem == 'macos') {
-      return new Path('client/tests/dartium/Chromium.app/Contents/'
-                      'MacOS/Chromium').toNativePath();
-    }
-    return new Path('client/tests/dartium/chrome').toNativePath();
+    return Locations.getDartiumLocation(globalConfiguration);
   }
 
   Map<String, String> _getEnvironment() {
@@ -628,7 +628,9 @@ class BrowserTest {
  * whenever a test completes.
  */
 class BrowserTestRunner {
-  String local_ip;
+  final Map globalConfiguration;
+
+  String localIp;
   String browserName;
   int maxNumBrowsers;
   // Used to send back logs from the browser (start, stop etc)
@@ -650,14 +652,17 @@ class BrowserTestRunner {
 
   BrowserTestingServer testingServer;
 
-  BrowserTestRunner(this.local_ip, this.browserName, this.maxNumBrowsers);
+  BrowserTestRunner(this.globalConfiguration,
+                    this.localIp,
+                    this.browserName,
+                    this.maxNumBrowsers);
 
   Future<bool> start() {
     // If [browserName] doesn't support opening new windows, we use new iframes
     // instead.
     bool useIframe =
         !Browser.BROWSERS_WITH_WINDOW_SUPPORT.contains(browserName);
-    testingServer = new BrowserTestingServer(local_ip, useIframe);
+    testingServer = new BrowserTestingServer(localIp, useIframe);
     return testingServer.start().then((_) {
       testingServer.testDoneCallBack = handleResults;
       testingServer.testStartedCallBack = handleStarted;
@@ -893,7 +898,7 @@ class BrowserTestRunner {
   }
 
   Browser getInstance() {
-    var browser = new Browser.byName(browserName);
+    var browser = new Browser.byName(browserName, globalConfiguration);
     browser.logger = logger;
     return browser;
   }
@@ -912,7 +917,7 @@ class BrowserTestingServer {
   /// POST /report/BROWSER_ID?id=NUM -- sends back the dom of the executed
   ///                                   test
 
-  final String local_ip;
+  final String localIp;
 
   static const String driverPath = "/driver";
   static const String nextTestPath = "/next_test";
@@ -931,10 +936,10 @@ class BrowserTestingServer {
   Function testStartedCallBack;
   Function nextTestCallBack;
 
-  BrowserTestingServer(this.local_ip, this.useIframe);
+  BrowserTestingServer(this.localIp, this.useIframe);
 
   Future start() {
-    return HttpServer.bind(local_ip, 0).then((createdServer) {
+    return HttpServer.bind(localIp, 0).then((createdServer) {
       httpServer = createdServer;
       void handler(HttpRequest request) {
         // Don't allow caching of resources from the browser controller, i.e.,
@@ -985,7 +990,7 @@ class BrowserTestingServer {
 
       // Set up the error reporting server that enables us to send back
       // errors from the browser.
-      return HttpServer.bind(local_ip, 0).then((createdReportServer) {
+      return HttpServer.bind(localIp, 0).then((createdReportServer) {
         errorReportingServer = createdReportServer;
         void errorReportingHandler(HttpRequest request) {
           StringBuffer buffer = new StringBuffer();
@@ -1057,13 +1062,13 @@ class BrowserTestingServer {
       exit(1);
       // This should never happen - exit immediately;
     }
-    return "http://$local_ip:${httpServer.port}/driver/$browserId";
+    return "http://$localIp:${httpServer.port}/driver/$browserId";
   }
 
 
   String getDriverPage(String browserId) {
     var errorReportingUrl =
-        "http://$local_ip:${errorReportingServer.port}/$browserId";
+        "http://$localIp:${errorReportingServer.port}/$browserId";
     String driverContent = """
 <!DOCTYPE html><html>
 <head>

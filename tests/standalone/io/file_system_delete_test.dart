@@ -14,7 +14,7 @@ Future throws(callback()) {
 }
 
 void testDeleteFileSync() {
-  var tmp = new Directory("").createTempSync();
+  var tmp = Directory.systemTemp.createTempSync('dart_file_system_delete');
   var path = "${tmp.path}${Platform.pathSeparator}";
 
   var file = new File("${path}myFile");
@@ -48,7 +48,7 @@ void testDeleteFileSync() {
 }
 
 void testDeleteFile() {
-  new Directory("").createTemp().then((tmp) {
+  Directory.systemTemp.createTemp('dart_file_system_delete').then((tmp) {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var file = new File("${path}myFile");
     return file.create()
@@ -78,7 +78,7 @@ void testDeleteFile() {
 }
 
 void testDeleteDirectorySync() {
-  var tmp = new Directory("").createTempSync();
+  var tmp = Directory.systemTemp.createTempSync('dart_file_system_delete');
   var path = "${tmp.path}${Platform.pathSeparator}";
 
   var dir = new Directory("${path}myDirectory");
@@ -112,7 +112,7 @@ void testDeleteDirectorySync() {
 }
 
 void testDeleteDirectory() {
-  new Directory("").createTemp().then((tmp) {
+  Directory.systemTemp.createTemp('dart_file_system_delete').then((tmp) {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var dir = new Directory("${path}myDirectory");
     return dir.create()
@@ -142,7 +142,7 @@ void testDeleteDirectory() {
 }
 
 void testDeleteFileLinkSync() {
-  var tmp = new Directory("").createTempSync();
+  var tmp = Directory.systemTemp.createTempSync('dart_file_system_delete');
   var path = "${tmp.path}${Platform.pathSeparator}";
 
   var file = new File("${path}myFile");
@@ -185,7 +185,7 @@ void testDeleteFileLinkSync() {
 }
 
 void testDeleteFileLink() {
-  new Directory("").createTemp().then((tmp) {
+  Directory.systemTemp.createTemp('dart_file_system_delete').then((tmp) {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var file = new File("${path}myFile");
     var link = new Link("${path}myLink");
@@ -226,7 +226,7 @@ void testDeleteFileLink() {
 }
 
 void testDeleteDirectoryLinkSync() {
-  var tmp = new Directory("").createTempSync();
+  var tmp = Directory.systemTemp.createTempSync('dart_file_system_delete');
   var path = "${tmp.path}${Platform.pathSeparator}";
 
   var directory = new Directory("${path}myDirectory");
@@ -269,7 +269,7 @@ void testDeleteDirectoryLinkSync() {
 }
 
 void testDeleteDirectoryLink() {
-  new Directory("").createTemp().then((tmp) {
+  Directory.systemTemp.createTemp('dart_file_system_delete').then((tmp) {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var dir = new Directory("${path}myDir");
     var link = new Link("${path}myLink");
@@ -310,7 +310,7 @@ void testDeleteDirectoryLink() {
 }
 
 void testDeleteBrokenLinkSync() {
-  var tmp = new Directory("").createTempSync();
+  var tmp = Directory.systemTemp.createTempSync('dart_file_system_delete');
   var path = "${tmp.path}${Platform.pathSeparator}";
 
   var directory = new Directory("${path}myDirectory");
@@ -352,7 +352,7 @@ void testDeleteBrokenLinkSync() {
 }
 
 void testDeleteBrokenLink() {
-  new Directory("").createTemp().then((tmp) {
+  Directory.systemTemp.createTemp('dart_file_system_delete').then((tmp) {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var dir = new Directory("${path}myDir");
     var link = new Link("${path}myLink");

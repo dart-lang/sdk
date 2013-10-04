@@ -15,7 +15,7 @@ import "package:expect/expect.dart";
 
 void testCreateRecursiveRace() {
   asyncStart();
-  var temp = new Directory('').createTempSync();
+  var temp = Directory.systemTemp.createTempSync('dart_directory_create_race');
   var d = new Directory('${temp.path}/a/b/c/d/e');
   Future.wait([
       d.create(recursive: true),

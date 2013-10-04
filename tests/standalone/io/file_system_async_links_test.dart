@@ -26,7 +26,7 @@ class FutureExpect {
 
 
 Future testFileExistsCreate() {
-  return new Directory('').createTemp().then((temp) {
+  return Directory.systemTemp.createTemp('dart_file_system_async').then((temp) {
     var x = '${temp.path}${Platform.pathSeparator}x';
     var y = '${temp.path}${Platform.pathSeparator}y';
     return new Link(y).create(x)
@@ -98,7 +98,7 @@ Future testFileExistsCreate() {
 
 
 Future testFileDelete() {
-  return new Directory('').createTemp().then((temp) {
+  return Directory.systemTemp.createTemp('dart_file_system_async').then((temp) {
     var x = '${temp.path}${Platform.pathSeparator}x';
     var y = '${temp.path}${Platform.pathSeparator}y';
     return new File(x).create()
@@ -120,7 +120,7 @@ Future testFileDelete() {
 
 
 Future testFileWriteRead() {
-  return new Directory('').createTemp().then((temp) {
+  return Directory.systemTemp.createTemp('dart_file_system_async').then((temp) {
     var x = '${temp.path}${Platform.pathSeparator}x';
     var y = '${temp.path}${Platform.pathSeparator}y';
     var data = "asdf".codeUnits;
@@ -136,7 +136,7 @@ Future testFileWriteRead() {
 
 
 Future testDirectoryExistsCreate() {
-  return new Directory('').createTemp().then((temp) {
+  return Directory.systemTemp.createTemp('dart_file_system_async').then((temp) {
     var x = '${temp.path}${Platform.pathSeparator}x';
     var y = '${temp.path}${Platform.pathSeparator}y';
     return new Link(y).create(x)
@@ -149,52 +149,62 @@ Future testDirectoryExistsCreate() {
 
 
 Future testDirectoryDelete() {
-  return new Directory('').createTemp().then((temp) =>
-  new Directory('').createTemp().then((temp2) {
-    var y = '${temp.path}${Platform.pathSeparator}y';
-    var x = '${temp2.path}${Platform.pathSeparator}x';
-    var link = new Directory(y);
-    return new File(x).create()
-    .then((_) => new Link(y).create(temp2.path))
-    .then((_) => FutureExpect.isTrue(link.exists()))
-    .then((_) => FutureExpect.isTrue(temp2.exists()))
-    .then((_) => link.delete())
-    .then((_) => FutureExpect.isFalse(link.exists()))
-    .then((_) => FutureExpect.isTrue(temp2.exists()))
-    .then((_) => new Link(y).create(temp2.path))
-    .then((_) => FutureExpect.isTrue(link.exists()))
-    .then((_) => temp.delete(recursive: true))
-    .then((_) => FutureExpect.isFalse(link.exists()))
-    .then((_) => FutureExpect.isFalse(temp.exists()))
-    .then((_) => FutureExpect.isTrue(temp2.exists()))
-    .then((_) => FutureExpect.isTrue(new File(x).exists()))
-    .then((_) => temp2.delete(recursive: true));
-  }));
+  return Directory.systemTemp
+                  .createTemp('dart_file_system_async')
+                  .then((temp) {
+    return Directory.systemTemp
+             .createTemp('dart_file_system_async')
+             .then((temp2) {
+      var y = '${temp.path}${Platform.pathSeparator}y';
+      var x = '${temp2.path}${Platform.pathSeparator}x';
+      var link = new Directory(y);
+      return new File(x).create()
+        .then((_) => new Link(y).create(temp2.path))
+        .then((_) => FutureExpect.isTrue(link.exists()))
+        .then((_) => FutureExpect.isTrue(temp2.exists()))
+        .then((_) => link.delete())
+        .then((_) => FutureExpect.isFalse(link.exists()))
+        .then((_) => FutureExpect.isTrue(temp2.exists()))
+        .then((_) => new Link(y).create(temp2.path))
+        .then((_) => FutureExpect.isTrue(link.exists()))
+        .then((_) => temp.delete(recursive: true))
+        .then((_) => FutureExpect.isFalse(link.exists()))
+        .then((_) => FutureExpect.isFalse(temp.exists()))
+        .then((_) => FutureExpect.isTrue(temp2.exists()))
+        .then((_) => FutureExpect.isTrue(new File(x).exists()))
+        .then((_) => temp2.delete(recursive: true));
+    });
+  });
 }
 
 
 Future testDirectoryListing() {
-  return new Directory('').createTemp().then((temp) =>
-  new Directory('').createTemp().then((temp2) {
-    var sep = Platform.pathSeparator;
-    var y = '${temp.path}${sep}y';
-    var x = '${temp2.path}${sep}x';
-    return new File(x).create()
-    .then((_) => new Link(y).create(temp2.path))
-    .then((_) => temp.list(recursive: true).singleWhere(
-        (entry) => entry is File))
-    .then((file) => Expect.isTrue(file.path.endsWith('$y${sep}x')))
-    .then((_) => temp.list(recursive: true).singleWhere(
-        (entry) => entry is Directory))
-    .then((dir) => Expect.isTrue(dir.path.endsWith('y')))
-    .then((_) => temp.delete(recursive: true))
-    .then((_) => temp2.delete(recursive: true));
-  }));
+  return Directory.systemTemp
+                  .createTemp('dart_file_system_async')
+                  .then((temp) {
+    return Directory.systemTemp
+                    .createTemp('dart_file_system_async_links')
+                    .then((temp2) {
+      var sep = Platform.pathSeparator;
+      var y = '${temp.path}${sep}y';
+      var x = '${temp2.path}${sep}x';
+      return new File(x).create()
+        .then((_) => new Link(y).create(temp2.path))
+        .then((_) => temp.list(recursive: true).singleWhere(
+            (entry) => entry is File))
+        .then((file) => Expect.isTrue(file.path.endsWith('$y${sep}x')))
+        .then((_) => temp.list(recursive: true).singleWhere(
+            (entry) => entry is Directory))
+        .then((dir) => Expect.isTrue(dir.path.endsWith('y')))
+        .then((_) => temp.delete(recursive: true))
+        .then((_) => temp2.delete(recursive: true));
+    });
+  });
 }
 
 
 Future testDirectoryListingBrokenLink() {
-  return new Directory('').createTemp().then((temp) {
+  return Directory.systemTemp.createTemp('dart_file_system_async').then((temp) {
     var x = '${temp.path}${Platform.pathSeparator}x';
     var link = '${temp.path}${Platform.pathSeparator}link';
     var doesNotExist = 'this_thing_does_not_exist';

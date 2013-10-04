@@ -93,8 +93,10 @@ abstract class _StringDecoder
 }
 
 /**
- * StringTransformer that decodes a stream of UTF-8 encoded bytes.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 class Utf8DecoderTransformer extends _StringDecoder {
   Utf8DecoderTransformer(
       [int replacementChar = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT])
@@ -160,8 +162,10 @@ abstract class _StringEncoder
 }
 
 /**
- * StringTransformer that UTF-8 encodes a stream of strings.
+ * *DEPRECATED*: Use `package:utf/utf.dart` or, when applicable, `dart:convert`
+ * instead.
  */
+@deprecated
 class Utf8EncoderTransformer extends _StringEncoder {
   List<int> _processString(String string) {
     var bytes = [];

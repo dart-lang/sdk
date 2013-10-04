@@ -389,7 +389,7 @@ void createLibrary(String name, [String contents]) {
 String libPath(String name) => pathos.normalize(pathos.join(tempDir, name));
 
 void createTempDir() {
-  tempDir = new Directory('').createTempSync().path;
+  tempDir = Directory.systemTemp.createTempSync('dartdoc_').path;
   new Directory(pathos.join(tempDir, 'packages')).createSync();
 }
 
