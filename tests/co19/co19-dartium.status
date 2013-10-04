@@ -9,6 +9,12 @@
 Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/05_Variables_A05_t01: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/05_Variables_A05_t02: Fail # Issue 13719: Please triage this failure.
+Language/05_Variables/05_Variables_A06_t01: Fail # Issue 13719: Please triage this failure.
+Language/05_Variables/05_Variables_A06_t02: Fail # Issue 13719: Please triage this failure.
+Language/05_Variables/05_Variables_A06_t03: Fail # Issue 13719: Please triage this failure.
+Language/05_Variables/05_Variables_A06_t04: Fail # Issue 13719: Please triage this failure.
+Language/05_Variables/05_Variables_A06_t05: Fail # Issue 13719: Please triage this failure.
+Language/05_Variables/05_Variables_A06_t06: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/05_Variables_A16_t02: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Issue 13719: Please triage this failure.
