@@ -5,6 +5,9 @@
 class _Double implements double {
   factory _Double.fromInteger(int value)
       native "Double_doubleFromInteger";
+
+  Type get runtimeType => double;
+
   int get _identityHashCode {
     if (isNaN || isInfinite) return 0;
     return toInt();

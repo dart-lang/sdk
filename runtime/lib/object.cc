@@ -93,6 +93,8 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
 
 DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  // Special handling for following types outside this native.
+  ASSERT(!instance.IsString() && !instance.IsInteger() && !instance.IsDouble());
   const Type& type = Type::Handle(instance.GetType());
   // The static type of null is specified to be the bottom type, however, the
   // runtime type of null is the Null type, which we correctly return here.

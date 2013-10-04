@@ -9,6 +9,9 @@ class _IntegerImplementation {
     throw new UnsupportedError(
         "_IntegerImplementation can only be allocated by the VM");
   }
+
+  Type get runtimeType => int;
+
   num operator +(num other) {
     return other._addFromInteger(this);
   }

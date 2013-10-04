@@ -1148,6 +1148,15 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
 }
 
 
+DEFINE_NATIVE_ENTRY(InstanceMirror_computeType, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
+  const Type& type = Type::Handle(instance.GetType());
+  // The static type of null is specified to be the bottom type, however, the
+  // runtime type of null is the Null type, which we correctly return here.
+  return type.Canonicalize();
+}
+
+
 DEFINE_NATIVE_ENTRY(ClosureMirror_apply, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
   ASSERT(!closure.IsNull() && closure.IsCallable(NULL, NULL));

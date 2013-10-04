@@ -343,7 +343,7 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
       native 'InstanceMirror_invokeSetter';
 
   static _computeType(reflectee)
-      native 'Object_runtimeType';
+      native 'InstanceMirror_computeType';
 }
 
 class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
