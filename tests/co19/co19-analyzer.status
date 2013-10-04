@@ -25,9 +25,6 @@ Language/12_Expressions/07_Maps_A13_t01: Fail
 # TBF: malformed or malbounded type in "conts" is static warning
 Language/12_Expressions/12_Instance_Creation_A01_t08: Fail
 
-# TBF: main() { {}; } is map as expression statement, so NON_CONST_MAP_AS_EXPRESSION_STATEMENT
-Language/13_Statements/02_Expression_Statements_A01_t13: Fail
-
 # TBF: typedef self reference
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t08: Fail
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t09: Fail
@@ -143,3 +140,6 @@ LibTest/core/Runes/isNotEmpty_A01_t02: Fail, OK
 
 # co19 issue #622: Undefined class 'Int16List.fromList'
 LibTest/core/Runes/lastWhere_A02_t01: Fail, OK
+
+# co19 issue #623: main() { {}; } is block and empty statement, not a map
+Language/13_Statements/02_Expression_Statements_A01_t13: Fail, OK
