@@ -40,7 +40,7 @@ class Point<T extends num> {
   }
 
   /**
-   * Scale this point by [factor] as if it was a vector.
+   * Scale this point by [factor] as if it were a vector.
    *
    * *Important* *Note*: This function accepts a `num` as its argument only so
    * that you can scale Point<double> objects by an `int` factor. Because the
