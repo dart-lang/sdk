@@ -22,7 +22,7 @@ class H<A,B,C> {}
 class I extends G {}
 
 typeParameters(mirror, parameterNames) {
-  Expect.listEquals(parameterNames.map((n) => new Symbol(n)).toList(),
+  Expect.listEquals(parameterNames,
                     mirror.typeVariables.map((v) => v.simpleName).toList());
 }
 
@@ -32,15 +32,15 @@ typeArguments(mirror, argumentMirrors) {
 
 main() {
   // Declarations.
-  typeParameters(reflectClass(A), ['T']);
+  typeParameters(reflectClass(A), [#T]);
   typeParameters(reflectClass(G), []);
   typeParameters(reflectClass(B), []);
   typeParameters(reflectClass(C), []);
   typeParameters(reflectClass(D), []);
-  typeParameters(reflectClass(E), ['S']);
-  typeParameters(reflectClass(F), ['R']);
+  typeParameters(reflectClass(E), [#S]);
+  typeParameters(reflectClass(F), [#R]);
   typeParameters(reflectClass(G), []);
-  typeParameters(reflectClass(H), ['A', 'B', 'C']);
+  typeParameters(reflectClass(H), [#A, #B, #C]);
   typeParameters(reflectClass(I), []);
 
   typeArguments(reflectClass(A), []);
@@ -74,14 +74,14 @@ main() {
   Expect.equals(reflectClass(I), reflectClass(I).originalDeclaration);
 
   // Instantiations.
-  typeParameters(reflect(new A<num>()).type, ['T']);
+  typeParameters(reflect(new A<num>()).type, [#T]);
   typeParameters(reflect(new B<num>()).type, []);
   typeParameters(reflect(new C()).type, []);
   typeParameters(reflect(new D()).type, []);
-  typeParameters(reflect(new E()).type, ['S']);
-  typeParameters(reflect(new F<num>()).type, ['R']);
+  typeParameters(reflect(new E()).type, [#S]);
+  typeParameters(reflect(new F<num>()).type, [#R]);
   typeParameters(reflect(new G()).type, []);
-  typeParameters(reflect(new H()).type, ['A', 'B', 'C']);
+  typeParameters(reflect(new H()).type, [#A, #B, #C]);
   typeParameters(reflect(new I()).type, []);
 
   var numMirror = reflectClass(num);
@@ -154,7 +154,7 @@ main() {
   // Library members are all uninstantaited generics or non-generics.
   currentMirrorSystem().libraries.values.forEach((libraryMirror) {
     libraryMirror.classes.values.forEach((classMirror) {
-      // TODO(12282): Deal with generic typedefs.
+      // Generic typedefs are considered in a separate test.
       if (classMirror is! TypedefMirror) {
         Expect.isTrue(classMirror.isOriginalDeclaration);
         Expect.equals(classMirror, classMirror.originalDeclaration);

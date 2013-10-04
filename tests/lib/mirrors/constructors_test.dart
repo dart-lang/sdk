@@ -27,7 +27,6 @@ class Biz {
 }
 
 main() {
-  MirrorSystem mirrors = currentMirrorSystem();
   ClassMirror fooMirror = reflectClass(Foo);
   Map<Symbol, MethodMirror> fooConstructors = fooMirror.constructors;
   ClassMirror barMirror = reflectClass(Bar);

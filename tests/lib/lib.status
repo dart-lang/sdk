@@ -7,10 +7,13 @@ math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 math/random_test: RuntimeError
 mirrors/closure_mirror_find_in_context_test: Fail # Issue 6490
+mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/equality_test/02: RuntimeError # Issue 12333
 mirrors/fake_function_test: RuntimeError # Issue 11612
 mirrors/function_type_mirror_test: RuntimeError # Issue 12166
 mirrors/generics_test/01: RuntimeError # Issue 12333
+mirrors/generic_function_typedef_test: RuntimeError # Issue 12333
+mirrors/generic_mixin_applications_test: RuntimeError # Issue 12333
 mirrors/hierarchy_invariants_test: RuntimeError # Issue 11863
 mirrors/invoke_test: RuntimeError # Issue 11954
 mirrors/invoke_closurization_test: RuntimeError # Issue 13002
@@ -29,6 +32,7 @@ mirrors/null_test : RuntimeError # Issue 12129
 mirrors/parameter_test/none: RuntimeError # Issue 6490
 mirrors/parameter_metadata_test: CompileTimeError # Issue 10905
 mirrors/reflected_type_test: RuntimeError # Issue 12607
+mirrors/type_argument_is_type_variable_test: RuntimeError # Issue 12333
 mirrors/typedef_metadata_test: RuntimeError # Issue 12785
 mirrors/typevariable_mirror_metadata_test: CompileTimeError # Issue 10905
 mirrors/unnamed_library_test: RuntimeError # Issue 10580
@@ -144,6 +148,10 @@ mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://d
 mirrors/mixin_test/01: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 mirrors/closures_test/01: Fail, OK # Incorrect dart2js behavior.
+mirrors/generic_function_typedef_test: RuntimeError # Issue 12282
+mirrors/generic_mixin_applications_test: RuntimeError # Issue 12282
+mirrors/constructor_kinds_test: RuntimeError # Issue 13798
+mirrors/type_argument_is_type_variable_test: RuntimeError # Issue 12282
 
 [ $compiler == none && $runtime == drt ]
 async/timer_isolate_test: Skip # See Issue 4997
