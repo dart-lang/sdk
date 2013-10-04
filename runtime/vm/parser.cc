@@ -2161,7 +2161,7 @@ AstNode* Parser::ParseInitializer(const Class& cls,
 }
 
 
-void Parser::CheckConstFieldsInitialized(const Class& cls) {
+void Parser::CheckFieldsInitialized(const Class& cls) {
   const Array& fields = Array::Handle(cls.fields());
   Field& field = Field::Handle();
   SequenceNode* initializers = current_block_->statements;
@@ -2186,13 +2186,8 @@ void Parser::CheckConstFieldsInitialized(const Class& cls) {
 
     if (found) continue;
 
-    if (field.is_final()) {
-      ErrorMsg("final field '%s' not initialized",
-               String::Handle(field.name()).ToCString());
-    } else {
-      field.UpdateCid(kNullCid);
-      field.UpdateLength(Field::kNoFixedLength);
-    }
+    field.UpdateCid(kNullCid);
+    field.UpdateLength(Field::kNoFixedLength);
   }
 }
 
@@ -2324,7 +2319,7 @@ void Parser::ParseInitializers(const Class& cls,
     // or constructor redirection.
     GenerateSuperConstructorCall(cls, receiver, NULL);
   }
-  CheckConstFieldsInitialized(cls);
+  CheckFieldsInitialized(cls);
 }
 
 
@@ -2438,7 +2433,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   }
 
   GenerateSuperConstructorCall(current_class(), receiver, forwarding_args);
-  CheckConstFieldsInitialized(current_class());
+  CheckFieldsInitialized(current_class());
 
   // Empty constructor body.
   SequenceNode* statements = CloseBlock();

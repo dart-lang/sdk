@@ -143,8 +143,6 @@ prefix11_negative_test: fail
 # test issue 12156, fails only at runtime
 static_call_wrong_argument_count_negative_test: fail
 
-constructor9_test/01: Fail # Issue 12157
-
 throw7_test/01: Fail # Issue 12159
 
 # test issue 12160, not annotated warnings for type variables from static member

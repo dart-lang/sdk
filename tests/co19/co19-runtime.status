@@ -62,7 +62,6 @@ LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # co19-roll r576: Please triage this
 Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A16_t02: fail # Dart issue 12544
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail # Dart issue 12543
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: fail # co19 issue 606
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # Dart issue 12549
 Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: fail # Dart issue 1372

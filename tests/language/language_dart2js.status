@@ -145,7 +145,6 @@ list_literal4_test: RuntimeError # Issue 12890
 map_literal4_test: RuntimeError # Issue 12891
 built_in_identifier_test/01: CompileTimeError # Issue 13022
 
-constructor9_test/01: MissingCompileTimeError # Issue 12934
 list_literal1_test/01: MissingCompileTimeError # Issue 12993
 map_literal1_test/01: MissingCompileTimeError # Issue 12993
 scope_variable_test/01: MissingCompileTimeError # Issue 13016
@@ -238,7 +237,6 @@ setter_override_test/00: Fail # Issue 11496
 setter_override_test/03: Fail # Issue 11496
 setter_override2_test/02: Fail # Issue 11496
 
-constructor9_test/01: Fail # Issue 12935
 constructor_named_arguments_test/01: Fail # Issue 5519
 named_parameters_aggregated_test/03: Fail # Issue 12813
 not_enough_positional_arguments_test/01: Fail # Issue 12839
