@@ -5451,7 +5451,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
 
   result_type = Type::DynamicType();
 
-  intptr_t ident_pos = TokenPos();
+  const intptr_t function_pos = TokenPos();
   if (is_literal) {
     ASSERT(CurrentToken() == Token::kLPAREN);
     function_name = &Symbols::AnonymousClosure();
@@ -5470,7 +5470,6 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   if (CurrentToken() != Token::kLPAREN) {
     ErrorMsg("'(' expected");
   }
-  intptr_t function_pos = TokenPos();
 
   // Check whether we have parsed this closure function before, in a previous
   // compilation. If so, reuse the function object, else create a new one
@@ -5485,12 +5484,14 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   function = current_class().LookupClosureFunction(function_pos);
   if (function.IsNull() || (function.token_pos() != function_pos) ||
       (function.parent_function() != innermost_function().raw())) {
+    // The function will be registered in the lookup table by the
+    // EffectGraphVisitor::VisitClosureNode when the newly allocated closure
+    // function has been properly setup.
     is_new_closure = true;
     function = Function::NewClosureFunction(*function_name,
                                             innermost_function(),
-                                            ident_pos);
+                                            function_pos);
     function.set_result_type(result_type);
-    current_class().AddClosureFunction(function);
   }
 
   // The function type needs to be finalized at compile time, since the closure
@@ -5508,12 +5509,12 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     const Class& unknown_signature_class = Class::Handle(
         Type::Handle(Type::Function()).type_class());
     function_type = Type::New(
-        unknown_signature_class, TypeArguments::Handle(), ident_pos);
+        unknown_signature_class, TypeArguments::Handle(), function_pos);
     function_type.SetIsFinalized();  // No finalization needed.
 
     // Add the function variable to the scope before parsing the function in
     // order to allow self reference from inside the function.
-    function_variable = new LocalVariable(ident_pos,
+    function_variable = new LocalVariable(function_pos,
                                           *variable_name,
                                           function_type);
     function_variable->set_is_final();
@@ -5525,10 +5526,10 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
                                                 true);
       ASSERT(existing_var != NULL);
       if (existing_var->owner() == current_block_->scope) {
-        ErrorMsg(ident_pos, "identifier '%s' already defined",
+        ErrorMsg(function_pos, "identifier '%s' already defined",
                  function_variable->name().ToCString());
       } else {
-        ErrorMsg(ident_pos,
+        ErrorMsg(function_pos,
                  "'%s' from outer scope has already been used, cannot redefine",
                  function_variable->name().ToCString());
       }
@@ -5641,14 +5642,14 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // This pruning is done by omitting to hook the local scope in its parent
   // scope in the constructor of LocalScope.
   AstNode* closure =
-      new ClosureNode(ident_pos, function, NULL, statements->scope());
+      new ClosureNode(function_pos, function, NULL, statements->scope());
 
   if (function_variable == NULL) {
     ASSERT(is_literal);
     return closure;
   } else {
     AstNode* initialization =
-        new StoreLocalNode(ident_pos, function_variable, closure);
+        new StoreLocalNode(function_pos, function_variable, closure);
     return initialization;
   }
 }
