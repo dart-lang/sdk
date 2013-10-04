@@ -6,9 +6,9 @@ library pub_tests;
 
 import 'dart:convert';
 
-import '../descriptor.dart' as d;
-import '../test_pub.dart';
-import 'utils.dart';
+import '../../descriptor.dart' as d;
+import '../../test_pub.dart';
+import '../../serve/utils.dart';
 
 final transformer = """
 import 'dart:async';

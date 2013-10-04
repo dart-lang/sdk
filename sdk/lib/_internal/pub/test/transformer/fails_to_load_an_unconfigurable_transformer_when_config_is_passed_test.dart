@@ -4,30 +4,32 @@
 
 library pub_tests;
 
+import 'package:scheduled_test/scheduled_test.dart';
+
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
-import 'utils.dart';
+import '../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("runs a local transform on the application package", () {
+
+  integration("fails to load an unconfigurable transformer when config is "
+      "passed", () {
     d.dir(appPath, [
       d.pubspec({
         "name": "myapp",
-        "transformers": ["myapp/src/transformer"]
+        "transformers": [{"myapp/src/transformer": {'foo': 'bar'}}]
       }),
       d.dir("lib", [d.dir("src", [
         d.file("transformer.dart", REWRITE_TRANSFORMER)
-      ])]),
-      d.dir("web", [
-        d.file("foo.txt", "foo")
-      ])
+      ])])
     ]).create();
 
     createLockFile('myapp', pkg: ['barback']);
 
-    startPubServe();
-    requestShouldSucceed("foo.out", "foo.out");
-    endPubServe();
+    var pub = startPub(args: ['serve', '--port=0', "--hostname=127.0.0.1"]);
+    expect(pub.nextErrLine(), completion(startsWith('No transformers that '
+        'accept configuration were defined in ')));
+    pub.shouldExit(1);
   });
 }

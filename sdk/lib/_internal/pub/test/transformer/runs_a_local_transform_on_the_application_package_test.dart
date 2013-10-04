@@ -6,33 +6,28 @@ library pub_tests;
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
-import 'utils.dart';
+import '../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("runs a local transform on a dependency", () {
-    d.dir("foo", [
+  integration("runs a local transform on the application package", () {
+    d.dir(appPath, [
       d.pubspec({
-        "name": "foo",
-        "version": "0.0.1",
-        "transformers": ["foo/transformer"]
+        "name": "myapp",
+        "transformers": ["myapp/src/transformer"]
       }),
-      d.dir("lib", [
+      d.dir("lib", [d.dir("src", [
         d.file("transformer.dart", REWRITE_TRANSFORMER)
-      ]),
-      d.dir("asset", [
+      ])]),
+      d.dir("web", [
         d.file("foo.txt", "foo")
       ])
     ]).create();
 
-    d.dir(appPath, [
-      d.appPubspec({"foo": {"path": "../foo"}}),
-    ]).create();
-
-    createLockFile('myapp', sandbox: ['foo'], pkg: ['barback']);
+    createLockFile('myapp', pkg: ['barback']);
 
     startPubServe();
-    requestShouldSucceed("assets/foo/foo.out", "foo.out");
+    requestShouldSucceed("foo.out", "foo.out");
     endPubServe();
   });
 }

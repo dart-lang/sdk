@@ -6,7 +6,7 @@ library pub_tests;
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
-import 'utils.dart';
+import '../serve/utils.dart';
 
 main() {
   initConfig();
