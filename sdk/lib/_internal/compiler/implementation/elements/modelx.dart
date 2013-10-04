@@ -98,6 +98,9 @@ class ElementX implements Element {
   /** See [AmbiguousElement] for documentation. */
   bool isAmbiguous() => false;
 
+  /** See [WarnOnUseElement] for documentation. */
+  bool isWarnOnUse() => false;
+
   /**
    * Is [:true:] if this element has a corresponding patch.
    *
@@ -350,6 +353,66 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   }
 }
 
+/// A message attached to a [WarnOnUseElementX].
+class WrappedMessage {
+  /// The message position. If [:null:] the position of the reference to the
+  /// [WarnOnUseElementX] is used.
+  final Spannable spannable;
+
+  /**
+   * The message to report on resolving a wrapped element.
+   */
+  final MessageKind messageKind;
+
+  /**
+   * The message arguments to report on resolving a wrapped element.
+   */
+  final Map messageArguments;
+
+  WrappedMessage(this.spannable, this.messageKind, this.messageArguments);
+}
+
+/**
+ * An [Element] whose reference should cause one or more warnings.
+ */
+class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
+  /// Warning to report on resolving this element.
+  final WrappedMessage warning;
+
+  /// Info to report on resolving this element.
+  final WrappedMessage info;
+
+  /// The element whose usage cause a warning.
+  final Element wrappedElement;
+
+  WarnOnUseElementX(WrappedMessage this.warning, WrappedMessage this.info,
+                    Element enclosingElement, Element wrappedElement)
+      : this.wrappedElement = wrappedElement,
+        super(wrappedElement.name, ElementKind.WARN_ON_USE, enclosingElement);
+
+  bool isWarnOnUse() => true;
+
+  Element unwrap(DiagnosticListener listener, Spannable usageSpannable) {
+    var unwrapped = wrappedElement;
+    if (warning != null) {
+      Spannable spannable = warning.spannable;
+      if (spannable == null) spannable = usageSpannable;
+      listener.reportWarningCode(
+          spannable, warning.messageKind, warning.messageArguments);
+    }
+    if (info != null) {
+      Spannable spannable = info.spannable;
+      if (spannable == null) spannable = usageSpannable;
+      listener.reportInfo(
+          spannable, info.messageKind, info.messageArguments);
+    }
+    if (unwrapped.isWarnOnUse()) {
+      unwrapped = unwrapped.unwrap(listener, usageSpannable);
+    }
+    return unwrapped;
+  }
+}
+
 /**
  * An ambiguous element represents multiple elements accessible by the same name.
  *
@@ -404,7 +467,7 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
         ? MessageKind.AMBIGUOUS_REEXPORT : MessageKind.AMBIGUOUS_LOCATION;
     LibraryElementX importer = context.getLibrary();
     for (Element element in ambiguousElements) {
-      var arguments = {'element': element};
+      var arguments = {'name': element.name};
       listener.reportInfo(element, code, arguments);
       Link<Import> importers = importer.importers[element];
       listener.withCurrentElement(importer, () {
@@ -667,8 +730,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
    * Adds [element] to the import scope of this library.
    *
    * If an element by the same name is already in the imported scope, an
-   * [ErroneousElement] will be put in the imported scope, allowing for the
-   * detection of ambiguous uses of imported names.
+   * [ErroneousElement] will be put in the imported scope, allowing for detection of ambiguous uses of imported names.
    */
   void addImport(Element element, Import import, DiagnosticListener listener) {
     importers[element] =
@@ -676,31 +738,42 @@ class LibraryElementX extends ElementX implements LibraryElement {
         .prepend(import);
     SourceString name = element.name;
     Element existing = importScope.putIfAbsent(name, () => element);
+
+    Element createWarnOnUseElement(Spannable spannable,
+                                   MessageKind messageKind,
+                                   Element hidingElement,
+                                   Element hiddenElement) {
+        Uri hiddenUri = hiddenElement.getLibrary().canonicalUri;
+        Uri hidingUri = hidingElement.getLibrary().canonicalUri;
+        return new WarnOnUseElementX(
+            new WrappedMessage(
+                null, // Report on reference to [hidingElement].
+                messageKind,
+                {'name': name, 'hiddenUri': hiddenUri, 'hidingUri': hidingUri}),
+            new WrappedMessage(
+                listener.spanFromSpannable(spannable),
+                MessageKind.IMPORTED_HERE,
+                {'name': name}),
+            this, hidingElement);
+    }
+
     if (existing != element) {
-      // TODO(johnniwinther): Only emit these warnings if [element] is used.
       if (existing.getLibrary().isPlatformLibrary &&
           !element.getLibrary().isPlatformLibrary) {
         // [existing] is implicitly hidden.
-        importScope[name] = element;
-        listener.reportWarningCode(import, MessageKind.HIDDEN_IMPORT,
-            {'name': name,
-             'hiddenUri': existing.getLibrary().canonicalUri,
-             'hidingUri': element.getLibrary().canonicalUri});
+        importScope[name] = createWarnOnUseElement(
+            import, MessageKind.HIDDEN_IMPORT, element, existing);
       } else if (!existing.getLibrary().isPlatformLibrary &&
                  element.getLibrary().isPlatformLibrary) {
         // [element] is implicitly hidden.
         if (import == null) {
           // [element] is imported implicitly (probably through dart:core).
-          listener.reportWarningCode(importers[existing].head,
-              MessageKind.HIDDEN_IMPLICIT_IMPORT,
-              {'name': name,
-               'hiddenUri': element.getLibrary().canonicalUri,
-               'hidingUri': existing.getLibrary().canonicalUri});
+          importScope[name] = createWarnOnUseElement(
+              importers[existing].head, MessageKind.HIDDEN_IMPLICIT_IMPORT,
+              existing, element);
         } else {
-          listener.reportWarningCode(import, MessageKind.HIDDEN_IMPORT,
-              {'name': name,
-               'hiddenUri': element.getLibrary().canonicalUri,
-               'hidingUri': existing.getLibrary().canonicalUri});
+          importScope[name] = createWarnOnUseElement(
+              import, MessageKind.HIDDEN_IMPORT, existing, element);
         }
       } else {
         // TODO(johnniwinther): Provide access to the import tags from which

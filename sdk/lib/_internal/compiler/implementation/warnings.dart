@@ -214,7 +214,7 @@ main() => new B();
 import 'dart:async'; // This imports a class Future.
 import 'future.dart';
 
-void main() {}""",
+void main() => new Future();""",
 
 'future.dart':
 """
@@ -228,7 +228,7 @@ class Future {}"""},
 import 'future.dart';
 import 'dart:async'; // This imports a class Future.
 
-void main() {}""",
+void main() => new Future();""",
 
 'future.dart':
 """
@@ -242,7 +242,7 @@ class Future {}"""},
 import 'export.dart';
 import 'dart:async'; // This imports a class Future.
 
-void main() {}""",
+void main() => new Future();""",
 
 'future.dart':
 """
@@ -269,7 +269,7 @@ export 'future.dart';"""}]);
 // This hides the implicit import of class Type from dart:core.
 import 'type.dart';
 
-void main() {}""",
+void main() => new Type();""",
 
 'type.dart':
 """
@@ -987,13 +987,13 @@ Error: '#{value}' is not a valid Symbol name because is not:
 "operator.");
 
   static const MessageKind AMBIGUOUS_REEXPORT = const MessageKind(
-      "Info: '#{element}' is (re)exported by multiple libraries.");
+      "Info: '#{name}' is (re)exported by multiple libraries.");
 
   static const MessageKind AMBIGUOUS_LOCATION = const MessageKind(
-      "Info: '#{element}' is defined here.");
+      "Info: '#{name}' is defined here.");
 
   static const MessageKind IMPORTED_HERE = const MessageKind(
-      "Info: '#{element}' is imported here.");
+      "Info: '#{name}' is imported here.");
 
   static const MessageKind OVERRIDE_EQUALS_NOT_HASH_CODE = const MessageKind(
       "Hint: The class '#{class}' overrides 'operator==', "

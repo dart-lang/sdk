@@ -117,6 +117,8 @@ class ElementKind {
 
   static const ElementKind AMBIGUOUS =
       const ElementKind('ambiguous', ElementCategory.NONE);
+  static const ElementKind WARN_ON_USE =
+      const ElementKind('warn_on_use', ElementCategory.NONE);
   static const ElementKind ERROR =
       const ElementKind('error', ElementCategory.NONE);
 
@@ -203,6 +205,7 @@ abstract class Element implements Spannable {
   bool isLibrary();
   bool isErroneous();
   bool isAmbiguous();
+  bool isWarnOnUse();
 
   bool isTopLevel();
   bool isAssignable();
@@ -260,6 +263,17 @@ class Elements {
     return e == null || e.isErroneous();
   }
   static bool isErroneousElement(Element e) => e != null && e.isErroneous();
+
+  /// Unwraps [element] reporting any warnings attached to it, if any.
+  static Element unwrap(Element element,
+                        DiagnosticListener listener,
+                        Spannable spannable) {
+    if (element != null && element.isWarnOnUse()) {
+      WarnOnUseElement wrappedElement = element;
+      element = wrappedElement.unwrap(listener, spannable);
+    }
+    return element;
+  }
 
   static bool isClass(Element e) => e != null && e.kind == ElementKind.CLASS;
   static bool isTypedef(Element e) {
@@ -581,6 +595,17 @@ class Elements {
 abstract class ErroneousElement extends Element implements FunctionElement {
   MessageKind get messageKind;
   Map get messageArguments;
+}
+
+/// An [Element] whose usage should cause a warning.
+abstract class WarnOnUseElement extends Element {
+  /// The element whose usage cause a warning.
+  Element get wrappedElement;
+
+  /// Reports the attached warning and returns the wrapped element.
+  /// [usageSpannable] is used to report messages on the reference of
+  /// [wrappedElement].
+  Element unwrap(DiagnosticListener listener, Spannable usageSpannable);
 }
 
 abstract class AmbiguousElement extends Element {

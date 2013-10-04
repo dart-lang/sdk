@@ -33,12 +33,12 @@ main() {
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     diagnostics.sort();
     var expected = [
-        "memory:exporter.dart:43:47:Info: 'function(hest)' is defined here."
+        "memory:exporter.dart:43:47:Info: 'hest' is defined here."
         ":info",
-        "memory:library.dart:41:45:Info: 'function(hest)' is defined here."
+        "memory:library.dart:41:45:Info: 'hest' is defined here."
         ":info",
-        "memory:main.dart:0:22:Info: 'function(hest)' is imported here.:info",
-        "memory:main.dart:23:46:Info: 'function(hest)' is imported here.:info",
+        "memory:main.dart:0:22:Info: 'hest' is imported here.:info",
+        "memory:main.dart:23:46:Info: 'hest' is imported here.:info",
         "memory:main.dart:86:90:Error: Duplicate import of 'hest'.:error"
     ];
     Expect.listEquals(expected, diagnostics);

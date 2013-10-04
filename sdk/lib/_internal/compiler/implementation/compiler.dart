@@ -731,7 +731,9 @@ abstract class Compiler implements DiagnosticListener {
     if (node == CURRENT_ELEMENT_SPANNABLE) {
       node = currentElement;
     }
-    if (node is Node) {
+    if (node is SourceSpan) {
+      return node;
+    } else if (node is Node) {
       return spanFromNode(node, uri);
     } else if (node is Token) {
       return spanFromTokens(node, node, uri);
@@ -1530,7 +1532,7 @@ class Tracer {
   }
 }
 
-class SourceSpan {
+class SourceSpan implements Spannable {
   final Uri uri;
   final int begin;
   final int end;

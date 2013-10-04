@@ -797,7 +797,7 @@ class NativeBehavior {
     }
     for (final typeString in specString.split('|')) {
       var type = _parseType(typeString, compiler,
-          (name) => resolver.resolveTypeFromString(name),
+          (name) => resolver.resolveTypeFromString(specLiteral, name),
           jsCall);
       behavior.typesInstantiated.add(type);
       behavior.typesReturned.add(type);

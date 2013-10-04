@@ -1534,10 +1534,10 @@ class TypeResolver {
   TypeResolver(this.compiler);
 
   Element resolveTypeName(Scope scope,
-                          SourceString prefixName,
+                          Identifier prefixName,
                           Identifier typeName) {
     if (prefixName != null) {
-      Element e = scope.lookup(prefixName);
+      Element e = lookupInScope(compiler, prefixName, scope, prefixName.source);
       if (e != null) {
         if (identical(e.kind, ElementKind.PREFIX)) {
           // The receiver is a prefix. Lookup in the imported members.
@@ -1559,7 +1559,7 @@ class TypeResolver {
       } else if (identical(stringValue, 'dynamic')) {
         return compiler.dynamicClass;
       } else {
-        return scope.lookup(typeName.source);
+        return lookupInScope(compiler, typeName, scope, typeName.source);
       }
     }
   }
@@ -1567,11 +1567,11 @@ class TypeResolver {
   DartType resolveTypeAnnotation(MappingVisitor visitor, TypeAnnotation node,
                                  {bool malformedIsError: false}) {
     Identifier typeName;
-    SourceString prefixName;
+    Identifier prefixName;
     Send send = node.typeName.asSend();
     if (send != null) {
       // The type name is of the form [: prefix . identifier :].
-      prefixName = send.receiver.asIdentifier().source;
+      prefixName = send.receiver.asIdentifier();
       typeName = send.selector.asIdentifier();
     } else {
       typeName = node.typeName.asIdentifier();
@@ -1972,7 +1972,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       return null;
     } else {
       SourceString name = node.source;
-      Element element = scope.lookup(name);
+      Element element = lookupInScope(compiler, node, scope, name);
       if (Elements.isUnresolved(element) && name.slowToString() == 'dynamic') {
         element = compiler.dynamicClass;
       }
@@ -2527,8 +2527,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   /// Callback for native enqueuer to parse a type.  Returns [:null:] on error.
-  DartType resolveTypeFromString(String typeName) {
-    Element element = scope.lookup(new SourceString(typeName));
+  DartType resolveTypeFromString(Node node, String typeName) {
+    Element element = lookupInScope(compiler, node,
+                                    scope, new SourceString(typeName));
     if (element == null) return null;
     if (element is! ClassElement) return null;
     ClassElement cls = element;
@@ -4002,7 +4003,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   }
 
   void visitIdentifier(Identifier node) {
-    Element element = context.lookup(node.source);
+    Element element = lookupInScope(compiler, node, context, node.source);
     if (element == null) {
       compiler.reportError(
           node, MessageKind.CANNOT_RESOLVE_TYPE.error, {'typeName': node});
@@ -4023,7 +4024,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
       error(node.receiver, MessageKind.NOT_A_PREFIX, {'node': node.receiver});
       return;
     }
-    Element element = context.lookup(prefix.source);
+    Element element = lookupInScope(compiler, prefix, context, prefix.source);
     if (element == null || !identical(element.kind, ElementKind.PREFIX)) {
       error(node.receiver, MessageKind.NOT_A_PREFIX, {'node': node.receiver});
       return;
@@ -4492,7 +4493,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   Element visitIdentifier(Identifier node) {
     SourceString name = node.source;
     Element e = resolver.reportLookupErrorIfAny(
-        resolver.scope.lookup(name), node, name);
+        lookupInScope(compiler, node, resolver.scope, name), node, name);
     // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
     if (e == null) {
       return failOrReturnErroneousElement(resolver.enclosingElement, node, name,
@@ -4519,4 +4520,10 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     return finishConstructorReference(visit(expression),
                                       expression, expression);
   }
+}
+
+/// Looks up [name] in [scope] and unwraps the result.
+Element lookupInScope(Compiler compiler, Node node,
+                      Scope scope, SourceString name) {
+  return Elements.unwrap(scope.lookup(name), compiler, node);
 }
