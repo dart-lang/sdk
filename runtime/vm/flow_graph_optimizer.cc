@@ -989,7 +989,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
                                 call->deopt_id());
   flow_graph()->AppendTo(cursor,
                          *last,
-                         NULL,
+                         call->env(),
                          Definition::kEffect);
   return true;
 }
