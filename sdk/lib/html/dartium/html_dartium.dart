@@ -51,6 +51,8 @@ import 'dart:web_audio' as web_audio;
 // native code for custom elements.
 // Not actually used, but imported since dart:html can generate these objects.
 
+export 'dart:math' show Rectangle, RectangleBase, Point;
+
 
 
 
@@ -1922,19 +1924,19 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
    *     img.height = 100;
    *
    *     // Scale the image to 20x20.
-   *     ctx.drawImageToRect(img, new Rect(50, 50, 20, 20));
+   *     ctx.drawImageToRect(img, new Rectangle(50, 50, 20, 20));
    *
    *     VideoElement video = document.query('video');
    *     video.width = 100;
    *     video.height = 100;
    *     // Take the middle 20x20 pixels from the video and stretch them.
-   *     ctx.drawImageToRect(video, new Rect(50, 50, 100, 100),
-   *         sourceRect: new Rect(40, 40, 20, 20));
+   *     ctx.drawImageToRect(video, new Rectangle(50, 50, 100, 100),
+   *         sourceRect: new Rectangle(40, 40, 20, 20));
    *
    *     // Draw the top 100x20 pixels from the otherCanvas.
    *     CanvasElement otherCanvas = document.query('canvas');
-   *     ctx.drawImageToRect(otherCanvas, new Rect(0, 0, 100, 20),
-   *         sourceRect: new Rect(0, 0, 100, 20));
+   *     ctx.drawImageToRect(otherCanvas, new Rectangle(0, 0, 100, 20),
+   *         sourceRect: new Rectangle(0, 0, 100, 20));
    *
    * See also:
    *
@@ -1944,8 +1946,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
    * from the WHATWG.
    */
   @DomName('CanvasRenderingContext2D.drawImage')
-  void drawImageToRect(CanvasImageSource source, Rect destRect,
-      {Rect sourceRect}) {
+  void drawImageToRect(CanvasImageSource source, Rectangle destRect,
+      {Rectangle sourceRect}) {
     if (sourceRect == null) {
       _drawImage(source,
           destRect.left,
@@ -9796,12 +9798,14 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   /**
    * Gets the position of this element relative to the client area of the page.
    */
-  Rect get client => new Rect(clientLeft, clientTop, clientWidth, clientHeight);
+  Rectangle get client => new Rectangle(clientLeft, clientTop, clientWidth, 
+      clientHeight);
 
   /**
    * Gets the offset of this element relative to its offsetParent.
    */
-  Rect get offset => new Rect(offsetLeft, offsetTop, offsetWidth, offsetHeight);
+  Rectangle get offset => new Rectangle(offsetLeft, offsetTop, offsetWidth, 
+      offsetHeight);
 
   /**
    * Adds the specified text after the last child of this element.
@@ -10735,11 +10739,11 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
-  Rect getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
+  Rectangle getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
 
   @DomName('Element.getClientRects')
   @DocsEditable()
-  List<Rect> getClientRects() native "Element_getClientRects_Callback";
+  List<Rectangle> getClientRects() native "Element_getClientRects_Callback";
 
   @DomName('Element.getDestinationInsertionPoints')
   @DocsEditable()
@@ -21567,11 +21571,11 @@ class Range extends NativeFieldWrapperClass1 {
 
   @DomName('Range.getBoundingClientRect')
   @DocsEditable()
-  Rect getBoundingClientRect() native "Range_getBoundingClientRect_Callback";
+  Rectangle getBoundingClientRect() native "Range_getBoundingClientRect_Callback";
 
   @DomName('Range.getClientRects')
   @DocsEditable()
-  List<Rect> getClientRects() native "Range_getClientRects_Callback";
+  List<Rectangle> getClientRects() native "Range_getClientRects_Callback";
 
   @DomName('Range.insertNode')
   @DocsEditable()
@@ -22372,7 +22376,7 @@ class Screen extends NativeFieldWrapperClass1 {
   @DomName('Screen.availLeft')
   @DomName('Screen.availTop')
   @DomName('Screen.availWidth')
-  Rect get available => new Rect(_availLeft, _availTop, _availWidth,
+  Rectangle get available => new Rectangle(_availLeft, _availTop, _availWidth,
       _availHeight);
 
   @DomName('Screen.availHeight')
@@ -26547,13 +26551,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -28919,38 +28923,41 @@ abstract class _CSSValue extends NativeFieldWrapperClass1 {
 
 @DocsEditable()
 @DomName('ClientRect')
-class _ClientRect extends NativeFieldWrapperClass1 implements Rect {
+class _ClientRect extends NativeFieldWrapperClass1 implements Rectangle {
 
-  // NOTE! All code below should be common with Rect.
-  // TODO(blois): implement with mixins when available.
-
-  String toString() {
-    return '($left, $top, $width, $height)';
+  // NOTE! All code below should be common with RectangleBase.
+   String toString() {
+    return 'Rectangle ($left, $top) $width x $height';
   }
 
   bool operator ==(other) {
-    if (other is !Rect) return false;
+    if (other is !Rectangle) return false;
     return left == other.left && top == other.top && width == other.width &&
         height == other.height;
   }
 
-  int get hashCode => JenkinsSmiHash.hash4(left.hashCode, top.hashCode,
+  int get hashCode => _JenkinsSmiHash.hash4(left.hashCode, top.hashCode,
       width.hashCode, height.hashCode);
 
   /**
-   * Computes the intersection of this rectangle and the rectangle parameter.
-   * Returns null if there is no intersection.
+   * Computes the intersection of `this` and [other].
+   *
+   * The intersection of two axis-aligned rectangles, if any, is always another
+   * axis-aligned rectangle.
+   *
+   * Returns the intersection of this and `other`, or `null` if they don't
+   * intersect.
    */
-  Rect intersection(Rect rect) {
-    var x0 = max(left, rect.left);
-    var x1 = min(left + width, rect.left + rect.width);
+  Rectangle intersection(Rectangle other) {
+    var x0 = max(left, other.left);
+    var x1 = min(left + width, other.left + other.width);
 
     if (x0 <= x1) {
-      var y0 = max(top, rect.top);
-      var y1 = min(top + height, rect.top + rect.height);
+      var y0 = max(top, other.top);
+      var y1 = min(top + height, other.top + other.height);
 
       if (y0 <= y1) {
-        return new Rect(x0, y0, x1 - x0, y1 - y0);
+        return new Rectangle(x0, y0, x1 - x0, y1 - y0);
       }
     }
     return null;
@@ -28958,31 +28965,32 @@ class _ClientRect extends NativeFieldWrapperClass1 implements Rect {
 
 
   /**
-   * Returns whether a rectangle intersects this rectangle.
+   * Returns true if `this` intersects [other].
    */
-  bool intersects(Rect other) {
-    return (left <= other.left + other.width && other.left <= left + width &&
-        top <= other.top + other.height && other.top <= top + height);
+  bool intersects(Rectangle<num> other) {
+    return (left <= other.left + other.width &&
+        other.left <= left + width &&
+        top <= other.top + other.height &&
+        other.top <= top + height);
   }
 
   /**
-   * Returns a new rectangle which completely contains this rectangle and the
-   * input rectangle.
+   * Returns a new rectangle which completely contains `this` and [other].
    */
-  Rect union(Rect rect) {
-    var right = max(this.left + this.width, rect.left + rect.width);
-    var bottom = max(this.top + this.height, rect.top + rect.height);
+  Rectangle boundingBox(Rectangle other) {
+    var right = max(this.left + this.width, other.left + other.width);
+    var bottom = max(this.top + this.height, other.top + other.height);
 
-    var left = min(this.left, rect.left);
-    var top = min(this.top, rect.top);
+    var left = min(this.left, other.left);
+    var top = min(this.top, other.top);
 
-    return new Rect(left, top, right - left, bottom - top);
+    return new Rectangle(left, top, right - left, bottom - top);
   }
 
   /**
-   * Tests whether this rectangle entirely contains another rectangle.
+   * Tests whether `this` entirely contains [another].
    */
-  bool containsRect(Rect another) {
+  bool contains(Rectangle<num> another) {
     return left <= another.left &&
            left + width >= another.left + another.width &&
            top <= another.top &&
@@ -28990,32 +28998,23 @@ class _ClientRect extends NativeFieldWrapperClass1 implements Rect {
   }
 
   /**
-   * Tests whether this rectangle entirely contains a point.
+   * Tests whether [another] is inside or along the edges of `this`.
    */
-  bool containsPoint(Point another) {
+  bool containsPoint(Point<num> another) {
     return another.x >= left &&
            another.x <= left + width &&
            another.y >= top &&
            another.y <= top + height;
   }
 
-  Rect ceil() => new Rect(left.ceil(), top.ceil(), width.ceil(), height.ceil());
-  Rect floor() => new Rect(left.floor(), top.floor(), width.floor(),
-      height.floor());
-  Rect round() => new Rect(left.round(), top.round(), width.round(),
-      height.round());
-
-  /**
-   * Truncates coordinates to integers and returns the result as a new
-   * rectangle.
-   */
-  Rect toInt() => new Rect(left.toInt(), top.toInt(), width.toInt(),
-      height.toInt());
-
   Point get topLeft => new Point(this.left, this.top);
+  Point get topRight => new Point(this.left + this.width, this.top);
   Point get bottomRight => new Point(this.left + this.width,
       this.top + this.height);
+  Point get bottomLeft => new Point(this.left,
+      this.top + this.height);
 
+  
   @DomName('ClientRect.bottom')
   @DocsEditable()
   double get bottom native "ClientRect_bottom_Getter";
@@ -29040,6 +29039,43 @@ class _ClientRect extends NativeFieldWrapperClass1 implements Rect {
   @DocsEditable()
   double get width native "ClientRect_width_Getter";
 }
+
+/**
+ * This is the [Jenkins hash function][1] but using masking to keep
+ * values in SMI range.
+ *
+ * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
+ *
+ * Use:
+ * Hash each value with the hash of the previous value, then get the final
+ * hash by calling finish.
+ *
+ *     var hash = 0;
+ *     for (var value in values) {
+ *       hash = JenkinsSmiHash.combine(hash, value.hashCode);
+ *     }
+ *     hash = JenkinsSmiHash.finish(hash);
+ */
+class _JenkinsSmiHash {
+  // TODO(11617): This class should be optimized and standardized elsewhere.
+
+  static int combine(int hash, int value) {
+    hash = 0x1fffffff & (hash + value);
+    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+    return hash ^ (hash >> 6);
+  }
+
+  static int finish(int hash) {
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) <<  3));
+    hash = hash ^ (hash >> 11);
+    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  }
+
+  static int hash2(a, b) => finish(combine(combine(0, a), b));
+
+  static int hash4(a, b, c, d) =>
+      finish(combine(combine(combine(combine(0, a), b), c), d));
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29049,38 +29085,38 @@ class _ClientRect extends NativeFieldWrapperClass1 implements Rect {
 
 @DocsEditable()
 @DomName('ClientRectList')
-class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, ImmutableListMixin<Rect> implements List<Rect> {
+class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle> {
 
   @DomName('ClientRectList.length')
   @DocsEditable()
   int get length native "ClientRectList_length_Getter";
 
-  Rect operator[](int index) {
+  Rectangle operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
     return _nativeIndexedGetter(index);
   }
-  Rect _nativeIndexedGetter(int index) native "ClientRectList_item_Callback";
+  Rectangle _nativeIndexedGetter(int index) native "ClientRectList_item_Callback";
 
-  void operator[]=(int index, Rect value) {
+  void operator[]=(int index, Rectangle value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<Rect> mixins.
-  // Rect is the element type.
+  // -- start List<Rectangle> mixins.
+  // Rectangle is the element type.
 
 
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
-  Rect get first {
+  Rectangle get first {
     if (this.length > 0) {
       return _nativeIndexedGetter(0);
     }
     throw new StateError("No elements");
   }
 
-  Rect get last {
+  Rectangle get last {
     int len = this.length;
     if (len > 0) {
       return _nativeIndexedGetter(len - 1);
@@ -29088,7 +29124,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, Imm
     throw new StateError("No elements");
   }
 
-  Rect get single {
+  Rectangle get single {
     int len = this.length;
     if (len == 1) {
       return _nativeIndexedGetter(0);
@@ -29097,12 +29133,12 @@ class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, Imm
     throw new StateError("More than one element");
   }
 
-  Rect elementAt(int index) => this[index];
-  // -- end List<Rect> mixins.
+  Rectangle elementAt(int index) => this[index];
+  // -- end List<Rectangle> mixins.
 
   @DomName('ClientRectList.item')
   @DocsEditable()
-  Rect item(int index) native "ClientRectList_item_Callback";
+  Rectangle item(int index) native "ClientRectList_item_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30861,18 +30897,19 @@ class _MarginCssRect extends CssRect {
 /**
  * A class for representing CSS dimensions.
  *
- * In contrast to the more general purpose [Rect] class, this class's values are
- * mutable, so one can change the height of an element programmatically.
+ * In contrast to the more general purpose [Rectangle] class, this class's
+ * values are mutable, so one can change the height of an element
+ * programmatically.
  *
  * _Important_ _note_: use of these methods will perform CSS calculations that
  * can trigger a browser reflow. Therefore, use of these properties _during_ an
  * animation frame is discouraged. See also:
  * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
  */
-abstract class CssRect extends RectBase implements Rect {
+abstract class CssRect extends MutableRectangle<num> implements Rectangle<num> {
   Element _element;
 
-  CssRect(this._element);
+  CssRect(this._element) : super(0, 0, 0, 0);
 
   num get left;
 
@@ -33377,7 +33414,7 @@ abstract class _MicrotaskScheduler {
  * Scheduler which uses window.postMessage to schedule events.
  */
 class _PostMessageScheduler extends _MicrotaskScheduler {
-  const _MICROTASK_MESSAGE = "DART-MICROTASK";
+  final _MICROTASK_MESSAGE = "DART-MICROTASK";
 
   _PostMessageScheduler(_MicrotaskCallback callback): super(callback) {
       // Messages from other windows do not cause a security risk as
@@ -33937,77 +33974,6 @@ class _SvgNodeValidator implements NodeValidator {
     return allowsElement(element);
   }
 }
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * A utility class for representing two-dimensional positions.
- */
-class Point {
-  final num x;
-  final num y;
-
-  const Point([num x = 0, num y = 0]): x = x, y = y;
-
-  String toString() => '($x, $y)';
-
-  bool operator ==(other) {
-    if (other is !Point) return false;
-    return x == other.x && y == other.y;
-  }
-
-  int get hashCode => JenkinsSmiHash.hash2(x.hashCode, y.hashCode);
-
-  Point operator +(Point other) {
-    return new Point(x + other.x, y + other.y);
-  }
-
-  Point operator -(Point other) {
-    return new Point(x - other.x, y - other.y);
-  }
-
-  Point operator *(num factor) {
-    return new Point(x * factor, y * factor);
-  }
-
-  /**
-   * Get the straight line (Euclidean) distance between the origin (0, 0) and
-   * this point.
-   */
-  num get magnitude => sqrt(x * x + y * y);
-
-  /**
-   * Returns the distance between two points.
-   */
-  double distanceTo(Point other) {
-    var dx = x - other.x;
-    var dy = y - other.y;
-    return sqrt(dx * dx + dy * dy);
-  }
-
-  /**
-   * Returns the squared distance between two points.
-   *
-   * Squared distances can be used for comparisons when the actual value is not
-   * required.
-   */
-  num squaredDistanceTo(Point other) {
-    var dx = x - other.x;
-    var dy = y - other.y;
-    return dx * dx + dy * dy;
-  }
-
-  Point ceil() => new Point(x.ceil(), y.ceil());
-  Point floor() => new Point(x.floor(), y.floor());
-  Point round() => new Point(x.round(), y.round());
-
-  /**
-   * Truncates x and y to integers and returns the result as a new point.
-   */
-  Point toInt() => new Point(x.toInt(), y.toInt());
-}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -34032,163 +33998,6 @@ abstract class ReadyState {
    * Indicates the document and all subresources have been loaded.
    */
   static const String COMPLETE = "complete";
-}
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * A base class for representing two-dimensional rectangles. This will hopefully
- * be moved merged with the dart:math Rect.
- */
-// TODO(efortuna): Merge with Math rect after finalizing with Florian.
-abstract class RectBase {
-  //  Not used, but keeps the VM from complaining about Rect having a const
-  // constructor and this one not.
-  const RectBase();
-
-  num get left;
-  num get top;
-  num get width;
-  num get height;
-
-  num get right => left + width;
-  num get bottom => top + height;
-
-  // NOTE! All code below should be common with Rect.
-
-  String toString() {
-    return '($left, $top, $width, $height)';
-  }
-
-  bool operator ==(other) {
-    if (other is !Rect) return false;
-    return left == other.left && top == other.top && width == other.width &&
-        height == other.height;
-  }
-
-  int get hashCode => JenkinsSmiHash.hash4(left.hashCode, top.hashCode,
-      width.hashCode, height.hashCode);
-
-  /**
-   * Computes the intersection of this rectangle and the rectangle parameter.
-   * Returns null if there is no intersection.
-   */
-  Rect intersection(Rect rect) {
-    var x0 = max(left, rect.left);
-    var x1 = min(left + width, rect.left + rect.width);
-
-    if (x0 <= x1) {
-      var y0 = max(top, rect.top);
-      var y1 = min(top + height, rect.top + rect.height);
-
-      if (y0 <= y1) {
-        return new Rect(x0, y0, x1 - x0, y1 - y0);
-      }
-    }
-    return null;
-  }
-
-
-  /**
-   * Returns whether a rectangle intersects this rectangle.
-   */
-  bool intersects(Rect other) {
-    return (left <= other.left + other.width && other.left <= left + width &&
-        top <= other.top + other.height && other.top <= top + height);
-  }
-
-  /**
-   * Returns a new rectangle which completely contains this rectangle and the
-   * input rectangle.
-   */
-  Rect union(Rect rect) {
-    var right = max(this.left + this.width, rect.left + rect.width);
-    var bottom = max(this.top + this.height, rect.top + rect.height);
-
-    var left = min(this.left, rect.left);
-    var top = min(this.top, rect.top);
-
-    return new Rect(left, top, right - left, bottom - top);
-  }
-
-  /**
-   * Tests whether this rectangle entirely contains another rectangle.
-   */
-  bool containsRect(Rect another) {
-    return left <= another.left &&
-           left + width >= another.left + another.width &&
-           top <= another.top &&
-           top + height >= another.top + another.height;
-  }
-
-  /**
-   * Tests whether this rectangle entirely contains a point.
-   */
-  bool containsPoint(Point another) {
-    return another.x >= left &&
-           another.x <= left + width &&
-           another.y >= top &&
-           another.y <= top + height;
-  }
-
-  Rect ceil() => new Rect(left.ceil(), top.ceil(), width.ceil(), height.ceil());
-  Rect floor() => new Rect(left.floor(), top.floor(), width.floor(),
-      height.floor());
-  Rect round() => new Rect(left.round(), top.round(), width.round(),
-      height.round());
-
-  /**
-   * Truncates coordinates to integers and returns the result as a new
-   * rectangle.
-   */
-  Rect toInt() => new Rect(left.toInt(), top.toInt(), width.toInt(),
-      height.toInt());
-
-  Point get topLeft => new Point(this.left, this.top);
-  Point get bottomRight => new Point(this.left + this.width,
-      this.top + this.height);
-}
-
-
-
-/**
- * A class for representing two-dimensional rectangles.
- *
- * This class is distinctive from RectBase in that it enforces that its
- * properties are immutable.
- */
-class Rect extends RectBase {
-  final num left;
-  final num top;
-  final num width;
-  final num height;
-
-  const Rect(this.left, this.top, this.width, this.height): super();
-
-  factory Rect.fromPoints(Point a, Point b) {
-    var left;
-    var width;
-    if (a.x < b.x) {
-      left = a.x;
-      width = b.x - left;
-    } else {
-      left = b.x;
-      width = a.x - left;
-    }
-    var top;
-    var height;
-    if (a.y < b.y) {
-      top = a.y;
-      height = b.y - top;
-    } else {
-      top = b.y;
-      height = a.y - top;
-    }
-
-    return new Rect(left, top, width, height);
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35038,7 +34847,6 @@ class _Utils {
 
   static window() native "Utils_window";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
-  static void spawnDomFunction(Function f, int replyTo) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
 
   // The following methods were added for debugger integration to make working
@@ -35072,6 +34880,15 @@ class _Utils {
   }
 
   static _ConsoleVariables _consoleTempVariables = new _ConsoleVariables();
+
+  /**
+   * Header passed in from the Dartium Developer Tools when an expression is
+   * evaluated in the console as opposed to the watch window or another context
+   * that does not expect REPL support.
+   */
+  static const _CONSOLE_API_SUPPORT_HEADER =
+      'with ((this && this.console && this.console._commandLineAPI) || {}) {\n';
+
   /**
    * Takes an [expression] and a list of [local] variable and returns an
    * expression for a closure with a body matching the original expression
@@ -35082,11 +34899,22 @@ class _Utils {
    * with the list of arguments passed to this method.
    *
    * For example:
-   * <code>wrapExpressionAsClosure("foo + bar", ["bar", 40, "foo", 2])</code>
+   * <code>
+   * _consoleTempVariables = {'a' : someValue, 'b': someOtherValue}
+   * wrapExpressionAsClosure("${_CONSOLE_API_SUPPORT_HEADER}foo + bar + a",
+   *                         ["bar", 40, "foo", 2])
+   * </code>
    * will return:
-   * <code>["(final $var, final bar, final foo) => foo + bar", [40, 2]]</code>
+   * <code>
+   * ["""(final $consoleVariables, final bar, final foo, final a, final b) =>
+   * (foo + bar + a
+   * )""",
+   * [_consoleTempVariables, 40, 2, someValue, someOtherValue]]
+   * </code>
    */
   static List wrapExpressionAsClosure(String expression, List locals) {
+    // FIXME: dartbug.com/10434 find a less fragile way to determine whether
+    // we need to strip off console API support added by InjectedScript.
     var args = {};
     var sb = new StringBuffer("(");
     addArg(arg, value) {
@@ -35105,13 +34933,108 @@ class _Utils {
       args[arg] = value;
     }
 
-    addArg("\$var", _consoleTempVariables);
+    if (expression.indexOf(_CONSOLE_API_SUPPORT_HEADER) == 0) {
+      expression = expression.substring(expression.indexOf('\n') + 1);
+      expression = expression.substring(0, expression.lastIndexOf('\n'));
 
-    for (int i = 0; i < locals.length; i+= 2) {
-      addArg(locals[i], locals[i+1]);
+      addArg("\$consoleVariables", _consoleTempVariables);
+
+      // FIXME: use a real Dart tokenizer. The following regular expressions
+      // only allow setting variables at the immediate start of the expression
+      // to limit the number of edge cases we have to handle.
+
+      // Match expressions that start with "var x"
+      final _VARIABLE_DECLARATION = new RegExp("^(\\s*)var\\s+(\\w+)");
+      // Match expressions that start with "someExistingConsoleVar ="
+      final _SET_VARIABLE = new RegExp("^(\\s*)(\\w+)(\\s*=)");
+      // Match trailing semicolons.
+      final _ENDING_SEMICOLONS = new RegExp("(;\\s*)*\$");
+      expression = expression.replaceAllMapped(_VARIABLE_DECLARATION,
+          (match) {
+            var variableName = match[2];
+            // Set the console variable if it isn't already set.
+            if (!_consoleTempVariables._data.containsKey(variableName)) {
+              _consoleTempVariables._data[variableName] = null;
+            }
+            return "${match[1]}\$consoleVariables.${variableName}";
+          });
+
+      expression = expression.replaceAllMapped(_SET_VARIABLE,
+          (match) {
+            var variableName = match[2];
+            // Only rewrite if the name matches an existing console variable.
+            if (_consoleTempVariables._data.containsKey(variableName)) {
+              return "${match[1]}\$consoleVariables.${variableName}${match[3]}";
+            } else {
+              return match[0];
+            }
+          });
+
+      // We only allow dart expressions not Dart statements. Silently remove
+      // trailing semicolons the user might have added by accident to reduce the
+      // number of spurious compile errors.
+      expression = expression.replaceFirst(_ENDING_SEMICOLONS, "");
     }
-    sb..write(')=>\n$expression');
+
+    if (locals != null) {
+      for (int i = 0; i < locals.length; i+= 2) {
+        addArg(locals[i], locals[i+1]);
+      }
+    }
+    // Inject all the already defined console variables.
+    _consoleTempVariables._data.forEach(addArg);
+    
+    // TODO(jacobr): remove the parentheses around the expresson once
+    // dartbug.com/13723 is fixed. Currently we wrap expression in parentheses
+    // to ensure only valid Dart expressions are allowed. Otherwise the DartVM
+    // quietly ignores trailing Dart statements resulting in user confusion
+    // when part of an invalid expression they entered is ignored.
+    sb..write(') => (\n$expression\n)');
     return [sb.toString(), args.values.toList(growable: false)];
+  }
+
+  /**
+   * TODO(jacobr): this is a big hack to get around the fact that we are still
+   * passing some JS expression to the evaluate method even when in a Dart
+   * context.
+   */
+  static bool isJsExpression(String expression) =>
+    expression.startsWith("(function getCompletions");
+
+  /**
+   * Returns a list of completions to use if the receiver is o.
+   */
+  static List<String> getCompletions(o) {
+    MirrorSystem system = currentMirrorSystem(); 
+    var completions = new Set<String>();
+    addAll(Map<Symbol, dynamic> map, bool isStatic) {
+      map.forEach((symbol, mirror) {
+        if (mirror.isStatic == isStatic && !mirror.isPrivate) {
+          var name = MirrorSystem.getName(symbol);
+          if (mirror is MethodMirror && mirror.isSetter)
+            name = name.substring(0, name.length - 1);
+          completions.add(name);
+        }
+      });
+    }
+
+    addForClass(ClassMirror mirror, bool isStatic) {
+      if (mirror == null)
+        return;
+      addAll(mirror.members, isStatic);
+      if (mirror.superclass != null)
+        addForClass(mirror.superclass, isStatic);
+      for (var interface in mirror.superinterfaces) {
+        addForClass(interface, isStatic);
+      }
+    }
+    
+    if (o is Type) {
+      addForClass(reflectClass(o), true);
+    } else {
+      addForClass(reflect(o).type, false);
+    }
+    return completions.toList(growable: false);
   }
 
   /**
@@ -35297,79 +35220,10 @@ class _DOMStringMap extends NativeFieldWrapperClass1 implements Map<String, Stri
   bool get isNotEmpty => Maps.isNotEmpty(this);
 }
 
-// TODO(vsm): Remove DOM isolate code.  This is only used to support
-// printing and timers in background isolates.  Background isolates
-// should just forward to the main DOM isolate instead of requiring a
-// special DOM isolate.
-
-_makeSendPortFuture(spawnRequest) {
-  final completer = new Completer<SendPort>.sync();
-  final port = new ReceivePort();
-  port.receive((result, _) {
-    completer.complete(result);
-    port.close();
-  });
-  // TODO: SendPort.hashCode is ugly way to access port id.
-  spawnRequest(port.toSendPort().hashCode);
-  return completer.future;
-}
-
-Future<SendPort> _spawnDomFunction(Function f) =>
-    _makeSendPortFuture((portId) { _Utils.spawnDomFunction(f, portId); });
-
-final Future<SendPort> __HELPER_ISOLATE_PORT =
-    _spawnDomFunction(_helperIsolateMain);
-
-// Tricky part.
-// Once __HELPER_ISOLATE_PORT gets resolved, it will still delay in .then
-// and to delay Timer.run is used. However, Timer.run will try to register
-// another Timer and here we got stuck: event cannot be posted as then
-// callback is not executed because it's delayed with timer.
-// Therefore once future is resolved, it's unsafe to call .then on it
-// in Timer code.
-SendPort __SEND_PORT;
-
-_sendToHelperIsolate(msg, SendPort replyTo) {
-  if (__SEND_PORT != null) {
-    __SEND_PORT.send(msg, replyTo);
-  } else {
-    __HELPER_ISOLATE_PORT.then((port) {
-      __SEND_PORT = port;
-      __SEND_PORT.send(msg, replyTo);
-    });
-  }
-}
-
-final _TIMER_REGISTRY = new Map<SendPort, Timer>();
-
-const _NEW_TIMER = 'NEW_TIMER';
-const _CANCEL_TIMER = 'CANCEL_TIMER';
-const _TIMER_PING = 'TIMER_PING';
-const _PRINT = 'PRINT';
-
-_helperIsolateMain() {
-  port.receive((msg, replyTo) {
-    final cmd = msg[0];
-    if (cmd == _NEW_TIMER) {
-      final duration = new Duration(milliseconds: msg[1]);
-      bool periodic = msg[2];
-      ping() { replyTo.send(_TIMER_PING); };
-      _TIMER_REGISTRY[replyTo] = periodic ?
-          new Timer.periodic(duration, (_) { ping(); }) :
-          new Timer(duration, ping);
-    } else if (cmd == _CANCEL_TIMER) {
-      _TIMER_REGISTRY.remove(replyTo).cancel();
-    } else if (cmd == _PRINT) {
-      final message = msg[1];
-      // TODO(antonm): we need somehow identify those isolates.
-      print('[From isolate] $message');
-    }
-  });
-}
-
 final _printClosure = window.console.log;
 final _pureIsolatePrintClosure = (s) {
-  _sendToHelperIsolate([_PRINT, s], null);
+  throw new UnimplementedError("Printing from a background isolate "
+                               "is not supported in the browser");
 };
 
 final _forwardingPrintClosure = _Utils.forwardingPrint;
@@ -35408,46 +35262,10 @@ get _timerFactoryClosure =>
   return new _Timer(milliSeconds, callback, repeating);
 };
 
-
-class _PureIsolateTimer implements Timer {
-  bool _isActive = true;
-  final ReceivePort _port = new ReceivePort();
-  SendPort _sendPort; // Effectively final.
-
-  static SendPort _SEND_PORT;
-
-  _PureIsolateTimer(int milliSeconds, callback, repeating) {
-    _sendPort = _port.toSendPort();
-    _port.receive((msg, replyTo) {
-      assert(msg == _TIMER_PING);
-      _isActive = repeating;
-      callback(this);
-      if (!repeating) _cancel();
-    });
-
-    _send([_NEW_TIMER, milliSeconds, repeating]);
-  }
-
-  void cancel() {
-    _cancel();
-    _send([_CANCEL_TIMER]);
-  }
-
-  void _cancel() {
-    _isActive = false;
-    _port.close();
-  }
-
-  _send(msg) {
-    _sendToHelperIsolate(msg, _sendPort);
-  }
-
-  bool get isActive => _isActive;
-}
-
 get _pureIsolateTimerFactoryClosure =>
     ((int milliSeconds, void callback(Timer time), bool repeating) =>
-        new _PureIsolateTimer(milliSeconds, callback, repeating));
+  throw new UnimplementedError("Timers on background isolates "
+                               "are not supported in the browser"));
 
 void _initializeCustomElement(Element e) {
   _Utils.initializeCustomElement(e);

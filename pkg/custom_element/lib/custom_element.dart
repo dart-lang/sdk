@@ -481,7 +481,7 @@ class CustomElement implements Element {
   @deprecated
   int get clientWidth => client.width;
 
-  Rect get client => host.client;
+  Rectangle get client => host.client;
 
   @deprecated
   int get offsetHeight => offset.height;
@@ -495,7 +495,7 @@ class CustomElement implements Element {
   @deprecated
   int get offsetWidth => offset.width;
 
-  Rect get offset => host.offset;
+  Rectangle get offset => host.offset;
 
   int get scrollHeight => host.scrollHeight;
 
@@ -509,9 +509,9 @@ class CustomElement implements Element {
 
   int get scrollWidth => host.scrollWidth;
 
-  Rect getBoundingClientRect() => host.getBoundingClientRect();
+  Rectangle getBoundingClientRect() => host.getBoundingClientRect();
 
-  List<Rect> getClientRects() => host.getClientRects();
+  List<Rectangle> getClientRects() => host.getClientRects();
 
   List<Node> getElementsByClassName(String name) =>
       host.getElementsByClassName(name);

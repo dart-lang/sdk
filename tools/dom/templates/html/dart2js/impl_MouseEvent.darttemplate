@@ -69,7 +69,8 @@ $!MEMBERS
             'offsetX is only supported on elements');
       }
       Element target = this.target;
-      return (this.client - target.getBoundingClientRect().topLeft).toInt();
+      var point = (this.client - target.getBoundingClientRect().topLeft);
+      return new Point(point.x.toInt(), point.y.toInt());
     }
   }
 

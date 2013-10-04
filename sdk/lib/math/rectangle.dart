@@ -1,14 +1,29 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+part of dart.math;
 
-part of $LIBRARYNAME;
+/**
+ * A base class for representing two-dimensional axis-aligned rectangles.
+ */
+abstract class _RectangleBase<T extends num> {
+  const _RectangleBase();
 
-@DocsEditable()
-$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements Rectangle$IMPLEMENTS$NATIVESPEC {
+  /** The x-coordinate of the left edge. */
+  T get left;
+  /** The y-coordinate of the top edge. */
+  T get top;
+  /** The `width` of the rectangle. */
+  T get width;
+  /** The `height` of the rectangle. */
+  T get height;
 
-  // NOTE! All code below should be common with RectangleBase.
-   String toString() {
+  /** The x-coordinate of the right edge. */
+  T get right => left + width;
+  /** The y-coordinate of the bottom edge. */
+  T get bottom => top + height;
+
+  String toString() {
     return 'Rectangle ($left, $top) $width x $height';
   }
 
@@ -30,7 +45,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements Rectangle$IM
    * Returns the intersection of this and `other`, or `null` if they don't
    * intersect.
    */
-  Rectangle intersection(Rectangle other) {
+  Rectangle<T> intersection(Rectangle<T> other) {
     var x0 = max(left, other.left);
     var x1 = min(left + width, other.left + other.width);
 
@@ -39,7 +54,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements Rectangle$IM
       var y1 = min(top + height, other.top + other.height);
 
       if (y0 <= y1) {
-        return new Rectangle(x0, y0, x1 - x0, y1 - y0);
+        return new Rectangle<T>(x0, y0, x1 - x0, y1 - y0);
       }
     }
     return null;
@@ -59,14 +74,14 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements Rectangle$IM
   /**
    * Returns a new rectangle which completely contains `this` and [other].
    */
-  Rectangle boundingBox(Rectangle other) {
+  Rectangle<T> boundingBox(Rectangle<T> other) {
     var right = max(this.left + this.width, other.left + other.width);
     var bottom = max(this.top + this.height, other.top + other.height);
 
     var left = min(this.left, other.left);
     var top = min(this.top, other.top);
 
-    return new Rectangle(left, top, right - left, bottom - top);
+    return new Rectangle<T>(left, top, right - left, bottom - top);
   }
 
   /**
@@ -89,48 +104,54 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements Rectangle$IM
            another.y <= top + height;
   }
 
-  Point get topLeft => new Point(this.left, this.top);
-  Point get topRight => new Point(this.left + this.width, this.top);
-  Point get bottomRight => new Point(this.left + this.width,
+  Point<T> get topLeft => new Point<T>(this.left, this.top);
+  Point<T> get topRight => new Point<T>(this.left + this.width, this.top);
+  Point<T> get bottomRight => new Point<T>(this.left + this.width,
       this.top + this.height);
-  Point get bottomLeft => new Point(this.left,
+  Point<T> get bottomLeft => new Point<T>(this.left,
       this.top + this.height);
+}
 
-  $!MEMBERS}
 
 /**
- * This is the [Jenkins hash function][1] but using masking to keep
- * values in SMI range.
- *
- * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
- *
- * Use:
- * Hash each value with the hash of the previous value, then get the final
- * hash by calling finish.
- *
- *     var hash = 0;
- *     for (var value in values) {
- *       hash = JenkinsSmiHash.combine(hash, value.hashCode);
- *     }
- *     hash = JenkinsSmiHash.finish(hash);
+ * A class for representing two-dimensional rectangles whose properties are
+ * immutable.
  */
-class _JenkinsSmiHash {
-  // TODO(11617): This class should be optimized and standardized elsewhere.
+class Rectangle<T extends num> extends _RectangleBase<T> {
+  final T left;
+  final T top;
+  final T width;
+  final T height;
 
-  static int combine(int hash, int value) {
-    hash = 0x1fffffff & (hash + value);
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
+  const Rectangle(this.left, this.top, this.width, this.height);
+
+  factory Rectangle.fromPoints(Point<T> a, Point<T> b) {
+    T left = min(a.x, b.x);
+    T width = max(a.x, b.x) - left;
+    T top = min(a.y, b.y);
+    T height = max(a.y, b.y) - top;
+    return new Rectangle<T>(left, top, width, height);
   }
+}
 
-  static int finish(int hash) {
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) <<  3));
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+/**
+ * A class for representing two-dimensional axis-aligned rectangles with mutable
+ * properties.
+ */
+class MutableRectangle<T extends num>  extends _RectangleBase<T>
+    implements Rectangle<T> {
+  T left;
+  T top;
+  T width;
+  T height;
+
+  MutableRectangle(this.left, this.top, this.width, this.height);
+
+  factory MutableRectangle.fromPoints(Point<T> a, Point<T> b) {
+    T left = min(a.x, b.x);
+    T width = max(a.x, b.x) - left;
+    T top = min(a.y, b.y);
+    T height = max(a.y, b.y) - top;
+    return new MutableRectangle<T>(left, top, width, height);
   }
-
-  static int hash2(a, b) => finish(combine(combine(0, a), b));
-
-  static int hash4(a, b, c, d) =>
-      finish(combine(combine(combine(combine(0, a), b), c), d));
 }

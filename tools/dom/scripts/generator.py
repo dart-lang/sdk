@@ -1064,7 +1064,7 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'Array': TypeData(clazz='Primitive', dart_type='List'),
     'custom': TypeData(clazz='Primitive', dart_type='dynamic'),
     'ClientRect': TypeData(clazz='Interface',
-        dart_type='Rect', suppress_interface=True),
+        dart_type='Rectangle', suppress_interface=True),
     'Date': TypeData(clazz='Primitive', dart_type='DateTime', native_type='double'),
     'DOMObject': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'DOMString': TypeData(clazz='Primitive', dart_type='String', native_type='String'),
@@ -1099,7 +1099,8 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'SVGElement': TypeData(clazz='Interface', custom_to_dart=True),
 
     'ClientRectList': TypeData(clazz='Interface',
-        item_type='ClientRect', dart_type='List<Rect>', suppress_interface=True),
+        item_type='ClientRect', dart_type='List<Rectangle>',
+        suppress_interface=True),
     'CSSRuleList': TypeData(clazz='Interface',
         item_type='CSSRule', suppress_interface=True),
     'CSSValueList': TypeData(clazz='Interface',

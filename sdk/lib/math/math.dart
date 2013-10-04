@@ -7,7 +7,10 @@
  */
 library dart.math;
 
+part "jenkins_smi_hash.dart";
+part "point.dart";
 part "random.dart";
+part "rectangle.dart";
 
 /**
  * Base of the natural logarithms.
