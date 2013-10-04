@@ -9,8 +9,6 @@ import 'dart:async';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 
-import 'barback/dart_forwarding_transformer.dart';
-import 'barback/dart2js_transformer.dart';
 import 'barback/load_all_transformers.dart';
 import 'barback/pub_package_provider.dart';
 import 'barback/server.dart';
@@ -54,16 +52,13 @@ class TransformerId {
 /// This transforms and serves all library and asset files in all packages in
 /// [graph]. It loads any transformer plugins defined in packages in [graph] and
 /// re-runs them as necessary when any input files change.
-Future<BarbackServer> createServer(String host, int port, PackageGraph graph) {
+///
+/// If [builtInTransformers] is provided, then a phase is added to the end of
+/// each package's cascade including those transformers.
+Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
+    {Iterable<Transformer> builtInTransformers}) {
   var provider = new PubPackageProvider(graph);
   var barback = new Barback(provider);
-
-  // TODO(rnystrom): Add dart2dart transformer here and some way to configure
-  // them.
-  var builtInTransformers = [
-    new Dart2JSTransformer(graph),
-    new DartForwardingTransformer()
-  ];
 
   return BarbackServer.bind(host, port, barback, graph.entrypoint.root.name)
       .then((server) {

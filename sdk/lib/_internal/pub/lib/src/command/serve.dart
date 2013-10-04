@@ -6,8 +6,10 @@ library pub.command.serve;
 
 import 'dart:async';
 
-import '../barback.dart' as barback;
+import '../barback/dart_forwarding_transformer.dart';
+import '../barback/dart2js_transformer.dart';
 import '../barback/pub_package_provider.dart';
+import '../barback.dart' as barback;
 import '../command.dart';
 import '../entrypoint.dart';
 import '../exit_codes.dart' as exit_codes;
@@ -29,6 +31,9 @@ class ServeCommand extends PubCommand {
 
   String get hostname => commandOptions['hostname'];
 
+  /// `true` if Dart entrypoints should be compiled to JavaScript.
+  bool get useDart2JS => commandOptions['dart2js'];
+
   ServeCommand() {
     commandParser.addOption('port', defaultsTo: '8080',
         help: 'The port to listen on.');
@@ -40,6 +45,9 @@ class ServeCommand extends PubCommand {
     commandParser.addOption('hostname',
                             defaultsTo: 'localhost',
                             hide: true);
+
+    commandParser.addFlag('dart2js', defaultsTo: true,
+        help: 'Compile Dart to JavaScript.');
   }
 
   Future onRun() {
@@ -52,10 +60,21 @@ class ServeCommand extends PubCommand {
       return flushThenExit(exit_codes.USAGE);
     }
 
-    return ensureLockFileIsUpToDate()
-        .then((_) => entrypoint.loadPackageGraph())
-        .then((graph) => barback.createServer(hostname, port, graph))
-        .then((server) {
+    return ensureLockFileIsUpToDate().then((_) {
+      return entrypoint.loadPackageGraph();
+    }).then((graph) {
+      // TODO(rnystrom): Add support for dart2dart transformer here.
+      var builtInTransformers = null;
+      if (useDart2JS) {
+        builtInTransformers = [
+          new Dart2JSTransformer(graph),
+          new DartForwardingTransformer()
+        ];
+      }
+
+      return barback.createServer(hostname, port, graph,
+          builtInTransformers: builtInTransformers);
+    }).then((server) {
       /// This completer is used to keep pub running (by not completing) and
       /// to pipe fatal errors to pub's top-level error-handling machinery.
       var completer = new Completer();

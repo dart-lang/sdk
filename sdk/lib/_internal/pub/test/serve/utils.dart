@@ -88,11 +88,19 @@ class DartTransformer extends Transformer {
 /// Schedules starting the "pub serve" process.
 ///
 /// If [shouldInstallFirst] is `true`, validates that pub install is run first.
+/// If [dart2js] is `false`, does not compile Dart entrypoints in "web" to
+/// JavaScript.
 ///
 /// Returns the `pub serve` process.
-ScheduledProcess startPubServe({bool shouldInstallFirst: false}) {
+ScheduledProcess startPubServe({bool shouldInstallFirst: false,
+    bool dart2js: true}) {
+
   // Use port 0 to get an ephemeral port.
-  _pubServer = startPub(args: ["serve", "--port=0", "--hostname=127.0.0.1"]);
+  var args = ["serve", "--port=0", "--hostname=127.0.0.1"];
+
+  if (!dart2js) args.add("--no-dart2js");
+
+  _pubServer = startPub(args: args);
 
   if (shouldInstallFirst) {
     expect(_pubServer.nextLine(),
