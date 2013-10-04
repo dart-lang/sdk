@@ -117,6 +117,7 @@ LibTest/isolate/IsolateSink/addError_A01_t01: Fail # Issue 13719: Please triage 
 LibTest/isolate/IsolateSink/addError_A01_t02: Fail # Issue 13719: Please triage this failure.
 LibTest/isolate/IsolateStream/any_A02_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # Issue 13719: Please triage this failure.
+LibTest/isolate/ReceivePort/toSendPort_A01_t02: Pass, Fail # Issue 13719: Please triage this failure.
 LibTest/isolate/SendPort/send_A01_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/math/acos_A01_t01: Pass, Fail # Issue 13719: Please triage this failure.
 LibTest/math/asin_A01_t01: Pass, Fail # Issue 13719: Please triage this failure.
