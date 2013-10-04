@@ -71,16 +71,6 @@ abstract class DartType {
   DartType unalias(Compiler compiler);
 
   /**
-   * Finds the method, field or property named [name] declared or inherited
-   * on this type.
-   *
-   * If [isSetter] is [:true:] the member is interpreted as a setter access.
-   */
-  // TODO(johnniwinther): Implement this for [TypeVariableType], [FunctionType],
-  // and [TypedefType].
-  Member lookupMember(SourceString name, {bool isSetter: false}) => null;
-
-  /**
    * If this type is malformed or a generic type created with the wrong number
    * of type arguments then [userProvidedBadType] holds the bad type provided
    * by the user.

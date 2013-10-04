@@ -52,6 +52,11 @@ main() {
                 testOperatorsAssignability,
                 testFieldInitializers,
                 testTypeVariableExpressions,
+                testTypeVariableLookup1,
+                testTypeVariableLookup2,
+                testTypeVariableLookup3,
+                testFunctionTypeLookup,
+                testTypedefLookup,
                 testTypeLiteral,
                 testInitializers];
   for (Function test in tests) {
@@ -1072,6 +1077,121 @@ void testTypeVariableExpressions() {
   analyzeIn(method, "{ T.foo = 0; }", MessageKind.PROPERTY_NOT_FOUND);
   analyzeIn(method, "{ T.foo(); }", MessageKind.METHOD_NOT_FOUND);
   analyzeIn(method, "{ T + 1; }", MessageKind.OPERATOR_NOT_FOUND);
+}
+
+void testTypeVariableLookup1() {
+  String script = """
+class Foo {
+  int field;
+  void method(int argument) {}
+  int operator +(Foo foo) {}
+  int get getter => 21;
+}
+
+class Test<S extends Foo, T> {
+  S s;
+  T t;
+  test() {}
+}
+""";
+
+  LibraryElement library = mockLibrary(compiler, script);
+  compiler.parseScript(script, library);
+  ClassElement classTest = library.find(const SourceString("Test"));
+  classTest.ensureResolved(compiler);
+  FunctionElement methodTest =
+    classTest.lookupLocalMember(const SourceString("test"));
+
+  test(String expression, [message]) {
+    analyzeIn(methodTest, "{ $expression; }", message);
+  }
+
+  test('s.field');
+  test('s.method(1)');
+  test('s + s');
+  test('s.getter');
+
+  test('t.toString');
+  test('t.field', MEMBER_NOT_FOUND);
+  test('t.method(1)', MessageKind.METHOD_NOT_FOUND);
+  test('t + t', MessageKind.OPERATOR_NOT_FOUND);
+  test('t.getter', MEMBER_NOT_FOUND);
+
+  test('s.field = "hest"', NOT_ASSIGNABLE);
+  test('s.method("hest")', NOT_ASSIGNABLE);
+  test('s + "hest"', NOT_ASSIGNABLE);
+  test('String v = s.getter', NOT_ASSIGNABLE);
+}
+
+void testTypeVariableLookup2() {
+  String script = """
+class Foo {
+  int field;
+  void method(int argument) {}
+  int operator +(Foo foo) {}
+  int get getter => 21;
+}
+
+class Test<S extends T, T extends Foo> {
+  S s;
+  test() {}
+}""";
+
+  LibraryElement library = mockLibrary(compiler, script);
+  compiler.parseScript(script, library);
+  ClassElement classTest = library.find(const SourceString("Test"));
+  classTest.ensureResolved(compiler);
+  FunctionElement methodTest =
+    classTest.lookupLocalMember(const SourceString("test"));
+
+  test(String expression, [message]) {
+    analyzeIn(methodTest, "{ $expression; }", message);
+  }
+
+  test('s.field');
+  test('s.method(1)');
+  test('s + s');
+  test('s.getter');
+}
+
+void testTypeVariableLookup3() {
+  String script = """
+class Test<S extends T, T extends S> {
+  S s;
+  test() {}
+}""";
+
+  LibraryElement library = mockLibrary(compiler, script);
+  compiler.parseScript(script, library);
+  ClassElement classTest = library.find(const SourceString("Test"));
+  classTest.ensureResolved(compiler);
+  FunctionElement methodTest =
+    classTest.lookupLocalMember(const SourceString("test"));
+
+  test(String expression, [message]) {
+    analyzeIn(methodTest, "{ $expression; }", message);
+  }
+
+  test('s.toString');
+  test('s.field', MEMBER_NOT_FOUND);
+  test('s.method(1)', MessageKind.METHOD_NOT_FOUND);
+  test('s + s', MessageKind.OPERATOR_NOT_FOUND);
+  test('s.getter', MEMBER_NOT_FOUND);
+}
+
+void testFunctionTypeLookup() {
+  analyze('(int f(int)) => f.toString;');
+  analyze('(int f(int)) => f.toString();');
+  analyze('(int f(int)) => f.foo;', MEMBER_NOT_FOUND);
+  analyze('(int f(int)) => f.foo();', MessageKind.METHOD_NOT_FOUND);
+}
+
+void testTypedefLookup() {
+  compiler.parseScript("typedef int F(int);");
+  analyze('(F f) => f.toString;');
+  analyze('(F f) => f.toString();');
+  analyze('(F f) => f.foo;', MEMBER_NOT_FOUND);
+  analyze('(F f) => f.foo();', MessageKind.METHOD_NOT_FOUND);
 }
 
 void testTypeLiteral() {
