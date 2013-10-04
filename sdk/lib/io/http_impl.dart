@@ -1570,7 +1570,7 @@ class _HttpClient implements HttpClient {
                                                 _HttpClientRequest previous) {
     // If the new URI is relative (to either '/' or some sub-path),
     // construct a full URI from the previous one.
-    URI resolved = previous.uri.resolveUri(uri);
+    Uri resolved = previous.uri.resolveUri(uri);
     return openUrl(method, resolved).then((_HttpClientRequest request) {
           // Only follow redirects if initial request did.
           request.followRedirects = previous.followRedirects;
