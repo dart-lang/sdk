@@ -32,7 +32,6 @@ Language/07_Classes/3_Setters_A04_t04: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t05: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t06: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t07: Fail # inherited from VM
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Fail # http://dartbug.com/5519
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: Fail # Issue 13652
 Language/07_Classes/6_Constructors_A02_t01: Fail # http://dartbug.com/5519
 Language/12_Expressions/01_Constants_A03_t01: Fail # Issue 13652
