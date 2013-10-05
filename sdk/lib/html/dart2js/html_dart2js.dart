@@ -55,7 +55,7 @@ import 'dart:_js_helper' show
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord;
 import 'dart:_interceptors' show
     Interceptor, JSExtendableArray, findInterceptorConstructorForType,
-    getNativeInterceptor;
+    findConstructorForWebComponentType, getNativeInterceptor;
 
 export 'dart:math' show Rectangle, Point;
 
@@ -32363,8 +32363,10 @@ _convertNativeToDart_XHR_Response(o) {
 // BSD-style license that can be found in the LICENSE file.
 
 
-_callCreated(receiver) {
-  return receiver.createdCallback();
+_callConstructor(constructor) {
+  return (receiver) {
+    return JS('', '#(#)', constructor, receiver);
+  };
 }
 
 _callEnteredView(receiver) {
@@ -32443,6 +32445,11 @@ void _registerCustomElement(context, document, String tag, Type type,
     throw new ArgumentError(type);
   }
 
+  var constructor = findConstructorForWebComponentType(type, 'created');
+  if (constructor == null) {
+    throw new ArgumentError("$type has no constructor called 'created'");
+  }
+
   // Workaround for 13190- use an article element to ensure that HTMLElement's
   // interceptor is resolved correctly.
   getNativeInterceptor(new Element.tag('article'));
@@ -32458,7 +32465,8 @@ void _registerCustomElement(context, document, String tag, Type type,
   var properties = JS('=Object', '{}');
 
   JS('void', '#.createdCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callCreated)));
+      JS('=Object', '{value: #}',
+          _makeCallbackMethod(_callConstructor(constructor))));
   JS('void', '#.enteredViewCallback = #', properties,
       JS('=Object', '{value: #}', _makeCallbackMethod(_callEnteredView)));
   JS('void', '#.leftViewCallback = #', properties,
