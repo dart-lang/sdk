@@ -508,7 +508,6 @@ class TypePropagationTest extends ResolverTestCase {
         "}"]));
     LibraryElement library = resolve(source);
     assertNoErrors(source);
-    verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
@@ -1220,6 +1219,13 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors(source);
     verify([source]);
   }
+  void test_constEval_symbol() {
+    addSource2("/math.dart", EngineTestCase.createSource(["library math;", "const PI = 3.14;"]));
+    Source source = addSource(EngineTestCase.createSource(["const C = #foo;", "foo() {}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
   void test_constEvalTypeBoolNumString_equal() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -1247,7 +1253,6 @@ class NonErrorResolverTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertNoErrors(source);
-    verify([source]);
   }
   void test_constEvalTypeBoolNumString_notEqual() {
     Source source = addSource(EngineTestCase.createSource([
@@ -1873,6 +1878,28 @@ class NonErrorResolverTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertNoErrors(source);
+    verify([source]);
+  }
+  void test_instanceMethodNameCollidesWithSuperclassStatic_field() {
+    Source source = addSource(EngineTestCase.createSource([
+        "import 'lib.dart';",
+        "class B extends A {",
+        "  _m() {}",
+        "}"]));
+    addSource2("/lib.dart", EngineTestCase.createSource(["library L;", "class A {", "  static var _m;", "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+  void test_instanceMethodNameCollidesWithSuperclassStatic_method() {
+    Source source = addSource(EngineTestCase.createSource([
+        "import 'lib.dart';",
+        "class B extends A {",
+        "  _m() {}",
+        "}"]));
+    addSource2("/lib.dart", EngineTestCase.createSource(["library L;", "class A {", "  static _m() {}", "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.OVERRIDDING_PRIVATE_MEMBER]);
     verify([source]);
   }
   void test_invalidAnnotation_constantVariable() {
@@ -2740,6 +2767,21 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors(source);
     verify([source]);
   }
+  void test_null_callMethod() {
+    Source source = addSource(EngineTestCase.createSource(["main() {", "  null.m();", "}"]));
+    resolve(source);
+    assertNoErrors(source);
+  }
+  void test_null_callOperator() {
+    Source source = addSource(EngineTestCase.createSource([
+        "main() {",
+        "  null + 5;",
+        "  null == 5;",
+        "  null[0];",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+  }
   void test_optionalParameterInOperator_required() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  operator +(p) {}", "}"]));
     resolve(source);
@@ -3487,6 +3529,10 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_constEval_propertyExtraction_methodStatic_targetType);
       });
+      _ut.test('test_constEval_symbol', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_constEval_symbol);
+      });
       _ut.test('test_constNotInitialized_field', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_constNotInitialized_field);
@@ -3742,6 +3788,14 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_instanceMemberAccessFromStatic_fromComment', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_instanceMemberAccessFromStatic_fromComment);
+      });
+      _ut.test('test_instanceMethodNameCollidesWithSuperclassStatic_field', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_instanceMethodNameCollidesWithSuperclassStatic_field);
+      });
+      _ut.test('test_instanceMethodNameCollidesWithSuperclassStatic_method', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_instanceMethodNameCollidesWithSuperclassStatic_method);
       });
       _ut.test('test_invalidAnnotation_constantVariable', () {
         final __test = new NonErrorResolverTest();
@@ -4094,6 +4148,14 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_nonVoidReturnForSetter_method_void', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_nonVoidReturnForSetter_method_void);
+      });
+      _ut.test('test_null_callMethod', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_null_callMethod);
+      });
+      _ut.test('test_null_callOperator', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_null_callOperator);
       });
       _ut.test('test_optionalParameterInOperator_required', () {
         final __test = new NonErrorResolverTest();
@@ -6938,11 +7000,11 @@ class InheritanceManagerTest extends EngineTestCase {
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getterG];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    Map<String, ExecutableElement> mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    Map<String, ExecutableElement> mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    EngineTestCase.assertSize2(_numOfMembersInObject, mapA);
-    EngineTestCase.assertSize2(_numOfMembersInObject + 1, mapB);
-    JUnitTestCase.assertSame(getterG, mapB[getterName]);
+    MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapB.size);
+    JUnitTestCase.assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -6953,11 +7015,11 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.accessors = <PropertyAccessorElement> [getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B", []);
     classB.interfaces = <InterfaceType> [classA.type];
-    Map<String, ExecutableElement> mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    Map<String, ExecutableElement> mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    EngineTestCase.assertSize2(_numOfMembersInObject, mapA);
-    EngineTestCase.assertSize2(_numOfMembersInObject, mapB);
-    JUnitTestCase.assertNull(mapB[getterName]);
+    MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapB.size);
+    JUnitTestCase.assertNull(mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -6968,11 +7030,11 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.accessors = <PropertyAccessorElement> [getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B", []);
     classB.mixins = <InterfaceType> [classA.type];
-    Map<String, ExecutableElement> mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    Map<String, ExecutableElement> mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    EngineTestCase.assertSize2(_numOfMembersInObject, mapA);
-    EngineTestCase.assertSize2(_numOfMembersInObject + 1, mapB);
-    JUnitTestCase.assertSame(getterG, mapB[getterName]);
+    MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapB.size);
+    JUnitTestCase.assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -6983,11 +7045,11 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.methods = <MethodElement> [methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B", []);
     classB.supertype = classA.type;
-    Map<String, ExecutableElement> mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    Map<String, ExecutableElement> mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    EngineTestCase.assertSize2(_numOfMembersInObject, mapA);
-    EngineTestCase.assertSize2(_numOfMembersInObject + 1, mapB);
-    JUnitTestCase.assertSame(methodM, mapB[methodName]);
+    MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapB.size);
+    JUnitTestCase.assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -6998,11 +7060,11 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.methods = <MethodElement> [methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B", []);
     classB.interfaces = <InterfaceType> [classA.type];
-    Map<String, ExecutableElement> mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    Map<String, ExecutableElement> mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    EngineTestCase.assertSize2(_numOfMembersInObject, mapA);
-    EngineTestCase.assertSize2(_numOfMembersInObject, mapB);
-    JUnitTestCase.assertNull(mapB[methodName]);
+    MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapB.size);
+    JUnitTestCase.assertNull(mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -7013,11 +7075,11 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.methods = <MethodElement> [methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B", []);
     classB.mixins = <InterfaceType> [classA.type];
-    Map<String, ExecutableElement> mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    Map<String, ExecutableElement> mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    EngineTestCase.assertSize2(_numOfMembersInObject, mapA);
-    EngineTestCase.assertSize2(_numOfMembersInObject + 1, mapB);
-    JUnitTestCase.assertSame(methodM, mapB[methodName]);
+    MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapB.size);
+    JUnitTestCase.assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -7027,11 +7089,11 @@ class InheritanceManagerTest extends EngineTestCase {
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getterG];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    Map<String, ExecutableElement> mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    Map<String, ExecutableElement> mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    EngineTestCase.assertSize2(_numOfMembersInObject, mapA);
-    EngineTestCase.assertSize2(_numOfMembersInObject + 1, mapB);
-    JUnitTestCase.assertSame(getterG, mapB[getterName]);
+    MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapB.size);
+    JUnitTestCase.assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -7042,11 +7104,11 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.accessors = <PropertyAccessorElement> [getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B", []);
     classB.interfaces = <InterfaceType> [classA.type];
-    Map<String, ExecutableElement> mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    Map<String, ExecutableElement> mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    EngineTestCase.assertSize2(_numOfMembersInObject, mapA);
-    EngineTestCase.assertSize2(_numOfMembersInObject + 1, mapB);
-    JUnitTestCase.assertSame(getterG, mapB[getterName]);
+    MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapB.size);
+    JUnitTestCase.assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -7057,11 +7119,11 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.accessors = <PropertyAccessorElement> [getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B", []);
     classB.mixins = <InterfaceType> [classA.type];
-    Map<String, ExecutableElement> mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    Map<String, ExecutableElement> mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    EngineTestCase.assertSize2(_numOfMembersInObject, mapA);
-    EngineTestCase.assertSize2(_numOfMembersInObject + 1, mapB);
-    JUnitTestCase.assertSame(getterG, mapB[getterName]);
+    MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapB.size);
+    JUnitTestCase.assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -7071,11 +7133,11 @@ class InheritanceManagerTest extends EngineTestCase {
     MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
     classA.methods = <MethodElement> [methodM];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    Map<String, ExecutableElement> mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    Map<String, ExecutableElement> mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    EngineTestCase.assertSize2(_numOfMembersInObject, mapA);
-    EngineTestCase.assertSize2(_numOfMembersInObject + 1, mapB);
-    JUnitTestCase.assertSame(methodM, mapB[methodName]);
+    MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapB.size);
+    JUnitTestCase.assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -7086,11 +7148,11 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.methods = <MethodElement> [methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B", []);
     classB.interfaces = <InterfaceType> [classA.type];
-    Map<String, ExecutableElement> mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    Map<String, ExecutableElement> mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    EngineTestCase.assertSize2(_numOfMembersInObject, mapA);
-    EngineTestCase.assertSize2(_numOfMembersInObject + 1, mapB);
-    JUnitTestCase.assertSame(methodM, mapB[methodName]);
+    MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapB.size);
+    JUnitTestCase.assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -7101,11 +7163,11 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.methods = <MethodElement> [methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B", []);
     classB.mixins = <InterfaceType> [classA.type];
-    Map<String, ExecutableElement> mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    Map<String, ExecutableElement> mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    EngineTestCase.assertSize2(_numOfMembersInObject, mapA);
-    EngineTestCase.assertSize2(_numOfMembersInObject + 1, mapB);
-    JUnitTestCase.assertSame(methodM, mapB[methodName]);
+    MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    JUnitTestCase.assertEquals(_numOfMembersInObject, mapA.size);
+    JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapB.size);
+    JUnitTestCase.assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -7679,36 +7741,22 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER]);
     verify([source]);
   }
-  void test_argumentTypeNotAssignable_const() {
-    Source source = addSource(EngineTestCase.createSource([
-        "class A {",
-        "  const A(String p);",
-        "}",
-        "main() {",
-        "  const A(42);",
-        "}"]));
+  void test_builtInIdentifierAsType_formalParameter_field() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  var x;", "  A(static this.x);", "}"]));
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
     verify([source]);
   }
-  void test_argumentTypeNotAssignable_const_super() {
-    Source source = addSource(EngineTestCase.createSource([
-        "class A {",
-        "  const A(String p);",
-        "}",
-        "class B extends A {",
-        "  const B() : super(42);",
-        "}"]));
+  void test_builtInIdentifierAsType_formalParameter_simple() {
+    Source source = addSource(EngineTestCase.createSource(["f(static x) {", "}"]));
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
     verify([source]);
   }
-  void test_builtInIdentifierAsType() {
+  void test_builtInIdentifierAsType_variableDeclaration() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  typedef x;", "}"]));
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
-        StaticWarningCode.UNDEFINED_CLASS]);
+    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
     verify([source]);
   }
   void test_builtInIdentifierAsTypedefName_classTypeAlias() {
@@ -7907,16 +7955,12 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
   void test_constEvalThrowsException_unaryBitNot_null() {
     Source source = addSource("const C = ~null;");
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
   }
   void test_constEvalThrowsException_unaryNegated_null() {
     Source source = addSource("const C = -null;");
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
   }
   void test_constEvalThrowsException_unaryNot_null() {
     Source source = addSource("const C = !null;");
@@ -9435,7 +9479,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, [
         CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
   void test_nonConstValueInInitializer_binary_notNum() {
@@ -9447,7 +9491,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, [
         CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
   void test_nonConstValueInInitializer_field() {
@@ -10203,9 +10247,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
       verify([source]);
     } else {
-      assertErrors(source, [
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-          StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+      assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
     }
     reset();
   }
@@ -10229,7 +10271,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, [
         CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
     reset();
   }
@@ -10242,7 +10284,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, [
         CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
     reset();
   }
@@ -10271,18 +10313,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_argumentDefinitionTestNonParameter);
       });
-      _ut.test('test_argumentTypeNotAssignable_const', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_argumentTypeNotAssignable_const);
-      });
-      _ut.test('test_argumentTypeNotAssignable_const_super', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_argumentTypeNotAssignable_const_super);
-      });
-      _ut.test('test_builtInIdentifierAsType', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_builtInIdentifierAsType);
-      });
       _ut.test('test_builtInIdentifierAsTypeName', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_builtInIdentifierAsTypeName);
@@ -10290,6 +10320,18 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_builtInIdentifierAsTypeParameterName', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_builtInIdentifierAsTypeParameterName);
+      });
+      _ut.test('test_builtInIdentifierAsType_formalParameter_field', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_builtInIdentifierAsType_formalParameter_field);
+      });
+      _ut.test('test_builtInIdentifierAsType_formalParameter_simple', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_builtInIdentifierAsType_formalParameter_simple);
+      });
+      _ut.test('test_builtInIdentifierAsType_variableDeclaration', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_builtInIdentifierAsType_variableDeclaration);
       });
       _ut.test('test_builtInIdentifierAsTypedefName_classTypeAlias', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -12277,7 +12319,7 @@ class ElementResolverTest extends EngineTestCase {
     _visitor = new ResolverVisitor.con1(library, source, _typeProvider);
     try {
       return _visitor.elementResolver_J2DAccessor as ElementResolver;
-    } catch (exception) {
+    } on JavaException catch (exception) {
       throw new IllegalArgumentException("Could not create resolver", exception);
     }
   }
@@ -12356,7 +12398,7 @@ class ElementResolverTest extends EngineTestCase {
         _visitor.enclosingClass_J2DAccessor = null;
         _visitor.nameScope_J2DAccessor = outerScope;
       }
-    } catch (exception) {
+    } on JavaException catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
     }
   }
@@ -12383,7 +12425,7 @@ class ElementResolverTest extends EngineTestCase {
       } finally {
         _visitor.nameScope_J2DAccessor = outerScope;
       }
-    } catch (exception) {
+    } on JavaException catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
     }
   }
@@ -12411,7 +12453,7 @@ class ElementResolverTest extends EngineTestCase {
       } finally {
         _visitor.labelScope_J2DAccessor = outerScope;
       }
-    } catch (exception) {
+    } on JavaException catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
     }
   }
@@ -12891,6 +12933,20 @@ class StaticWarningCodeTest extends ResolverTestCase {
         StaticWarningCode.AMBIGUOUS_IMPORT,
         CompileTimeErrorCode.IMPLEMENTS_NON_CLASS]);
   }
+  void test_ambiguousImport_inPart() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library lib;",
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "part 'part.dart';"]));
+    addSource2("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class N {}"]));
+    addSource2("/lib2.dart", EngineTestCase.createSource(["library lib2;", "class N {}"]));
+    Source partSource = addSource2("/part.dart", EngineTestCase.createSource(["part of lib;", "class A extends N {}"]));
+    resolve(source);
+    assertErrors(partSource, [
+        StaticWarningCode.AMBIGUOUS_IMPORT,
+        CompileTimeErrorCode.EXTENDS_NON_CLASS]);
+  }
   void test_ambiguousImport_instanceCreation() {
     Source source = addSource(EngineTestCase.createSource([
         "library L;",
@@ -13020,6 +13076,30 @@ class StaticWarningCodeTest extends ResolverTestCase {
         "}",
         "f(A a) {",
         "  a + '0';",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+  void test_argumentTypeNotAssignable_const() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(String p);",
+        "}",
+        "main() {",
+        "  const A(42);",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+  void test_argumentTypeNotAssignable_const_super() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(String p);",
+        "}",
+        "class B extends A {",
+        "  const B() : super(42);",
         "}"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
@@ -14498,6 +14578,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_ambiguousImport_implements);
       });
+      _ut.test('test_ambiguousImport_inPart', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_ambiguousImport_inPart);
+      });
       _ut.test('test_ambiguousImport_instanceCreation', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_ambiguousImport_instanceCreation);
@@ -14541,6 +14625,14 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_argumentTypeNotAssignable_binary', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_argumentTypeNotAssignable_binary);
+      });
+      _ut.test('test_argumentTypeNotAssignable_const', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_argumentTypeNotAssignable_const);
+      });
+      _ut.test('test_argumentTypeNotAssignable_const_super', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_argumentTypeNotAssignable_const_super);
       });
       _ut.test('test_argumentTypeNotAssignable_index', () {
         final __test = new StaticWarningCodeTest();
@@ -15570,6 +15662,7 @@ class AnalysisContextFactory {
         provider.stackTraceType.element,
         provider.stringType.element,
         provider.typeType.element];
+    coreUnit.functions = <FunctionElement> [ElementFactory.functionElement3("identical", provider.boolType.element, <ClassElement> [provider.objectType.element, provider.objectType.element], null)];
     LibraryElementImpl coreLibrary = new LibraryElementImpl(sdkContext, ASTFactory.libraryIdentifier2(["dart", "core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl("html_dartium.dart");
@@ -15988,6 +16081,63 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
       writer.print(identifier.offset);
       writer.println(")");
     }
+  }
+}
+class MemberMapTest extends JUnitTestCase {
+
+  /**
+   * The null type.
+   */
+  InterfaceType _nullType;
+  void setUp() {
+    _nullType = new TestTypeProvider().nullType;
+  }
+  void test_MemberMap_copyConstructor() {
+    MethodElement m1 = ElementFactory.methodElement("m1", _nullType, []);
+    MethodElement m2 = ElementFactory.methodElement("m2", _nullType, []);
+    MethodElement m3 = ElementFactory.methodElement("m3", _nullType, []);
+    MemberMap map = new MemberMap();
+    map.put(m1.name, m1);
+    map.put(m2.name, m2);
+    map.put(m3.name, m3);
+    MemberMap copy = new MemberMap.con2(map);
+    JUnitTestCase.assertEquals(map.size, copy.size);
+    JUnitTestCase.assertEquals(m1, copy.get(m1.name));
+    JUnitTestCase.assertEquals(m2, copy.get(m2.name));
+    JUnitTestCase.assertEquals(m3, copy.get(m3.name));
+  }
+  void test_MemberMap_override() {
+    MethodElement m1 = ElementFactory.methodElement("m", _nullType, []);
+    MethodElement m2 = ElementFactory.methodElement("m", _nullType, []);
+    MemberMap map = new MemberMap();
+    map.put(m1.name, m1);
+    map.put(m2.name, m2);
+    JUnitTestCase.assertEquals(1, map.size);
+    JUnitTestCase.assertEquals(m2, map.get("m"));
+  }
+  void test_MemberMap_put() {
+    MethodElement m1 = ElementFactory.methodElement("m1", _nullType, []);
+    MemberMap map = new MemberMap();
+    JUnitTestCase.assertEquals(0, map.size);
+    map.put(m1.name, m1);
+    JUnitTestCase.assertEquals(1, map.size);
+    JUnitTestCase.assertEquals(m1, map.get("m1"));
+  }
+  static dartSuite() {
+    _ut.group('MemberMapTest', () {
+      _ut.test('test_MemberMap_copyConstructor', () {
+        final __test = new MemberMapTest();
+        runJUnitTest(__test, __test.test_MemberMap_copyConstructor);
+      });
+      _ut.test('test_MemberMap_override', () {
+        final __test = new MemberMapTest();
+        runJUnitTest(__test, __test.test_MemberMap_override);
+      });
+      _ut.test('test_MemberMap_put', () {
+        final __test = new MemberMapTest();
+        runJUnitTest(__test, __test.test_MemberMap_put);
+      });
+    });
   }
 }
 class LibraryScopeTest extends ResolverTestCase {
@@ -16624,7 +16774,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   Type2 analyze2(Expression node, InterfaceType thisType) {
     try {
       _analyzer.thisType_J2DAccessor = thisType;
-    } catch (exception) {
+    } on JavaException catch (exception) {
       throw new IllegalArgumentException("Could not set type of 'this'", exception);
     }
     node.accept(_analyzer);
@@ -16724,7 +16874,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _visitor.overrideManager.enterScope();
     try {
       return _visitor.typeAnalyzer_J2DAccessor as StaticTypeAnalyzer;
-    } catch (exception) {
+    } on JavaException catch (exception) {
       throw new IllegalArgumentException("Could not create analyzer", exception);
     }
   }
@@ -18342,7 +18492,6 @@ class SimpleResolverTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["f(var p) {", "  return null == p;", "}"]));
     resolve(source);
     assertNoErrors(source);
-    verify([source]);
   }
   void test_setter_inherited() {
     Source source = addSource(EngineTestCase.createSource([
@@ -18613,6 +18762,7 @@ main() {
 //  CompileTimeErrorCodeTest.dartSuite();
 //  ErrorResolverTest.dartSuite();
 //  HintCodeTest.dartSuite();
+//  MemberMapTest.dartSuite();
 //  NonHintCodeTest.dartSuite();
 //  NonErrorResolverTest.dartSuite();
 //  SimpleResolverTest.dartSuite();

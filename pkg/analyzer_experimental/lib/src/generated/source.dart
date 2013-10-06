@@ -88,7 +88,7 @@ class SourceFactory {
         }
       }
       throw new IllegalArgumentException("No resolver for kind: ${kind}");
-    } catch (exception) {
+    } on JavaException catch (exception) {
       throw new IllegalArgumentException("Invalid URI in encoding");
     }
   }

@@ -3,21 +3,11 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
-# not clear: null..[1](1)[2](2).foo(3, bar: 4)=5 - it seems that verything before =5 it not assignable
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: fail
-
 # invalid argument for constant constructor
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
 
-# TBF: _f is private, so does not collide
-Language/07_Classes/1_Instance_Methods_A05_t08: fail
-
 # TBD: should we check that argument for dynamic parameter of constant constructor is not compatible with operation that is performed with it?
 Language/12_Expressions/01_Constants_A16_t03: fail
-
-# TBD: should we report _error_ when constant creation uses arguments with types incompatible with parameters?
-Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail
-Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail
 
 # TBF: infinite look: class A {const A();final m = const A();}
 Language/12_Expressions/01_Constants_A17_t03: fail
@@ -26,20 +16,47 @@ Language/12_Expressions/01_Constants_A17_t03: fail
 Language/15_Types/4_Interface_Types_A11_t01: Skip
 Language/15_Types/4_Interface_Types_A11_t02: Skip
 
-# TBF: Hence, a static warning will not be issued if f has no declared return type, since the return type would be dynamic and dynamic may be assigned to void.
-Language/13_Statements/11_Return_A07_t01: fail
+# TBF: "class B1 = A with M1;", typedef cannot be used for mixins
+Language/09_Mixins/1_Mixin_Application_A01_t01: Fail
+
+# TBF: It is a compile-time error if the key of an entry in a constant map literal is an instance of a class that implements the operator == unless the key is a string or integer.
+Language/12_Expressions/07_Maps_A13_t01: Fail
+
+# TBF: malformed or malbounded type in "conts" is static warning
+Language/12_Expressions/12_Instance_Creation_A01_t08: Fail
+
+# TBF: typedef self reference
+Language/15_Types/3_Type_Declarations/1_Typedef_A07_t08: Fail
+Language/15_Types/3_Type_Declarations/1_Typedef_A07_t09: Fail
+
+
 
 # co19 issue #442, undefined name "Expect"
 Language/15_Types/4_Interface_Types_A08_t03: fail, OK
 
 # co19 issue #455, undeclared identifier is static warning
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10: fail, OK
+Language/13_Statements/04_Local_Function_Declaration_A02_t02: fail, OK
 Language/14_Libraries_and_Scripts/1_Imports_A02_t12: fail, OK
 Language/14_Libraries_and_Scripts/1_Imports_A02_t15: fail, OK
+
+# co19 issue #513, rules for finals were loosened, contradiction in spec was fixed
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: fail, OK
+
+# co19 issue #515, it is a compile-time error if there is more than one entity with the same name declared in the same scope
+Language/07_Classes/3_Setters_A08_t03: fail, OK
+
+# co19 issue #593: Conditional expressions are now allowed as constant expressions
+Language/12_Expressions/01_Constants_A15_t16: fail, OK
 
 # co19 issue #438, Static variables are initialized lazily, need not be constants
 Language/12_Expressions/01_Constants_A16_t01: fail, OK
 Language/12_Expressions/01_Constants_A16_t02: fail, OK
+
+# co19 issue #420, "throw" requires expression, "rethrow" should be used instead
+Language/12_Expressions/08_Throw_A05_t01: fail, OK
+Language/12_Expressions/08_Throw_A05_t02: fail, OK
+Language/12_Expressions/08_Throw_A05_t03: fail, OK
 
 # co19 issue #454 (wrongly closed)
 Language/12_Expressions/12_Instance_Creation/1_New_A01_t04: fail, OK
@@ -63,47 +80,66 @@ Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_
 Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail, OK
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
 
-Language/09_Mixins/1_Mixin_Application_A01_t01: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/01_Constants_A22_t01: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/07_Maps_A13_t01: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/12_Instance_Creation_A01_t08: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/13_Property_Extraction_A02_t02: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/13_Property_Extraction_A04_t02: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/13_Property_Extraction_A04_t03: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A03_t03: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A03_t04: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A04_t04: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t05: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/16_Getter_Lookup_A02_t05: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/16_Getter_Lookup_A02_t06: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/17_Getter_Invocation_A07_t01: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/17_Getter_Invocation_A07_t02: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/18_Assignment_A01_t07: Fail # co19-roll r607: Please triage this failure
-Language/12_Expressions/18_Assignment_A04_t09: Fail # co19-roll r607: Please triage this failure
-Language/13_Statements/02_Expression_Statements_A01_t13: Fail # co19-roll r607: Please triage this failure
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t08: Fail # co19-roll r607: Please triage this failure
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t09: Fail # co19-roll r607: Please triage this failure
-LibTest/collection/HasNextIterator/HasNextIterator_A01_t01: Fail # co19-roll r607: Please triage this failure
-LibTest/collection/LinkedHashSet/LinkedHashSet.from_A01_t01: Fail # co19-roll r607: Please triage this failure
-LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: Fail # co19-roll r607: Please triage this failure
-LibTest/collection/LinkedList/LinkedList_A01_t01: Fail # co19-roll r607: Please triage this failure
-LibTest/collection/LinkedList/first_A01_t02: Fail # co19-roll r607: Please triage this failure
-LibTest/collection/LinkedList/reduce_A01_t01: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Invocation/isAccessor_A01_t01: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Invocation/isAccessor_A01_t02: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Invocation/isGetter_A01_t01: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Invocation/isGetter_A01_t02: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Invocation/isMethod_A01_t01: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Invocation/isMethod_A01_t02: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Invocation/isSetter_A01_t01: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Invocation/isSetter_A01_t02: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Invocation/memberName_A01_t01: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Invocation/namedArguments_A01_t01: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Invocation/positionalArguments_A01_t01: Fail # co19-roll r607: Please triage this failure
-LibTest/core/RuneIterator/currentAsString_A01_t02: Fail # co19-roll r607: Please triage this failure
-LibTest/core/RuneIterator/current_A01_t02: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Runes/isEmpty_A01_t02: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Runes/isNotEmpty_A01_t02: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Runes/lastWhere_A02_t01: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Runes/length_A01_t02: Fail # co19-roll r607: Please triage this failure
-LibTest/core/Symbol/Symbol_A01_t04: Fail # co19-roll r607: Please triage this failure
+# co19 issue #609, return type of "factory M" is M, so we need static warning for "return;".
+Language/13_Statements/11_Return_A07_t01: fail, OK
+
+# co19 issue #613: @static-warning missing, only runtime behavior is tested
+Language/12_Expressions/13_Property_Extraction_A02_t02: Fail, OK
+Language/12_Expressions/13_Property_Extraction_A04_t02: Fail, OK
+Language/12_Expressions/13_Property_Extraction_A04_t03: Fail, OK
+Language/12_Expressions/17_Getter_Invocation_A07_t01: Fail, OK
+Language/12_Expressions/17_Getter_Invocation_A07_t02: Fail, OK
+Language/12_Expressions/18_Assignment_A01_t07: Fail, OK
+Language/12_Expressions/18_Assignment_A04_t09: Fail, OK
+LibTest/core/Invocation/isAccessor_A01_t01: Fail, OK
+LibTest/core/Invocation/isAccessor_A01_t02: Fail, OK
+LibTest/core/Invocation/isGetter_A01_t01: Fail, OK
+LibTest/core/Invocation/isGetter_A01_t02: Fail, OK
+LibTest/core/Invocation/isMethod_A01_t01: Fail, OK
+LibTest/core/Invocation/isMethod_A01_t02: Fail, OK
+LibTest/core/Invocation/isSetter_A01_t01: Fail, OK
+LibTest/core/Invocation/isSetter_A01_t02: Fail, OK
+LibTest/core/Invocation/memberName_A01_t01: Fail, OK
+LibTest/core/Invocation/namedArguments_A01_t01: Fail, OK
+LibTest/core/Invocation/positionalArguments_A01_t01: Fail, OK
+LibTest/core/Symbol/Symbol_A01_t04: Fail, OK
+
+# co19 issue #614: abstract class
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A03_t03: Fail, OK
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A03_t04: Fail, OK
+Language/12_Expressions/16_Getter_Lookup_A02_t05: Fail, OK
+Language/12_Expressions/16_Getter_Lookup_A02_t06: Fail, OK
+
+# co19 issue #615: Expect import missing
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A03_t03: Fail, OK
+LibTest/collection/LinkedList/LinkedList_A01_t01: Fail, OK
+
+# co19 issue #616: X required argument(s) expected, but Y found
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A04_t04: Fail, OK
+Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t05: Fail, OK
+
+# co19 issue #617: "hasNext" is not a function; "Expec"
+LibTest/collection/HasNextIterator/HasNextIterator_A01_t01: Fail, OK
+
+# co19 issue #618: Just a mess - mix of Map and Set
+LibTest/collection/LinkedHashSet/LinkedHashSet.from_A01_t01: Fail, OK
+LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: Fail, OK
+LibTest/collection/LinkedList/first_A01_t02: Fail, OK
+
+# co19 issue #619: 1 required argument(s) expected, but 0 found
+LibTest/collection/LinkedList/reduce_A01_t01: Fail, OK
+
+# co19 issue #620: The name 'NoSuchMethoError' is not a type and cannot be used in an on-catch clause
+LibTest/core/RuneIterator/currentAsString_A01_t02: Fail, OK
+LibTest/core/RuneIterator/current_A01_t02: Fail, OK
+LibTest/core/Runes/length_A01_t02: Fail, OK
+
+# co19 issue #621: Undefined name 'runes'
+LibTest/core/Runes/isEmpty_A01_t02: Fail, OK
+LibTest/core/Runes/isNotEmpty_A01_t02: Fail, OK
+
+# co19 issue #622: Undefined class 'Int16List.fromList'
+LibTest/core/Runes/lastWhere_A02_t01: Fail, OK
+
+# co19 issue #623: main() { {}; } is block and empty statement, not a map
+Language/13_Statements/02_Expression_Statements_A01_t13: Fail, OK

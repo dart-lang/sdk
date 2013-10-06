@@ -416,7 +416,7 @@ class DirectoryBasedDartSdk implements DartSdk {
       JavaFile librariesFile = new JavaFile.relative(new JavaFile.relative(libraryDirectory, _INTERNAL_DIR), _LIBRARIES_FILE);
       String contents = librariesFile.readAsStringSync();
       _libraryMap = new SdkLibrariesReader().readFrom(librariesFile, contents);
-    } catch (exception) {
+    } on JavaException catch (exception) {
       AnalysisEngine.instance.logger.logError3(exception);
       _libraryMap = new LibraryMap();
     }

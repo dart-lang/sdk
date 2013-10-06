@@ -529,6 +529,10 @@ class CharBufferScannerTest extends AbstractScannerTest {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_lineInfo_multilineComment);
       });
+      _ut.test('test_lineInfo_multilineString', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_lineInfo_multilineString);
+      });
       _ut.test('test_lineInfo_simpleClass', () {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_lineInfo_simpleClass);
@@ -664,6 +668,14 @@ class CharBufferScannerTest extends AbstractScannerTest {
       _ut.test('test_string_multi_double', () {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_string_multi_double);
+      });
+      _ut.test('test_string_multi_embeddedQuotes', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_embeddedQuotes);
+      });
+      _ut.test('test_string_multi_embeddedQuotes_escapedChar', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_embeddedQuotes_escapedChar);
       });
       _ut.test('test_string_multi_interpolation_block', () {
         final __test = new CharBufferScannerTest();
@@ -1184,6 +1196,10 @@ class StringScannerTest extends AbstractScannerTest {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_lineInfo_multilineComment);
       });
+      _ut.test('test_lineInfo_multilineString', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_lineInfo_multilineString);
+      });
       _ut.test('test_lineInfo_simpleClass', () {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_lineInfo_simpleClass);
@@ -1323,6 +1339,14 @@ class StringScannerTest extends AbstractScannerTest {
       _ut.test('test_string_multi_double', () {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_string_multi_double);
+      });
+      _ut.test('test_string_multi_embeddedQuotes', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_embeddedQuotes);
+      });
+      _ut.test('test_string_multi_embeddedQuotes_escapedChar', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_embeddedQuotes_escapedChar);
       });
       _ut.test('test_string_multi_interpolation_block', () {
         final __test = new StringScannerTest();
@@ -1794,6 +1818,13 @@ abstract class AbstractScannerTest extends JUnitTestCase {
         new AbstractScannerTest_ExpectedLocation(4, 2, 2),
         new AbstractScannerTest_ExpectedLocation(source.length - 1, 3, 3)]);
   }
+  void test_lineInfo_multilineString() {
+    String source = "'''a\r\nbc\r\nd'''";
+    assertLineInfo(source, [
+        new AbstractScannerTest_ExpectedLocation(0, 1, 1),
+        new AbstractScannerTest_ExpectedLocation(7, 2, 2),
+        new AbstractScannerTest_ExpectedLocation(source.length - 1, 3, 4)]);
+  }
   void test_lineInfo_simpleClass() {
     String source = "class Test {\r\n    String s = '...';\r\n    int get x => s.MISSING_GETTER;\r\n}";
     assertLineInfo(source, [
@@ -1917,7 +1948,13 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     JUnitTestCase.assertEquals(token, next.previous);
   }
   void test_string_multi_double() {
-    assertToken(TokenType.STRING, "\"\"\"multi-line\nstring\"\"\"");
+    assertToken(TokenType.STRING, "\"\"\"line1\nline2\"\"\"");
+  }
+  void test_string_multi_embeddedQuotes() {
+    assertToken(TokenType.STRING, "\"\"\"line1\n\"\"\nline2\"\"\"");
+  }
+  void test_string_multi_embeddedQuotes_escapedChar() {
+    assertToken(TokenType.STRING, "\"\"\"a\"\"\\tb\"\"\"");
   }
   void test_string_multi_interpolation_block() {
     assertTokens("\"Hello \${name}!\"", [
@@ -1944,7 +1981,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''string");
   }
   void test_string_raw_multi_double() {
-    assertToken(TokenType.STRING, "r\"\"\"string\"\"\"");
+    assertToken(TokenType.STRING, "r\"\"\"line1\nline2\"\"\"");
   }
   void test_string_raw_multi_single() {
     assertToken(TokenType.STRING, "r'''string'''");

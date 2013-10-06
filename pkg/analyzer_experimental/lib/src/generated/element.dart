@@ -5679,6 +5679,7 @@ class BottomTypeImpl extends TypeImpl {
    */
   BottomTypeImpl() : super(null, "<bottom>");
   bool operator ==(Object object) => identical(object, this);
+  bool get isBottom => true;
   bool isMoreSpecificThan(Type2 type) => true;
   bool isSubtypeOf(Type2 type) => true;
   bool isSupertypeOf(Type2 type) => false;
@@ -6801,6 +6802,7 @@ abstract class TypeImpl implements Type2 {
   Type2 getLeastUpperBound(Type2 type) => null;
   String get name => _name;
   bool isAssignableTo(Type2 type) => this.isSubtypeOf(type) || type.isSubtypeOf(this);
+  bool get isBottom => false;
   bool get isDartCoreFunction => false;
   bool get isDynamic => false;
   bool isMoreSpecificThan(Type2 type) => false;
@@ -7421,6 +7423,13 @@ abstract class Type2 {
    * @return `true` if this type is assignable to the given type
    */
   bool isAssignableTo(Type2 type);
+
+  /**
+   * Return `true` if this type represents the bottom type.
+   *
+   * @return `true` if this type represents the bottom type
+   */
+  bool get isBottom;
 
   /**
    * Return `true` if this type represents the type 'Function' defined in the dart:core

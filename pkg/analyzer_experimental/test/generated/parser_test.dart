@@ -3207,6 +3207,15 @@ class SimpleParserTest extends ParserTestCase {
     EngineTestCase.assertSize(3, statement.members[0].statements);
     JUnitTestCase.assertNotNull(statement.rightBracket);
   }
+  void test_parseSymbolLiteral_builtInIdentifier() {
+    SymbolLiteral literal = ParserTestCase.parse5("parseSymbolLiteral", "#dynamic.static.abstract", []);
+    JUnitTestCase.assertNotNull(literal.poundSign);
+    List<Token> components = literal.components;
+    EngineTestCase.assertLength(3, components);
+    JUnitTestCase.assertEquals("dynamic", components[0].lexeme);
+    JUnitTestCase.assertEquals("static", components[1].lexeme);
+    JUnitTestCase.assertEquals("abstract", components[2].lexeme);
+  }
   void test_parseSymbolLiteral_multiple() {
     SymbolLiteral literal = ParserTestCase.parse5("parseSymbolLiteral", "#a.b.c", []);
     JUnitTestCase.assertNotNull(literal.poundSign);
@@ -5688,6 +5697,10 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseSwitchStatement_labeledStatementInCase);
       });
+      _ut.test('test_parseSymbolLiteral_builtInIdentifier', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseSymbolLiteral_builtInIdentifier);
+      });
       _ut.test('test_parseSymbolLiteral_multiple', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseSymbolLiteral_multiple);
@@ -7657,6 +7670,18 @@ class ErrorParserTest extends ParserTestCase {
   void test_abstractTypeDef() {
     ParserTestCase.parseCompilationUnit("abstract typedef F();", [ParserErrorCode.ABSTRACT_TYPEDEF]);
   }
+  void test_assertDoesNotTakeAssignment() {
+    ParserTestCase.parse5("parseAssertStatement", "assert(b = true);", [ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT]);
+  }
+  void test_assertDoesNotTakeCascades() {
+    ParserTestCase.parse5("parseAssertStatement", "assert(new A()..m());", [ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE]);
+  }
+  void test_assertDoesNotTakeRethrow() {
+    ParserTestCase.parse5("parseAssertStatement", "assert(rethrow);", [ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW]);
+  }
+  void test_assertDoesNotTakeThrow() {
+    ParserTestCase.parse5("parseAssertStatement", "assert(throw x);", [ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW]);
+  }
   void test_breakOutsideOfLoop_breakInDoStatement() {
     ParserTestCase.parse5("parseDoStatement", "do {break;} while (x);", []);
   }
@@ -8409,6 +8434,22 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_abstractTypeDef', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_abstractTypeDef);
+      });
+      _ut.test('test_assertDoesNotTakeAssignment', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_assertDoesNotTakeAssignment);
+      });
+      _ut.test('test_assertDoesNotTakeCascades', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_assertDoesNotTakeCascades);
+      });
+      _ut.test('test_assertDoesNotTakeRethrow', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_assertDoesNotTakeRethrow);
+      });
+      _ut.test('test_assertDoesNotTakeThrow', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_assertDoesNotTakeThrow);
       });
       _ut.test('test_breakOutsideOfLoop_breakInDoStatement', () {
         final __test = new ErrorParserTest();
