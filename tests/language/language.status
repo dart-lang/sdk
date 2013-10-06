@@ -73,7 +73,7 @@ lazy_static3_test: Fail # Issue 13469
 assertion_test: Fail # Issue 13719: Please triage this failure.
 call_test: Fail # Issue 13719: Please triage this failure.
 dynamic_prefix_core_test: Fail # Issue 13719: Please triage this failure.
-first_class_types_literals_test: Fail # Issue 13719: Please triage this failure.
+first_class_types_literals_test: Pass, Fail # Issue 13719: Please triage this failure.
 generic_test: Fail # Issue 13719: Please triage this failure.
 list_literal1_test/01: Fail # Issue 13719: Please triage this failure.
 list_literal4_test: Fail # Issue 13719: Please triage this failure.
@@ -84,9 +84,6 @@ named_parameters_type_test/02: Fail # Issue 13719: Please triage this failure.
 named_parameters_type_test/03: Fail # Issue 13719: Please triage this failure.
 positional_parameters_type_test/01: Fail # Issue 13719: Please triage this failure.
 positional_parameters_type_test/02: Fail # Issue 13719: Please triage this failure.
+regress_13494_test: Pass, Fail # Issue 13719: Please triage this failure.
 type_checks_in_factory_method_test: Fail # Issue 13719: Please triage this failure.
 vm/type_vm_test: Fail # Issue 13719: Please triage this failure.
-
-
-[ $compiler == none && $runtime == dartium ]
-regress_13494_test: Fail # Issue 13719: Please triage this failure.

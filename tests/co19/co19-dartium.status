@@ -18,7 +18,7 @@ Language/05_Variables/05_Variables_A06_t06: Fail # Issue 13719: Please triage th
 Language/05_Variables/05_Variables_A16_t02: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Issue 13719: Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Fail # Issue 13719: Please triage this failure.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Pass, Fail # Issue 13719: Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: Fail # Issue 13719: Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: Fail # Issue 13719: Please triage this failure.
 Language/09_Mixins/1_Mixin_Application_A01_t01: Fail # co19-roll r607: Please triage this failure
