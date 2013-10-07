@@ -204,7 +204,7 @@ unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2J
 [ $arch == arm ]
 *: Skip  # Issue 13624
 
-[ $arch == simarm ]
+[ $arch == simarm || $arch == simmips ]
 watcher/test/no_subscription_test: Pass, Fail  # Issue 13705.
 
 [ $arch == simarm || $arch == simmips ]
