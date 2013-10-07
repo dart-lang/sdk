@@ -23,6 +23,8 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     e._initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
   }
+
+  $CLASSNAME._private() : super._private();
 $!MEMBERS
 
   @deprecated

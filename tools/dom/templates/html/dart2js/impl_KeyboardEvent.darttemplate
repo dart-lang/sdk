@@ -38,6 +38,12 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return e;
   }
 
+  /** 
+   * Used for KeyboardEvent polyfilling when programmatically constructing
+   * KeyEvents.
+   */
+  $CLASSNAME._private() : super._private();
+
   @DomName('KeyboardEvent.initKeyboardEvent')
   void _initKeyboardEvent(String type, bool canBubble, bool cancelable,
       Window view, String keyIdentifier, int keyLocation, bool ctrlKey,

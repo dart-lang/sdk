@@ -27,8 +27,8 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   // The distance to shift from upper case alphabet Roman letters to lower case.
   static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
 
-  /** Controller to produce KeyEvents for the stream. */
-  final StreamController _controller = new StreamController(sync: true);
+  /** Custom Stream (Controller) to produce KeyEvents for the stream. */
+  _CustomKeyEventStreamImpl _stream;
 
   static const _EVENT_TYPE = 'KeyEvent';
 
@@ -64,56 +64,33 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   };
 
   /** Return a stream for KeyEvents for the specified target. */
-  Stream<KeyEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    return new _KeyboardEventHandler.initializeAllEventListeners(
-        _type, e).stream;
-  }
-
-  /**
-   * Accessor to the stream associated with a particular KeyboardEvent
-   * EventTarget.
-   *
-   * [forTarget] must be called to initialize this stream to listen to a
-   * particular EventTarget.
-   */
-  Stream<KeyEvent> get stream {
-    if(_target != null) {
-      return _controller.stream;
-    } else {
-      throw new StateError("Not initialized. Call forTarget to access a stream "
-          "initialized with a particular EventTarget.");
-    }
+  // Note: this actually functions like a factory constructor.
+  CustomStream<KeyEvent> forTarget(EventTarget e, {bool useCapture: false}) {
+    var handler = new _KeyboardEventHandler.initializeAllEventListeners(
+        _type, e);
+    return handler._stream;
   }
 
   /**
    * General constructor, performs basic initialization for our improved
    * KeyboardEvent controller.
    */
-  _KeyboardEventHandler(this._type) :
-    _target = null, super(_EVENT_TYPE) {
-  }
+  _KeyboardEventHandler(this._type): super(_EVENT_TYPE),
+      _stream = new _CustomKeyEventStreamImpl('event');
 
   /**
    * Hook up all event listeners under the covers so we can estimate keycodes
    * and charcodes when they are not provided.
    */
   _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target) :
-    super(_EVENT_TYPE) {
+      super(_EVENT_TYPE) {
     Element.keyDownEvent.forTarget(_target, useCapture: true).listen(
         processKeyDown);
     Element.keyPressEvent.forTarget(_target, useCapture: true).listen(
         processKeyPress);
     Element.keyUpEvent.forTarget(_target, useCapture: true).listen(
         processKeyUp);
-  }
-
-  /**
-   * Notify all callback listeners that a KeyEvent of the relevant type has
-   * occurred.
-   */
-  bool _dispatch(KeyEvent event) {
-    if (event.type == _type)
-      _controller.add(event);
+    _stream = new _CustomKeyEventStreamImpl(_type);
   }
 
   /** Determine if caps lock is one of the currently depressed keys. */
@@ -304,7 +281,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
       _keyDownList.clear();
     }
 
-    var event = new KeyEvent(e);
+    var event = new KeyEvent.wrap(e);
     event._shadowKeyCode = _normalizeKeyCodes(event);
     // Technically a "keydown" event doesn't have a charCode. This is
     // calculated nonetheless to provide us with more information in giving
@@ -318,12 +295,12 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
       processKeyPress(e);
     }
     _keyDownList.add(event);
-    _dispatch(event);
+    _stream.add(event);
   }
 
   /** Handle keypress events. */
   void processKeyPress(KeyboardEvent event) {
-    var e = new KeyEvent(event);
+    var e = new KeyEvent.wrap(event);
     // IE reports the character code in the keyCode field for keypress events.
     // There are two exceptions however, Enter and Escape.
     if (Device.isIE) {
@@ -348,12 +325,12 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
       e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier];
     }
     e._shadowAltKey = _keyDownList.any((var element) => element.altKey);
-    _dispatch(e);
+    _stream.add(e);
   }
 
   /** Handle keyup events. */
   void processKeyUp(KeyboardEvent event) {
-    var e = new KeyEvent(event);
+    var e = new KeyEvent.wrap(event);
     KeyboardEvent toRemove = null;
     for (var key in _keyDownList) {
       if (key.keyCode == e.keyCode) {
@@ -368,7 +345,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
       // inconsistencies. Filing bugs on when this is reached is welcome!
       _keyDownList.removeLast();
     }
-    _dispatch(e);
+    _stream.add(e);
   }
 }
 
@@ -391,14 +368,14 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
 class KeyboardEventStream {
 
   /** Named constructor to produce a stream for onKeyPress events. */
-  static Stream<KeyEvent> onKeyPress(EventTarget target) =>
+  static CustomStream<KeyEvent> onKeyPress(EventTarget target) =>
       new _KeyboardEventHandler('keypress').forTarget(target);
 
   /** Named constructor to produce a stream for onKeyUp events. */
-  static Stream<KeyEvent> onKeyUp(EventTarget target) =>
+  static CustomStream<KeyEvent> onKeyUp(EventTarget target) =>
       new _KeyboardEventHandler('keyup').forTarget(target);
 
   /** Named constructor to produce a stream for onKeyDown events. */
-  static Stream<KeyEvent> onKeyDown(EventTarget target) =>
-    new _KeyboardEventHandler('keydown').forTarget(target);
+  static CustomStream<KeyEvent> onKeyDown(EventTarget target) =>
+      new _KeyboardEventHandler('keydown').forTarget(target);
 }

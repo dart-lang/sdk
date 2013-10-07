@@ -33,5 +33,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     e._initEvent(name, canBubble, cancelable);
     return e;
   }
+
+  $CLASSNAME._private();
 $!MEMBERS
 }
