@@ -57,7 +57,7 @@
  *     }
  *
  * **Example 4**: Same as above, but uses [build] (which internally calls [lint]
- * and [deploy]).
+ * and optionally calls [deploy]).
  *
  *     import 'dart:io';
  *     import 'package:polymer/builder.dart';
