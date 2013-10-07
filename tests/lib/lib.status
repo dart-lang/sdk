@@ -36,6 +36,7 @@ mirrors/new_instance_with_type_arguments_test: RuntimeError # Issue 12333
 mirrors/null_test : RuntimeError # Issue 12129
 mirrors/parameter_test/none: RuntimeError # Issue 6490
 mirrors/parameter_metadata_test: CompileTimeError # Issue 10905
+mirrors/proxy_type_test: RuntimeError # Issue 13842
 mirrors/reflected_type_test: RuntimeError # Issue 12607
 mirrors/type_argument_is_type_variable_test: RuntimeError # Issue 12333
 mirrors/typedef_metadata_test: RuntimeError # Issue 12785
