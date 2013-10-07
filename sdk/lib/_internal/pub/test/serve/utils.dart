@@ -87,12 +87,12 @@ class DartTransformer extends Transformer {
 
 /// Schedules starting the "pub serve" process.
 ///
-/// If [shouldInstallFirst] is `true`, validates that pub install is run first.
-/// If [dart2js] is `false`, does not compile Dart entrypoints in "web" to
+/// If [shouldGetFirst] is `true`, validates that pub get is run first. If
+/// [dart2js] is `false`, does not compile Dart entrypoints in "web" to
 /// JavaScript.
 ///
 /// Returns the `pub serve` process.
-ScheduledProcess startPubServe({bool shouldInstallFirst: false,
+ScheduledProcess startPubServe({bool shouldGetFirst: false,
     bool dart2js: true}) {
 
   // Use port 0 to get an ephemeral port.
@@ -102,13 +102,15 @@ ScheduledProcess startPubServe({bool shouldInstallFirst: false,
 
   _pubServer = startPub(args: args);
 
-  if (shouldInstallFirst) {
+  if (shouldGetFirst) {
     expect(_pubServer.nextLine(),
-        completion(startsWith("Dependencies have changed")));
+        completion(anyOf(
+             startsWith("Your pubspec has changed"),
+             startsWith("You don't have a lockfile"))));
     expect(_pubServer.nextLine(),
         completion(startsWith("Resolving dependencies...")));
     expect(_pubServer.nextLine(),
-        completion(equals("Dependencies installed!")));
+        completion(equals("Got dependencies!")));
   }
 
   expect(_pubServer.nextLine().then(_parsePort), completes);

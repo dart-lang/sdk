@@ -29,11 +29,11 @@ final USAGE_STRING = """
 
     Available commands:
       deploy     Copy and compile all Dart entrypoints in the 'web' directory.
+      get        Get the current package's dependencies.
       help       Display help information for Pub.
-      install    Install the current package's dependencies.
       publish    Publish the current package to pub.dartlang.org.
       serve      Run a local web development server.
-      update     Update the current package's dependencies to the latest versions.
+      upgrade    Upgrade the current package's dependencies to latest versions.
       uploader   Manage uploaders for a package on pub.dartlang.org.
       version    Print pub version.
 
@@ -60,22 +60,22 @@ main() {
   });
 
   integration('running pub with --help after command shows command usage', () {
-    schedulePub(args: ['install', '--help'],
+    schedulePub(args: ['get', '--help'],
         output: '''
-          Install the current package's dependencies.
+          Get the current package's dependencies.
 
-          Usage: pub install
+          Usage: pub get
           -h, --help            Print usage information for this command.
               --[no-]offline    Use cached packages instead of accessing the network.
     ''');
   });
 
   integration('running pub with -h after command shows command usage', () {
-    schedulePub(args: ['install', '-h'],
+    schedulePub(args: ['get', '-h'],
         output: '''
-          Install the current package's dependencies.
+          Get the current package's dependencies.
 
-          Usage: pub install
+          Usage: pub get
           -h, --help            Print usage information for this command.
               --[no-]offline    Use cached packages instead of accessing the network.
     ''');
@@ -116,11 +116,11 @@ main() {
 
   group('help', () {
     integration('shows help for a command', () {
-      schedulePub(args: ['help', 'install'],
+      schedulePub(args: ['help', 'get'],
           output: '''
-            Install the current package's dependencies.
+            Get the current package's dependencies.
 
-            Usage: pub install
+            Usage: pub get
             -h, --help            Print usage information for this command.
                 --[no-]offline    Use cached packages instead of accessing the network.
             ''');

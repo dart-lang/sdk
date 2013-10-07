@@ -14,7 +14,7 @@ import '../pubspec.dart';
 import '../source.dart';
 import '../utils.dart';
 
-/// A package [Source] that installs packages from a given local file path.
+/// A package [Source] that gets packages from a given local file path.
 class PathSource extends Source {
   final name = 'path';
   final shouldCache = false;
@@ -34,7 +34,7 @@ class PathSource extends Source {
     return path1 == path2;
   }
 
-  Future<bool> install(PackageId id, String destination) {
+  Future<bool> get(PackageId id, String destination) {
     return new Future.sync(() {
       try {
         _validatePath(id.name, id.description);

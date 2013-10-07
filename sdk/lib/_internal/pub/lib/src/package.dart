@@ -91,7 +91,7 @@ class _PackageName {
   final String source;
 
   /// The metadata used by the package's [source] to identify and locate it. It
-  /// contains whatever [Source]-specific data it needs to be able to install
+  /// contains whatever [Source]-specific data it needs to be able to get
   /// the package. For example, the description of a git sourced package might
   /// by the URL "git://github.com/dart/uilib.git".
   final description;
@@ -130,7 +130,7 @@ class PackageRef extends _PackageName {
 }
 
 /// A reference to a specific version of a package. A package ID contains
-/// enough information to correctly install the package.
+/// enough information to correctly get the package.
 ///
 /// Note that it's possible for multiple distinct package IDs to point to
 /// different packages that have identical contents. For example, the same

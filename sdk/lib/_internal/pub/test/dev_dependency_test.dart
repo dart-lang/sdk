@@ -28,7 +28,7 @@ main() {
       })
     ]).create();
 
-    pubInstall();
+    pubGet();
 
     d.dir(packagesPath, [
       d.dir("foo", [
@@ -62,7 +62,7 @@ main() {
       })
     ]).create();
 
-    pubInstall();
+    pubGet();
 
     d.dir(packagesPath, [
       d.dir("foo", [
@@ -97,7 +97,7 @@ main() {
       })
     ]).create();
 
-    pubInstall();
+    pubGet();
 
     d.dir(packagesPath, [
       d.dir("foo", [

@@ -22,9 +22,9 @@ main() {
       })
     ]).create();
 
-    pubInstall();
+    pubGet();
 
-    // Add a dependency on "bar" and remove "foo", but don't run "pub install".
+    // Add a dependency on "bar" and remove "foo", but don't run "pub get".
     d.dir(appPath, [
       d.appPubspec({
         "bar": "any"

@@ -120,16 +120,21 @@ class ServeCommand extends PubCommand {
     });
   }
 
-  /// Installs dependencies is the lockfile is out of date with respect to the
+  /// Gets dependencies if the lockfile is out of date with respect to the
   /// pubspec.
   Future ensureLockFileIsUpToDate() {
     return new Future.sync(() {
-      // The server relies on an up-to-date lockfile, so install first if
-      // needed.
+      // The server relies on an up-to-date lockfile, so get first if needed.
       if (!entrypoint.isLockFileUpToDate()) {
-        log.message("Dependencies have changed, installing...");
-        return entrypoint.installDependencies().then((_) {
-          log.message("Dependencies installed!");
+        if (entrypoint.lockFileExists) {
+          log.message(
+              "Your pubspec has changed, so we need to update your lockfile:");
+        } else {
+          log.message(
+              "You don't have a lockfile, so we need to generate that:");
+        }
+        return entrypoint.getDependencies().then((_) {
+          log.message("Got dependencies!");
         });
       }
     });

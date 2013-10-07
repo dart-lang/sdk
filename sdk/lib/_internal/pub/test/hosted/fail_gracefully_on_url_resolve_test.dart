@@ -10,7 +10,7 @@ import '../test_pub.dart';
 main() {
   initConfig();
 
-  forBothPubInstallAndUpdate((command) {
+  forBothPubGetAndUpgrade((command) {
     integration('fails gracefully if the url does not resolve', () {
       d.dir(appPath, [
         d.appPubspec({

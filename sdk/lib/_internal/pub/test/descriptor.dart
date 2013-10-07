@@ -97,7 +97,7 @@ Descriptor gitPackageRepoCacheDir(String name) {
 /// which should be name/version pairs. The packages will be validated against
 /// the format produced by the mock package server.
 ///
-/// A package with a null version should not be installed.
+/// A package with a null version should not be downloaded.
 Descriptor packagesDir(Map<String, String> packages) {
   var contents = <Descriptor>[];
   packages.forEach((name, version) {
@@ -117,7 +117,7 @@ Descriptor packagesDir(Map<String, String> packages) {
 /// validated against the format produced by the mock package server.
 ///
 /// A package's value may also be a list of versions, in which case all
-/// versions are expected to be installed.
+/// versions are expected to be downloaded.
 ///
 /// If [includePubspecs] is `true`, then pubspecs will be created for each
 /// package. Defaults to `false` so that the contents of pubspecs are not

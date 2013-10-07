@@ -59,7 +59,7 @@ main() {
       ])
     ]).create();
 
-    pubInstall();
+    pubGet();
 
     schedulePub(args: ["deploy"],
         output: '''

@@ -258,22 +258,22 @@ bool _abortScheduled = false;
 /// Enum identifying a pub command that can be run with a well-defined success
 /// output.
 class RunCommand {
-  static final install = new RunCommand('install', 'installed');
-  static final update = new RunCommand('update', 'updated');
+  static final get = new RunCommand('get', 'Got dependencies!');
+  static final upgrade = new RunCommand('upgrade', 'Dependencies upgraded!');
 
   final String name;
   final RegExp success;
-  RunCommand(this.name, String verb)
-      : success = new RegExp("Dependencies $verb!\$");
+  RunCommand(this.name, String message)
+      : success = new RegExp("$message\$");
 }
 
-/// Many tests validate behavior that is the same between pub install and
-/// update have the same behavior. Instead of duplicating those tests, this
-/// takes a callback that defines install/update agnostic tests and runs them
+/// Many tests validate behavior that is the same between pub get and
+/// upgrade have the same behavior. Instead of duplicating those tests, this
+/// takes a callback that defines get/upgrade agnostic tests and runs them
 /// with both commands.
-void forBothPubInstallAndUpdate(void callback(RunCommand command)) {
-  group(RunCommand.install.name, () => callback(RunCommand.install));
-  group(RunCommand.update.name, () => callback(RunCommand.update));
+void forBothPubGetAndUpgrade(void callback(RunCommand command)) {
+  group(RunCommand.get.name, () => callback(RunCommand.get));
+  group(RunCommand.upgrade.name, () => callback(RunCommand.upgrade));
 }
 
 /// Schedules an invocation of pub [command] and validates that it completes
@@ -306,14 +306,14 @@ void pubCommand(RunCommand command, {Iterable<String> args, Pattern error,
   schedulePub(args: allArgs, output: output, error: error, exitCode: exitCode);
 }
 
-void pubInstall({Iterable<String> args, Pattern error,
+void pubGet({Iterable<String> args, Pattern error,
     Pattern warning}) {
-  pubCommand(RunCommand.install, args: args, error: error, warning: warning);
+  pubCommand(RunCommand.get, args: args, error: error, warning: warning);
 }
 
-void pubUpdate({Iterable<String> args, Pattern error,
+void pubUpgrade({Iterable<String> args, Pattern error,
     Pattern warning}) {
-  pubCommand(RunCommand.update, args: args, error: error, warning: warning);
+  pubCommand(RunCommand.upgrade, args: args, error: error, warning: warning);
 }
 
 /// Defines an integration test. The [body] should schedule a series of
@@ -605,7 +605,7 @@ void ensureGit() {
   }, 'ensuring that Git is installed');
 }
 
-/// Create a lock file for [package] without running `pub install`.
+/// Create a lock file for [package] without running `pub get`.
 ///
 /// This creates a lock file with only path dependencies. [sandbox] is a list of
 /// dependencies to be found in the sandbox directory. [pkg] is a list of

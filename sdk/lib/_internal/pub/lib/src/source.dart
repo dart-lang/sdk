@@ -15,10 +15,10 @@ import 'system_cache.dart';
 import 'utils.dart';
 import 'version.dart';
 
-/// A source from which to install packages.
+/// A source from which to get packages.
 ///
 /// Each source has many packages that it looks up using [PackageId]s. The
-/// source is responsible for installing these packages to the package cache.
+/// source is responsible for getting these packages into the package cache.
 abstract class Source {
   /// The name of the source. Should be lower-case, suitable for use in a
   /// filename, and unique accross all sources.
@@ -61,9 +61,10 @@ abstract class Source {
   /// Get the list of all versions that exist for the package described by
   /// [description]. [name] is the expected name of the package.
   ///
-  /// Note that this does *not* require the packages to be installed, which is
-  /// the point. This is used during version resolution to determine which
-  /// package versions are available to be installed (or already installed).
+  /// Note that this does *not* require the package to be downloaded locally,
+  /// which is the point. This is used during version resolution to determine
+  /// which package versions are available to be downloaded (or already
+  /// downloaded).
   ///
   /// By default, this assumes that each description has a single version and
   /// uses [describe] to get that version.
@@ -73,15 +74,15 @@ abstract class Source {
   }
 
   /// Loads the (possibly remote) pubspec for the package version identified by
-  /// [id]. This may be called for packages that have not yet been installed
+  /// [id]. This may be called for packages that have not yet been downloaded
   /// during the version resolution process.
   ///
-  /// If the package has been installed to the system cache, the cached pubspec
+  /// If the package has been downloaded to the system cache, the cached pubspec
   /// will be used. Otherwise, it delegates to host-specific lookup behavior.
   ///
-  /// For cached sources, by default this uses [installToSystemCache] to get the
-  /// pubspec. There is no default implementation for non-cached sources; they
-  /// must implement it manually.
+  /// For cached sources, by default this uses [downloadToSystemCache] to get
+  /// the pubspec. There is no default implementation for non-cached sources;
+  /// they must implement it manually.
   Future<Pubspec> describe(PackageId id) {
     if (id.isRoot) throw new ArgumentError("Cannot describe the root package.");
     if (id.source != name) {
@@ -107,7 +108,7 @@ abstract class Source {
   /// Loads the pubspec for the package version identified by [id] which is not
   /// already in the system cache.
   ///
-  /// For cached sources, by default this uses [installToSystemCache] to get
+  /// For cached sources, by default this uses [downloadToSystemCache] to get
   /// the pubspec. There is no default implementation for non-cached sources;
   /// they must implement it manually.
   ///
@@ -118,33 +119,35 @@ abstract class Source {
       throw new UnimplementedError(
           "Source $name must implement describeUncached(id).");
     }
-    return installToSystemCache(id).then((package) => package.pubspec);
+    return downloadToSystemCache(id).then((package) => package.pubspec);
   }
 
-  /// Installs the package identified by [id] to [path]. Returns a [Future] that
-  /// completes when the installation was finished. The [Future] should resolve
-  /// to true if the package was found in the source and false if it wasn't. For
-  /// all other error conditions, it should complete with an exception.
+  /// Gets the package identified by [id] and places it at [path].
+  ///
+  /// Returns a [Future] that completes when the operation finishes. The
+  /// [Future] should resolve to true if the package was found in the source
+  /// and false if it wasn't. For all other error conditions, it should complete
+  /// with an exception.
   ///
   /// [path] is guaranteed not to exist, and its parent directory is guaranteed
   /// to exist.
   ///
-  /// Note that [path] may be deleted. If re-installing a package that has
-  /// already been installed would be costly or impossible,
-  /// [installToSystemCache] should be implemented instead of [install].
+  /// Note that [path] may be deleted. If re-getting a package that has already
+  /// been gotten would be costly or impossible, [downloadToSystemCache]
+  /// should be implemented instead of [get].
   ///
-  /// This doesn't need to be implemented if [installToSystemCache] is
+  /// This doesn't need to be implemented if [downloadToSystemCache] is
   /// implemented.
-  Future<bool> install(PackageId id, String path) {
-    throw new UnimplementedError("Either install or installToSystemCache must "
+  Future<bool> get(PackageId id, String path) {
+    throw new UnimplementedError("Either get() or downloadToSystemCache() must "
         "be implemented for source $name.");
   }
 
-  /// Installs the package identified by [id] to the system cache. This is only
+  /// Downloads the package identified by [id] to the system cache. This is only
   /// called for sources with [shouldCache] set to true.
   ///
-  /// By default, this uses [systemCacheDirectory] and [install].
-  Future<Package> installToSystemCache(PackageId id) {
+  /// By default, this uses [systemCacheDirectory] and [get].
+  Future<Package> downloadToSystemCache(PackageId id) {
     var packageDir;
     return systemCacheDirectory(id).then((p) {
       packageDir = p;
@@ -152,12 +155,12 @@ abstract class Source {
       // See if it's already cached.
       if (dirExists(packageDir)) {
         if (!_isCachedPackageCorrupted(packageDir)) return true;
-        // Busted, so wipe out the package and reinstall.
+        // Busted, so wipe out the package and re-download.
         deleteEntry(packageDir);
       }
 
       ensureDir(path.dirname(packageDir));
-      return install(id, packageDir);
+      return get(id, packageDir);
     }).then((found) {
       if (!found) fail('Package $id not found.');
       return new Package.load(id.name, packageDir, systemCache.sources);
@@ -185,7 +188,7 @@ abstract class Source {
     return false;
   }
 
-  /// Returns the directory where this package has been installed. If this is
+  /// Returns the directory where this package can be found locally. If this is
   /// a cached source, it will be in the system cache. Otherwise, it will
   /// depend on the source.
   Future<String> getDirectory(PackageId id) {
@@ -194,7 +197,7 @@ abstract class Source {
   }
 
   /// Returns the directory in the system cache that the package identified by
-  /// [id] should be installed to. This should return a path to a subdirectory
+  /// [id] should be downloaded to. This should return a path to a subdirectory
   /// of [systemCacheRoot].
   ///
   /// This doesn't need to be implemented if [shouldCache] is false.
@@ -241,9 +244,8 @@ abstract class Source {
   /// `http://github.com/dart-lang/some-lib.git` and return an id with a
   /// description that includes the current commit of the Git repository.
   ///
-  /// This will be called after the package identified by [id] is installed, so
-  /// the source can use the installed package to determine information about
-  /// the resolved id.
+  /// Pub calls this after getting a package, so the source can use the local
+  /// package to determine information about the resolved id.
   ///
   /// The returned [PackageId] may have a description field that's invalid
   /// according to [parseDescription], although it must still be serializable
@@ -253,7 +255,7 @@ abstract class Source {
   /// By default, this just returns [id].
   Future<PackageId> resolveId(PackageId id) => new Future.value(id);
 
-  /// Returns the [Package]s that have been installed in the system cache.
+  /// Returns the [Package]s that have been downloaded to the system cache.
   List<Package> getCachedPackages() {
     if (shouldCache) {
       throw new UnimplementedError("Source $name must implement this.");

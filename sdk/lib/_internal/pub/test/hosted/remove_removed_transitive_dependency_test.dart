@@ -10,7 +10,7 @@ import '../test_pub.dart';
 main() {
   initConfig();
 
-  forBothPubInstallAndUpdate((command) {
+  forBothPubGetAndUpgrade((command) {
     integration("removes a transitive dependency that's no longer depended "
         "on", () {
       servePackages([

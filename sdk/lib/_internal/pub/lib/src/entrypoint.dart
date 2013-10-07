@@ -41,9 +41,12 @@ class Entrypoint {
   /// the network.
   final SystemCache cache;
 
-  /// Packages which are either currently being asynchronously installed to the
-  /// directory, or have already been installed.
-  final _installs = new Map<PackageId, Future<PackageId>>();
+  /// A map of the [Future]s that were or are being used to asynchronously get
+  /// packages.
+  ///
+  /// Includes packages that are in-transit and ones that have already
+  /// completed.
+  final _pendingGets = new Map<PackageId, Future<PackageId>>();
 
   /// Loads the entrypoint from a package at [rootDir].
   Entrypoint(String rootDir, SystemCache cache)
@@ -60,19 +63,18 @@ class Entrypoint {
   /// The path to the entrypoint package's lockfile.
   String get lockFilePath => path.join(root.dir, 'pubspec.lock');
 
-  /// Ensures that the package identified by [id] is installed to the directory.
-  /// Returns the resolved [PackageId].
+  /// Gets package [id] and makes it available for use by this entrypoint.
   ///
   /// If this completes successfully, the package is guaranteed to be importable
-  /// using the `package:` scheme.
+  /// using the `package:` scheme. Returns the resolved [PackageId].
   ///
-  /// This will automatically install the package to the system-wide cache as
-  /// well if it requires network access to retrieve (specifically, if the
-  /// package's source has [shouldCache] as `true`).
+  /// This automatically downloads the package to the system-wide cache as well
+  /// if it requires network access to retrieve (specifically, if the package's
+  /// source has [shouldCache] as `true`).
   ///
-  /// See also [installDependencies].
-  Future<PackageId> install(PackageId id) {
-    var pending = _installs[id];
+  /// See also [getDependencies].
+  Future<PackageId> get(PackageId id) {
+    var pending = _pendingGets[id];
     if (pending != null) return pending;
 
     var packageDir = path.join(packagesDir, id.name);
@@ -84,68 +86,69 @@ class Entrypoint {
       if (entryExists(packageDir)) {
         // TODO(nweiz): figure out when to actually delete the directory, and
         // when we can just re-use the existing symlink.
-        log.fine("Deleting package directory for ${id.name} before install.");
+        log.fine("Deleting package directory for ${id.name} before get.");
         deleteEntry(packageDir);
       }
 
       source = cache.sources[id.source];
 
       if (source.shouldCache) {
-        return cache.install(id).then(
+        return cache.download(id).then(
             (pkg) => createPackageSymlink(id.name, pkg.dir, packageDir));
       } else {
-        return source.install(id, packageDir).then((found) {
+        return source.get(id, packageDir).then((found) {
           if (found) return null;
           fail('Package ${id.name} not found in source "${id.source}".');
         });
       }
     }).then((_) => source.resolveId(id));
 
-    _installs[id] = future;
+    _pendingGets[id] = future;
 
     return future;
   }
 
-  /// Installs all dependencies of the [root] package to its "packages"
-  /// directory, respecting the [LockFile] if present. Returns a [Future] that
-  /// completes when all dependencies are installed.
-  Future installDependencies() {
+  /// Gets all dependencies of the [root] package and places them in its
+  /// "packages" directory, respecting the [LockFile] if present. Returns a
+  /// [Future] that completes when all dependencies are available.
+  Future getDependencies() {
     return new Future.sync(() {
       return resolveVersions(cache.sources, root, lockFile: loadLockFile());
-    }).then(_installDependencies);
+    }).then(_getDependencies);
   }
 
-  /// Installs the latest available versions of all dependencies of the [root]
-  /// package to its "package" directory, writing a new [LockFile]. Returns a
-  /// [Future] that completes when all dependencies are installed.
-  Future updateAllDependencies() {
-    return resolveVersions(cache.sources, root).then(_installDependencies);
+  /// Gets the latest available versions of all dependencies of the [root]
+  /// package and places them in its "package" directory, writing a new
+  /// [LockFile]. Returns a [Future] that completes when all dependencies are
+  /// available.
+  Future upgradeAllDependencies() {
+    return resolveVersions(cache.sources, root).then(_getDependencies);
   }
 
-  /// Installs the latest available versions of [dependencies], while leaving
+  /// Gets the latest available versions of [dependencies], while leaving
   /// other dependencies as specified by the [LockFile] if possible. Returns a
-  /// [Future] that completes when all dependencies are installed.
-  Future updateDependencies(List<String> dependencies) {
+  /// [Future] that completes when all dependencies are available.
+  Future upgradeDependencies(List<String> dependencies) {
     return new Future.sync(() {
       return resolveVersions(cache.sources, root,
           lockFile: loadLockFile(), useLatest: dependencies);
-    }).then(_installDependencies);
+    }).then(_getDependencies);
   }
 
-  /// Removes the old packages directory, installs all dependencies listed in
+  /// Removes the old packages directory, gets all dependencies listed in
   /// [result], and writes a [LockFile].
-  Future _installDependencies(SolveResult result) {
+  Future _getDependencies(SolveResult result) {
     return new Future.sync(() {
       if (!result.succeeded) throw result.error;
 
       cleanDir(packagesDir);
       return Future.wait(result.packages.map((id) {
         if (id.isRoot) return new Future.value(id);
-        return install(id);
+        return get(id);
       }).toList());
     }).then((ids) {
       _saveLockFile(ids);
-      _installSelfReference();
+      _linkSelf();
       _linkSecondaryPackageDirs();
     });
   }
@@ -215,9 +218,9 @@ class Entrypoint {
     writeTextFile(lockFilePath, lockFile.serialize());
   }
 
-  /// Installs a self-referential symlink in the `packages` directory that will
-  /// allow a package to import its own files using `package:`.
-  void _installSelfReference() {
+  /// Creates a self-referential symlink in the `packages` directory that allows
+  /// a package to import its own files using `package:`.
+  void _linkSelf() {
     var linkPath = path.join(packagesDir, root.name);
     // Create the symlink if it doesn't exist.
     if (entryExists(linkPath)) return;

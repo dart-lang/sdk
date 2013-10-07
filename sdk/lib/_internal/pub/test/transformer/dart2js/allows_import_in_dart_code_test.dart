@@ -49,7 +49,7 @@ void main() {
       ])
     ]).create();
 
-    startPubServe(shouldInstallFirst: true);
+    startPubServe(shouldGetFirst: true);
     requestShouldSucceed("main.dart.js", contains("footext"));
     requestShouldSucceed("main.dart.js", contains("libtext"));
     endPubServe();

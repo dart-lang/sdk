@@ -55,7 +55,7 @@ class BacktrackingSolver {
   final LockFile lockFile;
   final PubspecCache cache;
 
-  /// The set of packages that are being explicitly updated. The solver will
+  /// The set of packages that are being explicitly upgraded. The solver will
   /// only allow the very latest version for each of these packages.
   final _forceLatest = new Set<String>();
 

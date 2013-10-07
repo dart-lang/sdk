@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub_update_test;
+library pub_upgrade_test;
 
 import 'dart:async';
 
@@ -1130,7 +1130,7 @@ class MockSource extends Source {
     });
   }
 
-  Future<bool> install(PackageId id, String path) {
+  Future<bool> get(PackageId id, String path) {
     throw new Exception('no');
   }
 

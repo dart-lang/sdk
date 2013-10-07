@@ -13,7 +13,7 @@ import '../test_pub.dart';
 main() {
   initConfig();
 
-  forBothPubInstallAndUpdate((command) {
+  forBothPubGetAndUpgrade((command) {
     integration('sends the correct Accept header', () {
       var server = new ScheduledServer();
 
