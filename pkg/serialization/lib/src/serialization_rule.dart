@@ -535,7 +535,7 @@ class _LazyMap implements Map {
 
   // These operations will work, but may be expensive, and are probably
   // best avoided.
-  get _inflated => keysAndValues(_raw).map(_reader.inflateReference);
+  get _inflated => mapValues(_raw, _reader.inflateReference);
   bool containsValue(x) => _inflated.containsValue(x);
   Iterable get values => _inflated.values;
   void forEach(f) => _inflated.forEach(f);
