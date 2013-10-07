@@ -14,6 +14,10 @@ main() {
   initConfig();
   integration("compiles a Dart file that imports a generated file in another "
               "package to JS", () {
+    // Dart2js can take a long time to compile dart code, so we increase the
+    // timeout to cope with that.
+    currentSchedule.timeout *= 3;
+
     d.dir("foo", [
       d.pubspec({
         "name": "foo",
