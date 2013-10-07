@@ -18,77 +18,15 @@ main() {
     var event = new KeyboardEvent('keyup');
   });
   test('keys', () {
-    var subscription = KeyboardEventStream.onKeyDown(document.body).listen(
+    // This test currently is pretty much a no-op because we
+    // can't (right now) construct KeyboardEvents with specific keycode/charcode
+    // values (a KeyboardEvent can be "init"-ed but not all the information can
+    // be programmatically populated. It exists as an example for how to use
+    // KeyboardEventController more than anything else.
+    KeyboardEventStream.onKeyDown(document.body).listen(
         keydownHandlerTest);
-    var subscription2 = KeyEvent.keyDownEvent.forTarget(document.body).listen(
-        keydownHandlerTest);
-    var subscription3 = document.body.onKeyDown.listen(
-        (e) => print('regular listener'));
-    subscription.cancel();
-    subscription2.cancel();
-    subscription3.cancel();
-  });
-
-  test('constructKeyEvent', () {
-    var stream = KeyEvent.keyPressEvent.forTarget(document.body);
-    var subscription = stream.listen(expectAsync1((keyEvent) {
-      expect(keyEvent.charCode, 97);
-      expect(keyEvent.keyCode, 65);
-    }));
-    var k = new KeyEvent('keypress', keyCode: 65, charCode: 97);
-    stream.add(k);
-    subscription.cancel();
-    // Capital "A":
-    stream.add(new KeyEvent('keydown', keyCode: 16, charCode: 0));
-
-    subscription = stream.listen(expectAsync1((keyEvent) {
-      expect(keyEvent.charCode, 65);
-      expect(keyEvent.keyCode, 65);
-    }));
-    stream.add(new KeyEvent('keypress', keyCode: 65, charCode: 65));
-    subscription.cancel();
-  });
-
-  test('KeyEventSequence', () {
-    // Press "?" by simulating "shift" and then the key that has "/" and "?" on
-    // it.
-    var streamDown = KeyEvent.keyDownEvent.forTarget(document.body);
-    var streamPress = KeyEvent.keyPressEvent.forTarget(document.body);
-    var streamUp = KeyEvent.keyUpEvent.forTarget(document.body);
-
-    var subscription = streamDown.listen(expectAsync1((keyEvent) {
-      expect(keyEvent.keyCode, isIn([16, 191]));
-      expect(keyEvent.charCode, 0);
-    }, count: 2));
-
-    var subscription2 = streamPress.listen(expectAsync1((keyEvent) {
-      expect(keyEvent.keyCode, 23);
-      expect(keyEvent.charCode, 63);
-    }));
-
-    var subscription3 = streamUp.listen(expectAsync1((keyEvent) {
-      expect(keyEvent.keyCode, isIn([16, 191]));
-      expect(keyEvent.charCode, 0);
-    }, count: 2));
-
-    streamDown.add(new KeyEvent('keydown', keyCode: 16, charCode: 0));
-    streamDown.add(new KeyEvent('keydown', keyCode: 191, charCode: 0));
-
-    streamPress.add(new KeyEvent('keypress', keyCode: 23, charCode: 63));
-
-    streamUp.add(new KeyEvent('keyup', keyCode: 191, charCode: 0));
-    streamUp.add(new KeyEvent('keyup', keyCode: 16, charCode: 0));
-    subscription.cancel();
-    subscription2.cancel();
-    subscription3.cancel();
-  });
-
-  test('KeyEventKeyboardEvent', () {
-    window.onKeyDown.listen(expectAsync1((KeyboardEvent event) {
-      expect(event.keyCode, 16);
-    }));
-    var streamDown = KeyEvent.keyDownEvent.forTarget(document.body);
-    streamDown.add(new KeyEvent('keydown', keyCode: 16, charCode: 0));
+    KeyEvent.keyDownEvent.forTarget(document.body).listen(keydownHandlerTest);
+    document.body.onKeyDown.listen((e) => print('regular listener'));
   });
 }
 

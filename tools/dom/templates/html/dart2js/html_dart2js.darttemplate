@@ -49,12 +49,10 @@ import 'dart:web_sql';
 import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
     JSName, Null, Returns,
-    findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
-    makeLeafDispatchRecord;
+    findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord;
 import 'dart:_interceptors' show
     Interceptor, JSExtendableArray, findInterceptorConstructorForType,
-    findConstructorForWebComponentType, getNativeInterceptor, 
-    setDispatchProperty;
+    findConstructorForWebComponentType, getNativeInterceptor;
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS;
 

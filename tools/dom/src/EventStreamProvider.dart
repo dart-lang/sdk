@@ -90,61 +90,6 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
 }
 
 /**
- * A stream of custom events, which enables the user to "fire" (add) their own
- * custom events to a stream.
- */
-abstract class CustomStream<T extends Event> implements Stream<T> {
-  /**
-   * Add the following custom event to the stream for dispatching to interested
-   * listeners.
-   */
-  void add(T event);
-}
-
-class _CustomEventStreamImpl<T extends Event> extends Stream<T>
-    implements CustomStream<T> {
-  StreamController<T> _streamController;
-  /** The type of event this stream is providing (e.g. "keydown"). */
-  String _type;
-
-  _CustomEventStreamImpl(String type) {
-    _type = type;
-    _streamController = new StreamController.broadcast(sync: true);
-  }
-
-  // Delegate all regular Stream behavior to our wrapped Stream.
-  StreamSubscription<T> listen(void onData(T event),
-      { void onError(error),
-        void onDone(),
-        bool cancelOnError}) {
-    return _streamController.stream.listen(onData, onError: onError,
-        onDone: onDone, cancelOnError: cancelOnError);
-  }
-
-  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
-                               void onCancel(StreamSubscription subscription)})
-      => _streamController.stream;
-
-  bool get isBroadcast => true;
-
-  void add(T event) {
-    if (event.type == _type) _streamController.add(event);
-  }
-}
-
-class _CustomKeyEventStreamImpl extends _CustomEventStreamImpl<KeyEvent>
-    implements CustomStream<KeyEvent> {
-  _CustomKeyEventStreamImpl(String type) : super(type);
-
-  void add(KeyEvent event) {
-    if (event.type == _type) {
-      event.currentTarget.dispatchEvent(event._parent);
-      _streamController.add(event);
-    }
-  }
-}
-
-/**
  * A pool of streams whose events are unified and emitted through a central
  * stream.
  */

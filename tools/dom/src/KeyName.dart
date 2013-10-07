@@ -6,10 +6,10 @@ part of html;
 
 /**
  * Defines the standard keyboard identifier names for keys that are returned
- * by KeyboardEvent.getKeyboardIdentifier when the key does not have a direct
+ * by KeyEvent.getKeyboardIdentifier when the key does not have a direct
  * unicode mapping.
  */
-abstract class _KeyName {
+abstract class KeyName {
 
   /** The Accept (Commit, OK) key */
   static const String ACCEPT = "Accept";

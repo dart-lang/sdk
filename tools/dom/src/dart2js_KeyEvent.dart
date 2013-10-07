@@ -10,7 +10,6 @@
  * on how we can make this class work with as many international keyboards as
  * possible. Bugs welcome!
  */
-@Experimental()
 class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
   KeyboardEvent _parent;
@@ -45,134 +44,25 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** Accessor to the underlying altKey value is the parent event. */
   bool get _realAltKey => JS('bool', '#.altKey', _parent);
 
-  /** Shadows on top of the parent's currentTarget. */
-  EventTarget _currentTarget;
-
-  /**
-   * The value we want to use for this object's dispatch. Created here so it is
-   * only invoked once.
-   */
-  static final _keyboardEventDispatchRecord = _makeRecord();
-
-  /** Helper to statically create the dispatch record. */
-  static _makeRecord() {
-    // TODO(13873): Use better way to get interceptor and remove _private()
-    // constructors.
-    var interceptor = new KeyboardEvent._private();
-    return makeLeafDispatchRecord(interceptor);
-  }
-
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
-  KeyEvent.wrap(KeyboardEvent parent): super(parent) {
+  KeyEvent(KeyboardEvent parent): super(parent) {
     _parent = parent;
     _shadowAltKey = _realAltKey;
     _shadowCharCode = _realCharCode;
     _shadowKeyCode = _realKeyCode;
-    _currentTarget = _parent.currentTarget;
-  }
-
-  /** Programmatically create a new KeyEvent (and KeyboardEvent). */
-  factory KeyEvent(String type,
-      {Window view, bool canBubble: true, bool cancelable: true, int keyCode: 0,
-      int charCode: 0, int keyLocation: 1, bool ctrlKey: false,
-      bool altKey: false, bool shiftKey: false, bool metaKey: false,
-      bool altGraphKey: false, EventTarget currentTarget}) {
-    if (view == null) {
-      view = window;
-    }
-
-    var eventObj;
-    // In these two branches we create an underlying native KeyboardEvent, but
-    // we set it with our specified values. Because we are doing custom setting
-    // of certain values (charCode/keyCode, etc) only in this class (as opposed
-    // to KeyboardEvent) and the way we set these custom values depends on the
-    // type of underlying JS object, we do all the contruction for the
-    // underlying KeyboardEvent here.
-    if (canUseDispatchEvent) {
-      // Currently works in everything but Internet Explorer.
-      eventObj = new Event.eventType('Event', type,
-          canBubble: canBubble, cancelable: cancelable);
-
-      JS('void', '#.keyCode = #', eventObj, keyCode);
-      JS('void', '#.which = #', eventObj, keyCode);
-      JS('void', '#.charCode = #', eventObj, charCode);
-
-      JS('void', '#.keyLocation = #', eventObj, keyLocation);
-      JS('void', '#.ctrlKey = #', eventObj, ctrlKey);
-      JS('void', '#.altKey = #', eventObj, altKey);
-      JS('void', '#.shiftKey = #', eventObj, shiftKey);
-      JS('void', '#.metaKey = #', eventObj, metaKey);
-      JS('void', '#.altGraphKey = #', eventObj, altGraphKey);
-    } else {
-      // Currently this works on everything but Safari. Safari throws an
-      // "Attempting to change access mechanism for an unconfigurable property"
-      // TypeError when trying to do the Object.defineProperty hack, so we avoid
-      // this branch if possible.
-      // Also, if we want this branch to work in FF, we also need to modify
-      // _initKeyboardEvent to also take charCode and keyCode values to
-      // initialize initKeyEvent.
-
-      eventObj = new Event.eventType('KeyboardEvent', type,
-          canBubble: canBubble, cancelable: cancelable);
-
-      // Chromium Hack
-      JS('void', "Object.defineProperty(#, 'keyCode', {"
-          "  get : function() { return this.keyCodeVal; } })",  eventObj);
-      JS('void', "Object.defineProperty(#, 'which', {"
-          "  get : function() { return this.keyCodeVal; } })",  eventObj);
-      JS('void', "Object.defineProperty(#, 'charCode', {"
-          "  get : function() { return this.charCodeVal; } })",  eventObj);
-
-      var keyIdentifier = _convertToHexString(charCode, keyCode);
-      eventObj._initKeyboardEvent(type, canBubble, cancelable, view,
-          keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey,
-          altGraphKey);
-      JS('void', '#.keyCodeVal = #', eventObj, keyCode);
-      JS('void', '#.charCodeVal = #', eventObj, charCode);
-    }
-    // Tell dart2js that it smells like a KeyboardEvent!
-    setDispatchProperty(eventObj, _keyboardEventDispatchRecord);
-
-    var keyEvent = new KeyEvent.wrap(eventObj);
-    if (keyEvent._currentTarget == null) {
-      keyEvent._currentTarget = currentTarget == null ? window : currentTarget;
-    }
-    return keyEvent;
-  }
-
-    // Currently known to work on all browsers but IE.
-  static bool get canUseDispatchEvent =>
-      JS('bool',
-         '(typeof document.body.dispatchEvent == "function")'
-         '&& document.body.dispatchEvent.length > 0');
-
-  /** The currently registered target for this event. */
-  EventTarget get currentTarget => _currentTarget;
-
-  // This is an experimental method to be sure.
-  static String _convertToHexString(int charCode, int keyCode) {
-    if (charCode != -1) {
-      var hex = charCode.toRadixString(16); // Convert to hexadecimal.
-      StringBuffer sb = new StringBuffer('U+');
-      for (int i = 0; i < 4 - hex.length; i++) sb.write('0');
-      sb.write(hex);
-      return sb.toString();
-    } else {
-      return KeyCode._convertKeyCodeToKeyName(keyCode);
-    }
   }
 
   // TODO(efortuna): If KeyEvent is sufficiently successful that we want to make
   // it the default keyboard event handling, move these methods over to Element.
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyDownEvent =
-      new _KeyboardEventHandler('keydown');
+    new _KeyboardEventHandler('keydown');
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyUpEvent =
-      new _KeyboardEventHandler('keyup');
+    new _KeyboardEventHandler('keyup');
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyPressEvent =
-      new _KeyboardEventHandler('keypress');
+    new _KeyboardEventHandler('keypress');
 
   /** True if the altGraphKey is pressed during this event. */
   bool get altGraphKey => _parent.altGraphKey;
