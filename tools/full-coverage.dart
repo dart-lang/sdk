@@ -26,10 +26,10 @@ class Environment {
 
 /// [Resolver] resolves imports with respect to a given environment.
 class Resolver {
-  const DART_PREFIX = "dart:";
-  const PACKAGE_PREFIX = "package:";
-  const FILE_PREFIX = "file://";
-  const HTTP_PREFIX = "http://";
+  static const DART_PREFIX = "dart:";
+  static const PACKAGE_PREFIX = "package:";
+  static const FILE_PREFIX = "file://";
+  static const HTTP_PREFIX = "http://";
 
   Map _env;
   List failed = [];
@@ -387,7 +387,7 @@ main() {
   // off by at max (#workers - 1).
   var p = spawnFunction(worker);
   workerPorts.add(p);
-  p.send(new Message(Message.WORK, [sharedEnv, files]), port);
+  p.send(new Message(Message.WORK, [sharedEnv, files]), port.toSendPort());
 
   return 0;
 }
@@ -403,8 +403,7 @@ parseArgs() {
                    help: "path to the package root",
                    defaultsTo: ".");
   parser.addOption("in", abbr: "i",
-                   help: "input(s): may be file or directory",
-                   defaultsTo: "stdin");
+                   help: "input(s): may be file or directory");
   parser.addOption("out", abbr: "o",
                    help: "output: may be file or stdout",
                    defaultsTo: "stdout");
@@ -426,9 +425,19 @@ parseArgs() {
 
   var args = parser.parse(new Options().arguments);
 
-  if (args["help"]) {
-    print("Usage: coverage [OPTION...]\n");
+  printUsage() {
+    print("Usage: dart full-coverage.dart [OPTION...]\n");
     print(parser.getUsage());
+  }
+
+  fail(String msg) {
+    print("\n$msg\n");
+    printUsage();
+    exit(1);
+  }
+
+  if (args["help"]) {
+    printUsage();
     exit(0);
   }
 
@@ -437,14 +446,14 @@ parseArgs() {
       env.sdkRoot =
         join(absolute(normalize(Platform.environment["SDK_ROOT"])), "lib");
     } else {
-      throw "No SDK root found, please specify one using --sdk-root.";
+      fail("No SDK root found, please specify one using --sdk-root.");
     }
   } else {
     env.sdkRoot = join(absolute(normalize(args["sdk-root"])), "lib");
   }
   if (!FileSystemEntity.isDirectorySync(env.sdkRoot)) {
-    throw "Provided SDK root ${args["sdk-root"]} is not a valid SDK "
-          "top-level directory";
+    fail("Provided SDK root '${args["sdk-root"]}' is not a valid SDK "
+         "top-level directory");
   }
 
   if (args["package-root"] == null) {
@@ -452,17 +461,17 @@ parseArgs() {
   } else {
     env.pkgRoot = absolute(normalize(args["package-root"]));
     if (!FileSystemEntity.isDirectorySync(env.pkgRoot)) {
-      throw "Provided package root ${args["package-root"]} is not directory.";
+      fail("Provided package root '${args["package-root"]}' is not directory.");
     }
   }
 
-  if (args["in"] == "stdin") {
-    env.input = "stdin";
+  if (args["in"] == null) {
+    fail("No input files given.");
   } else {
     env.input = absolute(normalize(args["in"]));
     if (!FileSystemEntity.isDirectorySync(env.input) &&
         !FileSystemEntity.isFileSync(env.input)) {
-      throw "Provided input ${args["in"]} is neither a directory, nor a file.";
+      fail("Provided input '${args["in"]}' is neither a directory, nor a file.");
     }
   }
 
@@ -473,13 +482,17 @@ parseArgs() {
     env.output = new File(env.output).openWrite();
   }
 
-  if (args["pretty-print"] &&
-      args["lcov"]) {
-    throw "Choose either pretty-print or lcov output";
+  if (args["pretty-print"] == args["lcov"]) {
+    fail("Choose either pretty-print or lcov output");
   }
-
   env.prettyPrint = args["pretty-print"];
   env.lcov = args["lcov"];
+
+  try {
+    env.workers = int.parse("${args["workers"]}");
+  } catch (e) {
+    fail("Invalid worker count: $e");
+  }
+
   env.verbose = args["verbose"];
-  env.workers = int.parse("${args["workers"]}");
 }
