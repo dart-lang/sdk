@@ -9912,7 +9912,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    * * [scrollIntoViewIfNeeded](http://docs.webplatform.org/wiki/dom/methods/scrollIntoViewIfNeeded)
    */
   void scrollIntoView([ScrollAlignment alignment]) {
-    var hasScrollIntoViewIfNeeded = false;
+    var hasScrollIntoViewIfNeeded = true;
     if (alignment == ScrollAlignment.TOP) {
       this._scrollIntoView(true);
     } else if (alignment == ScrollAlignment.BOTTOM) {

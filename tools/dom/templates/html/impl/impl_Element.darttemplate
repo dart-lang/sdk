@@ -791,7 +791,7 @@ $endif
    * * [scrollIntoViewIfNeeded](http://docs.webplatform.org/wiki/dom/methods/scrollIntoViewIfNeeded)
    */
   void scrollIntoView([ScrollAlignment alignment]) {
-    var hasScrollIntoViewIfNeeded = false;
+    var hasScrollIntoViewIfNeeded = true;
 $if DART2JS
     hasScrollIntoViewIfNeeded =
         JS('bool', '!!(#.scrollIntoViewIfNeeded)', this);

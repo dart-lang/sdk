@@ -9357,7 +9357,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    * * [scrollIntoViewIfNeeded](http://docs.webplatform.org/wiki/dom/methods/scrollIntoViewIfNeeded)
    */
   void scrollIntoView([ScrollAlignment alignment]) {
-    var hasScrollIntoViewIfNeeded = false;
+    var hasScrollIntoViewIfNeeded = true;
     hasScrollIntoViewIfNeeded =
         JS('bool', '!!(#.scrollIntoViewIfNeeded)', this);
     if (alignment == ScrollAlignment.TOP) {
