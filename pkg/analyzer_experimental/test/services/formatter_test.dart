@@ -541,7 +541,7 @@ main() {
           'var x = 1;\n'
       );
     });
-    
+
     test('CU - constructor', () {
       expectCUFormatsTo(
           'class A {\n'
@@ -623,16 +623,16 @@ main() {
         'part of foo;\n'
       );
     });
-    
+
     test('CU (cons inits)', () {
       expectCUFormatsTo('class X {\n'
           '  var x, y;\n'
           '  X() : x = 1, y = 2;\n'
-          '}\n', 
+          '}\n',
           'class X {\n'
           '  var x, y;\n'
           '  X()\n'
-          '      : x = 1,\n' 
+          '      : x = 1,\n'
           '        y = 2;\n'
           '}\n'
       );
@@ -692,7 +692,7 @@ main() {
         'var numbers = <int>[1, 2, (3 + 4)];'
       );
     });
-    
+
     test('stmt (lists)', () {
       expectStmtFormatsTo(
         'var l = [1,2,3,4];',
@@ -710,7 +710,7 @@ main() {
         'var map = const {"foo": "bar", "fuz": null};',
         'var map = const {"foo": "bar", "fuz": null};'
       );
-      
+
       //Dangling ','
       expectStmtFormatsTo(
         'var map = {"foo": "bar",};',
@@ -778,26 +778,29 @@ main() {
         '}'
       );
     });
-    
+
     test('Statement (if)', () {
-      expectStmtFormatsTo('if (true) print("true!");', 
+      expectStmtFormatsTo('if (true) print("true!");',
                           'if (true) print("true!");');
-      expectStmtFormatsTo('if (true) { print("true!"); }', 
+      expectStmtFormatsTo('if (true) { print("true!"); }',
                           'if (true) {\n'
                           '  print("true!");\n'
                           '}');
-      expectStmtFormatsTo('if (true) print("true!"); else print("false!");', 
+      expectStmtFormatsTo('if (true) print("true!"); else print("false!");',
                           'if (true) {\n'
                           '  print("true!");\n'
                           '} else {\n'
                           '  print("false!");\n'
                           '}');
-    }); 
+      expectStmtFormatsTo('if (true) print("true!"); else print("false!");',
+                          'if (true) print("true!"); else print("false!");',
+                          transforms: false);
+    });
 
     test('initialIndent', () {
       var formatter = new CodeFormatter(
           new FormatterOptions(initialIndentationLevel: 2));
-      var formattedSource = 
+      var formattedSource =
           formatter.format(CodeKind.STATEMENT, 'var x;').source;
       expect(formattedSource, startsWith('    '));
     });
@@ -809,7 +812,7 @@ main() {
       expectSelectedPostFormat('class X{int y;}', '}');
       expectSelectedPostFormat('class X {}', ' {');
     });
-    
+
   });
 
 
@@ -1025,8 +1028,9 @@ expectStreamsNotEqual(Token t1, Token t2) =>
     expect(() => new TokenStreamComparator(null, t1, t2).verifyEquals(),
     throwsA(new isInstanceOf<FormatterException>()));
 
-expectCUFormatsTo(src, expected) => 
+expectCUFormatsTo(src, expected) =>
     expect(formatCU(src).source, equals(expected));
 
-expectStmtFormatsTo(src, expected) => 
-    expect(formatStatement(src), equals(expected));
+expectStmtFormatsTo(src, expected, {transforms: true}) =>
+    expect(formatStatement(src, options:
+      new FormatterOptions(codeTransforms: transforms)), equals(expected));

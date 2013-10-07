@@ -22,7 +22,8 @@ class FormatterOptions {
                  this.lineSeparator: NEW_LINE,
                  this.pageWidth: 80,
                  this.tabsForIndent: false,
-                 this.tabSize: 2});
+                 this.tabSize: 2,
+                 this.codeTransforms: false});
 
   final String lineSeparator;
   final int initialIndentationLevel;
@@ -30,6 +31,7 @@ class FormatterOptions {
   final int tabSize;
   final bool tabsForIndent;
   final int pageWidth;
+  final bool codeTransforms;
 }
 
 
@@ -85,27 +87,27 @@ abstract class CodeFormatter {
 
 /// Source selection state information.
 class Selection {
-  
+
   /// The offset of the source selection.
   final int offset;
-  
+
   /// The length of the selection.
   final int length;
-  
+
   Selection(this.offset, this.length);
-  
+
   String toString() => 'Selection (offset: $offset, length: $length)';
 }
 
 /// Formatted source.
 class FormattedSource {
-  
+
   /// Selection state or null if unspecified.
-  final Selection selection;
-  
+  Selection selection;
+
   /// Formatted source string.
   final String source;
-  
+
   /// Create a formatted [source] result, with optional [selection] information.
   FormattedSource(this.source, [this.selection = null]);
 }
@@ -134,7 +136,7 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
     node.accept(formatter);
 
     var formattedSource = formatter.writer.toString();
-    
+
     checkTokenStreams(startToken, tokenize(formattedSource));
 
     return new FormattedSource(formattedSource, formatter.selection);
@@ -196,7 +198,7 @@ class TokenStreamComparator {
 
     }
     // TODO(pquitslund): consider a better way to notice trailing synthetics
-    if (!isEOF(token2) && 
+    if (!isEOF(token2) &&
         !(isCLOSE_CURLY_BRACKET(token2) && isEOF(token2.next))) {
       throw new FormatterException(
           'Expected "EOF" but got "${token2}".');
@@ -281,7 +283,7 @@ final tokenTester = new Parser(null,null);
 bool isEOF(Token token) => tokenIs(token, TokenType.EOF);
 
 /// Test for token type.
-bool tokenIs(Token token, TokenType type) => 
+bool tokenIs(Token token, TokenType type) =>
     token != null && tokenTester.matches4(token, type);
 
 /// Test if this token is a GT token.
@@ -312,15 +314,15 @@ bool isCLOSE_SQUARE_BRACKET(Token token) =>
 
 /// An AST visitor that drives formatting heuristics.
 class SourceVisitor implements ASTVisitor {
-  
+
   static final OPEN_CURLY = syntheticToken(TokenType.OPEN_CURLY_BRACKET, '{');
   static final CLOSE_CURLY = syntheticToken(TokenType.CLOSE_CURLY_BRACKET, '}');
-  
+
   static const SYNTH_OFFSET = -13;
-  
+
   static StringToken syntheticToken(TokenType type, String value) =>
       new StringToken(type, value, SYNTH_OFFSET);
-  
+
   static bool isSynthetic(Token token) => token.offset == SYNTH_OFFSET;
 
   /// The writer to which the source is to be written.
@@ -334,24 +336,28 @@ class SourceVisitor implements ASTVisitor {
 
   /// A flag to indicate that a newline should be emitted before the next token.
   bool needsNewline = false;
-  
+
   /// A counter for spaces that should be emitted preceding the next token.
   int leadingSpaces = 0;
 
   /// Used for matching EOL comments
   final twoSlashes = new RegExp(r'//[^/]');
-  
+
   /// Original pre-format selection information (may be null).
   final Selection preSelection;
-  
+
+  final bool codeTransforms;
+
   /// Post format selection information.
   Selection selection;
 
+
   /// Initialize a newly created visitor to write source code representing
   /// the visited nodes to the given [writer].
-  SourceVisitor(FormatterOptions options, this.lineInfo, this.preSelection) :
+  SourceVisitor(FormatterOptions options, this.lineInfo, this.preSelection):
       writer = new SourceWriter(indentCount: options.initialIndentationLevel,
-                                lineSeparator: options.lineSeparator);
+                                lineSeparator: options.lineSeparator),
+      codeTransforms = options.codeTransforms;
 
   visitAdjacentStrings(AdjacentStrings node) {
     visitNodes(node.strings, separatedBy: space);
@@ -518,7 +524,7 @@ class SourceVisitor implements ASTVisitor {
 
     // Handle trailing whitespace
     token(node.endToken /* EOF */);
-    
+
     // Be a good citizen, end with a NL
     ensureTrailingNewline();
   }
@@ -543,12 +549,12 @@ class SourceVisitor implements ASTVisitor {
     token(node.period);
     visit(node.name);
     visit(node.parameters);
-    
+
     // Check for redirects or initializer lists
     if (node.separator != null) {
       if (node.redirectedConstructor != null) {
         visitConstructorRedirects(node);
-      } else { 
+      } else {
         visitConstructorInitializers(node);
       }
     }
@@ -568,7 +574,7 @@ class SourceVisitor implements ASTVisitor {
         space(2);
       }
       node.initializers[i].accept(this);
-    } 
+    }
     unindent(2);
   }
 
@@ -577,7 +583,7 @@ class SourceVisitor implements ASTVisitor {
     visitNodes(node.initializers, separatedBy: commaSeperator);
     visit(node.redirectedConstructor);
   }
-  
+
   visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     token(node.keyword);
     token(node.period);
@@ -787,7 +793,7 @@ class SourceVisitor implements ASTVisitor {
     space();
     visitNodes(node.hiddenNames, separatedBy: commaSeperator);
   }
-  
+
   visitIfStatement(IfStatement node) {
     var hasElse = node.elseStatement != null;
     token(node.ifKeyword);
@@ -806,7 +812,7 @@ class SourceVisitor implements ASTVisitor {
       visit(node.thenStatement);
     }
   }
-  
+
   visitImplementsClause(ImplementsClause node) {
     token(node.keyword);
     space();
@@ -907,7 +913,7 @@ class SourceVisitor implements ASTVisitor {
     optionalTrailingComma(node.rightBracket);
     token(node.rightBracket);
   }
-  
+
   visitMapLiteralEntry(MapLiteralEntry node) {
     visit(node.key);
     token(node.separator);
@@ -1263,7 +1269,7 @@ class SourceVisitor implements ASTVisitor {
       comma();
     }
   }
-  
+
   token(Token token, {precededBy(), followedBy(), int minNewlines: 0}) {
     if (token != null) {
       if (needsNewline) {
@@ -1284,14 +1290,14 @@ class SourceVisitor implements ASTVisitor {
       previousToken = token;
     }
   }
-  
+
   emitSpaces() {
     while (leadingSpaces > 0) {
       writer.print(' ');
       leadingSpaces--;
     }
   }
-  
+
   checkForSelectionUpdate(Token token) {
     // Cache the first token on or AFTER the selection offset
     if (preSelection != null && selection == null) {
@@ -1300,7 +1306,7 @@ class SourceVisitor implements ASTVisitor {
       if (overshot >= 0) {
         //TODO(pquitslund): update length (may need truncating)
         selection = new Selection(
-            writer.toString().length + leadingSpaces - overshot, 
+            writer.toString().length + leadingSpaces - overshot,
             preSelection.length);
       }
     }
@@ -1315,13 +1321,13 @@ class SourceVisitor implements ASTVisitor {
     writer.print(',');
   }
 
-  
+
   /// Emit a non-breakable space.
   space([n = 1]) {
     //TODO(pquitslund): replace with a proper space token
     leadingSpaces+=n;
   }
-  
+
   /// Emit a breakable space
   breakableSpace() {
     //Implement
@@ -1341,17 +1347,17 @@ class SourceVisitor implements ASTVisitor {
       writer.indent();
     }
   }
-  
+
   /// Unindent
   unindent([n = 1]) {
     while (n-- > 0) {
       writer.unindent();
     }
   }
-  
+
   /// Print this statement as if it were a block (e.g., surrounded by braces).
   printAsBlock(Statement statement) {
-    if (statement is! Block) {
+    if (codeTransforms && statement is! Block) {
       token(OPEN_CURLY);
       indent();
       newlines();
@@ -1363,7 +1369,7 @@ class SourceVisitor implements ASTVisitor {
       visit(statement);
     }
   }
-  
+
   /// Emit any detected comments and newlines or a minimum as specified
   /// by [min].
   int emitPrecedingCommentsAndNewlines(Token token, {min: 0}) {
@@ -1410,8 +1416,8 @@ class SourceVisitor implements ASTVisitor {
       writer.newline();
     }
   }
-  
-  
+
+
   /// Test if this [comment] is at the end of a line.
   bool isAtEOL(Token comment) =>
       comment != null && comment.toString().trim().startsWith(twoSlashes) &&

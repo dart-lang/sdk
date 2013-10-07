@@ -17,6 +17,7 @@ import 'package:analyzer_experimental/src/services/formatter_impl.dart';
 const BINARY_NAME = 'dartfmt';
 final dartFileRegExp = new RegExp(r'^[^.].*\.dart$', caseSensitive: false);
 final argParser = _initArgParser();
+final defaultSelection = new Selection(-1, -1);
 
 bool machineFormat;
 bool overwriteFileContents;
@@ -31,7 +32,7 @@ main() {
   }
 
   _readOptions(options);
-  
+
   if (options.rest.isEmpty) {
     _formatStdin(options);
   } else {
@@ -122,6 +123,8 @@ ArgParser _initArgParser() {
   parser.addOption('selection', abbr: 's',
       help: 'Specify selection information as an offset,length pair '
             '(e.g., -s "0,4").');
+  parser.addFlag('transform', abbr: 't', negatable: true,
+      help: 'Perform code transformations.');
   parser.addFlag('help', abbr: 'h', negatable: false,
       help: 'Print this usage information.');
   return parser;
@@ -151,12 +154,15 @@ String _formatCU(src, {options: const FormatterOptions()}) {
   var formatResult = new CodeFormatter(options).format(
       CodeKind.COMPILATION_UNIT, src, selection: selection);
   if (machineFormat) {
+    if (formatResult.selection == null) {
+      formatResult.selection = defaultSelection;
+    }
     return _toJson(formatResult);
   }
   return formatResult.source;
 }
 
-_toJson(formatResult) => 
+_toJson(formatResult) =>
     // Actual JSON format TBD
     JSON.encode({'source': formatResult.source,
                  'selection': {
