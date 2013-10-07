@@ -1712,7 +1712,7 @@ intptr_t Class::NumTypeArguments() const {
   Class& cls = Class::Handle(isolate);
   TypeArguments& type_params = TypeArguments::Handle(isolate);
   AbstractType& sup_type = AbstractType::Handle(isolate);
-  cls ^= raw();
+  cls = raw();
   intptr_t num_type_args = 0;
 
   do {
@@ -1735,21 +1735,45 @@ intptr_t Class::NumTypeArguments() const {
         cls.super_type() == isolate->object_store()->object_type()) {
       break;
     }
-    sup_type ^= cls.super_type();
+    sup_type = cls.super_type();
     cls = sup_type.type_class();
   } while (true);
   return num_type_args;
 }
 
 
+// More efficient than calling NumTypeArguments().
 bool Class::HasTypeArguments() const {
+  // Fast check for a non-signature finalized class.
   if (!IsSignatureClass() && (is_finalized() || is_prefinalized())) {
-    // More efficient than calling NumTypeArguments().
     return type_arguments_field_offset() != kNoTypeArguments;
-  } else {
-    // No need to check NumTypeArguments() if class has type parameters.
-    return (NumTypeParameters() > 0) || (NumTypeArguments() > 0);
   }
+  Isolate* isolate = Isolate::Current();
+  Class& cls = Class::Handle(isolate);
+  cls = raw();
+  do {
+    if (cls.IsSignatureClass()) {
+      Function& signature_fun = Function::Handle(isolate);
+      signature_fun ^= cls.signature_function();
+      if (!signature_fun.is_static() &&
+          !signature_fun.HasInstantiatedSignature()) {
+        cls = signature_fun.Owner();
+      }
+    }
+    if (cls.NumTypeParameters() > 0) {
+      return true;
+    }
+    if ((cls.super_type() == AbstractType::null()) ||
+        (cls.super_type() == isolate->object_store()->object_type())) {
+      return false;
+    }
+    cls = cls.SuperClass();
+    if (!cls.IsSignatureClass() &&
+        (cls.is_finalized() || cls.is_prefinalized())) {
+      return cls.type_arguments_field_offset() != kNoTypeArguments;
+    }
+  } while (true);
+  UNREACHABLE();
 }
 
 
