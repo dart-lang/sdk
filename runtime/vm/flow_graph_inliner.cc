@@ -793,7 +793,7 @@ class CallSiteInliner : public ValueObject {
   void InlineStaticCalls() {
     const GrowableArray<CallSites::StaticCallInfo>& call_info =
         inlining_call_sites_->static_calls();
-    TRACE_INLINING(OS::Print("  Static Calls (%d)\n", call_info.length()));
+    TRACE_INLINING(OS::Print("  Static Calls (%" Pd ")\n", call_info.length()));
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       StaticCallInstr* call = call_info[call_idx].call;
       if (call->function().name() == Symbols::ListFactory().raw()) {
@@ -832,7 +832,7 @@ class CallSiteInliner : public ValueObject {
   void InlineClosureCalls() {
     const GrowableArray<ClosureCallInstr*>& calls =
         inlining_call_sites_->closure_calls();
-    TRACE_INLINING(OS::Print("  Closure Calls (%d)\n", calls.length()));
+    TRACE_INLINING(OS::Print("  Closure Calls (%" Pd ")\n", calls.length()));
     for (intptr_t i = 0; i < calls.length(); ++i) {
       ClosureCallInstr* call = calls[i];
       // Find the closure of the callee.
@@ -869,7 +869,7 @@ class CallSiteInliner : public ValueObject {
   void InlineInstanceCalls() {
     const GrowableArray<CallSites::InstanceCallInfo>& call_info =
         inlining_call_sites_->instance_calls();
-    TRACE_INLINING(OS::Print("  Polymorphic Instance Calls (%d)\n",
+    TRACE_INLINING(OS::Print("  Polymorphic Instance Calls (%" Pd ")\n",
                              call_info.length()));
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       PolymorphicInstanceCallInstr* call = call_info[call_idx].call;

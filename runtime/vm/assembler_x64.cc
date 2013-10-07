@@ -108,7 +108,7 @@ Assembler::Assembler(bool use_far_branches)
 }
 
 
-void Assembler::InitializeMemoryWithBreakpoints(uword data, int length) {
+void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   memset(reinterpret_cast<void*>(data), Instr::kBreakPointInstruction, length);
 }
 
@@ -2099,7 +2099,7 @@ void Assembler::j(Condition condition, Label* label, bool near) {
   if (label->IsBound()) {
     static const int kShortSize = 2;
     static const int kLongSize = 6;
-    int offset = label->Position() - buffer_.Size();
+    intptr_t offset = label->Position() - buffer_.Size();
     ASSERT(offset <= 0);
     if (Utils::IsInt(8, offset - kShortSize)) {
       EmitUint8(0x70 + condition);
@@ -2151,7 +2151,7 @@ void Assembler::jmp(Label* label, bool near) {
   if (label->IsBound()) {
     static const int kShortSize = 2;
     static const int kLongSize = 5;
-    int offset = label->Position() - buffer_.Size();
+    intptr_t offset = label->Position() - buffer_.Size();
     ASSERT(offset <= 0);
     if (Utils::IsInt(8, offset - kShortSize)) {
       EmitUint8(0xEB);
@@ -2619,17 +2619,17 @@ void Assembler::Stop(const char* message) {
 
 
 void Assembler::Bind(Label* label) {
-  int bound = buffer_.Size();
+  intptr_t bound = buffer_.Size();
   ASSERT(!label->IsBound());  // Labels can only be bound once.
   while (label->IsLinked()) {
-    int position = label->LinkPosition();
-    int next = buffer_.Load<int32_t>(position);
+    intptr_t position = label->LinkPosition();
+    intptr_t next = buffer_.Load<int32_t>(position);
     buffer_.Store<int32_t>(position, bound - (position + 4));
     label->position_ = next;
   }
   while (label->HasNear()) {
-    int position = label->NearPosition();
-    int offset = bound - (position + 1);
+    intptr_t position = label->NearPosition();
+    intptr_t offset = bound - (position + 1);
     ASSERT(Utils::IsInt(8, offset));
     buffer_.Store<int8_t>(position, offset);
   }
@@ -2899,14 +2899,14 @@ void Assembler::TryAllocate(const Class& cls,
 }
 
 
-void Assembler::Align(int alignment, int offset) {
+void Assembler::Align(int alignment, intptr_t offset) {
   ASSERT(Utils::IsPowerOfTwo(alignment));
-  int pos = offset + buffer_.GetPosition();
+  intptr_t pos = offset + buffer_.GetPosition();
   int mod = pos & (alignment - 1);
   if (mod == 0) {
     return;
   }
-  int bytes_needed = alignment - mod;
+  intptr_t bytes_needed = alignment - mod;
   while (bytes_needed > MAX_NOP_SIZE) {
     nop(MAX_NOP_SIZE);
     bytes_needed -= MAX_NOP_SIZE;
@@ -2920,13 +2920,13 @@ void Assembler::Align(int alignment, int offset) {
 
 void Assembler::EmitOperand(int rm, const Operand& operand) {
   ASSERT(rm >= 0 && rm < 8);
-  const int length = operand.length_;
+  const intptr_t length = operand.length_;
   ASSERT(length > 0);
   // Emit the ModRM byte updated with the given RM value.
   ASSERT((operand.encoding_[0] & 0x38) == 0);
   EmitUint8(operand.encoding_[0] + (rm << 3));
   // Emit the rest of the encoded operand.
-  for (int i = 1; i < length; i++) {
+  for (intptr_t i = 1; i < length; i++) {
     EmitUint8(operand.encoding_[i]);
   }
 }
@@ -2970,9 +2970,9 @@ void Assembler::EmitComplex(int rm,
 }
 
 
-void Assembler::EmitLabel(Label* label, int instruction_size) {
+void Assembler::EmitLabel(Label* label, intptr_t instruction_size) {
   if (label->IsBound()) {
-    int offset = label->Position() - buffer_.Size();
+    intptr_t offset = label->Position() - buffer_.Size();
     ASSERT(offset <= 0);
     EmitInt32(offset - instruction_size);
   } else {
@@ -2983,7 +2983,7 @@ void Assembler::EmitLabel(Label* label, int instruction_size) {
 
 void Assembler::EmitLabelLink(Label* label) {
   ASSERT(!label->IsBound());
-  int position = buffer_.Size();
+  intptr_t position = buffer_.Size();
   EmitInt32(label->position_);
   label->LinkTo(position);
 }
@@ -2991,7 +2991,7 @@ void Assembler::EmitLabelLink(Label* label) {
 
 void Assembler::EmitNearLabelLink(Label* label) {
   ASSERT(!label->IsBound());
-  int position = buffer_.Size();
+  intptr_t position = buffer_.Size();
   EmitUint8(0);
   label->NearLinkTo(position);
 }

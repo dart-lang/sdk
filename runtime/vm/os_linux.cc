@@ -129,7 +129,7 @@ class PerfCodeObserver : public CodeObserver {
     if (file_open == NULL) {
       return;
     }
-    const char* format = "/tmp/perf-%"Pd".map";
+    const char* format = "/tmp/perf-%" Pd ".map";
     intptr_t pid = getpid();
     intptr_t len = OS::SNPrint(NULL, 0, format, pid);
     char* filename = new char[len + 1];

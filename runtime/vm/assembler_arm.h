@@ -30,7 +30,7 @@ class Label : public ValueObject {
 
   // Returns the position for bound and linked labels. Cannot be used
   // for unused labels.
-  int Position() const {
+  intptr_t Position() const {
     ASSERT(!IsUnused());
     return IsBound() ? -position_ - kWordSize : position_ - kWordSize;
   }
@@ -40,19 +40,19 @@ class Label : public ValueObject {
   bool IsLinked() const { return position_ > 0; }
 
  private:
-  int position_;
+  intptr_t position_;
 
   void Reinitialize() {
     position_ = 0;
   }
 
-  void BindTo(int position) {
+  void BindTo(intptr_t position) {
     ASSERT(!IsBound());
     position_ = -position - kWordSize;
     ASSERT(IsBound());
   }
 
-  void LinkTo(int position) {
+  void LinkTo(intptr_t position) {
     ASSERT(!IsBound());
     position_ = position + kWordSize;
     ASSERT(IsLinked());
@@ -310,9 +310,9 @@ class Assembler : public ValueObject {
   void Bind(Label* label);
 
   // Misc. functionality
-  int CodeSize() const { return buffer_.Size(); }
-  int prologue_offset() const { return prologue_offset_; }
-  const ZoneGrowableArray<int>& GetPointerOffsets() const {
+  intptr_t CodeSize() const { return buffer_.Size(); }
+  intptr_t prologue_offset() const { return prologue_offset_; }
+  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
     ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
     return buffer_.pointer_offsets();
   }
@@ -332,7 +332,7 @@ class Assembler : public ValueObject {
   void Untested(const char* message);
   void Unreachable(const char* message);
 
-  static void InitializeMemoryWithBreakpoints(uword data, int length);
+  static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
   void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 

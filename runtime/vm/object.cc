@@ -9135,7 +9135,7 @@ RawCode* Code::FinalizeCode(const char* name,
                            instrs.size(),
                            optimized);
 
-  const ZoneGrowableArray<int>& pointer_offsets =
+  const ZoneGrowableArray<intptr_t>& pointer_offsets =
       assembler->GetPointerOffsets();
 
   // Allocate the code object.
@@ -9146,8 +9146,8 @@ RawCode* Code::FinalizeCode(const char* name,
     // Set pointer offsets list in Code object and resolve all handles in
     // the instruction stream to raw objects.
     ASSERT(code.pointer_offsets_length() == pointer_offsets.length());
-    for (int i = 0; i < pointer_offsets.length(); i++) {
-      int offset_in_instrs = pointer_offsets[i];
+    for (intptr_t i = 0; i < pointer_offsets.length(); i++) {
+      intptr_t offset_in_instrs = pointer_offsets[i];
       code.SetPointerOffsetAt(i, offset_in_instrs);
       const Object* object = region.Load<const Object*>(offset_in_instrs);
       region.Store<RawObject*>(offset_in_instrs, object->raw());

@@ -144,7 +144,7 @@ class Operand : public ValueObject {
   explicit Operand(Register reg) : rex_(REX_NONE) { SetModRM(3, reg); }
 
   // Get the operand encoding byte at the given index.
-  uint8_t encoding_at(int index) const {
+  uint8_t encoding_at(intptr_t index) const {
     ASSERT(index >= 0 && index < length_);
     return encoding_[index];
   }
@@ -265,17 +265,17 @@ class Label : public ValueObject {
 
   // Returns the position for bound labels. Cannot be used for unused or linked
   // labels.
-  int Position() const {
+  intptr_t Position() const {
     ASSERT(IsBound());
     return -position_ - kWordSize;
   }
 
-  int LinkPosition() const {
+  intptr_t LinkPosition() const {
     ASSERT(IsLinked());
     return position_ - kWordSize;
   }
 
-  int NearPosition() {
+  intptr_t NearPosition() {
     ASSERT(HasNear());
     return unresolved_near_positions_[--unresolved_];
   }
@@ -286,20 +286,20 @@ class Label : public ValueObject {
   bool HasNear() const { return unresolved_ != 0; }
 
  private:
-  void BindTo(int position) {
+  void BindTo(intptr_t position) {
     ASSERT(!IsBound());
     ASSERT(!HasNear());
     position_ = -position - kWordSize;
     ASSERT(IsBound());
   }
 
-  void LinkTo(int position) {
+  void LinkTo(intptr_t position) {
     ASSERT(!IsBound());
     position_ = position + kWordSize;
     ASSERT(IsLinked());
   }
 
-  void NearLinkTo(int position) {
+  void NearLinkTo(intptr_t position) {
     ASSERT(!IsBound());
     ASSERT(unresolved_ < kMaxUnresolvedBranches);
     unresolved_near_positions_[unresolved_++] = position;
@@ -307,9 +307,9 @@ class Label : public ValueObject {
 
   static const int kMaxUnresolvedBranches = 20;
 
-  int position_;
-  int unresolved_;
-  int unresolved_near_positions_[kMaxUnresolvedBranches];
+  intptr_t position_;
+  intptr_t unresolved_;
+  intptr_t unresolved_near_positions_[kMaxUnresolvedBranches];
 
   friend class Assembler;
   DISALLOW_COPY_AND_ASSIGN(Label);
@@ -750,15 +750,15 @@ class Assembler : public ValueObject {
   }
 
   int PreferredLoopAlignment() { return 16; }
-  void Align(int alignment, int offset);
+  void Align(int alignment, intptr_t offset);
   void Bind(Label* label);
 
   void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   const Code::Comments& GetCodeComments() const;
 
-  int CodeSize() const { return buffer_.Size(); }
-  int prologue_offset() const { return prologue_offset_; }
-  const ZoneGrowableArray<int>& GetPointerOffsets() const {
+  intptr_t CodeSize() const { return buffer_.Size(); }
+  intptr_t prologue_offset() const { return prologue_offset_; }
+  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
     return buffer_.pointer_offsets();
   }
   const GrowableObjectArray& object_pool() const { return object_pool_; }
@@ -841,7 +841,7 @@ class Assembler : public ValueObject {
   void Untested(const char* message);
   void Unreachable(const char* message);
 
-  static void InitializeMemoryWithBreakpoints(uword data, int length);
+  static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
   static const char* RegisterName(Register reg);
 
@@ -897,7 +897,7 @@ class Assembler : public ValueObject {
   // Hashmap for fast lookup in object pool.
   DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;
 
-  int prologue_offset_;
+  intptr_t prologue_offset_;
 
   class CodeComment : public ZoneAllocated {
    public:
@@ -952,7 +952,7 @@ class Assembler : public ValueObject {
   void EmitOperand(int rm, const Operand& operand);
   void EmitImmediate(const Immediate& imm);
   void EmitComplex(int rm, const Operand& operand, const Immediate& immediate);
-  void EmitLabel(Label* label, int instruction_size);
+  void EmitLabel(Label* label, intptr_t instruction_size);
   void EmitLabelLink(Label* label);
   void EmitNearLabelLink(Label* label);
 

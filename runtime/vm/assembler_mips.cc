@@ -20,7 +20,7 @@ DECLARE_FLAG(bool, trace_sim);
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
 
-void Assembler::InitializeMemoryWithBreakpoints(uword data, int length) {
+void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   ASSERT(Utils::IsAligned(data, 4));
   ASSERT(Utils::IsAligned(length, 4));
   const uword end = data + length;
@@ -63,7 +63,7 @@ int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t instr) {
 }
 
 
-static int DecodeBranchOffset(int32_t instr) {
+static intptr_t DecodeBranchOffset(int32_t instr) {
   // Sign-extend, left-shift by 2.
   return (((instr & kBranchOffsetMask) << 16) >> 14);
 }
@@ -84,7 +84,7 @@ class PatchFarJump : public AssemblerFixup {
  public:
   PatchFarJump() {}
 
-  void Process(const MemoryRegion& region, int position) {
+  void Process(const MemoryRegion& region, intptr_t position) {
     const int32_t high = region.Load<int32_t>(position);
     const int32_t low = region.Load<int32_t>(position + Instr::kInstrSize);
     const int32_t offset = DecodeLoadImmediate(low, high);
@@ -191,7 +191,7 @@ void Assembler::EmitBranch(Opcode b, Register rs, Register rt, Label* label) {
       EmitIType(b, rs, rt, dest_off);
     }
   } else {
-    const int position = buffer_.Size();
+    const intptr_t position = buffer_.Size();
     if (use_far_branches()) {
       const uint32_t dest_off = label->position_;
       EmitFarBranch(b, rs, rt, dest_off);
@@ -216,7 +216,7 @@ void Assembler::EmitRegImmBranch(RtRegImm b, Register rs, Label* label) {
       EmitRegImmType(REGIMM, rs, b, dest_off);
     }
   } else {
-    const int position = buffer_.Size();
+    const intptr_t position = buffer_.Size();
     if (use_far_branches()) {
       const uint32_t dest_off = label->position_;
       EmitFarRegImmBranch(b, rs, dest_off);
@@ -245,7 +245,7 @@ void Assembler::EmitFpuBranch(bool kind, Label *label) {
            dest_off);
     }
   } else {
-    const int position = buffer_.Size();
+    const intptr_t position = buffer_.Size();
     if (use_far_branches()) {
       const uint32_t dest_off = label->position_;
       EmitFarFpuBranch(kind, dest_off);
@@ -278,7 +278,7 @@ static int32_t FlipBranchInstruction(int32_t instr) {
 
 void Assembler::Bind(Label* label) {
   ASSERT(!label->IsBound());
-  int bound_pc = buffer_.Size();
+  intptr_t bound_pc = buffer_.Size();
 
   while (label->IsLinked()) {
     int32_t position = label->Position();
@@ -472,7 +472,7 @@ int32_t Assembler::AddObject(const Object& obj) {
     ASSERT(Isolate::Current() != Dart::vm_isolate());
     object_pool_ = GrowableObjectArray::New(Heap::kOld);
   }
-  for (int i = 0; i < object_pool_.Length(); i++) {
+  for (intptr_t i = 0; i < object_pool_.Length(); i++) {
     if (object_pool_.At(i) == obj.raw()) {
       return i;
     }

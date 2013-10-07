@@ -178,7 +178,7 @@ uint32_t Address::vencoding() const {
 }
 
 
-void Assembler::InitializeMemoryWithBreakpoints(uword data, int length) {
+void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   ASSERT(Utils::IsAligned(data, 4));
   ASSERT(Utils::IsAligned(length, 4));
   const uword end = data + length;
@@ -1767,7 +1767,7 @@ class PatchFarBranch : public AssemblerFixup {
  public:
   PatchFarBranch() {}
 
-  void Process(const MemoryRegion& region, int position) {
+  void Process(const MemoryRegion& region, intptr_t position) {
     const int32_t movw = region.Load<int32_t>(position);
     const int32_t movt = region.Load<int32_t>(position + Instr::kInstrSize);
     const int32_t bx = region.Load<int32_t>(position + 2 * Instr::kInstrSize);
@@ -1834,7 +1834,7 @@ void Assembler::EmitBranch(Condition cond, Label* label, bool link) {
 
 void Assembler::Bind(Label* label) {
   ASSERT(!label->IsBound());
-  int bound_pc = buffer_.Size();
+  intptr_t bound_pc = buffer_.Size();
   while (label->IsLinked()) {
     const int32_t position = label->Position();
     int32_t dest = bound_pc - position;
@@ -2686,7 +2686,7 @@ int32_t Assembler::AddObject(const Object& obj) {
     ASSERT(Isolate::Current() != Dart::vm_isolate());
     object_pool_ = GrowableObjectArray::New(Heap::kOld);
   }
-  for (int i = 0; i < object_pool_.Length(); i++) {
+  for (intptr_t i = 0; i < object_pool_.Length(); i++) {
     if (object_pool_.At(i) == obj.raw()) {
       return i;
     }

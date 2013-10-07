@@ -865,7 +865,7 @@ static RawFunction* InlineCacheMissHandler(
       }
     }
     if (FLAG_trace_ic) {
-      OS::PrintErr("InlineCacheMissHandler %d call at %#" Px "' "
+      OS::PrintErr("InlineCacheMissHandler %" Pd " call at %#" Px "' "
                    "adding <%s> id:%" Pd " -> <%s>\n",
           args.length(),
           caller_frame->pc(),

@@ -62,7 +62,7 @@ AssemblerBuffer::EnsureCapacity::~EnsureCapacity() {
 
 
 AssemblerBuffer::AssemblerBuffer()
-    : pointer_offsets_(new ZoneGrowableArray<int>(16)) {
+    : pointer_offsets_(new ZoneGrowableArray<intptr_t>(16)) {
   static const intptr_t kInitialBufferCapacity = 4 * KB;
   contents_ = NewContents(kInitialBufferCapacity);
   cursor_ = contents_;
@@ -136,12 +136,12 @@ void AssemblerBuffer::ExtendCapacity() {
 
 class PatchCodeWithHandle : public AssemblerFixup {
  public:
-  PatchCodeWithHandle(ZoneGrowableArray<int>* pointer_offsets,
+  PatchCodeWithHandle(ZoneGrowableArray<intptr_t>* pointer_offsets,
                       const Object& object)
       : pointer_offsets_(pointer_offsets), object_(object) {
   }
 
-  void Process(const MemoryRegion& region, int position) {
+  void Process(const MemoryRegion& region, intptr_t position) {
     // Patch the handle into the code. Once the instructions are installed into
     // a raw code object and the pointer offsets are setup, the handle is
     // resolved.
@@ -150,7 +150,7 @@ class PatchCodeWithHandle : public AssemblerFixup {
   }
 
  private:
-  ZoneGrowableArray<int>* pointer_offsets_;
+  ZoneGrowableArray<intptr_t>* pointer_offsets_;
   const Object& object_;
 };
 
