@@ -141,15 +141,19 @@ main() {
   test("Error after first end", () {
     StreamController controller = new StreamController();
     controller..add(7)..add(8)..add(9);
-    testZip([mks([1, 2, 3]),
-             mks([4, 5, 6]),
+    int ctr = 2;
+    Function addErrorIf(x) {
+      return (y) {
+        // Adds error to controller after both of the first two streams have
+        // provided all three elements.
+        if (x == y && --ctr == 0) Timer.run(() { controller.addError("BAD"); });
+        return y;
+      };
+    }
+    testZip([mks([1, 2, 3].map(addErrorIf(3))),
+             mks([4, 5, 6].map(addErrorIf(6))),
              controller.stream],
            [[1, 4, 7], [2, 5, 8], [3, 6, 9]]);
-    // This comes after the first three events in all cases, since they
-    // use durations no greater than 10 ms.
-    new Timer(const Duration(milliseconds: 100), () {
-      controller.addError("BAD");
-    });
   });
 
   test("Pause/Resume", () {
