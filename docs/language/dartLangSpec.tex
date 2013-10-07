@@ -4352,7 +4352,7 @@ If $T$ is malformed the test always succeeds. This is a consequence of the rule 
 %It is a static warning if $T$ is malformed or malbounded.
 %does not denote a type available in the current lexical scope. 
 
-Let $v$  be a local variable or a formal parameter. An is-expression of the form \code{$v$ \IS{}! $T$} shows that $v$  has type $T$ iff $T$ is a subtype of the type $S$ of the expression $v$ and  both $T \ne \DYNAMIC{}$ and $S \ne \DYNAMIC{}$.
+Let $v$  be a local variable or a formal parameter. An is-expression of the form \code{$v$ \IS{}! $T$} shows that $v$  has type $T$ iff $T$ is more specific than the type $S$ of the expression $v$ and  both $T \ne \DYNAMIC{}$ and $S \ne \DYNAMIC{}$.
 
 The static type of an is-expression is \code{bool}. 
 %It is a static warning if if $T$ is a parameterized type of the form $G<T_1, \ldots, T_n>$ and $G$ is not a generic type with $n$ type parameters. 
@@ -5705,6 +5705,7 @@ A type $T$ is more specific than a type $S$, written $T << S$,  if one of the fo
 \item $T$ is a type parameter and $S$ is \cd{Object}.
 \item $T$ is of the form $I<T_1, \ldots, T_n>$ and $S$ is of the form $I<S_1, \ldots, S_n>$ and:
 $T_i << S_i, 1 \le i \le n$
+\item $T$ and $S$ are both function types, and $T << S$ under the rules of section \ref{functionTypes}.
 \item $T << U$ and $U << S$.
 \end{itemize}
 
@@ -5811,6 +5812,34 @@ If a type $I$ includes an instance method named \CALL{}, and the type of \CALL{}
 
 %\commentary{Need to specify how a function values dynamic type is derived from its static signature.}
 
+A function type $(T_1, \ldots T_{k}, [T_{k+1}  \ldots, T_{n+m}]) \rightarrow T$ is a more specific than the
+function type $(S_1, \ldots, S_{k+j}, [S_{k+j+1} \ldots, S_{n}]) \rightarrow S$, if all of the following conditions are met:
+\begin{enumerate}
+\item Either
+\begin{itemize}
+\item $S$ is \VOID{}, Or
+\item  $T << S$.
+\end{itemize}
+\item $\forall i \in 1 .. n, T_i << S_i$.
+\end{enumerate}
+
+
+A function type $(T_1, \ldots T_n, \{T_{x_1}$ $x_1, \ldots, T_{x_k}$ $x_k\}) \rightarrow T$ is more specific than the function type $(S_1, \ldots, S_n, \{S_{y_1}$ $y_1, \ldots, S_{y_m}$ $y_m\}) \rightarrow S$, if all of the following conditions are met:
+\begin{enumerate}
+\item Either
+\begin{itemize}
+\item $S$ is \VOID{}, Or
+\item  $T  << S$.
+\end{itemize}
+\item $\forall i \in 1 .. n, T_i << S_i$.
+\item $k \ge m$ and $y_i \in \{x_1,  \ldots, x_k\}, i \in 1 .. m$.
+%\{x_1,  \ldots, x_k\}$ is a superset of $\{y_1,  \ldots, y_m\}$.
+\item For all $y_i \in \{y_1,  \ldots, y_m\}, y_i = x_j \Rightarrow T_j << S_i$
+\end{enumerate}
+
+Furthermore, if $F$ is a function type, $F << \code{Function}$.
+
+
 \subsection{Type \DYNAMIC{}}
 \label{typeDynamic}
 
@@ -5868,6 +5897,8 @@ $\bot <: \VOID{}$ (as bottom is a subtype of all types).
 \item
 $\VOID{} <:   \DYNAMIC{}$ (as  \DYNAMIC{} is a supertype of all types)
 \end{itemize}
+
+The analogous rules also hold for the $<<$ relation for  similar reasons.
 
 Hence, the static checker will issue warnings if one attempts to access a member of the result of a void method invocation (even for members of \NULL{}, such as \code{==}).  Likewise, passing the result of a void method as a parameter or assigning it to a variable will cause a warning unless the variable/formal parameter has type dynamic.
 
