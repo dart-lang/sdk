@@ -8,8 +8,8 @@ import "package:unittest/unittest.dart";
 
 /// Create an error with the same values as [base], except that it throwsA
 /// when seeing the value [errorValue].
-Stream streamError(Stream base, int errorValue) {
-  return base.map((x) => (x == errorValue) ? throw "BAD" : x);
+Stream streamError(Stream base, int errorValue, error) {
+  return base.map((x) => (x == errorValue) ? throw error : x);
 }
 
 /// Make a [Stream] from an [Iterable] by adding events to a stream controller
@@ -100,58 +100,55 @@ main() {
   });
 
   test("Error 1", () {
-    expect(new StreamZip([streamError(mks([1, 2, 3]), 2),
+    expect(new StreamZip([streamError(mks([1, 2, 3]), 2, "BAD-1"),
                           mks([4, 5, 6]),
                           mks([7, 8, 9])]).toList(),
-           throwsA(equals("BAD")));
+           throwsA(equals("BAD-1")));
   });
 
   test("Error 2", () {
     expect(new StreamZip([mks([1, 2, 3]),
-                          streamError(mks([4, 5, 6]), 5),
+                          streamError(mks([4, 5, 6]), 5, "BAD-2"),
                           mks([7, 8, 9])]).toList(),
-           throwsA(equals("BAD")));
+           throwsA(equals("BAD-2")));
   });
 
   test("Error 3", () {
     expect(new StreamZip([mks([1, 2, 3]),
                           mks([4, 5, 6]),
-                          streamError(mks([7, 8, 9]), 8)]).toList(),
-           throwsA(equals("BAD")));
+                          streamError(mks([7, 8, 9]), 8, "BAD-3")]).toList(),
+           throwsA(equals("BAD-3")));
   });
 
   test("Error at end", () {
     expect(new StreamZip([mks([1, 2, 3]),
-                          streamError(mks([4, 5, 6]), 6),
+                          streamError(mks([4, 5, 6]), 6, "BAD-4"),
                           mks([7, 8, 9])]).toList(),
-           throwsA(equals("BAD")));
+           throwsA(equals("BAD-4")));
   });
 
   test("Error before first end", () {
     // StreamControllers' streams with no "close" called will never be done,
     // so the fourth event of the first stream is guaranteed to come first.
     expect(new StreamZip(
-                [streamError(mks([1, 2, 3, 4]), 4),
+                [streamError(mks([1, 2, 3, 4]), 4, "BAD-5"),
                  (new StreamController()..add(4)..add(5)..add(6)).stream,
                  (new StreamController()..add(7)..add(8)..add(9)).stream]
                ).toList(),
-           throwsA(equals("BAD")));
+           throwsA(equals("BAD-5")));
   });
 
   test("Error after first end", () {
     StreamController controller = new StreamController();
     controller..add(7)..add(8)..add(9);
-    int ctr = 2;
-    Function addErrorIf(x) {
-      return (y) {
-        // Adds error to controller after both of the first two streams have
-        // provided all three elements.
-        if (x == y && --ctr == 0) Timer.run(() { controller.addError("BAD"); });
-        return y;
-      };
-    }
-    testZip([mks([1, 2, 3].map(addErrorIf(3))),
-             mks([4, 5, 6].map(addErrorIf(6))),
+    // Transformer that puts error into controller when one of the first two
+    // streams have sent a done event.
+    StreamTransformer trans = new StreamTransformer(handleDone: (EventSink s) {
+      Timer.run(() { controller.addError("BAD-6"); });
+      s.close();
+    });
+    testZip([mks([1, 2, 3]).transform(trans),
+             mks([4, 5, 6]).transform(trans),
              controller.stream],
            [[1, 4, 7], [2, 5, 8], [3, 6, 9]]);
   });
