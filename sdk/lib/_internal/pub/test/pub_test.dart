@@ -28,7 +28,7 @@ final USAGE_STRING = """
     -v, --verbose         Shortcut for "--verbosity=all".
 
     Available commands:
-      deploy     Copy and compile all Dart entrypoints in the 'web' directory.
+      build      Copy and compile all Dart entrypoints in the 'web' directory.
       get        Get the current package's dependencies.
       help       Display help information for Pub.
       publish    Publish the current package to pub.dartlang.org.

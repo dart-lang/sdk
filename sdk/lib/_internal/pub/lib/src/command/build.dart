@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub.command.deploy;
+library pub.command.build;
 
 import 'dart:async';
 import 'dart:math' as math;
@@ -18,22 +18,23 @@ import '../utils.dart';
 
 final _arrow = getSpecial('\u2192', '=>');
 
-/// Handles the `deploy` pub command.
-class DeployCommand extends PubCommand {
+/// Handles the `build` pub command.
+class BuildCommand extends PubCommand {
   final description = "Copy and compile all Dart entrypoints in the 'web' "
       "directory.";
-  final usage = "pub deploy [options]";
-  final aliases = const ["settle-up"];
+  final usage = "pub build [options]";
+  final aliases = const ["deploy", "settle-up"];
 
   // TODO(nweiz): make these configurable.
-  /// The path to the source directory of the deployment.
+  /// The path to the source directory of the application.
   String get source => path.join(entrypoint.root.dir, 'web');
 
-  /// The path to the target directory of the deployment.
-  String get target => path.join(entrypoint.root.dir, 'deploy');
+  /// The path to the application's build output directory.
+  String get target => path.join(entrypoint.root.dir, 'build');
 
-  /// The set of Dart entrypoints in [source] that should be compiled to [out].
-  final _entrypoints = new List<String>();
+  /// The set of Dart entrypoints in [source] that should be compiled to
+  /// [target].
+  final _entrypoints = <String>[];
 
   int _maxVerbLength;
   int _maxSourceLength;
@@ -99,7 +100,7 @@ class DeployCommand extends PubCommand {
   }
 
   /// Computes the maximum widths of words that will be used in log output for
-  /// the deploy command so we know how much padding to add when printing them.
+  /// the build command so we know how much padding to add when printing them.
   /// This should only be run after [_findEntrypoints].
   void _computeLogSize() {
     _maxVerbLength = ["Copying", "Compiling"]
@@ -113,7 +114,7 @@ class DeployCommand extends PubCommand {
     _maxSourceLength = sourceLengths.reduce(math.max);
   }
 
-  /// Log a deployment action. This should only be run after [_computeLogSize].
+  /// Log a build action. This should only be run after [_computeLogSize].
   void _logAction(String verb, String source, String target) {
     verb = padRight(verb, _maxVerbLength);
     source = padRight(source, _maxSourceLength);
@@ -134,8 +135,7 @@ class DeployCommand extends PubCommand {
     copyFile(path.join(entrypoint.packagesDir, 'browser', '$name.js'), jsPath);
   }
 
-  /// Whether we should copy the browser package's JS files into the deployed
-  /// app.
+  /// Whether we should copy the browser package's JS files into the built app.
   bool get _shouldAddBrowserJs {
     return !_entrypoints.isEmpty &&
         entrypoint.root.dependencies.any((dep) =>

@@ -61,23 +61,23 @@ main() {
 
     pubGet();
 
-    schedulePub(args: ["deploy"],
+    schedulePub(args: ["build"],
         output: '''
 Finding entrypoints...
-Copying   web|                       => deploy|
-Compiling web|file.dart              => deploy|file.dart.js
-Compiling web|file.dart              => deploy|file.dart
-Copying   package:browser/dart.js    => deploy|packages|browser|dart.js
-Copying   package:browser/interop.js => deploy|packages|browser|interop.js
-Compiling web|subdir|subfile.dart    => deploy|subdir|subfile.dart.js
-Compiling web|subdir|subfile.dart    => deploy|subdir|subfile.dart
-Copying   package:browser/dart.js    => deploy|subdir|packages|browser|dart.js
-Copying   package:browser/interop.js => deploy|subdir|packages|browser|interop.js
+Copying   web|                       => build|
+Compiling web|file.dart              => build|file.dart.js
+Compiling web|file.dart              => build|file.dart
+Copying   package:browser/dart.js    => build|packages|browser|dart.js
+Copying   package:browser/interop.js => build|packages|browser|interop.js
+Compiling web|subdir|subfile.dart    => build|subdir|subfile.dart.js
+Compiling web|subdir|subfile.dart    => build|subdir|subfile.dart
+Copying   package:browser/dart.js    => build|subdir|packages|browser|dart.js
+Copying   package:browser/interop.js => build|subdir|packages|browser|interop.js
 '''.replaceAll('|', path.separator),
         exitCode: 0);
 
     d.dir(appPath, [
-      d.dir('deploy', [
+      d.dir('build', [
         d.matcherFile('file.dart.js', isNot(isEmpty)),
         d.matcherFile('file.dart', isNot(isEmpty)),
         d.dir('packages', [d.dir('browser', [

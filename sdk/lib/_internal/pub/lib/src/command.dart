@@ -11,8 +11,8 @@ import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 
+import 'command/build.dart';
 import 'command/cache.dart';
-import 'command/deploy.dart';
 import 'command/get.dart';
 import 'command/help.dart';
 import 'command/lish.dart';
@@ -174,8 +174,8 @@ and include the results in a bug report on http://dartbug.com/new.
 
 _initCommands() {
   var commands = {
+    'build': new BuildCommand(),
     'cache': new CacheCommand(),
-    'deploy': new DeployCommand(),
     'get': new GetCommand(),
     'help': new HelpCommand(),
     'list-package-dirs': new ListPackageDirsCommand(),

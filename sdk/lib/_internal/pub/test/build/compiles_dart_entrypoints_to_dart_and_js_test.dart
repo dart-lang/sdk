@@ -11,7 +11,7 @@ import '../test_pub.dart';
 main() {
   initConfig();
 
-  integration("reports Dart parse errors", () {
+  integration("compiles Dart entrypoints to Dart and JS", () {
     // Dart2js can take a long time to compile dart code, so we increase the
     // timeout to cope with that.
     currentSchedule.timeout *= 3;
@@ -19,31 +19,32 @@ main() {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir('web', [
-        d.file('file.txt', 'contents'),
-        d.file('file.dart', 'void void;'),
+        d.file('file.dart', 'void main() => print("hello");'),
         d.dir('subdir', [
-          d.file('subfile.dart', 'void void;')
+          d.file('subfile.dart', 'void main() => print("ping");')
         ])
       ])
     ]).create();
 
-    schedulePub(args: ["deploy"],
-        error: new RegExp(
-            r"^Error on line 1 of .*[/\\]file\.dart:(.|\n)*"
-            r"^Error on line 1 of .*[/\\]subfile\.dart:",
-            multiLine: true),
+    schedulePub(args: ["build"],
         output: '''
 Finding entrypoints...
-Copying   web| => deploy|
+Copying   web|                    => build|
+Compiling web|file.dart           => build|file.dart.js
+Compiling web|file.dart           => build|file.dart
+Compiling web|subdir|subfile.dart => build|subdir|subfile.dart.js
+Compiling web|subdir|subfile.dart => build|subdir|subfile.dart
 '''.replaceAll('|', path.separator),
         exitCode: 0);
 
     d.dir(appPath, [
-      d.dir('deploy', [
-        d.matcherFile('file.txt', 'contents'),
-        d.nothing('file.dart.js'),
-        d.nothing('file.dart'),
-        d.nothing('subdir')
+      d.dir('build', [
+        d.matcherFile('file.dart.js', isNot(isEmpty)),
+        d.matcherFile('file.dart', isNot(isEmpty)),
+        d.dir('subdir', [
+          d.matcherFile('subfile.dart.js', isNot(isEmpty)),
+          d.matcherFile('subfile.dart', isNot(isEmpty))
+        ])
       ])
     ]).validate();
   });

@@ -21,15 +21,15 @@ main() {
       ])
     ]).create();
 
-    schedulePub(args: ["deploy"],
+    schedulePub(args: ["build"],
         output: '''
 Finding entrypoints...
-Copying   web| => deploy|
+Copying   web| => build|
 '''.replaceAll('|', path.separator),
         exitCode: 0);
 
     d.dir(appPath, [
-      d.dir('deploy', [
+      d.dir('build', [
         d.nothing('file1.dart.js'),
         d.nothing('file1.dart'),
         d.nothing('file2.dart.js'),

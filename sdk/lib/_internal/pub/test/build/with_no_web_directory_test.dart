@@ -11,7 +11,7 @@ main() {
   integration("with no web directory", () {
     d.appDir().create();
 
-    schedulePub(args: ["deploy"],
+    schedulePub(args: ["build"],
         error: new RegExp(r"^There is no '[^']+[/\\]web' directory.$",
             multiLine: true),
         exitCode: 1);

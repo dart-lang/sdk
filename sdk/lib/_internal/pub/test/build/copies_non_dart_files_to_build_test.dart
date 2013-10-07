@@ -10,7 +10,7 @@ import '../test_pub.dart';
 main() {
   initConfig();
 
-  integration("copies non-Dart files to deploy/", () {
+  integration("copies non-Dart files to build/", () {
     servePackages([packageMap("browser", "1.0.0")]);
 
     d.dir(appPath, [
@@ -25,15 +25,15 @@ main() {
       ])
     ]).create();
 
-    schedulePub(args: ["deploy"],
+    schedulePub(args: ["build"],
         output: '''
 Finding entrypoints...
-Copying   web| => deploy|
+Copying   web| => build|
 '''.replaceAll('|', path.separator),
         exitCode: 0);
 
     d.dir(appPath, [
-      d.dir('deploy', [
+      d.dir('build', [
         d.nothing('packages'),
         d.file('file.txt', 'contents'),
         d.dir('subdir', [
