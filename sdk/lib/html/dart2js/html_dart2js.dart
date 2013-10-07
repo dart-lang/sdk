@@ -2787,7 +2787,7 @@ class CssRule extends Interceptor native "CSSRule" {
 
 
 @DomName('CSSStyleDeclaration')
- class CssStyleDeclaration  extends Interceptor with 
+ class CssStyleDeclaration  extends Interceptor with
     CssStyleDeclarationBase  native "CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties" {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
@@ -2796,7 +2796,7 @@ class CssRule extends Interceptor native "CSSRule" {
     style.cssText = css;
     return style;
   }
-  
+
   String getPropertyValue(String propertyName) {
     var propValue = _getPropertyValue(propertyName);
     return propValue != null ? propValue : '';
@@ -2816,7 +2816,7 @@ class CssRule extends Interceptor native "CSSRule" {
       }
     } catch (e) {}
   }
-  
+
   /**
    * Checks to see if CSS Transitions are supported.
    */
@@ -2894,7 +2894,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 }
 
 abstract class CssStyleDeclarationBase {
-  String getPropertyValue(String propertyName);  
+  String getPropertyValue(String propertyName);
   void setProperty(String propertyName, String value, [String priority]);
 
   // TODO(jacobr): generate this list of properties using the existing script.
@@ -3754,8 +3754,8 @@ abstract class CssStyleDeclarationBase {
   }
 
   /** Gets the value of "box-sizing" */
-  String get boxSizing => Device.isFirefox ? 
-      getPropertyValue('${Device.cssPrefix}box-sizing') : 
+  String get boxSizing => Device.isFirefox ?
+      getPropertyValue('${Device.cssPrefix}box-sizing') :
       getPropertyValue('box-sizing');
 
   /** Sets the value of "box-sizing" */
@@ -8168,7 +8168,7 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnsupportedError('Cannot sort element lists');
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError('Cannot shuffle element lists');
   }
 
@@ -8617,7 +8617,7 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
     throw new UnsupportedError('Cannot sort list');
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError('Cannot shuffle list');
   }
 
@@ -13152,8 +13152,8 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
   /**
    * Makes a server POST request with the specified data encoded as form data.
    *
-   * This is roughly the POST equivalent of getString. This method is similar 
-   * to sending a FormData object with broader browser support but limited to 
+   * This is roughly the POST equivalent of getString. This method is similar
+   * to sending a FormData object with broader browser support but limited to
    * String values.
    *
    * See also:
@@ -13188,7 +13188,7 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
    * Creates and sends a URL request for the specified [url].
    *
    * By default `request` will perform an HTTP GET request, but a different
-   * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the 
+   * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the
    * [method] parameter.
    *
    * The Future is completed when the response is available.
@@ -14787,15 +14787,15 @@ class InputMethodContext extends Interceptor native "InputMethodContext" {
 @DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent native "KeyboardEvent" {
 
-  /** 
-   * Programmatically create a KeyboardEvent. 
+  /**
+   * Programmatically create a KeyboardEvent.
    *
    * Due to browser differences, keyCode, charCode, or keyIdentifier values
    * cannot be specified in this base level constructor. This constructor
    * enables the user to programmatically create and dispatch a [KeyboardEvent],
    * but it will not contain any particular key content. For programmatically
    * creating keyboard events with specific key value contents, see the custom
-   * Event [KeyEvent]. 
+   * Event [KeyEvent].
    */
   factory KeyboardEvent(String type,
       {Window view, bool canBubble: true, bool cancelable: true,
@@ -17930,7 +17930,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
     throw new UnsupportedError("Cannot sort Node list");
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError("Cannot shuffle Node list");
   }
 
@@ -18809,7 +18809,7 @@ class OptGroupElement extends HtmlElement native "HTMLOptGroupElement" {
 
 @DomName('HTMLOptionElement')
 class OptionElement extends HtmlElement native "HTMLOptionElement" {
-  factory OptionElement({String data, String value, bool defaultSelected, 
+  factory OptionElement({String data, String value, bool defaultSelected,
       bool selected}) {
     return new OptionElement._(data, value, defaultSelected, selected);
   }
@@ -24464,10 +24464,10 @@ class Url extends Interceptor native "URL" {
 
   static String createObjectUrlFromSource(MediaSource source) =>
       JS('String', '(self.URL || self.webkitURL).createObjectURL(#)', source);
-  
+
   static String createObjectUrlFromStream(MediaStream stream) =>
       JS('String', '(self.URL || self.webkitURL).createObjectURL(#)', stream);
-  
+
   static String createObjectUrlFromBlob(Blob blob) =>
       JS('String', '(self.URL || self.webkitURL).createObjectURL(#)', blob);
 
@@ -29828,7 +29828,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError("Cannot shuffle immutable List.");
   }
 
@@ -32263,7 +32263,7 @@ class FixedSizeListIterator<T> implements Iterator<T> {
   final int _length;  // Cache array length for faster access.
   int _position;
   T _current;
-  
+
   FixedSizeListIterator(List<T> array)
       : _array = array,
         _position = -1,

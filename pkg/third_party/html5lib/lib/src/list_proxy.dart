@@ -5,6 +5,7 @@
 library list_proxy;
 
 import 'dart:collection';
+import 'dart:math' show Random;
 
 // TOOD(jmesserly): this needs to be removed, but fixing NodeList is tricky.
 class ListProxy<E> extends IterableBase<E> implements List<E> {
@@ -51,7 +52,7 @@ class ListProxy<E> extends IterableBase<E> implements List<E> {
   void addLast(E value) { add(value); }
   void addAll(Iterable<E> collection) { _list.addAll(collection); }
   void sort([int compare(E a, E b)]) { _list.sort(compare); }
-  void shuffle() { _list.shuffle(); }
+  void shuffle([Random random]) { _list.shuffle(random); }
 
   int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
   int lastIndexOf(E element, [int start]) => _list.lastIndexOf(element, start);

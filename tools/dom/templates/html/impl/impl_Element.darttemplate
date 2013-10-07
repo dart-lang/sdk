@@ -58,7 +58,7 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnsupportedError('Cannot sort element lists');
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError('Cannot shuffle element lists');
   }
 
@@ -280,7 +280,7 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
     throw new UnsupportedError('Cannot sort list');
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError('Cannot shuffle list');
   }
 

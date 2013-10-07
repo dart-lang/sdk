@@ -8724,7 +8724,7 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnsupportedError('Cannot sort element lists');
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError('Cannot shuffle element lists');
   }
 
@@ -9173,7 +9173,7 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
     throw new UnsupportedError('Cannot sort list');
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError('Cannot shuffle list');
   }
 
@@ -19239,7 +19239,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
     throw new UnsupportedError("Cannot sort Node list");
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError("Cannot shuffle Node list");
   }
 
@@ -31909,7 +31909,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError("Cannot shuffle immutable List.");
   }
 

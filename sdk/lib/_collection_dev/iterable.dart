@@ -958,8 +958,8 @@ class IterableMixinWorkaround {
     Sort.sort(list, compare);
   }
 
-  static void shuffleList(List list) {
-    Random random = new Random();
+  static void shuffleList(List list, Random random) {
+    if (random == null) random = new Random();
     int length = list.length;
     while (length > 1) {
       int pos = random.nextInt(length);

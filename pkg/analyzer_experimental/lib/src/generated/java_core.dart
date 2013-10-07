@@ -370,6 +370,10 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
     elements.sort(compare);
   }
 
+  void shuffle([math.Random random]) {
+    elements.shuffle(random);
+  }
+
   int indexOf(E element, [int start = 0]) {
     return elements.indexOf(element, start);
   }

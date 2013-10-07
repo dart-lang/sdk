@@ -184,7 +184,7 @@ abstract class List<E> implements Iterable<E> {
   /**
    * Shuffles the elements of this list randomly.
    */
-  void shuffle();
+  void shuffle([Random random]);
 
   /**
    * Returns the first index of [element] in this list.

@@ -5,6 +5,7 @@
 // Dart test for List.shuffle.
 library shuffle_test;
 import "dart:typed_data";
+import "dart:math" show Random;
 import "package:expect/expect.dart";
 
 main() {
@@ -35,6 +36,8 @@ main() {
     // Chance of changing 266 times in a row should be < 1:1e80.
     Expect.fail("List changes every time.");
   }
+
+  testRandom();
 }
 
 void testShuffle(list) {
@@ -62,7 +65,7 @@ void testShuffle(list) {
   Expect.isTrue(seen.isEmpty);
   // Test that shuffle actually does make a change. Repeat until the probability
   // of a proper shuffling hitting the same list again is less than 10^80
-  // (arbitrary bignum - approx. number of elemental particles in the universe).
+  // (arbitrary bignum - approx. number of atoms in the universe).
   //
   // The probablility of shuffling a list of length n into the same list is
   // 1/n!. If one shuffle didn't change the list, repeat shuffling until
@@ -89,4 +92,35 @@ void testShuffle(list) {
   if (!listsDifferent()) {
     Expect.fail("Didn't shuffle at all, p < 1:1e80: $list");
   }
+}
+
+
+// Checks that the "random" argument to shuffle is used.
+testRandom() {
+  List randomNums = [37, 87, 42, 157, 252, 17];
+  List numbers = new List.generate(25, (x) => x);
+  List l1 = numbers.toList()..shuffle(new MockRandom(randomNums));
+  for (int i = 0; i < 50; i++) {
+    // With same random sequence, we get the same shuffling each time.
+    List l2 = numbers.toList()..shuffle(new MockRandom(randomNums));
+    Expect.listEquals(l1, l2);
+  }
+}
+
+class MockRandom implements Random {
+  final List<int> _values;
+  int index = 0;
+  MockRandom(this._values);
+
+  int get _next {
+    int next = _values[index];
+    index = (index + 1) % _values.length;
+    return next;
+  }
+
+  int nextInt(int limit) => _next % limit;
+
+  double nextDouble() => _next / 256.0;
+
+  bool nextBool() => _next.isEven;
 }

@@ -202,8 +202,8 @@ class _List<E> implements List<E> {
     IterableMixinWorkaround.sortList(this, compare);
   }
 
-  void shuffle() {
-    IterableMixinWorkaround.shuffleList(this);
+  void shuffle([Random random]) {
+    IterableMixinWorkaround.shuffleList(this, random);
   }
 
   int indexOf(Object element, [int start = 0]) {
@@ -460,7 +460,7 @@ class _ImmutableList<E> implements List<E> {
         "Cannot modify an immutable array");
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError(
         "Cannot modify an immutable array");
   }
