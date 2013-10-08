@@ -35,6 +35,13 @@
       if (window.MutationObserver && (obj instanceof MutationObserver))
           return 'MutationObserver';
 
+      // TODO(jmesserly): this prevents incorrect interaction between ShadowDOM
+      // and dart:html's <template> polyfill. Essentially, ShadowDOM is
+      // polyfilling native template, but our Dart polyfill fails to detect this
+      // because the unwrapped node is an HTMLUnknownElement, leading it to
+      // think the node has no content.
+      if (obj instanceof HTMLTemplateElement) return 'HTMLTemplateElement';
+
       var unwrapped = unwrapIfNeeded(obj);
       if (obj !== unwrapped) {
         // Fix up class names for Firefox.
