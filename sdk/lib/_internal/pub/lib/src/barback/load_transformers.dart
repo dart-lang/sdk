@@ -158,6 +158,7 @@ Map _serializeTransformerOrGroup(transformerOrGroup) {
     assert(transformerOrGroup is TransformerGroup);
     return _serializeTransformerGroup(transformerOrGroup);
   }
+}
 
 /// Converts [transformer] into a serializable map.
 Map _serializeTransformer(Transformer transformer) {
