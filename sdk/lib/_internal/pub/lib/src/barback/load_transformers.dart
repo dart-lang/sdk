@@ -35,25 +35,30 @@ void main() {
       var library = Uri.parse(args['library']);
       var configuration = JSON.decode(args['configuration']);
       return initialize(library, configuration).
-          map(_serializeTransformer).toList();
+          map(_serializeTransformerOrGroup).toList();
     }));
   });
 }
 
-/// Loads all the transformers defined in [uri] and adds them to [transformers].
+/// Loads all the transformers and groups defined in [uri].
 ///
-/// We then load the library, find any Transformer subclasses in it, instantiate
-/// them (with [configuration] if it's non-null), and return them.
-Iterable<Transformer> initialize(Uri uri, Map configuration) {
+/// Loads the library, finds any Transformer or TransformerGroup subclasses in
+/// it, instantiates them (with [configuration] if it's non-null), and returns
+/// them.
+Iterable initialize(Uri uri, Map configuration) {
   var mirrors = currentMirrorSystem();
   var transformerClass = reflectClass(Transformer);
+  var groupClass = reflectClass(TransformerGroup);
 
   // TODO(nweiz): if no valid transformers are found, throw an error message
   // describing candidates and why they were rejected.
   return mirrors.libraries[uri].classes.values.map((classMirror) {
     if (classMirror.isPrivate) return null;
     if (isAbstract(classMirror)) return null;
-    if (!classIsA(classMirror, transformerClass)) return null;
+    if (!classIsA(classMirror, transformerClass) &&
+        !classIsA(classMirror, groupClass)) {
+      return null;
+    }
 
     var constructor = getConstructor(classMirror, 'asPlugin');
     if (constructor == null) return null;
@@ -145,6 +150,15 @@ bool classIsA(ClassMirror mirror, ClassMirror superclass) {
 bool isAbstract(ClassMirror mirror) => mirror.members.values
     .any((member) => member is MethodMirror && member.isAbstract);
 
+/// Converts [transformerOrGroup] into a serializable map.
+Map _serializeTransformerOrGroup(transformerOrGroup) {
+  if (transformerOrGroup is Transformer) {
+    return _serializeTransformer(transformerOrGroup);
+  } else {
+    assert(transformerOrGroup is TransformerGroup);
+    return _serializeTransformerGroup(transformerOrGroup);
+  }
+
 /// Converts [transformer] into a serializable map.
 Map _serializeTransformer(Transformer transformer) {
   var port = new ReceivePort();
@@ -161,8 +175,20 @@ Map _serializeTransformer(Transformer transformer) {
   });
 
   return {
+    'type': 'Transformer',
     'toString': transformer.toString(),
     'port': port.toSendPort()
+  };
+}
+
+// Converts [group] into a serializable map.
+Map _serializeTransformerGroup(TransformerGroup group) {
+  return {
+    'type': 'TransformerGroup',
+    'toString': group.toString(),
+    'phases': group.phases.map((phase) {
+      return phase.map(_serializeTransformerOrGroup).toList();
+    }).toList()
   };
 }
 
@@ -278,11 +304,11 @@ String getErrorMessage(error) {
 }
 """;
 
-/// Load and return all transformers from the library identified by [id].
+/// Load and return all transformers and groups from the library identified by
+/// [id].
 ///
-/// [server] is used to serve any Dart files needed to load the transformer.
-Future<Set<Transformer>> loadTransformers(BarbackServer server,
-    TransformerId id) {
+/// [server] is used to serve any Dart files needed to load the transformers.
+Future<Set> loadTransformers(BarbackServer server, TransformerId id) {
   var path = id.asset.path.replaceFirst('lib/', '');
   // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
   var hostAndPort = '${server.address.address}:${server.port}';
@@ -296,9 +322,7 @@ Future<Set<Transformer>> loadTransformers(BarbackServer server,
       // TODO(nweiz): support non-JSON-encodable configuration maps.
       'configuration': JSON.encode(id.configuration)
     })).then((transformers) {
-      transformers = transformers
-          .map((transformer) => new _ForeignTransformer(transformer))
-          .toSet();
+      transformers = transformers.map(_deserializeTransformerOrGroup).toSet();
       log.fine("Transformers from ${id.asset}: $transformers");
       return transformers;
     });
@@ -348,6 +372,29 @@ class _ForeignTransformer extends Transformer {
   }
 
   String toString() => _toString;
+}
+
+/// A wrapper for a transformer group that's in a different isolate.
+class _ForeignGroup implements TransformerGroup {
+  final Iterable<Iterable> phases;
+
+  /// The result of calling [toString] on the transformer group in the isolate.
+  final String _toString;
+
+  _ForeignGroup(Map map)
+      : phases = map['phases'].map((phase) {
+          return phase.map(_deserializeTransformerOrGroup).toList();
+        }).toList(),
+        _toString = map['toString'];
+
+  String toString() => _toString;
+}
+
+/// Converts a serializable map into a [Transformer] or a [TransformerGroup].
+_deserializeTransformerOrGroup(Map map) {
+  if (map['type'] == 'Transformer') return new _ForeignTransformer(map);
+  assert(map['type'] == 'TransformerGroup');
+  return new _ForeignGroup(map);
 }
 
 /// Converts [transform] into a serializable map.
