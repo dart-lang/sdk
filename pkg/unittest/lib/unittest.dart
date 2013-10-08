@@ -750,6 +750,7 @@ void _runTest() {
       try {
         timer = new Timer(timeout, () {
           testCase.error("Test timed out after ${timeout.inSeconds} seconds.");
+          _nextTestCase();
         });
       } on UnsupportedError catch (e) {
         if (e.message != "Timer greater than 0.") rethrow;
@@ -858,13 +859,13 @@ typedef dynamic TestFunction();
 bool formatStacks = true;
 
 /**
- * A flag that controls whether we try to filter out irrelevant frames from 
+ * A flag that controls whether we try to filter out irrelevant frames from
  * the stack trace. Requires formatStacks to be set.
  */
 bool filterStacks = true;
 
 /**
- * Returns a Trace object from a StackTrace object or a String, or the 
+ * Returns a Trace object from a StackTrace object or a String, or the
  * unchanged input if formatStacks is false;
  */
 Trace _getTrace(stack) {

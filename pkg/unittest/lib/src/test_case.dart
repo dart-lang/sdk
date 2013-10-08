@@ -41,6 +41,9 @@ class TestCase {
    */
   String get result => _result;
 
+  /** Returns whether this test case passed. */
+  bool get passed => _result == PASS;
+
   StackTrace _stackTrace;
   /** Stack trace associated with this test, or [null] if it succeeded. */
   StackTrace get stackTrace => _stackTrace;
@@ -187,4 +190,6 @@ class TestCase {
       pass();
     }
   }
+
+  String toString() => _result != null ? "$description: $result" : description;
 }
