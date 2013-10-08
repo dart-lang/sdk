@@ -17458,6 +17458,21 @@ class NonHintCodeTest extends ResolverTestCase {
     assertNoErrors(source);
     verify([source]);
   }
+  void test_unnecessaryCast_13855_parameter_A() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A{",
+        "  a() {}",
+        "}",
+        "class B<E> {",
+        "  E e;",
+        "  m() {",
+        "    (e as A).a();",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
   void test_unnecessaryCast_dynamic_type() {
     Source source = addSource(EngineTestCase.createSource(["m(v) {", "  var b = v as Object;", "}"]));
     resolve(source);
@@ -17602,6 +17617,10 @@ class NonHintCodeTest extends ResolverTestCase {
       _ut.test('test_overrideEqualsButNotHashCode', () {
         final __test = new NonHintCodeTest();
         runJUnitTest(__test, __test.test_overrideEqualsButNotHashCode);
+      });
+      _ut.test('test_unnecessaryCast_13855_parameter_A', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_unnecessaryCast_13855_parameter_A);
       });
       _ut.test('test_unnecessaryCast_dynamic_type', () {
         final __test = new NonHintCodeTest();

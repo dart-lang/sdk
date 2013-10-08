@@ -6101,11 +6101,11 @@ class ComplexParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
   }
   void test_bitwiseAndExpression_precedence_equality_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x == y & z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x == y && z", []);
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
   }
   void test_bitwiseAndExpression_precedence_equality_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x & y == z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x && y == z", []);
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
   }
   void test_bitwiseAndExpression_super() {
@@ -6191,11 +6191,11 @@ class ComplexParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
   }
   void test_logicalAndExpression_precedence_bitwiseOr_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x | y && z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x | y < z", []);
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
   }
   void test_logicalAndExpression_precedence_bitwiseOr_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x && y | z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x < y | z", []);
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.rightOperand);
   }
   void test_logicalOrExpression() {
@@ -6872,14 +6872,14 @@ class RecoveryParserTest extends ParserTestCase {
     JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
   }
   void test_bitwiseAndExpression_precedence_equality_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("== &", [
+    BinaryExpression expression = ParserTestCase.parseExpression("== &&", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
   }
   void test_bitwiseAndExpression_precedence_equality_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("& ==", [
+    BinaryExpression expression = ParserTestCase.parseExpression("&& ==", [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);

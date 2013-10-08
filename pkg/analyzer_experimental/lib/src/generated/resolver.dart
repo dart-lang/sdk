@@ -35,22 +35,25 @@ class CompilationUnitBuilder {
    */
   CompilationUnitElementImpl buildCompilationUnit(Source source, CompilationUnit unit) {
     TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
-    if (unit == null) {
-      return null;
+    try {
+      if (unit == null) {
+        return null;
+      }
+      ElementHolder holder = new ElementHolder();
+      ElementBuilder builder = new ElementBuilder(holder);
+      unit.accept(builder);
+      CompilationUnitElementImpl element = new CompilationUnitElementImpl(source.shortName);
+      element.accessors = holder.accessors;
+      element.functions = holder.functions;
+      element.source = source;
+      element.typeAliases = holder.typeAliases;
+      element.types = holder.types;
+      element.topLevelVariables = holder.topLevelVariables;
+      unit.element = element;
+      return element;
+    } finally {
+      timeCounter.stop();
     }
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
-    unit.accept(builder);
-    CompilationUnitElementImpl element = new CompilationUnitElementImpl(source.shortName);
-    element.accessors = holder.accessors;
-    element.functions = holder.functions;
-    element.source = source;
-    element.typeAliases = holder.typeAliases;
-    element.types = holder.types;
-    element.topLevelVariables = holder.topLevelVariables;
-    unit.element = element;
-    timeCounter.stop();
-    return element;
   }
 }
 /**
@@ -1542,7 +1545,7 @@ class BestPracticesVerifier extends RecursiveASTVisitor<Object> {
     TypeName typeName = node.type;
     Type2 lhsType = expression.staticType;
     Type2 rhsType = typeName.type;
-    if (lhsType != null && rhsType != null && !lhsType.isDynamic && !rhsType.isDynamic && lhsType.isSubtypeOf(rhsType)) {
+    if (lhsType != null && rhsType != null && !lhsType.isDynamic && !rhsType.isDynamic && lhsType is! TypeParameterType && rhsType is! TypeParameterType && lhsType.isSubtypeOf(rhsType)) {
       _errorReporter.reportError2(HintCode.UNNECESSARY_CAST, node, []);
       return true;
     }
@@ -1862,22 +1865,25 @@ class HintGenerator {
   }
   void generateForLibrary() {
     TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.hints.start();
-    for (int i = 0; i < _compilationUnits.length; i++) {
-      CompilationUnitElement element = _compilationUnits[i].element;
-      if (element != null) {
-        if (i == 0) {
-          _importsVerifier.inDefiningCompilationUnit = true;
-          generateForCompilationUnit(_compilationUnits[i], element.source);
-          _importsVerifier.inDefiningCompilationUnit = false;
-        } else {
-          generateForCompilationUnit(_compilationUnits[i], element.source);
+    try {
+      for (int i = 0; i < _compilationUnits.length; i++) {
+        CompilationUnitElement element = _compilationUnits[i].element;
+        if (element != null) {
+          if (i == 0) {
+            _importsVerifier.inDefiningCompilationUnit = true;
+            generateForCompilationUnit(_compilationUnits[i], element.source);
+            _importsVerifier.inDefiningCompilationUnit = false;
+          } else {
+            generateForCompilationUnit(_compilationUnits[i], element.source);
+          }
         }
       }
+      ErrorReporter definingCompilationUnitErrorReporter = new ErrorReporter(_errorListener, _compilationUnits[0].element.source);
+      _importsVerifier.generateDuplicateImportHints(definingCompilationUnitErrorReporter);
+      _importsVerifier.generateUnusedImportHints(definingCompilationUnitErrorReporter);
+    } finally {
+      timeCounter.stop();
     }
-    ErrorReporter definingCompilationUnitErrorReporter = new ErrorReporter(_errorListener, _compilationUnits[0].element.source);
-    _importsVerifier.generateDuplicateImportHints(definingCompilationUnitErrorReporter);
-    _importsVerifier.generateUnusedImportHints(definingCompilationUnitErrorReporter);
-    timeCounter.stop();
   }
   void generateForCompilationUnit(CompilationUnit unit, Source source) {
     ErrorReporter errorReporter = new ErrorReporter(_errorListener, source);
@@ -4973,6 +4979,7 @@ class InheritanceManager {
         _classLookup[superclassElt] = resultMap;
         return resultMap;
       }
+      substituteTypeParametersDownHierarchy(supertype, resultMap);
       recordMapWithClassMembers(resultMap, supertype);
     }
     List<InterfaceType> mixins = classElt.mixins;
@@ -5059,18 +5066,8 @@ class InheritanceManager {
           javaSetAdd(visitedInterfaces, superclassElement);
           MemberMap map = computeInterfaceLookupMap(superclassElement, visitedInterfaces);
           map = new MemberMap.con2(map);
-          List<MethodElement> methods = supertype.methods;
-          for (MethodElement method in methods) {
-            if (method.isAccessibleIn(_library) && !method.isStatic) {
-              map.put(method.name, method);
-            }
-          }
-          List<PropertyAccessorElement> accessors = supertype.accessors;
-          for (PropertyAccessorElement accessor in accessors) {
-            if (accessor.isAccessibleIn(_library) && !accessor.isStatic) {
-              map.put(accessor.name, accessor);
-            }
-          }
+          substituteTypeParametersDownHierarchy(supertype, map);
+          recordMapWithClassMembers(map, supertype);
           lookupMaps.add(map);
         } finally {
           visitedInterfaces.remove(superclassElement);
@@ -5098,18 +5095,8 @@ class InheritanceManager {
             javaSetAdd(visitedInterfaces, interfaceElement);
             MemberMap map = computeInterfaceLookupMap(interfaceElement, visitedInterfaces);
             map = new MemberMap.con2(map);
-            List<MethodElement> methods = interfaceType.methods;
-            for (MethodElement method in methods) {
-              if (method.isAccessibleIn(_library) && !method.isStatic) {
-                map.put(method.name, method);
-              }
-            }
-            List<PropertyAccessorElement> accessors = interfaceType.accessors;
-            for (PropertyAccessorElement accessor in accessors) {
-              if (accessor.isAccessibleIn(_library) && !accessor.isStatic) {
-                map.put(accessor.name, accessor);
-              }
-            }
+            substituteTypeParametersDownHierarchy(interfaceType, map);
+            recordMapWithClassMembers(map, interfaceType);
             lookupMaps.add(map);
           } finally {
             visitedInterfaces.remove(interfaceElement);
@@ -5275,6 +5262,27 @@ class InheritanceManager {
       _errorsInClassElement[classElt] = errorSet;
     }
     javaSetAdd(errorSet, new AnalysisError.con2(classElt.source, offset, length, errorCode, arguments));
+  }
+
+  /**
+   * Loop through all of the members in some [MemberMap], performing type parameter
+   * substitutions using a passed supertype.
+   *
+   * @param superType the supertype to substitute into the members of the [MemberMap]
+   * @param map the MemberMap to perform the substitutions on
+   */
+  void substituteTypeParametersDownHierarchy(InterfaceType superType, MemberMap map) {
+    for (int i = 0; i < map.size; i++) {
+      String key = map.getKey(i);
+      ExecutableElement executableElement = map.getValue(i);
+      if (executableElement is MethodMember) {
+        executableElement = MethodMember.from(executableElement as MethodMember, superType);
+        map.put(key, executableElement);
+      } else if (executableElement is PropertyAccessorMember) {
+        executableElement = PropertyAccessorMember.from(executableElement as PropertyAccessorMember, superType);
+        map.put(key, executableElement);
+      }
+    }
   }
 }
 /**
@@ -6005,6 +6013,11 @@ class LibraryResolver {
             Library importedLibrary = _libraryMap[importedSource];
             if (importedLibrary != null) {
               ImportElementImpl importElement = new ImportElementImpl();
+              importElement.offset = directive.offset;
+              StringLiteral uriLiteral = importDirective.uri;
+              if (uriLiteral != null) {
+                importElement.uriEnd = uriLiteral.end;
+              }
               importElement.uri = library.getUri(importDirective);
               importElement.combinators = buildCombinators(importDirective);
               LibraryElement importedLibraryElement = importedLibrary.libraryElement;
@@ -6013,6 +6026,7 @@ class LibraryResolver {
               }
               SimpleIdentifier prefixNode = ((directive as ImportDirective)).prefix;
               if (prefixNode != null) {
+                importElement.prefixOffset = prefixNode.offset;
                 String prefixName = prefixNode.name;
                 PrefixElementImpl prefix = nameToPrefixMap[prefixName];
                 if (prefix == null) {
@@ -6025,7 +6039,6 @@ class LibraryResolver {
               directive.element = importElement;
               imports.add(importElement);
               if (doesCompilationUnitHavePartOfDirective(importedLibrary.getAST(importedSource))) {
-                StringLiteral uriLiteral = importDirective.uri;
                 errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
               }
             }
@@ -6087,13 +6100,16 @@ class LibraryResolver {
    */
   void buildTypeHierarchies() {
     TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
-    for (Library library in resolvedLibraries) {
-      for (Source source in library.compilationUnitSources) {
-        TypeResolverVisitor visitor = new TypeResolverVisitor.con1(library, source, _typeProvider);
-        library.getAST(source).accept(visitor);
+    try {
+      for (Library library in resolvedLibraries) {
+        for (Source source in library.compilationUnitSources) {
+          TypeResolverVisitor visitor = new TypeResolverVisitor.con1(library, source, _typeProvider);
+          library.getAST(source).accept(visitor);
+        }
       }
+    } finally {
+      timeCounter.stop();
     }
-    timeCounter.stop();
   }
 
   /**
@@ -6307,21 +6323,24 @@ class LibraryResolver {
    */
   void performConstantEvaluation() {
     TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
-    ConstantValueComputer computer = new ConstantValueComputer();
-    for (Library library in resolvedLibraries) {
-      for (Source source in library.compilationUnitSources) {
-        try {
-          CompilationUnit unit = library.getAST(source);
-          if (unit != null) {
-            computer.add(unit);
+    try {
+      ConstantValueComputer computer = new ConstantValueComputer();
+      for (Library library in resolvedLibraries) {
+        for (Source source in library.compilationUnitSources) {
+          try {
+            CompilationUnit unit = library.getAST(source);
+            if (unit != null) {
+              computer.add(unit);
+            }
+          } on AnalysisException catch (exception) {
+            AnalysisEngine.instance.logger.logError2("Internal Error: Could not access AST for ${source.fullName} during constant evaluation", exception);
           }
-        } on AnalysisException catch (exception) {
-          AnalysisEngine.instance.logger.logError2("Internal Error: Could not access AST for ${source.fullName} during constant evaluation", exception);
         }
       }
+      computer.computeValues();
+    } finally {
+      timeCounter.stop();
     }
-    computer.computeValues();
-    timeCounter.stop();
   }
 
   /**
@@ -6345,16 +6364,19 @@ class LibraryResolver {
    */
   void resolveReferencesAndTypes2(Library library) {
     TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
-    for (Source source in library.compilationUnitSources) {
-      ResolverVisitor visitor = new ResolverVisitor.con1(library, source, _typeProvider);
-      library.getAST(source).accept(visitor);
-      for (ProxyConditionalAnalysisError conditionalCode in visitor.proxyConditionalAnalysisErrors) {
-        if (conditionalCode.shouldIncludeErrorCode()) {
-          visitor.reportError(conditionalCode.analysisError);
+    try {
+      for (Source source in library.compilationUnitSources) {
+        ResolverVisitor visitor = new ResolverVisitor.con1(library, source, _typeProvider);
+        library.getAST(source).accept(visitor);
+        for (ProxyConditionalAnalysisError conditionalCode in visitor.proxyConditionalAnalysisErrors) {
+          if (conditionalCode.shouldIncludeErrorCode()) {
+            visitor.reportError(conditionalCode.analysisError);
+          }
         }
       }
+    } finally {
+      timeCounter.stop();
     }
-    timeCounter.stop();
   }
 
   /**
@@ -12986,8 +13008,6 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       if (parameterElt.parameterKind.isOptional) {
         if (parameterElt is ParameterElementImpl) {
           overriddenParameterElts.add(parameterElt as ParameterElementImpl);
-        } else if (parameterElt is ParameterMember) {
-          overriddenParameterElts.add(((parameterElt as ParameterMember)).baseElement as ParameterElementImpl);
         }
       }
     }

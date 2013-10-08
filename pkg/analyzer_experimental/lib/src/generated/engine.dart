@@ -3366,9 +3366,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @throws AnalysisException if any of the modification times could not be determined (this should
    *           not happen)
    */
-  bool allModificationTimesMatch(LibraryResolver resolver) {
+  bool allModificationTimesMatch(Set<Library> resolvedLibraries) {
     bool allTimesMatch = true;
-    for (Library library in resolver.resolvedLibraries) {
+    for (Library library in resolvedLibraries) {
       for (Source source in library.compilationUnitSources) {
         DartEntry dartEntry = getReadableDartEntry(source);
         if (dartEntry == null) {
@@ -4478,11 +4478,26 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     DartEntry unitEntry = null;
     Source unitSource = task.unitSource;
     if (resolver != null) {
+      Set<Library> resolvedLibraries = resolver.resolvedLibraries;
+      if (resolvedLibraries == null) {
+        unitEntry = getReadableDartEntry(unitSource);
+        if (unitEntry == null) {
+          throw new AnalysisException.con1("A Dart file became a non-Dart file: ${unitSource.fullName}");
+        }
+        DartEntryImpl dartCopy = unitEntry.writableCopy;
+        dartCopy.recordResolutionError();
+        dartCopy.exception = thrownException;
+        _cache.put(unitSource, dartCopy);
+        if (thrownException != null) {
+          throw thrownException;
+        }
+        return dartCopy;
+      }
       {
-        if (allModificationTimesMatch(resolver)) {
+        if (allModificationTimesMatch(resolvedLibraries)) {
           Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
           RecordingErrorListener errorListener = resolver.errorListener;
-          for (Library library in resolver.resolvedLibraries) {
+          for (Library library in resolvedLibraries) {
             Source librarySource = library.librarySource;
             for (Source source in library.compilationUnitSources) {
               CompilationUnit unit = library.getAST(source);
@@ -4521,7 +4536,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             }
           }
         } else {
-          for (Library library in resolver.resolvedLibraries) {
+          for (Library library in resolvedLibraries) {
             for (Source source in library.compilationUnitSources) {
               DartEntry dartEntry = getReadableDartEntry(source);
               if (dartEntry != null) {
@@ -6467,43 +6482,49 @@ class ParseDartTask extends AnalysisTask {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     List<Token> token = [null];
     TimeCounter_TimeCounterHandle timeCounterScan = PerformanceStatistics.scan.start();
-    Source_ContentReceiver receiver = new Source_ContentReceiver_9(this, errorListener, token);
     try {
-      source.getContents(receiver);
-    } on JavaException catch (exception) {
-      modificationTime = source.modificationStamp;
-      throw new AnalysisException.con3(exception);
-    }
-    timeCounterScan.stop();
-    TimeCounter_TimeCounterHandle timeCounterParse = PerformanceStatistics.parse.start();
-    Parser parser = new Parser(source, errorListener);
-    compilationUnit = parser.parseCompilationUnit(token[0]);
-    errors = errorListener.getErrors2(source);
-    for (Directive directive in compilationUnit.directives) {
-      if (directive is ExportDirective) {
-        Source exportSource = resolveSource(source, directive as ExportDirective);
-        if (exportSource != null) {
-          javaSetAdd(_exportedSources, exportSource);
-        }
-      } else if (directive is ImportDirective) {
-        Source importSource = resolveSource(source, directive as ImportDirective);
-        if (importSource != null) {
-          javaSetAdd(_importedSources, importSource);
-        }
-      } else if (directive is LibraryDirective) {
-        _hasLibraryDirective2 = true;
-      } else if (directive is PartDirective) {
-        Source partSource = resolveSource(source, directive as PartDirective);
-        if (partSource != null) {
-          javaSetAdd(_includedSources, partSource);
-        }
-      } else if (directive is PartOfDirective) {
-        _hasPartOfDirective2 = true;
+      Source_ContentReceiver receiver = new Source_ContentReceiver_9(this, errorListener, token);
+      try {
+        source.getContents(receiver);
+      } on JavaException catch (exception) {
+        modificationTime = source.modificationStamp;
+        throw new AnalysisException.con3(exception);
       }
+    } finally {
+      timeCounterScan.stop();
     }
-    compilationUnit.parsingErrors = errors;
-    compilationUnit.lineInfo = lineInfo;
-    timeCounterParse.stop();
+    TimeCounter_TimeCounterHandle timeCounterParse = PerformanceStatistics.parse.start();
+    try {
+      Parser parser = new Parser(source, errorListener);
+      compilationUnit = parser.parseCompilationUnit(token[0]);
+      errors = errorListener.getErrors2(source);
+      for (Directive directive in compilationUnit.directives) {
+        if (directive is ExportDirective) {
+          Source exportSource = resolveSource(source, directive as ExportDirective);
+          if (exportSource != null) {
+            javaSetAdd(_exportedSources, exportSource);
+          }
+        } else if (directive is ImportDirective) {
+          Source importSource = resolveSource(source, directive as ImportDirective);
+          if (importSource != null) {
+            javaSetAdd(_importedSources, importSource);
+          }
+        } else if (directive is LibraryDirective) {
+          _hasLibraryDirective2 = true;
+        } else if (directive is PartDirective) {
+          Source partSource = resolveSource(source, directive as PartDirective);
+          if (partSource != null) {
+            javaSetAdd(_includedSources, partSource);
+          }
+        } else if (directive is PartOfDirective) {
+          _hasPartOfDirective2 = true;
+        }
+      }
+      compilationUnit.parsingErrors = errors;
+      compilationUnit.lineInfo = lineInfo;
+    } finally {
+      timeCounterParse.stop();
+    }
   }
 
   /**
@@ -6810,12 +6831,15 @@ class ResolveDartUnitTask extends AnalysisTask {
       }
     }
     TimeCounter_TimeCounterHandle counterHandleErrors = PerformanceStatistics.errors.start();
-    ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
-    ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, _libraryElement, typeProvider, inheritanceManager);
-    unit.accept(errorVerifier);
-    ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
-    unit.accept(constantVerifier);
-    counterHandleErrors.stop();
+    try {
+      ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
+      ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, _libraryElement, typeProvider, inheritanceManager);
+      unit.accept(errorVerifier);
+      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
+      unit.accept(constantVerifier);
+    } finally {
+      counterHandleErrors.stop();
+    }
     unit.resolutionErrors = errorListener.errors;
     resolvedUnit = unit;
   }
