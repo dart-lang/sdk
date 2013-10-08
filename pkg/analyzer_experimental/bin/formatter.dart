@@ -6,7 +6,6 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'dart:utf';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
@@ -110,7 +109,7 @@ _isDartFile(file) => dartFileRegExp.hasMatch(path.basename(file.path));
 
 _formatStdin(options) {
   var input = new StringBuffer();
-  stdin.transform(new Utf8DecoderTransformer())
+  stdin.transform(new Utf8Decoder())
       .listen((data) => input.write(data),
         onError: (error) => _log('Error reading from stdin'),
         onDone: () => print(_formatCU(input.toString())));
