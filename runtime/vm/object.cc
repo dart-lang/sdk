@@ -2556,10 +2556,10 @@ bool Class::TypeTest(
   }
   // Check for reflexivity.
   if (raw() == other.raw()) {
-    const intptr_t len = NumTypeArguments();
-    if (len == 0) {
+    if (!HasTypeArguments()) {
       return true;
     }
+    const intptr_t len = NumTypeArguments();
     // Since we do not truncate the type argument vector of a subclass (see
     // below), we only check a prefix of the proper length.
     // Check for covariance.
@@ -10610,10 +10610,11 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   if (other.IsVoidType()) {
     return false;
   }
-  const Class& cls = Class::Handle(clazz());
-  AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
-  const intptr_t num_type_arguments = cls.NumTypeArguments();
-  if (num_type_arguments > 0) {
+  Isolate* isolate = Isolate::Current();
+  const Class& cls = Class::Handle(isolate, clazz());
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::Handle(isolate);
+  if (cls.HasTypeArguments()) {
     type_arguments = GetTypeArguments();
     if (!type_arguments.IsNull() && !type_arguments.IsCanonical()) {
       type_arguments = type_arguments.Canonicalize();
@@ -10628,14 +10629,15 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     // Also, an optimization reuses the type argument vector of the instantiator
     // of generic instances when its layout is compatible.
     ASSERT(type_arguments.IsNull() ||
-           (type_arguments.Length() >= num_type_arguments));
+           (type_arguments.Length() >= cls.NumTypeArguments()));
   }
-  Class& other_class = Class::Handle();
-  AbstractTypeArguments& other_type_arguments = AbstractTypeArguments::Handle();
+  Class& other_class = Class::Handle(isolate);
+  AbstractTypeArguments& other_type_arguments =
+      AbstractTypeArguments::Handle(isolate);
   // Note that we may encounter a bound error in checked mode.
   if (!other.IsInstantiated()) {
     const AbstractType& instantiated_other = AbstractType::Handle(
-        other.InstantiateFrom(other_instantiator, bound_error));
+        isolate, other.InstantiateFrom(other_instantiator, bound_error));
     if ((bound_error != NULL) && !bound_error->IsNull()) {
       ASSERT(FLAG_enable_type_checks);
       return false;
