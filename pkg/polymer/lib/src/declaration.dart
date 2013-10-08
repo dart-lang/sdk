@@ -71,7 +71,7 @@ class PolymerDeclaration extends CustomElement {
 
   Map<String, Symbol> _observe;
 
-  Map<Symbol, Object> _instanceAttributes;
+  Map<String, Object> _instanceAttributes;
 
   List<Element> _sheets;
   List<Element> get sheets => _sheets;
@@ -293,13 +293,13 @@ class PolymerDeclaration extends CustomElement {
 
   void accumulateInstanceAttributes() {
     // inherit instance attributes
-    _instanceAttributes = new Map<Symbol, Object>();
+    _instanceAttributes = new Map<String, Object>();
     if (_super != null) _instanceAttributes.addAll(_super._instanceAttributes);
 
     // merge attributes from element
     attributes.forEach((name, value) {
       if (isInstanceAttribute(name)) {
-        _instanceAttributes[new Symbol(name)] = value;
+        _instanceAttributes[name] = value;
       }
     });
   }

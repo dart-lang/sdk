@@ -273,7 +273,7 @@ class PolymerElement extends CustomElement with ObservableMixin {
 
   void copyInstanceAttributes() {
     _declaration._instanceAttributes.forEach((name, value) {
-      attributes[name] = value;
+      attributes.putIfAbsent(name, () => value);
     });
   }
 
