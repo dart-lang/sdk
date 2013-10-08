@@ -72,7 +72,7 @@ class Resolver {
       }
       var filePath =
           "${_env["pkgRoot"]}"
-          "/${import.substring(PACKAGE_PREFIX.length, import.length)}"; 
+          "/${import.substring(PACKAGE_PREFIX.length, import.length)}";
       return filePath;
     }
     if (import.startsWith(FILE_PREFIX)) {
@@ -92,7 +92,7 @@ class Resolver {
 /// env.output.
 ///
 /// Returns a [Future] that completes as soon as all map entries have been
-/// emitted. 
+/// emitted.
 Future lcov(Map hitmap) {
   var emitOne = (key) {
     var v = hitmap[key];
@@ -115,7 +115,7 @@ Future lcov(Map hitmap) {
 /// to env.output.
 ///
 /// Returns a [Future] that completes as soon as all map entries have been
-/// emitted. 
+/// emitted.
 Future prettyPrint(Map hitMap, List failedLoads) {
   var emitOne = (key) {
     var v = hitMap[key];
@@ -139,7 +139,7 @@ Future prettyPrint(Map hitMap, List failedLoads) {
           prefix = b.toString();
         }
         env.output.write("${prefix}|${lines[line-1]}\n");
-      } 
+      }
       c.complete();
     });
     return c.future;
@@ -191,7 +191,7 @@ Map createHitmap(String rawJson, Resolver resolver) {
 
   JSON.decode(rawJson).forEach((Map e) {
     String source = resolver.resolve(e["source"]);
-    if (source == null) { 
+    if (source == null) {
       // Couldnt resolve import, so skip this entry.
       return;
     }
@@ -233,7 +233,7 @@ mergeHitmaps(Map newMap, Map result) {
         } else {
           result[file][line] += cnt;
         }
-      }); 
+      });
     } else {
       result[file] = v;
     }
@@ -244,18 +244,15 @@ mergeHitmaps(Map newMap, Map result) {
 /// are contained by it if it is a directory, or a [List] containing the file if
 /// it is a file.
 List filesToProcess(String absPath) {
+  var filePattern = new RegExp(r"^dart-cov-\d+-\d+.json$");
   if (FileSystemEntity.isDirectorySync(absPath)) {
-    Directory d = new Directory(absPath);
-    List files = [];
-    d.listSync(recursive: true).forEach((FileSystemEntity entity) {
-      if (entity is File) {
-        files.add(entity as File);
-      }
-    });
-    return files;
-  } else if (FileSystemEntity.isFileSync(absPath)) {
-    return [ new File(absPath) ];
-  } 
+    return new Directory(absPath).listSync(recursive: true)
+        .where((entity) => entity is File &&
+            filePattern.hasMatch(basename(entity.path)))
+        .toList();
+  }
+
+  return [new File(absPath)];
 }
 
 worker() {
@@ -278,7 +275,7 @@ worker() {
         if (contents.length > 0) {
           mergeHitmaps(createHitmap(contents, resolver), workerHitmap);
         }
-      }); 
+      });
       if (env["verbose"]) {
         final end = new DateTime.now().millisecondsSinceEpoch;
         print("worker[${me}]: Finished processing files. "
@@ -326,7 +323,7 @@ main() {
 
   port.receive((Message message, reply) {
     if (message.type == Message.RESULT) {
-      mergeHitmaps(message.payload[0], globalHitmap);  
+      mergeHitmaps(message.payload[0], globalHitmap);
       failedResolves.addAll(message.payload[1]);
       doneCnt++;
     }
