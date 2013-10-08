@@ -148,7 +148,7 @@ void assign(Expression expr, Object value, Scope scope) {
  * Scopes can be nested by giving them a [parent]. If a name in not found in a
  * Scope, it will look for it in it's parent.
  */
-class Scope extends Object {
+class Scope {
   final Scope parent;
   final Object model;
   // TODO(justinfagnani): disallow adding/removing names
@@ -173,6 +173,8 @@ class Scope extends Object {
       var symbol = new Symbol(name);
       var classMirror = _modelMirror.type;
       var memberMirror = getMemberMirror(classMirror, symbol);
+      // TODO(jmesserly): simplify once dartbug.com/13002 is fixed.
+      // This can just be "if memberMirror != null" and delete the Method class.
       if (memberMirror is VariableMirror ||
           (memberMirror is MethodMirror && memberMirror.isGetter)) {
         return _convert(_modelMirror.getField(symbol).reflectee);
@@ -600,13 +602,17 @@ class InObserver extends ExpressionObserver<InExpression>
 
 _toBool(v) => (v == null) ? false : v;
 
-call(dynamic receiver, List args) {
+/** Call a [Function] or a [Method]. */
+// TODO(jmesserly): remove this once dartbug.com/13002 is fixed.
+// Just inline `_convert(Function.apply(...))` to the call site.
+Object call(Object receiver, List args) {
+  var result;
   if (receiver is Method) {
-    return
-        _convert(receiver.mirror.invoke(receiver.symbol, args, null).reflectee);
+    result = receiver.mirror.invoke(receiver.symbol, args, null).reflectee;
   } else {
-    return _convert(Function.apply(receiver, args, null));
+    result = Function.apply(receiver, args, null);
   }
+  return _convert(result);
 }
 
 /**
@@ -622,16 +628,18 @@ class Comprehension {
       : iterable = (iterable != null) ? iterable : const [];
 }
 
-/**
- * A method on a model object in a [Scope].
- */
-class Method { //implements _FunctionWrapper {
+/** A method on a model object in a [Scope]. */
+class Method {
   final InstanceMirror mirror;
   final Symbol symbol;
 
   Method(this.mirror, this.symbol);
 
-  dynamic call(List args) => mirror.invoke(symbol, args, null).reflectee;
+  /**
+   * Support for calling single argument methods like [Filter]s.
+   * This does not work for calls that need to pass more than one argument.
+   */
+  call(arg0) => mirror.invoke(symbol, [arg0], null).reflectee;
 }
 
 class EvalException implements Exception {

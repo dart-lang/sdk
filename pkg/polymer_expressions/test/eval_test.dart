@@ -153,6 +153,10 @@ main() {
       expectEval('a | parseInt() | add(10)', 52, null, topLevel);
     });
 
+    test('should filter a list', () {
+      expectEval('chars1 | filteredList', ['a', 'b'], new WordElement());
+    });
+
     test('should return null if the receiver of a method is null', () {
       expectEval('a.b', null, null, {'a': null});
       expectEval('a.b()', null, null, {'a': null});
@@ -386,4 +390,10 @@ expectObserve(String s, {
   return Future.wait([future, new Future(() {
     expect(passed, true, reason: "Didn't receive a change notification on $s");
   })]);
+}
+
+// Regression test from https://code.google.com/p/dart/issues/detail?id=13459
+class WordElement extends ObservableBase {
+  @observable List chars1 = 'abcdefg'.split('');
+  List filteredList(List original) => [original[0], original[1]];
 }
