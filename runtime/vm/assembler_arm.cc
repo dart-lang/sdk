@@ -1819,7 +1819,7 @@ void Assembler::EmitBranch(Condition cond, Label* label, bool link) {
       EmitType5(cond, dest, link);
     }
   } else {
-    const int position = buffer_.Size();
+    const intptr_t position = buffer_.Size();
     if (use_far_branches()) {
       const int32_t dest = label->position_;
       EmitFarBranch(cond, dest, link);

@@ -37,22 +37,22 @@ class DescriptorList : public ZoneAllocated {
     return list_.length();
   }
 
-  intptr_t PcOffset(int index) const {
+  intptr_t PcOffset(intptr_t index) const {
     return list_[index].pc_offset;
   }
-  PcDescriptors::Kind Kind(int index) const {
+  PcDescriptors::Kind Kind(intptr_t index) const {
     return list_[index].kind;
   }
-  intptr_t DeoptId(int index) const {
+  intptr_t DeoptId(intptr_t index) const {
     return list_[index].deopt_id;
   }
-  intptr_t TokenPos(int index) const {
+  intptr_t TokenPos(intptr_t index) const {
     return list_[index].TokenPos();
   }
-  DeoptReasonId DeoptReason(int index) const {
+  DeoptReasonId DeoptReason(intptr_t index) const {
     return list_[index].DeoptReason();
   }
-  intptr_t TryIndex(int index) const {
+  intptr_t TryIndex(intptr_t index) const {
     return list_[index].try_index;
   }
 
@@ -88,7 +88,7 @@ class StackmapTableBuilder : public ZoneAllocated {
 
  private:
   intptr_t Length() const { return list_.Length(); }
-  RawStackmap* MapAt(int index) const;
+  RawStackmap* MapAt(intptr_t index) const;
 
   Stackmap& stack_map_;
   GrowableObjectArray& list_;

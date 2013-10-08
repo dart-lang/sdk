@@ -501,7 +501,7 @@ void SimulatorDebugger::Debug() {
 char* SimulatorDebugger::ReadLine(const char* prompt) {
   char* result = NULL;
   char line_buf[256];
-  int offset = 0;
+  intptr_t offset = 0;
   bool keep_going = true;
   OS::Print("%s", prompt);
   while (keep_going) {
@@ -512,7 +512,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
       }
       return NULL;
     }
-    int len = strlen(line_buf);
+    intptr_t len = strlen(line_buf);
     if (len > 1 &&
         line_buf[len - 2] == '\\' &&
         line_buf[len - 1] == '\n') {
@@ -535,7 +535,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
       }
     } else {
       // Allocate a new result with enough room for the new addition.
-      int new_len = offset + len + 1;
+      intptr_t new_len = offset + len + 1;
       char* new_result = new char[new_len];
       if (new_result == NULL) {
         // OOM, free the buffer allocated so far and return NULL.
@@ -888,7 +888,7 @@ uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
 }
 
 
-int Simulator::ReadW(uword addr, Instr* instr) {
+intptr_t Simulator::ReadW(uword addr, Instr* instr) {
   if ((addr & 3) == 0) {
     intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
     return *ptr;
@@ -914,7 +914,7 @@ void Simulator::WriteH(uword addr, uint16_t value, Instr* instr) {
 }
 
 
-void Simulator::WriteW(uword addr, int value, Instr* instr) {
+void Simulator::WriteW(uword addr, intptr_t value, Instr* instr) {
   if ((addr & 3) == 0) {
     intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
     *ptr = value;

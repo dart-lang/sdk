@@ -146,7 +146,7 @@ class Simulator {
 
   // Simulator support.
   char* stack_;
-  int icount_;
+  intptr_t icount_;
   bool delay_slot_;
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
   uword top_exit_frame_info_;
@@ -180,11 +180,11 @@ class Simulator {
   inline uint8_t ReadBU(uword addr);
   inline int16_t ReadH(uword addr, Instr* instr);
   inline uint16_t ReadHU(uword addr, Instr *instr);
-  inline int ReadW(uword addr, Instr* instr);
+  inline intptr_t ReadW(uword addr, Instr* instr);
 
   inline void WriteB(uword addr, uint8_t value);
   inline void WriteH(uword addr, uint16_t value, Instr* isntr);
-  inline void WriteW(uword addr, int value, Instr* instr);
+  inline void WriteW(uword addr, intptr_t value, Instr* instr);
 
   inline double ReadD(uword addr, Instr* instr);
   inline void WriteD(uword addr, double value, Instr* instr);

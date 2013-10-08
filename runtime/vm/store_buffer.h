@@ -33,8 +33,8 @@ class StoreBufferBlock {
     return pointers_[i];
   }
 
-  static int top_offset() { return OFFSET_OF(StoreBufferBlock, top_); }
-  static int pointers_offset() {
+  static intptr_t top_offset() { return OFFSET_OF(StoreBufferBlock, top_); }
+  static intptr_t pointers_offset() {
     return OFFSET_OF(StoreBufferBlock, pointers_);
   }
 

@@ -61,7 +61,7 @@ static intptr_t ObjectIdFromClassId(intptr_t class_id) {
 }
 
 
-static RawType* GetType(ObjectStore* object_store, int index) {
+static RawType* GetType(ObjectStore* object_store, intptr_t index) {
   switch (index) {
     case kObjectType: return object_store->object_type();
     case kNullType: return object_store->null_type();
@@ -81,7 +81,8 @@ static RawType* GetType(ObjectStore* object_store, int index) {
 }
 
 
-static int GetTypeIndex(ObjectStore* object_store, const RawType* raw_type) {
+static intptr_t GetTypeIndex(
+    ObjectStore* object_store, const RawType* raw_type) {
   ASSERT(raw_type->IsHeapObject());
   if (raw_type == object_store->object_type()) {
     return kObjectType;

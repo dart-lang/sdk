@@ -90,9 +90,9 @@ void BitmapBuilder::SetBit(intptr_t bit_offset, bool value) {
     FATAL1("Fatal error in BitmapBuilder::SetBit :"
            " invalid bit_offset, %" Pd "\n", bit_offset);
   }
-  int byte_offset = bit_offset >> kBitsPerByteLog2;
+  intptr_t byte_offset = bit_offset >> kBitsPerByteLog2;
   ASSERT(byte_offset < data_size_in_bytes_);
-  int bit_remainder = bit_offset & (kBitsPerByte - 1);
+  intptr_t bit_remainder = bit_offset & (kBitsPerByte - 1);
   uint8_t mask = 1U << bit_remainder;
   ASSERT(data_ != NULL);
   if (value) {

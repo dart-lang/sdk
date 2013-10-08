@@ -857,9 +857,9 @@ class Assembler : public ValueObject {
   void EmitFarBranch(Condition cond, int32_t offset, bool link);
   void EmitBranch(Condition cond, Label* label, bool link);
   int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
-  static int DecodeBranchOffset(int32_t inst);
+  static int32_t DecodeBranchOffset(int32_t inst);
   int32_t EncodeTstOffset(int32_t offset, int32_t inst);
-  int DecodeTstOffset(int32_t inst);
+  int32_t DecodeTstOffset(int32_t inst);
 
   void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
 

@@ -94,7 +94,7 @@ void Symbols::SetupSymbolTable(Isolate* isolate) {
   ASSERT(isolate != NULL);
 
   // Setup the symbol table used within the String class.
-  const int initial_size = (isolate == Dart::vm_isolate()) ?
+  const intptr_t initial_size = (isolate == Dart::vm_isolate()) ?
       kInitialVMIsolateSymtabSize : kInitialSymtabSize;
   const Array& array = Array::Handle(Array::New(initial_size + 1));
 
