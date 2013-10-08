@@ -261,6 +261,9 @@ class PackageUriResolver extends UriResolver {
    */
   bool isSelfReference(JavaFile packagesDir, JavaFile file) {
     JavaFile rootDir = packagesDir.getParentFile();
+    if (rootDir == null) {
+      return false;
+    }
     String rootPath = rootDir.getAbsolutePath();
     String filePath = file.getAbsolutePath();
     return filePath.startsWith("${rootPath}/lib");
