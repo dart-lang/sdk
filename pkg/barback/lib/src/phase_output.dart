@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'asset_cascade.dart';
+import 'asset_forwarder.dart';
 import 'asset_node.dart';
 import 'errors.dart';
 import 'phase.dart';
@@ -19,13 +20,22 @@ import 'utils.dart';
 /// possible that multiple transformers in the same phase emit assets with the
 /// same id, causing collisions. This handles those collisions by forwarding the
 /// chronologically first asset.
+///
+/// When the asset being forwarding changes, the old value of [output] will be
+/// marked as removed and a new value will replace it. Users of this class can
+/// be notified of this using [onAsset].
 class PhaseOutput {
   /// The phase for which this is an output.
   final Phase _phase;
 
   /// The asset node for this output.
-  AssetNode get output => _outputController.node;
-  AssetNodeController _outputController;
+  AssetNode get output => _outputForwarder.node;
+  AssetNodeForwarder _outputForwarder;
+
+  /// A stream that emits an [AssetNode] each time this output starts forwarding
+  /// a new asset.
+  Stream<AssetNode> get onAsset => _onAssetController.stream;
+  final _onAssetController = new StreamController<AssetNode>();
 
   /// The assets for this output.
   ///
@@ -44,7 +54,7 @@ class PhaseOutput {
   }
 
   PhaseOutput(this._phase, AssetNode output)
-      : _outputController = new AssetNodeController.from(output) {
+      : _outputForwarder = new AssetForwarder(output) {
     assert(!output.state.isRemoved);
     add(output);
   }
@@ -65,63 +75,38 @@ class PhaseOutput {
   /// a new [Phase] to cause consumers of the prior phase's outputs to be to
   /// start consuming the new phase's outputs instead.
   void removeListeners() {
-    _outputController.setRemoved();
-    _outputController = new AssetNodeController.from(_assets.first);
+    _outputForwarder.close();
+    _outputForwarder = new AssetForwarder(_assets.first);
+    _onAssetController.add(output);
   }
 
-  /// Watches [node] for state changes and adjusts [_assets] and [output]
-  /// appropriately when they occur.
+  /// Watches [node] to adjust [_assets] and [output] when it's removed.
   void _watchAsset(AssetNode node) {
-    node.onStateChange.listen((state) {
-      if (state.isRemoved) {
-        _removeAsset(node);
+    node.whenRemoved.then((_) {
+      if (_assets.length == 1) {
+        assert(_assets.single == node);
+        _outputForwarder.close();
+        _onAssetController.close();
         return;
       }
-      if (_assets.first != node) return;
 
-      if (state.isAvailable) {
-        _outputController.setAvailable(node.asset);
-      } else {
-        assert(state.isDirty);
-        _outputController.setDirty();
+      // If there was more than one asset, we're resolving a collision --
+      // possibly partially.
+      var wasFirst = _assets.first == node;
+      _assets.remove(node);
+
+      // If this was the first asset, we replace it with the next asset
+      // (chronologically).
+      if (wasFirst) removeListeners();
+
+      // If there's still a collision, report it. This lets the user know if
+      // they've successfully resolved the collision or not.
+      if (_assets.length > 1) {
+        // Pump the event queue to ensure that the removal of the input triggers
+        // a new build to which we can attach the error.
+        // TODO(nweiz): report this through the output asset.
+        newFuture(() => _phase.cascade.reportError(collisionException));
       }
     });
-  }
-
-  /// Removes [node] as an output.
-  void _removeAsset(AssetNode node) {
-    if (_assets.length == 1) {
-      assert(_assets.single == node);
-      _outputController.setRemoved();
-      return;
-    }
-
-    // If there was more than one asset, we're resolving a collision --
-    // possibly partially.
-    var wasFirst = _assets.first == node;
-    _assets.remove(node);
-
-    // If this was the first asset, we replace it with the next asset
-    // (chronologically).
-    if (wasFirst) {
-      var newOutput = _assets.first;
-      _outputController.setOrigin(newOutput.origin);
-      if (newOutput.state.isAvailable) {
-        if (output.state.isAvailable) _outputController.setDirty();
-        _outputController.setAvailable(newOutput.asset);
-      } else {
-        assert(newOutput.isDirty);
-        if (!output.state.isDirty) _outputController.setDirty();
-      }
-    }
-
-    // If there's still a collision, report it. This lets the user know
-    // if they've successfully resolved the collision or not.
-    if (_assets.length > 1) {
-      // Pump the event queue to ensure that the removal of the input triggers
-      // a new build to which we can attach the error.
-      // TODO(nweiz): report this through the output asset.
-      newFuture(() => _phase.cascade.reportError(collisionException));
-    }
   }
 }

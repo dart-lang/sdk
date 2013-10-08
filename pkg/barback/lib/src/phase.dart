@@ -222,12 +222,6 @@ class Phase {
       // [_next], rather than this phase. Any transforms consuming [output] will
       // be re-run and will consume the output from the new final phase.
       output.removeListeners();
-
-      // Removing [output]'s listeners will cause it to be removed from
-      // [_outputs], so we have to put it back.
-      _outputs[output.output.id] = output;
-      output.output.whenRemoved.then((_) => _outputs.remove(output.output.id));
-      _next.addInput(output.output);
     }
     return _next;
   }
@@ -305,9 +299,9 @@ class Phase {
       _outputs[asset.id].add(asset);
     } else {
       _outputs[asset.id] = new PhaseOutput(this, asset);
-      _outputs[asset.id].output.whenRemoved.then((_) {
-        _outputs.remove(asset.id);
-      });
+      _outputs[asset.id].onAsset.listen((output) {
+        if (_next != null) _next.addInput(output);
+      }, onDone: () => _outputs.remove(asset.id));
       if (_next != null) _next.addInput(_outputs[asset.id].output);
     }
   }

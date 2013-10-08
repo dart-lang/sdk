@@ -192,13 +192,6 @@ class AssetNodeController {
     node._asset = asset;
     node._stateChangeController.add(AssetState.AVAILABLE);
   }
-
-  /// Sets the origin of [node] to [origin] and the transform to
-  /// `origin.transform`.
-  void setOrigin(AssetNode origin) {
-    node._origin = origin;
-    node._transform = origin.transform;
-  }
 }
 
 // TODO(nweiz): add an error state.

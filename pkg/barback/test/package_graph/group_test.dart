@@ -4,6 +4,8 @@
 
 library barback.test.package_graph.group_test;
 
+import 'dart:async';
+
 import 'package:barback/barback.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
@@ -311,6 +313,31 @@ main() {
       ]]});
       updateSources(["app|foo.a"]);
       expectAsset("app|foo.a", "foo.a");
+      buildShouldSucceed();
+    });
+
+    test("doesn't pass-through an asset that ceases to be forwarded due to a "
+        "resolved collision", () {
+      initGraph({
+        "app|foo.a": "foo.a",
+        "app|foo.x": "foo.x"
+      }, {"app": [
+        [new TransformerGroup([[
+          new CheckContentAndRenameTransformer(
+              "a", "new foo.a", "z", "modified foo.a"),
+          new RewriteTransformer('x', 'a')
+        ]])]
+      ]});
+
+      updateSources(["app|foo.a", "app|foo.x"]);
+      expectAsset("app|foo.a", "foo.a");
+      expectNoAsset("app|foo.z");
+      buildShouldFail([isAssetCollisionException("app|foo.a")]);
+
+      modifyAsset('app|foo.a', 'new foo.a');
+      updateSources(["app|foo.a"]);
+      expectAsset("app|foo.a", "foo.x.a");
+      expectAsset("app|foo.z", "modified foo.a");
       buildShouldSucceed();
     });
   });

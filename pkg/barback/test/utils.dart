@@ -18,6 +18,7 @@ import 'package:unittest/compact_vm_config.dart';
 
 export 'transformer/bad.dart';
 export 'transformer/check_content.dart';
+export 'transformer/check_content_and_rename.dart';
 export 'transformer/create_asset.dart';
 export 'transformer/many_to_one.dart';
 export 'transformer/mock.dart';
