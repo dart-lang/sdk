@@ -16,9 +16,6 @@ Language/12_Expressions/01_Constants_A17_t03: fail
 Language/15_Types/4_Interface_Types_A11_t01: Skip
 Language/15_Types/4_Interface_Types_A11_t02: Skip
 
-# TBF: "class B1 = A with M1;", typedef cannot be used for mixins
-Language/09_Mixins/1_Mixin_Application_A01_t01: Fail
-
 # TBF: It is a compile-time error if the key of an entry in a constant map literal is an instance of a class that implements the operator == unless the key is a string or integer.
 Language/12_Expressions/07_Maps_A13_t01: Fail
 
