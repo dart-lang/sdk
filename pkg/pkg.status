@@ -92,6 +92,7 @@ polymer/test/attr_deserialize_test: Fail, OK # Uses dart:html
 polymer/test/attr_mustache_test: Fail, OK # Uses dart:html
 polymer/test/event_path_test: Fail, OK # Uses dart:html
 polymer/test/events_test: Fail, OK # Uses dart:html
+polymer/test/instance_attrs_test: Fail, OK # Uses dart:html
 polymer/test/prop_attr_reflection_test: Fail, OK # Uses dart:html
 polymer/test/publish_attributes_test: Fail, OK # Uses dart:html
 polymer/test/take_attributes_test: Fail, OK # Uses dart:html
