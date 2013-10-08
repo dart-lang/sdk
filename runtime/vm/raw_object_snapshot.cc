@@ -60,9 +60,12 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     cls.set_tags(tags);
 
     // Set all non object fields.
-    cls.set_instance_size_in_words(reader->ReadIntptrValue());
+    if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
+      // Instance size of a VM defined class is already set up.
+      cls.set_instance_size_in_words(reader->ReadIntptrValue());
+      cls.set_next_field_offset_in_words(reader->ReadIntptrValue());
+    }
     cls.set_type_arguments_field_offset_in_words(reader->ReadIntptrValue());
-    cls.set_next_field_offset_in_words(reader->ReadIntptrValue());
     cls.set_num_native_fields(reader->ReadIntptrValue());
     cls.set_token_pos(reader->ReadIntptrValue());
     cls.set_state_bits(reader->Read<uint16_t>());
@@ -98,10 +101,16 @@ void RawClass::WriteTo(SnapshotWriter* writer,
 
     // Write out all the non object pointer fields.
     // NOTE: cpp_vtable_ is not written.
-    writer->WriteIntptrValue(ptr()->id_);
-    writer->WriteIntptrValue(ptr()->instance_size_in_words_);
+    intptr_t class_id = ptr()->id_;
+    writer->WriteIntptrValue(class_id);
+    if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
+      // We don't write the instance size of VM defined classes as they
+      // are already setup during initialization as part of pre populating
+      // the class table.
+      writer->WriteIntptrValue(ptr()->instance_size_in_words_);
+      writer->WriteIntptrValue(ptr()->next_field_offset_in_words_);
+    }
     writer->WriteIntptrValue(ptr()->type_arguments_field_offset_in_words_);
-    writer->WriteIntptrValue(ptr()->next_field_offset_in_words_);
     writer->WriteIntptrValue(ptr()->num_native_fields_);
     writer->WriteIntptrValue(ptr()->token_pos_);
     writer->Write<uint16_t>(ptr()->state_bits_);
