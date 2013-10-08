@@ -13,10 +13,6 @@ import '../../serve/utils.dart';
 main() {
   initConfig();
   integration("compiles a Dart file that imports a generated file to JS", () {
-    // Dart2js can take a long time to compile dart code, so we increase the
-    // timeout to cope with that.
-    currentSchedule.timeout *= 3;
-
     d.dir(appPath, [
       d.pubspec({
         "name": "myapp",

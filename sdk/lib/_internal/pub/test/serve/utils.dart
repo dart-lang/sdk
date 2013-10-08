@@ -94,11 +94,16 @@ class DartTransformer extends Transformer {
 /// Returns the `pub serve` process.
 ScheduledProcess startPubServe({bool shouldGetFirst: false,
     bool dart2js: true}) {
-
   // Use port 0 to get an ephemeral port.
   var args = ["serve", "--port=0", "--hostname=127.0.0.1"];
 
   if (!dart2js) args.add("--no-dart2js");
+
+  // Dart2js can take a long time to compile dart code, so we increase the
+  // timeout to cope with that.
+  if (dart2js) {
+    currentSchedule.timeout = new Duration(seconds: 15);
+  }
 
   _pubServer = startPub(args: args);
 
