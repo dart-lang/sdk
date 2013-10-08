@@ -61,19 +61,21 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   }
 
   /** Programmatically create a new KeyEvent (and KeyboardEvent). */
-   KeyEvent(String type,
+   factory KeyEvent(String type,
       {Window view, bool canBubble: true, bool cancelable: true, int keyCode: 0,
       int charCode: 0, int keyLocation: 1, bool ctrlKey: false,
       bool altKey: false, bool shiftKey: false, bool metaKey: false,
       bool altGraphKey: false, EventTarget currentTarget}) {
-     _parent = new KeyboardEvent(type, view: view, canBubble: canBubble,
+     var parent = new KeyboardEvent(type, view: view, canBubble: canBubble,
         cancelable: cancelable, keyLocation: keyLocation, ctrlKey: ctrlKey,
         altKey: altKey, shiftKey: shiftKey, metaKey: metaKey, altGraphKey:
         altGraphKey);
-      _shadowAltKey = altKey;
-      _shadowCharCode = charCode;
-      _shadowKeyCode = keyCode;
-      _currentTarget = currentTarget == null ? window : currentTarget;
+     var keyEvent = KeyEvent.wrap(parent);
+      keyEvent._shadowAltKey = altKey;
+      keyEvent._shadowCharCode = charCode;
+      keyEvent._shadowKeyCode = keyCode;
+      keyEvent._currentTarget = currentTarget == null ? window : currentTarget;
+      return keyEvent;
    }
 
   /** Accessor to provide a stream of KeyEvents on the desired target. */
