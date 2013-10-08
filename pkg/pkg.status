@@ -123,41 +123,6 @@ stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 polymer/example/component: Fail # Issue 13198
-
-[ $compiler == dart2js && $runtime == chromeOnAndroid ]
-docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.
-intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.
-
-[ $browser ]
-analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
-analyzer_experimental/test/generated/element_test: Fail, OK # Uses dart:io.
-analyzer_experimental/test/generated/resolver_test: Fail, OK # Uses dart:io.
-analyzer_experimental/test/options_test: Fail, OK, Pass # Uses dart:io.
-analyzer_experimental/test/services/formatter_test: Fail, OK # Uses dart:io.
-analyzer_experimental/test/parse_compilation_unit_test: Fail, OK # Uses dart:io.
-barback/test/*: Fail, OK # Uses dart:io.
-http/test/client_test: Fail, OK # Uses dart:io.
-http/test/http_test: Fail, OK # Uses dart:io.
-http/test/mock_client_test: Fail, OK # Uses dart:io.
-http/test/multipart_test: Fail, OK # Uses dart:io.
-http/test/request_test: Fail, OK # Uses dart:io.
-http/test/response_test: Fail, OK # Uses dart:io.
-http/test/streamed_request_test: Fail, OK # Uses dart:io.
-http_server/test/*: Fail, OK # Uses dart:io.
-intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
-intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.
-intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
-intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
-intl/test/message_extraction/failed_extraction_test: Fail, OK # Users dart:io
-oauth2/test/authorization_code_grant_test: Fail, OK # Uses dart:io.
-oauth2/test/client_test: Fail, OK # Uses dart:io.
-oauth2/test/credentials_test: Fail, OK # Uses dart:io.
-oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
-observe/test/transform_test: Fail, OK # Uses dart:io.
-path/test/io_test: Fail, OK # Uses dart:io.
-polymer/test/build/*: Fail, OK # Uses dart:io.
-watcher/test/*: Fail, OK # Uses dart:io.
-
 scheduled_test/test/descriptor/async_test: Fail # http://dartbug.com/8440
 scheduled_test/test/descriptor/directory_test: Fail # http://dartbug.com/8440
 scheduled_test/test/descriptor/file_test: Fail # http://dartbug.com/8440
@@ -180,6 +145,40 @@ scheduled_test/test/scheduled_test/task_return_value_test: Fail # http://dartbug
 scheduled_test/test/scheduled_test/timeout_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/wrap_async_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/wrap_future_test: Fail # http://dartbug.com/8440
+analyzer_experimental/test/parse_compilation_unit_test: Fail, OK # Uses dart:io.
+analyzer_experimental/test/generated/resolver_test: Fail, OK # Uses dart:io.
+analyzer_experimental/test/services/formatter_test: Fail, OK # Uses dart:io.
+
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.
+intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.
+
+[ $browser ]
+analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
+analyzer_experimental/test/generated/element_test: Fail, OK # Uses dart:io.
+analyzer_experimental/test/options_test: Fail, OK, Pass # Uses dart:io.
+barback/test/*: Fail, OK # Uses dart:io.
+http/test/client_test: Fail, OK # Uses dart:io.
+http/test/http_test: Fail, OK # Uses dart:io.
+http/test/mock_client_test: Fail, OK # Uses dart:io.
+http/test/multipart_test: Fail, OK # Uses dart:io.
+http/test/request_test: Fail, OK # Uses dart:io.
+http/test/response_test: Fail, OK # Uses dart:io.
+http/test/streamed_request_test: Fail, OK # Uses dart:io.
+http_server/test/*: Fail, OK # Uses dart:io.
+intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
+intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.
+intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
+intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
+intl/test/message_extraction/failed_extraction_test: Fail, OK # Users dart:io
+oauth2/test/authorization_code_grant_test: Fail, OK # Uses dart:io.
+oauth2/test/client_test: Fail, OK # Uses dart:io.
+oauth2/test/credentials_test: Fail, OK # Uses dart:io.
+oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
+observe/test/transform_test: Fail, OK # Uses dart:io.
+path/test/io_test: Fail, OK # Uses dart:io.
+polymer/test/build/*: Fail, OK # Uses dart:io.
+watcher/test/*: Fail, OK # Uses dart:io.
 
 */test/analyzer_test: Skip  # No need to run analysis tests on browser bots
 
