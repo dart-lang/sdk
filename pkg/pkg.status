@@ -123,31 +123,6 @@ stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 polymer/example/component: Fail # Issue 13198
-scheduled_test/test/descriptor/async_test: Fail # http://dartbug.com/8440
-scheduled_test/test/descriptor/directory_test: Fail # http://dartbug.com/8440
-scheduled_test/test/descriptor/file_test: Fail # http://dartbug.com/8440
-scheduled_test/test/descriptor/nothing_test: Fail # http://dartbug.com/8440
-scheduled_test/test/descriptor/pattern_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_future_matchers_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_process_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/abort_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/current_schedule_current_task_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/current_schedule_errors_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/current_schedule_state_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/nested_task_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/on_complete_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/on_exception_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/out_of_band_task_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/set_up_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/signal_error_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/simple_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/task_return_value_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/timeout_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/wrap_async_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/wrap_future_test: Fail # http://dartbug.com/8440
-analyzer_experimental/test/parse_compilation_unit_test: Fail, OK # Uses dart:io.
-analyzer_experimental/test/generated/resolver_test: Fail, OK # Uses dart:io.
-analyzer_experimental/test/services/formatter_test: Fail, OK # Uses dart:io.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.
@@ -156,7 +131,10 @@ intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triag
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/generated/element_test: Fail, OK # Uses dart:io.
+analyzer_experimental/test/generated/resolver_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/options_test: Fail, OK, Pass # Uses dart:io.
+analyzer_experimental/test/services/formatter_test: Fail, OK # Uses dart:io.
+analyzer_experimental/test/parse_compilation_unit_test: Fail, OK # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
 http/test/client_test: Fail, OK # Uses dart:io.
 http/test/http_test: Fail, OK # Uses dart:io.
@@ -179,6 +157,29 @@ observe/test/transform_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
 polymer/test/build/*: Fail, OK # Uses dart:io.
 watcher/test/*: Fail, OK # Uses dart:io.
+
+scheduled_test/test/descriptor/async_test: Fail # http://dartbug.com/8440
+scheduled_test/test/descriptor/directory_test: Fail # http://dartbug.com/8440
+scheduled_test/test/descriptor/file_test: Fail # http://dartbug.com/8440
+scheduled_test/test/descriptor/nothing_test: Fail # http://dartbug.com/8440
+scheduled_test/test/descriptor/pattern_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_future_matchers_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_process_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/abort_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/current_schedule_current_task_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/current_schedule_errors_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/current_schedule_state_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/nested_task_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/on_complete_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/on_exception_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/out_of_band_task_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/set_up_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/signal_error_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/simple_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/task_return_value_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/timeout_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/wrap_async_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/wrap_future_test: Fail # http://dartbug.com/8440
 
 */test/analyzer_test: Skip  # No need to run analysis tests on browser bots
 
