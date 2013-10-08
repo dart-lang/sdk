@@ -56,6 +56,7 @@ crypto/test/sha1_test: Fail # Issue 11407.
 stack_trace/test/trace_test: Fail # http://dartbug.com/12380
 crypto/test/sha256_test: Pass, Fail # Issue 12502
 crypto/test/hmac_sha256_test: Pass, Fail # Issue 12502
+polymer_expressions/test/globals_test: Fail # Issue 13890
 
 [ $runtime == ie9 || $runtime == ie10 ]
 polymer/test/attr_deserialize_test: Fail, Timeout # Issue 12865, 13197, 13260
@@ -65,6 +66,7 @@ polymer/test/events_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/prop_attr_reflection_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/publish_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/take_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260
+polymer_expressions/test/globals_test: Fail # Issue 13890
 
 [ $system == windows && ($runtime == chrome || $runtime == ff) ]
 polymer/test/attr_deserialize_test: Pass, Timeout # Issue 13260
