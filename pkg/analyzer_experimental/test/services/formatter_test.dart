@@ -638,6 +638,30 @@ main() {
       );
     });
 
+    test('CU (empty cons bodies)', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  A() {\n'
+          '  }\n'
+          '}\n',
+          'class A {\n'
+          '  A();\n'
+          '}\n',
+          transforms: true
+      );
+      expectCUFormatsTo(
+          'class A {\n'
+          '  A() {\n'
+          '  }\n'
+          '}\n',
+          'class A {\n'
+          '  A() {\n'
+          '  }\n'
+          '}\n',
+          transforms: false
+      );
+    });
+
     test('stmt', () {
       expectStmtFormatsTo(
          'if (true){\n'
@@ -1028,8 +1052,9 @@ expectStreamsNotEqual(Token t1, Token t2) =>
     expect(() => new TokenStreamComparator(null, t1, t2).verifyEquals(),
     throwsA(new isInstanceOf<FormatterException>()));
 
-expectCUFormatsTo(src, expected) =>
-    expect(formatCU(src).source, equals(expected));
+expectCUFormatsTo(src, expected, {transforms: true}) =>
+    expect(formatCU(src, options: new FormatterOptions(
+        codeTransforms: transforms)).source, equals(expected));
 
 expectStmtFormatsTo(src, expected, {transforms: true}) =>
     expect(formatStatement(src, options:

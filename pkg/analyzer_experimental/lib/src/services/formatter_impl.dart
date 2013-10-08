@@ -265,6 +265,14 @@ class TokenStreamComparator {
         return true;
       }
     }
+    // Cons(){} => Cons();
+    if (isOPEN_CURLY_BRACKET(token1) && isCLOSE_CURLY_BRACKET(token1.next)) {
+      if (isSEMICOLON(token2)) {
+        token1 = token1.next;
+        advance();
+        return true;
+      }
+    }
     // Advance past synthetic { } tokens
     if (isOPEN_CURLY_BRACKET(token2) || isCLOSE_CURLY_BRACKET(token2)) {
       token2 = token2.next;
@@ -311,12 +319,17 @@ bool isOPEN_SQ_BRACKET(Token token) =>
 bool isCLOSE_SQUARE_BRACKET(Token token) =>
     tokenIs(token, TokenType.CLOSE_SQUARE_BRACKET);
 
+/// Test if this token is a SEMICOLON token.
+bool isSEMICOLON(Token token) =>
+    tokenIs(token, TokenType.SEMICOLON);
+
 
 /// An AST visitor that drives formatting heuristics.
 class SourceVisitor implements ASTVisitor {
 
   static final OPEN_CURLY = syntheticToken(TokenType.OPEN_CURLY_BRACKET, '{');
   static final CLOSE_CURLY = syntheticToken(TokenType.CLOSE_CURLY_BRACKET, '}');
+  static final SEMI_COLON = syntheticToken(TokenType.SEMICOLON, ';');
 
   static const SYNTH_OFFSET = -13;
 
@@ -559,7 +572,16 @@ class SourceVisitor implements ASTVisitor {
       }
     }
 
-    visitPrefixedBody(space, node.body);
+    var body = node.body;
+    if (codeTransforms && body is BlockFunctionBody) {
+      if (body.block.statements.isEmpty) {
+        token(SEMI_COLON);
+        newlines();
+        return;
+      }
+    }
+
+    visitPrefixedBody(space, body);
   }
 
   visitConstructorInitializers(ConstructorDeclaration node) {

@@ -19,10 +19,13 @@ final dartFileRegExp = new RegExp(r'^[^.].*\.dart$', caseSensitive: false);
 final argParser = _initArgParser();
 final defaultSelection = new Selection(-1, -1);
 
+var formatterSettings;
+
 bool machineFormat;
 bool overwriteFileContents;
 Selection selection;
 const followLinks = false;
+
 
 main() {
   var options = argParser.parse(new Options().arguments);
@@ -44,6 +47,8 @@ _readOptions(options) {
   machineFormat = options['machine'];
   overwriteFileContents = options['write'];
   selection = _parseSelection(options['selection']);
+  formatterSettings =
+      new FormatterOptions(codeTransforms: options['transform']);
 }
 
 Selection _parseSelection(selectionOption) {
@@ -150,8 +155,8 @@ _printUsage() {
 }
 
 /// Format the given [src] as a compilation unit.
-String _formatCU(src, {options: const FormatterOptions()}) {
-  var formatResult = new CodeFormatter(options).format(
+String _formatCU(src) {
+  var formatResult = new CodeFormatter(formatterSettings).format(
       CodeKind.COMPILATION_UNIT, src, selection: selection);
   if (machineFormat) {
     if (formatResult.selection == null) {
