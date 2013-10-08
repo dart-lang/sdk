@@ -210,10 +210,11 @@ Future _emitTransformedFiles(AssetSet assets, BarbackOptions options) {
   var currentPackage = options.currentPackage;
   var transformTests = options.transformTests;
   var outPackages = path.join(options.outDir, 'packages');
-  for (var asset in assets) {
+
+  return Future.forEach(assets, (asset) {
     var id = asset.id;
     var dir = _firstDir(id.path);
-    if (dir == null) continue;
+    if (dir == null) return null;
 
     var filepath;
     if (dir == 'lib') {
@@ -226,12 +227,11 @@ Future _emitTransformedFiles(AssetSet assets, BarbackOptions options) {
       filepath = path.join(options.outDir, _toSystemPath(id.path));
     } else {
       // TODO(sigmund): do something about other assets?
-      continue;
+      return null;
     }
 
-    futures.add(_writeAsset(filepath, asset));
-  }
-  return Future.wait(futures);
+    return _writeAsset(filepath, asset);
+  });
 }
 
 /**
@@ -271,16 +271,15 @@ Future _emitPackagesDir(BarbackOptions options) {
   _ensureDir(outPackages);
 
   // Copy all the files we didn't process
-  var futures = [];
   var dirs = options.packageDirs;
-  for (var package in _polymerPackageDependencies) {
-    for (var relpath in _listPackageDir(package, 'lib', options)) {
+
+  return Future.forEach(_polymerPackageDependencies, (package) {
+    return Future.forEach(_listPackageDir(package, 'lib', options), (relpath) {
       var inpath = path.join(dirs[package], relpath);
       var outpath = path.join(outPackages, package, relpath.substring(4));
-      futures.add(_copyFile(inpath, outpath));
-    }
-  }
-  return Future.wait(futures);
+      return _copyFile(inpath, outpath);
+    });
+  });
 }
 
 /** Ensure [dirpath] exists. */
@@ -301,14 +300,11 @@ String _firstDir(String url) {
 /** Copy a file from [inpath] to [outpath]. */
 Future _copyFile(String inpath, String outpath) {
   _ensureDir(path.dirname(outpath));
-  var writer = new File(outpath).openWrite();
-  return writer.addStream(new File(inpath).openRead())
-      .then((_) => writer.close());
+  return new File(inpath).openRead().pipe(new File(outpath).openWrite());
 }
 
 /** Write contents of an [asset] into a file at [filepath]. */
 Future _writeAsset(String filepath, Asset asset) {
   _ensureDir(path.dirname(filepath));
-  var writer = new File(filepath).openWrite();
-  return writer.addStream(asset.read()).then((_) => writer.close());
+  return asset.read().pipe(new File(filepath).openWrite());
 }

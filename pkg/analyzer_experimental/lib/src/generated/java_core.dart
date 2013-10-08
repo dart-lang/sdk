@@ -288,29 +288,23 @@ class JavaIOException extends JavaException {
   JavaIOException([message = "", cause = null]) : super(message, cause);
 }
 
-class IllegalArgumentException implements Exception {
-  final String message;
-  const IllegalArgumentException([this.message = "", Exception e = null]);
-  String toString() => "IllegalStateException: $message";
+class IllegalArgumentException extends JavaException {
+  IllegalArgumentException([message = "", cause = null]) : super(message, cause);
 }
 
-class StringIndexOutOfBoundsException implements Exception {
-  final int index;
-  const StringIndexOutOfBoundsException(this.index);
-  String toString() => "StringIndexOutOfBoundsException: $index";
+class StringIndexOutOfBoundsException extends JavaException {
+  StringIndexOutOfBoundsException(int index) : super('$index');
 }
 
-class IllegalStateException implements Exception {
-  final String message;
-  const IllegalStateException([this.message = ""]);
-  String toString() => "IllegalStateException: $message";
+class IllegalStateException extends JavaException {
+  IllegalStateException([message = ""]) : super(message);
 }
 
-class UnsupportedOperationException implements Exception {
+class UnsupportedOperationException extends JavaException {
   String toString() => "UnsupportedOperationException";
 }
 
-class NumberFormatException implements Exception {
+class NumberFormatException extends JavaException {
   String toString() => "NumberFormatException";
 }
 
@@ -374,10 +368,6 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
 
   void sort([int compare(E a, E b)]) {
     elements.sort(compare);
-  }
-
-  void shuffle() {
-    elements.shuffle();
   }
 
   int indexOf(E element, [int start = 0]) {

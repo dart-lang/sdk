@@ -7,3 +7,5 @@ lib/async/async: fail
 lib/core/core: fail
 lib/typed_data/typed_data: fail
 lib/io/io: fail
+lib/json/json: fail
+lib/utf/utf: fail

@@ -973,6 +973,23 @@ abstract class ImportElement implements Element, UriReferencedElement {
    * @return the prefix that was specified as part of the import directive
    */
   PrefixElement get prefix;
+
+  /**
+   * Return the offset of the prefix of this import in the file that contains this import directive,
+   * or `-1` if this import is synthetic, does not have a prefix, or otherwise does not have
+   * an offset.
+   *
+   * @return the offset of the prefix of this import
+   */
+  int get prefixOffset;
+
+  /**
+   * Return the offset of the character immediately following the last character of this node's URI,
+   * or `-1` for synthetic import.
+   *
+   * @return the offset of the character just past the node's URI
+   */
+  int get uriEnd;
 }
 /**
  * The interface `LabelElement` defines the behavior of elements representing a label
@@ -3826,6 +3843,23 @@ abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptEl
 class ImportElementImpl extends ElementImpl implements ImportElement {
 
   /**
+   * The offset of this directive, may be `-1` if synthetic.
+   */
+  int _offset = -1;
+
+  /**
+   * The offset of the character immediately following the last character of this node's URI, may be
+   * `-1` if synthetic.
+   */
+  int _uriEnd = -1;
+
+  /**
+   * The offset of the prefix of this import in the file that contains the this import directive, or
+   * `-1` if this import is synthetic.
+   */
+  int _prefixOffset = 0;
+
+  /**
    * The URI that is specified by this directive.
    */
   String _uri;
@@ -3856,7 +3890,9 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   LibraryElement get importedLibrary => _importedLibrary;
   ElementKind get kind => ElementKind.IMPORT;
   PrefixElement get prefix => _prefix;
+  int get prefixOffset => _prefixOffset;
   String get uri => _uri;
+  int get uriEnd => _uriEnd;
 
   /**
    * Set the combinators that were specified as part of the import directive to the given array of
@@ -3879,12 +3915,27 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   }
 
   /**
+   * Set the offset of this directive.
+   */
+  void set offset(int offset) {
+    this._offset = offset;
+  }
+
+  /**
    * Set the prefix that was specified as part of the import directive to the given prefix.
    *
    * @param prefix the prefix that was specified as part of the import directive
    */
   void set prefix(PrefixElement prefix) {
     this._prefix = prefix;
+  }
+
+  /**
+   * Set the offset of the prefix of this import in the file that contains the this import
+   * directive.
+   */
+  void set prefixOffset(int prefixOffset) {
+    this._prefixOffset = prefixOffset;
   }
 
   /**
@@ -3895,6 +3946,14 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   void set uri(String uri) {
     this._uri = uri;
   }
+
+  /**
+   * Set the the offset of the character immediately following the last character of this node's
+   * URI. `-1` for synthetic import.
+   */
+  void set uriEnd(int uriEnd) {
+    this._uriEnd = uriEnd;
+  }
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_prefix, visitor);
@@ -3903,7 +3962,7 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
     builder.append("import ");
     ((_importedLibrary as LibraryElementImpl)).appendTo(builder);
   }
-  String get identifier => ((_importedLibrary as LibraryElementImpl)).identifier;
+  String get identifier => "${((_importedLibrary as LibraryElementImpl)).identifier}@${_offset}";
 }
 /**
  * Instances of the class `LabelElementImpl` implement a `LabelElement`.
@@ -5679,6 +5738,7 @@ class BottomTypeImpl extends TypeImpl {
    */
   BottomTypeImpl() : super(null, "<bottom>");
   bool operator ==(Object object) => identical(object, this);
+  bool get isBottom => true;
   bool isMoreSpecificThan(Type2 type) => true;
   bool isSubtypeOf(Type2 type) => true;
   bool isSupertypeOf(Type2 type) => false;
@@ -6680,16 +6740,16 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return false;
     }
     javaSetAdd(visitedClasses, element);
-    InterfaceType supertype = element.supertype;
+    InterfaceType supertype = superclass;
     if (supertype != null && ((supertype as InterfaceTypeImpl)).isMoreSpecificThan2(s, visitedClasses)) {
       return true;
     }
-    for (InterfaceType interfaceType in element.interfaces) {
+    for (InterfaceType interfaceType in interfaces) {
       if (((interfaceType as InterfaceTypeImpl)).isMoreSpecificThan2(s, visitedClasses)) {
         return true;
       }
     }
-    for (InterfaceType mixinType in element.mixins) {
+    for (InterfaceType mixinType in mixins) {
       if (((mixinType as InterfaceTypeImpl)).isMoreSpecificThan2(s, visitedClasses)) {
         return true;
       }
@@ -6801,6 +6861,7 @@ abstract class TypeImpl implements Type2 {
   Type2 getLeastUpperBound(Type2 type) => null;
   String get name => _name;
   bool isAssignableTo(Type2 type) => this.isSubtypeOf(type) || type.isSubtypeOf(this);
+  bool get isBottom => false;
   bool get isDartCoreFunction => false;
   bool get isDynamic => false;
   bool isMoreSpecificThan(Type2 type) => false;
@@ -7421,6 +7482,13 @@ abstract class Type2 {
    * @return `true` if this type is assignable to the given type
    */
   bool isAssignableTo(Type2 type);
+
+  /**
+   * Return `true` if this type represents the bottom type.
+   *
+   * @return `true` if this type represents the bottom type
+   */
+  bool get isBottom;
 
   /**
    * Return `true` if this type represents the type 'Function' defined in the dart:core

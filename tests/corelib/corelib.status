@@ -90,6 +90,7 @@ symbol_test/03: Fail
 int_parse_radix_test: fail
 list_insert_test: fail
 list_removeat_test: fail
+symbol_test/01: fail # test issue 13730; It is static type warning if "const" instance creation argument type is not compatible with parameter type
 
 [ $arch == arm ]
 collection_to_string_test: Pass, Crash # Issue: 11207

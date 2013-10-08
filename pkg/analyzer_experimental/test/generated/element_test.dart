@@ -1258,7 +1258,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
       InterfaceType argumentType = ElementFactory.classElement2("B", []).type;
       type.substitute2(<Type2> [argumentType], <Type2> []);
       JUnitTestCase.fail("Expected to encounter exception, argument and parameter type array lengths not equal.");
-    } catch (e) {
+    } on JavaException catch (e) {
     }
   }
   void test_substitute_notEqual() {

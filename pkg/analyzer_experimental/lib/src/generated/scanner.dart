@@ -1107,6 +1107,15 @@ abstract class AbstractScanner {
         next = advance();
         if (next == -1) {
           break outer;
+        } else if (next == 0xD) {
+          next = advance();
+          if (next == 0xA) {
+            next = advance();
+          }
+          recordStartOfLine();
+        } else if (next == 0xA) {
+          recordStartOfLine();
+          next = advance();
         }
       }
       next = advance();
@@ -1151,11 +1160,36 @@ abstract class AbstractScanner {
         if (next == -1) {
           break;
         }
-        if (next == 0xD || next == 0xA) {
+        bool missingCharacter = false;
+        if (next == 0xD) {
+          missingCharacter = true;
+          next = advance();
+          if (next == 0xA) {
+            next = advance();
+          }
+          recordStartOfLine();
+        } else if (next == 0xA) {
+          missingCharacter = true;
+          recordStartOfLine();
+          next = advance();
+        } else {
+          next = advance();
+        }
+        if (missingCharacter) {
           _errorListener.onError(new AnalysisError.con2(source, offset - 1, 1, ScannerErrorCode.CHARACTER_EXPECTED_AFTER_SLASH, []));
         }
+      } else if (next == 0xD) {
+        next = advance();
+        if (next == 0xA) {
+          next = advance();
+        }
+        recordStartOfLine();
+      } else if (next == 0xA) {
+        recordStartOfLine();
+        next = advance();
+      } else {
+        next = advance();
       }
-      next = advance();
     }
     reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
     appendStringToken(TokenType.STRING, getString(start, 0));

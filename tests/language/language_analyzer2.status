@@ -3,18 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
-switch_bad_case_test/02: Fail
-
-# Missing compile-time errors for parameters marked static.
-static_parameter_test/02: Fail
-static_parameter_test/03: Fail
-static_parameter_test/04: Fail
-static_parameter_test/06: Fail
-static_parameter_test/07: Fail
-static_parameter_test/08: Fail
-static_parameter_test/10: Fail
-static_parameter_test/11: Fail
-static_parameter_test/12: Fail
+switch_bad_case_test/02: Fail # missing error in double in switch case expr
 
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip

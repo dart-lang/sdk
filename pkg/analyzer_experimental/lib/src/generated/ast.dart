@@ -116,7 +116,7 @@ abstract class ASTNode {
     if (beginToken == null) {
       return -1;
     }
-    return this.beginToken.offset;
+    return beginToken.offset;
   }
 
   /**
@@ -12987,7 +12987,7 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
     try {
       node.accept(this);
     } on NodeLocator_NodeFoundException catch (exception) {
-    } catch (exception) {
+    } on JavaException catch (exception) {
       AnalysisEngine.instance.logger.logInformation2("Unable to locate element at offset (${_startOffset} - ${_endOffset})", exception);
       return null;
     }
@@ -13006,7 +13006,7 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
       node.visitChildren(this);
     } on NodeLocator_NodeFoundException catch (exception) {
       throw exception;
-    } catch (exception) {
+    } on JavaException catch (exception) {
       AnalysisEngine.instance.logger.logInformation2("Exception caught while traversing an AST structure.", exception);
     }
     if (start <= _startOffset && _endOffset <= end) {

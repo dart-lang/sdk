@@ -487,6 +487,7 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
     }
     return result;
   }
+  EvaluationResultImpl visitSymbolLiteral(SymbolLiteral node) => ValidResult.RESULT_SYMBOL;
 
   /**
    * Return a result object representing an error associated with the given node.
@@ -993,6 +994,12 @@ class ValidResult extends EvaluationResultImpl {
    * performed.
    */
   static ValidResult RESULT_OBJECT = new ValidResult(new Object());
+
+  /**
+   * A result object representing the an arbitrary symbol on which no further operations can be
+   * performed.
+   */
+  static ValidResult RESULT_SYMBOL = new ValidResult(new Object());
 
   /**
    * A result object representing the an arbitrary string on which no further operations can be
