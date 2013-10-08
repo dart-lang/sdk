@@ -16,9 +16,6 @@ Language/12_Expressions/01_Constants_A17_t03: fail
 Language/15_Types/4_Interface_Types_A11_t01: Skip
 Language/15_Types/4_Interface_Types_A11_t02: Skip
 
-# TBF: It is a compile-time error if the key of an entry in a constant map literal is an instance of a class that implements the operator == unless the key is a string or integer.
-Language/12_Expressions/07_Maps_A13_t01: Fail
-
 # TBF: malformed or malbounded type in "conts" is static warning
 Language/12_Expressions/12_Instance_Creation_A01_t08: Fail
 
