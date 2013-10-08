@@ -70,12 +70,12 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
         cancelable: cancelable, keyLocation: keyLocation, ctrlKey: ctrlKey,
         altKey: altKey, shiftKey: shiftKey, metaKey: metaKey, altGraphKey:
         altGraphKey);
-     var keyEvent = KeyEvent.wrap(parent);
-      keyEvent._shadowAltKey = altKey;
-      keyEvent._shadowCharCode = charCode;
-      keyEvent._shadowKeyCode = keyCode;
-      keyEvent._currentTarget = currentTarget == null ? window : currentTarget;
-      return keyEvent;
+     var keyEvent = new KeyEvent.wrap(parent);
+     keyEvent._shadowAltKey = altKey;
+     keyEvent._shadowCharCode = charCode;
+     keyEvent._shadowKeyCode = keyCode;
+     keyEvent._currentTarget = currentTarget == null ? window : currentTarget;
+     return keyEvent;
    }
 
   /** Accessor to provide a stream of KeyEvents on the desired target. */
