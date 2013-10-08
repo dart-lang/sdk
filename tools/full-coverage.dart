@@ -40,6 +40,10 @@ class Resolver {
   /// import could not be resolved.
   resolve(String import) {
     if (import.startsWith(DART_PREFIX)) {
+      if (_env["sdkRoot"] == null) {
+        // No sdk-root given, do not resolve dart: URIs.
+        return null;
+      }
       var slashPos = import.indexOf("/");
       var filePath;
       if (slashPos != -1) {
@@ -62,6 +66,10 @@ class Resolver {
       return filePath;
     }
     if (import.startsWith(PACKAGE_PREFIX)) {
+      if (_env["pkgRoot"] == null) {
+        // No package-root given, do not resolve package: URIs.
+        return null;
+      }
       var filePath =
           "${_env["pkgRoot"]}"
           "/${import.substring(PACKAGE_PREFIX.length, import.length)}"; 
@@ -400,8 +408,7 @@ parseArgs() {
   parser.addOption("sdk-root", abbr: "s",
                    help: "path to the SDK root");
   parser.addOption("package-root", abbr: "p",
-                   help: "path to the package root",
-                   defaultsTo: ".");
+                   help: "path to the package root");
   parser.addOption("in", abbr: "i",
                    help: "input(s): may be file or directory");
   parser.addOption("out", abbr: "o",
@@ -441,24 +448,22 @@ parseArgs() {
     exit(0);
   }
 
-  if (args["sdk-root"] == null) {
+  env.sdkRoot = args["sdk-root"];
+  if (env.sdkRoot == null) {
     if (Platform.environment.containsKey("SDK_ROOT")) {
       env.sdkRoot =
         join(absolute(normalize(Platform.environment["SDK_ROOT"])), "lib");
-    } else {
-      fail("No SDK root found, please specify one using --sdk-root.");
     }
   } else {
-    env.sdkRoot = join(absolute(normalize(args["sdk-root"])), "lib");
+    env.sdkRoot = join(absolute(normalize(env.sdkRoot)), "lib");
   }
-  if (!FileSystemEntity.isDirectorySync(env.sdkRoot)) {
+  if ((env.sdkRoot != null) && !FileSystemEntity.isDirectorySync(env.sdkRoot)) {
     fail("Provided SDK root '${args["sdk-root"]}' is not a valid SDK "
          "top-level directory");
   }
 
-  if (args["package-root"] == null) {
-    env.pkgRoot = absolute(normalize("./packages"));
-  } else {
+  env.pkgRoot = args["package-root"];
+  if (env.pkgRoot != null) {
     env.pkgRoot = absolute(normalize(args["package-root"]));
     if (!FileSystemEntity.isDirectorySync(env.pkgRoot)) {
       fail("Provided package root '${args["package-root"]}' is not directory.");
@@ -482,11 +487,13 @@ parseArgs() {
     env.output = new File(env.output).openWrite();
   }
 
-  if (args["pretty-print"] == args["lcov"]) {
-    fail("Choose either pretty-print or lcov output");
-  }
-  env.prettyPrint = args["pretty-print"];
   env.lcov = args["lcov"];
+  if (args["pretty-print"] && env.lcov) {
+    fail("Choose one of pretty-print or lcov output");
+  } else if (!env.lcov) {
+    // Use pretty-print either explicitly or by default.
+    env.prettyPrint = true;
+  }
 
   try {
     env.workers = int.parse("${args["workers"]}");
