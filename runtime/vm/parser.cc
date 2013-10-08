@@ -435,7 +435,8 @@ struct ParamDesc {
         metadata(NULL),
         var(NULL),
         is_final(false),
-        is_field_initializer(false) { }
+        is_field_initializer(false),
+        has_explicit_type(false) { }
   const AbstractType* type;
   intptr_t name_pos;
   const String* name;
@@ -444,6 +445,7 @@ struct ParamDesc {
   LocalVariable* var;  // Scope variable allocated for this parameter.
   bool is_final;
   bool is_field_initializer;
+  bool has_explicit_type;
 };
 
 
@@ -1415,6 +1417,8 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     ConsumeToken();
     var_seen = true;
     // The parameter type is the 'dynamic' type.
+    // If this is an initializing formal, its type will be set to the type of
+    // the respective field when the constructor is fully parsed.
     parameter.type = &Type::ZoneHandle(Type::DynamicType());
   }
   if (CurrentToken() == Token::kTHIS) {
@@ -1448,10 +1452,13 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       // The types of formal parameters are never ignored, even in unchecked
       // mode, because they are part of the function type of closurized
       // functions appearing in type tests with typedefs.
+      parameter.has_explicit_type = true;
       parameter.type = &AbstractType::ZoneHandle(
           ParseType(is_top_level_ ? ClassFinalizer::kResolveTypeParameters :
                                     ClassFinalizer::kCanonicalize));
     } else {
+      // If this is an initializing formal, its type will be set to the type of
+      // the respective field when the constructor is fully parsed.
       parameter.type = &Type::ZoneHandle(Type::DynamicType());
     }
   }
@@ -2555,6 +2562,16 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
                    "initializing formal parameters");
         }
         CheckDuplicateFieldInit(param.name_pos, &initialized_fields, &field);
+
+        if (!param.has_explicit_type) {
+          const AbstractType& field_type =
+              AbstractType::ZoneHandle(field.type());
+          param.type = &field_type;
+          // Parameter type was already set to dynamic when parsing the class
+          // declaration: fix it.
+          func.SetParameterTypeAt(i, field_type);
+        }
+
         AstNode* instance = new LoadLocalNode(param.name_pos, receiver);
         // Initializing formals cannot be used in the explicit initializer
         // list, nor can they be used in the constructor body.

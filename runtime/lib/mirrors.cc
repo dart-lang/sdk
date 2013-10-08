@@ -5,6 +5,7 @@
 #include "lib/invocation_mirror.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
+#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/object_store.h"
@@ -105,6 +106,22 @@ DEFINE_NATIVE_ENTRY(Mirrors_isLocalPort, 1) {
   return Bool::Get(PortMap::IsLocalPort(port_id)).raw();
 }
 
+static void EnsureConstructorsAreCompiled(const Function& func) {
+  if (func.kind() != RawFunction::kConstructor) return;
+  const Class& cls = Class::Handle(func.Owner());
+  const Error& error = Error::Handle(cls.EnsureIsFinalized(Isolate::Current()));
+  if (!error.IsNull()) {
+    ThrowInvokeError(error);
+    UNREACHABLE();
+  }
+  if (!func.HasCode()) {
+    const Error& error = Error::Handle(Compiler::CompileFunction(func));
+    if (!error.IsNull()) {
+      ThrowInvokeError(error);
+      UNREACHABLE();
+    }
+  }
+}
 
 static RawInstance* CreateParameterMirrorList(const Function& func,
                                               const Instance& owner_mirror) {
@@ -133,6 +150,11 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
   Bool& is_final = Bool::Handle();
   Object& default_value = Object::Handle();
   Object& metadata = Object::Handle();
+
+  // We force compilation of constructors to ensure the types of initializing
+  // formals have been corrected. We do not force the compilation of all types
+  // of functions because some have no body, e.g. signature functions.
+  EnsureConstructorsAreCompiled(func);
 
   // Reparse the function for the following information:
   // * The default value of a parameter.
