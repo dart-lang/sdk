@@ -14,3 +14,4 @@ export 'src/package_provider.dart';
 export 'src/transform.dart' show Transform;
 export 'src/transform_logger.dart';
 export 'src/transformer.dart';
+export 'src/transformer_group.dart';

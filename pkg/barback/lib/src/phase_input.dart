@@ -108,7 +108,8 @@ class PhaseInput {
   }
 
   /// Set this input's transformers to [transformers].
-  void updateTransformers(Set<Transformer> newTransformers) {
+  void updateTransformers(Iterable<Transformer> newTransformers) {
+    newTransformers = newTransformers.toSet();
     var oldTransformers = _transformers.toSet();
     for (var removedTransformer in
          oldTransformers.difference(newTransformers)) {
@@ -127,8 +128,7 @@ class PhaseInput {
 
     if (_transforms.isEmpty && _adjustTransformersFuture == null &&
         _passThroughController == null) {
-      _passThroughController =
-          new AssetNodeController.available(input.asset, input.transform);
+      _passThroughController = new AssetNodeController.from(input);
       _newPassThrough = true;
     }
 
@@ -240,8 +240,7 @@ class PhaseInput {
       if (_passThroughController != null) {
         _passThroughController.setAvailable(input.asset);
       } else {
-        _passThroughController =
-            new AssetNodeController.available(input.asset, input.transform);
+        _passThroughController = new AssetNodeController.from(input);
         _newPassThrough = true;
       }
     } else if (_passThroughController != null) {

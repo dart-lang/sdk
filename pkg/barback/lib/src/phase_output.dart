@@ -105,7 +105,7 @@ class PhaseOutput {
     // (chronologically).
     if (wasFirst) {
       var newOutput = _assets.first;
-      _outputController.setTransform(newOutput.transform);
+      _outputController.setOrigin(newOutput.origin);
       if (newOutput.state.isAvailable) {
         if (output.state.isAvailable) _outputController.setDirty();
         _outputController.setAvailable(newOutput.asset);

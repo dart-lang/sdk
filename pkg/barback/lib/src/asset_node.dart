@@ -21,6 +21,16 @@ class AssetNode {
   /// The id of the asset that this node represents.
   final AssetId id;
 
+  /// The [AssetNode] from which [this] is forwarded.
+  ///
+  /// For nodes that aren't forwarded, this will return [this]. Otherwise, it
+  /// will return the first node in the forwarding chain.
+  ///
+  /// This is used to determine whether two nodes are forwarded from the same
+  /// source.
+  AssetNode get origin => _origin == null ? this : _origin;
+  AssetNode _origin;
+
   /// The transform that created this asset node.
   ///
   /// This is `null` for source assets. It can change if the upstream transform
@@ -113,10 +123,10 @@ class AssetNode {
     return onStateChange.firstWhere(test);
   }
 
-  AssetNode._(this.id, this._transform)
+  AssetNode._(this.id, this._transform, this._origin)
       : _state = AssetState.DIRTY;
 
-  AssetNode._available(Asset asset, this._transform)
+  AssetNode._available(Asset asset, this._transform, this._origin)
       : id = asset.id,
         _asset = asset,
         _state = AssetState.AVAILABLE;
@@ -130,17 +140,20 @@ class AssetNodeController {
 
   /// Creates a controller for a dirty node.
   AssetNodeController(AssetId id, [TransformNode transform])
-      : node = new AssetNode._(id, transform);
+      : node = new AssetNode._(id, transform, null);
 
   /// Creates a controller for an available node with the given concrete
   /// [asset].
   AssetNodeController.available(Asset asset, [TransformNode transform])
-      : node = new AssetNode._available(asset, transform);
+      : node = new AssetNode._available(asset, transform, null);
 
   /// Creates a controller for a node whose initial state matches the current
   /// state of [node].
+  ///
+  /// [AssetNode.origin] of the returned node will automatically be set to
+  /// `node.origin`.
   AssetNodeController.from(AssetNode node)
-      : node = new AssetNode._(node.id, node.transform) {
+      : node = new AssetNode._(node.id, node.transform, node.origin) {
     if (node.state.isAvailable) {
       setAvailable(node.asset);
     } else if (node.state.isRemoved) {
@@ -180,12 +193,11 @@ class AssetNodeController {
     node._stateChangeController.add(AssetState.AVAILABLE);
   }
 
-  /// Sets the node's [AssetNode.transform] property.
-  ///
-  /// This is used when resolving collisions, where a node will stick around but
-  /// a different transform will have created it.
-  void setTransform(TransformNode transform) {
-    node._transform = transform;
+  /// Sets the origin of [node] to [origin] and the transform to
+  /// `origin.transform`.
+  void setOrigin(AssetNode origin) {
+    node._origin = origin;
+    node._transform = origin.transform;
   }
 }
 

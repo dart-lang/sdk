@@ -99,7 +99,8 @@ class AssetCascade {
   var _newChanges = false;
 
   /// Returns all currently-available output assets from this cascade.
-  AssetSet get availableOutputs => _phases.last.availableOutputs;
+  AssetSet get availableOutputs =>
+    new AssetSet.from(_phases.last.availableOutputs.map((node) => node.asset));
 
   /// Creates a new [AssetCascade].
   ///
@@ -190,7 +191,10 @@ class AssetCascade {
   }
 
   /// Sets this cascade's transformer phases to [transformers].
-  void updateTransformers(Iterable<Iterable<Transformer>> transformers) {
+  ///
+  /// Elements of the inner iterable of [transformers] must be either
+  /// [Transformer]s or [TransformerGroup]s.
+  void updateTransformers(Iterable<Iterable> transformers) {
     transformers = transformers.toList();
 
     for (var i = 0; i < transformers.length; i++) {

@@ -132,8 +132,7 @@ void removeSourcesSync(Iterable assets) =>
     _barback.removeSources(_parseAssets(assets));
 
 /// Sets the transformers for [package] to [transformers].
-void updateTransformers(String package,
-    Iterable<Iterable<Transformer>> transformers) {
+void updateTransformers(String package, Iterable<Iterable> transformers) {
   schedule(() => _barback.updateTransformers(package, transformers),
       "updating transformers for $package");
 }
