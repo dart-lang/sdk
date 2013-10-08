@@ -218,6 +218,7 @@ custom_element: Skip
 mdv: Skip
 mutation_observer: Skip
 polymer_expressions/test/syntax_test: Skip
+polymer_expressions/test/globals_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 
 [ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]

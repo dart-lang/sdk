@@ -36,6 +36,7 @@ import 'package:logging/logging.dart';
 import 'eval.dart';
 import 'expression.dart';
 import 'parser.dart';
+import 'src/globals.dart';
 
 final Logger _logger = new Logger('polymer_expressions');
 
@@ -51,11 +52,19 @@ Object _styleAttributeConverter(v) =>
     v;
 
 class PolymerExpressions extends BindingDelegate {
+  /** The default [globals] to use for Polymer expressions. */
+  static const Map DEFAULT_GLOBALS = const { 'enumerate': enumerate };
 
   final Map<String, Object> globals;
 
+  /**
+   * Creates a new binding delegate for Polymer expressions, with the provided
+   * variables used as [globals]. If no globals are supplied, a copy of the
+   * [DEFAULT_GLOBALS] will be used.
+   */
   PolymerExpressions({Map<String, Object> globals})
-      : globals = (globals == null) ? new Map<String, Object>() : globals;
+      : globals = (globals == null) ?
+          new Map<String, Object>.from(DEFAULT_GLOBALS) : globals;
 
   _Binding getBinding(model, String path, name, node) {
     if (path == null) return null;
@@ -137,5 +146,4 @@ class _Binding extends Object with ChangeNotifierMixin {
   setValueWorkaround(key, v) {
     if (key == _VALUE) value = v;
   }
-
 }
