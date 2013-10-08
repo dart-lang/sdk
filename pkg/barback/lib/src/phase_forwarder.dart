@@ -110,9 +110,10 @@ class PhaseForwarder {
     // If there isn't a final asset being forwarded yet, we should forward one.
     // It should be dirty iff any of the intermediate assets are dirty.
     if (_outputController == null) {
-      var asset = _intermediateAssets.firstWhere((asset) => asset.state.isDirty,
+      var finalAsset = _intermediateAssets.firstWhere(
+          (asset) => asset.state.isDirty,
           orElse: () => _intermediateAssets.first);
-      _outputController = new AssetNodeController.from(asset);
+      _outputController = new AssetNodeController.from(finalAsset);
       _onForwardingController.add(output);
       return;
     }
