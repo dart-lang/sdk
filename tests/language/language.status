@@ -25,6 +25,8 @@ duplicate_export_negative_test: Fail # Issue 6134
 on_catch_malformed_type_test: Fail # Issue 8601
 mixin_forwarding_constructor2_test: Fail # Issue 13641
 
+implicit_setter_test: Fail # Issue 13917
+
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 
