@@ -710,6 +710,17 @@ main() {
       );
     });
 
+    test('stmt (cascades)', () {
+      expectStmtFormatsTo(
+        '"foo"\n'
+        '..toString()\n'
+        '..toString();',
+        '"foo"\n'
+        '    ..toString()\n'
+        '    ..toString();'
+      );
+    });
+    
     test('stmt (generics)', () {
       expectStmtFormatsTo(
         'var numbers = <int>[1, 2, (3 + 4)];',

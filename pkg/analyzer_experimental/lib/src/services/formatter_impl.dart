@@ -453,7 +453,9 @@ class SourceVisitor implements ASTVisitor {
 
   visitCascadeExpression(CascadeExpression node) {
     visit(node.target);
+    indent(2);
     visitNodes(node.cascadeSections);
+    unindent(2);
   }
 
   visitCatchClause(CatchClause node) {
