@@ -108,9 +108,10 @@ class Entrypoint {
     return future;
   }
 
-  /// Gets all dependencies of the [root] package and places them in its
-  /// "packages" directory, respecting the [LockFile] if present. Returns a
-  /// [Future] that completes when all dependencies are available.
+  /// Gets all dependencies of the [root] package, respecting the [LockFile]
+  /// if present.
+  ///
+  /// Returns a [Future] that completes when all dependencies are available.
   Future getDependencies() {
     return new Future.sync(() {
       return resolveVersions(cache.sources, root, lockFile: loadLockFile());
@@ -118,16 +119,17 @@ class Entrypoint {
   }
 
   /// Gets the latest available versions of all dependencies of the [root]
-  /// package and places them in its "package" directory, writing a new
-  /// [LockFile]. Returns a [Future] that completes when all dependencies are
-  /// available.
+  /// package, writing a new [LockFile].
+  ///
+  /// Returns a [Future] that completes when all dependencies are available.
   Future upgradeAllDependencies() {
     return resolveVersions(cache.sources, root).then(_getDependencies);
   }
 
   /// Gets the latest available versions of [dependencies], while leaving
-  /// other dependencies as specified by the [LockFile] if possible. Returns a
-  /// [Future] that completes when all dependencies are available.
+  /// other dependencies as specified by the [LockFile] if possible.
+  ///
+  /// Returns a [Future] that completes when all dependencies are available.
   Future upgradeDependencies(List<String> dependencies) {
     return new Future.sync(() {
       return resolveVersions(cache.sources, root,
