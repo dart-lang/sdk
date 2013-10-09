@@ -57,6 +57,16 @@
     return;
   }
 
+  // Detect if dart.js was included in the page. We use DOMContentLoaded to make
+  // sure we also check for occurrences after the current tag.
+  window.addEventListener('DOMContentLoaded', function () {
+    var dartJSQuery = 'script[src="packages/browser/dart.js"]';
+    if (!!document.querySelector(dartJSQuery)) {
+      console.error('Error: found "packages/browser/dart.js" in the ' +
+        'page. Please remove it. When using polymer\'s "boot.js", ' +
+        'you can\'t use "dart.js".');
+    }
+  });
 
   // Load HTML Imports:
   var htmlImportsSrc = 'src="packages/html_import/html_import.min.js"';
