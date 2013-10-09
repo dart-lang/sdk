@@ -11062,8 +11062,31 @@ class Event extends Interceptor native "Event" {
     e._initEvent(name, canBubble, cancelable);
     return e;
   }
+  
+  /** The CSS selector involved with event delegation. */
+  String _selector;
 
-  Event._private();
+  /**
+   * A pointer to the element whose CSS selector matched within which an event
+   * was fired. If this Event was not associated with any Event delegation,
+   * accessing this value will throw an [UnsupportedError].
+   */
+  Element get matchingTarget {
+    if (_selector == null) {
+      throw new UnsupportedError('Cannot call matchingTarget if this Event did'
+          ' not arise as a result of event delegation.');
+    }
+    var currentTarget = this.currentTarget;
+    var target = this.target;
+    var matchedTarget;
+    while (matchedTarget == null && target != currentTarget && target != null) {
+      if (target.matches(_selector)) {
+        matchedTarget = target;
+      }
+      target = target.parent;
+    }
+    return matchedTarget;
+  }
 
   @DomName('Event.AT_TARGET')
   @DocsEditable()
@@ -29072,8 +29095,11 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
   _ElementEventStreamImpl(target, eventType, useCapture) :
       super(target, eventType, useCapture);
 
-  Stream<T> matches(String selector) =>
-      this.where((event) => event.target.matchesWithAncestors(selector));
+  Stream<T> matches(String selector) => this.where(
+      (event) => event.target.matchesWithAncestors(selector)).map((e) {
+        e._selector = selector;
+        return e;
+      });
 }
 
 /**
@@ -29094,8 +29120,11 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
     _stream = _pool.stream;
   }
 
-  Stream<T> matches(String selector) =>
-      this.where((event) => event.target.matchesWithAncestors(selector));
+  Stream<T> matches(String selector) => this.where(
+      (event) => event.target.matchesWithAncestors(selector)).map((e) {
+        e._selector = selector;
+        return e;
+      });
 
   // Delegate all regular Stream behavor to our wrapped Stream.
   StreamSubscription<T> listen(void onData(T event),

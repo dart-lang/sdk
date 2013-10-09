@@ -752,6 +752,26 @@ main() {
 
   group('eventDelegation', () {
     test('matches', () {
+      Element clickOne = new Element.a();
+      Element selectorOne = new Element.div()
+          ..classes.add('selector')
+          ..children.add(clickOne);
+
+      Element clickTwo = new Element.a();
+      Element selectorTwo = new Element.div()
+          ..classes.add('selector')
+          ..children.add(clickTwo);
+      document.body.append(selectorOne);
+      document.body.append(selectorTwo);
+
+      document.body.onClick.matches('.selector').listen(expectAsync1(
+          (Event event) {
+        expect(event.currentTarget, document.body);
+        expect(event.target, clickOne);
+        expect(event.matchingTarget, selectorOne);
+      }));
+      clickOne.click();
+
       Element elem = new Element.div()..classes.addAll(['a', 'b']);
       Element img = new Element.img()
         ..classes.addAll(['b', 'a', 'd'])

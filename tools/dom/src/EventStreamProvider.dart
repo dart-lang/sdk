@@ -51,8 +51,11 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
   _ElementEventStreamImpl(target, eventType, useCapture) :
       super(target, eventType, useCapture);
 
-  Stream<T> matches(String selector) =>
-      this.where((event) => event.target.matchesWithAncestors(selector));
+  Stream<T> matches(String selector) => this.where(
+      (event) => event.target.matchesWithAncestors(selector)).map((e) {
+        e._selector = selector;
+        return e;
+      });
 }
 
 /**
@@ -73,8 +76,11 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
     _stream = _pool.stream;
   }
 
-  Stream<T> matches(String selector) =>
-      this.where((event) => event.target.matchesWithAncestors(selector));
+  Stream<T> matches(String selector) => this.where(
+      (event) => event.target.matchesWithAncestors(selector)).map((e) {
+        e._selector = selector;
+        return e;
+      });
 
   // Delegate all regular Stream behavor to our wrapped Stream.
   StreamSubscription<T> listen(void onData(T event),
