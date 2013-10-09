@@ -3395,7 +3395,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     }
 
     // For static final fields (this includes static const fields), set value to
-    // "uninitialized" and create a kFinalImplicitGetter getter method.
+    // "uninitialized" and create a kImplicitStaticFinalGetter getter method.
     if (field->has_static && has_initializer) {
       class_field.set_value(init_value);
       if (!has_simple_literal) {
@@ -10045,7 +10045,11 @@ AstNode* Parser::ParseStringLiteral() {
   bool is_compiletime_const = true;
   GrowableArray<AstNode*> values_list;
   while (CurrentToken() == Token::kSTRING) {
-    values_list.Add(new LiteralNode(TokenPos(), *CurrentLiteral()));
+    if (CurrentLiteral()->Length() > 0) {
+      // Only add non-empty string sections to the values list
+      // that will be concatenated.
+      values_list.Add(new LiteralNode(TokenPos(), *CurrentLiteral()));
+    }
     ConsumeToken();
     while ((CurrentToken() == Token::kINTERPOL_VAR) ||
         (CurrentToken() == Token::kINTERPOL_START)) {
