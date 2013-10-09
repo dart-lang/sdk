@@ -219,3 +219,6 @@ mirrors/type_argument_is_type_variable_test: RuntimeError # Issue 12282
 async/run_async5_test: Pass, Timeout # Issue 13719: Please triage this failure.
 async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failure.
 async/timer_isolate_test: Fail # Issue 13719: Please triage this failure.
+
+[ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
+async/run_async4_test: Fail # Issue 13921

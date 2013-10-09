@@ -31,7 +31,8 @@ xhr_test: Pass, Fail # Issue 12648
 xhr_test/json: Fail # Issue 13069
 uri_test: Fail Issue 13581
 async_test: Fail # Background timers not implemented.
-keyboard_event_test: Fail # Issue 13902 
+keyboard_event_test: Fail # Issue 13902
+isolates_test: Fail # Issue 13921
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.

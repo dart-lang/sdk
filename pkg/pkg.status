@@ -213,6 +213,28 @@ third_party/html5lib/test/tokenizer_test: Pass, Slow
 # test on Dartium, which requires all tests to have a library.
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
 serialization/test/no_library_test: Skip # Expected Failure
+serialization/test/serialization_test: Fail # 13921
+unittest/test/unittest_async_exception_test: Fail # 13921
+unittest/test/unittest_async_setup_teardown_test: Fail # 13921
+unittest/test/unittest_completion_test: Fail # 13921
+unittest/test/unittest_correct_callback_test: Fail # 13921
+unittest/test/unittest_exception_test: Fail # 13921
+unittest/test/unittest_excess_callback_test: Fail # 13921
+unittest/test/unittest_late_exception_test: Fail # 13921
+unittest/test/unittest_middle_exception_test: Fail # 13921
+unittest/test/unittest_nested_groups_setup_teardown_test: Fail # 13921
+unittest/test/unittest_runtests_without_tests_test: Fail # 13921
+unittest/test/unittest_setup_and_teardown_test: Fail # 13921
+unittest/test/unittest_setup_test: Fail # 13921
+unittest/test/unittest_single_correct_test: Fail # 13921
+unittest/test/unittest_single_failing_test: Fail # 13921
+unittest/test/unittest_skipped_soloed_nested_test: Fail # 13921
+unittest/test/unittest_teardown_test: Fail # 13921
+unittest/test/unittest_test_returning_future_test: Fail # 13921
+unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
+unittest/test/unittest_testcases_immutable_test: Fail # 13921
+unittest/test/unitttest_group_name_test: Fail # 13921
+
 
 # Skip tests on the VM if the package depends on dart:html
 [ $runtime == vm ]
