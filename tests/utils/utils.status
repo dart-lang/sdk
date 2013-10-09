@@ -27,3 +27,6 @@ png_layout_test: Fail # Issue 13540
 dart2js_test: Skip # Uses dart:io.
 png_layout_test: Skip # dartium doesn't support layout tests
 txt_layout_test: Skip # dartium doesn't support layout tests
+
+[ $compiler == dartanalyzer ]
+dart2js_test: fail # dart2js issue 13919 - excluded setter for final var
