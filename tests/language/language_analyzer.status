@@ -187,6 +187,7 @@ static_field_test/04: fail # Issue 12541
 duplicate_export_test: fail # Issue 13787
 
 implicit_setter_test/01: Fail # Issue 13918
+implicit_setter_test/02: Fail # Issue 13918
 
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail
