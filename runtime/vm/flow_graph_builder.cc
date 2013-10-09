@@ -2841,7 +2841,7 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
             node->cls().IsTopLevel() ?
                 InvocationMirror::kTopLevel :
                 InvocationMirror::kStatic,
-            InvocationMirror::kGetter));
+            InvocationMirror::kSetter));
     }
   } else {
     if (is_super_setter) {

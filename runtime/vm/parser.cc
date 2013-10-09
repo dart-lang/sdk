@@ -3366,10 +3366,11 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       }
       SkipExpr();
     } else {
-      if (field->has_const || (field->has_static && field->has_final)) {
+      // Static const and static final fields must have an initializer.
+      // Static const fields are implicitly final.
+      if (field->has_static && field->has_final) {
         ErrorMsg(field->name_pos,
-                 "%s%s field '%s' must have an initializer expression",
-                 field->has_static ? "static " : "",
+                 "static %s field '%s' must have an initializer expression",
                  field->has_const ? "const" : "final",
                  field->name->ToCString());
       }
@@ -4480,19 +4481,20 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     if (library_.LookupLocalObject(var_name) != Object::null()) {
       ErrorMsg(name_pos, "'%s' is already defined", var_name.ToCString());
     }
+
+    // Check whether a getter or setter for this name exists. A const
+    // or final field implies a setter which throws a NoSuchMethodError,
+    // thus we need to check for conflicts with existing setters and
+    // getters.
     String& accessor_name = String::Handle(Field::GetterName(var_name));
     if (library_.LookupLocalObject(accessor_name) != Object::null()) {
       ErrorMsg(name_pos, "getter for '%s' is already defined",
                var_name.ToCString());
     }
-    // A const or final variable does not define an implicit setter,
-    // so we only check setters for non-final variables.
-    if (!is_final) {
-      accessor_name = Field::SetterName(var_name);
-      if (library_.LookupLocalObject(accessor_name) != Object::null()) {
-        ErrorMsg(name_pos, "setter for '%s' is already defined",
-                 var_name.ToCString());
-      }
+    accessor_name = Field::SetterName(var_name);
+    if (library_.LookupLocalObject(accessor_name) != Object::null()) {
+      ErrorMsg(name_pos, "setter for '%s' is already defined",
+               var_name.ToCString());
     }
 
     field = Field::New(var_name, is_static, is_final, is_const,
@@ -4701,18 +4703,19 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
              is_getter ? "getter" : "setter");
   }
 
-  if (is_getter && library_.LookupLocalObject(*field_name) != Object::null()) {
+  // Check whether this getter conflicts with a function or top-level variable
+  // with the same name.
+  if (is_getter &&
+      (library_.LookupLocalObject(*field_name) != Object::null())) {
     ErrorMsg(name_pos, "'%s' is already defined in this library",
              field_name->ToCString());
   }
-  if (!is_getter) {
-    // Check whether there is a field with the same name that has an implicit
-    // setter.
-    const Field& field = Field::Handle(library_.LookupLocalField(*field_name));
-    if (!field.IsNull() && !field.is_final()) {
-      ErrorMsg(name_pos, "Variable '%s' is already defined in this library",
-               field_name->ToCString());
-    }
+  // Check whether this setter conflicts with the implicit setter
+  // of a top-level variable with the same name.
+  if (!is_getter &&
+      (library_.LookupLocalField(*field_name) != Object::null())) {
+    ErrorMsg(name_pos, "Variable '%s' is already defined in this library",
+             field_name->ToCString());
   }
   bool found = library_.LookupLocalObject(accessor_name) != Object::null();
   if (found && !is_patch) {
@@ -7725,19 +7728,23 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
   AstNode* result = original->MakeAssignmentNode(rhs);
   if (result == NULL) {
     String& name = String::ZoneHandle();
+    const Class* target_cls = &current_class();
     if (original->IsTypeNode()) {
       name = Symbols::New(original->AsTypeNode()->TypeName());
+    } else if (original->IsLoadStaticFieldNode()) {
+      name = original->AsLoadStaticFieldNode()->field().name();
+      target_cls =
+          &Class::Handle(original->AsLoadStaticFieldNode()->field().owner());
     } else if ((left_ident != NULL) &&
                (original->IsLiteralNode() ||
-                original->IsLoadLocalNode() ||
-                original->IsLoadStaticFieldNode())) {
+                original->IsLoadLocalNode())) {
       name = left_ident->raw();
     }
     if (name.IsNull()) {
       ErrorMsg(left_pos, "expression is not assignable");
     }
     result = ThrowNoSuchMethodError(original->token_pos(),
-                                    current_class(),
+                                    *target_cls,
                                     name,
                                     NULL,  // No arguments.
                                     InvocationMirror::kStatic,
@@ -7789,16 +7796,16 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
         LetNode* let_expr = PrepareCompoundAssignmentNodes(&expr);
         right_expr =
             ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
-        AstNode* assign_expr = CreateAssignmentNode(
-            expr, right_expr, expr_ident, expr_pos);
+        AstNode* assign_expr =
+            CreateAssignmentNode(expr, right_expr, expr_ident, expr_pos);
         ASSERT(assign_expr != NULL);
         let_expr->AddNode(assign_expr);
         expr = let_expr;
       } else {
         right_expr =
             ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
-        AstNode* assign_expr = CreateAssignmentNode(
-            expr, right_expr, expr_ident, expr_pos);
+        AstNode* assign_expr =
+            CreateAssignmentNode(expr, right_expr, expr_ident, expr_pos);
         ASSERT(assign_expr != NULL);
         expr = assign_expr;
       }
@@ -7809,6 +7816,21 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
   // sequence followed by the (value of the) receiver temp variable load.
   cascade->AddNode(new LoadLocalNode(cascade_pos, cascade_receiver_var));
   return cascade;
+}
+
+
+// Convert loading of a static const field into a literal node.
+static AstNode* LiteralIfStaticConst(AstNode* expr) {
+  if (expr->IsLoadStaticFieldNode()) {
+    const Field& field = expr->AsLoadStaticFieldNode()->field();
+    if (field.is_const()) {
+      ASSERT(field.value() != Object::sentinel().raw());
+      ASSERT(field.value() != Object::transition_sentinel().raw());
+      return new LiteralNode(expr->token_pos(),
+                             Instance::ZoneHandle(field.value()));
+    }
+  }
+  return expr;
 }
 
 
@@ -7832,6 +7854,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
     if ((CurrentToken() == Token::kCASCADE) && consume_cascades) {
       return ParseCascades(expr);
     }
+    expr = LiteralIfStaticConst(expr);
     if (require_compiletime_const) {
       expr = FoldConstExpr(expr_pos, expr);
     }
@@ -7851,16 +7874,15 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
     LetNode* let_expr = PrepareCompoundAssignmentNodes(&expr);
     AstNode* assigned_value =
         ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
-    AstNode* assign_expr = CreateAssignmentNode(
-        expr, assigned_value, expr_ident, expr_pos);
+    AstNode* assign_expr =
+        CreateAssignmentNode(expr, assigned_value, expr_ident, expr_pos);
     ASSERT(assign_expr != NULL);
     let_expr->AddNode(assign_expr);
     return let_expr;
   } else {
-    AstNode* assigned_value =
-        ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
-    AstNode* assign_expr = CreateAssignmentNode(
-        expr, assigned_value, expr_ident, expr_pos);
+    AstNode* assigned_value = LiteralIfStaticConst(right_expr);
+    AstNode* assign_expr =
+        CreateAssignmentNode(expr, assigned_value, expr_ident, expr_pos);
     ASSERT(assign_expr != NULL);
     return assign_expr;
   }
@@ -8087,11 +8109,6 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
     return initializing_getter;
   }
   // The field is initialized.
-  if (field.is_const()) {
-    ASSERT(field.value() != Object::sentinel().raw());
-    ASSERT(field.value() != Object::transition_sentinel().raw());
-    return new LiteralNode(ident_pos, Instance::ZoneHandle(field.value()));
-  }
   ASSERT(field.is_static());
   const Class& field_owner = Class::ZoneHandle(field.owner());
   const String& field_name = String::ZoneHandle(field.name());
@@ -8121,77 +8138,28 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
   const intptr_t call_pos = TokenPos();
   const Field& field = Field::ZoneHandle(cls.LookupStaticField(field_name));
   Function& func = Function::ZoneHandle();
-  if (Token::IsAssignmentOperator(CurrentToken())) {
-    // Make sure an assignment is legal.
-    if (field.IsNull()) {
-      // No field, check if we have an explicit setter function.
-      const String& setter_name =
-          String::ZoneHandle(Field::SetterName(field_name));
-      const int kNumArguments = 1;  // value.
-      func = Resolver::ResolveStatic(cls,
-                                     setter_name,
-                                     kNumArguments,
-                                     Object::empty_array(),
-                                     Resolver::kIsQualified);
-      if (func.IsNull()) {
-        // No field or explicit setter function, throw a NoSuchMethodError.
-        return ThrowNoSuchMethodError(ident_pos,
-                                      cls,
-                                      field_name,
-                                      NULL,  // No arguments.
-                                      InvocationMirror::kStatic,
-                                      InvocationMirror::kField,
-                                      NULL);  // No existing function.
-      }
-
-      // Explicit setter function for the field found, field does not exist.
-      // Create a getter node first in case it is needed. If getter node
-      // is used as part of, e.g., "+=", and the explicit getter does not
-      // exist, and error will be reported by the code generator.
-      access = new StaticGetterNode(call_pos,
-                                    NULL,
-                                    false,
-                                    Class::ZoneHandle(cls.raw()),
-                                    String::ZoneHandle(field_name.raw()));
-    } else {
-      // Field exists.
-      if (field.is_final()) {
-        // Field has been marked as final, report an error as the field
-        // is not settable.
-        ErrorMsg(ident_pos,
-                 "field '%s' is const static, cannot assign to it",
-                 field_name.ToCString());
-      }
-      access = GenerateStaticFieldLookup(field, TokenPos());
-    }
-  } else {  // Not Token::IsAssignmentOperator(CurrentToken()).
-    if (field.IsNull()) {
-      // No field, check if we have an explicit getter function.
-      const String& getter_name =
-          String::ZoneHandle(Field::GetterName(field_name));
-      const int kNumArguments = 0;  // no arguments.
-      func = Resolver::ResolveStatic(cls,
-                                     getter_name,
-                                     kNumArguments,
-                                     Object::empty_array(),
-                                     Resolver::kIsQualified);
-      if (func.IsNull()) {
-        // We might be referring to an implicit closure, check to see if
-        // there is a function of the same name.
-        func = cls.LookupStaticFunction(field_name);
-        if (func.IsNull()) {
-          // No field or explicit getter function, throw a NoSuchMethodError.
-          return ThrowNoSuchMethodError(ident_pos,
-                                        cls,
-                                        field_name,
-                                        NULL,  // No arguments.
-                                        InvocationMirror::kStatic,
-                                        InvocationMirror::kGetter,
-                                        NULL);  // No existing function.
-        }
+  if (field.IsNull()) {
+    // No field, check if we have an explicit getter function.
+    const String& getter_name =
+        String::ZoneHandle(Field::GetterName(field_name));
+    const int kNumArguments = 0;  // no arguments.
+    func = Resolver::ResolveStatic(cls,
+                                   getter_name,
+                                   kNumArguments,
+                                   Object::empty_array(),
+                                   Resolver::kIsQualified);
+    if (func.IsNull()) {
+      // We might be referring to an implicit closure, check to see if
+      // there is a function of the same name.
+      func = cls.LookupStaticFunction(field_name);
+      if (!func.IsNull()) {
         access = CreateImplicitClosureNode(func, call_pos, NULL);
       } else {
-        ASSERT(func.kind() != RawFunction::kImplicitStaticFinalGetter);
+        // No function to closurize found found.
+        // This field access may turn out to be a call to the setter.
+        // Create a getter call, which may later be turned into
+        // a setter call, or else the backend will generate
+        // a throw NoSuchMethodError().
         access = new StaticGetterNode(call_pos,
                                       NULL,
                                       false,
@@ -8199,8 +8167,15 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
                                       field_name);
       }
     } else {
-      access = GenerateStaticFieldLookup(field, TokenPos());
+      ASSERT(func.kind() != RawFunction::kImplicitStaticFinalGetter);
+      access = new StaticGetterNode(call_pos,
+                                    NULL,
+                                    false,
+                                    Class::ZoneHandle(cls.raw()),
+                                    field_name);
     }
+  } else {
+    access = GenerateStaticFieldLookup(field, TokenPos());
   }
   return access;
 }
