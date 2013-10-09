@@ -54,10 +54,19 @@ private_member3_negative_test: fail
 
 built_in_identifier_test/none: Fail # Issue 13023
 
+# TBF: I think _this_ test is incorrect, but we DO have problem bug with type variable subtype check
+redirecting_factory_malbounded_test/01: fail
+
+# TBT: https://code.google.com/p/dart/issues/detail?id=13918
+implicit_setter_test/01: Fail # Issue 13918
+implicit_setter_test/02: Fail # Issue 13918
+
+
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
 block_scope_test: fail
 lazy_static3_test: fail
 
+# test issue 11124, It is warning, not error to don't initialize final field
 field3a_negative_test: Fail # Issue 11124
 final_syntax_test/01: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
@@ -82,12 +91,9 @@ cascade_test/none: fail # Issue 11577
 
 # test issue 11578, redirecting factory with not subtype
 factory5_test/none: fail # Issue 11578
-factory_redirection_test/none: fail # Issue 11578
 type_variable_bounds_test/none: fail # Issue 11578
 type_variable_scope_test/none: fail # Issue 11578
 factory_implementation_test/none: fail # Issue 11578
-
-redirecting_factory_malbounded_test/none: Fail # Issue 12827
 
 # test issue 11579, assignment, no setter
 getter_no_setter_test/none: fail
@@ -186,8 +192,8 @@ static_field_test/04: fail # Issue 12541
 # test issue 13787; duplicate exports of the same declaration is not handled
 duplicate_export_test: fail # Issue 13787
 
-implicit_setter_test/01: Fail # Issue 13918
-implicit_setter_test/02: Fail # Issue 13918
+# test issue 13916, Looks as no warning should be in this redirecting factory
+redirecting_factory_infinite_steps_test/01: fail
 
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail
