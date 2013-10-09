@@ -354,9 +354,6 @@
             'tools/create_resources.py',
             '--output', '<(resources_cc_file)',
             '--root_prefix', 'bin/',
-            '--package_dir', '<(PRODUCT_DIR)/',
-            '--third_party_dir', '../third_party/',
-            '--rebase', 'vmservice/client/',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(resources_cc_file)'' file.'
@@ -368,7 +365,6 @@
       'target_name': 'dart',
       'type': 'executable',
       'dependencies': [
-        '../pkg/pkg.gyp:pkg_packages',
         'libdart',
         'libdart_builtin',
         'libdart_io',
@@ -434,7 +430,6 @@
       'target_name': 'dart_no_snapshot',
       'type': 'executable',
       'dependencies': [
-        '../pkg/pkg.gyp:pkg_packages',
         'libdart_withcore',
         'libdart_builtin',
         'libdart_io',

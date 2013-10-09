@@ -5,8 +5,7 @@
 part of vmservice;
 
 String detectMimeType(String name) {
-  var extensionStart = name.lastIndexOf('.');
-  var extension = name.substring(extensionStart+1);
+  var extension = new Path(name).extension;
   switch (extension) {
     case 'html':
       return 'text/html; charset=UTF-8';
@@ -41,6 +40,6 @@ class Resource {
 
 void _addResource(String name, List<int> data) {
   var mimeType = detectMimeType(name);
-  Resource resource = new Resource(name, mimeType, data);
+  Resource resource = new Resource(name, detectMimeType(name), data);
   Resource.resources[name] = resource;
 }

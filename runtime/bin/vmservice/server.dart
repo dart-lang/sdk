@@ -22,8 +22,7 @@ class Server {
     var resource = Resource.resources[path];
     if (resource != null) {
       // Serving up a static resource (e.g. .css, .html, .png).
-      request.response.headers.contentType =
-          ContentType.parse(resource.mimeType);
+      request.response.headers.contentType = ContentType.parse(mimeType);
       request.response.add(resource.data);
       request.response.close();
       return;
