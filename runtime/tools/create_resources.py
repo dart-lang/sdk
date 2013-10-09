@@ -13,7 +13,7 @@ from optparse import OptionParser
 import re
 from datetime import date
 
-def makeResources(root_dir, input_files):
+def makeResources(root_dir, package_dir, third_party_dir, rebase, input_files):
   result = ''
   resources = []
 
@@ -21,8 +21,15 @@ def makeResources(root_dir, input_files):
   for resource_file in input_files:
     if root_dir and resource_file.startswith(root_dir):
       resource_file_name = resource_file[ len(root_dir) : ]
+    elif package_dir and resource_file.startswith(package_dir):
+      resource_file_name = os.path.join(rebase,
+                                        resource_file[ len(package_dir) : ])
+    elif third_party_dir and resource_file.startswith(third_party_dir):
+      resource_file_name = os.path.join(rebase,
+                                        resource_file[ len(third_party_dir) : ])
     else:
       resource_file_name = resource_file
+
     resource_url = '/%s' % resource_file_name
     result += '// %s\n' % resource_file
     result += 'const char '
@@ -54,7 +61,8 @@ def makeResources(root_dir, input_files):
   return result
 
 
-def makeFile(output_file, root_dir, input_files):
+def makeFile(output_file, root_dir, package_dir, third_party_dir, rebase_dir,
+             input_files):
   cc_text = '''
 // Copyright (c) %d, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -64,7 +72,8 @@ def makeFile(output_file, root_dir, input_files):
   cc_text += '#include "bin/resources.h"\n\n'
   cc_text += 'namespace dart {\n'
   cc_text += 'namespace bin {\n'
-  cc_text += makeResources(root_dir, input_files)
+  cc_text += makeResources(root_dir, package_dir, third_party_dir, rebase_dir,
+                           input_files)
   cc_text += '}  // namespace bin\n} // namespace dart\n'
   open(output_file, 'w').write(cc_text)
   return True
@@ -80,6 +89,15 @@ def main(args):
     parser.add_option("--root_prefix",
                       action="store", type="string",
                       help="root directory for resources")
+    parser.add_option("--package_dir",
+                      action="store", type="string",
+                      help="root directory for package resources")
+    parser.add_option("--third_party_dir",
+                      action="store", type="string",
+                      help="root directory for third party resources")
+    parser.add_option("--rebase",
+                      action="store", type="string",
+                      help="base directory for package/third_party resources")
 
     (options, args) = parser.parse_args()
     if not options.output:
@@ -91,9 +109,10 @@ def main(args):
 
     files = [ ]
     for arg in args:
-      files.append(arg)
+        files.append(arg)
 
-    if not makeFile(options.output, options.root_prefix, files):
+    if not makeFile(options.output, options.root_prefix, options.package_dir,
+                    options.third_party_dir, options.rebase, files):
       return -1
 
     return 0
