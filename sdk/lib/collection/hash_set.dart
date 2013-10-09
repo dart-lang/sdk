@@ -81,8 +81,9 @@ abstract class _HashSetBase<E> extends IterableBase<E> implements Set<E> {
  *
  * The set allows `null` as an element.
  *
- * Most simple operations on `HashSet` are done in constant time: [add],
- * [contains], [remove], and [length].
+ * Most simple operations on `HashSet` are done in (potentially amorteized)
+ * constant time: [add], [contains], [remove], and [length], provided the hash
+ * codes of objects are well distributed.
  */
 class HashSet<E> implements Set<E> {
   /**

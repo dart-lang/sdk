@@ -18,8 +18,9 @@ part of dart.collection;
  *
  * The set allows `null` as an element.
  *
- * Most simple operations on `HashSet` are done in constant time: [add],
- * [contains], [remove], and [length].
+ * Most simple operations on `HashSet` are done in (potentially amortized)
+ * constant time: [add], [contains], [remove], and [length], provided the hash
+ * codes of objects are well distributed..
  */
 class LinkedHashSet<E> implements HashSet<E> {
 
