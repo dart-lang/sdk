@@ -61,6 +61,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'ElementEvents.transitionEnd',
     'DOMException.name',
     'HTMLTableElement.createTBody',
+    'IDBCursor.next',
     'IDBDatabase.transaction',
     'IDBDatabase.transactionList',
     'IDBDatabase.transactionStore',

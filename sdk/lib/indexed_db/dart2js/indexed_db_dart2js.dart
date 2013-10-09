@@ -231,6 +231,15 @@ class Cursor extends Interceptor native "IDBCursor" {
     }
   }
 
+  @JSName('continue')
+  @DomName('IDBCursor.continue')
+  void next([Object key]) {
+    if (key == null) {
+      JS('void', '#.continue()', this);
+    } else {
+      JS('void', '#.continue(#)', this, key);
+    }
+  }
   
   @DomName('IDBCursor.direction')
   @DocsEditable()
@@ -262,11 +271,6 @@ class Cursor extends Interceptor native "IDBCursor" {
   @DomName('IDBCursor.delete')
   @DocsEditable()
   Request _delete() native;
-
-  @JSName('continue')
-  @DomName('IDBCursor.continue')
-  @DocsEditable()
-  void next([Object key]) native;
 
   @DomName('IDBCursor.update')
   @DocsEditable()
