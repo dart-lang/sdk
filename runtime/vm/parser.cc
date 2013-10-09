@@ -3121,9 +3121,11 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   // Parse redirecting factory constructor.
   Type& redirection_type = Type::Handle();
   String& redirection_identifier = String::Handle();
+  bool is_redirecting = false;
   if (method->IsFactory() && (CurrentToken() == Token::kASSIGN)) {
     ConsumeToken();
     const intptr_t type_pos = TokenPos();
+    is_redirecting = true;
     const AbstractType& type = AbstractType::Handle(
         ParseType(ClassFinalizer::kResolveTypeParameters));
     if (!type.IsMalformed() && type.IsTypeParameter()) {
@@ -3153,6 +3155,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
         ((LookaheadToken(2) == Token::kLPAREN) ||
          LookaheadToken(4) == Token::kLPAREN)) {
       // Redirected constructor: either this(...) or this.xxx(...).
+      is_redirecting = true;
       if (method->params.has_field_initializer) {
         // Constructors that redirect to another constructor must not
         // initialize any fields using field initializer parameters.
@@ -3287,6 +3290,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     method->decl_begin_pos));
   func.set_result_type(*method->type);
   func.set_end_token_pos(method_end_pos);
+  func.set_is_redirecting(is_redirecting);
   if (method->metadata_pos > 0) {
     library_.AddFunctionMetadata(func, method->metadata_pos);
   }

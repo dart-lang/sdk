@@ -4197,6 +4197,11 @@ void Function::set_is_recognized(bool value) const {
 }
 
 
+void Function::set_is_redirecting(bool value) const {
+  set_kind_tag(RedirectingBit::update(value, raw_ptr()->kind_tag_));
+}
+
+
 void Function::set_is_static(bool value) const {
   set_kind_tag(StaticBit::update(value, raw_ptr()->kind_tag_));
 }

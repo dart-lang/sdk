@@ -252,11 +252,12 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
 
   func = cls_mirror.constructors[const Symbol('MyClass')];
   Expect.isTrue(func is MethodMirror);
-  Expect.equals('MyClass return(MyClass) constructor', buildMethodString(func));
+  Expect.equals('MyClass return(MyClass) constructor generative',
+                buildMethodString(func));
 
   func = cls_mirror.constructors[const Symbol('MyClass.named')];
   Expect.isTrue(func is MethodMirror);
-  Expect.equals('MyClass.named return(MyClass) constructor',
+  Expect.equals('MyClass.named return(MyClass) constructor generative',
                 buildMethodString(func));
 
   func = generic_cls_mirror.members[const Symbol('method')];

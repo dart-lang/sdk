@@ -1699,6 +1699,11 @@ class Function : public Object {
   }
   void set_is_recognized(bool value) const;
 
+  bool is_redirecting() const {
+    return RedirectingBit::decode(raw_ptr()->kind_tag_);
+  }
+  void set_is_redirecting(bool value) const;
+
   bool HasOptimizedCode() const;
 
   // Returns true if the argument counts are valid for calling this function.
@@ -1858,7 +1863,8 @@ class Function : public Object {
     kVisibleBit = 8,
     kIntrinsicBit = 9,
     kRecognizedBit = 10,
-    kKindTagBit = 11,
+    kRedirectingBit = 11,
+    kKindTagBit = 12,
     kKindTagSize = 4,
   };
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
@@ -1872,6 +1878,7 @@ class Function : public Object {
   class VisibleBit : public BitField<bool, kVisibleBit, 1> {};
   class IntrinsicBit : public BitField<bool, kIntrinsicBit, 1> {};
   class RecognizedBit : public BitField<bool, kRecognizedBit, 1> {};
+  class RedirectingBit : public BitField<bool, kRedirectingBit, 1> {};
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {};  // NOLINT
 

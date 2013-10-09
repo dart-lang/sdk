@@ -261,12 +261,14 @@ static RawInstance* CreateMethodMirror(const Function& func,
   args.SetAt(4, Bool::Get(func.is_abstract()));
   args.SetAt(5, Bool::Get(func.IsGetterFunction()));
   args.SetAt(6, Bool::Get(func.IsSetterFunction()));
-  args.SetAt(7, Bool::Get(func.kind() == RawFunction::kConstructor));
-  // TODO(mlippautz): Implement different constructor kinds.
-  args.SetAt(8, Bool::False());
-  args.SetAt(9, Bool::False());
-  args.SetAt(10, Bool::False());
-  args.SetAt(11, Bool::False());
+
+  bool isConstructor = (func.kind() == RawFunction::kConstructor);
+  args.SetAt(7, Bool::Get(isConstructor));
+  args.SetAt(8, Bool::Get(isConstructor && func.is_const()));
+  args.SetAt(9, Bool::Get(isConstructor && func.IsConstructor()));
+  args.SetAt(10, Bool::Get(isConstructor && func.is_redirecting()));
+  args.SetAt(11, Bool::Get(isConstructor && func.IsFactory()));
+
   return CreateMirror(Symbols::_LocalMethodMirrorImpl(), args);
 }
 

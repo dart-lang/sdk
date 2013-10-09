@@ -155,7 +155,6 @@ mirrors/mixin_test/01: Fail, OK # TODO(ahe): Slight broken test to ensure test c
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 mirrors/closures_test/01: Fail, OK # Incorrect dart2js behavior.
 
-mirrors/constructor_kinds_test: RuntimeError # Issue 13798
 mirrors/generics_substitution_test: RuntimeError # Issue 13808
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12282
 mirrors/generic_mixin_applications_test: RuntimeError # Issue 12282
@@ -209,7 +208,6 @@ mirrors/local_isolate_test: Fail # Issue 13719: Please triage this failure.
 mirrors/mixin_test/01: Fail # Issue 13719: Please triage this failure.
 mirrors/typedef_test/01: Fail # Issue 13719: Please triage this failure.
 
-mirrors/constructor_kinds_test: RuntimeError # Issue 13798
 mirrors/generics_substitution_test: RuntimeError # Issue 13808
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12282
 mirrors/generic_mixin_applications_test: RuntimeError # Issue 12282
