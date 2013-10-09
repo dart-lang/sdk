@@ -2361,8 +2361,6 @@ Metadata consists of a series of annotations, each of which begin with the chara
 Metadata is associated with the abstract syntax tree of the program construct $p$ that immediately follows the metadata, assuming $p$ is not itself metadata or a comment. Metadata can be retrieved at runtime via a reflective call, provided the annotated program construct $p$ is accessible via reflection.
 
 \commentary{
-Reflective access to metadata is not yet implemented as of the M4 release.
-
 Obviously, metadata can also be retrieved statically by parsing the program and evaluating the constants via a suitable interpreter. In fact many if not most uses of metadata are entirely static.
 }
 
@@ -4770,12 +4768,17 @@ The {\em switch statement} supports dispatching control among a large number of 
     .
  \end{grammar}
  
- Given a switch statement of the form \code{\SWITCH{} ($e$) \{ \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1 \ldots$  \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ \DEFAULT{}: $s_{n+1}$ \}} or the form \code{\SWITCH{} ($e$) \{ \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1 \ldots$  \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ \}}, it is a compile-time error if the expressions $e_k$ are not compile-time constants for all  $k \in 1..n$.  It is a compile-time error if the values of the expressions $e_k$ are not all instances of the same class $C$ or of a class that implements \cd{int} or \cd{String}, for all $k \in 1..n$. 
+ Given a switch statement of the form \code{\SWITCH{} ($e$) \{ \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1 \ldots$  \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ \DEFAULT{}: $s_{n+1}$ \}} or the form \code{\SWITCH{} ($e$) \{ \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1 \ldots$  \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ \}}, it is a compile-time error if the expressions $e_k$ are not compile-time constants for all  $k \in 1..n$.  It is a compile-time error if the values of the expressions $e_k$ are not either:
+ \begin{itemize}
+ \item instances of the same class $C$, for all $k \in 1..n$,  or 
+ \item instances of a class that implements \cd{int}, for all $k \in 1..n$,  or 
+ \item instances of a class that implements \cd{String}, for all $k \in 1..n$. 
+ \end{itemize}
  
-\commentary{In other words,  all the expressions in the cases evaluate to constants of the exact same user defined class or  are of certain known types.  Note that the values of the expressions are known at compile-time, and are independent of any static type annotations.
+\commentary{In other words,  all the expressions in the cases evaluate to constants of the exact same user defined class or are of certain known types.  Note that the values of the expressions are known at compile-time, and are independent of any static type annotations.
 }
 
-It is a compile-time error if the class $C$ implements the operator $==$ unless the value of the expression is a string or integer.
+It is a compile-time error if the class $C$ has an implementation of the operator $==$ other than the one inherited from \code{Object} unless the value of the expression is a string or an integer.
  
  \rationale{
  The prohibition on user defined equality allows us to implement the switch efficiently for user defined types. We could formulate matching in terms of identity instead with the same efficiency. However, if a type defines an equality operator, programmers would find it quite surprising that equal objects did not match.
