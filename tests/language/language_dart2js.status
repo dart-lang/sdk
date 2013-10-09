@@ -18,7 +18,12 @@ library_ambiguous_test/00: CompileTimeError # Issue 13632
 library_ambiguous_test/01: CompileTimeError # Issue 13632
 library_ambiguous_test/02: CompileTimeError # Issue 13632
 library_ambiguous_test/03: CompileTimeError # Issue 13632
-
+type_variable_conflict_test/01: Fail # Issue 13702
+type_variable_conflict_test/02: Fail # Issue 13702
+type_variable_conflict_test/03: Fail # Issue 13702
+type_variable_conflict_test/04: Fail # Issue 13702
+type_variable_conflict_test/05: Fail # Issue 13702
+type_variable_conflict_test/06: Fail # Issue 13702
 implicit_setter_test: Fail # Issue 13919
 
 # VM specific tests that should not be run by dart2js.
@@ -36,12 +41,6 @@ type_variable_bounds2_test/03: Fail # Issue 12702
 type_variable_bounds2_test/05: Fail # Issue 12702
 type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
 type_variable_bounds3_test/00: Fail # Issue 12702
-type_variable_conflict_test/01: Fail # Issue 13702
-type_variable_conflict_test/02: Fail # Issue 13702
-type_variable_conflict_test/03: Fail # Issue 13702
-type_variable_conflict_test/04: Fail # Issue 13702
-type_variable_conflict_test/05: Fail # Issue 13702
-type_variable_conflict_test/06: Fail # Issue 13702
 f_bounded_quantification_test/01: Fail # Issue 12703
 f_bounded_quantification_test/02: Fail # Issue 12703
 f_bounded_quantification5_test: Fail # Issue 12703
