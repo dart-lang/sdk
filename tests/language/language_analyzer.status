@@ -195,6 +195,13 @@ duplicate_export_test: fail # Issue 13787
 # test issue 13916, Looks as no warning should be in this redirecting factory
 redirecting_factory_infinite_steps_test/01: fail
 
+type_variable_conflict_test/01: Fail # Issue 13703
+type_variable_conflict_test/02: Fail # Issue 13703
+type_variable_conflict_test/03: Fail # Issue 13703
+type_variable_conflict_test/04: Fail # Issue 13703
+type_variable_conflict_test/05: Fail # Issue 13703
+type_variable_conflict_test/06: Fail # Issue 13703
+
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail
 factory1_test/01: fail

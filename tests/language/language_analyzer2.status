@@ -186,6 +186,13 @@ static_field_test/04: fail # Issue 12541
 # test issue 13787; duplicate exports of the same declaration is not handled
 duplicate_export_test: fail # Issue 13787
 
+type_variable_conflict_test/01: Fail # Issue 13703
+type_variable_conflict_test/02: Fail # Issue 13703
+type_variable_conflict_test/03: Fail # Issue 13703
+type_variable_conflict_test/04: Fail # Issue 13703
+type_variable_conflict_test/05: Fail # Issue 13703
+type_variable_conflict_test/06: Fail # Issue 13703
+
 [ $compiler == dart2analyzer && $checked ]
 factory1_test/00: fail
 factory1_test/01: fail
