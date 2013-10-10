@@ -9485,8 +9485,6 @@ abstract class Element extends Node implements ParentNode, ChildNode {
     // Validate that this is a custom element & perform any additional
     // initialization.
     _initializeCustomElement(this);
-
-    createdCallback();
   }
 
   /**
@@ -9798,13 +9796,13 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   /**
    * Gets the position of this element relative to the client area of the page.
    */
-  Rectangle get client => new Rectangle(clientLeft, clientTop, clientWidth, 
+  Rectangle get client => new Rectangle(clientLeft, clientTop, clientWidth,
       clientHeight);
 
   /**
    * Gets the offset of this element relative to its offsetParent.
    */
-  Rectangle get offset => new Rectangle(offsetLeft, offsetTop, offsetWidth, 
+  Rectangle get offset => new Rectangle(offsetLeft, offsetTop, offsetWidth,
       offsetHeight);
 
   /**
@@ -9831,15 +9829,6 @@ abstract class Element extends Node implements ParentNode, ChildNode {
     var e = _ElementFactoryProvider.createElement_tag(tag, null);
     return e is Element && !(e is UnknownElement);
   }
-
-  /**
-   * Called by the DOM when this element has been instantiated.
-   *
-   * Will be replaced by created constructor.
-   */
-  @Experimental()
-  @deprecated
-  void createdCallback() {}
 
   /**
    * Called by the DOM when this element has been inserted into the live
@@ -26576,13 +26565,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");

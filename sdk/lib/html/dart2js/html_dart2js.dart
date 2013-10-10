@@ -8931,8 +8931,6 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
     // Validate that this is a custom element & perform any additional
     // initialization.
     _initializeCustomElement(this);
-
-    createdCallback();
   }
 
   /**
@@ -9244,13 +9242,13 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   /**
    * Gets the position of this element relative to the client area of the page.
    */
-  Rectangle get client => new Rectangle(clientLeft, clientTop, clientWidth, 
+  Rectangle get client => new Rectangle(clientLeft, clientTop, clientWidth,
       clientHeight);
 
   /**
    * Gets the offset of this element relative to its offsetParent.
    */
-  Rectangle get offset => new Rectangle(offsetLeft, offsetTop, offsetWidth, 
+  Rectangle get offset => new Rectangle(offsetLeft, offsetTop, offsetWidth,
       offsetHeight);
 
   /**
@@ -9277,15 +9275,6 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
     var e = _ElementFactoryProvider.createElement_tag(tag, null);
     return e is Element && !(e is UnknownElement);
   }
-
-  /**
-   * Called by the DOM when this element has been instantiated.
-   *
-   * Will be replaced by created constructor.
-   */
-  @Experimental()
-  @deprecated
-  void createdCallback() {}
 
   /**
    * Called by the DOM when this element has been inserted into the live

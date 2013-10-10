@@ -12,13 +12,11 @@ import '../utils.dart';
 class A extends HtmlElement {
   static final tag = 'x-a';
   factory A() => new Element.tag(tag);
-  A.created() : super.created();
-
-  static int createdInvocations = 0;
-
-  void createdCallback() {
+  A.created() : super.created() {
     createdInvocations++;
   }
+
+  static int createdInvocations = 0;
 }
 
 class B extends HtmlElement {
@@ -30,12 +28,7 @@ class B extends HtmlElement {
 class C extends HtmlElement {
   static final tag = 'x-c';
   factory C() => new Element.tag(tag);
-  C.created() : super.created();
-
-  static int createdInvocations = 0;
-  static var div;
-
-  void createdCallback() {
+  C.created() : super.created() {
     createdInvocations++;
 
     if (this.id != 'u') {
@@ -56,6 +49,9 @@ class C extends HtmlElement {
     // Note, this is different from JavaScript where this would be false.
     expect(v is C, isTrue);
   }
+
+  static int createdInvocations = 0;
+  static var div;
 }
 
 main() {

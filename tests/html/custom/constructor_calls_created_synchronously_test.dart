@@ -12,13 +12,11 @@ import 'dart:mirrors';
 class A extends HtmlElement {
   static final tag = 'x-a';
   factory A() => new Element.tag(tag);
-  A.created() : super.created();
-
-  static int ncallbacks = 0;
-
-  void createdCallback() {
+  A.created() : super.created() {
     ncallbacks++;
   }
+
+  static int ncallbacks = 0;
 }
 
 main() {

@@ -25,13 +25,11 @@ class A extends HtmlElement {
 class B extends HtmlElement {
   static final tag = 'x-b';
   factory B() => new Element.tag(tag);
-  B.created() : super.created();
-
-  static var invocations = [];
-
-  void createdCallback() {
+  B.created() : super.created() {
     invocations.add('created');
   }
+
+  static var invocations = [];
 
   void attributeChanged(name, oldValue, newValue) {
     invocations.add('$name: $oldValue => $newValue');
