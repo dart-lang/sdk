@@ -208,11 +208,15 @@ async/stream_controller_async_test: Pass, Fail # Issue 13608
 [ $compiler == dartanalyzer ]
 mirrors/typedef_test/none: Fail # Issue 13093
 mirrors/generics_test/none: Fail # Issue 13432
+mirrors/generic_bounded_test/none: Fail # Issue 13432
+mirrors/generic_bounded_by_type_parameter_test/none: Fail # Issue 13432
 mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
 
 [ $compiler == dart2analyzer ]
 mirrors/typedef_test/none: Fail # Issue 13093
 mirrors/generics_test/none: Fail # Issue 13432
+mirrors/generic_bounded_test/none: Fail # Issue 13432
+mirrors/generic_bounded_by_type_parameter_test/none: Fail # Issue 13432
 mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
 
 [ $compiler == none && $runtime == dartium ]
