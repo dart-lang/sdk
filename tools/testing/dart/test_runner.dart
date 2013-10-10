@@ -817,6 +817,10 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     return super.canRunDependendCommands && !didFail(null);
   }
 
+  bool get hasCrashed {
+    return super.hasCrashed || _rendererCrashed;
+  }
+
   Expectation _getOutcome() {
     if (_failedBecauseOfMissingXDisplay) {
       return Expectation.FAIL;
@@ -851,6 +855,9 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     }
     return false;
   }
+
+  bool get _rendererCrashed =>
+      decodeUtf8(super.stdout).contains("#CRASHED - rendere");
 
   bool get _failedBecauseOfUnexpectedDRTOutput {
     /*
