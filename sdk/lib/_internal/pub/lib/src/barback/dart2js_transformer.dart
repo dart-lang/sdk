@@ -41,7 +41,14 @@ class Dart2JSTransformer extends Transformer {
 
     return transform.primaryInput.readAsString().then((code) {
       try {
-        if (!dart.isEntrypoint(parseCompilationUnit(code))) return;
+        var id = transform.primaryInput.id;
+        var name = id.path;
+        if (id.package != _graph.entrypoint.root.name) {
+          name += " in ${id.package}";
+        }
+
+        var parsed = parseCompilationUnit(code, name: name);
+        if (!dart.isEntrypoint(parsed)) return;
       } on AnalyzerErrorGroup catch (e) {
         transform.logger.error(e.message);
         return;
@@ -64,6 +71,12 @@ class Dart2JSTransformer extends Transformer {
           packageRoot: packageRoot,
           inputProvider: provider.readStringFromUri,
           diagnosticHandler: provider.handleDiagnostic).then((js) {
+        if (js == null) {
+          // The compile failed and errors should have already been reported
+          // through the diagnostic handler, so just do nothing here.
+          return;
+        }
+
         var id = transform.primaryInput.id.changeExtension(".dart.js");
         transform.addOutput(new Asset.fromString(id, js));
 

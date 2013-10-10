@@ -10,6 +10,7 @@ import 'asset_cascade.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
+import 'barback_logger.dart';
 import 'build_result.dart';
 import 'errors.dart';
 import 'package_provider.dart';
@@ -23,6 +24,10 @@ import 'utils.dart';
 class PackageGraph {
   /// The provider that exposes asset and package information.
   final PackageProvider provider;
+
+  /// The logger used to report transformer log entries. If this is null, then
+  /// [_defaultLogger] will be used instead.
+  final BarbackLogger _logger;
 
   /// The [AssetCascade] for each package.
   final _cascades = <String, AssetCascade>{};
@@ -62,7 +67,8 @@ class PackageGraph {
 
   /// Creates a new [PackageGraph] that will transform assets in all packages
   /// made available by [provider].
-  PackageGraph(this.provider) {
+  PackageGraph(this.provider, {BarbackLogger logger})
+      : _logger = logger != null ? logger : new BarbackLogger() {
     for (var package in provider.packages) {
       var cascade = new AssetCascade(this, package);
       // The initial result for each cascade is "success" since the cascade
@@ -73,16 +79,23 @@ class PackageGraph {
         _cascadeResults[package] = null;
       });
 
+      cascade.onLog.listen(_logger.logEntry);
+
       cascade.results.listen((result) {
         _cascadeResults[cascade.package] = result;
         // If any cascade hasn't yet finished, the overall build isn't finished
         // either.
         if (_cascadeResults.values.any((result) => result == null)) return;
 
+        var errors = unionAll(
+            _cascadeResults.values.map((result) => result.errors));
+
+        var numLogErrors = _cascadeResults.values.fold(0,
+            (numErrors, result) => result.numErrors - result.errors.length);
+
         // Include all build errors for all cascades. If no cascades have
         // errors, the result will automatically be considered a success.
-        _resultsController.add(new BuildResult(unionAll(
-            _cascadeResults.values.map((result) => result.errors))));
+        _resultsController.add(new BuildResult(errors, numLogErrors));
       }, onError: (error) {
         _lastUnexpectedError = error;
         _resultsController.addError(error);

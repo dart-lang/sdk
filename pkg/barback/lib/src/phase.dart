@@ -11,6 +11,7 @@ import 'asset_cascade.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
+import 'barback_logger.dart';
 import 'group_runner.dart';
 import 'errors.dart';
 import 'phase_forwarder.dart';
@@ -92,6 +93,11 @@ class Phase {
   bool get isDirty => _inputs.values.any((input) => input.isDirty) ||
       _groups.values.any((group) => group.isDirty);
 
+  /// A stream that emits an event whenever any transforms in this phase log an
+  /// entry.
+  Stream<LogEntry> get onLog => _onLogPool.stream;
+  final _onLogPool = new StreamPool<LogEntry>.broadcast();
+
   /// The phase after this one.
   ///
   /// Outputs from this phase will be passed to it.
@@ -151,6 +157,7 @@ class Phase {
     });
     _onDirtyPool.add(input.onDirty);
     _onDirtyController.add(null);
+    _onLogPool.add(input.onLog);
 
     for (var group in _groups.values) {
       group.addInput(node);
@@ -238,6 +245,7 @@ class Phase {
       group.remove();
     }
     _onDirtyPool.close();
+    _onLogPool.close();
   }
 
   /// Remove all phases after this one.

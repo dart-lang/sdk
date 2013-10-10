@@ -64,8 +64,8 @@ class Barback {
   /// emitted through the [results] stream's error channel.
   Stream get errors => _graph.errors;
 
-  Barback(PackageProvider provider)
-      : _graph = new PackageGraph(provider);
+  Barback(PackageProvider provider, {BarbackLogger logger})
+      : _graph = new PackageGraph(provider, logger: logger);
 
   /// Gets the asset identified by [id].
   ///

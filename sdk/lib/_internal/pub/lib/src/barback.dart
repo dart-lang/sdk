@@ -10,6 +10,7 @@ import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 
 import 'barback/load_all_transformers.dart';
+import 'barback/pub_barback_logger.dart';
 import 'barback/pub_package_provider.dart';
 import 'barback/server.dart';
 import 'barback/watch_sources.dart';
@@ -58,7 +59,8 @@ class TransformerId {
 Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
     {Iterable<Transformer> builtInTransformers}) {
   var provider = new PubPackageProvider(graph);
-  var barback = new Barback(provider);
+  var logger = new PubBarbackLogger();
+  var barback = new Barback(provider, logger: logger);
 
   return BarbackServer.bind(host, port, barback, graph.entrypoint.root.name)
       .then((server) {

@@ -10,6 +10,7 @@ import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
+import 'barback_logger.dart';
 import 'errors.dart';
 import 'phase.dart';
 import 'transform.dart';
@@ -52,6 +53,10 @@ class TransformNode {
   /// dirty state is thoroughly propagated as soon as any assets are changed.
   Stream get onDirty => _onDirtyController.stream;
   final _onDirtyController = new StreamController.broadcast(sync: true);
+
+  /// A stream that emits an event whenever this transform logs an entry.
+  Stream<LogEntry> get onLog => _onLogController.stream;
+  final _onLogController = new StreamController<LogEntry>.broadcast();
 
   TransformNode(this.phase, this.transformer, this.primary) {
     _primarySubscription = primary.onStateChange.listen((state) {
@@ -106,7 +111,7 @@ class TransformNode {
     assert(!_onDirtyController.isClosed);
 
     var newOutputs = new AssetSet();
-    var transform = createTransform(this, newOutputs);
+    var transform = createTransform(this, newOutputs, _log);
 
     // Clear all the old input subscriptions. If an input is re-used, we'll
     // re-subscribe.
@@ -199,5 +204,13 @@ class TransformNode {
     }
 
     return brandNewOutputs;
+  }
+
+  void _log(AssetId asset, LogLevel level, String message, Span span) {
+    // If the log isn't already associated with an asset, use the primary.
+    if (asset == null) asset = primary.id;
+    var info = new TransformInfo(transformer, primary.id);
+    var entry = new LogEntry(info, asset, level, message, span);
+    _onLogController.add(entry);
   }
 }

@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:stack_trace/stack_trace.dart';
 
+import 'barback_logger.dart';
 import 'errors.dart';
 import 'utils.dart';
 
@@ -17,20 +18,30 @@ import 'utils.dart';
 /// the build, it's considered to be a success; any errors render it a failure,
 /// although individual assets may still have built successfully.
 class BuildResult {
-  /// All errors that occurred during the build.
+  // TODO(rnystrom): Revise how to track error results. Errors can come from
+  // both logs and exceptions. Accumulating them is likely slow and a waste of
+  // memory. If we do want to accumulate them, we should at least unify them
+  // in a single collection (probably of log entries).
+  /// All errors that were thrown during the build.
   final Set<BarbackException> errors;
 
-  /// `true` if the build succeeded.
-  bool get succeeded => errors.isEmpty;
+  /// The number of error log entries that occurred during this build.
+  final int _numErrorLogs;
 
-  BuildResult(Iterable<BarbackException> errors)
+  /// `true` if the build succeeded.
+  bool get succeeded => errors.isEmpty && _numErrorLogs == 0;
+
+  /// Gets the number of error exceptions and log entries.
+  int get numErrors => errors.length + _numErrorLogs;
+
+  BuildResult(Iterable<BarbackException> errors, this._numErrorLogs)
       : errors = flattenAggregateExceptions(errors).toSet();
 
   /// Creates a build result indicating a successful build.
   ///
   /// This equivalent to a build result with no errors.
   BuildResult.success()
-      : this([]);
+      : this([], 0);
 
   String toString() {
     if (succeeded) return "success";

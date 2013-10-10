@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'asset.dart';
 import 'asset_forwarder.dart';
 import 'asset_node.dart';
+import 'barback_logger.dart';
 import 'errors.dart';
 import 'phase.dart';
 import 'stream_pool.dart';
@@ -78,6 +79,11 @@ class PhaseInput {
   bool get isDirty => _adjustTransformersFuture != null ||
       _newPassThrough || _transforms.any((transform) => transform.isDirty);
 
+  /// A stream that emits an event whenever any transforms that use [input] as
+  /// their primary input log an entry.
+  Stream<LogEntry> get onLog => _onLogPool.stream;
+  final _onLogPool = new StreamPool<LogEntry>.broadcast();
+
   PhaseInput(this._phase, AssetNode input, Iterable<Transformer> transformers)
       : _transformers = transformers.toSet(),
         _inputForwarder = new AssetForwarder(input) {
@@ -100,6 +106,7 @@ class PhaseInput {
   void remove() {
     _onDirtyController.add(null);
     _onDirtyPool.close();
+    _onLogPool.close();
     _inputForwarder.close();
     if (_passThroughController != null) {
       _passThroughController.setRemoved();
@@ -224,6 +231,7 @@ class PhaseInput {
         var transform = new TransformNode(_phase, transformer, input);
         _transforms.add(transform);
         _onDirtyPool.add(transform.onDirty);
+        _onLogPool.add(transform.onLog);
       });
     }));
   }

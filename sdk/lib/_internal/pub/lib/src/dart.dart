@@ -58,9 +58,6 @@ Future<String> compile(String entrypoint, {String packageRoot,
         path.toUri(appendSlash(_libPath)),
         path.toUri(appendSlash(packageRoot)),
         inputProvider, diagnosticHandler, options);
-  }).then((result) {
-    if (result != null) return result;
-    throw new ApplicationException('Failed to compile "$entrypoint".');
   });
 }
 

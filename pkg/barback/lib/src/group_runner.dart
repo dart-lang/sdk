@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'asset_cascade.dart';
 import 'asset_node.dart';
+import 'barback_logger.dart';
 import 'phase.dart';
 import 'stream_pool.dart';
 import 'transformer_group.dart';
@@ -31,6 +32,11 @@ class GroupRunner {
   /// Whether this group is dirty and needs to be run.
   bool get isDirty => _phases.any((phase) => phase.isDirty);
 
+  /// A stream that emits an event whenever any transforms in this group log an
+  /// entry.
+  Stream<LogEntry> get onLog => _onLogPool.stream;
+  final _onLogPool = new StreamPool<LogEntry>.broadcast();
+
   // TODO(nweiz): move to a more push-based way of propagating outputs and get
   // rid of this. Once that's done, see if we can unify GroupRunner and
   // AssetCascade.
@@ -50,6 +56,7 @@ class GroupRunner {
 
     for (var phase in _phases) {
       _onDirtyPool.add(phase.onDirty);
+      _onLogPool.add(phase.onLog);
     }
   }
 

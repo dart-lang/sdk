@@ -17,9 +17,6 @@ import '../io.dart';
 import '../log.dart' as log;
 import '../utils.dart';
 
-final _green = getSpecial('\u001b[32m');
-final _red = getSpecial('\u001b[31m');
-final _none = getSpecial('\u001b[0m');
 final _arrow = getSpecial('\u2192', '=>');
 
 /// Handles the `serve` pub command.
@@ -80,16 +77,16 @@ class ServeCommand extends PubCommand {
       var completer = new Completer();
 
       server.barback.errors.listen((error) {
-        log.error("${_red}Build error:\n$error$_none");
+        log.error(log.red("Build error:\n$error"));
       });
 
       server.barback.results.listen((result) {
         if (result.succeeded) {
           // TODO(rnystrom): Report using growl/inotify-send where available.
-          log.message("Build completed ${_green}successfully$_none");
+          log.message("Build completed ${log.green('successfully')}");
         } else {
           log.message("Build completed with "
-              "${_red}${result.errors.length}$_none errors.");
+              "${log.red(result.numErrors)} errors.");
         }
       }, onError: (error) {
         if (!completer.isCompleted) completer.completeError(error);
@@ -97,12 +94,12 @@ class ServeCommand extends PubCommand {
 
       server.results.listen((result) {
         if (result.isSuccess) {
-          log.message("${_green}GET$_none ${result.url.path} $_arrow "
+          log.message("${log.green('GET')} ${result.url.path} $_arrow "
               "${result.id}");
           return;
         }
 
-        var msg = "${_red}GET$_none ${result.url.path} $_arrow";
+        var msg = "${log.red('GET')} ${result.url.path} $_arrow";
         var error = result.error.toString();
         if (error.contains("\n")) {
           log.message("$msg\n${prefixLines(error)}");
