@@ -15,7 +15,6 @@ Language/05_Variables/05_Variables_A06_t03: Fail # Issue 13719: Please triage th
 Language/05_Variables/05_Variables_A06_t04: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/05_Variables_A06_t05: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/05_Variables_A06_t06: Fail # Issue 13719: Please triage this failure.
-Language/05_Variables/05_Variables_A16_t02: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Issue 13719: Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Pass, Fail # Issue 13719: Please triage this failure.
@@ -104,6 +103,11 @@ LibTest/core/Symbol/Symbol_A01_t05: Fail # co19-roll r607: Please triage this fa
 LibTest/isolate/isolate_api/spawnFunction_A04_t01: Timeout # Issue 13719: Please triage this failure.
 LibTest/isolate/isolate_api/spawnFunction_A04_t02: Timeout # Issue 13719: Please triage this failure.
 LibTest/isolate/isolate_api/spawnFunction_A04_t03: Timeout # Issue 13719: Please triage this failure.
+LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail # Issue 13719: Please triage this failure.
+LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail # Issue 13719: Please triage this failure.
+LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # Issue 13719: Please triage this failure.
+LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # Issue 13719: Please triage this failure.
+LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail # Issue 13719: Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail # Issue 13719: Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail # Issue 13719: Please triage this failure.
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: Timeout # Issue 13719: Please triage this failure.
