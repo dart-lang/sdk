@@ -8319,11 +8319,12 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           array = LoadClosure(primary);
         } else if (primary->primary().IsClass()) {
           const Class& type_class = Class::Cast(primary->primary());
-          Type& type = Type::ZoneHandle(
+          AbstractType& type = Type::ZoneHandle(
               Type::New(type_class, TypeArguments::Handle(),
                         primary->token_pos(), Heap::kOld));
           type ^= ClassFinalizer::FinalizeType(
               current_class(), type, ClassFinalizer::kCanonicalize);
+          // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
           array = new TypeNode(primary->token_pos(), type);
         } else if (primary->primary().IsTypeParameter()) {
@@ -8400,11 +8401,12 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                             NULL);  // No existing function.
         } else if (primary->primary().IsClass()) {
           const Class& type_class = Class::Cast(primary->primary());
-          Type& type = Type::ZoneHandle(
+          AbstractType& type = Type::ZoneHandle(
               Type::New(type_class, TypeArguments::Handle(),
                         primary->token_pos(), Heap::kOld));
           type ^= ClassFinalizer::FinalizeType(
               current_class(), type, ClassFinalizer::kCanonicalize);
+          // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
           selector = new TypeNode(primary->token_pos(), type);
         } else {
@@ -8425,11 +8427,12 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           left = LoadClosure(primary);
         } else if (primary->primary().IsClass()) {
           const Class& type_class = Class::Cast(primary->primary());
-          Type& type = Type::ZoneHandle(
+          AbstractType& type = Type::ZoneHandle(
               Type::New(type_class, TypeArguments::Handle(),
                         primary->token_pos(), Heap::kOld));
-          type ^= ClassFinalizer::FinalizeType(
+          type = ClassFinalizer::FinalizeType(
               current_class(), type, ClassFinalizer::kCanonicalize);
+          // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
           left = new TypeNode(primary->token_pos(), type);
         } else if (primary->primary().IsTypeParameter()) {
@@ -9146,11 +9149,12 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
       }
     } else if (primary->primary().IsClass()) {
       const Class& type_class = Class::Cast(primary->primary());
-      Type& type = Type::ZoneHandle(
+      AbstractType& type = Type::ZoneHandle(
           Type::New(type_class, TypeArguments::Handle(),
                     primary->token_pos(), Heap::kOld));
       type ^= ClassFinalizer::FinalizeType(
           current_class(), type, ClassFinalizer::kCanonicalize);
+      // Type may be malbounded, but not malformed.
       ASSERT(!type.IsMalformed());
       resolved = new TypeNode(primary->token_pos(), type);
     }

@@ -864,7 +864,8 @@ void EffectGraphVisitor::VisitTypeNode(TypeNode* node) {
 
 void ValueGraphVisitor::VisitTypeNode(TypeNode* node) {
   const AbstractType& type = node->type();
-  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
+  // Type may be malbounded, but not malformed.
+  ASSERT(type.IsFinalized() && !type.IsMalformed());
   if (type.IsInstantiated()) {
     ReturnDefinition(new ConstantInstr(type));
   } else {

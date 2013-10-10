@@ -30,7 +30,6 @@ lazy_static3_test: Fail # Issue 12593
 duplicate_export_negative_test: Fail # Issue 6134
 on_catch_malformed_type_test: Fail # Issue 8601
 mixin_forwarding_constructor2_test: Fail # Issue 13641
-malbounded_type_literal_test: Pass, Crash # Issue 13952
 implicit_setter_test: Fail # Issue 13917
 
 [ $compiler == none && $runtime == vm ]
