@@ -227,10 +227,13 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
 
     case DeoptInstr::kSuffix:
     case DeoptInstr::kMaterializeObject:
+    default:
       // We should not encounter these instructions when filling stack slots.
-      UNIMPLEMENTED();
+      UNREACHABLE();
       return false;
   }
+  UNREACHABLE();
+  return false;
 }
 
 
