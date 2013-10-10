@@ -152,3 +152,9 @@ LibTest/isolate/SendPort/send_A02_t03: Fail # Issue 13921
 LibTest/isolate/SendPort/send_A02_t04: Fail # Issue 13921
 LibTest/isolate/SendPort/send_A02_t05: Fail # Issue 13921
 LibTest/isolate/SendPort/send_A02_t06: Fail # Issue 13921
+
+LibTest/isolate/isolate_api/spawnUri_A01_t01: Skip # Issue 13992
+LibTest/isolate/isolate_api/spawnUri_A01_t02: Skip # Issue 13992
+LibTest/isolate/isolate_api/spawnUri_A01_t03: Skip # Issue 13992
+LibTest/isolate/isolate_api/spawnUri_A01_t04: Skip # Issue 13992
+LibTest/isolate/isolate_api/spawnUri_A01_t05: Skip # Issue 13992
