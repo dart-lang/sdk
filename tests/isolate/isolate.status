@@ -116,7 +116,7 @@ nested_spawn_stream2_test: Fail # Issue 13719: Please triage this failure.
 # Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
 browser/compute_this_script_browser_stream_test: Fail
 browser/compute_this_script_browser_test: Fail
-browser/typed_data_message_test: Fail
+browser/typed_data_message_test: Skip # 13961
 count_stream_test: Fail
 count_test: Fail
 cross_isolate_message_test: Fail
