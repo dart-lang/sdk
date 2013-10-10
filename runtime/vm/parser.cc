@@ -3805,6 +3805,13 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     ConsumeToken();
     const intptr_t type_pos = TokenPos();
     super_type = ParseType(ClassFinalizer::kResolveTypeParameters);
+    if (super_type.IsDynamicType()) {
+      // The string 'dynamic' is not resolved yet at this point, but a malformed
+      // type mapped to dynamic can be encountered here.
+      ErrorMsg(type_pos,
+               "class '%s' may not extend a malformed type",
+               class_name.ToCString());
+    }
     if (super_type.IsTypeParameter()) {
       ErrorMsg(type_pos,
                "class '%s' may not extend type parameter '%s'",

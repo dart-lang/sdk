@@ -1788,7 +1788,7 @@ RawClass* Class::SuperClass() const {
 
 void Class::set_super_type(const AbstractType& value) const {
   ASSERT(value.IsNull() ||
-         value.IsType() ||
+         (value.IsType() && !value.IsDynamicType()) ||
          value.IsBoundedType() ||
          value.IsMixinAppType());
   StorePointer(&raw_ptr()->super_type_, value.raw());
