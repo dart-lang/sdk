@@ -264,6 +264,14 @@ class PolymerElement extends CustomElement with ObservableMixin {
   }
 
   // TODO(jmesserly): use stream or future here?
+  /**
+   * Run the `listener` callback *once*
+   * when `node` changes, or when its children or subtree changes.
+   * 
+   *
+   * See [MutationObserver] if you want to listen to a stream of
+   * changes.
+   */
   void onMutation(Node node, void listener(MutationObserver obs)) {
     new MutationObserver((records, MutationObserver observer) {
       listener(observer);
