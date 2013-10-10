@@ -2,6 +2,7 @@ library ElementTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'utils.dart';
 
 main() {
   useHtmlConfiguration();
@@ -87,5 +88,15 @@ main() {
     div.dataset.clear();
     expect(div.dataset.length, 0);
     expect(div.dataset.isEmpty, isTrue);
+
+    Element otherDiv = new Element.html(
+        '<div id="dataDiv" data-my-message="Hello World"></div>',
+        treeSanitizer: new NullTreeSanitizer());
+    expect(otherDiv.dataset.containsKey('myMessage'), isTrue);
+
+    Element anotherDiv = new Element.html(
+        '<div id="dataDiv" data-eggs="bacon"></div>',
+        treeSanitizer: new NullTreeSanitizer());
+    expect(anotherDiv.dataset.containsKey('eggs'), isTrue);
   });
 }
