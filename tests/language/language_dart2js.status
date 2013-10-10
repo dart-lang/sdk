@@ -134,9 +134,6 @@ mixin_regress_13688_test: RuntimeError # Issue 13109.
 # Compilation errors.
 const_var_test: CompileTimeError # Issue 12793
 map_literal3_test: CompileTimeError # Issue 12793
-function_type_alias5_test/00: MissingCompileTimeError # Issue 12754
-function_type_alias5_test/01: MissingCompileTimeError # Issue 12754
-function_type_alias5_test/02: MissingCompileTimeError # Issue 12754
 method_override5_test: RuntimeError # Issue 12809
 named_parameters_aggregated_test/03: MissingCompileTimeError # Issue 12812
 external_test/11: MissingCompileTimeError # Issue 12887
@@ -276,9 +273,6 @@ factory_redirection_test/02: Crash # Issue 12753
 factory_redirection_test/03: Crash # Issue 12753
 factory_redirection_test/07: Fail # Issue 12753
 factory_redirection_test/09: Fail # Issue 12753
-function_type_alias5_test/00: Fail # Issue 12755
-function_type_alias5_test/01: Fail # Issue 12755
-function_type_alias5_test/02: Fail # Issue 12755
 
 malbounded_type_literal_test: Fail # Issue 13960
 
