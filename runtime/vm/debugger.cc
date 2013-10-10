@@ -10,6 +10,7 @@
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
+#include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/longjump.h"
@@ -26,6 +27,8 @@
 namespace dart {
 
 DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
+DEFINE_FLAG(bool, use_new_stacktrace, true,
+            "Use new stacktrace creation");
 
 
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
@@ -133,6 +136,8 @@ ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp, const Code& code)
       pc_desc_index_(-1),
       line_number_(-1),
       context_level_(-1),
+      deopt_frame_(Array::ZoneHandle()),
+      deopt_frame_offset_(0),
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
@@ -245,7 +250,7 @@ void ActivationFrame::GetPcDescriptors() {
 intptr_t ActivationFrame::TokenPos() {
   if (token_pos_ < 0) {
     GetPcDescriptors();
-    for (int i = 0; i < pc_desc_.Length(); i++) {
+    for (intptr_t i = 0; i < pc_desc_.Length(); i++) {
       if (pc_desc_.PC(i) == pc_) {
         pc_desc_index_ = i;
         token_pos_ = pc_desc_.TokenPos(i);
@@ -321,7 +326,7 @@ intptr_t ActivationFrame::ContextLevel() {
     ASSERT(activation_token_pos >= 0);
     GetVarDescriptors();
     intptr_t var_desc_len = var_descriptors_.Length();
-    for (int cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
+    for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
       RawLocalVarDescriptors::VarInfo var_info;
       var_descriptors_.GetInfo(cur_idx, &var_info);
       if ((var_info.kind == RawLocalVarDescriptors::kContextLevel) &&
@@ -347,14 +352,37 @@ intptr_t ActivationFrame::ContextLevel() {
 RawContext* ActivationFrame::GetSavedEntryContext(const Context& ctx) {
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
-  for (int i = 0; i < var_desc_len; i++) {
+  for (intptr_t i = 0; i < var_desc_len; i++) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
     if (var_info.kind == RawLocalVarDescriptors::kSavedEntryContext) {
-      return reinterpret_cast<RawContext*>(GetLocalVarValue(var_info.index));
+      return GetLocalContextVar(var_info.index);
     }
   }
   return ctx.raw();
+}
+
+
+RawContext* ActivationFrame::GetSavedEntryContextNew() {
+  if (ctx_.IsNull()) {
+    // We have bailed on providing a context for this frame.  Bail for
+    // the caller as well.
+    return Context::null();
+  }
+
+  // Attempt to find a saved context.
+  GetVarDescriptors();
+  intptr_t var_desc_len = var_descriptors_.Length();
+  for (intptr_t i = 0; i < var_desc_len; i++) {
+    RawLocalVarDescriptors::VarInfo var_info;
+    var_descriptors_.GetInfo(i, &var_info);
+    if (var_info.kind == RawLocalVarDescriptors::kSavedEntryContext) {
+      return GetLocalContextVar(var_info.index);
+    }
+  }
+
+  // No saved context.  Return the current context.
+  return ctx_.raw();
 }
 
 
@@ -363,11 +391,11 @@ RawContext* ActivationFrame::GetSavedEntryContext(const Context& ctx) {
 RawContext* ActivationFrame::GetSavedCurrentContext() {
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
-  for (int i = 0; i < var_desc_len; i++) {
+  for (intptr_t i = 0; i < var_desc_len; i++) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
     if (var_info.kind == RawLocalVarDescriptors::kSavedCurrentContext) {
-      return reinterpret_cast<RawContext*>(GetLocalVarValue(var_info.index));
+      return GetLocalContextVar(var_info.index);
     }
   }
   return Context::null();
@@ -380,7 +408,9 @@ ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
   Array& handled_types = Array::Handle();
   AbstractType& type = Type::Handle();
   const TypeArguments& no_instantiator = TypeArguments::Handle();
-  for (int frame_index = 0; frame_index < UnfilteredLength(); frame_index++) {
+  for (intptr_t frame_index = 0;
+       frame_index < UnfilteredLength();
+       frame_index++) {
     ActivationFrame* frame = UnfilteredFrameAt(frame_index);
     intptr_t try_index = frame->TryIndex();
     if (try_index < 0) continue;
@@ -393,7 +423,7 @@ ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
       ASSERT(num_handlers_checked <= handlers.Length());
       handled_types = handlers.GetHandledTypes(try_index);
       const intptr_t num_types = handled_types.Length();
-      for (int k = 0; k < num_types; k++) {
+      for (intptr_t k = 0; k < num_types; k++) {
         type ^= handled_types.At(k);
         ASSERT(!type.IsNull());
         // Uninstantiated types are not added to ExceptionHandlers data.
@@ -421,7 +451,7 @@ void ActivationFrame::GetDescIndices() {
   // Rather than potentially displaying incorrect values, we
   // pretend that there are no variables in the frame.
   // We should be more clever about this in the future.
-  if (code().is_optimized()) {
+  if (!FLAG_use_new_stacktrace && code().is_optimized()) {
     vars_initialized_ = true;
     return;
   }
@@ -436,7 +466,7 @@ void ActivationFrame::GetDescIndices() {
 
   GrowableArray<String*> var_names(8);
   intptr_t var_desc_len = var_descriptors_.Length();
-  for (int cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
+  for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
     ASSERT(var_names.length() == desc_indices_.length());
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(cur_idx, &var_info);
@@ -462,7 +492,7 @@ void ActivationFrame::GetDescIndices() {
       String& var_name = String::Handle(var_descriptors_.GetName(cur_idx));
       intptr_t indices_len = desc_indices_.length();
       bool name_match_found = false;
-      for (int i = 0; i < indices_len; i++) {
+      for (intptr_t i = 0; i < indices_len; i++) {
         if (var_name.Equals(*var_names[i])) {
           // Found two local variables with the same name. Now determine
           // which one is shadowed.
@@ -500,6 +530,31 @@ intptr_t ActivationFrame::NumLocalVariables() {
   return desc_indices_.length();
 }
 
+// TODO(hausner): Handle captured variables.
+RawObject* ActivationFrame::GetLocalVar(intptr_t slot_index) {
+  if (deopt_frame_.IsNull()) {
+    uword var_address = fp() + slot_index * kWordSize;
+    return reinterpret_cast<RawObject*>(
+        *reinterpret_cast<uword*>(var_address));
+  } else {
+    return deopt_frame_.At(deopt_frame_offset_ + slot_index);
+  }
+}
+
+
+RawInstance* ActivationFrame::GetLocalInstanceVar(intptr_t slot_index) {
+  Instance& instance = Instance::Handle();
+  instance ^= GetLocalVar(slot_index);
+  return instance.raw();
+}
+
+
+RawContext* ActivationFrame::GetLocalContextVar(intptr_t slot_index) {
+  Context& context = Context::Handle();
+  context ^= GetLocalVar(slot_index);
+  return context.raw();
+}
+
 
 void ActivationFrame::VariableAt(intptr_t i,
                                  String* name,
@@ -519,7 +574,7 @@ void ActivationFrame::VariableAt(intptr_t i,
   *end_pos = var_info.end_pos;
   ASSERT(value != NULL);
   if (var_info.kind == RawLocalVarDescriptors::kStackVar) {
-    *value = GetLocalVarValue(var_info.index);
+    *value = GetLocalInstanceVar(var_info.index);
   } else {
     ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
     // The context level at the PC/token index of this activation frame.
@@ -566,7 +621,7 @@ RawArray* ActivationFrame::GetLocalVariables() {
   String& var_name = String::Handle();
   Instance& value = Instance::Handle();
   const Array& list = Array::Handle(Array::New(2 * num_variables));
-  for (int i = 0; i < num_variables; i++) {
+  for (intptr_t i = 0; i < num_variables; i++) {
     intptr_t ignore;
     VariableAt(i, &var_name, &ignore, &ignore, &value);
     list.SetAt(2 * i, var_name);
@@ -762,7 +817,7 @@ RemoteObjectCache::RemoteObjectCache(intptr_t initial_size) {
 
 intptr_t RemoteObjectCache::AddObject(const Object& obj) {
   intptr_t len = objs_->Length();
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     if (objs_->At(i) == obj.raw()) {
       return i;
     }
@@ -918,7 +973,7 @@ void Debugger::InstrumentForStepping(const Function& target_function) {
   Code& code = Code::Handle(target_function.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
-  for (int i = 0; i < desc.Length(); i++) {
+  for (intptr_t i = 0; i < desc.Length(); i++) {
     CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(i));
     if (bpt != NULL) {
       // There is already a breakpoint for this address. Make sure
@@ -945,7 +1000,159 @@ void Debugger::SignalBpResolved(SourceBreakpoint* bpt) {
 }
 
 
+static void PrintStackTraceError(const char* message,
+                                 ActivationFrame* current_activation,
+                                 ActivationFrame* callee_activation) {
+  const Function& current = current_activation->function();
+  const Function& callee = callee_activation->function();
+  const Script& script =
+      Script::Handle(Class::Handle(current.Owner()).script());
+  intptr_t line, col;
+  script.GetTokenLocation(current_activation->TokenPos(), &line, &col);
+  OS::PrintErr("Error building stack trace: %s:"
+               "current function '%s' callee_function '%s' "
+               " line %" Pd " column %" Pd "\n",
+               message,
+               current.ToFullyQualifiedCString(),
+               callee.ToFullyQualifiedCString(),
+               line, col);
+}
+
+
+ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
+                                            uword pc,
+                                            StackFrame* frame,
+                                            const Code& code,
+                                            bool optimized,
+                                            ActivationFrame* callee_activation,
+                                            const Context& entry_ctx) {
+  // We never provide both a callee activation and an entry context.
+  ASSERT((callee_activation == NULL) || entry_ctx.IsNull());
+  ActivationFrame* activation =
+      new ActivationFrame(pc, frame->fp(), frame->sp(), code);
+
+  // Recover the context for this frame.
+  if (optimized) {
+    // Bail out for optimized frames for now.
+    activation->SetContext(Context::Handle(isolate));
+
+  } else if (callee_activation == NULL) {
+    // No callee.  Use incoming entry context.  Could be from
+    // isolate's top context or from an entry frame.
+    activation->SetContext(entry_ctx);
+
+  } else if (callee_activation->function().IsClosureFunction()) {
+    // If the callee is a closure, we should have stored the context
+    // in the current frame before making the call.
+    const Context& closure_call_ctx =
+        Context::Handle(isolate, activation->GetSavedCurrentContext());
+    activation->SetContext(closure_call_ctx);
+
+    // Sometimes there is no saved context. This is a bug.
+    // https://code.google.com/p/dart/issues/detail?id=12767
+    if (FLAG_verbose_debug && closure_call_ctx.IsNull()) {
+      PrintStackTraceError(
+          "Expected to find saved context for call to closure function",
+          activation, callee_activation);
+    }
+
+  } else {
+    // Use the context provided by our callee.  This is either the
+    // callee's context or a context that was saved in the callee's
+    // frame.
+    const Context& callee_ctx =
+        Context::Handle(isolate, callee_activation->GetSavedEntryContextNew());
+    activation->SetContext(callee_ctx);
+  }
+  return activation;
+}
+
+
+RawArray* Debugger::DeoptimizeToArray(Isolate* isolate,
+                                      StackFrame* frame,
+                                      const Code& code) {
+  ASSERT(code.is_optimized());
+
+  // Create the DeoptContext for this deoptimization.
+  DeoptContext* deopt_context =
+      new DeoptContext(frame, code,
+                       DeoptContext::kDestIsAllocated,
+                       NULL, NULL);
+  isolate->set_deopt_context(deopt_context);
+
+  deopt_context->FillDestFrame();
+  deopt_context->MaterializeDeferredObjects();
+  const Array& dest_frame = Array::Handle(deopt_context->DestFrameAsArray());
+
+  isolate->set_deopt_context(NULL);
+  delete deopt_context;
+
+  return dest_frame.raw();
+}
+
+
+DebuggerStackTrace* Debugger::CollectStackTraceNew() {
+  Isolate* isolate = Isolate::Current();
+  DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
+  StackFrameIterator iterator(false);
+  ActivationFrame* current_activation = NULL;
+  Context& entry_ctx = Context::Handle(isolate->top_context());
+  Code& code = Code::Handle(isolate);
+  Code& inlined_code = Code::Handle(isolate);
+  Array& deopt_frame = Array::Handle(isolate);
+
+  for (StackFrame* frame = iterator.NextFrame();
+       frame != NULL;
+       frame = iterator.NextFrame()) {
+    ASSERT(frame->IsValid());
+    if (frame->IsEntryFrame()) {
+      current_activation = NULL;
+      entry_ctx = reinterpret_cast<EntryFrame*>(frame)->SavedContext();
+
+    } else if (frame->IsDartFrame()) {
+      code = frame->LookupDartCode();
+      if (code.is_optimized()) {
+        deopt_frame = DeoptimizeToArray(isolate, frame, code);
+        for (InlinedFunctionsIterator it(code, frame->pc());
+             !it.Done();
+             it.Advance()) {
+          inlined_code = it.code();
+          intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
+          current_activation = CollectDartFrame(isolate,
+                                                it.pc(),
+                                                frame,
+                                                inlined_code,
+                                                true,
+                                                current_activation,
+                                                entry_ctx);
+          current_activation->SetDeoptFrame(deopt_frame, deopt_frame_offset);
+          stack_trace->AddActivation(current_activation);
+          entry_ctx = Context::null();  // Only use entry context once.
+        }
+      } else {
+        current_activation = CollectDartFrame(isolate,
+                                              frame->pc(),
+                                              frame,
+                                              code,
+                                              false,
+                                              current_activation,
+                                              entry_ctx);
+        stack_trace->AddActivation(current_activation);
+        entry_ctx = Context::null();  // Only use entry context once.
+      }
+    }
+  }
+  return stack_trace;
+}
+
+
+
 DebuggerStackTrace* Debugger::CollectStackTrace() {
+  if (FLAG_use_new_stacktrace) {
+    // Guard new stack trace generation under a flag in case there are
+    // problems rolling it out.
+    return CollectStackTraceNew();
+  }
   Isolate* isolate = Isolate::Current();
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   Context& ctx = Context::Handle(isolate->top_context());
@@ -1103,7 +1310,7 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
   intptr_t best_fit = INT_MAX;
   uword lowest_pc = kUwordMax;
   intptr_t lowest_pc_index = -1;
-  for (int i = 0; i < desc.Length(); i++) {
+  for (intptr_t i = 0; i < desc.Length(); i++) {
     intptr_t desc_token_pos = desc.TokenPos(i);
     ASSERT(desc_token_pos >= 0);
     if (desc_token_pos < first_token_pos) {
@@ -1149,7 +1356,7 @@ void Debugger::MakeCodeBreakpointsAt(const Function& func,
   Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
-  for (int i = 0; i < desc.Length(); i++) {
+  for (intptr_t i = 0; i < desc.Length(); i++) {
     intptr_t desc_token_pos = desc.TokenPos(i);
     if ((desc_token_pos == token_pos) && IsSafePoint(desc.DescriptorKind(i))) {
       CodeBreakpoint* code_bpt = GetCodeBreakpoint(desc.PC(i));
@@ -1276,7 +1483,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
   Script& script = Script::Handle(isolate_);
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate_->object_store()->libraries());
-  for (int i = 0; i < libs.Length(); i++) {
+  for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     script = lib.LookupScript(script_url);
     if (!script.IsNull()) {
@@ -1423,7 +1630,7 @@ RawArray* Debugger::GetInstanceFields(const Instance& obj) {
   // Iterate over fields in class hierarchy to count all instance fields.
   while (!cls.IsNull()) {
     fields = cls.fields();
-    for (int i = 0; i < fields.Length(); i++) {
+    for (intptr_t i = 0; i < fields.Length(); i++) {
       field ^= fields.At(i);
       if (!field.is_static()) {
         field_name = field.name();
@@ -1445,7 +1652,7 @@ RawArray* Debugger::GetStaticFields(const Class& cls) {
   Field& field = Field::Handle();
   String& field_name = String::Handle();
   Object& field_value = Object::Handle();
-  for (int i = 0; i < fields.Length(); i++) {
+  for (intptr_t i = 0; i < fields.Length(); i++) {
     field ^= fields.At(i);
     if (field.is_static()) {
       field_name = field.name();
@@ -1505,7 +1712,7 @@ RawArray* Debugger::GetGlobalFields(const Library& lib) {
   CollectLibraryFields(field_list, lib, prefix_name, true);
   Library& imported = Library::Handle(isolate_);
   intptr_t num_imports = lib.num_imports();
-  for (int i = 0; i < num_imports; i++) {
+  for (intptr_t i = 0; i < num_imports; i++) {
     imported = lib.ImportLibraryAt(i);
     ASSERT(!imported.IsNull());
     CollectLibraryFields(field_list, imported, prefix_name, false);
@@ -1517,7 +1724,7 @@ RawArray* Debugger::GetGlobalFields(const Library& lib) {
     prefix_name = prefix.name();
     ASSERT(!prefix_name.IsNull());
     prefix_name = String::Concat(prefix_name, Symbols::Dot());
-    for (int i = 0; i < prefix.num_imports(); i++) {
+    for (intptr_t i = 0; i < prefix.num_imports(); i++) {
       imported = prefix.GetLibrary(i);
       CollectLibraryFields(field_list, imported, prefix_name, false);
     }

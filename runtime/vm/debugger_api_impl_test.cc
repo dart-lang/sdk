@@ -11,6 +11,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, use_osr);
+
 static bool breakpoint_hit = false;
 static int  breakpoint_hit_counter = 0;
 static Dart_Handle script_lib = NULL;
@@ -330,6 +333,159 @@ TEST_CASE(Debug_Breakpoint) {
   Dart_Handle retval = Invoke("main");
   EXPECT_VALID(retval);
   EXPECT(breakpoint_hit == true);
+}
+
+static const int stack_buffer_size = 1024;
+static char stack_buffer[stack_buffer_size];
+
+static void SaveStackTrace(Dart_StackTrace trace) {
+  Dart_ActivationFrame frame;
+  Dart_Handle func_name;
+
+  char* buffer = stack_buffer;
+  int buffer_size = stack_buffer_size;
+
+  intptr_t trace_len;
+  EXPECT_VALID(Dart_StackTraceLength(trace, &trace_len));
+
+  for (intptr_t frame_index = 0; frame_index < trace_len; frame_index++) {
+    EXPECT_VALID(Dart_GetActivationFrame(trace, frame_index, &frame));
+    EXPECT_VALID(Dart_ActivationFrameInfo(frame, &func_name,
+                                          NULL, NULL, NULL));
+    int pos = OS::SNPrint(buffer, buffer_size, "[%" Pd "] %s { ",
+                          frame_index, ToCString(func_name));
+    buffer += pos;
+    buffer_size -= pos;
+
+    Dart_Handle locals = Dart_GetLocalVariables(frame);
+    EXPECT_VALID(locals);
+    intptr_t list_length = 0;
+    EXPECT_VALID(Dart_ListLength(locals, &list_length));
+
+    for (intptr_t i = 0; i + 1 < list_length; i += 2) {
+      Dart_Handle name = Dart_ListGetAt(locals, i);
+      EXPECT_VALID(name);
+      EXPECT(Dart_IsString(name));
+
+      Dart_Handle value = Dart_ListGetAt(locals, i + 1);
+      EXPECT_VALID(value);
+      Dart_Handle value_str = Dart_ToString(value);
+      EXPECT_VALID(value_str);
+
+      const char* name_cstr = NULL;
+      const char* value_cstr = NULL;
+      EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+      EXPECT_VALID(Dart_StringToCString(value_str, &value_cstr));
+      pos = OS::SNPrint(buffer, buffer_size, "%s = %s ",
+                        name_cstr, value_cstr);
+      buffer += pos;
+      buffer_size -= pos;
+    }
+    pos = OS::SNPrint(buffer, buffer_size, "}\n");
+    buffer += pos;
+    buffer_size -= pos;
+  }
+}
+
+
+static void InspectOptimizedStack_Breakpoint(Dart_IsolateId isolate_id,
+                                             const Dart_CodeLocation& loc) {
+  Dart_StackTrace trace;
+  Dart_GetStackTrace(&trace);
+  SaveStackTrace(trace);
+}
+
+
+static void InspectStackTest(bool optimize) {
+  const char* kScriptChars =
+      "void breakpointNow() {\n"
+      "}\n"
+      "void helper(int a, int b, bool stop) {\n"
+      "  if (b == 99 && stop) {\n"
+      "    breakpointNow();\n"
+      "  }\n"
+      "  int c = a*b;\n"
+      "  return c;\n"
+      "}\n"
+      "int anotherMiddleMan(int one, int two, bool stop) {\n"
+      "  return helper(one, two, stop);\n"
+      "}\n"
+      "int middleMan(int x, int limit, bool stop) {\n"
+      "  int value = 0;\n"
+      "  for (int i = 0; i < limit; i++) {\n"
+      "    value += anotherMiddleMan(x, i, stop);\n"
+      "  }\n"
+      "  return value;\n"
+      "}\n"
+      "int test(bool stop, int limit) {\n"
+      "  return middleMan(5, limit, stop);\n"
+      "}\n";
+
+  LoadScript(kScriptChars);
+
+  // Save/restore some compiler flags.
+  Dart_Handle dart_args[2];
+  int saved_threshold = FLAG_optimization_counter_threshold;
+  const int kLowThreshold = 100;
+  const int kHighThreshold = 10000;
+  bool saved_osr = FLAG_use_osr;
+  FLAG_use_osr = false;
+
+  // Set up the breakpoint.
+  Dart_SetPausedEventHandler(InspectOptimizedStack_Breakpoint);
+  SetBreakpointAtEntry("", "breakpointNow");
+
+  if (optimize) {
+    // Warm up the code to make sure it gets optimized.  We ignore any
+    // breakpoints that get hit during warm-up.
+    FLAG_optimization_counter_threshold = kLowThreshold;
+    dart_args[0] = Dart_False();
+    dart_args[1] = Dart_NewInteger(kLowThreshold);
+    EXPECT_VALID(Dart_Invoke(script_lib, NewString("test"), 2, dart_args));
+  } else {
+    // Try to ensure that none of the test code gets optimized.
+    FLAG_optimization_counter_threshold = kHighThreshold;
+  }
+
+  // Run the code and inspect the stack.
+  stack_buffer[0] = '\0';
+  dart_args[0] = Dart_True();
+  dart_args[1] = Dart_NewInteger(kLowThreshold);
+  EXPECT_VALID(Dart_Invoke(script_lib, NewString("test"), 2, dart_args));
+  if (optimize) {
+    // Note that several variables have the value 'null' in the
+    // optimized case.  This is because these values were determined
+    // to be dead by the optimizing compiler and their values were not
+    // preserved by the deopt information.
+    EXPECT_STREQ("[0] breakpointNow { }\n"
+                 "[1] helper { a = 5 b = 99 stop = null }\n"
+                 "[2] anotherMiddleMan { one = null two = null stop = null }\n"
+                 "[3] middleMan { x = 5 limit = 100 stop = true value = 24255"
+                 " i = 99 }\n"
+                 "[4] test { stop = true limit = 100 }\n",
+                 stack_buffer);
+  } else {
+    EXPECT_STREQ("[0] breakpointNow { }\n"
+                 "[1] helper { a = 5 b = 99 stop = true }\n"
+                 "[2] anotherMiddleMan { one = 5 two = 99 stop = true }\n"
+                 "[3] middleMan { x = 5 limit = 100 stop = true value = 24255"
+                 " i = 99 }\n"
+                 "[4] test { stop = true limit = 100 }\n",
+                 stack_buffer);
+  }
+
+  FLAG_optimization_counter_threshold = saved_threshold;
+  FLAG_use_osr = saved_osr;
+}
+
+
+TEST_CASE(Debug_InspectStack_NotOptimized) {
+  InspectStackTest(false);
+}
+
+
+TEST_CASE(Debug_InspectStack_Optimized) {
+  InspectStackTest(true);
 }
 
 

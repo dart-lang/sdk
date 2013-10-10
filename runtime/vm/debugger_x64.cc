@@ -13,14 +13,6 @@
 
 namespace dart {
 
-// TODO(hausner): Handle captured variables.
-RawInstance* ActivationFrame::GetLocalVarValue(intptr_t slot_index) {
-  uword var_address = fp() + slot_index * kWordSize;
-  return reinterpret_cast<RawInstance*>(
-             *reinterpret_cast<uword*>(var_address));
-}
-
-
 RawInstance* ActivationFrame::GetInstanceCallReceiver(
                  intptr_t num_actual_args) {
   ASSERT(num_actual_args > 0);  // At minimum we have a receiver on the stack.

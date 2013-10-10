@@ -18,30 +18,97 @@ DEFINE_FLAG(bool, compress_deopt_info, true,
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 
-DeoptContext::DeoptContext(const Array& object_table,
-                           intptr_t num_args,
-                           DeoptReasonId deopt_reason)
-    : object_table_(object_table.raw()),
+
+DeoptContext::DeoptContext(const StackFrame* frame,
+                           const Code& code,
+                           DestFrameOptions dest_options,
+                           fpu_register_t* fpu_registers,
+                           intptr_t* cpu_registers)
+    : code_(code.raw()),
+      object_table_(Array::null()),
+      deopt_info_(DeoptInfo::null()),
+      dest_frame_is_allocated_(false),
       dest_frame_(NULL),
       dest_frame_size_(0),
-      source_frame_is_copy_(false),
+      source_frame_is_allocated_(false),
       source_frame_(NULL),
       source_frame_size_(0),
-      cpu_registers_(NULL),
-      fpu_registers_(NULL),
-      num_args_(num_args),
-      deopt_reason_(deopt_reason),
+      cpu_registers_(cpu_registers),
+      fpu_registers_(fpu_registers),
+      num_args_(0),
+      deopt_reason_(kDeoptUnknown),
       isolate_(Isolate::Current()),
       deferred_boxes_(NULL),
       deferred_object_refs_(NULL),
       deferred_objects_count_(0),
       deferred_objects_(NULL) {
+  object_table_ = code.object_table();
+
+  intptr_t deopt_reason = kDeoptUnknown;
+  const DeoptInfo& deopt_info =
+      DeoptInfo::Handle(code.GetDeoptInfoAtPc(frame->pc(), &deopt_reason));
+  ASSERT(!deopt_info.IsNull());
+  deopt_info_ = deopt_info.raw();
+  deopt_reason_ = static_cast<DeoptReasonId>(deopt_reason);
+
+  const Function& function = Function::Handle(code.function());
+
+  // Do not include incoming arguments if there are optional arguments
+  // (they are copied into local space at method entry).
+  num_args_ =
+      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
+
+  // The fixed size section of the (fake) Dart frame called via a stub by the
+  // optimized function contains FP, PP (ARM and MIPS only), PC-marker and
+  // return-address. This section is copied as well, so that its contained
+  // values can be updated before returning to the deoptimized function.
+  source_frame_size_ =
+      + kDartFrameFixedSize  // For saved values below sp.
+      + ((frame->fp() - frame->sp()) / kWordSize)  // For frame size incl. sp.
+      + 1  // For fp.
+      + kParamEndSlotFromFp  // For saved values above fp.
+      + num_args_;  // For arguments.
+  source_frame_ = reinterpret_cast<intptr_t*>(
+      frame->sp() - (kDartFrameFixedSize * kWordSize));
+
+  if (dest_options == kDestIsOriginalFrame) {
+    // Work from a copy of the source frame.
+    intptr_t* original_frame = source_frame_;
+    source_frame_ = new intptr_t[source_frame_size_];
+    ASSERT(source_frame_ != NULL);
+    for (intptr_t i = 0; i < source_frame_size_; i++) {
+      source_frame_[i] = original_frame[i];
+    }
+    source_frame_is_allocated_ = true;
+  }
+  caller_fp_ = GetSourceFp();
+
+  dest_frame_size_ = deopt_info.FrameSize();
+
+  if (dest_options == kDestIsAllocated) {
+    dest_frame_ = new intptr_t[dest_frame_size_];
+    ASSERT(source_frame_ != NULL);
+    for (intptr_t i = 0; i < dest_frame_size_; i++) {
+      dest_frame_[i] = 0;
+    }
+    dest_frame_is_allocated_ = true;
+  }
+
+  if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+    OS::PrintErr(
+        "Deoptimizing (reason %" Pd " '%s') at pc %#" Px " '%s' (count %d)\n",
+        deopt_reason,
+        DeoptReasonToText(deopt_reason_),
+        frame->pc(),
+        function.ToFullyQualifiedCString(),
+        function.deoptimization_counter());
+  }
 }
 
 
 DeoptContext::~DeoptContext() {
   // Delete memory for source frame and registers.
-  if (source_frame_is_copy_) {
+  if (source_frame_is_allocated_) {
     delete[] source_frame_;
   }
   source_frame_ = NULL;
@@ -49,6 +116,10 @@ DeoptContext::~DeoptContext() {
   delete[] cpu_registers_;
   fpu_registers_ = NULL;
   cpu_registers_ = NULL;
+  if (dest_frame_is_allocated_) {
+    delete[] dest_frame_;
+  }
+  dest_frame_ = NULL;
 
   // Delete all deferred objects.
   for (intptr_t i = 0; i < deferred_objects_count_; i++) {
@@ -60,36 +131,27 @@ DeoptContext::~DeoptContext() {
 }
 
 
-void DeoptContext::SetSourceArgs(intptr_t* frame_start,
-                                 intptr_t frame_size,
-                                 fpu_register_t* fpu_registers,
-                                 intptr_t* cpu_registers,
-                                 bool source_frame_is_copy) {
-  ASSERT(frame_start != NULL);
-  ASSERT(frame_size >= 0);
-  ASSERT(source_frame_ == NULL);
-  ASSERT(cpu_registers_ == NULL && fpu_registers_ == NULL);
-  source_frame_ = frame_start;
-  source_frame_size_ = frame_size;
-  caller_fp_ = GetSourceFp();
-  cpu_registers_ = cpu_registers;
-  fpu_registers_ = fpu_registers;
-  source_frame_is_copy_ = source_frame_is_copy;
-}
-
-
-void DeoptContext::SetDestArgs(intptr_t* frame_start,
-                               intptr_t frame_size) {
-  ASSERT(frame_start != NULL);
-  ASSERT(frame_size >= 0);
-  ASSERT(dest_frame_ == NULL);
-  dest_frame_ = frame_start;
-  dest_frame_size_ = frame_size;
-}
-
-
 void DeoptContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&object_table_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&deopt_info_));
+
+  // Visit any object pointers on the destination stack.
+  if (dest_frame_is_allocated_) {
+    for (intptr_t i = 0; i < dest_frame_size_; i++) {
+      if (dest_frame_[i] != 0) {
+        visitor->VisitPointer(reinterpret_cast<RawObject**>(&dest_frame_[i]));
+      }
+    }
+  }
+}
+
+
+intptr_t DeoptContext::DestStackAdjustment() const {
+  return (dest_frame_size_
+          - kDartFrameFixedSize
+          - num_args_
+          - kParamEndSlotFromFp
+          - 1);  // For fp.
 }
 
 
@@ -121,6 +183,121 @@ void DeoptContext::SetCallerFp(intptr_t caller_fp) {
 }
 
 
+static bool IsObjectInstruction(DeoptInstr::Kind kind) {
+  switch (kind) {
+    case DeoptInstr::kConstant:
+    case DeoptInstr::kStackSlot:
+    case DeoptInstr::kDoubleStackSlot:
+    case DeoptInstr::kInt64StackSlot:
+    case DeoptInstr::kFloat32x4StackSlot:
+    case DeoptInstr::kUint32x4StackSlot:
+    case DeoptInstr::kPp:
+    case DeoptInstr::kCallerPp:
+    case DeoptInstr::kMaterializedObjectRef:
+      return true;
+
+    case DeoptInstr::kRegister:
+    case DeoptInstr::kFpuRegister:
+    case DeoptInstr::kInt64FpuRegister:
+    case DeoptInstr::kFloat32x4FpuRegister:
+    case DeoptInstr::kUint32x4FpuRegister:
+      // TODO(turnidge): Sometimes we encounter a deopt instruction
+      // with a register source while deoptimizing frames during
+      // debugging but we haven't saved our register set.  This
+      // happens specifically when using the VMService to inspect the
+      // stack.  In that case, the register values will have been
+      // saved before the StackOverflow runtime call but we do not
+      // actually keep track of which registers were saved and
+      // restored.
+      //
+      // It is possible to save this information at the point of the
+      // StackOverflow runtime call but would require a bit of magic
+      // to either make sure that the registers are pushed on the
+      // stack in a predictable fashion or that we save enough
+      // information to recover them after the fact.
+      //
+      // For now, we punt on these instructions.
+      return false;
+
+    case DeoptInstr::kRetAddress:
+    case DeoptInstr::kPcMarker:
+    case DeoptInstr::kCallerFp:
+    case DeoptInstr::kCallerPc:
+      return false;
+
+    case DeoptInstr::kSuffix:
+    case DeoptInstr::kMaterializeObject:
+      // We should not encounter these instructions when filling stack slots.
+      UNIMPLEMENTED();
+      return false;
+  }
+}
+
+
+void DeoptContext::FillDestFrame() {
+  const Code& code = Code::Handle(code_);
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(deopt_info_);
+
+  const intptr_t len = deopt_info.TranslationLength();
+  GrowableArray<DeoptInstr*> deopt_instructions(len);
+  const Array& deopt_table = Array::Handle(code.deopt_info_array());
+  ASSERT(!deopt_table.IsNull());
+  deopt_info.ToInstructions(deopt_table, &deopt_instructions);
+
+  const intptr_t frame_size = deopt_info.FrameSize();
+
+  // For now, we never place non-objects in the deoptimized frame if
+  // the destination frame is a copy.  This allows us to copy the
+  // deoptimized frame into an Array.
+  const bool objects_only = dest_frame_is_allocated_;
+
+  // All kMaterializeObject instructions are emitted before the instructions
+  // that describe stack frames. Skip them and defer materialization of
+  // objects until the frame is fully reconstructed and it is safe to perform
+  // GC.
+  // Arguments (class of the instance to allocate and field-value pairs) are
+  // described as part of the expression stack for the bottom-most deoptimized
+  // frame. They will be used during materialization and removed from the stack
+  // right before control switches to the unoptimized code.
+  const intptr_t num_materializations = len - frame_size;
+  PrepareForDeferredMaterialization(num_materializations);
+  for (intptr_t from_index = 0, to_index = kDartFrameFixedSize;
+       from_index < num_materializations;
+       from_index++) {
+    const intptr_t field_count =
+        DeoptInstr::GetFieldCount(deopt_instructions[from_index]);
+    intptr_t* args = GetDestFrameAddressAt(to_index);
+    DeferredObject* obj = new DeferredObject(field_count, args);
+    SetDeferredObjectAt(from_index, obj);
+    to_index += obj->ArgumentCount();
+  }
+
+  // Populate stack frames.
+  for (intptr_t to_index = frame_size - 1, from_index = len - 1;
+       to_index >= 0;
+       to_index--, from_index--) {
+    intptr_t* to_addr = GetDestFrameAddressAt(to_index);
+    DeoptInstr* instr = deopt_instructions[from_index];
+    if (!objects_only || IsObjectInstruction(instr->kind())) {
+      instr->Execute(this, to_addr);
+    } else {
+      *reinterpret_cast<RawObject**>(to_addr) = Object::null();
+    }
+  }
+
+  if (FLAG_trace_deoptimization_verbose) {
+    intptr_t* start = dest_frame_;
+    for (intptr_t i = 0; i < frame_size; i++) {
+      OS::PrintErr("*%" Pd ". [%" Px "] %#014" Px " [%s]\n",
+                   i,
+                   reinterpret_cast<uword>(&start[i]),
+                   start[i],
+                   deopt_instructions[i + (len - frame_size)]->ToCString());
+    }
+  }
+}
+
+
 static void FillDeferredSlots(DeferredSlot** slot_list) {
   DeferredSlot* slot = *slot_list;
   *slot_list = NULL;
@@ -149,11 +326,43 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
   FillDeferredSlots(&deferred_object_refs_);
 
   // Compute total number of artificial arguments used during deoptimization.
-  intptr_t deopt_arguments = 0;
+  intptr_t deopt_arg_count = 0;
   for (intptr_t i = 0; i < DeferredObjectsCount(); i++) {
-    deopt_arguments += GetDeferredObject(i)->ArgumentCount();
+    deopt_arg_count += GetDeferredObject(i)->ArgumentCount();
   }
-  return deopt_arguments;
+
+  // Since this is the only step where GC can occur during deoptimization,
+  // use it to report the source line where deoptimization occured.
+  if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+    DartFrameIterator iterator;
+    StackFrame* top_frame = iterator.NextFrame();
+    ASSERT(top_frame != NULL);
+    const Code& code = Code::Handle(top_frame->LookupDartCode());
+    const Function& top_function = Function::Handle(code.function());
+    const Script& script = Script::Handle(top_function.script());
+    const intptr_t token_pos = code.GetTokenIndexOfPC(top_frame->pc());
+    intptr_t line, column;
+    script.GetTokenLocation(token_pos, &line, &column);
+    String& line_string = String::Handle(script.GetLine(line));
+    OS::PrintErr("  Function: %s\n", top_function.ToFullyQualifiedCString());
+    OS::PrintErr("  Line %" Pd ": '%s'\n", line, line_string.ToCString());
+    OS::PrintErr("  Deopt args: %" Pd "\n", deopt_arg_count);
+  }
+
+  return deopt_arg_count;
+}
+
+
+RawArray* DeoptContext::DestFrameAsArray() {
+  ASSERT(dest_frame_ != NULL && dest_frame_is_allocated_);
+  const Array& dest_array =
+      Array::Handle(Array::New(dest_frame_size_));
+  Instance& obj = Instance::Handle();
+  for (intptr_t i = 0; i < dest_frame_size_; i++) {
+    obj ^= reinterpret_cast<RawObject*>(dest_frame_[i]);
+    dest_array.SetAt(i, obj);
+  }
+  return dest_array.raw();
 }
 
 

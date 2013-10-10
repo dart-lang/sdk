@@ -12,12 +12,13 @@
 
 namespace dart {
 
-class SourceBreakpoint;
+class ActiveVariables;
 class CodeBreakpoint;
 class Isolate;
 class ObjectPointerVisitor;
-class ActiveVariables;
 class RemoteObjectCache;
+class SourceBreakpoint;
+class StackFrame;
 
 // SourceBreakpoint represents a user-specified breakpoint location in
 // Dart source. There may be more than one CodeBreakpoint object per
@@ -143,6 +144,10 @@ class ActivationFrame : public ZoneAllocated {
   intptr_t TokenPos();
   intptr_t LineNumber();
   void SetContext(const Context& ctx) { ctx_ = ctx.raw(); }
+  void SetDeoptFrame(const Array& deopt_frame, intptr_t deopt_frame_offset) {
+    deopt_frame_ = deopt_frame.raw();
+    deopt_frame_offset_ = deopt_frame_offset;
+  }
 
   // Returns true if this frame is for a function that is visible
   // to the user and can be debugged.
@@ -165,6 +170,7 @@ class ActivationFrame : public ZoneAllocated {
 
   RawArray* GetLocalVariables();
   RawContext* GetSavedEntryContext(const Context& ctx);
+  RawContext* GetSavedEntryContextNew();
   RawContext* GetSavedCurrentContext();
 
  private:
@@ -173,6 +179,11 @@ class ActivationFrame : public ZoneAllocated {
   void GetPcDescriptors();
   void GetVarDescriptors();
   void GetDescIndices();
+
+  RawObject* GetLocalVar(intptr_t slot_index);
+  RawInstance* GetLocalInstanceVar(intptr_t slot_index);
+  RawContext* GetLocalContextVar(intptr_t slot_index);
+
   RawInstance* GetLocalVarValue(intptr_t slot_index);
   RawInstance* GetInstanceCallReceiver(intptr_t num_actual_args);
   RawObject* GetClosureObject(intptr_t num_acatual_args);
@@ -189,6 +200,10 @@ class ActivationFrame : public ZoneAllocated {
   intptr_t pc_desc_index_;
   intptr_t line_number_;
   intptr_t context_level_;
+
+  // Some frames are deoptimized into a side array in order to inspect them.
+  Array& deopt_frame_;
+  intptr_t deopt_frame_offset_;
 
   bool vars_initialized_;
   LocalVarDescriptors& var_descriptors_;
@@ -362,6 +377,17 @@ class Debugger {
 
   ActivationFrame* TopDartFrame() const;
   static DebuggerStackTrace* CollectStackTrace();
+  static ActivationFrame* CollectDartFrame(Isolate* isolate,
+                                           uword pc,
+                                           StackFrame* frame,
+                                           const Code& code,
+                                           bool optimized,
+                                           ActivationFrame* callee_activation,
+                                           const Context& entry_ctx);
+  static RawArray* DeoptimizeToArray(Isolate* isolate,
+                                     StackFrame* frame,
+                                     const Code& code);
+  static DebuggerStackTrace* CollectStackTraceNew();
   void SignalBpResolved(SourceBreakpoint *bpt);
   void SignalPausedEvent(ActivationFrame* top_frame);
 
