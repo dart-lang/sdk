@@ -20,7 +20,7 @@ class ObservableBox<T> extends ChangeNotifierBase {
   T get value => _value;
 
   void set value(T newValue) {
-    _value = notifyPropertyChange(const Symbol('value'), _value, newValue);
+    _value = notifyPropertyChange(#value, _value, newValue);
   }
 
   String toString() => '#<$runtimeType value: $value>';

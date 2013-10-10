@@ -54,12 +54,12 @@ class FooBarNotifyModel extends ChangeNotifierBase implements FooBarModel {
 
   get foo => _foo;
   set foo(value) {
-    _foo = notifyPropertyChange(const Symbol('foo'), _foo, value);
+    _foo = notifyPropertyChange(#foo, _foo, value);
   }
 
   get bar => _bar;
   set bar(value) {
-    _bar = notifyPropertyChange(const Symbol('bar'), _bar, value);
+    _bar = notifyPropertyChange(#bar, _bar, value);
   }
 }
 

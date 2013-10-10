@@ -27,7 +27,7 @@ main() {
       map = toObservable({'a': 1, 'b': 2, 'c': 3});
       changes = null;
       sub = map.changes.listen((records) {
-        changes = records.where((r) => r.changes(_LENGTH)).toList();
+        changes = records.where((r) => r.changes(#length)).toList();
       });
     });
 
@@ -251,10 +251,7 @@ main() {
   });
 }
 
-
-const _LENGTH = const Symbol('length');
-
-final _lengthChange = new PropertyChangeRecord(_LENGTH);
+final _lengthChange = new PropertyChangeRecord(#length);
 
 _change(key, {isInsert: false, isRemove: false}) =>
     new MapChangeRecord(key, isInsert: isInsert, isRemove: isRemove);

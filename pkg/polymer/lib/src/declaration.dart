@@ -237,10 +237,10 @@ class PolymerDeclaration extends CustomElement {
     installSheets();
     // TODO(jmesserly): this feels unnatrual in Dart. Since we have convenient
     // lazy static initialization, can we get by without it?
-    var registered = type.methods[const Symbol('registerCallback')];
+    var registered = type.methods[#registerCallback];
     if (registered != null && registered.isStatic &&
         registered.isRegularMethod) {
-      type.invoke(const Symbol('registerCallback'), [this]);
+      type.invoke(#registerCallback, [this]);
     }
 
   }
@@ -583,8 +583,7 @@ bool _hasSetter(ClassMirror type, MethodMirror getter) {
   return type.setters.containsKey(setterName);
 }
 
-bool _inDartHtml(ClassMirror type) =>
-    type.owner.simpleName == const Symbol('dart.dom.html');
+bool _inDartHtml(ClassMirror type) => type.owner.simpleName == #dart.dom.html;
 
 
 /** Attribute prefix used for declarative event handlers. */

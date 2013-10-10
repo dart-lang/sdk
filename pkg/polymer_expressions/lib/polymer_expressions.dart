@@ -90,7 +90,7 @@ class PolymerExpressions extends BindingDelegate {
   }
 }
 
-class _Binding extends Object with ChangeNotifierMixin {
+class _Binding extends ChangeNotifierBase {
   final Scope _scope;
   final ExpressionObserver _expr;
   final _converter;

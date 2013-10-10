@@ -65,14 +65,12 @@ class CompoundBinding extends ChangeNotifierBase {
     if (combinator != null) _scheduleResolve();
   }
 
-  static const _VALUE = const Symbol('value');
-
   get value => _value;
 
   int get length => _observers.length;
 
   void set value(newValue) {
-    _value = notifyPropertyChange(_VALUE, _value, newValue);
+    _value = notifyPropertyChange(#value, _value, newValue);
   }
 
   void bind(name, model, String path) {

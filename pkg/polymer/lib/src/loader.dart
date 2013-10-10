@@ -76,8 +76,8 @@ void _loadLibrary(String uriString, [String srcUrl]) {
   }
 
   // Invoke `main`, if present.
-  if (lib.functions[const Symbol('main')] != null) {
-    lib.invoke(const Symbol('main'), const []);
+  if (lib.functions[#main] != null) {
+    lib.invoke(#main, const []);
   }
 
   // Search top-level functions marked with @initMethod

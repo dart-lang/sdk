@@ -73,8 +73,7 @@ abstract class ChangeNotifierMixin implements Observable {
    *     var _myField;
    *     get myField => _myField;
    *     set myField(value) {
-   *       _myField = notifyPropertyChange(
-   *           const Symbol('myField'), _myField, value);
+   *       _myField = notifyPropertyChange(#myField, _myField, value);
    *     }
    */
   notifyPropertyChange(Symbol field, Object oldValue, Object newValue)

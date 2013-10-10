@@ -225,7 +225,7 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifierMixin {
     }
 
     if (length != oldLength) {
-      notifyPropertyChange(const Symbol('length'), oldLength, length);
+      notifyPropertyChange(#length, oldLength, length);
     }
 
     if (_listRecords.length == 1) {

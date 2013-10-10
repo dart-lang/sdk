@@ -15,8 +15,6 @@ main() {
 
 observePath(obj, path) => new PathObserver(obj, path);
 
-sym(x) => new Symbol(x);
-
 toSymbolMap(Map map) {
   var result = new ObservableMap.linked();
   map.forEach((key, value) {
@@ -71,17 +69,17 @@ observePathTests() {
     var obj = toSymbolMap({'a': {'b': {'c': 1}}});
 
     expect(observePath(obj, '').value, obj);
-    expect(observePath(obj, 'a').value, obj[sym('a')]);
-    expect(observePath(obj, 'a.b').value, obj[sym('a')][sym('b')]);
+    expect(observePath(obj, 'a').value, obj[#a]);
+    expect(observePath(obj, 'a.b').value, obj[#a][#b]);
     expect(observePath(obj, 'a.b.c').value, 1);
 
-    obj[sym('a')][sym('b')][sym('c')] = 2;
+    obj[#a][#b][#c] = 2;
     expect(observePath(obj, 'a.b.c').value, 2);
 
-    obj[sym('a')][sym('b')] = toSymbolMap({'c': 3});
+    obj[#a][#b] = toSymbolMap({'c': 3});
     expect(observePath(obj, 'a.b.c').value, 3);
 
-    obj[sym('a')] = toSymbolMap({'b': 4});
+    obj[#a] = toSymbolMap({'b': 4});
     expect(observePath(obj, 'a.b.c').value, null);
     expect(observePath(obj, 'a.b').value, 4);
   });
@@ -89,11 +87,11 @@ observePathTests() {
   observeTest('set value at path', () {
     var obj = toSymbolMap({});
     observePath(obj, 'foo').value = 3;
-    expect(obj[sym('foo')], 3);
+    expect(obj[#foo], 3);
 
     var bar = toSymbolMap({ 'baz': 3 });
     observePath(obj, 'bar').value = bar;
-    expect(obj[sym('bar')], bar);
+    expect(obj[#bar], bar);
 
     observePath(obj, 'bar.baz.bat').value = 'not here';
     expect(observePath(obj, 'bar.baz.bat').value, null);
@@ -106,7 +104,7 @@ observePathTests() {
     path.changes.listen((_) { values.add(path.value); });
 
     path.value = 3;
-    expect(obj[sym('foo')], 3);
+    expect(obj[#foo], 3);
     expect(path.value, 3);
 
     observePath(obj, 'foo').value = 2;
@@ -125,14 +123,14 @@ observePathTests() {
   observeTest('Observe and Unobserve - Paths', () {
     var arr = toSymbolMap({});
 
-    arr[sym('foo')] = 'bar';
+    arr[#foo] = 'bar';
     var fooValues = [];
     var fooPath = observePath(arr, 'foo');
     var fooSub = fooPath.changes.listen((_) {
       fooValues.add(fooPath.value);
     });
-    arr[sym('foo')] = 'baz';
-    arr[sym('bat')] = 'bag';
+    arr[#foo] = 'baz';
+    arr[#bat] = 'bag';
     var batValues = [];
     var batPath = observePath(arr, 'bat');
     var batSub = batPath.changes.listen((_) {
@@ -143,11 +141,11 @@ observePathTests() {
     expect(fooValues, ['baz']);
     expect(batValues, []);
 
-    arr[sym('foo')] = 'bar';
+    arr[#foo] = 'bar';
     fooSub.cancel();
-    arr[sym('bat')] = 'boo';
+    arr[#bat] = 'boo';
     batSub.cancel();
-    arr[sym('bat')] = 'boot';
+    arr[#bat] = 'boot';
 
     performMicrotaskCheckpoint();
     expect(fooValues, ['baz']);
@@ -215,12 +213,12 @@ observePathTests() {
     var sub = path.changes.listen((_) { values.add(path.value); });
     expect(values, [1]);
 
-    model[sym('a')] = 2;
+    model[#a] = 2;
     performMicrotaskCheckpoint();
     expect(values, [1, 2]);
 
     sub.cancel();
-    model[sym('a')] = 3;
+    model[#a] = 3;
     performMicrotaskCheckpoint();
     expect(values, [1, 2]);
   });
@@ -234,19 +232,19 @@ class TestModel extends ChangeNotifierBase {
   get a => _a;
 
   void set a(newValue) {
-    _a = notifyPropertyChange(const Symbol('a'), _a, newValue);
+    _a = notifyPropertyChange(#a, _a, newValue);
   }
 
   get b => _b;
 
   void set b(newValue) {
-    _b = notifyPropertyChange(const Symbol('b'), _b, newValue);
+    _b = notifyPropertyChange(#b, _b, newValue);
   }
 
   get c => _c;
 
   void set c(newValue) {
-    _c = notifyPropertyChange(const Symbol('c'), _c, newValue);
+    _c = notifyPropertyChange(#c, _c, newValue);
   }
 }
 

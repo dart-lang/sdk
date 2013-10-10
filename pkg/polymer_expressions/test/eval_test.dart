@@ -329,7 +329,7 @@ class Foo extends Object with ChangeNotifierMixin {
   String _name;
   String get name => _name;
   void set name(String n) {
-    _name = notifyPropertyChange(const Symbol('name'), _name, n);
+    _name = notifyPropertyChange(#name, _name, n);
   }
 
   int age;

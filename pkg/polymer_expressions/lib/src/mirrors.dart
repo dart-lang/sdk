@@ -38,5 +38,5 @@ Mirror getMemberMirror(ClassMirror classMirror, Symbol name) {
 bool hasSuperclass(ClassMirror classMirror) {
   var superclass = classMirror.superclass;
   return (superclass != null) &&
-      (superclass.qualifiedName != const Symbol('dart.core.Object'));
+      (superclass.qualifiedName != #dart.core.Object);
 }

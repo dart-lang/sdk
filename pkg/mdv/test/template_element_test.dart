@@ -125,7 +125,7 @@ templateElementTests() {
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
 
-    m[sym('foo')] = 1;
+    m[#foo] = 1;
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.lastChild.text, 'text');
@@ -139,7 +139,7 @@ templateElementTests() {
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
 
-    m[sym('bar')] = 1;
+    m[#bar] = 1;
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.lastChild.text, 'baz');
@@ -154,7 +154,7 @@ templateElementTests() {
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
 
-    m[sym('foo')] = 1;
+    m[#foo] = 1;
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.lastChild.text, 'foo');
@@ -170,7 +170,7 @@ templateElementTests() {
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
 
-    m[sym('bar')] = 1;
+    m[#bar] = 1;
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 4);
     expect(div.nodes[1].text, '1');
@@ -187,11 +187,11 @@ templateElementTests() {
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'aBc');
 
-    model[sym('b')] = 'b';
+    model[#b] = 'b';
     deliverChanges(model);
     expect(div.nodes.last.text, 'abc');
 
-    model[sym('b')] = null;
+    model[#b] = null;
     deliverChanges(model);
     expect(div.nodes.last.text, 'ac');
 
@@ -211,15 +211,15 @@ templateElementTests() {
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'aBc');
 
-    model[sym('data')][sym('b')] = 'b';
+    model[#data][#b] = 'b';
     deliverChanges(model);
     expect(div.nodes.last.text, 'abc');
 
-    model[sym('data')] = toSymbols({'b': 'X'});
+    model[#data] = toSymbols({'b': 'X'});
     deliverChanges(model);
     expect(div.nodes.last.text, 'aXc');
 
-    model[sym('data')] = null;
+    model[#data] = null;
     deliverChanges(model);
     expect(div.nodes.last.text, 'ac');
   });
@@ -234,19 +234,19 @@ templateElementTests() {
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'aBc');
 
-    model[sym('b')] = 'b';
+    model[#b] = 'b';
     deliverChanges(model);
     expect(div.nodes.last.text, 'abc');
 
     // TODO(jmesserly): MDV set this to empty string and relies on JS conversion
     // rules. Is that intended?
     // See https://github.com/toolkitchen/mdv/issues/59
-    model[sym('d')] = null;
+    model[#d] = null;
     deliverChanges(model);
     expect(div.nodes.length, 1);
 
-    model[sym('d')] = 'here';
-    model[sym('b')] = 'd';
+    model[#d] = 'here';
+    model[#b] = 'd';
 
     deliverChanges(model);
     expect(div.nodes.length, 2);
@@ -264,7 +264,7 @@ templateElementTests() {
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'aBc');
 
-    model[sym('b')] = toSymbols({'value': 'b'});
+    model[#b] = toSymbols({'value': 'b'});
     deliverChanges(model);
     expect(div.nodes.last.text, 'abc');
   });
@@ -281,11 +281,11 @@ templateElementTests() {
     expect(div.nodes.length, 2);
     expect(div.nodes.last.attributes['foo'], 'aBc');
 
-    model[sym('b')] = 'b';
+    model[#b] = 'b';
     deliverChanges(model);
     expect(div.nodes.last.attributes['foo'], 'abc');
 
-    model[sym('b')] = 'X';
+    model[#b] = 'X';
     deliverChanges(model);
     expect(div.nodes.last.attributes['foo'], 'aXc');
   });
@@ -303,7 +303,7 @@ templateElementTests() {
     expect(div.nodes.last.attributes['foo'], '');
     expect(div.nodes.last.attributes, isNot(contains('foo?')));
 
-    model[sym('b')] = null;
+    model[#b] = null;
     deliverChanges(model);
     expect(div.nodes.last.attributes, isNot(contains('foo')));
   });
@@ -350,8 +350,7 @@ templateElementTests() {
     addExpandos(template.nextNode);
     checkExpandos(template.nextNode);
 
-    final VAL = const Symbol('val');
-    model.sort((a, b) => a[VAL] - b[VAL]);
+    model.sort((a, b) => a[#val] - b[#val]);
     deliverChanges(model);
     checkExpandos(template.nextNode);
 
@@ -361,7 +360,7 @@ templateElementTests() {
     checkExpandos(template.nextNode);
 
     for (var item in model) {
-      item[VAL] += 1;
+      item[#val] += 1;
     }
 
     deliverChanges(model);
@@ -435,8 +434,8 @@ templateElementTests() {
       expect(nodes[i].text, '$i');
     }
 
-    vs[3][sym('v')] = 33;
-    vs[4][sym('v')] = 44;
+    vs[3][#v] = 33;
+    vs[4][#v] = 44;
     deliverChanges(model);
     for (var i = 0; i < 5; i++) {
       expect(nodes[i].text, '$i');
@@ -510,7 +509,7 @@ templateElementTests() {
     expect(div.nodes[2].text, '1');
     expect(div.nodes[3].text, '2');
 
-    model[1][sym('value')] = 'One';
+    model[1][#value] = 'One';
     deliverChanges(model);
     expect(div.nodes.length, 4);
     expect(div.nodes[1].text, '0');
@@ -537,14 +536,14 @@ templateElementTests() {
     expect(div.nodes.length, 2);
     expect(div.nodes.last.value, 'hi');
 
-    model[sym('x')] = 'bye';
+    model[#x] = 'bye';
     expect(div.nodes.last.value, 'hi');
     deliverChanges(model);
     expect(div.nodes.last.value, 'bye');
 
     div.nodes.last.value = 'hello';
     dispatchEvent('input', div.nodes.last);
-    expect(model[sym('x')], 'hello');
+    expect(model[#x], 'hello');
     deliverChanges(model);
     expect(div.nodes.last.value, 'hello');
   });
@@ -698,34 +697,34 @@ templateElementTests() {
 
     assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal']);
 
-    m[sym('contacts')].add(toSymbols({'name': 'Alex'}));
+    m[#contacts].add(toSymbols({'name': 'Alex'}));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal', 'Hi Alex']);
 
-    m[sym('contacts')].replaceRange(0, 2,
+    m[#contacts].replaceRange(0, 2,
         toSymbols([{'name': 'Rafael'}, {'name': 'Erik'}]));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Rafael', 'Hi Erik', 'Hi Neal', 'Hi Alex']);
 
-    m[sym('contacts')].removeRange(1, 3);
+    m[#contacts].removeRange(1, 3);
     deliverChanges(m);
     assertNodesAre(div, ['Hi Rafael', 'Hi Alex']);
 
-    m[sym('contacts')].insertAll(1,
+    m[#contacts].insertAll(1,
         toSymbols([{'name': 'Erik'}, {'name': 'Dimitri'}]));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Rafael', 'Hi Erik', 'Hi Dimitri', 'Hi Alex']);
 
-    m[sym('contacts')].replaceRange(0, 1,
+    m[#contacts].replaceRange(0, 1,
         toSymbols([{'name': 'Tab'}, {'name': 'Neal'}]));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Tab', 'Hi Neal', 'Hi Erik', 'Hi Dimitri', 'Hi Alex']);
 
-    m[sym('contacts')] = toSymbols([{'name': 'Alex'}]);
+    m[#contacts] = toSymbols([{'name': 'Alex'}]);
     deliverChanges(m);
     assertNodesAre(div, ['Hi Alex']);
 
-    m[sym('contacts')].length = 0;
+    m[#contacts].length = 0;
     deliverChanges(m);
     assertNodesAre(div, []);
   });
@@ -892,11 +891,11 @@ templateElementTests() {
     expect(div.nodes[i++].tagName, 'TEMPLATE');
     expect(div.nodes[i++].text, '2');
 
-    m[sym('a')][sym('b')] = 11;
+    m[#a][#b] = 11;
     deliverChanges(m);
     expect(div.nodes[start].text, '11');
 
-    m[sym('a')][sym('c')] = toSymbols({'d': 22});
+    m[#a][#c] = toSymbols({'d': 22});
     deliverChanges(m);
     expect(div.nodes[start + 2].text, '22');
   }
@@ -947,7 +946,7 @@ templateElementTests() {
     expect(div.nodes[i++].tagName, 'TEMPLATE');
     expect(div.nodes[i++].text, '22');
 
-    m[sym('a')][1] = toSymbols({
+    m[#a][1] = toSymbols({
       'b': 3,
       'c': {'d': 33}
     });
@@ -1007,7 +1006,7 @@ templateElementTests() {
     expect(div.nodes[i++].text, '21');
     expect(div.nodes[i++].text, '22');
 
-    m[sym('a')][1] = toSymbols({
+    m[#a][1] = toSymbols({
       'b': 3,
       'c': [{'d': 31}, {'d': 32}, {'d': 33}]
     });
@@ -1355,12 +1354,12 @@ templateElementTests() {
     expect(div.nodes[1].text, 'Name: Hermes');
     expect(div.nodes[3].text, 'Wife: LaBarbara');
 
-    m[sym('child')] = toSymbols({'name': 'Dwight'});
+    m[#child] = toSymbols({'name': 'Dwight'});
     deliverChanges(m);
     expect(div.nodes.length, 6);
     expect(div.nodes[5].text, 'Child: Dwight');
 
-    m.remove(sym('wife'));
+    m.remove(#wife);
     deliverChanges(m);
     expect(div.nodes.length, 5);
     expect(div.nodes[4].text, 'Child: Dwight');
@@ -1386,12 +1385,12 @@ templateElementTests() {
     expect(div.nodes[1].text, 'Name: Fry');
     expect(div.nodes[3].text, 'Name: Bender');
 
-    m[sym('friend')][sym('friend')] = toSymbols({'name': 'Leela'});
+    m[#friend][#friend] = toSymbols({'name': 'Leela'});
     deliverChanges(m);
     expect(div.nodes.length, 7);
     expect(div.nodes[5].text, 'Name: Leela');
 
-    m[sym('friend')] = toSymbols({'name': 'Leela'});
+    m[#friend] = toSymbols({'name': 'Leela'});
     deliverChanges(m);
     expect(div.nodes.length, 5);
     expect(div.nodes[3].text, 'Name: Leela');
@@ -1576,7 +1575,7 @@ templateElementTests() {
       performMicrotaskCheckpoint();
       expect(root.text, 'Hi Leela');
 
-      model[sym('name')] = 'Fry';
+      model[#name] = 'Fry';
       performMicrotaskCheckpoint();
       expect(root.text, 'Hi Fry');
     }
@@ -1615,13 +1614,13 @@ templateElementTests() {
     deliverChanges(model);
     expect(syntax.count, 1);
 
-    var inner = model[sym('outer')][sym('inner')];
-    model[sym('outer')] = null;
+    var inner = model[#outer][#inner];
+    model[#outer] = null;
 
     deliverChanges(model);
     expect(syntax.count, 1);
 
-    model[sym('outer')] = toSymbols({'inner': {'age': 2}});
+    model[#outer] = toSymbols({'inner': {'age': 2}});
     syntax.expectedAge = 2;
 
     deliverChanges(model);
@@ -1727,7 +1726,7 @@ class UnbindingInNestedBindSyntax extends BindingDelegate {
     if (name != 'text' || path != 'age')
       return;
 
-    expect(model[sym('age')], expectedAge);
+    expect(model[#age], expectedAge);
     count++;
   }
 }
@@ -1763,13 +1762,11 @@ void expectObservable(model) {
 
 toSymbols(obj) => toObservable(_deepToSymbol(obj));
 
-sym(x) => new Symbol(x);
-
 _deepToSymbol(value) {
   if (value is Map) {
     var result = new LinkedHashMap();
     value.forEach((k, v) {
-      k = k is String ? sym(k) : _deepToSymbol(k);
+      k = k is String ? new Symbol(k) : _deepToSymbol(k);
       result[k] = _deepToSymbol(v);
     });
     return result;

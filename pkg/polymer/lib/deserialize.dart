@@ -10,9 +10,9 @@ import 'dart:mirrors' show reflect, TypeMirror;
 final _typeHandlers = () {
   // TODO(jmesserly): switch to map and symbol literal form when supported.
   var m = new Map();
-  m[const Symbol('dart.core.String')] = (x, _) => x;
-  m[const Symbol('dart.core.Null')] = (x, _) => x;
-  m[const Symbol('dart.core.DateTime')] = (x, _) {
+  m[#dart.core.String] = (x, _) => x;
+  m[#dart.core.Null] = (x, _) => x;
+  m[#dart.core.DateTime] = (x, _) {
     // TODO(jmesserly): shouldn't need to try-catch here
     // See: https://code.google.com/p/dart/issues/detail?id=1878
     try {
@@ -21,10 +21,10 @@ final _typeHandlers = () {
       return new DateTime.now();
     }
   };
-  m[const Symbol('dart.core.bool')] = (x, _) => x != 'false';
-  m[const Symbol('dart.core.int')] =
+  m[#dart.core.bool] = (x, _) => x != 'false';
+  m[#dart.core.int] =
       (x, def) => int.parse(x, onError: (_) => def);
-  m[const Symbol('dart.core.double')] =
+  m[#dart.core.double] =
       (x, def) => double.parse(x, (_) => def);
   return m;
 }();
