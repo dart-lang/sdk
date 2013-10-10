@@ -18,10 +18,6 @@ constructor_call_as_function_test/01: fail
 # TBF: It is a static warning if the function type of k' is not a subtype of the type of k.
 default_implementation2_test: fail
 
-# TBD: F-bounded quantification
-f_bounded_quantification_test/01: fail # Issue 12704
-f_bounded_quantification_test/02: fail # Issue 12704
-
 function_type_alias9_test/00: crash # Issue 11987
 
 list_literal_syntax_test/01: fail # Issue 12103
