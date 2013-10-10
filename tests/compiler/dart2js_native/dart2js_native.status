@@ -9,6 +9,9 @@
 native_no_such_method_exception4_frog_test: Fail  # Issue 9631
 native_no_such_method_exception5_frog_test: Fail  # Issue 9631
 
+[ $compiler == dart2js && $checked ]
+subclassing_5_test: Fail # Issue 13955
+
 [ $compiler == dart2js && $unminified ]
 fake_thing_test: Fail # Issue 13010
 
