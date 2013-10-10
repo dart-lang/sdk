@@ -67,7 +67,8 @@ class _HttpBodyHandler {
       return stream
           .transform(new MimeMultipartTransformer(
                 contentType.parameters['boundary']))
-          .map((HttpMultipartFormData.parse))
+          .map((part) => HttpMultipartFormData.parse(
+                part, defaultEncoding: defaultEncoding))
           .map((multipart) {
             var future;
             if (multipart.isText) {
@@ -107,7 +108,7 @@ class _HttpBodyHandler {
 
     switch (contentType.primaryType) {
       case "text":
-        return asText(ASCII);
+        return asText(defaultEncoding);
 
       case "application":
         switch (contentType.subType) {

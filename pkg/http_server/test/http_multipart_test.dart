@@ -7,6 +7,7 @@ import "package:mime/mime.dart";
 import "package:unittest/unittest.dart";
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 
 class FormField {
   final String name;
@@ -45,7 +46,8 @@ void postDataTest(List<int> message,
       String boundary = request.headers.contentType.parameters['boundary'];
       request
           .transform(new MimeMultipartTransformer(boundary))
-          .map(HttpMultipartFormData.parse)
+          .map((part) => HttpMultipartFormData.parse(
+              part, defaultEncoding: LATIN1))
           .map((multipart) {
             var future;
             if (multipart.isText) {
