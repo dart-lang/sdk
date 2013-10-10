@@ -15,15 +15,6 @@ built_in_identifier_prefix_test: fail # Issue 12694
 class_literal_test: fail
 constructor_call_as_function_test/01: fail
 
-# TBF: It is a static type warning if a type parameter is a supertype of its upper bound.
-cyclic_type_variable_test/01: fail
-cyclic_type_variable_test/02: fail
-cyclic_type_variable_test/03: fail
-cyclic_type_variable_test/04: fail
-
-# TBF: It is a static type warning if any of the type arguments to k' are not subtypes of the bounds of the corresponding formal type parameters of type.
-default_factory2_test/01: fail # Issue 12701
-
 # TBF: It is a static warning if the function type of k' is not a subtype of the type of k.
 default_implementation2_test: fail
 
@@ -54,8 +45,14 @@ private_member3_negative_test: fail
 
 built_in_identifier_test/none: Fail # Issue 13023
 
-# TBF: I think _this_ test is incorrect, but we DO have problem bug with type variable subtype check
-redirecting_factory_malbounded_test/01: fail
+type_variable_conflict_test/01: Fail # Issue 13703
+type_variable_conflict_test/02: Fail # Issue 13703
+type_variable_conflict_test/03: Fail # Issue 13703
+type_variable_conflict_test/04: Fail # Issue 13703
+type_variable_conflict_test/05: Fail # Issue 13703
+type_variable_conflict_test/06: Fail # Issue 13703
+
+
 
 
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
@@ -152,14 +149,6 @@ type_parameter_test/none: fail
 # test issue 12161, type variable in static, malformed type, static warning
 type_variable_static_context_negative_test: fail
 
-# test issue 12162, 'a' has dynamic type, so it statically it is assignable to anything
-type_variable_bounds2_test/00: fail # Issue 12162
-type_variable_bounds2_test/01: fail # Issue 12162
-type_variable_bounds2_test/02: fail # Issue 12162
-type_variable_bounds2_test/03: fail # Issue 12162
-type_variable_bounds2_test/04: fail # Issue 12162
-type_variable_bounds2_test/06: fail # Issue 12162
-
 # test issue 12163, unresolved identifier is static warning in static context
 unresolved_in_factory_negative_test: fail # Issue 12163
 unresolved_top_level_var_negative_test: fail # Issue 12163
@@ -191,12 +180,8 @@ duplicate_export_test: fail # Issue 13787
 # test issue 13916, Looks as no warning should be in this redirecting factory
 redirecting_factory_infinite_steps_test/01: fail
 
-type_variable_conflict_test/01: Fail # Issue 13703
-type_variable_conflict_test/02: Fail # Issue 13703
-type_variable_conflict_test/03: Fail # Issue 13703
-type_variable_conflict_test/04: Fail # Issue 13703
-type_variable_conflict_test/05: Fail # Issue 13703
-type_variable_conflict_test/06: Fail # Issue 13703
+# test issue 13956, It is a static type warning if any of the type arguments to k' are not subtypes of the bounds of the corresponding formal type parameters of type.
+default_factory2_test/none: fail
 
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail
