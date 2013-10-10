@@ -1436,4 +1436,33 @@ if (HTMLElement.prototype.createShadowRoot) {
     return root;
   }
 }
+
+
+// Patch to allow custom elements and shadow dom to work together, from:
+// https://github.com/Polymer/platform/blob/master/src/patches-custom-elements.js
+if (window.ShadowDOMPolyfill) {
+  function nop() {};
+
+  // disable shadow dom watching
+  CustomElements.watchShadow = nop;
+  CustomElements.watchAllShadows = nop;
+
+  // ensure wrapped inputs for these functions
+  var fns = ['upgradeAll', 'upgradeSubtree', 'observeDocument',
+      'upgradeDocument'];
+
+  // cache originals
+  var original = {};
+  fns.forEach(function(fn) {
+    original[fn] = CustomElements[fn];
+  });
+
+  // override
+  fns.forEach(function(fn) {
+    CustomElements[fn] = function(inNode) {
+      return original[fn](ShadowDOMPolyfill.wrapIfNeeded(inNode));
+    };
+  });
+}
+
 })();
