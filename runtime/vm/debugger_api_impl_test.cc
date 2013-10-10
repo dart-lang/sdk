@@ -400,7 +400,7 @@ static void InspectStackTest(bool optimize) {
   const char* kScriptChars =
       "void breakpointNow() {\n"
       "}\n"
-      "void helper(int a, int b, bool stop) {\n"
+      "int helper(int a, int b, bool stop) {\n"
       "  if (b == 99 && stop) {\n"
       "    breakpointNow();\n"
       "  }\n"
