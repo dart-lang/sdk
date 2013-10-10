@@ -280,6 +280,8 @@ function_type_alias5_test/00: Fail # Issue 12755
 function_type_alias5_test/01: Fail # Issue 12755
 function_type_alias5_test/02: Fail # Issue 12755
 
+malbounded_type_literal_test: Fail # Issue 13960
+
 # DartVM problem.
 constructor5_test: Fail
 constructor6_test: Fail
