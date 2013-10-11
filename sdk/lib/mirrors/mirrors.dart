@@ -281,6 +281,11 @@ abstract class DeclarationMirror implements Mirror {
    * members are instance mirrors on *c1, ..., cn*.
    * If no annotations are associated with *D*, then
    * an empty list is returned.
+   *
+   * If evaluating any of *c1, ..., cn* would cause a 
+   * compilation error
+   * the effect is the same as if a non-reflective compilation error 
+   * had been encountered.
    */
   List<InstanceMirror> get metadata;
 }
@@ -316,7 +321,8 @@ abstract class ObjectMirror implements Mirror {
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect](*r*).
    * If the invocation causes a compilation error
-   * this method throws a [MirroredCompilationError].
+   * the effect is the same as if a non-reflective compilation error 
+   * had been encountered.
    * If the invocation throws an exception *e* (that it does not catch)
    * this method throws *e*.
    */
@@ -356,7 +362,8 @@ abstract class ObjectMirror implements Mirror {
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect](*r*).
    * If the invocation causes a compilation error
-   * this method throws a [MirroredCompilationError].
+   * the effect is the same as if a non-reflective compilation error 
+   * had been encountered.
    * If the invocation throws an exception *e* (that it does not catch)
    * this method throws *e*.
    */
@@ -379,7 +386,8 @@ abstract class ObjectMirror implements Mirror {
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect]([value]).
    * If the invocation causes a compilation error
-   * this method throws a [MirroredCompilationError].
+   * the effect is the same as if a non-reflective compilation error 
+   * had been encountered.
    * If the invocation throws an exception *e* (that it does not catch)
    * this method throws *e*.
    */
@@ -844,7 +852,8 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * If the expression evaluates to a result *r*, this method returns
    * the result of calling [reflect](*r*).
    * If evaluating the expression causes a compilation error
-   * this method throws a [MirroredCompilationError].
+   * the effect is the same as if a non-reflective compilation error 
+   * had been encountered.
    * If evaluating the expression throws an exception *e*
    * (that it does not catch)
    * this method throws *e*.
