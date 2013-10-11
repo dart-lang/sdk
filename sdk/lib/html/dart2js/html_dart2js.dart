@@ -28357,9 +28357,9 @@ class _DataAttributeMap implements Map<String, String> {
   bool get isNotEmpty => !isEmpty;
 
   // Helpers.
-  String _attr(String key) => 'data-${_toHyphenedName(key)}'; // todo add hyphens where capitalized
+  String _attr(String key) => 'data-${_toHyphenedName(key)}';
   bool _matches(String key) => key.startsWith('data-');
-  String _strip(String key) => _toCamelCase(key.substring(5)); // todo: capitalize and remove hyphens
+  String _strip(String key) => _toCamelCase(key.substring(5));
 
   /**
    * Converts a string name with hyphens into an identifier, by removing hyphens

@@ -84,7 +84,7 @@ abstract class CssClassSetImpl implements CssClassSet {
   bool contains(String value) => readClasses().contains(value);
 
   /** Lookup from the Set interface. Not interesting for a String set. */
-  E lookup(String value) => contains(value) ? value : null;
+  String lookup(String value) => contains(value) ? value : null;
 
   /**
    * Add the class [value] to element.
