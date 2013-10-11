@@ -483,7 +483,7 @@ The former section on variables in interfaces (now removed): Added specification
 
 \ref{constants}: Added constant conditional expressions.
 
-\ref{strings}: Allow adjacent single and multiine strings to concatenate. Allow escaped newlines in multiline strings.
+\ref{strings}: Allow adjacent single and multiline strings to concatenate. Allow escaped newlines in multiline strings.
 
 \ref{conditional}: Type promotion support added.
 
@@ -498,6 +498,8 @@ The former section on variables in interfaces (now removed): Added specification
 \ref{if}: Type promotion support added.
 
 \ref{return}: Added warning if \RETURN{} without expression mixed with \RETURN{} with an expression.
+
+\ref{exports}: Ensure that exports treat \code{dart:} libs specially, like imports do.
 
 \ref{typePromotion}: Added notion of type promotion.
 
@@ -5290,7 +5292,7 @@ a top-level declaration with the name $k$ exists in $L$, OR
 
 \rationale{The greatly increases the chance that a member can be added to a library without breaking its importers.}
 
-If a name $N$ is referenced by a library $L$ and $N$ would be introduced into the top level scope $L$ by an import from a library whose name begins with \code{dart:} and an import from a library whose name does not begin with \code{dart:}:
+If a name $N$ is referenced by a library $L$ and $N$ would be introduced into the top level scope of $L$ by an import from a library whose URI begins with \code{dart:} and an import from a library whose URI does not begin with \code{dart:}:
 \begin{itemize}
 \item The import from \code{dart:} is implicitly extended by a \code{\HIDE{} $N$} clause.
 \item A static warning is issued.
@@ -5302,7 +5304,7 @@ Whereas normal conflicts are resolved at deployment time, the functionality of \
 It is recommended that tools that deploy Dart code produce output in which all imports use show clauses to ensure that additions to the namespace of a library never impact deployed code.
 }
 
-If a name $N$ is referenced by a library $L$ and $N$ is  introduced into  the top level scope $L$ by more than one import, and not all the imports denote the same declaration, then:
+If a name $N$ is referenced by a library $L$ and $N$ is  introduced into  the top level scope of $L$ by more than one import, and not all the imports denote the same declaration, then:
 \begin{itemize}
 \item A static warning occurs.
 \item If $N$ is referenced as a function, getter or setter, a \code{NoSuchMethodError} is raised. 
@@ -5390,7 +5392,19 @@ then let $NS_i = \HIDE{}([id_1, \ldots, id_k], NS_{i-1}$).
 \end{itemize}
 
 For each
-entry mapping key $k$ to declaration $d$ in $NS_n$ an entry mapping $k$ to $d$ is added to the exported namespace of $L$ unless a  top-level declaration with the name $k$ exists in $L$.  We say that $L$ {\em re-exports library } $B$, and also that $L$ {\em re-exports namespace } $NS_n$. When no confusion can arise, we may simply state that $L$ {\em re-exports }$B$, or that $L$ {\em re-exports }$NS_n$.
+entry mapping key $k$ to declaration $d$ in $NS_n$ an entry mapping $k$ to $d$ is added to the exported namespace of $L$ unless a  top-level declaration with the name $k$ exists in $L$.  
+
+If a name $N$ is referenced by a library $L$ and $N$ would be introduced into the exported namespace of $L$ by an export from a library whose URI begins with \code{dart:} and an export from a library whose name does not begin with \code{dart:}:
+\begin{itemize}
+\item The export from \code{dart:} is implicitly extended by a \code{\HIDE{} $N$} clause.
+\item A static warning is issued.
+\end{itemize}
+
+\rationale{
+See the discussion in section \ref{imports} for the reasoning behind this rule.
+}
+
+We say that $L$ {\em re-exports library } $B$, and also that $L$ {\em re-exports namespace } $NS_n$. When no confusion can arise, we may simply state that $L$ {\em re-exports }$B$, or that $L$ {\em re-exports }$NS_n$.
 
 It is a compile-time error if a name $N$ is re-exported by a library $L$ and $N$ is  introduced into the export namespace of $L$ by more than one export, unless each all exports refer to same declaration for the name $N$.  It is a static warning to export two different libraries with the same name.
 
