@@ -86,7 +86,7 @@ class ServeCommand extends PubCommand {
           log.message("Build completed ${log.green('successfully')}");
         } else {
           log.message("Build completed with "
-              "${log.red(result.numErrors)} errors.");
+              "${log.red(result.errors.length)} errors.");
         }
       }, onError: (error, [stackTrace]) {
         if (!completer.isCompleted) completer.completeError(error, stackTrace);
