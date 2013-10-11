@@ -858,8 +858,14 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
     return _upperBound;
   }
 
+  bool get hasReflectedType => false;
+  Type get reflectedType => throw new UnsupportedError() ;
+
+  List<TypeVariableMirror> get typeVariables => new UnmodifiableListView<TypeVariableMirror>();
+  List<TypeMirror> get typeArguments => new UnmodifiableListView<TypeMirror>();
+
   bool get isOriginalDeclaration => true;
-  ClassMirror get originalDeclaration => this;
+  TypeMirror get originalDeclaration => this;
 
   String toString() => "TypeVariableMirror on '${_n(simpleName)}'";
 
