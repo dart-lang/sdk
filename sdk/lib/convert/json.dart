@@ -90,6 +90,21 @@ class JsonCodec extends Codec<Object, String> {
     return new JsonDecoder(reviver).convert(str);
   }
 
+  /**
+   * Converts [value] to a JSON string.
+   *
+   * If value contains objects that are not directly encodable to a JSON
+   * string (a value that is not a number, boolean, string, null, list or a map
+   * with string keys), the [toEncodable] function is used to convert it to an
+   * object that must be directly encodable.
+   *
+   * If [toEncodable] is omitted, it defaults to calling `.toJson()` on the
+   * unencodable object.
+   */
+  Object encode(Object value, {toEncodable(var object)}) {
+    return new JsonEncoder(toEncodable).convert(value);
+  }
+
   JsonEncoder get encoder => new JsonEncoder();
   JsonDecoder get decoder => new JsonDecoder(null);
 }
@@ -112,7 +127,22 @@ class _ReviverJsonCodec extends JsonCodec {
  * This class converts JSON objects to strings.
  */
 class JsonEncoder extends Converter<Object, String> {
-  JsonEncoder();
+  final _toEncodableFunction;
+
+  /**
+   * Creates a JSON encoder.
+   *
+   * The JSON encoder handles numbers, strings, booleans, null, lists and
+   * maps directly.
+   *
+   * Any other object is attempted converted by [toEncodable] to an
+   * object that is of one of the convertible types.
+   *
+   * If [toEncodable] is omitted, it defaults to calling `.toJson()` on
+   * the object.
+   */
+  JsonEncoder([Object toEncodable(Object nonSerializable)])
+      : this._toEncodableFunction = toEncodable;
 
   /**
    * Converts the given object [o] to its JSON representation.
@@ -122,14 +152,14 @@ class JsonEncoder extends Converter<Object, String> {
    * For [List], the elements must all be serializable.
    * For [Map], the keys must be [String] and the values must be serializable.
    *
-   * If a value is any other type is attempted serialized, a "toJson()" method
-   * is invoked on the object and the result, which must be a directly
-   * serializable value, is serialized instead of the original value.
+   * If a value is any other type is attempted serialized, the conversion
+   * function provided in the constructor is invoked with the object as argument
+   * and the result, which must be a directly serializable value,
+   * is serialized instead of the original value.
    *
-   * If the object does not support this method, throws, or returns a
-   * value that is not directly serializable, a [JsonUnsupportedObjectError]
-   * exception is thrown. If the call throws (including the case where there
-   * is no nullary "toJson" method, the error is caught and stored in the
+   * If the conversion throws, or returns a value that is not directly
+   * serializable, a [JsonUnsupportedObjectError] exception is thrown.
+   * If the call throws, the error is caught and stored in the
    * [JsonUnsupportedObjectError]'s [:cause:] field.
    *
    * If a [List] or [Map] contains a reference to itself, directly or through
@@ -141,7 +171,7 @@ class JsonEncoder extends Converter<Object, String> {
    * the JSON text for it. I.e., if an object changes after it is first
    * serialized, the new values may or may not be reflected in the result.
    */
-  String convert(Object o) => OLD_JSON_LIB.stringify(o);
+  String convert(Object o) => OLD_JSON_LIB.stringify(o, _toEncodableFunction);
 
   /**
    * Starts a chunked conversion.
@@ -157,7 +187,7 @@ class JsonEncoder extends Converter<Object, String> {
     if (sink is! StringConversionSink) {
       sink = new StringConversionSink.from(sink);
     }
-    return new _JsonEncoderSink(sink);
+    return new _JsonEncoderSink(sink, _toEncodableFunction);
   }
 
   // Override the base-classes bind, to provide a better type.
@@ -170,10 +200,11 @@ class JsonEncoder extends Converter<Object, String> {
  * The sink only accepts one value, but will produce output in a chunked way.
  */
 class _JsonEncoderSink extends ChunkedConversionSink<Object> {
+  final Function _toEncodableFunction;
   final StringConversionSink _sink;
   bool _isDone = false;
 
-  _JsonEncoderSink(this._sink);
+  _JsonEncoderSink(this._sink, this._toEncodableFunction);
 
   /**
    * Encodes the given object [o].
@@ -188,7 +219,7 @@ class _JsonEncoderSink extends ChunkedConversionSink<Object> {
     }
     _isDone = true;
     ClosableStringSink stringSink = _sink.asStringSink();
-    OLD_JSON_LIB.printOn(o, stringSink);
+    OLD_JSON_LIB.printOn(o, stringSink, _toEncodableFunction);
     stringSink.close();
   }
 

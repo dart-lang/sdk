@@ -8,6 +8,8 @@
 
 library json;
 
+import "dart:collection" show HashSet;
+
 // JSON parsing and serialization.
 
 /**
@@ -665,10 +667,10 @@ class JsonParser {
 
 
 class _JsonStringifier {
-  StringSink sink;
-  List<Object> seen;  // TODO: that should be identity set.
+  final StringSink sink;
+  final Set<Object> seen;
 
-  _JsonStringifier(this.sink) : seen = [];
+  _JsonStringifier(this.sink) : seen = new HashSet.identity();
 
   static String stringify(final object) {
     StringBuffer output = new StringBuffer();
@@ -735,11 +737,8 @@ class _JsonStringifier {
   }
 
   void checkCycle(final object) {
-    // TODO: use Iterables.
-    for (int i = 0; i < seen.length; i++) {
-      if (identical(seen[i], object)) {
-        throw new JsonCyclicError(object);
-      }
+    if (seen.contains(object)) {
+      throw new JsonCyclicError(object);
     }
     seen.add(object);
   }
@@ -755,7 +754,7 @@ class _JsonStringifier {
         if (!stringifyJsonValue(customJson)) {
           throw new JsonUnsupportedObjectError(object);
         }
-        seen.removeLast();
+        seen.remove(object);
       } catch (e) {
         throw new JsonUnsupportedObjectError(object, cause: e);
       }
@@ -800,7 +799,7 @@ class _JsonStringifier {
         }
       }
       sink.write(']');
-      seen.removeLast();
+      seen.remove(object);
       return true;
     } else if (object is Map) {
       checkCycle(object);
@@ -819,7 +818,7 @@ class _JsonStringifier {
         first = false;
       });
       sink.write('}');
-      seen.removeLast();
+      seen.remove(object);
       return true;
     } else {
       return false;

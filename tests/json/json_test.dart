@@ -136,6 +136,18 @@ main() {
      */
     expect(() => JSON.encode(new TestClass()), throws);
   });
+
+  test('stringify custom converter', () {
+    List l = [const C(0), const C(1)];
+    expect(JSON.encode(l, (x) => "C(${x.id})"), equals("[C(0),C(1)]"));
+    expect(JSON.encode(l), equals("[C/0,C/1]"));
+  });
+}
+
+class C {
+  final int id;
+  const C(this.id);
+  toJson() => "C/$id";
 }
 
 class TestClass {
@@ -158,5 +170,3 @@ class ToJson {
 validateRoundTrip(expected) {
   expect(JSON.decode(JSON.encode(expected)), equals(expected));
 }
-
-
