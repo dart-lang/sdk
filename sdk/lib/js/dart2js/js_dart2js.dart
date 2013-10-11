@@ -4,7 +4,7 @@
 
 library dart.js;
 
-import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
+import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show Primitives, convertDartClosureToJS;
 
 final JsObject context = new JsObject._fromJs(Primitives.computeGlobalThis());
@@ -39,41 +39,10 @@ class Callback implements Serializable<JsFunction> {
   JsFunction toJs() => new JsFunction._fromJs(_jsFunction);
 }
 
-/*
- * TODO(justinfagnani): add tests and make public when we remove Callback.
- *
- * Returns a [JsFunction] that captures its 'this' binding and calls [f]
- * with the value of this passed as the first argument.
- */
-JsFunction _captureThis(Function f) => 
-  new JsFunction._fromJs(_convertDartFunction(f, captureThis: true));
-
-_convertDartFunction(Function f, {bool captureThis: false}) {
-  return JS('',
-    'function(_call, f, captureThis) {'
-      'return function() {'
-        'return _call(f, captureThis, this, '
-            'Array.prototype.slice.apply(arguments));'
-      '}'
-    '}(#, #, #)', DART_CLOSURE_TO_JS(_callDartFunction), f, captureThis);
-}
-
-_callDartFunction(callback, bool captureThis, self, List arguments) {
-  if (captureThis) {
-    arguments = [self]..addAll(arguments);
-  }
-  var dartArgs = arguments.map(_convertToDart).toList();
-  return _convertToJS(Function.apply(callback, dartArgs));
-}
-
-
 class JsObject implements Serializable<JsObject> {
   final dynamic _jsObject;
 
-  JsObject._fromJs(this._jsObject) {
-    // remember this proxy for the JS object
-    _getDartProxy(_jsObject, _DART_OBJECT_PROPERTY_NAME, (o) => this);
-  }
+  JsObject._fromJs(this._jsObject);
 
   // TODO(vsm): Type constructor as Serializable<JsFunction> when
   // dartbug.com/11854 is fixed.
@@ -151,7 +120,6 @@ return ret;
 
   operator[](key) =>
       _convertToDart(JS('=Object', '#[#]', _convertToJS(this), key));
-
   operator[]=(key, value) => JS('void', '#[#]=#', _convertToJS(this), key,
       _convertToJS(value));
 
@@ -198,17 +166,6 @@ abstract class Serializable<T> {
   T toJs();
 }
 
-// property added to a Dart object referencing its JS-side DartObject proxy
-const _DART_OBJECT_PROPERTY_NAME = r'_$dart_dartObject';
-const _DART_CLOSURE_PROPERTY_NAME = r'_$dart_dartClosure';
-
-// property added to a JS object referencing its Dart-side JsObject proxy
-const _JS_OBJECT_PROPERTY_NAME = r'_$dart_jsObject';
-const _JS_FUNCTION_PROPERTY_NAME = r'$dart_jsFunction';
-
-_defineProperty(o, String name, value) =>
-    JS('void', 'Object.defineProperty(#, #, { value: #})', o, name, value);
-
 dynamic _convertToJS(dynamic o) {
   if (o == null) {
     return null;
@@ -219,29 +176,12 @@ dynamic _convertToJS(dynamic o) {
   } else if (o is Serializable) {
     return _convertToJS(o.toJs());
   } else if (o is Function) {
-    return _getJsProxy(o, _JS_FUNCTION_PROPERTY_NAME, (o) {
-      var jsFunction = _convertDartFunction(o);
-      // set a property on the JS closure referencing the Dart closure
-      _defineProperty(jsFunction, _DART_CLOSURE_PROPERTY_NAME, o);
-      return jsFunction;
-    });
+    return _convertToJS(new Callback(o));
   } else {
-    return _getJsProxy(o, _JS_OBJECT_PROPERTY_NAME,
-        (o) => JS('', 'new DartObject(#)', o));
+    return JS('=Object', 'new DartProxy(#)', o);
   }
 }
 
-dynamic _getJsProxy(o, String propertyName, createProxy(o)) {
-  var jsProxy = JS('', '#[#]', o, propertyName);
-  if (jsProxy == null) {
-    jsProxy = createProxy(o);
-    _defineProperty(o, propertyName, jsProxy);
-  }
-  return jsProxy;
-}
-
-// converts a Dart object to a reference to a native JS object
-// which might be a DartObject JS->Dart proxy
 dynamic _convertToDart(dynamic o) {
   if (JS('bool', '# == null', o)) {
     return null;
@@ -250,21 +190,10 @@ dynamic _convertToDart(dynamic o) {
       JS('bool', 'typeof # == "boolean" || # instanceof Boolean', o, o)) {
     return o;
   } else if (JS('bool', '# instanceof Function', o)) {
-    return _getDartProxy(o, _DART_CLOSURE_PROPERTY_NAME,
-        (o) => new JsFunction._fromJs(o));
-  } else if (JS('bool', '# instanceof DartObject', o)) {
+    return new JsFunction._fromJs(JS('=Object', '#', o));
+  } else if (JS('bool', '# instanceof DartProxy', o)) {
     return JS('var', '#.o', o);
   } else {
-    return _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME,
-        (o) => new JsObject._fromJs(o));
+    return new JsObject._fromJs(JS('=Object', '#', o));
   }
-}
-
-dynamic _getDartProxy(o, String propertyName, createProxy(o)) {
-  var dartProxy = JS('', '#[#]', o, propertyName);
-  if (dartProxy == null) {
-    dartProxy = createProxy(o);
-    _defineProperty(o, propertyName, dartProxy);
-  }
-  return dartProxy;
 }

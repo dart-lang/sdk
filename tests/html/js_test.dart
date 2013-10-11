@@ -124,10 +124,6 @@ function Baz(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11) {
   this.f10 = p10;
   this.f11 = p11;
 }
-
-function identical(o1, o2) {
-  return o1 === o2;
-}
 """;
   document.body.append(script);
 }
@@ -151,62 +147,14 @@ class Color implements Serializable<String> {
   String toJs() => this._value;
 }
 
-class TestDartObject {}
-
 main() {
   _injectJs();
   useHtmlConfiguration();
 
-  group('identity', () {
-
-    test('context instances should be identical', () {
-      var c1 = context;
-      var c2 = context;
-      expect(identical(c1, c2), isTrue);
-    });
-
-    test('identical JS objects should have identical proxies', () {
-      var o1 = context['location'];
-      var o2 = context['location'];
-      expect(identical(o1, o2), isTrue);
-    });
-
-    test('identical JS functions should have identical proxies', () {
-      var f1 = context['Object'];
-      var f2 = context['Object'];
-      expect(identical(f1, f2), isTrue);
-    });
-
-    test('identical Dart objects should have identical proxies', () {
-      var o1 = new TestDartObject();
-      expect(context.callMethod('identical', [o1, o1]), isTrue);
-    });
-
-    test('identical Dart functions should have identical proxies', () {
-      var f1 = () => print("I'm a Function!");
-      expect(context.callMethod('identical', [f1, f1]), isTrue);
-    });
-
-    // TODO(justinfagnani): old tests duplicate checks above, remove
-    // on test next cleanup pass
-    test('test proxy equality', () {
-      var foo1 = new JsObject(context['Foo'], [1]);
-      var foo2 = new JsObject(context['Foo'], [2]);
-      context['foo1'] = foo1;
-      context['foo2'] = foo2;
-      expect(foo1, isNot(equals(context['foo2'])));
-      expect(foo2, same(context['foo2']));
-      context.deleteProperty('foo1');
-      context.deleteProperty('foo2');
-    });
-
-    test('retrieve same dart Object', () {
-      final date = new DateTime.now();
-      context['dartDate'] = date;
-      expect(context['dartDate'], same(date));
-      context.deleteProperty('dartDate');
-    });
-
+  test('context instances should be identical', () {
+    var c1 = context;
+    var c2 = context;
+    expect(identical(c1, c2), isTrue);
   });
 
   test('read global field', () {
@@ -463,6 +411,15 @@ main() {
     expect(result, 42);
   });
 
+  test('test proxy equality', () {
+    var foo1 = new JsObject(context['Foo'], [1]);
+    var foo2 = new JsObject(context['Foo'], [2]);
+    context['foo'] = foo1;
+    context['foo'] = foo2;
+    expect(foo1, isNot(equals(context['foo'])));
+    expect(foo2, equals(context['foo']));
+  });
+
   test('test instanceof', () {
     var foo = new JsObject(context['Foo'], [1]);
     expect(foo.instanceof(context['Foo']), isTrue);
@@ -502,6 +459,12 @@ main() {
   test('access a property of a function', () {
     expect(context.callMethod('Bar'), "ret_value");
     expect(context['Bar']['foo'], "property_value");
+  });
+
+  test('retrieve same dart Object', () {
+    final date = new DateTime.now();
+    context['dartDate'] = date;
+    expect(context['dartDate'], equals(date));
   });
 
   test('usage of Serializable', () {
