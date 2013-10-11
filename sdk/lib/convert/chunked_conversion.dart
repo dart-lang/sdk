@@ -70,7 +70,7 @@ class _ConverterTransformStream<S, T> extends EventTransformStream<S, T> {
    * This starts the chunked conversion.
    */
   StreamSubscription<T> listen(void onData(T data),
-                               { void onError(error),
+                               { Function onError,
                                  void onDone(),
                                  bool cancelOnError }) {
     _eventTransformer._startChunkedConversion();
@@ -125,6 +125,7 @@ class _ConverterStreamEventTransformer<S, T>
     try {
       _chunkedSink.add(event);
     } catch(e) {
+      // TODO(floitsch): capture stack trace.
       eventSink.addError(e);
     } finally {
       _eventSink = null;
@@ -136,6 +137,7 @@ class _ConverterStreamEventTransformer<S, T>
     try {
       _chunkedSink.close();
     } catch(e) {
+      // TODO(floitsch): capture stack trace.
       eventSink.addError(e);
     } finally {
       _eventSink = null;
@@ -143,6 +145,7 @@ class _ConverterStreamEventTransformer<S, T>
   }
 
   void handleError(var errorEvent, EventSink<T> eventSink) {
+    // TODO(floitsch): capture stack trace.
     eventSink.addError(errorEvent);
   }
 }

@@ -303,15 +303,15 @@ Future<Stream> validateStream(Stream stream) {
     // We got a value, so the stream is valid.
     if (!completer.isCompleted) completer.complete(controller.stream);
     controller.add(value);
-  }, onError: (error) {
+  }, onError: (error, [stackTrace]) {
     // If the error came after values, it's OK.
     if (completer.isCompleted) {
-      controller.addError(error);
+      controller.addError(error, stackTrace);
       return;
     }
 
     // Otherwise, the error came first and the stream is invalid.
-    completer.completeError(error);
+    completer.completeError(error, stackTrace);
 
     // We don't be returning the stream at all in this case, so unsubscribe
     // and swallow the error.
@@ -334,8 +334,8 @@ Future streamFirst(Stream stream) {
   subscription = stream.listen((value) {
     subscription.cancel();
     completer.complete(value);
-  }, onError: (e) {
-    completer.completeError(e);
+  }, onError: (e, [stackTrace]) {
+    completer.completeError(e, stackTrace);
   }, onDone: () {
     completer.completeError(new StateError("No elements"));
   }, cancelOnError: true);
@@ -364,9 +364,9 @@ Pair<Stream, Stream> tee(Stream stream) {
   stream.listen((value) {
     controller1.add(value);
     controller2.add(value);
-  }, onError: (error) {
-    controller1.addError(error);
-    controller2.addError(error);
+  }, onError: (error, [stackTrace]) {
+    controller1.addError(error, stackTrace);
+    controller2.addError(error, stackTrace);
   }, onDone: () {
     controller1.close();
     controller2.close();
@@ -381,11 +381,10 @@ Stream mergeStreams(Stream stream1, Stream stream2) {
   var controller = new StreamController(sync: true);
 
   for (var stream in [stream1, stream2]) {
-    stream.listen((value) {
-      controller.add(value);
-    }, onError: (error) {
-      controller.addError(error);
-    }, onDone: () {
+    stream.listen(
+        controller.add,
+        onError: controller.addError,
+        onDone: () {
       doneCount++;
       if (doneCount == 2) controller.close();
     });

@@ -99,9 +99,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
                   .fold(new StringBuffer(), (buffer, str) => buffer..write(str))
                   .then((buffer) {
                     sink.add(buffer.toString());
-                  }, onError: (error) {
-                    sink.addError(error);
-                  });
+                  }, onError: sink.addError);
               break;
 
             case _WebSocketOpcode.BINARY:
@@ -114,9 +112,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
                   .fold(new BytesBuilder(), (buffer, data) => buffer..add(data))
                   .then((buffer) {
                     sink.add(buffer.takeBytes());
-                  }, onError: (error) {
-                    sink.addError(error);
-                  });
+                  }, onError: sink.addError);
               break;
 
             case _WebSocketOpcode.CLOSE:
@@ -382,7 +378,7 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
     stream.listen((request) {
         _upgrade(request)
             .then((WebSocket webSocket) => _controller.add(webSocket))
-            .catchError((error) => _controller.addError(error));
+            .catchError(_controller.addError);
     });
 
     return _controller.stream;
@@ -620,12 +616,12 @@ class _WebSocketConsumer implements StreamConsumer {
         .then((_) {
           _done();
           _closeCompleter.complete(webSocket);
-        }, onError: (error) {
+        }, onError: (error, StackTrace stackTrace) {
           _closed = true;
           _cancel();
           if (error is ArgumentError) {
-            if (!_done(error)) {
-              _closeCompleter.completeError(error);
+            if (!_done(error, stackTrace)) {
+              _closeCompleter.completeError(error, stackTrace);
             }
           } else {
             _done();
@@ -634,10 +630,10 @@ class _WebSocketConsumer implements StreamConsumer {
         });
   }
 
-  bool _done([error]) {
+  bool _done([error, StackTrace stackTrace]) {
     if (_completer == null) return false;
     if (error != null) {
-      _completer.completeError(error);
+      _completer.completeError(error, stackTrace);
     } else {
       _completer.complete(webSocket);
     }
@@ -656,12 +652,8 @@ class _WebSocketConsumer implements StreamConsumer {
         (data) {
           _controller.add(data);
         },
-        onDone: () {
-          _done();
-        },
-        onError: (error) {
-          _done(error);
-        },
+        onDone: _done,
+        onError: _done,
         cancelOnError: true);
     if (_issuedPause) {
       _subscription.pause();
@@ -832,7 +824,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
   }
 
   StreamSubscription listen(void onData(message),
-                            {void onError(error),
+                            {Function onError,
                              void onDone(),
                              bool cancelOnError}) {
     return _controller.stream.listen(onData,

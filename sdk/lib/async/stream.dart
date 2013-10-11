@@ -191,13 +191,19 @@ abstract class Stream<T> {
    * On errors from this stream, the [onError] handler is given a
    * object describing the error.
    *
+   * The [onError] callback must be of type `void onError(error)` or
+   * `void onError(error, StackTrace stackTrace)`. If [onError] accepts
+   * two arguments it is called with the stack trace (which could be `null` if
+   * the stream itself received an error without stack trace).
+   * Otherwise it is called with just the error object.
+   *
    * If this stream closes, the [onDone] handler is called.
    *
    * If [cancelOnError] is true, the subscription is ended when
    * the first error is reported. The default is false.
    */
   StreamSubscription<T> listen(void onData(T event),
-                               { void onError(error),
+                               { Function onError,
                                  void onDone(),
                                  bool cancelOnError});
 
@@ -225,6 +231,12 @@ abstract class Stream<T> {
    * If this stream sends an error that matches [test], then it is intercepted
    * by the [handle] function.
    *
+   * The [onError] callback must be of type `void onError(error)` or
+   * `void onError(error, StackTrace stackTrace)`. Depending on the function
+   * type the the stream either invokes [onError] with or without a stack
+   * trace. The stack trace argument might be `null` if the stream itself
+   * received an error without stack trace.
+   *
    * An [AsyncError] [:e:] is matched by a test function if [:test(e):] returns
    * true. If [test] is omitted, every error is considered matching.
    *
@@ -236,8 +248,8 @@ abstract class Stream<T> {
    * [Stream.transform] to handle the event by writing a data event to
    * the output sink
    */
-  Stream<T> handleError(void handle( error), { bool test(error) }) {
-    return new _HandleErrorStream<T>(this, handle, test);
+  Stream<T> handleError(Function onError, { bool test(error) }) {
+    return new _HandleErrorStream<T>(this, onError, test);
   }
 
   /**
@@ -313,8 +325,8 @@ abstract class Stream<T> {
           _cancelAndError(subscription, result)
         );
       },
-      onError: (e) {
-        result._completeError(e);
+      onError: (e, st) {
+        result._completeError(e, st);
       },
       onDone: () {
         result._complete(value);
@@ -886,8 +898,13 @@ abstract class StreamSubscription<T> {
   /** Set or override the data event handler of this subscription. */
   void onData(void handleData(T data));
 
-  /** Set or override the error event handler of this subscription. */
-  void onError(void handleError(error));
+  /**
+   * Set or override the error event handler of this subscription.
+   *
+   * This method overrides the handler that has been set at the invocation of
+   * [Stream.listen].
+   */
+  void onError(Function handleError);
 
   /** Set or override the done event handler of this subscription. */
   void onDone(void handleDone());
@@ -958,7 +975,7 @@ class StreamView<T> extends Stream<T> {
       => _stream.asBroadcastStream(onListen: onListen, onCancel: onCancel);
 
   StreamSubscription<T> listen(void onData(T value),
-                               { void onError(error),
+                               { Function onError,
                                  void onDone(),
                                  bool cancelOnError }) {
     return _stream.listen(onData, onError: onError, onDone: onDone,
@@ -1041,7 +1058,7 @@ abstract class StreamTransformer<S, T> {
    */
   factory StreamTransformer({
       void handleData(S data, EventSink<T> sink),
-      void handleError(error, EventSink<T> sink),
+      Function handleError,
       void handleDone(EventSink<T> sink)}) {
     return new _StreamTransformerImpl<S, T>(handleData,
                                             handleError,
@@ -1134,7 +1151,7 @@ class EventTransformStream<S, T> extends Stream<T> {
       : _source = source, _transformer = transformer;
 
   StreamSubscription<T> listen(void onData(T data),
-                               { void onError(error),
+                               { Function onError,
                                  void onDone(),
                                  bool cancelOnError }) {
     if (onData == null) onData = _nullDataHandler;
@@ -1164,7 +1181,7 @@ class _EventTransformStreamSubscription<S, T>
   _EventTransformStreamSubscription(Stream<S> source,
                                     this._transformer,
                                     void onData(T data),
-                                    void onError(error),
+                                    Function onError,
                                     void onDone(),
                                     bool cancelOnError)
       : super(onData, onError, onDone, cancelOnError) {
@@ -1198,15 +1215,19 @@ class _EventTransformStreamSubscription<S, T>
     try {
       _transformer.handleData(data, _sink);
     } catch (e, s) {
-      _addError(_asyncError(e, s));
+      _addError(_asyncError(e, s), s);
     }
   }
 
-  void _handleError(error) {
+  void _handleError(error, [stackTrace]) {
     try {
       _transformer.handleError(error, _sink);
     } catch (e, s) {
-      _addError(_asyncError(e, s));
+      if (identical(e, error)) {
+        _addError(error, stackTrace);
+      } else {
+        _addError(_asyncError(e, s), s);
+      }
     }
   }
 
@@ -1215,7 +1236,7 @@ class _EventTransformStreamSubscription<S, T>
       _subscription = null;
       _transformer.handleDone(_sink);
     } catch (e, s) {
-      _addError(_asyncError(e, s));
+      _addError(_asyncError(e, s), s);
     }
   }
 }
@@ -1225,7 +1246,9 @@ class _EventSinkAdapter<T> implements EventSink<T> {
   _EventSinkAdapter(this._sink);
 
   void add(T data) { _sink._add(data); }
-  void addError(error) { _sink._addError(error); }
+  void addError(error, [StackTrace stackTrace]) {
+    _sink._addError(error, stackTrace);
+  }
   void close() { _sink._close(); }
 }
 

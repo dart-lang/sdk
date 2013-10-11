@@ -701,7 +701,7 @@ class _RawServerSocket extends Stream<RawSocket>
   }
 
   StreamSubscription<RawSocket> listen(void onData(RawSocket event),
-                                       {void onError(Object error),
+                                       {Function onError,
                                         void onDone(),
                                         bool cancelOnError}) {
     return _controller.stream.listen(
@@ -801,7 +801,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   }
 
   StreamSubscription<RawSocketEvent> listen(void onData(RawSocketEvent event),
-                                            {void onError(Object error),
+                                            {Function onError,
                                              void onDone(),
                                              bool cancelOnError}) {
     return _controller.stream.listen(
@@ -913,7 +913,7 @@ class _ServerSocket extends Stream<Socket>
   _ServerSocket(this._socket);
 
   StreamSubscription<Socket> listen(void onData(Socket event),
-                                    {void onError(error),
+                                    {Function onError,
                                      void onDone(),
                                      bool cancelOnError}) {
     return _socket.map((rawSocket) => new _Socket(rawSocket)).listen(
@@ -961,9 +961,9 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
             offset = 0;
             write();
           },
-          onError: (error) {
+          onError: (error, [stackTrace]) {
             socket._consumerDone();
-            done(error);
+            done(error, stackTrace);
           },
           onDone: () {
             done();
@@ -1004,10 +1004,10 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
     }
   }
 
-  void done([error]) {
+  void done([error, stackTrace]) {
     if (streamCompleter != null) {
       if (error != null) {
-        streamCompleter.completeError(error);
+        streamCompleter.completeError(error, stackTrace);
       } else {
         streamCompleter.complete(socket);
       }
@@ -1062,7 +1062,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   _NativeSocket get _nativeSocket => _raw._socket;
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(error),
+                                       {Function onError,
                                         void onDone(),
                                         bool cancelOnError}) {
     return _controller.stream.listen(
@@ -1189,13 +1189,13 @@ class _Socket extends Stream<List<int>> implements Socket {
     _consumer.done();
   }
 
-  void _onError(error) {
+  void _onError(error, stackTrace) {
     if (!_controllerClosed) {
       _controllerClosed = true;
-      _controller.addError(error);
+      _controller.addError(error, stackTrace);
       _controller.close();
     }
-    _consumer.done(error);
+    _consumer.done(error, stackTrace);
   }
 
   int _write(List<int> data, int offset, int length) =>

@@ -186,9 +186,9 @@ Pair<Stream, Stream> tee(Stream stream) {
   stream.listen((value) {
     controller1.add(value);
     controller2.add(value);
-  }, onError: (error) {
-    controller1.addError(error);
-    controller2.addError(error);
+  }, onError: (error, [StackTrace stackTrace]) {
+    controller1.addError(error, stackTrace);
+    controller2.addError(error, stackTrace);
   }, onDone: () {
     controller1.close();
     controller2.close();

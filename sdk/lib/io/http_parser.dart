@@ -126,7 +126,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
   }
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(error),
+                                       {Function onError,
                                         void onDone(),
                                         bool cancelOnError}) {
     return controller.stream.listen(
@@ -220,7 +220,7 @@ class _HttpParser
 
 
   StreamSubscription<_HttpIncoming> listen(void onData(_HttpIncoming event),
-                                           {void onError(error),
+                                           {Function onError,
                                             void onDone(),
                                             bool cancelOnError}) {
     return _controller.stream.listen(onData,
@@ -771,8 +771,8 @@ class _HttpParser
     _controller.close();
   }
 
-  void _onError(e) {
-    _controller.addError(e);
+  void _onError(e, [StackTrace stackTrace]) {
+    _controller.addError(e, stackTrace);
   }
 
   String get version {

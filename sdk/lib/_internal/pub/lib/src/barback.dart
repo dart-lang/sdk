@@ -75,18 +75,18 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
         if (error is TransformerException) error = error.error;
         if (!completer.isCompleted) completer.completeError(error);
       }),
-      server.barback.results.listen((_) {}, onError: (error) {
-        if (!completer.isCompleted) completer.completeError(error);
+      server.barback.results.listen((_) {}, onError: (error, stackTrace) {
+        if (!completer.isCompleted) completer.completeError(error, stackTrace);
       }),
-      server.results.listen((_) {}, onError: (error) {
-        if (!completer.isCompleted) completer.completeError(error);
+      server.results.listen((_) {}, onError: (error, stackTrace) {
+        if (!completer.isCompleted) completer.completeError(error, stackTrace);
       })
     ];
 
     loadAllTransformers(server, graph, builtInTransformers).then((_) {
       if (!completer.isCompleted) completer.complete(server);
-    }).catchError((error) {
-      if (!completer.isCompleted) completer.completeError(error);
+    }).catchError((error, stackTrace) {
+      if (!completer.isCompleted) completer.completeError(error, stackTrace);
     });
 
     return completer.future.whenComplete(() {

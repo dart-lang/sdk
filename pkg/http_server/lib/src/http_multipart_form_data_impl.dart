@@ -90,7 +90,7 @@ class _HttpMultipartFormData extends Stream implements HttpMultipartFormData {
 
   StreamSubscription listen(void onData(data),
                             {void onDone(),
-                             void onError(error),
+                             Function onError,
                              bool cancelOnError}) {
     return _stream.listen(onData,
                           onDone: onDone,

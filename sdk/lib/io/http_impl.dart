@@ -37,7 +37,7 @@ class _HttpIncoming extends Stream<List<int>> {
   }
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(error),
+                                       {Function onError,
                                         void onDone(),
                                         bool cancelOnError}) {
     hasSubscriber = true;
@@ -111,7 +111,7 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
   }
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(error),
+                                       {Function onError,
                                         void onDone(),
                                         bool cancelOnError}) {
     return _incoming.listen(onData,
@@ -238,7 +238,7 @@ class _HttpClientResponse
   }
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(error),
+                                       {Function onError,
                                         void onDone(),
                                         bool cancelOnError}) {
     var stream = _incoming;
@@ -586,7 +586,7 @@ class _HttpOutboundConsumer implements StreamConsumer {
                 _done();
                 _closeCompleter.complete(_outbound);
               },
-              onError: (error) {
+              onError: (error, [StackTrace stackTrace]) {
                 _socketError = true;
                 if (_ignoreError(error)) {
                   _cancel();
@@ -594,16 +594,16 @@ class _HttpOutboundConsumer implements StreamConsumer {
                   _closeCompleter.complete(_outbound);
                 } else {
                   if (!_done(error)) {
-                    _closeCompleter.completeError(error);
+                    _closeCompleter.completeError(error, stackTrace);
                   }
                 }
               });
   }
 
-  bool _done([error]) {
+  bool _done([error, StackTrace stackTrace]) {
     if (_completer == null) return false;
     if (error != null) {
-      _completer.completeError(error);
+      _completer.completeError(error, stackTrace);
     } else {
       _completer.complete(_outbound);
     }
@@ -623,12 +623,8 @@ class _HttpOutboundConsumer implements StreamConsumer {
         (data) {
           _controller.add(data);
         },
-        onDone: () {
-          _done();
-        },
-        onError: (error) {
-          _done(error);
-        },
+        onDone: _done,
+        onError: _done,
         cancelOnError: true);
     // Pause the first request.
     if (_controller == null) _subscription.pause();
@@ -949,13 +945,11 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     }
     future.then(
         (v) => _responseCompleter.complete(v),
-        onError: (e) {
-          _responseCompleter.completeError(e);
-        });
+        onError: _responseCompleter.completeError);
   }
 
-  void _onError(error) {
-    _responseCompleter.completeError(error);
+  void _onError(error, StackTrace stackTrace) {
+    _responseCompleter.completeError(error, stackTrace);
   }
 
   // Generate the request URI based on the method and proxy.
@@ -1180,10 +1174,11 @@ class _HttpClientConnection {
           _nextResponseCompleter.complete(incoming);
           _nextResponseCompleter = null;
         },
-        onError: (error) {
+        onError: (error, [StackTrace stackTrace]) {
           if (_nextResponseCompleter != null) {
             _nextResponseCompleter.completeError(
-                new HttpException(error.message, uri: _currentUri));
+                new HttpException(error.message, uri: _currentUri),
+                stackTrace);
             _nextResponseCompleter = null;
           }
         },
@@ -1305,10 +1300,10 @@ class _HttpClientConnection {
                 throw new HttpException(
                     "Connection closed before data was received", uri: uri);
               }, test: (error) => error is StateError)
-              .catchError((error) {
+              .catchError((error, stackTrace) {
                 // We are done with the socket.
                 destroy();
-                request._onError(error);
+                request._onError(error, stackTrace);
               });
 
           // Resume the parser now we have a handler.
@@ -1942,7 +1937,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   }
 
   StreamSubscription<HttpRequest> listen(void onData(HttpRequest event),
-                                         {void onError(error),
+                                         {Function onError,
                                          void onDone(),
                                          bool cancelOnError}) {
     _serverSocket.listen(
@@ -2153,7 +2148,7 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
   _DetachedSocket(this._socket, this._incoming);
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(error),
+                                       {Function onError,
                                         void onDone(),
                                         bool cancelOnError}) {
     return _incoming.listen(onData,

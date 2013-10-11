@@ -30,7 +30,7 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T>
 
   _BroadcastSubscription(_StreamControllerLifecycle controller,
                          void onData(T data),
-                         void onError(Object error),
+                         Function onError,
                          void onDone(),
                          bool cancelOnError)
       : super(controller, onData, onError, onDone, cancelOnError) {
@@ -173,7 +173,7 @@ abstract class _BroadcastStreamController<T>
   // _StreamControllerLifecycle interface.
 
   StreamSubscription<T> _subscribe(void onData(T data),
-                                   void onError(Object error),
+                                   Function onError,
                                    void onDone(),
                                    bool cancelOnError) {
     if (isClosed) {
@@ -227,7 +227,7 @@ abstract class _BroadcastStreamController<T>
   void addError(Object error, [Object stackTrace]) {
     if (!_mayAddEvent) throw _addEventError();
     if (stackTrace != null) _attachStackTrace(error, stackTrace);
-    _sendError(error);
+    _sendError(error, stackTrace);
   }
 
   Future close() {
@@ -256,9 +256,9 @@ abstract class _BroadcastStreamController<T>
     _sendData(data);
   }
 
-  void _addError(Object error) {
+  void _addError(Object error, StackTrace stackTrace) {
     assert(_isAddingStream);
-    _sendError(error);
+    _sendError(error, stackTrace);
   }
 
   void _close() {
@@ -333,10 +333,10 @@ class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
     });
   }
 
-  void _sendError(Object error) {
+  void _sendError(Object error, StackTrace stackTrace) {
     if (_isEmpty) return;
     _forEachListener((_BufferingStreamSubscription<T> subscription) {
-      subscription._addError(error);
+      subscription._addError(error, stackTrace);
     });
   }
 
@@ -368,12 +368,12 @@ class _AsyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
     }
   }
 
-  void _sendError(Object error) {
+  void _sendError(Object error, StackTrace stackTrace) {
     for (_BroadcastSubscriptionLink link = _next;
          !identical(link, this);
          link = link._next) {
       _BroadcastSubscription<T> subscription = link;
-      subscription._addPending(new _DelayedError(error));
+      subscription._addPending(new _DelayedError(error, stackTrace));
     }
   }
 
@@ -434,7 +434,7 @@ class _AsBroadcastStreamController<T>
 
   void addError(Object error, [StackTrace stackTrace]) {
     if (!isClosed && _isFiring) {
-      _addPendingEvent(new _DelayedError(error));
+      _addPendingEvent(new _DelayedError(error, stackTrace));
       return;
     }
     super.addError(error, stackTrace);
@@ -468,7 +468,7 @@ class _AsBroadcastStreamController<T>
 class _DoneSubscription<T> implements StreamSubscription<T> {
   int _pauseCount = 0;
   void onData(void handleData(T data)) {}
-  void onError(void handleErrr(Object error)) {}
+  void onError(Function handleError) {}
   void onDone(void handleDone()) {}
   void pause([Future resumeSignal]) {
     if (resumeSignal != null) resumeSignal.then(_resume);

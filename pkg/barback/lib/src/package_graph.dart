@@ -96,9 +96,9 @@ class PackageGraph {
         // Include all build errors for all cascades. If no cascades have
         // errors, the result will automatically be considered a success.
         _resultsController.add(new BuildResult(errors, numLogErrors));
-      }, onError: (error) {
+      }, onError: (error, [stackTrace]) {
         _lastUnexpectedError = error;
-        _resultsController.addError(error);
+        _resultsController.addError(error, stackTrace);
       });
     }
 

@@ -29,7 +29,7 @@ class Pair<E, F> {
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
   future.then((value) => completer.complete(value),
-      onError: (e) => completer.completeError(e));
+      onError: completer.completeError);
 }
 
 /// Prepends each line in [text] with [prefix]. If [firstPrefix] is passed, the
@@ -85,7 +85,7 @@ Stream futureStream(Future<Stream> future) {
   future.then((stream) {
     stream.listen(
         controller.add,
-        onError: (error) => controller.addError(error),
+        onError: controller.addError,
         onDone: controller.close);
   }).catchError((e) {
     controller.addError(e);
@@ -143,8 +143,8 @@ Pair<Stream, StreamCanceller> streamWithCanceller(Stream stream) {
   var controllerStream = controller.stream;
   var subscription = stream.listen((value) {
     if (!controller.isClosed) controller.add(value);
-  }, onError: (error) {
-    if (!controller.isClosed) controller.addError(error);
+  }, onError: (error, [stackTrace]) {
+    if (!controller.isClosed) controller.addError(error, stackTrace);
   }, onDone: controller.close);
   return new Pair<Stream, StreamCanceller>(controllerStream, controller.close);
 }
@@ -159,9 +159,9 @@ Pair<Stream, Stream> tee(Stream stream) {
   stream.listen((value) {
     controller1.add(value);
     controller2.add(value);
-  }, onError: (error) {
-    controller1.addError(error);
-    controller2.addError(error);
+  }, onError: (error, [stackTrace]) {
+    controller1.addError(error, stackTrace);
+    controller2.addError(error, stackTrace);
   }, onDone: () {
     controller1.close();
     controller2.close();

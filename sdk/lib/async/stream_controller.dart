@@ -170,7 +170,7 @@ abstract class StreamController<T> implements StreamSink<T> {
 
 abstract class _StreamControllerLifecycle<T> {
   StreamSubscription<T> _subscribe(void onData(T data),
-                                   void onError(Object error),
+                                   Function onError,
                                    void onDone(),
                                    bool cancelOnError);
   void _recordPause(StreamSubscription<T> subscription) {}
@@ -383,7 +383,7 @@ abstract class _StreamController<T> implements StreamController<T>,
       // a stack trace.
       _attachStackTrace(error, stackTrace);
     }
-    _addError(error);
+    _addError(error, stackTrace);
   }
 
   /**
@@ -424,11 +424,11 @@ abstract class _StreamController<T> implements StreamController<T>,
     }
   }
 
-  void _addError(Object error) {
+  void _addError(Object error, StackTrace stackTrace) {
     if (hasListener) {
-      _sendError(error);
+      _sendError(error, stackTrace);
     } else if (_isInitialState) {
-      _ensurePendingEvents().add(new _DelayedError(error));
+      _ensurePendingEvents().add(new _DelayedError(error, stackTrace));
     }
   }
 
@@ -444,7 +444,7 @@ abstract class _StreamController<T> implements StreamController<T>,
   // _StreamControllerLifeCycle interface
 
   StreamSubscription<T> _subscribe(void onData(T data),
-                                   void onError(Object error),
+                                   Function onError,
                                    void onDone(),
                                    bool cancelOnError) {
     if (!_isInitialState) {
@@ -506,8 +506,8 @@ abstract class _SyncStreamControllerDispatch<T>
     _subscription._add(data);
   }
 
-  void _sendError(Object error) {
-    _subscription._addError(error);
+  void _sendError(Object error, StackTrace stackTrace) {
+    _subscription._addError(error, stackTrace);
   }
 
   void _sendDone() {
@@ -521,8 +521,8 @@ abstract class _AsyncStreamControllerDispatch<T>
     _subscription._addPending(new _DelayedData(data));
   }
 
-  void _sendError(Object error) {
-    _subscription._addPending(new _DelayedError(error));
+  void _sendError(Object error, StackTrace stackTrace) {
+    _subscription._addPending(new _DelayedError(error, stackTrace));
   }
 
   void _sendDone() {
@@ -590,7 +590,7 @@ class _ControllerStream<T> extends _StreamImpl<T> {
 
   StreamSubscription<T> _createSubscription(
       void onData(T data),
-      void onError(Object error),
+      Function onError,
       void onDone(),
       bool cancelOnError) =>
     _controller._subscribe(onData, onError, onDone, cancelOnError);
@@ -614,7 +614,7 @@ class _ControllerSubscription<T> extends _BufferingStreamSubscription<T> {
 
   _ControllerSubscription(this._controller,
                           void onData(T data),
-                          void onError(Object error),
+                          Function onError,
                           void onDone(),
                           bool cancelOnError)
       : super(onData, onError, onDone, cancelOnError);
@@ -638,7 +638,9 @@ class _StreamSinkWrapper<T> implements StreamSink<T> {
   final StreamSink _target;
   _StreamSinkWrapper(this._target);
   void add(T data) { _target.add(data); }
-  void addError(Object error) { _target.addError(error); }
+  void addError(Object error, [StackTrace stackTrace]) {
+    _target.addError(error);
+  }
   Future close() => _target.close();
   Future addStream(Stream<T> source) => _target.addStream(source);
   Future get done => _target.done;

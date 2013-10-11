@@ -38,7 +38,7 @@ class _FileStream extends Stream<List<int>> {
   }
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(error),
+                                       {Function onError,
                                         void onDone(),
                                         bool cancelOnError}) {
     return _controller.stream.listen(onData,
@@ -191,9 +191,9 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
           onDone: () {
             completer.complete(_file);
           },
-          onError: (e) {
+          onError: (e, [StackTrace stackTrace]) {
             openedFile.close();
-            completer.completeError(e);
+            completer.completeError(e, stackTrace);
           },
           cancelOnError: true);
       })
@@ -418,8 +418,8 @@ class _File extends FileSystemEntity implements File {
       onDone: () {
         completer.complete(builder.takeBytes());
       },
-      onError: (e) {
-        completer.completeError(e);
+      onError: (e, StackTrace stackTrace) {
+        completer.completeError(e, stackTrace);
       },
       cancelOnError: true);
     return completer.future;

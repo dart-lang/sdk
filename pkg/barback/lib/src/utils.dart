@@ -137,14 +137,13 @@ Stream mergeStreams(Iterable<Stream> streams, {bool broadcast: false}) {
       : new StreamController(sync: true);
 
   for (var stream in streams) {
-    stream.listen((value) {
-      controller.add(value);
-    }, onError: (error) {
-      controller.addError(error);
-    }, onDone: () {
-      doneCount++;
-      if (doneCount == streams.length) controller.close();
-    });
+    stream.listen(
+      controller.add,
+      onError: controller.addError,
+      onDone: () {
+    doneCount++;
+    if (doneCount == streams.length) controller.close();
+  });
   }
 
   return controller.stream;
@@ -188,10 +187,10 @@ Stream futureStream(Future<Stream> future) {
   future.then((stream) {
     stream.listen(
         controller.add,
-        onError: (error) => controller.addError(error),
+        onError: controller.addError,
         onDone: controller.close);
-  }).catchError((e) {
-    controller.addError(e);
+  }).catchError((e, stackTrace) {
+    controller.addError(e, stackTrace);
     controller.close();
   });
   return controller.stream;

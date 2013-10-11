@@ -88,8 +88,8 @@ class ServeCommand extends PubCommand {
           log.message("Build completed with "
               "${log.red(result.numErrors)} errors.");
         }
-      }, onError: (error) {
-        if (!completer.isCompleted) completer.completeError(error);
+      }, onError: (error, [stackTrace]) {
+        if (!completer.isCompleted) completer.completeError(error, stackTrace);
       });
 
       server.results.listen((result) {
@@ -106,8 +106,8 @@ class ServeCommand extends PubCommand {
         } else {
           log.message("$msg $error");
         }
-      }, onError: (error) {
-        if (!completer.isCompleted) completer.completeError(error);
+      }, onError: (error, [stackTrace]) {
+        if (!completer.isCompleted) completer.completeError(error, stackTrace);
       });
 
       log.message("Serving ${entrypoint.root.name} "

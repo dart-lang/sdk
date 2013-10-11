@@ -101,32 +101,32 @@ class ErrorGroup {
   ///
   /// If all members of [this] have already completed successfully or with an
   /// error, it's a [StateError] to try to signal an error.
-  void signalError(var error) {
+  void signalError(var error, [StackTrace stackTrace]) {
     if (_isDone) {
       throw new StateError("Can't signal errors on a complete ErrorGroup.");
     }
 
-    _signalError(error);
+    _signalError(error, stackTrace);
   }
 
   /// Signal an error internally. This is just like [signalError], but instead
   /// of throwing an error if [this] is complete, it just does nothing.
-  void _signalError(var error) {
+  void _signalError(var error, [StackTrace stackTrace]) {
     if (_isDone) return;
 
     var caught = false;
     for (var future in _futures) {
       if (future._isDone || future._hasListeners) caught = true;
-      future._signalError(error);
+      future._signalError(error, stackTrace);
     }
 
     for (var stream in _streams) {
       if (stream._isDone || stream._hasListeners) caught = true;
-      stream._signalError(error);
+      stream._signalError(error, stackTrace);
     }
 
     _isDone = true;
-    _done._signalError(error);
+    _done._signalError(error, stackTrace);
     if (!caught && !_done._hasListeners) runAsync((){ throw error; });
   }
 
@@ -172,7 +172,7 @@ class _ErrorGroupFuture implements Future {
       if (!_isDone) _completer.complete(value);
       _isDone = true;
       _group._signalFutureComplete(this);
-    }).catchError((error) => _group._signalError(error));
+    }).catchError(_group._signalError);
 
     // Make sure _completer.future doesn't automatically send errors to the
     // top-level.
@@ -201,8 +201,8 @@ class _ErrorGroupFuture implements Future {
 
   /// Signal that an error from [_group] should be propagated through [this],
   /// unless it's already complete.
-  void _signalError(var error) {
-    if (!_isDone) _completer.completeError(error);
+  void _signalError(var error, [StackTrace stackTrace]) {
+    if (!_isDone) _completer.completeError(error, stackTrace);
     _isDone = true;
   }
 }
@@ -245,8 +245,8 @@ class _ErrorGroupStream extends Stream {
         : _controller.stream;
     _subscription = inner.listen((v) {
       _controller.add(v);
-    }, onError: (e) {
-      _group._signalError(e);
+    }, onError: (e, [stackTrace]) {
+      _group._signalError(e, stackTrace);
     }, onDone: () {
       _isDone = true;
       _group._signalStreamComplete(this);
@@ -255,7 +255,7 @@ class _ErrorGroupStream extends Stream {
   }
 
   StreamSubscription listen(void onData(value),
-      {void onError(var error), void onDone(),
+      {Function onError, void onDone(),
        bool cancelOnError}) {
     return _stream.listen(onData,
         onError: onError,
@@ -265,12 +265,12 @@ class _ErrorGroupStream extends Stream {
 
   /// Signal that an error from [_group] should be propagated through [this],
   /// unless it's already complete.
-  void _signalError(var e) {
+  void _signalError(var e, [StackTrace stackTrace]) {
     if (_isDone) return;
     _subscription.cancel();
     // Call these asynchronously to work around issue 7913.
     new Future.value().then((_) {
-      _controller.addError(e);
+      _controller.addError(e, stackTrace);
       _controller.close();
     });
   }
