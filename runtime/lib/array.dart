@@ -77,17 +77,19 @@ class _List<E> implements List<E> {
     if (iterable is _List) {
       _copyFromObjectArray(iterable, skipCount, start, length);
     } else {
-      List otherList;
-      int otherStart;
       if (iterable is List) {
-        otherList = iterable;
-        otherStart = skipCount;
+        Arrays.copy(iterable, skipCount, this, start, length);
       } else {
-        otherList =
-            iterable.skip(skipCount).take(length).toList(growable: false);
-        otherStart = 0;
+        Iterator it = iterable.iterator;
+        while (skipCount > 0) {
+          if (!it.moveNext()) return;
+          skipCount--;
+        }
+        for (int i = start; i < end; i++) {
+          if (!it.moveNext()) return;
+          this[i] = it.current;
+        }
       }
-      Arrays.copy(otherList, otherStart, this, start, length);
     }
   }
 
