@@ -5,7 +5,7 @@
 \usepackage{hyperref}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
-{\large Draft Version 0.61}}
+{\large Draft Version 0.70}}
 \author{The Dart Team}
 \begin{document}
 \maketitle
@@ -484,6 +484,8 @@ The former section on variables in interfaces (now removed): Added specification
 \ref{constants}: Added constant conditional expressions.
 
 \ref{strings}: Allow adjacent single and multiline strings to concatenate. Allow escaped newlines in multiline strings.
+
+\ref{const}: Allow parameterized types in const instance creation.
 
 \ref{conditional}: Type promotion support added.
 
@@ -3212,7 +3214,11 @@ A {\em constant object expression} invokes a constant constructor (\ref{constant
 .
 \end{grammar}
 
-Let $e$ be a constant object expression of the form  \CONST{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ or the form  \CONST{} $T(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. It is a compile-time error if $T$ is not a class accessible in the current scope.  It is a compile-time error if $T$ is a parameterized type.
+Let $e$ be a constant object expression of the form  \CONST{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ or the form  \CONST{} $T(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. It is a compile-time error if $T$ does not denote a class accessible in the current scope. 
+
+\commentary{In particular, $T$ may not be a type variable.}
+
+If $T$ is a parameterized type, it is a compile-time error if $T$ includes a type variable among its type arguments.
 
 If $e$ is of the form \CONST{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ it is a compile-time error if $T.id$ is not the name of a constant constructor declared by the type $T$. If $e$ is of the form  \CONST{} $T(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ it is a compile-time error if the type $T$ does not declare a constant constructor with the same name as the declaration of $T$. 
 
@@ -4497,33 +4503,6 @@ To do otherwise would undermine the optionally typed nature of Dart, causing typ
  %The use of getters and setters here is a device to help make the specification more uniform. Introducing getters and setters for local variables has no performance consequences, since they can never be overridden, and so can always be optimized away.  It is not possible to declare a local getter or setter explicitly, since there is little reason to ever do so.
 %}
 
-%In all of the above cases,  it 
-It is a compile-time error if $e$ refers to the name $v$ or the name $v=$.
-
-\commentary{
-This rule may seem redundant in light of the scoping rules above. After all:
-}
-
-\begin{dartCode}
-f() \{ // a top level function
-  \VAR{} v = v* 2;
-\}
-\end{dartCode}
-
-\commentary{
-is already an error since $v$ is not yet in scope in its own initializer. However, consider the more insidious:
-}
-
-\begin{dartCode}
-\VAR v = 0; // top level variable
-
-f() \{ // a top level function
-  \VAR{} v = v* 2; // compile-time error
-\}
-\end{dartCode}
-
-
-
 
 \subsection{Local Function Declaration}
 
@@ -5394,7 +5373,7 @@ then let $NS_i = \HIDE{}([id_1, \ldots, id_k], NS_{i-1}$).
 For each
 entry mapping key $k$ to declaration $d$ in $NS_n$ an entry mapping $k$ to $d$ is added to the exported namespace of $L$ unless a  top-level declaration with the name $k$ exists in $L$.  
 
-If a name $N$ is referenced by a library $L$ and $N$ would be introduced into the exported namespace of $L$ by an export from a library whose URI begins with \code{dart:} and an export from a library whose name does not begin with \code{dart:}:
+If a name $N$ is referenced by a library $L$ and $N$ would be introduced into the exported namespace of $L$ by an export from a library whose URI begins with \code{dart:} and an export from a library whose URI does not begin with \code{dart:}:
 \begin{itemize}
 \item The export from \code{dart:} is implicitly extended by a \code{\HIDE{} $N$} clause.
 \item A static warning is issued.
