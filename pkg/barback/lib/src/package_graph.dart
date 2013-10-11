@@ -87,15 +87,10 @@ class PackageGraph {
         // either.
         if (_cascadeResults.values.any((result) => result == null)) return;
 
-        var errors = unionAll(
-            _cascadeResults.values.map((result) => result.errors));
-
-        var numLogErrors = _cascadeResults.values.fold(0,
-            (numErrors, result) => result.numErrors - result.errors.length);
-
         // Include all build errors for all cascades. If no cascades have
         // errors, the result will automatically be considered a success.
-        _resultsController.add(new BuildResult(errors, numLogErrors));
+        _resultsController.add(
+            new BuildResult.aggregate(_cascadeResults.values));
       }, onError: (error, [stackTrace]) {
         _lastUnexpectedError = error;
         _resultsController.addError(error, stackTrace);
@@ -138,10 +133,9 @@ class PackageGraph {
     }
 
     // If the build completed with an error, complete the future with it.
-    var errors = unionAll(
-        _cascadeResults.values.map((result) => result.errors));
-    if (errors.isNotEmpty) {
-      return new Future.error(BarbackException.aggregate(errors));
+    var result = new BuildResult.aggregate(_cascadeResults.values);
+    if (!result.succeeded) {
+      return new Future.error(BarbackException.aggregate(result.errors));
     }
 
     // Otherwise, return all of the final output assets.

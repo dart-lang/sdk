@@ -121,7 +121,10 @@ class AssetCascade {
 
     // Keep track of logged errors so we can know that the build failed.
     onLog.listen((entry) {
-      if (entry.level == LogLevel.ERROR) _numLogErrors++;
+      if (entry.level == LogLevel.ERROR) {
+        _accumulatedErrors.add(
+            new TransformerException(entry.transform, entry.message));
+      }
     });
   }
 
@@ -261,7 +264,7 @@ class AssetCascade {
       // Report the build completion.
       // TODO(rnystrom): Put some useful data in here.
       _resultsController.add(
-          new BuildResult(_accumulatedErrors, _numLogErrors));
+          new BuildResult(_accumulatedErrors));
     }).catchError((error) {
       // If we get here, it's an unexpected error. Runtime errors like missing
       // assets should be handled earlier. Errors from transformers or other

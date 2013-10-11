@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_test.dart';
 
+import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
@@ -32,15 +32,12 @@ main() {
             r"^Error on line 1 of .*[/\\]file\.dart:(.|\n)*"
             r"^Error on line 1 of .*[/\\]subfile\.dart:",
             multiLine: true),
-        output: '''
-Finding entrypoints...
-Copying   web| => build|
-'''.replaceAll('|', path.separator),
-        exitCode: 0);
+        output: new RegExp(r"Building myapp\.\.\.*"),
+        exitCode: exit_codes.DATA);
 
+    // Doesn't output anything if an error occurred.
     d.dir(appPath, [
       d.dir('build', [
-        d.matcherFile('file.txt', 'contents'),
         d.nothing('file.dart.js'),
         d.nothing('file.dart'),
         d.nothing('subdir')

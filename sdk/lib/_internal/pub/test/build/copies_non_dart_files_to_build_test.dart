@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:path/path.dart' as path;
-
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
@@ -26,10 +24,7 @@ main() {
     ]).create();
 
     schedulePub(args: ["build"],
-        output: '''
-Finding entrypoints...
-Copying   web| => build|
-'''.replaceAll('|', path.separator),
+        output: new RegExp(r"Built \d+ files!"),
         exitCode: 0);
 
     d.dir(appPath, [

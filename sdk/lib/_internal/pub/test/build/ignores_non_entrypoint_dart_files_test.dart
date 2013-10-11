@@ -22,10 +22,7 @@ main() {
     ]).create();
 
     schedulePub(args: ["build"],
-        output: '''
-Finding entrypoints...
-Copying   web| => build|
-'''.replaceAll('|', path.separator),
+        output: new RegExp(r"Built 0 files!"),
         exitCode: 0);
 
     d.dir(appPath, [

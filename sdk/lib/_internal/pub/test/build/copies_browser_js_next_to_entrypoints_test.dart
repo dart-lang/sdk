@@ -62,24 +62,12 @@ main() {
     pubGet();
 
     schedulePub(args: ["build"],
-        output: '''
-Finding entrypoints...
-Copying   web|                       => build|
-Compiling web|file.dart              => build|file.dart.js
-Compiling web|file.dart              => build|file.dart
-Copying   package:browser/dart.js    => build|packages|browser|dart.js
-Copying   package:browser/interop.js => build|packages|browser|interop.js
-Compiling web|subdir|subfile.dart    => build|subdir|subfile.dart.js
-Compiling web|subdir|subfile.dart    => build|subdir|subfile.dart
-Copying   package:browser/dart.js    => build|subdir|packages|browser|dart.js
-Copying   package:browser/interop.js => build|subdir|packages|browser|interop.js
-'''.replaceAll('|', path.separator),
+        output: new RegExp(r"Built 4 files!"),
         exitCode: 0);
 
     d.dir(appPath, [
       d.dir('build', [
         d.matcherFile('file.dart.js', isNot(isEmpty)),
-        d.matcherFile('file.dart', isNot(isEmpty)),
         d.dir('packages', [d.dir('browser', [
           d.file('dart.js', 'contents of dart.js'),
           d.file('interop.js', 'contents of interop.js')
@@ -89,8 +77,7 @@ Copying   package:browser/interop.js => build|subdir|packages|browser|interop.js
             d.file('dart.js', 'contents of dart.js'),
             d.file('interop.js', 'contents of interop.js')
           ])]),
-          d.matcherFile('subfile.dart.js', isNot(isEmpty)),
-          d.matcherFile('subfile.dart', isNot(isEmpty))
+          d.matcherFile('subfile.dart.js', isNot(isEmpty))
         ])
       ])
     ]).validate();

@@ -57,7 +57,7 @@ class ServeCommand extends PubCommand {
       return flushThenExit(exit_codes.USAGE);
     }
 
-    return ensureLockFileIsUpToDate().then((_) {
+    return entrypoint.ensureLockFileIsUpToDate().then((_) {
       return entrypoint.loadPackageGraph();
     }).then((graph) {
       // TODO(rnystrom): Add support for dart2dart transformer here.
@@ -114,26 +114,6 @@ class ServeCommand extends PubCommand {
           "on http://$hostname:${server.port}");
 
       return completer.future;
-    });
-  }
-
-  /// Gets dependencies if the lockfile is out of date with respect to the
-  /// pubspec.
-  Future ensureLockFileIsUpToDate() {
-    return new Future.sync(() {
-      // The server relies on an up-to-date lockfile, so get first if needed.
-      if (!entrypoint.isLockFileUpToDate()) {
-        if (entrypoint.lockFileExists) {
-          log.message(
-              "Your pubspec has changed, so we need to update your lockfile:");
-        } else {
-          log.message(
-              "You don't have a lockfile, so we need to generate that:");
-        }
-        return entrypoint.getDependencies().then((_) {
-          log.message("Got dependencies!");
-        });
-      }
     });
   }
 }

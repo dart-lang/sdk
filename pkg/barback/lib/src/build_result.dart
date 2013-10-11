@@ -25,23 +25,24 @@ class BuildResult {
   /// All errors that were thrown during the build.
   final Set<BarbackException> errors;
 
-  /// The number of error log entries that occurred during this build.
-  final int _numErrorLogs;
-
   /// `true` if the build succeeded.
-  bool get succeeded => errors.isEmpty && _numErrorLogs == 0;
+  bool get succeeded => errors.isEmpty;
 
-  /// Gets the number of error exceptions and log entries.
-  int get numErrors => errors.length + _numErrorLogs;
-
-  BuildResult(Iterable<BarbackException> errors, this._numErrorLogs)
+  BuildResult(Iterable<BarbackException> errors)
       : errors = flattenAggregateExceptions(errors).toSet();
 
   /// Creates a build result indicating a successful build.
   ///
   /// This equivalent to a build result with no errors.
   BuildResult.success()
-      : this([], 0);
+      : this([]);
+
+  /// Creates a single [BuildResult] that contains all of the errors of
+  /// [results].
+  factory BuildResult.aggregate(Iterable<BuildResult> results) {
+    var errors = unionAll(results.map((result) => result.errors));
+    return new BuildResult(errors);
+  }
 
   String toString() {
     if (succeeded) return "success";

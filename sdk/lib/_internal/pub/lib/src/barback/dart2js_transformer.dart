@@ -26,6 +26,11 @@ import '../package_graph.dart';
 class Dart2JSTransformer extends Transformer {
   final PackageGraph _graph;
 
+  /// The [AssetId]s the transformer has discovered so far. Used by pub build
+  /// to determine where to copy the JS bootstrap files.
+  // TODO(rnystrom): Do something cleaner for this, or eliminate those files.
+  final entrypoints = new Set<AssetId>();
+
   Dart2JSTransformer(this._graph);
 
   /// Only ".dart" files within "web/" are processed.
@@ -60,6 +65,9 @@ class Dart2JSTransformer extends Transformer {
       // actually be on disk, but this gives dart2js a root to resolve
       // relative paths against.
       var id = transform.primaryInput.id;
+
+      entrypoints.add(id);
+
       var entrypoint = path.join(_graph.packages[id.package].dir, id.path);
       var packageRoot = path.join(_graph.entrypoint.root.dir, "packages");
 

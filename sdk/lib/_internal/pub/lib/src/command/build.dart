@@ -5,13 +5,14 @@
 library pub.command.build;
 
 import 'dart:async';
-import 'dart:math' as math;
 
-import 'package:analyzer_experimental/analyzer.dart';
+import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 
+import '../barback/dart2js_transformer.dart';
+import '../barback.dart' as barback;
 import '../command.dart';
-import '../dart.dart' as dart;
+import '../exit_codes.dart' as exit_codes;
 import '../io.dart';
 import '../log.dart' as log;
 import '../utils.dart';
@@ -32,113 +33,97 @@ class BuildCommand extends PubCommand {
   /// The path to the application's build output directory.
   String get target => path.join(entrypoint.root.dir, 'build');
 
-  /// The set of Dart entrypoints in [source] that should be compiled to
-  /// [target].
-  final _entrypoints = <String>[];
-
-  int _maxVerbLength;
-  int _maxSourceLength;
-
   Future onRun() {
     if (!dirExists(source)) {
       throw new ApplicationException("There is no '$source' directory.");
     }
 
-    return entrypoint.packageFiles(beneath: source).then((files) {
-      log.message("Finding entrypoints...");
-      _findEntrypoints(files);
-      _computeLogSize();
+    cleanDir(target);
 
-      cleanDir(target);
-      _logAction("Copying", "${path.relative(source)}${path.separator}",
-          "${path.relative(target)}${path.separator}");
-      copyFiles(files.where((file) => path.extension(file) != '.dart'),
-          source, target);
+    var dart2jsTransformer;
 
-      return Future.forEach(_entrypoints, (sourceFile) {
-        var targetFile =
-            path.join(target, path.relative(sourceFile, from: source));
-        var relativeTargetFile = path.relative(targetFile);
-        var relativeSourceFile = path.relative(sourceFile);
+    return entrypoint.ensureLockFileIsUpToDate().then((_) {
+      return entrypoint.loadPackageGraph();
+    }).then((graph) {
+      dart2jsTransformer = new Dart2JSTransformer(graph);
 
-        ensureDir(path.dirname(targetFile));
-        _logAction("Compiling", relativeSourceFile, "$relativeTargetFile.js");
-        // TODO(nweiz): print dart2js errors/warnings in red.
-        return dart.compile(sourceFile, packageRoot: entrypoint.packagesDir)
-            .then((js) {
-          writeTextFile("$targetFile.js", js, dontLogContents: true);
-          _logAction("Compiling", relativeSourceFile, "$relativeTargetFile");
-          return dart.compile(sourceFile,
-              packageRoot: entrypoint.packagesDir, toDart: true);
-        }).then((dart) {
-          writeTextFile(targetFile, dart, dontLogContents: true);
-          // TODO(nweiz): we should put browser JS files next to any HTML file
-          // rather than any entrypoint. An HTML file could import an entrypoint
-          // that's not adjacent.
-          _maybeAddBrowserJs(path.dirname(targetFile), "dart");
-          _maybeAddBrowserJs(path.dirname(targetFile), "interop");
-        });
+      // Since this server will only be hit by the transformer loader and isn't
+      // user-facing, just use an IPv4 address to avoid a weird bug on the
+      // OS X buildbots.
+      return barback.createServer("127.0.0.1", 0, graph,
+          builtInTransformers: [dart2jsTransformer]);
+    }).then((server) {
+      // Show in-progress errors, but not results. Those get handled implicitly
+      // by getAllAssets().
+      server.barback.errors.listen((error) {
+        log.error(log.red("Build error:\n$error"));
       });
+
+      return log.progress("Building ${entrypoint.root.name}",
+          () => server.barback.getAllAssets());
+    }).then((assets) {
+      // Don't copy Dart libraries. Their contents will already be included
+      // in the generated JavaScript.
+      assets = assets.where((asset) => asset.id.extension != ".dart");
+
+      return Future.forEach(assets, (asset) {
+        // Figure out the output directory for the asset, which is the same
+        // as the path pub serve would use to serve it.
+        var relativeUrl = barback.idtoUrlPath(entrypoint.root.name, asset.id);
+        var relativePath = path.fromUri(new Uri(path: relativeUrl));
+        var destPath = path.join(target, relativePath);
+
+        ensureDir(path.dirname(destPath));
+        // TODO(rnystrom): Should we display this to the user?
+        return createFileFromStream(asset.read(), destPath);
+      }).then((_) {
+        _copyBrowserJsFiles(dart2jsTransformer.entrypoints);
+        // TODO(rnystrom): Should this count include the JS files?
+        log.message("Built ${assets.length} files!");
+      });
+    }).catchError((error) {
+      // If [getAllAssets()] throws a BarbackException, the error has already
+      // been reported.
+      if (error is! BarbackException) throw error;
+
+      log.error(log.red("Build failed."));
+      return flushThenExit(exit_codes.DATA);
     });
   }
 
-  /// Populates [_entrypoints] with all of the Dart entrypoints in [files].
-  /// [files] should be a list of paths in [source].
-  void _findEntrypoints(List<String> files) {
-    for (var file in files) {
-      if (path.extension(file) != '.dart') continue;
-      try {
-        if (!dart.isEntrypoint(parseDartFile(file))) continue;
-      } on AnalyzerErrorGroup catch (e) {
-        log.warning(e.message);
-        continue;
-      }
-      _entrypoints.add(file);
+  /// If this package depends directly on the `browser` package, this ensures
+  /// that the JavaScript bootstrap files are copied into `packages/browser/`
+  /// directories next to each entrypoint in [entrypoints].
+  void _copyBrowserJsFiles(Iterable<AssetId> entrypoints) {
+    // Must depend on the browser package.
+    if (!entrypoint.root.dependencies.any((dep) =>
+        dep.name == 'browser' && dep.source == 'hosted')) {
+      return;
     }
-    // Sort to ensure a deterministic order of compilation and output.
-    _entrypoints.sort();
-  }
 
-  /// Computes the maximum widths of words that will be used in log output for
-  /// the build command so we know how much padding to add when printing them.
-  /// This should only be run after [_findEntrypoints].
-  void _computeLogSize() {
-    _maxVerbLength = ["Copying", "Compiling"]
-        .map((verb) => verb.length).reduce(math.max);
-    var sourceLengths = new List.from(
-            _entrypoints.map((file) => path.relative(file).length))
-        ..add("${path.relative(source)}${path.separator}".length);
-    if (_shouldAddBrowserJs) {
-      sourceLengths.add("package:browser/interop.js".length);
+    // Get all of the directories that contain Dart entrypoints.
+    var entrypointDirs = entrypoints
+        .map((id) => path.url.split(id.path))
+        .map((parts) => parts.skip(1)) // Remove "web/".
+        .map((relative) => path.dirname(path.joinAll(relative)))
+        .toSet();
+
+    for (var dir in entrypointDirs) {
+      // TODO(nweiz): we should put browser JS files next to any HTML file
+      // rather than any entrypoint. An HTML file could import an entrypoint
+      // that's not adjacent.
+      _addBrowserJs(dir, "dart");
+      _addBrowserJs(dir, "interop");
     }
-    _maxSourceLength = sourceLengths.reduce(math.max);
-  }
-
-  /// Log a build action. This should only be run after [_computeLogSize].
-  void _logAction(String verb, String source, String target) {
-    verb = padRight(verb, _maxVerbLength);
-    source = padRight(source, _maxSourceLength);
-    log.message("$verb $source $_arrow $target");
   }
 
   // TODO(nweiz): do something more principled when issue 6101 is fixed.
-  /// If this package depends non-transitively on the `browser` package, this
-  /// ensures that the [name].js file is copied into [directory], under
-  /// `packages/browser/`.
-  void _maybeAddBrowserJs(String directory, String name) {
-    var jsPath = path.join(directory, 'packages', 'browser', '$name.js');
-    // TODO(nweiz): warn if they don't depend on browser?
-    if (!_shouldAddBrowserJs || fileExists(jsPath)) return;
-
-    _logAction("Copying", "package:browser/$name.js", path.relative(jsPath));
+  /// Ensures that the [name].js file is copied into [directory] in [target],
+  /// under `packages/browser/`.
+  void _addBrowserJs(String directory, String name) {
+    var jsPath = path.join(
+        target, directory, 'packages', 'browser', '$name.js');
     ensureDir(path.dirname(jsPath));
     copyFile(path.join(entrypoint.packagesDir, 'browser', '$name.js'), jsPath);
-  }
-
-  /// Whether we should copy the browser package's JS files into the built app.
-  bool get _shouldAddBrowserJs {
-    return !_entrypoints.isEmpty &&
-        entrypoint.root.dependencies.any((dep) =>
-            dep.name == 'browser' && dep.source == 'hosted');
   }
 }

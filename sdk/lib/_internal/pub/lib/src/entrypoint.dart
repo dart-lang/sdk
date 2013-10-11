@@ -192,6 +192,26 @@ class Entrypoint {
     return true;
   }
 
+  /// Gets dependencies if the lockfile is out of date with respect to the
+  /// pubspec.
+  Future ensureLockFileIsUpToDate() {
+    return new Future.sync(() {
+      if (isLockFileUpToDate()) return;
+
+      if (lockFileExists) {
+        log.message(
+            "Your pubspec has changed, so we need to update your lockfile:");
+      } else {
+        log.message(
+            "You don't have a lockfile, so we need to generate that:");
+      }
+
+      return getDependencies().then((_) {
+        log.message("Got dependencies!");
+      });
+    });
+  }
+
   /// Loads the package graph for the application and all of its transitive
   /// dependencies.
   Future<PackageGraph> loadPackageGraph() {
