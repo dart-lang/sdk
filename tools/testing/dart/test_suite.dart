@@ -975,7 +975,6 @@ class StandardTestSuite extends TestSuite {
       Path txtPath = dir.append('$nameNoExt.txt');
       String customHtmlPath = dir.append('$nameNoExt.html').toNativePath();
       File customHtml = new File(customHtmlPath);
-      Path expectedOutput = null;
 
       // Construct the command(s) that compile all the inputs needed by the
       // browser test. For running Dart in DRT, this will be noop commands.
@@ -1042,16 +1041,8 @@ class StandardTestSuite extends TestSuite {
         }
         scriptPath = _createUrlPathFromFile(new Path(scriptPath));
 
-        if (new File(pngPath.toNativePath()).existsSync()) {
-          expectedOutput = pngPath;
-          content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
-        } else if (new File(txtPath.toNativePath()).existsSync()) {
-          expectedOutput = txtPath;
-          content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
-        } else {
-          content = getHtmlContents(filename, scriptType,
-              new Path("$scriptPath"));
-        }
+        content =
+            getHtmlContents(filename, scriptType, new Path("$scriptPath"));
         htmlTest.writeStringSync(content);
         htmlTest.closeSync();
       }
@@ -1140,16 +1131,9 @@ class StandardTestSuite extends TestSuite {
             dartFlags.addAll(vmOptions);
           }
 
-          if (expectedOutput != null) {
-            if (expectedOutput.toNativePath().endsWith('.png')) {
-              // pixel tests are specified by running DRT "foo.html'-p"
-              contentShellOptions.add('--notree');
-              fullHtmlPath = "${fullHtmlPath}'-p";
-            }
-          }
           commandSet.add(CommandBuilder.instance.getContentShellCommand(
               contentShellFilename, fullHtmlPath, contentShellOptions,
-              dartFlags, expectedOutput, configurationDir));
+              dartFlags, configurationDir));
         }
 
         // Create BrowserTestCase and queue it.

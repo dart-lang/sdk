@@ -9,24 +9,12 @@ recursive_import_test: Slow, Pass
 [ $compiler == none && $runtime == drt ]
 dummy_compiler_test: Skip # http://dartbug.com/7233
 dart2js_test: Skip # Uses dart:io.
-txt_layout_test: Skip # Might just go away.
 
 [ $compiler == dart2js && $browser ]
 *: Skip
 
-[ $runtime == vm ]
-*_layout_test: Skip
-
-[ $system == macos || $system == windows ]
-*_layout_test: Skip
-
-[ $compiler == none && $runtime == drt && $system == linux ]
-png_layout_test: Fail # Issue 13540
-
 [ $compiler == none && $runtime == dartium ]
 dart2js_test: Skip # Uses dart:io.
-png_layout_test: Skip # dartium doesn't support layout tests
-txt_layout_test: Skip # dartium doesn't support layout tests
 
 [ $compiler == dartanalyzer ]
 dart2js_test: fail # dart2js issue 13919 - excluded setter for final var

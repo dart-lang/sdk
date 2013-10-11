@@ -37,24 +37,6 @@ String getHtmlContents(String title,
 </html>
 """;
 
-String getHtmlLayoutContents(String scriptType,
-                             Path sourceScript) =>
-"""
-<!DOCTYPE html>
-<html>
-<head>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="dart.unittest" content="full-stack-traces">
-</head>
-<body>
-  <script type="text/javascript">
-    if (navigator.webkitStartDart) navigator.webkitStartDart();
-  </script>
-  <script type="$scriptType" src="$sourceScript" defer></script>
-</body>
-</html>
-""";
-
 String dartTestWrapper(String libraryPathComponent) {
   return """
 import '$libraryPathComponent' as test;
