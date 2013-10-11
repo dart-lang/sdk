@@ -2562,10 +2562,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitTypeConversion(HTypeConversion node) {
-    if (!node.isChecked) {
-      use(node.checkedInput);
-      return;
-    }
     if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
       // An int check if the input is not int or null, is not
       // sufficient for doing a argument or receiver check.
@@ -2611,6 +2607,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     push(helper.generateCall(this, node));
+  }
+
+  void visitTypeKnown(HTypeKnown node) {
+    use(node.checkedInput);
   }
 }
 

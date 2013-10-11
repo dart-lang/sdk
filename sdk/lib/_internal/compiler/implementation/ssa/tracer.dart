@@ -563,6 +563,11 @@ class HInstructionStringifier implements HVisitor<String> {
       "${node.instructionType} $otherInput";
   }
 
+  String visitTypeKnown(HTypeKnown node) {
+    assert(node.inputs.length == 1);
+    return "TypeKnown: ${temporaryId(node.checkedInput)} is ${node.knownType}";
+  }
+
   String visitRangeConversion(HRangeConversion node) {
     return "RangeConversion: ${node.checkedInput}";
   }

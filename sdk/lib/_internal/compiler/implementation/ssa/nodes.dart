@@ -68,6 +68,7 @@ abstract class HVisitor<R> {
   R visitTry(HTry node);
   R visitTypeGuard(HTypeGuard node);
   R visitTypeConversion(HTypeConversion node);
+  R visitTypeKnown(HTypeKnown node);
 }
 
 abstract class HGraphVisitor {
@@ -348,6 +349,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitTypeGuard(HTypeGuard node) => visitCheck(node);
   visitIs(HIs node) => visitInstruction(node);
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
+  visitTypeKnown(HTypeKnown node) => visitCheck(node);
 }
 
 class SubGraph {
@@ -800,11 +802,12 @@ abstract class HInstruction implements Spannable {
   static const int STATIC_STORE_TYPECODE = 22;
   static const int FIELD_GET_TYPECODE = 23;
   static const int TYPE_CONVERSION_TYPECODE = 24;
-  static const int BAILOUT_TARGET_TYPECODE = 25;
-  static const int INVOKE_STATIC_TYPECODE = 26;
-  static const int INDEX_TYPECODE = 27;
-  static const int IS_TYPECODE = 28;
-  static const int INVOKE_DYNAMIC_TYPECODE = 29;
+  static const int TYPE_KNOWN_TYPECODE = 25;
+  static const int BAILOUT_TARGET_TYPECODE = 26;
+  static const int INVOKE_STATIC_TYPECODE = 27;
+  static const int INDEX_TYPECODE = 28;
+  static const int IS_TYPECODE = 29;
+  static const int INVOKE_DYNAMIC_TYPECODE = 30;
 
   HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[] {
     assert(inputs.every((e) => e != null));
@@ -2325,12 +2328,11 @@ class HTypeConversion extends HCheck {
   final Selector receiverTypeCheckSelector;
   final bool contextIsTypeArguments;
 
-  static const int NO_CHECK = 0;
-  static const int CHECKED_MODE_CHECK = 1;
-  static const int ARGUMENT_TYPE_CHECK = 2;
-  static const int CAST_TYPE_CHECK = 3;
-  static const int BOOLEAN_CONVERSION_CHECK = 4;
-  static const int RECEIVER_TYPE_CHECK = 5;
+  static const int CHECKED_MODE_CHECK = 0;
+  static const int ARGUMENT_TYPE_CHECK = 1;
+  static const int CAST_TYPE_CHECK = 2;
+  static const int BOOLEAN_CONVERSION_CHECK = 3;
+  static const int RECEIVER_TYPE_CHECK = 4;
 
   HTypeConversion(this.typeExpression, this.kind,
                   HType type, HInstruction input,
@@ -2381,7 +2383,6 @@ class HTypeConversion extends HCheck {
     return super.convertType(compiler, type, kind);
   }
 
-  bool get isChecked => kind != NO_CHECK;
   bool get isCheckedModeCheck {
     return kind == CHECKED_MODE_CHECK
         || kind == BOOLEAN_CONVERSION_CHECK;
@@ -2395,15 +2396,38 @@ class HTypeConversion extends HCheck {
 
   bool isJsStatement() => isControlFlow();
   bool isControlFlow() => isArgumentTypeCheck || isReceiverTypeCheck;
-  bool canThrow() => isChecked;
 
   int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
   bool typeEquals(HInstruction other) => other is HTypeConversion;
-  bool isCodeMotionInvariant() => kind == NO_CHECK;
+  bool isCodeMotionInvariant() => false;
 
   bool dataEquals(HTypeConversion other) {
     return kind == other.kind
         && typeExpression == other.typeExpression
+        && instructionType == other.instructionType;
+  }
+}
+
+/// The [HTypeKnown] instruction marks a value with a refined type.
+class HTypeKnown extends HCheck {
+  HType knownType;
+  HTypeKnown(HType this.knownType, HInstruction input)
+      : super(<HInstruction>[input]) {
+    instructionType = knownType;
+  }
+  toString() => 'TypeKnown $knownType';
+  accept(HVisitor visitor) => visitor.visitTypeKnown(this);
+
+  bool isJsStatement() => false;
+  bool isControlFlow() => false;
+  bool canThrow() => false;
+
+  int typeCode() => HInstruction.TYPE_KNOWN_TYPECODE;
+  bool typeEquals(HInstruction other) => other is HTypeKnown;
+  bool isCodeMotionInvariant() => true;
+
+  bool dataEquals(HTypeKnown other) {
+    return knownType == other.knownType
         && instructionType == other.instructionType;
   }
 }
