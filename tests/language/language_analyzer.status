@@ -179,6 +179,9 @@ redirecting_factory_infinite_steps_test/01: fail
 # test issue 13956, It is a static type warning if any of the type arguments to k' are not subtypes of the bounds of the corresponding formal type parameters of type.
 default_factory2_test/none: fail
 
+hidden_import_test/01: Fail # 14009
+hidden_import_test/02: Fail # 14009
+
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail
 factory1_test/01: fail

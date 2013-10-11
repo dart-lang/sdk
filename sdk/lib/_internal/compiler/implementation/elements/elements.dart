@@ -700,7 +700,7 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
 }
 
 abstract class PrefixElement extends Element {
-  Map<SourceString, Element> get imported;
+  void addImport(Element element, Import import, DiagnosticListener listener);
   Element lookupLocalMember(SourceString memberName);
 }
 

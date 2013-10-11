@@ -254,7 +254,21 @@ class Future {}""",
 """
 library export;
 
-export 'future.dart';"""}]);
+export 'future.dart';"""},
+
+         const {
+'main.dart':
+"""
+import 'future.dart' as prefix;
+import 'dart:async' as prefix; // This imports a class Future.
+
+void main() => new prefix.Future();""",
+
+'future.dart':
+"""
+library future;
+
+class Future {}"""}]);
 
 
   static const MessageKind HIDDEN_IMPLICIT_IMPORT = const MessageKind(

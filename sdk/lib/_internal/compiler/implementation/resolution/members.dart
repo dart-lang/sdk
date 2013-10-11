@@ -4474,6 +4474,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     } else if (identical(e.kind, ElementKind.PREFIX)) {
       PrefixElement prefix = e;
       e = prefix.lookupLocalMember(name.source);
+      e = Elements.unwrap(e, compiler, node);
       if (e == null) {
         return failOrReturnErroneousElement(
             resolver.enclosingElement, name,
