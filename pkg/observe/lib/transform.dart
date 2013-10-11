@@ -68,7 +68,7 @@ TextEditTransaction _transformCompilationUnit(
     if (directive is LibraryDirective && _hasObservable(directive)) {
       logger.warning('@observable on a library no longer has any effect. '
           'It should be placed on individual fields.',
-          _getSpan(sourceFile, directive));
+          span: _getSpan(sourceFile, directive));
       break;
     }
   }
@@ -80,7 +80,7 @@ TextEditTransaction _transformCompilationUnit(
       if (_hasObservable(declaration)) {
         logger.warning('Top-level fields can no longer be observable. '
             'Observable fields should be put in an observable objects.',
-            _getSpan(sourceFile, declaration));
+            span: _getSpan(sourceFile, declaration));
       }
     }
   }
@@ -124,7 +124,7 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
   if (_hasObservable(cls)) {
     logger.warning('@observable on a class no longer has any effect. '
         'It should be placed on individual fields.',
-        _getSpan(file, cls));
+        span: _getSpan(file, cls));
   }
 
   // We'd like to track whether observable was declared explicitly, otherwise
@@ -182,7 +182,7 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
         if (_hasObservable(member)){
           logger.warning('Static fields can no longer be observable. '
               'Observable fields should be put in an observable objects.',
-              _getSpan(file, member));
+              span: _getSpan(file, member));
         }
         continue;
       }
@@ -192,7 +192,7 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
               'objects. Please declare that this class extends from '
               'ObservableBase, includes ObservableMixin, or implements '
               'Observable.',
-              _getSpan(file, member));
+              span: _getSpan(file, member));
         }
         _transformFields(file, member, code, logger);
 
@@ -304,7 +304,7 @@ void _transformFields(SourceFile file, FieldDeclaration member,
     final name = field.name.name;
     if (Identifier.isPrivateName(name)) {
       logger.warning('Cannot make private field $name observable.',
-          _getSpan(file, field));
+          span: _getSpan(file, field));
       return;
     }
   }
