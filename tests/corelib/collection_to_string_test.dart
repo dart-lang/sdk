@@ -81,10 +81,13 @@ void smokeTest() {
 void exactTest() {
   for (int i = 0; i < NUM_TESTS; i++) {
     // Choose a size from 0 to MAX_COLLECTION_SIZE, favoring larger sizes
-    int size = Math.sqrt(random(MAX_COLLECTION_SIZE * MAX_COLLECTION_SIZE)).toInt();
+    int size =
+        Math.sqrt(random(MAX_COLLECTION_SIZE * MAX_COLLECTION_SIZE)).toInt();
 
     StringBuffer stringRep = new StringBuffer();
     Object o = randomCollection(size, stringRep, exact:true);
+    print(stringRep);
+    print(o);
     Expect.equals(o.toString(), stringRep.toString());
   }
 }
@@ -103,10 +106,13 @@ void exactTest() {
 void inexactTest() {
   for (int i = 0; i < NUM_TESTS; i++) {
     // Choose a size from 0 to MAX_COLLECTION_SIZE, favoring larger sizes
-    int size = Math.sqrt(random(MAX_COLLECTION_SIZE * MAX_COLLECTION_SIZE)).toInt();
+    int size =
+        Math.sqrt(random(MAX_COLLECTION_SIZE * MAX_COLLECTION_SIZE)).toInt();
 
     StringBuffer stringRep = new StringBuffer();
     Object o = randomCollection(size, stringRep, exact:false);
+    print(stringRep);
+    print(o);
     Expect.equals(alphagram(o.toString()), alphagram(stringRep.toString()));
   }
 }
@@ -210,14 +216,68 @@ Map randomMap(int size, bool exact, StringBuffer stringRep, List beingMade) {
 populateRandomCollection(int size, bool exact,
     StringBuffer stringRep, List beingMade, var coll) {
   beingMade.add(coll);
-  stringRep.write(coll is List ? '[' : '{');
+  String delimiters = "()";  // Default for iterables.
+  if (coll is List) {
+    delimiters = "[]";
+  } else if (coll is Set) {
+    delimiters = "{}";
+  }
+  int start = stringRep.length;
 
+  stringRep.write(delimiters[0]);
+
+  List indices = [];
   for (int i = 0; i < size; i++) {
+    indices.add(stringRep.length);
     if (i != 0) stringRep.write(', ');
     coll.add(randomElement(random(size), exact, stringRep, beingMade));
   }
+  if (size > 5 && delimiters == "()") {
+    const int MAX_LENGTH = 80;
+    const int MIN_COUNT = 3;
+    const int MAX_COUNT = 100;
+    // It's an iterable, it may omit some elements.
+    int end = stringRep.length;
+    if (size > MAX_COUNT) {
+      // Last two elements are also omitted, just find the first three or
+      // first 60 characters.
+      for (int i = MIN_COUNT; i < size; i++) {
+        int startIndex = indices[i];
+        if (startIndex - start > MAX_LENGTH - 6) {  // Limit - ", ...)".length.
+          String prefix = stringRep.toString().substring(0, startIndex);
+          stringRep.clear();
+          stringRep.add(prefix);
+          stringRep.add(", ...");
+        }
+      }
+    } else if (stringRep.length - start > MAX_LENGTH - 1) {  // 80 - ")".length.
+      // Last two elements are always included. Middle ones may be omitted.
+      int lastTwoLength = end - indices[indices.length - 2];
+      // Try to find first element to omit.
+      for (int i = 3; i <= size - 3; i++) {
+        int elementEnd = indices[i + 1];
+        int lengthAfter = elementEnd - start;
+        int ellipsisSize = 5;  // ", ...".length
+        if (i == size - 3) ellipsisSize = 0;  // No ellipsis if we hit the end.
+        if (lengthAfter + ellipsisSize + lastTwoLength > MAX_LENGTH - 1) {
+          // Omit this element and everything up to the last two.
+          int elementStart = indices[i];
+          // Rewrite string buffer by copying it out, clearing, and putting
+          // the parts back in.
+          String buffer = stringRep.toString();
+          String prefix = buffer.substring(0, elementStart);
+          String suffix = buffer.substring(end - lastTwoLength, end);
+          stringRep.clear();
+          stringRep.write(prefix);
+          stringRep.write(", ...");
+          stringRep.write(suffix);
+          break;
+        }
+      }
+    }
+  }
 
-  stringRep.write(coll is List ? ']' : '}');
+  stringRep.write(delimiters[1]);
   beingMade.removeLast();
   return coll;
 }
@@ -280,10 +340,13 @@ Object randomElement(int size, bool exact, StringBuffer stringRep,
   } else {
     // Element Is a random recursive ref
     result = beingMade[random(beingMade.length)];
-    if (result is List)
+    if (result is List) {
       stringRep.write('[...]');
-    else
+    } else if (result is Set || result is Map) {
       stringRep.write('{...}');
+    } else {
+      stringRep.write('(...)');
+    }
   }
   return result;
 }

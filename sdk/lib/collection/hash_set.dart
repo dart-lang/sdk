@@ -57,7 +57,8 @@ abstract class _HashSetBase<E> extends IterableBase<E> implements Set<E> {
   }
 
   List<E> toList({bool growable: true}) {
-    List<E> result = new List<E>()..length = this.length;
+    List<E> result = growable ? (new List<E>()..length = this.length)
+                              : new List<E>(this.length);
     int i = 0;
     for (E element in this) result[i++] = element;
     return result;
@@ -65,7 +66,6 @@ abstract class _HashSetBase<E> extends IterableBase<E> implements Set<E> {
 
   Set<E> toSet() => _newSet()..addAll(this);
 
-  // TODO(zarah) Remove this, and let it be inherited by IterableBase
   String toString() => IterableMixinWorkaround.toStringIterable(this, '{', '}');
 }
 

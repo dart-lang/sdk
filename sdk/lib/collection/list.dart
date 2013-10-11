@@ -4,6 +4,9 @@
 
 part of dart.collection;
 
+/** A reusable set used to identify cyclic lists during toString() calls. */
+Set _toStringVisiting = new HashSet.identity();
+
 /**
  * Abstract implementation of a list.
  *
@@ -22,8 +25,6 @@ typedef ListBase<E> = Object with ListMixin<E>;
  * `length=` and `operator[]=`
  */
 abstract class ListMixin<E> implements List<E> {
-  // A list to identify cyclic lists during toString() calls.
-  static List _toStringList = new List();
 
   // Iterable interface.
   Iterator<E> get iterator => new ListIterator<E>(this);
@@ -487,19 +488,18 @@ abstract class ListMixin<E> implements List<E> {
   Iterable<E> get reversed => new ReversedListIterable(this);
 
   String toString() {
-    for (int i = 0; i < _toStringList.length; i++) {
-      if (identical(_toStringList[i], this)) { return '[...]'; }
+    if (_toStringVisiting.contains(this)) {
+      return '[...]';
     }
 
     var result = new StringBuffer();
     try {
-      _toStringList.add(this);
+      _toStringVisiting.add(this);
       result.write('[');
       result.writeAll(this, ', ');
       result.write(']');
      } finally {
-       assert(identical(_toStringList.last, this));
-       _toStringList.removeLast();
+       _toStringVisiting.remove(this);
      }
 
     return result.toString();
