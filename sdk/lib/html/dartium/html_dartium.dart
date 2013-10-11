@@ -26563,13 +26563,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -34889,16 +34889,9 @@ class Platform {
    *
    * This is needed to cover timing scenarios which the custom element polyfill
    * does not cover.
-   *
-   * This is also a workaround for dartbug.com/12642 in Dartium.
    */
   static void upgradeCustomElements(Node node) {
     // no-op, provided for dart2js polyfill.
-    if (node is Element) {
-      (node as Element).queryAll('*');
-    } else {
-      node.nodes.forEach(upgradeCustomElements);
-    }
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
