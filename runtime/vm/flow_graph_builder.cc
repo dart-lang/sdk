@@ -3112,6 +3112,13 @@ void ValueGraphVisitor::VisitStoreInstanceFieldNode(
 
 
 void EffectGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
+  if (node->field().is_const()) {
+    ASSERT(node->field().value() != Object::sentinel().raw());
+    ASSERT(node->field().value() != Object::transition_sentinel().raw());
+    Definition* result =
+        new ConstantInstr(Instance::ZoneHandle(node->field().value()));
+    return ReturnDefinition(result);
+  }
   Value* field_value = Bind(new ConstantInstr(node->field()));
   LoadStaticFieldInstr* load = new LoadStaticFieldInstr(field_value);
   ReturnDefinition(load);

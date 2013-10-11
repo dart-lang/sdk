@@ -8127,7 +8127,7 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
   const Function& getter =
       Function::Handle(field_owner.LookupStaticFunction(getter_name));
   // Never load field directly if there is a getter (deterministic AST).
-  if (getter.IsNull()) {
+  if (getter.IsNull() || field.is_const()) {
     return new LoadStaticFieldNode(ident_pos, Field::ZoneHandle(field.raw()));
   } else {
     ASSERT(getter.kind() == RawFunction::kImplicitStaticFinalGetter);
