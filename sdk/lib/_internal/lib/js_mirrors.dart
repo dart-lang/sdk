@@ -214,8 +214,17 @@ class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
   // TODO(ahe): Doesn't match the specification, see http://dartbug.com/11569.
   bool get isTopLevel => true;
 
-  // TODO(ahe): Implement this.
+  // TODO(ahe): Implement these.
   List<InstanceMirror> get metadata => throw new UnimplementedError();
+
+  bool get hasReflectedType => false;
+  Type get reflectedType => throw new UnsupportedError();
+
+  List<TypeVariableMirror> get typeVariables => throw new UnimplementedError();
+  List<TypeMirror> get typeArguments => throw new UnimplementedError();
+
+  bool get isOriginalDeclaration => true;
+  TypeMirror get originalDeclaration => this;
 }
 
 class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
