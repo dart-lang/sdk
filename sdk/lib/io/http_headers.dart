@@ -482,10 +482,12 @@ class _HeaderValue implements HeaderValue {
     }
   }
 
-  static _HeaderValue parse(String value, {parameterSeparator: ";"}) {
+  static _HeaderValue parse(String value,
+                            {parameterSeparator: ";",
+                             preserveBackslash: false}) {
     // Parse the string.
     var result = new _HeaderValue();
-    result._parse(value, parameterSeparator);
+    result._parse(value, parameterSeparator, preserveBackslash);
     return result;
   }
 
@@ -516,7 +518,7 @@ class _HeaderValue implements HeaderValue {
     return sb.toString();
   }
 
-  void _parse(String s, String parameterSeparator) {
+  void _parse(String s, String parameterSeparator, bool preserveBackslash) {
     int index = 0;
 
     bool done() => index == s.length;
@@ -569,9 +571,13 @@ class _HeaderValue implements HeaderValue {
           StringBuffer sb = new StringBuffer();
           index++;
           while (!done()) {
+            print(s[index]);
             if (s[index] == "\\") {
               if (index + 1 == s.length) {
                 throw new HttpException("Failed to parse header value");
+              }
+              if (preserveBackslash && s[index + 1] != "\"") {
+                sb.write(s[index]);
               }
               index++;
             } else if (s[index] == "\"") {
@@ -641,7 +647,7 @@ class _ContentType extends _HeaderValue implements ContentType {
 
   static _ContentType parse(String value) {
     var result = new _ContentType._();
-    result._parse(value, ";");
+    result._parse(value, ";", false);
     int index = result._value.indexOf("/");
     if (index == -1 || index == (result._value.length - 1)) {
       result._primaryType = result._value.trim().toLowerCase();

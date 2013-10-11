@@ -72,7 +72,8 @@ class _HttpMultipartFormData extends Stream implements HttpMultipartFormData {
           break;
 
         case 'content-disposition':
-          disposition = HeaderValue.parse(multipart.headers[key]);
+          disposition = HeaderValue.parse(multipart.headers[key],
+                                          preserveBackslash: true);
           break;
 
         default:
