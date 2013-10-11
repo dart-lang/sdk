@@ -571,7 +571,6 @@ class _HeaderValue implements HeaderValue {
           StringBuffer sb = new StringBuffer();
           index++;
           while (!done()) {
-            print(s[index]);
             if (s[index] == "\\") {
               if (index + 1 == s.length) {
                 throw new HttpException("Failed to parse header value");
