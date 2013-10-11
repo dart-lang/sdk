@@ -139,8 +139,9 @@ main() {
 
   test('stringify custom converter', () {
     List l = [const C(0), const C(1)];
-    expect(JSON.encode(l, (x) => "C(${x.id})"), equals("[C(0),C(1)]"));
-    expect(JSON.encode(l), equals("[C/0,C/1]"));
+    expect(JSON.encode(l, toEncodable: (x) => "C(${x.id})"),
+           equals('["C(0)","C(1)"]'));
+    expect(JSON.encode(l), equals('["C/0","C/1"]'));
   });
 }
 
