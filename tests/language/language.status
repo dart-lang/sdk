@@ -20,6 +20,7 @@ type_variable_conflict_test/03: Fail # Issue 13701
 type_variable_conflict_test/04: Fail # Issue 13701
 type_variable_conflict_test/05: Fail # Issue 13701
 type_variable_conflict_test/06: Fail # Issue 13701
+f_bounded_equality_test: RuntimeError # Issue 14000
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
