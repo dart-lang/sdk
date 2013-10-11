@@ -48,6 +48,9 @@ DEFINE_FLAG(int, huge_method_cutoff_in_code_size, 200000,
     "Huge method cutoff in unoptimized code size (in bytes).");
 DEFINE_FLAG(int, huge_method_cutoff_in_tokens, 20000,
     "Huge method cutoff in tokens: Disables optimizations for huge methods.");
+DEFINE_FLAG(bool, overlap_type_arguments, true,
+    "When possible, partially or fully overlap the type arguments of a type "
+    "with the type arguments of its super type.");
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
@@ -1705,17 +1708,79 @@ intptr_t Class::NumTypeParameters() const {
 }
 
 
+intptr_t Class::NumOwnTypeArguments() const {
+  Isolate* isolate = Isolate::Current();
+  const intptr_t num_type_params = NumTypeParameters();
+  if (!FLAG_overlap_type_arguments ||
+      (num_type_params == 0) ||
+      (super_type() == AbstractType::null()) ||
+      (super_type() == isolate->object_store()->object_type())) {
+    return num_type_params;
+  }
+  ASSERT(!IsMixinApplication() || is_mixin_type_applied());
+  const AbstractType& sup_type = AbstractType::Handle(isolate, super_type());
+  ASSERT(sup_type.IsResolved());
+  const AbstractTypeArguments& sup_type_args =
+      AbstractTypeArguments::Handle(isolate, sup_type.arguments());
+  if (sup_type_args.IsNull()) {
+    // The super type is raw or the super class is non generic.
+    // In either case, overlapping is not possible.
+    return num_type_params;
+  }
+  const intptr_t num_sup_type_args = sup_type_args.Length();
+  // At this point, the super type may or may not be finalized. In either case,
+  // the result of this function must remain the same.
+  // The value of num_sup_type_args may increase when the super type is
+  // finalized, but the last num_sup_type_args type arguments will not be
+  // modified by finalization, only shifted to higher indices in the vector.
+  // They may however get wrapped in a BoundedType, which we skip.
+  const AbstractTypeArguments& type_params =
+      AbstractTypeArguments::Handle(isolate, type_parameters());
+  // Determine the maximum overlap of a prefix of the vector consisting of the
+  // type parameters of this class with a suffix of the vector consisting of the
+  // type arguments of the super type of this class.
+  // The number of own type arguments of this class is the number of its type
+  // parameters minus the number of type arguments in the overlap.
+  // Attempt to overlap the whole vector of type parameters; reduce the size
+  // of the vector (keeping the first type parameter) until it fits or until
+  // its size is zero.
+  TypeParameter& type_param = TypeParameter::Handle(isolate);
+  AbstractType& sup_type_arg = AbstractType::Handle(isolate);
+  for (intptr_t num_overlapping_type_args =
+           (num_type_params < num_sup_type_args) ?
+               num_type_params : num_sup_type_args;
+       num_overlapping_type_args > 0; num_overlapping_type_args--) {
+    intptr_t i = 0;
+    for (; i < num_overlapping_type_args; i++) {
+      type_param ^= type_params.TypeAt(i);
+      sup_type_arg = sup_type_args.TypeAt(
+          num_sup_type_args - num_overlapping_type_args + i);
+      // BoundedType can nest in case the finalized super type has bounded type
+      // arguments that overlap multiple times in its own super class chain.
+      while (sup_type_arg.IsBoundedType()) {
+        sup_type_arg = BoundedType::Cast(sup_type_arg).type();
+      }
+      if (!type_param.Equals(sup_type_arg)) break;
+    }
+    if (i == num_overlapping_type_args) {
+      // Overlap found.
+      return num_type_params - num_overlapping_type_args;
+    }
+  }
+  // No overlap found.
+  return num_type_params;
+}
+
+
 intptr_t Class::NumTypeArguments() const {
   // To work properly, this call requires the super class of this class to be
   // resolved, which is checked by the type_class() call on the super type.
   // Note that calling type_class() on a MixinAppType fails.
   Isolate* isolate = Isolate::Current();
   Class& cls = Class::Handle(isolate);
-  TypeArguments& type_params = TypeArguments::Handle(isolate);
   AbstractType& sup_type = AbstractType::Handle(isolate);
   cls = raw();
   intptr_t num_type_args = 0;
-
   do {
     if (cls.IsSignatureClass()) {
       Function& signature_fun = Function::Handle(isolate);
@@ -1725,15 +1790,12 @@ intptr_t Class::NumTypeArguments() const {
         cls = signature_fun.Owner();
       }
     }
-    // Calling NumTypeParameters() on a mixin application class will setup the
+    // Calling NumOwnTypeArguments() on a mixin application class will setup the
     // type parameters if not already done.
-    if (cls.NumTypeParameters() > 0) {
-      type_params ^= cls.type_parameters();
-      num_type_args += type_params.Length();
-    }
+    num_type_args += cls.NumOwnTypeArguments();
     // Super type of Object class is null.
-    if (cls.super_type() == AbstractType::null() ||
-        cls.super_type() == isolate->object_store()->object_type()) {
+    if ((cls.super_type() == AbstractType::null()) ||
+        (cls.super_type() == isolate->object_store()->object_type())) {
       break;
     }
     sup_type = cls.super_type();
@@ -3400,25 +3462,39 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
 }
 
 
+// Return true if this uninstantiated type argument vector, once instantiated
+// at runtime, is a prefix of the type argument vector of its instantiator.
 bool TypeArguments::CanShareInstantiatorTypeArguments(
       const Class& instantiator_class) const {
   ASSERT(!IsInstantiated());
+  const intptr_t num_type_args = Length();
   const intptr_t num_instantiator_type_args =
       instantiator_class.NumTypeArguments();
-  const intptr_t num_instantiator_type_params =
-      instantiator_class.NumTypeParameters();
-  const intptr_t num_super_instantiator_type_args =
-      num_instantiator_type_args - num_instantiator_type_params;
-  const intptr_t num_type_args = Length();
-  // As a first requirement in order to share the instantiator type argument
-  // vector, this type argument vector must refer to the type parameters of the
-  // instantiator class in declaration order. It does not need to contain all
-  // type parameters.
-  if (num_type_args < num_super_instantiator_type_args) {
+  if (num_type_args > num_instantiator_type_args) {
+    // This vector cannot be a prefix of a shorter vector.
     return false;
   }
+  const intptr_t num_instantiator_type_params =
+      instantiator_class.NumTypeParameters();
+  const intptr_t first_type_param_offset =
+      num_instantiator_type_args - num_instantiator_type_params;
+  // At compile time, the type argument vector of the instantiator consists of
+  // the type argument vector of its super type, which may refer to the type
+  // parameters of the instantiator class, followed by (or overlapping partially
+  // or fully with) the type parameters of the instantiator class in declaration
+  // order.
+  // In other words, the only variables are the type parameters of the
+  // instantiator class.
+  // This uninstantiated type argument vector is also expressed in terms of the
+  // type parameters of the instantiator class. Therefore, in order to be a
+  // prefix once instantiated at runtime, every one of its type argument must be
+  // equal to the type argument of the instantiator vector at the same index.
+
+  // As a first requirement, the last num_instantiator_type_params type
+  // arguments of this type argument vector must refer to the corresponding type
+  // parameters of the instantiator class.
   AbstractType& type_arg = AbstractType::Handle();
-  for (intptr_t i = num_super_instantiator_type_args; i < num_type_args; i++) {
+  for (intptr_t i = first_type_param_offset; i < num_type_args; i++) {
     type_arg = TypeAt(i);
     if (!type_arg.IsTypeParameter()) {
       return false;
@@ -3430,8 +3506,9 @@ bool TypeArguments::CanShareInstantiatorTypeArguments(
     }
   }
   // As a second requirement, the type arguments corresponding to the super type
-  // must be identical.
-  if (num_super_instantiator_type_args == 0) {
+  // must be identical. Overlapping ones have already been checked starting at
+  // first_type_param_offset.
+  if (first_type_param_offset == 0) {
     return true;
   }
   AbstractType& super_type = AbstractType::Handle(
@@ -3442,7 +3519,8 @@ bool TypeArguments::CanShareInstantiatorTypeArguments(
     return false;
   }
   AbstractType& super_type_arg = AbstractType::Handle();
-  for (intptr_t i = 0; i < num_super_instantiator_type_args; i++) {
+  for (intptr_t i = 0;
+       (i < first_type_param_offset) && (i < num_type_args); i++) {
     type_arg = TypeAt(i);
     super_type_arg = super_type_args.TypeAt(i);
     if (!type_arg.Equals(super_type_arg)) {
@@ -11628,17 +11706,13 @@ bool TypeParameter::Equals(const Instance& other) const {
     return false;
   }
   const TypeParameter& other_type_param = TypeParameter::Cast(other);
-  ASSERT(other_type_param.IsFinalized());
   if (parameterized_class() != other_type_param.parameterized_class()) {
     return false;
   }
-  if (IsFinalized() != other_type_param.IsFinalized()) {
-    return false;
+  if (IsFinalized() == other_type_param.IsFinalized()) {
+    return index() == other_type_param.index();
   }
-  if (index() != other_type_param.index()) {
-    return false;
-  }
-  return true;
+  return name() == other_type_param.name();
 }
 
 

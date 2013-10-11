@@ -534,16 +534,30 @@ void ClassFinalizer::FinalizeTypeParameters(const Class& cls) {
 // The subvector 'cls_args' has length cls.NumTypeParameters() and starts at
 // offset cls.NumTypeArguments() - cls.NumTypeParameters() of the 'arguments'
 // vector.
-// Example:
+// The type argument vector of cls may overlap the type argument vector of its
+// super class. In case of an overlap, the overlapped type arguments of the
+// super class are already initialized. The still uninitialized ones have an
+// offset smaller than 'num_uninitialized_arguments'.
+// Example 1 (without overlap):
 //   Declared: class C<K, V> extends B<V> { ... }
 //             class B<T> extends A<int> { ... }
 //   Input:    C<String, double> expressed as
-//             cls = C, arguments = [null, null, String, double],
+//             cls = C, arguments = [dynamic, dynamic, String, double],
+//             num_uninitialized_arguments = 2,
 //             i.e. cls_args = [String, double], offset = 2, length = 2.
 //   Output:   arguments = [int, double, String, double]
+// Example 2 (with overlap):
+//   Declared: class C<K, V> extends B<K> { ... }
+//             class B<T> extends A<int> { ... }
+//   Input:    C<String, double> expressed as
+//             cls = C, arguments = [dynamic, String, double],
+//             num_uninitialized_arguments = 1,
+//             i.e. cls_args = [String, double], offset = 1, length = 2.
+//   Output:   arguments = [int, String, double]
 void ClassFinalizer::FinalizeTypeArguments(
     const Class& cls,
     const AbstractTypeArguments& arguments,
+    intptr_t num_uninitialized_arguments,
     FinalizationKind finalization,
     Error* bound_error) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
@@ -579,9 +593,9 @@ void ClassFinalizer::FinalizeTypeArguments(
     const intptr_t num_super_type_params = super_class.NumTypeParameters();
     const intptr_t offset = super_class.NumTypeArguments();
     const intptr_t super_offset = offset - num_super_type_params;
-    ASSERT(offset == (cls.NumTypeArguments() - cls.NumTypeParameters()));
+    ASSERT(offset == (cls.NumTypeArguments() - cls.NumOwnTypeArguments()));
     AbstractType& super_type_arg = AbstractType::Handle(Type::DynamicType());
-    for (intptr_t i = 0; i < num_super_type_params; i++) {
+    for (intptr_t i = 0; super_offset + i < num_uninitialized_arguments; i++) {
       if (!super_type_args.IsNull()) {
         super_type_arg = super_type_args.TypeAt(super_offset + i);
         if (!super_type_arg.IsInstantiated()) {
@@ -602,7 +616,8 @@ void ClassFinalizer::FinalizeTypeArguments(
       }
       arguments.SetTypeAt(super_offset + i, super_type_arg);
     }
-    FinalizeTypeArguments(super_class, arguments, finalization, bound_error);
+    FinalizeTypeArguments(super_class, arguments, super_offset,
+                          finalization, bound_error);
   }
 }
 
@@ -636,6 +651,8 @@ void ClassFinalizer::CheckTypeArgumentBounds(
       TypeArguments::Handle(cls.type_parameters());
   ASSERT((cls_type_params.IsNull() && (num_type_params == 0)) ||
          (cls_type_params.Length() == num_type_params));
+  // In case of overlapping type argument vectors, the same type argument may
+  // get checked against different bounds.
   for (intptr_t i = 0; i < num_type_params; i++) {
     type_arg = arguments.TypeAt(offset + i);
     if (type_arg.IsDynamicType()) {
@@ -724,7 +741,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   ASSERT(finalization >= kFinalize);
 
   if (FLAG_trace_type_finalization) {
-    OS::Print("Finalize type '%s' for class '%s'\n",
+    OS::Print("Finalizing type '%s' for class '%s'\n",
               String::Handle(type.Name()).ToCString(),
               cls.ToCString());
   }
@@ -749,6 +766,13 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     } else {
       ASSERT(cls.IsMixinApplication());
     }
+
+    if (FLAG_trace_type_finalization) {
+      OS::Print("Done finalizing type parameter '%s' with index %" Pd "\n",
+                String::Handle(type_parameter.name()).ToCString(),
+                type_parameter.index());
+    }
+
     // We do not canonicalize type parameters.
     return type_parameter.raw();
   }
@@ -816,7 +840,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     parameterized_type.set_arguments(arguments);
   }
   // The full type argument vector consists of the type arguments of the
-  // super types of type_class, which may be initialized from the parsed
+  // super types of type_class, which are initialized from the parsed
   // type arguments, followed by the parsed type arguments.
   TypeArguments& full_arguments = TypeArguments::Handle();
   Error& bound_error = Error::Handle();
@@ -862,12 +886,16 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
             Function::Handle(type_class.signature_function());
         ASSERT(!signature_fun.is_static());
         const Class& sig_fun_owner = Class::Handle(signature_fun.Owner());
-        FinalizeTypeArguments(
-            sig_fun_owner, full_arguments, finalization, &bound_error);
+        if (offset > 0) {
+          FinalizeTypeArguments(sig_fun_owner, full_arguments, offset,
+                                finalization, &bound_error);
+        }
         CheckTypeArgumentBounds(sig_fun_owner, full_arguments, &bound_error);
       } else {
-        FinalizeTypeArguments(
-            type_class, full_arguments, finalization, &bound_error);
+        if (offset > 0) {
+          FinalizeTypeArguments(type_class, full_arguments, offset,
+                                finalization, &bound_error);
+        }
         CheckTypeArgumentBounds(type_class, full_arguments, &bound_error);
       }
       if (full_arguments.IsRaw(num_type_arguments)) {
@@ -914,9 +942,23 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
                                   parameterized_type.token_pos(),
                                   "type '%s' has an out of bound type argument",
                                   parameterized_type_name.ToCString()));
+
+    if (FLAG_trace_type_finalization) {
+      OS::Print("Done finalizing malbounded type '%s' with bound error: %s\n",
+                String::Handle(parameterized_type.Name()).ToCString(),
+                bound_error.ToCString());
+    }
+
     return BoundedType::New(parameterized_type,
                             malformed_bound,
                             TypeParameter::Handle());
+  }
+
+  if (FLAG_trace_type_finalization) {
+    OS::Print("Done finalizing type '%s' with %" Pd " type args\n",
+              String::Handle(parameterized_type.Name()).ToCString(),
+              parameterized_type.arguments() == AbstractTypeArguments::null() ?
+                  0 : num_type_arguments);
   }
 
   if (finalization >= kCanonicalize) {
@@ -1486,14 +1528,20 @@ S&A`<T`, T> extends S<T`> implements M<T> { ... members of M applied here ... }
 S&A<T`, U, V> extends S&A`<T`, Map<U, V>> implements A<U, V> { }
 
 The main implementation difficulty resides in the fact that the type parameters
-U and V in the super type S&A`<T`, Map<U, V>> of S&A refer to the type
-parameters U and V of S&A, not to U and V of A. An instantiation step with
-a properly crafted instantiator vector takes care of the required type parameter
-substitution.
+U and V in the super type S&A`<T`, Map<U, V>> of S&A must refer to the type
+parameters U and V of S&A. However, Map<U, V> is copied from the super type
+Object&M<Map<U, V>> of A and, therefore, U and V refer to A. An instantiation
+step with a properly crafted instantiator vector takes care of the required type
+parameter substitution.
+
+The instantiator vector must end with the type parameters U and V of S&A.
+The offset of the first type parameter U of S&A must be at the finalized index
+of type parameter U of A.
 */
 void ClassFinalizer::ApplyMixinTypedef(const Class& mixin_app_class) {
   // If this mixin typedef is aliasing another mixin typedef, another class
   // will be inserted via recursion. No need to check here.
+  // The mixin type may or may not be finalized yet.
   const Type& mixin_type = Type::Handle(mixin_app_class.mixin());
   const Class& mixin_class = Class::Handle(mixin_type.type_class());
   ASSERT(mixin_class.is_mixin_typedef());
@@ -1549,7 +1597,8 @@ void ClassFinalizer::ApplyMixinTypedef(const Class& mixin_app_class) {
   }
   const intptr_t num_super_type_params = super_class.NumTypeParameters();
   const intptr_t num_mixin_type_params = mixin_class.NumTypeParameters();
-  intptr_t offset = aliased_mixin_app_class.NumTypeArguments();
+  intptr_t offset =
+      mixin_class.NumTypeArguments() - mixin_class.NumTypeParameters();
   const TypeArguments& type_params =
       TypeArguments::Handle(mixin_app_class.type_parameters());
   TypeArguments& instantiator = TypeArguments::Handle(
@@ -1613,6 +1662,7 @@ void ClassFinalizer::ApplyMixinTypedef(const Class& mixin_app_class) {
   // Mark this mixin application class as being a typedef.
   mixin_app_class.set_is_mixin_typedef();
   ASSERT(!mixin_app_class.is_type_finalized());
+  ASSERT(!mixin_app_class.is_mixin_type_applied());
   if (FLAG_trace_class_finalization) {
     OS::Print("Inserting class %s to mixin typedef application %s "
               "with super type '%s'\n",

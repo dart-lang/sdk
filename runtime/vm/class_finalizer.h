@@ -128,6 +128,7 @@ class ClassFinalizer : public AllStatic {
   static void FinalizeTypeParameters(const Class& cls);
   static void FinalizeTypeArguments(const Class& cls,
                                     const AbstractTypeArguments& arguments,
+                                    intptr_t num_uninitialized_arguments,
                                     FinalizationKind finalization,
                                     Error* bound_error);
   static void CheckTypeArgumentBounds(const Class& cls,

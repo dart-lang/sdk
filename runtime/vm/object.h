@@ -732,6 +732,10 @@ class Class : public Object {
   bool HasTypeArguments() const;
   intptr_t NumTypeArguments() const;
 
+  // Return the number of type arguments that are specific to this class, i.e.
+  // not overlapping with the type arguments of the super class of this class.
+  intptr_t NumOwnTypeArguments() const;
+
   // If this class is parameterized, each instance has a type_arguments field.
   static const intptr_t kNoTypeArguments = -1;
   intptr_t type_arguments_field_offset() const {
