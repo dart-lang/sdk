@@ -191,9 +191,6 @@ convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12644.
 convert/utf85_test: Pass, Slow # Issue 12644.
 
 [ $compiler == none && $runtime == drt ]
-async/run_zoned6_test/01: fail # Issue 12756.
-async/run_zoned9_test/01: fail # Issue 12756.
-
 async/stream_controller_async_test: Pass, Fail # Issue 13608
 
 [ $compiler == dartanalyzer ]

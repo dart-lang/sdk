@@ -272,6 +272,7 @@ class ContentShellCommand extends Command {
     if (needDartFlags) {
       env = new Map<String, String>();
       env['DART_FLAGS'] = dartFlags.join(" ");
+      env['DART_FORWARDING_PRINT'] = '1';
     }
 
     return env;
@@ -801,7 +802,6 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
         return Expectation.MISSING_RUNTIME_ERROR;
       }
     }
-
     if (testCase.isNegative) {
       if (outcome.canBeOutcomeOf(Expectation.FAIL)) return Expectation.PASS;
       return Expectation.FAIL;
@@ -914,23 +914,48 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
   bool get _browserTestFailure {
     // Browser tests fail unless stdout contains
     // 'Content-Type: text/plain' followed by 'PASS'.
-    bool has_content_type = false;
+    bool hasContentType = false;
     var stdoutLines = decodeUtf8(super.stdout).split("\n");
+    var containsFail = false;
+    var containsPass = false;
     for (String line in stdoutLines) {
       switch (line) {
         case 'Content-Type: text/plain':
-          has_content_type = true;
+          hasContentType = true;
+          break;
+        case 'FAIL':
+          if (hasContentType) {
+            containsFail = true;
+          }
           break;
         case 'PASS':
-          if (has_content_type) {
-            if (exitCode != 0) {
-              print("Warning: All tests passed, but exitCode != 0 ($this)");
-            }
-            return (exitCode != 0 && !hasCrashed);
+          if (hasContentType) {
+            containsPass = true;
           }
           break;
       }
     }
+    if (hasContentType) {
+      if (containsFail && containsPass) {
+        DebugLogger.warning("Test had 'FAIL' and 'PASS' in stdout. ($command)");
+      }
+      if (!containsFail && !containsPass) {
+        DebugLogger.warning("Test had neither 'FAIL' nor 'PASS' in stdout. "
+                            "($command)");
+        return true;
+      }
+      if (containsFail) {
+        return true;
+      }
+      assert(containsPass);
+      if (exitCode != 0) {
+        DebugLogger.warning("All tests passed, but exitCode != 0. "
+                            "($command)");
+      }
+      return (exitCode != 0 && !hasCrashed);
+    }
+    DebugLogger.warning("Couldn't find 'Content-Type: text/plain' in output. "
+                        "($command).");
     return true;
   }
 }

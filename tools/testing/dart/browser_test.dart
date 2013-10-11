@@ -55,29 +55,6 @@ String getHtmlLayoutContents(String scriptType,
 </html>
 """;
 
-String dartUnittestWrapper(bool usePackageImport, String libraryPathComponent) {
-  // Tests inside "pkg" import unittest using "package:". All others use a
-  // relative path. The imports need to agree, so use a matching form here.
-  var unitTest;
-  if (usePackageImport) {
-    unitTest = 'package:unittest';
-  } else {
-    unitTest = '/root_dart/pkg/unittest/lib';
-  }
-  return """
-library test;
-
-import '$unitTest/unittest.dart' as unittest;
-import '$unitTest/html_config.dart' as config;
-import '$libraryPathComponent' as Test;
-
-main() {
-  config.useHtmlConfiguration();
-  unittest.group('', Test.main);
-}
-""";
-}
-
 String dartTestWrapper(String libraryPathComponent) {
   return """
 import '$libraryPathComponent' as test;

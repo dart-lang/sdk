@@ -95,7 +95,6 @@ isolate_stress_test: Pass, Slow # Issue 10697
 
 [ $compiler == none && $runtime == drt ]
 isolate_stress_test: Skip # Issue 12537
-spawn_uri_multi_test/01: Fail # Issue 13615
 nested_spawn_stream2_test: Fail # Issue 13433
 cross_isolate_message_stream_test: Fail # Issue 13433
 
