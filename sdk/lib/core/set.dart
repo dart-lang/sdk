@@ -75,6 +75,14 @@ abstract class Set<E> extends IterableBase<E> {
   bool remove(Object value);
 
   /**
+   * If an object equal to [object] is in the set, return it.
+   *
+   * Checks if there is an object in the set that is equal to [object].
+   * If so, that object is returned, otherwise returns null.
+   */
+  E lookup(Object object);
+
+  /**
    * Removes each element of [elements] from this set.
    */
   void removeAll(Iterable<Object> elements);

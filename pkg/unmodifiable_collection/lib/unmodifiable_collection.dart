@@ -179,6 +179,7 @@ class UnmodifiableSetView<E> extends _IterableView<E>
 
   Set<E> difference(Set<E> other) => _source.difference(other);
 
+  E lookup(Object object) => _source.lookup(object);
 
   /**
    * Throws an [UnsupportedError];

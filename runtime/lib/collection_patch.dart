@@ -569,6 +569,17 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
     return false;
   }
 
+  E lookup(Object object) {
+    int index = _hashCode(object) & (_buckets.length - 1);
+    HashSetEntry entry = _buckets[index];
+    while (entry != null) {
+      var key = entry.key;
+      if (_equals(key, object)) return key;
+      entry = entry.next;
+    }
+    return null;
+  }
+
   // Set.
 
   void add(E element) {
@@ -722,6 +733,11 @@ class _CustomHashSet<E> extends _HashSet<E> {
   bool contains(Object element) {
     if (!_validKey(element)) return false;
     return super.contains(element);
+  }
+
+  E lookup(Object element) {
+    if (!_validKey(element)) return null;
+    return super.lookup(element);
   }
 
   bool containsAll(Iterable<Object> elements) {
@@ -1178,6 +1194,11 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
   bool contains(Object o) {
     if (!_validKey(o)) return false;
     return super.contains(o);
+  }
+
+  E lookup(Object o) {
+    if (!_validKey(o)) return null;
+    return super.lookup(o);
   }
 
   bool remove(Object o) {
