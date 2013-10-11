@@ -23,10 +23,11 @@ main() {
         events.add("forked.run");
         return parent.run(origin, f);
       },
-      handleUncaughtError: (Zone self, ZoneDelegate parent, Zone origin, e) {
+      handleUncaughtError:
+          (Zone self, ZoneDelegate parent, Zone origin, error, stackTrace) {
         Expect.identical(Zone.ROOT, Zone.current);
         Expect.identical(forked, origin);
-        events.add("forked.handleUncaught $e");
+        events.add("forked.handleUncaught $error");
         return 499;
       }));
 

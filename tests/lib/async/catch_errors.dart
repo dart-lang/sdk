@@ -5,7 +5,7 @@ import 'dart:async';
 Stream catchErrors(void body()) {
   StreamController controller;
 
-  bool onError(e) {
+  bool onError(e, st) {
     controller.add(e);
     return true;
   }

@@ -336,7 +336,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     _state |= _STATE_IN_CALLBACK;
     if (!_zone.inSameErrorZone(Zone.current)) {
       // Errors are not allowed to traverse zone boundaries.
-      Zone.current.handleUncaughtError(error);
+      Zone.current.handleUncaughtError(error, getAttachedStackTrace(error));
     } else {
       _zone.runUnaryGuarded(_onError, error);
     }
@@ -531,9 +531,9 @@ typedef void _DoneHandler();
 /** Default data handler, does nothing. */
 void _nullDataHandler(var value) {}
 
-/** Default error handler, reports the error to the global handler. */
+/** Default error handler, reports the error to the current zone's handler. */
 void _nullErrorHandler(error) {
-  Zone.current.handleUncaughtError(error);
+  Zone.current.handleUncaughtError(error, getAttachedStackTrace(error));
 }
 
 /** Default done handler, does nothing. */

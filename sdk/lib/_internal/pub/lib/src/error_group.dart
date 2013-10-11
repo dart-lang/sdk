@@ -179,12 +179,12 @@ class _ErrorGroupFuture implements Future {
     _completer.future.catchError((_) {});
   }
 
-  Future then(onValue(value), {onError(error)}) {
+  Future then(onValue(value), {Function onError}) {
     _hasListeners = true;
     return _completer.future.then(onValue, onError: onError);
   }
 
-  Future catchError(onError(error), {bool test(Object error)}) {
+  Future catchError(Function onError, {bool test(Object error)}) {
     _hasListeners = true;
     return _completer.future.catchError(onError, test: test);
   }

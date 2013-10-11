@@ -265,14 +265,19 @@ abstract class Future<T> {
    * If the invoked callback returns a [Future] `f2` then `f` and `f2` are
    * chained. That is, `f` is completed with the completion value of `f2`.
    *
-   * If [onError] is not given, it is equivalent to `(e) { throw e; }`. That
-   * is, it forwards the error to `f`.
+   * The [onError] callback must be of type `void onError(error)` or
+   * `void onError(error, StackTrace stackTrace)`. If [onError] accepts
+   * two arguments it is called with the stack trace (which could be `null` if
+   * the stream itself received an error without stack trace).
+   * Otherwise it is called with just the error object.
+   *
+   * If [onError] is not given it forwards the error to `f`.
    *
    * In most cases, it is more readable to use [catchError] separately, possibly
    * with a `test` parameter, instead of handling both value and error in a
    * single [then] call.
    */
-  Future then(onValue(T value), { onError(Object error) });
+  Future then(onValue(T value), { Function onError });
 
   /**
    * Handles errors emitted by this [Future].
@@ -305,8 +310,11 @@ abstract class Future<T> {
    *                       {bool test(error)}) {
    *       this.then((v) => v,  // Forward the value.
    *                 // But handle errors, if the [test] succeeds.
-   *                 onError: (e) {
+   *                 onError: (e, stackTrace) {
    *                   if (test == null || test(e)) {
+   *                     if (onError is ZoneBinaryCallback) {
+   *                       return onError(e, stackTrace);
+   *                     }
    *                     return onError(e);
    *                   }
    *                   throw e;
@@ -314,7 +322,7 @@ abstract class Future<T> {
    *     }
    *
    */
-  Future catchError(onError(Object error),
+  Future catchError(Function onError,
                     {bool test(Object error)});
 
   /**
