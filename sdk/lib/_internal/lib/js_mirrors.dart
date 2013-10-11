@@ -218,7 +218,7 @@ class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
   List<InstanceMirror> get metadata => throw new UnimplementedError();
 
   bool get hasReflectedType => false;
-  Type get reflectedType => throw new UnsupportedError();
+  Type get reflectedType => throw new UnsupportedError("This type does not support reflectedTypees");
 
   List<TypeVariableMirror> get typeVariables => throw new UnimplementedError();
   List<TypeMirror> get typeArguments => throw new UnimplementedError();
