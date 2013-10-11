@@ -265,6 +265,7 @@ namespace dart {
   V(ClosureMirror_apply, 3)                                                    \
   V(ClassMirror_library, 1)                                                    \
   V(ClassMirror_supertype, 1)                                                  \
+  V(ClassMirror_supertype_instantiated, 1)                                     \
   V(ClassMirror_interfaces, 1)                                                 \
   V(ClassMirror_mixin, 1)                                                      \
   V(ClassMirror_members, 2)                                                    \
@@ -281,6 +282,7 @@ namespace dart {
   V(LibraryMirror_invokeSetter, 4)                                             \
   V(TypeVariableMirror_owner, 1)                                               \
   V(TypeVariableMirror_upper_bound, 1)                                         \
+  V(TypeVariableMirror_instantiate_from, 2)                                    \
   V(DeclarationMirror_metadata, 1)                                             \
   V(FunctionTypeMirror_call_method, 2)                                         \
   V(FunctionTypeMirror_parameters, 2)                                          \

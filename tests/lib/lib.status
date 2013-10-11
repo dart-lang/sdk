@@ -163,18 +163,9 @@ mirrors/mixin_test/01: Fail, OK # TODO(ahe): Slight broken test to ensure test c
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 mirrors/closures_test/01: Fail, OK # Incorrect dart2js behavior.
 
-mirrors/generics_substitution_test: RuntimeError # Issue 13808
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12282
-mirrors/generic_mixin_applications_test: RuntimeError # Issue 12282
-mirrors/type_argument_is_type_variable_test: RuntimeError # Issue 12282
+mirrors/generic_f_bounded_test: RuntimeError # Issue 14000
 
-mirrors/generic_bounded_test/none: Crash, Timeout # Issue 13952
-mirrors/generic_bounded_test/01: Crash, RuntimeError, Timeout # Issue 13952, 13808
-mirrors/generic_bounded_test/02: Crash, Pass, Timeout # Issue 13952, 13808
-mirrors/generic_bounded_by_type_parameter_test/none: Crash, Timeout # Issue 13952
-mirrors/generic_bounded_by_type_parameter_test/01: Crash, RuntimeError, Timeout # Issue 13952, 13808
-mirrors/generic_bounded_by_type_parameter_test/02: Crash, Pass, Timeout # Issue 13952
-mirrors/generic_f_bounded_test: RuntimeError # Issue 13808
 async/timer_isolate_test: Skip # See Issue 4997
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 

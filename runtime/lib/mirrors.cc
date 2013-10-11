@@ -224,6 +224,8 @@ static RawInstance* CreateTypeVariableList(const Class& cls) {
   for (intptr_t i = 0; i < args.Length(); i++) {
     type ^= args.TypeAt(i);
     ASSERT(type.IsTypeParameter());
+    ASSERT(!type.IsMalformed());
+    ASSERT(type.IsFinalized());
     name ^= type.name();
     result.SetAt(2 * i, name);
     result.SetAt(2 * i + 1, type);
@@ -313,6 +315,8 @@ static RawInstance* CreateClassMirror(const Class& cls,
                                       const Bool& is_declaration,
                                       const Instance& owner_mirror) {
   ASSERT(!cls.IsDynamicClass() && !cls.IsVoidClass());
+  ASSERT(!type.IsNull());
+  ASSERT(type.IsFinalized());
 
   if (cls.IsSignatureClass()) {
     if (cls.IsCanonicalSignatureClass()) {
@@ -323,8 +327,6 @@ static RawInstance* CreateClassMirror(const Class& cls,
       return CreateTypedefMirror(cls, owner_mirror);
     }
   }
-
-  ASSERT(!type.IsNull());
 
   const Bool& is_generic = Bool::Get(cls.NumTypeParameters() != 0);
   const Bool& is_mixin_typedef = Bool::Get(cls.is_mixin_typedef());
@@ -358,6 +360,7 @@ static RawInstance* CreateLibraryMirror(const Library& lib) {
 
 
 static RawInstance* CreateTypeMirror(const AbstractType& type) {
+  ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   if (type.HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type.type_class());
@@ -377,6 +380,10 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
   } else if (type.IsTypeParameter()) {
     return CreateTypeVariableMirror(TypeParameter::Cast(type),
                                     Object::null_instance());
+  } else if (type.IsBoundedType()) {
+    AbstractType& actual_type =
+        AbstractType::Handle(BoundedType::Cast(type).type());
+    return CreateTypeMirror(actual_type);
   }
   UNREACHABLE();
   return Instance::null();
@@ -762,14 +769,16 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalMirrorSystem, 0) {
 
 
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
+  ASSERT(!type.IsMalformed());
+  ASSERT(type.IsFinalized());
+  ASSERT(type.HasResolvedTypeClass());
   const Class& cls = Class::Handle(type.type_class());
-  ASSERT(!cls.IsNull());
   if (cls.IsDynamicClass() || cls.IsVoidClass()) {
     Exceptions::ThrowArgumentError(type);
     UNREACHABLE();
   }
-  const Type& stripped_type = Type::Handle(cls.RareType());
+  const AbstractType& stripped_type = AbstractType::Handle(cls.RareType());
   return CreateClassMirror(cls,
                            stripped_type,
                            Bool::True(),  // is_declaration
@@ -871,9 +880,39 @@ DEFINE_NATIVE_ENTRY(ClassMirror_library, 1) {
 
 
 DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
-  const Class& klass = Class::Handle(ref.GetClassReferent());
-  return klass.super_type();
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
+  ASSERT(!type.IsMalformed());
+  ASSERT(type.IsFinalized());
+  const Class& cls = Class::Handle(type.type_class());
+  const AbstractType& super_type = AbstractType::Handle(cls.super_type());
+  ASSERT(super_type.IsNull() || super_type.IsFinalized());
+  return super_type.raw();
+}
+
+DEFINE_NATIVE_ENTRY(ClassMirror_supertype_instantiated, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
+  ASSERT(!type.IsMalformed());
+  ASSERT(type.IsFinalized());
+  const Class& cls = Class::Handle(type.type_class());
+  AbstractType& super_type = AbstractType::Handle(cls.super_type());
+  AbstractType& result = AbstractType::Handle(super_type.raw());
+
+  ASSERT(super_type.IsType());
+  if (!super_type.IsInstantiated()) {
+    AbstractTypeArguments& type_args =
+        AbstractTypeArguments::Handle(type.arguments());
+    Error& bound_error = Error::Handle();
+    result ^= super_type.InstantiateFrom(type_args, &bound_error);
+    if (!bound_error.IsNull()) {
+      ThrowInvokeError(bound_error);
+      UNREACHABLE();
+    }
+    result ^= result.Canonicalize();
+    ASSERT(result.IsType());
+  }
+
+  ASSERT(result.IsFinalized());
+  return result.raw();
 }
 
 
@@ -1074,7 +1113,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
 DEFINE_NATIVE_ENTRY(TypeVariableMirror_owner, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
   const Class& owner = Class::Handle(param.parameterized_class());
-  const Type& type = Type::Handle(owner.RareType());
+  const AbstractType& type = AbstractType::Handle(owner.RareType());
   return CreateClassMirror(owner,
                            type,
                            Bool::True(),  // is_declaration
@@ -1085,6 +1124,23 @@ DEFINE_NATIVE_ENTRY(TypeVariableMirror_owner, 1) {
 DEFINE_NATIVE_ENTRY(TypeVariableMirror_upper_bound, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
   return param.bound();
+}
+
+
+DEFINE_NATIVE_ENTRY(TypeVariableMirror_instantiate_from, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Type, instantiator, arguments->NativeArgAt(1));
+
+  ASSERT(param.parameterized_class() == instantiator.type_class());
+
+  AbstractTypeArguments& type_args =
+      AbstractTypeArguments::Handle(instantiator.arguments());
+  Error& bound_error = Error::Handle();
+  AbstractType& result =
+      AbstractType::Handle(param.InstantiateFrom(type_args, &bound_error));
+  ASSERT(bound_error.IsNull());
+  ASSERT(result.IsFinalized());
+  return result.raw();
 }
 
 
@@ -1648,7 +1704,7 @@ DEFINE_NATIVE_ENTRY(MethodMirror_owner, 1) {
     return CreateLibraryMirror(Library::Handle(owner.library()));
   }
 
-  Type& type = Type::Handle(owner.RareType());
+  AbstractType& type = AbstractType::Handle(owner.RareType());
   return CreateClassMirror(owner, type, Bool::True(), Object::null_instance());
 }
 
