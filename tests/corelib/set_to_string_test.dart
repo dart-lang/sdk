@@ -19,14 +19,14 @@ void main() {
   q.add(q);
   q.add(s);
 
-  Expect.equals("(1, 2, (...), {{...}})", q.toString());
+  Expect.equals("{1, 2, {...}, {{...}}}", q.toString());
 
   // Throwing in the middle of a toString does not leave the
   // set as being visited
   q.addLast(new ThrowOnToString());
   Expect.throws(q.toString, (e) => e == "Bad!");
   q.removeLast();
-  Expect.equals("(1, 2, (...), {{...}})", q.toString());
+  Expect.equals("{1, 2, {...}, {{...}}}", q.toString());
 }
 
 class ThrowOnToString {
