@@ -61,6 +61,9 @@ class LinkedList<E extends LinkedListEntry<E>>
 
   Iterator<E> get iterator => new _LinkedListIterator<E>(this);
 
+  // TODO(zarah) Remove this, and let it be inherited by IterableMixin
+  String toString() => IterableMixinWorkaround.toStringIterable(this, '{', '}');
+
   int get length => _length;
 
   void clear() {

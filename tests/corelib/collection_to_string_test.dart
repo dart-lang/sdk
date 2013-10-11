@@ -172,14 +172,15 @@ Object randomCollectionHelper(int size, bool exact, StringBuffer stringRep,
  * a collection with ill-defined iteration order (i.e., a HashSet or HashMap).
  */
 List randomList(int size, bool exact, StringBuffer stringRep, List beingMade) {
-  return populateRandomCollection(size, exact, stringRep, beingMade, []);
+  return populateRandomCollection(size, exact, stringRep, beingMade, [], "[]");
 }
 
 /**
  * Like randomList, but returns a queue.
  */
 Queue randomQueue(int size, bool exact, StringBuffer stringRep, List beingMade){
-  return populateRandomCollection(size, exact, stringRep, beingMade, new Queue());
+  return populateRandomCollection(
+      size, exact, stringRep, beingMade, new Queue(), "{}");
 }
 
 /**
@@ -214,14 +215,8 @@ Map randomMap(int size, bool exact, StringBuffer stringRep, List beingMade) {
  * (i.e., a HashSet or HashMap).
  */
 populateRandomCollection(int size, bool exact,
-    StringBuffer stringRep, List beingMade, var coll) {
+    StringBuffer stringRep, List beingMade, var coll, String delimiters) {
   beingMade.add(coll);
-  String delimiters = "()";  // Default for iterables.
-  if (coll is List) {
-    delimiters = "[]";
-  } else if (coll is Set) {
-    delimiters = "{}";
-  }
   int start = stringRep.length;
 
   stringRep.write(delimiters[0]);
@@ -342,7 +337,7 @@ Object randomElement(int size, bool exact, StringBuffer stringRep,
     result = beingMade[random(beingMade.length)];
     if (result is List) {
       stringRep.write('[...]');
-    } else if (result is Set || result is Map) {
+    } else if (result is Set || result is Map || result is Queue) {
       stringRep.write('{...}');
     } else {
       stringRep.write('(...)');

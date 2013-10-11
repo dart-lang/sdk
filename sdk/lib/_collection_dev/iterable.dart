@@ -897,7 +897,7 @@ class IterableMixinWorkaround {
     for (int i = 0; i < _toStringList.length; i++) {
       if (identical(_toStringList[i], iterable)) {
         return '$leftDelimiter...$rightDelimiter';
-        }
+      }
     }
 
     StringBuffer result = new StringBuffer();
