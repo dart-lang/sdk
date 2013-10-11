@@ -104,6 +104,19 @@ abstract class MirrorSystem {
    * [MirrorsUsed] to specify which symbols must be retained in clear text.
    */
   external static String getName(Symbol symbol);
+
+  /**
+   * Returns a symbol for [name]. If [library] is not a [LibraryMirror] or if
+   * [name] is a private identifier and [library] is [:null:], throws an
+   * [ArgumentError]. If [name] is a private identifier, the symbol returned is
+   * with respect to [library].
+   *
+   * The following text is non-normative:
+   *
+   * Using this method may result in larger output.  If possible, use
+   * the const constructor of Symbol or symbol literals.
+   */
+  external static Symbol getSymbol(String name, [LibraryMirror library]);
 }
 
 /**

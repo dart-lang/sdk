@@ -4,7 +4,7 @@
 
 // Ensure that objects handled specially by dart2js can be reflected on.
 
-library test.intercepted_class_test;
+library test.intercepted_object_test;
 
 import 'dart:mirrors';
 

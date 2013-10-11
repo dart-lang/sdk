@@ -289,7 +289,7 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
       _LocalInstanceMirrorImpl mirror =
           reflect(invocation);
       _invokeOnClosure = reflectClass(invocation.runtimeType)
-          .getField(const Symbol('_invokeOnClosure')).reflectee;
+          .getField(MirrorSystem.getSymbol('_invokeOnClosure', mirror.type.owner)).reflectee;
     }
     return _invokeOnClosure(reflectee, invocation);
   }
@@ -646,7 +646,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     }
   }
 
-  String toString() => "ClassMirror on '${_n(simpleName)}'";
+  String toString() => "ClassMirror on '${MirrorSystem.getName(simpleName)}'";
 
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
@@ -1158,7 +1158,7 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
     }
   }
 
-  String toString() => "MethodMirror on '${_n(simpleName)}'";
+  String toString() => "MethodMirror on '${MirrorSystem.getName(simpleName)}'";
 
   static dynamic _MethodMirror_owner(reflectee)
       native "MethodMirror_owner";
@@ -1204,7 +1204,7 @@ class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
     return _type;
   }
 
-  String toString() => "VariableMirror on '${_n(simpleName)}'";
+  String toString() => "VariableMirror on '${MirrorSystem.getName(simpleName)}'";
 
   static _VariableMirror_type(reflectee)
       native "VariableMirror_type";

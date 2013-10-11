@@ -43,6 +43,19 @@ patch ClassMirror reflectClass(Type key) {
 
 patch class MirrorSystem {
   /* patch */ static String getName(Symbol symbol) {
-    return _symbol_dev.Symbol.getName(symbol);
+    return _unmangleName(_symbol_dev.Symbol.getName(symbol));
   }
+  /* patch */ static Symbol getSymbol(String name, [LibraryMirror library]) {
+    if (library is! LibraryMirror ||
+        ((name[0] == '_') && (library == null))) {
+      throw new ArgumentError(library);
+    }
+    if (library != null) name = _mangleName(name, library._reflectee);
+    return new _symbol_dev.Symbol.unvalidated(name);
+  }
+
+  static _unmangleName(String name)
+      native "Mirrors_unmangleName";
+  static _mangleName(String name, _MirrorReference lib)
+      native "Mirrors_mangleName";
 }

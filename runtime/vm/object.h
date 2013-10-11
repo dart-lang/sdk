@@ -4827,6 +4827,9 @@ class String : public Instance {
   static RawString* ToLowerCase(const String& str,
                                 Heap::Space space = Heap::kNew);
 
+  static RawString* IdentifierPrettyName(const String& name);
+  static RawString* IdentifierPrettyNameRetainPrivate(const String& name);
+
   static bool EqualsIgnoringPrivateKey(const String& str1,
                                        const String& str2);
 

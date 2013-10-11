@@ -216,6 +216,7 @@ INVISIBLE_LIST(MARK_FUNCTION)
 #undef MARK_FUNCTION
 }
 
+
 // Takes a vm internal name and makes it suitable for external user.
 //
 // Examples:
@@ -241,7 +242,7 @@ INVISIBLE_LIST(MARK_FUNCTION)
 //   _MyClass@6b3832b. -> _MyClass
 //   _MyClass@6b3832b.named -> _MyClass.named
 //
-static RawString* IdentifierPrettyName(const String& name) {
+RawString* String::IdentifierPrettyName(const String& name) {
   if (name.Equals(Symbols::TopLevel())) {
     // Name of invisible top-level class.
     return Symbols::Empty().raw();
@@ -309,6 +310,51 @@ static RawString* IdentifierPrettyName(const String& name) {
   if (is_setter) {
     // Setters need to end with '='.
     return String::Concat(result, Symbols::Equals());
+  }
+
+  return result.raw();
+}
+
+
+RawString* String::IdentifierPrettyNameRetainPrivate(const String& name) {
+  intptr_t len = name.Length();
+  intptr_t start = 0;
+  intptr_t at_pos = -1;  // Position of '@' in the name, if any.
+  bool is_setter = false;
+
+  for (intptr_t i = start; i < len; i++) {
+    if (name.CharAt(i) == ':') {
+      ASSERT(start == 0);  // Only one : is possible in getters or setters.
+      if (name.CharAt(0) == 's') {
+        is_setter = true;
+      }
+      start = i + 1;
+    } else if (name.CharAt(i) == '@') {
+      ASSERT(at_pos == -1);  // Only one @ is supported.
+      at_pos = i;
+    }
+  }
+
+  if (start == 0) {
+    // This unmangled_name is fine as it is.
+    return name.raw();
+  }
+
+  String& result =
+      String::Handle(String::SubString(name, start, (len - start)));
+
+  if (is_setter) {
+    // Setters need to end with '='.
+    if (at_pos == -1) {
+      return String::Concat(result, Symbols::Equals());
+    } else {
+      const String& pre_at =
+          String::Handle(String::SubString(result, 0, at_pos - 4));
+      const String& post_at =
+          String::Handle(String::SubString(name, at_pos, len - at_pos));
+      result = String::Concat(pre_at, Symbols::Equals());
+      result = String::Concat(result, post_at);
+    }
   }
 
   return result.raw();
@@ -1491,7 +1537,7 @@ RawString* Class::UserVisibleName() const {
     default:
       if (!IsSignatureClass()) {
         const String& name = String::Handle(Name());
-        return IdentifierPrettyName(name);
+        return String::IdentifierPrettyName(name);
       } else {
         return Name();
       }
@@ -5197,7 +5243,7 @@ bool Function::HasOptimizedCode() const {
 
 RawString* Function::UserVisibleName() const {
   const String& str = String::Handle(name());
-  return IdentifierPrettyName(str);
+  return String::IdentifierPrettyName(str);
 }
 
 
@@ -5614,7 +5660,7 @@ RawField* Field::Clone(const Class& new_owner) const {
 
 RawString* Field::UserVisibleName() const {
   const String& str = String::Handle(name());
-  return IdentifierPrettyName(str);
+  return String::IdentifierPrettyName(str);
 }
 
 
