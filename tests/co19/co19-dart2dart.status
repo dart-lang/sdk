@@ -142,8 +142,6 @@ Language/13_Statements/09_Switch_A01_t02: fail # co19-roll r546: Please triage t
 Language/13_Statements/09_Switch_A04_t01: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/11_Try_A07_t03: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/12_Labels_A01_t03: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A02_t28: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A02_t29: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t08: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t10: fail # co19-roll r546: Please triage this failure
