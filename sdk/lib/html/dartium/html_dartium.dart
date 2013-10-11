@@ -13936,9 +13936,7 @@ class HttpRequest extends XmlHttpRequestEventTarget {
       }
     });
 
-    xhr.onError.listen((e) {
-      completer.completeError(e);
-    });
+    xhr.onError.listen(completer.completeError);
 
     if (sendData != null) {
       xhr.send(sendData);
@@ -26565,13 +26563,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -31162,7 +31160,7 @@ class _EventStream<T extends Event> extends Stream<T> {
   bool get isBroadcast => true;
 
   StreamSubscription<T> listen(void onData(T event),
-      { void onError(error),
+      { Function onError,
         void onDone(),
         bool cancelOnError}) {
 
@@ -31225,7 +31223,7 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
 
   // Delegate all regular Stream behavor to our wrapped Stream.
   StreamSubscription<T> listen(void onData(T event),
-      { void onError(error),
+      { Function onError,
         void onDone(),
         bool cancelOnError}) =>
       _stream.listen(onData, onError: onError, onDone: onDone,
@@ -31261,7 +31259,7 @@ class _CustomEventStreamImpl<T extends Event> extends Stream<T>
 
   // Delegate all regular Stream behavior to our wrapped Stream.
   StreamSubscription<T> listen(void onData(T event),
-      { void onError(error),
+      { Function onError,
         void onDone(),
         bool cancelOnError}) {
     return _streamController.stream.listen(onData, onError: onError,
@@ -31390,7 +31388,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   /// Has no effect.
-  void onError(void handleError(error)) {}
+  void onError(Function handleError) {}
 
   /// Has no effect.
   void onDone(void handleDone()) {}

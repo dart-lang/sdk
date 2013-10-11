@@ -144,10 +144,8 @@ $!MEMBERS
     // close.
     var controller = new StreamController(sync: true);
 
-    request.onError.listen((e) {
-      //TODO: Report stacktrace once issue 4061 is resolved.
-      controller.addError(e);
-    });
+    //TODO: Report stacktrace once issue 4061 is resolved.
+    request.onError.listen(controller.addError);
 
     request.onSuccess.listen((e) {
       Cursor cursor = request.result;

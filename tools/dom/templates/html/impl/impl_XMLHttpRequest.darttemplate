@@ -160,9 +160,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       }
     });
 
-    xhr.onError.listen((e) {
-      completer.completeError(e);
-    });
+    xhr.onError.listen(completer.completeError);
 
     if (sendData != null) {
       xhr.send(sendData);

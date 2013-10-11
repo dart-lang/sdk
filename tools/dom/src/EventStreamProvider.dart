@@ -21,7 +21,7 @@ class _EventStream<T extends Event> extends Stream<T> {
   bool get isBroadcast => true;
 
   StreamSubscription<T> listen(void onData(T event),
-      { void onError(error),
+      { Function onError,
         void onDone(),
         bool cancelOnError}) {
 
@@ -84,7 +84,7 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
 
   // Delegate all regular Stream behavor to our wrapped Stream.
   StreamSubscription<T> listen(void onData(T event),
-      { void onError(error),
+      { Function onError,
         void onDone(),
         bool cancelOnError}) =>
       _stream.listen(onData, onError: onError, onDone: onDone,
@@ -120,7 +120,7 @@ class _CustomEventStreamImpl<T extends Event> extends Stream<T>
 
   // Delegate all regular Stream behavior to our wrapped Stream.
   StreamSubscription<T> listen(void onData(T event),
-      { void onError(error),
+      { Function onError,
         void onDone(),
         bool cancelOnError}) {
     return _streamController.stream.listen(onData, onError: onError,
@@ -249,7 +249,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   /// Has no effect.
-  void onError(void handleError(error)) {}
+  void onError(Function handleError) {}
 
   /// Has no effect.
   void onDone(void handleDone()) {}
