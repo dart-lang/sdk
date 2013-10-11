@@ -7,8 +7,6 @@ library csslib.src.messages;
 import 'package:logging/logging.dart' show Level;
 import 'package:source_maps/span.dart' show Span;
 
-import 'package:csslib/parser.dart';
-
 import 'options.dart';
 
 // TODO(terry): Remove the global messages, use some object that tracks

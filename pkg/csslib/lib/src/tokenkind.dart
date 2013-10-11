@@ -142,20 +142,24 @@ class TokenKind {
   static const int UNIT_VIEWPORT_VMAX = 626;
 
   // Directives (@nnnn)
-  static const int DIRECTIVE_NONE = 650;
-  static const int DIRECTIVE_IMPORT = 651;
-  static const int DIRECTIVE_MEDIA = 652;
-  static const int DIRECTIVE_PAGE = 653;
-  static const int DIRECTIVE_CHARSET = 654;
-  static const int DIRECTIVE_STYLET = 655;
-  static const int DIRECTIVE_KEYFRAMES = 656;
-  static const int DIRECTIVE_WEB_KIT_KEYFRAMES = 657;
-  static const int DIRECTIVE_MOZ_KEYFRAMES = 658;
-  static const int DIRECTIVE_MS_KEYFRAMES = 659;
-  static const int DIRECTIVE_O_KEYFRAMES = 660;
-  static const int DIRECTIVE_FONTFACE = 661;
-  static const int DIRECTIVE_NAMESPACE = 662;
-  static const int DIRECTIVE_HOST = 663;
+  static const int DIRECTIVE_NONE = 640;
+  static const int DIRECTIVE_IMPORT = 641;
+  static const int DIRECTIVE_MEDIA = 642;
+  static const int DIRECTIVE_PAGE = 643;
+  static const int DIRECTIVE_CHARSET = 644;
+  static const int DIRECTIVE_STYLET = 645;
+  static const int DIRECTIVE_KEYFRAMES = 646;
+  static const int DIRECTIVE_WEB_KIT_KEYFRAMES = 647;
+  static const int DIRECTIVE_MOZ_KEYFRAMES = 648;
+  static const int DIRECTIVE_MS_KEYFRAMES = 649;
+  static const int DIRECTIVE_O_KEYFRAMES = 650;
+  static const int DIRECTIVE_FONTFACE = 651;
+  static const int DIRECTIVE_NAMESPACE = 652;
+  static const int DIRECTIVE_HOST = 653;
+  static const int DIRECTIVE_MIXIN = 654;
+  static const int DIRECTIVE_INCLUDE = 655;
+  static const int DIRECTIVE_CONTENT = 656;
+  static const int DIRECTIVE_EXTEND = 657;
 
   // Media query operators
   static const int MEDIA_OP_ONLY = 665;     // Unary.
@@ -205,6 +209,10 @@ class TokenKind {
     const {'type': TokenKind.DIRECTIVE_FONTFACE, 'value' : 'font-face'},
     const {'type': TokenKind.DIRECTIVE_NAMESPACE, 'value' : 'namespace'},
     const {'type': TokenKind.DIRECTIVE_HOST, 'value' : 'host'},
+    const {'type': TokenKind.DIRECTIVE_MIXIN, 'value' : 'mixin'},
+    const {'type': TokenKind.DIRECTIVE_INCLUDE, 'value' : 'include'},
+    const {'type': TokenKind.DIRECTIVE_CONTENT, 'value' : 'content'},
+    const {'type': TokenKind.DIRECTIVE_EXTEND, 'value' : 'extend'},
   ];
 
   static const List<Map<int, String>> MEDIA_OPERATORS = const [
@@ -684,6 +692,9 @@ class TokenKind {
       case TokenKind.DIRECTIVE_FONTFACE:
       case TokenKind.DIRECTIVE_NAMESPACE:
       case TokenKind.DIRECTIVE_HOST:
+      case TokenKind.DIRECTIVE_MIXIN:
+      case TokenKind.DIRECTIVE_INCLUDE:
+      case TokenKind.DIRECTIVE_CONTENT:
       case TokenKind.UNIT_EM:
       case TokenKind.UNIT_EX:
       case TokenKind.UNIT_LENGTH_PX:

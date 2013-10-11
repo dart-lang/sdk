@@ -13,6 +13,8 @@ abstract class TreeNode {
 
   TreeNode(this.span) {}
 
+  TreeNode clone();
+
   /** Classic double-dispatch visitor for implementing passes. */
   visit(VisitorBase visitor);
 

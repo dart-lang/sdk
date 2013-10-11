@@ -5,8 +5,6 @@
 library nested_test;
 
 import 'package:unittest/unittest.dart';
-import 'package:csslib/parser.dart';
-import 'package:csslib/visitor.dart';
 import 'testing.dart';
 
 List optionsCss = ['--no-colors', 'memory'];
@@ -602,6 +600,37 @@ light .leftCol .textLink a {
   compileAndValidate(input10, generated10);
 }
 
+thisCombinator() {
+  var errors = [];
+  var input = r'''
+.btn {
+  color: red;
+}
+.btn + .btn {
+  margin-left: 5px;
+}
+input.second {
+  & + label {
+    color: blue;
+  }
+}
+''';
+
+  var generated = r'''.btn {
+  color: #f00;
+}
+.btn + .btn {
+  margin-left: 5px;
+}
+input.second {
+}
+input.second + label {
+  color: #00f;
+}''';
+
+  compileAndValidate(input, generated);
+}
+
 main() {
   test('Selector and Nested Variations', selectorVariations);
   test('Simple nesting', simpleNest);
@@ -610,4 +639,5 @@ main() {
   test('Simple &', simpleThis);
   test("Variations &", variationsThis);
   test('Complex &', complexThis);
+  test('& with + selector', thisCombinator);
 }
