@@ -431,10 +431,6 @@ static void InspectStackTest(bool optimize) {
   bool saved_osr = FLAG_use_osr;
   FLAG_use_osr = false;
 
-  // Set up the breakpoint.
-  Dart_SetPausedEventHandler(InspectOptimizedStack_Breakpoint);
-  SetBreakpointAtEntry("", "breakpointNow");
-
   if (optimize) {
     // Warm up the code to make sure it gets optimized.  We ignore any
     // breakpoints that get hit during warm-up.
@@ -446,6 +442,10 @@ static void InspectStackTest(bool optimize) {
     // Try to ensure that none of the test code gets optimized.
     FLAG_optimization_counter_threshold = kHighThreshold;
   }
+
+  // Set up the breakpoint.
+  Dart_SetPausedEventHandler(InspectOptimizedStack_Breakpoint);
+  SetBreakpointAtEntry("", "breakpointNow");
 
   // Run the code and inspect the stack.
   stack_buffer[0] = '\0';
@@ -486,6 +486,101 @@ TEST_CASE(Debug_InspectStack_NotOptimized) {
 
 TEST_CASE(Debug_InspectStack_Optimized) {
   InspectStackTest(true);
+}
+
+
+static void InspectStackWithClosureTest(bool optimize) {
+  const char* kScriptChars =
+      "void breakpointNow() {\n"
+      "}\n"
+      "int helper(int a, int b, bool stop) {\n"
+      "  if (b == 99 && stop) {\n"
+      "    breakpointNow();\n"
+      "  }\n"
+      "  int c = a*b;\n"
+      "  return c;\n"
+      "}\n"
+      "int anotherMiddleMan(func) {\n"
+      "  return func(10);\n"
+      "}\n"
+      "int middleMan(int x, int limit, bool stop) {\n"
+      "  int value = 0;\n"
+      "  for (int i = 0; i < limit; i++) {\n"
+      "    value += anotherMiddleMan((value) {\n"
+      "      return helper((x * value), i, stop);\n"
+      "    });\n"
+      "  }\n"
+      "  return value;\n"
+      "}\n"
+      "int test(bool stop, int limit) {\n"
+      "  return middleMan(5, limit, stop);\n"
+      "}\n";
+
+  LoadScript(kScriptChars);
+
+  // Save/restore some compiler flags.
+  Dart_Handle dart_args[2];
+  int saved_threshold = FLAG_optimization_counter_threshold;
+  const int kLowThreshold = 100;
+  const int kHighThreshold = 10000;
+  bool saved_osr = FLAG_use_osr;
+  FLAG_use_osr = false;
+
+  if (optimize) {
+    // Warm up the code to make sure it gets optimized.  We ignore any
+    // breakpoints that get hit during warm-up.
+    FLAG_optimization_counter_threshold = kLowThreshold;
+    dart_args[0] = Dart_False();
+    dart_args[1] = Dart_NewInteger(kLowThreshold);
+    EXPECT_VALID(Dart_Invoke(script_lib, NewString("test"), 2, dart_args));
+  } else {
+    // Try to ensure that none of the test code gets optimized.
+    FLAG_optimization_counter_threshold = kHighThreshold;
+  }
+
+  // Set up the breakpoint.
+  Dart_SetPausedEventHandler(InspectOptimizedStack_Breakpoint);
+  SetBreakpointAtEntry("", "breakpointNow");
+
+  // Run the code and inspect the stack.
+  stack_buffer[0] = '\0';
+  dart_args[0] = Dart_True();
+  dart_args[1] = Dart_NewInteger(kLowThreshold);
+  EXPECT_VALID(Dart_Invoke(script_lib, NewString("test"), 2, dart_args));
+  if (optimize) {
+    EXPECT_STREQ("[0] breakpointNow { }\n"
+                 "[1] helper { a = 50 b = 99 stop = null }\n"
+                 "[2] <anonymous closure> { x = <unknown>"
+                 " stop = <unknown> value = null }\n"
+                 "[3] anotherMiddleMan { func = null }\n"
+                 "[4] middleMan { limit = 100 value = 242550 }\n"
+                 "[5] test { stop = true limit = 100 }\n",
+                 stack_buffer);
+  } else {
+    EXPECT_STREQ("[0] breakpointNow { }\n"
+                 "[1] helper { a = 50 b = 99 stop = true }\n"
+                 "[2] <anonymous closure> { x = 5 i = 99"
+                 " stop = <unknown> value = 10 }\n"
+                 "[3] anotherMiddleMan {"
+                 " func = Closure: (dynamic) => dynamic }\n"
+                 "[4] middleMan { x = 5 limit = 100 stop = <unknown>"
+                 " value = 242550 i = 99 }\n"
+                 "[5] test { stop = true limit = 100 }\n",
+                 stack_buffer);
+  }
+
+  FLAG_optimization_counter_threshold = saved_threshold;
+  FLAG_use_osr = saved_osr;
+}
+
+
+TEST_CASE(Debug_InspectStackWithClosure_NotOptimized) {
+  InspectStackWithClosureTest(false);
+}
+
+
+TEST_CASE(Debug_InspectStackWithClosure_Optimized) {
+  InspectStackWithClosureTest(true);
 }
 
 

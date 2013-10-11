@@ -360,9 +360,10 @@ RawArray* DeoptContext::DestFrameAsArray() {
   ASSERT(dest_frame_ != NULL && dest_frame_is_allocated_);
   const Array& dest_array =
       Array::Handle(Array::New(dest_frame_size_));
-  Instance& obj = Instance::Handle();
+  Object& obj = Object::Handle();
   for (intptr_t i = 0; i < dest_frame_size_; i++) {
-    obj ^= reinterpret_cast<RawObject*>(dest_frame_[i]);
+    obj = reinterpret_cast<RawObject*>(dest_frame_[i]);
+    ASSERT(obj.IsNull() || obj.IsInstance() || obj.IsContext());
     dest_array.SetAt(i, obj);
   }
   return dest_array.raw();
