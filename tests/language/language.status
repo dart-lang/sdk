@@ -5,6 +5,9 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
+[ $compiler == none && $runtime == drt && $mode == debug ]
+source_self_negative_test: Crash # Issue 14003
+
 [ $compiler == none ]
 mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631
