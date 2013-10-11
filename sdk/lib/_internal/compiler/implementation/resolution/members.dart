@@ -3949,8 +3949,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
        identical(type.element, compiler.intClass) ||
        identical(type.element, compiler.doubleClass) ||
        identical(type.element, compiler.stringClass) ||
-       identical(type.element, compiler.nullClass) ||
-       identical(type.element, compiler.functionClass));
+       identical(type.element, compiler.nullClass));
   }
 }
 
