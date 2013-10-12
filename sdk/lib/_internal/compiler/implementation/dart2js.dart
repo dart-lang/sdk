@@ -422,7 +422,7 @@ class EventSinkWrapper extends EventSink<String> {
 
   void add(String data) => onAdd(data);
 
-  void addError(error) => throw error;
+  void addError(error, [StackTrace stackTrace]) => throw error;
 
   void close() => onClose();
 }

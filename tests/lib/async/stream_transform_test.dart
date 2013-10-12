@@ -49,10 +49,11 @@ main() {
 
   test("closing after done", () {
     var controller = new StreamController(sync: true);
-    controller.stream.map((e) => e).transform(new StreamTransformer(
-        handleData: (element, sink) { sink.add(element); },
-        handleDone: (sink) { sink.close(); })
-    ).listen(expectAsync1((e) => expect(e, equals("foo"))));
+    controller.stream.map((e) => e)
+      .transform(new StreamTransformer.fromHandlers(
+                     handleData: (element, sink) { sink.add(element); },
+                     handleDone: (sink) { sink.close(); }))
+      .listen(expectAsync1((e) => expect(e, equals("foo"))));
 
     controller.add("foo");
     // Should not crash.

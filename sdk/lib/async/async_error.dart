@@ -29,7 +29,7 @@ Function _registerErrorHandler(Function errorHandler, Zone zone) {
 }
 
 /**
- * *This is an experimental API.*
+ * *DEPRECATED*. Use explicit stack trace arguments instead.
  *
  * Get the [StackTrace] attached to [o].
  *
@@ -38,6 +38,7 @@ Function _registerErrorHandler(Function errorHandler, Zone zone) {
  *
  * Returns [null] if no [StackTrace] was attached.
  */
+@deprecated
 getAttachedStackTrace(o) {
   if (o == null || o is bool || o is num || o is String) return null;
   return _stackTraceExpando[o];

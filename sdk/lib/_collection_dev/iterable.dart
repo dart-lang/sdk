@@ -24,6 +24,8 @@ part of dart._collection.dev;
 //    deprecation of runZonedExperimental.
 // TODO(floitsch): also used in dart:json and dart:utf until middle of October
 //    for deprecation of json and utf libraries.
+// TODO(floitsch): and dart:async until middle of October for deprecation of
+//    getAttachedStackTrace.
 
 // We use a random string constant to avoid it clashing with other constants.
 // This is, because we have a test that verifies that no metadata is included

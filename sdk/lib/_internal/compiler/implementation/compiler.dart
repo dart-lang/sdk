@@ -1593,7 +1593,7 @@ class NullSink implements EventSink<String> {
 
   add(String value) {}
 
-  void addError(Object error) {}
+  void addError(Object error, [StackTrace stackTrace]) {}
 
   void close() {}
 

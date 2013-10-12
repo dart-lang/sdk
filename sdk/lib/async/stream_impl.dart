@@ -36,6 +36,7 @@ abstract class _EventDispatch<T> {
  *
  * The user interface of [_BufferingStreamSubscription] are the following
  * methods:
+ *
  * * [_add]: Add a data event to the stream.
  * * [_addError]: Add an error event to the stream.
  * * [_close]: Request to close the stream.
@@ -43,6 +44,7 @@ abstract class _EventDispatch<T> {
  *     either due to being actively canceled, or after sending a done event.
  * * [_onPause]: Called when the subscription wants the event source to pause.
  * * [_onResume]: Called when allowing new events after a pause.
+ *
  * The user should not add new events when the subscription requests a paused,
  * but if it happens anyway, the subscription will enqueue the events just as
  * when new events arrive while still firing an old event.
@@ -92,17 +94,14 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
    */
   _PendingEvents _pending;
 
-  _BufferingStreamSubscription(void onData(T data),
-                               Function onError,
-                               void onDone(),
+  _BufferingStreamSubscription(void onDataHandler(T data),
+                               Function onErrorHandler,
+                               void onDoneHandler(),
                                bool cancelOnError)
-      : _onData = Zone.current.registerUnaryCallback(onData),
-        _onError = _registerErrorHandler(onError, Zone.current),
-        _onDone = Zone.current.registerCallback(onDone),
-        _state = (cancelOnError ? _STATE_CANCEL_ON_ERROR : 0) {
-    assert(_onData != null);
-    assert(_onError != null);
-    assert(_onDone != null);
+      : _state = (cancelOnError ? _STATE_CANCEL_ON_ERROR : 0) {
+    onData(onDataHandler);
+    onError(onErrorHandler);
+    onDone(onDoneHandler);
   }
 
   /**

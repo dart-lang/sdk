@@ -22,8 +22,8 @@ main() {
           events.add("map $x");
           return x + 100;
         })
-        .transform(new StreamTransformer(
-            handleError: (e, sink) => sink.add("error $e")))
+        .transform(new StreamTransformer.fromHandlers(
+            handleError: (e, st, sink) { sink.add("error $e"); }))
         .listen((x) { events.add("stream $x"); });
     }).listen((x) { events.add(x); });
     controller.add(1);

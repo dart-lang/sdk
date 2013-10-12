@@ -143,7 +143,8 @@ main() {
     controller..add(7)..add(8)..add(9);
     // Transformer that puts error into controller when one of the first two
     // streams have sent a done event.
-    StreamTransformer trans = new StreamTransformer(handleDone: (EventSink s) {
+    StreamTransformer trans = new StreamTransformer.fromHandlers(
+        handleDone: (EventSink s) {
       Timer.run(() { controller.addError("BAD-6"); });
       s.close();
     });

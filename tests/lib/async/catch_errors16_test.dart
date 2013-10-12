@@ -19,8 +19,8 @@ main() {
     stream = stream.map((x) => x + 100);
   }).listen((x) { events.add(x); });
   stream
-    .transform(new StreamTransformer(
-        handleError: (e, sink) => sink.add("error $e")))
+    .transform(new StreamTransformer.fromHandlers(
+        handleError: (e, st, sink) { sink.add("error $e"); }))
     .listen((x) { events.add("stream $x"); },
             onDone: () {
               Expect.listEquals(["stream 101",

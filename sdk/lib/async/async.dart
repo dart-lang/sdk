@@ -30,5 +30,6 @@ part 'stream.dart';
 part 'stream_controller.dart';
 part 'stream_impl.dart';
 part 'stream_pipe.dart';
+part 'stream_transformers.dart';
 part 'timer.dart';
 part 'zone.dart';

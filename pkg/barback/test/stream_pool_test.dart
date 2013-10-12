@@ -50,9 +50,11 @@ main() {
       controller1.add("fifth");
 
       expect(newFuture(() {
-        return pool.stream.transform(new StreamTransformer(
+        return pool.stream.transform(new StreamTransformer.fromHandlers(
             handleData: (data, sink) => sink.add(["data", data]),
-            handleError: (error, sink) => sink.add(["error", error]))).toList();
+            handleError: (error, stackTrace, sink) {
+          sink.add(["error", error]);
+        })).toList();
       }), completion(equals([
         ["data", "first"],
         ["data", "second"],
@@ -111,9 +113,10 @@ main() {
       controller2.addError("second");
 
       expect(newFuture(() {
-        return pool.stream.transform(new StreamTransformer(
+        return pool.stream.transform(new StreamTransformer.fromHandlers(
             handleData: (data, sink) => sink.add(data),
-            handleError: (error, sink) => sink.add(error))).toList();
+            handleError: (error, stackTrace, sink) { sink.add(error); }))
+            .toList();
       }), completion(isEmpty));
 
       pumpEventQueue().then((_) => pool.close());

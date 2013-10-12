@@ -407,7 +407,7 @@ List<String> splitLines(String text) =>
 /// newline is ignored.
 Stream<String> streamToLines(Stream<String> stream) {
   var buffer = new StringBuffer();
-  return stream.transform(new StreamTransformer(
+  return stream.transform(new StreamTransformer.fromHandlers(
       handleData: (chunk, sink) {
         var lines = splitLines(chunk);
         var leftover = lines.removeLast();

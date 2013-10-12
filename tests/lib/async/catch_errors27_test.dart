@@ -28,8 +28,8 @@ main() {
         })
         .asBroadcastStream();
       stream
-        .transform(new StreamTransformer(
-            handleError: (e, sink) => sink.add("error $e")))
+        .transform(new StreamTransformer.fromHandlers(
+            handleError: (e, st, sink) { sink.add("error $e"); }))
         .listen((x) { events.add("stream $x"); });
       runAsync(() {
         controller.add(1);
