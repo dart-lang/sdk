@@ -84,7 +84,7 @@ LibTest/async/EventTransformStream/listen_A04_t01: Pass, Timeout # co19 issue 54
 
 LibTest/typed_data/Int8List/Int8List.fromList_A01_t02: Fail # co19-roll r559: Please triage this failure
 
-[ $compiler == none || $compiler == dart2js ]
+[ $runtime == vm || $compiler == none || $compiler == dart2js ]
 LibTest/async/EventTransformStream/EventTransformStream_A01_t01: CompileTimeError # co19 issue 626
 LibTest/async/EventTransformStream/EventTransformStream_A01_t02: CompileTimeError # co19 issue 626
 LibTest/async/EventTransformStream/any_A01_t01: CompileTimeError # co19 issue 626
