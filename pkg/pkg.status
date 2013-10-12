@@ -24,6 +24,9 @@ third_party/html5lib/test/browser/browser_test: Skip
 [ $compiler == dart2js ]
 analyzer_experimental/test/generated/ast_test: RuntimeError #Issue 12341
 
+[ $compiler == dart2js && $runtime == drt ]
+polymer/test/prop_attr_reflection_test: Fail # Issue 14048
+
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
 
