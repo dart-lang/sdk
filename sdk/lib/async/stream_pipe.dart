@@ -54,19 +54,16 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
                               { Function onError,
                                 void onDone(),
                                 bool cancelOnError }) {
-    if (onData == null) onData = _nullDataHandler;
-    if (onError == null) onError = _nullErrorHandler;
-    if (onDone == null) onDone = _nullDoneHandler;
     cancelOnError = identical(true, cancelOnError);
-    return _createSubscription(onData, onError, onDone, cancelOnError);
+    StreamSubscription<T> result = _createSubscription(cancelOnError);
+    result.onData(onData);
+    result.onError(onError);
+    result.onDone(onDone);
+    return result;
   }
 
-  StreamSubscription<T> _createSubscription(void onData(T value),
-                                            Function onError,
-                                            void onDone(),
-                                            bool cancelOnError) {
-    return new _ForwardingStreamSubscription<S, T>(
-        this, onData, onError, onDone, cancelOnError);
+  StreamSubscription<T> _createSubscription(bool cancelOnError) {
+    return new _ForwardingStreamSubscription<S, T>(this, cancelOnError);
   }
 
   // Override the following methods in subclasses to change the behavior.
@@ -94,16 +91,11 @@ class _ForwardingStreamSubscription<S, T>
 
   StreamSubscription<S> _subscription;
 
-  _ForwardingStreamSubscription(this._stream,
-                                void onData(T data),
-                                Function onError,
-                                void onDone(),
-                                bool cancelOnError)
-      : super(onData, onError, onDone, cancelOnError) {
-    _subscription =
-        _stream._source.listen(_handleData,
-                               onError: _handleError,
-                               onDone: _handleDone);
+  _ForwardingStreamSubscription(this._stream, bool cancelOnError)
+      : super(cancelOnError) {
+    _subscription = _stream._source.listen(_handleData,
+                                           onError: _handleError,
+                                           onDone: _handleDone);
   }
 
   // _StreamSink interface.

@@ -35,12 +35,9 @@ class _SinkTransformerStreamSubscription<S, T>
 
   _SinkTransformerStreamSubscription(Stream<S> source,
                                      _SinkMapper mapper,
-                                     void onData(T data),
-                                     Function onError,
-                                     void onDone(),
                                      bool cancelOnError)
       // We set the adapter's target only when the user is allowed to send data.
-      : super(onData, onError, onDone, cancelOnError) {
+      : super(cancelOnError) {
     _EventSinkWrapper<T> eventSink = new _EventSinkWrapper<T>(this);
     _transformerSink = mapper(eventSink);
     _subscription = source.listen(_handleData,
@@ -180,8 +177,12 @@ class _BoundSinkStream<S, T> extends Stream<T> {
                                  void onDone(),
                                  bool cancelOnError }) {
     cancelOnError = identical(true, cancelOnError);
-    return new _SinkTransformerStreamSubscription(
-        _stream, _sinkMapper, onData, onError, onDone, cancelOnError);
+    StreamSubscription<T> subscription = new _SinkTransformerStreamSubscription(
+        _stream, _sinkMapper, cancelOnError);
+    subscription.onData(onData);
+    subscription.onError(onError);
+    subscription.onDone(onDone);
+    return subscription;
   }
 }
 
