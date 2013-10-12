@@ -138,7 +138,7 @@ LibTest/core/Runes/lastWhere_A02_t01: Fail, OK
 # co19 issue #623: main() { {}; } is block and empty statement, not a map
 Language/13_Statements/02_Expression_Statements_A01_t13: Fail, OK
 
-# co19 issue #TODO(floitsch): StreamTransformer has been refactored.
+# co19 issue #626: StreamTransformers have been refactored.
 LibTest/async/EventTransformStream/EventTransformStream_A01_t01: Fail
 LibTest/async/EventTransformStream/EventTransformStream_A01_t02: Fail
 LibTest/async/EventTransformStream/any_A01_t01: Fail
