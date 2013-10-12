@@ -61,7 +61,7 @@ class Parser {
     final String value = token.stringValue;
     if ((identical(value, 'abstract') && optional('class', token.next))
         || identical(value, 'class')) {
-      return parseClass(token);
+      return parseClassOrNamedMixinApplication(token);
     } else if (identical(value, 'typedef')) {
       return parseTypedef(token);
     } else if (identical(value, 'library')) {
@@ -246,6 +246,8 @@ class Parser {
   Token parseTypedef(Token token) {
     Token typedefKeyword = token;
     if (optional('=', peekAfterType(token.next))) {
+      // TODO(aprelev@gmail.com): Remove deprecated 'typedef' mixin application,
+      // remove corresponding diagnostic from members.dart.
       listener.beginNamedMixinApplication(token);
       token = parseIdentifier(token.next);
       token = parseTypeVariablesOpt(token);
@@ -453,17 +455,56 @@ class Parser {
     return beginGroupToken.endGroup;
   }
 
-  Token parseClass(Token token) {
+  Token parseClassOrNamedMixinApplication(Token token) {
     Token begin = token;
-    listener.beginClassDeclaration(token);
-    int modifierCount = 0;
+    Token abstractKeyword;
     if (optional('abstract', token)) {
-      listener.handleModifier(token);
-      modifierCount++;
+      abstractKeyword = token;
       token = token.next;
     }
+    Token classKeyword = token;
+    var isMixinApplication = optional('=', peekAfterType(token.next));
+    if (isMixinApplication) {
+      listener.beginNamedMixinApplication(begin);
+      token = parseIdentifier(token.next);
+      token = parseTypeVariablesOpt(token);
+      token = expect('=', token);
+    } else {
+      listener.beginClassDeclaration(begin);
+    }
+
+    // TODO(aprelev@gmail.com): Once 'typedef' named mixin application is
+    // removed, move modifiers for named mixin application to the bottom of
+    // listener stack. This is so stacks for class declaration and named
+    // mixin application look similar.
+    int modifierCount = 0;
+    if (abstractKeyword != null) {
+      parseModifier(abstractKeyword);
+      modifierCount++;
+    }
     listener.handleModifiers(modifierCount);
-    token = parseIdentifier(token.next);
+
+    if (isMixinApplication) {
+      return parseNamedMixinApplication(token, classKeyword);
+    } else {
+      return parseClass(begin, classKeyword);
+    }
+  }
+
+  Token parseNamedMixinApplication(Token token, Token classKeyword) {
+    token = parseMixinApplication(token);
+    Token implementsKeyword = null;
+    if (optional('implements', token)) {
+      implementsKeyword = token;
+      token = parseTypeList(token.next);
+    }
+    listener.endNamedMixinApplication(
+        classKeyword, implementsKeyword, token);
+    return expect(';', token);
+  }
+
+  Token parseClass(Token begin, Token classKeyword) {
+    Token token = parseIdentifier(classKeyword.next);
     token = parseTypeVariablesOpt(token);
     Token extendsKeyword;
     if (optional('extends', token)) {

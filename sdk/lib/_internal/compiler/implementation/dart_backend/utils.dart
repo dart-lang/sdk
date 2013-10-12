@@ -126,7 +126,7 @@ class CloningVisitor implements Visitor<Node> {
                                 visit(node.modifiers),
                                 visit(node.mixinApplication),
                                 visit(node.interfaces),
-                                node.typedefKeyword,
+                                node.classKeyword,
                                 node.endToken);
 
   visitModifiers(Modifiers node) => new Modifiers(visit(node.nodes));

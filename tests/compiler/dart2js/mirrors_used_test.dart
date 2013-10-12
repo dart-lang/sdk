@@ -35,6 +35,10 @@ void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
     return;
   }
   if (kind.name == 'info') return;
+
+  // TODO(aprelev@gmail.com): Remove once dartbug.com/13907 is fixed.
+  if (message.contains("Warning: 'typedef' not allowed here")) return;
+
   throw '$uri:$begin:$end: $kind: $message';
 }
 

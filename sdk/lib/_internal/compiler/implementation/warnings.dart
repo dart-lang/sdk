@@ -1045,6 +1045,18 @@ Error: '#{value}' is not a valid Symbol name because is not:
       "Error: No expression after 'throw'. "
       "Did you mean 'rethrow'?");
 
+  static const MessageKind DEPRECATED_TYPEDEF_MIXIN_SYNTAX = const MessageKind(
+      "Warning: 'typedef' not allowed here. ",
+      howToFix: "Try replacing 'typedef' with 'class'.",
+      examples: const [
+          """
+class B { }
+class M1 {  }
+typedef C = B with M1;  // Need to replace 'typedef' with 'class'.
+main() { new C(); }
+"""]
+);
+
   static const MessageKind MIRRORS_EXPECTED_STRING = const MessageKind(
       "Hint: Can't use '#{name}' here because it's an instance of '#{type}' "
       "and a 'String' value is expected.",

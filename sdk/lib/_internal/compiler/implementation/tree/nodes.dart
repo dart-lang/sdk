@@ -267,12 +267,12 @@ class NamedMixinApplication extends Node implements MixinApplication {
   final MixinApplication mixinApplication;
   final NodeList interfaces;
 
-  final Token typedefKeyword;
+  final Token classKeyword;
   final Token endToken;
 
   NamedMixinApplication(this.name, this.typeParameters,
                         this.modifiers, this.mixinApplication, this.interfaces,
-                        this.typedefKeyword, this.endToken);
+                        this.classKeyword, this.endToken);
 
   TypeAnnotation get superclass => mixinApplication.superclass;
   NodeList get mixins => mixinApplication.mixins;
@@ -290,7 +290,7 @@ class NamedMixinApplication extends Node implements MixinApplication {
     mixinApplication.accept(visitor);
   }
 
-  Token getBeginToken() => typedefKeyword;
+  Token getBeginToken() => classKeyword;
   Token getEndToken() => endToken;
 }
 

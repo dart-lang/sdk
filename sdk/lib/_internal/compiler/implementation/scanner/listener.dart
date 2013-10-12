@@ -157,7 +157,7 @@ class Listener {
   void beginNamedMixinApplication(Token token) {
   }
 
-  void endNamedMixinApplication(Token typedefKeyword,
+  void endNamedMixinApplication(Token classKeyword,
                                 Token implementsKeyword,
                                 Token endToken) {
   }
@@ -799,7 +799,7 @@ class ElementListener extends Listener {
     rejectBuiltInIdentifier(name);
   }
 
-  void endNamedMixinApplication(Token typedefKeyword,
+  void endNamedMixinApplication(Token classKeyword,
                                 Token implementsKeyword,
                                 Token endToken) {
     NodeList interfaces = (implementsKeyword != null) ? popNode() : null;
@@ -809,7 +809,7 @@ class ElementListener extends Listener {
     Identifier name = popNode();
     NamedMixinApplication namedMixinApplication = new NamedMixinApplication(
         name, typeParameters, modifiers, mixinApplication, interfaces,
-        typedefKeyword, endToken);
+        classKeyword, endToken);
 
     int id = idGenerator();
     Element enclosing = compilationUnitElement;
@@ -1196,7 +1196,7 @@ class NodeListener extends ElementListener {
                          typedefKeyword, endToken));
   }
 
-  void endNamedMixinApplication(Token typedefKeyword,
+  void endNamedMixinApplication(Token classKeyword,
                                 Token implementsKeyword,
                                 Token endToken) {
     NodeList interfaces = (implementsKeyword != null) ? popNode() : null;
@@ -1207,7 +1207,7 @@ class NodeListener extends ElementListener {
     pushNode(new NamedMixinApplication(name, typeParameters,
                                        modifiers, mixinApplication,
                                        interfaces,
-                                       typedefKeyword, endToken));
+                                       classKeyword, endToken));
   }
 
   void endClassBody(int memberCount, Token beginToken, Token endToken) {

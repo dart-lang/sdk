@@ -26,7 +26,6 @@ LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail, timeout # co19-roll r54
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail, timeout # co19-roll r546: Please triage this failure
 Language/15_Types/1_Static_Types_A03_t01: Fail # co19-roll r607: Please triage this failure
 
-Language/09_Mixins/1_Mixin_Application_A01_t01: CompileTimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: CompileTimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedList/first_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # co19-roll r607: Please triage this failure

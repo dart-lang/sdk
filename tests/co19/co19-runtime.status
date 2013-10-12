@@ -101,6 +101,7 @@ LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail # VM triage, check spec.
 Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail # co19-roll r587: Please triage this failure
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail # co19-roll r587: Please triage this failure
 
+Language/09_Mixins/1_Mixin_Application_A01_t01: CompileTimeError # Dart issue 13907
 
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/typed_data/Float32x4List/elementAt_A01_t01: Fail # Dart issue 12861

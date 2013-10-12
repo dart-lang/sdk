@@ -3686,6 +3686,13 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     compiler.ensure(element != null);
     compiler.ensure(element.resolutionState == STATE_STARTED);
 
+    if (identical(node.classKeyword.stringValue, 'typedef')) {
+      // TODO(aprelev@gmail.com): Remove this deprecation diagnostic
+      // together with corresponding TODO in parser.dart.
+      compiler.reportWarningCode(node.classKeyword,
+          MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX);
+    }
+
     InterfaceType type = element.computeType(compiler);
     scope = new TypeDeclarationScope(scope, element);
     resolveTypeVariableBounds(node.typeParameters);
