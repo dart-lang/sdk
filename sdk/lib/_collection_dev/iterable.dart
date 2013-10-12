@@ -26,6 +26,8 @@ part of dart._collection.dev;
 //    for deprecation of json and utf libraries.
 // TODO(floitsch): and dart:async until middle of October for deprecation of
 //    getAttachedStackTrace.
+// TODO(floitsch): and dart:async until end of October for deprecation of
+//    runAsync.
 
 // We use a random string constant to avoid it clashing with other constants.
 // This is, because we have a test that verifies that no metadata is included

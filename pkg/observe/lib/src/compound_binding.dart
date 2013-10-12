@@ -42,7 +42,7 @@ class CompoundBinding extends ChangeNotifierBase {
    * resolve.
    */
   // TODO(jmesserly): I don't like having this public, is the optimization
-  // really needed? "runAsync" in Dart should be pretty cheap.
+  // really needed? "scheduleMicrotask" in Dart should be pretty cheap.
   bool scheduled = false;
 
   /**
@@ -99,7 +99,7 @@ class CompoundBinding extends ChangeNotifierBase {
   void _scheduleResolve() {
     if (scheduled) return;
     scheduled = true;
-    runAsync(resolve);
+    scheduleMicrotask(resolve);
   }
 
   void resolve() {

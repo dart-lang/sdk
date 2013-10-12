@@ -28,7 +28,7 @@ main() {
         .transform(new StreamTransformer.fromHandlers(
             handleError: (e, st, sink) { sink.add("error $e"); }))
         .asBroadcastStream();
-      runAsync(() {
+      scheduleMicrotask(() {
         stream.listen((x) {
           events.add("stream $x");
           if (x == "error 2") done.complete(true);
@@ -37,7 +37,7 @@ main() {
     }).listen((x) { events.add(x); })
       .asFuture().then((_) { Expect.fail("Unexpected callback"); });
     stream.listen((x) { events.add("stream2 $x"); });
-    runAsync(() {
+    scheduleMicrotask(() {
       controller.add(1);
       // Errors are not allowed to traverse boundaries, but in this case the
       // first listener of the broadcast stream is in the same error-zone. So

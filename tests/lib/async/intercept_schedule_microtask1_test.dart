@@ -4,11 +4,12 @@
 
 import "package:expect/expect.dart";
 import 'dart:async';
+import 'catch_errors.dart';
 
 main() {
   // Test that runZoned returns the result of executing the body.
-  var result = runZonedExperimental(() => 499,
-    onRunAsync: (f) {
+  var result = runZonedScheduleMicrotask(() => 499,
+    onScheduleMicrotask: (f) {
       Expect.fail("Unexpected invocation.");
     });
   Expect.equals(499, result);

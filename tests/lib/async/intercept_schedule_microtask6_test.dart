@@ -5,6 +5,7 @@
 import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
+import 'catch_errors.dart';
 
 class A {
   add(x) => print(x);
@@ -13,7 +14,7 @@ var events = [];
 
 body() {
   events.add("body entry");
-  runAsync(() {
+  scheduleMicrotask(() {
     events.add("run async body");
     throw "foo";
   });
@@ -22,7 +23,7 @@ body() {
 
 onAsyncHandler(fun) {
   events.add("async handler");
-  runAsync(fun);
+  scheduleMicrotask(fun);
   events.add("async handler done");
 }
 
@@ -30,19 +31,14 @@ onErrorHandler(e) {
   events.add("error: $e");
 }
 
-onDoneHandler() {
-  events.add("done");
-}
-
 main() {
   asyncStart();
 
   // Test that runZonedExperimental works when async, error and done are used.
-  var result = runZonedExperimental(
+  var result = runZonedScheduleMicrotask(
       body,
-      onRunAsync: onAsyncHandler,
-      onError: onErrorHandler,
-      onDone: onDoneHandler);
+      onScheduleMicrotask: onAsyncHandler,
+      onError: onErrorHandler);
   events.add("after");
   Timer.run(() {
     Expect.listEquals(

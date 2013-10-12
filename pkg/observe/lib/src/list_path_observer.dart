@@ -53,7 +53,7 @@ class ListPathObserver<E, P> extends ChangeNotifierBase {
   void _scheduleReduce(_) {
     if (_scheduled) return;
     _scheduled = true;
-    runAsync(_reduce);
+    scheduleMicrotask(_reduce);
   }
 
   void _observeItems(int lengthAdjust) {

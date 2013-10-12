@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
+import 'catch_errors.dart';
 
 var events = [];
 
 body() {
   events.add("body entry");
-  runAsync(() {
+  scheduleMicrotask(() {
     events.add("run async body");
   });
   return 499;
@@ -18,20 +18,15 @@ body() {
 
 handler(fun) {
   events.add("handler");
-  runAsync(fun);
+  fun();
   events.add("handler done");
 }
 
 main() {
-  asyncStart();
-
-  // Test that runAsync inside the runAsync-handler goes to the parent zone.
-  var result = runZonedExperimental(body, onRunAsync: handler);
-  events.add("after");
-  runAsync(() {
-    Expect.listEquals(
-        ["body entry", "handler", "handler done", "after", "run async body"],
-        events);
-    asyncEnd();
-  });
+  // Test that scheduleMicrotask interception works.
+  var result = runZonedScheduleMicrotask(body, onScheduleMicrotask: handler);
+  // No need for a ReceivePort: If the runZonedScheduleMicrotask disbehaved we
+  // would have an [events] list that is different from what we expect.
+  Expect.listEquals(["body entry", "handler", "run async body", "handler done"],
+                    events);
 }

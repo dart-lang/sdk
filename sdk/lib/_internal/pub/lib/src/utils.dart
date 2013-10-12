@@ -601,9 +601,9 @@ Future resetStack(fn()) {
   // Using [new Future] adds an asynchronous operation that works around the
   // first and second cases described above.
   newFuture(fn).then((val) {
-    runAsync(() => completer.complete(val));
+    scheduleMicrotask(() => completer.complete(val));
   }).catchError((err) {
-    runAsync(() => completer.completeError(err));
+    scheduleMicrotask(() => completer.completeError(err));
   });
   return completer.future;
 }

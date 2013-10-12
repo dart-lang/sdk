@@ -79,10 +79,10 @@ main() {
   openTests++;
   forked.run(() {
     int forkTrace = stackTrace;
-    runAsync(() {
-      int runAsyncTrace = stackTrace;
-      runAsync(() {
-        expectedDebugTrace = [runAsyncTrace, forkTrace];
+    scheduleMicrotask(() {
+      int scheduleMicrotaskTrace = stackTrace;
+      scheduleMicrotask(() {
+        expectedDebugTrace = [scheduleMicrotaskTrace, forkTrace];
         openTests--;
         if (openTests == 0) {
           done.complete();
@@ -112,7 +112,7 @@ main() {
       if (openTests == 0) {
         done.complete();
       }
-      runAsync(() {
+      scheduleMicrotask(() {
         expectedDebugTrace = [fork3Trace, fork2Trace, globalTrace];
         throw "gee";
       });

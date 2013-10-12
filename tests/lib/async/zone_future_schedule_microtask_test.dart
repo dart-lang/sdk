@@ -5,27 +5,28 @@
 import "package:expect/expect.dart";
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
+import 'catch_errors.dart';
 
 main() {
   asyncStart();
   Completer done = new Completer();
 
-  // Make sure that the zones use the runAsync of their zones.
-  int runAsyncCount = 0;
+  // Make sure that the zones use the scheduleMicrotask of their zones.
+  int scheduleMicrotaskCount = 0;
   Completer completer;
   Completer completer2;
   Future future;
   Future future2;
-  runZonedExperimental(() {
+  runZonedScheduleMicrotask(() {
     completer = new Completer();
     completer.complete(499);
     completer2 = new Completer.sync();
     completer2.complete(-499);
     future = new Future.value(42);
     future2 = new Future.error(11);
-  }, onRunAsync: (f) {
-    runAsyncCount++;
-    runAsync(f);
+  }, onScheduleMicrotask: (f) {
+    scheduleMicrotaskCount++;
+    scheduleMicrotask(f);
   });
   int openCallbackCount = 0;
 
@@ -58,7 +59,7 @@ main() {
   });
 
   done.future.whenComplete(() {
-    Expect.equals(4, runAsyncCount);
+    Expect.equals(4, scheduleMicrotaskCount);
     asyncEnd();
   });
 }

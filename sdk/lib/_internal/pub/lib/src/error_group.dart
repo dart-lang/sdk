@@ -127,7 +127,7 @@ class ErrorGroup {
 
     _isDone = true;
     _done._signalError(error, stackTrace);
-    if (!caught && !_done._hasListeners) runAsync((){ throw error; });
+    if (!caught && !_done._hasListeners) scheduleMicrotask((){ throw error; });
   }
 
   /// Notifies [this] that one of its member [Future]s is complete.

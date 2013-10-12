@@ -43,26 +43,34 @@ void _scheduleAsyncCallback(callback) {
  * or DOM events).
  *
  * Warning: it is possible to starve the DOM by registering asynchronous
- * callbacks through this method. For example the following program will
- * run the callbacks without ever giving the Timer callback a chance to execute:
+ * callbacks through this method. For example the following program runs
+ * the callbacks without ever giving the Timer callback a chance to execute:
  *
  *     Timer.run(() { print("executed"); });  // Will never be executed;
  *     foo() {
- *       asyncRun(foo);  // Schedules [foo] in front of other events.
+ *       scheduleMicrotask(foo);  // Schedules [foo] in front of other events.
  *     }
  *     main() {
  *       foo();
  *     }
  */
-void runAsync(void callback()) {
+void scheduleMicrotask(void callback()) {
   if (Zone.current == Zone.ROOT) {
-    // No need to bind the callback. We know that the root's runAsync will
-    // be invoked in the root zone.
+    // No need to bind the callback. We know that the root's scheduleMicrotask
+    // will be invoked in the root zone.
     Zone.current.scheduleMicrotask(callback);
     return;
   }
   Zone.current.scheduleMicrotask(
       Zone.current.bindCallback(callback, runGuarded: true));
+}
+
+/**
+ * *DEPRECATED*. Use [scheduleMicrotask] instead.
+ */
+@deprecated
+void runAsync(void callback()) {
+  scheduleMicrotask(callback);
 }
 
 class _AsyncRun {

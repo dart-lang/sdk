@@ -31,7 +31,7 @@ main() {
         .transform(new StreamTransformer.fromHandlers(
             handleError: (e, st, sink) { sink.add("error $e"); }))
         .listen((x) { events.add("stream $x"); });
-      runAsync(() {
+      scheduleMicrotask(() {
         controller.add(1);
         // Errors are not allowed to traverse boundaries, but in this case the
         // first listener of the broadcast stream is in the same error-zone. So

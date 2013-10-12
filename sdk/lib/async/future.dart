@@ -91,9 +91,8 @@ abstract class Future<T> {
    * Creates a future containing the result of calling [computation]
    * asynchronously with [Timer.run].
    *
-   * if the result of executing [computation] throws, the returned future is
-   * completed with the error. If a thrown value is an [AsyncError], it is used
-   * directly, instead of wrapping this error again in another [AsyncError].
+   * If the result of executing [computation] throws, the returned future is
+   * completed with the error.
    *
    * If the returned value is itself a [Future], completion of
    * the created future will wait until the returned future completes,
@@ -114,12 +113,36 @@ abstract class Future<T> {
   }
 
   /**
+   * Creates a future containing the result of calling [computation]
+   * asynchronously with [scheduleMicrotask].
+   *
+   * If the result of executing [computation] throws, the returned future is
+   * completed with the error.
+   *
+   * If the returned value is itself a [Future], completion of
+   * the created future will wait until the returned future completes,
+   * and will then complete with the same result.
+   *
+   * If a value is returned, it becomes the result of the created future.
+   */
+  factory Future.microtask(computation()) {
+    _Future result = new _Future<T>();
+    scheduleMicrotask(() {
+      try {
+        result._complete(computation());
+      } catch (e, s) {
+        result._completeError(e, s);
+      }
+    });
+    return result;
+  }
+
+  /**
    * Creates a future containing the result of immediately calling
    * [computation].
    *
    * If calling [computation] throws, the returned future is completed with the
-   * error. If a thrown value is an [AsyncError], it is used
-   * directly, instead of wrapping this error again in another [AsyncError].
+   * error.
    *
    * If the returned value is itself a [Future], completion of
    * the created future will wait until the returned future completes,

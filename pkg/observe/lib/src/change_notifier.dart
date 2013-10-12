@@ -84,7 +84,7 @@ abstract class ChangeNotifierMixin implements Observable {
 
     if (_records == null) {
       _records = [];
-      runAsync(deliverChanges);
+      scheduleMicrotask(deliverChanges);
     }
     _records.add(record);
   }

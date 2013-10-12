@@ -74,7 +74,7 @@ class _TemplateExtension extends _ElementExtension {
   _ensureSetModelScheduled() {
     if (_scheduled) return;
     _scheduled = true;
-    runAsync(_setModel);
+    scheduleMicrotask(_setModel);
   }
 
   void _setModel() {

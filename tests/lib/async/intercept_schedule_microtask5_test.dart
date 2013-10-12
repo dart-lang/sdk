@@ -5,14 +5,15 @@
 import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
+import 'catch_errors.dart';
 
 var events = [];
 
 body() {
   events.add("body entry");
-  runAsync(() {
+  scheduleMicrotask(() {
     events.add("run async body");
-    runAsync(() {
+    scheduleMicrotask(() {
       events.add("run nested body");
     });
   });
@@ -21,23 +22,23 @@ body() {
 
 handler(fun) {
   events.add("handler");
-  runAsync(fun);
+  scheduleMicrotask(fun);
   events.add("handler done");
 }
 
 handler2(fun) {
   events.add("handler2");
-  runAsync(fun);
+  scheduleMicrotask(fun);
   events.add("handler2 done");
 }
 
 main() {
   asyncStart();
 
-  // Test that nested runZonedExperimental go to the next outer zone.
-  var result = runZonedExperimental(
-      () => runZonedExperimental(body, onRunAsync: handler2),
-      onRunAsync: handler);
+  // Test that nested runZonedScheduleMicrotask go to the next outer zone.
+  var result = runZonedScheduleMicrotask(
+      () => runZonedScheduleMicrotask(body, onScheduleMicrotask: handler2),
+      onScheduleMicrotask: handler);
   events.add("after");
   Timer.run(() {
     Expect.listEquals(

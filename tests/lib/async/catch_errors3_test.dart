@@ -18,7 +18,7 @@ main() {
     new Future(() => 499).then((x) {
       futureWasExecuted = true;
     });
-    runAsync(() {
+    scheduleMicrotask(() {
       new Future(() => 42).then((x) {
         future2WasExecuted = true;
         Expect.isTrue(futureWasExecuted);

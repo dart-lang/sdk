@@ -821,7 +821,7 @@ class _RawSocket extends Stream<RawSocketEvent>
       if (data == null || data.length < available) {
         // Reading less than available from a Mac OS terminal indicate Ctrl-D.
         // This is interpreted as read closed.
-        runAsync(() => _controller.add(RawSocketEvent.READ_CLOSED));
+        scheduleMicrotask(() => _controller.add(RawSocketEvent.READ_CLOSED));
       }
       return data;
     } else {

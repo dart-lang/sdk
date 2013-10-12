@@ -155,7 +155,7 @@ main() {
         completer3.complete("future3");
         Timer.run(() {
           completer1.complete("future1");
-          runAsync(closeCompleter.complete);
+          scheduleMicrotask(closeCompleter.complete);
         });
       });
     });
@@ -212,7 +212,7 @@ main() {
               subscription.pause();
               completer1.complete("future1");
               subscription.resume();
-              runAsync(closeCompleter.complete);
+              scheduleMicrotask(closeCompleter.complete);
             });
           });
         });

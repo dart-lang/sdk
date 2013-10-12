@@ -134,7 +134,7 @@ testEarlyClose2() {
           if (++count < 10) {
             makeRequest();
           } else {
-            runAsync(server.close);
+            scheduleMicrotask(server.close);
           }
         });
       });

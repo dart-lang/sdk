@@ -764,7 +764,7 @@ void _runTest() {
         _lastBreath = now;
         Timer.run(_nextTestCase);
       } else {
-        runAsync(_nextTestCase); // Schedule the next test.
+        scheduleMicrotask(_nextTestCase); // Schedule the next test.
       }
     });
   }
@@ -818,7 +818,7 @@ void _ensureInitialized(bool configAutoStart) {
   if (configAutoStart && _config.autoStart) {
     // Immediately queue the suite up. It will run after a timeout (i.e. after
     // main() has returned).
-    runAsync(runTests);
+    scheduleMicrotask(runTests);
   }
 }
 

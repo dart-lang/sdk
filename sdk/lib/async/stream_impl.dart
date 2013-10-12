@@ -579,13 +579,13 @@ abstract class _PendingEvents {
    * State of being scheduled.
    *
    * Set to [_STATE_SCHEDULED] when pending events are scheduled for
-   * async dispatch. Since we can't cancel a [runAsync] call, if schduling
-   * is "canceled", the _state is simply set to [_STATE_CANCELED] which will
-   * make the async code do nothing except resetting [_state].
+   * async dispatch. Since we can't cancel a [scheduleMicrotask] call, if
+   * scheduling is "canceled", the _state is simply set to [_STATE_CANCELED]
+   * which will make the async code do nothing except resetting [_state].
    *
    * If events are scheduled while the state is [_STATE_CANCELED], it is
-   * merely switched back to [_STATE_SCHEDULED], but no new call to [runAsync]
-   * is performed.
+   * merely switched back to [_STATE_SCHEDULED], but no new call to
+   * [scheduleMicrotask] is performed.
    */
   int _state = _STATE_UNSCHEDULED;
 
@@ -608,7 +608,7 @@ abstract class _PendingEvents {
       _state = _STATE_SCHEDULED;
       return;
     }
-    runAsync(() {
+    scheduleMicrotask(() {
       int oldState = _state;
       _state = _STATE_UNSCHEDULED;
       if (oldState == _STATE_CANCELED) return;

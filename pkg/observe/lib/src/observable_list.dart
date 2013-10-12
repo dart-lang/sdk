@@ -181,7 +181,7 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifierMixin {
   void _recordChange(ListChangeRecord record) {
     if (_listRecords == null) {
       _listRecords = [];
-      runAsync(deliverChanges);
+      scheduleMicrotask(deliverChanges);
     }
     _listRecords.add(record);
   }

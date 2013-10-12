@@ -590,7 +590,7 @@ void helpAndFail(String message) {
 }
 
 void mainWithErrorHandler(Options options) {
-  runZonedExperimental(() => compilerMain(options), onError: (exception) {
+  runZoned(() => compilerMain(options), onError: (exception) {
     try {
       print('Internal error: $exception');
     } catch (ignored) {

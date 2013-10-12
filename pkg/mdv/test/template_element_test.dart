@@ -1117,8 +1117,8 @@ templateElementTests() {
     var select = div.nodes[0].nextNode;
     expect(select.nodes.length, 2);
 
-    runAsync(expectAsync0(() {
-      runAsync(expectAsync0(() {
+    scheduleMicrotask(expectAsync0(() {
+      scheduleMicrotask(expectAsync0(() {
         // TODO(jmesserly): this should be called sooner.
         expect(select.selectedIndex, 1);
       }));

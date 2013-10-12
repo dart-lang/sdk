@@ -5,43 +5,35 @@
 import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
+import 'catch_errors.dart';
 
 var events = [];
 
 body() {
   events.add("body entry");
-  runAsync(() {
+  scheduleMicrotask(() {
     events.add("run async body");
-    runAsync(() {
-      events.add("run nested body");
-    });
   });
   return 499;
 }
 
 handler(fun) {
   events.add("handler");
-  runAsync(fun);
+  scheduleMicrotask(fun);
   events.add("handler done");
 }
 
 main() {
   asyncStart();
 
-  // Test that body of a runAsync goes to the zone it came from.
-  var result = runZonedExperimental(body, onRunAsync: handler);
+  // Test that scheduleMicrotask inside the scheduleMicrotask-handler goes to
+  // the parent zone.
+  var result = runZonedScheduleMicrotask(body, onScheduleMicrotask: handler);
   events.add("after");
-  runAsync(() {
-    runAsync(() {
-      Expect.listEquals(
-          ["body entry",
-           "handler", "handler done",
-           "after",
-           "run async body",
-           "handler", "handler done",
-           "run nested body"],
-          events);
-      asyncEnd();
-    });
+  scheduleMicrotask(() {
+    Expect.listEquals(
+        ["body entry", "handler", "handler done", "after", "run async body"],
+        events);
+    asyncEnd();
   });
 }

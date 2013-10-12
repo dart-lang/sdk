@@ -71,7 +71,7 @@ void _observeTests(createModel(x)) {
     initialObservers = dirty_check.allObservablesCount;
     subs = [];
 
-    if (watch) runAsync(Observable.dirtyCheck);
+    if (watch) scheduleMicrotask(Observable.dirtyCheck);
   });
 
   tearDown(() {
@@ -177,7 +177,7 @@ void _observeTests(createModel(x)) {
       expectChanges(records, _changedValue(1));
       sub.cancel();
       t.value = 777;
-      runAsync(Observable.dirtyCheck);
+      scheduleMicrotask(Observable.dirtyCheck);
     }));
     t.value = 42;
   });
@@ -189,12 +189,12 @@ void _observeTests(createModel(x)) {
       expectChanges(records, _changedValue(1));
       sub.cancel();
 
-      runAsync(expectAsync0(() {
+      scheduleMicrotask(expectAsync0(() {
         subs.add(t.changes.listen(expectAsync1((records) {
           expectChanges(records, _changedValue(1));
         })));
         t.value = 777;
-        runAsync(Observable.dirtyCheck);
+        scheduleMicrotask(Observable.dirtyCheck);
       }));
     }));
     t.value = 42;

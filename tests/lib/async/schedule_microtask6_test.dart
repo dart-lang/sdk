@@ -7,8 +7,16 @@ library run_async_test;
 import 'dart:async';
 import '../../../pkg/unittest/lib/unittest.dart';
 
+bool _unhandledExceptionCallback(exception) => true;
+
 main() {
-  test("run async test", () {
-    runAsync(expectAsync0(() {}));
+  test('run async test', () {
+    var callback = expectAsync0(() {});
+    scheduleMicrotask(() {
+      scheduleMicrotask(() {
+        callback();
+      });
+      throw new Exception('exception');
+    });
   });
 }

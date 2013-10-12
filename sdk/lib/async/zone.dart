@@ -23,6 +23,9 @@ typedef ZoneBinaryCallback RegisterBinaryCallbackHandler(
     Zone self, ZoneDelegate parent, Zone zone, f(arg1, arg2));
 typedef void ScheduleMicrotaskHandler(
     Zone self, ZoneDelegate parent, Zone zone, f());
+@deprecated
+typedef void RunAsyncHandler(
+    Zone self, ZoneDelegate parent, Zone zone, f());
 typedef Timer CreateTimerHandler(
     Zone self, ZoneDelegate parent, Zone zone, Duration duration, void f());
 typedef Timer CreatePeriodicTimerHandler(
@@ -50,6 +53,8 @@ typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
  * Handlers can either stop propagation the request (by simply not calling the
  * parent handler), or forward to the parent zone, potentially modifying the
  * arguments on the way.
+ *
+ * *The `runAsync` handler is deprecated. Use `scheduleMicrotask` instead.*
  */
 abstract class ZoneSpecification {
   /**
@@ -70,6 +75,8 @@ abstract class ZoneSpecification {
     ZoneBinaryCallback registerBinaryCallback(
         Zone self, ZoneDelegate parent, Zone zone, f(arg1, arg2)): null,
     void scheduleMicrotask(
+        Zone self, ZoneDelegate parent, Zone zone, f()): null,
+    void runAsync(
         Zone self, ZoneDelegate parent, Zone zone, f()): null,
     Timer createTimer(Zone self, ZoneDelegate parent, Zone zone,
                       Duration duration, void f()): null,
@@ -99,6 +106,8 @@ abstract class ZoneSpecification {
         Zone self, ZoneDelegate parent, Zone zone, f(arg1, arg2)): null,
     void scheduleMicrotask(
         Zone self, ZoneDelegate parent, Zone zone, f()): null,
+    void runAsync(
+        Zone self, ZoneDelegate parent, Zone zone, f()): null,
     Timer createTimer(Zone self, ZoneDelegate parent, Zone zone,
                       Duration duration, void f()): null,
     Timer createPeriodicTimer(Zone self, ZoneDelegate parent, Zone zone,
@@ -125,7 +134,9 @@ abstract class ZoneSpecification {
                          : other.registerBinaryCallback,
       scheduleMicrotask: scheduleMicrotask != null
                          ? scheduleMicrotask
-                         : other.scheduleMicrotask,
+                         : (runAsync != null
+                            ? runAsync
+                            : other.scheduleMicrotask),
       createTimer : createTimer != null ? createTimer : other.createTimer,
       createPeriodicTimer: createPeriodicTimer != null
                            ? createPeriodicTimer
@@ -141,6 +152,8 @@ abstract class ZoneSpecification {
   RegisterUnaryCallbackHandler get registerUnaryCallback;
   RegisterBinaryCallbackHandler get registerBinaryCallback;
   ScheduleMicrotaskHandler get scheduleMicrotask;
+  @deprecated
+  RunAsyncHandler get runAsync;
   CreateTimerHandler get createTimer;
   CreatePeriodicTimerHandler get createPeriodicTimer;
   ForkHandler get fork;
@@ -163,6 +176,7 @@ class _ZoneSpecification implements ZoneSpecification {
     this.registerUnaryCallback: null,
     this.registerBinaryCallback: null,
     this.scheduleMicrotask: null,
+    this.runAsync: null,
     this.createTimer: null,
     this.createPeriodicTimer: null,
     this.fork: null
@@ -177,6 +191,8 @@ class _ZoneSpecification implements ZoneSpecification {
   final /*RegisterUnaryCallbackHandler*/ registerUnaryCallback;
   final /*RegisterBinaryCallbackHandler*/ registerBinaryCallback;
   final /*ScheduleMicrotaskHandler*/ scheduleMicrotask;
+  @deprecated
+  final /*RunAsyncHandler*/ runAsync;
   final /*CreateTimerHandler*/ createTimer;
   final /*CreatePeriodicTimerHandler*/ createPeriodicTimer;
   final /*ForkHandler*/ fork;
@@ -203,6 +219,8 @@ abstract class ZoneDelegate {
   ZoneCallback registerCallback(Zone zone, f());
   ZoneUnaryCallback registerUnaryCallback(Zone zone, f(arg));
   ZoneBinaryCallback registerBinaryCallback(Zone zone, f(arg1, arg2));
+  @deprecated
+  void runAsync(Zone zone, f());
   void scheduleMicrotask(Zone zone, f());
   Timer createTimer(Zone zone, Duration duration, void f());
   Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer));
@@ -354,6 +372,9 @@ abstract class Zone {
    */
   void scheduleMicrotask(void f());
 
+  @deprecated
+  void runAsync(void f());
+
   /**
    * Creates a Timer where the callback is executed in this zone.
    */
@@ -451,11 +472,21 @@ class _ZoneDelegate implements ZoneDelegate {
 
   void scheduleMicrotask(Zone zone, f()) {
     _CustomizedZone parent = _degelationTarget;
-    while (parent._specification.scheduleMicrotask == null) {
+    while (parent._specification.scheduleMicrotask == null &&
+           parent._specification.runAsync == null) {
       parent = parent.parent;
     }
     _ZoneDelegate grandParent = new _ZoneDelegate(parent.parent);
-    (parent._specification.scheduleMicrotask)(parent, grandParent, zone, f);
+    Function scheduleMicrotask = parent._specification.scheduleMicrotask;
+    if (scheduleMicrotask == null) {
+      scheduleMicrotask = parent._specification.runAsync;
+    }
+    scheduleMicrotask(parent, grandParent, zone, f);
+  }
+
+  @deprecated
+  void runAsync(Zone zone, f()) {
+    scheduleMicrotask(zone, f());
   }
 
   Timer createTimer(Zone zone, Duration duration, void f()) {
@@ -606,6 +637,11 @@ class _CustomizedZone implements Zone {
 
   void scheduleMicrotask(void f()) {
     new _ZoneDelegate(this).scheduleMicrotask(this, f);
+  }
+
+  @deprecated
+  void runAsync(void f()) {
+    scheduleMicrotask(f);
   }
 
   Timer createTimer(Duration duration, void f()) {
@@ -805,20 +841,20 @@ dynamic runZoned(body(),
 /**
  * Deprecated. Use `runZoned` instead or create your own [ZoneSpecification].
  *
- * The [onRunAsync] handler (if non-null) is invoked when the [body] executes
- * [runAsync].  The handler is invoked in the outer zone and can therefore
- * execute [runAsync] without recursing. The given callback must be
- * executed eventually. Otherwise the nested zone will not complete. It must be
- * executed only once.
+ * The [onScheduleMicrotask] handler (if non-null) is invoked when the [body]
+ * executes [scheduleMicrotask]. The handler is invoked in the outer zone and
+ * can therefore execute [scheduleMicrotask] without recursing. The given
+ * callback must be executed eventually. Otherwise the nested zone will not
+ * complete. It must be executed only once.
  *
  * The following example prints the stack trace whenever a callback is
- * registered using [runAsync] (which is also used by [Completer]s and
+ * registered using [scheduleMicrotask] (which is also used by [Completer]s and
  * [StreamController]s.
  *
  *     printStackTrace() { try { throw 0; } catch(e, s) { print(s); } }
  *     runZonedExperimental(body, onRunAsync: (callback) {
  *       printStackTrace();
- *       runAsync(callback);
+ *       scheduleMicrotask(callback);
  *     });
  *
  * Note: the `onDone` handler is ignored.
@@ -854,7 +890,7 @@ runZonedExperimental(body(),
   }
   ZoneSpecification specification =
     new ZoneSpecification(handleUncaughtError: errorHandler,
-                        scheduleMicrotask: asyncHandler);
+                          scheduleMicrotask: asyncHandler);
   Zone zone = Zone.current.fork(specification: specification);
   if (onError != null) {
     return zone.runGuarded(body);

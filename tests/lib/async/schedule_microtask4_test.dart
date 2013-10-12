@@ -12,7 +12,7 @@ void startTest(SendPort finishPort, replyPort) {
   int invokedCallbacks = 0;
 
   for (int i = 0; i < 100; i++) {
-    runAsync(() {
+    scheduleMicrotask(() {
       invokedCallbacks++;
       if (invokedCallbacks == 100) finishPort.send("done");
       if (i == 50) throw new UnsupportedError("ignore exception");
